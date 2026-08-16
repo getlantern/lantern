@@ -12,12 +12,22 @@ class RadianceSettingsState {
   final RoutingMode routingMode;
   final bool splitTunneling;
   final bool telemetry;
+  final bool peerProxy;
+  // Local opt-in for the broflake / Unbounded widget proxy. Separate
+  // from peerProxy because the two are independent toggles — the SmC
+  // disclosure dialog flips just one of them based on the user's
+  // choice ("Basic mode" → unboundedEnabled, "Full mode" → peerProxy).
+  // The VPN settings tile uses BOTH to decide whether to show the
+  // "On — tap to view" subtitle.
+  final bool unboundedEnabled;
 
   const RadianceSettingsState({
     this.blockAds = false,
     this.routingMode = RoutingMode.full,
     this.splitTunneling = false,
     this.telemetry = false,
+    this.peerProxy = false,
+    this.unboundedEnabled = false,
   });
 
   RadianceSettingsState copyWith({
@@ -25,12 +35,16 @@ class RadianceSettingsState {
     RoutingMode? routingMode,
     bool? splitTunneling,
     bool? telemetry,
+    bool? peerProxy,
+    bool? unboundedEnabled,
   }) {
     return RadianceSettingsState(
       blockAds: blockAds ?? this.blockAds,
       routingMode: routingMode ?? this.routingMode,
       splitTunneling: splitTunneling ?? this.splitTunneling,
       telemetry: telemetry ?? this.telemetry,
+      peerProxy: peerProxy ?? this.peerProxy,
+      unboundedEnabled: unboundedEnabled ?? this.unboundedEnabled,
     );
   }
 
@@ -41,9 +55,17 @@ class RadianceSettingsState {
           blockAds == other.blockAds &&
           routingMode == other.routingMode &&
           splitTunneling == other.splitTunneling &&
-          telemetry == other.telemetry;
+          telemetry == other.telemetry &&
+          peerProxy == other.peerProxy &&
+          unboundedEnabled == other.unboundedEnabled;
 
   @override
-  int get hashCode =>
-      Object.hash(blockAds, routingMode, splitTunneling, telemetry);
+  int get hashCode => Object.hash(
+        blockAds,
+        routingMode,
+        splitTunneling,
+        telemetry,
+        peerProxy,
+        unboundedEnabled,
+      );
 }

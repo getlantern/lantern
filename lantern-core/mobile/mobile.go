@@ -177,6 +177,88 @@ func SetSmartRoutingEnabled(enabled bool) error {
 	})
 }
 
+func SetPeerShareEnabled(enabled bool) error {
+	slog.Info("peer-share: SetPeerShareEnabled", "enabled", enabled)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetPeerShareEnabled(enabled)
+	})
+}
+
+func IsPeerShareEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsPeerShareEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
+// SetPeerManualPort persists the manually-configured router port forward
+// the user has configured for the Share My Connection feature. Pass 0
+// to clear and revert to UPnP-discovered port behavior. Surfaced
+// through the macOS / iOS / Android MethodChannel handler so platforms
+// running radiance inside a network extension (where the main app
+// process can't reach the FFI directly) can still drive the setting.
+func SetPeerManualPort(port int) error {
+	slog.Info("peer-share: SetPeerManualPort", "port", port)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetPeerManualPort(port)
+	})
+}
+
+// GetPeerManualPort returns the currently-persisted manual port (0 if
+// unset). Same MethodChannel rationale as SetPeerManualPort.
+func GetPeerManualPort() int {
+	v, err := withCoreR(func(c lanterncore.Core) (int, error) {
+		return c.GetPeerManualPort(), nil
+	})
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
+// SetUnboundedEnabled is the local opt-in for the broflake / Unbounded
+// widget proxy ("Basic mode" in the SmC UI). Surfaced through the
+// MethodChannel so platforms running radiance inside a network
+// extension (macOS, eventually iOS) can drive the setting from the
+// main app process.
+func SetUnboundedEnabled(enabled bool) error {
+	slog.Info("unbounded: SetUnboundedEnabled", "enabled", enabled)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetUnboundedEnabled(enabled)
+	})
+}
+
+// IsUnboundedEnabled returns the current local opt-in state for
+// Unbounded. Note: actual run state also depends on the server
+// Features[unbounded] flag and supplied UnboundedConfig — this just
+// reports the persisted local toggle.
+func IsUnboundedEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsUnboundedEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
+// ProbeUPnP runs IGD discovery and reports whether a usable gateway
+// is reachable. Surfaced through the MethodChannel so the SmC mode
+// gate works on platforms whose Flutter side can't reach the FFI
+// directly (mobile network-extension hosts).
+func ProbeUPnP() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.ProbeUPnP(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
 func IsSmartRoutingEnabled() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
 		return c.IsSmartRoutingEnabled(), nil

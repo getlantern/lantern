@@ -6,6 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/share_my_connection/share_my_connection.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -35,6 +36,18 @@ class VPNSetting extends HookConsumerWidget {
     final telemetryConsent = ref.watch(
       radianceSettingsProvider.select((s) => s.telemetry),
     );
+    final peerProxy = ref.watch(
+      radianceSettingsProvider.select((s) => s.peerProxy),
+    );
+    final unboundedEnabled = ref.watch(
+      radianceSettingsProvider.select((s) => s.unboundedEnabled),
+    );
+    // The tile reads "On" when EITHER donor protocol is active —
+    // the disclosure dialog flips peerProxy for "Full mode" and
+    // unboundedEnabled for "Basic mode", and the user shouldn't
+    // see a stale "Off" subtitle just because they picked the
+    // lower-friction Unbounded path.
+    final shareActive = peerProxy || unboundedEnabled;
 
     return ListView(
       key: const Key('vpn_setting.list'),
@@ -57,19 +70,19 @@ class VPNSetting extends HookConsumerWidget {
                   appRouter.push(const ServerSelection());
                 },
               ),
-              if (!PlatformUtils.isIOS) ...{
+              if (!PlatformUtils.isIOS) ...[
                 DividerSpace(),
                 SplitTunnelingTile(
                   label: 'routing_mode'.i18n,
                   icon: AppImagePaths.route,
                   actionText: routingMode.label(),
                   onPressed: () => appRouter.push(const SmartRouting()),
-                )
-              },
+                ),
+              ],
               DividerSpace(),
               if (PlatformUtils.isAndroid ||
                   PlatformUtils.isMacOS ||
-                  PlatformUtils.isWindows) ...{
+                  PlatformUtils.isWindows) ...[
                 SplitTunnelingTile(
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
@@ -77,8 +90,8 @@ class VPNSetting extends HookConsumerWidget {
                       splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
                   onPressed: () => appRouter.push(const SplitTunneling()),
                 ),
-                DividerSpace()
-              },
+                DividerSpace(),
+              ],
             ],
           ),
         ),
@@ -118,6 +131,36 @@ class VPNSetting extends HookConsumerWidget {
             },
           ),
         ),
+        if (PlatformUtils.isDesktop) ...[
+          SizedBox(height: 16),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              label: 'share_my_connection'.i18n,
+              subtitle: Text(
+                shareActive
+                    ? 'share_my_connection_on_tap_to_view'.i18n
+                    : 'share_my_connection_subtitle'.i18n,
+                style: textTheme.labelMedium!.copyWith(
+                  color: context.textTertiary,
+                  letterSpacing: 0.0,
+                ),
+              ),
+              icon: AppImagePaths.share,
+              trailing: AppImage(
+                path: AppImagePaths.arrowForward,
+                height: 20,
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ShareMyConnectionScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
         SizedBox(height: 16),
         AppCard(
           padding: EdgeInsets.zero,
