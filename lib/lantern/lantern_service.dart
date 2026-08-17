@@ -830,6 +830,62 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isPeerProxyEnabled();
+    }
+    return _platformService.isPeerProxyEnabled();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setPeerProxyEnabled(enabled);
+    }
+    return _platformService.setPeerProxyEnabled(enabled);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setPeerManualPort(int port) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setPeerManualPort(port);
+    }
+    return _platformService.setPeerManualPort(port);
+  }
+
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getPeerManualPort();
+    }
+    return _platformService.getPeerManualPort();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setUnboundedEnabled(enabled);
+    }
+    return _platformService.setUnboundedEnabled(enabled);
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.isUnboundedEnabled();
+    }
+    return _platformService.isUnboundedEnabled();
+  }
+
+  @override
+  Future<Either<Failure, bool>> probeUPnP() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.probeUPnP();
+    }
+    return _platformService.probeUPnP();
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.isSmartRoutingEnabled();

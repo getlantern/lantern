@@ -270,6 +270,51 @@ class MethodHandler {
         let enabled = data?["enabled"] as? Bool ?? false
         self.setBlockAdsEnabled(result: result, enabled: enabled)
 
+      case "isPeerProxyEnabled":
+        Task {
+          await MainActor.run { result(MobileIsPeerShareEnabled()) }
+        }
+
+      case "setPeerProxyEnabled":
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape rather than silently defaulting to false
+        // (which would disable sharing on caller bugs).
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
+        self.setPeerProxyEnabled(result: result, enabled: enabled)
+
+      case "setPeerManualPort":
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape rather than silently defaulting to 0
+        // (which has the real semantic of clearing the manual port
+        // override — caller bugs would silently wipe the user's
+        // setting).
+        guard let port: Int = requireArg(call: call, name: "port", result: result) else { return }
+        self.setPeerManualPort(result: result, port: port)
+
+      case "getPeerManualPort":
+        Task {
+          await MainActor.run { result(Int(MobileGetPeerManualPort())) }
+        }
+
+      case "setUnboundedEnabled":
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
+        self.setUnboundedEnabled(result: result, enabled: enabled)
+
+      case "isUnboundedEnabled":
+        Task {
+          await MainActor.run { result(MobileIsUnboundedEnabled()) }
+        }
+
+      case "probeUPnP":
+        // UPnP M-SEARCH multicast wait — up to ~6s in MobileProbeUPnP.
+        // Hop off the main actor (the Task default executor) so the
+        // wait doesn't stall the UI, then deliver the bool back on
+        // MainActor for the Flutter result callback.
+        Task.detached {
+          let available = MobileProbeUPnP()
+          await MainActor.run { result(available) }
+        }
+
       case "updateTelemetryEvents":
         guard let consent: Bool = self.decodeValue(from: call.arguments, result: result) else {
           return
@@ -1278,6 +1323,48 @@ class MethodHandler {
       MobileSetBlockAdsEnabled(enabled, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "SET_BLOCK_ADS_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func setPeerProxyEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetPeerShareEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PEER_PROXY_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func setPeerManualPort(result: @escaping FlutterResult, port: Int) {
+    Task {
+      var error: NSError?
+      MobileSetPeerManualPort(port, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PEER_MANUAL_PORT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func setUnboundedEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetUnboundedEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_UNBOUNDED_ENABLED_ERROR")
         return
       }
       await MainActor.run {

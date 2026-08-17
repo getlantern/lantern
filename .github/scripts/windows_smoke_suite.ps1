@@ -3,7 +3,7 @@ param(
   [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
-  [string]$PaymentCheckoutTestPath = "integration_test/payment/desktop_stripe_checkout_smoke_test.dart",
+  [string]$PaymentSmokeTestPath = "integration_test/payment/desktop_payment_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
@@ -19,7 +19,8 @@ param(
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
   [switch]$RunConfigUrlSmoke,
-  [switch]$RunPaymentCheckoutSmoke,
+  [switch]$RunPaymentSmoke,
+  [string]$PaymentSmokeArtifactDirectory = "build/windows-payment-smoke",
   [switch]$UseInstaller
 )
 
@@ -136,11 +137,12 @@ function Invoke-FlutterSmokeTest {
     [string]$Description,
     [ValidateSet("prod", "staging")]
     [string]$RadianceEnvironment = "prod",
+    [string[]]$DartDefines = @(),
     [switch]$EnableIpCheck,
     [switch]$ForceFullTunnel
   )
 
-  $args = @(
+  $flutterArgs = @(
     "test",
     $Path,
     "-d",
@@ -149,18 +151,22 @@ function Invoke-FlutterSmokeTest {
     "--dart-define=DISABLE_SYSTEM_TRAY=true"
   )
 
-  $args += "--dart-define=RADIANCE_ENV=$RadianceEnvironment"
+  $flutterArgs += "--dart-define=RADIANCE_ENV=$RadianceEnvironment"
+
+  foreach ($define in $DartDefines) {
+    $flutterArgs += "--dart-define=$define"
+  }
 
   if ($EnableIpCheck) {
-    $args += "--dart-define=ENABLE_IP_CHECK=true"
+    $flutterArgs += "--dart-define=ENABLE_IP_CHECK=true"
   }
 
   if ($ForceFullTunnel) {
-    $args += "--dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
+    $flutterArgs += "--dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
   }
 
-  Write-Step ("Running {0}: flutter {1}" -f $Description, ($args -join " "))
-  & flutter @args
+  Write-Step ("Running {0}: flutter {1}" -f $Description, ($flutterArgs -join " "))
+  & flutter @flutterArgs
   if ($LASTEXITCODE -ne 0) {
     throw "$Description failed with exit code $LASTEXITCODE"
   }
@@ -330,13 +336,21 @@ try {
     Write-Step "Skipping Windows connect smoke test."
   }
 
-  if ($RunPaymentCheckoutSmoke) {
+  if ($RunPaymentSmoke) {
+    if ($ServiceEnvironment -ne "staging") {
+      throw "Payment smoke requires -ServiceEnvironment staging (got '$ServiceEnvironment')"
+    }
+    $paymentDefines = @(
+      "PAYMENT_E2E_ENABLED=true",
+      "PAYMENT_SMOKE_ARTIFACT_DIR=$PaymentSmokeArtifactDirectory"
+    )
     Invoke-FlutterSmokeTest `
-      -Path $PaymentCheckoutTestPath `
-      -Description "Windows Stripe checkout smoke test" `
-      -RadianceEnvironment $ServiceEnvironment
+      -Path $PaymentSmokeTestPath `
+      -Description "Windows payment smoke test" `
+      -RadianceEnvironment $ServiceEnvironment `
+      -DartDefines $paymentDefines
   } else {
-    Write-Step "Skipping Windows Stripe checkout smoke test."
+    Write-Step "Skipping Windows payment smoke test."
   }
 
   if ($RunSplitTunnelWebsiteSmoke) {
@@ -384,6 +398,18 @@ try {
   }
 }
 finally {
+  if ($RunPaymentSmoke) {
+    try {
+      $paymentLogDirectory = Join-Path $PaymentSmokeArtifactDirectory "logs"
+      New-Item -ItemType Directory -Force -Path $paymentLogDirectory | Out-Null
+      $lanternLogDirectory = "C:\Users\Public\Lantern\logs"
+      if (Test-Path $lanternLogDirectory) {
+        Copy-Item "$lanternLogDirectory\*" $paymentLogDirectory -Recurse -Force -ErrorAction SilentlyContinue
+      }
+    } catch {
+      Write-Warning ("Failed to collect payment smoke logs: {0}" -f $_)
+    }
+  }
   try {
     Write-Step "Starting cleanup"
     if ($UseInstaller) {

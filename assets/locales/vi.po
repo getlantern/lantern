@@ -2,10 +2,10 @@
 # Ngoc Hoang <ngocit09@gmail.com>, 2025
 # Nathan Tran, 2025
 # Anh Phan <vietnamesel10n@gmail.com>, 2025
-# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2026
 # e2f <projects@e2f.com>, 2026
 # Lantern, 2026
 # Yen Le Van <yenlevanbk@gmail.com>, 2026
+# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -53,6 +53,17 @@ msgstr "Hình ảnh đó đã được đính kèm."
 msgid "report_issue_attachments_unreadable"
 msgstr "Chúng tôi không thể đọc một trong những tệp đó."
 
+msgid "send_without_email_title"
+msgstr "Gửi mà không có email?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Bạn chưa nhập địa chỉ email, nên chúng tôi sẽ không thể trả lời hoặc theo "
+"dõi báo cáo này."
+
+msgid "send_without_email"
+msgstr "Gửi không cần email"
+
 msgid "lantern_projects"
 msgstr "Dự án Lantern:"
 
@@ -69,6 +80,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Chia sẻ mã giới thiệu"
+
+msgid "invite_friends_description"
+msgstr ""
+"Khi một người bạn nâng cấp lên Lantern Pro bằng mã giới thiệu của bạn, cả "
+"hai đều nhận được 1 tháng miễn phí."
+
+msgid "month_earned"
+msgstr "Đã nhận %s tháng"
+
+msgid "months_earned"
+msgstr "Đã nhận %s tháng"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Bao gồm %s tháng miễn phí từ giới thiệu"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Bao gồm %s tháng miễn phí từ giới thiệu"
+
+msgid "referral_converted_title"
+msgstr "Một người bạn đã nâng cấp lên Pro"
+
+msgid "referral_converted_message"
+msgstr ""
+"Cả hai bạn đều nhận được %s Lantern Pro miễn phí. Đến nay bạn đã nhận được "
+"%s. Hãy tiếp tục chia sẻ mã của bạn để nhận thêm."
+
+msgid "month_count"
+msgstr "%s tháng"
+
+msgid "months_count"
+msgstr "%s tháng"
+
+msgid "done"
+msgstr "Xong"
+
+msgid "view_account"
+msgstr "Xem tài khoản"
+
+msgid "show_download_links"
+msgstr "Hiện liên kết tải xuống"
+
+msgid "get_lantern"
+msgstr "Tải Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Gửi cho bạn bè liên kết tải xuống này:"
+
+msgid "scan_to_install"
+msgstr "Quét bằng ứng dụng máy ảnh để cài đặt Lantern"
+
+msgid "remind_use_code"
+msgstr "Nhắc họ dùng mã %s khi nâng cấp!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1228,6 +1291,9 @@ msgstr "Có sẵn trên:"
 msgid "subscription_renewal_date"
 msgstr "Ngày gia hạn gói đăng ký"
 
+msgid "pro_access_until"
+msgstr "Quyền truy cập Pro đến %s"
+
 msgid "enabled_bypass_lists"
 msgstr "Danh sách bỏ qua đã bật (%d):"
 
@@ -1319,6 +1385,9 @@ msgstr "Biệt danh máy chủ không được để trống"
 msgid "referral_code_applied"
 msgstr "Mã giới thiệu của bạn đã được áp dụng!"
 
+msgid "discount_applied"
+msgstr "Đã áp dụng giảm giá %s"
+
 msgid "referral_message_1m"
 msgstr "+ 15 ngày bổ sung miễn phí"
 
@@ -1326,10 +1395,12 @@ msgid "referral_message_1y"
 msgstr "+ 15 ngày bổ sung miễn phí"
 
 msgid "referral_message_2y"
-msgstr "+ 2 tháng bổ sung miễn phí"
+msgstr "+ 2 tháng miễn phí bổ sung"
 
 msgid "referral_code_invalid"
-msgstr "Mã giới thiệu bạn nhập không hợp lệ. Vui lòng kiểm tra mã và thử lại."
+msgstr ""
+"Mã giới thiệu/khuyến mãi bạn nhập không hợp lệ. Vui lòng kiểm tra mã và thử "
+"lại."
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1540,9 +1611,8 @@ msgstr "Tốc độ giảm xuống 128 kb/s - Đặt lại vào lúc %s."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"Thanh toán được tính vào Apple ID của bạn khi mua. Gói đăng ký sẽ tự động "
-"gia hạn trừ khi bị hủy ít nhất 24 giờ trước khi kết thúc thời hạn hiện tại. "
-"Quản lý hoặc hủy trong Cài đặt App Store."
+"Thanh toán được tính vào Apple ID của bạn khi mua. Gói đăng ký tự động gia "
+"hạn trừ khi được hủy ít nhất 24 giờ trước khi kết thúc chu kỳ hiện tại."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Không thể cập nhật chế độ định tuyến. Vui lòng thử lại."
@@ -1771,3 +1841,81 @@ msgstr "Không thể kiểm tra cập nhật"
 
 msgid "check_connection_and_retry"
 msgstr "Kiểm tra kết nối của bạn và thử lại"
+
+msgid "refresh_configuration"
+msgstr "Làm mới cấu hình"
+
+msgid "configuration_cleared"
+msgstr "Đã xóa cấu hình"
+
+msgid "turn_off_vpn"
+msgstr "Tắt VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"VPN cần được tắt trước khi bạn có thể làm mới cấu hình. Hãy tắt VPN rồi thử "
+"lại."
+
+msgid "configuration_message"
+msgstr ""
+"Cấu hình cũ của bạn đã được xóa. Bật VPN để tự động tải xuống cấu hình mới "
+"nhất."
+
+msgid "promo_referral_code"
+msgstr "Mã khuyến mãi / giới thiệu"
+
+msgid "promo_code"
+msgstr "Mã khuyến mãi"
+
+msgid "promo_code_with"
+msgstr "Mã khuyến mãi (%s)"
+
+msgid "order_total"
+msgstr "Tổng đơn hàng"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"Vị trí thông minh chọn máy chủ nhanh nhất và tự động chuyển đổi khi tìm thấy"
+" tuyến tốt hơn."
+
+msgid "bypass_browser_warning_title"
+msgstr "Thêm %s vào danh sách bỏ qua?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s sẽ kết nối trực tiếp, không có sự bảo vệ của Lantern. Ở các quốc gia chặn"
+" một số trang web nhất định, một số trang sẽ không tải được nữa."
+
+msgid "add_anyway"
+msgstr "Vẫn thêm"
+
+msgid "bypass_all_warning_title"
+msgstr "Thêm tất cả ứng dụng vào danh sách bỏ qua?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Bao gồm cả các trình duyệt như %s. Ứng dụng trong danh sách bỏ qua kết nối "
+"trực tiếp, không có sự bảo vệ của Lantern. Ở các quốc gia chặn một số trang "
+"web nhất định, một số trang sẽ không tải được nữa."
+
+msgid "add_all_except_browsers"
+msgstr "Thêm tất cả trừ trình duyệt"
+
+msgid "add_all_anyway"
+msgstr "Vẫn thêm tất cả"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bỏ qua VPN cho ứng dụng này?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s sẽ kết nối trực tiếp, không có sự bảo vệ của Lantern. Nếu ứng dụng này bị"
+" chặn ở quốc gia của bạn, nó có thể ngừng hoạt động."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bỏ qua VPN cho trang web này?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s sẽ kết nối trực tiếp, không có sự bảo vệ của Lantern. Nếu trang web này "
+"bị chặn ở quốc gia của bạn, nó có thể ngừng hoạt động."

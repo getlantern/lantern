@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -7,6 +8,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
@@ -136,11 +139,11 @@ class AppsSplitTunneling extends ConsumerWidget {
                                   trailing: AppTextButton(
                                     label: 'select_all'.i18n,
                                     fontSize: 14,
-                                    onPressed: () async {
-                                      await notifier.selectApps(
-                                        filteredDisabled,
-                                      );
-                                    },
+                                    onPressed: () => onTapSelectAll(
+                                      ctx,
+                                      notifier,
+                                      filteredDisabled,
+                                    ),
                                   ),
                                 );
                               }
@@ -148,7 +151,7 @@ class AppsSplitTunneling extends ConsumerWidget {
                               return AppRow(
                                 app: app,
                                 enabled: false,
-                                onToggle: () => notifier.toggleApp(app),
+                                onToggle: () => onTapAddApp(ctx, notifier, app),
                               );
                             },
                           ),
@@ -158,6 +161,120 @@ class AppsSplitTunneling extends ConsumerWidget {
       ),
     );
   }
+
+  /// Show info dialog for first time user
+  Future<void> onTapAddApp(
+    BuildContext context,
+    SplitTunnelingApps notifier,
+    AppData app,
+  ) async {
+    if (app.isBrowser) {
+      await AppDialog.browserBypassWarningDialog(
+        context: context,
+        browserName: app.name,
+        onAddAnyway: () => notifier.toggleApp(app),
+      );
+      return;
+    }
+    final storage = sl<LocalStorageService>();
+    if (!storage.hasSeenBypassAppDialog) {
+      await AppDialog.show(
+        context: context,
+        header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
+        centeredTitle: true,
+        title: 'bypass_app_first_time_title'.i18n,
+        body: 'bypass_app_first_time_body'.i18n.fill([app.name]),
+        primaryLabel: 'add'.i18n,
+        onPrimaryPressed: () {
+          // Mark seen only on confirm; cancelling should show the
+          // explainer again next time.
+          unawaited(storage.markBypassAppDialogSeen());
+          notifier.toggleApp(app);
+        },
+        secondaryLabel: 'cancel'.i18n,
+      );
+      return;
+    }
+    notifier.toggleApp(app);
+  }
+
+  /// Warn when Select All would put browsers on the bypass list
+  Future<void> onTapSelectAll(
+    BuildContext context,
+    SplitTunnelingApps notifier,
+    List<AppData> apps,
+  ) async {
+    final browsers = apps.where((a) => a.isBrowser).toList();
+    if (browsers.isEmpty) {
+      await notifier.selectApps(apps);
+      return;
+    }
+    await _showSelectAllBypassWarning(
+      context: context,
+      browserName: browsers.first.name,
+      onAddAllExceptBrowsers: () =>
+          notifier.selectApps(apps.where((a) => !a.isBrowser).toList()),
+      onAddAllAnyway: () => notifier.selectApps(apps),
+    );
+  }
+}
+
+/// Warning shown when "Select All" would add browsers to the bypass list
+Future<void> _showSelectAllBypassWarning({
+  required BuildContext context,
+  required String browserName,
+  required Future<void> Function() onAddAllExceptBrowsers,
+  required Future<void> Function() onAddAllAnyway,
+}) {
+  final textTheme = Theme.of(context).textTheme;
+  return AppDialog.customDialog(
+    context: context,
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        SizedBox(height: size24),
+        Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
+        SizedBox(height: size24),
+        Text(
+          'bypass_all_warning_title'.i18n,
+          style: textTheme.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 8),
+        Text(
+          'bypass_all_warning_body'.i18n.fill([browserName]),
+          style: textTheme.bodyMedium?.copyWith(
+            color: context.textSecondary,
+            height: 23 / 16,
+          ),
+        ),
+      ],
+    ),
+    action: [
+      PrimaryButton(
+        label: 'add_all_except_browsers'.i18n,
+        onPressed: () async {
+          appRouter.pop();
+          await onAddAllExceptBrowsers();
+        },
+      ),
+      SecondaryButton(
+        label: 'add_all_anyway'.i18n,
+        onPressed: () async {
+          appRouter.pop();
+          await onAddAllAnyway();
+        },
+      ),
+      Center(
+        child: AppTextButton(
+          label: 'cancel'.i18n,
+          textColor: context.textPrimary,
+          onPressed: () => appRouter.pop(),
+        ),
+      ),
+    ],
+  );
 }
 
 class AppRow extends ConsumerWidget {

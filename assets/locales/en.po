@@ -611,6 +611,129 @@ msgstr "Block Ads"
 msgid "only_active"
 msgstr "Only active when VPN is connected"
 
+msgid "share_my_connection"
+msgstr "Share My Connection"
+
+msgid "share_my_connection_subtitle"
+msgstr "Let other Lantern users route through your connection to bypass censorship."
+
+msgid "share_my_connection_on_tap_to_view"
+msgstr "On — tap to view"
+
+# Share My Connection screen — body / hero copy
+msgid "smc_intro"
+msgstr "Help others bypass censorship by sharing a small portion of your home internet connection. While sharing is on, traffic from users in censored regions will egress through your IP."
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Status"
+
+msgid "smc_status_off"
+msgstr "Off"
+
+msgid "smc_status_probing"
+msgstr "Probing your network…"
+
+msgid "smc_status_active_unbounded"
+msgstr "Active — sharing via Unbounded (WebRTC)"
+
+msgid "smc_status_active_smc"
+msgstr "Active — sharing via Share My Connection (residential proxy)"
+
+msgid "smc_status_mapping_port"
+msgstr "Opening port on your router…"
+
+msgid "smc_status_detecting_ip"
+msgstr "Detecting your public IP…"
+
+msgid "smc_status_registering"
+msgstr "Registering with Lantern…"
+
+msgid "smc_status_starting_proxy"
+msgstr "Starting local proxy…"
+
+msgid "smc_status_verifying"
+msgstr "Verifying connectivity…"
+
+msgid "smc_status_serving"
+msgstr "Sharing — ready to serve users in censored regions"
+
+msgid "smc_status_stopping"
+msgstr "Stopping…"
+
+msgid "smc_status_error_with_message"
+msgstr "Couldn't share: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Couldn't share — try toggling again"
+
+# Status card — stats + tooltip
+msgid "smc_stat_active_now"
+msgstr "Active now"
+
+msgid "smc_stat_total_today"
+msgstr "Total this session"
+
+msgid "smc_connections_tooltip"
+msgstr "Most connections are short liveness probes — Lantern clients periodically check that this peer is reachable before sending real traffic. A quick burst from many locations is normal; an arc that lingers represents an actual user session."
+
+# Arrival toast — "New connection from {country}"
+msgid "smc_arrival_toast"
+msgstr "New connection from %s"
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Advanced"
+
+msgid "smc_advanced_subtitle"
+msgstr "For users whose router doesn't support UPnP"
+
+msgid "smc_manual_port"
+msgstr "Manual port forward"
+
+msgid "smc_manual_port_description"
+msgstr "If your router doesn't support UPnP, configure a port forward on your router and enter the port number here. Lantern will use it as the external port instead of probing UPnP. Leave blank to use UPnP (default)."
+
+msgid "smc_manual_port_label"
+msgstr "Port"
+
+msgid "smc_manual_port_hint"
+msgstr "e.g. 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Save"
+
+msgid "smc_manual_port_currently_set"
+msgstr "Currently set to port %d. Toggle Share My Connection off and back on for the change to take effect."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Port must be between 1 and 65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "Manual port cleared — using UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "Manual port set to %d"
+
+# SmC disclosure dialog (shown before opting into the residential-proxy mode)
+msgid "smc_disclosure_title"
+msgstr "Use full Share My Connection?"
+
+msgid "smc_disclosure_body_capability"
+msgstr "Your network supports the higher-bandwidth, more block-resistant mode. In this mode, your home internet connection routes traffic for users in censored countries."
+
+msgid "smc_disclosure_body_safety"
+msgstr "Lantern blocks abuse destinations, rotates credentials, and operates as a \"mere conduit\" under DMCA § 512(a) — but your IP address will appear in the destination's logs while you're sharing."
+
+msgid "smc_disclosure_body_alternative"
+msgstr "You can still help by selecting \"Basic mode\" instead, which uses ephemeral WebRTC connections that are not tied to your IP in the same way."
+
+msgid "smc_disclosure_basic"
+msgstr "Basic mode (Unbounded)"
+
+msgid "smc_disclosure_full"
+msgstr "Full mode (SmC)"
+
 msgid "vpn_connected"
 msgstr "Lantern is now connected."
 
@@ -1727,3 +1850,37 @@ msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+
+
+msgid "bypass_browser_warning_title"
+msgstr "Add %s to the bypass list?"
+
+msgid "bypass_browser_warning_body"
+msgstr "%s will connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_anyway"
+msgstr "Add Anyway"
+
+msgid "bypass_all_warning_title"
+msgstr "Add all apps to the bypass list?"
+
+msgid "bypass_all_warning_body"
+msgstr "This includes browsers like %s. Apps on the bypass list connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_all_except_browsers"
+msgstr "Add All Except Browsers"
+
+msgid "add_all_anyway"
+msgstr "Add All Anyway"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bypass the VPN for this app?"
+
+msgid "bypass_app_first_time_body"
+msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bypass the VPN for this website?"
+
+msgid "bypass_website_first_time_body"
+msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."

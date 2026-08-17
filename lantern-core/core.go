@@ -18,9 +18,13 @@ import (
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
+	"github.com/getlantern/radiance/events"
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/issue"
+	"github.com/getlantern/radiance/peer"
+	"github.com/getlantern/radiance/portforward"
 	"github.com/getlantern/radiance/servers"
+	"github.com/getlantern/radiance/unbounded"
 	"github.com/getlantern/radiance/vpn"
 
 	"github.com/getlantern/lantern/lantern-core/apps"
@@ -36,7 +40,24 @@ const (
 	EventTypeServerLocation EventType = "server-location"
 	EventTypeConfig         EventType = "config"
 	EventTypeCountryCode    EventType = "country-code"
-	DefaultLogLevel                   = "trace"
+	// EventTypePeerConnection signals a peer accept/close on the local
+	// peer-share inbound. Both donor protocols emit this event type:
+	// samizdat-over-UPnP "Share My Connection" and broflake
+	// "Unbounded". Message is JSON
+	// {"state": +1|-1, "source": "...", "timestamp": <unix-millis>}.
+	// Source is "host:port" / "[host]:port" for SmC, bare consumer IP
+	// for Unbounded. Consumers extract the IP for geo-lookup or
+	// rate-limit attribution; timestamp is useful for ordering when
+	// the event-bus dispatch is async.
+	EventTypePeerConnection EventType = "peer-connection"
+	// EventTypePeerStatus signals a peer.Client lifecycle phase change
+	// (mapping_port → registering → verifying → serving on the way up,
+	// stopping → idle on the way down, error on failure). Message is the
+	// JSON-marshalled peer.Status struct. The Dart side switches on
+	// .phase to render progress text and on .error to surface
+	// diagnostics on the failure path.
+	EventTypePeerStatus EventType = "peer-status"
+	DefaultLogLevel               = "trace"
 )
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
@@ -156,6 +177,29 @@ type SmartRouting interface {
 	IsSmartRoutingEnabled() bool
 }
 
+type PeerShare interface {
+	SetPeerShareEnabled(bool) error
+	IsPeerShareEnabled() bool
+	// SetPeerManualPort persists the user's manually-configured router
+	// port forward (Advanced setting in the Share My Connection UI).
+	// 0 clears the override, restoring UPnP-discovered port behavior.
+	SetPeerManualPort(port int) error
+	GetPeerManualPort() int
+	// SetUnboundedEnabled is the local opt-in for the broflake /
+	// Unbounded widget proxy ("Basic mode" in the SmC UI). The
+	// proxy actually runs only when this is true AND the server-side
+	// Features[unbounded] flag is on AND the server provides
+	// UnboundedConfig — see radiance/unbounded.shouldRunUnbounded.
+	SetUnboundedEnabled(bool) error
+	IsUnboundedEnabled() bool
+	// ProbeUPnP runs IGD discovery on the local network and reports
+	// whether a usable gateway is reachable. Called by the SmC toggle
+	// path to decide between SmC mode (residential-proxy, needs UPnP
+	// or a manual port forward) and Unbounded mode (WebRTC, works
+	// anywhere) when no manual port is configured.
+	ProbeUPnP() bool
+}
+
 type VPN interface {
 	ConnectVPN(tag string) error
 	SelectServer(tag string) error
@@ -172,6 +216,7 @@ type Core interface {
 	SplitTunnel
 	Ads
 	SmartRouting
+	PeerShare
 	VPN
 	Client() *ipc.Client
 }
@@ -243,6 +288,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
+	go lc.listenPeerConnectionEvents()
+	go lc.listenPeerStatusEvents()
 	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -357,6 +404,108 @@ func (lc *LanternCore) listenDataCapEvents() {
 	}
 }
 
+// listenPeerConnectionEvents forwards inbound accept/close events from
+// either of the two donor protocols (samizdat-over-UPnP "Share My
+// Connection" and broflake "Unbounded") to the Flutter side via the
+// existing FlutterEvent emitter, so the same globe widget can render
+// arcs without caring which protocol produced them. Subscription is
+// process-lifetime; events.Subscribe silently delivers nothing while
+// no peer / widget is active.
+//
+// The wire format unifies both protocols on a single event type
+// (EventTypePeerConnection) with a {state, source, timestamp}
+// payload — peer.ConnectionEvent and unbounded.ConnectionEvent both
+// carry the same three fields on the radiance side, so the Dart
+// consumer can deserialize each frame uniformly without caring
+// which protocol produced it. Source is "host:port" /
+// "[host]:port" for peer-share, and the broflake-reported consumer
+// IP (no port) for Unbounded. Timestamp is Unix milliseconds.
+func (lc *LanternCore) listenPeerConnectionEvents() {
+	// unbounded.ConnectionEvent stays on in-process events.Subscribe for
+	// now. Unbounded runs in the same process as the consumer in mobile
+	// builds (broflake-as-library); the desktop path doesn't yet have a
+	// gomobile-bridged Unbounded peer, so the cross-process gap doesn't
+	// hit here today. Worth revisiting if Unbounded ever moves out of
+	// process.
+	//
+	// defer Unsubscribe so cleanup runs whenever this function
+	// returns. In practice that's process shutdown — the function
+	// is started once from initialize(), the PeerConnectionEvents
+	// call below blocks until ctx cancellation, and there's no
+	// retry loop wrapping it. But if PeerConnectionEvents ever did
+	// exit early on stream error (or a future caller adds retries),
+	// defer keeps the subscription lifetime bound to this function's
+	// scope rather than leaking until the next reinitialization —
+	// which the previous ctx-watching goroutine implicitly relied on.
+	unbSub := events.Subscribe(func(evt unbounded.ConnectionEvent) {
+		jsonBytes, err := json.Marshal(map[string]any{
+			"state":     evt.State,
+			"source":    evt.Source,
+			"timestamp": evt.Timestamp,
+		})
+		if err != nil {
+			slog.Error("marshal unbounded connection event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
+	})
+	defer unbSub.Unsubscribe()
+
+	// peer.ConnectionEvent: subscribe via the IPC client's SSE stream.
+	// The events package's globals are process-scoped — events.Emit in
+	// lanternd (where radiance/peer runs) doesn't reach events.Subscribe
+	// in Liblantern. The /peer/connection/events SSE endpoint bridges
+	// the two processes. PeerConnectionEvents blocks until ctx is done,
+	// so this goroutine (the caller spawned us with
+	// `go lc.listenPeerConnectionEvents()`) blocks on it directly —
+	// wrapping in another go would just exit the outer goroutine
+	// immediately.
+	err := lc.client.PeerConnectionEvents(lc.ctx, func(evt peer.ConnectionEvent) {
+		jsonBytes, err := json.Marshal(map[string]any{
+			"state":     evt.State,
+			"source":    evt.Source,
+			"timestamp": evt.Timestamp,
+		})
+		if err != nil {
+			slog.Error("marshal peer connection event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("peer-connection event stream exited unexpectedly", "error", err)
+	}
+}
+
+// listenPeerStatusEvents forwards peer.Client lifecycle phase changes to
+// the Flutter side. radiance's peer module emits one StatusEvent per
+// stage during Start (mapping_port → detecting_ip → registering →
+// starting_proxy → verifying → serving) and during Stop (stopping →
+// idle), plus an "error" terminal event with Status.Error populated on
+// failure. The Dart side renders each phase as user-facing progress
+// text instead of a single active/inactive flip.
+//
+// Message body is the JSON-marshalled peer.Status — the struct already
+// carries phase, error, active, sharing_since, external_ip,
+// external_port, route_id with stable JSON tags.
+func (lc *LanternCore) listenPeerStatusEvents() {
+	// Same cross-process bridging story as listenPeerConnectionEvents: the
+	// peer.StatusEvent emits live in lanternd, so subscribing in this
+	// process via events.Subscribe gets us nothing. /peer/status/events
+	// SSE in radiance/ipc/server.go is the canonical source.
+	err := lc.client.PeerStatusEvents(lc.ctx, func(evt peer.StatusEvent) {
+		jsonBytes, err := json.Marshal(evt.Status)
+		if err != nil {
+			slog.Error("marshal peer status event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerStatus, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("peer-status event stream exited unexpectedly", "error", err)
+	}
+}
+
 /////////////////
 //     VPN     //
 /////////////////
@@ -454,6 +603,65 @@ func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
 
 func (lc *LanternCore) IsSmartRoutingEnabled() bool {
 	b, _ := lc.settings()[settings.SmartRoutingKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) SetPeerShareEnabled(enabled bool) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.PeerShareEnabledKey: enabled})
+	return err
+}
+
+func (lc *LanternCore) IsPeerShareEnabled() bool {
+	b, _ := lc.settings()[settings.PeerShareEnabledKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) SetPeerManualPort(port int) error {
+	if port < 0 || port > 65535 {
+		return fmt.Errorf("port %d out of range (0-65535)", port)
+	}
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.PeerManualPortKey: port})
+	return err
+}
+
+func (lc *LanternCore) GetPeerManualPort() int {
+	// koanf typically stores numeric settings as float64 after JSON
+	// round-trip; handle both float64 and int paths so loads from disk
+	// and freshly-set values both work.
+	switch v := lc.settings()[settings.PeerManualPortKey].(type) {
+	case int:
+		return v
+	case float64:
+		return int(v)
+	}
+	return 0
+}
+
+// ProbeUPnP reports whether the local network has a UPnP / IGD gateway
+// that could host a port mapping. The Share My Connection UI flow
+// uses this to decide between SmC mode (requires a routable inbound)
+// and Unbounded mode (works on any network). The result is a binary
+// "available / not available" — distinguishing "no gateway" from
+// "discovery timed out" doesn't change anything productive in the UI.
+//
+// Bounded by an internal 6-second timeout because UPnP M-SEARCH is
+// multicast-and-wait: a too-aggressive deadline misses slower
+// consumer gateways, while a too-loose one stalls the UI's mode
+// decision. The Dart-side FFI wrapper runs this on a background
+// isolate so the wait doesn't block the main thread.
+func (lc *LanternCore) ProbeUPnP() bool {
+	ctx, cancel := context.WithTimeout(lc.ctx, 6*time.Second)
+	defer cancel()
+	return portforward.ProbeUPnP(ctx)
+}
+
+func (lc *LanternCore) SetUnboundedEnabled(enabled bool) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.UnboundedKey: enabled})
+	return err
+}
+
+func (lc *LanternCore) IsUnboundedEnabled() bool {
+	b, _ := lc.settings()[settings.UnboundedKey].(bool)
 	return b
 }
 

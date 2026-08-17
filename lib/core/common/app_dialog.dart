@@ -16,6 +16,9 @@ class AppDialog {
     String? secondaryLabel,
     OnPressed? onSecondaryPressed,
     bool centered = false,
+    // Centers just the title while the body stays start-aligned (the
+    // browser-warning layout: centered icon + title, left-aligned body).
+    bool centeredTitle = false,
     bool barrierDismissible = false,
     // When false the primary callback is responsible for dismissing the
     // dialog itself (e.g. vpnConflictDialog callers already pop).
@@ -47,7 +50,9 @@ class AppDialog {
                   Text(
                     title,
                     style: textTheme.headlineMedium,
-                    textAlign: centered ? TextAlign.center : TextAlign.start,
+                    textAlign: (centered || centeredTitle)
+                        ? TextAlign.center
+                        : TextAlign.start,
                   ),
                   SizedBox(height: 8),
                 ],
@@ -243,6 +248,24 @@ class AppDialog {
       // Callers pop the dialog inside onConnectAnyway themselves.
       dismissOnPrimary: false,
       secondaryLabel: 'vpn_conflict_dismiss'.i18n,
+    );
+  }
+
+  /// Show warning dialog when the user tries to add any browser.
+  static Future<void> browserBypassWarningDialog({
+    required BuildContext context,
+    required String browserName,
+    required VoidCallback onAddAnyway,
+  }) {
+    return show(
+      context: context,
+      header: Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
+      centeredTitle: true,
+      title: 'bypass_browser_warning_title'.i18n.fill([browserName]),
+      body: 'bypass_browser_warning_body'.i18n.fill([browserName]),
+      primaryLabel: 'cancel'.i18n,
+      secondaryLabel: 'add_anyway'.i18n,
+      onSecondaryPressed: onAddAnyway,
     );
   }
 

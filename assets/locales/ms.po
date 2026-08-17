@@ -1,10 +1,10 @@
 # Translators:
-# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2025
 # tx_e2f_ms t9 <tx_e2f_ms_t9@ate2f.com>, 2026
 # e2f_my c2 <tx_e2f_my_c2@ate2f.com>, 2026
 # Lantern, 2026
 # Alyssa Chung <lisiachung7@gmail.com>, 2026
 # e2f <projects@e2f.com>, 2026
+# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -52,6 +52,17 @@ msgstr "Imej itu sudah dilampirkan."
 msgid "report_issue_attachments_unreadable"
 msgstr "Kami tidak dapat membaca salah satu fail tersebut."
 
+msgid "send_without_email_title"
+msgstr "Hantar tanpa e-mel?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Anda tidak memasukkan alamat e-mel, jadi kami tidak dapat membalas atau "
+"membuat susulan tentang laporan ini."
+
+msgid "send_without_email"
+msgstr "Hantar Tanpa E-mel"
+
 msgid "lantern_projects"
 msgstr "Projek Lantern:"
 
@@ -68,6 +79,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Kongsi Kod Rujukan"
+
+msgid "invite_friends_description"
+msgstr ""
+"Apabila rakan menaik taraf ke Lantern Pro menggunakan kod rujukan anda, anda"
+" berdua mendapat 1 bulan percuma."
+
+msgid "month_earned"
+msgstr "%s bulan diperoleh"
+
+msgid "months_earned"
+msgstr "%s bulan diperoleh"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Termasuk %s bulan percuma daripada rujukan"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Termasuk %s bulan percuma daripada rujukan"
+
+msgid "referral_converted_title"
+msgstr "Seorang rakan menaik taraf ke Pro"
+
+msgid "referral_converted_message"
+msgstr ""
+"Anda berdua memperoleh %s Lantern Pro, percuma. Anda telah memperoleh %s "
+"setakat ini. Terus kongsi kod anda untuk memperoleh lebih banyak."
+
+msgid "month_count"
+msgstr "%s bulan"
+
+msgid "months_count"
+msgstr "%s bulan"
+
+msgid "done"
+msgstr "Selesai"
+
+msgid "view_account"
+msgstr "Lihat Akaun"
+
+msgid "show_download_links"
+msgstr "Tunjukkan pautan muat turun"
+
+msgid "get_lantern"
+msgstr "Dapatkan Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Hantar pautan muat turun ini kepada rakan anda:"
+
+msgid "scan_to_install"
+msgstr "Imbas dengan aplikasi kamera anda untuk memasang Lantern"
+
+msgid "remind_use_code"
+msgstr "Ingatkan mereka untuk menggunakan kod %s semasa menaik taraf!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1232,6 +1295,9 @@ msgstr "Tersedia di:"
 msgid "subscription_renewal_date"
 msgstr "Tarikh Pembaharuan Langganan"
 
+msgid "pro_access_until"
+msgstr "Akses Pro sehingga %s"
+
 msgid "enabled_bypass_lists"
 msgstr "Senarai lepasan didayakan (%d):"
 
@@ -1323,6 +1389,9 @@ msgstr "Alias pelayan tidak boleh kosong"
 msgid "referral_code_applied"
 msgstr " Kod rujukan anda telah digunakan!"
 
+msgid "discount_applied"
+msgstr "Diskaun %s digunakan"
+
 msgid "referral_message_1m"
 msgstr "+ 15 hari tambahan percuma"
 
@@ -1334,7 +1403,8 @@ msgstr "+ 2 bulan tambahan percuma"
 
 msgid "referral_code_invalid"
 msgstr ""
-"Kod rujukan yang anda masukkan tidak sah. Sila semak kod dan cuba lagi."
+"Kod rujukan/promo yang anda masukkan tidak sah. Sila semak kod dan cuba "
+"lagi."
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1545,9 +1615,9 @@ msgstr "Kelajuan dikurangkan kepada 128 kb/s - Set semula pada %s."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"Pembayaran akan dicaj ke Apple ID anda semasa pembelian. Langganan akan "
-"diperbaharui secara automatik melainkan dibatalkan sekurang-kurangnya 24 jam"
-" sebelum tamat tempoh semasa. Urus atau batalkan di Tetapan App Store."
+"Bayaran dicaj ke Apple ID anda semasa pembelian. Langganan diperbaharui "
+"secara automatik melainkan dibatalkan sekurang-kurangnya 24 jam sebelum "
+"tamat tempoh semasa."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Gagal mengemas kini mod penghalaan. Sila cuba lagi."
@@ -1778,3 +1848,81 @@ msgstr "Tidak dapat menyemak kemas kini"
 
 msgid "check_connection_and_retry"
 msgstr "Semak sambungan anda dan cuba lagi"
+
+msgid "refresh_configuration"
+msgstr "Segarkan Konfigurasi"
+
+msgid "configuration_cleared"
+msgstr "Konfigurasi dikosongkan"
+
+msgid "turn_off_vpn"
+msgstr "Matikan VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"VPN perlu dimatikan sebelum anda boleh menyegarkan konfigurasi anda. "
+"Matikannya, kemudian cuba lagi."
+
+msgid "configuration_message"
+msgstr ""
+"Konfigurasi lama anda telah dikosongkan. Hidupkan VPN untuk memuat turun "
+"yang terkini secara automatik."
+
+msgid "promo_referral_code"
+msgstr "Kod Promo / Rujukan"
+
+msgid "promo_code"
+msgstr "Kod Promo"
+
+msgid "promo_code_with"
+msgstr "Kod Promo (%s)"
+
+msgid "order_total"
+msgstr "Jumlah Pesanan"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"Lokasi Pintar memilih pelayan terpantas dan bertukar secara automatik "
+"apabila menemui laluan yang lebih baik."
+
+msgid "bypass_browser_warning_title"
+msgstr "Tambah %s ke senarai pintasan?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s akan bersambung terus, tanpa perlindungan Lantern. Di negara yang "
+"menyekat laman web tertentu, sesetengah laman akan berhenti dimuatkan."
+
+msgid "add_anyway"
+msgstr "Tambah Juga"
+
+msgid "bypass_all_warning_title"
+msgstr "Tambah semua aplikasi ke senarai pintasan?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Ini termasuk pelayar seperti %s. Aplikasi dalam senarai pintasan bersambung "
+"terus, tanpa perlindungan Lantern. Di negara yang menyekat laman web "
+"tertentu, sesetengah laman akan berhenti dimuatkan."
+
+msgid "add_all_except_browsers"
+msgstr "Tambah Semua Kecuali Pelayar"
+
+msgid "add_all_anyway"
+msgstr "Tambah Semua Juga"
+
+msgid "bypass_app_first_time_title"
+msgstr "Pintaskan VPN untuk aplikasi ini?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s akan bersambung terus, tanpa perlindungan Lantern. Jika ia disekat di "
+"negara anda, ia mungkin berhenti berfungsi."
+
+msgid "bypass_website_first_time_title"
+msgstr "Pintaskan VPN untuk laman web ini?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s akan bersambung terus, tanpa perlindungan Lantern. Jika ia disekat di "
+"negara anda, ia mungkin berhenti berfungsi."

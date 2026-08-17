@@ -17,6 +17,8 @@ import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
+const _paymentE2EEnabled = bool.fromEnvironment('PAYMENT_E2E_ENABLED');
+
 @RoutePage(name: 'ChoosePaymentMethod')
 class ChoosePaymentMethod extends HookConsumerWidget {
   final String email;
@@ -180,6 +182,22 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
       case 'shepherd':
         if (isDesktop || isAndroidSideload) {
+          await paymentRedirectFlow(
+            provider.providers.name,
+            ref,
+            context,
+            paymentRedirectInFlight,
+          );
+          return;
+        }
+        break;
+
+      // The payment integration test injects this staging-only provider. It
+      // follows the normal desktop redirect flow so the test exercises the
+      // same callback and account-refresh behavior as a real checkout without
+      // creating a charge.
+      case 'e2e':
+        if (isDesktop && _paymentE2EEnabled) {
           await paymentRedirectFlow(
             provider.providers.name,
             ref,
@@ -396,6 +414,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           try {
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedUrl,
+              observer: checkoutObserver,
             );
             if (!context.mounted || purchaseResult == null) return;
             await onPurchaseResult(purchaseResult, context, ref);

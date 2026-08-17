@@ -5,11 +5,11 @@
 # Lowrider <pams@imail.ru>, 2025
 # e2f <projects@e2f.com>, 2026
 # e2f_ru r3 <tx_e2f_ru_r3@ate2f.com>, 2026
-# e2f_ru c1 <tx_e2f_ru_c1@ate2f.com>, 2026
 # Lantern, 2026
 # sayanvd <sayanvd@yandex.ru>, 2026
 # Helen Russel <coo@workogram.com>, 2026
 # Tina T, 2026
+# e2f_ru c1 <tx_e2f_ru_c1@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -57,6 +57,17 @@ msgstr "Это изображение уже прикреплено."
 msgid "report_issue_attachments_unreadable"
 msgstr "Не удалось прочитать один из этих файлов."
 
+msgid "send_without_email_title"
+msgstr "Отправить без электронной почты?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Вы не указали адрес электронной почты, поэтому мы не сможем ответить или "
+"сообщить о результатах по этому обращению."
+
+msgid "send_without_email"
+msgstr "Отправить без почты"
+
 msgid "lantern_projects"
 msgstr "Проекты Lantern:"
 
@@ -73,6 +84,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Поделиться реферальным кодом"
+
+msgid "invite_friends_description"
+msgstr ""
+"Когда друг переходит на Lantern Pro по вашему реферальному коду, вы оба "
+"получаете 1 месяц бесплатно."
+
+msgid "month_earned"
+msgstr "Получен %s месяц"
+
+msgid "months_earned"
+msgstr "Получено %s месяцев"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Включает %s бесплатный месяц за рефералов"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Включает %s бесплатных месяцев за рефералов"
+
+msgid "referral_converted_title"
+msgstr "Друг перешёл на Про"
+
+msgid "referral_converted_message"
+msgstr ""
+"Вы оба получили %s Lantern Pro бесплатно. Всего вы заработали %s. "
+"Продолжайте делиться кодом, чтобы получить больше."
+
+msgid "month_count"
+msgstr "%s месяц"
+
+msgid "months_count"
+msgstr "%s месяцев"
+
+msgid "done"
+msgstr "Готово"
+
+msgid "view_account"
+msgstr "Просмотр аккаунта"
+
+msgid "show_download_links"
+msgstr "Показать ссылки для скачивания"
+
+msgid "get_lantern"
+msgstr "Получить Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Отправьте другу эту ссылку для скачивания:"
+
+msgid "scan_to_install"
+msgstr "Отсканируйте камерой, чтобы установить Lantern"
+
+msgid "remind_use_code"
+msgstr "Напомните им использовать код %s при переходе на Pro!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1233,6 +1296,9 @@ msgstr "Доступно на:"
 msgid "subscription_renewal_date"
 msgstr "Дата продления подписки"
 
+msgid "pro_access_until"
+msgstr "Доступ Про до %s"
+
 msgid "enabled_bypass_lists"
 msgstr "Включенные списки обхода (%d):"
 
@@ -1324,6 +1390,9 @@ msgstr "Псевдоним сервера не может быть пустым"
 msgid "referral_code_applied"
 msgstr " Ваш реферальный код применен!"
 
+msgid "discount_applied"
+msgstr "Применена скидка %s"
+
 msgid "referral_message_1m"
 msgstr " + 15 дополнительных дней бесплатно"
 
@@ -1331,11 +1400,11 @@ msgid "referral_message_1y"
 msgstr " + 1 дополнительный месяц бесплатно"
 
 msgid "referral_message_2y"
-msgstr " + 2 дополнительных месяца бесплатно"
+msgstr "+ 2 дополнительных месяца бесплатно"
 
 msgid "referral_code_invalid"
 msgstr ""
-"Введенный вами реферальный код недействителен. Пожалуйста, проверьте код и "
+"Введённый реферальный/промокод недействителен. Пожалуйста, проверьте код и "
 "попробуйте снова."
 
 msgid "referral_code_own_invalid"
@@ -1553,8 +1622,8 @@ msgstr "Скорость снижена до 128 кб/сек - Сброс в %s.
 msgid "subscription_renewal_info"
 msgstr ""
 "Оплата списывается с вашего Apple ID при покупке. Подписки продлеваются "
-"автоматически, если не отменены как минимум за 24 часа до окончания текущего"
-" периода. Управляйте подписками или отменяйте их в настройках App Store."
+"автоматически, если не отменить их минимум за 24 часа до окончания текущего "
+"периода."
 
 msgid "failed_to_update_routing_mode"
 msgstr ""
@@ -1784,3 +1853,81 @@ msgstr "Не удалось проверить обновления"
 
 msgid "check_connection_and_retry"
 msgstr "Проверьте подключение и попробуйте снова"
+
+msgid "refresh_configuration"
+msgstr "Обновить конфигурацию"
+
+msgid "configuration_cleared"
+msgstr "Конфигурация очищена"
+
+msgid "turn_off_vpn"
+msgstr "Выключить VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Прежде чем обновить конфигурацию, нужно выключить VPN. Выключите его и "
+"попробуйте снова."
+
+msgid "configuration_message"
+msgstr ""
+"Ваша старая конфигурация очищена. Включите VPN, чтобы автоматически скачать "
+"актуальную."
+
+msgid "promo_referral_code"
+msgstr "Промо / реферальный код"
+
+msgid "promo_code"
+msgstr "Промокод"
+
+msgid "promo_code_with"
+msgstr "Промокод (%s)"
+
+msgid "order_total"
+msgstr "Итого по заказу"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"Умное расположение выбирает самый быстрый сервер и автоматически "
+"переключается, находя лучшие маршруты."
+
+msgid "bypass_browser_warning_title"
+msgstr "Добавить %s в список обхода?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s будет подключаться напрямую, без защиты Lantern. В странах, где "
+"блокируются определённые сайты, некоторые сайты перестанут загружаться."
+
+msgid "add_anyway"
+msgstr "Всё равно добавить"
+
+msgid "bypass_all_warning_title"
+msgstr "Добавить все приложения в список обхода?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Это включает браузеры, такие как %s. Приложения из списка обхода "
+"подключаются напрямую, без защиты Lantern. В странах, где блокируются "
+"определённые сайты, некоторые сайты перестанут загружаться."
+
+msgid "add_all_except_browsers"
+msgstr "Добавить все, кроме браузеров"
+
+msgid "add_all_anyway"
+msgstr "Всё равно добавить все"
+
+msgid "bypass_app_first_time_title"
+msgstr "Обходить VPN для этого приложения?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s будет подключаться напрямую, без защиты Lantern. Если оно заблокировано в"
+" вашей стране, оно может перестать работать."
+
+msgid "bypass_website_first_time_title"
+msgstr "Обходить VPN для этого сайта?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s будет подключаться напрямую, без защиты Lantern. Если он заблокирован в "
+"вашей стране, он может перестать работать."

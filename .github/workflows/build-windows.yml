@@ -34,6 +34,11 @@ on:
         required: false
         type: boolean
         default: true
+      run_payment_smoke:
+        description: "Verify staging checkout rendering and payment-to-Pro conversion"
+        required: false
+        type: boolean
+        default: false
       run_split_tunnel_website_smoke:
         description: "Run website split tunneling smoke test"
         required: false
@@ -51,11 +56,6 @@ on:
         default: false
       run_auth_smoke:
         description: "Run auth smoke integration tests"
-        required: false
-        type: boolean
-        default: false
-      run_payment_checkout_smoke:
-        description: "Verify staging Stripe Checkout in a Flutter integration test"
         required: false
         type: boolean
         default: false
@@ -103,13 +103,35 @@ jobs:
           Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
 
       - name: Set up MinGW
-        run: choco install mingw -y
+        shell: bash
+        run: ./scripts/ci/choco-retry.sh mingw -y
+
+      - name: Read pinned Flutter version
+        id: flutter-version
+        shell: bash
+        # Parsed here and passed as flutter-version rather than flutter-version-file:
+        # given the file input, flutter-action unconditionally runs `choco install yq`
+        # on Windows to parse it, and chocolatey.org 504s on that step failed the
+        # v9.1.18 and v9.1.19 release builds. The direct version input skips it.
+        run: |
+          matches=$(sed -n 's/^[[:space:]]*flutter:[[:space:]]*"\{0,1\}\([0-9][^"]*\)"\{0,1\}[[:space:]]*$/\1/p' .github/flutter-version.yaml)
+          if [ "$(printf '%s\n' "$matches" | grep -c .)" -ne 1 ]; then
+            echo "expected exactly one flutter version in .github/flutter-version.yaml, got:" >&2
+            printf '%s\n' "$matches" >&2
+            exit 1
+          fi
+          version=$(printf '%s' "$matches" | tr -d '[:space:]')
+          if ! printf '%s' "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$'; then
+            echo "parsed flutter version does not look like a version: '$version'" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
-          flutter-version-file: .github/flutter-version.yaml
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
 
       - name: Enable Flutter Desktop Support
         run: |
@@ -131,14 +153,14 @@ jobs:
             ${{ runner.os }}-dart-pub-cache-
 
       - name: Install Inno Setup 6
-        shell: pwsh
+        shell: bash
         # The runner image preinstalls Inno Setup (currently 6.7.1). A bare
         # --version=6.5.0 now fails ("a newer version is already installed; use
         # --allow-downgrade"), so pin to 6.7.1 with --allow-downgrade: the install
         # is deterministic and the Languages dir stays "Inno Setup 6". The vendored
         # Farsi/ChineseSimplified .isl files are "6.5.0+" and message-key-identical
         # to 6.7.1's Default.isl, so they remain valid as-is.
-        run: choco install -y innosetup --version=6.7.1 --allow-downgrade
+        run: ./scripts/ci/choco-retry.sh -y innosetup --version=6.7.1 --allow-downgrade
 
       - name: Install unofficial Inno Setup translations
         shell: pwsh
@@ -184,8 +206,8 @@ jobs:
             Write-Warning "Release directory does not exist"
           }
 
-      - name: Windows Stripe checkout smoke
-        if: ${{ inputs.run_payment_checkout_smoke }}
+      - name: Windows payment smoke
+        if: ${{ inputs.run_payment_smoke }}
         shell: pwsh
         timeout-minutes: 15
         run: |
@@ -193,7 +215,16 @@ jobs:
             -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `
             -ServiceEnvironment staging `
             -RunConnectSmoke:$false `
-            -RunPaymentCheckoutSmoke
+            -RunPaymentSmoke
+
+      - name: Upload Windows payment smoke diagnostics
+        if: ${{ always() && inputs.run_payment_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-payment-smoke
+          path: build/windows-payment-smoke
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Sign embedded binaries
         if: ${{ !inputs.skip_signing }}

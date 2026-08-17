@@ -5,9 +5,9 @@
 # 68aa2b710696597d2c15b3d803993bee_52a723c <d707001f82511d8467de1cfc369e967e_419818>, 2025
 # onlurking <diogo2fex@gmail.com>, 2025
 # Marcelo Ghelman <marcelo.ghelman@gmail.com>, 2026
-# Manuela Silva <mmsrs@sky.com>, 2026
 # Lantern, 2026
 # Eduardo Souza Santos <sseduardo13@gmail.com>, 2026
+# Manuela Silva <mmsrs@sky.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -55,6 +55,17 @@ msgstr "Essa imagem já está anexada."
 msgid "report_issue_attachments_unreadable"
 msgstr "Não foi possível ler um desses arquivos."
 
+msgid "send_without_email_title"
+msgstr "Enviar sem e-mail?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Você não incluiu um endereço de e-mail, então não poderemos responder nem "
+"dar seguimento a este relatório."
+
+msgid "send_without_email"
+msgstr "Enviar Sem E-mail"
+
 msgid "lantern_projects"
 msgstr "Projetos Lantern:"
 
@@ -71,6 +82,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Compartilhar Código de Indicação"
+
+msgid "invite_friends_description"
+msgstr ""
+"Quando um amigo faz upgrade para o Lantern Pro usando seu código de "
+"indicação, vocês dois ganham 1 mês grátis."
+
+msgid "month_earned"
+msgstr "%s mês ganho"
+
+msgid "months_earned"
+msgstr "%s meses ganhos"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Inclui %s mês grátis de indicações"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Inclui %s meses grátis de indicações"
+
+msgid "referral_converted_title"
+msgstr "Um amigo fez upgrade para o Pro"
+
+msgid "referral_converted_message"
+msgstr ""
+"Vocês dois ganharam %s de Lantern Pro, grátis. Você já ganhou %s até agora. "
+"Continue compartilhando seu código para ganhar mais."
+
+msgid "month_count"
+msgstr "%s mês"
+
+msgid "months_count"
+msgstr "%s meses"
+
+msgid "done"
+msgstr "Concluído"
+
+msgid "view_account"
+msgstr "Ver Conta"
+
+msgid "show_download_links"
+msgstr "Mostrar links de download"
+
+msgid "get_lantern"
+msgstr "Obter o Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Envie este link de download para seu amigo:"
+
+msgid "scan_to_install"
+msgstr "Escaneie com o app de câmera para instalar o Lantern"
+
+msgid "remind_use_code"
+msgstr "Lembre-os de usar o código %s ao fazer o upgrade!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1231,6 +1294,9 @@ msgstr "Disponível em:"
 msgid "subscription_renewal_date"
 msgstr "Data de Renovação da Assinatura"
 
+msgid "pro_access_until"
+msgstr "Acesso Pro até %s"
+
 msgid "enabled_bypass_lists"
 msgstr "Listas de desvio ativadas (%d):"
 
@@ -1322,6 +1388,9 @@ msgstr "O apelido do servidor não pode estar vazio"
 msgid "referral_code_applied"
 msgstr "Seu código de indicação foi aplicado!"
 
+msgid "discount_applied"
+msgstr "Desconto de %s aplicado"
+
 msgid "referral_message_1m"
 msgstr "+ 15 dias extras grátis"
 
@@ -1329,11 +1398,11 @@ msgid "referral_message_1y"
 msgstr "+ 1 mês extra grátis"
 
 msgid "referral_message_2y"
-msgstr "+ 2 meses extras grátis"
+msgstr "+ 2 meses adicionais grátis"
 
 msgid "referral_code_invalid"
 msgstr ""
-"O código de indicação que você digitou é inválido. Verifique o código e "
+"O código de indicação/promocional inserido é inválido. Verifique o código e "
 "tente novamente."
 
 msgid "referral_code_own_invalid"
@@ -1551,8 +1620,7 @@ msgid "subscription_renewal_info"
 msgstr ""
 "O pagamento é cobrado no seu Apple ID no momento da compra. As assinaturas "
 "são renovadas automaticamente, a menos que sejam canceladas pelo menos 24 "
-"horas antes do fim do período atual. Gerencie ou cancele nas Configurações "
-"da App Store."
+"horas antes do fim do período atual."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Falha ao atualizar o modo de roteamento. Tente novamente."
@@ -1784,3 +1852,81 @@ msgstr "Não foi possível verificar atualizações"
 
 msgid "check_connection_and_retry"
 msgstr "Verifique sua conexão e tente novamente"
+
+msgid "refresh_configuration"
+msgstr "Atualizar Configuração"
+
+msgid "configuration_cleared"
+msgstr "Configuração apagada"
+
+msgid "turn_off_vpn"
+msgstr "Desligar VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"A VPN precisa estar desligada antes de você poder atualizar sua "
+"configuração. Desligue-a e tente novamente."
+
+msgid "configuration_message"
+msgstr ""
+"Sua configuração antiga foi apagada. Ligue a VPN para baixar automaticamente"
+" a mais recente."
+
+msgid "promo_referral_code"
+msgstr "Código Promocional / de Indicação"
+
+msgid "promo_code"
+msgstr "Código Promocional"
+
+msgid "promo_code_with"
+msgstr "Código Promocional (%s)"
+
+msgid "order_total"
+msgstr "Total do Pedido"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"A Localização Inteligente escolhe o servidor mais rápido e troca "
+"automaticamente conforme encontra rotas melhores."
+
+msgid "bypass_browser_warning_title"
+msgstr "Adicionar %s à lista de exceções?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s vai se conectar diretamente, sem a proteção do Lantern. Em países que "
+"bloqueiam certos sites, alguns sites deixarão de carregar."
+
+msgid "add_anyway"
+msgstr "Adicionar Mesmo Assim"
+
+msgid "bypass_all_warning_title"
+msgstr "Adicionar todos os apps à lista de exceções?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Isso inclui navegadores como o %s. Os apps na lista de exceções se conectam "
+"diretamente, sem a proteção do Lantern. Em países que bloqueiam certos "
+"sites, alguns sites deixarão de carregar."
+
+msgid "add_all_except_browsers"
+msgstr "Adicionar Todos Exceto Navegadores"
+
+msgid "add_all_anyway"
+msgstr "Adicionar Todos Mesmo Assim"
+
+msgid "bypass_app_first_time_title"
+msgstr "Ignorar a VPN para este app?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s vai se conectar diretamente, sem a proteção do Lantern. Se ele estiver "
+"bloqueado no seu país, pode parar de funcionar."
+
+msgid "bypass_website_first_time_title"
+msgstr "Ignorar a VPN para este site?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s vai se conectar diretamente, sem a proteção do Lantern. Se ele estiver "
+"bloqueado no seu país, pode parar de funcionar."
