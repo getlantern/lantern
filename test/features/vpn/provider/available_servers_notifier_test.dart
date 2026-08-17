@@ -143,14 +143,14 @@ void main() {
       expect(pushes.single.autoLocation?.tag, 'fastest-tag');
     });
 
-    test('pushes fastest server when permission is missing', () async {
+    test('skips push when permission is missing', () async {
       final pushes = await _pushesForVpnStatus(VPNStatus.missingPermission);
-      expect(pushes, hasLength(1));
+      expect(pushes, isEmpty);
     });
 
-    test('pushes fastest server when no status event has arrived yet', () async {
+    test('skips push when no status event has arrived yet', () async {
       final pushes = await _pushesForVpnStatus(null);
-      expect(pushes, hasLength(1));
+      expect(pushes, isEmpty);
     });
 
     test('skips push when VPN is connected', () async {
