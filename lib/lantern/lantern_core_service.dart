@@ -80,6 +80,34 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, bool>> isBlockAdsEnabled();
 
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled);
+
+  Future<Either<Failure, bool>> isPeerProxyEnabled();
+
+  /// Persists the manually-configured router port forward used as the
+  /// peer-share external port when set. Pass 0 to clear the override
+  /// and revert to UPnP-discovered port behavior.
+  Future<Either<Failure, Unit>> setPeerManualPort(int port);
+
+  /// Returns the persisted manual port (0 if unset).
+  Future<Either<Failure, int>> getPeerManualPort();
+
+  /// Local opt-in for the broflake / Unbounded widget proxy ("Basic
+  /// mode" in the Share My Connection UI). Actual run state also
+  /// depends on server feature-flag and config availability.
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled);
+
+  Future<Either<Failure, bool>> isUnboundedEnabled();
+
+  /// Runs UPnP / IGD discovery on the local network and reports
+  /// whether a usable gateway is reachable. Used by the Share My
+  /// Connection toggle path to decide between SmC mode (residential
+  /// proxy, needs UPnP or a manual port forward) and Unbounded mode
+  /// (WebRTC, works anywhere) when no manual port is configured.
+  /// Blocks for up to ~6 seconds on the multicast M-SEARCH wait;
+  /// the FFI implementation runs in a background isolate.
+  Future<Either<Failure, bool>> probeUPnP();
+
   Future<Either<Failure, bool>> isSmartRoutingEnabled();
 
   Future<Either<Failure, bool>> isTelemetryEnabled();

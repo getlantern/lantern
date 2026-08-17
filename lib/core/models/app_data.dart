@@ -12,6 +12,11 @@ class AppData {
   final int lastUpdateTime;
   final bool removed;
 
+  /// True when the app registers itself as an http(s) handler (a browser).
+  /// Populated on Android (intent handlers), macOS (LaunchServices) and
+  /// Windows (registry default-app scan); defaults to false elsewhere.
+  final bool isBrowser;
+
   const AppData({
     required this.name,
     required this.bundleId,
@@ -21,6 +26,7 @@ class AppData {
     this.isEnabled = false,
     this.lastUpdateTime = 0,
     this.removed = false,
+    this.isBrowser = false,
   });
 
   AppData copyWith({
@@ -32,6 +38,7 @@ class AppData {
     bool? isEnabled,
     int? lastUpdateTime,
     bool? removed,
+    bool? isBrowser,
   }) {
     return AppData(
       name: name ?? this.name,
@@ -42,6 +49,7 @@ class AppData {
       isEnabled: isEnabled ?? this.isEnabled,
       lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
       removed: removed ?? this.removed,
+      isBrowser: isBrowser ?? this.isBrowser,
     );
   }
 
@@ -60,6 +68,7 @@ class AppData {
       iconBytes: iconToBytes(m['icon'] ?? m['iconBytes']),
       lastUpdateTime: (m['lastUpdateTime'] as num?)?.toInt() ?? 0,
       removed: m['removed'] == true || m['isRemoved'] == true,
+      isBrowser: m['isBrowser'] == true,
     );
   }
 
@@ -72,6 +81,7 @@ class AppData {
         iconBytes: iconToBytes(json['icon'] ?? json['iconBytes']),
         lastUpdateTime: (json['lastUpdateTime'] as num?)?.toInt() ?? 0,
         removed: json['removed'] == true || json['isRemoved'] == true,
+        isBrowser: json['isBrowser'] == true,
       );
 
   Map<String, dynamic> toJson() => {
@@ -83,5 +93,6 @@ class AppData {
         'iconBytes': iconBytes, // or base64 if you serialize across FFI
         'lastUpdateTime': lastUpdateTime,
         'removed': removed,
+        'isBrowser': isBrowser,
       };
 }

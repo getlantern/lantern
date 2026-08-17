@@ -278,6 +278,56 @@ class MethodHandler {
           await MainActor.run { result(MobileIsSmartRoutingEnabled()) }
         }
 
+      // Share My Connection (samizdat) + Unbounded (broflake) peer-share.
+      // Phones on cellular data won't have UPnP, but home WiFi does — and
+      // manual port forwarding works on any network where the user owns
+      // the router. The whole stack is exposed on iOS rather than
+      // desktop-only.
+      case "setPeerProxyEnabled":
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape instead of silently defaulting to false
+        // (which would disable sharing on caller bugs).
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
+        self.setPeerProxyEnabled(result: result, enabled: enabled)
+
+      case "isPeerProxyEnabled":
+        Task {
+          await MainActor.run { result(MobileIsPeerShareEnabled()) }
+        }
+
+      case "setPeerManualPort":
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape instead of silently defaulting to 0
+        // (which has the real semantic of clearing the manual port
+        // override — caller bugs would silently wipe the user's
+        // setting).
+        guard let port: Int = requireArg(call: call, name: "port", result: result) else { return }
+        self.setPeerManualPort(result: result, port: port)
+
+      case "getPeerManualPort":
+        Task {
+          await MainActor.run { result(Int(MobileGetPeerManualPort())) }
+        }
+
+      case "setUnboundedEnabled":
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
+        self.setUnboundedEnabled(result: result, enabled: enabled)
+
+      case "isUnboundedEnabled":
+        Task {
+          await MainActor.run { result(MobileIsUnboundedEnabled()) }
+        }
+
+      case "probeUPnP":
+        // UPnP M-SEARCH multicast wait — up to ~6s in MobileProbeUPnP.
+        // Hop off the main actor so the wait doesn't stall the UI, then
+        // deliver the bool back on MainActor for the Flutter result
+        // callback.
+        Task.detached {
+          let available = MobileProbeUPnP()
+          await MainActor.run { result(available) }
+        }
+
       case "isTelemetryEnabled":
         Task {
           await MainActor.run { result(MobileIsTelemetryEnabled()) }
@@ -1191,6 +1241,54 @@ class MethodHandler {
       await MainActor.run {
         result("ok")
       }
+    }
+  }
+
+  // Share My Connection (samizdat) toggle. Mirrors the macOS handler's
+  // pattern: blocking Mobile call goes onto a Task; result and error
+  // delivery hop to MainActor. Plain Task (not Task.detached) is fine
+  // for these PatchSettings calls — they finish in milliseconds, so
+  // inheriting the current actor's executor is cheap. probeUPnP is
+  // the one exception that uses Task.detached because its M-SEARCH
+  // wait is multi-second.
+  func setPeerProxyEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetPeerShareEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PEER_PROXY_ENABLED_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  // Manual port forward setting for the SmC residential-proxy path.
+  // Pass 0 to clear and revert to UPnP-discovered port behavior.
+  func setPeerManualPort(result: @escaping FlutterResult, port: Int) {
+    Task {
+      var error: NSError?
+      MobileSetPeerManualPort(port, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PEER_MANUAL_PORT_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  // Local opt-in for the broflake / Unbounded widget proxy ("Basic mode"
+  // in the SmC UI). Actual run state also depends on the server's
+  // unbounded feature flag and supplied UnboundedConfig.
+  func setUnboundedEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetUnboundedEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_UNBOUNDED_ENABLED_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
     }
   }
 

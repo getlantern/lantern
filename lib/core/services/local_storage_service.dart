@@ -21,6 +21,8 @@ class LocalStorageService {
   static const _developerModeKey = 'developer_mode_json';
   static const _serverLocationKey = 'server_location_json';
   static const _seenReferralsKey = 'seen_converted_referrals';
+  static const _seenBypassAppDialogKey = 'seen_bypass_app_dialog';
+  static const _seenBypassWebsiteDialogKey = 'seen_bypass_website_dialog';
 
   Future<void> init() async {
     _prefs = await SharedPreferencesWithCache.create(
@@ -112,6 +114,24 @@ class LocalStorageService {
   Future<void> saveSeenConvertedReferrals(List<String> userIds) =>
       setStringList(_seenReferralsKey, userIds);
 
+  // ── Split tunneling ───────────────────────────────────────────────────────
+
+  /// Whether the one-time "Bypass the VPN for this app?" explainer was already
+  /// shown when adding an app to the bypass list.
+  bool get hasSeenBypassAppDialog =>
+      getBool(_seenBypassAppDialogKey) ?? false;
+
+  Future<void> markBypassAppDialogSeen() =>
+      setBool(_seenBypassAppDialogKey, true);
+
+  /// Whether the one-time "Bypass the VPN for this website?" explainer was
+  /// already shown when adding a website to the bypass list.
+  bool get hasSeenBypassWebsiteDialog =>
+      getBool(_seenBypassWebsiteDialogKey) ?? false;
+
+  Future<void> markBypassWebsiteDialogSeen() =>
+      setBool(_seenBypassWebsiteDialogKey, true);
+
   // Helper methods for basic types
 
   String? getString(String key) => _prefs.getString(key);
@@ -121,6 +141,16 @@ class LocalStorageService {
       await _prefs.setString(key, value);
     } catch (e, st) {
       appLogger.error('LocalStorage setString($key) failed', e, st);
+    }
+  }
+
+  bool? getBool(String key) => _prefs.getBool(key);
+
+  Future<void> setBool(String key, bool value) async {
+    try {
+      await _prefs.setBool(key, value);
+    } catch (e, st) {
+      appLogger.error('LocalStorage setBool($key) failed', e, st);
     }
   }
 

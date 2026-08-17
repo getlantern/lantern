@@ -71,6 +71,11 @@ on:
         required: false
         type: boolean
         default: true
+      run_payment_smoke:
+        description: "Verify staging checkout rendering and payment-to-Pro conversion"
+        required: false
+        type: boolean
+        default: false
       run_split_tunnel_website_smoke:
         description: "Run website split tunneling smoke test"
         required: false
@@ -88,11 +93,6 @@ on:
         default: false
       run_auth_smoke:
         description: "Run auth smoke integration tests"
-        required: false
-        type: boolean
-        default: false
-      run_payment_checkout_smoke:
-        description: "Verify staging Stripe Checkout in a Flutter integration test"
         required: false
         type: boolean
         default: false
@@ -247,8 +247,8 @@ jobs:
             Write-Warning "Release directory does not exist"
           }
 
-      - name: Windows Stripe checkout smoke
-        if: ${{ inputs.run_payment_checkout_smoke }}
+      - name: Windows payment smoke
+        if: ${{ inputs.run_payment_smoke }}
         shell: pwsh
         timeout-minutes: 15
         run: |
@@ -256,7 +256,16 @@ jobs:
             -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `
             -ServiceEnvironment staging `
             -RunConnectSmoke:$false `
-            -RunPaymentCheckoutSmoke
+            -RunPaymentSmoke
+
+      - name: Upload Windows payment smoke diagnostics
+        if: ${{ always() && inputs.run_payment_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-payment-smoke
+          path: build/windows-payment-smoke
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Sign embedded binaries
         if: ${{ !inputs.skip_signing }}

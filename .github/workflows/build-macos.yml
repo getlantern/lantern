@@ -64,7 +64,7 @@ on:
         required: false
         type: boolean
         default: false
-      run_payment_checkout_smoke:
+      run_payment_smoke:
         description: "Verify staging Stripe Checkout in a Flutter integration test"
         required: false
         type: boolean
@@ -228,21 +228,21 @@ jobs:
       - name: Run macOS unit tests
         run: make macos-unit-tests
 
-      - name: macOS Stripe checkout smoke
-        if: ${{ inputs.run_payment_checkout_smoke }}
+      - name: macOS payment smoke
+        if: ${{ inputs.run_payment_smoke }}
         timeout-minutes: 15
         shell: bash
         env:
-          ARTIFACT_DIR: ${{ runner.temp }}/macos-payment-checkout-smoke
-        run: bash ./.github/scripts/macos_payment_checkout_smoke.sh
+          ARTIFACT_DIR: ${{ runner.temp }}/macos-payment-smoke
+        run: bash ./.github/scripts/macos_payment_smoke.sh
 
       - name: Upload macOS payment smoke diagnostics
-        if: ${{ always() && inputs.run_payment_checkout_smoke }}
+        if: ${{ always() && inputs.run_payment_smoke }}
         id: payment_smoke_diagnostics
         uses: actions/upload-artifact@v4
         with:
-          name: macos-payment-checkout-smoke
-          path: ${{ runner.temp }}/macos-payment-checkout-smoke
+          name: macos-payment-smoke
+          path: ${{ runner.temp }}/macos-payment-smoke
           if-no-files-found: ignore
           retention-days: 2
 

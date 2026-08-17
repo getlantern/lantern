@@ -9,7 +9,8 @@ import 'widget_wait_utils.dart';
 /// that Firebase Test Lab captures (adb logcat | grep E2E).
 void e2eLog(String message) => debugPrint('[E2E] $message');
 
-/// Drives the app shell during integration tests, independent of any feature.
+/// Drives the app shell during Android and desktop integration tests,
+/// independent of any feature.
 class AppRobot {
   AppRobot(this.tester);
 
@@ -254,7 +255,8 @@ class AppRobot {
     return true;
   }
 
-  /// Closes the macOS extension screen when a non-VPN smoke starts fresh.
+  /// Dismisses the macOS system-extension screen when it covers home. Payment
+  /// smokes do not exercise the VPN, so they can safely close this prompt.
   Future<bool> dismissMacOSExtensionScreenIfShown() async {
     if (macosExtensionScreen.evaluate().isEmpty) {
       return false;
@@ -267,11 +269,9 @@ class AppRobot {
           matching: find.byType(CloseButton),
         )
         .hitTestable();
-    final deadline = DateTime.now().add(const Duration(seconds: 5));
-    while (DateTime.now().isBefore(deadline)) {
-      if (macosExtensionScreen.evaluate().isEmpty) {
-        return true;
-      }
+    final tapDeadline = DateTime.now().add(const Duration(seconds: 5));
+    while (DateTime.now().isBefore(tapDeadline)) {
+      if (macosExtensionScreen.evaluate().isEmpty) return true;
       if (close.evaluate().isNotEmpty) {
         await tester.tap(close);
         await tester.pump(const Duration(milliseconds: 400));

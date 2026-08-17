@@ -23,7 +23,8 @@ on:
         options:
           - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
           - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
-          - all # every standard suite the platform supports
+          - payment-smoke # Stripe Checkout rendering and payment-to-Pro conversion
+          - all # every suite the platform supports
         default: vpn-smoke
       linux_arch:
         description: "Linux arch to test"
@@ -65,7 +66,7 @@ jobs:
   # matrix (physical Pixel 8 + Arm virtual) with retries for flaky tests.
   android:
     needs: validate-inputs
-    if: ${{ inputs.tests != 'auto-update' && contains(fromJSON('["all", "android", ""]'), inputs.platforms) }}
+    if: ${{ contains(fromJSON('["all", "android", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke"]'), inputs.tests || 'all') }}
     uses: ./.github/workflows/firebase-test-lab.yml
     secrets: inherit
     with:
@@ -121,7 +122,7 @@ jobs:
   # to the optional suites: vpn-smoke leaves them off, `all` turns them on.
   linux:
     needs: prepare
-    if: ${{ inputs.tests != 'auto-update' && contains(fromJSON('["all", "linux", ""]'), inputs.platforms) }}
+    if: ${{ contains(fromJSON('["all", "linux", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke"]'), inputs.tests || 'all') }}
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
@@ -145,8 +146,8 @@ jobs:
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       runner_label: lantern-macos-smoke
-      run_connect_smoke: true
-      run_payment_checkout_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
+      run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
 
   # This is deliberately separate from the regular macOS build job: it
   # replaces /Applications/Lantern.app and verifies Sparkle's relaunch. It is
@@ -168,9 +169,10 @@ jobs:
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       skip_signing: true
       force_full_tunnel_smoke: true
+      run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
       run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
-      run_payment_checkout_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
 
   windows-auto-update:
     needs: validate-inputs

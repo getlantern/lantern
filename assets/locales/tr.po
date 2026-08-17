@@ -5,10 +5,10 @@
 # Volkan Gezer <volkangezer@gmail.com>, 2025
 # Emre Deniz, 2025
 # Zeynel Cebeci <cebeciz@gmail.com>, 2026
-# e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2026
 # Lantern, 2026
 # Teo Westbrook, 2026
 # Gökhan Kalayci <gkmediagokhan@gmail.com>, 2026
+# e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -56,6 +56,17 @@ msgstr "Bu görsel zaten eklenmiş."
 msgid "report_issue_attachments_unreadable"
 msgstr "Bu dosyalardan birini okuyamadık."
 
+msgid "send_without_email_title"
+msgstr "E-posta olmadan gönderilsin mi?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Bir e-posta adresi eklemediniz, bu yüzden bu rapora yanıt veremeyecek veya "
+"takibini yapamayacağız."
+
+msgid "send_without_email"
+msgstr "E-posta Olmadan Gönder"
+
 msgid "lantern_projects"
 msgstr "Lantern Projeleri:"
 
@@ -72,6 +83,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Tavsiye Kodunu Paylaş"
+
+msgid "invite_friends_description"
+msgstr ""
+"Bir arkadaşınız tavsiye kodunuzu kullanarak Lantern Pro'ya yükselttiğinde, "
+"ikiniz de 1 ay ücretsiz kazanırsınız."
+
+msgid "month_earned"
+msgstr "%s ay kazanıldı"
+
+msgid "months_earned"
+msgstr "%s ay kazanıldı"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Tavsiyelerden %s ücretsiz ay dahil"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Tavsiyelerden %s ücretsiz ay dahil"
+
+msgid "referral_converted_title"
+msgstr "Bir arkadaşınız Pro'ya yükseltti"
+
+msgid "referral_converted_message"
+msgstr ""
+"İkiniz de %s Lantern Pro'yu ücretsiz kazandınız. Şimdiye kadar %s "
+"kazandınız. Daha fazla kazanmak için kodunuzu paylaşmaya devam edin."
+
+msgid "month_count"
+msgstr "%s ay"
+
+msgid "months_count"
+msgstr "%s ay"
+
+msgid "done"
+msgstr "Bitti"
+
+msgid "view_account"
+msgstr "Hesabı Görüntüle"
+
+msgid "show_download_links"
+msgstr "İndirme bağlantılarını göster"
+
+msgid "get_lantern"
+msgstr "Lantern'i Edin"
+
+msgid "send_friend_download_link"
+msgstr "Arkadaşınıza bu indirme bağlantısını gönderin:"
+
+msgid "scan_to_install"
+msgstr "Lantern'i yüklemek için kamera uygulamanızla tarayın"
+
+msgid "remind_use_code"
+msgstr "Yükseltirken %s kodunu kullanmalarını hatırlatın!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1222,6 +1285,9 @@ msgstr "Şunlarda mevcut:"
 msgid "subscription_renewal_date"
 msgstr "Abonelik Yenileme Tarihi"
 
+msgid "pro_access_until"
+msgstr "%s tarihine kadar Pro erişimi"
+
 msgid "enabled_bypass_lists"
 msgstr "Etkin atlama listeleri (%d):"
 
@@ -1313,6 +1379,9 @@ msgstr "Sunucu takma adı boş olamaz"
 msgid "referral_code_applied"
 msgstr "Referans kodunuz uygulandı!"
 
+msgid "discount_applied"
+msgstr "%s indirim uygulandı"
+
 msgid "referral_message_1m"
 msgstr "+ 15 ek gün ücretsiz"
 
@@ -1320,11 +1389,11 @@ msgid "referral_message_1y"
 msgstr "+ 1 ek ay ücretsiz"
 
 msgid "referral_message_2y"
-msgstr "+ 2 ek ay ücretsiz"
+msgstr "+ 2 ay daha ücretsiz"
 
 msgid "referral_code_invalid"
 msgstr ""
-"Girdiğiniz referans kodu geçersiz. Lütfen kodu kontrol edin ve tekrar "
+"Girdiğiniz tavsiye/promosyon kodu geçersiz. Lütfen kodu kontrol edip tekrar "
 "deneyin."
 
 msgid "referral_code_own_invalid"
@@ -1534,9 +1603,9 @@ msgstr "Hız 128 kb/sn'ye düşürüldü - %s'de sıfırlanacak."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"Ödeme, satın alma sırasında Apple ID'nizden alınır. Abonelikler, mevcut "
-"dönemin bitiminden en az 24 saat önce iptal edilmedikçe otomatik olarak "
-"yenilenir. App Store Ayarları'ndan yönetin veya iptal edin."
+"Ödeme, satın alma sırasında Apple ID'nizden tahsil edilir. Abonelikler, "
+"mevcut dönemin bitiminden en az 24 saat önce iptal edilmedikçe otomatik "
+"olarak yenilenir."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Yönlendirme modu güncellenemedi. Lütfen tekrar deneyin."
@@ -1766,3 +1835,81 @@ msgstr "Güncellemeler kontrol edilemedi"
 
 msgid "check_connection_and_retry"
 msgstr "Bağlantınızı kontrol edip tekrar deneyin"
+
+msgid "refresh_configuration"
+msgstr "Yapılandırmayı Yenile"
+
+msgid "configuration_cleared"
+msgstr "Yapılandırma temizlendi"
+
+msgid "turn_off_vpn"
+msgstr "VPN'i Kapat"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Yapılandırmanızı yenileyebilmeniz için VPN'in kapalı olması gerekiyor. "
+"Kapatın ve tekrar deneyin."
+
+msgid "configuration_message"
+msgstr ""
+"Eski yapılandırmanız temizlendi. En yenisini otomatik olarak indirmek için "
+"VPN'i açın."
+
+msgid "promo_referral_code"
+msgstr "Promosyon / Tavsiye Kodu"
+
+msgid "promo_code"
+msgstr "Promosyon Kodu"
+
+msgid "promo_code_with"
+msgstr "Promosyon Kodu (%s)"
+
+msgid "order_total"
+msgstr "Sipariş Toplamı"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"Akıllı Konum en hızlı sunucuyu seçer ve daha iyi rotalar buldukça otomatik "
+"olarak geçiş yapar."
+
+msgid "bypass_browser_warning_title"
+msgstr "%s atlama listesine eklensin mi?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s, Lantern'in koruması olmadan doğrudan bağlanacak. Belirli web sitelerini "
+"engelleyen ülkelerde bazı siteler yüklenmeyi durduracak."
+
+msgid "add_anyway"
+msgstr "Yine de Ekle"
+
+msgid "bypass_all_warning_title"
+msgstr "Tüm uygulamalar atlama listesine eklensin mi?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Buna %s gibi tarayıcılar da dahildir. Atlama listesindeki uygulamalar, "
+"Lantern'in koruması olmadan doğrudan bağlanır. Belirli web sitelerini "
+"engelleyen ülkelerde bazı siteler yüklenmeyi durduracak."
+
+msgid "add_all_except_browsers"
+msgstr "Tarayıcılar Hariç Tümünü Ekle"
+
+msgid "add_all_anyway"
+msgstr "Yine de Tümünü Ekle"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bu uygulama için VPN atlansın mı?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s, Lantern'in koruması olmadan doğrudan bağlanacak. Ülkenizde engelliyse "
+"çalışmayı durdurabilir."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bu web sitesi için VPN atlansın mı?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s, Lantern'in koruması olmadan doğrudan bağlanacak. Ülkenizde engelliyse "
+"çalışmayı durdurabilir."
