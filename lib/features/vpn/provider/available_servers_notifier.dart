@@ -103,14 +103,13 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     final fastest = servers.fastestLanternServer;
     if (fastest == null) return;
 
-    ///Don't push the fastest server if vpn is active
-    ///it will override with what user connected server
+    // Don't push the fastest server if the VPN is active.
+    // It would override the server the user is connected to.
     final vpnStatus = ref.read(vPNStatusProvider).value?.status;
-    if (vpnStatus == VPNStatus.connected || vpnStatus == VPNStatus.connecting) {
-      appLogger.debug('Skipping Smart Location push, VPN is $vpnStatus');
+    if (vpnStatus != VPNStatus.disconnected) {
+      appLogger.debug('Skipping Smart Location push, VPN status is $vpnStatus');
       return;
     }
-
     final current = ref.read(serverLocationProvider);
     if (current.serverType.toServerLocationType != ServerLocationType.auto) {
       return;
