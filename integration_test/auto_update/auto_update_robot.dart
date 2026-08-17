@@ -1,10 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' as ui;
 
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../utils/app_robot.dart';
@@ -47,40 +44,10 @@ class AutoUpdateRobot {
           'Visible keys: ${app.visibleKeys().join(', ')}',
     );
     await tester.ensureVisible(checkForUpdates);
-    await _captureScreenshot('auto-update-before');
+    await app.captureScreenshot('auto-update-before');
 
     e2eLog('Triggering Check for Updates');
     await app.tap(checkForUpdates, name: 'Check for Updates', settle: false);
-  }
-
-  Future<void> _captureScreenshot(String name) async {
-    try {
-      final renderView = tester.binding.renderViews.first;
-      final layer = renderView.debugLayer;
-      if (layer is! OffsetLayer) {
-        e2eLog('Screenshot $name skipped: root layer is not capturable');
-        return;
-      }
-      final image = await layer.toImage(renderView.paintBounds);
-      try {
-        final data = await image.toByteData(format: ui.ImageByteFormat.png);
-        if (data == null) {
-          e2eLog('Screenshot $name skipped: no image data');
-          return;
-        }
-        final directory = Directory(
-          '${await AppStorageUtils.getAppLogDirectory()}/screenshots',
-        );
-        await directory.create(recursive: true);
-        final file = File('${directory.path}/$name.png');
-        await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
-        e2eLog('Screenshot saved: ${file.path}');
-      } finally {
-        image.dispose();
-      }
-    } catch (error) {
-      e2eLog('Screenshot $name failed: $error');
-    }
   }
 
   Future<void> writeNativeHandoff() async {

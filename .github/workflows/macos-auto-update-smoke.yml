@@ -106,12 +106,13 @@ jobs:
       installer_base_name: lantern-autoupdate-fixture
       runner_label: lantern-macos-smoke
       flutter_target: integration_test/auto_update/desktop_auto_update_smoke_test.dart
+      # flutter drive needs the VM service exposed by a profile fixture.
       flutter_build_mode: profile
       pubspec_artifact: macos-auto-update-pubspec
       sign_update_artifact: false
       auto_update_e2e: true
       run_connect_smoke: false
-      run_payment_checkout_smoke: false
+      run_payment_smoke: false
 
   exercise-update:
     name: Install and update through Sparkle

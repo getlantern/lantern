@@ -1,7 +1,12 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/common.dart' show appRouter;
+import 'package:lantern/core/utils/storage_utils.dart';
 
 import 'widget_wait_utils.dart';
 
@@ -37,6 +42,38 @@ class AppRobot {
       }
     }
     return keys.toList()..sort();
+  }
+
+  /// Captures the current Flutter surface without failing the smoke when the
+  /// platform does not expose a capturable root layer.
+  Future<void> captureScreenshot(String name) async {
+    try {
+      final renderView = tester.binding.renderViews.first;
+      final layer = renderView.debugLayer;
+      if (layer is! OffsetLayer) {
+        e2eLog('Screenshot $name skipped: root layer is not capturable');
+        return;
+      }
+      final image = await layer.toImage(renderView.paintBounds);
+      try {
+        final data = await image.toByteData(format: ui.ImageByteFormat.png);
+        if (data == null) {
+          e2eLog('Screenshot $name skipped: no image data');
+          return;
+        }
+        final directory = Directory(
+          '${await AppStorageUtils.getAppLogDirectory()}/screenshots',
+        );
+        await directory.create(recursive: true);
+        final file = File('${directory.path}/$name.png');
+        await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
+        e2eLog('Screenshot saved: ${file.path}');
+      } finally {
+        image.dispose();
+      }
+    } catch (error) {
+      e2eLog('Screenshot $name failed: $error');
+    }
   }
 
   /// Waits until home is usable. Onboarding is pushed on top shortly after

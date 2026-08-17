@@ -79,7 +79,7 @@ jobs:
       auto_update_e2e: true
       sign_update_artifact: true
       run_connect_smoke: false
-      run_payment_checkout_smoke: false
+      run_payment_smoke: false
 
   build-windows:
     needs: prepare
@@ -100,7 +100,7 @@ jobs:
       run_split_tunnel_website_smoke: false
       run_config_url_smoke: false
       run_auth_smoke: false
-      run_payment_checkout_smoke: false
+      run_payment_smoke: false
 
   assemble:
     needs:
