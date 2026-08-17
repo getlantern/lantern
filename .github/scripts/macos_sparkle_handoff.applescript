@@ -98,16 +98,20 @@ end waitForMainWindow
 
 on installUntilExit(targetPID, timeoutSeconds)
   set deadline to (current date) + timeoutSeconds
+  set pressed to false
   repeat while (current date) is less than deadline
     set processRef to my processForPID(targetPID)
     if processRef is missing value then return "original process exited"
-    set buttonRef to my findInstallButton(processRef)
-    if buttonRef is not missing value then
-      tell application "System Events"
-        set buttonName to name of buttonRef as text
-        perform action "AXPress" of buttonRef
-      end tell
-      log "[E2E] pressed Sparkle " & buttonName
+    if not pressed then
+      set buttonRef to my findInstallButton(processRef)
+      if buttonRef is not missing value then
+        tell application "System Events"
+          set buttonName to name of buttonRef as text
+          perform action "AXPress" of buttonRef
+        end tell
+        set pressed to true
+        log "[E2E] pressed Sparkle " & buttonName
+      end if
     end if
     delay pollInterval
   end repeat

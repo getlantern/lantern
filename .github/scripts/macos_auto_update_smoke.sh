@@ -184,6 +184,7 @@ capture_diagnostics() {
 
 on_exit() {
   local status=$?
+  trap - EXIT INT TERM
   set +e
   capture_diagnostics
   capture_screenshot final
@@ -192,6 +193,8 @@ on_exit() {
   exit "$status"
 }
 trap on_exit EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 install_fixture() {
   MOUNT_PATH="$(mktemp -d)"

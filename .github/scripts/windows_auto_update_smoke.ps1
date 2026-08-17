@@ -147,7 +147,7 @@ function Get-Window([string[]]$NamePrefixes) {
   )
   foreach ($window in [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
       [System.Windows.Automation.TreeScope]::Children, $condition)) {
-    $name = $window.Current.Name
+    $name = [string]$window.Current.Name
     foreach ($prefix in $NamePrefixes) {
       if ($name -eq $prefix -or $name.StartsWith("$prefix ")) { return $window }
     }
@@ -162,7 +162,8 @@ function Get-Button($Window, [string[]]$Names) {
     [System.Windows.Automation.ControlType]::Button
   )
   foreach ($button in $Window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)) {
-    if ($button.Current.IsEnabled -and $Names -contains $button.Current.Name.Replace('&', '')) {
+    $name = ([string]$button.Current.Name).Replace('&', '')
+    if ($button.Current.IsEnabled -and $Names -contains $name) {
       return $button
     }
   }

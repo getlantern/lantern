@@ -538,7 +538,7 @@ $(DARWIN_PROFILE_BUILD): $(MAYBE_STEALTH_PROFILE)
 	rm -vf $(MACOS_INSTALLER)
 	flutter build macos --profile $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
-.PHONY: build-macos-profile stage-macos-profile
+.PHONY: build-macos-release build-macos-profile stage-macos-profile
 build-macos-profile: $(DARWIN_PROFILE_BUILD)
 
 # Keep packaging and signing on the established Release staging path. The
@@ -764,6 +764,7 @@ copy-lanternd-debug: $(LANTERND_WINDOWS_AMD64)
 	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
 	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(WINDOWS_DEBUG_DIR)/$(LANTERND).exe)
 
+.PHONY: copy-lanternd-profile copy-lanternd-profile-arm64
 copy-lanternd-profile: $(LANTERND_WINDOWS_AMD64)
 	$(call MKDIR_P,$(WINDOWS_PROFILE_DIR))
 	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(LANTERND_WINDOWS_PROFILE))
@@ -802,7 +803,7 @@ build-windows-profile: $(MAYBE_STEALTH_PROFILE)
 # Fastforge packages the Release directory. Stage the test-only profile build
 # there after its native service binaries have been added.
 stage-windows-profile: build-windows-profile prepare-windows-profile
-	$(PS) "if (Test-Path '$(WINDOWS_RELEASE_DIR)') { Remove-Item -Recurse -Force -LiteralPath '$(WINDOWS_RELEASE_DIR)' }; New-Item -ItemType Directory -Force -Path '$(WINDOWS_RELEASE_DIR)' | Out-Null; Copy-Item -Recurse -Force -Path '$(WINDOWS_PROFILE_DIR)\\*' -Destination '$(WINDOWS_RELEASE_DIR)'"
+	$(PS) "if (Test-Path '$(WINDOWS_RELEASE_DIR)') { Remove-Item -Recurse -Force -LiteralPath '$(WINDOWS_RELEASE_DIR)' }; New-Item -ItemType Directory -Force -Path '$(WINDOWS_RELEASE_DIR)' | Out-Null; Copy-Item -Recurse -Force -Path '$(WINDOWS_PROFILE_DIR)/*' -Destination '$(WINDOWS_RELEASE_DIR)'"
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen build-windows-release prepare-windows-release

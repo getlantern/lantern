@@ -436,7 +436,7 @@ jobs:
             -Description "Installer - GitHub Actions build ${{ inputs.version }}"
 
       - name: Sign Windows update
-        if: ${{ inputs.package_installer && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        if: ${{ inputs.package_installer && !inputs.skip_signing && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
         shell: pwsh
         env:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
@@ -455,7 +455,7 @@ jobs:
           retention-days: 2
 
       - name: Upload Windows update signature
-        if: ${{ inputs.package_installer && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        if: ${{ inputs.package_installer && !inputs.skip_signing && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-exe-signature
