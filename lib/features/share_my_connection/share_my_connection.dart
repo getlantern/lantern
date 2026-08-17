@@ -25,6 +25,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/unbounded_connection_event.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -179,13 +180,62 @@ class _PeerArc {
 }
 
 class ShareNotifier extends Notifier<ShareState> {
-  // Disclosure ack persists across launches via LocalStorageService
+  // Consent ack persists across launches via LocalStorageService
   // (SharedPreferences). Key-presence is the signal — the value is
   // arbitrary. Cleared by deleteAll() in the existing reset flow.
-  static const _smcAckKey = 'smc_disclosure_acked';
+  static const _consentAckKey = 'share_consent_acked';
+  // Anyone who accepted the old SmC-only disclosure consented to the exit-node
+  // case, which is the stronger of the two, so that ack carries forward rather
+  // than re-prompting them.
+  static const _legacySmcAckKey = 'smc_disclosure_acked';
+  Future<bool>? _consentInFlight;
   LocalStorageService get _storage => sl<LocalStorageService>();
-  bool get _smcAck => _storage.containsKey(_smcAckKey);
-  Future<void> _persistSmcAck() => _storage.setString(_smcAckKey, '1');
+  bool get _consentAcked =>
+      _storage.containsKey(_consentAckKey) ||
+      _storage.containsKey(_legacySmcAckKey);
+  Future<void> _persistConsentAck() => _storage.setString(_consentAckKey, '1');
+
+  /// Prompts for sharing consent if it hasn't been given, and reports whether
+  /// sharing may proceed. Safe to call when consent already exists — it
+  /// short-circuits without showing anything.
+  ///
+  /// Both modes route other people's traffic through the user's connection, so
+  /// one disclosure covers both; it is worded for the worst case (SmC, where
+  /// the user's own IP is the exit) because the mode isn't known until the
+  /// UPnP probe runs, after consent.
+  Future<bool> ensureConsent(BuildContext context) {
+    if (_consentAcked) return Future.value(true);
+    // The toggle, the tab's auto-enable card and its checkbox, and the
+    // Settings row can all reach this before the first dialog closes. Sharing
+    // one future keeps that to a single dialog and a single ack write.
+    return _consentInFlight ??= _showConsentDialog(context)
+        .whenComplete(() => _consentInFlight = null);
+  }
+
+  Future<bool> _showConsentDialog(BuildContext context) async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const ShareConsentDialog(),
+    );
+    if (accepted != true) return false;
+    await _persistConsentAck();
+    return true;
+  }
+
+  /// Persists the auto-start preference, collecting consent first when turning
+  /// it on. Every surface that offers the toggle routes through here:
+  /// autoStart refuses to run without an ack, so a preference written without
+  /// one would read as enabled and then silently never start.
+  Future<void> setAutoEnable(BuildContext context, bool enabled) async {
+    final settings = ref.read(appSettingProvider.notifier);
+    if (!enabled) {
+      settings.setUnboundedAutoEnable(false);
+      return;
+    }
+    if (!await ensureConsent(context)) return;
+    settings.setUnboundedAutoEnable(true);
+  }
 
   StreamSubscription? _appEventSub;
   int _workerSeq = 0;
@@ -218,44 +268,63 @@ class ShareNotifier extends Notifier<ShareState> {
       _stopEventSubscription();
       _eventController.close();
     });
-    return const ShareState();
+    // Seed totalCount from the persisted lifetime running total so the
+    // "Total people helped to date" stat survives app restarts. New
+    // arrivals (line further down) increment both ShareState.totalCount
+    // and the persisted value via setUnboundedTotalHelped.
+    final persistedTotal =
+        ref.read(appSettingProvider).unboundedTotalHelped;
+    // Reconcile an auto-enable preference stored before consent existed.
+    // Earlier builds defaulted it to true and wrote it with no disclosure, so
+    // after an upgrade the toggle would read as on while autoStart refuses to
+    // run for want of an ack — enabled in the UI, silently never starting.
+    // Clear it rather than grandfather consent nobody gave; re-enabling
+    // prompts. Deferred because build() must not mutate another provider.
+    if (!_consentAcked && ref.read(appSettingProvider).unboundedAutoEnable) {
+      Future.microtask(
+        () =>
+            ref.read(appSettingProvider.notifier).setUnboundedAutoEnable(false),
+      );
+    }
+    return ShareState(totalCount: persistedTotal);
   }
 
   /// Toggle entry point. Caller passes its BuildContext so we can show the
-  /// disclosure modal inline, and a WidgetRef so we can drive the radiance
+  /// consent modal inline, and a WidgetRef so we can drive the radiance
   /// peer-share toggle.
   ///
-  /// Resolution order on enable:
-  ///   1. If the user has set a manual port in Advanced settings, that
-  ///      is an explicit opt-in — go straight to SmC mode. No UPnP
-  ///      probe, no disclosure (user already crossed that line by
-  ///      configuring the port forward on their router).
-  ///   2. Otherwise probe UPnP. If UPnP works AND the user accepts
-  ///      the SmC disclosure, run SmC. Decline → Unbounded.
-  ///   3. UPnP unavailable → Unbounded fallback.
+  /// Consent is collected first and covers both modes. The mode itself is not
+  /// the user's choice — it follows from the network:
+  ///   1. A manual port set in Unbounded Settings means the user has already
+  ///      forwarded a port, so use it and skip the probe.
+  ///   2. Otherwise probe UPnP: available → SmC, unavailable → Unbounded.
   Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
     if (state.active || state.probing) {
       await _stop(widgetRef);
       return;
     }
 
+    // Consent gates every start path, before the mode is even known.
+    if (!await ensureConsent(context)) return;
+    // Showing it is async, so re-check: another surface — or a second tap on
+    // this one — can have started sharing while the dialog was up.
+    if (state.active || state.probing) return;
+
     state = state.copyWith(probing: true);
 
     // iOS runs radiance inside the network extension, whose memory budget
     // cannot carry the peer proxy's second sing-box instance, so the backend
-    // refuses SmC there. Short-circuit ahead of every SmC path below: the
-    // probe blocks ~6s and neither it, a manually forwarded port, nor the
-    // disclosure dialog can change the outcome, because the constraint is
-    // the extension's budget rather than reachability or consent.
+    // refuses SmC there. Fall through to Unbounded before the probe rather
+    // than after: the probe blocks ~6s and its answer cannot change the mode.
+    // A manually forwarded port doesn't override this — the constraint is the
+    // extension's budget, not reachability.
     if (PlatformUtils.isIOS) {
       await _start(widgetRef, ShareMode.unbounded);
       return;
     }
 
-    // Manual port forward bypasses both the UPnP probe and the SmC
-    // disclosure dialog. Configuring a port in Advanced is an explicit
-    // user-driven SmC opt-in — they wouldn't have set it up if they
-    // weren't sure they wanted to share via the residential-IP path.
+    // Manual port forward skips the UPnP probe: configuring a port by hand is
+    // an explicit request for the residential-IP path.
     final manualPortRes =
         await widgetRef.read(lanternServiceProvider).getPeerManualPort();
     final manualPort = manualPortRes.fold((_) => 0, (p) => p);
@@ -279,33 +348,27 @@ class ShareNotifier extends Notifier<ShareState> {
       return;
     }
 
-    if (_smcAck) {
-      await _start(widgetRef, ShareMode.smc);
-      return;
-    }
+    await _start(widgetRef, ShareMode.smc);
+  }
 
-    if (!context.mounted) {
-      state = state.copyWith(probing: false);
-      return;
-    }
-
-    final accepted = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const SmcDisclosureDialog(),
-    );
-
-    if (accepted == null) {
-      // User dismissed without choosing — leave off.
-      state = state.copyWith(probing: false);
-      return;
-    }
-    if (accepted) {
-      await _persistSmcAck();
-      await _start(widgetRef, ShareMode.smc);
-    } else {
-      await _start(widgetRef, ShareMode.unbounded);
-    }
+  /// Programmatic entry point used by the Home shell's auto-enable
+  /// listener (VPN-connected → Unbounded on) and by the
+  /// "Auto-enable Unbounded" Settings toggle.
+  ///
+  /// Always starts Unbounded mode regardless of UPnP capability or
+  /// manual-port configuration. SmC would make the user's device a
+  /// residential exit, and this path has no UI to disclose that, so it stays
+  /// on the relayed surface even for a user who has consented.
+  ///
+  /// No-ops if already active or in flight, or if consent has never been
+  /// given — this path cannot prompt, so refusing to start is the only safe
+  /// direction. Consent is collected by toggle() or by enabling auto-start in
+  /// Unbounded Settings, both of which have a BuildContext.
+  Future<void> autoStart(WidgetRef widgetRef) async {
+    if (state.active || state.probing) return;
+    if (!_consentAcked) return;
+    state = state.copyWith(probing: true);
+    await _start(widgetRef, ShareMode.unbounded);
   }
 
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
@@ -314,7 +377,9 @@ class ShareNotifier extends Notifier<ShareState> {
       probing: false,
       mode: mode,
       activeCount: 0,
-      totalCount: 0,
+      // Preserve the running total across off→on cycles so toggling
+      // doesn't reset the user's lifetime count.
+      totalCount: state.totalCount,
     );
     _startEventSubscription(widgetRef);
     switch (mode) {
@@ -346,7 +411,10 @@ class ShareNotifier extends Notifier<ShareState> {
               probing: false,
               mode: ShareMode.off,
               activeCount: 0,
-              totalCount: 0,
+              // Preserve lifetime totalCount across a failed Start — the
+              // persisted "Total people helped to date" stat is set
+              // independent of the active session's outcome.
+              totalCount: state.totalCount,
               phase: SharePhase.error,
               errorMessage: err.error,
             );
@@ -381,7 +449,9 @@ class ShareNotifier extends Notifier<ShareState> {
               probing: false,
               mode: ShareMode.off,
               activeCount: 0,
-              totalCount: 0,
+              // Preserve lifetime totalCount across a failed Start (see
+              // matching comment in the SmC branch above).
+              totalCount: state.totalCount,
               phase: SharePhase.error,
               errorMessage: err.error,
             );
@@ -397,7 +467,9 @@ class ShareNotifier extends Notifier<ShareState> {
   Future<void> _stop(WidgetRef widgetRef) async {
     _stopEventSubscription();
     final priorMode = state.mode;
-    state = const ShareState();
+    // Preserve totalCount across toggle-off (same reason as _start —
+    // user's lifetime count shouldn't reset on a toggle cycle).
+    state = ShareState(totalCount: state.totalCount);
     switch (priorMode) {
       case ShareMode.smc:
         await widgetRef
@@ -433,7 +505,7 @@ class ShareNotifier extends Notifier<ShareState> {
         .watchAppEvents()
         .listen((event) {
       if (event.eventType == 'peer-status') {
-        _handlePeerStatus(event.message);
+        _handlePeerStatus(event.message, widgetRef);
         return;
       }
       if (event.eventType != 'peer-connection') return;
@@ -463,10 +535,20 @@ class ShareNotifier extends Notifier<ShareState> {
           final widx = _workerSeq++;
           final arc = _PeerArc(widx);
           _peerArcs[ip] = arc;
+          final newTotal = state.totalCount + 1;
           state = state.copyWith(
             activeCount: state.activeCount + 1,
-            totalCount: state.totalCount + 1,
+            totalCount: newTotal,
           );
+          // Persist so the "Total people helped to date" stat
+          // survives restarts. Reached only on first-time-seen IPs —
+          // the dedup at _peerArcs[ip] above returns early for repeat
+          // events on an existing connection (liveness probes, stream
+          // reattaches), so this is one write per unique peer-arrival,
+          // not per peer-connection event.
+          ref
+              .read(appSettingProvider.notifier)
+              .setUnboundedTotalHelped(newTotal);
           // Resolve country async. Emit the +1 only after lookup so the
           // globe can render the arc at the right coords and the UI can
           // surface the country name in the connection banner.
@@ -586,32 +668,42 @@ class ShareNotifier extends Notifier<ShareState> {
   // from radiance/peer/peer.go's Phase constants; we map them through
   // SharePhase.fromWire so an unknown future phase falls back to idle
   // instead of crashing the consumer.
-  void _handlePeerStatus(String message) {
+  //
+  // SmC Start failures (UPnP miss, /v1/peer/register 404/4xx/5xx,
+  // samizdat verify timeout, …) arrive as phase=error. Treat any such
+  // failure as a signal to switch transparently to Unbounded mode —
+  // the user's intent ("I want to share") is honoured via broflake
+  // regardless of SmC's outcome, and raw protocol error text never
+  // reaches the status card.
+  void _handlePeerStatus(String message, WidgetRef widgetRef) {
     try {
       final payload = jsonDecode(message) as Map<String, dynamic>;
       final phase = SharePhase.fromWire(payload['phase'] as String?);
       final errMsg = payload['error'] as String?;
       final hasErr = errMsg != null && errMsg.isNotEmpty;
 
-      // Terminal-phase reset: when radiance reports the backend is
-      // idle (clean stop) or error (start failed / runtime collapse),
-      // the SmC active/mode bits also need to flip — otherwise the
-      // toggle stays ON while the backend is off. Both terminal
-      // phases tear down the event subscription and return to the
-      // off-state; the error phase additionally preserves the
-      // backend's error message so the StatusCard's (off, error)
-      // arm renders it.
-      if ((phase == SharePhase.idle || phase == SharePhase.error) &&
-          state.mode == ShareMode.smc) {
+      // Terminal-phase reset in SmC mode:
+      //   error → automatically fall back to Unbounded so the user
+      //           keeps helping via the lower-friction path instead
+      //           of seeing the screen flip off; SmC failures during
+      //           Start are surfaced via this phase=error event.
+      //   idle  → clean stop (user toggled off, or radiance
+      //           transitioned through stopping → idle). Tear down
+      //           the event subscription and return to off.
+      if (phase == SharePhase.error && state.mode == ShareMode.smc) {
+        appLogger.info(
+          'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
+        );
+        unawaited(_fallbackToUnbounded(widgetRef));
+        return;
+      }
+      if (phase == SharePhase.idle && state.mode == ShareMode.smc) {
         _stopEventSubscription();
-        if (phase == SharePhase.error) {
-          state = ShareState(
-            phase: SharePhase.error,
-            errorMessage: hasErr ? errMsg : null,
-          );
-        } else {
-          state = const ShareState();
-        }
+        // Preserve totalCount across the radiance-driven idle reset —
+        // lifetime running total is persisted via appSettingProvider and
+        // would otherwise be zeroed until the next app restart re-seeds
+        // it from disk.
+        state = ShareState(totalCount: state.totalCount);
         return;
       }
       state = state.copyWith(
@@ -622,15 +714,95 @@ class ShareNotifier extends Notifier<ShareState> {
       debugPrint('share-my-connection: bad peer-status event: $e');
     }
   }
+
+  // Seamlessly switches an in-flight SmC session to Unbounded. Called when
+  // the radiance peer client reports phase=error — the SmC Start has
+  // already failed and radiance has rolled the PeerShareEnabledKey
+  // setting back to false, so all we owe is to flip our local state to
+  // Unbounded and enable broflake.
+  //
+  // Constructs ShareState directly (rather than copyWith) so errorMessage
+  // gets cleared — copyWith's `?? this.errorMessage` keeps the previous
+  // SmC failure string around otherwise.
+  //
+  // Event subscription: deliberately does NOT call _startEventSubscription.
+  // The error path arrives here via _handlePeerStatus which is already
+  // inside the subscription started by the prior _start; flipping the
+  // local state.mode keeps the same subscription forwarding events for
+  // the new (Unbounded) mode. _stop is the only teardown path for the
+  // subscription, and the error path doesn't go through _stop.
+  Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
+    state = ShareState(
+      active: true,
+      probing: false,
+      mode: ShareMode.unbounded,
+      activeCount: 0,
+      totalCount: state.totalCount,
+      phase: SharePhase.idle,
+    );
+    final result = await widgetRef
+        .read(lanternServiceProvider)
+        .setUnboundedEnabled(true);
+    result.fold(
+      (err) {
+        // Both SmC and the fallback to Unbounded failed. Roll back the
+        // optimistic active=true state to off+error so the UI doesn't
+        // claim Unbounded is running when nothing actually started —
+        // same shape as the Unbounded branch in _start. Tear down the
+        // event subscription too, since it was kept alive across the
+        // SmC→Unbounded flip and there's nothing left to consume it.
+        appLogger.error(
+          'SmC→Unbounded fallback: setUnboundedEnabled failed: ${err.error}',
+        );
+        _stopEventSubscription();
+        state = ShareState(
+          active: false,
+          probing: false,
+          mode: ShareMode.off,
+          activeCount: 0,
+          totalCount: state.totalCount,
+          phase: SharePhase.error,
+          errorMessage: err.error,
+        );
+      },
+      (_) => {},
+    );
+  }
 }
 
 final shareProvider =
     NotifierProvider<ShareNotifier, ShareState>(ShareNotifier.new);
 
-// ─── Screen ──────────────────────────────────────────────────────────────────
+/// Whether the Unbounded tab is the one on screen. Home drives this from
+/// its TabController; the globe watches it to mute its tickers (via
+/// TickerMode) while the user is on another tab.
+///
+/// Why this is needed: the globe is a software-projected sphere whose
+/// rotationController calls setState() ~60fps, re-rendering the whole
+/// sphere every frame. TabBarView keeps off-screen tabs mounted and does
+/// not pause their tickers, so without this gate the globe keeps burning
+/// a core re-projecting a sphere the user can't see while they sit on
+/// the VPN tab. Defaults true so the globe runs in any context that
+/// doesn't wire the signal (tests, or the single-tab layout where the
+/// globe isn't built anyway).
+final unboundedTabVisibleProvider =
+    NotifierProvider<UnboundedTabVisible, bool>(UnboundedTabVisible.new);
 
-class ShareMyConnectionScreen extends HookConsumerWidget {
-  const ShareMyConnectionScreen({super.key});
+class UnboundedTabVisible extends Notifier<bool> {
+  @override
+  bool build() => true;
+
+  void set(bool visible) => state = visible;
+}
+
+// ─── Tab body ────────────────────────────────────────────────────────────────
+
+/// Unbounded tab content, rendered inside the Home tab shell (see
+/// home.dart). Hosts the description text, globe + arrival toast, the
+/// status card with the toggle, and the advanced section. No Scaffold
+/// or AppBar — the shell provides the chrome and the tab strip.
+class UnboundedTab extends HookConsumerWidget {
+  const UnboundedTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -638,28 +810,72 @@ class ShareMyConnectionScreen extends HookConsumerWidget {
     final notifier = ref.read(shareProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
 
-    return BaseScreen(
-      title: 'share_my_connection'.i18n,
-      body: Padding(
+    // First-visit welcome popup. Fires once per device (persisted via
+    // appSettingProvider.unboundedWelcomeSeen) when the user first lands
+    // on the Unbounded tab. Re-openable via the info-bubble icon in the
+    // header.
+    useEffect(() {
+      final seen = ref.read(appSettingProvider).unboundedWelcomeSeen;
+      if (!seen) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          showUnboundedWelcomeDialog(context, ref);
+        });
+      }
+      return null;
+    }, const []);
+
+    return SafeArea(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
             const SizedBox(height: 12),
-            Text(
-              'smc_intro'.i18n,
-              style: textTheme.bodyMedium,
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black12),
+              ),
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Tappable despite reading as a static glyph: it is the only
+                  // way back into the welcome dialog once it has been seen.
+                  IconButton(
+                    icon: const Icon(Icons.info_outline, size: 20),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'about_unbounded'.i18n,
+                    onPressed: () => showUnboundedWelcomeDialog(context, ref),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'smc_intro'.i18n,
+                      style: textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             Expanded(
               flex: 3,
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   Positioned.fill(child: _GlobeView()),
-                  // Floating "new connection from X" toast — overlays the
-                  // bottom of the globe area rather than the peer's exact
-                  // location on the sphere. Anchoring to projected coords
-                  // forced the burst to repaint every globe rotation
-                  // frame, which made the rotation jittery.
+                  // Floating arrival toast — centered horizontally
+                  // under the globe per unbounded.lantern.io
+                  // (frame-020 of unbounded-russia.mp4 shows the pill
+                  // sitting roughly under the globe's centre, not at
+                  // a corner). The Lottie heart-spray lives INSIDE the
+                  // pill via Stack(Clip.none) + negative offsets, so
+                  // hearts originate from the pill's static heart and
+                  // overflow upward/leftward into the globe area.
                   const Positioned(
                     left: 0,
                     right: 0,
@@ -672,7 +888,7 @@ class ShareMyConnectionScreen extends HookConsumerWidget {
             const SizedBox(height: 8),
             _StatusCard(state: state, onToggle: () => notifier.toggle(context, ref)),
             const SizedBox(height: 12),
-            const _AdvancedCard(),
+            const _AutoEnableCard(),
             const SizedBox(height: 16),
           ],
         ),
@@ -742,84 +958,62 @@ class _StatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black12),
       ),
-      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'smc_status_label'.i18n,
-                      style: textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      modeLabel,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: state.active
-                            ? AppColors.blue4
-                            : Theme.of(context).hintColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Match the rest of the app's toggles (vpn_setting.dart etc.).
-              // SwitchButton has no built-in disabled state, so during the
-              // probe we render the switch but absorb the tap so the user
-              // doesn't double-fire toggle().
-              SwitchButton(
-                value: state.active || state.probing,
-                onChanged: (value) {
-                  if (state.probing) return;
-                  onToggle();
-                },
-              ),
-            ],
-          ),
-          if (state.active) ...[
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            Stack(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _Stat(label: 'smc_stat_active_now'.i18n, value: '${state.activeCount}'),
-                    _Stat(label: 'smc_stat_total_today'.i18n, value: '${state.totalCount}'),
-                  ],
-                ),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Tooltip(
-                    triggerMode: TooltipTriggerMode.tap,
-                    waitDuration: const Duration(milliseconds: 200),
-                    showDuration: const Duration(seconds: 8),
-                    preferBelow: false,
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    textStyle: const TextStyle(color: Colors.white, fontSize: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    message: 'smc_connections_tooltip'.i18n,
-                    child: Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Theme.of(context).hintColor,
+                Icon(Icons.public,
+                    size: 20, color: Theme.of(context).hintColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      style: textTheme.bodyMedium,
+                      children: [
+                        TextSpan(text: '${'smc_status_label'.i18n}: '),
+                        TextSpan(
+                          text: modeLabel,
+                          style: TextStyle(
+                            color: state.active
+                                ? AppColors.green6
+                                : Theme.of(context).hintColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                // Match the rest of the app's toggles (vpn_setting.dart etc.).
+                // SwitchButton has no built-in disabled state, so during the
+                // probe we render the switch but absorb the tap so the user
+                // doesn't double-fire toggle().
+                SwitchButton(
+                  value: state.active || state.probing,
+                  onChanged: (value) {
+                    if (state.probing) return;
+                    onToggle();
+                  },
+                ),
               ],
+            ),
+          ),
+          if (state.active) ...[
+            const Divider(height: 1),
+            _StatRow(
+              icon: Icons.person_outline,
+              label: 'smc_stat_active_now'.i18n,
+              value: '${state.activeCount}',
+              tooltip: 'smc_connections_tooltip'.i18n,
+            ),
+            const Divider(height: 1),
+            _StatRow(
+              icon: Icons.people_outline,
+              label: 'smc_stat_total_helped'.i18n,
+              value: '${state.totalCount}',
             ),
           ],
         ],
@@ -828,19 +1022,116 @@ class _StatusCard extends StatelessWidget {
   }
 }
 
-class _Stat extends StatelessWidget {
+class _StatRow extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
-  const _Stat({required this.label, required this.value});
+  final String? tooltip;
+
+  const _StatRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.tooltip,
+  });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Column(
-      children: [
-        Text(value, style: textTheme.headlineSmall),
-        Text(label, style: textTheme.labelSmall),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).hintColor),
+          const SizedBox(width: 12),
+          Expanded(child: Text(label, style: textTheme.bodyMedium)),
+          if (tooltip != null) ...[
+            Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              waitDuration: const Duration(milliseconds: 200),
+              showDuration: const Duration(seconds: 8),
+              preferBelow: false,
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              textStyle: const TextStyle(color: Colors.white, fontSize: 12),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              message: tooltip!,
+              child: Icon(
+                Icons.info_outline,
+                size: 16,
+                color: Theme.of(context).hintColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            value,
+            style: textTheme.bodyMedium?.copyWith(
+              color: AppColors.blue8, // text/link
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Mirrors the Unbounded Settings toggle, surfaced on the tab itself because
+/// the spec puts the choice next to the thing it controls.
+class _AutoEnableCard extends ConsumerWidget {
+  const _AutoEnableCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
+    final autoEnable =
+        ref.watch(appSettingProvider.select((s) => s.unboundedAutoEnable));
+    final notifier = ref.read(shareProvider.notifier);
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => notifier.setAutoEnable(context, !autoEnable),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Icons.auto_mode,
+                  size: 20, color: Theme.of(context).hintColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('auto_enable_unbounded'.i18n,
+                        style: textTheme.bodyMedium),
+                    Text('auto_enable_unbounded_subtitle'.i18n,
+                        style: textTheme.labelSmall),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Checkbox(
+                value: autoEnable,
+                onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
+                activeColor: AppColors.blue10,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -853,22 +1144,42 @@ class _GlobeView extends ConsumerStatefulWidget {
 }
 
 class _GlobeViewState extends ConsumerState<_GlobeView> {
-  static final _arcColor = AppColors.blue4.withValues(alpha: 0.75);
+  // The spec draws each arc as a cyan-to-yellow gradient, but
+  // PointConnectionStyle exposes a single flat colour, so alternate the two
+  // ends of that ramp by workerIdx instead. Concurrent connections stay
+  // distinguishable where they overlap near the origin either way.
+  static final _arcColors = [
+    AppColors.blue4.withValues(alpha: 0.75),
+    AppColors.yellow3.withValues(alpha: 0.75),
+  ];
   static final _originPointColor = AppColors.blue4.withValues(alpha: 0.15);
-  static final _peerPointColor = AppColors.yellow3.withValues(alpha: 0.15);
+  static const _peerPointColor = AppColors.green6;
   static const _atmosphereDark = AppColors.blue4;
   static const _atmosphereLight = AppColors.blue6;
 
   final FlutterEarthGlobeController _globeController =
       FlutterEarthGlobeController(
-    isRotating: true,
+    // Slow continuous spin, matching unbounded.lantern.io. Desktop only:
+    // the package falls back to a per-pixel Dart projection when its sphere
+    // shader is unavailable, and that cost is not worth a background
+    // animation on battery. TickerMode in build() freezes this whenever the
+    // tab is off screen, so it only runs while the user is watching it.
+    isRotating: PlatformUtils.isDesktop,
     rotationSpeed: 0.04,
     zoom: 0,
     isZoomEnabled: false,
     showAtmosphere: true,
     atmosphereColor: _atmosphereDark,
-    atmosphereOpacity: 0.2,
-    atmosphereBlur: 20,
+    // Soft bloom, not a rim: a small blur reads as a hard teal ring.
+    atmosphereOpacity: 0.18,
+    atmosphereBlur: 22,
+    // The package's defaults (ambient 0.6 / intensity 0.75) multiply the
+    // surface down to ~60% on the unlit side, turning the light texture into
+    // a mid-grey ball. The spec's globe renders its ocean at the texture's
+    // own 233, so almost everything here is ambient; the small directional
+    // term is only what keeps the sphere from reading flat.
+    ambientLight: 0.97,
+    lightIntensity: 0.15,
   );
 
   StreamSubscription<UnboundedConnectionEvent>? _eventSub;
@@ -879,6 +1190,10 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
   // workerIdx +1's again before it fires.
   final Map<int, Timer> _pendingRemovals = {};
   static const _arcLinger = Duration(seconds: 5);
+  // workerIdx of every arc+point currently on the globe, so a stop can
+  // remove them all without relying on per-peer -1 events (which _stop()
+  // never emits).
+  final Set<int> _drawn = {};
   Brightness? _appliedBrightness;
 
   @override
@@ -953,6 +1268,9 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       coordinates: coords,
       style: PointStyle(color: _originPointColor, size: 8),
     ));
+    // Center the static globe on the user's own location so the first
+    // thing shown is "us" (instant — no intro spin).
+    _globeController.focusOnCoordinates(coords, animate: false);
     // Origin coords are now known — draw any peers that connected
     // before (or during) the origin lookup. _addPeer's null-guard
     // skipped them earlier; replayCurrentPeers re-fires +1 events
@@ -996,22 +1314,22 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
     // skipped here gets drawn with the correct destination.
     if (_originCoords == null) return;
     final coords = _jittered(event.coordinates!, event.workerIdx);
-    // Arc direction is censored user → uncensored peer (us). The dash
-    // animation flows from start to end, so the visual "travel" reads
-    // as traffic arriving at our peer to escape censorship.
+    // Solid arc, censored user → uncensored peer (us), drawn in once on
+    // add (animateOnAdd). dashAnimateTime is 0 on purpose: a non-zero
+    // value makes flutter_earth_globe run its ~60fps repaint loop for as
+    // long as any arc exists, which would re-spike the CPU the whole time
+    // a peer is connected — the same per-frame full-sphere repaint we
+    // removed by disabling rotation.
     _globeController.addPointConnection(PointConnection(
       id: 'conn_${event.workerIdx}',
       start: coords,
       end: _originCoords!,
       curveScale: .6,
       style: PointConnectionStyle(
-        color: _arcColor,
+        color: _arcColors[event.workerIdx.abs() % _arcColors.length],
         lineWidth: 3,
         type: PointConnectionType.solid,
-        dashAnimateTime: 1000,
-        dashSize: 13,
-        spacing: 15,
-        dotSize: 10,
+        dashAnimateTime: 0,
         animateOnAdd: true,
       ),
     ));
@@ -1020,16 +1338,57 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       coordinates: coords,
       style: PointStyle(color: _peerPointColor, size: 6),
     ));
+    _drawn.add(event.workerIdx);
+    // Turn the static globe to bring the new connection into view — a
+    // brief, finite animation that settles back to static (no continuous
+    // cost). Without it, an arc on the far hemisphere of a non-spinning
+    // globe would be invisible.
+    _globeController.focusOnCoordinates(
+      coords,
+      animate: true,
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   void _removePeer(int workerIdx) {
     _globeController.removePointConnection('conn_$workerIdx');
     _globeController.removePoint('peer_$workerIdx');
+    _drawn.remove(workerIdx);
+  }
+
+  // Drop every arc + peer point at once. Used on the active->off edge,
+  // since _stop() tears down the event stream without emitting the -1s
+  // that would otherwise remove each arc.
+  void _clearAllPeers() {
+    for (final t in _pendingRemovals.values) {
+      t.cancel();
+    }
+    _pendingRemovals.clear();
+    for (final workerIdx in _drawn.toList()) {
+      _globeController.removePointConnection('conn_$workerIdx');
+      _globeController.removePoint('peer_$workerIdx');
+    }
+    _drawn.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
+    // Pause the globe's tickers while the Unbounded tab is off screen.
+    // rotating_globe builds its AnimationControllers with `vsync: this`,
+    // so an ancestor TickerMode(enabled: false) freezes any in-flight
+    // focusOnCoordinates turn and the package's idle repaint loop at once
+    // — no point spending frames on a globe the user can't see.
+    final visible = ref.watch(unboundedTabVisibleProvider);
+    // _stop() tears down the upstream event subscription without emitting
+    // -1 events, so without this the globe keeps animating whatever arcs
+    // were live at toggle-off. Clear them on the active->off edge.
+    ref.listen(shareProvider.select((s) => s.active), (prev, next) {
+      if (prev == true && next == false) _clearAllPeers();
+    });
+    return TickerMode(
+      enabled: visible,
+      child: LayoutBuilder(
       builder: (context, constraints) {
         // FlutterEarthGlobe positions the sphere relative to MediaQuery.size
         // (i.e. the full screen). Without overriding it the globe ends up
@@ -1038,8 +1397,13 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
         // within this widget's box; ClipRect keeps arcs from painting
         // outside the box when they curve high.
         final widgetSize = Size(constraints.maxWidth, constraints.maxHeight);
-        final radius =
-            min(constraints.maxWidth, constraints.maxHeight) / 2 * 0.7;
+        // Driven off width, since the spec sizes the globe as a fraction of
+        // the frame (~50% of it across), then clamped so a short slot doesn't
+        // push the sphere out of its box.
+        final radius = min(
+          constraints.maxWidth * 0.275,
+          constraints.maxHeight * 0.42,
+        );
         return ClipRect(
           // copyWith preserves the inherited devicePixelRatio,
           // textScaleFactor, padding/insets etc. — constructing
@@ -1050,6 +1414,25 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
             data: MediaQuery.of(context).copyWith(size: widgetSize),
             child: Stack(
               children: [
+                // Sits behind the sphere because the package paints no
+                // shadow of its own; matched to the spec's Globe effect.
+                Align(
+                  alignment: const Alignment(0.0, -0.1),
+                  child: Container(
+                    width: radius * 2,
+                    height: radius * 2,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x42006163),
+                          offset: Offset(0, 4),
+                          blurRadius: 64,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 Positioned.fill(
                   child: FlutterEarthGlobe(
                     controller: _globeController,
@@ -1062,18 +1445,19 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
           ),
         );
       },
+      ),
     );
   }
 }
 
 // ─── Arrival toast ───────────────────────────────────────────────────────────
 
-/// Floating notification overlay shown under the globe when a new peer
-/// arrives. Mirrors the unbounded.lantern.io notification pattern:
-/// heart-burst on the left, `New connection from <country>` text on
-/// the right. Slides up + fades in, auto-hides after ~3.5s. Listens
-/// directly to ShareNotifier.connectionEvents so we don't depend on
-/// the globe widget for triggering.
+/// Floating notification overlay shown under the globe. Mirrors the
+/// unbounded.lantern.io notification pattern: heart-burst on the left,
+/// `Helping a new person in <country>` text on the right while a peer
+/// is connecting. When no peer has arrived recently, falls back to
+/// `Waiting for connections...` (no heart) per the Figma spec. Slides
+/// up + fades in, auto-hides connection arrivals after ~3.5s.
 class _ArrivalToast extends ConsumerStatefulWidget {
   const _ArrivalToast();
 
@@ -1117,6 +1501,11 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
   @override
   Widget build(BuildContext context) {
     final event = _current;
+    // _current only tracks arrivals from the last few seconds, so its absence
+    // does not mean nobody is connected. The idle pill has to key off the live
+    // peer count or it claims we are waiting for connections directly above a
+    // stat reporting several active ones.
+    final hasPeers = ref.watch(shareProvider).activeCount > 0;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 280),
       transitionBuilder: (child, anim) => FadeTransition(
@@ -1129,7 +1518,9 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
         ),
       ),
       child: event == null
-          ? const SizedBox.shrink(key: ValueKey('arrival-hidden'))
+          ? (hasPeers
+              ? const SizedBox.shrink(key: ValueKey('arrival-idle'))
+              : const _WaitingCard(key: ValueKey('arrival-waiting')))
           : _ArrivalCard(
               // ValueKey forces AnimatedSwitcher to swap children when a
               // new arrival lands while the previous toast is still up,
@@ -1157,6 +1548,10 @@ class _ArrivalCard extends StatelessWidget {
     return IgnorePointer(
       child: Container(
         padding: const EdgeInsets.fromLTRB(10, 8, 16, 8),
+        // clipBehavior:none lets the absolutely-positioned Lottie burst
+        // (inside the heart slot below) overflow the pill's rounded
+        // bounds and spray upward across the globe.
+        clipBehavior: Clip.none,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
           borderRadius: BorderRadius.circular(100),
@@ -1172,12 +1567,47 @@ class _ArrivalCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(width: 40, height: 40, child: _HeartBurst()),
-            const SizedBox(width: 12),
+            // Heart slot with the static heart icon + a Lottie burst
+            // that overflows upward and rightward into the globe area.
+            // Layout mirrors unbounded's CSS one-for-one: heart in a
+            // 22×19 slot, Lottie absolute-positioned at bottom:-55,
+            // left:-105, width:420 (scaled to the slot's natural
+            // bottom/left = pill heart's bottom/left).
+            SizedBox(
+              width: 22,
+              height: 19,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: const [
+                  // Lottie spreads upward + rightward from the heart.
+                  // The size matches explosion.json's native 420×502
+                  // canvas — unbounded.lantern.io's CSS uses width:420
+                  // with height:auto for the same effect. Forcing the
+                  // height to 420 (as we did before) scaled the
+                  // animation down by ~83% via BoxFit.contain and lost
+                  // ~82px of upward spread, leaving the hearts visibly
+                  // smaller and clustered just above the pill instead
+                  // of fanning out across the globe.
+                  Positioned(
+                    bottom: -55,
+                    left: -105,
+                    width: 420,
+                    height: 502,
+                    child: _ArrivalLottie(),
+                  ),
+                  CustomPaint(painter: _HeartPainter()),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
+            // unbounded.lantern.io renders just `heart + text`, no flag
+            // emoji — matching that exactly so the pill width stays in
+            // bounds and the layout reads cleanly. flagEmoji is still
+            // carried on the event for future use (e.g. label above
+            // the peer's arc on the globe).
             Text(
-              flagEmoji.isEmpty
-                  ? 'smc_arrival_toast'.i18n.fill([countryName])
-                  : '$flagEmoji  ${'smc_arrival_toast'.i18n.fill([countryName])}',
+              'smc_arrival_toast'.i18n.fill([countryName]),
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -1190,76 +1620,73 @@ class _ArrivalCard extends StatelessWidget {
   }
 }
 
-// ─── Heart burst ─────────────────────────────────────────────────────────────
-
-/// Heart + Lottie explosion lifted from getlantern/unbounded. The pink
-/// heart is the inline SVG path from `notification/explosion.tsx`
-/// (FF5A79 fill, 32×27 viewBox); the burst is `explosion.json` played
-/// once via the `lottie` Flutter package. Rendered inside _ArrivalCard
-/// (under the globe), NOT anchored to globe coords — anchoring forced
-/// a repaint per globe rotation frame and made rotation jittery.
-class _HeartBurst extends StatefulWidget {
-  const _HeartBurst();
+/// Plays explosion.json once per build. Stateful so each _ArrivalCard
+/// instance (keyed on workerIdx) gets its own clean Lottie playback.
+class _ArrivalLottie extends StatefulWidget {
+  const _ArrivalLottie();
 
   @override
-  State<_HeartBurst> createState() => _HeartBurstState();
+  State<_ArrivalLottie> createState() => _ArrivalLottieState();
 }
 
-class _HeartBurstState extends State<_HeartBurst>
+class _ArrivalLottieState extends State<_ArrivalLottie>
     with TickerProviderStateMixin {
-  AnimationController? _lottieCtrl;
+  AnimationController? _ctrl;
 
   @override
   void dispose() {
-    _lottieCtrl?.dispose();
+    _ctrl?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return Lottie.asset(
+      'assets/unbounded/explosion.json',
+      repeat: false,
+      fit: BoxFit.contain,
+      onLoaded: (composition) {
+        // Lottie can fire onLoaded after dispose if the surrounding
+        // _ArrivalCard rebuilds rapidly (worker swap mid-load). Guard
+        // mounted and discard any controller that was already attached
+        // so we don't leak a ticker on rebuild.
+        if (!mounted) return;
+        _ctrl?.dispose();
+        _ctrl = AnimationController(
+          vsync: this,
+          duration: composition.duration,
+        )..forward();
+        setState(() {});
+      },
+      controller: _ctrl,
+    );
+  }
+}
+
+/// Idle-state companion to _ArrivalCard. Same pill chrome, no heart,
+/// `Waiting for connections...` text. Shown whenever the toast switch
+/// has no current arrival to display.
+class _WaitingCard extends StatelessWidget {
+  const _WaitingCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          // Lottie explosion sized so particle spray extends slightly
-          // past the card bounds (Clip.none on parent lets it overflow).
-          // Mirrors unbounded's LottieWrapper sizing, scaled down for an
-          // inline card slot.
-          Positioned(
-            width: 110,
-            height: 110,
-            child: Lottie.asset(
-              'assets/unbounded/explosion.json',
-              repeat: false,
-              fit: BoxFit.contain,
-              onLoaded: (composition) {
-                // Dispose guard: Lottie's onLoaded can fire after the
-                // burst is replaced (rapid peer arrivals replace the
-                // ArrivalCard before composition load completes).
-                // Without this, AnimationController(vsync: this) +
-                // setState would throw on a disposed State.
-                if (!mounted) return;
-                // Also dispose any prior controller — a stale
-                // AnimationController from an earlier onLoaded would
-                // leak its ticker subscription otherwise.
-                _lottieCtrl?.dispose();
-                _lottieCtrl = AnimationController(
-                  vsync: this,
-                  duration: composition.duration,
-                )..forward();
-                setState(() {});
-              },
-              controller: _lottieCtrl,
-            ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Text(
+          'unbounded_waiting_for_connections'.i18n,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).hintColor,
           ),
-          // Heart SVG path — exact coords from unbounded's inline SVG.
-          const SizedBox(
-            width: 22,
-            height: 19,
-            child: CustomPaint(painter: _HeartPainter()),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1295,16 +1722,16 @@ class _HeartPainter extends CustomPainter {
 
 // ─── Advanced section ────────────────────────────────────────────────────────
 
-/// _AdvancedCard exposes power-user knobs that don't belong in the
-/// always-visible status card. Today: manual port forward (for users on
-/// networks where UPnP doesn't work, who've configured a router-side
-/// port forward by hand).
+/// UnboundedAdvancedCard exposes power-user knobs that don't belong on the
+/// Unbounded tab itself. Today: manual port forward (for users on networks
+/// where UPnP doesn't work, who've configured a router-side port forward by
+/// hand). Lives in Unbounded Settings.
 ///
 /// Persisted via the existing FFI setPeerManualPort path; takes effect
 /// on the next peer.Client.Start (i.e. next time the toggle is flipped
 /// on after editing the field).
-class _AdvancedCard extends HookConsumerWidget {
-  const _AdvancedCard();
+class UnboundedAdvancedCard extends HookConsumerWidget {
+  const UnboundedAdvancedCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1482,31 +1909,29 @@ class _ManualPortField extends HookConsumerWidget {
 
 // ─── Disclosure dialog ───────────────────────────────────────────────────────
 
-class SmcDisclosureDialog extends StatelessWidget {
-  const SmcDisclosureDialog({super.key});
+/// One disclosure for both sharing modes. The user is not asked to pick a
+/// mode — that follows from whether their router supports port forwarding —
+/// so the copy describes the worst case (their own IP as the exit) and the
+/// relayed case, and the single choice is whether to share at all.
+class ShareConsentDialog extends StatelessWidget {
+  const ShareConsentDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return AlertDialog(
-      title: Text('smc_disclosure_title'.i18n),
+      title: Text('share_consent_title'.i18n),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'smc_disclosure_body_capability'.i18n,
-              style: textTheme.bodyMedium,
-            ),
+            Text('share_consent_body_what'.i18n, style: textTheme.bodyMedium),
+            const SizedBox(height: 12),
+            Text('share_consent_body_ip'.i18n, style: textTheme.bodyMedium),
             const SizedBox(height: 12),
             Text(
-              'smc_disclosure_body_safety'.i18n,
-              style: textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'smc_disclosure_body_alternative'.i18n,
+              'share_consent_body_safety'.i18n,
               style: textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).hintColor,
               ),
@@ -1517,13 +1942,107 @@ class SmcDisclosureDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text('smc_disclosure_basic'.i18n),
+          child: Text('share_consent_decline'.i18n),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text('smc_disclosure_full'.i18n),
+          child: Text('share_consent_accept'.i18n),
         ),
       ],
+    );
+  }
+}
+
+// ─── Welcome dialog ──────────────────────────────────────────────────────────
+
+/// Shows the first-visit Unbounded welcome popup per Figma
+/// (figma.com/design/hNlyYToB5TnX9SDBFDYJTq?node-id=2403-19287).
+/// Idempotent: dismissing the dialog (either button OR scrim tap)
+/// flips appSettingProvider.unboundedWelcomeSeen → true so the dialog
+/// only fires on the first visit. The info-bubble icon in the
+/// Unbounded tab header calls this same function to re-open it later.
+void showUnboundedWelcomeDialog(BuildContext context, WidgetRef ref) {
+  // Capture the notifier up front: whenComplete fires after the dialog
+  // closes, by which point the calling widget (and its WidgetRef) may be
+  // disposed if navigation replaced Home — ref.read would then throw. The
+  // notifier is owned by the root container and outlives the widget.
+  final appSetting = ref.read(appSettingProvider.notifier);
+  showDialog<void>(
+    context: context,
+    builder: (_) => const _UnboundedWelcomeDialog(),
+  ).whenComplete(() {
+    appSetting.setUnboundedWelcomeSeen(true);
+  });
+}
+
+class _UnboundedWelcomeDialog extends StatelessWidget {
+  const _UnboundedWelcomeDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Heart logo, matching the Figma's heart-Lantern motif.
+              const Center(
+                child: SizedBox(
+                  width: 40,
+                  height: 34,
+                  child: CustomPaint(painter: _HeartPainter()),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  'unbounded_welcome_title'.i18n,
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'unbounded_welcome_body_1'.i18n,
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'unbounded_welcome_body_2'.i18n,
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'unbounded_welcome_body_3'.i18n,
+                style: textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              // No "Learn more" button until the explainer URL is wired
+              // (will be re-added pointing at AppUrls.unbounded). Showing
+              // a button with an empty onPressed in production reads as a
+              // dead control.
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('got_it'.i18n),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

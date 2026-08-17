@@ -1,108 +1,150 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
-import 'package:lantern/core/widgets/info_row.dart';
-import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/home/vpn_tab.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
-import 'package:lantern/features/vpn/location_setting.dart';
+import 'package:lantern/features/share_my_connection/share_my_connection.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
-import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
-import 'package:lantern/features/vpn/vpn_status.dart';
-import 'package:lantern/features/vpn/vpn_switch.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 import '../../core/common/common.dart';
 
-enum _SettingTileType { smartLocation, splitTunneling, smartRouting }
-
+/// Root tab shell hosting the VPN and Unbounded tabs. Tab strip lives in
+/// the AppBar so the chrome (Lantern logo + settings menu + account
+/// actions) is shared across tabs and lines up with the Figma spec at
+/// figma.com/design/hNlyYToB5TnX9SDBFDYJTq?node-id=2403-19287.
+///
+/// Tab labels carry a small dot indicator that turns green when the
+/// matching feature is active (VPN: connected; Unbounded: peer share
+/// on) and grey otherwise — also per spec.
 @RoutePage(name: 'Home')
-class Home extends StatefulHookConsumerWidget {
+class Home extends HookConsumerWidget {
   const Home({super.key});
 
   @override
-  ConsumerState<Home> createState() => _HomeState();
-}
-
-class _HomeState extends ConsumerState<Home> {
-  TextTheme? textTheme;
-
-  @override
-  void initState() {
-    super.initState();
-
+  Widget build(BuildContext context, WidgetRef ref) {
     // Congratulate the user once per converted referral, whenever fresh
-    // user data lands (first load or later refreshes).
-    ref.listenManual(homeProvider, fireImmediately: true, (previous, next) {
-      final user = next.value;
-      if (user == null) return;
-      if (!ref.read(appSettingProvider).onboardingCompleted) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        checkAndShowReferralReward(context, user);
+    // user data lands (first load or later refreshes). listenManual (not
+    // ref.listen) because the subscription must outlive a rebuild and is
+    // torn down explicitly; the empty dep list keeps it to one
+    // subscription for the widget's lifetime rather than one per build.
+    useEffect(() {
+      final sub = ref.listenManual(homeProvider, fireImmediately: true, (
+        previous,
+        next,
+      ) {
+        final user = next.value;
+        if (user == null) return;
+        if (!ref.read(appSettingProvider).onboardingCompleted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          checkAndShowReferralReward(context, user);
+        });
       });
-    });
+      return sub.close;
+    }, const []);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      /// Kick off the server fetch as soon as Home mounts so the Smart
-      /// Location tile can reflect the fastest server without waiting for
-      /// the user to open the server-selection screen.
-      ref.read(availableServersProvider);
-
-      final appSetting = ref.read(appSettingProvider);
-      final appSettingNotifier = ref.read(appSettingProvider.notifier);
-      if (!appSetting.onboardingCompleted) {
-        appLogger.info(
-          "User has not completed onboarding, navigating to Onboarding Screen",
-        );
-        appRouter.push(const Onboarding());
-        return;
+    final tabController = useTabController(initialLength: 2);
+    // Tell the Unbounded globe whether its tab is on screen so it can mute
+    // its ~60fps sphere re-projection while the user is on the VPN tab
+    // (TabBarView keeps the off-screen tab mounted and ticking). The globe
+    // lives in tab index 1, so it should animate whenever any part of it
+    // is on screen — including mid-swipe. animation.value is the
+    // fractional tab position (0.0 = VPN fully shown, 1.0 = Unbounded
+    // fully shown), so > 0 means the Unbounded tab is at least partly
+    // revealed. (indexIsChanging only covers tap/animateTo, not a finger
+    // drag, so it would freeze the globe during a swipe in.)
+    //
+    // The same listener drives the app bar wordmark, which swaps with the tab.
+    final onUnboundedTab = useState(false);
+    useEffect(() {
+      void sync() {
+        final pos =
+            tabController.animation?.value ?? tabController.index.toDouble();
+        ref.read(unboundedTabVisibleProvider.notifier).set(pos > 0.0);
+        // Halfway through the swipe, so the title swaps once rather than
+        // flickering per frame.
+        onUnboundedTab.value = pos >= 0.5;
       }
 
-      if (PlatformUtils.isMacOS) {
-        /// Show macOS system extension dialog if needed
-        appLogger.info(
-          "App Setting - showSplashScreen: ${appSetting.showSplashScreen}",
-        );
-        if (appSetting.showSplashScreen) {
-          appLogger.info("Showing System Extension Dialog");
-          appRouter.push(const MacOSExtensionDialog());
-          //User has seen dialog, do not show again
-          appLogger.info("Setting showSplashScreen to false");
-          appSettingNotifier.setSplashScreen(false);
-          return;
-        }
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+      tabController.addListener(sync);
+      // Deferred: on first mount this effect body runs inside Home.build, and
+      // sync writes to a provider, which Riverpod rejects during a build.
+      // Later invocations come from the controller's animation ticks, which
+      // are already outside the build phase.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        sync();
+      });
+      return () => tabController.removeListener(sync);
+    }, [tabController]);
     final isUserPro = ref.watch(isUserProProvider);
-    final featureFlag = ref.watch(featureFlagProvider);
     final userLoggedIn = ref.watch(
       appSettingProvider.select((s) => s.userLoggedIn),
     );
+    final unboundedHidden = ref.watch(
+      appSettingProvider.select((s) => s.unboundedHidden),
+    );
+    final featureFlag = ref.watch(featureFlagProvider);
+    // Server-side gate for the whole Unbounded UI surface. Censored
+    // regions get the flag off, so the tab, strip, and any auto-enable
+    // hook disappear. The user's own "Hide Unbounded tab" toggle still
+    // wins on top of this for non-censored users who want it hidden.
+    final unboundedAvailable = featureFlag.getBool(FeatureFlag.unbounded);
+    final showUnboundedTab = unboundedAvailable && !unboundedHidden;
+    final vpnStatus = ref.watch(vpnProvider);
+    final shareActive = ref.watch(shareProvider.select((s) => s.active));
+
+    // First-frame side effects: kick off server fetch, gate onboarding,
+    // macOS sysext dialog. Lifted unchanged from the old Home body so
+    // app-launch behaviour stays the same after the tab refactor.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(availableServersProvider);
+        final appSetting = ref.read(appSettingProvider);
+        final appSettingNotifier = ref.read(appSettingProvider.notifier);
+        if (!appSetting.onboardingCompleted) {
+          appLogger.info(
+            "User has not completed onboarding, navigating to Onboarding Screen",
+          );
+          appRouter.push(const Onboarding());
+          return;
+        }
+        if (PlatformUtils.isMacOS) {
+          appLogger.info(
+            "App Setting - showSplashScreen: ${appSetting.showSplashScreen}",
+          );
+          if (appSetting.showSplashScreen) {
+            appLogger.info("Showing System Extension Dialog");
+            appRouter.push(const MacOSExtensionDialog());
+            appLogger.info("Setting showSplashScreen to false");
+            appSettingNotifier.setSplashScreen(false);
+          }
+        }
+      });
+      return null;
+    }, const []);
+
+    // Telemetry consent dialog — fires once per app session after the
+    // first successful connection, gated on the metrics + traces
+    // feature flags. Preserved from the old Home behaviour.
     useEffect(() {
       final appSetting = ref.read(appSettingProvider);
       if (appSetting.successfulConnection) {
-        appLogger.info(
-          "User has successfully connected, checking if need to show Help Lantern Dialog or not",
-        );
         if (!appSetting.telemetryDialogDismissed &&
             (featureFlag.getBool(FeatureFlag.metrics) &&
                 featureFlag.getBool(FeatureFlag.traces))) {
-          appLogger.info("Showing Help Lantern Dialog");
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            showHelpLanternDialog();
+            _showHelpLanternDialog(context, ref);
             ref.read(appSettingProvider.notifier).setShowTelemetryDialog(true);
           });
         }
@@ -110,16 +152,68 @@ class _HomeState extends ConsumerState<Home> {
       return null;
     }, [featureFlag]);
 
-    textTheme = Theme.of(context).textTheme;
     ref.read(appEventProvider);
+
+    // Auto-enable Unbounded — gated on the "Auto-enable Unbounded"
+    // toggle from Unbounded Settings (opt-in, default off) AND the per-user
+    // "Hide Unbounded" toggle. Hiding the tab is the opt-out: a user
+    // who hid Unbounded should not see it silently auto-enable in
+    // the background. Fires from two entry points so the spec's
+    // subtitle "Turn on automatically when Lantern is open" is
+    // honoured whether the user connects the VPN or not:
+    //   1. App launch (useEffect below) — once on Home mount.
+    //   2. VPN connect (ref.listen further down) — on every
+    //      disconnected → connected transition, in case the toggle
+    //      flipped on after launch or the user finally connects.
+    // Both paths gate on (active || probing) to avoid re-triggering
+    // while a Start is in flight, and skip the disclosure dialog
+    // because the user has already opted in via settings.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!unboundedAvailable) return;
+        final appSetting = ref.read(appSettingProvider);
+        if (appSetting.unboundedHidden) return;
+        if (!appSetting.onboardingCompleted) return;
+        if (!appSetting.unboundedAutoEnable) return;
+        final share = ref.read(shareProvider);
+        if (share.active || share.probing) return;
+        ref.read(shareProvider.notifier).autoStart(ref);
+      });
+      return null;
+    }, [unboundedAvailable]);
+
+    ref.listen<VPNStatus>(vpnProvider, (prev, next) {
+      if (prev == next) return;
+      if (next != VPNStatus.connected) return;
+      if (!unboundedAvailable) return;
+      final appSetting = ref.read(appSettingProvider);
+      if (appSetting.unboundedHidden) return;
+      if (!appSetting.unboundedAutoEnable) return;
+      final share = ref.read(shareProvider);
+      if (share.active || share.probing) return;
+      // Call autoStart synchronously — shareProvider is a different
+      // provider than vpnProvider (the one we're listening to), so
+      // mutating it inside this callback doesn't risk a re-entrancy
+      // cycle. The previous Future.microtask defer was unsafe under
+      // teardown: if Home unmounted between the listener firing and
+      // the microtask running, the deferred ref.read would be on a
+      // disposed scope.
+      ref.read(shareProvider.notifier).autoStart(ref);
+    });
+
     return Scaffold(
       key: const Key('home.screen'),
       appBar: AppBar(
-        title: LanternLogo(isPro: isUserPro, color: context.textPrimary),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(0),
-          child: DividerSpace(padding: EdgeInsets.zero),
-        ),
+        // Both titles are brand logotypes, not text: the wordmarks use a
+        // condensed face the app's Urbanist theme cannot reproduce.
+        title: showUnboundedTab && onUnboundedTab.value
+            ? AppImage(
+                path: AppImagePaths.unboundedWordmark,
+                color: context.textPrimary,
+                height: 20,
+                width: 149,
+              )
+            : LanternLogo(isPro: isUserPro, color: context.textPrimary),
         elevation: 5,
         leading: IconButton(
           key: const Key('home.menu_button'),
@@ -145,195 +239,156 @@ class _HomeState extends ConsumerState<Home> {
           else if (!userLoggedIn)
             AppTextButton(
               label: 'sign_in'.i18n,
-              onPressed: () {
-                appRouter.push(const SignInEmail());
-              },
+              onPressed: () => appRouter.push(const SignInEmail()),
             ),
         ],
-      ),
-      body: SafeArea(child: _buildBody(ref, isUserPro)),
-    );
-  }
-
-  Widget _buildBody(WidgetRef ref, bool isUserPro) {
-    final serverLocation = ref.watch(serverLocationProvider);
-
-    final serverType = serverLocation.serverType.toServerLocationType;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: defaultSize),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          if (isUserPro) SizedBox(height: 0) else ProBanner(),
-          VPNSwitch(),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              if (!isUserPro) ...{
-                if (serverType == ServerLocationType.privateServer)
-                  InfoRow(text: 'private_server_usage_message'.i18n)
-                else if (PlatformUtils.isIOS)
-                  const SizedBox.shrink()
-                else
-                  const DataUsage(),
-              },
-              SizedBox(height: 8),
-              _buildSetting(ref),
-              SizedBox(height: 10.h),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSetting(WidgetRef ref) {
-    final routingMode = ref.watch(
-      radianceSettingsProvider.select((s) => s.routingMode),
-    );
-    final isSplitTunnelingOn = ref.watch(
-      radianceSettingsProvider.select((s) => s.splitTunneling),
-    );
-
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 32,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        child: Column(
-          children: [
-            VpnStatus(),
-            DividerSpace(),
-            LocationSetting(),
-            if (!PlatformUtils.isIOS) ...{
-              DividerSpace(),
-              SettingTile(
-                label: 'routing_mode'.i18n,
-                icon: AppImagePaths.route,
-                value: routingMode.label(),
-                actions: [
-                  IconButton(
-                    onPressed: null,
-                    style: ElevatedButton.styleFrom(
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    icon: AppImage(path: AppImagePaths.arrowForward),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
+        // Tab strip collapses when Unbounded is unavailable — either the
+        // server flag is off (censored region) or the user hid the tab
+        // in Unbounded Settings. With only one tab left, a strip is just
+        // noise; body falls back to VpnTab directly.
+        bottom: !showUnboundedTab
+            ? null
+            : TabBar(
+                controller: tabController,
+                // Pill-shaped selection rather than the Material underline,
+                // per the Figma spec. indicatorPadding insets the fill so the
+                // pill floats inside the tab instead of filling it edge to
+                // edge; the strip carries no divider in the spec.
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicator: BoxDecoration(
+                  color: AppColors.blue1, // action/tabbar/tabbar-bg
+                  borderRadius: BorderRadius.circular(9999),
+                  border: Border.all(
+                    color: AppColors.blue2, // action/tabbar/tabbar-border
                   ),
+                ),
+                indicatorPadding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                dividerColor: Colors.transparent,
+                labelColor: AppColors.blue10, // tabbar-selected-text
+                unselectedLabelColor: AppColors.gray6, // tabbar-disabled-text
+                tabs: [
+                  _TabLabel(
+                      label: 'vpn'.i18n,
+                      iconPath: AppImagePaths.key,
+                      active: vpnStatus == VPNStatus.connected),
+                  _TabLabel(
+                      label: 'unbounded'.i18n,
+                      iconPath: AppImagePaths.unbounded,
+                      active: shareActive),
                 ],
-                onTap: () => onSettingTileTap(_SettingTileType.smartRouting),
               ),
-            },
-            if (PlatformUtils.isAndroid ||
-                PlatformUtils.isMacOS ||
-                PlatformUtils.isWindows) ...{
-              DividerSpace(),
-              SettingTile(
-                label: 'split_tunneling'.i18n,
-                icon: AppImagePaths.callSpilt,
-                value: isSplitTunnelingOn ? 'enabled'.i18n : 'disabled'.i18n,
-                actions: [
-                  IconButton(
-                    onPressed: null,
-                    style: ElevatedButton.styleFrom(
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    icon: AppImage(path: AppImagePaths.arrowForward),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
-                onTap: () => onSettingTileTap(_SettingTileType.splitTunneling),
-              ),
-            },
-          ],
-        ),
       ),
+      body: !showUnboundedTab
+          ? const VpnTab()
+          : TabBarView(
+              controller: tabController,
+              children: const [
+                VpnTab(),
+                UnboundedTab(),
+              ],
+            ),
     );
   }
+}
 
-  void onSettingTileTap(_SettingTileType tileType) {
-    switch (tileType) {
-      case _SettingTileType.smartLocation:
-        appRouter.push(const ServerSelection());
-        break;
-      case _SettingTileType.splitTunneling:
-        appRouter.push(const SplitTunneling());
-        break;
-      case _SettingTileType.smartRouting:
-        appRouter.push(const SmartRouting());
-    }
-  }
+/// Tab label with the leading feature icon and green/grey status dot from the
+/// Figma spec. The dot reflects whether the feature is running, which is
+/// independent of which tab is selected.
+class _TabLabel extends StatelessWidget {
+  const _TabLabel({
+    required this.label,
+    required this.iconPath,
+    required this.active,
+  });
 
-  void showHelpLanternDialog() {
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
+  final String label;
+  final String iconPath;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    // TabBar wraps each tab in a DefaultTextStyle carrying the resolved
+    // selected/unselected label colour, so tinting the icon from it keeps the
+    // two in step without plumbing the selected index down here.
+    final labelColor = DefaultTextStyle.of(context).style.color;
+    return Tab(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 24),
-          AppImage(path: AppImagePaths.assessment),
-          SizedBox(height: 24),
-          Text(
-            'help_improve_lantern'.i18n,
-            style: textTheme!.headlineSmall!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            'share_anonymous_usage_data'.i18n,
-            style: textTheme!.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            'data_we_collect'.i18n,
-            style: AppTextStyles.bodyMediumBold.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-          SizedBox(height: defaultSize),
-          Text(
-            'you_can_change_anytime'.i18n,
-            style: textTheme!.bodyMedium!.copyWith(
-              color: context.textSecondary,
+        children: [
+          AppImage(path: iconPath, width: 24, height: 24, color: labelColor),
+          const SizedBox(width: 8),
+          Text(label),
+          const SizedBox(width: 8),
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: active ? AppColors.green6 : AppColors.gray5,
+              border: Border.all(
+                color: active ? AppColors.green3 : AppColors.gray3,
+                width: 2,
+              ),
             ),
           ),
         ],
       ),
-      action: [
-        AppTextButton(
-          label: 'dont_allow'.i18n,
-          textColor: context.textDisabled,
-          onPressed: () {
-            context.pop();
-            ref.read(radianceSettingsProvider.notifier).setTelemetry(false);
-          },
+    );
+  }
+}
+
+void _showHelpLanternDialog(BuildContext context, WidgetRef ref) {
+  final textTheme = Theme.of(context).textTheme;
+  AppDialog.customDialog(
+    context: context,
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SizedBox(height: 24),
+        const AppImage(path: AppImagePaths.assessment),
+        const SizedBox(height: 24),
+        Text(
+          'help_improve_lantern'.i18n,
+          style: textTheme.headlineSmall!.copyWith(color: context.textPrimary),
         ),
-        AppTextButton(
-          label: 'allow'.i18n,
-          textColor: AppColors.blue6,
-          onPressed: () {
-            context.pop();
-            ref.read(radianceSettingsProvider.notifier).setTelemetry(true);
-          },
+        SizedBox(height: defaultSize),
+        Text(
+          'share_anonymous_usage_data'.i18n,
+          style: textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+        ),
+        SizedBox(height: defaultSize),
+        Text(
+          'data_we_collect'.i18n,
+          style: AppTextStyles.bodyMediumBold.copyWith(
+            color: context.textSecondary,
+          ),
+        ),
+        SizedBox(height: defaultSize),
+        Text(
+          'you_can_change_anytime'.i18n,
+          style: textTheme.bodyMedium!.copyWith(color: context.textSecondary),
         ),
       ],
-    );
-  }
+    ),
+    action: [
+      AppTextButton(
+        label: 'dont_allow'.i18n,
+        textColor: context.textDisabled,
+        onPressed: () {
+          context.pop();
+          ref.read(radianceSettingsProvider.notifier).setTelemetry(false);
+        },
+      ),
+      AppTextButton(
+        label: 'allow'.i18n,
+        textColor: AppColors.blue6,
+        onPressed: () {
+          context.pop();
+          ref.read(radianceSettingsProvider.notifier).setTelemetry(true);
+        },
+      ),
+    ],
+  );
 }
