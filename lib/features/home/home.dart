@@ -217,6 +217,7 @@ class Home extends HookConsumerWidget {
         elevation: 5,
         leading: IconButton(
           key: const Key('home.menu_button'),
+          tooltip: 'settings'.i18n,
           onPressed: () {
             appRouter.push(Setting());
           },
