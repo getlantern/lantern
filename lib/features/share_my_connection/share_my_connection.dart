@@ -1220,7 +1220,8 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
       t.cancel();
     }
     _pendingRemovals.clear();
-    _globeController.dispose();
+    // RotatingGlobe owns and disposes the controller's rotation animation.
+    // Disposing the parent controller here would dispose it a second time.
     super.dispose();
   }
 

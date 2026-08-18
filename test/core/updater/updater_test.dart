@@ -1,10 +1,33 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/updater/updater.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'constructing the updater does not initialize desktop channels',
+    () async {
+      const eventChannel = MethodChannel(
+        'dev.leanflutter.plugins/auto_updater_event',
+      );
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      var channelCalls = 0;
+      messenger.setMockMethodCallHandler(eventChannel, (_) async {
+        channelCalls++;
+        return null;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(eventChannel, null));
+
+      Updater();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(channelCalls, 0);
+    },
+  );
 
   group('WinSparkle shutdown', () {
     test('quits when WinSparkle is ready to install', () async {

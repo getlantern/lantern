@@ -22,12 +22,12 @@ class Updater with UpdaterListener {
     Future<void> Function()? quitForUpdate,
   }) : _androidSideloadUpdater =
            androidSideloadUpdater ?? AndroidSideloadUpdater(),
-       _autoUpdater = autoUpdater ?? AutoUpdater.instance,
+       _autoUpdater = autoUpdater,
        _isWindowsPlatform = isWindows ?? (!kIsWeb && Platform.isWindows),
        _quitForUpdate = quitForUpdate;
 
   final AndroidSideloadUpdater _androidSideloadUpdater;
-  final AutoUpdater _autoUpdater;
+  AutoUpdater? _autoUpdater;
   final bool _isWindowsPlatform;
   final Future<void> Function()? _quitForUpdate;
 
@@ -39,6 +39,11 @@ class Updater with UpdaterListener {
 
   bool get _isSupportedPlatform =>
       !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isAndroid);
+
+  // AutoUpdater opens its native event channel as soon as the singleton is
+  // created. Keep that initialization off Linux and Android, where the
+  // desktop plugin is not registered.
+  AutoUpdater get _desktopAutoUpdater => _autoUpdater ??= AutoUpdater.instance;
 
   Future<void> init() => _initialization ??= _initialize();
 
@@ -77,8 +82,9 @@ class Updater with UpdaterListener {
     try {
       final buildType = AppBuildInfo.buildType;
       final feedUrl = AppUrls.appcastFor(buildType);
+      final autoUpdater = _desktopAutoUpdater;
       if (!_listenerRegistered) {
-        _autoUpdater.addListener(this);
+        autoUpdater.addListener(this);
         _listenerRegistered = true;
       }
       if (Platform.isWindows) {
@@ -89,15 +95,15 @@ class Updater with UpdaterListener {
           appLogger.warning('Failed to set WinSparkle build version', e, st);
         }
       }
-      await _autoUpdater.setFeedURL(feedUrl);
-      await _autoUpdater.setScheduledCheckInterval(3600);
+      await autoUpdater.setFeedURL(feedUrl);
+      await autoUpdater.setScheduledCheckInterval(3600);
 
       // Background check after startup (avoid modal immediately on launch)
       const firstPromptDelay = Duration(seconds: 45);
       unawaited(
         Future<void>.delayed(firstPromptDelay, () async {
           try {
-            await _autoUpdater.checkForUpdates(inBackground: true);
+            await autoUpdater.checkForUpdates(inBackground: true);
           } catch (e, st) {
             appLogger.error('Failed to check for auto-updates', e, st);
           }
@@ -131,7 +137,7 @@ class Updater with UpdaterListener {
       );
       return;
     }
-    await _autoUpdater.checkForUpdates();
+    await _desktopAutoUpdater.checkForUpdates();
   }
 
   @override

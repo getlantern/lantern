@@ -38,16 +38,42 @@ class ExtensionProvider: NEPacketTunnelProvider {
       throw ipcError
     }
 
+    // Bringing the VPN up now waits for the first config, which takes seconds
+    // on a censored network, so the connect is dispatched rather than awaited —
+    // it may begin before this returns, it just cannot delay the return. The
+    // system tears the tunnel down while startTunnel is still outstanding
+    // (getlantern/engineering#3822). Nothing reached the system from here
+    // anyway: startVPN reports its own failures via cancelTunnelWithError.
+    //
+    // That budget is measured, not documented. Apple publishes no startTunnel
+    // completion deadline, and the teardowns never called stopTunnel(with:), so no
+    // NEProviderStopReason was captured. The evidence is 14 system-initiated
+    // teardowns in one CN session, none app-requested, median 7.51s. Returning
+    // promptly does not depend on the figure — only on the budget being finite
+    // and shorter than the work.
+    //
+    // Returning marks the provider started, but no tunnel settings exist until
+    // the connect below applies them, so the system claims no routes and
+    // traffic still egresses directly. Reassert until the connect finishes so
+    // the OS does not report a working VPN over a window that, on a first run
+    // with no cached config, lasts as long as the config fetch.
+    reasserting = true
+
     let tunnelType = options?["netEx.Type"] as? String
-    switch tunnelType {
-    case "Lantern":
-      startVPN()
-    case "PrivateServer":
-      let serverName = options?["netEx.ServerName"] as? String
-      connectToServer(serverName: serverName!)
-    default:
-      // Fallback or unknown type
-      startVPN()
+    let serverName = options?["netEx.ServerName"] as? String
+    Task.detached { [weak self] in
+      guard let self else { return }
+      defer { self.reasserting = false }
+      switch tunnelType {
+      case "PrivateServer":
+        guard let serverName else {
+          self.writeFatalError("Missing netEx.ServerName")
+          return
+        }
+        self.connectToServer(serverName: serverName)
+      default:
+        self.startVPN()
+      }
     }
   }
 
