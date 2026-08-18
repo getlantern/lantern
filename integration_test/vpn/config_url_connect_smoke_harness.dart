@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/common.dart' show appRouter;
 import 'package:lantern/core/widgets/custom_app_bar.dart' as lantern_widgets;
 
 import 'config_url_test_env.dart';
@@ -69,13 +70,13 @@ Future<bool> _tryGoBack(WidgetTester tester) async {
     return true;
   }
 
-  try {
-    await tester.pageBack();
-    await tester.pump(const Duration(milliseconds: 250));
+  final poppedWithRouter = await appRouter.maybePop();
+  if (poppedWithRouter) {
+    await tester.pump(const Duration(milliseconds: 400));
     return true;
-  } catch (_) {
-    return false;
   }
+
+  return false;
 }
 
 Future<void> _openServerSelectionFromHome(
@@ -128,22 +129,16 @@ Future<void> _openJoinPrivateServerScreen(
 
 Future<void> _returnToServerSelection(
   WidgetTester tester, {
-  required Finder serverSelectionScreen,
-  required Finder joinPrivateServerScreen,
+  required Finder serverSelectionControl,
 }) async {
-  if (serverSelectionScreen.evaluate().isNotEmpty) {
+  if (serverSelectionControl.hitTestable().evaluate().isNotEmpty) {
     return;
   }
 
   final end = DateTime.now().add(const Duration(seconds: 20));
   while (DateTime.now().isBefore(end)) {
-    if (serverSelectionScreen.evaluate().isNotEmpty) {
+    if (serverSelectionControl.hitTestable().evaluate().isNotEmpty) {
       return;
-    }
-
-    if (joinPrivateServerScreen.evaluate().isNotEmpty) {
-      await _tryGoBack(tester);
-      continue;
     }
 
     if (await _tryGoBack(tester)) {
@@ -161,15 +156,15 @@ Future<void> _returnToServerSelection(
 
 Future<void> _returnToHome(
   WidgetTester tester, {
-  required Finder homeScreen,
+  required Finder homeControl,
 }) async {
-  if (homeScreen.evaluate().isNotEmpty) {
+  if (homeControl.hitTestable().evaluate().isNotEmpty) {
     return;
   }
 
   final end = DateTime.now().add(const Duration(seconds: 20));
   while (DateTime.now().isBefore(end)) {
-    if (homeScreen.evaluate().isNotEmpty) {
+    if (homeControl.hitTestable().evaluate().isNotEmpty) {
       return;
     }
 
@@ -180,6 +175,12 @@ Future<void> _returnToHome(
     await tester.pump(const Duration(milliseconds: 250));
   }
 
+  appRouter.popUntilRoot();
+  await tester.pump(const Duration(milliseconds: 400));
+  if (homeControl.hitTestable().evaluate().isNotEmpty) {
+    return;
+  }
+
   fail(
     'Failed to return to home screen. '
     'Visible keyed widgets: ${collectVisibleSmokeDebugKeys(tester)}',
@@ -188,14 +189,14 @@ Future<void> _returnToHome(
 
 Future<bool> _tapJoinedServerFromServerSelection(
   WidgetTester tester, {
-  required Finder serverSelectionScreen,
+  required Finder serverSelectionControl,
   required Finder privateServersTab,
   required Finder joinedServerTileByKey,
   required Duration timeout,
 }) async {
   final end = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(end)) {
-    if (serverSelectionScreen.evaluate().isEmpty) {
+    if (serverSelectionControl.hitTestable().evaluate().isEmpty) {
       return false;
     }
 
@@ -323,20 +324,19 @@ Future<void> runConfigUrlConnectSmokeHarness(
 
   await _returnToServerSelection(
     tester,
-    serverSelectionScreen: serverSelectionScreen,
-    joinPrivateServerScreen: joinPrivateServerScreen,
+    serverSelectionControl: serverSelectionMoreOptions,
   );
 
   var selected = await _tapJoinedServerFromServerSelection(
     tester,
-    serverSelectionScreen: serverSelectionScreen,
+    serverSelectionControl: serverSelectionMoreOptions,
     privateServersTab: serverSelectionPrivateTab,
     joinedServerTileByKey: joinedServerTileByKey,
     timeout: const Duration(seconds: 75),
   );
 
   if (!selected) {
-    await _returnToHome(tester, homeScreen: finders.homeScreen);
+    await _returnToHome(tester, homeControl: homeLocationSetting);
     await _openServerSelectionFromHome(
       tester,
       locationSettingTile: homeLocationSetting,
@@ -345,7 +345,7 @@ Future<void> runConfigUrlConnectSmokeHarness(
 
     selected = await _tapJoinedServerFromServerSelection(
       tester,
-      serverSelectionScreen: serverSelectionScreen,
+      serverSelectionControl: serverSelectionMoreOptions,
       privateServersTab: serverSelectionPrivateTab,
       joinedServerTileByKey: joinedServerTileByKey,
       timeout: const Duration(seconds: 45),
