@@ -39,10 +39,11 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     // Bringing the VPN up now waits for the first config, which takes seconds
-    // on a censored network, so it runs after startTunnel returns rather than
-    // holding the system's start call open (getlantern/engineering#3822).
-    // Nothing reached the system from here anyway: startVPN reports its own
-    // failures via cancelTunnelWithError.
+    // on a censored network, so the connect is dispatched rather than awaited —
+    // it may begin before this returns, it just cannot hold the system's start
+    // call open (getlantern/engineering#3822). Nothing reached the system from
+    // here anyway: startVPN reports its own failures via cancelTunnelWithError.
+    //
     // Returning marks the provider started, but no tunnel settings exist until
     // the connect below applies them, so the system claims no routes and
     // traffic still egresses directly. Reassert until the connect finishes so
