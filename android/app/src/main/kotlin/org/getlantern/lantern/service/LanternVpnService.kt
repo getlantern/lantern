@@ -166,7 +166,21 @@ class LanternVpnService :
             VpnStatusManager.registerVPNStatusReceiver()
             MainActivity.receiverRegistered = true
         }
+
         AppLogger.d(TAG, "Received action: $action")
+
+        // Drop duplicate connect commands at the door: taps racing the
+        // status round-trip otherwise spawn concurrent attempts. Safe to
+        // return without startForeground — the in-flight attempt has
+        // already put the service in the foreground.
+        val isConnectAction = action == ACTION_START_VPN ||
+            action == ACTION_CONNECT_TO_SERVER ||
+            action == ACTION_TILE_START
+        if (isConnectAction && connectInFlight.get()) {
+            AppLogger.i(TAG, "Ignoring $action: connect already in flight")
+            return START_STICKY
+        }
+
         return when (action) {
             ACTION_START_RADIANCE -> {
                 serviceScope.launch {
@@ -452,8 +466,11 @@ class LanternVpnService :
             // orphan coroutines on Dispatchers.IO. Clear the flag from the
             // Deferred completion path so early cancellation before the async
             // body starts can't wedge future attempts.
+            // Duplicate attempt (e.g. double-tap): drop it — the in-flight
+            // attempt reports its own result.
             if (!connectInFlight.compareAndSet(false, true)) {
-                throw IllegalStateException("previous VPN connect attempt still in flight")
+                AppLogger.i(TAG, "VPN operation ($errorCode) ignored: previous connect attempt still in flight")
+                return@runCatching
             }
             val connectScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
             val deferred = connectScope.async { connect() }
@@ -490,7 +507,12 @@ class LanternVpnService :
                 errorMessage = if (timedOut) "VPN operation timed out" else "Error in VPN operation",
                 error = e,
             )
-            if (cleanUpOnFailure) serviceCleanUp()
+            // Don't unregister the status receiver while a tunnel may still
+            // need it: skip cleanup when the tunnel is up, when the bridge
+            // can't tell us (unknown counts as connected), or while a timed-out
+            // connect is still running detached and may yet bring the tunnel up.
+            val mayBeConnected = runCatching { Mobile.isVPNConnected() }.getOrDefault(true)
+            if (cleanUpOnFailure && !mayBeConnected && !connectInFlight.get()) serviceCleanUp()
         }
     }
 
