@@ -39,8 +39,9 @@ class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     // Bringing the VPN up now waits for the first config, which takes seconds
-    // on a censored network, so the connect runs after we return: the system
-    // tears the tunnel down while startTunnel is still outstanding
+    // on a censored network, so the connect is dispatched rather than awaited —
+    // it may begin before this returns, it just cannot delay the return. The
+    // system tears the tunnel down while startTunnel is still outstanding
     // (getlantern/engineering#3822). Nothing reached the system from here
     // anyway: startVPN reports its own failures via cancelTunnelWithError.
     //
