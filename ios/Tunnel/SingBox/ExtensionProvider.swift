@@ -39,10 +39,17 @@ class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     // Bringing the VPN up now waits for the first config, which takes seconds
-    // on a censored network. iOS kills this extension if startTunnel has not
-    // returned by ~7.5s, so the connect runs after we return
+    // on a censored network, so the connect runs after we return: the system
+    // tears the tunnel down while startTunnel is still outstanding
     // (getlantern/engineering#3822). Nothing reached the system from here
     // anyway: startVPN reports its own failures via cancelTunnelWithError.
+    //
+    // That budget is measured, not documented. Apple publishes no startTunnel
+    // completion deadline, and the teardowns never called stopTunnel, so no
+    // NEProviderStopReason was captured. The evidence is 14 system-initiated
+    // teardowns in one CN session, none app-requested, median 7.51s. Returning
+    // promptly does not depend on the figure — only on the budget being finite
+    // and shorter than the work.
     // Returning marks the provider started, but no tunnel settings exist until
     // the connect below applies them, so the system claims no routes and
     // traffic still egresses directly. Reassert until the connect finishes so
