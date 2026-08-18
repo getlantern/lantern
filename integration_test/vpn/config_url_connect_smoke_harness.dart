@@ -176,9 +176,12 @@ Future<void> _returnToHome(
   }
 
   appRouter.popUntilRoot();
-  await tester.pump(const Duration(milliseconds: 400));
-  if (homeControl.hitTestable().evaluate().isNotEmpty) {
-    return;
+  final rootEnd = DateTime.now().add(const Duration(seconds: 20));
+  while (DateTime.now().isBefore(rootEnd)) {
+    await tester.pump(const Duration(milliseconds: 100));
+    if (homeControl.hitTestable().evaluate().isNotEmpty) {
+      return;
+    }
   }
 
   fail(

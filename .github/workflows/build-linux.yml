@@ -278,6 +278,7 @@ jobs:
 
       - name: Linux config URL connect/disconnect integration
         if: ${{ inputs.run_config_url_smoke }}
+        timeout-minutes: 20
         shell: bash
         env:
           LANG: en_US.UTF-8
