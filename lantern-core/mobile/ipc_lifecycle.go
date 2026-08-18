@@ -234,11 +234,17 @@ func publishIPCResources(generation uint64, resources ipcResources) error {
 	}
 	// Launch the bootstrap only now, on the one path where the resources go
 	// live. Start runs detached so the caller never inherits its cost: it used
-	// to block ~6.6s on a censored network rebuilding kindling, which killed
-	// the iOS caller outright — a NEPacketTunnelProvider iOS stops at ~7.5s
-	// (getlantern/engineering#3822). radiance#607 removed that rebuild, but
-	// detaching keeps the deadline independent of whatever Start grows into.
-	// The app process has always run it this way.
+	// to block ~6.6s on a censored network rebuilding kindling, and the system
+	// tore the tunnel down before it finished (getlantern/engineering#3822).
+	//
+	// The deadline that killed it is unconfirmed — measured, not documented.
+	// Apple publishes no startTunnel completion budget, and the teardowns never
+	// called stopTunnel(with:), so no NEProviderStopReason was ever captured. What the
+	// logs show is 14 system-initiated teardowns, none app-requested, median
+	// 7.51s. Detaching does not depend on the number: it only depends on some
+	// finite budget shorter than the bootstrap. radiance#607 removed that
+	// rebuild, but detaching keeps this independent of whatever Start grows
+	// into. The app process has always run it this way.
 	ipcLifecycle.bootstrapped = bootstrapBackend(resources.backend)
 	ipcLifecycle.backend = resources.backend
 	ipcLifecycle.server = resources.server
