@@ -47,6 +47,17 @@ msgstr "دا انځور لا دمخه ضمیمه شوی دی."
 msgid "report_issue_attachments_unreadable"
 msgstr "موږ له دغو فایلونو څخه یو نه شو لوستلی."
 
+msgid "send_without_email_title"
+msgstr "پرته له بریښنالیک څخه ولېږل شي؟"
+
+msgid "send_without_email_body"
+msgstr ""
+"تاسو بریښنالیک پته نه ده شامله کړې، نو موږ به ونه شو کولی دې راپور ته ځواب "
+"ورکړو یا یې تعقیب کړو."
+
+msgid "send_without_email"
+msgstr "پرته له بریښنالیک ولېږئ"
+
 msgid "lantern_projects"
 msgstr "د Lantern پروژې:"
 
@@ -65,6 +76,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "د راجع کولو کوډ شریک کړئ"
+
+msgid "invite_friends_description"
+msgstr ""
+"کله چې یو ملګری ستاسو د راجع کولو کوډ په کارولو سره Lantern Pro ته لوړ شي، "
+"تاسو دواړه 1 میاشت وړیا ترلاسه کوئ."
+
+msgid "month_earned"
+msgstr "%s میاشت ترلاسه شوه"
+
+msgid "months_earned"
+msgstr "%s میاشتې ترلاسه شوې"
+
+msgid "includes_free_month_from_referrals"
+msgstr "له راجع کولو څخه %s وړیا میاشت شامله ده"
+
+msgid "includes_free_months_from_referrals"
+msgstr "له راجع کولو څخه %s وړیا میاشتې شاملې دي"
+
+msgid "referral_converted_title"
+msgstr "یو ملګری Pro ته لوړ شو"
+
+msgid "referral_converted_message"
+msgstr ""
+"تاسو دواړو د Lantern Pro %s وړیا ترلاسه کړ. تر اوسه مو %s ترلاسه کړي دي. د "
+"نورو ترلاسه کولو لپاره خپل کوډ شریکولو ته دوام ورکړئ."
+
+msgid "month_count"
+msgstr "%s میاشت"
+
+msgid "months_count"
+msgstr "%s میاشتې"
+
+msgid "done"
+msgstr "ترسره شو"
+
+msgid "view_account"
+msgstr "حساب وګورئ"
+
+msgid "show_download_links"
+msgstr "د ډاونلوډ لینکونه وښایاست"
+
+msgid "get_lantern"
+msgstr "Lantern ترلاسه کړئ"
+
+msgid "send_friend_download_link"
+msgstr "خپل ملګري ته دا د ډاونلوډ لینک واستوئ:"
+
+msgid "scan_to_install"
+msgstr "د Lantern انسټالولو لپاره یې د خپل کیمرې اپ سره سکین کړئ"
+
+msgid "remind_use_code"
+msgstr "دوی ته ورپه یاد کړئ چې د لوړېدو پر مهال %s کوډ وکاروي!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1247,6 +1310,9 @@ msgstr "شته په:"
 msgid "subscription_renewal_date"
 msgstr "د ګډون نوي کولو نیټه"
 
+msgid "pro_access_until"
+msgstr "تر %s پورې د Pro لاسرسی"
+
 msgid "enabled_bypass_lists"
 msgstr "فعال شوي تیریدونکي لیستونه (%d):"
 
@@ -1338,6 +1404,9 @@ msgstr "د سرور عرفي نوم خالي نشي کیدی"
 msgid "referral_code_applied"
 msgstr "ستاسو د راجع کولو کوډ پلي شوی!"
 
+msgid "discount_applied"
+msgstr "%s تخفیف پلی شو"
+
 msgid "referral_message_1m"
 msgstr "+ ۱۵ اضافي ورځې وړیا"
 
@@ -1345,12 +1414,12 @@ msgid "referral_message_1y"
 msgstr "+ ۱ اضافي میاشت وړیا"
 
 msgid "referral_message_2y"
-msgstr "+ ۲ اضافي میاشتې وړیا"
+msgstr "+ 2 اضافي میاشتې وړیا"
 
 msgid "referral_code_invalid"
 msgstr ""
-"هغه د راجع کولو کوډ چې تاسو دننه کړی ناسم دی. مهرباني وکړئ کوډ وګورئ او بیا "
-"هڅه وکړئ."
+"هغه راجع کولو/پرومو کوډ چې تاسو دننه کړی ناسم دی. مهرباني وکړئ کوډ وګورئ او "
+"بیا هڅه وکړئ."
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1563,9 +1632,9 @@ msgstr "سرعت 128 kb/sec ته راکمه شوې - په %s بیا تنظیمی
 
 msgid "subscription_renewal_info"
 msgstr ""
-"تادیه ستاسو Apple ID ته د پیرود پر مهال چارج کیږي. ګډون په اوتومات ډول نوی "
-"کیږي پرته لدې چې لږ تر لږه 24 ساعته مخکې لغوه شي. د App Store ترتیباتو کې "
-"اداره یا لغوه کړئ."
+"پیسې د پیرود پر مهال ستاسو له Apple ID څخه اخیستل کیږي. ګډونونه په اوتومات "
+"ډول نوي کیږي، پرته له دې چې د اوسنۍ دورې له پای څخه لږترلږه 24 ساعته مخکې "
+"لغوه شي."
 
 msgid "failed_to_update_routing_mode"
 msgstr "د روټینګ حالت تازه کول ونشول. مهرباني وکړئ بیا هڅه وکړئ."
@@ -1793,3 +1862,81 @@ msgstr "اپډیټونه نه شو کتلی"
 
 msgid "check_connection_and_retry"
 msgstr "خپل اتصال وګورئ او بیا هڅه وکړئ"
+
+msgid "refresh_configuration"
+msgstr "تنظیمات تازه کړئ"
+
+msgid "configuration_cleared"
+msgstr "تنظیمات پاک شول"
+
+msgid "turn_off_vpn"
+msgstr "VPN بند کړئ"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"مخکې له دې چې خپل تنظیمات تازه کړئ، VPN باید بند وي. هغه بند کړئ، بیا هڅه "
+"وکړئ."
+
+msgid "configuration_message"
+msgstr ""
+"ستاسو زاړه تنظیمات پاک شول. VPN چالان کړئ ترڅو وروستي تنظیمات په اوتومات ډول"
+" ډاونلوډ شي."
+
+msgid "promo_referral_code"
+msgstr "پرومو / راجع کولو کوډ"
+
+msgid "promo_code"
+msgstr "پرومو کوډ"
+
+msgid "promo_code_with"
+msgstr "پرومو کوډ (%s)"
+
+msgid "order_total"
+msgstr "د امر ټولټال"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"هوښیار موقعیت ترټولو ګړندی سرور غوره کوي او کله چې غوره لارې ومومي په "
+"اوتومات ډول بدلیږي."
+
+msgid "bypass_browser_warning_title"
+msgstr "%s د تېرېدو لیست ته اضافه شي؟"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s به مستقیم وصل شي، د Lantern له ساتنې پرته. په هغو هېوادونو کې چې ځینې ویب"
+" پاڼې بندوي، ځینې پاڼې به نور نه پرانیستل کیږي."
+
+msgid "add_anyway"
+msgstr "په هر حال اضافه کړئ"
+
+msgid "bypass_all_warning_title"
+msgstr "ټول اپونه د تېرېدو لیست ته اضافه شي؟"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"پدې کې د %s په څېر بروزرونه شامل دي. د تېرېدو لیست اپونه مستقیم وصل کیږي، د "
+"Lantern له ساتنې پرته. په هغو هېوادونو کې چې ځینې ویب پاڼې بندوي، ځینې پاڼې "
+"به نور نه پرانیستل کیږي."
+
+msgid "add_all_except_browsers"
+msgstr "له بروزرونو پرته ټول اضافه کړئ"
+
+msgid "add_all_anyway"
+msgstr "په هر حال ټول اضافه کړئ"
+
+msgid "bypass_app_first_time_title"
+msgstr "د دې اپ لپاره له VPN تېر شئ؟"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s به مستقیم وصل شي، د Lantern له ساتنې پرته. که ستاسو په هېواد کې بند وي، "
+"ښایي کار ونه کړي."
+
+msgid "bypass_website_first_time_title"
+msgstr "د دې ویب پاڼې لپاره له VPN تېر شئ؟"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s به مستقیم وصل شي، د Lantern له ساتنې پرته. که ستاسو په هېواد کې بنده وي، "
+"ښایي کار ونه کړي."

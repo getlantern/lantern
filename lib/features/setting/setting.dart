@@ -6,7 +6,9 @@ import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import 'package:lantern/features/setting/appearance.dart'
@@ -18,6 +20,7 @@ enum _SettingType {
   account,
   signIn,
   vpnSetting,
+  unboundedSetting,
   language,
   appearance,
   support,
@@ -60,6 +63,11 @@ class _SettingState extends ConsumerState<Setting>
     final email = ref.watch(userEmailProvider);
 
     final appSetting = ref.watch(appSettingProvider);
+    // Server-side gate. Censored regions get Features[unbounded]=false,
+    // and every Unbounded-flavoured row in this menu (the settings sub-
+    // page link AND the project promo card at the bottom) disappears.
+    final unboundedAvailable =
+        ref.watch(featureFlagProvider).getBool(FeatureFlag.unbounded);
 
     final hasProSession = hasRegisteredProAccount(user);
 
@@ -141,6 +149,15 @@ class _SettingState extends ConsumerState<Setting>
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                 ),
+                if (unboundedAvailable) ...[
+                  DividerSpace(),
+                  AppTile(
+                    label: 'unbounded_settings_title'.i18n,
+                    icon: AppImagePaths.share,
+                    onPressed: () =>
+                        settingMenuTap(_SettingType.unboundedSetting),
+                  ),
+                ],
                 DividerSpace(),
                 AppTile(
                   tileKey: const Key('setting.language_tile'),
@@ -194,7 +211,9 @@ class _SettingState extends ConsumerState<Setting>
                       children: [
                         DividerSpace(),
                         AppTile(
+                          tileKey: const Key('setting.check_for_updates_tile'),
                           label: 'check_for_updates'.i18n,
+                          semanticsLabel: 'check_for_updates'.i18n,
                           icon: AppImagePaths.update,
                           onPressed: () async => await settingMenuTap(
                             _SettingType.checkForUpdates,
@@ -237,36 +256,38 @@ class _SettingState extends ConsumerState<Setting>
               ),
             ),
           },
-          const SizedBox(height: defaultSize),
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text(
-              'lantern_projects'.i18n,
-              style: textTheme.labelLarge!.copyWith(
-                color: context.textSecondary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Card(
-            child: AppTile(
-              minHeight: 72,
-              icon: AppImagePaths.lanternLogoRounded,
-              iconUseThemeColor: false,
-              trailing: AppImage(path: AppImagePaths.outsideBrowser),
-              label: 'unbounded'.i18n,
-              subtitle: Text(
-                'help_fight_global_internet_censorship'.i18n,
-                style: textTheme.labelMedium!.copyWith(
-                  color: context.textTertiary,
+          if (unboundedAvailable) ...[
+            const SizedBox(height: defaultSize),
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                'lantern_projects'.i18n,
+                style: textTheme.labelLarge!.copyWith(
+                  color: context.textSecondary,
                 ),
               ),
-              onPressed: () {
-                UrlUtils.openUrl(AppUrls.unbounded);
-              },
             ),
-          ),
-          SizedBox(height: defaultSize),
+            const SizedBox(height: 4),
+            Card(
+              child: AppTile(
+                minHeight: 72,
+                icon: AppImagePaths.lanternLogoRounded,
+                iconUseThemeColor: false,
+                trailing: AppImage(path: AppImagePaths.outsideBrowser),
+                label: 'unbounded'.i18n,
+                subtitle: Text(
+                  'help_fight_global_internet_censorship'.i18n,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: context.textTertiary,
+                  ),
+                ),
+                onPressed: () {
+                  UrlUtils.openUrl(AppUrls.unbounded);
+                },
+              ),
+            ),
+            SizedBox(height: defaultSize),
+          ],
         ],
       ),
     );
@@ -309,6 +330,9 @@ class _SettingState extends ConsumerState<Setting>
         break;
       case _SettingType.vpnSetting:
         appRouter.push(VPNSetting());
+        break;
+      case _SettingType.unboundedSetting:
+        appRouter.push(UnboundedSetting());
         break;
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.

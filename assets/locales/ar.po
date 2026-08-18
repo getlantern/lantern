@@ -9,6 +9,7 @@
 # tx_e2f_ar_r5 tx_e2f_ar_r5, 2026
 # Lantern, 2026
 # Abed Abedd <abderrahman.younis@gmail.com>, 2026
+# 160565ee57b988ee904d03fec374ff93_4f79b8c <73ec7ace4de62e6bb6454cb54e990a4d_721149>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -56,6 +57,17 @@ msgstr "هذه الصورة مرفقة بالفعل."
 msgid "report_issue_attachments_unreadable"
 msgstr "تعذّرت قراءة أحد هذه الملفات."
 
+msgid "send_without_email_title"
+msgstr "الإرسال بدون بريد إلكتروني؟"
+
+msgid "send_without_email_body"
+msgstr ""
+"لم تُضِف عنوان بريد إلكتروني، لذا لن نتمكن من الرد أو المتابعة بشأن هذا "
+"البلاغ."
+
+msgid "send_without_email"
+msgstr "الإرسال بدون بريد إلكتروني"
+
 msgid "lantern_projects"
 msgstr "مشاريع Lantern:"
 
@@ -72,6 +84,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "مشاركة رمز الإحالة"
+
+msgid "invite_friends_description"
+msgstr ""
+"عندما يقوم صديق بالترقية إلى Lantern Pro باستخدام رمز الإحالة الخاص بك، "
+"تحصلان كلاكما على شهر مجاني."
+
+msgid "month_earned"
+msgstr "تم كسب %s شهر"
+
+msgid "months_earned"
+msgstr "تم كسب %s أشهر"
+
+msgid "includes_free_month_from_referrals"
+msgstr "يشمل %s شهرًا مجانيًا من الإحالات"
+
+msgid "includes_free_months_from_referrals"
+msgstr "يشمل %s أشهر مجانية من الإحالات"
+
+msgid "referral_converted_title"
+msgstr "قام صديق بالترقية إلى برو"
+
+msgid "referral_converted_message"
+msgstr ""
+"لقد كسبتما كلاكما %s من Lantern Pro مجانًا. لقد كسبت %s حتى الآن. واصل "
+"مشاركة رمزك لكسب المزيد."
+
+msgid "month_count"
+msgstr "%s شهر"
+
+msgid "months_count"
+msgstr "%s أشهر"
+
+msgid "done"
+msgstr "تم"
+
+msgid "view_account"
+msgstr "عرض الحساب"
+
+msgid "show_download_links"
+msgstr "عرض روابط التنزيل"
+
+msgid "get_lantern"
+msgstr "احصل على Lantern"
+
+msgid "send_friend_download_link"
+msgstr "أرسل لصديقك رابط التنزيل هذا:"
+
+msgid "scan_to_install"
+msgstr "امسح الرمز بتطبيق الكاميرا لتثبيت Lantern"
+
+msgid "remind_use_code"
+msgstr "ذكّرهم باستخدام الرمز %s عند الترقية!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1204,6 +1268,9 @@ msgstr "متوفر على:"
 msgid "subscription_renewal_date"
 msgstr "تاريخ تجديد الاشتراك"
 
+msgid "pro_access_until"
+msgstr "وصول برو حتى %s"
+
 msgid "enabled_bypass_lists"
 msgstr "قوائم التجاوز المفعّلة (%d):"
 
@@ -1292,6 +1359,9 @@ msgstr "لا يمكن أن يكون الاسم المستعار للخادم ف�
 msgid "referral_code_applied"
 msgstr "تم تطبيق رمز الإحالة الخاص بك!"
 
+msgid "discount_applied"
+msgstr "تم تطبيق خصم %s"
+
 msgid "referral_message_1m"
 msgstr "+ 15 يومًا إضافيًا مجانًا"
 
@@ -1299,11 +1369,12 @@ msgid "referral_message_1y"
 msgstr "+ 1 شهر إضافي مجانًا"
 
 msgid "referral_message_2y"
-msgstr "+ 2 شهرين إضافيين مجانًا"
+msgstr "+ شهران إضافيان مجانًا"
 
 msgid "referral_code_invalid"
 msgstr ""
-"رمز الإحالة الذي أدخلته غير صالح. يرجى التحقق من الرمز والمحاولة مرة أخرى."
+"رمز الإحالة/العرض الذي أدخلته غير صالح. يرجى التحقق من الرمز والمحاولة مرة "
+"أخرى."
 
 msgid "referral_code_own_invalid"
 msgstr "لا يمكنك استخدام رمز الإحالة الخاص بك. يرجى إدخال رمز مختلف."
@@ -1506,9 +1577,8 @@ msgstr "تم تقليل السرعة إلى 128 كيلوبت/ث - إعادة ا�
 
 msgid "subscription_renewal_info"
 msgstr ""
-"يتم تحصيل الدفع من معرف Apple الخاص بك عند الشراء. يتم تجديد الاشتراكات "
-"تلقائياً ما لم يتم إلغاؤها قبل 24 ساعة على الأقل من نهاية الفترة الحالية. "
-"يمكنك الإدارة أو الإلغاء في إعدادات App Store."
+"يتم تحصيل الدفعة من حساب Apple ID الخاص بك عند الشراء. تتجدد الاشتراكات "
+"تلقائيًا ما لم يتم إلغاؤها قبل 24 ساعة على الأقل من نهاية الفترة الحالية."
 
 msgid "failed_to_update_routing_mode"
 msgstr "فشل تحديث وضع التوجيه. يُرجى المحاولة مرة أخرى."
@@ -1732,3 +1802,76 @@ msgstr "تعذّر التحقق من التحديثات"
 
 msgid "check_connection_and_retry"
 msgstr "تحقق من اتصالك وحاول مرة أخرى"
+
+msgid "refresh_configuration"
+msgstr "تحديث الإعدادات"
+
+msgid "configuration_cleared"
+msgstr "تم مسح الإعدادات"
+
+msgid "turn_off_vpn"
+msgstr "إيقاف VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"يجب إيقاف VPN قبل أن تتمكن من تحديث إعداداتك. أوقفه، ثم حاول مرة أخرى."
+
+msgid "configuration_message"
+msgstr "تم مسح إعداداتك القديمة. شغّل VPN لتنزيل أحدث الإعدادات تلقائيًا."
+
+msgid "promo_referral_code"
+msgstr "رمز العرض / الإحالة"
+
+msgid "promo_code"
+msgstr "رمز العرض"
+
+msgid "promo_code_with"
+msgstr "رمز العرض (%s)"
+
+msgid "order_total"
+msgstr "إجمالي الطلب"
+
+msgid "smart_routing_mode_description"
+msgstr "يختار الموقع الذكي أسرع خادم ويبدّل تلقائيًا كلما وجد مسارات أفضل."
+
+msgid "bypass_browser_warning_title"
+msgstr "هل تريد إضافة %s إلى قائمة التجاوز؟"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"سيتصل %s مباشرة، بدون حماية Lantern. في البلدان التي تحجب مواقع معينة، "
+"ستتوقف بعض المواقع عن التحميل."
+
+msgid "add_anyway"
+msgstr "الإضافة على أي حال"
+
+msgid "bypass_all_warning_title"
+msgstr "هل تريد إضافة جميع التطبيقات إلى قائمة التجاوز؟"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"يشمل ذلك متصفحات مثل %s. تتصل التطبيقات الموجودة في قائمة التجاوز مباشرة، "
+"بدون حماية Lantern. في البلدان التي تحجب مواقع معينة، ستتوقف بعض المواقع عن "
+"التحميل."
+
+msgid "add_all_except_browsers"
+msgstr "إضافة الكل باستثناء المتصفحات"
+
+msgid "add_all_anyway"
+msgstr "إضافة الكل على أي حال"
+
+msgid "bypass_app_first_time_title"
+msgstr "هل تريد تجاوز VPN لهذا التطبيق؟"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"سيتصل %s مباشرة، بدون حماية Lantern. إذا كان محجوبًا في بلدك، فقد يتوقف عن "
+"العمل."
+
+msgid "bypass_website_first_time_title"
+msgstr "هل تريد تجاوز VPN لهذا الموقع؟"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"سيتصل %s مباشرة، بدون حماية Lantern. إذا كان محجوبًا في بلدك، فقد يتوقف عن "
+"العمل."

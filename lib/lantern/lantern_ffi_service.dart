@@ -297,6 +297,7 @@ class LanternFFIService implements LanternCoreService {
           iconPath: raw["iconPath"] as String? ?? '',
           iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
           isEnabled: enabledKeys.contains(key),
+          isBrowser: raw["isBrowser"] == true,
         );
       }).toList();
     } catch (e, st) {
@@ -499,8 +500,15 @@ class LanternFFIService implements LanternCoreService {
       if (result == nullptr) {
         return right(unit);
       }
-      final resultStr = result.cast<Utf8>().toDartString();
-      malloc.free(result);
+      // `result` is a Go-allocated C string, so Dart's malloc.free would
+      // hard-crash (0xC0000409); hand it back to Go via freeCString after
+      // copying it into a Dart string.
+      final String resultStr;
+      try {
+        resultStr = result.cast<Utf8>().toDartString();
+      } finally {
+        _ffiService.freeCString(result);
+      }
       // The Go FFI returns a non-null C string like "ok" on success; only
       // treat unexpected payloads as errors.
       if (_ffiOkResults.contains(resultStr)) {
@@ -1585,6 +1593,120 @@ class LanternFFIService implements LanternCoreService {
       return right(res != 0);
     } catch (e, st) {
       appLogger.error('isBlockAdsEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        // The Go side returns C.CString-allocated memory; free via
+        // freeCString after copying into a Dart string, otherwise
+        // every toggle leaks a small heap allocation.
+        final resultPtr = _ffiService.setPeerProxyEnabled(enabled ? 1 : 0);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerProxyEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() async {
+    try {
+      final res = _ffiService.isPeerProxyEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isPeerProxyEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.setPeerManualPort(port);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerManualPort error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() async {
+    try {
+      final res = _ffiService.getPeerManualPort();
+      return right(res);
+    } catch (e, st) {
+      appLogger.error('getPeerManualPort error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.setUnboundedEnabled(enabled ? 1 : 0);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setUnboundedEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async {
+    try {
+      final res = _ffiService.isUnboundedEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isUnboundedEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> probeUPnP() async {
+    try {
+      // UPnP M-SEARCH waits for multicast replies (~5-6s upper bound
+      // in the LanternCore-side timeout). Off-main-thread mandatory;
+      // a direct call from the UI isolate stalls every frame for the
+      // duration of the wait.
+      final res = await runInBackground<int>(() async {
+        return _ffiService.probeUPnP();
+      });
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('probeUPnP error: $e', e, st);
       return Left(e.toFailure());
     }
   }

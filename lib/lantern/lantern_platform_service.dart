@@ -301,6 +301,99 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setPeerProxyEnabled', {
+        'enabled': enabled,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerProxyEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isPeerProxyEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isPeerProxyEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  // Manual port forward setting — wired through MethodChannel to the
+  // platform-specific handler. macOS / iOS Swift and Android Kotlin
+  // each delegate to Mobile.SetPeerManualPort via the gomobile binding.
+  @override
+  Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
+    try {
+      await _methodChannel.invokeMethod('setPeerManualPort', {
+        'port': port,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerManualPort failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() async {
+    try {
+      final res = await _methodChannel.invokeMethod<int>('getPeerManualPort');
+      return right(res ?? 0);
+    } catch (e, st) {
+      appLogger.error('getPeerManualPort failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  // Unbounded toggle wired through MethodChannel to the platform-specific
+  // handler. macOS / iOS Swift and Android Kotlin each delegate to
+  // Mobile.SetUnboundedEnabled via the gomobile binding.
+  @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setUnboundedEnabled', {
+        'enabled': enabled,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setUnboundedEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isUnboundedEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isUnboundedEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> probeUPnP() async {
+    try {
+      // The Swift / Kotlin side calls Mobile.ProbeUPnP, which blocks
+      // up to ~6s on the M-SEARCH multicast scan. The MethodChannel
+      // call hops to a platform thread, so the Dart UI isolate isn't
+      // pinned during the wait.
+      final res = await _methodChannel.invokeMethod<bool>('probeUPnP');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('probeUPnP failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
     try {
       final res = await _methodChannel.invokeMethod<bool>(
@@ -369,6 +462,7 @@ class LanternPlatformService implements LanternCoreService {
         lastUpdateTime: lastUpdateTime,
         removed: removed,
         isEnabled: enabled.contains(key: key, name: name),
+        isBrowser: raw["isBrowser"] == true,
       );
     }).toList();
   }

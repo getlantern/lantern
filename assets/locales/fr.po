@@ -50,6 +50,17 @@ msgstr "Cette image est déjà jointe."
 msgid "report_issue_attachments_unreadable"
 msgstr "Impossible de lire l'un de ces fichiers."
 
+msgid "send_without_email_title"
+msgstr "Envoyer sans e-mail ?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Vous n'avez pas indiqué d'adresse e-mail, nous ne pourrons donc pas répondre"
+" ni assurer le suivi de ce signalement."
+
+msgid "send_without_email"
+msgstr "Envoyer sans e-mail"
+
 msgid "lantern_projects"
 msgstr "Projets Lantern :"
 
@@ -66,6 +77,59 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Partager le code"
+
+msgid "invite_friends_description"
+msgstr ""
+"Lorsqu'un ami passe à Lantern Pro avec votre code de parrainage, vous "
+"bénéficiez tous les deux d'1 mois gratuit."
+
+msgid "month_earned"
+msgstr "%s mois gagné"
+
+msgid "months_earned"
+msgstr "%s mois gagnés"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Inclut %s mois gratuit grâce aux parrainages"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Inclut %s mois gratuits grâce aux parrainages"
+
+msgid "referral_converted_title"
+msgstr "Un ami est passé à Pro"
+
+msgid "referral_converted_message"
+msgstr ""
+"Vous avez tous les deux gagné %s de Lantern Pro, gratuitement. Vous avez "
+"gagné %s jusqu'à présent. Continuez à partager votre code pour en gagner "
+"plus."
+
+msgid "month_count"
+msgstr "%s mois"
+
+msgid "months_count"
+msgstr "%s mois"
+
+msgid "done"
+msgstr "Terminé"
+
+msgid "view_account"
+msgstr "Voir le compte"
+
+msgid "show_download_links"
+msgstr "Afficher les liens de téléchargement"
+
+msgid "get_lantern"
+msgstr "Obtenir Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Envoyez ce lien de téléchargement à votre ami :"
+
+msgid "scan_to_install"
+msgstr "Scannez avec votre appareil photo pour installer Lantern"
+
+msgid "remind_use_code"
+msgstr "Rappelez-leur d'utiliser le code %s lors de leur passage à Pro !"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1238,6 +1302,9 @@ msgstr "Disponible sur :"
 msgid "subscription_renewal_date"
 msgstr "Date de renouvellement de l'abonnement"
 
+msgid "pro_access_until"
+msgstr "Accès Pro jusqu'au %s"
+
 msgid "enabled_bypass_lists"
 msgstr "Listes d'exclusion activées (%d) :"
 
@@ -1329,6 +1396,9 @@ msgstr "L'alias du serveur ne peut pas être vide"
 msgid "referral_code_applied"
 msgstr "Votre code de parrainage a été appliqué !"
 
+msgid "discount_applied"
+msgstr "Remise de %s appliquée"
+
 msgid "referral_message_1m"
 msgstr "+ 15 jours supplémentaires gratuits"
 
@@ -1340,8 +1410,8 @@ msgstr "+ 2 mois supplémentaires gratuits"
 
 msgid "referral_code_invalid"
 msgstr ""
-"Le code de parrainage que vous avez saisi est invalide. Veuillez vérifier le"
-" code et réessayer."
+"Le code de parrainage/promo saisi est invalide. Veuillez vérifier le code et"
+" réessayer."
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1557,10 +1627,9 @@ msgstr "Vitesse réduite à 128 kb/s - Réinitialisation à %s."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"Le paiement est débité de votre identifiant Apple lors de l'achat. Les "
-"abonnements se renouvellent automatiquement sauf annulation au moins 24 "
-"heures avant la fin de la période en cours. Gérez ou annulez dans les "
-"Réglages de l'App Store."
+"Le paiement est débité de votre identifiant Apple au moment de l'achat. Les "
+"abonnements se renouvellent automatiquement sauf s'ils sont annulés au moins"
+" 24 heures avant la fin de la période en cours."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Échec de la mise à jour du mode de routage. Veuillez réessayer."
@@ -1794,3 +1863,82 @@ msgstr "Impossible de rechercher des mises à jour"
 
 msgid "check_connection_and_retry"
 msgstr "Vérifiez votre connexion et réessayez"
+
+msgid "refresh_configuration"
+msgstr "Actualiser la configuration"
+
+msgid "configuration_cleared"
+msgstr "Configuration effacée"
+
+msgid "turn_off_vpn"
+msgstr "Désactiver le VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Le VPN doit être désactivé avant de pouvoir actualiser votre configuration. "
+"Désactivez-le, puis réessayez."
+
+msgid "configuration_message"
+msgstr ""
+"Votre ancienne configuration a été effacée. Activez le VPN pour télécharger "
+"automatiquement la plus récente."
+
+msgid "promo_referral_code"
+msgstr "Code promo / de parrainage"
+
+msgid "promo_code"
+msgstr "Code promo"
+
+msgid "promo_code_with"
+msgstr "Code promo (%s)"
+
+msgid "order_total"
+msgstr "Total de la commande"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"La localisation intelligente choisit le serveur le plus rapide et change "
+"automatiquement dès qu'elle trouve de meilleurs itinéraires."
+
+msgid "bypass_browser_warning_title"
+msgstr "Ajouter %s à la liste de contournement ?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s se connectera directement, sans la protection de Lantern. Dans les pays "
+"qui bloquent certains sites web, certains sites cesseront de se charger."
+
+msgid "add_anyway"
+msgstr "Ajouter quand même"
+
+msgid "bypass_all_warning_title"
+msgstr "Ajouter toutes les applications à la liste de contournement ?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Cela inclut des navigateurs comme %s. Les applications de la liste de "
+"contournement se connectent directement, sans la protection de Lantern. Dans"
+" les pays qui bloquent certains sites web, certains sites cesseront de se "
+"charger."
+
+msgid "add_all_except_browsers"
+msgstr "Tout ajouter sauf les navigateurs"
+
+msgid "add_all_anyway"
+msgstr "Tout ajouter quand même"
+
+msgid "bypass_app_first_time_title"
+msgstr "Contourner le VPN pour cette application ?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s se connectera directement, sans la protection de Lantern. Si elle est "
+"bloquée dans votre pays, elle risque de ne plus fonctionner."
+
+msgid "bypass_website_first_time_title"
+msgstr "Contourner le VPN pour ce site web ?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s se connectera directement, sans la protection de Lantern. S'il est bloqué"
+" dans votre pays, il risque de ne plus fonctionner."

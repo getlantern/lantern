@@ -42,6 +42,10 @@ class AppRouter extends RootStackRouter {
       page: VPNSetting.page,
     ),
     AutoRoute(
+      path: '/unbounded-setting',
+      page: UnboundedSetting.page,
+    ),
+    AutoRoute(
       path: '/account',
       page: Account.page,
     ),

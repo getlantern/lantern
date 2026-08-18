@@ -105,6 +105,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  archive:
+    dependency: transitive
+    description:
+      name: archive
+      sha256: a96e8b390886ee8abb49b7bd3ac8df6f451c621619f52a26e815fdcf568959ff
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.9"
   args:
     dependency: transitive
     description:
@@ -170,13 +178,14 @@ packages:
     source: hosted
     version: "1.0.0"
   auto_updater_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: auto_updater_windows
-      sha256: "2bba20a71eee072f49b7267fedd5c4f1406c4b1b1e5b83932c634dbab75b80c9"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
+      path: "packages/auto_updater_windows"
+      ref: "7d8e67bcd78a8d57516775ea5cf18f4b83786afa"
+      resolved-ref: "7d8e67bcd78a8d57516775ea5cf18f4b83786afa"
+      url: "https://github.com/getlantern/auto_updater.git"
+    source: git
+    version: "1.0.1"
   back_button_interceptor:
     dependency: transitive
     description:
@@ -555,6 +564,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_earth_globe:
+    dependency: "direct main"
+    description:
+      name: flutter_earth_globe
+      sha256: a5461c43f4dbf1c1af4e8fa46293c83e97b8af7908969ccd6c324282e60d9a31
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.1"
   flutter_hooks:
     dependency: "direct main"
     description:
@@ -1116,6 +1133,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
+  lottie:
+    dependency: "direct main"
+    description:
+      name: lottie
+      sha256: "8b6359a7422167014aa73ce763fa133fb832065dcc0ac4d1dec1f603a5cef7d0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.3"
   matcher:
     dependency: transitive
     description:
@@ -1324,6 +1349,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
+  posix:
+    dependency: transitive
+    description:
+      name: posix
+      sha256: "185ef7606574f789b40f289c233efa52e96dead518aed988e040a10737febb07"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.5.0"
   process:
     dependency: transitive
     description:

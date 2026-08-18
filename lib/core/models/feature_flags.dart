@@ -3,7 +3,15 @@ enum FeatureFlag {
   metrics('otel.metrics'),
   traces('otel.traces'),
   autoUpdateEnabled('autoUpdateEnabled'),
-  androidSideloadAutoUpdateEnabled('androidSideloadAutoUpdateEnabled');
+  androidSideloadAutoUpdateEnabled('androidSideloadAutoUpdateEnabled'),
+  // Server-side gate for the entire Unbounded / Share My Connection
+  // surface. When false (the default for censored regions), the
+  // Unbounded tab, settings entry, project link, and auto-enable hooks
+  // all disappear — censored users should never see a "share your
+  // connection" UI that could draw attention to them on-device. Mirrors
+  // radiance/unbounded/unbounded.go shouldRunUnbounded, which already
+  // gates execution on the same Features[UNBOUNDED] flag.
+  unbounded('unbounded');
 
   final String key;
 

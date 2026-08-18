@@ -17,6 +17,7 @@ import verify_update_service
 
 class UpdateServiceHandler(BaseHTTPRequestHandler):
     beta_version = "9.2.0-beta"
+    beta_appcast_version = "9.2.0-beta"
     stable_version = "9.1.0"
     stable_appcast_status = 200
     beta_enclosures = [
@@ -58,7 +59,7 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
         if self.path.endswith("channel=beta"):
             self.write_xml(
                 self.appcast_xml(
-                    self.beta_version,
+                    self.beta_appcast_version,
                     self.beta_enclosures,
                 )
             )
@@ -99,7 +100,9 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
     @staticmethod
     def appcast_xml(version: str, enclosures: list[tuple[str, str, str]]) -> str:
         enclosure_xml = "\n".join(
-            f'<enclosure url="{url}" sparkle:edSignature="{signature}" sparkle:os="{os_name}" '
+            f'<enclosure url="{url}" '
+            f'sparkle:edSignature="{signature}" '
+            f'sparkle:os="{os_name}" '
             'length="12" type="application/octet-stream"/>'
             for os_name, signature, url in enclosures
         )
@@ -118,6 +121,7 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
 class VerifyUpdateServiceTest(unittest.TestCase):
     def setUp(self) -> None:
         UpdateServiceHandler.stable_appcast_status = 200
+        UpdateServiceHandler.beta_appcast_version = UpdateServiceHandler.beta_version
         UpdateServiceHandler.beta_enclosures = [
             ("macos", "macos-signature", "https://example.com/lantern-installer-beta.dmg"),
             ("windows", "windows-signature", "https://example.com/lantern-installer-beta.exe"),
@@ -135,6 +139,7 @@ class VerifyUpdateServiceTest(unittest.TestCase):
         self.server.server_close()
 
     def test_run_checks_once_accepts_valid_beta_release(self) -> None:
+        UpdateServiceHandler.beta_appcast_version = "920"
         verify_update_service.run_checks_once(
             verify_update_service.Config(
                 update_url=self.update_url,
@@ -143,6 +148,7 @@ class VerifyUpdateServiceTest(unittest.TestCase):
                 timeout_seconds=1,
                 interval_seconds=1,
                 platforms=verify_update_service.normalize_platforms("all"),
+                sparkle_version="920",
             )
         )
 
@@ -157,6 +163,7 @@ class VerifyUpdateServiceTest(unittest.TestCase):
                 timeout_seconds=1,
                 interval_seconds=1,
                 platforms=verify_update_service.normalize_platforms("all"),
+                sparkle_version="9.2.0-beta",
             )
         )
 
@@ -173,8 +180,25 @@ class VerifyUpdateServiceTest(unittest.TestCase):
                 timeout_seconds=1,
                 interval_seconds=1,
                 platforms=verify_update_service.normalize_platforms("macos"),
+                sparkle_version="9.2.0-beta",
             )
         )
+
+    def test_run_checks_once_requires_sparkle_version_for_desktop(self) -> None:
+        with self.assertRaisesRegex(
+            verify_update_service.VerificationError,
+            "--sparkle-version is required",
+        ):
+            verify_update_service.run_checks_once(
+                verify_update_service.Config(
+                    update_url=self.update_url,
+                    channel="beta",
+                    version="v9.2.0-beta",
+                    timeout_seconds=1,
+                    interval_seconds=1,
+                    platforms=verify_update_service.normalize_platforms("windows"),
+                )
+            )
 
     def test_run_checks_once_skips_appcast_for_android_only_release(self) -> None:
         UpdateServiceHandler.stable_appcast_status = 404
@@ -239,7 +263,7 @@ class VerifyUpdateServiceTest(unittest.TestCase):
         )
         version, enclosures = verify_update_service.parse_appcast(xml_text)
         self.assertEqual(version, "9.2.0-beta")
-        self.assertEqual(enclosures[0]["signature"], "")
+        self.assertEqual(enclosures[0]["ed_signature"], "")
 
     def test_parse_appcast_rejects_internal_entities(self) -> None:
         xml_text = """<?xml version="1.0"?>
