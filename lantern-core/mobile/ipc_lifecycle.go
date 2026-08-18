@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -16,7 +17,12 @@ import (
 	"github.com/getlantern/lantern/lantern-core/utils"
 )
 
-const ipcStartTimeout = 60 * time.Second
+const (
+	ipcStartTimeout = 60 * time.Second
+	// bootstrapCloseWait bounds how long close waits for an in-flight backend
+	// bootstrap before shutting it down anyway.
+	bootstrapCloseWait = 2 * time.Second
+)
 
 var (
 	errIPCLifecycleBusy = errors.New("ipc server lifecycle operation in progress")
@@ -39,23 +45,40 @@ const (
 )
 
 type ipcLifecycleState struct {
-	mu         sync.Mutex
-	server     *ipc.Server
-	backend    *backend.LocalBackend
-	startState ipcState
-	closing    bool
-	generation uint64
+	mu           sync.Mutex
+	server       *ipc.Server
+	backend      *backend.LocalBackend
+	bootstrapped <-chan struct{}
+	startState   ipcState
+	closing      bool
+	generation   uint64
 }
 
 type ipcResources struct {
 	server  *ipc.Server
 	backend *backend.LocalBackend
+	// bootstrapped closes when the detached backend bootstrap returns.
+	bootstrapped <-chan struct{}
 }
 
-// close shuts down the server and its backend.
+// close shuts down the server and its backend. It gives an in-flight bootstrap
+// a brief chance to finish first, so the common stop-during-startup does not
+// tear the backend down from under its own Start.
 func (resources ipcResources) close() {
 	if resources.server != nil {
 		_ = resources.server.Close()
+	}
+	// Wait before touching the backend: the bootstrap is still using it.
+	if resources.bootstrapped != nil {
+		select {
+		case <-resources.bootstrapped:
+		case <-time.After(bootstrapCloseWait):
+			// Bounded on purpose: a bootstrap wedged on a censored network
+			// must not hold teardown open. Close cancels the backend context
+			// the bootstrap runs under, so it unwinds from here.
+			slog.Warn("Closing IPC backend while its bootstrap is still running",
+				"waited", bootstrapCloseWait)
+		}
 	}
 	if resources.backend != nil {
 		resources.backend.Close()
@@ -180,22 +203,43 @@ func startIPCResources(startupCtx context.Context, opts backend.Options) (ipcRes
 }
 
 // newIPCResources builds the local backend and starts its IPC server.
+//
+// Start runs detached because it is network-dependent bootstrap — config fetch
+// and transport construction — that takes seconds on a censored network, while
+// the iOS caller is a NEPacketTunnelProvider that iOS kills at ~7.5s
+// (getlantern/engineering#3822). The app process has always run this same
+// sequence detached; only the extension paid for it inline. Requests arriving
+// before it finishes wait on their own deadline rather than failing, so the
+// server is safe to publish first.
 func newIPCResources(opts backend.Options) ipcStartResult {
 	localBackend, err := backend.NewLocalBackend(context.Background(), opts)
 	if err != nil {
 		return ipcStartResult{err: fmt.Errorf("error creating backend for IPC server: %w", err)}
 	}
-	localBackend.Start()
 
 	server := ipc.NewServer(localBackend, !common.IsMobile())
 	if err := server.Start(); err != nil {
 		localBackend.Close()
 		return ipcStartResult{err: err}
 	}
+
 	return ipcStartResult{resources: ipcResources{
-		server:  server,
-		backend: localBackend,
+		server:       server,
+		backend:      localBackend,
+		bootstrapped: bootstrapBackend(localBackend),
 	}}
+}
+
+// bootstrapBackend runs the backend's network-dependent Start off the caller's
+// path and returns a handle that closes when it finishes. A package var so
+// tests can stand in a bootstrap that takes as long as a censored network does.
+var bootstrapBackend = func(localBackend *backend.LocalBackend) <-chan struct{} {
+	bootstrapped := make(chan struct{})
+	go func() {
+		defer close(bootstrapped)
+		localBackend.Start()
+	}()
+	return bootstrapped
 }
 
 // publishIPCResources makes a completed startup visible to clients. If
@@ -209,6 +253,7 @@ func publishIPCResources(generation uint64, resources ipcResources) error {
 	}
 	ipcLifecycle.backend = resources.backend
 	ipcLifecycle.server = resources.server
+	ipcLifecycle.bootstrapped = resources.bootstrapped
 	ipcClient.Store(newLoopbackClient(resources.backend))
 	ipcLifecycle.mu.Unlock()
 	return nil
@@ -242,11 +287,13 @@ func beginIPCClose() (ipcResources, bool) {
 	ipcClient.Store(nil)
 
 	resources := ipcResources{
-		server:  ipcLifecycle.server,
-		backend: ipcLifecycle.backend,
+		server:       ipcLifecycle.server,
+		backend:      ipcLifecycle.backend,
+		bootstrapped: ipcLifecycle.bootstrapped,
 	}
 	ipcLifecycle.server = nil
 	ipcLifecycle.backend = nil
+	ipcLifecycle.bootstrapped = nil
 	if ipcLifecycle.startState == ipcRunning {
 		ipcLifecycle.startState = ipcIdle
 	}
