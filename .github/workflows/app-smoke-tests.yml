@@ -89,7 +89,7 @@ jobs:
       installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -111,7 +111,7 @@ jobs:
           echo "installer_base_name=$INSTALLER_BASE_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload pubspec.yaml
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pubspec
           path: pubspec.yaml
@@ -168,6 +168,11 @@ jobs:
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       skip_signing: true
+      # The payment suite builds and drives its own Flutter integration target;
+      # it only needs the native FFI and AMD64 service prerequisites.
+      build_app: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
+      package_installer: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
+      run_installer_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
       force_full_tunnel_smoke: true
       run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
       run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}

@@ -51,6 +51,11 @@ on:
         required: false
         type: boolean
         default: true
+      build_app:
+        description: "Build the Flutter app; disable only for direct Flutter smoke tests"
+        required: false
+        type: boolean
+        default: true
       run_installer_smoke:
         description: "Install the packaged app and run the Windows smoke suite"
         required: false
@@ -109,39 +114,70 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download pubspec.yaml
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.pubspec_artifact }}
 
+      - name: Validate lightweight smoke build inputs
+        if: ${{ !inputs.build_app }}
+        shell: pwsh
+        run: |
+          if ("${{ inputs.run_payment_smoke }}" -ne "true") {
+            throw "build_app=false is only supported for the direct payment smoke"
+          }
+          if ("${{ inputs.package_installer }}" -eq "true" -or "${{ inputs.run_installer_smoke }}" -eq "true") {
+            throw "build_app=false cannot package or exercise an installer"
+          }
+
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: "go.mod"
-          cache: true
+          # setup-go only restores an exact go.sum key. Radiance bumps change
+          # that key frequently, so use a fallback-aware cache below instead.
+          cache: false
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
+      - name: Resolve Go cache paths
+        id: go-cache-paths
+        shell: pwsh
+        run: |
+          "build=$(go env GOCACHE)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "modules=$(go env GOMODCACHE)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Cache Go modules and build outputs
+        uses: actions/cache@v6
         timeout-minutes: 5
         continue-on-error: true
         with:
           path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+            ${{ steps.go-cache-paths.outputs.build }}
+            ${{ steps.go-cache-paths.outputs.modules }}
+          key: ${{ runner.os }}-go-${{ runner.arch }}-${{ hashFiles('go.mod', 'go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-flutter-
+            ${{ runner.os }}-go-${{ runner.arch }}-
+            setup-go-${{ runner.os }}-x64-go-
 
-      - name: Install WebView2 Runtime
+      - name: Configure preinstalled Windows toolchain
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
-          Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
+          $mingwBin = "C:\mingw64\bin"
+          foreach ($tool in "gcc.exe", "g++.exe", "make.exe") {
+            $toolPath = Join-Path $mingwBin $tool
+            if (-not (Test-Path $toolPath)) {
+              throw "GitHub's Windows runner is missing the preinstalled tool: $toolPath"
+            }
+          }
+          $mingwBin | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
-      - name: Set up MinGW
-        shell: bash
-        run: ./scripts/ci/choco-retry.sh mingw -y
+          $parallelism = [Environment]::ProcessorCount
+          if ($parallelism -lt 1) {
+            $parallelism = 1
+          }
+          "CMAKE_BUILD_PARALLEL_LEVEL=$parallelism" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Using preinstalled MinGW and $parallelism parallel CMake build workers"
 
       - name: Read pinned Flutter version
         id: flutter-version
@@ -169,17 +205,35 @@ jobs:
         with:
           channel: stable
           flutter-version: ${{ steps.flutter-version.outputs.version }}
+          cache: true
+          # Use the fallback-aware Windows pub cache below instead of the
+          # action's exact-lockfile cache.
+          pub-cache: false
+
+      - name: Cache Dart packages
+        uses: actions/cache@v6
+        timeout-minutes: 5
+        continue-on-error: true
+        with:
+          path: ~/AppData/Local/Pub/Cache
+          key: ${{ runner.os }}-flutter-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-pub-
 
       - name: Enable Flutter Desktop Support
         run: |
           flutter config --enable-windows-desktop
 
       - name: Decode APP_ENV
-        uses: timheuer/base64-to-file@v1.2
-        with:
-          fileName: "app.env"
-          fileDir: ${{ github.workspace }}
-          encodedString: ${{ secrets.APP_ENV }}
+        shell: pwsh
+        env:
+          APP_ENV_BASE64: ${{ secrets.APP_ENV }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APP_ENV_BASE64)) {
+            throw "APP_ENV is required"
+          }
+          $bytes = [Convert]::FromBase64String($env:APP_ENV_BASE64)
+          [IO.File]::WriteAllBytes((Join-Path $env:GITHUB_WORKSPACE "app.env"), $bytes)
 
       - name: Install Inno Setup 6
         if: ${{ inputs.package_installer }}
@@ -221,6 +275,7 @@ jobs:
           Write-Host "APP_VERSION=$version"
 
       - name: Build Windows binaries
+        if: ${{ inputs.build_app }}
         shell: pwsh
         env:
           AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
@@ -247,20 +302,55 @@ jobs:
             Write-Warning "Release directory does not exist"
           }
 
+      - name: Build Windows payment smoke prerequisites
+        if: ${{ !inputs.build_app }}
+        shell: pwsh
+        run: |
+          foreach ($target in "clean", "windows", "pubget", "gen", "lanternd-windows-amd64") {
+            Write-Host "Building Windows smoke prerequisite: $target"
+            & make $target
+            if ($LASTEXITCODE -ne 0) {
+              throw "make $target failed with exit code $LASTEXITCODE"
+            }
+          }
+
+      - name: Ensure WebView2 Runtime
+        if: ${{ inputs.run_payment_smoke || (inputs.package_installer && inputs.run_installer_smoke) || inputs.run_auth_smoke }}
+        shell: pwsh
+        run: |
+          $runtime = Get-ChildItem `
+            -Path "C:\Program Files (x86)\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe", `
+                  "C:\Program Files\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe" `
+            -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -ne $runtime) {
+            Write-Host "Using preinstalled WebView2 runtime at $($runtime.FullName)"
+            exit 0
+          }
+
+          Write-Host "WebView2 runtime is missing; installing the evergreen runtime"
+          $bootstrapper = Join-Path $env:RUNNER_TEMP "MicrosoftEdgeWebView2Setup.exe"
+          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile $bootstrapper
+          $installer = Start-Process -FilePath $bootstrapper -ArgumentList "/silent", "/install" -Wait -PassThru
+          if ($installer.ExitCode -ne 0) {
+            throw "WebView2 installation failed with exit code $($installer.ExitCode)"
+          }
+
       - name: Windows payment smoke
         if: ${{ inputs.run_payment_smoke }}
         shell: pwsh
         timeout-minutes: 15
+        env:
+          WINDOWS_PAYMENT_SERVICE_EXE: ${{ inputs.build_app && 'build/windows/x64/runner/Release/lanternd.exe' || 'bin/windows-amd64/lanternd.exe' }}
         run: |
           ./.github/scripts/windows_smoke_suite.ps1 `
-            -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `
+            -ServiceExe "$env:WINDOWS_PAYMENT_SERVICE_EXE" `
             -ServiceEnvironment staging `
             -RunConnectSmoke:$false `
             -RunPaymentSmoke
 
       - name: Upload Windows payment smoke diagnostics
         if: ${{ always() && inputs.run_payment_smoke }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-payment-smoke
           path: build/windows-payment-smoke
@@ -268,7 +358,7 @@ jobs:
           retention-days: 7
 
       - name: Sign embedded binaries
-        if: ${{ !inputs.skip_signing }}
+        if: ${{ inputs.build_app && !inputs.skip_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -356,8 +446,8 @@ jobs:
           Write-Host "Skipping embedded and installer signing for this run."
 
       - name: Upload signed Windows app fixture
-        if: ${{ !inputs.package_installer }}
-        uses: actions/upload-artifact@v4
+        if: ${{ inputs.build_app && !inputs.package_installer }}
+        uses: actions/upload-artifact@v7
         with:
           name: lantern-windows-app-fixture
           path: build/windows/x64/runner/Release
@@ -448,7 +538,7 @@ jobs:
 
       - name: Upload Windows installer
         if: ${{ inputs.package_installer }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lantern-installer-exe
           path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe
@@ -456,7 +546,7 @@ jobs:
 
       - name: Upload Windows update signature
         if: ${{ inputs.package_installer && !inputs.skip_signing && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lantern-installer-exe-signature
           path: ${{ runner.temp }}/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe.sparkle-signature
