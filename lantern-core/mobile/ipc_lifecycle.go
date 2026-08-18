@@ -239,7 +239,7 @@ func publishIPCResources(generation uint64, resources ipcResources) error {
 	//
 	// The deadline that killed it is unconfirmed — measured, not documented.
 	// Apple publishes no startTunnel completion budget, and the teardowns never
-	// called stopTunnel, so no NEProviderStopReason was ever captured. What the
+	// called stopTunnel(with:), so no NEProviderStopReason was ever captured. What the
 	// logs show is 14 system-initiated teardowns, none app-requested, median
 	// 7.51s. Detaching does not depend on the number: it only depends on some
 	// finite budget shorter than the bootstrap. radiance#607 removed that
