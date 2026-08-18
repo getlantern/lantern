@@ -69,6 +69,9 @@ func withCleanIPCLifecycle(t *testing.T) {
 	prevBootstrapped := ipcLifecycle.bootstrapped
 	prevStartState, prevClosing := ipcLifecycle.startState, ipcLifecycle.closing
 	prevGeneration := ipcLifecycle.generation
+	// publishIPCResources also writes ipcClient, so it has to be restored too
+	// or a later test reads a client this one left behind.
+	prevClient := ipcClient.Load()
 	ipcLifecycle.server = nil
 	ipcLifecycle.backend = nil
 	ipcLifecycle.bootstrapped = nil
@@ -80,6 +83,7 @@ func withCleanIPCLifecycle(t *testing.T) {
 		ipcLifecycle.startState, ipcLifecycle.closing = prevStartState, prevClosing
 		ipcLifecycle.generation = prevGeneration
 		ipcLifecycle.mu.Unlock()
+		ipcClient.Store(prevClient)
 	})
 }
 
