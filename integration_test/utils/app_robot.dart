@@ -1,7 +1,12 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/common.dart' show appRouter;
+import 'package:lantern/core/utils/storage_utils.dart';
 
 import 'widget_wait_utils.dart';
 
@@ -39,6 +44,38 @@ class AppRobot {
     return keys.toList()..sort();
   }
 
+  /// Captures the current Flutter surface without failing the smoke when the
+  /// platform does not expose a capturable root layer.
+  Future<void> captureScreenshot(String name) async {
+    try {
+      final renderView = tester.binding.renderViews.first;
+      final layer = renderView.debugLayer;
+      if (layer is! OffsetLayer) {
+        e2eLog('Screenshot $name skipped: root layer is not capturable');
+        return;
+      }
+      final image = await layer.toImage(renderView.paintBounds);
+      try {
+        final data = await image.toByteData(format: ui.ImageByteFormat.png);
+        if (data == null) {
+          e2eLog('Screenshot $name skipped: no image data');
+          return;
+        }
+        final directory = Directory(
+          '${await AppStorageUtils.getAppLogDirectory()}/screenshots',
+        );
+        await directory.create(recursive: true);
+        final file = File('${directory.path}/$name.png');
+        await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
+        e2eLog('Screenshot saved: ${file.path}');
+      } finally {
+        image.dispose();
+      }
+    } catch (error) {
+      e2eLog('Screenshot $name failed: $error');
+    }
+  }
+
   /// Waits until home is usable. Onboarding is pushed on top shortly after
   /// home renders, so gate on the menu button via [waitForControlReady],
   /// which waits out that window and clears onboarding.
@@ -55,7 +92,7 @@ class AppRobot {
   /// Opens Settings through the UI: home menu button.
   Future<void> openSettings() async {
     await waitForHomeReady();
-    await _tap(
+    await tap(
       find.byKey(const Key('home.menu_button')),
       name: 'Home menu button',
     );
@@ -64,7 +101,7 @@ class AppRobot {
   /// Opens the Language screen through the UI: Settings -> Language.
   Future<void> openLanguage() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.language_tile')),
       name: 'Settings language tile',
     );
@@ -81,7 +118,7 @@ class AppRobot {
   /// same list.
   Future<void> openAppearance() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.appearance_tile')),
       name: 'Settings appearance tile',
     );
@@ -103,7 +140,7 @@ class AppRobot {
       e2eLog('No upgrade button on Settings — account is Pro');
       return false;
     }
-    await _tap(upgrade, name: 'Upgrade to Pro button');
+    await tap(upgrade, name: 'Upgrade to Pro button');
     await WidgetWaitUtils.waitForFinder(
       tester,
       find.byKey(const Key('plans.list')),
@@ -118,11 +155,11 @@ class AppRobot {
   /// home menu -> Settings -> Support -> Report an issue.
   Future<void> openReportIssue() async {
     await openSettings();
-    await _tap(
+    await tap(
       find.byKey(const Key('setting.support_tile')),
       name: 'Settings support tile',
     );
-    await _tap(
+    await tap(
       find.byKey(const Key('support.report_issue_tile')),
       name: 'Support report-issue tile',
     );
@@ -183,8 +220,12 @@ class AppRobot {
     reason: 'None of ${finders.keys.join(', ')} appeared within $timeout',
   );
 
-  /// Waits for [target], taps it, and lets the navigation settle.
-  Future<void> _tap(Finder target, {required String name}) async {
+  /// Waits for [target] and taps it. Native handoffs can skip settling.
+  Future<void> tap(
+    Finder target, {
+    required String name,
+    bool settle = true,
+  }) async {
     e2eLog('Tapping $name');
     await WidgetWaitUtils.waitForFinder(
       tester,
@@ -194,7 +235,11 @@ class AppRobot {
     );
     await tester.ensureVisible(target);
     await tester.tap(target);
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump(const Duration(milliseconds: 300));
+    }
   }
 
   /// Waits for the home screen after launch. Does not touch onboarding.

@@ -7,6 +7,11 @@ on:
         description: "Release version to verify, with or without leading v"
         required: true
         type: string
+      sparkle_version:
+        description: "Desktop bundle build number to verify"
+        required: false
+        type: string
+        default: ""
       channel:
         description: "Release channel to verify"
         required: false
@@ -39,6 +44,10 @@ on:
       version:
         required: true
         type: string
+      sparkle_version:
+        required: false
+        type: string
+        default: ""
       channel:
         required: false
         type: string
@@ -86,6 +95,7 @@ jobs:
           CHANNEL: ${{ inputs.channel }}
           PLATFORM: ${{ inputs.platform }}
           VERSION: ${{ inputs.version }}
+          SPARKLE_VERSION: ${{ inputs.sparkle_version }}
           TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
           INTERVAL_SECONDS: ${{ inputs.interval_seconds }}
         run: |
@@ -94,5 +104,6 @@ jobs:
             --channel "$CHANNEL" \
             --platform "$PLATFORM" \
             --version "$VERSION" \
+            --sparkle-version "$SPARKLE_VERSION" \
             --timeout-seconds "$TIMEOUT_SECONDS" \
             --interval-seconds "$INTERVAL_SECONDS"

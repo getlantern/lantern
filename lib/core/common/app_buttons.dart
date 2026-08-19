@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_asset.dart';
-import 'package:lantern/core/common/app_colors.dart';
-import 'package:lantern/core/common/app_dimens.dart';
-import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/cap_scaling.dart';
+import 'package:lantern/core/common/common.dart';
 
 typedef OnPressed = VoidCallback;
 
@@ -80,46 +77,45 @@ class PrimaryButton extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Heights
-    final minHeight = isTaller == true ? hCap(context, 56) : hCap(context, 48);
-    final nonExpandedHeight = hCap(context, 52);
+    final height = isTaller == true ? hCap(context, 56) : hCap(context, 48);
 
     return style.copyWith(
-      backgroundColor: WidgetStateProperty.resolveWith<Color>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            // primary-disabled-bg: Gray.200 light / Gray.700 dark
-            return isDark ? AppColors.gray7 : AppColors.gray2;
-          }
-          if (states.contains(WidgetState.hovered) &&
-              bgColor == AppColors.blue1) {
-            return AppColors.blue2;
-          }
-          if (states.contains(WidgetState.hovered)) {
-            // primary-bg-hover: Blue.800 light / Blue.500 dark
-            return isDark ? AppColors.blue5 : AppColors.blue8;
-          }
-          // primary-bg: Blue.1000 light / Blue.600 dark
-          return bgColor ?? (isDark ? AppColors.blue6 : AppColors.blue10);
-        },
-      ),
-      side: WidgetStateProperty.resolveWith<BorderSide>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            // primary-disabled-border: Gray.400 light / Gray.500 dark
-            return BorderSide(
-              color: isDark ? AppColors.gray5 : AppColors.gray4,
-              width: 1,
-            );
-          }
-          if (showBorder) {
-            return BorderSide(
-              color: isDark ? AppColors.gray7 : AppColors.gray2,
-              width: 1,
-            );
-          }
-          return BorderSide.none;
-        },
-      ),
+      backgroundColor: WidgetStateProperty.resolveWith<Color>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          // primary-disabled-bg: Gray.200 light / Gray.700 dark
+          return isDark ? AppColors.gray7 : AppColors.gray2;
+        }
+        if (states.contains(WidgetState.hovered) &&
+            bgColor == AppColors.blue1) {
+          return AppColors.blue2;
+        }
+        if (states.contains(WidgetState.hovered)) {
+          // primary-bg-hover: Blue.800 light / Blue.500 dark
+          return isDark ? AppColors.blue5 : AppColors.blue8;
+        }
+        // primary-bg: Blue.1000 light / Blue.600 dark
+        return bgColor ?? (isDark ? AppColors.blue6 : AppColors.blue10);
+      }),
+      side: WidgetStateProperty.resolveWith<BorderSide>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          // primary-disabled-border: Gray.400 light / Gray.500 dark
+          return BorderSide(
+            color: isDark ? AppColors.gray5 : AppColors.gray4,
+            width: 1,
+          );
+        }
+        if (showBorder) {
+          return BorderSide(
+            color: isDark ? AppColors.gray7 : AppColors.gray2,
+            width: 1,
+          );
+        }
+        return BorderSide.none;
+      }),
       iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
         EdgeInsets.symmetric(vertical: verticalPad, horizontal: 40.0),
@@ -127,7 +123,7 @@ class PrimaryButton extends StatelessWidget {
       textStyle: WidgetStatePropertyAll<TextStyle>(
         AppTextStyles.primaryButtonTextStyle.copyWith(
           fontSize: expanded ? fontSz : 16.0,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
       ),
       // primary-text: Gray.100 both / primary-disabled-text: Gray.500 both
@@ -135,9 +131,10 @@ class PrimaryButton extends StatelessWidget {
         enabled == false ? AppColors.gray5 : textColor ?? AppColors.gray1,
       ),
       minimumSize: WidgetStatePropertyAll<Size>(
-        expanded
-            ? Size(double.infinity, minHeight)
-            : Size(0, nonExpandedHeight),
+        expanded ? Size(double.infinity, height) : Size(0, height),
+      ),
+      maximumSize: WidgetStatePropertyAll<Size>(
+        Size(double.infinity, height),
       ),
     );
   }
@@ -208,49 +205,50 @@ class SecondaryButton extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Heights
-    final height = isTaller == true ? hCap(context, 56) : hCap(context, 50);
+    final height = isTaller == true ? hCap(context, 56) : hCap(context, 48);
 
     return style.copyWith(
-      backgroundColor: WidgetStateProperty.resolveWith<Color>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            // secondary-disabled-bg: Gray.200 light / Gray.900 dark
-            return isDark ? AppColors.gray9 : AppColors.gray2;
-          }
-          if (states.contains(WidgetState.hovered)) {
-            // secondary-bg-hover: Gray.200 light / Gray.800 dark
-            return context.actionSecondaryBgHover;
-          }
-          // secondary-bg: Gray.100 light / Gray.900 dark
-          return bgColor ?? context.actionSecondaryBg;
-        },
-      ),
-      side: WidgetStateProperty.resolveWith<BorderSide>(
-        (Set<WidgetState> states) {
-          if (removeBorder ?? false) {
-            return BorderSide.none;
-          }
+      backgroundColor: WidgetStateProperty.resolveWith<Color>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          // secondary-disabled-bg: Gray.200 light / Gray.900 dark
+          return isDark ? AppColors.gray9 : AppColors.gray2;
+        }
+        if (states.contains(WidgetState.hovered)) {
+          // secondary-bg-hover: Gray.200 light / Gray.800 dark
+          return context.actionSecondaryBgHover;
+        }
+        // secondary-bg: Gray.100 light / Gray.900 dark
+        return bgColor ?? context.actionSecondaryBg;
+      }),
+      side: WidgetStateProperty.resolveWith<BorderSide>((
+        Set<WidgetState> states,
+      ) {
+        if (removeBorder ?? false) {
+          return BorderSide.none;
+        }
 
-          if (states.contains(WidgetState.disabled)) {
-            // secondary-disabled-border: Gray.400 light / Gray.700 dark
-            return BorderSide(
-              color: isDark ? AppColors.gray7 : AppColors.gray4,
-              width: 1,
-            );
-          }
-          // secondary-border: Gray.500 light / Gray.600 dark
+        if (states.contains(WidgetState.disabled)) {
+          // secondary-disabled-border: Gray.400 light / Gray.700 dark
           return BorderSide(
-            color: isDark ? AppColors.gray6 : AppColors.gray5,
+            color: isDark ? AppColors.gray7 : AppColors.gray4,
             width: 1,
           );
-        },
-      ),
+        }
+        // secondary-border: Gray.500 light / Gray.600 dark
+        return BorderSide(
+          color: isDark ? AppColors.gray6 : AppColors.gray5,
+          width: 1,
+        );
+      }),
       // secondary-bg-hover used as overlay
       overlayColor: WidgetStatePropertyAll<Color>(
         isDark ? AppColors.gray8 : AppColors.gray2,
       ),
-      foregroundColor:
-          WidgetStatePropertyAll<Color>(foregroundColor ?? context.textPrimary),
+      foregroundColor: WidgetStatePropertyAll<Color>(
+        foregroundColor ?? context.textPrimary,
+      ),
       iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
         EdgeInsets.symmetric(vertical: verticalPad, horizontal: 40.0),
@@ -298,8 +296,9 @@ class AppTextButton extends StatelessWidget {
         visualDensity: VisualDensity.compact,
         textStyle: AppTextStyles.titleMedium.copyWith(
           overflow: TextOverflow.ellipsis,
-          decoration:
-              underLine ? TextDecoration.underline : TextDecoration.none,
+          decoration: underLine
+              ? TextDecoration.underline
+              : TextDecoration.none,
           fontSize: cappedFontSize,
         ),
         // text.link from semantic token
@@ -314,11 +313,7 @@ class AppIconButton extends StatelessWidget {
   final String path;
   final OnPressed? onPressed;
 
-  const AppIconButton({
-    super.key,
-    required this.path,
-    this.onPressed,
-  });
+  const AppIconButton({super.key, required this.path, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -327,10 +322,7 @@ class AppIconButton extends StatelessWidget {
     return IconButton(
       onPressed: onPressed,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      icon: AppImage(
-        path: path,
-        height: iconHeight,
-      ),
+      icon: AppImage(path: path, height: iconHeight),
     );
   }
 }

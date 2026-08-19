@@ -36,6 +36,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_config_url_smoke:
+        description: "Run Linux config URL API and UI smoke tests"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: "read"
@@ -138,7 +143,7 @@ jobs:
           echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> "$GITHUB_ENV"
 
       - name: Install Flutter (amd64)
-        uses: subosito/flutter-action@v2.22.0
+        uses: subosito/flutter-action@v2.23.0
         if: ${{ matrix.arch == 'amd64' }}
         with:
           channel: stable
@@ -232,9 +237,6 @@ jobs:
         env:
           LANG: en_US.UTF-8
           LC_ALL: en_US.UTF-8
-          JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
-          JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
-          JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: |
           set -euxo pipefail
           TEST_START_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
@@ -274,7 +276,17 @@ jobs:
             exit 1
           fi
 
-          bash .github/scripts/linux_config_url_smoke.sh
+      - name: Linux config URL connect/disconnect integration
+        if: ${{ inputs.run_config_url_smoke }}
+        timeout-minutes: 20
+        shell: bash
+        env:
+          LANG: en_US.UTF-8
+          LC_ALL: en_US.UTF-8
+          JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
+          JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
+          JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
+        run: bash .github/scripts/linux_config_url_smoke.sh
 
       - name: Linux UI auth smoke integration
         if: ${{ inputs.run_auth_smoke }}

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/stripe_service.dart';
@@ -21,6 +22,10 @@ class PlansNotifier extends _$PlansNotifier {
   // guard every rebuild would stack another listener.
   bool _stripeKeyListenerAttached = false;
 
+  /// Plans are only published after this completes, so the first paint
+  /// already shows store prices (Plan.displayPrice) instead of flickering.
+  Future<void> _storeProductsReady = Future.value();
+
   @override
   Future<PlansData> build() async {
     // Every plans arrival (cache, fetch, referral update) funnels through
@@ -37,10 +42,13 @@ class PlansNotifier extends _$PlansNotifier {
     }
 
     state = const AsyncLoading();
+    // Fetched in parallel with the plans; awaited before publishing.
+    _storeProductsReady = _loadStoreProducts();
     final cached = _storage.getPlans();
     if (cached != null) {
       appLogger.info('Found cached plans, refreshing in background');
       unawaited(_refreshInBackground());
+      await _storeProductsReady;
       state = AsyncData(cached);
       return cached;
     }
@@ -92,11 +100,13 @@ class PlansNotifier extends _$PlansNotifier {
         state = AsyncError(error, StackTrace.current);
         throw Exception('Plans fetch failed');
       },
-      (remote) {
+      (remote) async {
         appLogger.info(
           '[PlansNotifier] Plans fetched successfully: ${remote.plans.length} plans',
         );
         unawaited(_storage.savePlans(remote));
+        // Never throws — see _loadStoreProducts.
+        await _storeProductsReady;
         // Publish the result so standalone callers (the "Try again" button and
         // removing an affiliate code) leave the loading state. When invoked
         // from build() the framework also assigns the returned value — this
@@ -105,6 +115,21 @@ class PlansNotifier extends _$PlansNotifier {
         return remote;
       },
     );
+  }
+
+  /// Loads store products on store builds; never throws — on failure or
+  /// timeout (the billing client has none of its own) cards show API prices.
+  Future<void> _loadStoreProducts() async {
+    if (!isStoreVersion()) return;
+    try {
+      await sl<AppPurchase>().fetchSubscriptions().timeout(
+        const Duration(seconds: 5),
+      );
+    } catch (e) {
+      appLogger.warning(
+        '[PlansNotifier] Store products unavailable, showing API prices: $e',
+      );
+    }
   }
 
   Future<void> _refreshInBackground() async {
