@@ -1,7 +1,10 @@
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/utils/currency_utils.dart';
 
 final _ddmmyyFormatter = DateFormat('dd/MM/yy');
@@ -11,6 +14,25 @@ extension PlanExtension on Plan {
   String get formattedYearlyPrice => _formatPriceMap(price);
 
   String get formattedMonthlyPrice => _formatPriceMap(expectedMonthlyPrice);
+
+  /// Price shown on the plan card: the store's localized price (what it will
+  /// actually charge) on store builds, the API price otherwise/as fallback.
+  String get displayPrice => _storeProduct?.price ?? formattedYearlyPrice;
+
+  /// Per-month line under [displayPrice]: store yearly price ÷ 12 on store
+  /// builds, the API's expected monthly price otherwise.
+  String get displayMonthlyPrice {
+    final product = _storeProduct;
+    if (product == null) return formattedMonthlyPrice;
+    final months = id.startsWith('1y') ? 12 : 1;
+    return CurrencyUtils.formatCurrency(
+      product.rawPrice * 100 / months,
+      product.currencyCode,
+    );
+  }
+
+  ProductDetails? get _storeProduct =>
+      isStoreVersion() ? sl<AppPurchase>().storeProductFor(id) : null;
 
   /// The original (pre-discount) yearly price, taken directly from the
   /// backend's `originalPrice` (no calculation). Shown as the strikethrough

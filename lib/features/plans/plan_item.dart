@@ -79,7 +79,7 @@ class PlanItem extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        plan.formattedYearlyPrice,
+                        plan.displayPrice,
                         style: textTheme.titleMedium!.copyWith(
                           color: context.textLink,
                         ),
@@ -99,7 +99,7 @@ class PlanItem extends StatelessWidget {
                     ],
                   ),
                   Text(
-                    '${plan.formattedMonthlyPrice}/month',
+                    '${plan.displayMonthlyPrice}/month',
                     style: textTheme.labelMedium!.copyWith(
                       color: context.textTertiary,
                     ),
