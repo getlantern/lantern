@@ -24,7 +24,10 @@ abstract interface class AppWebViewObserver {
   void onPageLoadFailed(Uri? uri, String reason);
 }
 
-/// Returns the purchase result encoded by Lantern's trusted checkout callback.
+/// Returns the UI handoff result encoded by Lantern's checkout callback.
+///
+/// Callers must confirm the user's account status with the backend before
+/// treating a successful handoff as a completed purchase.
 bool? webViewPurchaseResult(Uri uri) {
   if (uri.host != 'lantern.io' && uri.host != 'www.lantern.io') return null;
 
@@ -193,17 +196,16 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         await _reportPageLoaded(controller, uri);
       },
       onReceivedError: (_, webResourceRequest, error) async {
+        if (webResourceRequest.isForMainFrame != true) return;
         final uri = Uri.tryParse(webResourceRequest.url.toString());
         if (await _handleCompletionUrl(uri)) return;
         if (!mounted) return;
         appLogger.error("Received error: $error");
         ref.read(webViewLoadingProvider.notifier).stop();
-        if (webResourceRequest.isForMainFrame == true) {
-          widget.observer?.onPageLoadFailed(
-            uri,
-            '${error.type}: ${error.description}',
-          );
-        }
+        widget.observer?.onPageLoadFailed(
+          uri,
+          '${error.type}: ${error.description}',
+        );
       },
       onReceivedHttpError: (_, request, response) {
         if (request.isForMainFrame != true) return;
