@@ -415,8 +415,7 @@ class ShareNotifier extends Notifier<ShareState> {
             // to do. Genuine pre-Start failures (IPC down,
             // MissingPluginException) land here too and want the same thing:
             // the user asked to share, and Unbounded is the way that still
-            // works. If it does not either, _fallbackToUnbounded surfaces
-            // that.
+            // works. If that fails too, _fallbackToUnbounded surfaces it.
             appLogger.error(
               'SmC setPeerProxy failed, falling back to Unbounded: ${err.error}',
             );
@@ -679,6 +678,14 @@ class ShareNotifier extends Notifier<ShareState> {
   // regardless of SmC's outcome, and raw protocol error text never
   // reaches the status card.
   void _handlePeerStatus(String message, WidgetRef widgetRef) {
+    // peer-status describes an SmC session, so it has nothing to say about any
+    // other mode. Dropping it otherwise is what keeps a failed start from
+    // reporting itself after the fallback has already handled it: if
+    // setPeerProxy's error arrives before the phase=error event, mode is
+    // already unbounded by the time that event lands, the SmC branches below
+    // no longer match, and the copyWith at the end would write the SmC error
+    // straight onto the working Unbounded session.
+    if (state.mode != ShareMode.smc) return;
     try {
       final payload = jsonDecode(message) as Map<String, dynamic>;
       final phase = SharePhase.fromWire(payload['phase'] as String?);
@@ -693,14 +700,14 @@ class ShareNotifier extends Notifier<ShareState> {
       //   idle  → clean stop (user toggled off, or radiance
       //           transitioned through stopping → idle). Tear down
       //           the event subscription and return to off.
-      if (phase == SharePhase.error && state.mode == ShareMode.smc) {
+      if (phase == SharePhase.error) {
         appLogger.info(
           'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
         );
         unawaited(_fallbackToUnbounded(widgetRef));
         return;
       }
-      if (phase == SharePhase.idle && state.mode == ShareMode.smc) {
+      if (phase == SharePhase.idle) {
         _stopEventSubscription();
         // Preserve totalCount across the radiance-driven idle reset —
         // lifetime running total is persisted via appSettingProvider and
