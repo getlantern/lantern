@@ -149,7 +149,7 @@ class LanternFFIService implements LanternCoreService {
       _appEvents = flutterEventReceivePort.map((event) {
         final Map<String, dynamic> result = jsonDecode(event);
         return AppEvent.fromJson(result);
-      });
+      }).asBroadcastStream();
 
       _logBatches = loggingReceivePort
           .cast<String>()

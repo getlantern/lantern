@@ -47,27 +47,38 @@ void main() {
     expect(parsed!.action!.type, UserMessageActionType.openPlans);
   });
 
-  test('safely ignores unknown enums and unsafe URLs', () {
+  test('drops unknown surfaces and degrades unsupported actions', () {
     expect(UserMessage.tryParse(jsonEncode(message(surface: 'modal'))), isNull);
-    expect(
-      UserMessage.tryParse(
-        jsonEncode(
-          message(
-            action: const {
-              'type': 'open_https_url',
-              'url': 'lantern://internal',
-            },
-          ),
+    final unsafe = UserMessage.tryParse(
+      jsonEncode(
+        message(
+          action: const {'type': 'open_https_url', 'url': 'lantern://internal'},
         ),
       ),
-      isNull,
     );
-    expect(
-      UserMessage.tryParse(
-        jsonEncode(message(action: const {'type': 'future_action'})),
+    expect(unsafe, isNotNull);
+    expect(unsafe!.action, isNull);
+
+    final unknown = UserMessage.tryParse(
+      jsonEncode(message(action: const {'type': 'future_action'})),
+    );
+    expect(unknown, isNotNull);
+    expect(unknown!.action, isNull);
+  });
+
+  test('rejects credential-bearing HTTPS actions', () {
+    final parsed = UserMessage.tryParse(
+      jsonEncode(
+        message(
+          action: const {
+            'type': 'open_https_url',
+            'url': 'https://user:secret@example.com/path',
+          },
+        ),
       ),
-      isNull,
     );
+    expect(parsed, isNotNull);
+    expect(parsed!.action, isNull);
   });
 
   test('returns null for no message and expired content', () {

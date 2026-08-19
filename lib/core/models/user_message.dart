@@ -12,24 +12,29 @@ class UserMessageAction {
 
   static UserMessageAction? fromJson(Object? value) {
     if (value == null) return null;
-    if (value is! Map<String, dynamic>) {
-      throw const FormatException('Invalid user-message action');
-    }
+    if (value is! Map<String, dynamic>) return null;
     switch (value['type']) {
       case 'open_https_url':
         final rawUrl = value['url'];
         final url = rawUrl is String ? Uri.tryParse(rawUrl) : null;
-        if (url == null || url.scheme != 'https' || url.host.isEmpty) {
-          throw const FormatException('Invalid HTTPS user-message action');
+        if (url == null ||
+            url.scheme.toLowerCase() != 'https' ||
+            url.host.isEmpty ||
+            url.userInfo.isNotEmpty) {
+          return null;
         }
         return UserMessageAction(
           type: UserMessageActionType.openHttpsUrl,
           url: url,
         );
       case 'open_plans':
+        final rawUrl = value['url'];
+        if (rawUrl != null && rawUrl != '') {
+          return null;
+        }
         return const UserMessageAction(type: UserMessageActionType.openPlans);
       default:
-        throw const FormatException('Unsupported user-message action');
+        return null;
     }
   }
 }
@@ -61,10 +66,13 @@ class UserMessage {
     this.action,
   });
 
-  bool get isExpired => !expiresAt.isAfter(DateTime.now().toUtc());
+  bool get isExpired => isExpiredAt(DateTime.now().toUtc());
 
-  /// Parses a bridge response. Unknown surface/action values are ignored by
-  /// returning null, keeping future server enum values safe for older apps.
+  bool isExpiredAt(DateTime now) => !expiresAt.isAfter(now.toUtc());
+
+  /// Parses a bridge response. An unknown surface drops the message because
+  /// Flutter cannot present it safely. Unknown or unsafe actions degrade to a
+  /// body-only message so future CTA types never block important plain text.
   static UserMessage? tryParse(String encoded) {
     if (encoded.trim() == 'null') return null;
     try {
