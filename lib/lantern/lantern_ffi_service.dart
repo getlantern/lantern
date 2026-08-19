@@ -24,6 +24,7 @@ import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/models/available_servers.dart';
@@ -219,6 +220,66 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEvents;
+  }
+
+  @override
+  Future<Either<Failure, UserMessage?>> currentUserMessage() async {
+    try {
+      final encoded = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.currentUserMessage();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(encoded);
+      return right(UserMessage.tryParse(encoded));
+    } catch (e) {
+      // Do not log the encoded response: it can contain localized copy.
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshUserMessages() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.refreshUserMessages();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final displayIDPtr = displayId.toCharPtr;
+        try {
+          final resultPtr = _ffiService.acknowledgeUserMessage(displayIDPtr);
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(displayIDPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
   }
 
   @override

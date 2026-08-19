@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	wire "github.com/getlantern/common/usermessage"
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/env"
@@ -57,12 +58,28 @@ const (
 	// .phase to render progress text and on .error to surface
 	// diagnostics on the failure path.
 	EventTypePeerStatus EventType = "peer-status"
-	DefaultLogLevel               = "trace"
+	// EventTypeUserMessageAvailable is deliberately payload-free. Flutter
+	// pulls the durable pending message after receiving it, so event loss does
+	// not lose content and localized message bodies never enter event logs.
+	EventTypeUserMessageAvailable EventType = "user-message-available"
+	DefaultLogLevel                         = "trace"
 )
+
+const (
+	userMessageAvailabilityInterval = 5 * time.Second
+	userMessageIPCRequestTimeout    = 10 * time.Second
+)
+
+type userMessageClient interface {
+	CurrentUserMessage(context.Context) (*wire.ResolvedUserMessage, error)
+	RefreshUserMessages(context.Context) error
+	AcknowledgeUserMessage(context.Context, string) error
+}
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
 type LanternCore struct {
 	client       *ipc.Client
+	userMessages userMessageClient
 	ctx          context.Context
 	cancel       context.CancelFunc
 	initOnce     sync.Once
@@ -98,6 +115,9 @@ type App interface {
 	ReferralAttachment(referralCode string) (bool, error)
 	ReferralAttachmentV2(referralCode, channel string) ([]byte, error)
 	UpdateLocale(locale string) error
+	CurrentUserMessage() (string, error)
+	RefreshUserMessages() error
+	AcknowledgeUserMessage(displayID string) error
 	UpdateTelemetryConsent(consent bool) error
 	IsTelemetryEnabled() bool
 	IsOAuthLogin() bool
@@ -281,6 +301,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	lc.client = client
+	lc.userMessages = client
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
@@ -290,6 +311,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenDataCapEvents()
 	go lc.listenPeerConnectionEvents()
 	go lc.listenPeerStatusEvents()
+	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -307,6 +329,45 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 		Type:    string(event),
 		Message: message,
 	})
+}
+
+// listenUserMessageAvailability observes Radiance's local durable pending
+// state. This polls only the local in-process/IPC bridge; Radiance remains the
+// sole owner of cloud polling and its five-minute SLA. The watcher retains only
+// the opaque display ID and never a localized message body.
+func (lc *LanternCore) listenUserMessageAvailability() {
+	ticker := time.NewTicker(userMessageAvailabilityInterval)
+	defer ticker.Stop()
+
+	lastDisplayID := ""
+	lc.checkUserMessageAvailability(&lastDisplayID)
+	for {
+		select {
+		case <-lc.ctx.Done():
+			return
+		case <-ticker.C:
+			lc.checkUserMessageAvailability(&lastDisplayID)
+		}
+	}
+}
+
+func (lc *LanternCore) checkUserMessageAvailability(lastDisplayID *string) {
+	ctx, cancel := context.WithTimeout(lc.ctx, userMessageIPCRequestTimeout)
+	defer cancel()
+	message, err := lc.userMessages.CurrentUserMessage(ctx)
+	if err != nil {
+		slog.Debug("Unable to inspect pending user message", "error", err)
+		return
+	}
+	if message == nil {
+		*lastDisplayID = ""
+		return
+	}
+	if message.DisplayID == *lastDisplayID {
+		return
+	}
+	*lastDisplayID = message.DisplayID
+	lc.notifyFlutter(EventTypeUserMessageAvailable, "")
 }
 
 // fetchUserDataIfNeeded pulls fresh user data from the server at startup

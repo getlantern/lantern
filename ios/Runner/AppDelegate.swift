@@ -181,6 +181,8 @@ import flutter_local_notifications
       opts.dataDir = baseDir
       opts.logDir = FilePath.logsDirectory.relativePath
       opts.deviceid = DeviceIdentifier.getUDID()
+      opts.appVersion =
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
       opts.logLevel = "trace"
       opts.locale = Locale.current.identifier
       opts.telemetryConsent = FilePath.isTelemetryEnabled()

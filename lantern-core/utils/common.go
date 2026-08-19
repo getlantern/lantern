@@ -1,5 +1,7 @@
 package utils
 
+import commonenv "github.com/getlantern/radiance/common/env"
+
 import (
 	"github.com/sagernet/sing-box/experimental/libbox"
 )
@@ -8,11 +10,23 @@ type Opts struct {
 	LogDir           string
 	DataDir          string
 	Deviceid         string
+	AppVersion       string
 	LogLevel         string
 	Locale           string
 	Env              string
 	TelemetryConsent bool
 	Platform         PlatformInterface
+}
+
+// RadianceEnvOverrides returns process environment values that Radiance must
+// read during initialization. Mobile extension processes do not reliably
+// inherit build-time shell variables, so the host passes the installed app's
+// semantic version explicitly.
+func (o *Opts) RadianceEnvOverrides() map[string]string {
+	if o == nil || o.AppVersion == "" {
+		return nil
+	}
+	return map[string]string{commonenv.AppVersion.String(): o.AppVersion}
 }
 
 // IsStaging reports whether Env selects the staging environment. Both

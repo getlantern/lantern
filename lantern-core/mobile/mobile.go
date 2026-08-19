@@ -295,6 +295,25 @@ func UpdateLocale(locale string) error {
 	return withCore(func(c lanterncore.Core) error { return c.UpdateLocale(locale) })
 }
 
+// CurrentUserMessage returns the pending message as common-contract JSON.
+func CurrentUserMessage() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.CurrentUserMessage()
+	})
+}
+
+// RefreshUserMessages asks Radiance to fetch eligibility immediately.
+func RefreshUserMessages() error {
+	return withCore(func(c lanterncore.Core) error { return c.RefreshUserMessages() })
+}
+
+// AcknowledgeUserMessage records that Flutter displayed displayID.
+func AcknowledgeUserMessage(displayID string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.AcknowledgeUserMessage(displayID)
+	})
+}
+
 func IsRadianceConnected() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) { return c.IsRadianceConnected(), nil })
 	if err != nil {

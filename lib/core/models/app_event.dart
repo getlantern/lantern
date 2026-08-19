@@ -1,4 +1,6 @@
 class AppEvent {
+  static const String userMessageAvailable = 'user-message-available';
+
   final String eventType;
   final String message;
 

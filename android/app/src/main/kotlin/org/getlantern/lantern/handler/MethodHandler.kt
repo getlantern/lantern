@@ -127,6 +127,9 @@ enum class Methods(val method: String) {
     FeatureFlag("featureFlag"),
     GetDataCapInfo("getDataCapInfo"),
     UpdateLocale("updateLocale"),
+    CurrentUserMessage("currentUserMessage"),
+    RefreshUserMessages("refreshUserMessages"),
+    AcknowledgeUserMessage("acknowledgeUserMessage"),
     UpdateTelemetryEvents("updateTelemetryEvents"),
     InstallSideloadUpdate("installSideloadUpdate"),
 
@@ -651,6 +654,38 @@ class MethodHandler : FlutterPlugin,
                 scope.handleResult(result, "UpdateLocale") {
                     val locale = call.arguments<String>()
                     Mobile.updateLocale(locale)
+                }
+            }
+
+            Methods.CurrentUserMessage.method -> {
+                scope.launch {
+                    runCatching { Mobile.currentUserMessage() }
+                        .onSuccess { message ->
+                            withContext(Dispatchers.Main) { result.success(message) }
+                        }
+                        .onFailure { e ->
+                            withContext(Dispatchers.Main) {
+                                result.error(
+                                    "current_user_message",
+                                    e.localizedMessage ?: "Please try again",
+                                    null,
+                                )
+                            }
+                        }
+                }
+            }
+
+            Methods.RefreshUserMessages.method -> {
+                scope.handleResult(result, "refresh_user_messages") {
+                    Mobile.refreshUserMessages()
+                }
+            }
+
+            Methods.AcknowledgeUserMessage.method -> {
+                scope.handleResult(result, "acknowledge_user_message") {
+                    val displayID = call.arguments<String>()
+                    require(displayID.isNotBlank()) { "Missing display ID" }
+                    Mobile.acknowledgeUserMessage(displayID)
                 }
             }
 

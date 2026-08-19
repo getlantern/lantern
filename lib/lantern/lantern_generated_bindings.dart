@@ -2524,6 +2524,43 @@ class LanternBindings {
   late final _updateLocale = _updateLocalePtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> currentUserMessage() {
+    return _currentUserMessage();
+  }
+
+  late final _currentUserMessagePtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'currentUserMessage',
+      );
+  late final _currentUserMessage = _currentUserMessagePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> refreshUserMessages() {
+    return _refreshUserMessages();
+  }
+
+  late final _refreshUserMessagesPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'refreshUserMessages',
+      );
+  late final _refreshUserMessages = _refreshUserMessagesPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> acknowledgeUserMessage(
+    ffi.Pointer<ffi.Char> _displayID,
+  ) {
+    return _acknowledgeUserMessage(_displayID);
+  }
+
+  late final _acknowledgeUserMessagePtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+        >
+      >('acknowledgeUserMessage');
+  late final _acknowledgeUserMessage = _acknowledgeUserMessagePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> addSplitTunnelItem(
     ffi.Pointer<ffi.Char> filterTypeC,
     ffi.Pointer<ffi.Char> itemC,

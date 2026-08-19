@@ -137,6 +137,7 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		DeviceID:          opts.Deviceid,
 		TelemetryConsent:  opts.TelemetryConsent,
 		PlatformInterface: platform,
+		EnvOverrides:      opts.RadianceEnvOverrides(),
 	})
 	if err != nil {
 		return err

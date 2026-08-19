@@ -15,6 +15,7 @@ import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
 
 import '../core/services/app_purchase.dart';
 
@@ -47,6 +48,14 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> updateLocal(String locale);
 
   Stream<AppEvent> watchAppEvents();
+
+  /// Returns Radiance's durable pending message. This pull operation is the
+  /// source of truth even when an availability event was missed.
+  Future<Either<Failure, UserMessage?>> currentUserMessage();
+
+  Future<Either<Failure, Unit>> refreshUserMessages();
+
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId);
 
   Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent);
 

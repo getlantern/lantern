@@ -19,6 +19,7 @@ func createClient(ctx context.Context, opts *utils.Opts) (*ipc.Client, error) {
 		LogLevel:         opts.LogLevel,
 		Locale:           opts.Locale,
 		TelemetryConsent: opts.TelemetryConsent,
+		EnvOverrides:     opts.RadianceEnvOverrides(),
 	}
 	return ipc.NewClient(ctx, backendOpts)
 }
