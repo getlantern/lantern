@@ -17,5 +17,12 @@ void main() {
         'https://update.getlantern.org/update/lantern/appcast.xml?channel=stable',
       );
     });
+
+    test('uses the isolated staging feed for E2E fixtures', () {
+      expect(
+        AppUrls.appcastFor('beta', autoUpdateE2E: true),
+        'https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta',
+      );
+    });
   });
 }

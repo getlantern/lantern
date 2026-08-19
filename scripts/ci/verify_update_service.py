@@ -38,6 +38,7 @@ class Config:
     timeout_seconds: int
     interval_seconds: int
     platforms: frozenset[str]
+    sparkle_version: str = ""
 
 
 class VerificationError(Exception):
@@ -169,7 +170,7 @@ def parse_appcast(xml_text: str) -> tuple[str, list[dict[str, str]]]:
         enclosures.append(
             {
                 "url": enclosure.attrib.get("url", ""),
-                "signature": enclosure.attrib.get(f"{{{SPARKLE_NS}}}edSignature", ""),
+                "ed_signature": enclosure.attrib.get(f"{{{SPARKLE_NS}}}edSignature", ""),
                 "os": enclosure.attrib.get(f"{{{SPARKLE_NS}}}os", ""),
             }
         )
@@ -201,7 +202,10 @@ def verify_beta_appcast(
     for os_name, suffix in required_platforms.items():
         enclosure = by_os.get(os_name)
         require(enclosure is not None, f"beta appcast missing {os_name} enclosure")
-        require(enclosure["signature"], f"beta appcast {os_name} enclosure missing signature")
+        require(
+            enclosure["ed_signature"],
+            f"beta appcast {os_name} enclosure missing EdDSA signature",
+        )
         require(
             enclosure["url"].endswith(suffix),
             f"beta appcast {os_name} URL does not end with {suffix}: {enclosure['url']}",
@@ -233,8 +237,20 @@ def run_checks_once(config: Config) -> None:
         verify_stable_excludes_beta(config.update_url, expected_version, platform)
 
     if config.platforms & set(APPCAST_PLATFORMS):
-        verify_beta_appcast(config.update_url, expected_version, config.platforms)
-        verify_stable_appcast_excludes_beta(config.update_url, expected_version)
+        require(
+            bool(config.sparkle_version.strip()),
+            "--sparkle-version is required when verifying macOS or Windows appcasts",
+        )
+        expected_sparkle_version = normalize_version(config.sparkle_version)
+        verify_beta_appcast(
+            config.update_url,
+            expected_sparkle_version,
+            config.platforms,
+        )
+        verify_stable_appcast_excludes_beta(
+            config.update_url,
+            expected_sparkle_version,
+        )
 
 
 def poll_until_verified(config: Config) -> None:
@@ -270,9 +286,16 @@ def main() -> None:
         help="'all' or comma-separated release platforms",
     )
     parser.add_argument("--version", required=True, help="Release version, with or without leading v")
+    parser.add_argument("--sparkle-version", default="", help="Desktop bundle build number")
     parser.add_argument("--timeout-seconds", type=int, default=2700)
     parser.add_argument("--interval-seconds", type=int, default=60)
     args = parser.parse_args()
+
+    platforms = normalize_platforms(args.platform)
+    if platforms & set(APPCAST_PLATFORMS) and not args.sparkle_version.strip():
+        parser.error(
+            "--sparkle-version is required when verifying macOS or Windows appcasts"
+        )
 
     poll_until_verified(
         Config(
@@ -281,7 +304,8 @@ def main() -> None:
             version=args.version,
             timeout_seconds=args.timeout_seconds,
             interval_seconds=args.interval_seconds,
-            platforms=normalize_platforms(args.platform),
+            platforms=platforms,
+            sparkle_version=args.sparkle_version,
         )
     )
 

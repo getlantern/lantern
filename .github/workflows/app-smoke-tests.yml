@@ -22,6 +22,7 @@ on:
         type: choice
         options:
           - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
+          - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
           - payment-smoke # Stripe Checkout rendering and payment-to-Pro conversion
           - all # every suite the platform supports
         default: vpn-smoke
@@ -48,13 +49,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate auto-update selection
+        if: ${{ inputs.tests == 'auto-update' && !contains(fromJSON('["all", "macos", "windows"]'), inputs.platforms) }}
+        shell: bash
+        run: |
+          echo '::error title=Invalid smoke selection::auto-update requires platforms=all, macos, or windows'
+          exit 2
+
   # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
   # doesn't need the desktop version stamping from `prepare`. The vpn-smoke
   # tier builds only the VPN suite and runs it on one virtual device with no
   # retries; `all` builds the full aggregator on the script's two-device
   # matrix (physical Pixel 8 + Arm virtual) with retries for flaky tests.
   android:
-    if: ${{ contains(fromJSON('["all", "android", ""]'), inputs.platforms) && (inputs.tests || 'all') != 'payment-smoke' }}
+    needs: validate-inputs
+    if: ${{ contains(fromJSON('["all", "android", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke"]'), inputs.tests || 'all') }}
     uses: ./.github/workflows/firebase-test-lab.yml
     secrets: inherit
     with:
@@ -69,6 +81,8 @@ jobs:
       flaky_attempts: ${{ (inputs.tests || 'all') == 'all' && '2' || '' }}
 
   prepare:
+    needs: validate-inputs
+    if: ${{ inputs.tests != 'auto-update' }}
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.meta.outputs.version }}
@@ -108,7 +122,7 @@ jobs:
   # to the optional suites: vpn-smoke leaves them off, `all` turns them on.
   linux:
     needs: prepare
-    if: ${{ contains(fromJSON('["all", "linux", ""]'), inputs.platforms) && (inputs.tests || 'all') != 'payment-smoke' }}
+    if: ${{ contains(fromJSON('["all", "linux", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke"]'), inputs.tests || 'all') }}
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
@@ -124,7 +138,7 @@ jobs:
   # runs only when asked for explicitly.
   macos:
     needs: prepare
-    if: ${{ inputs.platforms == 'macos' }}
+    if: ${{ inputs.platforms == 'macos' && inputs.tests != 'auto-update' }}
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     with:
@@ -135,9 +149,18 @@ jobs:
       run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
 
+  # This is deliberately separate from the regular macOS build job: it
+  # replaces /Applications/Lantern.app and verifies Sparkle's relaunch. It is
+  # selected explicitly, and never runs in the nightly sweep.
+  macos-auto-update:
+    needs: validate-inputs
+    if: ${{ contains(fromJSON('["all", "macos"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
+    uses: ./.github/workflows/macos-auto-update-smoke.yml
+    secrets: inherit
+
   windows:
     needs: prepare
-    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) }}
+    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) && inputs.tests != 'auto-update' }}
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     with:
@@ -150,3 +173,9 @@ jobs:
       run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+
+  windows-auto-update:
+    needs: validate-inputs
+    if: ${{ contains(fromJSON('["all", "windows"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
+    uses: ./.github/workflows/windows-auto-update-smoke.yml
+    secrets: inherit

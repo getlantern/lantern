@@ -23,6 +23,11 @@ environment:
   flutter: ">=3.41.0 <4.0.0"
 
 dependency_overrides:
+  auto_updater_windows:
+    git:
+      url: https://github.com/getlantern/auto_updater.git
+      path: packages/auto_updater_windows
+      ref: 7d8e67bcd78a8d57516775ea5cf18f4b83786afa
   # 12.6.x bumps the native Stripe SDKs (iOS ~>25.9), keep in step with flutter_stripe 12.4.0
   stripe_android: 12.4.0
   stripe_ios: 12.4.0

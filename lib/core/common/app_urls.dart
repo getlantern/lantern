@@ -1,3 +1,5 @@
+import 'package:lantern/core/common/app_build_info.dart';
+
 class AppUrls {
   static String lanternOfficial = 'https://lantern.io';
   static String support = 'https://support.lantern.io';
@@ -26,13 +28,19 @@ class AppUrls {
       'https://update.getlantern.org/update/lantern';
   static const appcastProd = '$updateServiceLantern/appcast.xml?channel=stable';
   static const appcastBeta = '$updateServiceLantern/appcast.xml?channel=beta';
+  static const appcastE2E =
+      'https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta';
   static String manuallyServerSetupURL =
       'https://github.com/getlantern/lantern-server-manager';
   static String digitalOceanBillingUrl =
       'https://cloud.digitalocean.com/account/billing';
   static const androidSideloadUpdateEndpoint = updateServiceLantern;
 
-  static String appcastFor(String buildType) {
+  static String appcastFor(
+    String buildType, {
+    bool autoUpdateE2E = AppBuildInfo.autoUpdateE2E,
+  }) {
+    if (autoUpdateE2E) return appcastE2E;
     switch (buildType) {
       case 'production':
         return appcastProd;

@@ -96,6 +96,7 @@ jobs:
       publish_mobile_stores: ${{ steps.meta.outputs.publish_mobile_stores }}
       smoke_enable_ip_check: ${{ steps.meta.outputs.smoke_enable_ip_check }}
       stealth_leakage_mode: ${{ steps.meta.outputs.stealth_leakage_mode }}
+      sparkle_version: ${{ steps.meta.outputs.sparkle_version }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -306,6 +307,7 @@ jobs:
           echo "publish_mobile_stores=$PUBLISH_MOBILE_STORES" >> $GITHUB_OUTPUT
           echo "smoke_enable_ip_check=$SMOKE_ENABLE_IP_CHECK" >> $GITHUB_OUTPUT
           echo "stealth_leakage_mode=$STEALTH_LEAKAGE_MODE" >> $GITHUB_OUTPUT
+          echo "sparkle_version=$GITHUB_RUN_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
         shell: bash
@@ -890,25 +892,31 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2.22.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-
       - name: Install Python dependencies
         run: python3 -m pip install -r scripts/requirements.txt
 
       - name: Test update metadata generator
         run: python3 -m unittest scripts/ci/generate_update_metadata_test.py
 
-      - name: Publish update metadata sidecars
-        # DISABLED: `auto_updater:sign_update` exits 255 on the dmg, which failed
-        # this job and made release-finalize delete the draft release on every
-        # tagged run (v9.1.19-beta, v9.1.20-beta got tags with no release).
+      - name: Download macOS update signature
         if: |
-          false &&
-          needs.set-metadata.outputs.build_type != 'nightly'
+          needs.set-metadata.outputs.platform == 'all' ||
+          contains(needs.set-metadata.outputs.platform, 'macos')
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-installer-dmg-signature
+          path: update-signatures
+
+      - name: Download Windows update signature
+        if: |
+          needs.set-metadata.outputs.platform == 'all' ||
+          contains(needs.set-metadata.outputs.platform, 'windows')
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-installer-exe-signature
+          path: update-signatures
+
+      - name: Publish update metadata sidecars
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -941,8 +949,10 @@ jobs:
           python3 scripts/ci/generate_update_metadata.py \
             --build-type "$BUILD_TYPE" \
             --version "$VERSION" \
+            --sparkle-version "${{ needs.set-metadata.outputs.sparkle_version }}" \
             --bucket "$BUCKET" \
             --output-dir update-metadata \
+            --sparkle-signature-dir update-signatures \
             "${artifacts[@]}"
 
           for metadata in update-metadata/*.update.json; do
@@ -952,47 +962,9 @@ jobs:
             gh release upload "$RELEASE_TAG" "$metadata" --clobber
           done
 
-      - name: Publish legacy appcast.xml
-        if: |
-          needs.set-metadata.outputs.build_type != 'nightly' &&
-          (
-            needs.set-metadata.outputs.platform == 'all' ||
-            contains(needs.set-metadata.outputs.platform, 'macos') ||
-            contains(needs.set-metadata.outputs.platform, 'windows') ||
-            contains(needs.set-metadata.outputs.platform, 'linux')
-          )
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GITHUB_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
-          GH_TOKEN: ${{ github.token }}
-          BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
-          RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
-          BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
-        run: |
-          # Strip 'v' prefix for S3 paths
-          VERSION="${RELEASE_TAG#v}"
-
-          python3 scripts/generate_appcast.py
-
-          # Keep this legacy feed for released clients that still point at S3.
-          # New clients use lantern-cloud's channel-aware appcast endpoint.
-          aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/${VERSION}/appcast.xml" --acl public-read
-          aws s3 cp appcast.xml "s3://${BUCKET}/releases/${BUILD_TYPE}/latest/appcast.xml" --acl public-read
-          if [[ "$BUILD_TYPE" == "production" ]]; then
-            aws s3 cp appcast.xml "s3://${BUCKET}/releases/appcast.xml" --acl public-read
-          fi
-
-          # Upload appcast.xml to GitHub release, but
-          # not git because we may be in detached HEAD
-          gh release upload "$RELEASE_TAG" appcast.xml --clobber
-
   verify-update-service:
     needs: [set-metadata, publish-update-metadata, release-finalize]
-    # DISABLED with the sidecar step above: with nothing published, this polls
-    # for its full 2700s timeout and then fails.
     if: |
-      false &&
       !cancelled() &&
       needs.set-metadata.outputs.build_type == 'beta' &&
       needs.publish-update-metadata.result == 'success' &&
@@ -1000,6 +972,7 @@ jobs:
     uses: ./.github/workflows/verify-update-service.yml
     with:
       version: ${{ needs.set-metadata.outputs.version }}
+      sparkle_version: ${{ needs.set-metadata.outputs.sparkle_version }}
       channel: beta
       platform: ${{ needs.set-metadata.outputs.platform }}
       update_url: "https://update.getlantern.org/update/lantern"
@@ -1035,14 +1008,23 @@ jobs:
           env.BUILD_TYPE != 'nightly' &&
           needs.upload-s3.result == 'success' &&
           needs.upload-release-artifacts.result == 'success' &&
-          needs.publish-update-metadata.result == 'success' &&
           (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
           (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "All steps succeeded - publishing draft release"
+          echo "Required release artifacts succeeded - publishing draft release"
           gh release edit "$RELEASE_TAG" --draft=false
+
+      - name: Report update metadata failure
+        if: |
+          env.IS_TEST_RUN != 'true' &&
+          env.BUILD_TYPE != 'nightly' &&
+          needs.publish-update-metadata.result == 'failure'
+        run: |
+          echo "::warning title=Auto-update metadata was not published::The release remains valid, but desktop auto-update metadata needs follow-up."
+          echo "### Auto-update metadata publishing failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "The release was preserved, but desktop auto-update metadata needs follow-up." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Delete draft release
         if: |
@@ -1051,7 +1033,6 @@ jobs:
           (env.CLEANUP_ON_FAILURE == 'true' &&
            !(needs.upload-s3.result == 'success' &&
              needs.upload-release-artifacts.result == 'success' &&
-             needs.publish-update-metadata.result == 'success' &&
              (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
              (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
         env:
@@ -1094,7 +1075,6 @@ jobs:
           env.CLEANUP_ON_FAILURE != 'true' &&
           !(needs.upload-s3.result == 'success' &&
             needs.upload-release-artifacts.result == 'success' &&
-            needs.publish-update-metadata.result == 'success' &&
             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
         run: |
