@@ -210,7 +210,7 @@ class AppDialog {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (var i = 0; i < action.length; i++) ...[
-                  if (i > 0) SizedBox(height: defaultSize),
+                  if (i > 0) SizedBox(height: 12),
                   action[i],
                 ],
               ],
