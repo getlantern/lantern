@@ -21,6 +21,18 @@ void main() {
       );
     });
 
+    test('ignores malformed purchase results', () {
+      for (final value in ['', 'success', '1']) {
+        expect(
+          webViewPurchaseResult(
+            Uri.https('lantern.io', '/', {'purchaseResult': value}),
+          ),
+          isNull,
+          reason: 'unexpected purchase result: $value',
+        );
+      }
+    });
+
     test('ignores completion parameters from other hosts', () {
       expect(
         webViewPurchaseResult(

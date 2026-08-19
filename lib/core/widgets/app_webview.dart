@@ -43,7 +43,11 @@ bool? webViewPurchaseResult(Uri uri) {
     }
   }
   if (value == null) return null;
-  return value.toLowerCase() == 'true';
+  return switch (value.toLowerCase()) {
+    'true' => true,
+    'false' => false,
+    _ => null,
+  };
 }
 
 class WebViewLoading extends Notifier<bool> {
@@ -258,10 +262,10 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
     Uri? uri, {
     bool allowLocalhost = true,
   }) async {
+    if (_completionHandled) return true;
     if (uri == null) {
       return false;
     }
-    if (_completionHandled) return true;
 
     // User has completed private server setup.
     if (allowLocalhost &&
