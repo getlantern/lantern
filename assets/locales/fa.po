@@ -2,17 +2,21 @@
 # Vaseto Nora <n.nouri67@gmail.com>, 2025
 # Amir Moezzi <amirreza.mz@yahoo.com>, 2025
 # Chip Stehr <chip@getlantern.org>, 2025
-# NoProfile, 2025
 # Mersen M, 2025
 # e2f_fa r1 <tx_e2f_fa_r1@ate2f.com>, 2026
 # Evan <alireza.firoozi68@gmail.com>, 2026
 # Mokah <unfilternet@getlantern.org>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
+# Pedram Azizallahi <pedram672004@yahoo.com>, 2026
+# Mary Sol <salar.adlparvar@gmail.com>, 2026
+# kian kamali <kian@tahgheegh.com>, 2026
+# b0b47d46632b78a09a40de799fda9a65, 2026
+# NoProfile, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Persian (Iran) (https://app.transifex.com/lantern-1/teams/94371/fa_IR/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -31,6 +35,41 @@ msgstr "تنظیمات"
 msgid "report_an_issue"
 msgstr "گزارش مشکل"
 
+msgid "report_issue_add_screenshots"
+msgstr "افزودن اسکرین‌شات"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG، JPG یا GIF — در مجموع حداکثر 15 مگابایت"
+
+msgid "report_issue_add_images"
+msgstr "افزودن تصاویر"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "فقط تصاویر PNG، JPG و GIF پشتیبانی می‌شوند."
+
+msgid "report_issue_attachments_too_many"
+msgstr "می‌توانید حداکثر 3 تصویر پیوست کنید."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "مجموع حجم پیوست‌ها باید کمتر از 15 مگابایت باشد."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "این تصویر قبلاً پیوست شده است."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "یکی از این فایل‌ها قابل خواندن نبود."
+
+msgid "send_without_email_title"
+msgstr "ارسال بدون ایمیل؟"
+
+msgid "send_without_email_body"
+msgstr ""
+"آدرس ایمیلی وارد نکرده‌اید، بنابراین نمی‌توانیم به این گزارش پاسخ دهیم یا آن"
+" را پیگیری کنیم."
+
+msgid "send_without_email"
+msgstr "ارسال بدون ایمیل"
+
 msgid "lantern_projects"
 msgstr "پروژه‌های Lantern:"
 
@@ -47,6 +86,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "هم‌رسانی کد معرف"
+
+msgid "invite_friends_description"
+msgstr ""
+"وقتی دوستی با استفاده از کد معرف شما به Lantern Pro ارتقا دهد، هر دو 1 ماه "
+"رایگان دریافت می‌کنید."
+
+msgid "month_earned"
+msgstr "%s ماه به دست آمد"
+
+msgid "months_earned"
+msgstr "%s ماه به دست آمد"
+
+msgid "includes_free_month_from_referrals"
+msgstr "شامل %s ماه رایگان از معرفی‌ها"
+
+msgid "includes_free_months_from_referrals"
+msgstr "شامل %s ماه رایگان از معرفی‌ها"
+
+msgid "referral_converted_title"
+msgstr "یک دوست به نسخه پرو ارتقا داد"
+
+msgid "referral_converted_message"
+msgstr ""
+"هر دو %s از Lantern Pro را رایگان دریافت کردید. تاکنون %s به دست آورده‌اید. "
+"برای کسب بیشتر، به اشتراک‌گذاری کد خود ادامه دهید."
+
+msgid "month_count"
+msgstr "%s ماه"
+
+msgid "months_count"
+msgstr "%s ماه"
+
+msgid "done"
+msgstr "انجام شد"
+
+msgid "view_account"
+msgstr "مشاهده حساب"
+
+msgid "show_download_links"
+msgstr "نمایش لینک‌های دانلود"
+
+msgid "get_lantern"
+msgstr "دریافت لنترن"
+
+msgid "send_friend_download_link"
+msgstr "این لینک دانلود را برای دوست خود بفرستید:"
+
+msgid "scan_to_install"
+msgstr "برای نصب Lantern با برنامه دوربین خود اسکن کنید"
+
+msgid "remind_use_code"
+msgstr "به آن‌ها یادآوری کنید هنگام ارتقا از کد %s استفاده کنند!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -160,6 +251,36 @@ msgstr "خروج"
 
 msgid "check_for_updates"
 msgstr "بررسی به‌روزرسانی"
+
+msgid "update_available"
+msgstr "به‌روزرسانی موجود است"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s در دسترس است. Lantern قبل از باز کردن نصب‌کننده اندروید، فایل APK"
+" را دانلود و تأیید می‌کند."
+
+msgid "download_and_install_update"
+msgstr "دانلود و نصب"
+
+msgid "allow_unknown_app_installs"
+msgstr "اجازه نصب برنامه‌ها"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"اندروید برای نصب به‌روزرسانی‌ها از Lantern به اجازه نیاز دارد. گزینه «اجازه "
+"از این منبع» را فعال کنید و سپس دوباره به‌روزرسانی‌ها را بررسی کنید."
+
+msgid "error_install_update"
+msgstr "به‌روزرسانی نصب نشد"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern نتوانست این به‌روزرسانی را تأیید یا نصب کند. لطفاً بعداً دوباره تلاش"
+" کنید."
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern به‌روز است."
 
 msgid "support"
 msgstr "پشتیبانی"
@@ -368,10 +489,12 @@ msgstr ""
 msgid "confirm_email_code"
 msgstr "کد تأیید"
 
-msgid "confirm_email_code_message"
+msgid "confirm_email_code_message_part_one"
+msgstr "یک کد ارسال کردیم به "
+
+msgid "confirm_email_code_message_part_two"
 msgstr ""
-"برای تأیید اینکه این آدرس ایمیل متعلق به شماست، کدی را که به آدرس زیر ارسال "
-"شده، وارد کنید: "
+" آن را در زیر وارد کنید. اگر در صندوق ورودی نیست، پوشه اسپم را بررسی کنید."
 
 msgid "resend_email"
 msgstr "ارسال دوباره ایمیل"
@@ -492,6 +615,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "امکانات پرو شما فعال شد. از داده نامحدود، سرعت بیشتر و سرورهای برتر لذت "
 "ببرید."
+
+msgid "purchase_restored_title"
+msgstr "خرید بازیابی شد"
+
+msgid "purchase_restored_description"
+msgstr "اشتراک Lantern Pro شما اکنون روی این دستگاه فعال است."
+
+msgid "no_purchase_found_title"
+msgstr "خریدی یافت نشد"
+
+msgid "no_purchase_found_body_ios"
+msgstr "هیچ اشتراک فعالی به این Apple ID متصل نیست."
+
+msgid "no_purchase_found_body_android"
+msgstr "هیچ اشتراک فعالی به این حساب Google متصل نیست."
 
 msgid "plans_fetch_error"
 msgstr "خطا در دریافت طرح‌ها. بعداً دوباره امتحان کنید."
@@ -1019,6 +1157,9 @@ msgid "change_email_message"
 msgstr ""
 "این ایمیل ورودی جدید شما خواهد شد. برای اعمال تغییرات باید آن را تأیید کنید."
 
+msgid "email_must_be_different"
+msgstr "لطفاً یک آدرس ایمیل دیگر وارد کنید."
+
 msgid "enter_new_email"
 msgstr "ایمیل جدید خود را وارد کنید"
 
@@ -1088,6 +1229,15 @@ msgstr "کد فعال‌سازی را وارد کنید"
 msgid "restore_purchase"
 msgstr "بازیابی خرید"
 
+msgid "already_purchased"
+msgstr "قبلاً خرید کرده‌اید؟"
+
+msgid "restore_purchase_success"
+msgstr "خرید با موفقیت بازیابی شد."
+
+msgid "restore_purchase_no_purchases"
+msgstr "خریدی برای بازیابی یافت نشد."
+
 msgid "do_private_server_setup"
 msgstr "راه‌اندازی سرور خصوصی DO"
 
@@ -1136,6 +1286,9 @@ msgstr "در دسترس در:"
 
 msgid "subscription_renewal_date"
 msgstr "تاریخ تمدید اشتراک"
+
+msgid "pro_access_until"
+msgstr "دسترسی پرو تا %s"
 
 msgid "enabled_bypass_lists"
 msgstr "لیست‌های دور زدن فعال شده (%d):"
@@ -1228,6 +1381,9 @@ msgstr "نام مستعار سرور نمی‌تواند خالی باشد"
 msgid "referral_code_applied"
 msgstr "کد ارجاع شما اعمال شد!"
 
+msgid "discount_applied"
+msgstr "تخفیف %s اعمال شد"
+
 msgid "referral_message_1m"
 msgstr "+ ۱۵ روز اضافی رایگان"
 
@@ -1239,8 +1395,8 @@ msgstr "+ 2 ماه اضافی رایگان"
 
 msgid "referral_code_invalid"
 msgstr ""
-"کد ارجاعی که وارد کرده‌اید نامعتبر است. لطفاً کد را بررسی کرده و دوباره تلاش"
-" کنید."
+"کد معرف/تخفیفی که وارد کردید نامعتبر است. لطفاً کد را بررسی کنید و دوباره "
+"تلاش کنید."
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1450,9 +1606,8 @@ msgstr "سرعت به 128 kb/s کاهش یافت - بازنشانی در %s."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"هنگام خرید، پرداخت از Apple ID شما کسر می‌شود. اشتراک‌ها به‌طور خودکار تمدید"
-" می‌شوند مگر اینکه حداقل 24 ساعت قبل از پایان دوره فعلی لغو شوند. در تنظیمات"
-" App Store مدیریت یا لغو کنید."
+"مبلغ پرداخت هنگام خرید از Apple ID شما کسر می‌شود. اشتراک‌ها به‌طور خودکار "
+"تمدید می‌شوند مگر اینکه حداقل 24 ساعت قبل از پایان دوره فعلی لغو شوند."
 
 msgid "failed_to_update_routing_mode"
 msgstr "به‌روزرسانی حالت مسیریابی ناموفق بود. لطفاً دوباره تلاش کنید."
@@ -1631,50 +1786,131 @@ msgstr "حساب شما به طور دائمی حذف شده است."
 msgid "verify_with"
 msgstr "تأیید با %s"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "تمدید مجدد"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "تداخل VPN شناسایی شد"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"یک VPN دیگر روی دستگاه شما در حال اجراست. Lantern زمانی بهترین عملکرد را "
+"دارد که تنها VPN فعال شما باشد. برای بهترین نتیجه، لطفاً قبل از استفاده از "
+"Lantern آن را قطع کنید."
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "فهمیدم/گرفتم"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "در هر صورت متصل شوید"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "اتصال برقرار نشد. اتصال اینترنت خود را بررسی کنید."
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "سرویس موقتاً در دسترس نیست. در حال تلاش مجدد..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "اتصال ناموفق بود. لطفاً دوباره تلاش کنید."
+
+msgid "err_ruleset_failed"
+msgstr "پیکربندی مسیریابی بارگیری نشد. در حال تلاش مجدد..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "هم اکنون به‌روزرسانی کنید"
 
 msgid "later"
-msgstr "Later"
+msgstr "بعداً"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s آماده نصب است"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "به‌روز"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "شما از آخرین نسخه Lantern %s استفاده می‌کنید"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "بررسی به‌روزرسانی‌ها ممکن نبود"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
+msgstr "اتصال خود را بررسی کنید و دوباره تلاش کنید"
+
+msgid "refresh_configuration"
+msgstr "تازه‌سازی پیکربندی"
+
+msgid "configuration_cleared"
+msgstr "پیکربندی پاک شد"
+
+msgid "turn_off_vpn"
+msgstr "خاموش کردن VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"قبل از تازه‌سازی پیکربندی، VPN باید خاموش باشد. آن را خاموش کنید و دوباره "
+"تلاش کنید."
+
+msgid "configuration_message"
+msgstr ""
+"پیکربندی قدیمی شما پاک شد. VPN را روشن کنید تا جدیدترین نسخه به‌طور خودکار "
+"دانلود شود."
+
+msgid "promo_referral_code"
+msgstr "کد تخفیف / معرف"
+
+msgid "promo_code"
+msgstr "کد تخفیف"
+
+msgid "promo_code_with"
+msgstr "کد تخفیف (%s)"
+
+msgid "order_total"
+msgstr "جمع سفارش"
 
 msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr ""
+"مکان هوشمند سریع‌ترین سرور را انتخاب می‌کند و با یافتن مسیرهای بهتر، به‌طور "
+"خودکار تغییر می‌دهد."
+
+msgid "bypass_browser_warning_title"
+msgstr "%s به فهرست عبور اضافه شود؟"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s مستقیماً و بدون محافظت Lantern متصل می‌شود. در کشورهایی که وب‌سایت‌های "
+"خاصی را مسدود می‌کنند، برخی سایت‌ها دیگر بارگیری نمی‌شوند."
+
+msgid "add_anyway"
+msgstr "در هر صورت اضافه شود"
+
+msgid "bypass_all_warning_title"
+msgstr "همه برنامه‌ها به فهرست عبور اضافه شوند؟"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"این شامل مرورگرهایی مانند %s نیز می‌شود. برنامه‌های فهرست عبور مستقیماً و "
+"بدون محافظت Lantern متصل می‌شوند. در کشورهایی که وب‌سایت‌های خاصی را مسدود "
+"می‌کنند، برخی سایت‌ها دیگر بارگیری نمی‌شوند."
+
+msgid "add_all_except_browsers"
+msgstr "افزودن همه به‌جز مرورگرها"
+
+msgid "add_all_anyway"
+msgstr "در هر صورت همه اضافه شوند"
+
+msgid "bypass_app_first_time_title"
+msgstr "VPN برای این برنامه دور زده شود؟"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s مستقیماً و بدون محافظت Lantern متصل می‌شود. اگر در کشور شما مسدود باشد، "
+"ممکن است از کار بیفتد."
+
+msgid "bypass_website_first_time_title"
+msgstr "VPN برای این وب‌سایت دور زده شود؟"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s مستقیماً و بدون محافظت Lantern متصل می‌شود. اگر در کشور شما مسدود باشد، "
+"ممکن است از کار بیفتد."

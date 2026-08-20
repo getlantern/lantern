@@ -1,10 +1,10 @@
 # Translators:
-# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Turkmen (https://app.transifex.com/lantern-1/teams/94371/tk/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -23,6 +23,41 @@ msgstr "Sazlamalar"
 msgid "report_an_issue"
 msgstr "Mesele barada habar beriň"
 
+msgid "report_issue_add_screenshots"
+msgstr "Skrinşot goşuň"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG ýa-da GIF — jemi iň köp 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "Surat goşuň"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Diňe PNG, JPG we GIF suratlary goldanýar."
+
+msgid "report_issue_attachments_too_many"
+msgstr "Iň köp 3 surat goşup bilersiňiz."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Goşundylaryň jemi möçberi 15 MB-den az bolmaly."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Bu surat eýýäm goşuldy."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "Şol faýllaryň birini okap bilmedik."
+
+msgid "send_without_email_title"
+msgstr "E-poçtasyz iberilsinmi?"
+
+msgid "send_without_email_body"
+msgstr ""
+"E-poçta salgysyny goşmadyňyz, şonuň üçin bu habarnama jogap berip ýa-da "
+"yzarlap bilmeris."
+
+msgid "send_without_email"
+msgstr "E-poçtasyz iber"
+
 msgid "lantern_projects"
 msgstr "Lantern taslamalary:"
 
@@ -39,6 +74,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Taýşdyryş kodyny paýlaş"
+
+msgid "invite_friends_description"
+msgstr ""
+"Dostuňyz siziň salgylanma koduňyzy ulanyp Lantern Pro-a geçende, ikiňiz hem "
+"1 aý mugt alarsyňyz."
+
+msgid "month_earned"
+msgstr "%s aý gazanyldy"
+
+msgid "months_earned"
+msgstr "%s aý gazanyldy"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Salgylanmalardan %s mugt aý girýär"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Salgylanmalardan %s mugt aý girýär"
+
+msgid "referral_converted_title"
+msgstr "Dostuňyz Pro-a geçdi"
+
+msgid "referral_converted_message"
+msgstr ""
+"Ikiňiz hem %s Lantern Pro-ny mugt gazandyňyz. Häzire çenli %s gazandyňyz. "
+"Has köp gazanmak üçin koduňyzy paýlaşmagy dowam ediň."
+
+msgid "month_count"
+msgstr "%s aý"
+
+msgid "months_count"
+msgstr "%s aý"
+
+msgid "done"
+msgstr "Taýýar"
+
+msgid "view_account"
+msgstr "Hasaby gör"
+
+msgid "show_download_links"
+msgstr "Ýükleme baglanyşyklaryny görkez"
+
+msgid "get_lantern"
+msgstr "Lantern-i al"
+
+msgid "send_friend_download_link"
+msgstr "Dostuňyza şu ýükleme baglanyşygyny iberiň:"
+
+msgid "scan_to_install"
+msgstr "Lantern-i gurnamak üçin kamera programmaňyz bilen skanirläň"
+
+msgid "remind_use_code"
+msgstr "Geçenlerinde %s koduny ulanmagy ýatladyň!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -152,6 +239,35 @@ msgstr "Çyk"
 
 msgid "check_for_updates"
 msgstr "Täzelenmeler barla"
+
+msgid "update_available"
+msgstr "Täzelenme bar"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s elýeterli. Lantern Android gurnaýjysyny açmazdan öň APK-ny "
+"ýükläp, barlar."
+
+msgid "download_and_install_update"
+msgstr "Ýükläp gurnaň"
+
+msgid "allow_unknown_app_installs"
+msgstr "Programma gurnamaga rugsat beriň"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android Lantern-den täzelenmeleri gurnamak üçin rugsat gerek. Bu çeşmeden "
+"rugsat ber opsiýasyny açyň, soňra täzelenmeleri ýene barlaň."
+
+msgid "error_install_update"
+msgstr "Täzelenmäni gurnap bolmady"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern bu täzelenmäni barlap ýa-da gurnap bilmedi. Soňrak ýene synanyşyň."
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern iň soňky wersiýada."
 
 msgid "support"
 msgstr "Goldaw"
@@ -360,9 +476,12 @@ msgstr ""
 msgid "confirm_email_code"
 msgstr "Tassyklama kody"
 
-msgid "confirm_email_code_message"
+msgid "confirm_email_code_message_part_one"
+msgstr "Şu salga kod iberdik: "
+
+msgid "confirm_email_code_message_part_two"
 msgstr ""
-"Bu e-poçta salgysynyň size degişlidigini tassyklaň, iberilen kody giriziň: "
+" Ony aşakda giriziň. Gelen hatlaryňyzda ýok bolsa, spam bukjaňyzy barlaň."
 
 msgid "resend_email"
 msgstr "E-poçtany täzeden iber"
@@ -483,6 +602,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "Pro aýratynlyklarňyz açyldy - çäksiz maglumatlardan, has çalt tizlikden we "
 "premium serwerlerden lezzet alyň."
+
+msgid "purchase_restored_title"
+msgstr "Satyn alma dikeldildi"
+
+msgid "purchase_restored_description"
+msgstr "Lantern Pro abunaňyz indi bu enjamda işjeň."
+
+msgid "no_purchase_found_title"
+msgstr "Satyn alma tapylmady"
+
+msgid "no_purchase_found_body_ios"
+msgstr "Bu Apple ID bilen baglanyşykly işjeň abuna ýok."
+
+msgid "no_purchase_found_body_android"
+msgstr "Bu Google hasaby bilen baglanyşykly işjeň abuna ýok."
 
 msgid "plans_fetch_error"
 msgstr "Planlar alyňanda ýalňyşlyk. Soňra täzeden synanyň."
@@ -1004,6 +1138,9 @@ msgstr ""
 "Bu siziň täze giriş e-poçtaňyz bolar. Üýtgeşme güýje girmezden ozal "
 "tassyklamaly bolarňyz."
 
+msgid "email_must_be_different"
+msgstr "Başga e-poçta salgysyny giriziň."
+
 msgid "enter_new_email"
 msgstr "Täze e-poçtaňyzy giriziň"
 
@@ -1073,6 +1210,15 @@ msgstr "Işjeňleşdiriş kody giriziň"
 msgid "restore_purchase"
 msgstr "Satyn almagy dikelt"
 
+msgid "already_purchased"
+msgstr "Eýýäm satyn aldyňyzmy?"
+
+msgid "restore_purchase_success"
+msgstr "Satyn alma üstünlikli dikeldildi."
+
+msgid "restore_purchase_no_purchases"
+msgstr "Dikeltmek üçin satyn alma tapylmady."
+
 msgid "do_private_server_setup"
 msgstr "DO hususy serwer gurnama"
 
@@ -1121,6 +1267,9 @@ msgstr "Elýeterli:"
 
 msgid "subscription_renewal_date"
 msgstr "Abunalyk täzeleme senesi"
+
+msgid "pro_access_until"
+msgstr "%s çenli Pro elýeterliligi"
 
 msgid "enabled_bypass_lists"
 msgstr "Açyk geçme sanawlary (%d):"
@@ -1213,6 +1362,9 @@ msgstr "Serwer lakamy boş bolup bilmez"
 msgid "referral_code_applied"
 msgstr " Rekomendasiýa koduňyz ulanyldy!"
 
+msgid "discount_applied"
+msgstr "%s arzanladyş ulanyldy"
+
 msgid "referral_message_1m"
 msgstr "+ 15 goşmaça gün mugt"
 
@@ -1220,11 +1372,10 @@ msgid "referral_message_1y"
 msgstr " + 1 goşmaça aý mugt"
 
 msgid "referral_message_2y"
-msgstr " + 2 goşmaça aý mugt"
+msgstr "+ goşmaça 2 aý mugt"
 
 msgid "referral_code_invalid"
-msgstr ""
-" Girizilen rekomendasiýa koduňyz nädogry. Kody barlaň we täzeden synanyşyň."
+msgstr "Giren salgylanma/promo koduňyz nädogry. Kody barlap, ýene synanyşyň."
 
 msgid "referral_code_own_invalid"
 msgstr "Öz rekomendasiýa koduňyzy ulanyp bilmersiňiz. Başga kod giriziň."
@@ -1436,9 +1587,8 @@ msgstr "Tizlik 128 kb/s çenli peseldildi - %s-da täzeden dikeldiler."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"Satyn alanda töleg Apple ID-dan alynýar. Häzirki döwrüň gutarmagyndan "
-"azyndan 24 sagat öň ýatyrylmasa, abunalar awtomatiki täzelenýär. App Store "
-"sazlamalarynda dolandyryň ýa-da ýatyryň."
+"Töleg satyn alnanda Apple ID-iňizden alynýar. Abunalar häzirki döwrüň "
+"gutarmagyndan azyndan 24 sagat öň ýatyrylmasa, awtomatik täzelenýär."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Marşrutlaşdyryş tertibini täzelemek başa barmady. Täzeden synanyşyň."
@@ -1618,50 +1768,130 @@ msgstr "Hasabyňyz hemişelik pozuldy."
 msgid "verify_with"
 msgstr "%s bilen tassyklaň"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "Uzalt"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "VPN gapma-garşylygy ýüze çykaryldy"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"Enjamyňyzda başga VPN işleýär. Lantern ýeke-täk işjeň VPN bolanda iň gowy "
+"işleýär. Iň gowy netije üçin Lantern-i ulanmazdan öň ony öçüriň."
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "Düşnükli"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "Barybir birik"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "Birigip bolmady. Internet birikmäňizi barlaň."
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "Hyzmat wagtlaýyn elýeterli däl. Ýene synanyşylýar..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "Birikme şowsuz boldy. Ýene synanyşyň."
+
+msgid "err_ruleset_failed"
+msgstr "Ugrukdyryş sazlamalaryny ýükläp bolmady. Gaýtadan synanyşylýar..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "Häzir täzele"
 
 msgid "later"
-msgstr "Later"
+msgstr "Soňra"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s gurnamaga taýýar"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "Iň soňky wersiýa"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "Lantern-iň iň soňky %s wersiýasyny ulanýarsyňyz"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "Täzelenmeleri barlap bolmady"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
+msgstr "Birikmäňizi barlap, ýene synanyşyň"
+
+msgid "refresh_configuration"
+msgstr "Sazlamalary täzele"
+
+msgid "configuration_cleared"
+msgstr "Sazlamalar arassalandy"
+
+msgid "turn_off_vpn"
+msgstr "VPN-i öçür"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Sazlamalaryňyzy täzelemezden öň VPN öçük bolmaly. Ony öçürip, ýene "
+"synanyşyň."
+
+msgid "configuration_message"
+msgstr ""
+"Köne sazlamalaryňyz arassalandy. Iň täzesini awtomatik ýüklemek üçin VPN-i "
+"açyň."
+
+msgid "promo_referral_code"
+msgstr "Promo / salgylanma kody"
+
+msgid "promo_code"
+msgstr "Promo kody"
+
+msgid "promo_code_with"
+msgstr "Promo kody (%s)"
+
+msgid "order_total"
+msgstr "Sargydyň jemi"
 
 msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr ""
+"Akylly ýerleşiş iň çalt serwer saýlaýar we has gowy ýollar tapanda awtomatik"
+" çalyşýar."
+
+msgid "bypass_browser_warning_title"
+msgstr "%s aýlanyp geçme sanawyna goşulsynmy?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s Lantern-iň goragy bolmazdan göni birigär. Käbir web sahypalaryny "
+"petikleýän ýurtlarda käbir sahypalar açylmaz."
+
+msgid "add_anyway"
+msgstr "Barybir goş"
+
+msgid "bypass_all_warning_title"
+msgstr "Ähli programmalar aýlanyp geçme sanawyna goşulsynmy?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Muňa %s ýaly brauzerler hem girýär. Aýlanyp geçme sanawyndaky programmalar "
+"Lantern-iň goragy bolmazdan göni birigýär. Käbir web sahypalaryny petikleýän"
+" ýurtlarda käbir sahypalar açylmaz."
+
+msgid "add_all_except_browsers"
+msgstr "Brauzerlerden başga ählisini goş"
+
+msgid "add_all_anyway"
+msgstr "Barybir ählisini goş"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bu programma üçin VPN aýlanyp geçilsinmi?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s Lantern-iň goragy bolmazdan göni birigär. Ýurduňyzda petiklenen bolsa, "
+"işlemegini bes edip biler."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bu web sahypasy üçin VPN aýlanyp geçilsinmi?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s Lantern-iň goragy bolmazdan göni birigär. Ýurduňyzda petiklenen bolsa, "
+"işlemegini bes edip biler."

@@ -3,6 +3,7 @@ param(
   [string]$ServiceExe = "build/windows/x64/runner/Release/lanternd.exe",
   [string]$InstallerPath = "",
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
+  [string]$PaymentSmokeTestPath = "integration_test/payment/desktop_payment_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
@@ -11,11 +12,15 @@ param(
   [int]$InstallerTimeoutSeconds = 180,
   [int]$UninstallTimeoutSeconds = 180,
   [int]$HeartbeatSeconds = 15,
+  [ValidateSet("prod", "staging")]
+  [string]$ServiceEnvironment = "prod",
   [bool]$RunConnectSmoke = $true,
   [switch]$EnableIpCheck,
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
   [switch]$RunConfigUrlSmoke,
+  [switch]$RunPaymentSmoke,
+  [string]$PaymentSmokeArtifactDirectory = "build/windows-payment-smoke",
   [switch]$UseInstaller
 )
 
@@ -130,11 +135,14 @@ function Invoke-FlutterSmokeTest {
     [string]$Path,
     [Parameter(Mandatory = $true)]
     [string]$Description,
+    [ValidateSet("prod", "staging")]
+    [string]$RadianceEnvironment = "prod",
+    [string[]]$DartDefines = @(),
     [switch]$EnableIpCheck,
     [switch]$ForceFullTunnel
   )
 
-  $args = @(
+  $flutterArgs = @(
     "test",
     $Path,
     "-d",
@@ -143,16 +151,22 @@ function Invoke-FlutterSmokeTest {
     "--dart-define=DISABLE_SYSTEM_TRAY=true"
   )
 
+  $flutterArgs += "--dart-define=RADIANCE_ENV=$RadianceEnvironment"
+
+  foreach ($define in $DartDefines) {
+    $flutterArgs += "--dart-define=$define"
+  }
+
   if ($EnableIpCheck) {
-    $args += "--dart-define=ENABLE_IP_CHECK=true"
+    $flutterArgs += "--dart-define=ENABLE_IP_CHECK=true"
   }
 
   if ($ForceFullTunnel) {
-    $args += "--dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
+    $flutterArgs += "--dart-define=SMOKE_FORCE_FULL_TUNNEL=true"
   }
 
-  Write-Step ("Running {0}: flutter {1}" -f $Description, ($args -join " "))
-  & flutter @args
+  Write-Step ("Running {0}: flutter {1}" -f $Description, ($flutterArgs -join " "))
+  & flutter @flutterArgs
   if ($LASTEXITCODE -ne 0) {
     throw "$Description failed with exit code $LASTEXITCODE"
   }
@@ -307,7 +321,7 @@ try {
     Remove-ServiceIfPresent -Name $ServiceName
     Invoke-LanterndCommand `
       -FilePath $resolvedServiceExe `
-      -ArgumentList @("install") `
+      -ArgumentList @("install", "--environment", $ServiceEnvironment) `
       -Description "Installing lanternd service from $resolvedServiceExe"
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
@@ -320,6 +334,23 @@ try {
       -ForceFullTunnel:$ForceFullTunnel
   } else {
     Write-Step "Skipping Windows connect smoke test."
+  }
+
+  if ($RunPaymentSmoke) {
+    if ($ServiceEnvironment -ne "staging") {
+      throw "Payment smoke requires -ServiceEnvironment staging (got '$ServiceEnvironment')"
+    }
+    $paymentDefines = @(
+      "PAYMENT_E2E_ENABLED=true",
+      "PAYMENT_SMOKE_ARTIFACT_DIR=$PaymentSmokeArtifactDirectory"
+    )
+    Invoke-FlutterSmokeTest `
+      -Path $PaymentSmokeTestPath `
+      -Description "Windows payment smoke test" `
+      -RadianceEnvironment $ServiceEnvironment `
+      -DartDefines $paymentDefines
+  } else {
+    Write-Step "Skipping Windows payment smoke test."
   }
 
   if ($RunSplitTunnelWebsiteSmoke) {
@@ -367,19 +398,35 @@ try {
   }
 }
 finally {
+  if ($RunPaymentSmoke) {
+    try {
+      $paymentLogDirectory = Join-Path $PaymentSmokeArtifactDirectory "logs"
+      New-Item -ItemType Directory -Force -Path $paymentLogDirectory | Out-Null
+      $lanternLogDirectory = "C:\Users\Public\Lantern\logs"
+      if (Test-Path $lanternLogDirectory) {
+        Copy-Item "$lanternLogDirectory\*" $paymentLogDirectory -Recurse -Force -ErrorAction SilentlyContinue
+      }
+    } catch {
+      Write-Warning ("Failed to collect payment smoke logs: {0}" -f $_)
+    }
+  }
   try {
     Write-Step "Starting cleanup"
     if ($UseInstaller) {
       Uninstall-FromInstalledService -Name $ServiceName
     } else {
-      $resolvedServiceExe = (Resolve-Path $ServiceExe -ErrorAction SilentlyContinue).Path
-      if ($resolvedServiceExe) {
-        Invoke-LanterndCommand `
-          -FilePath $resolvedServiceExe `
-          -ArgumentList @("uninstall") `
-          -Description "Uninstalling lanternd service from $resolvedServiceExe"
+      if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
+        $resolvedServiceExe = (Resolve-Path $ServiceExe -ErrorAction SilentlyContinue).Path
+        if ($resolvedServiceExe) {
+          Invoke-LanterndCommand `
+            -FilePath $resolvedServiceExe `
+            -ArgumentList @("uninstall") `
+            -Description "Uninstalling lanternd service from $resolvedServiceExe"
+        } else {
+          Remove-ServiceIfPresent -Name $ServiceName
+        }
       } else {
-        Remove-ServiceIfPresent -Name $ServiceName
+        Write-Step "Windows service $ServiceName was not installed; skipping uninstall."
       }
     }
     Write-Step "Cleanup finished"

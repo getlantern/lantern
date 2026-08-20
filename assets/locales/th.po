@@ -1,15 +1,15 @@
 # Translators:
-# Acclaro Thailand <bkk-project@acclaro.com>, 2025
-# Amazing Nev <nev@nevagency.com>, 2025
-# Thai Localization, 2025
 # e2f <projects@e2f.com>, 2026
-# Derek F <derek@getlantern.org>, 2026
-# tx_e2f_th c5 <tx_e2f_th_c5@ate2f.com>, 2026
 # Lantern, 2026
+# Amazing Nev <nev@nevagency.com>, 2026
+# Acclaro Thailand <bkk-project@acclaro.com>, 2026
+# Thai Localization, 2026
+# tx_e2f_th c5 <tx_e2f_th_c5@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Thai (https://app.transifex.com/lantern-1/teams/94371/th/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -28,6 +28,40 @@ msgstr "การตั้งค่า"
 msgid "report_an_issue"
 msgstr "รายงานปัญหา"
 
+msgid "report_issue_add_screenshots"
+msgstr "เพิ่มภาพหน้าจอ"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG หรือ GIF — รวมสูงสุด 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "เพิ่มรูปภาพ"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "รองรับเฉพาะรูปภาพ PNG, JPG และ GIF เท่านั้น"
+
+msgid "report_issue_attachments_too_many"
+msgstr "คุณสามารถแนบรูปภาพได้สูงสุด 3 รูป"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "ไฟล์แนบต้องมีขนาดรวมไม่เกิน 15 MB"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "รูปภาพนั้นถูกแนบไว้แล้ว"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "เราไม่สามารถอ่านไฟล์ใดไฟล์หนึ่งเหล่านั้นได้"
+
+msgid "send_without_email_title"
+msgstr "ส่งโดยไม่มีอีเมลใช่ไหม?"
+
+msgid "send_without_email_body"
+msgstr ""
+"คุณไม่ได้ระบุที่อยู่อีเมล เราจึงไม่สามารถตอบกลับหรือติดตามผลรายงานนี้ได้"
+
+msgid "send_without_email"
+msgstr "ส่งโดยไม่มีอีเมล"
+
 msgid "lantern_projects"
 msgstr "โปรเจกต์ Lantern:"
 
@@ -44,6 +78,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "แชร์รหัสแนะนำ"
+
+msgid "invite_friends_description"
+msgstr ""
+"เมื่อเพื่อนอัปเกรดเป็น Lantern Pro โดยใช้รหัสแนะนำของคุณ "
+"คุณทั้งคู่จะได้รับฟรี 1 เดือน"
+
+msgid "month_earned"
+msgstr "ได้รับ %s เดือน"
+
+msgid "months_earned"
+msgstr "ได้รับ %s เดือน"
+
+msgid "includes_free_month_from_referrals"
+msgstr "รวมเดือนฟรี %s เดือนจากการแนะนำ"
+
+msgid "includes_free_months_from_referrals"
+msgstr "รวมเดือนฟรี %s เดือนจากการแนะนำ"
+
+msgid "referral_converted_title"
+msgstr "เพื่อนอัปเกรดเป็น Pro แล้ว"
+
+msgid "referral_converted_message"
+msgstr ""
+"คุณทั้งคู่ได้รับ Lantern Pro %s ฟรี จนถึงตอนนี้คุณได้รับแล้ว %s "
+"แชร์รหัสของคุณต่อไปเพื่อรับเพิ่ม"
+
+msgid "month_count"
+msgstr "%s เดือน"
+
+msgid "months_count"
+msgstr "%s เดือน"
+
+msgid "done"
+msgstr "เสร็จสิ้น"
+
+msgid "view_account"
+msgstr "ดูบัญชี"
+
+msgid "show_download_links"
+msgstr "แสดงลิงก์ดาวน์โหลด"
+
+msgid "get_lantern"
+msgstr "รับ Lantern"
+
+msgid "send_friend_download_link"
+msgstr "ส่งลิงก์ดาวน์โหลดนี้ให้เพื่อนของคุณ:"
+
+msgid "scan_to_install"
+msgstr "สแกนด้วยแอปกล้องเพื่อติดตั้ง Lantern"
+
+msgid "remind_use_code"
+msgstr "เตือนให้พวกเขาใช้รหัส %s เมื่ออัปเกรด!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -157,6 +243,35 @@ msgstr "ออกจากระบบ"
 
 msgid "check_for_updates"
 msgstr "ตรวจสอบการอัปเดต"
+
+msgid "update_available"
+msgstr "มีอัปเดตพร้อมใช้งาน"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s พร้อมใช้งานแล้ว Lantern จะดาวน์โหลดและตรวจสอบไฟล์ APK "
+"ก่อนเปิดตัวติดตั้งของ Android"
+
+msgid "download_and_install_update"
+msgstr "ดาวน์โหลดและติดตั้ง"
+
+msgid "allow_unknown_app_installs"
+msgstr "อนุญาตการติดตั้งแอป"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android ต้องการสิทธิ์ในการติดตั้งอัปเดตจาก Lantern เปิดใช้ "
+"อนุญาตจากแหล่งที่มานี้ แล้วตรวจหาอัปเดตอีกครั้ง"
+
+msgid "error_install_update"
+msgstr "ไม่สามารถติดตั้งอัปเดตได้"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern ไม่สามารถตรวจสอบหรือติดตั้งอัปเดตนี้ได้ โปรดลองอีกครั้งภายหลัง"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern เป็นเวอร์ชันล่าสุดแล้ว"
 
 msgid "support"
 msgstr "ฝ่ายสนับสนุน"
@@ -363,8 +478,11 @@ msgstr "เพิ่มอีเมลของคุณเพื่อเข้
 msgid "confirm_email_code"
 msgstr "รหัสยืนยัน"
 
-msgid "confirm_email_code_message"
-msgstr "ยืนยันว่าที่อยู่อีเมลนี้เป็นของคุณ กรอกรหัสที่ส่งไปยง: "
+msgid "confirm_email_code_message_part_one"
+msgstr "เราได้ส่งรหัสไปที่ "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " กรอกรหัสด้านล่าง หากไม่พบในกล่องจดหมาย โปรดตรวจสอบโฟลเดอร์สแปม"
 
 msgid "resend_email"
 msgstr "ส่งอีเมลอีกครั้ง"
@@ -483,6 +601,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "ฟีเจอร์ Pro ของคุณปลดล็อกแล้ว—เพลิดเพลินกับข้อมูลไม่จำกัด, "
 "ความเร็วที่เร็วขึ้น, และเซิร์ฟเวอร์พรีเมียม"
+
+msgid "purchase_restored_title"
+msgstr "กู้คืนการซื้อแล้ว"
+
+msgid "purchase_restored_description"
+msgstr "การสมัครสมาชิก Lantern Pro ของคุณใช้งานได้บนอุปกรณ์นี้แล้ว"
+
+msgid "no_purchase_found_title"
+msgstr "ไม่พบการซื้อ"
+
+msgid "no_purchase_found_body_ios"
+msgstr "ไม่มีการสมัครสมาชิกที่ใช้งานอยู่ผูกกับ Apple ID นี้"
+
+msgid "no_purchase_found_body_android"
+msgstr "ไม่มีการสมัครสมาชิกที่ใช้งานอยู่ผูกกับบัญชี Google นี้"
 
 msgid "plans_fetch_error"
 msgstr "เกิดข้อผิดพลาดในการดึงข้อมูลแผน กรุณาลองอีกครั้งในภายหลัง"
@@ -1003,6 +1136,9 @@ msgstr ""
 "นี่จะเป็นอีเมลเข้าสู่ระบบใหม่ของคุณ "
 "คุณจะต้องยืนยันก่อนที่การเปลี่ยนแปลงจะมีผล"
 
+msgid "email_must_be_different"
+msgstr "โปรดกรอกที่อยู่อีเมลอื่น"
+
 msgid "enter_new_email"
 msgstr "กรอกอีเมลใหม่ของคุณ"
 
@@ -1073,6 +1209,15 @@ msgstr "กรอกรหัสเปิดใช้งาน"
 msgid "restore_purchase"
 msgstr "คืนค่าการซื้อ"
 
+msgid "already_purchased"
+msgstr "ซื้อแล้วใช่ไหม?"
+
+msgid "restore_purchase_success"
+msgstr "กู้คืนการซื้อสำเร็จแล้ว"
+
+msgid "restore_purchase_no_purchases"
+msgstr "ไม่พบการซื้อที่จะกู้คืน"
+
 msgid "do_private_server_setup"
 msgstr "การตั้งค่าเซิร์ฟเวอร์ส่วนตัว DO"
 
@@ -1121,6 +1266,9 @@ msgstr "ใช้ได้บน:"
 
 msgid "subscription_renewal_date"
 msgstr "วันที่ต่ออายุการสมัครสมาชิก"
+
+msgid "pro_access_until"
+msgstr "ใช้งาน Pro ได้ถึง %s"
 
 msgid "enabled_bypass_lists"
 msgstr "รายการข้ามที่เปิดใช้งาน (%d):"
@@ -1212,6 +1360,9 @@ msgstr "ชื่อเล่นเซิร์ฟเวอร์ต้องไ
 msgid "referral_code_applied"
 msgstr " โค้ดแนะนำของคุณถูกใช้แล้ว!"
 
+msgid "discount_applied"
+msgstr "ใช้ส่วนลด %s แล้ว"
+
 msgid "referral_message_1m"
 msgstr " + 15 วันเพิ่มเติมฟรี"
 
@@ -1219,10 +1370,10 @@ msgid "referral_message_1y"
 msgstr " + 1 เดือนเพิ่มเติมฟรี"
 
 msgid "referral_message_2y"
-msgstr " + 2 เดือนเพิ่มเติมฟรี"
+msgstr "+ ฟรีเพิ่มอีก 2 เดือน"
 
 msgid "referral_code_invalid"
-msgstr "โค้ดแนะนำที่คุณป้อนไม่ถูกต้อง โปรดตรวจสอบโค้ดและลองอีกครั้ง"
+msgstr "รหัสแนะนำ/โปรโมชันที่คุณกรอกไม่ถูกต้อง โปรดตรวจสอบรหัสแล้วลองอีกครั้ง"
 
 msgid "referral_code_own_invalid"
 msgstr "คุณไม่สามารถใช้โค้ดแนะนำของตัวเองได้ โปรดป้อนโค้ดอื่น"
@@ -1425,9 +1576,9 @@ msgstr "ความเร็วลดลงเหลือ 128 kb/s - รีเ
 
 msgid "subscription_renewal_info"
 msgstr ""
-"การชำระเงินจะถูกเรียกเก็บจาก Apple ID ของคุณเมื่อซื้อ "
-"การสมัครสมาชิกต่ออายุโดยอัตโนมัติเว้นแต่จะยกเลิกอย่างน้อย 24 "
-"ชั่วโมงก่อนสิ้นสุดระยะเวลาปัจจุบัน จัดการหรือยกเลิกได้ในการตั้งค่า App Store"
+"ระบบจะเรียกเก็บเงินผ่าน Apple ID ของคุณเมื่อซื้อ "
+"การสมัครสมาชิกจะต่ออายุอัตโนมัติ เว้นแต่จะยกเลิกอย่างน้อย 24 "
+"ชั่วโมงก่อนสิ้นสุดรอบปัจจุบัน"
 
 msgid "failed_to_update_routing_mode"
 msgstr "อัปเดตโหมดการกำหนดเส้นทางไม่สำเร็จ โปรดลองอีกครั้ง"
@@ -1605,50 +1756,128 @@ msgstr "บัญชีของคุณถูกลบอย่างถาว
 msgid "verify_with"
 msgstr "ยืนยันด้วย %s"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "ต่ออายุ"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "ตรวจพบความขัดแย้งของ VPN"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"มี VPN อื่นกำลังทำงานอยู่บนอุปกรณ์ของคุณ Lantern ทำงานได้ดีที่สุดเมื่อเป็น "
+"VPN เดียวที่ใช้งานอยู่ เพื่อผลลัพธ์ที่ดีที่สุด โปรดยกเลิกการเชื่อมต่อ VPN "
+"นั้นก่อนใช้ Lantern"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "เข้าใจแล้ว"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "เชื่อมต่อต่อไป"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "ไม่สามารถเชื่อมต่อได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "บริการไม่พร้อมใช้งานชั่วคราว กำลังลองใหม่..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "การเชื่อมต่อล้มเหลว โปรดลองอีกครั้ง"
+
+msgid "err_ruleset_failed"
+msgstr "ไม่สามารถโหลดการกำหนดค่าเส้นทางได้ กำลังลองใหม่..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "อัปเดตตอนนี้"
 
 msgid "later"
-msgstr "Later"
+msgstr "ภายหลัง"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s พร้อมติดตั้งแล้ว"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "เป็นเวอร์ชันล่าสุด"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "คุณกำลังใช้ Lantern เวอร์ชันล่าสุด %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "ไม่สามารถตรวจหาอัปเดตได้"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
+msgstr "ตรวจสอบการเชื่อมต่อของคุณแล้วลองอีกครั้ง"
+
+msgid "refresh_configuration"
+msgstr "รีเฟรชการกำหนดค่า"
+
+msgid "configuration_cleared"
+msgstr "ล้างการกำหนดค่าแล้ว"
+
+msgid "turn_off_vpn"
+msgstr "ปิด VPN"
+
+msgid "turn_off_vpn_message"
+msgstr "ต้องปิด VPN ก่อนจึงจะรีเฟรชการกำหนดค่าได้ ปิด VPN แล้วลองอีกครั้ง"
+
+msgid "configuration_message"
+msgstr ""
+"ล้างการกำหนดค่าเดิมของคุณแล้ว เปิด VPN "
+"เพื่อดาวน์โหลดเวอร์ชันล่าสุดโดยอัตโนมัติ"
+
+msgid "promo_referral_code"
+msgstr "รหัสโปรโมชัน / รหัสแนะนำ"
+
+msgid "promo_code"
+msgstr "รหัสโปรโมชัน"
+
+msgid "promo_code_with"
+msgstr "รหัสโปรโมชัน (%s)"
+
+msgid "order_total"
+msgstr "ยอดรวมคำสั่งซื้อ"
 
 msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr ""
+"ตำแหน่งอัจฉริยะจะเลือกเซิร์ฟเวอร์ที่เร็วที่สุดและสลับให้อัตโนมัติเมื่อพบเส้นทางที่ดีกว่า"
+
+msgid "bypass_browser_warning_title"
+msgstr "เพิ่ม %s ในรายการข้าม VPN ใช่ไหม?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern "
+"ในประเทศที่บล็อกบางเว็บไซต์ บางไซต์จะโหลดไม่ได้"
+
+msgid "add_anyway"
+msgstr "เพิ่มต่อไป"
+
+msgid "bypass_all_warning_title"
+msgstr "เพิ่มแอปทั้งหมดในรายการข้าม VPN ใช่ไหม?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"ซึ่งรวมถึงเบราว์เซอร์อย่าง %s แอปในรายการข้าม VPN "
+"จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern ในประเทศที่บล็อกบางเว็บไซต์ "
+"บางไซต์จะโหลดไม่ได้"
+
+msgid "add_all_except_browsers"
+msgstr "เพิ่มทั้งหมดยกเว้นเบราว์เซอร์"
+
+msgid "add_all_anyway"
+msgstr "เพิ่มทั้งหมดต่อไป"
+
+msgid "bypass_app_first_time_title"
+msgstr "ข้าม VPN สำหรับแอปนี้ใช่ไหม?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern หากถูกบล็อกในประเทศของคุณ "
+"อาจใช้งานไม่ได้"
+
+msgid "bypass_website_first_time_title"
+msgstr "ข้าม VPN สำหรับเว็บไซต์นี้ใช่ไหม?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern หากถูกบล็อกในประเทศของคุณ "
+"อาจใช้งานไม่ได้"

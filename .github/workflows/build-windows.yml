@@ -9,6 +9,8 @@ on:
         required: false
       SIGNPATH_API_TOKEN:
         required: false
+      SPARKLE_ED_PRIVATE_KEY:
+        required: false
     inputs:
       version:
         required: true
@@ -19,6 +21,41 @@ on:
       installer_base_name:
         required: true
         type: string
+      flutter_target:
+        description: "Optional Flutter entrypoint used to build the app"
+        required: false
+        type: string
+        default: ""
+      flutter_build_mode:
+        description: "Flutter build mode: release or profile"
+        required: false
+        type: string
+        default: release
+      pubspec_artifact:
+        description: "Artifact containing the version-stamped pubspec.yaml"
+        required: false
+        type: string
+        default: pubspec
+      sign_update_artifact:
+        description: "Generate the Sparkle signature published with this installer"
+        required: false
+        type: boolean
+        default: true
+      auto_update_e2e:
+        description: "Build a fixture that reads the isolated staging appcast"
+        required: false
+        type: boolean
+        default: false
+      package_installer:
+        description: "Package and upload the Windows installer"
+        required: false
+        type: boolean
+        default: true
+      run_installer_smoke:
+        description: "Install the packaged app and run the Windows smoke suite"
+        required: false
+        type: boolean
+        default: true
       skip_signing:
         description: "Skip code signing (e.g. for nightly builds)"
         required: false
@@ -34,6 +71,11 @@ on:
         required: false
         type: boolean
         default: true
+      run_payment_smoke:
+        description: "Verify staging checkout rendering and payment-to-Pro conversion"
+        required: false
+        type: boolean
+        default: false
       run_split_tunnel_website_smoke:
         description: "Run website split tunneling smoke test"
         required: false
@@ -72,7 +114,7 @@ jobs:
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
         with:
-          name: pubspec
+          name: ${{ inputs.pubspec_artifact }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -98,13 +140,35 @@ jobs:
           Start-Process -FilePath ".\MicrosoftEdgeWebView2Setup.exe" -ArgumentList "/silent", "/install" -Wait
 
       - name: Set up MinGW
-        run: choco install mingw -y
+        shell: bash
+        run: ./scripts/ci/choco-retry.sh mingw -y
+
+      - name: Read pinned Flutter version
+        id: flutter-version
+        shell: bash
+        # Parsed here and passed as flutter-version rather than flutter-version-file:
+        # given the file input, flutter-action unconditionally runs `choco install yq`
+        # on Windows to parse it, and chocolatey.org 504s on that step failed the
+        # v9.1.18 and v9.1.19 release builds. The direct version input skips it.
+        run: |
+          matches=$(sed -n 's/^[[:space:]]*flutter:[[:space:]]*"\{0,1\}\([0-9][^"]*\)"\{0,1\}[[:space:]]*$/\1/p' .github/flutter-version.yaml)
+          if [ "$(printf '%s\n' "$matches" | grep -c .)" -ne 1 ]; then
+            echo "expected exactly one flutter version in .github/flutter-version.yaml, got:" >&2
+            printf '%s\n' "$matches" >&2
+            exit 1
+          fi
+          version=$(printf '%s' "$matches" | tr -d '[:space:]')
+          if ! printf '%s' "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$'; then
+            echo "parsed flutter version does not look like a version: '$version'" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.22.0
+        uses: subosito/flutter-action@v2.23.0
         with:
           channel: stable
-          flutter-version-file: .github/flutter-version.yaml
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
 
       - name: Enable Flutter Desktop Support
         run: |
@@ -117,25 +181,19 @@ jobs:
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
-      - name: Cache Dart pub global cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-dart-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-dart-pub-cache-
-
       - name: Install Inno Setup 6
-        shell: pwsh
+        if: ${{ inputs.package_installer }}
+        shell: bash
         # The runner image preinstalls Inno Setup (currently 6.7.1). A bare
         # --version=6.5.0 now fails ("a newer version is already installed; use
         # --allow-downgrade"), so pin to 6.7.1 with --allow-downgrade: the install
         # is deterministic and the Languages dir stays "Inno Setup 6". The vendored
         # Farsi/ChineseSimplified .isl files are "6.5.0+" and message-key-identical
         # to 6.7.1's Default.isl, so they remain valid as-is.
-        run: choco install -y innosetup --version=6.7.1 --allow-downgrade
+        run: ./scripts/ci/choco-retry.sh -y innosetup --version=6.7.1 --allow-downgrade
 
       - name: Install unofficial Inno Setup translations
+        if: ${{ inputs.package_installer }}
         shell: pwsh
         # Chinese Simplified and Farsi/Persian are not bundled Inno translations;
         # copy the vendored .isl files into Inno's Languages dir so inno_setup.iss
@@ -164,11 +222,21 @@ jobs:
 
       - name: Build Windows binaries
         shell: pwsh
+        env:
+          AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+          FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
+          FLUTTER_TARGET: ${{ inputs.flutter_target }}
         run: |
-          dart pub global activate fastforge
-          make windows-release
+          switch ($env:FLUTTER_BUILD_MODE) {
+            'release' { make windows-release }
+            'profile' { make windows-profile-ci }
+            default {
+              Write-Error "Unsupported Windows Flutter build mode: $env:FLUTTER_BUILD_MODE"
+              exit 2
+            }
+          }
           if ($LASTEXITCODE -ne 0) {
-            Write-Error "make windows-release failed with exit code $LASTEXITCODE"
+            Write-Error "Windows build failed with exit code $LASTEXITCODE"
             exit $LASTEXITCODE
           }
 
@@ -178,6 +246,26 @@ jobs:
           } else {
             Write-Warning "Release directory does not exist"
           }
+
+      - name: Windows payment smoke
+        if: ${{ inputs.run_payment_smoke }}
+        shell: pwsh
+        timeout-minutes: 15
+        run: |
+          ./.github/scripts/windows_smoke_suite.ps1 `
+            -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `
+            -ServiceEnvironment staging `
+            -RunConnectSmoke:$false `
+            -RunPaymentSmoke
+
+      - name: Upload Windows payment smoke diagnostics
+        if: ${{ always() && inputs.run_payment_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-payment-smoke
+          path: build/windows-payment-smoke
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Sign embedded binaries
         if: ${{ !inputs.skip_signing }}
@@ -267,11 +355,22 @@ jobs:
         run: |
           Write-Host "Skipping embedded and installer signing for this run."
 
+      - name: Upload signed Windows app fixture
+        if: ${{ !inputs.package_installer }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-windows-app-fixture
+          path: build/windows/x64/runner/Release
+          if-no-files-found: error
+          retention-days: 2
+
       - name: Package installer
+        if: ${{ inputs.package_installer }}
         shell: pwsh
         env:
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
         run: |
+          dart pub global activate fastforge
           fastforge package `
             --platform=windows `
             --targets=exe `
@@ -288,6 +387,7 @@ jobs:
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
       - name: Windows installer smoke suite
+        if: ${{ inputs.package_installer && inputs.run_installer_smoke }}
         shell: pwsh
         timeout-minutes: 30
         env:
@@ -321,7 +421,7 @@ jobs:
           flutter test integration_test/auth/auth_smoke_test.dart -d windows --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
 
       - name: Sign installer
-        if: ${{ !inputs.skip_signing }}
+        if: ${{ inputs.package_installer && !inputs.skip_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -335,9 +435,29 @@ jobs:
             -ApiToken $env:SIGNPATH_API_TOKEN `
             -Description "Installer - GitHub Actions build ${{ inputs.version }}"
 
+      - name: Sign Windows update
+        if: ${{ inputs.package_installer && !inputs.skip_signing && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        shell: pwsh
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+          FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+        run: |
+          & ".\.github\scripts\sign_windows_update.ps1" `
+            -InstallerPath "$env:FULL_INSTALLER_NAME.exe" `
+            -SignaturePath "$env:RUNNER_TEMP\$env:FULL_INSTALLER_NAME.exe.sparkle-signature"
+
       - name: Upload Windows installer
+        if: ${{ inputs.package_installer }}
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-exe
           path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe
+          retention-days: 2
+
+      - name: Upload Windows update signature
+        if: ${{ inputs.package_installer && !inputs.skip_signing && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-exe-signature
+          path: ${{ runner.temp }}/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe.sparkle-signature
           retention-days: 2

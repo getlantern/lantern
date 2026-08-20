@@ -38,22 +38,41 @@ class ExtensionProvider: NEPacketTunnelProvider {
       throw ipcError
     }
 
+    // Bringing the VPN up now waits for the first config, which takes seconds
+    // on a censored network. iOS kills this extension if startTunnel has not
+    // returned by ~7.5s, so the connect runs after we return
+    // (getlantern/engineering#3822). Nothing reached the system from here
+    // anyway: startVPN reports its own failures via cancelTunnelWithError.
+    // Returning marks the provider started, but no tunnel settings exist until
+    // the connect below applies them, so the system claims no routes and
+    // traffic still egresses directly. Reassert until the connect finishes so
+    // the OS does not report a working VPN over a window that, on a first run
+    // with no cached config, lasts as long as the config fetch.
+    reasserting = true
+
     let tunnelType = options?["netEx.Type"] as? String
-    switch tunnelType {
-    case "Lantern":
-      startVPN()
-    case "PrivateServer":
-      guard let serverName = options?["netEx.ServerName"] as? String else {
-        let error = NSError(domain: "Missing netEx.ServerName", code: 0)
-        appLogger.error("\(error.localizedDescription)")
-        cancelTunnelWithError(error)
-        return
+    let serverName = options?["netEx.ServerName"] as? String
+    Task.detached { [weak self] in
+      guard let self else { return }
+      defer { self.reasserting = false }
+      switch tunnelType {
+      case "PrivateServer":
+        guard let serverName else {
+          self.writeFatalError("Missing netEx.ServerName")
+          return
+        }
+        self.connectToServer(serverName: serverName)
+      default:
+        self.startVPN()
       }
-      connectToServer(serverName: serverName!)
-    default:
-      // Fallback or unknown type
-      startVPN()
     }
+  }
+
+  public func writeFatalError(_ message: String) {
+    appLogger.error(message)
+    var error: NSError?
+    LibboxWriteServiceError(message, &error)
+    cancelTunnelWithError(nil)
   }
 
   func startVPN(completion: ((Bool, String?) -> Void)? = nil) {

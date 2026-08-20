@@ -1406,6 +1406,110 @@ func isSmartRoutingEnabled() C.int {
 	return 0
 }
 
+//export setPeerProxyEnabled
+func setPeerProxyEnabled(enabled C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SetPeerShareEnabled(enabled != 0); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export isPeerProxyEnabled
+func isPeerProxyEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsPeerShareEnabled() {
+		return 1
+	}
+	return 0
+}
+
+// setPeerManualPort persists the manually-configured router port-forward
+// for the Share My Connection peer-share feature. 0 clears the override,
+// reverting to UPnP discovery on the next peer.Client.Start.
+//
+//export setPeerManualPort
+func setPeerManualPort(port C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SetPeerManualPort(int(port)); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export getPeerManualPort
+func getPeerManualPort() C.int {
+	c, _ := requireCore()
+	if c == nil {
+		return 0
+	}
+	return C.int(c.GetPeerManualPort())
+}
+
+// probeUPnP runs the UPnP / IGD discovery scan against the local
+// gateway and returns 1 when discovery succeeds, 0 when it doesn't
+// (no gateway, scan timeout, ctx cancellation). The Share My
+// Connection UI flow calls this to decide between SmC mode (needs
+// a routable inbound) and Unbounded mode (works anywhere) when the
+// user toggles sharing on without a manual port configured.
+//
+// Blocks for up to ~6 seconds (the internal LanternCore deadline)
+// on the multicast M-SEARCH wait. Dart callers MUST invoke this
+// from a background isolate via runInBackground so the wait
+// doesn't pin the main thread.
+//
+//export probeUPnP
+func probeUPnP() C.int {
+	c, _ := requireCore()
+	if c == nil {
+		return 0
+	}
+	if c.ProbeUPnP() {
+		return 1
+	}
+	return 0
+}
+
+// setUnboundedEnabled is the local opt-in for the broflake / Unbounded
+// widget proxy ("Basic mode" in the SmC UI). The widget actually runs
+// only when this is true AND the server-side Features[unbounded] flag
+// is on AND the server provides UnboundedConfig — flipping this to
+// true on a network where the server hasn't enabled the feature is a
+// no-op until the next /config response opts the user in.
+//
+//export setUnboundedEnabled
+func setUnboundedEnabled(enabled C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SetUnboundedEnabled(enabled != 0); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export isUnboundedEnabled
+func isUnboundedEnabled() C.int {
+	c, _ := requireCore()
+	if c != nil && c.IsUnboundedEnabled() {
+		return 1
+	}
+	return 0
+}
+
 //export getSplitTunnelState
 func getSplitTunnelState() *C.char {
 	return runOnGoStack(func() *C.char {

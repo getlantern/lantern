@@ -35,8 +35,8 @@ class VPNSetting extends HookConsumerWidget {
     final telemetryConsent = ref.watch(
       radianceSettingsProvider.select((s) => s.telemetry),
     );
-
     return ListView(
+      key: const Key('vpn_setting.list'),
       padding: const EdgeInsets.all(0),
       shrinkWrap: true,
       children: <Widget>[
@@ -56,19 +56,19 @@ class VPNSetting extends HookConsumerWidget {
                   appRouter.push(const ServerSelection());
                 },
               ),
-              if (!PlatformUtils.isIOS) ...{
+              if (!PlatformUtils.isIOS) ...[
                 DividerSpace(),
                 SplitTunnelingTile(
                   label: 'routing_mode'.i18n,
                   icon: AppImagePaths.route,
                   actionText: routingMode.label(),
                   onPressed: () => appRouter.push(const SmartRouting()),
-                )
-              },
+                ),
+              ],
               DividerSpace(),
               if (PlatformUtils.isAndroid ||
                   PlatformUtils.isMacOS ||
-                  PlatformUtils.isWindows) ...{
+                  PlatformUtils.isWindows) ...[
                 SplitTunnelingTile(
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
@@ -76,8 +76,8 @@ class VPNSetting extends HookConsumerWidget {
                       splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
                   onPressed: () => appRouter.push(const SplitTunneling()),
                 ),
-                DividerSpace()
-              },
+                DividerSpace(),
+              ],
             ],
           ),
         ),
@@ -117,6 +117,10 @@ class VPNSetting extends HookConsumerWidget {
             },
           ),
         ),
+        // The "Share My Connection" entry that used to push a SmC
+        // screen from here moved to a top-level Unbounded tab in the
+        // Home shell — see lib/features/home/home.dart. Toggling peer
+        // share now happens inside that tab.
         SizedBox(height: 16),
         AppCard(
           padding: EdgeInsets.zero,

@@ -102,6 +102,8 @@ DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
 DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
 DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
 DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
+DARWIN_PROFILE_DIR := $(BUILD_DIR)/macos/Build/Products/Profile
+DARWIN_PROFILE_BUILD := $(DARWIN_PROFILE_DIR)/$(DARWIN_APP_NAME)
 MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
 MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).dmg
 MACOS_DIR := macos/
@@ -156,7 +158,10 @@ WINDOWS_LIB_AMD64    := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
 WINDOWS_LIB_ARM64    := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
 WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
 WINDOWS_DEBUG_DIR    := $(BUILD_DIR)/windows/x64/runner/Debug
+WINDOWS_PROFILE_DIR  := $(BUILD_DIR)/windows/x64/runner/Profile
 WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
+LANTERND_WINDOWS_PROFILE := $(WINDOWS_PROFILE_DIR)/$(LANTERND).exe
+LANTERND_WINDOWS_PROFILE_ARM64 := $(WINDOWS_PROFILE_DIR)/arm64/$(LANTERND).exe
 LANTERND_WINDOWS_RELEASE := $(WINDOWS_RELEASE_DIR)/$(LANTERND).exe
 LANTERND_WINDOWS_RELEASE_ARM64 := $(WINDOWS_RELEASE_DIR)/arm64/$(LANTERND).exe
 
@@ -268,7 +273,9 @@ SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
 get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 APPDMG    := $(call get-command,appdmg)
 
-DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),)
+AUTO_UPDATE_E2E_DART_DEFINE := $(if $(filter true 1 yes,$(AUTO_UPDATE_E2E)),--dart-define=AUTO_UPDATE_E2E=true,)
+DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),) $(AUTO_UPDATE_E2E_DART_DEFINE)
+FLUTTER_TARGET_ARG := $(if $(FLUTTER_TARGET),--target=$(FLUTTER_TARGET),)
 STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
 STEALTH_VPN_BUILD_VARS   := BUILD_TYPE=stealth-vpn  STEALTH_MODE=stealth-vpn  STEALTH_LEAKAGE_MODE=stealth-vpn
 STEALTH_ICON_SEED ?=
@@ -522,9 +529,25 @@ macos-unit-tests: $(MACOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 $(DARWIN_RELEASE_BUILD): $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (release) for macOS..."
 	rm -vf $(MACOS_INSTALLER)
-	flutter build macos --release $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	flutter build macos --release $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 build-macos-release: $(DARWIN_RELEASE_BUILD)
+
+$(DARWIN_PROFILE_BUILD): $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (profile) for macOS..."
+	rm -vf $(MACOS_INSTALLER)
+	flutter build macos --profile $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+.PHONY: build-macos-release build-macos-profile stage-macos-profile
+build-macos-profile: $(DARWIN_PROFILE_BUILD)
+
+# Keep packaging and signing on the established Release staging path. The
+# profile fixture is test-only, but it still goes through the same Developer ID
+# signing, DMG packaging, and notarization steps as a release artifact.
+stage-macos-profile: build-macos-profile
+	rm -rf $(DARWIN_RELEASE_BUILD)
+	mkdir -p $(DARWIN_RELEASE_DIR)
+	ditto $(DARWIN_PROFILE_BUILD) $(DARWIN_RELEASE_BUILD)
 
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
@@ -572,6 +595,9 @@ macos-release: clean macos pubget gen build-macos-release sign-app package-macos
 
 .PHONY: macos-release-ci
 macos-release-ci: macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+
+.PHONY: macos-profile-ci
+macos-profile-ci: macos pubget gen stage-macos-profile sign-app package-macos notarize-darwin
 
 # Linux Build
 .PHONY: install-linux-deps
@@ -738,11 +764,26 @@ copy-lanternd-debug: $(LANTERND_WINDOWS_AMD64)
 	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
 	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(WINDOWS_DEBUG_DIR)/$(LANTERND).exe)
 
+.PHONY: copy-lanternd-profile copy-lanternd-profile-arm64
+copy-lanternd-profile: $(LANTERND_WINDOWS_AMD64)
+	$(call MKDIR_P,$(WINDOWS_PROFILE_DIR))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(LANTERND_WINDOWS_PROFILE))
+
+copy-lanternd-profile-arm64: $(LANTERND_WINDOWS_ARM64)
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_PROFILE_ARM64)))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_ARM64),$(LANTERND_WINDOWS_PROFILE_ARM64))
+
 .PHONY: prepare-windows-release
 prepare-windows-release: lanternd-windows-amd64 lanternd-windows-arm64
 	$(MAKE) copy-lanternd-release
 	$(MAKE) copy-lanternd-release-arm64
 	$(call WRITE_TEXT_FILE,$(LANTERND_SERVICE_LOG_LEVEL),$(WINDOWS_RELEASE_DIR)/lanternd-log-level)
+
+.PHONY: prepare-windows-profile
+prepare-windows-profile: lanternd-windows-amd64 lanternd-windows-arm64
+	$(MAKE) copy-lanternd-profile
+	$(MAKE) copy-lanternd-profile-arm64
+	$(call WRITE_TEXT_FILE,$(LANTERND_SERVICE_LOG_LEVEL),$(WINDOWS_PROFILE_DIR)/lanternd-log-level)
 
 .PHONY: windows-debug
 windows-debug: windows $(MAYBE_STEALTH_PROFILE)
@@ -752,10 +793,23 @@ windows-debug: windows $(MAYBE_STEALTH_PROFILE)
 .PHONY: build-windows-release
 build-windows-release: $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (release) for Windows..."
-	flutter build windows --release --verbose $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	flutter build windows --release --verbose $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+.PHONY: build-windows-profile stage-windows-profile
+build-windows-profile: $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (profile) for Windows..."
+	flutter build windows --profile --verbose $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+# Fastforge packages the Release directory. Stage the test-only profile build
+# there after its native service binaries have been added.
+stage-windows-profile: build-windows-profile prepare-windows-profile
+	$(PS) "if (Test-Path '$(WINDOWS_RELEASE_DIR)') { Remove-Item -Recurse -Force -LiteralPath '$(WINDOWS_RELEASE_DIR)' }; New-Item -ItemType Directory -Force -Path '$(WINDOWS_RELEASE_DIR)' | Out-Null; Copy-Item -Recurse -Force -Path '$(WINDOWS_PROFILE_DIR)/*' -Destination '$(WINDOWS_RELEASE_DIR)'"
 
 .PHONY: windows-release
 windows-release: clean windows pubget gen build-windows-release prepare-windows-release
+
+.PHONY: windows-profile-ci
+windows-profile-ci: clean windows pubget gen stage-windows-profile
 
 .PHONY: install-gomobile
 install-gomobile:
@@ -917,6 +971,49 @@ android-debug-ci: $(ANDROID_DEBUG_BUILD)
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) android-identity-profile
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --build-name=$(APP_VERSION_PUBSPEC) --debug $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
+
+# Runs the Android integration test on a connected device (the FTL
+# instrumentation path). Override the entrypoint with ANDROID_INTEGRATION_TARGET.
+ANDROID_INTEGRATION_TARGET ?= integration_test/android_all_e2e_test.dart
+ANDROID_INTEGRATION_DART_DEFINES ?=
+# android/gradlew is gitignored, so CI overrides this with a runner-installed
+# gradle (see .github/workflows/firebase-test-lab.yml).
+ANDROID_GRADLE ?= ./gradlew
+
+.PHONY: android-integration-test
+android-integration-test: $(ANDROID_LIB_BUILD)
+	@if [ -z "$$ANDROID_SERIAL" ]; then \
+	  n=$$(adb devices | grep -c 'device$$'); \
+	  if [ "$$n" != "1" ]; then \
+	    echo "ERROR: $$n adb devices attached. connectedDebugAndroidTest runs on ALL of"; \
+	    echo "them at once; if two are the SAME physical phone (USB + Wi-Fi, or duplicate"; \
+	    echo "wireless-debugging transports) the concurrent instrumentation runs collide and"; \
+	    echo "both report 'Process crashed'. Attach exactly one transport, or pin one with"; \
+	    echo "ANDROID_SERIAL=<serial> (see 'adb devices -l')."; \
+	    exit 1; \
+	  fi; \
+	fi
+	@echo "Running Android integration test on connected device(s): $(ANDROID_INTEGRATION_TARGET)"
+	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget="$(ANDROID_INTEGRATION_TARGET)" $(ANDROID_INTEGRATION_DART_DEFINES)
+
+# Builds the two APKs Firebase Test Lab needs to run the integration test as an
+# instrumentation test — the app APK (with the Dart entrypoint baked in via
+# -Ptarget) and the androidTest APK — without a connected device. Same default
+# org.getlantern.lantern identity as android-integration-test (see above).
+# Outputs:
+#   build/app/outputs/apk/debug/app-debug.apk
+#   build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+.PHONY: android-integration-apks
+android-integration-apks: $(ANDROID_LIB_BUILD)
+	@echo "Building integration test APKs (app + androidTest): $(ANDROID_INTEGRATION_TARGET)"
+	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget="$(ANDROID_INTEGRATION_TARGET)" $(ANDROID_INTEGRATION_DART_DEFINES)
+
+# Runs the integration test APKs on Firebase Test Lab. Needs an authenticated
+# gcloud CLI (`gcloud auth login`). Devices, project, bucket, etc. are
+# overridable via FTL_* env vars — see scripts/android/ftl-run.sh.
+.PHONY: android-ftl-test
+android-ftl-test: android-integration-apks
+	scripts/android/ftl-run.sh
 
 # --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
 # abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
@@ -1112,7 +1209,15 @@ pubget:
 find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
+# flutter clean is what drops .dart_tool, where Flutter keeps its build stamps.
+# Removing the outputs under $(BUILD_DIR) without it leaves Flutter believing
+# those targets are still satisfied, so it skips regenerating them: the
+# native-assets hook stops running and the macOS build dies in the Xcode phase
+# looking for a framework NativeAssetsManifest.json still references. Every
+# target depending on clean re-runs pubget, so dropping .dart_tool is safe.
+.PHONY: clean
 clean:
+	flutter clean
 	rm -rf $(BUILD_DIR)/*
 	rm -rf $(BIN_DIR)/*
 	rm -rf $(MACOS_FRAMEWORK_DIR)/*

@@ -38,24 +38,45 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       throw ipcError
     }
 
+    // Bringing the VPN up now waits for the first config, which takes seconds
+    // on a censored network, so it runs after startTunnel returns rather than
+    // holding the system's start call open (getlantern/engineering#3822).
+    // Nothing reached the system from here anyway: startVPN reports its own
+    // failures via cancelTunnelWithError.
+    // Returning marks the provider started, but no tunnel settings exist until
+    // the connect below applies them, so the system claims no routes and
+    // traffic still egresses directly. Reassert until the connect finishes so
+    // the OS does not report a working VPN over that window.
+    reasserting = true
+
     let tunnelType = options?["netEx.Type"] as? String
-    switch tunnelType {
-    case "Lantern":
-      appLogger.info("(lantern-tunnel) user initiated connection")
-      startVPN()
-    case "PrivateServer":
-      guard let serverName = options?["netEx.ServerName"] as? String else {
-        let error = NSError(domain: "Missing netEx.ServerName", code: 0)
-        appLogger.error("\(error.localizedDescription)")
-        cancelTunnelWithError(error)
-        return
+    let serverName = options?["netEx.ServerName"] as? String
+    Task.detached { [weak self] in
+      guard let self else { return }
+      defer { self.reasserting = false }
+      switch tunnelType {
+      case "Lantern":
+        appLogger.info("(lantern-tunnel) user initiated connection")
+        self.startVPN()
+      case "PrivateServer":
+        guard let serverName else {
+          self.writeFatalError("Missing netEx.ServerName")
+          return
+        }
+        self.connectToServer(serverName: serverName)
+      default:
+        // Fallback or unknown type
+        appLogger.info("(lantern-tunnel) unknown tunnel type \(String(describing: tunnelType))")
+        self.startVPN()
       }
-      connectToServer(serverName: serverName)
-    default:
-      // Fallback or unknown type
-      appLogger.info("(lantern-tunnel) unknown tunnel type \(String(describing: tunnelType))")
-      startVPN()
     }
+  }
+
+  public func writeFatalError(_ message: String) {
+    appLogger.error("\(String(describing: message))")
+    var error: NSError?
+    LibboxWriteServiceError(message, &error)
+    cancelTunnelWithError(nil)
   }
 
   func startVPN(completion: ((Bool, String?) -> Void)? = nil) {

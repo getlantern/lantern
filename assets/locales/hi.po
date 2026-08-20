@@ -1,15 +1,15 @@
 # Translators:
 # Kalyan Dikshit <dikshitrocks93@gmail.com>, 2025
-# tx_e2f_hi c3 <tx_e2f_hi_c3@ate2f.com>, 2025
-# tx_e2f_hi_r3 tx_e2f_hi_r3 <tx_e2f_hi_r3@ate2f.com>, 2025
 # E2F_HI T1 <tx_e2f_hi_t1@ate2f.com>, 2026
-# e2f <projects@e2f.com>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # Lantern, 2026
+# tx_e2f_hi c3 <tx_e2f_hi_c3@ate2f.com>, 2026
+# e2f <projects@e2f.com>, 2026
+# tx_e2f_hi_r3 tx_e2f_hi_r3 <tx_e2f_hi_r3@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Hindi (India) (https://app.transifex.com/lantern-1/teams/94371/hi_IN/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -28,6 +28,41 @@ msgstr "सेटिंग्स"
 msgid "report_an_issue"
 msgstr "समस्या रिपोर्ट करें"
 
+msgid "report_issue_add_screenshots"
+msgstr "स्क्रीनशॉट जोड़ें"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG या GIF — कुल अधिकतम 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "छवियाँ जोड़ें"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "केवल PNG, JPG और GIF छवियाँ समर्थित हैं।"
+
+msgid "report_issue_attachments_too_many"
+msgstr "आप अधिकतम 3 छवियाँ संलग्न कर सकते हैं।"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "अनुलग्नकों का कुल आकार 15 MB से कम होना चाहिए।"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "यह छवि पहले से संलग्न है।"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "हम उनमें से एक फ़ाइल नहीं पढ़ सके।"
+
+msgid "send_without_email_title"
+msgstr "ईमेल के बिना भेजें?"
+
+msgid "send_without_email_body"
+msgstr ""
+"आपने ईमेल पता नहीं दिया है, इसलिए हम इस रिपोर्ट का उत्तर या फ़ॉलो-अप नहीं कर"
+" पाएँगे।"
+
+msgid "send_without_email"
+msgstr "ईमेल के बिना भेजें"
+
 msgid "lantern_projects"
 msgstr "Lantern प्रोजेक्ट्स:"
 
@@ -44,6 +79,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "रेफरल कोड शेयर करें"
+
+msgid "invite_friends_description"
+msgstr ""
+"जब कोई मित्र आपके रेफ़रल कोड से Lantern Pro में अपग्रेड करता है, तो आप दोनों"
+" को 1 महीना मुफ़्त मिलता है।"
+
+msgid "month_earned"
+msgstr "%s महीना अर्जित"
+
+msgid "months_earned"
+msgstr "%s महीने अर्जित"
+
+msgid "includes_free_month_from_referrals"
+msgstr "रेफ़रल से %s मुफ़्त महीना शामिल"
+
+msgid "includes_free_months_from_referrals"
+msgstr "रेफ़रल से %s मुफ़्त महीने शामिल"
+
+msgid "referral_converted_title"
+msgstr "एक मित्र ने Pro में अपग्रेड किया"
+
+msgid "referral_converted_message"
+msgstr ""
+"आप दोनों ने %s का Lantern Pro मुफ़्त अर्जित किया। अब तक आपने %s अर्जित किया "
+"है। और पाने के लिए अपना कोड साझा करते रहें।"
+
+msgid "month_count"
+msgstr "%s महीना"
+
+msgid "months_count"
+msgstr "%s महीने"
+
+msgid "done"
+msgstr "हो गया"
+
+msgid "view_account"
+msgstr "खाता देखें"
+
+msgid "show_download_links"
+msgstr "डाउनलोड लिंक दिखाएँ"
+
+msgid "get_lantern"
+msgstr "Lantern पाएँ"
+
+msgid "send_friend_download_link"
+msgstr "अपने मित्र को यह डाउनलोड लिंक भेजें:"
+
+msgid "scan_to_install"
+msgstr "Lantern इंस्टॉल करने के लिए अपने कैमरा ऐप से स्कैन करें"
+
+msgid "remind_use_code"
+msgstr "उन्हें याद दिलाएँ कि अपग्रेड करते समय कोड %s का उपयोग करें!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -157,6 +244,36 @@ msgstr "साइन आउट करें"
 
 msgid "check_for_updates"
 msgstr "अपडेट की जांच करें"
+
+msgid "update_available"
+msgstr "अपडेट उपलब्ध है"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s उपलब्ध है। Android का इंस्टॉलर खोलने से पहले Lantern APK डाउनलोड "
+"करके सत्यापित करेगा।"
+
+msgid "download_and_install_update"
+msgstr "डाउनलोड करें और इंस्टॉल करें"
+
+msgid "allow_unknown_app_installs"
+msgstr "ऐप इंस्टॉल की अनुमति दें"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Lantern से अपडेट इंस्टॉल करने के लिए Android को अनुमति चाहिए। 'इस स्रोत से "
+"अनुमति दें' चालू करें, फिर दोबारा अपडेट जाँचें।"
+
+msgid "error_install_update"
+msgstr "अपडेट इंस्टॉल नहीं हो सका"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern इस अपडेट को सत्यापित या इंस्टॉल नहीं कर सका। कृपया बाद में फिर से "
+"प्रयास करें।"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern अप टू डेट है।"
 
 msgid "support"
 msgstr "सहायता"
@@ -367,8 +484,13 @@ msgstr ""
 msgid "confirm_email_code"
 msgstr "पुष्टिकरण कोड"
 
-msgid "confirm_email_code_message"
-msgstr "पुष्टि करें कि यह ईमेल पता आपका है, भेजे गए कोड को दर्ज करें: "
+msgid "confirm_email_code_message_part_one"
+msgstr "हमने एक कोड भेजा है: "
+
+msgid "confirm_email_code_message_part_two"
+msgstr ""
+" उसे नीचे दर्ज करें। यदि वह आपके इनबॉक्स में नहीं है, तो अपना स्पैम फ़ोल्डर "
+"देखें।"
 
 msgid "resend_email"
 msgstr "ईमेल फिर से भेजें"
@@ -493,6 +615,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "आपकी प्रो सुविधाएं अनलॉक हो गई हैं—असीमित डेटा, तेज़ गति और प्रीमियम सर्वर "
 "का आनंद लें।"
+
+msgid "purchase_restored_title"
+msgstr "खरीदारी बहाल हो गई"
+
+msgid "purchase_restored_description"
+msgstr "आपकी Lantern Pro सदस्यता अब इस डिवाइस पर सक्रिय है।"
+
+msgid "no_purchase_found_title"
+msgstr "कोई खरीदारी नहीं मिली"
+
+msgid "no_purchase_found_body_ios"
+msgstr "इस Apple ID से कोई सक्रिय सदस्यता जुड़ी नहीं है।"
+
+msgid "no_purchase_found_body_android"
+msgstr "इस Google खाते से कोई सक्रिय सदस्यता जुड़ी नहीं है।"
 
 msgid "plans_fetch_error"
 msgstr "प्लान लाने में त्रुटि। कृपया बाद में पुनः प्रयास करें।"
@@ -1021,6 +1158,9 @@ msgstr ""
 "यह आपका नया लॉगिन ईमेल बन जाएगा। परिवर्तन प्रभावी होने से पहले आपको इसे "
 "सत्यापित करना होगा।"
 
+msgid "email_must_be_different"
+msgstr "कृपया कोई भिन्न ईमेल पता दर्ज करें।"
+
 msgid "enter_new_email"
 msgstr "अपना नया ईमेल दर्ज करें"
 
@@ -1092,6 +1232,15 @@ msgstr "एक्टिवेशन कोड दर्ज करें"
 msgid "restore_purchase"
 msgstr "खरीदारी रिस्टोर करें"
 
+msgid "already_purchased"
+msgstr "पहले ही खरीद चुके हैं?"
+
+msgid "restore_purchase_success"
+msgstr "खरीदारी सफलतापूर्वक बहाल हो गई।"
+
+msgid "restore_purchase_no_purchases"
+msgstr "बहाल करने के लिए कोई खरीदारी नहीं मिली।"
+
 msgid "do_private_server_setup"
 msgstr "DO निजी सर्वर सेटअप"
 
@@ -1140,6 +1289,9 @@ msgstr "उपलब्ध है:"
 
 msgid "subscription_renewal_date"
 msgstr "सब्सक्रिप्शन नवीनीकरण तिथि"
+
+msgid "pro_access_until"
+msgstr "%s तक Pro एक्सेस"
 
 msgid "enabled_bypass_lists"
 msgstr "सक्षम बायपास सूचियां (%d):"
@@ -1232,6 +1384,9 @@ msgstr "सर्वर उपनाम खाली नहीं हो सक�
 msgid "referral_code_applied"
 msgstr "आपका रेफरल कोड लागू कर दिया गया है!"
 
+msgid "discount_applied"
+msgstr "%s छूट लागू की गई"
+
 msgid "referral_message_1m"
 msgstr "+ 15 अतिरिक्त दिन मुफ्त"
 
@@ -1239,12 +1394,12 @@ msgid "referral_message_1y"
 msgstr "+ 1 अतिरिक्त महीना मुफ्त"
 
 msgid "referral_message_2y"
-msgstr "+ 2 अतिरिक्त महीने मुफ्त"
+msgstr "+ 2 अतिरिक्त महीने मुफ़्त"
 
 msgid "referral_code_invalid"
 msgstr ""
-"आपके द्वारा दर्ज किया गया रेफरल कोड अमान्य है। कृपया कोड की जाँच करें और "
-"पुनः प्रयास करें।"
+"आपके द्वारा दर्ज किया गया रेफ़रल/प्रोमो कोड अमान्य है। कृपया कोड जाँचें और "
+"फिर से प्रयास करें।"
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1453,9 +1608,9 @@ msgstr "गति 128 kb/s तक कम हो गई - %s पर रीसे�
 
 msgid "subscription_renewal_info"
 msgstr ""
-"खरीदारी पर भुगतान आपके Apple ID से लिया जाता है। वर्तमान अवधि समाप्त होने से"
-" कम से कम 24 घंटे पहले रद्द न किए जाने पर सदस्यता स्वचालित रूप से नवीनीकृत "
-"हो जाती है। App Store सेटिंग्स में प्रबंधित या रद्द करें।"
+"खरीदारी के समय भुगतान आपके Apple ID से लिया जाता है। सदस्यताएँ स्वतः "
+"नवीनीकृत होती हैं, जब तक कि वर्तमान अवधि समाप्त होने से कम से कम 24 घंटे "
+"पहले रद्द न की जाएँ।"
 
 msgid "failed_to_update_routing_mode"
 msgstr "रूटिंग मोड अपडेट करने में विफल। कृपया पुनः प्रयास करें।"
@@ -1633,50 +1788,131 @@ msgstr "आपका खाता स्थायी रूप से हटा 
 msgid "verify_with"
 msgstr "%s से सत्यापित करें"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "नवीनीकृत करें"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "VPN टकराव का पता चला"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"आपके डिवाइस पर एक और VPN चल रहा है। Lantern आपके एकमात्र सक्रिय VPN के रूप "
+"में सबसे अच्छा काम करता है। सर्वोत्तम परिणामों के लिए, कृपया Lantern का "
+"उपयोग करने से पहले उसे डिस्कनेक्ट करें।"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "समझ गया"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "फिर भी कनेक्ट करें"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "कनेक्ट नहीं हो पा रहा है। अपना इंटरनेट कनेक्शन जाँचें।"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "सेवा अस्थायी रूप से अनुपलब्ध है। फिर से प्रयास किया जा रहा है..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "कनेक्शन विफल रहा। कृपया फिर से प्रयास करें।"
+
+msgid "err_ruleset_failed"
+msgstr "रूटिंग कॉन्फ़िगरेशन लोड नहीं हो सका। पुनः प्रयास किया जा रहा है..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "अभी अपडेट करें"
 
 msgid "later"
-msgstr "Later"
+msgstr "बाद में"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s इंस्टॉल के लिए तैयार है"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "अप टू डेट"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "आप Lantern का नवीनतम संस्करण %s उपयोग कर रहे हैं"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "अपडेट की जाँच नहीं हो सकी"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
+msgstr "अपना कनेक्शन जाँचें और फिर से प्रयास करें"
+
+msgid "refresh_configuration"
+msgstr "कॉन्फ़िगरेशन रीफ़्रेश करें"
+
+msgid "configuration_cleared"
+msgstr "कॉन्फ़िगरेशन साफ़ किया गया"
+
+msgid "turn_off_vpn"
+msgstr "VPN बंद करें"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"कॉन्फ़िगरेशन रीफ़्रेश करने से पहले VPN बंद होना चाहिए। उसे बंद करें, फिर "
+"पुनः प्रयास करें।"
+
+msgid "configuration_message"
+msgstr ""
+"आपका पुराना कॉन्फ़िगरेशन साफ़ कर दिया गया है। नवीनतम को स्वतः डाउनलोड करने "
+"के लिए VPN चालू करें।"
+
+msgid "promo_referral_code"
+msgstr "प्रोमो / रेफ़रल कोड"
+
+msgid "promo_code"
+msgstr "प्रोमो कोड"
+
+msgid "promo_code_with"
+msgstr "प्रोमो कोड (%s)"
+
+msgid "order_total"
+msgstr "ऑर्डर का कुल"
 
 msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr ""
+"स्मार्ट लोकेशन सबसे तेज़ सर्वर चुनता है और बेहतर मार्ग मिलने पर स्वतः बदल "
+"देता है।"
+
+msgid "bypass_browser_warning_title"
+msgstr "%s को बाईपास सूची में जोड़ें?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s सीधे कनेक्ट होगा, Lantern की सुरक्षा के बिना। जिन देशों में कुछ वेबसाइटें"
+" अवरुद्ध हैं, वहाँ कुछ साइटें लोड होना बंद हो जाएँगी।"
+
+msgid "add_anyway"
+msgstr "फिर भी जोड़ें"
+
+msgid "bypass_all_warning_title"
+msgstr "सभी ऐप्स को बाईपास सूची में जोड़ें?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"इसमें %s जैसे ब्राउज़र शामिल हैं। बाईपास सूची के ऐप्स सीधे कनेक्ट होते हैं, "
+"Lantern की सुरक्षा के बिना। जिन देशों में कुछ वेबसाइटें अवरुद्ध हैं, वहाँ "
+"कुछ साइटें लोड होना बंद हो जाएँगी।"
+
+msgid "add_all_except_browsers"
+msgstr "ब्राउज़र छोड़कर सभी जोड़ें"
+
+msgid "add_all_anyway"
+msgstr "फिर भी सभी जोड़ें"
+
+msgid "bypass_app_first_time_title"
+msgstr "इस ऐप के लिए VPN बाईपास करें?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s सीधे कनेक्ट होगा, Lantern की सुरक्षा के बिना। यदि यह आपके देश में अवरुद्ध"
+" है, तो यह काम करना बंद कर सकता है।"
+
+msgid "bypass_website_first_time_title"
+msgstr "इस वेबसाइट के लिए VPN बाईपास करें?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s सीधे कनेक्ट होगा, Lantern की सुरक्षा के बिना। यदि यह आपके देश में अवरुद्ध"
+" है, तो यह काम करना बंद कर सकता है।"

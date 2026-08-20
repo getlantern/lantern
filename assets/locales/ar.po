@@ -1,19 +1,20 @@
 # Translators:
 # Lamine Kacimi <k_lamine27@yahoo.fr>, 2025
 # Rima Sghaier, 2025
-# Abed Abedd <abderrahman.younis@gmail.com>, 2025
 # Amin Jobran, 2025
 # dc64c51d94429ef6835e68b9062d8713_f0bbcb2 <c1f4e6afa4193d416d7a55f63ee75536_721142>, 2025
 # Mhawesh, 2025
 # e2f <projects@e2f.com>, 2026
 # 6ad90dadbe5d08991a98500e1efbdbb4_9d79615 <7392e61add82b364ab0393a04573af48_721156>, 2026
-# Derek F <derek@getlantern.org>, 2026
 # tx_e2f_ar_r5 tx_e2f_ar_r5, 2026
 # Lantern, 2026
+# Abed Abedd <abderrahman.younis@gmail.com>, 2026
+# 160565ee57b988ee904d03fec374ff93_4f79b8c <73ec7ace4de62e6bb6454cb54e990a4d_721149>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Arabic (https://app.transifex.com/lantern-1/teams/94371/ar/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -32,6 +33,41 @@ msgstr "الإعدادات"
 msgid "report_an_issue"
 msgstr "الإبلاغ عن مشكلة"
 
+msgid "report_issue_add_screenshots"
+msgstr "إضافة لقطات شاشة"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG أو JPG أو GIF — بحد أقصى 15 ميغابايت إجمالاً"
+
+msgid "report_issue_add_images"
+msgstr "إضافة صور"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "يتم دعم صور PNG وJPG وGIF فقط."
+
+msgid "report_issue_attachments_too_many"
+msgstr "يمكنك إرفاق ما يصل إلى 3 صور."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "يجب ألا يتجاوز إجمالي حجم المرفقات 15 ميغابايت."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "هذه الصورة مرفقة بالفعل."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "تعذّرت قراءة أحد هذه الملفات."
+
+msgid "send_without_email_title"
+msgstr "الإرسال بدون بريد إلكتروني؟"
+
+msgid "send_without_email_body"
+msgstr ""
+"لم تُضِف عنوان بريد إلكتروني، لذا لن نتمكن من الرد أو المتابعة بشأن هذا "
+"البلاغ."
+
+msgid "send_without_email"
+msgstr "الإرسال بدون بريد إلكتروني"
+
 msgid "lantern_projects"
 msgstr "مشاريع Lantern:"
 
@@ -48,6 +84,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "مشاركة رمز الإحالة"
+
+msgid "invite_friends_description"
+msgstr ""
+"عندما يقوم صديق بالترقية إلى Lantern Pro باستخدام رمز الإحالة الخاص بك، "
+"تحصلان كلاكما على شهر مجاني."
+
+msgid "month_earned"
+msgstr "تم كسب %s شهر"
+
+msgid "months_earned"
+msgstr "تم كسب %s أشهر"
+
+msgid "includes_free_month_from_referrals"
+msgstr "يشمل %s شهرًا مجانيًا من الإحالات"
+
+msgid "includes_free_months_from_referrals"
+msgstr "يشمل %s أشهر مجانية من الإحالات"
+
+msgid "referral_converted_title"
+msgstr "قام صديق بالترقية إلى برو"
+
+msgid "referral_converted_message"
+msgstr ""
+"لقد كسبتما كلاكما %s من Lantern Pro مجانًا. لقد كسبت %s حتى الآن. واصل "
+"مشاركة رمزك لكسب المزيد."
+
+msgid "month_count"
+msgstr "%s شهر"
+
+msgid "months_count"
+msgstr "%s أشهر"
+
+msgid "done"
+msgstr "تم"
+
+msgid "view_account"
+msgstr "عرض الحساب"
+
+msgid "show_download_links"
+msgstr "عرض روابط التنزيل"
+
+msgid "get_lantern"
+msgstr "احصل على Lantern"
+
+msgid "send_friend_download_link"
+msgstr "أرسل لصديقك رابط التنزيل هذا:"
+
+msgid "scan_to_install"
+msgstr "امسح الرمز بتطبيق الكاميرا لتثبيت Lantern"
+
+msgid "remind_use_code"
+msgstr "ذكّرهم باستخدام الرمز %s عند الترقية!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -161,6 +249,36 @@ msgstr "تسجيل الخروج"
 
 msgid "check_for_updates"
 msgstr "التحقق من التحديثات"
+
+msgid "update_available"
+msgstr "يتوفر تحديث"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"الإصدار %s من Lantern متوفر. سيقوم Lantern بتنزيل ملف APK والتحقق منه قبل "
+"فتح مثبّت أندرويد."
+
+msgid "download_and_install_update"
+msgstr "تنزيل وتثبيت"
+
+msgid "allow_unknown_app_installs"
+msgstr "السماح بتثبيت التطبيقات"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"يحتاج أندرويد إلى إذن لتثبيت التحديثات من Lantern. فعّل خيار السماح من هذا "
+"المصدر، ثم تحقق من التحديثات مرة أخرى."
+
+msgid "error_install_update"
+msgstr "تعذّر تثبيت التحديث"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"تعذّر على Lantern التحقق من هذا التحديث أو تثبيته. يرجى المحاولة مرة أخرى "
+"لاحقًا."
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern محدّث."
 
 msgid "support"
 msgstr "الدعم"
@@ -367,8 +485,13 @@ msgstr "أضف بريدك الإلكتروني للوصول إلى اشتراك�
 msgid "confirm_email_code"
 msgstr "رمز التأكيد"
 
-msgid "confirm_email_code_message"
-msgstr "أكِّد أن عنوان البريد الإلكتروني هذا يخصك، أدخل الرمز المرسل إلى: "
+msgid "confirm_email_code_message_part_one"
+msgstr "لقد أرسلنا رمزًا إلى "
+
+msgid "confirm_email_code_message_part_two"
+msgstr ""
+" أدخله أدناه. إذا لم يكن في صندوق الوارد، تحقق من مجلد الرسائل غير المرغوب "
+"فيها."
 
 msgid "resend_email"
 msgstr "إعادة إرسال البريد الإلكتروني"
@@ -485,6 +608,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "تم تفعيل ميزات برو الخاصة بك—استمتع ببيانات غير محدودة وسرعات أعلى وخوادم "
 "مميزة."
+
+msgid "purchase_restored_title"
+msgstr "تمت استعادة الشراء"
+
+msgid "purchase_restored_description"
+msgstr "اشتراكك في Lantern Pro نشط الآن على هذا الجهاز."
+
+msgid "no_purchase_found_title"
+msgstr "لم يتم العثور على عملية شراء"
+
+msgid "no_purchase_found_body_ios"
+msgstr "لا يوجد اشتراك نشط مرتبط بحساب Apple ID هذا."
+
+msgid "no_purchase_found_body_android"
+msgstr "لا يوجد اشتراك نشط مرتبط بحساب Google هذا."
 
 msgid "plans_fetch_error"
 msgstr "خطأ في جلب الخطط. يرجى المحاولة مرة أخرى لاحقًا."
@@ -1000,6 +1138,9 @@ msgstr ""
 "سيصبح هذا بريدك الإلكتروني الجديد لتسجيل الدخول. ستحتاج إلى التحقق منه قبل "
 "أن يدخل التغيير حيز التنفيذ."
 
+msgid "email_must_be_different"
+msgstr "يرجى إدخال عنوان بريد إلكتروني مختلف."
+
 msgid "enter_new_email"
 msgstr "أدخل بريدك الإلكتروني الجديد"
 
@@ -1069,6 +1210,15 @@ msgstr "أدخل رمز التفعيل"
 msgid "restore_purchase"
 msgstr "استعادة الشراء"
 
+msgid "already_purchased"
+msgstr "هل اشتريت بالفعل؟"
+
+msgid "restore_purchase_success"
+msgstr "تمت استعادة الشراء بنجاح."
+
+msgid "restore_purchase_no_purchases"
+msgstr "لم يتم العثور على مشتريات لاستعادتها."
+
 msgid "do_private_server_setup"
 msgstr "إعداد خادم DO الخاص"
 
@@ -1117,6 +1267,9 @@ msgstr "متوفر على:"
 
 msgid "subscription_renewal_date"
 msgstr "تاريخ تجديد الاشتراك"
+
+msgid "pro_access_until"
+msgstr "وصول برو حتى %s"
 
 msgid "enabled_bypass_lists"
 msgstr "قوائم التجاوز المفعّلة (%d):"
@@ -1206,6 +1359,9 @@ msgstr "لا يمكن أن يكون الاسم المستعار للخادم ف�
 msgid "referral_code_applied"
 msgstr "تم تطبيق رمز الإحالة الخاص بك!"
 
+msgid "discount_applied"
+msgstr "تم تطبيق خصم %s"
+
 msgid "referral_message_1m"
 msgstr "+ 15 يومًا إضافيًا مجانًا"
 
@@ -1213,11 +1369,12 @@ msgid "referral_message_1y"
 msgstr "+ 1 شهر إضافي مجانًا"
 
 msgid "referral_message_2y"
-msgstr "+ 2 شهرين إضافيين مجانًا"
+msgstr "+ شهران إضافيان مجانًا"
 
 msgid "referral_code_invalid"
 msgstr ""
-"رمز الإحالة الذي أدخلته غير صالح. يرجى التحقق من الرمز والمحاولة مرة أخرى."
+"رمز الإحالة/العرض الذي أدخلته غير صالح. يرجى التحقق من الرمز والمحاولة مرة "
+"أخرى."
 
 msgid "referral_code_own_invalid"
 msgstr "لا يمكنك استخدام رمز الإحالة الخاص بك. يرجى إدخال رمز مختلف."
@@ -1420,9 +1577,8 @@ msgstr "تم تقليل السرعة إلى 128 كيلوبت/ث - إعادة ا�
 
 msgid "subscription_renewal_info"
 msgstr ""
-"يتم تحصيل الدفع من معرف Apple الخاص بك عند الشراء. يتم تجديد الاشتراكات "
-"تلقائياً ما لم يتم إلغاؤها قبل 24 ساعة على الأقل من نهاية الفترة الحالية. "
-"يمكنك الإدارة أو الإلغاء في إعدادات App Store."
+"يتم تحصيل الدفعة من حساب Apple ID الخاص بك عند الشراء. تتجدد الاشتراكات "
+"تلقائيًا ما لم يتم إلغاؤها قبل 24 ساعة على الأقل من نهاية الفترة الحالية."
 
 msgid "failed_to_update_routing_mode"
 msgstr "فشل تحديث وضع التوجيه. يُرجى المحاولة مرة أخرى."
@@ -1597,50 +1753,125 @@ msgstr "تم حذف حسابك بشكل دائم."
 msgid "verify_with"
 msgstr "التحقق عبر %s"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "اعادة التجديد"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "تم اكتشاف تعارض في VPN"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"هناك VPN آخر يعمل على جهازك. يعمل Lantern بشكل أفضل عندما يكون VPN الوحيد "
+"النشط. للحصول على أفضل النتائج، يرجى فصله قبل استخدام Lantern."
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "فهمت"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "الاتصال على أي حال"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "تعذّر الاتصال. تحقق من اتصالك بالإنترنت."
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "الخدمة غير متاحة مؤقتًا. جارٍ المحاولة مرة أخرى..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "فشل الاتصال. يرجى المحاولة مرة أخرى."
+
+msgid "err_ruleset_failed"
+msgstr "تعذّر تحميل إعدادات التوجيه. جارٍ إعادة المحاولة..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "التحديث الآن"
 
 msgid "later"
-msgstr "Later"
+msgstr "لاحقًا"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s جاهز للتثبيت"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "محدّث"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "أنت تستخدم أحدث إصدار من Lantern %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "تعذّر التحقق من التحديثات"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
+msgstr "تحقق من اتصالك وحاول مرة أخرى"
+
+msgid "refresh_configuration"
+msgstr "تحديث الإعدادات"
+
+msgid "configuration_cleared"
+msgstr "تم مسح الإعدادات"
+
+msgid "turn_off_vpn"
+msgstr "إيقاف VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"يجب إيقاف VPN قبل أن تتمكن من تحديث إعداداتك. أوقفه، ثم حاول مرة أخرى."
+
+msgid "configuration_message"
+msgstr "تم مسح إعداداتك القديمة. شغّل VPN لتنزيل أحدث الإعدادات تلقائيًا."
+
+msgid "promo_referral_code"
+msgstr "رمز العرض / الإحالة"
+
+msgid "promo_code"
+msgstr "رمز العرض"
+
+msgid "promo_code_with"
+msgstr "رمز العرض (%s)"
+
+msgid "order_total"
+msgstr "إجمالي الطلب"
 
 msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "يختار الموقع الذكي أسرع خادم ويبدّل تلقائيًا كلما وجد مسارات أفضل."
+
+msgid "bypass_browser_warning_title"
+msgstr "هل تريد إضافة %s إلى قائمة التجاوز؟"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"سيتصل %s مباشرة، بدون حماية Lantern. في البلدان التي تحجب مواقع معينة، "
+"ستتوقف بعض المواقع عن التحميل."
+
+msgid "add_anyway"
+msgstr "الإضافة على أي حال"
+
+msgid "bypass_all_warning_title"
+msgstr "هل تريد إضافة جميع التطبيقات إلى قائمة التجاوز؟"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"يشمل ذلك متصفحات مثل %s. تتصل التطبيقات الموجودة في قائمة التجاوز مباشرة، "
+"بدون حماية Lantern. في البلدان التي تحجب مواقع معينة، ستتوقف بعض المواقع عن "
+"التحميل."
+
+msgid "add_all_except_browsers"
+msgstr "إضافة الكل باستثناء المتصفحات"
+
+msgid "add_all_anyway"
+msgstr "إضافة الكل على أي حال"
+
+msgid "bypass_app_first_time_title"
+msgstr "هل تريد تجاوز VPN لهذا التطبيق؟"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"سيتصل %s مباشرة، بدون حماية Lantern. إذا كان محجوبًا في بلدك، فقد يتوقف عن "
+"العمل."
+
+msgid "bypass_website_first_time_title"
+msgstr "هل تريد تجاوز VPN لهذا الموقع؟"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"سيتصل %s مباشرة، بدون حماية Lantern. إذا كان محجوبًا في بلدك، فقد يتوقف عن "
+"العمل."

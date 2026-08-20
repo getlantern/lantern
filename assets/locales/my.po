@@ -1,13 +1,13 @@
 # Translators:
-# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
-# e2f <projects@e2f.com>, 2026
 # tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2026
 # Lantern, 2026
+# e2f <projects@e2f.com>, 2026
+# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Burmese (https://app.transifex.com/lantern-1/teams/94371/my/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -26,6 +26,41 @@ msgstr "ဆက်တင်များ"
 msgid "report_an_issue"
 msgstr "ပြဿနာ တင်ပြပါ"
 
+msgid "report_issue_add_screenshots"
+msgstr "ဖန်သားပြင်ဓာတ်ပုံများ ထည့်ရန်"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG၊ JPG သို့မဟုတ် GIF — စုစုပေါင်း အများဆုံး 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "ပုံများ ထည့်ရန်"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "PNG၊ JPG နှင့် GIF ပုံများကိုသာ ပံ့ပိုးထားသည်။"
+
+msgid "report_issue_attachments_too_many"
+msgstr "ပုံ 3 ပုံအထိ ပူးတွဲနိုင်သည်။"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "ပူးတွဲဖိုင်များ၏ စုစုပေါင်းအရွယ်အစားသည် 15 MB အောက် ရှိရမည်။"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "ထိုပုံကို ပူးတွဲပြီးဖြစ်သည်။"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "ထိုဖိုင်များထဲမှ တစ်ခုကို ဖတ်၍မရပါ။"
+
+msgid "send_without_email_title"
+msgstr "အီးမေးလ်မပါဘဲ ပို့မလား။"
+
+msgid "send_without_email_body"
+msgstr ""
+"အီးမေးလ်လိပ်စာ ထည့်မထားသောကြောင့် ဤအစီရင်ခံစာကို ပြန်ကြားရန် သို့မဟုတ် "
+"နောက်ဆက်တွဲ ဆောင်ရွက်ရန် ကျွန်ုပ်တို့ မတတ်နိုင်ပါ။"
+
+msgid "send_without_email"
+msgstr "အီးမေးလ်မပါဘဲ ပို့ရန်"
+
 msgid "lantern_projects"
 msgstr "Lantern ပရောဂျက်များ"
 
@@ -42,6 +77,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "ရည်ညွှန်းကုဒ် မျှဝေရန်"
+
+msgid "invite_friends_description"
+msgstr ""
+"သူငယ်ချင်းတစ်ဦးသည် သင့်ရည်ညွှန်းကုဒ်ဖြင့် Lantern Pro သို့ အဆင့်မြှင့်ပါက "
+"သင်တို့နှစ်ဦးစလုံး 1 လ အခမဲ့ရရှိမည်။"
+
+msgid "month_earned"
+msgstr "%s လ ရရှိပြီး"
+
+msgid "months_earned"
+msgstr "%s လ ရရှိပြီး"
+
+msgid "includes_free_month_from_referrals"
+msgstr "ရည်ညွှန်းမှုများမှ အခမဲ့ %s လ ပါဝင်သည်"
+
+msgid "includes_free_months_from_referrals"
+msgstr "ရည်ညွှန်းမှုများမှ အခမဲ့ %s လ ပါဝင်သည်"
+
+msgid "referral_converted_title"
+msgstr "သူငယ်ချင်းတစ်ဦး Pro သို့ အဆင့်မြှင့်လိုက်ပြီ"
+
+msgid "referral_converted_message"
+msgstr ""
+"သင်တို့နှစ်ဦးစလုံး Lantern Pro %s ကို အခမဲ့ရရှိခဲ့သည်။ ယခုအထိ %s "
+"ရရှိပြီးဖြစ်သည်။ ပိုမိုရရှိရန် သင့်ကုဒ်ကို ဆက်လက်မျှဝေပါ။"
+
+msgid "month_count"
+msgstr "%s လ"
+
+msgid "months_count"
+msgstr "%s လ"
+
+msgid "done"
+msgstr "ပြီးပါပြီ"
+
+msgid "view_account"
+msgstr "အကောင့်ကြည့်ရန်"
+
+msgid "show_download_links"
+msgstr "ဒေါင်းလုဒ်လင့်ခ်များ ပြရန်"
+
+msgid "get_lantern"
+msgstr "Lantern ရယူရန်"
+
+msgid "send_friend_download_link"
+msgstr "သင့်သူငယ်ချင်းကို ဤဒေါင်းလုဒ်လင့်ခ် ပို့ပါ -"
+
+msgid "scan_to_install"
+msgstr "Lantern ထည့်သွင်းရန် သင့်ကင်မရာအက်ပ်ဖြင့် စကင်ဖတ်ပါ"
+
+msgid "remind_use_code"
+msgstr "အဆင့်မြှင့်သောအခါ ကုဒ် %s ကို အသုံးပြုရန် သူတို့ကို သတိပေးပါ!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -156,6 +243,36 @@ msgstr "ထွက်ရန်"
 
 msgid "check_for_updates"
 msgstr "အပ်ဒိတ်များ စစ်ဆေးရန်"
+
+msgid "update_available"
+msgstr "အပ်ဒိတ် ရနိုင်ပါပြီ"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s ရနိုင်ပါပြီ။ Android ၏ installer ကိုမဖွင့်မီ Lantern သည် APK ကို "
+"ဒေါင်းလုဒ်လုပ်ပြီး စစ်ဆေးအတည်ပြုပါမည်။"
+
+msgid "download_and_install_update"
+msgstr "ဒေါင်းလုဒ်လုပ်ပြီး ထည့်သွင်းရန်"
+
+msgid "allow_unknown_app_installs"
+msgstr "အက်ပ်ထည့်သွင်းခြင်းကို ခွင့်ပြုရန်"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Lantern မှ အပ်ဒိတ်များ ထည့်သွင်းရန် Android တွင် ခွင့်ပြုချက် လိုအပ်သည်။ "
+"ဤရင်းမြစ်မှ ခွင့်ပြုရန်ကို ဖွင့်ပြီး အပ်ဒိတ်များကို ထပ်စစ်ဆေးပါ။"
+
+msgid "error_install_update"
+msgstr "အပ်ဒိတ် ထည့်သွင်း၍မရပါ"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern သည် ဤအပ်ဒိတ်ကို အတည်ပြုရန် သို့မဟုတ် ထည့်သွင်းရန် မအောင်မြင်ပါ။ "
+"နောက်မှ ထပ်ကြိုးစားပါ။"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern သည် နောက်ဆုံးဗားရှင်း ဖြစ်နေပါပြီ။"
 
 msgid "support"
 msgstr "ပံ့ပိုးမှု"
@@ -371,10 +488,13 @@ msgstr ""
 msgid "confirm_email_code"
 msgstr "အတည်ပြုကုဒ်"
 
-msgid "confirm_email_code_message"
+msgid "confirm_email_code_message_part_one"
+msgstr "ကျွန်ုပ်တို့ ကုဒ်တစ်ခုကို ပေးပို့ပြီးပါပြီ - "
+
+msgid "confirm_email_code_message_part_two"
 msgstr ""
-"ဒီအီးမေးလ်လိပ်စာသည် သင့်ပိုင် ဖြစ်ကြောင်း အတည်ပြုပါ၊ ပို့လိုက်သော ကုဒ်ကို "
-"ထည့်ပါ- "
+" ၎င်းကို အောက်တွင် ထည့်ပါ။ သင့် inbox တွင် မတွေ့ပါက spam ဖိုင်တွဲကို "
+"စစ်ဆေးပါ။"
 
 msgid "resend_email"
 msgstr "အီးမေးလ် ပြန်ပို့ပါ"
@@ -502,6 +622,23 @@ msgid "lantern_pro_description"
 msgstr ""
 "သင့် Pro အင်္ဂါရပ်များကို သော့ဖွင့်ပြီးပါပြီ—ကန့်သတ်မရှိသော ဒေတာ၊ ပိုမြန်သော"
 " အမြန်နှုန်းနှင့် ပရီမီယံ ဆာဗာများကို ပျော်မွေ့ပါ။"
+
+msgid "purchase_restored_title"
+msgstr "ဝယ်ယူမှု ပြန်လည်ရယူပြီးပါပြီ"
+
+msgid "purchase_restored_description"
+msgstr ""
+"သင်၏ Lantern Pro စာရင်းသွင်းမှုသည် ယခု ဤစက်ပစ္စည်းပေါ်တွင် အသက်ဝင်နေပါပြီ။"
+
+msgid "no_purchase_found_title"
+msgstr "ဝယ်ယူမှု မတွေ့ပါ"
+
+msgid "no_purchase_found_body_ios"
+msgstr "ဤ Apple ID နှင့် ချိတ်ဆက်ထားသော အသက်ဝင်သည့် စာရင်းသွင်းမှု မရှိပါ။"
+
+msgid "no_purchase_found_body_android"
+msgstr ""
+"ဤ Google အကောင့်နှင့် ချိတ်ဆက်ထားသော အသက်ဝင်သည့် စာရင်းသွင်းမှု မရှိပါ။"
 
 msgid "plans_fetch_error"
 msgstr "အစီအစဉ်များကို ရယူရာတွင် အမှားအယွင်း။ နောက်မှ ထပ်စမ်းကြည့်ပါ။"
@@ -1039,6 +1176,9 @@ msgstr ""
 "ဒါက သင့်အကောင့်ဝင်ရန် အီးမေးလ်အသစ် ဖြစ်လာမည်။ ပြောင်းလဲမှု အသက်ဝင်မီ သင် "
 "၎င်းကို အတည်ပြုရန် လိုအပ်သည်။"
 
+msgid "email_must_be_different"
+msgstr "ကျေးဇူးပြု၍ အခြားအီးမေးလ်လိပ်စာတစ်ခု ထည့်ပါ။"
+
 msgid "enter_new_email"
 msgstr "သင့်အီးမေးလ်အသစ်ကို ထည့်ပါ"
 
@@ -1110,6 +1250,15 @@ msgstr "အသက်ဝင်စေမည့်ကုဒ် ထည့်ပါ"
 msgid "restore_purchase"
 msgstr "ဝယ်ယူမှု ပြန်လည်ရယူပါ"
 
+msgid "already_purchased"
+msgstr "ဝယ်ယူပြီးသားလား။"
+
+msgid "restore_purchase_success"
+msgstr "ဝယ်ယူမှုကို အောင်မြင်စွာ ပြန်လည်ရယူပြီးပါပြီ။"
+
+msgid "restore_purchase_no_purchases"
+msgstr "ပြန်လည်ရယူရန် ဝယ်ယူမှုများ မတွေ့ပါ။"
+
 msgid "do_private_server_setup"
 msgstr "DO ကိုယ်ပိုင်ဆာဗာ စနစ်ထည့်မှု"
 
@@ -1158,6 +1307,9 @@ msgstr "ရနိုင်သည် အပေါ်-"
 
 msgid "subscription_renewal_date"
 msgstr "စာရင်းသွင်းမှု ပြန်လည်ပြုလုပ်မည့်ရက်"
+
+msgid "pro_access_until"
+msgstr "%s အထိ Pro အသုံးပြုခွင့်"
 
 msgid "enabled_bypass_lists"
 msgstr "ဖွင့်ထားသော ကျော်သွားမည့် စာရင်းများ (%d)-"
@@ -1250,6 +1402,9 @@ msgstr "ဆာဗာ အမည်ခွဲ ကွက်လပ်ရှိ၍မ�
 msgid "referral_code_applied"
 msgstr "သင့်ရဲ့ ဖိတ်ကြားကုဒ်ကို အသုံးပြုပြီးပါပြီ!"
 
+msgid "discount_applied"
+msgstr "%s လျှော့စျေး အသုံးပြုပြီး"
+
 msgid "referral_message_1m"
 msgstr "+ ၁၅ ရက် အပို အခမဲ့"
 
@@ -1257,12 +1412,12 @@ msgid "referral_message_1y"
 msgstr "+ 1 လ အပို အခမဲ့"
 
 msgid "referral_message_2y"
-msgstr "+ ၂ လ အပို အခမဲ့"
+msgstr "+ နောက်ထပ် 2 လ အခမဲ့"
 
 msgid "referral_code_invalid"
 msgstr ""
-"သင်ထည့်သွင်းသော ရည်ညွှန်းကုဒ်သည် မမှန်ကန်ပါ။ ကုဒ်ကို စစ်ဆေးပြီး "
-"ထပ်မံကြိုးစားပါ။"
+"သင်ထည့်သွင်းသော ရည်ညွှန်း/ပရိုမိုကုဒ် မမှန်ကန်ပါ။ ကုဒ်ကို စစ်ဆေးပြီး "
+"ထပ်ကြိုးစားပါ။"
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1481,10 +1636,9 @@ msgstr ""
 
 msgid "subscription_renewal_info"
 msgstr ""
-"ဝယ်ယူသည့်အခါ သင်၏ Apple ID မှ ငွေကောက်ခံပါမည်။ လက်ရှိကာလ "
-"ပြီးဆုံးခြင်းမတိုင်မီ အနည်းဆုံး ၂၄ နာရီ ကြိုတင်ပယ်ဖျက်ခြင်းမရှိလျှင် "
-"စာရင်းသွင်းမှုများ အလိုအလျောက် သက်တမ်းတိုးမည်။ App Store ဆက်တင်များတွင် "
-"စီမံခန့်ခွဲ သို့မဟုတ် ပယ်ဖျက်ပါ။"
+"ဝယ်ယူချိန်တွင် ငွေပေးချေမှုကို သင့် Apple ID မှ ကောက်ခံပါသည်။ လက်ရှိကာလ "
+"မကုန်ဆုံးမီ အနည်းဆုံး 24 နာရီအလိုတွင် မပယ်ဖျက်ပါက စာရင်းသွင်းမှုများသည် "
+"အလိုအလျောက် သက်တမ်းတိုးပါမည်။"
 
 msgid "failed_to_update_routing_mode"
 msgstr ""
@@ -1673,50 +1827,133 @@ msgstr "သင့်အကောင့်ကို အပြီးတိုင�
 msgid "verify_with"
 msgstr "%s ဖြင့် အတည်ပြုပါ"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "သက်တမ်းတိုး"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "VPN ပဋိပက္ခ တွေ့ရှိသည်"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"သင့်စက်ပစ္စည်းပေါ်တွင် အခြား VPN တစ်ခု လည်ပတ်နေသည်။ Lantern သည် "
+"သင်၏တစ်ခုတည်းသော အသက်ဝင် VPN အဖြစ် အကောင်းဆုံး လုပ်ဆောင်သည်။ "
+"အကောင်းဆုံးရလဒ်များအတွက် Lantern ကို အသုံးမပြုမီ ၎င်းကို ဖြုတ်ပါ။"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "နားလည်ပြီ"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "မည်သို့ပင်ဖြစ်စေ ချိတ်ဆက်ရန်"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "ချိတ်ဆက်၍မရပါ။ သင့်အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "ဝန်ဆောင်မှု ယာယီမရနိုင်ပါ။ ထပ်ကြိုးစားနေသည်..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "ချိတ်ဆက်မှု မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။"
+
+msgid "err_ruleset_failed"
+msgstr "လမ်းကြောင်းသတ်မှတ်မှု ဖွဲ့စည်းပုံကို တင်၍မရပါ။ ထပ်ကြိုးစားနေသည်..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "ယခု အပ်ဒိတ်လုပ်ရန်"
 
 msgid "later"
-msgstr "Later"
+msgstr "နောက်မှ"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s ထည့်သွင်းရန် အသင့်ဖြစ်ပါပြီ"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "နောက်ဆုံးဗားရှင်း"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "သင်သည် Lantern ၏ နောက်ဆုံးဗားရှင်း %s ကို အသုံးပြုနေပါသည်"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "အပ်ဒိတ်များကို စစ်ဆေး၍မရပါ"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
+msgstr "သင့်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ"
+
+msgid "refresh_configuration"
+msgstr "ဖွဲ့စည်းပုံကို ပြန်လည်စတင်ရန်"
+
+msgid "configuration_cleared"
+msgstr "ဖွဲ့စည်းပုံကို ရှင်းလင်းပြီးပါပြီ"
+
+msgid "turn_off_vpn"
+msgstr "VPN ပိတ်ရန်"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"ဖွဲ့စည်းပုံကို ပြန်လည်စတင်နိုင်ရန် VPN ကို အရင်ပိတ်ရမည်။ ၎င်းကိုပိတ်ပြီး "
+"ထပ်ကြိုးစားပါ။"
+
+msgid "configuration_message"
+msgstr ""
+"သင်၏ဖွဲ့စည်းပုံအဟောင်းကို ရှင်းလင်းပြီးပါပြီ။ နောက်ဆုံးထွက်ကို "
+"အလိုအလျောက်ဒေါင်းလုဒ်လုပ်ရန် VPN ကိုဖွင့်ပါ။"
+
+msgid "promo_referral_code"
+msgstr "ပရိုမို / ရည်ညွှန်းကုဒ်"
+
+msgid "promo_code"
+msgstr "ပရိုမိုကုဒ်"
+
+msgid "promo_code_with"
+msgstr "ပရိုမိုကုဒ် (%s)"
+
+msgid "order_total"
+msgstr "မှာယူမှု စုစုပေါင်း"
 
 msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr ""
+"စမတ်တည်နေရာသည် အမြန်ဆုံးဆာဗာကို ရွေးချယ်ပြီး ပိုကောင်းသောလမ်းကြောင်းများ "
+"တွေ့ရှိသည်နှင့်အမျှ အလိုအလျောက် ပြောင်းလဲပေးသည်။"
+
+msgid "bypass_browser_warning_title"
+msgstr "%s ကို ကျော်လွှားစာရင်းထဲ ထည့်မလား။"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s သည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ပါမည်။ "
+"အချို့ဝဘ်ဆိုက်များကို ပိတ်ဆို့ထားသည့် နိုင်ငံများတွင် အချို့ဆိုက်များ "
+"တင်၍မရတော့ပါ။"
+
+msgid "add_anyway"
+msgstr "မည်သို့ပင်ဖြစ်စေ ထည့်ရန်"
+
+msgid "bypass_all_warning_title"
+msgstr "အက်ပ်အားလုံးကို ကျော်လွှားစာရင်းထဲ ထည့်မလား။"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"၎င်းတွင် %s ကဲ့သို့သော ဘရောက်ဇာများ ပါဝင်သည်။ ကျော်လွှားစာရင်းရှိ "
+"အက်ပ်များသည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ကြသည်။ "
+"အချို့ဝဘ်ဆိုက်များကို ပိတ်ဆို့ထားသည့် နိုင်ငံများတွင် အချို့ဆိုက်များ "
+"တင်၍မရတော့ပါ။"
+
+msgid "add_all_except_browsers"
+msgstr "ဘရောက်ဇာများမှလွဲ၍ အားလုံးထည့်ရန်"
+
+msgid "add_all_anyway"
+msgstr "မည်သို့ပင်ဖြစ်စေ အားလုံးထည့်ရန်"
+
+msgid "bypass_app_first_time_title"
+msgstr "ဤအက်ပ်အတွက် VPN ကို ကျော်လွှားမလား။"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s သည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ပါမည်။ သင့်နိုင်ငံတွင် "
+"ပိတ်ဆို့ထားပါက အလုပ်မလုပ်တော့နိုင်ပါ။"
+
+msgid "bypass_website_first_time_title"
+msgstr "ဤဝဘ်ဆိုက်အတွက် VPN ကို ကျော်လွှားမလား။"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s သည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ပါမည်။ သင့်နိုင်ငံတွင် "
+"ပိတ်ဆို့ထားပါက အလုပ်မလုပ်တော့နိုင်ပါ။"

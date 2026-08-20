@@ -1,5 +1,7 @@
 name: App Smoke Tests
 
+# On the nightly schedule all `inputs.*` are empty, so job conditions use
+# `inputs.x || '<nightly value>'` fallbacks: platforms=all, tests=all.
 on:
   workflow_dispatch:
     inputs:
@@ -9,10 +11,21 @@ on:
         type: choice
         options:
           - all
+          - android
           - linux
           - macos
           - windows
         default: all
+      tests:
+        description: "Which test suites to run on the selected platforms"
+        required: false
+        type: choice
+        options:
+          - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
+          - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
+          - payment-smoke # Stripe Checkout rendering and payment-to-Pro conversion
+          - all # every suite the platform supports
+        default: vpn-smoke
       linux_arch:
         description: "Linux arch to test"
         required: false
@@ -22,36 +35,10 @@ on:
           - arm64
           - all
         default: amd64
-      windows_connect_smoke:
-        description: "Run Windows connect/disconnect smoke"
-        required: false
-        type: boolean
-        default: true
-      macos_connect_smoke:
-        description: "Include macOS connect/disconnect smoke when platforms=all (requires self-hosted runner with approved system extension)"
-        required: false
-        type: boolean
-        default: false
-      windows_split_tunnel_website_smoke:
-        description: "Run Windows split-tunneling website smoke"
-        required: false
-        type: boolean
-        default: false
-      auth_smoke:
-        description: "Run existing auth smoke tests"
-        required: false
-        type: boolean
-        default: false
-      enable_ip_check:
-        description: "Validate public IP change during VPN connect smoke"
-        required: false
-        type: boolean
-        default: false
-      force_full_tunnel_smoke:
-        description: "Force full-tunnel mode during VPN connect smoke"
-        required: false
-        type: boolean
-        default: true
+  schedule:
+    # Nightly full sweep (platforms=all, tests=all) at 03:00 UTC so
+    # regressions surface within a day without anyone dispatching manually.
+    - cron: "0 3 * * *"
 
 permissions:
   contents: read
@@ -62,7 +49,40 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate auto-update selection
+        if: ${{ inputs.tests == 'auto-update' && !contains(fromJSON('["all", "macos", "windows"]'), inputs.platforms) }}
+        shell: bash
+        run: |
+          echo '::error title=Invalid smoke selection::auto-update requires platforms=all, macos, or windows'
+          exit 2
+
+  # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
+  # doesn't need the desktop version stamping from `prepare`. The vpn-smoke
+  # tier builds only the VPN suite and runs it on one virtual device with no
+  # retries; `all` builds the full aggregator on the script's two-device
+  # matrix (physical Pixel 8 + Arm virtual) with retries for flaky tests.
+  android:
+    needs: validate-inputs
+    if: ${{ contains(fromJSON('["all", "android", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke"]'), inputs.tests || 'all') }}
+    uses: ./.github/workflows/firebase-test-lab.yml
+    secrets: inherit
+    with:
+      test_target: >-
+        ${{ (inputs.tests || 'all') == 'vpn-smoke'
+            && 'integration_test/vpn/android_vpn_smoke_test.dart'
+            || 'integration_test/android_all_e2e_test.dart' }}
+      devices: >-
+        ${{ (inputs.tests || 'all') == 'vpn-smoke'
+            && 'model=MediumPhone.arm,version=33,locale=en,orientation=portrait'
+            || '' }}
+      flaky_attempts: ${{ (inputs.tests || 'all') == 'all' && '2' || '' }}
+
   prepare:
+    needs: validate-inputs
+    if: ${{ inputs.tests != 'auto-update' }}
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.meta.outputs.version }}
@@ -96,56 +116,66 @@ jobs:
           name: pubspec
           path: pubspec.yaml
 
+  # Remaining suite toggles (IP check, config-url, …) are no longer umbrella
+  # inputs: each build-*.yml declares smoke-appropriate defaults, and anything
+  # exotic can be dispatched on that workflow directly. The `tests` tier maps
+  # to the optional suites: vpn-smoke leaves them off, `all` turns them on.
   linux:
     needs: prepare
-    if: ${{ inputs.platforms == 'all' || inputs.platforms == 'linux' }}
+    if: ${{ contains(fromJSON('["all", "linux", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke"]'), inputs.tests || 'all') }}
     uses: ./.github/workflows/build-linux.yml
-    secrets:
-      APP_ENV: ${{ secrets.APP_ENV }}
+    secrets: inherit
     with:
       version: ${{ needs.prepare.outputs.version }}
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
-      linux_arch: ${{ inputs.linux_arch }}
-      enable_ip_check: ${{ inputs.enable_ip_check }}
-      force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
-      run_auth_smoke: ${{ inputs.auth_smoke }}
+      linux_arch: ${{ inputs.linux_arch || 'amd64' }}
+      force_full_tunnel_smoke: true
+      run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
 
+  # Not part of platforms=all (and so not the nightly): the connect smoke
+  # needs the self-hosted runner with the approved system extension, so macOS
+  # runs only when asked for explicitly.
   macos:
     needs: prepare
-    if: ${{ inputs.platforms == 'macos' || (inputs.platforms == 'all' && inputs.macos_connect_smoke) }}
+    if: ${{ inputs.platforms == 'macos' && inputs.tests != 'auto-update' }}
     uses: ./.github/workflows/build-macos.yml
-    secrets:
-      AC_USERNAME: ${{ secrets.AC_USERNAME }}
-      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      APP_ENV: ${{ secrets.APP_ENV }}
-      MACOS_BNS_CERT: ${{ secrets.MACOS_BNS_CERT }}
-      MACOS_BNS_CERT_PASS: ${{ secrets.MACOS_BNS_CERT_PASS }}
-      MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.MACOS_PROVISION_PROFILE_BASE64 }}
-      MACOS_PROVISION_TUNNEL_BASE64: ${{ secrets.MACOS_PROVISION_TUNNEL_BASE64 }}
+    secrets: inherit
     with:
       version: ${{ needs.prepare.outputs.version }}
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       runner_label: lantern-macos-smoke
-      run_connect_smoke: true
-      enable_ip_check: ${{ inputs.enable_ip_check }}
-      force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
+      run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
+      run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+
+  # This is deliberately separate from the regular macOS build job: it
+  # replaces /Applications/Lantern.app and verifies Sparkle's relaunch. It is
+  # selected explicitly, and never runs in the nightly sweep.
+  macos-auto-update:
+    needs: validate-inputs
+    if: ${{ contains(fromJSON('["all", "macos"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
+    uses: ./.github/workflows/macos-auto-update-smoke.yml
+    secrets: inherit
 
   windows:
     needs: prepare
-    if: ${{ inputs.platforms == 'all' || inputs.platforms == 'windows' }}
+    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) && inputs.tests != 'auto-update' }}
     uses: ./.github/workflows/build-windows.yml
-    secrets:
-      APP_ENV: ${{ secrets.APP_ENV }}
+    secrets: inherit
     with:
       version: ${{ needs.prepare.outputs.version }}
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       skip_signing: true
-      enable_ip_check: ${{ inputs.enable_ip_check }}
-      run_connect_smoke: ${{ inputs.windows_connect_smoke }}
-      run_split_tunnel_website_smoke: ${{ inputs.windows_split_tunnel_website_smoke }}
-      run_config_url_smoke: false
-      force_full_tunnel_smoke: ${{ inputs.force_full_tunnel_smoke }}
-      run_auth_smoke: ${{ inputs.auth_smoke }}
+      force_full_tunnel_smoke: true
+      run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
+      run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+
+  windows-auto-update:
+    needs: validate-inputs
+    if: ${{ contains(fromJSON('["all", "windows"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
+    uses: ./.github/workflows/windows-auto-update-smoke.yml
+    secrets: inherit

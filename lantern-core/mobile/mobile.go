@@ -7,18 +7,14 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	_ "golang.org/x/mobile/bind"
 
 	"github.com/getlantern/radiance/account"
-	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/common"
-	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/common/settings"
-	"github.com/getlantern/radiance/ipc"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/logs"
@@ -29,12 +25,6 @@ import (
 var (
 	lanternCore        atomic.Value
 	errLanternNotReady = errors.New("radiance not initialized")
-
-	ipcServer  *ipc.Server
-	ipcClient  *ipc.Client // loopback client for extension process
-	ipcBackend *backend.LocalBackend
-	ipcMu      sync.Mutex
-	ipcOnce    sync.Once
 )
 
 func getCore() (lanterncore.Core, error) {
@@ -71,23 +61,6 @@ func withCoreR[T any](fn func(c lanterncore.Core) (T, error)) (T, error) {
 		}
 		return fn(c)
 	})
-}
-
-// getClient returns an IPC client. It prefers the loopback client created by
-// StartIPCServer (extension process), falling back to lanternCore's client
-// (main app process).
-func getClient() (*ipc.Client, error) {
-	ipcMu.Lock()
-	c := ipcClient
-	ipcMu.Unlock()
-	if c != nil {
-		return c, nil
-	}
-	core, err := getCore()
-	if err != nil {
-		return nil, err
-	}
-	return core.Client(), nil
 }
 
 // SetQAEnvOverrides applies QA-only environment overrides before Radiance starts.
@@ -204,6 +177,88 @@ func SetSmartRoutingEnabled(enabled bool) error {
 	})
 }
 
+func SetPeerShareEnabled(enabled bool) error {
+	slog.Info("peer-share: SetPeerShareEnabled", "enabled", enabled)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetPeerShareEnabled(enabled)
+	})
+}
+
+func IsPeerShareEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsPeerShareEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
+// SetPeerManualPort persists the manually-configured router port forward
+// the user has configured for the Share My Connection feature. Pass 0
+// to clear and revert to UPnP-discovered port behavior. Surfaced
+// through the macOS / iOS / Android MethodChannel handler so platforms
+// running radiance inside a network extension (where the main app
+// process can't reach the FFI directly) can still drive the setting.
+func SetPeerManualPort(port int) error {
+	slog.Info("peer-share: SetPeerManualPort", "port", port)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetPeerManualPort(port)
+	})
+}
+
+// GetPeerManualPort returns the currently-persisted manual port (0 if
+// unset). Same MethodChannel rationale as SetPeerManualPort.
+func GetPeerManualPort() int {
+	v, err := withCoreR(func(c lanterncore.Core) (int, error) {
+		return c.GetPeerManualPort(), nil
+	})
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
+// SetUnboundedEnabled is the local opt-in for the broflake / Unbounded
+// widget proxy ("Basic mode" in the SmC UI). Surfaced through the
+// MethodChannel so platforms running radiance inside a network
+// extension (macOS, eventually iOS) can drive the setting from the
+// main app process.
+func SetUnboundedEnabled(enabled bool) error {
+	slog.Info("unbounded: SetUnboundedEnabled", "enabled", enabled)
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetUnboundedEnabled(enabled)
+	})
+}
+
+// IsUnboundedEnabled returns the current local opt-in state for
+// Unbounded. Note: actual run state also depends on the server
+// Features[unbounded] flag and supplied UnboundedConfig — this just
+// reports the persisted local toggle.
+func IsUnboundedEnabled() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.IsUnboundedEnabled(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
+// ProbeUPnP runs IGD discovery and reports whether a usable gateway
+// is reachable. Surfaced through the MethodChannel so the SmC mode
+// gate works on platforms whose Flutter side can't reach the FFI
+// directly (mobile network-extension hosts).
+func ProbeUPnP() bool {
+	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
+		return c.ProbeUPnP(), nil
+	})
+	if err != nil {
+		return false
+	}
+	return ok
+}
+
 func IsSmartRoutingEnabled() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) {
 		return c.IsSmartRoutingEnabled(), nil
@@ -277,63 +332,6 @@ func StopVPN() error {
 		if err := vpn_tunnel.StopVPN(ctx, client); err != nil {
 			return struct{}{}, err
 		}
-		return struct{}{}, nil
-	})
-	return err
-}
-
-func StartIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
-	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		ipcMu.Lock()
-		defer ipcMu.Unlock()
-		if ipcServer != nil {
-			return struct{}{}, nil
-		}
-		// The backend's config fetcher captures common.GetBaseURL() at
-		// construction, so the environment must be set before
-		// NewLocalBackend — SetupRadiance's SetStagingEnv runs too late on
-		// Android, where StartIPCServer is called first.
-		if opts.IsStaging() {
-			env.SetStagingEnv()
-		}
-		bopts := backend.Options{
-			DataDir:           opts.DataDir,
-			LogDir:            opts.LogDir,
-			Locale:            opts.Locale,
-			LogLevel:          opts.LogLevel,
-			DeviceID:          opts.Deviceid,
-			TelemetryConsent:  opts.TelemetryConsent,
-			PlatformInterface: platform,
-		}
-		be, err := backend.NewLocalBackend(context.Background(), bopts)
-		if err != nil {
-			return struct{}{}, fmt.Errorf("error creating backend for IPC server: %v", err)
-		}
-		be.Start()
-		ipcBackend = be
-		ipcServer = ipc.NewServer(be, !common.IsMobile())
-		ipcClient = newLoopbackClient(be)
-		if err := ipcServer.Start(); err != nil {
-			return struct{}{}, err
-		}
-		return struct{}{}, nil
-	})
-	return err
-}
-
-func CloseIPCServer() error {
-	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		ipcMu.Lock()
-		defer ipcMu.Unlock()
-		if ipcBackend != nil {
-			ipcBackend.Close()
-			ipcBackend = nil
-		}
-		if ipcServer != nil {
-			ipcServer.Close()
-			ipcServer = nil
-		}
-		ipcClient = nil
 		return struct{}{}, nil
 	})
 	return err

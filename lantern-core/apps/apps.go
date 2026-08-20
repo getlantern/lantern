@@ -234,6 +234,8 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 	var deferredWindowsCache []*AppData
 
 	if cached, err := loadCacheFromFile(dataDir); err == nil {
+		// Recompute rather than trust flags persisted by an older cache.
+		markBrowsers(cached)
 		for _, app := range cached {
 			if app == nil {
 				continue
@@ -273,6 +275,11 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 	}
 
 	found := loadInstalledAppsPlatform(appDirs, seen, excludeDirs, cb)
+	// The callback has already streamed these pointers to the caller
+	// (LanternCore.LoadInstalledApps collects them and marshals after we
+	// return), so mutating them here is visible in the final JSON and in
+	// the cache saved below.
+	markBrowsers(found)
 	if runtime.GOOS == "windows" {
 		for _, app := range deferredWindowsCache {
 			if app == nil {

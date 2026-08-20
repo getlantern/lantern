@@ -2,14 +2,16 @@
 # Chi-Hsun Tsai, 2025
 # YFdyh000 <yfdyh000@gmail.com>, 2025
 # Aki, 2025
-# Derek F <derek@getlantern.org>, 2025
 # e2f <projects@e2f.com>, 2026
-# TW C2 <tx_e2f_tw_c2@ate2f.com>, 2026
 # Lantern, 2026
+# TW C2 <tx_e2f_tw_c2@ate2f.com>, 2026
+# fffw <fffw@getlantern.org>, 2026
+# e2f_tw c1 <tx_e2f_tw_c1@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: Chinese Traditional (https://app.transifex.com/lantern-1/teams/94371/zh-Hant/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -28,6 +30,39 @@ msgstr "設定"
 msgid "report_an_issue"
 msgstr "回報問題"
 
+msgid "report_issue_add_screenshots"
+msgstr "新增螢幕截圖"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG、JPG 或 GIF — 總計最多 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "新增圖片"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "僅支援 PNG、JPG 和 GIF 圖片。"
+
+msgid "report_issue_attachments_too_many"
+msgstr "最多可附加 3 張圖片。"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "附件總大小必須小於 15 MB。"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "該圖片已附加。"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "無法讀取其中一個檔案。"
+
+msgid "send_without_email_title"
+msgstr "不填電子郵件直接傳送？"
+
+msgid "send_without_email_body"
+msgstr "你沒有填寫電子郵件地址，因此我們將無法回覆或跟進此回報。"
+
+msgid "send_without_email"
+msgstr "不填電子郵件傳送"
+
 msgid "lantern_projects"
 msgstr "Lantern 專案:"
 
@@ -42,6 +77,54 @@ msgstr "將你的推薦碼分享給朋友。當他們購買 Lantern Pro 時，�
 
 msgid "share_referral_code"
 msgstr "分享推薦碼"
+
+msgid "invite_friends_description"
+msgstr "當朋友使用你的推薦碼升級至 Lantern Pro 時，你們雙方都可獲得 1 個月免費時長。"
+
+msgid "month_earned"
+msgstr "已獲得 %s 個月"
+
+msgid "months_earned"
+msgstr "已獲得 %s 個月"
+
+msgid "includes_free_month_from_referrals"
+msgstr "包含推薦獲得的 %s 個免費月"
+
+msgid "includes_free_months_from_referrals"
+msgstr "包含推薦獲得的 %s 個免費月"
+
+msgid "referral_converted_title"
+msgstr "一位朋友已升級至專業版"
+
+msgid "referral_converted_message"
+msgstr "你們雙方均免費獲得了 %s 的 Lantern Pro。你目前已累計獲得 %s。繼續分享你的推薦碼以獲得更多。"
+
+msgid "month_count"
+msgstr "%s 個月"
+
+msgid "months_count"
+msgstr "%s 個月"
+
+msgid "done"
+msgstr "完成"
+
+msgid "view_account"
+msgstr "檢視帳戶"
+
+msgid "show_download_links"
+msgstr "顯示下載連結"
+
+msgid "get_lantern"
+msgstr "取得 Lantern"
+
+msgid "send_friend_download_link"
+msgstr "將此下載連結傳送給你的朋友："
+
+msgid "scan_to_install"
+msgstr "使用相機應用程式掃描即可安裝 Lantern"
+
+msgid "remind_use_code"
+msgstr "提醒他們升級時使用推薦碼 %s！"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -153,6 +236,30 @@ msgstr "登出"
 
 msgid "check_for_updates"
 msgstr "檢查更新"
+
+msgid "update_available"
+msgstr "有可用更新"
+
+msgid "android_sideload_update_available_message"
+msgstr "Lantern %s 已推出。Lantern 會在開啟 Android 安裝程式前下載並驗證 APK。"
+
+msgid "download_and_install_update"
+msgstr "下載並安裝"
+
+msgid "allow_unknown_app_installs"
+msgstr "允許安裝應用程式"
+
+msgid "android_sideload_install_permission_message"
+msgstr "Android 需要權限才能安裝來自 Lantern 的更新。請開啟「允許來自此來源」，然後再次檢查更新。"
+
+msgid "error_install_update"
+msgstr "無法安裝更新"
+
+msgid "android_sideload_install_failed_message"
+msgstr "Lantern 無法驗證或安裝此更新。請稍後再試。"
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern 已是最新版本。"
 
 msgid "support"
 msgstr "支援"
@@ -355,8 +462,11 @@ msgstr "新增你的電子郵件以在任何裝置上存取你的訂閱。"
 msgid "confirm_email_code"
 msgstr "確認碼"
 
-msgid "confirm_email_code_message"
-msgstr "確認此電子郵件地址屬於你,請輸入傳送至以下地址的驗證碼:"
+msgid "confirm_email_code_message_part_one"
+msgstr "我們已將驗證碼傳送至 "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " 請在下方輸入。如果收件匣中沒有，請檢查垃圾郵件資料夾。"
 
 msgid "resend_email"
 msgstr "重新傳送電子郵件"
@@ -465,6 +575,21 @@ msgstr "歡迎使用 Lantern！"
 
 msgid "lantern_pro_description"
 msgstr "你的專業版功能已解鎖—盡情享受無限數據、更快速度和高級伺服器。"
+
+msgid "purchase_restored_title"
+msgstr "購買已恢復"
+
+msgid "purchase_restored_description"
+msgstr "你的 Lantern Pro 訂閱現已在此裝置上生效。"
+
+msgid "no_purchase_found_title"
+msgstr "找不到購買紀錄"
+
+msgid "no_purchase_found_body_ios"
+msgstr "此 Apple ID 未連結任何有效訂閱。"
+
+msgid "no_purchase_found_body_android"
+msgstr "此 Google 帳戶未連結任何有效訂閱。"
 
 msgid "plans_fetch_error"
 msgstr "取得方案時發生錯誤。請稍後再試。"
@@ -943,6 +1068,9 @@ msgstr "變更電子郵件"
 msgid "change_email_message"
 msgstr "這將成為你的新登入電子郵件。你需要先驗證才能生效。"
 
+msgid "email_must_be_different"
+msgstr "請輸入其他電子郵件地址。"
+
 msgid "enter_new_email"
 msgstr "輸入你的新電子郵件"
 
@@ -1012,6 +1140,15 @@ msgstr "輸入啟用碼"
 msgid "restore_purchase"
 msgstr "恢復購買"
 
+msgid "already_purchased"
+msgstr "已經購買過？"
+
+msgid "restore_purchase_success"
+msgstr "已成功恢復購買。"
+
+msgid "restore_purchase_no_purchases"
+msgstr "找不到可恢復的購買紀錄。"
+
 msgid "do_private_server_setup"
 msgstr "DO 私人伺服器設定"
 
@@ -1056,6 +1193,9 @@ msgstr "適用於:"
 
 msgid "subscription_renewal_date"
 msgstr "訂閱續訂日期"
+
+msgid "pro_access_until"
+msgstr "專業版有效期至 %s"
 
 msgid "enabled_bypass_lists"
 msgstr "已啟用的繞過清單 (%d):"
@@ -1141,6 +1281,9 @@ msgstr "伺服器別名不能為空"
 msgid "referral_code_applied"
 msgstr "您的推薦代碼已成功套用！"
 
+msgid "discount_applied"
+msgstr "已套用 %s 折扣"
+
 msgid "referral_message_1m"
 msgstr "+ 15 天免費"
 
@@ -1148,10 +1291,10 @@ msgid "referral_message_1y"
 msgstr "+ 1 個月免費"
 
 msgid "referral_message_2y"
-msgstr "+ 2 個月免費"
+msgstr "+ 額外贈送 2 個月"
 
 msgid "referral_code_invalid"
-msgstr "您輸入的推薦碼無效。請檢查該碼並重試。"
+msgstr "你輸入的推薦碼/優惠碼無效。請檢查後再試一次。"
 
 msgid "referral_code_own_invalid"
 msgstr "你不能使用自己的推薦碼。請輸入其他代碼。"
@@ -1340,8 +1483,7 @@ msgid "daily_data_cap_reached_message"
 msgstr "速度已降至 128 kb/s - 將在 %s 重設。"
 
 msgid "subscription_renewal_info"
-msgstr ""
-"購買時將從您的 Apple ID 扣款。訂閱將自動續訂，除非在當前週期結束前至少 24 小時取消。在 App Store 設定中管理或取消。"
+msgstr "購買時費用將透過你的 Apple ID 收取。除非在目前訂閱期結束前至少 24 小時取消，否則訂閱將自動續訂。"
 
 msgid "failed_to_update_routing_mode"
 msgstr "更新路由模式失敗。請重試。"
@@ -1499,50 +1641,115 @@ msgstr "您的帳戶已永久刪除。"
 msgid "verify_with"
 msgstr "透過 %s 驗證"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "renew"
+msgstr "續訂"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "vpn_conflict_title"
+msgstr "偵測到 VPN 衝突"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "vpn_conflict_body"
+msgstr ""
+"你的裝置上正在執行另一個 VPN。Lantern 作為唯一啟用的 VPN 時效果最佳。為獲得最佳效果，請在使用 Lantern 前中斷該 VPN "
+"的連線。"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "vpn_conflict_dismiss"
+msgstr "我知道了"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "vpn_conflict_connect_anyway"
+msgstr "仍要連線"
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "err_check_connection"
+msgstr "無法連線。請檢查你的網路連線。"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "err_service_unavailable"
+msgstr "服務暫時無法使用。正在重試..."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "err_connection_failed"
+msgstr "連線失敗。請再試一次。"
+
+msgid "err_ruleset_failed"
+msgstr "無法載入路由設定。正在重試..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "立即更新"
 
 msgid "later"
-msgstr "Later"
+msgstr "稍後"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s 已準備好安裝"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "已是最新"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "你正在使用最新版本的 Lantern %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "無法檢查更新"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
+msgstr "請檢查連線後再試一次"
+
+msgid "refresh_configuration"
+msgstr "重新整理設定"
+
+msgid "configuration_cleared"
+msgstr "設定已清除"
+
+msgid "turn_off_vpn"
+msgstr "關閉 VPN"
+
+msgid "turn_off_vpn_message"
+msgstr "重新整理設定前需要先關閉 VPN。請關閉後再試一次。"
+
+msgid "configuration_message"
+msgstr "你的舊設定已清除。開啟 VPN 即可自動下載最新設定。"
+
+msgid "promo_referral_code"
+msgstr "優惠碼 / 推薦碼"
+
+msgid "promo_code"
+msgstr "優惠碼"
+
+msgid "promo_code_with"
+msgstr "優惠碼（%s）"
+
+msgid "order_total"
+msgstr "訂單總額"
 
 msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr "智慧位置會選擇最快的伺服器，並在發現更佳路線時自動切換。"
+
+msgid "bypass_browser_warning_title"
+msgstr "將 %s 加入繞行清單？"
+
+msgid "bypass_browser_warning_body"
+msgstr "%s 將直接連線，不受 Lantern 保護。在封鎖某些網站的國家/地區，部分網站將無法載入。"
+
+msgid "add_anyway"
+msgstr "仍要加入"
+
+msgid "bypass_all_warning_title"
+msgstr "將所有應用程式加入繞行清單？"
+
+msgid "bypass_all_warning_body"
+msgstr "其中包括 %s 等瀏覽器。繞行清單中的應用程式將直接連線，不受 Lantern 保護。在封鎖某些網站的國家/地區，部分網站將無法載入。"
+
+msgid "add_all_except_browsers"
+msgstr "加入除瀏覽器外的全部"
+
+msgid "add_all_anyway"
+msgstr "仍要全部加入"
+
+msgid "bypass_app_first_time_title"
+msgstr "為此應用程式繞過 VPN？"
+
+msgid "bypass_app_first_time_body"
+msgstr "%s 將直接連線，不受 Lantern 保護。如果它在你所在的國家/地區被封鎖，可能會無法使用。"
+
+msgid "bypass_website_first_time_title"
+msgstr "為此網站繞過 VPN？"
+
+msgid "bypass_website_first_time_body"
+msgstr "%s 將直接連線，不受 Lantern 保護。如果它在你所在的國家/地區被封鎖，可能會無法使用。"

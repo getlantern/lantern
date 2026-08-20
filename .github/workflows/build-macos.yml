@@ -17,6 +17,8 @@ on:
         required: true
       MACOS_PROVISION_TUNNEL_BASE64:
         required: true
+      SPARKLE_ED_PRIVATE_KEY:
+        required: false
     inputs:
       version:
         required: true
@@ -32,8 +34,38 @@ on:
         required: false
         type: string
         default: macos-15
+      flutter_target:
+        description: "Optional Flutter entrypoint used to build the app"
+        required: false
+        type: string
+        default: ""
+      flutter_build_mode:
+        description: "Flutter build mode: release or profile"
+        required: false
+        type: string
+        default: release
+      pubspec_artifact:
+        description: "Artifact containing the version-stamped pubspec.yaml"
+        required: false
+        type: string
+        default: pubspec
+      sign_update_artifact:
+        description: "Generate the Sparkle signature published with this DMG"
+        required: false
+        type: boolean
+        default: true
+      auto_update_e2e:
+        description: "Build a fixture that reads the isolated staging appcast"
+        required: false
+        type: boolean
+        default: false
       run_connect_smoke:
         description: "Run the macOS connect/disconnect smoke after building"
+        required: false
+        type: boolean
+        default: false
+      run_payment_smoke:
+        description: "Verify staging Stripe Checkout in a Flutter integration test"
         required: false
         type: boolean
         default: false
@@ -72,7 +104,7 @@ jobs:
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
         with:
-          name: pubspec
+          name: ${{ inputs.pubspec_artifact }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -103,7 +135,7 @@ jobs:
             ${{ runner.os }}-macos-pods-          
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.22.0
+        uses: subosito/flutter-action@v2.23.0
         with:
           channel: stable
           flutter-version-file: .github/flutter-version.yaml
@@ -196,10 +228,49 @@ jobs:
       - name: Run macOS unit tests
         run: make macos-unit-tests
 
-      - name: Build macOS release
-        run: make macos-release-ci
+      - name: macOS payment smoke
+        if: ${{ inputs.run_payment_smoke }}
+        timeout-minutes: 15
+        shell: bash
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/macos-payment-smoke
+        run: bash ./.github/scripts/macos_payment_smoke.sh
+
+      - name: Upload macOS payment smoke diagnostics
+        if: ${{ always() && inputs.run_payment_smoke }}
+        id: payment_smoke_diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-payment-smoke
+          path: ${{ runner.temp }}/macos-payment-smoke
+          if-no-files-found: ignore
+          retention-days: 2
+
+      - name: Log macOS payment smoke diagnostics URL
+        if: ${{ always() && steps.payment_smoke_diagnostics.outputs.artifact-url != '' }}
+        shell: bash
+        env:
+          ARTIFACT_URL: ${{ steps.payment_smoke_diagnostics.outputs.artifact-url }}
+        run: |
+          echo "::notice title=macOS payment smoke diagnostics::$ARTIFACT_URL"
+          echo "[Download the macOS payment smoke screenshot and diagnostics]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build macOS app
+        shell: bash
+        run: |
+          case "$FLUTTER_BUILD_MODE" in
+            release) make macos-release-ci ;;
+            profile) make macos-profile-ci ;;
+            *)
+              printf 'Unsupported macOS Flutter build mode: %s\n' "$FLUTTER_BUILD_MODE" >&2
+              exit 2
+              ;;
+          esac
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
+          AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+          FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
+          FLUTTER_TARGET: ${{ inputs.flutter_target }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
@@ -224,6 +295,17 @@ jobs:
 
           ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/Lantern.app.zip"
 
+      - name: Sign macOS update
+        if: ${{ inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        shell: bash
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+          DMG_PATH: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg
+        run: |
+          bash ./.github/scripts/sign_macos_update.sh \
+            "$DMG_PATH" \
+            "$RUNNER_TEMP/$(basename "$DMG_PATH").sparkle-signature"
+
       - name: Upload macOS app
         uses: actions/upload-artifact@v4
         with:
@@ -236,6 +318,14 @@ jobs:
         with:
           name: lantern-installer-dmg
           path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg
+          retention-days: 2
+
+      - name: Upload macOS update signature
+        if: ${{ inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-dmg-signature
+          path: ${{ runner.temp }}/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg.sparkle-signature
           retention-days: 2
 
       - name: Run macOS connect smoke

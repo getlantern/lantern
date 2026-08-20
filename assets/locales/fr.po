@@ -1,15 +1,16 @@
-# 
 # Translators:
 # e2f_fr r9 <tx_e2f_fr_r9@ate2f.com>, 2025
-# Derek F <derek@getlantern.org>, 2025
-# AO <aol10n@duck.com>, 2026
 # e2f_fr r15 <tx_e2f_fr_r15@ate2f.com>, 2026
 # Lantern, 2026
+# AO <aol10n@duck.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
 msgstr ""
-"Last-Translator: Lantern, 2026\n"
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
 "Language-Team: French (https://app.transifex.com/lantern-1/teams/94371/fr/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Language: fr\n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
@@ -24,6 +25,41 @@ msgstr "Paramètres"
 
 msgid "report_an_issue"
 msgstr "Signaler un problème"
+
+msgid "report_issue_add_screenshots"
+msgstr "Ajouter des captures d'écran"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG ou GIF — 15 Mo max au total"
+
+msgid "report_issue_add_images"
+msgstr "Ajouter des images"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Seules les images PNG, JPG et GIF sont prises en charge."
+
+msgid "report_issue_attachments_too_many"
+msgstr "Vous pouvez joindre jusqu'à 3 images."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Les pièces jointes ne doivent pas dépasser 15 Mo au total."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Cette image est déjà jointe."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "Impossible de lire l'un de ces fichiers."
+
+msgid "send_without_email_title"
+msgstr "Envoyer sans e-mail ?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Vous n'avez pas indiqué d'adresse e-mail, nous ne pourrons donc pas répondre"
+" ni assurer le suivi de ce signalement."
+
+msgid "send_without_email"
+msgstr "Envoyer sans e-mail"
 
 msgid "lantern_projects"
 msgstr "Projets Lantern :"
@@ -41,6 +77,59 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Partager le code"
+
+msgid "invite_friends_description"
+msgstr ""
+"Lorsqu'un ami passe à Lantern Pro avec votre code de parrainage, vous "
+"bénéficiez tous les deux d'1 mois gratuit."
+
+msgid "month_earned"
+msgstr "%s mois gagné"
+
+msgid "months_earned"
+msgstr "%s mois gagnés"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Inclut %s mois gratuit grâce aux parrainages"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Inclut %s mois gratuits grâce aux parrainages"
+
+msgid "referral_converted_title"
+msgstr "Un ami est passé à Pro"
+
+msgid "referral_converted_message"
+msgstr ""
+"Vous avez tous les deux gagné %s de Lantern Pro, gratuitement. Vous avez "
+"gagné %s jusqu'à présent. Continuez à partager votre code pour en gagner "
+"plus."
+
+msgid "month_count"
+msgstr "%s mois"
+
+msgid "months_count"
+msgstr "%s mois"
+
+msgid "done"
+msgstr "Terminé"
+
+msgid "view_account"
+msgstr "Voir le compte"
+
+msgid "show_download_links"
+msgstr "Afficher les liens de téléchargement"
+
+msgid "get_lantern"
+msgstr "Obtenir Lantern"
+
+msgid "send_friend_download_link"
+msgstr "Envoyez ce lien de téléchargement à votre ami :"
+
+msgid "scan_to_install"
+msgstr "Scannez avec votre appareil photo pour installer Lantern"
+
+msgid "remind_use_code"
+msgstr "Rappelez-leur d'utiliser le code %s lors de leur passage à Pro !"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -156,6 +245,37 @@ msgstr "Se déconnecter"
 
 msgid "check_for_updates"
 msgstr "Vérifier les mises à jour"
+
+msgid "update_available"
+msgstr "Mise à jour disponible"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"Lantern %s est disponible. Lantern téléchargera et vérifiera l'APK avant "
+"d'ouvrir l'installateur d'Android."
+
+msgid "download_and_install_update"
+msgstr "Télécharger et installer"
+
+msgid "allow_unknown_app_installs"
+msgstr "Autoriser l'installation d'applications"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android a besoin d'une autorisation pour installer les mises à jour depuis "
+"Lantern. Activez Autoriser depuis cette source, puis relancez la recherche "
+"de mises à jour."
+
+msgid "error_install_update"
+msgstr "Impossible d'installer la mise à jour"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"Lantern n'a pas pu vérifier ou installer cette mise à jour. Veuillez "
+"réessayer plus tard."
+
+msgid "lantern_is_up_to_date"
+msgstr "Lantern est à jour."
 
 msgid "support"
 msgstr "Assistance"
@@ -281,6 +401,12 @@ msgstr "Mode"
 msgid "use_commas"
 msgstr "Utilisez des virgules pour séparer plusieurs URL"
 
+msgid "deep_link_expired"
+msgstr "Ce lien a expiré. Veuillez en demander un nouveau."
+
+msgid "invalid_deep_link"
+msgstr "Ce lien est invalide. Veuillez en demander un nouveau."
+
 msgid "default_bypass"
 msgstr "Listes d'exclusion par défaut"
 
@@ -363,10 +489,13 @@ msgstr ""
 msgid "confirm_email_code"
 msgstr "Code de confirmation"
 
-msgid "confirm_email_code_message"
+msgid "confirm_email_code_message_part_one"
+msgstr "Nous avons envoyé un code à "
+
+msgid "confirm_email_code_message_part_two"
 msgstr ""
-"Confirmez que cette adresse email vous appartient, entrez le code envoyé à :"
-" "
+" Saisissez-le ci-dessous. S'il n'est pas dans votre boîte de réception, "
+"vérifiez votre dossier spam."
 
 msgid "resend_email"
 msgstr "Renvoyer l'email"
@@ -490,6 +619,21 @@ msgid "lantern_pro_description"
 msgstr ""
 "Vos fonctionnalités Pro sont débloquées—profitez de données illimitées, de "
 "vitesses plus rapides et de serveurs premium."
+
+msgid "purchase_restored_title"
+msgstr "L’achat a été rétabli"
+
+msgid "purchase_restored_description"
+msgstr "Votre abonnement Lantern Pro est désormais actif sur cet appareil."
+
+msgid "no_purchase_found_title"
+msgstr "Aucun achat trouvé"
+
+msgid "no_purchase_found_body_ios"
+msgstr "Aucun abonnement actif n'est associé à cet identifiant Apple."
+
+msgid "no_purchase_found_body_android"
+msgstr "Aucun abonnement actif n'est associé à ce compte Google."
 
 msgid "plans_fetch_error"
 msgstr ""
@@ -647,9 +791,8 @@ msgstr "Erreur"
 
 msgid "signup_error_user_exists"
 msgstr ""
-"Il semble qu'il y ait eu un problème lors de l'inscription. Veuillez essayer"
-" de réinitialiser votre mot de passe, et si le problème persiste, contactez "
-"notre équipe d'assistance"
+"Il semble qu'une erreur s'est produite lors de l'inscription. Veuillez "
+"réessayer ou vous connecter si vous avez déjà un compte"
 
 msgid "user_not_found"
 msgstr ""
@@ -972,6 +1115,9 @@ msgstr "Connecté"
 msgid "status_off"
 msgstr "Déconnecté"
 
+msgid "select_location"
+msgstr "Sélectionner l'emplacement"
+
 msgid "select_your_server_location"
 msgstr "Sélectionnez l'emplacement de votre serveur"
 
@@ -1023,6 +1169,9 @@ msgid "change_email_message"
 msgstr ""
 "Ceci deviendra votre nouvel email de connexion. Vous devrez le vérifier "
 "avant que le changement ne prenne effet."
+
+msgid "email_must_be_different"
+msgstr "Veuillez saisir une adresse e-mail différente."
 
 msgid "enter_new_email"
 msgstr "Entrez votre nouvel email"
@@ -1095,6 +1244,15 @@ msgstr "Entrez un code d'activation"
 msgid "restore_purchase"
 msgstr "Restaurer l'achat"
 
+msgid "already_purchased"
+msgstr "Déjà acheté ?"
+
+msgid "restore_purchase_success"
+msgstr "Achat restauré avec succès."
+
+msgid "restore_purchase_no_purchases"
+msgstr "Aucun achat à restaurer n'a été trouvé."
+
 msgid "do_private_server_setup"
 msgstr "Configuration serveur privé DO"
 
@@ -1143,6 +1301,9 @@ msgstr "Disponible sur :"
 
 msgid "subscription_renewal_date"
 msgstr "Date de renouvellement de l'abonnement"
+
+msgid "pro_access_until"
+msgstr "Accès Pro jusqu'au %s"
 
 msgid "enabled_bypass_lists"
 msgstr "Listes d'exclusion activées (%d) :"
@@ -1235,6 +1396,9 @@ msgstr "L'alias du serveur ne peut pas être vide"
 msgid "referral_code_applied"
 msgstr "Votre code de parrainage a été appliqué !"
 
+msgid "discount_applied"
+msgstr "Remise de %s appliquée"
+
 msgid "referral_message_1m"
 msgstr "+ 15 jours supplémentaires gratuits"
 
@@ -1246,8 +1410,8 @@ msgstr "+ 2 mois supplémentaires gratuits"
 
 msgid "referral_code_invalid"
 msgstr ""
-"Le code de parrainage que vous avez saisi est invalide. Veuillez vérifier le"
-" code et réessayer."
+"Le code de parrainage/promo saisi est invalide. Veuillez vérifier le code et"
+" réessayer."
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1463,10 +1627,9 @@ msgstr "Vitesse réduite à 128 kb/s - Réinitialisation à %s."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"Le paiement est débité de votre identifiant Apple lors de l'achat. Les "
-"abonnements se renouvellent automatiquement sauf annulation au moins 24 "
-"heures avant la fin de la période en cours. Gérez ou annulez dans les "
-"Réglages de l'App Store."
+"Le paiement est débité de votre identifiant Apple au moment de l'achat. Les "
+"abonnements se renouvellent automatiquement sauf s'ils sont annulés au moins"
+" 24 heures avant la fin de la période en cours."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Échec de la mise à jour du mode de routage. Veuillez réessayer."
@@ -1476,6 +1639,20 @@ msgstr "Applis"
 
 msgid "websites"
 msgstr "Sites Web"
+
+msgid "main_channel"
+msgstr "Canal principal"
+
+msgid "data_cap_channel"
+msgstr "Alertes d'utilisation des données"
+
+msgid "mb_free_data_remaining"
+msgstr "%d Mo de données gratuites restants"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Vos données seront réinitialisées à %s. Passez à Pro pour des données haut "
+"débit illimitées."
 
 msgid "if_you_have_not_set_password"
 msgstr ""
@@ -1517,50 +1694,251 @@ msgstr ""
 msgid "expired"
 msgstr "Expiré"
 
-msgid "update_available"
-msgstr "Update available"
+msgid "lantern_pro_tagline"
+msgstr "Accès internet rapide, fiable et privé"
 
-msgid "android_sideload_update_available_message"
-msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
+msgid "what_makes_lantern_different"
+msgstr "Ce qui distingue Lantern"
 
-msgid "download_and_install_update"
-msgstr "Download and install"
+msgid "built_for_privacy_speed_freedom"
+msgstr "Conçu pour la confidentialité, la vitesse et la liberté"
 
-msgid "allow_unknown_app_installs"
-msgstr "Allow app installs"
+msgid "smart_routing_mode"
+msgstr "Mode de routage intelligent"
 
-msgid "android_sideload_install_permission_message"
-msgstr "Android needs permission to install updates from Lantern. Turn on Allow from this source, then check for updates again."
+msgid "region_specific_routing_description"
+msgstr ""
+"Des règles spécifiques à chaque région n'acheminent que le trafic "
+"nécessitant le VPN, gardant votre connexion rapide."
 
-msgid "error_install_update"
-msgstr "Unable to install update"
+msgid "advanced_protocols"
+msgstr "Protocoles avancés"
 
-msgid "android_sideload_install_failed_message"
-msgstr "Lantern could not verify or install this update. Please try again later."
+msgid "advanced_protocols_description"
+msgstr ""
+"Plus de protocoles que les autres VPN pour une fiabilité maximale. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER et plus encore."
 
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
+msgid "private_servers_description"
+msgstr ""
+"Connectez vos propres serveurs pour un contrôle total de votre connexion."
+
+msgid "nonprofit_mission"
+msgstr "Mission à but non lucratif"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Créé par une organisation à but non lucratif avec plus de 12 ans "
+"d'expérience dans la promotion de la liberté sur internet"
+
+msgid "choose_your_routing_mode"
+msgstr "Choisissez votre mode de routage"
+
+msgid "fastest"
+msgstr "Le plus rapide"
+
+msgid "traditional_vpn_mode"
+msgstr "Mode VPN traditionnel"
+
+msgid "traditional_vpn_mode_description"
+msgstr "Achemine tout le trafic via Lantern, qu'il en ait besoin ou non."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Modifiable à tout moment dans les paramètres du mode de routage"
+
+msgid "get_started"
+msgstr "Commencer"
+
+msgid "skip_connect_now"
+msgstr "Passer - Se connecter maintenant"
+
+msgid "renew_pro"
+msgstr "Renouveler Pro"
+
+msgid "payment"
+msgstr "Paiement"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Il semble qu'une erreur s'est produite. Si vous avez effectué un paiement "
+"mais ne voyez pas votre abonnement actif, veuillez patienter quelques heures"
+" et vérifier à nouveau."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Votre forfait Pro a été acheté via Google Play. Veuillez gérer votre "
+"abonnement depuis les paramètres de votre compte Google Play."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Votre forfait Pro a été acheté via l'Apple App Store. Veuillez gérer votre "
+"abonnement depuis les paramètres de votre compte Apple ID."
+
+msgid "create_account_error"
+msgstr "Erreur de création de compte"
+
+msgid "appearance"
+msgstr "Apparence"
+
+msgid "light"
+msgstr "Clair"
+
+msgid "dark"
+msgstr "Sombre"
+
+msgid "system"
+msgstr "Système"
+
+msgid "lantern_email"
+msgstr "Adresse courriel dans Lantern"
+
+msgid "confirm_with_account"
+msgstr ""
+"Pour confirmer la suppression, veuillez vérifier avec votre compte %s ci-"
+"dessous :"
+
+msgid "oauth_different_account"
+msgstr ""
+"Le compte avec lequel vous essayez de vous connecter ne correspond pas au "
+"compte associé à cet e-mail. Veuillez vous connecter avec le bon compte ou "
+"choisir un autre e-mail."
+
+msgid "account_deleted"
+msgstr "Le compte a été supprimé"
+
+msgid "account_deleted_message"
+msgstr "Votre compte a été irrémédiablement supprimé."
+
+msgid "verify_with"
+msgstr "Vérifier avec %s"
+
+msgid "renew"
+msgstr "Renouveller"
+
+msgid "vpn_conflict_title"
+msgstr "Conflit de VPN détecté"
+
+msgid "vpn_conflict_body"
+msgstr ""
+"Un autre VPN est en cours d'exécution sur votre appareil. Lantern fonctionne"
+" mieux en tant que seul VPN actif. Pour de meilleurs résultats, veuillez le "
+"déconnecter avant d'utiliser Lantern."
+
+msgid "vpn_conflict_dismiss"
+msgstr "J’ai compris"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Se connecter quand même"
+
+msgid "err_check_connection"
+msgstr "Connexion impossible. Vérifiez votre connexion Internet."
+
+msgid "err_service_unavailable"
+msgstr "Service temporairement indisponible. Nouvelle tentative..."
+
+msgid "err_connection_failed"
+msgstr "Échec de la connexion. Veuillez réessayer."
+
+msgid "err_ruleset_failed"
+msgstr ""
+"Impossible de charger la configuration de routage. Nouvelle tentative..."
 
 msgid "update_now"
-msgstr "Update now"
+msgstr "Mettre à jour maintenant"
 
 msgid "later"
-msgstr "Later"
+msgstr "Plus tard"
 
 msgid "update_ready_to_install"
-msgstr "Lantern %s is ready to install"
+msgstr "Lantern %s est prêt à être installé"
 
 msgid "up_to_date"
-msgstr "Up to date"
+msgstr "À jour"
 
 msgid "running_latest_version"
-msgstr "You're running the latest version Lantern %s"
+msgstr "Vous utilisez la dernière version de Lantern %s"
 
 msgid "couldnt_check_for_updates"
-msgstr "Couldn't check for updates"
+msgstr "Impossible de rechercher des mises à jour"
 
 msgid "check_connection_and_retry"
-msgstr "Check your connection and try again"
+msgstr "Vérifiez votre connexion et réessayez"
+
+msgid "refresh_configuration"
+msgstr "Actualiser la configuration"
+
+msgid "configuration_cleared"
+msgstr "Configuration effacée"
+
+msgid "turn_off_vpn"
+msgstr "Désactiver le VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Le VPN doit être désactivé avant de pouvoir actualiser votre configuration. "
+"Désactivez-le, puis réessayez."
+
+msgid "configuration_message"
+msgstr ""
+"Votre ancienne configuration a été effacée. Activez le VPN pour télécharger "
+"automatiquement la plus récente."
+
+msgid "promo_referral_code"
+msgstr "Code promo / de parrainage"
+
+msgid "promo_code"
+msgstr "Code promo"
+
+msgid "promo_code_with"
+msgstr "Code promo (%s)"
+
+msgid "order_total"
+msgstr "Total de la commande"
 
 msgid "smart_routing_mode_description"
-msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+msgstr ""
+"La localisation intelligente choisit le serveur le plus rapide et change "
+"automatiquement dès qu'elle trouve de meilleurs itinéraires."
+
+msgid "bypass_browser_warning_title"
+msgstr "Ajouter %s à la liste de contournement ?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s se connectera directement, sans la protection de Lantern. Dans les pays "
+"qui bloquent certains sites web, certains sites cesseront de se charger."
+
+msgid "add_anyway"
+msgstr "Ajouter quand même"
+
+msgid "bypass_all_warning_title"
+msgstr "Ajouter toutes les applications à la liste de contournement ?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Cela inclut des navigateurs comme %s. Les applications de la liste de "
+"contournement se connectent directement, sans la protection de Lantern. Dans"
+" les pays qui bloquent certains sites web, certains sites cesseront de se "
+"charger."
+
+msgid "add_all_except_browsers"
+msgstr "Tout ajouter sauf les navigateurs"
+
+msgid "add_all_anyway"
+msgstr "Tout ajouter quand même"
+
+msgid "bypass_app_first_time_title"
+msgstr "Contourner le VPN pour cette application ?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s se connectera directement, sans la protection de Lantern. Si elle est "
+"bloquée dans votre pays, elle risque de ne plus fonctionner."
+
+msgid "bypass_website_first_time_title"
+msgstr "Contourner le VPN pour ce site web ?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s se connectera directement, sans la protection de Lantern. S'il est bloqué"
+" dans votre pays, il risque de ne plus fonctionner."
