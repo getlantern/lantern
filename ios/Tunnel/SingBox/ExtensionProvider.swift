@@ -78,10 +78,13 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   public func writeFatalError(_ message: String) {
-    appLogger.error(message)
-    var error: NSError?
-    LibboxWriteServiceError(message, &error)
-    cancelTunnelWithError(nil)
+    appLogger.error("\(message)")
+    let error = NSError(
+      domain: "org.getlantern.lantern.packettunnel",
+      code: 1,
+      userInfo: [NSLocalizedDescriptionKey: message]
+    )
+    cancelTunnelWithError(error)
   }
 
   func startVPN(completion: ((Bool, String?) -> Void)? = nil) {
