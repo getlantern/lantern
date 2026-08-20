@@ -330,9 +330,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
     try {
-      await _methodChannel.invokeMethod('setPeerManualPort', {
-        'port': port,
-      });
+      await _methodChannel.invokeMethod('setPeerManualPort', {'port': port});
       return right(unit);
     } catch (e, st) {
       appLogger.error('setPeerManualPort failed', e, st);
@@ -1133,7 +1131,7 @@ class LanternPlatformService implements LanternCoreService {
       final map = jsonDecode(utf8.decode(bytes));
       return Right(UserResponseModel.fromJson(map));
     } catch (e) {
-      appLogger.error('Error logging', e);
+      appLogger.error('Error logging ${e.toString()} ', e);
       return Left(e.toFailure());
     }
   }
