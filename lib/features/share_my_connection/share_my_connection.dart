@@ -392,32 +392,34 @@ class ShareNotifier extends Notifier<ShareState> {
         // bus → core.go listenPeerConnectionEvents → FlutterEvent → our
         // Dart subscription.
         //
-        // Failures AFTER peer.Client.Start surface via a phase=error
-        // StatusEvent that _handlePeerStatus turns into a terminal-
-        // state reset (mode=off, phase=error). Failures BEFORE
-        // Start (IPC error, MissingPluginException, core not
-        // initialized) don't go through that path, so check the
-        // setPeerProxy Either here and revert UI state to
-        // mode=off, phase=error directly.
+        // A failed Start reports itself twice: as a phase=error
+        // StatusEvent, and as the error setPeerProxy returns, since
+        // radiance propagates Start's error out through the settings
+        // patch. Both are handled the same way — fall back to Unbounded
+        // — and _fallbackToUnbounded ignores whichever arrives second.
         final smcRes = await widgetRef
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(true);
         smcRes.fold(
           (err) {
-            appLogger.error('SmC setPeerProxy failed: ${err.error}');
-            _stopEventSubscription();
-            state = ShareState(
-              active: false,
-              probing: false,
-              mode: ShareMode.off,
-              activeCount: 0,
-              // Preserve lifetime totalCount across a failed Start — the
-              // persisted "Total people helped to date" stat is set
-              // independent of the active session's outcome.
-              totalCount: state.totalCount,
-              phase: SharePhase.error,
-              errorMessage: err.error,
+            // Falls back rather than reporting. setPeerProxy returns
+            // peer.Client.Start's own failure, not just the pre-Start errors
+            // this once assumed, and a router that will not forward a port is
+            // the most common way it fails. Reporting that as terminal put
+            // "Couldn't share: ..." on the card while Unbounded was already
+            // running underneath, so the user saw a failure and a working
+            // session at once.
+            //
+            // radiance rolls PeerShareEnabledKey back before returning, so SmC
+            // is definitively not running and falling back is all that is left
+            // to do. Genuine pre-Start failures (IPC down,
+            // MissingPluginException) land here too and want the same thing:
+            // the user asked to share, and Unbounded is the way that still
+            // works. If that fails too, _fallbackToUnbounded surfaces it.
+            appLogger.error(
+              'SmC setPeerProxy failed, falling back to Unbounded: ${err.error}',
             );
+            unawaited(_fallbackToUnbounded(widgetRef));
           },
           (_) => null,
         );
@@ -676,6 +678,14 @@ class ShareNotifier extends Notifier<ShareState> {
   // regardless of SmC's outcome, and raw protocol error text never
   // reaches the status card.
   void _handlePeerStatus(String message, WidgetRef widgetRef) {
+    // peer-status describes an SmC session, so it has nothing to say about any
+    // other mode. Dropping it otherwise is what keeps a failed start from
+    // reporting itself after the fallback has already handled it: if
+    // setPeerProxy's error arrives before the phase=error event, mode is
+    // already unbounded by the time that event lands, the SmC branches below
+    // no longer match, and the copyWith at the end would write the SmC error
+    // straight onto the working Unbounded session.
+    if (state.mode != ShareMode.smc) return;
     try {
       final payload = jsonDecode(message) as Map<String, dynamic>;
       final phase = SharePhase.fromWire(payload['phase'] as String?);
@@ -690,14 +700,14 @@ class ShareNotifier extends Notifier<ShareState> {
       //   idle  → clean stop (user toggled off, or radiance
       //           transitioned through stopping → idle). Tear down
       //           the event subscription and return to off.
-      if (phase == SharePhase.error && state.mode == ShareMode.smc) {
+      if (phase == SharePhase.error) {
         appLogger.info(
           'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
         );
         unawaited(_fallbackToUnbounded(widgetRef));
         return;
       }
-      if (phase == SharePhase.idle && state.mode == ShareMode.smc) {
+      if (phase == SharePhase.idle) {
         _stopEventSubscription();
         // Preserve totalCount across the radiance-driven idle reset —
         // lifetime running total is persisted via appSettingProvider and
@@ -732,6 +742,12 @@ class ShareNotifier extends Notifier<ShareState> {
   // the new (Unbounded) mode. _stop is the only teardown path for the
   // subscription, and the error path doesn't go through _stop.
   Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
+    // One failed Start arrives here twice: from the phase=error event and from
+    // setPeerProxy's returned error. Without this guard Unbounded is started
+    // twice and the second call races the first one's state. A plain field
+    // check suffices — both callers run on the main isolate and the mode flip
+    // below is synchronous, so whichever arrives second always observes it.
+    if (state.mode == ShareMode.unbounded) return;
     state = ShareState(
       active: true,
       probing: false,
