@@ -134,10 +134,11 @@ class NotificationHelper {
     }
 
     private fun disconnectVPN(): PendingIntent {
-        val intent = Intent(ACTION_STOP_VPN).setPackage(
-            LanternApp.application.packageName
-        )
-        return PendingIntent.getBroadcast(
+        // Service intent, not broadcast: works even if the status receiver
+        // was torn down.
+        val intent = Intent(LanternApp.application, LanternVpnService::class.java)
+            .setAction(ACTION_STOP_VPN)
+        return PendingIntent.getService(
             LanternApp.application,
             0,
             intent,

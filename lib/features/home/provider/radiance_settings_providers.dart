@@ -111,10 +111,14 @@ class RadianceSettings extends _$RadianceSettings {
 
   /// Enable/disable the peer-proxy (Share My Connection) radiance
   /// setting. Returns the underlying Either so the caller can react to
-  /// failure — share_my_connection.dart's _start depends on it to
-  /// revert UI state if the setting flip fails before peer.Client
-  /// emits its own phase=error StatusEvent. Internal logging still
-  /// happens on failure for fire-and-forget call sites.
+  /// failure.
+  ///
+  /// That Either carries peer.Client.Start's own failure, not merely a
+  /// failure to flip the setting: radiance runs Start synchronously under
+  /// the settings patch and propagates its error out. So a caller sees the
+  /// same failure twice — here and as a phase=error StatusEvent — and must
+  /// not treat this one as a distinct, earlier class of problem. Internal
+  /// logging still happens on failure for fire-and-forget call sites.
   Future<Either<Failure, Unit>> setPeerProxy(bool value) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setPeerProxyEnabled(value);

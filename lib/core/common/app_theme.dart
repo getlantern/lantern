@@ -64,6 +64,8 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      // desktop defaults to compact density, which shrinks buttons by 8px
+      visualDensity: VisualDensity.standard,
       colorScheme: cs,
       hoverColor: AppColors.blue1,
       scaffoldBackgroundColor: AppColors.gray1, // bg.surface
@@ -283,6 +285,8 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      // desktop defaults to compact density, which shrinks buttons by 8px
+      visualDensity: VisualDensity.standard,
       brightness: Brightness.dark,
       colorScheme: cs,
       hoverColor: AppColors.blue9,
