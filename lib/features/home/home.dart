@@ -271,48 +271,53 @@ class Home extends HookConsumerWidget {
                     ),
                   ),
                   child: TabBar(
-                controller: tabController,
-                // The pill is drawn by each _TabLabel itself (hugging its
-                // own content with 24px side padding, per spec) rather than
-                // through TabBar's indicator geometry, which can only size
-                // itself to the tab's full flex slot or its label's
-                // intrinsic size — neither hugs content with extra padding
-                // the way the spec wants. The indicator here is fully
-                // transparent; splashBorderRadius still rounds the
-                // hover/press overlay into a pill instead of a square.
-                indicator: const BoxDecoration(),
-                labelPadding: EdgeInsets.zero,
-                splashBorderRadius: BorderRadius.circular(9999),
-                overlayColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.hovered) ||
-                      states.contains(WidgetState.pressed)) {
-                    return context.bgHover; // action/bg-hover
-                  }
-                  return null;
-                }),
-                dividerColor: Colors.transparent,
-                labelColor:
-                    context.actionTabbarSelectedText, // tabbar-selected-text
-                unselectedLabelColor:
-                    context.actionTabbarDisabledText, // tabbar-disabled-text
-                labelStyle: Theme.of(context).textTheme.titleSmall, // subtitle/small
-                unselectedLabelStyle: Theme.of(context).textTheme.titleSmall,
-                tabs: [
-                  _TabLabel(
-                    label: 'vpn'.i18n,
-                    iconPath: AppImagePaths.vpnKey,
-                    iconFillPath: AppImagePaths.vpnKeyFill,
-                    selected: !onUnboundedTab.value,
-                    active: vpnStatus == VPNStatus.connected,
-                  ),
-                  _TabLabel(
-                    label: 'unbounded'.i18n,
-                    iconPath: AppImagePaths.handshake,
-                    iconFillPath: AppImagePaths.handshakeFill,
-                    selected: onUnboundedTab.value,
-                    active: shareActive,
-                  ),
-                ],
+                    controller: tabController,
+                    // The pill is drawn by each _TabLabel itself (hugging
+                    // its own content with 24px side padding, per spec)
+                    // rather than through TabBar's indicator geometry,
+                    // which can only size itself to the tab's full flex
+                    // slot or its label's intrinsic size — neither hugs
+                    // content with extra padding the way the spec wants.
+                    // The indicator here is fully transparent;
+                    // splashBorderRadius still rounds the hover/press
+                    // overlay into a pill instead of a square.
+                    indicator: const BoxDecoration(),
+                    labelPadding: EdgeInsets.zero,
+                    splashBorderRadius: BorderRadius.circular(9999),
+                    overlayColor: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.hovered) ||
+                          states.contains(WidgetState.pressed)) {
+                        return context.bgHover; // action/bg-hover
+                      }
+                      return null;
+                    }),
+                    dividerColor: Colors.transparent,
+                    labelColor: context
+                        .actionTabbarSelectedText, // tabbar-selected-text
+                    unselectedLabelColor: context
+                        .actionTabbarDisabledText, // tabbar-disabled-text
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.titleSmall, // subtitle/small
+                    unselectedLabelStyle: Theme.of(
+                      context,
+                    ).textTheme.titleSmall,
+                    tabs: [
+                      _TabLabel(
+                        label: 'vpn'.i18n,
+                        iconPath: AppImagePaths.vpnKey,
+                        iconFillPath: AppImagePaths.vpnKeyFill,
+                        selected: !onUnboundedTab.value,
+                        active: vpnStatus == VPNStatus.connected,
+                      ),
+                      _TabLabel(
+                        label: 'unbounded'.i18n,
+                        iconPath: AppImagePaths.handshake,
+                        iconFillPath: AppImagePaths.handshakeFill,
+                        selected: onUnboundedTab.value,
+                        active: shareActive,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -321,10 +326,7 @@ class Home extends HookConsumerWidget {
           ? const VpnTab()
           : TabBarView(
               controller: tabController,
-              children: const [
-                VpnTab(),
-                UnboundedTab(),
-              ],
+              children: const [VpnTab(), UnboundedTab()],
             ),
       bottomNavigationBar: !showUnboundedTab || !PlatformUtils.isMobile
           ? null
@@ -439,38 +441,38 @@ class _MobileTabBar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Container(
-        height: 64,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: context.bgElevated,
-          border: Border.all(color: context.borderDefault),
-          borderRadius: BorderRadius.circular(9999),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _MobileTabButton(
-                label: 'vpn'.i18n,
-                iconPath: AppImagePaths.vpnKey,
-                iconFillPath: AppImagePaths.vpnKeyFill,
-                selected: vpnSelected,
-                active: vpnActive,
-                onTap: onSelectVpn,
+          height: 64,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: context.bgElevated,
+            border: Border.all(color: context.borderDefault),
+            borderRadius: BorderRadius.circular(9999),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _MobileTabButton(
+                  label: 'vpn'.i18n,
+                  iconPath: AppImagePaths.vpnKey,
+                  iconFillPath: AppImagePaths.vpnKeyFill,
+                  selected: vpnSelected,
+                  active: vpnActive,
+                  onTap: onSelectVpn,
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _MobileTabButton(
-                label: 'unbounded'.i18n,
-                iconPath: AppImagePaths.handshake,
-                iconFillPath: AppImagePaths.handshakeFill,
-                selected: !vpnSelected,
-                active: unboundedActive,
-                onTap: onSelectUnbounded,
+              const SizedBox(width: 16),
+              Expanded(
+                child: _MobileTabButton(
+                  label: 'unbounded'.i18n,
+                  iconPath: AppImagePaths.handshake,
+                  iconFillPath: AppImagePaths.handshakeFill,
+                  selected: !vpnSelected,
+                  active: unboundedActive,
+                  onTap: onSelectUnbounded,
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
@@ -507,50 +509,49 @@ class _MobileTabButton extends StatelessWidget {
       selected: selected,
       button: true,
       child: Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(9999),
-        onTap: onTap,
-        child: Container(
-          decoration: selected
-              ? BoxDecoration(
-                  color: context.actionTabbarBg,
-                  border: Border.all(color: context.actionTabbarBorder),
-                  borderRadius: BorderRadius.circular(9999),
-                )
-              : null,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AppImage(
-                path: selected ? iconFillPath : iconPath,
-                width: 24,
-                height: 24,
-                color: labelColor,
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    label,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(color: labelColor),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Center(child: StatusDot(active: active)),
-                  ),
-                ],
-              ),
-            ],
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(9999),
+          onTap: onTap,
+          child: Container(
+            decoration: selected
+                ? BoxDecoration(
+                    color: context.actionTabbarBg,
+                    border: Border.all(color: context.actionTabbarBorder),
+                    borderRadius: BorderRadius.circular(9999),
+                  )
+                : null,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AppImage(
+                  path: selected ? iconFillPath : iconPath,
+                  width: 24,
+                  height: 24,
+                  color: labelColor,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleSmall?.copyWith(color: labelColor),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Center(child: StatusDot(active: active)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
