@@ -220,7 +220,7 @@ IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
-TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_grpc,with_conntrack
+TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_grpc
 
 WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
 
