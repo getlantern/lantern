@@ -53,7 +53,7 @@ class UnboundedSetting extends ConsumerWidget {
                       letterSpacing: 0.0,
                     ),
                   ),
-                  icon: AppImagePaths.share,
+                  icon: Icons.auto_mode,
                   trailing: SwitchButton(
                     value: autoEnable,
                     onChanged: (v) =>
@@ -73,7 +73,7 @@ class UnboundedSetting extends ConsumerWidget {
                       letterSpacing: 0.0,
                     ),
                   ),
-                  icon: const Icon(Icons.visibility_off_outlined),
+                  icon: Icons.visibility_off_outlined,
                   trailing: SwitchButton(
                     value: hidden,
                     onChanged: notifier.setUnboundedHidden,

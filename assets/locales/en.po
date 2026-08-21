@@ -639,6 +639,9 @@ msgstr "Status"
 msgid "smc_status_off"
 msgstr "Off"
 
+msgid "smc_status_configuring"
+msgstr "Configuring network"
+
 msgid "smc_status_probing"
 msgstr "Probing your network…"
 
@@ -764,7 +767,7 @@ msgid "hide_unbounded"
 msgstr "Hide Unbounded"
 
 msgid "hide_unbounded_subtitle"
-msgstr "Removes Unbounded from the top of this screen"
+msgstr "Removes Unbounded from the UI"
 
 msgid "vpn_connected"
 msgstr "Lantern is now connected."
