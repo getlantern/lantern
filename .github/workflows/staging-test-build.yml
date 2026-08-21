@@ -1,0 +1,126 @@
+name: Build staging-backed Lantern test app
+
+on:
+  workflow_dispatch:
+    inputs:
+      backend_environment:
+        description: "Backend environment compiled into the test app"
+        required: true
+        type: choice
+        options:
+          - staging
+        default: staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-test-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate isolated test build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a staging feature-branch dispatch
+        shell: bash
+        env:
+          BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          EVENT_NAME: ${{ github.event_name }}
+          SOURCE_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          [[ "$EVENT_NAME" == "workflow_dispatch" ]] || {
+            echo "This workflow can only run through a manual dispatch." >&2
+            exit 1
+          }
+          [[ "$BACKEND_ENVIRONMENT" == "staging" ]] || {
+            echo "Only the staging backend is supported by this test workflow." >&2
+            exit 1
+          }
+          [[ "$SOURCE_REF" != refs/tags/* ]] || {
+            echo "Staging-backed test builds cannot run from release tags." >&2
+            exit 1
+          }
+          [[ "$SOURCE_REF" != "refs/heads/$DEFAULT_BRANCH" ]] || {
+            echo "Staging-backed test builds cannot run from the default branch." >&2
+            exit 1
+          }
+
+  prepare:
+    name: Prepare isolated build metadata
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Create test-only version
+        id: metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEXT_VERSION="$(./scripts/ci/version.sh generate nightly)"
+          DISPLAY_VERSION="$(./scripts/ci/version.sh extract "$NEXT_VERSION")"
+          SHORT_SHA="$(git rev-parse --short=7 HEAD)"
+          BUILD_NUMBER="$((50000 + GITHUB_RUN_NUMBER))"
+          VERSION="${DISPLAY_VERSION}-staging.${GITHUB_RUN_NUMBER}.${SHORT_SHA}"
+
+          [[ "$DISPLAY_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$BUILD_NUMBER" -le 65535 ]] || {
+            echo "Generated macOS build number exceeds 65535: $BUILD_NUMBER" >&2
+            exit 1
+          }
+
+          sed -i.bak -E "s/^version:.*/version: ${DISPLAY_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
+          rm pubspec.yaml.bak
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Isolated staging test build"
+            echo "- Source: \`$GITHUB_REF\` at \`$SHORT_SHA\`"
+            echo "- Backend: \`${{ inputs.backend_environment }}\`"
+            echo "- App version: \`$VERSION\`"
+            echo "- Distribution: GitHub Actions artifacts only (2-day retention)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload versioned pubspec
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-test-pubspec
+          path: pubspec.yaml
+          if-no-files-found: error
+          retention-days: 2
+
+  build-macos:
+    name: Build staging-backed macOS app
+    needs:
+      - validate
+      - prepare
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-macos.yml
+    secrets:
+      AC_USERNAME: ${{ secrets.AC_USERNAME }}
+      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      APP_ENV: ${{ secrets.APP_ENV }}
+      MACOS_BNS_CERT: ${{ secrets.MACOS_BNS_CERT }}
+      MACOS_BNS_CERT_PASS: ${{ secrets.MACOS_BNS_CERT_PASS }}
+      MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.MACOS_PROVISION_PROFILE_BASE64 }}
+      MACOS_PROVISION_TUNNEL_BASE64: ${{ secrets.MACOS_PROVISION_TUNNEL_BASE64 }}
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: staging-test
+      backend_environment: ${{ inputs.backend_environment }}
+      installer_base_name: lantern-installer
+      pubspec_artifact: staging-test-pubspec
+      sign_update_artifact: false
+      run_connect_smoke: false
+      run_payment_smoke: false

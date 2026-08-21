@@ -7,6 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/utils/radiance_environment.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
@@ -51,7 +52,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   AppSetting build() {
     final settings = _fetchStoredSettings();
     unawaited(_applyDesktopBrightness(resolveThemeMode(settings.themeMode)));
-    unawaited(_detectEnvironmentFromFile());
+    unawaited(_detectEnvironment());
     return settings;
   }
 
@@ -179,10 +180,8 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     appLogger.info('Environment set to: $env');
   }
 
-  Future<void> _detectEnvironmentFromFile() async {
-    final dir = await AppStorageUtils.getAppDirectory();
-    final envFile = File('${dir.path}/.radiance_env');
-    final env = envFile.existsSync() ? 'stage' : 'prod';
+  Future<void> _detectEnvironment() async {
+    final env = await radianceEnvironment();
     update(state.copyWith(environment: env));
   }
 

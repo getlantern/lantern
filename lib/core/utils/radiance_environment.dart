@@ -7,15 +7,30 @@ const _environmentOverride = String.fromEnvironment('RADIANCE_ENV');
 
 /// Returns the Radiance backend selected for this process.
 Future<String> radianceEnvironment() async {
-  if (_environmentOverride.isNotEmpty) {
-    return normalizeRadianceEnvironment(_environmentOverride);
+  return resolveRadianceEnvironment(
+    buildOverride: _environmentOverride,
+    releaseMode: kReleaseMode,
+    stagingMarkerExists: () async {
+      final directory = await AppStorageUtils.getAppDirectory();
+      final marker = File('${directory.path}/.radiance_env');
+      return marker.exists();
+    },
+  );
+}
+
+@visibleForTesting
+Future<String> resolveRadianceEnvironment({
+  required String buildOverride,
+  required bool releaseMode,
+  required Future<bool> Function() stagingMarkerExists,
+}) async {
+  if (buildOverride.isNotEmpty) {
+    return normalizeRadianceEnvironment(buildOverride);
   }
-  if (kReleaseMode) {
+  if (releaseMode) {
     return 'prod';
   }
-  final directory = await AppStorageUtils.getAppDirectory();
-  final marker = File('${directory.path}/.radiance_env');
-  return await marker.exists() ? 'stage' : 'prod';
+  return await stagingMarkerExists() ? 'stage' : 'prod';
 }
 
 @visibleForTesting
