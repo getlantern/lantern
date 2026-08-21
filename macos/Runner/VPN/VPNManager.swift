@@ -115,24 +115,41 @@ class VPNManager: VPNBase {
   /// Throws rather than logging: every caller starts a tunnel immediately
   /// afterwards, and starting one against a profile we failed to repair or
   /// rebuild is the silent failure this whole path exists to prevent.
-  private func setupVPN() async throws {
+  ///
+  /// `operationID` gates every write. The preference calls below can block on a
+  /// system permission prompt, and `beginStopOperation()` waits only 5s for this
+  /// operation to hand the manager back — past that a stop proceeds to teardown
+  /// while this call is still running, so a canceled start must not still be
+  /// removing profiles or saving new ones underneath it.
+  private func setupVPN(operationID: UInt) async throws {
     let managers = try await NETunnelProviderManager.loadAllFromPreferences()
     if let reusable = await firstLaunchableProfile(among: managers) {
+      try await repairProfile(reusable, operationID: operationID)
+      // Adopted only once it is known good, so a concurrent stop never sees a
+      // half-repaired manager.
       self.manager = reusable
-      try await repairProfile(reusable)
       appLogger.log("Reusing existing VPN profile")
       return
     }
+    try await requireOperation(operationID)
     if managers.isEmpty {
       appLogger.log("No VPN profiles found, creating new profile")
     } else {
       appLogger.log("No saved VPN profile is launchable by this build, rebuilding")
       try await removeExistingVPNProfiles()
     }
-    createNewProfile()
-    try await self.manager.saveToPreferences()
-    try await self.manager.loadFromPreferences()
+    let created = createNewProfile()
+    try await created.saveToPreferences()
+    try await created.loadFromPreferences()
+    self.manager = created
     appLogger.log("Created and loaded new VPN profile")
+  }
+
+  /// Throws when a stop has canceled this connection operation.
+  private func requireOperation(_ operationID: UInt) async throws {
+    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
+      throw VPNManagerError.operationInProgress
+    }
   }
 
   /// Returns the first saved profile this build can actually launch.
@@ -171,12 +188,16 @@ class VPNManager: VPNBase {
   }
 
   /// Applies the corrections a launchable profile needs before use.
-  private func repairProfile(_ manager: NETunnelProviderManager) async throws {
+  private func repairProfile(
+    _ manager: NETunnelProviderManager,
+    operationID: UInt
+  ) async throws {
     let repairs = vpnProfileRepairs(
       currentName: manager.localizedDescription,
       isEnabled: manager.isEnabled
     )
     guard !repairs.isEmpty else { return }
+    try await requireOperation(operationID)
     if let rename = repairs.rename {
       appLogger.log(
         "Renaming VPN profile \(manager.localizedDescription ?? "Unnamed") to \(rename)")
@@ -190,8 +211,9 @@ class VPNManager: VPNBase {
     try await manager.loadFromPreferences()
   }
 
-  // Sets up a new VPN configuration for Lantern.
-  private func createNewProfile() {
+  /// Builds a fresh VPN configuration for Lantern. The caller adopts it only
+  /// after it has been saved and reloaded.
+  private func createNewProfile() -> NETunnelProviderManager {
     let manager = NETunnelProviderManager()
     let tunnelProtocol = NETunnelProviderProtocol()
     tunnelProtocol.providerBundleIdentifier = VPNProfileIdentity.providerBundleID
@@ -205,7 +227,7 @@ class VPNManager: VPNBase {
     manager.onDemandRules = [alwaysConnectRule]
 
     manager.isOnDemandEnabled = false
-    self.manager = manager
+    return manager
   }
 
   // MARK: - VPN Control Methods
@@ -220,7 +242,7 @@ class VPNManager: VPNBase {
 
   private func startTunnel(operationID: UInt) async throws {
     appLogger.log("Starting tunnel..")
-    try await self.setupVPN()
+    try await self.setupVPN(operationID: operationID)
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw VPNManagerError.operationInProgress
     }
@@ -247,7 +269,7 @@ class VPNManager: VPNBase {
   }
 
   private func connectToServer(serverName: String, operationID: UInt) async throws {
-    try await self.setupVPN()
+    try await self.setupVPN(operationID: operationID)
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw VPNManagerError.operationInProgress
     }
