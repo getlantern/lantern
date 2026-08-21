@@ -158,6 +158,22 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Opt this project out of Flutter's Swift Package Manager auto-migration
+  # for iOS/macOS. The project resolves all native darwin dependencies via
+  # CocoaPods (macos/Podfile, ios/Podfile) and has no checked-in
+  # Package.swift/Package.resolved. `flutter run`/`flutter build` silently
+  # add SwiftPM integration on top of that when the local `flutter config`
+  # has enable-swift-package-manager on (as it does on some dev machines),
+  # which breaks the macOS build: screen_retriever_macos's own Package.swift
+  # still declares a macOS 10.14 minimum, one below the 10.15 the new
+  # FlutterFramework SwiftPM product requires, so Xcode fails with "package
+  # product 'FlutterFramework' requires minimum platform version 10.15 ...
+  # but this target supports 10.14 (in target 'screen_retriever_macos')".
+  # Disabling SPM here keeps every machine on the CocoaPods path that
+  # already works, regardless of that machine's global flutter config.
+  config:
+    enable-swift-package-manager: false
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
