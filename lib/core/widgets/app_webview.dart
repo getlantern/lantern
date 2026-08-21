@@ -24,6 +24,35 @@ abstract interface class AppWebViewObserver {
   void onPageLoadFailed(Uri? uri, String reason);
 }
 
+/// Returns the UI handoff result encoded by Lantern's checkout callback.
+///
+/// Callers must confirm the user's account status with the backend before
+/// treating a successful handoff as a completed purchase.
+bool? webViewPurchaseResult(Uri uri) {
+  if (uri.host != 'lantern.io' && uri.host != 'www.lantern.io') return null;
+
+  var value = uri.queryParameters['purchaseResult'];
+  if (value == null && uri.fragment.isNotEmpty) {
+    final fragment = uri.fragment;
+    final normalized = fragment.startsWith('/?')
+        ? fragment.substring(2)
+        : fragment.startsWith('?')
+        ? fragment.substring(1)
+        : fragment;
+    try {
+      value = Uri.splitQueryString(normalized)['purchaseResult'];
+    } on FormatException {
+      return null;
+    }
+  }
+  if (value == null) return null;
+  return switch (value.toLowerCase()) {
+    'true' => true,
+    'false' => false,
+    _ => null,
+  };
+}
+
 class WebViewLoading extends Notifier<bool> {
   @override
   bool build() => false;
@@ -88,6 +117,8 @@ class _InnerWebView extends StatefulHookConsumerWidget {
 }
 
 class _InnerWebViewState extends ConsumerState<_InnerWebView> {
+  bool _completionHandled = false;
+
   final setting = InAppWebViewSettings(
     javaScriptEnabled: true,
     javaScriptCanOpenWindowsAutomatically: true,
@@ -144,27 +175,37 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         return false;
       },
       onLoadStart: (_, webUri) async {
-        // Handle load start
+        final uri = webUri == null ? null : Uri.tryParse(webUri.toString());
+        // WebView2 can report redirected POST navigations as aborted before
+        // onLoadStop fires. Consume trusted completion URLs as soon as the
+        // navigation starts so the purchase result still reaches the caller.
+        if (await _handleCompletionUrl(uri, allowLocalhost: false)) return;
+        if (!mounted) return;
         final loading = ref.read(webViewLoadingProvider.notifier);
         loading.start();
       },
-      onLoadStop: (controller, webUri) async {
-        ref.read(webViewLoadingProvider.notifier).stop();
+      onUpdateVisitedHistory: (_, webUri, _) async {
         final uri = webUri == null ? null : Uri.tryParse(webUri.toString());
+        await _handleCompletionUrl(uri, allowLocalhost: false);
+      },
+      onLoadStop: (controller, webUri) async {
+        final uri = webUri == null ? null : Uri.tryParse(webUri.toString());
+        if (await _handleCompletionUrl(uri)) return;
+        if (!mounted) return;
+        ref.read(webViewLoadingProvider.notifier).stop();
         await _reportPageLoaded(controller, uri);
-        await _handleCompletionUrl(uri);
       },
       onReceivedError: (_, webResourceRequest, error) async {
+        if (webResourceRequest.isForMainFrame != true) return;
+        final uri = Uri.tryParse(webResourceRequest.url.toString());
+        if (await _handleCompletionUrl(uri)) return;
+        if (!mounted) return;
         appLogger.error("Received error: $error");
         ref.read(webViewLoadingProvider.notifier).stop();
-        final uri = Uri.tryParse(webResourceRequest.url.toString());
-        if (webResourceRequest.isForMainFrame == true) {
-          widget.observer?.onPageLoadFailed(
-            uri,
-            '${error.type}: ${error.description}',
-          );
-        }
-        await _handleCompletionUrl(uri);
+        widget.observer?.onPageLoadFailed(
+          uri,
+          '${error.type}: ${error.description}',
+        );
       },
       onReceivedHttpError: (_, request, response) {
         if (request.isForMainFrame != true) return;
@@ -219,59 +260,32 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
   bool isLanternHost(String host) =>
       host == 'lantern.io' || host == 'www.lantern.io';
 
-  String? _extractPurchaseResult(Uri uri) {
-    var purchaseResult = uri.queryParameters['purchaseResult'];
-    if (purchaseResult != null) {
-      return purchaseResult;
-    }
-
-    if (uri.fragment.isEmpty) {
-      return null;
-    }
-
-    final frag = uri.fragment;
-    final normalized = frag.startsWith('/?')
-        ? frag.substring(2)
-        : frag.startsWith('?')
-        ? frag.substring(1)
-        : frag;
-
-    try {
-      final fragParams = Uri.splitQueryString(normalized);
-      return fragParams['purchaseResult'];
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<bool> _handleCompletionUrl(Uri? uri) async {
+  Future<bool> _handleCompletionUrl(
+    Uri? uri, {
+    bool allowLocalhost = true,
+  }) async {
+    if (_completionHandled) return true;
     if (uri == null) {
       return false;
     }
 
-    final loading = ref.read(webViewLoadingProvider.notifier);
-
     // User has completed private server setup.
-    if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
-      loading.stop();
-      await appRouter.maybePop(true);
-      return true;
+    if (allowLocalhost &&
+        (uri.host == 'localhost' || uri.host == '127.0.0.1')) {
+      return _finishCompletion(true);
     }
 
     // OAuth callback.
     if (uri.scheme == 'lantern' &&
         uri.host == 'auth' &&
         uri.queryParameters.containsKey('token')) {
-      loading.stop();
-      await appRouter.maybePop(uri.queryParameters);
-      return true;
+      return _finishCompletion(uri.queryParameters);
     }
 
-    final purchaseResult = _extractPurchaseResult(uri);
-    if (purchaseResult != null && isLanternHost(uri.host)) {
-      loading.stop();
-      await appRouter.maybePop(purchaseResult.toLowerCase() == 'true');
-      return true;
+    final purchaseResult = webViewPurchaseResult(uri);
+    if (purchaseResult != null) {
+      appLogger.info('Webview detected purchase completion on ${uri.host}');
+      return _finishCompletion(purchaseResult);
     }
 
     /// Alipay trade_status=TRADE_SUCCESS once the user has finished paying.
@@ -280,20 +294,25 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       appLogger.info(
         'Webview detected Alipay trade_status=TRADE_SUCCESS on ${uri.host}, closing',
       );
-      loading.stop();
-      await appRouter.maybePop(true);
-      return true;
+      return _finishCompletion(true);
     }
 
     if (isLanternHost(uri.host) &&
         uri.path == '/auth' &&
         uri.queryParameters.containsKey('token')) {
-      loading.stop();
-      await appRouter.maybePop(uri.queryParameters);
-      return true;
+      return _finishCompletion(uri.queryParameters);
     }
 
     return false;
+  }
+
+  Future<bool> _finishCompletion(Object result) async {
+    if (_completionHandled) return true;
+    _completionHandled = true;
+    if (!mounted) return true;
+    ref.read(webViewLoadingProvider.notifier).stop();
+    await appRouter.maybePop(result);
+    return true;
   }
 
   Future<NavigationActionPolicy?> shouldOverrideUrlLoading(

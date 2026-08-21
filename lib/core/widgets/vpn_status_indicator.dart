@@ -8,28 +8,38 @@ class VPNStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    late String indicator;
     switch (status) {
       case VPNStatus.connected:
-        indicator = AppImagePaths.vpnConnected;
-        break;
+        return const StatusDot(active: true);
       case VPNStatus.disconnected:
-        indicator = AppImagePaths.vpnDisconnected;
-        break;
+        return const StatusDot(active: false);
       case VPNStatus.connecting:
-        indicator = AppImagePaths.vpnConnecting;
-        break;
       case VPNStatus.missingPermission:
       case VPNStatus.error:
       case VPNStatus.disconnecting:
-        indicator = AppImagePaths.vpnConnecting;
-        break;
+        return const AppImage(
+          path: AppImagePaths.vpnConnecting,
+          useThemeColor: false,
+        );
     }
+  }
+}
 
+/// Green/grey status light shared by every "is this feature running" surface
+/// in the app (VPN status row, VPN/Unbounded tab strip) so they all read the
+/// same on/off signal the same way. Reuses the exact assets and grey-tint
+/// trick VPNStatusIndicator uses for its connected/disconnected states.
+class StatusDot extends StatelessWidget {
+  final bool active;
+
+  const StatusDot({super.key, required this.active});
+
+  @override
+  Widget build(BuildContext context) {
     return AppImage(
-      path: indicator,
+      path: active ? AppImagePaths.vpnConnected : AppImagePaths.vpnDisconnected,
       useThemeColor: false,
-      color: status == VPNStatus.disconnected ? AppColors.gray3 : null,
+      color: active ? null : AppColors.gray3,
     );
   }
 }

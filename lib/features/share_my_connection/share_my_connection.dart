@@ -29,6 +29,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -392,32 +393,34 @@ class ShareNotifier extends Notifier<ShareState> {
         // bus → core.go listenPeerConnectionEvents → FlutterEvent → our
         // Dart subscription.
         //
-        // Failures AFTER peer.Client.Start surface via a phase=error
-        // StatusEvent that _handlePeerStatus turns into a terminal-
-        // state reset (mode=off, phase=error). Failures BEFORE
-        // Start (IPC error, MissingPluginException, core not
-        // initialized) don't go through that path, so check the
-        // setPeerProxy Either here and revert UI state to
-        // mode=off, phase=error directly.
+        // A failed Start reports itself twice: as a phase=error
+        // StatusEvent, and as the error setPeerProxy returns, since
+        // radiance propagates Start's error out through the settings
+        // patch. Both are handled the same way — fall back to Unbounded
+        // — and _fallbackToUnbounded ignores whichever arrives second.
         final smcRes = await widgetRef
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(true);
         smcRes.fold(
           (err) {
-            appLogger.error('SmC setPeerProxy failed: ${err.error}');
-            _stopEventSubscription();
-            state = ShareState(
-              active: false,
-              probing: false,
-              mode: ShareMode.off,
-              activeCount: 0,
-              // Preserve lifetime totalCount across a failed Start — the
-              // persisted "Total people helped to date" stat is set
-              // independent of the active session's outcome.
-              totalCount: state.totalCount,
-              phase: SharePhase.error,
-              errorMessage: err.error,
+            // Falls back rather than reporting. setPeerProxy returns
+            // peer.Client.Start's own failure, not just the pre-Start errors
+            // this once assumed, and a router that will not forward a port is
+            // the most common way it fails. Reporting that as terminal put
+            // "Couldn't share: ..." on the card while Unbounded was already
+            // running underneath, so the user saw a failure and a working
+            // session at once.
+            //
+            // radiance rolls PeerShareEnabledKey back before returning, so SmC
+            // is definitively not running and falling back is all that is left
+            // to do. Genuine pre-Start failures (IPC down,
+            // MissingPluginException) land here too and want the same thing:
+            // the user asked to share, and Unbounded is the way that still
+            // works. If that fails too, _fallbackToUnbounded surfaces it.
+            appLogger.error(
+              'SmC setPeerProxy failed, falling back to Unbounded: ${err.error}',
             );
+            unawaited(_fallbackToUnbounded(widgetRef));
           },
           (_) => null,
         );
@@ -676,6 +679,14 @@ class ShareNotifier extends Notifier<ShareState> {
   // regardless of SmC's outcome, and raw protocol error text never
   // reaches the status card.
   void _handlePeerStatus(String message, WidgetRef widgetRef) {
+    // peer-status describes an SmC session, so it has nothing to say about any
+    // other mode. Dropping it otherwise is what keeps a failed start from
+    // reporting itself after the fallback has already handled it: if
+    // setPeerProxy's error arrives before the phase=error event, mode is
+    // already unbounded by the time that event lands, the SmC branches below
+    // no longer match, and the copyWith at the end would write the SmC error
+    // straight onto the working Unbounded session.
+    if (state.mode != ShareMode.smc) return;
     try {
       final payload = jsonDecode(message) as Map<String, dynamic>;
       final phase = SharePhase.fromWire(payload['phase'] as String?);
@@ -690,14 +701,14 @@ class ShareNotifier extends Notifier<ShareState> {
       //   idle  → clean stop (user toggled off, or radiance
       //           transitioned through stopping → idle). Tear down
       //           the event subscription and return to off.
-      if (phase == SharePhase.error && state.mode == ShareMode.smc) {
+      if (phase == SharePhase.error) {
         appLogger.info(
           'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
         );
         unawaited(_fallbackToUnbounded(widgetRef));
         return;
       }
-      if (phase == SharePhase.idle && state.mode == ShareMode.smc) {
+      if (phase == SharePhase.idle) {
         _stopEventSubscription();
         // Preserve totalCount across the radiance-driven idle reset —
         // lifetime running total is persisted via appSettingProvider and
@@ -732,6 +743,12 @@ class ShareNotifier extends Notifier<ShareState> {
   // the new (Unbounded) mode. _stop is the only teardown path for the
   // subscription, and the error path doesn't go through _stop.
   Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
+    // One failed Start arrives here twice: from the phase=error event and from
+    // setPeerProxy's returned error. Without this guard Unbounded is started
+    // twice and the second call races the first one's state. A plain field
+    // check suffices — both callers run on the main isolate and the mode flip
+    // below is synchronous, so whichever arrives second always observes it.
+    if (state.mode == ShareMode.unbounded) return;
     state = ShareState(
       active: true,
       probing: false,
@@ -831,34 +848,17 @@ class UnboundedTab extends HookConsumerWidget {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black12),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Tappable despite reading as a static glyph: it is the only
-                  // way back into the welcome dialog once it has been seen.
-                  IconButton(
-                    icon: const Icon(Icons.info_outline, size: 20),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'about_unbounded'.i18n,
-                    onPressed: () => showUnboundedWelcomeDialog(context, ref),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'smc_intro'.i18n,
-                      style: textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
+            // The whole note re-opens the welcome dialog — a strict superset
+            // of the old icon-only tap target — so it can reuse the app's
+            // shared note component instead of a one-off Container.
+            Tooltip(
+              message: 'about_unbounded'.i18n,
+              child: InfoRow(
+                text: 'smc_intro'.i18n,
+                textStyle: textTheme.labelMedium?.copyWith(
+                  color: context.textSecondary,
+                ),
+                onPressed: () => showUnboundedWelcomeDialog(context, ref),
               ),
             ),
             const SizedBox(height: 16),
@@ -908,181 +908,160 @@ class _StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    // Status text source-of-truth, in priority order:
-    //   1. Off and not probing → "Off"
-    //   2. Probing UPnP locally → "Probing your network…"
-    //   3. SmC mode → granular phase from radiance peer.Status. The
-    //      backend emits one phase per stage during Start so the user
-    //      sees real progress instead of "Active" for several seconds.
-    //   4. Unbounded mode → static "Active — Unbounded" (no equivalent
-    //      staged lifecycle on the broflake side yet).
-    final modeLabel = switch ((state.mode, state.phase)) {
-      // Off-with-error is a legitimate terminal state: the enable
-      // path failed (e.g. setUnboundedEnabled / setPeerProxyEnabled
-      // returned Left) and reverted mode to off. Render the error
-      // before the catch-all "Off" so the user sees an actionable
-      // message instead of a misleading off state.
-      (ShareMode.off, SharePhase.error) =>
-        state.errorMessage != null
-            ? 'smc_status_error_with_message'.i18n.fill([state.errorMessage!])
-            : 'smc_status_error_generic'.i18n,
-      (ShareMode.off, _) =>
-        state.probing ? 'smc_status_probing'.i18n : 'smc_status_off'.i18n,
-      (ShareMode.unbounded, _) => 'smc_status_active_unbounded'.i18n,
-      (ShareMode.smc, SharePhase.mappingPort) =>
-        'smc_status_mapping_port'.i18n,
-      (ShareMode.smc, SharePhase.detectingIp) =>
-        'smc_status_detecting_ip'.i18n,
-      (ShareMode.smc, SharePhase.registering) =>
-        'smc_status_registering'.i18n,
-      (ShareMode.smc, SharePhase.startingProxy) =>
-        'smc_status_starting_proxy'.i18n,
-      (ShareMode.smc, SharePhase.verifying) =>
-        'smc_status_verifying'.i18n,
-      (ShareMode.smc, SharePhase.serving) =>
-        'smc_status_serving'.i18n,
-      (ShareMode.smc, SharePhase.stopping) => 'smc_status_stopping'.i18n,
-      (ShareMode.smc, SharePhase.error) =>
-        state.errorMessage != null
-            ? 'smc_status_error_with_message'.i18n.fill([state.errorMessage!])
-            : 'smc_status_error_generic'.i18n,
-      // SmC active but no phase yet (e.g. very first frame after toggle
-      // before the backend's first event arrives) — fall back to the
-      // legacy active label so the UI isn't blank.
-      (ShareMode.smc, SharePhase.idle) => 'smc_status_active_smc'.i18n,
+    // Status text source-of-truth, collapsed to the three states the spec
+    // calls for — "Off", "Enabled", and (while a Start/probe is actually in
+    // flight) "Configuring network" — rather than the old multi-line
+    // per-phase prose. SmC's granular radiance phases still gate the same
+    // "Configuring network" text so the panel doesn't go blank mid-Start.
+    final modeLabel = switch (state.mode) {
+      ShareMode.off => switch (state.phase) {
+          // Off-with-error is a legitimate terminal state: the enable path
+          // failed (e.g. setUnboundedEnabled / setPeerProxyEnabled returned
+          // Left) and reverted mode to off. Render the error before the
+          // catch-all "Off" so the user sees an actionable message instead
+          // of a misleading off state.
+          SharePhase.error => state.errorMessage != null
+              ? 'smc_status_error_with_message'
+                  .i18n
+                  .fill([state.errorMessage!])
+              : 'smc_status_error_generic'.i18n,
+          _ => state.probing
+              ? 'smc_status_configuring'.i18n
+              : 'smc_status_off'.i18n,
+        },
+      ShareMode.unbounded => 'enabled'.i18n,
+      ShareMode.smc => switch (state.phase) {
+          SharePhase.serving => 'enabled'.i18n,
+          SharePhase.error => state.errorMessage != null
+              ? 'smc_status_error_with_message'
+                  .i18n
+                  .fill([state.errorMessage!])
+              : 'smc_status_error_generic'.i18n,
+          // mappingPort / detectingIp / registering / startingProxy /
+          // verifying / stopping / idle — all mid-flight SmC stages.
+          _ => 'smc_status_configuring'.i18n,
+        },
     };
 
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 32,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Icon(Icons.public,
-                    size: 20, color: Theme.of(context).hintColor),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(
-                      style: textTheme.bodyMedium,
-                      children: [
-                        TextSpan(text: '${'smc_status_label'.i18n}: '),
-                        TextSpan(
-                          text: modeLabel,
-                          style: TextStyle(
-                            color: state.active
-                                ? AppColors.green6
-                                : Theme.of(context).hintColor,
-                            fontWeight: FontWeight.w600,
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        child: Column(
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(Icons.public_outlined,
+                      size: 20, color: Theme.of(context).hintColor),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        style: textTheme.bodyMedium,
+                        children: [
+                          TextSpan(text: '${'smc_status_label'.i18n}: '),
+                          TextSpan(
+                            text: modeLabel,
+                            style: TextStyle(
+                              color: state.active
+                                  ? AppColors.green6
+                                  : Theme.of(context).hintColor,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Match the rest of the app's toggles (vpn_setting.dart etc.).
-                // SwitchButton has no built-in disabled state, so during the
-                // probe we render the switch but absorb the tap so the user
-                // doesn't double-fire toggle().
-                SwitchButton(
-                  value: state.active || state.probing,
-                  onChanged: (value) {
-                    if (state.probing) return;
-                    onToggle();
-                  },
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  // Match the rest of the app's toggles (vpn_setting.dart etc.).
+                  // SwitchButton has no built-in disabled state, so during the
+                  // probe we render the switch but absorb the tap so the user
+                  // doesn't double-fire toggle().
+                  SwitchButton(
+                    value: state.active || state.probing,
+                    onChanged: (value) {
+                      if (state.probing) return;
+                      onToggle();
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-          if (state.active) ...[
-            const Divider(height: 1),
-            _StatRow(
+            // Always shown — including while Unbounded is off — so the
+            // panel doesn't collapse/expand as the toggle flips. activeCount
+            // reads 0 and totalCount keeps the persisted lifetime total.
+            const DividerSpace(),
+            AppTile(
               icon: Icons.person_outline,
               label: 'smc_stat_active_now'.i18n,
-              value: '${state.activeCount}',
-              tooltip: 'smc_connections_tooltip'.i18n,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Tooltip(
+                    triggerMode: TooltipTriggerMode.tap,
+                    waitDuration: const Duration(milliseconds: 200),
+                    showDuration: const Duration(seconds: 8),
+                    preferBelow: false,
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    textStyle:
+                        const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    message: 'smc_connections_tooltip'.i18n,
+                    child: Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${state.activeCount}',
+                    style: textTheme.titleMedium!
+                        .copyWith(color: context.textLink),
+                  ),
+                ],
+              ),
             ),
-            const Divider(height: 1),
-            _StatRow(
-              icon: Icons.people_outline,
+            const DividerSpace(),
+            AppTile(
+              icon: Icons.groups_2_outlined,
               label: 'smc_stat_total_helped'.i18n,
-              value: '${state.totalCount}',
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _StatRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final String? tooltip;
-
-  const _StatRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).hintColor),
-          const SizedBox(width: 12),
-          Expanded(child: Text(label, style: textTheme.bodyMedium)),
-          if (tooltip != null) ...[
-            Tooltip(
-              triggerMode: TooltipTriggerMode.tap,
-              waitDuration: const Duration(milliseconds: 200),
-              showDuration: const Duration(seconds: 8),
-              preferBelow: false,
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              textStyle: const TextStyle(color: Colors.white, fontSize: 12),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              message: tooltip!,
-              child: Icon(
-                Icons.info_outline,
-                size: 16,
-                color: Theme.of(context).hintColor,
+              trailing: Text(
+                '${state.totalCount}',
+                style:
+                    textTheme.titleMedium!.copyWith(color: context.textLink),
               ),
             ),
-            const SizedBox(width: 8),
           ],
-          Text(
-            value,
-            style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.blue8, // text/link
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
 /// Mirrors the Unbounded Settings toggle, surfaced on the tab itself because
-/// the spec puts the choice next to the thing it controls.
+/// the spec puts the choice next to the thing it controls. Uses a checkbox
+/// rather than the switch UnboundedSetting's identical row uses — per the
+/// Figma spec, this tab-embedded copy is the one exception.
 class _AutoEnableCard extends ConsumerWidget {
   const _AutoEnableCard();
 
@@ -1093,43 +1072,34 @@ class _AutoEnableCard extends ConsumerWidget {
         ref.watch(appSettingProvider.select((s) => s.unboundedAutoEnable));
     final notifier = ref.read(shareProvider.notifier);
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => notifier.setAutoEnable(context, !autoEnable),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Icon(Icons.auto_mode,
-                  size: 20, color: Theme.of(context).hintColor),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('auto_enable_unbounded'.i18n,
-                        style: textTheme.bodyMedium),
-                    Text('auto_enable_unbounded_subtitle'.i18n,
-                        style: textTheme.labelSmall),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Checkbox(
-                value: autoEnable,
-                onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
-                activeColor: AppColors.blue10,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 32,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
           ),
+        ],
+      ),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        child: AppTile(
+          label: 'auto_enable_unbounded'.i18n,
+          subtitle: Text(
+            'auto_enable_unbounded_subtitle'.i18n,
+            style: textTheme.labelMedium!.copyWith(
+              color: context.textTertiary,
+            ),
+          ),
+          icon: Icons.auto_mode,
+          trailing: Checkbox(
+            value: autoEnable,
+            onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
+            activeColor: context.textLink,
+          ),
+          onPressed: () => notifier.setAutoEnable(context, !autoEnable),
         ),
       ),
     );
@@ -1502,11 +1472,17 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
   @override
   Widget build(BuildContext context) {
     final event = _current;
+    final shareState = ref.watch(shareProvider);
     // _current only tracks arrivals from the last few seconds, so its absence
     // does not mean nobody is connected. The idle pill has to key off the live
     // peer count or it claims we are waiting for connections directly above a
-    // stat reporting several active ones.
-    final hasPeers = ref.watch(shareProvider).activeCount > 0;
+    // stat reporting several active ones. It also only makes sense while
+    // Unbounded (not SmC) is actually on — the copy is Unbounded-specific
+    // (unbounded_waiting_for_connections), and shareState.active is also true
+    // during an SmC session, which has no such pill in the spec.
+    final hasPeers = shareState.activeCount > 0;
+    final showWaiting =
+        shareState.mode == ShareMode.unbounded && shareState.active && !hasPeers;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 280),
       transitionBuilder: (child, anim) => FadeTransition(
@@ -1519,9 +1495,9 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
         ),
       ),
       child: event == null
-          ? (hasPeers
-              ? const SizedBox.shrink(key: ValueKey('arrival-idle'))
-              : const _WaitingCard(key: ValueKey('arrival-waiting')))
+          ? (showWaiting
+              ? const _WaitingCard(key: ValueKey('arrival-waiting'))
+              : const SizedBox.shrink(key: ValueKey('arrival-idle')))
           : _ArrivalCard(
               // ValueKey forces AnimatedSwitcher to swap children when a
               // new arrival lands while the previous toast is still up,

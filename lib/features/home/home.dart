@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
+import 'package:lantern/core/widgets/vpn_status_indicator.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
@@ -214,6 +215,11 @@ class Home extends HookConsumerWidget {
                 width: 149,
               )
             : LanternLogo(isPro: isUserPro, color: context.textPrimary),
+        // bg/elevated (white in light mode) per the Figma spec — the Home
+        // shell's app bar + tab strip render on a white surface, distinct
+        // from every other screen's app bar which uses the app-wide
+        // bg/surface grey from AppTheme.appBarTheme.
+        backgroundColor: context.bgElevated,
         elevation: 5,
         leading: IconButton(
           key: const Key('home.menu_button'),
@@ -251,32 +257,46 @@ class Home extends HookConsumerWidget {
             ? null
             : TabBar(
                 controller: tabController,
-                // Pill-shaped selection rather than the Material underline,
-                // per the Figma spec. indicatorPadding insets the fill so the
-                // pill floats inside the tab instead of filling it edge to
-                // edge; the strip carries no divider in the spec.
-                indicatorSize: TabBarIndicatorSize.tab,
-                indicator: BoxDecoration(
-                  color: AppColors.blue1, // action/tabbar/tabbar-bg
-                  borderRadius: BorderRadius.circular(9999),
-                  border: Border.all(
-                    color: AppColors.blue2, // action/tabbar/tabbar-border
-                  ),
-                ),
-                indicatorPadding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                // The pill is drawn by each _TabLabel itself (hugging its
+                // own content with 24px side padding, per spec) rather than
+                // through TabBar's indicator geometry, which can only size
+                // itself to the tab's full flex slot or its label's
+                // intrinsic size — neither hugs content with extra padding
+                // the way the spec wants. The indicator here is fully
+                // transparent; splashBorderRadius still rounds the
+                // hover/press overlay into a pill instead of a square.
+                indicator: const BoxDecoration(),
+                labelPadding: EdgeInsets.zero,
+                splashBorderRadius: BorderRadius.circular(9999),
+                overlayColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.hovered) ||
+                      states.contains(WidgetState.pressed)) {
+                    return context.bgHover; // action/bg-hover
+                  }
+                  return null;
+                }),
                 dividerColor: Colors.transparent,
-                labelColor: AppColors.blue10, // tabbar-selected-text
-                unselectedLabelColor: AppColors.gray6, // tabbar-disabled-text
+                labelColor:
+                    context.actionTabbarSelectedText, // tabbar-selected-text
+                unselectedLabelColor:
+                    context.actionTabbarDisabledText, // tabbar-disabled-text
+                labelStyle: Theme.of(context).textTheme.titleSmall, // subtitle/small
+                unselectedLabelStyle: Theme.of(context).textTheme.titleSmall,
                 tabs: [
                   _TabLabel(
-                      label: 'vpn'.i18n,
-                      iconPath: AppImagePaths.key,
-                      active: vpnStatus == VPNStatus.connected),
+                    label: 'vpn'.i18n,
+                    iconOutlined: Icons.vpn_key_outlined,
+                    iconFilled: Icons.vpn_key,
+                    selected: !onUnboundedTab.value,
+                    active: vpnStatus == VPNStatus.connected,
+                  ),
                   _TabLabel(
-                      label: 'unbounded'.i18n,
-                      iconPath: AppImagePaths.unbounded,
-                      active: shareActive),
+                    label: 'unbounded'.i18n,
+                    iconOutlined: Icons.handshake_outlined,
+                    iconFilled: Icons.handshake,
+                    selected: onUnboundedTab.value,
+                    active: shareActive,
+                  ),
                 ],
               ),
       ),
@@ -293,18 +313,23 @@ class Home extends HookConsumerWidget {
   }
 }
 
-/// Tab label with the leading feature icon and green/grey status dot from the
-/// Figma spec. The dot reflects whether the feature is running, which is
-/// independent of which tab is selected.
+/// Tab label with the leading feature icon and the shared status dot
+/// ([StatusDot], reused from the VPN status panel) from the Figma spec. The
+/// dot reflects whether the feature is running, independent of which tab is
+/// selected; the icon itself flips outline → filled when its tab is selected.
 class _TabLabel extends StatelessWidget {
   const _TabLabel({
     required this.label,
-    required this.iconPath,
+    required this.iconOutlined,
+    required this.iconFilled,
+    required this.selected,
     required this.active,
   });
 
   final String label;
-  final String iconPath;
+  final IconData iconOutlined;
+  final IconData iconFilled;
+  final bool selected;
   final bool active;
 
   @override
@@ -314,27 +339,38 @@ class _TabLabel extends StatelessWidget {
     // two in step without plumbing the selected index down here.
     final labelColor = DefaultTextStyle.of(context).style.color;
     return Tab(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppImage(path: iconPath, width: 24, height: 24, color: labelColor),
-          const SizedBox(width: 8),
-          Text(label),
-          const SizedBox(width: 8),
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: active ? AppColors.green6 : AppColors.gray5,
-              border: Border.all(
-                color: active ? AppColors.green3 : AppColors.gray3,
-                width: 2,
-              ),
+      height: 40,
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: selected
+            ? BoxDecoration(
+                color: context.actionTabbarBg, // action/tabbar/tabbar-bg
+                borderRadius: BorderRadius.circular(9999),
+                border: Border.all(
+                  color: context.actionTabbarBorder, // tabbar-border
+                ),
+              )
+            : null,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              selected ? iconFilled : iconOutlined,
+              size: 24,
+              color: labelColor,
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Text(label),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Center(child: StatusDot(active: active)),
+            ),
+          ],
+        ),
       ),
     );
   }
