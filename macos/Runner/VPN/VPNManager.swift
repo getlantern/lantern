@@ -62,8 +62,11 @@ class VPNManager: VPNBase {
   func syncStatus() async {
     do {
       let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-      guard let existing = managers.first else {
-        // No VPN profile configured yet — nothing to sync.
+      guard let existing = await firstLaunchableProfile(among: managers) else {
+        // Nothing configured yet, or nothing this build can launch. Adopting an
+        // unlaunchable profile here would be worse than adopting none: the stop
+        // path reads this manager's status, and a stale profile reporting
+        // .disconnected makes it skip tearing down the tunnel that is running.
         return
       }
       self.manager = existing
@@ -83,40 +86,53 @@ class VPNManager: VPNBase {
     }
   }
 
-  private func removeExistingVPNProfiles() async {
-    do {
-      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-      for manager in managers {
+  /// Removes every saved profile, attempting all of them even if one fails, and
+  /// rethrows the first failure.
+  ///
+  /// A profile left behind is found again by the next `loadAllFromPreferences()`,
+  /// so a partial clear is not a rebuild: the caller must not go on to create a
+  /// replacement and report success while the unlaunchable profile is still there.
+  private func removeExistingVPNProfiles() async throws {
+    let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+    var firstFailure: Error?
+    for manager in managers {
+      do {
         appLogger.log("Removing VPN configuration: \(manager.localizedDescription ?? "Unnamed")")
         try await manager.removeFromPreferences()
+      } catch {
+        appLogger.error("Unable to remove VPN profile: \(error.localizedDescription)")
+        firstFailure = firstFailure ?? error
       }
-    } catch {
-      appLogger.error("Unable to remove VPN profile: \(error.localizedDescription)")
+    }
+    if let firstFailure {
+      throw firstFailure
     }
   }
 
-  private func setupVPN() async {
-    do {
-      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-      if let reusable = await firstLaunchableProfile(among: managers) {
-        self.manager = reusable
-        try await repairProfile(reusable)
-        appLogger.log("Reusing existing VPN profile")
-        return
-      }
-      if managers.isEmpty {
-        appLogger.log("No VPN profiles found, creating new profile")
-      } else {
-        appLogger.log("No saved VPN profile is launchable by this build, rebuilding")
-        await removeExistingVPNProfiles()
-      }
-      createNewProfile()
-      try await self.manager.saveToPreferences()
-      try await self.manager.loadFromPreferences()
-      appLogger.log("Created and loaded new VPN profile")
-    } catch {
-      appLogger.error("Failed to set up VPN: \(error.localizedDescription)")
+  /// Ensures `manager` holds a profile this build can launch, rebuilding if none
+  /// of the saved ones qualify.
+  ///
+  /// Throws rather than logging: every caller starts a tunnel immediately
+  /// afterwards, and starting one against a profile we failed to repair or
+  /// rebuild is the silent failure this whole path exists to prevent.
+  private func setupVPN() async throws {
+    let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+    if let reusable = await firstLaunchableProfile(among: managers) {
+      self.manager = reusable
+      try await repairProfile(reusable)
+      appLogger.log("Reusing existing VPN profile")
+      return
     }
+    if managers.isEmpty {
+      appLogger.log("No VPN profiles found, creating new profile")
+    } else {
+      appLogger.log("No saved VPN profile is launchable by this build, rebuilding")
+      try await removeExistingVPNProfiles()
+    }
+    createNewProfile()
+    try await self.manager.saveToPreferences()
+    try await self.manager.loadFromPreferences()
+    appLogger.log("Created and loaded new VPN profile")
   }
 
   /// Returns the first saved profile this build can actually launch.
@@ -204,7 +220,7 @@ class VPNManager: VPNBase {
 
   private func startTunnel(operationID: UInt) async throws {
     appLogger.log("Starting tunnel..")
-    await self.setupVPN()
+    try await self.setupVPN()
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw VPNManagerError.operationInProgress
     }
@@ -231,7 +247,7 @@ class VPNManager: VPNBase {
   }
 
   private func connectToServer(serverName: String, operationID: UInt) async throws {
-    await self.setupVPN()
+    try await self.setupVPN()
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw VPNManagerError.operationInProgress
     }
