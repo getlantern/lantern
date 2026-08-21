@@ -98,30 +98,91 @@ class VPNManager: VPNBase {
   private func setupVPN() async {
     do {
       let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-      if let existing = managers.first {
-        self.manager = existing
-        appLogger.log("Found existing VPN manager")
-      } else {
-        appLogger.log("No VPN profiles found, creating new profile")
-        createNewProfile()
-        try await self.manager.saveToPreferences()
-        try await self.manager.loadFromPreferences()
-        appLogger.log("Created and loaded new VPN profile")
+      if let reusable = await firstLaunchableProfile(among: managers) {
+        self.manager = reusable
+        try await repairProfile(reusable)
+        appLogger.log("Reusing existing VPN profile")
+        return
       }
+      if managers.isEmpty {
+        appLogger.log("No VPN profiles found, creating new profile")
+      } else {
+        appLogger.log("No saved VPN profile is launchable by this build, rebuilding")
+        await removeExistingVPNProfiles()
+      }
+      createNewProfile()
+      try await self.manager.saveToPreferences()
+      try await self.manager.loadFromPreferences()
+      appLogger.log("Created and loaded new VPN profile")
     } catch {
       appLogger.error("Failed to set up VPN: \(error.localizedDescription)")
     }
+  }
+
+  /// Returns the first saved profile this build can actually launch.
+  ///
+  /// Each candidate is refreshed from preferences before it is inspected:
+  /// `loadAllFromPreferences()` can hand back a manager whose configuration has
+  /// not been faulted in, and validating unpopulated fields would reject a
+  /// perfectly good profile.
+  private func firstLaunchableProfile(
+    among managers: [NETunnelProviderManager]
+  ) async -> NETunnelProviderManager? {
+    for candidate in managers {
+      do {
+        try await candidate.loadFromPreferences()
+      } catch {
+        // One unreadable profile must not hide a good one behind it, nor abort
+        // setup into the rebuild path when a usable profile may still follow.
+        appLogger.error(
+          "Skipping unreadable VPN profile \(candidate.localizedDescription ?? "Unnamed"): \(error.localizedDescription)"
+        )
+        continue
+      }
+      let tunnelProtocol = candidate.protocolConfiguration as? NETunnelProviderProtocol
+      guard
+        let defect = vpnProfileDefect(
+          isTunnelProfile: tunnelProtocol != nil,
+          providerBundleID: tunnelProtocol?.providerBundleIdentifier
+        )
+      else {
+        return candidate
+      }
+      appLogger.log(
+        "Discarding VPN profile \(candidate.localizedDescription ?? "Unnamed"): \(defect)")
+    }
+    return nil
+  }
+
+  /// Applies the corrections a launchable profile needs before use.
+  private func repairProfile(_ manager: NETunnelProviderManager) async throws {
+    let repairs = vpnProfileRepairs(
+      currentName: manager.localizedDescription,
+      isEnabled: manager.isEnabled
+    )
+    guard !repairs.isEmpty else { return }
+    if let rename = repairs.rename {
+      appLogger.log(
+        "Renaming VPN profile \(manager.localizedDescription ?? "Unnamed") to \(rename)")
+      manager.localizedDescription = rename
+    }
+    if repairs.enable {
+      appLogger.log("VPN profile is disabled, re-enabling")
+      manager.isEnabled = true
+    }
+    try await manager.saveToPreferences()
+    try await manager.loadFromPreferences()
   }
 
   // Sets up a new VPN configuration for Lantern.
   private func createNewProfile() {
     let manager = NETunnelProviderManager()
     let tunnelProtocol = NETunnelProviderProtocol()
-    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.PacketTunnel"
+    tunnelProtocol.providerBundleIdentifier = VPNProfileIdentity.providerBundleID
     tunnelProtocol.serverAddress = "0.0.0.0"
 
     manager.protocolConfiguration = tunnelProtocol
-    manager.localizedDescription = "Lantern"
+    manager.localizedDescription = VPNProfileIdentity.name
     manager.isEnabled = true
 
     let alwaysConnectRule = NEOnDemandRuleConnect()

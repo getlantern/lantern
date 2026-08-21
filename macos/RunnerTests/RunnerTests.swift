@@ -35,6 +35,106 @@ final class RunnerTests: XCTestCase {
     }
   }
 
+  // MARK: - VPN profile reuse (engineering#3827)
+
+  func testProfileWithCurrentProviderIsLaunchable() {
+    XCTAssertNil(
+      vpnProfileDefect(
+        isTunnelProfile: true,
+        providerBundleID: VPNProfileIdentity.providerBundleID
+      )
+    )
+  }
+
+  func testProfileWithHistoricalProviderIsRejected() {
+    // Every provider bundle ID this app has shipped under. A profile saved by an
+    // older build names one of these; macOS still starts a tunnel against it and
+    // kills the session in tens of milliseconds without raising an error.
+    let retired = [
+      "org.getlantern.lantern.Tunnel",
+      "org.getlantern.lantern.packet",
+      "org.getlantern.lantern.PacketTunnel.old",
+    ]
+    for providerBundleID in retired {
+      XCTAssertEqual(
+        vpnProfileDefect(isTunnelProfile: true, providerBundleID: providerBundleID),
+        .unknownProvider(found: providerBundleID),
+        "expected \(providerBundleID) to be rejected"
+      )
+    }
+    XCTAssertEqual(
+      vpnProfileDefect(isTunnelProfile: true, providerBundleID: nil),
+      .unknownProvider(found: nil)
+    )
+  }
+
+  func testProfileWithoutTunnelProtocolIsRejected() {
+    XCTAssertEqual(
+      vpnProfileDefect(isTunnelProfile: false, providerBundleID: nil),
+      .notATunnelProfile
+    )
+    // A non-tunnel profile is rejected on shape, whatever else it carries.
+    XCTAssertEqual(
+      vpnProfileDefect(
+        isTunnelProfile: false,
+        providerBundleID: VPNProfileIdentity.providerBundleID
+      ),
+      .notATunnelProfile
+    )
+  }
+
+  func testDefectDescriptionNamesFoundAndExpectedProvider() {
+    let description = VPNProfileDefect.unknownProvider(found: "org.getlantern.lantern.Tunnel")
+      .description
+    // This string is the only breadcrumb in the log when a profile is discarded.
+    XCTAssertTrue(description.contains("org.getlantern.lantern.Tunnel"))
+    XCTAssertTrue(description.contains(VPNProfileIdentity.providerBundleID))
+  }
+
+  /// A foreign profile name must be repaired, never treated as a defect.
+  ///
+  /// iOS keys its staleness check on the name (`Profile.swift`, `needsMigration()`
+  /// compares against "LanternVPN") while macOS names the profile "Lantern".
+  /// Porting that check here would make every macOS profile look stale and
+  /// rebuild it on every launch, prompting the user each time.
+  func testForeignProfileNameIsRepairedNotRejected() {
+    XCTAssertNotEqual(
+      VPNProfileIdentity.name, "LanternVPN",
+      "macOS and iOS name their profiles differently — the name cannot gate reuse")
+
+    // Launchability does not consider the name at all.
+    XCTAssertNil(
+      vpnProfileDefect(
+        isTunnelProfile: true,
+        providerBundleID: VPNProfileIdentity.providerBundleID
+      )
+    )
+
+    let repairs = vpnProfileRepairs(currentName: "LanternVPN", isEnabled: true)
+    XCTAssertEqual(repairs.rename, VPNProfileIdentity.name)
+    XCTAssertFalse(repairs.enable)
+  }
+
+  func testCorrectlyNamedEnabledProfileNeedsNoRepair() {
+    let repairs = vpnProfileRepairs(currentName: VPNProfileIdentity.name, isEnabled: true)
+    XCTAssertTrue(repairs.isEmpty)
+    XCTAssertNil(repairs.rename)
+    XCTAssertFalse(repairs.enable)
+  }
+
+  func testDisabledProfileIsReEnabled() {
+    let repairs = vpnProfileRepairs(currentName: VPNProfileIdentity.name, isEnabled: false)
+    XCTAssertFalse(repairs.isEmpty)
+    XCTAssertNil(repairs.rename)
+    XCTAssertTrue(repairs.enable)
+  }
+
+  func testUnnamedProfileIsRenamed() {
+    let repairs = vpnProfileRepairs(currentName: nil, isEnabled: false)
+    XCTAssertEqual(repairs.rename, VPNProfileIdentity.name)
+    XCTAssertTrue(repairs.enable)
+  }
+
   func testVPNStopStates() throws {
     for status in [NEVPNStatus.connected, .connecting, .reasserting] {
       XCTAssertTrue(try shouldStopTunnel(for: status))
