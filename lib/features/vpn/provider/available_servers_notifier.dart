@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -102,6 +103,13 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     final fastest = servers.fastestLanternServer;
     if (fastest == null) return;
 
+    // Don't push the fastest server if the VPN is active.
+    // It would override the server the user is connected to.
+    final vpnStatus = ref.read(vPNStatusProvider).value?.status;
+    if (vpnStatus != VPNStatus.disconnected) {
+      appLogger.debug('Skipping Smart Location push, VPN status is $vpnStatus');
+      return;
+    }
     final current = ref.read(serverLocationProvider);
     if (current.serverType.toServerLocationType != ServerLocationType.auto) {
       return;
