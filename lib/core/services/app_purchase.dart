@@ -272,6 +272,18 @@ class AppPurchase {
     throw error;
   }
 
+  /// The loaded store product matching [planId]'s plan family ("1m…" → the
+  /// monthly SKU), or null when products aren't loaded or nothing matches.
+  ProductDetails? storeProductFor(String planId) {
+    final prefix = _planPrefix(planId);
+    for (final sku in _subscriptionSku) {
+      if (_planPrefix(sku.id) == prefix) {
+        return sku;
+      }
+    }
+    return null;
+  }
+
   /// Ensures products are available before starting a purchase.
   Future<void> _waitForProducts() async {
     if (_productsLoaded) return;

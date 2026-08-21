@@ -17,6 +17,11 @@ class AppBuildInfo {
     defaultValue: false,
   );
 
+  static const bool autoUpdateE2E = bool.fromEnvironment(
+    'AUTO_UPDATE_E2E',
+    defaultValue: false,
+  );
+
   static const String stealthMode = String.fromEnvironment(
     'STEALTH_MODE',
     defaultValue: 'normal',

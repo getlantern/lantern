@@ -1,10 +1,10 @@
 # Translators:
 # e2f <projects@e2f.com>, 2026
-# tx_e2f_th c5 <tx_e2f_th_c5@ate2f.com>, 2026
 # Lantern, 2026
 # Amazing Nev <nev@nevagency.com>, 2026
 # Acclaro Thailand <bkk-project@acclaro.com>, 2026
 # Thai Localization, 2026
+# tx_e2f_th c5 <tx_e2f_th_c5@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -52,6 +52,16 @@ msgstr "รูปภาพนั้นถูกแนบไว้แล้ว"
 msgid "report_issue_attachments_unreadable"
 msgstr "เราไม่สามารถอ่านไฟล์ใดไฟล์หนึ่งเหล่านั้นได้"
 
+msgid "send_without_email_title"
+msgstr "ส่งโดยไม่มีอีเมลใช่ไหม?"
+
+msgid "send_without_email_body"
+msgstr ""
+"คุณไม่ได้ระบุที่อยู่อีเมล เราจึงไม่สามารถตอบกลับหรือติดตามผลรายงานนี้ได้"
+
+msgid "send_without_email"
+msgstr "ส่งโดยไม่มีอีเมล"
+
 msgid "lantern_projects"
 msgstr "โปรเจกต์ Lantern:"
 
@@ -68,6 +78,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "แชร์รหัสแนะนำ"
+
+msgid "invite_friends_description"
+msgstr ""
+"เมื่อเพื่อนอัปเกรดเป็น Lantern Pro โดยใช้รหัสแนะนำของคุณ "
+"คุณทั้งคู่จะได้รับฟรี 1 เดือน"
+
+msgid "month_earned"
+msgstr "ได้รับ %s เดือน"
+
+msgid "months_earned"
+msgstr "ได้รับ %s เดือน"
+
+msgid "includes_free_month_from_referrals"
+msgstr "รวมเดือนฟรี %s เดือนจากการแนะนำ"
+
+msgid "includes_free_months_from_referrals"
+msgstr "รวมเดือนฟรี %s เดือนจากการแนะนำ"
+
+msgid "referral_converted_title"
+msgstr "เพื่อนอัปเกรดเป็น Pro แล้ว"
+
+msgid "referral_converted_message"
+msgstr ""
+"คุณทั้งคู่ได้รับ Lantern Pro %s ฟรี จนถึงตอนนี้คุณได้รับแล้ว %s "
+"แชร์รหัสของคุณต่อไปเพื่อรับเพิ่ม"
+
+msgid "month_count"
+msgstr "%s เดือน"
+
+msgid "months_count"
+msgstr "%s เดือน"
+
+msgid "done"
+msgstr "เสร็จสิ้น"
+
+msgid "view_account"
+msgstr "ดูบัญชี"
+
+msgid "show_download_links"
+msgstr "แสดงลิงก์ดาวน์โหลด"
+
+msgid "get_lantern"
+msgstr "รับ Lantern"
+
+msgid "send_friend_download_link"
+msgstr "ส่งลิงก์ดาวน์โหลดนี้ให้เพื่อนของคุณ:"
+
+msgid "scan_to_install"
+msgstr "สแกนด้วยแอปกล้องเพื่อติดตั้ง Lantern"
+
+msgid "remind_use_code"
+msgstr "เตือนให้พวกเขาใช้รหัส %s เมื่ออัปเกรด!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1205,6 +1267,9 @@ msgstr "ใช้ได้บน:"
 msgid "subscription_renewal_date"
 msgstr "วันที่ต่ออายุการสมัครสมาชิก"
 
+msgid "pro_access_until"
+msgstr "ใช้งาน Pro ได้ถึง %s"
+
 msgid "enabled_bypass_lists"
 msgstr "รายการข้ามที่เปิดใช้งาน (%d):"
 
@@ -1295,6 +1360,9 @@ msgstr "ชื่อเล่นเซิร์ฟเวอร์ต้องไ
 msgid "referral_code_applied"
 msgstr " โค้ดแนะนำของคุณถูกใช้แล้ว!"
 
+msgid "discount_applied"
+msgstr "ใช้ส่วนลด %s แล้ว"
+
 msgid "referral_message_1m"
 msgstr " + 15 วันเพิ่มเติมฟรี"
 
@@ -1302,10 +1370,10 @@ msgid "referral_message_1y"
 msgstr " + 1 เดือนเพิ่มเติมฟรี"
 
 msgid "referral_message_2y"
-msgstr " + 2 เดือนเพิ่มเติมฟรี"
+msgstr "+ ฟรีเพิ่มอีก 2 เดือน"
 
 msgid "referral_code_invalid"
-msgstr "โค้ดแนะนำที่คุณป้อนไม่ถูกต้อง โปรดตรวจสอบโค้ดและลองอีกครั้ง"
+msgstr "รหัสแนะนำ/โปรโมชันที่คุณกรอกไม่ถูกต้อง โปรดตรวจสอบรหัสแล้วลองอีกครั้ง"
 
 msgid "referral_code_own_invalid"
 msgstr "คุณไม่สามารถใช้โค้ดแนะนำของตัวเองได้ โปรดป้อนโค้ดอื่น"
@@ -1508,9 +1576,9 @@ msgstr "ความเร็วลดลงเหลือ 128 kb/s - รีเ
 
 msgid "subscription_renewal_info"
 msgstr ""
-"การชำระเงินจะถูกเรียกเก็บจาก Apple ID ของคุณเมื่อซื้อ "
-"การสมัครสมาชิกต่ออายุโดยอัตโนมัติเว้นแต่จะยกเลิกอย่างน้อย 24 "
-"ชั่วโมงก่อนสิ้นสุดระยะเวลาปัจจุบัน จัดการหรือยกเลิกได้ในการตั้งค่า App Store"
+"ระบบจะเรียกเก็บเงินผ่าน Apple ID ของคุณเมื่อซื้อ "
+"การสมัครสมาชิกจะต่ออายุอัตโนมัติ เว้นแต่จะยกเลิกอย่างน้อย 24 "
+"ชั่วโมงก่อนสิ้นสุดรอบปัจจุบัน"
 
 msgid "failed_to_update_routing_mode"
 msgstr "อัปเดตโหมดการกำหนดเส้นทางไม่สำเร็จ โปรดลองอีกครั้ง"
@@ -1738,3 +1806,78 @@ msgstr "ไม่สามารถตรวจหาอัปเดตได้
 
 msgid "check_connection_and_retry"
 msgstr "ตรวจสอบการเชื่อมต่อของคุณแล้วลองอีกครั้ง"
+
+msgid "refresh_configuration"
+msgstr "รีเฟรชการกำหนดค่า"
+
+msgid "configuration_cleared"
+msgstr "ล้างการกำหนดค่าแล้ว"
+
+msgid "turn_off_vpn"
+msgstr "ปิด VPN"
+
+msgid "turn_off_vpn_message"
+msgstr "ต้องปิด VPN ก่อนจึงจะรีเฟรชการกำหนดค่าได้ ปิด VPN แล้วลองอีกครั้ง"
+
+msgid "configuration_message"
+msgstr ""
+"ล้างการกำหนดค่าเดิมของคุณแล้ว เปิด VPN "
+"เพื่อดาวน์โหลดเวอร์ชันล่าสุดโดยอัตโนมัติ"
+
+msgid "promo_referral_code"
+msgstr "รหัสโปรโมชัน / รหัสแนะนำ"
+
+msgid "promo_code"
+msgstr "รหัสโปรโมชัน"
+
+msgid "promo_code_with"
+msgstr "รหัสโปรโมชัน (%s)"
+
+msgid "order_total"
+msgstr "ยอดรวมคำสั่งซื้อ"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"ตำแหน่งอัจฉริยะจะเลือกเซิร์ฟเวอร์ที่เร็วที่สุดและสลับให้อัตโนมัติเมื่อพบเส้นทางที่ดีกว่า"
+
+msgid "bypass_browser_warning_title"
+msgstr "เพิ่ม %s ในรายการข้าม VPN ใช่ไหม?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern "
+"ในประเทศที่บล็อกบางเว็บไซต์ บางไซต์จะโหลดไม่ได้"
+
+msgid "add_anyway"
+msgstr "เพิ่มต่อไป"
+
+msgid "bypass_all_warning_title"
+msgstr "เพิ่มแอปทั้งหมดในรายการข้าม VPN ใช่ไหม?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"ซึ่งรวมถึงเบราว์เซอร์อย่าง %s แอปในรายการข้าม VPN "
+"จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern ในประเทศที่บล็อกบางเว็บไซต์ "
+"บางไซต์จะโหลดไม่ได้"
+
+msgid "add_all_except_browsers"
+msgstr "เพิ่มทั้งหมดยกเว้นเบราว์เซอร์"
+
+msgid "add_all_anyway"
+msgstr "เพิ่มทั้งหมดต่อไป"
+
+msgid "bypass_app_first_time_title"
+msgstr "ข้าม VPN สำหรับแอปนี้ใช่ไหม?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern หากถูกบล็อกในประเทศของคุณ "
+"อาจใช้งานไม่ได้"
+
+msgid "bypass_website_first_time_title"
+msgstr "ข้าม VPN สำหรับเว็บไซต์นี้ใช่ไหม?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern หากถูกบล็อกในประเทศของคุณ "
+"อาจใช้งานไม่ได้"

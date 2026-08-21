@@ -1,7 +1,7 @@
 # Translators:
-# tx_e2f_bn c3 <tx_e2f_bn_c3@ate2f.com>, 2026
 # Lantern, 2026
 # code smite <codesmite@gmail.com>, 2026
+# tx_e2f_bn c3 <tx_e2f_bn_c3@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -49,6 +49,17 @@ msgstr "এই ছবিটি ইতিমধ্যে সংযুক্ত �
 msgid "report_issue_attachments_unreadable"
 msgstr "আমরা এই ফাইলগুলির একটি পড়তে পারিনি।"
 
+msgid "send_without_email_title"
+msgstr "ইমেইল ছাড়া পাঠাবেন?"
+
+msgid "send_without_email_body"
+msgstr ""
+"আপনি কোনো ইমেইল ঠিকানা দেননি, তাই আমরা এই রিপোর্টের উত্তর দিতে বা ফলো-আপ "
+"করতে পারব না।"
+
+msgid "send_without_email"
+msgstr "ইমেইল ছাড়া পাঠান"
+
 msgid "lantern_projects"
 msgstr "Lantern প্রজেক্টস:"
 
@@ -65,6 +76,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "রেফারেল কোড শেয়ার করুন"
+
+msgid "invite_friends_description"
+msgstr ""
+"কোনো বন্ধু আপনার রেফারেল কোড ব্যবহার করে Lantern Pro-তে আপগ্রেড করলে, আপনারা"
+" দুজনেই 1 মাস ফ্রি পাবেন।"
+
+msgid "month_earned"
+msgstr "%s মাস অর্জিত"
+
+msgid "months_earned"
+msgstr "%s মাস অর্জিত"
+
+msgid "includes_free_month_from_referrals"
+msgstr "রেফারেল থেকে %s ফ্রি মাস অন্তর্ভুক্ত"
+
+msgid "includes_free_months_from_referrals"
+msgstr "রেফারেল থেকে %s ফ্রি মাস অন্তর্ভুক্ত"
+
+msgid "referral_converted_title"
+msgstr "এক বন্ধু Pro-তে আপগ্রেড করেছেন"
+
+msgid "referral_converted_message"
+msgstr ""
+"আপনারা দুজনেই %s Lantern Pro ফ্রি অর্জন করেছেন। এখন পর্যন্ত আপনি %s অর্জন "
+"করেছেন। আরও পেতে আপনার কোড শেয়ার করতে থাকুন।"
+
+msgid "month_count"
+msgstr "%s মাস"
+
+msgid "months_count"
+msgstr "%s মাস"
+
+msgid "done"
+msgstr "সম্পন্ন"
+
+msgid "view_account"
+msgstr "অ্যাকাউন্ট দেখুন"
+
+msgid "show_download_links"
+msgstr "ডাউনলোড লিঙ্ক দেখান"
+
+msgid "get_lantern"
+msgstr "Lantern নিন"
+
+msgid "send_friend_download_link"
+msgstr "আপনার বন্ধুকে এই ডাউনলোড লিঙ্কটি পাঠান:"
+
+msgid "scan_to_install"
+msgstr "Lantern ইনস্টল করতে আপনার ক্যামেরা অ্যাপ দিয়ে স্ক্যান করুন"
+
+msgid "remind_use_code"
+msgstr "আপগ্রেড করার সময় %s কোডটি ব্যবহার করতে তাদের মনে করিয়ে দিন!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1219,6 +1282,9 @@ msgstr "এখানে উপলব্ধ:"
 msgid "subscription_renewal_date"
 msgstr "সাবস্ক্রিপশন পুনর্নবীকরণের তারিখ"
 
+msgid "pro_access_until"
+msgstr "%s পর্যন্ত Pro অ্যাক্সেস"
+
 msgid "enabled_bypass_lists"
 msgstr "সক্রিয় বাইপাস লিস্ট (%d):"
 
@@ -1310,6 +1376,9 @@ msgstr "সার্ভার এলিয়াস খালি রাখা �
 msgid "referral_code_applied"
 msgstr "আপনার রেফারেল কোড প্রয়োগ করা হয়েছে!"
 
+msgid "discount_applied"
+msgstr "%s ছাড় প্রয়োগ করা হয়েছে"
+
 msgid "referral_message_1m"
 msgstr "+ ১৫ অতিরিক্ত দিন বিনামূল্যে"
 
@@ -1317,12 +1386,12 @@ msgid "referral_message_1y"
 msgstr "+ ১ অতিরিক্ত মাস বিনামূল্যে"
 
 msgid "referral_message_2y"
-msgstr "+ 2 অতিরিক্ত মাস বিনামূল্যে"
+msgstr "+ অতিরিক্ত 2 মাস ফ্রি"
 
 msgid "referral_code_invalid"
 msgstr ""
-"আপনি যে রেফারেল কোডটি প্রবেশ করিয়েছেন তা অবৈধ। অনুগ্রহ করে কোডটি পরীক্ষা "
-"করুন এবং আবার চেষ্টা করুন।"
+"আপনার দেওয়া রেফারেল/প্রোমো কোডটি অবৈধ। অনুগ্রহ করে কোডটি যাচাই করে আবার "
+"চেষ্টা করুন।"
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1533,9 +1602,9 @@ msgstr "গতি 128 kb/s-এ হ্রাস করা হয়েছে - %s
 
 msgid "subscription_renewal_info"
 msgstr ""
-"ক্রয়ের সময় পেমেন্ট আপনার Apple ID থেকে নেওয়া হয়। বর্তমান সময়কাল শেষ "
-"হওয়ার কমপক্ষে ২৪ ঘন্টা আগে বাতিল না করা হলে সাবস্ক্রিপশন স্বয়ংক্রিয়ভাবে "
-"নবায়ন হয়। App Store সেটিংসে পরিচালনা বা বাতিল করুন।"
+"কেনার সময় আপনার Apple ID-তে পেমেন্ট চার্জ করা হয়। বর্তমান মেয়াদ শেষ "
+"হওয়ার কমপক্ষে 24 ঘণ্টা আগে বাতিল না করলে সাবস্ক্রিপশন স্বয়ংক্রিয়ভাবে "
+"নবায়ন হয়।"
 
 msgid "failed_to_update_routing_mode"
 msgstr "রাউটিং মোড আপডেট করতে ব্যর্থ। অনুগ্রহ করে আবার চেষ্টা করুন।"
@@ -1765,3 +1834,81 @@ msgstr "আপডেট চেক করা যায়নি"
 
 msgid "check_connection_and_retry"
 msgstr "আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন"
+
+msgid "refresh_configuration"
+msgstr "কনফিগারেশন রিফ্রেশ করুন"
+
+msgid "configuration_cleared"
+msgstr "কনফিগারেশন মুছে ফেলা হয়েছে"
+
+msgid "turn_off_vpn"
+msgstr "VPN বন্ধ করুন"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"কনফিগারেশন রিফ্রেশ করার আগে VPN বন্ধ থাকতে হবে। এটি বন্ধ করে আবার চেষ্টা "
+"করুন।"
+
+msgid "configuration_message"
+msgstr ""
+"আপনার পুরনো কনফিগারেশন মুছে ফেলা হয়েছে। সর্বশেষটি স্বয়ংক্রিয়ভাবে ডাউনলোড "
+"করতে VPN চালু করুন।"
+
+msgid "promo_referral_code"
+msgstr "প্রোমো / রেফারেল কোড"
+
+msgid "promo_code"
+msgstr "প্রোমো কোড"
+
+msgid "promo_code_with"
+msgstr "প্রোমো কোড (%s)"
+
+msgid "order_total"
+msgstr "অর্ডারের মোট"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"স্মার্ট লোকেশন দ্রুততম সার্ভার বেছে নেয় এবং আরও ভালো রুট পেলে "
+"স্বয়ংক্রিয়ভাবে পরিবর্তন করে।"
+
+msgid "bypass_browser_warning_title"
+msgstr "%s-কে বাইপাস তালিকায় যোগ করবেন?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s সরাসরি সংযোগ করবে, Lantern-এর সুরক্ষা ছাড়া। যেসব দেশে নির্দিষ্ট "
+"ওয়েবসাইট ব্লক করা হয়, সেখানে কিছু সাইট লোড হওয়া বন্ধ হয়ে যাবে।"
+
+msgid "add_anyway"
+msgstr "তবুও যোগ করুন"
+
+msgid "bypass_all_warning_title"
+msgstr "সব অ্যাপ বাইপাস তালিকায় যোগ করবেন?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"এর মধ্যে %s-এর মতো ব্রাউজারও রয়েছে। বাইপাস তালিকার অ্যাপগুলি সরাসরি সংযোগ "
+"করে, Lantern-এর সুরক্ষা ছাড়া। যেসব দেশে নির্দিষ্ট ওয়েবসাইট ব্লক করা হয়, "
+"সেখানে কিছু সাইট লোড হওয়া বন্ধ হয়ে যাবে।"
+
+msgid "add_all_except_browsers"
+msgstr "ব্রাউজার ছাড়া সব যোগ করুন"
+
+msgid "add_all_anyway"
+msgstr "তবুও সব যোগ করুন"
+
+msgid "bypass_app_first_time_title"
+msgstr "এই অ্যাপের জন্য VPN বাইপাস করবেন?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s সরাসরি সংযোগ করবে, Lantern-এর সুরক্ষা ছাড়া। এটি আপনার দেশে ব্লক করা "
+"থাকলে, এটি কাজ করা বন্ধ করে দিতে পারে।"
+
+msgid "bypass_website_first_time_title"
+msgstr "এই ওয়েবসাইটের জন্য VPN বাইপাস করবেন?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s সরাসরি সংযোগ করবে, Lantern-এর সুরক্ষা ছাড়া। এটি আপনার দেশে ব্লক করা "
+"থাকলে, এটি কাজ করা বন্ধ করে দিতে পারে।"

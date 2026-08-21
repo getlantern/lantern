@@ -2,8 +2,6 @@ module github.com/getlantern/lantern
 
 go 1.26.2
 
-// replace github.com/getlantern/radiance => ../radiance
-
 // replace github.com/getlantern/lantern-server-provisioner => ../lantern-server-provisioner
 
 // replace github.com/sagernet/sing-box => ../sing-box-minimal
@@ -25,7 +23,7 @@ replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260812223628-131f92a74900
+	github.com/getlantern/radiance v0.0.0-20260819172740-bb1920aa7ddf
 	github.com/sagernet/sing-box v1.12.22
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.45.0
@@ -170,13 +168,13 @@ require (
 	github.com/getlantern/dnstt v0.0.0-20260603191204-3b860502c0ac // indirect
 	github.com/getlantern/domainfront v0.0.0-20260722204513-8c1f8acfa715 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260616120552-f204338b01a3 // indirect
-	github.com/getlantern/kindling v0.0.0-20260727211028-573c1ef64464 // indirect
-	github.com/getlantern/lantern-box v0.0.111 // indirect
+	github.com/getlantern/kindling v0.0.0-20260818180827-1583458ab9b7 // indirect
+	github.com/getlantern/lantern-box v0.0.114 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
 	github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b // indirect
-	github.com/getlantern/samizdat v0.0.3-0.20260724223841-a5ee9ab56830 // indirect
+	github.com/getlantern/samizdat v0.0.3-0.20260819153658-ebc74116a064 // indirect
 	github.com/getlantern/semconv v0.0.0-20260327040646-21845dda05cb // indirect
 	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
 	github.com/go-json-experiment/json v0.0.0-20250103232110-6a9a0fde9288 // indirect

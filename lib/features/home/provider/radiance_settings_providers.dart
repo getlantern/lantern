@@ -22,33 +22,44 @@ class RadianceSettings extends _$RadianceSettings {
 
   /// Fetches all settings in parallel and assigns a fresh state from the
   /// results. On a per-field fetch failure, falls back to the hardcoded
-  /// default for that field.
+  /// default for that field. Each future is awaited into a named variable
+  /// (positional-by-name, not positional-by-index) so adding another
+  /// optional fetch later can't silently desync the read indices.
   Future<void> _refresh() async {
     final svc = ref.read(lanternServiceProvider);
     final blockAdsF = svc.isBlockAdsEnabled();
     final routingF = svc.isSmartRoutingEnabled();
     final telemetryF = svc.isTelemetryEnabled();
     final splitF = PlatformUtils.isIOS ? null : svc.isSplitTunnelingEnabled();
+    // Peer-proxy probe runs on every platform with a handler wired up:
+    // Windows + Linux via FFI, macOS + Android + iOS via MethodChannel.
+    // Manual port forwarding works on any home WiFi where the user owns
+    // the router, so mobile is included rather than desktop-only.
+    final peerF = svc.isPeerProxyEnabled();
+    final unboundedF = svc.isUnboundedEnabled();
 
-    final results = await Future.wait([
-      blockAdsF,
-      routingF,
-      telemetryF,
-      ?splitF,
-    ]);
+    final blockAds = await blockAdsF;
+    final routing = await routingF;
+    final telemetry = await telemetryF;
+    final split = splitF == null ? null : await splitF;
+    final peer = await peerF;
+    final unbounded = await unboundedF;
     if (!ref.mounted) return;
 
     const defaults = RadianceSettingsState();
     state = RadianceSettingsState(
-      blockAds: results[0].fold((_) => defaults.blockAds, (v) => v),
-      routingMode: results[1].fold(
+      blockAds: blockAds.fold((_) => defaults.blockAds, (v) => v),
+      routingMode: routing.fold(
         (_) => defaults.routingMode,
         (smart) => smart ? RoutingMode.smart : RoutingMode.full,
       ),
-      telemetry: results[2].fold((_) => defaults.telemetry, (v) => v),
-      splitTunneling: splitF == null
+      telemetry: telemetry.fold((_) => defaults.telemetry, (v) => v),
+      splitTunneling: split == null
           ? defaults.splitTunneling
-          : results[3].fold((_) => defaults.splitTunneling, (v) => v),
+          : split.fold((_) => defaults.splitTunneling, (v) => v),
+      peerProxy: peer.fold((_) => defaults.peerProxy, (v) => v),
+      unboundedEnabled:
+          unbounded.fold((_) => defaults.unboundedEnabled, (v) => v),
     );
   }
 
@@ -95,6 +106,51 @@ class RadianceSettings extends _$RadianceSettings {
     result.fold(
       (err) => appLogger.error('updateTelemetryEvents failed: ${err.error}'),
       (_) => state = state.copyWith(telemetry: consent),
+    );
+  }
+
+  /// Enable/disable the peer-proxy (Share My Connection) radiance
+  /// setting. Returns the underlying Either so the caller can react to
+  /// failure.
+  ///
+  /// That Either carries peer.Client.Start's own failure, not merely a
+  /// failure to flip the setting: radiance runs Start synchronously under
+  /// the settings patch and propagates its error out. So a caller sees the
+  /// same failure twice — here and as a phase=error StatusEvent — and must
+  /// not treat this one as a distinct, earlier class of problem. Internal
+  /// logging still happens on failure for fire-and-forget call sites.
+  Future<Either<Failure, Unit>> setPeerProxy(bool value) async {
+    final svc = ref.read(lanternServiceProvider);
+    final result = await svc.setPeerProxyEnabled(value);
+    if (!ref.mounted) return result;
+    return result.fold(
+      (err) {
+        appLogger.error('setPeerProxyEnabled failed: ${err.error}');
+        return left(err);
+      },
+      (_) {
+        state = state.copyWith(peerProxy: value);
+        return right(unit);
+      },
+    );
+  }
+
+  /// Mirror of setPeerProxy for the Unbounded toggle. Returns the
+  /// Either so callers can react to failure (the Unbounded enable
+  /// path in share_my_connection.dart uses this for UI rollback).
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool value) async {
+    final svc = ref.read(lanternServiceProvider);
+    final result = await svc.setUnboundedEnabled(value);
+    if (!ref.mounted) return result;
+    return result.fold(
+      (err) {
+        appLogger.error('setUnboundedEnabled failed: ${err.error}');
+        return left(err);
+      },
+      (_) {
+        state = state.copyWith(unboundedEnabled: value);
+        return right(unit);
+      },
     );
   }
 }

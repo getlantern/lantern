@@ -114,6 +114,11 @@ msgstr "Remind them to use code %s when they upgrade!"
 msgid "unbounded"
 msgstr "Unbounded"
 
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
+
 msgid "help_fight_global_internet_censorship"
 msgstr "Help Fight Global Internet Censorship"
 
@@ -610,6 +615,159 @@ msgstr "Block Ads"
 
 msgid "only_active"
 msgstr "Only active when VPN is connected"
+
+msgid "share_my_connection"
+msgstr "Share My Connection"
+
+msgid "share_my_connection_subtitle"
+msgstr "Let other Lantern users route through your connection to bypass censorship."
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr "Help others bypass censorship by securely sharing your connection."
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "About Unbounded"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Status"
+
+msgid "smc_status_off"
+msgstr "Off"
+
+msgid "smc_status_configuring"
+msgstr "Configuring network"
+
+msgid "smc_status_probing"
+msgstr "Probing your network…"
+
+msgid "smc_status_active_unbounded"
+msgstr "Active — sharing via Unbounded (WebRTC)"
+
+msgid "smc_status_active_smc"
+msgstr "Active — sharing via Share My Connection (residential proxy)"
+
+msgid "smc_status_mapping_port"
+msgstr "Opening port on your router…"
+
+msgid "smc_status_detecting_ip"
+msgstr "Detecting your public IP…"
+
+msgid "smc_status_registering"
+msgstr "Registering with Lantern…"
+
+msgid "smc_status_starting_proxy"
+msgstr "Starting local proxy…"
+
+msgid "smc_status_verifying"
+msgstr "Verifying connectivity…"
+
+msgid "smc_status_serving"
+msgstr "Sharing — ready to serve users in censored regions"
+
+msgid "smc_status_stopping"
+msgstr "Stopping…"
+
+msgid "smc_status_error_with_message"
+msgstr "Couldn't share: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Couldn't share — try toggling again"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "People being helped right now"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "Total people helped to date"
+
+msgid "smc_connections_tooltip"
+msgstr "Most connections are short liveness probes — Lantern clients periodically check that this peer is reachable before sending real traffic. A quick burst from many locations is normal; an arc that lingers represents an actual user session."
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "Helping a new person in %s"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Waiting for connections..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Welcome to Unbounded"
+
+msgid "unbounded_welcome_body_1"
+msgstr "When you enable Unbounded, your device becomes part of a network of 'digital bridges' to the open internet. Censored users connect to these bridges, allowing them to bypass government-imposed restrictions and access the information they need."
+
+msgid "unbounded_welcome_body_2"
+msgstr "This collective effort makes censorship harder to enforce, expanding access to the open internet."
+
+msgid "unbounded_welcome_body_3"
+msgstr "You can remove Unbounded from the interface anytime in Settings."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Advanced"
+
+msgid "smc_advanced_subtitle"
+msgstr "For users whose router doesn't support UPnP"
+
+msgid "smc_manual_port"
+msgstr "Manual port forward"
+
+msgid "smc_manual_port_description"
+msgstr "If your router doesn't support UPnP, configure a port forward on your router and enter the port number here. Lantern will use it as the external port instead of probing UPnP. Leave blank to use UPnP (default)."
+
+msgid "smc_manual_port_label"
+msgstr "Port"
+
+msgid "smc_manual_port_hint"
+msgstr "e.g. 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Save"
+
+msgid "smc_manual_port_currently_set"
+msgstr "Currently set to port %d. Toggle Share My Connection off and back on for the change to take effect."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Port must be between 1 and 65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "Manual port cleared — using UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "Manual port set to %d"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Unbounded Settings"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Auto-enable Unbounded"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Turns on when Lantern opens"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Hide Unbounded"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Removes Unbounded from the UI"
 
 msgid "vpn_connected"
 msgstr "Lantern is now connected."
@@ -1707,6 +1865,9 @@ msgstr "Configuration cleared"
 msgid "turn_off_vpn"
 msgstr "Turn off VPN"
 
+msgid "turn_on_vpn"
+msgstr "Turn on VPN"
+
 msgid "turn_off_vpn_message"
 msgstr "The VPN needs to be off before you can refresh your configuration. Turn it off, then try again."
 
@@ -1727,3 +1888,55 @@ msgstr "Order Total"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+
+# Share consent dialog (shown once before any sharing starts, covers both modes)
+msgid "share_consent_title"
+msgstr "Share your connection?"
+
+msgid "share_consent_body_what"
+msgstr "While sharing is on, people in censored countries route their traffic through your connection to reach the open internet."
+
+msgid "share_consent_body_ip"
+msgstr "If your router supports port forwarding, your home connection is used as the exit and your IP address will appear in the destination's logs while you're sharing. Otherwise that traffic is relayed through Lantern's servers instead, and your IP is not exposed that way."
+
+msgid "share_consent_body_safety"
+msgstr "In both cases Lantern blocks known-abuse destinations, private network ranges, and abuse-prone ports, rotates credentials, and operates as a \"mere conduit\" under DMCA § 512(a)."
+
+msgid "share_consent_decline"
+msgstr "Not now"
+
+msgid "share_consent_accept"
+msgstr "Turn on sharing"
+
+msgid "bypass_browser_warning_title"
+msgstr "Add %s to the bypass list?"
+
+msgid "bypass_browser_warning_body"
+msgstr "%s will connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_anyway"
+msgstr "Add Anyway"
+
+msgid "bypass_all_warning_title"
+msgstr "Add all apps to the bypass list?"
+
+msgid "bypass_all_warning_body"
+msgstr "This includes browsers like %s. Apps on the bypass list connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_all_except_browsers"
+msgstr "Add All Except Browsers"
+
+msgid "add_all_anyway"
+msgstr "Add All Anyway"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bypass the VPN for this app?"
+
+msgid "bypass_app_first_time_body"
+msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bypass the VPN for this website?"
+
+msgid "bypass_website_first_time_body"
+msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."

@@ -242,14 +242,19 @@ class MainActivity : FlutterFragmentActivity() {
 
     fun stopVPN() {
         if (isServiceRunning(this, LanternVpnService::class.java)) {
-            LanternApp.application.sendBroadcast(
-                Intent(LanternVpnService.ACTION_STOP_VPN)
-                    .setPackage(LanternApp.application.packageName)
-            )
-            return
+            // Service intent, not broadcast: works even if the status receiver
+            // was torn down. On dispatch failure (e.g. backgrounded activity),
+            // fall through to stopping the core directly.
+            val dispatched = runCatching {
+                startService(
+                    Intent(this, LanternVpnService::class.java)
+                        .setAction(LanternVpnService.ACTION_STOP_VPN)
+                )
+            }.onFailure { AppLogger.e(TAG, "Failed to send stop to VPN service", it) }
+            if (dispatched.isSuccess) return
         }
 
-        // service isn’t up.. stop core directly and publish status
+        // service isn’t up. stop core directly and publish status
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 runCatching { Mobile.stopVPN() }

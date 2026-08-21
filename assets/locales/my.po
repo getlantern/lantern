@@ -1,8 +1,8 @@
 # Translators:
-# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2025
 # tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2026
 # Lantern, 2026
 # e2f <projects@e2f.com>, 2026
+# tx_e2f_my t1 <divinahramaroson@gmail.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -50,6 +50,17 @@ msgstr "ထိုပုံကို ပူးတွဲပြီးဖြစ်�
 msgid "report_issue_attachments_unreadable"
 msgstr "ထိုဖိုင်များထဲမှ တစ်ခုကို ဖတ်၍မရပါ။"
 
+msgid "send_without_email_title"
+msgstr "အီးမေးလ်မပါဘဲ ပို့မလား။"
+
+msgid "send_without_email_body"
+msgstr ""
+"အီးမေးလ်လိပ်စာ ထည့်မထားသောကြောင့် ဤအစီရင်ခံစာကို ပြန်ကြားရန် သို့မဟုတ် "
+"နောက်ဆက်တွဲ ဆောင်ရွက်ရန် ကျွန်ုပ်တို့ မတတ်နိုင်ပါ။"
+
+msgid "send_without_email"
+msgstr "အီးမေးလ်မပါဘဲ ပို့ရန်"
+
 msgid "lantern_projects"
 msgstr "Lantern ပရောဂျက်များ"
 
@@ -66,6 +77,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "ရည်ညွှန်းကုဒ် မျှဝေရန်"
+
+msgid "invite_friends_description"
+msgstr ""
+"သူငယ်ချင်းတစ်ဦးသည် သင့်ရည်ညွှန်းကုဒ်ဖြင့် Lantern Pro သို့ အဆင့်မြှင့်ပါက "
+"သင်တို့နှစ်ဦးစလုံး 1 လ အခမဲ့ရရှိမည်။"
+
+msgid "month_earned"
+msgstr "%s လ ရရှိပြီး"
+
+msgid "months_earned"
+msgstr "%s လ ရရှိပြီး"
+
+msgid "includes_free_month_from_referrals"
+msgstr "ရည်ညွှန်းမှုများမှ အခမဲ့ %s လ ပါဝင်သည်"
+
+msgid "includes_free_months_from_referrals"
+msgstr "ရည်ညွှန်းမှုများမှ အခမဲ့ %s လ ပါဝင်သည်"
+
+msgid "referral_converted_title"
+msgstr "သူငယ်ချင်းတစ်ဦး Pro သို့ အဆင့်မြှင့်လိုက်ပြီ"
+
+msgid "referral_converted_message"
+msgstr ""
+"သင်တို့နှစ်ဦးစလုံး Lantern Pro %s ကို အခမဲ့ရရှိခဲ့သည်။ ယခုအထိ %s "
+"ရရှိပြီးဖြစ်သည်။ ပိုမိုရရှိရန် သင့်ကုဒ်ကို ဆက်လက်မျှဝေပါ။"
+
+msgid "month_count"
+msgstr "%s လ"
+
+msgid "months_count"
+msgstr "%s လ"
+
+msgid "done"
+msgstr "ပြီးပါပြီ"
+
+msgid "view_account"
+msgstr "အကောင့်ကြည့်ရန်"
+
+msgid "show_download_links"
+msgstr "ဒေါင်းလုဒ်လင့်ခ်များ ပြရန်"
+
+msgid "get_lantern"
+msgstr "Lantern ရယူရန်"
+
+msgid "send_friend_download_link"
+msgstr "သင့်သူငယ်ချင်းကို ဤဒေါင်းလုဒ်လင့်ခ် ပို့ပါ -"
+
+msgid "scan_to_install"
+msgstr "Lantern ထည့်သွင်းရန် သင့်ကင်မရာအက်ပ်ဖြင့် စကင်ဖတ်ပါ"
+
+msgid "remind_use_code"
+msgstr "အဆင့်မြှင့်သောအခါ ကုဒ် %s ကို အသုံးပြုရန် သူတို့ကို သတိပေးပါ!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1245,6 +1308,9 @@ msgstr "ရနိုင်သည် အပေါ်-"
 msgid "subscription_renewal_date"
 msgstr "စာရင်းသွင်းမှု ပြန်လည်ပြုလုပ်မည့်ရက်"
 
+msgid "pro_access_until"
+msgstr "%s အထိ Pro အသုံးပြုခွင့်"
+
 msgid "enabled_bypass_lists"
 msgstr "ဖွင့်ထားသော ကျော်သွားမည့် စာရင်းများ (%d)-"
 
@@ -1336,6 +1402,9 @@ msgstr "ဆာဗာ အမည်ခွဲ ကွက်လပ်ရှိ၍မ�
 msgid "referral_code_applied"
 msgstr "သင့်ရဲ့ ဖိတ်ကြားကုဒ်ကို အသုံးပြုပြီးပါပြီ!"
 
+msgid "discount_applied"
+msgstr "%s လျှော့စျေး အသုံးပြုပြီး"
+
 msgid "referral_message_1m"
 msgstr "+ ၁၅ ရက် အပို အခမဲ့"
 
@@ -1343,12 +1412,12 @@ msgid "referral_message_1y"
 msgstr "+ 1 လ အပို အခမဲ့"
 
 msgid "referral_message_2y"
-msgstr "+ ၂ လ အပို အခမဲ့"
+msgstr "+ နောက်ထပ် 2 လ အခမဲ့"
 
 msgid "referral_code_invalid"
 msgstr ""
-"သင်ထည့်သွင်းသော ရည်ညွှန်းကုဒ်သည် မမှန်ကန်ပါ။ ကုဒ်ကို စစ်ဆေးပြီး "
-"ထပ်မံကြိုးစားပါ။"
+"သင်ထည့်သွင်းသော ရည်ညွှန်း/ပရိုမိုကုဒ် မမှန်ကန်ပါ။ ကုဒ်ကို စစ်ဆေးပြီး "
+"ထပ်ကြိုးစားပါ။"
 
 msgid "referral_code_own_invalid"
 msgstr ""
@@ -1567,10 +1636,9 @@ msgstr ""
 
 msgid "subscription_renewal_info"
 msgstr ""
-"ဝယ်ယူသည့်အခါ သင်၏ Apple ID မှ ငွေကောက်ခံပါမည်။ လက်ရှိကာလ "
-"ပြီးဆုံးခြင်းမတိုင်မီ အနည်းဆုံး ၂၄ နာရီ ကြိုတင်ပယ်ဖျက်ခြင်းမရှိလျှင် "
-"စာရင်းသွင်းမှုများ အလိုအလျောက် သက်တမ်းတိုးမည်။ App Store ဆက်တင်များတွင် "
-"စီမံခန့်ခွဲ သို့မဟုတ် ပယ်ဖျက်ပါ။"
+"ဝယ်ယူချိန်တွင် ငွေပေးချေမှုကို သင့် Apple ID မှ ကောက်ခံပါသည်။ လက်ရှိကာလ "
+"မကုန်ဆုံးမီ အနည်းဆုံး 24 နာရီအလိုတွင် မပယ်ဖျက်ပါက စာရင်းသွင်းမှုများသည် "
+"အလိုအလျောက် သက်တမ်းတိုးပါမည်။"
 
 msgid "failed_to_update_routing_mode"
 msgstr ""
@@ -1809,3 +1877,83 @@ msgstr "အပ်ဒိတ်များကို စစ်ဆေး၍မရ�
 
 msgid "check_connection_and_retry"
 msgstr "သင့်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ"
+
+msgid "refresh_configuration"
+msgstr "ဖွဲ့စည်းပုံကို ပြန်လည်စတင်ရန်"
+
+msgid "configuration_cleared"
+msgstr "ဖွဲ့စည်းပုံကို ရှင်းလင်းပြီးပါပြီ"
+
+msgid "turn_off_vpn"
+msgstr "VPN ပိတ်ရန်"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"ဖွဲ့စည်းပုံကို ပြန်လည်စတင်နိုင်ရန် VPN ကို အရင်ပိတ်ရမည်။ ၎င်းကိုပိတ်ပြီး "
+"ထပ်ကြိုးစားပါ။"
+
+msgid "configuration_message"
+msgstr ""
+"သင်၏ဖွဲ့စည်းပုံအဟောင်းကို ရှင်းလင်းပြီးပါပြီ။ နောက်ဆုံးထွက်ကို "
+"အလိုအလျောက်ဒေါင်းလုဒ်လုပ်ရန် VPN ကိုဖွင့်ပါ။"
+
+msgid "promo_referral_code"
+msgstr "ပရိုမို / ရည်ညွှန်းကုဒ်"
+
+msgid "promo_code"
+msgstr "ပရိုမိုကုဒ်"
+
+msgid "promo_code_with"
+msgstr "ပရိုမိုကုဒ် (%s)"
+
+msgid "order_total"
+msgstr "မှာယူမှု စုစုပေါင်း"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"စမတ်တည်နေရာသည် အမြန်ဆုံးဆာဗာကို ရွေးချယ်ပြီး ပိုကောင်းသောလမ်းကြောင်းများ "
+"တွေ့ရှိသည်နှင့်အမျှ အလိုအလျောက် ပြောင်းလဲပေးသည်။"
+
+msgid "bypass_browser_warning_title"
+msgstr "%s ကို ကျော်လွှားစာရင်းထဲ ထည့်မလား။"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s သည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ပါမည်။ "
+"အချို့ဝဘ်ဆိုက်များကို ပိတ်ဆို့ထားသည့် နိုင်ငံများတွင် အချို့ဆိုက်များ "
+"တင်၍မရတော့ပါ။"
+
+msgid "add_anyway"
+msgstr "မည်သို့ပင်ဖြစ်စေ ထည့်ရန်"
+
+msgid "bypass_all_warning_title"
+msgstr "အက်ပ်အားလုံးကို ကျော်လွှားစာရင်းထဲ ထည့်မလား။"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"၎င်းတွင် %s ကဲ့သို့သော ဘရောက်ဇာများ ပါဝင်သည်။ ကျော်လွှားစာရင်းရှိ "
+"အက်ပ်များသည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ကြသည်။ "
+"အချို့ဝဘ်ဆိုက်များကို ပိတ်ဆို့ထားသည့် နိုင်ငံများတွင် အချို့ဆိုက်များ "
+"တင်၍မရတော့ပါ။"
+
+msgid "add_all_except_browsers"
+msgstr "ဘရောက်ဇာများမှလွဲ၍ အားလုံးထည့်ရန်"
+
+msgid "add_all_anyway"
+msgstr "မည်သို့ပင်ဖြစ်စေ အားလုံးထည့်ရန်"
+
+msgid "bypass_app_first_time_title"
+msgstr "ဤအက်ပ်အတွက် VPN ကို ကျော်လွှားမလား။"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s သည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ပါမည်။ သင့်နိုင်ငံတွင် "
+"ပိတ်ဆို့ထားပါက အလုပ်မလုပ်တော့နိုင်ပါ။"
+
+msgid "bypass_website_first_time_title"
+msgstr "ဤဝဘ်ဆိုက်အတွက် VPN ကို ကျော်လွှားမလား။"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s သည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ပါမည်။ သင့်နိုင်ငံတွင် "
+"ပိတ်ဆို့ထားပါက အလုပ်မလုပ်တော့နိုင်ပါ။"

@@ -47,6 +47,17 @@ msgstr "Bu surat eýýäm goşuldy."
 msgid "report_issue_attachments_unreadable"
 msgstr "Şol faýllaryň birini okap bilmedik."
 
+msgid "send_without_email_title"
+msgstr "E-poçtasyz iberilsinmi?"
+
+msgid "send_without_email_body"
+msgstr ""
+"E-poçta salgysyny goşmadyňyz, şonuň üçin bu habarnama jogap berip ýa-da "
+"yzarlap bilmeris."
+
+msgid "send_without_email"
+msgstr "E-poçtasyz iber"
+
 msgid "lantern_projects"
 msgstr "Lantern taslamalary:"
 
@@ -63,6 +74,58 @@ msgstr ""
 
 msgid "share_referral_code"
 msgstr "Taýşdyryş kodyny paýlaş"
+
+msgid "invite_friends_description"
+msgstr ""
+"Dostuňyz siziň salgylanma koduňyzy ulanyp Lantern Pro-a geçende, ikiňiz hem "
+"1 aý mugt alarsyňyz."
+
+msgid "month_earned"
+msgstr "%s aý gazanyldy"
+
+msgid "months_earned"
+msgstr "%s aý gazanyldy"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Salgylanmalardan %s mugt aý girýär"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Salgylanmalardan %s mugt aý girýär"
+
+msgid "referral_converted_title"
+msgstr "Dostuňyz Pro-a geçdi"
+
+msgid "referral_converted_message"
+msgstr ""
+"Ikiňiz hem %s Lantern Pro-ny mugt gazandyňyz. Häzire çenli %s gazandyňyz. "
+"Has köp gazanmak üçin koduňyzy paýlaşmagy dowam ediň."
+
+msgid "month_count"
+msgstr "%s aý"
+
+msgid "months_count"
+msgstr "%s aý"
+
+msgid "done"
+msgstr "Taýýar"
+
+msgid "view_account"
+msgstr "Hasaby gör"
+
+msgid "show_download_links"
+msgstr "Ýükleme baglanyşyklaryny görkez"
+
+msgid "get_lantern"
+msgstr "Lantern-i al"
+
+msgid "send_friend_download_link"
+msgstr "Dostuňyza şu ýükleme baglanyşygyny iberiň:"
+
+msgid "scan_to_install"
+msgstr "Lantern-i gurnamak üçin kamera programmaňyz bilen skanirläň"
+
+msgid "remind_use_code"
+msgstr "Geçenlerinde %s koduny ulanmagy ýatladyň!"
 
 msgid "unbounded"
 msgstr "Unbounded"
@@ -1205,6 +1268,9 @@ msgstr "Elýeterli:"
 msgid "subscription_renewal_date"
 msgstr "Abunalyk täzeleme senesi"
 
+msgid "pro_access_until"
+msgstr "%s çenli Pro elýeterliligi"
+
 msgid "enabled_bypass_lists"
 msgstr "Açyk geçme sanawlary (%d):"
 
@@ -1296,6 +1362,9 @@ msgstr "Serwer lakamy boş bolup bilmez"
 msgid "referral_code_applied"
 msgstr " Rekomendasiýa koduňyz ulanyldy!"
 
+msgid "discount_applied"
+msgstr "%s arzanladyş ulanyldy"
+
 msgid "referral_message_1m"
 msgstr "+ 15 goşmaça gün mugt"
 
@@ -1303,11 +1372,10 @@ msgid "referral_message_1y"
 msgstr " + 1 goşmaça aý mugt"
 
 msgid "referral_message_2y"
-msgstr " + 2 goşmaça aý mugt"
+msgstr "+ goşmaça 2 aý mugt"
 
 msgid "referral_code_invalid"
-msgstr ""
-" Girizilen rekomendasiýa koduňyz nädogry. Kody barlaň we täzeden synanyşyň."
+msgstr "Giren salgylanma/promo koduňyz nädogry. Kody barlap, ýene synanyşyň."
 
 msgid "referral_code_own_invalid"
 msgstr "Öz rekomendasiýa koduňyzy ulanyp bilmersiňiz. Başga kod giriziň."
@@ -1519,9 +1587,8 @@ msgstr "Tizlik 128 kb/s çenli peseldildi - %s-da täzeden dikeldiler."
 
 msgid "subscription_renewal_info"
 msgstr ""
-"Satyn alanda töleg Apple ID-dan alynýar. Häzirki döwrüň gutarmagyndan "
-"azyndan 24 sagat öň ýatyrylmasa, abunalar awtomatiki täzelenýär. App Store "
-"sazlamalarynda dolandyryň ýa-da ýatyryň."
+"Töleg satyn alnanda Apple ID-iňizden alynýar. Abunalar häzirki döwrüň "
+"gutarmagyndan azyndan 24 sagat öň ýatyrylmasa, awtomatik täzelenýär."
 
 msgid "failed_to_update_routing_mode"
 msgstr "Marşrutlaşdyryş tertibini täzelemek başa barmady. Täzeden synanyşyň."
@@ -1750,3 +1817,81 @@ msgstr "Täzelenmeleri barlap bolmady"
 
 msgid "check_connection_and_retry"
 msgstr "Birikmäňizi barlap, ýene synanyşyň"
+
+msgid "refresh_configuration"
+msgstr "Sazlamalary täzele"
+
+msgid "configuration_cleared"
+msgstr "Sazlamalar arassalandy"
+
+msgid "turn_off_vpn"
+msgstr "VPN-i öçür"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Sazlamalaryňyzy täzelemezden öň VPN öçük bolmaly. Ony öçürip, ýene "
+"synanyşyň."
+
+msgid "configuration_message"
+msgstr ""
+"Köne sazlamalaryňyz arassalandy. Iň täzesini awtomatik ýüklemek üçin VPN-i "
+"açyň."
+
+msgid "promo_referral_code"
+msgstr "Promo / salgylanma kody"
+
+msgid "promo_code"
+msgstr "Promo kody"
+
+msgid "promo_code_with"
+msgstr "Promo kody (%s)"
+
+msgid "order_total"
+msgstr "Sargydyň jemi"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"Akylly ýerleşiş iň çalt serwer saýlaýar we has gowy ýollar tapanda awtomatik"
+" çalyşýar."
+
+msgid "bypass_browser_warning_title"
+msgstr "%s aýlanyp geçme sanawyna goşulsynmy?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s Lantern-iň goragy bolmazdan göni birigär. Käbir web sahypalaryny "
+"petikleýän ýurtlarda käbir sahypalar açylmaz."
+
+msgid "add_anyway"
+msgstr "Barybir goş"
+
+msgid "bypass_all_warning_title"
+msgstr "Ähli programmalar aýlanyp geçme sanawyna goşulsynmy?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Muňa %s ýaly brauzerler hem girýär. Aýlanyp geçme sanawyndaky programmalar "
+"Lantern-iň goragy bolmazdan göni birigýär. Käbir web sahypalaryny petikleýän"
+" ýurtlarda käbir sahypalar açylmaz."
+
+msgid "add_all_except_browsers"
+msgstr "Brauzerlerden başga ählisini goş"
+
+msgid "add_all_anyway"
+msgstr "Barybir ählisini goş"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bu programma üçin VPN aýlanyp geçilsinmi?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s Lantern-iň goragy bolmazdan göni birigär. Ýurduňyzda petiklenen bolsa, "
+"işlemegini bes edip biler."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bu web sahypasy üçin VPN aýlanyp geçilsinmi?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s Lantern-iň goragy bolmazdan göni birigär. Ýurduňyzda petiklenen bolsa, "
+"işlemegini bes edip biler."

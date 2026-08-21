@@ -23,6 +23,11 @@ environment:
   flutter: ">=3.41.0 <4.0.0"
 
 dependency_overrides:
+  auto_updater_windows:
+    git:
+      url: https://github.com/getlantern/auto_updater.git
+      path: packages/auto_updater_windows
+      ref: 7d8e67bcd78a8d57516775ea5cf18f4b83786afa
   # 12.6.x bumps the native Stripe SDKs (iOS ~>25.9), keep in step with flutter_stripe 12.4.0
   stripe_android: 12.4.0
   stripe_ios: 12.4.0
@@ -50,6 +55,8 @@ dependencies:
   #Routing
   auto_route: ^11.1.0
   #UI Utils
+  flutter_earth_globe: ^2.2.0
+  lottie: ^3.3.1
   animated_toggle_switch: ^0.8.7
   animated_text_kit: ^4.3.0
   flutter_screenutil: ^5.9.3
@@ -151,6 +158,22 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Opt this project out of Flutter's Swift Package Manager auto-migration
+  # for iOS/macOS. The project resolves all native darwin dependencies via
+  # CocoaPods (macos/Podfile, ios/Podfile) and has no checked-in
+  # Package.swift/Package.resolved. `flutter run`/`flutter build` silently
+  # add SwiftPM integration on top of that when the local `flutter config`
+  # has enable-swift-package-manager on (as it does on some dev machines),
+  # which breaks the macOS build: screen_retriever_macos's own Package.swift
+  # still declares a macOS 10.14 minimum, one below the 10.15 the new
+  # FlutterFramework SwiftPM product requires, so Xcode fails with "package
+  # product 'FlutterFramework' requires minimum platform version 10.15 ...
+  # but this target supports 10.14 (in target 'screen_retriever_macos')".
+  # Disabling SPM here keeps every machine on the CocoaPods path that
+  # already works, regardless of that machine's global flutter config.
+  config:
+    enable-swift-package-manager: false
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -170,6 +193,7 @@ flutter:
       platforms:
         - windows
     - assets/locales/
+    - assets/unbounded/
     - app.env
 
 ffigen:
