@@ -760,7 +760,7 @@ msgid "auto_enable_unbounded"
 msgstr "Auto-enable Unbounded"
 
 msgid "auto_enable_unbounded_subtitle"
-msgstr "Turn on automatically when Lantern is open"
+msgstr "Turns on when Lantern opens"
 
 # Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
 msgid "hide_unbounded"
