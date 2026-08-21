@@ -690,9 +690,6 @@ msgstr "People being helped right now"
 msgid "smc_stat_total_helped"
 msgstr "Total people helped to date"
 
-msgid "smc_connections_tooltip"
-msgstr "Most connections are short liveness probes — Lantern clients periodically check that this peer is reachable before sending real traffic. A quick burst from many locations is normal; an arc that lingers represents an actual user session."
-
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
 # emphasizes the user-impact framing the SmC tab leans into.
