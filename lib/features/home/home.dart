@@ -430,9 +430,15 @@ class _MobileTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Container(
+    // Scaffold.bottomNavigationBar gets no automatic safe-area handling —
+    // without this the bar can sit under the iOS home indicator or an
+    // Android gesture nav area taller than the spec's fixed 16px gap.
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Container(
         height: 64,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
@@ -465,6 +471,7 @@ class _MobileTabBar extends StatelessWidget {
             ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -492,7 +499,14 @@ class _MobileTabButton extends StatelessWidget {
     final labelColor = selected
         ? context.actionTabbarSelectedText
         : context.actionTabbarDisabledText;
-    return Material(
+    // InkWell has no selected semantics of its own — without this,
+    // assistive tech has no way to tell which tab is current. The label
+    // itself isn't repeated here so it merges in from the descendant Text
+    // instead of announcing twice.
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: Material(
       type: MaterialType.transparency,
       child: InkWell(
         borderRadius: BorderRadius.circular(9999),
@@ -536,6 +550,7 @@ class _MobileTabButton extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
