@@ -1477,10 +1477,12 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
     // does not mean nobody is connected. The idle pill has to key off the live
     // peer count or it claims we are waiting for connections directly above a
     // stat reporting several active ones. It also only makes sense while
-    // Unbounded is actually on — otherwise "waiting for connections" shows
-    // over an inert globe with the toggle off.
+    // Unbounded (not SmC) is actually on — the copy is Unbounded-specific
+    // (unbounded_waiting_for_connections), and shareState.active is also true
+    // during an SmC session, which has no such pill in the spec.
     final hasPeers = shareState.activeCount > 0;
-    final showWaiting = shareState.active && !hasPeers;
+    final showWaiting =
+        shareState.mode == ShareMode.unbounded && shareState.active && !hasPeers;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 280),
       transitionBuilder: (child, anim) => FadeTransition(
