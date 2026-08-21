@@ -252,10 +252,25 @@ class Home extends HookConsumerWidget {
         // Tab strip collapses when Unbounded is unavailable — either the
         // server flag is off (censored region) or the user hid the tab
         // in Unbounded Settings. With only one tab left, a strip is just
-        // noise; body falls back to VpnTab directly.
-        bottom: !showUnboundedTab
+        // noise; body falls back to VpnTab directly. On mobile the strip
+        // moves to a bottom nav bar (Scaffold.bottomNavigationBar below)
+        // per the Figma spec, so the AppBar carries no bottom widget there.
+        bottom: !showUnboundedTab || PlatformUtils.isMobile
             ? null
-            : TabBar(
+            : PreferredSize(
+                // The Figma spec's whole Tabs row is 56px tall (the 40px
+                // pill centered inside it, giving 8px above/below) with a
+                // dividing line under the entire row — neither of which
+                // TabBar provides on its own, so both are added here rather
+                // than relying on TabBar's own (shorter) computed height.
+                preferredSize: const Size.fromHeight(56),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: context.borderDefault),
+                    ),
+                  ),
+                  child: TabBar(
                 controller: tabController,
                 // The pill is drawn by each _TabLabel itself (hugging its
                 // own content with 24px side padding, per spec) rather than
@@ -285,19 +300,21 @@ class Home extends HookConsumerWidget {
                 tabs: [
                   _TabLabel(
                     label: 'vpn'.i18n,
-                    iconOutlined: Icons.vpn_key_outlined,
-                    iconFilled: Icons.vpn_key,
+                    iconPath: AppImagePaths.vpnKey,
+                    iconFillPath: AppImagePaths.vpnKeyFill,
                     selected: !onUnboundedTab.value,
                     active: vpnStatus == VPNStatus.connected,
                   ),
                   _TabLabel(
                     label: 'unbounded'.i18n,
-                    iconOutlined: Icons.handshake_outlined,
-                    iconFilled: Icons.handshake,
+                    iconPath: AppImagePaths.handshake,
+                    iconFillPath: AppImagePaths.handshakeFill,
                     selected: onUnboundedTab.value,
                     active: shareActive,
                   ),
                 ],
+                  ),
+                ),
               ),
       ),
       body: !showUnboundedTab
@@ -308,6 +325,15 @@ class Home extends HookConsumerWidget {
                 VpnTab(),
                 UnboundedTab(),
               ],
+            ),
+      bottomNavigationBar: !showUnboundedTab || !PlatformUtils.isMobile
+          ? null
+          : _MobileTabBar(
+              vpnSelected: !onUnboundedTab.value,
+              vpnActive: vpnStatus == VPNStatus.connected,
+              unboundedActive: shareActive,
+              onSelectVpn: () => tabController.animateTo(0),
+              onSelectUnbounded: () => tabController.animateTo(1),
             ),
     );
   }
@@ -320,15 +346,15 @@ class Home extends HookConsumerWidget {
 class _TabLabel extends StatelessWidget {
   const _TabLabel({
     required this.label,
-    required this.iconOutlined,
-    required this.iconFilled,
+    required this.iconPath,
+    required this.iconFillPath,
     required this.selected,
     required this.active,
   });
 
   final String label;
-  final IconData iconOutlined;
-  final IconData iconFilled;
+  final String iconPath;
+  final String iconFillPath;
   final bool selected;
   final bool active;
 
@@ -339,7 +365,10 @@ class _TabLabel extends StatelessWidget {
     // two in step without plumbing the selected index down here.
     final labelColor = DefaultTextStyle.of(context).style.color;
     return Tab(
-      height: 40,
+      // 56px total so the 40px pill centers with 8px above/below, per spec —
+      // Tab's own preferredSize would otherwise be barely taller than the
+      // pill itself, leaving almost no breathing room below it.
+      height: 56,
       child: Container(
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -356,9 +385,10 @@ class _TabLabel extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              selected ? iconFilled : iconOutlined,
-              size: 24,
+            AppImage(
+              path: selected ? iconFillPath : iconPath,
+              width: 24,
+              height: 24,
               color: labelColor,
             ),
             const SizedBox(width: 8),
@@ -370,6 +400,141 @@ class _TabLabel extends StatelessWidget {
               child: Center(child: StatusDot(active: active)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Mobile counterpart to the desktop [TabBar] strip, rendered as
+/// [Scaffold.bottomNavigationBar] instead of [AppBar.bottom] per the Figma
+/// mobile spec (figma.com/design/hNlyYToB5TnX9SDBFDYJTq?node-id=2716-11057):
+/// a capsule pill spanning the bottom of the screen, each tab stacking its
+/// icon above its label rather than side-by-side, and the selected tab's
+/// pill filling its whole half of the capsule instead of hugging its
+/// content the way the desktop pill does.
+class _MobileTabBar extends StatelessWidget {
+  const _MobileTabBar({
+    required this.vpnSelected,
+    required this.vpnActive,
+    required this.unboundedActive,
+    required this.onSelectVpn,
+    required this.onSelectUnbounded,
+  });
+
+  final bool vpnSelected;
+  final bool vpnActive;
+  final bool unboundedActive;
+  final VoidCallback onSelectVpn;
+  final VoidCallback onSelectUnbounded;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Container(
+        height: 64,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: context.bgElevated,
+          border: Border.all(color: context.borderDefault),
+          borderRadius: BorderRadius.circular(9999),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _MobileTabButton(
+                label: 'vpn'.i18n,
+                iconPath: AppImagePaths.vpnKey,
+                iconFillPath: AppImagePaths.vpnKeyFill,
+                selected: vpnSelected,
+                active: vpnActive,
+                onTap: onSelectVpn,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _MobileTabButton(
+                label: 'unbounded'.i18n,
+                iconPath: AppImagePaths.handshake,
+                iconFillPath: AppImagePaths.handshakeFill,
+                selected: !vpnSelected,
+                active: unboundedActive,
+                onTap: onSelectUnbounded,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileTabButton extends StatelessWidget {
+  const _MobileTabButton({
+    required this.label,
+    required this.iconPath,
+    required this.iconFillPath,
+    required this.selected,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final String iconPath;
+  final String iconFillPath;
+  final bool selected;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelColor = selected
+        ? context.actionTabbarSelectedText
+        : context.actionTabbarDisabledText;
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(9999),
+        onTap: onTap,
+        child: Container(
+          decoration: selected
+              ? BoxDecoration(
+                  color: context.actionTabbarBg,
+                  border: Border.all(color: context.actionTabbarBorder),
+                  borderRadius: BorderRadius.circular(9999),
+                )
+              : null,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppImage(
+                path: selected ? iconFillPath : iconPath,
+                width: 24,
+                height: 24,
+                color: labelColor,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(color: labelColor),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Center(child: StatusDot(active: active)),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

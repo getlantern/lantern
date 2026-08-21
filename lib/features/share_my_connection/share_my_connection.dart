@@ -858,6 +858,11 @@ class UnboundedTab extends HookConsumerWidget {
                 textStyle: textTheme.labelMedium?.copyWith(
                   color: context.textSecondary,
                 ),
+                // ListTile's default 56dp minimum height is sized for a
+                // single-line tile; this note's text wraps to two lines,
+                // so without overriding it the tile pads out to that floor
+                // and reads as too much space above/below the text.
+                minTileHeight: 0,
                 onPressed: () => showUnboundedWelcomeDialog(context, ref),
               ),
             ),
@@ -964,8 +969,11 @@ class _StatusCard extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  Icon(Icons.public_outlined,
-                      size: 20, color: Theme.of(context).hintColor),
+                  AppImage(
+                      path: AppImagePaths.languageGlobe,
+                      width: 20,
+                      height: 20,
+                      color: context.textTertiary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text.rich(
@@ -1006,44 +1014,17 @@ class _StatusCard extends StatelessWidget {
             // reads 0 and totalCount keeps the persisted lifetime total.
             const DividerSpace(),
             AppTile(
-              icon: Icons.person_outline,
+              icon: AppImagePaths.person,
               label: 'smc_stat_active_now'.i18n,
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Tooltip(
-                    triggerMode: TooltipTriggerMode.tap,
-                    waitDuration: const Duration(milliseconds: 200),
-                    showDuration: const Duration(seconds: 8),
-                    preferBelow: false,
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    textStyle:
-                        const TextStyle(color: Colors.white, fontSize: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    message: 'smc_connections_tooltip'.i18n,
-                    child: Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Theme.of(context).hintColor,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${state.activeCount}',
-                    style: textTheme.titleMedium!
-                        .copyWith(color: context.textLink),
-                  ),
-                ],
+              trailing: Text(
+                '${state.activeCount}',
+                style:
+                    textTheme.titleMedium!.copyWith(color: context.textLink),
               ),
             ),
             const DividerSpace(),
             AppTile(
-              icon: Icons.groups_2_outlined,
+              icon: AppImagePaths.groups2,
               label: 'smc_stat_total_helped'.i18n,
               trailing: Text(
                 '${state.totalCount}',
@@ -1093,7 +1074,7 @@ class _AutoEnableCard extends ConsumerWidget {
               color: context.textTertiary,
             ),
           ),
-          icon: Icons.auto_mode,
+          icon: AppImagePaths.autoMode,
           trailing: Checkbox(
             value: autoEnable,
             onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
@@ -1375,45 +1356,53 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
           constraints.maxWidth * 0.275,
           constraints.maxHeight * 0.42,
         );
-        return ClipRect(
-          // copyWith preserves the inherited devicePixelRatio,
-          // textScaleFactor, padding/insets etc. — constructing
-          // MediaQueryData from scratch with just `size:` would drop
-          // those, breaking high-DPI rendering (pixel ratio falls to
-          // 1.0) and accessibility scaling for the globe subtree.
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(size: widgetSize),
-            child: Stack(
-              children: [
-                // Sits behind the sphere because the package paints no
-                // shadow of its own; matched to the spec's Globe effect.
-                Align(
-                  alignment: const Alignment(0.0, -0.1),
-                  child: Container(
-                    width: radius * 2,
-                    height: radius * 2,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0x42006163),
-                          offset: Offset(0, 4),
-                          blurRadius: 64,
-                        ),
-                      ],
+        return Stack(
+          children: [
+            // Sits behind the sphere because the package paints no shadow of
+            // its own; matched to the spec's Globe effect. Deliberately a
+            // sibling of (not inside) the ClipRect below: that clip exists
+            // for connection arcs, which is much tighter than the shadow's
+            // blur needs and was cropping it at the top.
+            Align(
+              alignment: const Alignment(0.0, -0.1),
+              child: Container(
+                width: radius * 2,
+                height: radius * 2,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      // Half the alpha of the previous 0x42 per design review.
+                      color: Color(0x21006163),
+                      offset: Offset(0, 4),
+                      blurRadius: 64,
                     ),
-                  ),
+                  ],
                 ),
-                Positioned.fill(
+              ),
+            ),
+            SizedBox(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+              child: ClipRect(
+                // ClipRect keeps arcs from painting outside the box when
+                // they curve high.
+                child: MediaQuery(
+                  // copyWith preserves the inherited devicePixelRatio,
+                  // textScaleFactor, padding/insets etc. — constructing
+                  // MediaQueryData from scratch with just `size:` would drop
+                  // those, breaking high-DPI rendering (pixel ratio falls to
+                  // 1.0) and accessibility scaling for the globe subtree.
+                  data: MediaQuery.of(context).copyWith(size: widgetSize),
                   child: FlutterEarthGlobe(
                     controller: _globeController,
                     radius: radius,
                     alignment: const Alignment(0.0, -0.1),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         );
       },
       ),
