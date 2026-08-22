@@ -92,10 +92,16 @@ class VPNManager: VPNBase {
   /// A profile left behind is found again by the next `loadAllFromPreferences()`,
   /// so a partial clear is not a rebuild: the caller must not go on to create a
   /// replacement and report success while the unlaunchable profile is still there.
-  private func removeExistingVPNProfiles() async throws {
+  private func removeExistingVPNProfiles(operationID: UInt) async throws {
     let managers = try await NETunnelProviderManager.loadAllFromPreferences()
     var firstFailure: Error?
     for manager in managers {
+      // Re-checked per profile rather than once for the loop: each removal is a
+      // separate await that can block, so a stop can land between two of them.
+      // Cancellation wins over `firstFailure` — the next setup attempt retries
+      // the removals, and continuing to delete profiles while teardown runs is
+      // the thing being prevented.
+      try await requireOperation(operationID)
       do {
         appLogger.log("Removing VPN configuration: \(manager.localizedDescription ?? "Unnamed")")
         try await manager.removeFromPreferences()
@@ -116,11 +122,13 @@ class VPNManager: VPNBase {
   /// afterwards, and starting one against a profile we failed to repair or
   /// rebuild is the silent failure this whole path exists to prevent.
   ///
-  /// `operationID` gates every write. The preference calls below can block on a
-  /// system permission prompt, and `beginStopOperation()` waits only 5s for this
-  /// operation to hand the manager back — past that a stop proceeds to teardown
-  /// while this call is still running, so a canceled start must not still be
-  /// removing profiles or saving new ones underneath it.
+  /// `operationID` is re-checked immediately before every preference write —
+  /// each `removeFromPreferences()` and the `saveToPreferences()` of a new
+  /// profile — not once up front. Each of those is a separate await that can
+  /// block on a system permission prompt, and `beginStopOperation()` waits only
+  /// 5s for this operation to hand the manager back; past that a stop proceeds
+  /// to teardown while this call is still running, so a canceled start must not
+  /// still be removing profiles or saving new ones underneath it.
   private func setupVPN(operationID: UInt) async throws {
     let managers = try await NETunnelProviderManager.loadAllFromPreferences()
     if let reusable = await firstLaunchableProfile(among: managers) {
@@ -131,21 +139,27 @@ class VPNManager: VPNBase {
       appLogger.log("Reusing existing VPN profile")
       return
     }
-    try await requireOperation(operationID)
     if managers.isEmpty {
       appLogger.log("No VPN profiles found, creating new profile")
     } else {
       appLogger.log("No saved VPN profile is launchable by this build, rebuilding")
-      try await removeExistingVPNProfiles()
+      try await removeExistingVPNProfiles(operationID: operationID)
     }
     let created = createNewProfile()
+    try await requireOperation(operationID)
     try await created.saveToPreferences()
     try await created.loadFromPreferences()
     self.manager = created
     appLogger.log("Created and loaded new VPN profile")
   }
 
-  /// Throws when a stop has canceled this connection operation.
+  /// Throws unless this operation still owns the VPN lifecycle.
+  ///
+  /// Ownership is lost when a stop is pending, and also when the stop handoff
+  /// already expired and released `activeConnectionID` (`VPNBase.swift`,
+  /// `expireStopHandoff`) — so this is broader than "a stop canceled us", and
+  /// `.operationInProgress` is the same error the coordinator raises for any
+  /// other lifecycle contention.
   private func requireOperation(_ operationID: UInt) async throws {
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw VPNManagerError.operationInProgress
