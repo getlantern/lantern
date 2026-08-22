@@ -236,8 +236,12 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       return
     }
 
+    // Scans the process for the lowest-numbered utun, so it is only correct while
+    // exactly one is open — see the teardown guard in ExtensionProvider.startTunnel
+    // (getlantern/engineering#3781). Logged so a recurrence is distinguishable.
     let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
     if tunFdFromLoop != -1 {
+      appLogger.info("Returning tunnel file descriptor \(tunFdFromLoop) (from C loop)")
       ret0_.pointee = tunFdFromLoop
     } else {
       throw NSError(domain: "missing file descriptor", code: 0)
@@ -269,6 +273,11 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     guard let listener else {
       return
     }
+    // libbox can start a monitor without closing the previous one — the reporter's
+    // logs in getlantern/engineering#3781 show 72 monitors started against 59
+    // closed. Replacing the reference without cancelling leaks the old
+    // NWPathMonitor, which keeps pushing path updates into a dead sing-box.
+    nwMonitor?.cancel()
     let monitor = NWPathMonitor()
     nwMonitor = monitor
     let semaphore = DispatchSemaphore(value: 0)
