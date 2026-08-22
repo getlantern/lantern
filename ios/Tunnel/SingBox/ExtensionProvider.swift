@@ -164,6 +164,9 @@ class ExtensionProvider: NEPacketTunnelProvider {
   override open func stopTunnel(with reason: NEProviderStopReason) async {
     let startTime = Date()
     appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
+    // The tunnel is genuinely going away, so ownership is released here rather
+    // than inside stopService().
+    setTunnelRunning(false)
     stopService()
     var error: NSError?
     MobileCloseIPCServer(&error)
@@ -193,7 +196,12 @@ class ExtensionProvider: NEPacketTunnelProvider {
     if error != nil {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
     }
-    setTunnelRunning(false)
+    // Deliberately does not release the claim. This is a teardown primitive:
+    // startTunnel calls it to replace a tunnel it still owns, and restartService
+    // calls it mid-restart. Releasing here would let a second start observe
+    // "nothing running" and begin a bring-up overlapping the replacement.
+    // Ownership is released only where the tunnel is genuinely going away —
+    // stopTunnel(with:).
     postServiceClose()
   }
 

@@ -172,7 +172,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       appLogger.log("error closing IPC server \(error?.localizedDescription ?? "")")
     }
     appLogger.log("(lantern-tunnel) tunnel closed")
-    // macOS tears down inline rather than through stopService(), so release here too.
+    // The tunnel is genuinely going away — the one place ownership is released.
     setTunnelRunning(false)
     platformInterface.reset()
   }
@@ -184,7 +184,12 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     if error != nil {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
     }
-    setTunnelRunning(false)
+    // Deliberately does not release the claim. This is a teardown primitive:
+    // startTunnel calls it to replace a tunnel it still owns, and restartService
+    // calls it mid-restart. Releasing here would let a second start observe
+    // "nothing running" and begin a bring-up overlapping the replacement.
+    // Ownership is released only where the tunnel is genuinely going away —
+    // stopTunnel(with:).
     postServiceClose()
   }
 
