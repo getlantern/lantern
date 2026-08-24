@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -30,14 +31,31 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
   @override
   void initState() {
     super.initState();
+    // Registered here rather than in a post-frame callback: initState runs
+    // during the build phase, so the close handler exists even when the app
+    // goes on to never render a frame. preventClose is armed only after a
+    // frame has been built, so the two are never live without each other.
+    if (PlatformUtils.isDesktop) {
+      windowManager.addListener(this);
+    }
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
-        if (PlatformUtils.isDesktop) {
-          windowManager.addListener(this);
-        }
-      },
+      (_) => unawaited(_revealWindow()),
     );
     _setupProtocol();
+  }
+
+  /// Reveals the window once there is something in it to see, and only then
+  /// turns the close button into minimise-to-tray. Before the first frame there
+  /// is nothing to restore from the tray, so closing should really close.
+  Future<void> _revealWindow() async {
+    if (!mounted || !PlatformUtils.isDesktop) return;
+    try {
+      await windowManager.setPreventClose(true);
+      await windowManager.show();
+      await windowManager.focus();
+    } catch (e, st) {
+      appLogger.error('Failed to reveal window after first frame', e, st);
+    }
   }
 
   @override
