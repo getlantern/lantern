@@ -7,6 +7,10 @@ on:
         required: true
       JOIN_SERVER_CONFIG_URLS:
         required: false
+      # Base64 of integration_test/auth/auth_smoke_credentials.dart; only
+      # needed when run_auth_smoke is true.
+      AUTH_SMOKE_CREDENTIALS:
+        required: false
     inputs:
       version:
         required: true
@@ -287,6 +291,15 @@ jobs:
           JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
           JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: bash .github/scripts/linux_config_url_smoke.sh
+
+      # Gitignored; the auth smoke suite does not compile without it.
+      - name: Write auth smoke credentials
+        if: ${{ inputs.run_auth_smoke }}
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "auth_smoke_credentials.dart"
+          fileDir: ${{ github.workspace }}/integration_test/auth
+          encodedString: ${{ secrets.AUTH_SMOKE_CREDENTIALS }}
 
       - name: Linux UI auth smoke integration
         if: ${{ inputs.run_auth_smoke }}

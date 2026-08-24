@@ -1,5 +1,6 @@
 import 'package:integration_test/integration_test.dart';
 
+import 'auth/auth_smoke_test.dart';
 import 'plans/plans_smoke_test.dart';
 import 'report_issue/report_issue_smoke_test.dart';
 import 'setting/setting_smoke_test.dart';
@@ -22,4 +23,5 @@ void main() {
   registerReportIssueSmokeTests();
   registerSettingSmokeTests();
   registerPlansSmokeTests();
+  registerAuthSmokeTests();
 }

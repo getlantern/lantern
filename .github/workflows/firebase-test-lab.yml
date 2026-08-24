@@ -31,6 +31,11 @@ on:
         required: true
       APP_ENV:
         required: true
+      # Base64 of integration_test/auth/auth_smoke_credentials.dart (see
+      # auth_smoke_credentials.example.dart). Needed to compile the auth
+      # smoke suite registered in android_all_e2e_test.dart.
+      AUTH_SMOKE_CREDENTIALS:
+        required: true
 
 permissions:
   contents: read
@@ -119,6 +124,14 @@ jobs:
           fileName: "app.env"
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
+
+      # Gitignored; the auth smoke suite does not compile without it.
+      - name: Write auth smoke credentials
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "auth_smoke_credentials.dart"
+          fileDir: ${{ github.workspace }}/integration_test/auth
+          encodedString: ${{ secrets.AUTH_SMOKE_CREDENTIALS }}
 
       - name: Set gomobile cache dir
         shell: bash

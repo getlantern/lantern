@@ -7,6 +7,10 @@ on:
         required: true
       JOIN_SERVER_CONFIG_URLS:
         required: false
+      # Base64 of integration_test/auth/auth_smoke_credentials.dart; only
+      # needed when run_auth_smoke is true.
+      AUTH_SMOKE_CREDENTIALS:
+        required: false
       SIGNPATH_API_TOKEN:
         required: false
       SPARKLE_ED_PRIVATE_KEY:
@@ -411,6 +415,15 @@ jobs:
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
             -ForceFullTunnel:$forceFullTunnelSmoke
+
+      # Gitignored; the auth smoke suite does not compile without it.
+      - name: Write auth smoke credentials
+        if: ${{ inputs.run_auth_smoke }}
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "auth_smoke_credentials.dart"
+          fileDir: ${{ github.workspace }}/integration_test/auth
+          encodedString: ${{ secrets.AUTH_SMOKE_CREDENTIALS }}
 
       # Transitional fallback kept in place while the auth + connect smoke suite stabilizes.
       - name: Windows UI auth smoke integration
