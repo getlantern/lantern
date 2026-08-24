@@ -19,6 +19,10 @@ on:
         required: true
       SPARKLE_ED_PRIVATE_KEY:
         required: false
+      # Base64 of integration_test/auth/auth_smoke_credentials.dart; only
+      # needed when run_auth_smoke is true.
+      AUTH_SMOKE_CREDENTIALS:
+        required: false
     inputs:
       version:
         required: true
@@ -66,6 +70,11 @@ on:
         default: false
       run_payment_smoke:
         description: "Verify staging Stripe Checkout in a Flutter integration test"
+        required: false
+        type: boolean
+        default: false
+      run_auth_smoke:
+        description: "Run macOS auth smoke integration tests"
         required: false
         type: boolean
         default: false
@@ -254,6 +263,30 @@ jobs:
         run: |
           echo "::notice title=macOS payment smoke diagnostics::$ARTIFACT_URL"
           echo "[Download the macOS payment smoke screenshot and diagnostics]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"
+
+      # Gitignored; the auth smoke suite does not compile without it.
+      - name: Write auth smoke credentials
+        if: ${{ inputs.run_auth_smoke }}
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: "auth_smoke_credentials.dart"
+          fileDir: ${{ github.workspace }}/integration_test/auth
+          encodedString: ${{ secrets.AUTH_SMOKE_CREDENTIALS }}
+
+      # The self-hosted runner persists between runs; the sign-up scenario
+      # requires a fresh anonymous account (unpassRegistered guard), so reset
+      # the app data directory first.
+      - name: Reset Lantern app data
+        if: ${{ inputs.run_auth_smoke }}
+        shell: bash
+        run: rm -rf /Users/Shared/Lantern || sudo rm -rf /Users/Shared/Lantern
+
+      - name: macOS UI auth smoke integration
+        if: ${{ inputs.run_auth_smoke }}
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          flutter test integration_test/auth/auth_smoke_test.dart -d macos --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
 
       - name: Build macOS app
         shell: bash

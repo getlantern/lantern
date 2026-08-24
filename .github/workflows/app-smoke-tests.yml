@@ -149,8 +149,9 @@ jobs:
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       runner_label: lantern-macos-smoke
-      run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
+      run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+      run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
 
   # This is deliberately separate from the regular macOS build job: it
   # replaces /Applications/Lantern.app and verifies Sparkle's relaunch. It is
