@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show FrameTiming;
 
 import 'package:flutter/widgets.dart';
 import 'package:lantern/core/common/common.dart';
@@ -15,52 +14,61 @@ import 'package:window_manager/window_manager.dart';
 /// getlantern/engineering#3833 with nothing to go on but a screenshot.
 ///
 /// Two signals are tracked because they fail independently: a post-frame
-/// callback means the framework *built* a frame, a frame timing means one was
-/// actually rasterized and *presented*. Built-but-never-presented points at the
+/// callback means the framework *built* a frame, while [firstFrameRasterized]
+/// means one was actually *presented*. Built-but-never-presented points at the
 /// GPU path rather than at Dart, which is the distinction that report needed.
 class FirstFrameWatchdog {
   FirstFrameWatchdog._();
 
   static const _timeout = Duration(seconds: 10);
 
+  static bool _started = false;
   static bool _built = false;
-  static bool _presented = false;
+  static bool _recoveredFromTimeout = false;
   static Timer? _timer;
 
-  /// Starts watching. Call once, after the binding is initialized and before
-  /// [runApp]. No-op off desktop, where this failure mode has not been seen.
+  /// Whether the watchdog gave up waiting and revealed the window itself.
+  ///
+  /// Once this is set the window is deliberately left closable, so a frame that
+  /// arrives late must not re-arm close interception behind the user's back.
+  static bool get recoveredFromTimeout => _recoveredFromTimeout;
+
+  /// Starts watching. Idempotent: repeated calls are ignored rather than
+  /// stacking a second timer on top of the first.
   static void start() {
-    if (!PlatformUtils.isDesktop) return;
+    if (!PlatformUtils.isDesktop || _started) return;
+    _started = true;
+
     final binding = WidgetsBinding.instance;
     binding.addPostFrameCallback((_) => _built = true);
-    binding.addTimingsCallback(_onTimings);
     _timer = Timer(_timeout, () => unawaited(_onTimeout()));
-  }
-
-  static void _onTimings(List<FrameTiming> timings) {
-    if (_presented || timings.isEmpty) return;
-    _presented = true;
-    _stopWatching();
-  }
-
-  static void _stopWatching() {
-    _timer?.cancel();
-    _timer = null;
-    WidgetsBinding.instance.removeTimingsCallback(_onTimings);
+    unawaited(
+      binding.waitUntilFirstFrameRasterized.then((_) {
+        _timer?.cancel();
+        _timer = null;
+      }),
+    );
   }
 
   static Future<void> _onTimeout() async {
-    if (_presented) return;
-    _stopWatching();
+    _timer = null;
+    if (WidgetsBinding.instance.firstFrameRasterized) return;
+    _recoveredFromTimeout = true;
+
     appLogger.error(
       'No frame presented after ${_timeout.inSeconds}s (frameBuilt=$_built). '
       'The window is blank. frameBuilt=true means the framework produced a '
       'frame the rasterizer never put on screen.',
     );
-    // Show it regardless. A blank window the user can close is recoverable; no
-    // window at all is not, because the single-instance handler re-activates
-    // this process on every relaunch instead of starting a working one.
+
     try {
+      // Reveal it, but closable. WindowWrapper never armed preventClose because
+      // it waits on the same rasterization signal; this makes that explicit so
+      // the user is never left with a blank window the close button ignores. A
+      // blank window they can close is recoverable — no window is not, because
+      // the single-instance handler re-activates this process on every relaunch
+      // instead of starting a working one.
+      await windowManager.setPreventClose(false);
       await windowManager.show();
     } catch (e, st) {
       appLogger.error('Failed to show window after first-frame timeout', e, st);
@@ -69,8 +77,10 @@ class FirstFrameWatchdog {
 
   @visibleForTesting
   static void resetForTest() {
-    _stopWatching();
+    _timer?.cancel();
+    _timer = null;
+    _started = false;
     _built = false;
-    _presented = false;
+    _recoveredFromTimeout = false;
   }
 }
