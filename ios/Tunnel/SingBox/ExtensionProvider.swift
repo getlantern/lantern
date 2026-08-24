@@ -25,9 +25,49 @@ import NetworkExtension
 class ExtensionProvider: NEPacketTunnelProvider {
   private var platformInterface: ExtensionPlatformInterface!
 
+  /// Whether a tunnel bring-up has been attempted and not yet torn down.
+  ///
+  /// The extension process outlives the app, so this survives an app quit —
+  /// unlike any state the app holds. Guarded because `startTunnel` and
+  /// `stopTunnel` arrive on NetworkExtension's queue while `restartService`
+  /// arrives on a libbox thread.
+  private let tunnelStateQueue = DispatchQueue(
+    label: "org.getlantern.lantern.Tunnel.tunnelState")
+  private var _tunnelIsRunning = false
+
+  /// Marks a bring-up as starting and reports whether one was already live.
+  /// Test and set are atomic so two starts cannot both see "nothing running".
+  private func claimTunnel() -> Bool {
+    tunnelStateQueue.sync {
+      let wasRunning = _tunnelIsRunning
+      _tunnelIsRunning = true
+      return wasRunning
+    }
+  }
+
+  private func setTunnelRunning(_ running: Bool) {
+    tunnelStateQueue.sync { _tunnelIsRunning = running }
+  }
+
   override open func startTunnel(options: [String: NSObject]?) async throws {
     if platformInterface == nil {
       platformInterface = ExtensionPlatformInterface(self)
+    }
+
+    // A start can arrive while the previous tunnel is still up: the extension
+    // process outlives the app, so a force-quit without disconnecting — or an
+    // app-side stop that no-ops on a stale NEVPNStatus — leaves it running.
+    // Starting on top leaves the old utun open, and openTun's fallback then
+    // hands the new sing-box the lowest-numbered utun in the process (the dead
+    // one) while the system routes traffic to the new interface. Every packet
+    // is blackholed until the extension process is killed, which is why
+    // reporters find that only a reboot fixes it (getlantern/engineering#3781).
+    //
+    // Claimed before the bring-up rather than after: a start that fails partway
+    // can still have opened a utun.
+    if claimTunnel() {
+      appLogger.info("(lantern-tunnel) start arrived with a live tunnel; stopping it first")
+      stopService()
     }
 
     // Start the IPC server before any VPN operations
@@ -78,10 +118,13 @@ class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   public func writeFatalError(_ message: String) {
-    appLogger.error(message)
-    var error: NSError?
-    LibboxWriteServiceError(message, &error)
-    cancelTunnelWithError(nil)
+    appLogger.error("\(message)")
+    let error = NSError(
+      domain: "org.getlantern.lantern.packettunnel",
+      code: 1,
+      userInfo: [NSLocalizedDescriptionKey: message]
+    )
+    cancelTunnelWithError(error)
   }
 
   func startVPN(completion: ((Bool, String?) -> Void)? = nil) {
@@ -121,6 +164,9 @@ class ExtensionProvider: NEPacketTunnelProvider {
   override open func stopTunnel(with reason: NEProviderStopReason) async {
     let startTime = Date()
     appLogger.log("(lantern-tunnel) stopping, reason: \(reason)")
+    // The tunnel is genuinely going away, so ownership is released here rather
+    // than inside stopService().
+    setTunnelRunning(false)
     stopService()
     var error: NSError?
     MobileCloseIPCServer(&error)
@@ -152,6 +198,12 @@ class ExtensionProvider: NEPacketTunnelProvider {
     if error != nil {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
     }
+    // Deliberately does not release the claim. This is a teardown primitive:
+    // startTunnel calls it to replace a tunnel it still owns, and restartService
+    // calls it mid-restart. Releasing here would let a second start observe
+    // "nothing running" and begin a bring-up overlapping the replacement.
+    // Ownership is released only where the tunnel is genuinely going away —
+    // stopTunnel(with:).
     postServiceClose()
   }
 
@@ -173,6 +225,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
       cancelTunnelWithError(error)
       throw error
     }
+    setTunnelRunning(true)
     appLogger.log("(lantern-tunnel) tunnel restarted successfully")
   }
 

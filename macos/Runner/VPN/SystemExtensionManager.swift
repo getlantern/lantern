@@ -40,7 +40,7 @@ internal enum StaleRegistryRecovery {
 class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   static let shared = SystemExtensionManager()
-  private let tunnelBundleID = "org.getlantern.lantern.PacketTunnel"
+  private let tunnelBundleID = VPNProfileIdentity.providerBundleID
   /// All access to requestStates must go through contextQueue to avoid
   /// data races between init (possibly off main thread) and delegate
   /// callbacks (delivered on main queue).

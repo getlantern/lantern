@@ -12,16 +12,20 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 // replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
 
+// sing-box/sing-tun/tailscale need gvisor's v0.0.0-20250811.0-sing-box-mod.1
+// API (WritePacketDirect, the new udp.NewForwarder signature). That tag's first
+// pre-release identifier is purely numeric, which semver ranks below the
+// timestamp+hash identifier of any ordinary pseudo-version (e.g. the one
+// pluriconfig pulls in), so MVS can never select it on its own. Force it.
+replace github.com/sagernet/gvisor => github.com/sagernet/gvisor v0.0.0-20250811.0-sing-box-mod.1
+
 replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
 
 replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-water.1
 
 replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
 
-// sing-box/sing-tun/tailscale need gvisor's v0.0.0-20250811.0-sing-box-mod.1
-// API. Its numeric prerelease sorts below ordinary pseudo-versions, so MVS
-// cannot select it without an explicit replacement.
-replace github.com/sagernet/gvisor => github.com/sagernet/gvisor v0.0.0-20250811.0-sing-box-mod.1
+// replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
@@ -69,7 +73,6 @@ require (
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/cors v1.2.1 // indirect
 	github.com/sagernet/fswatch v0.1.2 // indirect
-	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb // indirect
 	github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b // indirect
 	github.com/sagernet/nftables v0.3.0-mod.2 // indirect
 	github.com/sagernet/quic-go v0.59.0-sing-box-mod.4 // indirect
@@ -284,6 +287,7 @@ require (
 	github.com/sagernet/cronet-go/lib/tvos_arm64_simulator v0.0.0-20260807161529-8d42107dcdfc // indirect
 	github.com/sagernet/cronet-go/lib/windows_amd64 v0.0.0-20260807161529-8d42107dcdfc // indirect
 	github.com/sagernet/cronet-go/lib/windows_arm64 v0.0.0-20260807161529-8d42107dcdfc // indirect
+	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb // indirect
 	github.com/sagernet/sing v0.8.13 // indirect
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb // indirect
 	github.com/sagernet/tailscale v1.92.4-sing-box-1.13-mod.9 // indirect

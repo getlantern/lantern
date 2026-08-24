@@ -27,7 +27,7 @@ func (p *platformInterfaceStub) CloseDefaultInterfaceMonitor(listener libbox.Int
 }
 
 // FindConnectionOwner implements libbox.PlatformInterface.
-func (p *platformInterfaceStub) FindConnectionOwner(ipProtocol int32, sourceAddress string, sourcePort int32, destinationAddress string, destinationPort int32) (int32, error) {
+func (p *platformInterfaceStub) FindConnectionOwner(ipProtocol int32, sourceAddress string, sourcePort int32, destinationAddress string, destinationPort int32) (*libbox.ConnectionOwner, error) {
 	panic("unimplemented")
 }
 
@@ -46,11 +46,6 @@ func (p *platformInterfaceStub) OpenTun(options libbox.TunOptions) (int32, error
 	panic("unimplemented")
 }
 
-// PackageNameByUid implements libbox.PlatformInterface.
-func (p *platformInterfaceStub) PackageNameByUid(uid int32) (string, error) {
-	panic("unimplemented")
-}
-
 // ReadWIFIState implements libbox.PlatformInterface.
 func (p *platformInterfaceStub) ReadWIFIState() *libbox.WIFIState {
 	return nil
@@ -66,11 +61,6 @@ func (p *platformInterfaceStub) StartDefaultInterfaceMonitor(listener libbox.Int
 	return nil
 }
 
-// UIDByPackageName implements libbox.PlatformInterface.
-func (p *platformInterfaceStub) UIDByPackageName(packageName string) (int32, error) {
-	return 0, nil
-}
-
 // UnderNetworkExtension implements libbox.PlatformInterface.
 func (p *platformInterfaceStub) UnderNetworkExtension() bool {
 	return false
@@ -84,8 +74,4 @@ func (p *platformInterfaceStub) UsePlatformAutoDetectInterfaceControl() bool {
 // UseProcFS implements libbox.PlatformInterface.
 func (p *platformInterfaceStub) UseProcFS() bool {
 	return false
-}
-
-// WriteLog implements libbox.PlatformInterface.
-func (p *platformInterfaceStub) WriteLog(message string) {
 }

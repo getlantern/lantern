@@ -262,11 +262,17 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       return
     }
 
+    // This fallback carries every tunnel on macOS 12, where the KVC path above
+    // never resolves. It scans the process for the lowest-numbered utun, so it is
+    // only correct while exactly one is open — which is what the teardown guard in
+    // ExtensionProvider.startTunnel exists to ensure. Logged so a recurrence can be
+    // told apart from a stale-fd selection in a user's logs.
     appLogger.info("Accessing tunnel file descriptor from C loop...")
     let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
     guard tunFdFromLoop != -1 else {
       throw NSError(domain: "Missing TUN FD", code: 0)
     }
+    appLogger.info("Returning tunnel file descriptor \(tunFdFromLoop) (from C loop)")
     ret0_.pointee = tunFdFromLoop
   }
 
@@ -279,28 +285,13 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   public func findConnectionOwner(
     _: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?,
-    destinationPort _: Int32, ret0_ _: UnsafeMutablePointer<Int32>?
-  ) throws {
-    throw NSError(domain: "not implemented", code: 0)
-  }
-
-  public func packageName(byUid _: Int32, error _: NSErrorPointer) -> String {
-    return ""
-  }
-
-  public func uid(byPackageName _: String?, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
+    destinationPort _: Int32
+  ) throws -> LibboxConnectionOwner {
     throw NSError(domain: "not implemented", code: 0)
   }
 
   public func useProcFS() -> Bool {
     return false
-  }
-
-  public func writeLog(_ message: String?) {
-    guard let message else {
-      return
-    }
-    appLogger.log("\(String(describing: message))")
   }
 
   private var nwMonitor: NWPathMonitor? = nil
@@ -314,6 +305,11 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       return
     }
     appLogger.info("startDefaultInterfaceMonitor: monitoring default interface")
+    // libbox can start a monitor without closing the previous one — the reporter's
+    // logs in getlantern/engineering#3781 show 72 monitors started against 59
+    // closed. Replacing the reference without cancelling leaks the old
+    // NWPathMonitor, which keeps pushing path updates into a dead sing-box.
+    nwMonitor?.cancel()
     let monitor = NWPathMonitor()
     nwMonitor = monitor
     let semaphore = DispatchSemaphore(value: 0)
