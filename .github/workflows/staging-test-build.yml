@@ -107,14 +107,6 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/build-macos.yml
-    secrets:
-      AC_USERNAME: ${{ secrets.AC_USERNAME }}
-      AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      APP_ENV: ${{ secrets.APP_ENV }}
-      MACOS_BNS_CERT: ${{ secrets.MACOS_BNS_CERT }}
-      MACOS_BNS_CERT_PASS: ${{ secrets.MACOS_BNS_CERT_PASS }}
-      MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.MACOS_PROVISION_PROFILE_BASE64 }}
-      MACOS_PROVISION_TUNNEL_BASE64: ${{ secrets.MACOS_PROVISION_TUNNEL_BASE64 }}
     with:
       version: ${{ needs.prepare.outputs.version }}
       build_type: staging-test
@@ -122,5 +114,6 @@ jobs:
       installer_base_name: lantern-installer
       pubspec_artifact: staging-test-pubspec
       sign_update_artifact: false
+      secretless_test_build: true
       run_connect_smoke: false
       run_payment_smoke: false

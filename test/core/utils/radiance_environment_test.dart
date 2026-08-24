@@ -12,33 +12,39 @@ void main() {
     expect(() => normalizeRadianceEnvironment('stage'), throwsArgumentError);
   });
 
-  test('build override wins and selects staging for release builds', () async {
+  test('staging build override wins over the local default', () async {
     final environment = await resolveRadianceEnvironment(
       buildOverride: 'staging',
-      releaseMode: true,
       stagingMarkerExists: () async => false,
     );
 
     expect(environment, 'stage');
   });
 
-  test('release builds without an override stay on production', () async {
+  test('production build override wins over the local marker', () async {
     final environment = await resolveRadianceEnvironment(
-      buildOverride: '',
-      releaseMode: true,
+      buildOverride: 'prod',
       stagingMarkerExists: () async => true,
     );
 
     expect(environment, 'prod');
   });
 
-  test('development builds use the local staging marker', () async {
+  test('local staging marker is used without a build override', () async {
     final environment = await resolveRadianceEnvironment(
       buildOverride: '',
-      releaseMode: false,
       stagingMarkerExists: () async => true,
     );
 
     expect(environment, 'stage');
+  });
+
+  test('production is the default without an override or marker', () async {
+    final environment = await resolveRadianceEnvironment(
+      buildOverride: '',
+      stagingMarkerExists: () async => false,
+    );
+
+    expect(environment, 'prod');
   });
 }
