@@ -341,8 +341,10 @@ class AuthRobot {
     matching: find.byType(EditableText),
   );
 
-  /// Types [code] into the OTP field. Entering the sixth digit auto-submits
-  /// (Pinput onCompleted), which kicks off the validation network call.
+  /// Enters [code] by writing the Pinput's controller, which fires
+  /// onCompleted (auto-submit) like real typing. Not tester.enterText:
+  /// Pinput closes the IME connection after a completed code
+  /// (closeKeyboardWhenCompleted), silently dropping later injected entries.
   Future<void> enterOtp(String code) async {
     e2eLog('Entering OTP');
     await WidgetWaitUtils.waitForFinder(
@@ -351,7 +353,7 @@ class AuthRobot {
       timeout: _screenTimeout,
       reason: 'OTP input was not available',
     );
-    await tester.enterText(_otpEditable.first, code);
+    tester.widget<EditableText>(_otpEditable.first).controller.text = code;
     await tester.pump(const Duration(milliseconds: 300));
   }
 
@@ -375,7 +377,8 @@ class AuthRobot {
       timeout: const Duration(seconds: 10),
       reason: 'Invalid-OTP snackbar did not dismiss',
     );
-    await tester.enterText(_otpEditable.first, '');
+    // Clear via the controller, same reason as enterOtp.
+    tester.widget<EditableText>(_otpEditable.first).controller.clear();
     await tester.pump(const Duration(milliseconds: 300));
   }
 
