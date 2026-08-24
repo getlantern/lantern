@@ -62,8 +62,11 @@ class VPNManager: VPNBase {
   func syncStatus() async {
     do {
       let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-      guard let existing = managers.first else {
-        // No VPN profile configured yet — nothing to sync.
+      guard let existing = await firstLaunchableProfile(among: managers) else {
+        // Nothing configured yet, or nothing this build can launch. Adopting an
+        // unlaunchable profile here would be worse than adopting none: the stop
+        // path reads this manager's status, and a stale profile reporting
+        // .disconnected makes it skip tearing down the tunnel that is running.
         return
       }
       self.manager = existing
@@ -83,52 +86,162 @@ class VPNManager: VPNBase {
     }
   }
 
-  private func removeExistingVPNProfiles() async {
-    do {
-      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-      for manager in managers {
+  /// Removes every saved profile, attempting all of them even if one fails, and
+  /// rethrows the first failure.
+  ///
+  /// A profile left behind is found again by the next `loadAllFromPreferences()`,
+  /// so a partial clear is not a rebuild: the caller must not go on to create a
+  /// replacement and report success while the unlaunchable profile is still there.
+  private func removeExistingVPNProfiles(operationID: UInt) async throws {
+    let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+    var firstFailure: Error?
+    for manager in managers {
+      // Re-checked per profile rather than once for the loop: each removal is a
+      // separate await that can block, so a stop can land between two of them.
+      // Cancellation wins over `firstFailure` — the next setup attempt retries
+      // the removals, and continuing to delete profiles while teardown runs is
+      // the thing being prevented.
+      try await requireOperation(operationID)
+      do {
         appLogger.log("Removing VPN configuration: \(manager.localizedDescription ?? "Unnamed")")
         try await manager.removeFromPreferences()
+      } catch {
+        appLogger.error("Unable to remove VPN profile: \(error.localizedDescription)")
+        firstFailure = firstFailure ?? error
       }
-    } catch {
-      appLogger.error("Unable to remove VPN profile: \(error.localizedDescription)")
+    }
+    if let firstFailure {
+      throw firstFailure
     }
   }
 
-  private func setupVPN() async {
-    do {
-      let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-      if let existing = managers.first {
-        self.manager = existing
-        appLogger.log("Found existing VPN manager")
-      } else {
-        appLogger.log("No VPN profiles found, creating new profile")
-        createNewProfile()
-        try await self.manager.saveToPreferences()
-        try await self.manager.loadFromPreferences()
-        appLogger.log("Created and loaded new VPN profile")
-      }
-    } catch {
-      appLogger.error("Failed to set up VPN: \(error.localizedDescription)")
+  /// Ensures `manager` holds a profile this build can launch, rebuilding if none
+  /// of the saved ones qualify.
+  ///
+  /// Throws rather than logging: every caller starts a tunnel immediately
+  /// afterwards, and starting one against a profile we failed to repair or
+  /// rebuild is the silent failure this whole path exists to prevent.
+  ///
+  /// `operationID` is re-checked immediately before every preference write —
+  /// each `removeFromPreferences()` and the `saveToPreferences()` of a new
+  /// profile — not once up front. Each of those is a separate await that can
+  /// block on a system permission prompt, and `beginStopOperation()` waits only
+  /// 5s for this operation to hand the manager back; past that a stop proceeds
+  /// to teardown while this call is still running, so a canceled start must not
+  /// still be removing profiles or saving new ones underneath it.
+  private func setupVPN(operationID: UInt) async throws {
+    let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+    if let reusable = await firstLaunchableProfile(among: managers) {
+      try await repairProfile(reusable, operationID: operationID)
+      // Adopted only once it is known good, so a concurrent stop never sees a
+      // half-repaired manager.
+      self.manager = reusable
+      appLogger.log("Reusing existing VPN profile")
+      return
+    }
+    if managers.isEmpty {
+      appLogger.log("No VPN profiles found, creating new profile")
+    } else {
+      appLogger.log("No saved VPN profile is launchable by this build, rebuilding")
+      try await removeExistingVPNProfiles(operationID: operationID)
+    }
+    let created = createNewProfile()
+    try await requireOperation(operationID)
+    try await created.saveToPreferences()
+    try await created.loadFromPreferences()
+    self.manager = created
+    appLogger.log("Created and loaded new VPN profile")
+  }
+
+  /// Throws unless this operation still owns the VPN lifecycle.
+  ///
+  /// Ownership is lost when a stop is pending, and also when the stop handoff
+  /// already expired and released `activeConnectionID` (`VPNBase.swift`,
+  /// `expireStopHandoff`) — so this is broader than "a stop canceled us", and
+  /// `.operationInProgress` is the same error the coordinator raises for any
+  /// other lifecycle contention.
+  private func requireOperation(_ operationID: UInt) async throws {
+    guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
+      throw VPNManagerError.operationInProgress
     }
   }
 
-  // Sets up a new VPN configuration for Lantern.
-  private func createNewProfile() {
+  /// Returns the first saved profile this build can actually launch.
+  ///
+  /// Each candidate is refreshed from preferences before it is inspected:
+  /// `loadAllFromPreferences()` can hand back a manager whose configuration has
+  /// not been faulted in, and validating unpopulated fields would reject a
+  /// perfectly good profile.
+  private func firstLaunchableProfile(
+    among managers: [NETunnelProviderManager]
+  ) async -> NETunnelProviderManager? {
+    for candidate in managers {
+      do {
+        try await candidate.loadFromPreferences()
+      } catch {
+        // One unreadable profile must not hide a good one behind it, nor abort
+        // setup into the rebuild path when a usable profile may still follow.
+        appLogger.error(
+          "Skipping unreadable VPN profile \(candidate.localizedDescription ?? "Unnamed"): \(error.localizedDescription)"
+        )
+        continue
+      }
+      let tunnelProtocol = candidate.protocolConfiguration as? NETunnelProviderProtocol
+      guard
+        let defect = vpnProfileDefect(
+          isTunnelProfile: tunnelProtocol != nil,
+          providerBundleID: tunnelProtocol?.providerBundleIdentifier
+        )
+      else {
+        return candidate
+      }
+      appLogger.log(
+        "Discarding VPN profile \(candidate.localizedDescription ?? "Unnamed"): \(defect)")
+    }
+    return nil
+  }
+
+  /// Applies the corrections a launchable profile needs before use.
+  private func repairProfile(
+    _ manager: NETunnelProviderManager,
+    operationID: UInt
+  ) async throws {
+    let repairs = vpnProfileRepairs(
+      currentName: manager.localizedDescription,
+      isEnabled: manager.isEnabled
+    )
+    guard !repairs.isEmpty else { return }
+    try await requireOperation(operationID)
+    if let rename = repairs.rename {
+      appLogger.log(
+        "Renaming VPN profile \(manager.localizedDescription ?? "Unnamed") to \(rename)")
+      manager.localizedDescription = rename
+    }
+    if repairs.enable {
+      appLogger.log("VPN profile is disabled, re-enabling")
+      manager.isEnabled = true
+    }
+    try await manager.saveToPreferences()
+    try await manager.loadFromPreferences()
+  }
+
+  /// Builds a fresh VPN configuration for Lantern. The caller adopts it only
+  /// after it has been saved and reloaded.
+  private func createNewProfile() -> NETunnelProviderManager {
     let manager = NETunnelProviderManager()
     let tunnelProtocol = NETunnelProviderProtocol()
-    tunnelProtocol.providerBundleIdentifier = "org.getlantern.lantern.PacketTunnel"
+    tunnelProtocol.providerBundleIdentifier = VPNProfileIdentity.providerBundleID
     tunnelProtocol.serverAddress = "0.0.0.0"
 
     manager.protocolConfiguration = tunnelProtocol
-    manager.localizedDescription = "Lantern"
+    manager.localizedDescription = VPNProfileIdentity.name
     manager.isEnabled = true
 
     let alwaysConnectRule = NEOnDemandRuleConnect()
     manager.onDemandRules = [alwaysConnectRule]
 
     manager.isOnDemandEnabled = false
-    self.manager = manager
+    return manager
   }
 
   // MARK: - VPN Control Methods
@@ -143,7 +256,7 @@ class VPNManager: VPNBase {
 
   private func startTunnel(operationID: UInt) async throws {
     appLogger.log("Starting tunnel..")
-    await self.setupVPN()
+    try await self.setupVPN(operationID: operationID)
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw VPNManagerError.operationInProgress
     }
@@ -170,7 +283,7 @@ class VPNManager: VPNBase {
   }
 
   private func connectToServer(serverName: String, operationID: UInt) async throws {
-    await self.setupVPN()
+    try await self.setupVPN(operationID: operationID)
     guard await lifecycleCoordinator.canContinueConnectionOperation(operationID) else {
       throw VPNManagerError.operationInProgress
     }
