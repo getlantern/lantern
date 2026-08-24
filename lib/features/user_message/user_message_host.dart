@@ -44,8 +44,10 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     with WidgetsBindingObserver {
   AppLifecycleState _lifecycleState = AppLifecycleState.resumed;
   bool _attemptScheduled = false;
+  bool _active = true;
   Timer? _retryTimer;
   _UserMessagePresentation? _presentation;
+  late final UserMessageController _controller;
 
   DateTime get _now => (widget.now?.call() ?? DateTime.now()).toUtc();
 
@@ -54,6 +56,7 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     super.initState();
     _lifecycleState =
         WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
+    _controller = ref.read(userMessageControllerProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     widget.routeObserver.changes.addListener(_scheduleAttempt);
   }
@@ -74,9 +77,7 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _lifecycleState = state;
     if (state == AppLifecycleState.resumed) {
-      unawaited(
-        ref.read(userMessageControllerProvider.notifier).onForegrounded(),
-      );
+      unawaited(_controller.onForegrounded());
       _scheduleAttempt();
     } else {
       _dismissForUnsafeState();
@@ -91,11 +92,11 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
   }
 
   void _scheduleAttempt() {
-    if (!mounted || _attemptScheduled) return;
+    if (!mounted || !_active || _attemptScheduled) return;
     _attemptScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _attemptScheduled = false;
-      if (!mounted) return;
+      if (!mounted || !_active) return;
       final presentation = _presentation;
       if (presentation != null) {
         if (!_isSafeToPresent()) _dismissForUnsafeState();
@@ -106,7 +107,9 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
   }
 
   bool _isSafeToPresent() {
-    if (!widget.enabled || _lifecycleState != AppLifecycleState.resumed) {
+    if (!_active ||
+        !widget.enabled ||
+        _lifecycleState != AppLifecycleState.resumed) {
       return false;
     }
     if (!widget.routeObserver.isReadyForMessages) return false;
@@ -140,12 +143,11 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
       return;
     }
 
-    final notifier = ref.read(userMessageControllerProvider.notifier);
-    final message = notifier.claimForPresentation(_now);
+    final message = _controller.claimForPresentation(_now);
     if (message == null) return;
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) {
-      notifier.releaseClaim(message.displayId, _now);
+      _controller.releaseClaim(message.displayId, _now);
       return;
     }
 
@@ -153,8 +155,23 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     final feature = messenger.showSnackBar(
       _snackBar(message, () => _onVisible(presentation)),
     );
-    presentation = _UserMessagePresentation(message, feature);
+    presentation = _UserMessagePresentation(message, feature, messenger);
     _presentation = presentation;
+
+    // Register cleanup before checking expiration. The clock can advance after
+    // the controller grants the claim, and removing the snackbar must always
+    // release it.
+    unawaited(
+      feature.closed.then((_) {
+        if (!mounted || !identical(_presentation, presentation)) return;
+        presentation.expirationTimer?.cancel();
+        if (!presentation.visible) {
+          _controller.releaseClaim(message.displayId, _now);
+        }
+        _presentation = null;
+        _scheduleAttempt();
+      }),
+    );
 
     final untilExpiration = message.expiresAt.difference(_now);
     if (untilExpiration <= Duration.zero) {
@@ -164,19 +181,6 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     presentation.expirationTimer = Timer(
       untilExpiration,
       () => _expireBeforePresentation(presentation),
-    );
-    unawaited(
-      feature.closed.then((_) {
-        if (!mounted || !identical(_presentation, presentation)) return;
-        presentation.expirationTimer?.cancel();
-        if (!presentation.visible) {
-          ref
-              .read(userMessageControllerProvider.notifier)
-              .releaseClaim(message.displayId, _now);
-        }
-        _presentation = null;
-        _scheduleAttempt();
-      }),
     );
   }
 
@@ -230,20 +234,13 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     }
     presentation.visible = true;
     presentation.expirationTimer?.cancel();
-    unawaited(
-      ref
-          .read(userMessageControllerProvider.notifier)
-          .markPresented(presentation.message.displayId),
-    );
+    unawaited(_controller.markPresented(presentation.message.displayId));
   }
 
   void _expireBeforePresentation(_UserMessagePresentation presentation) {
     if (!mounted || !identical(_presentation, presentation)) return;
     if (presentation.visible) return;
-    presentation.feature.close();
-    ref
-        .read(userMessageControllerProvider.notifier)
-        .releaseClaim(presentation.message.displayId, _now);
+    presentation.messenger.removeCurrentSnackBar();
   }
 
   void _dismissForUnsafeState() {
@@ -252,12 +249,37 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     final presentation = _presentation;
     if (presentation == null) return;
     presentation.expirationTimer?.cancel();
-    presentation.feature.close();
-    if (!presentation.visible) {
-      ref
-          .read(userMessageControllerProvider.notifier)
-          .releaseClaim(presentation.message.displayId, _now);
+    presentation.messenger.removeCurrentSnackBar();
+  }
+
+  @override
+  void deactivate() {
+    _active = false;
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    final presentation = _presentation;
+    _presentation = null;
+    if (presentation != null) {
+      presentation.expirationTimer?.cancel();
+      final shouldReleaseClaim = !presentation.visible;
+      final releaseAt = _now;
+      Future.microtask(() {
+        if (presentation.messenger.mounted) {
+          presentation.messenger.removeCurrentSnackBar();
+        }
+        if (shouldReleaseClaim) {
+          _controller.releaseClaim(presentation.message.displayId, releaseAt);
+        }
+      });
     }
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _active = true;
+    _scheduleAttempt();
   }
 
   @override
@@ -265,17 +287,16 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     WidgetsBinding.instance.removeObserver(this);
     widget.routeObserver.changes.removeListener(_scheduleAttempt);
     _retryTimer?.cancel();
-    final presentation = _presentation;
-    presentation?.expirationTimer?.cancel();
     super.dispose();
   }
 }
 
 class _UserMessagePresentation {
-  _UserMessagePresentation(this.message, this.feature);
+  _UserMessagePresentation(this.message, this.feature, this.messenger);
 
   final UserMessage message;
   final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> feature;
+  final ScaffoldMessengerState messenger;
   Timer? expirationTimer;
   bool visible = false;
 }

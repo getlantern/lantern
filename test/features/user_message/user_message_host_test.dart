@@ -32,6 +32,7 @@ Widget _harness({
   bool Function(BuildContext)? criticalOverlayVisible,
   DateTime Function()? now,
   ValueListenable<bool>? enabledListenable,
+  ValueListenable<bool>? hostMountedListenable,
 }) {
   return ProviderScope(
     overrides: [userMessageRepositoryProvider.overrideWithValue(repository)],
@@ -45,26 +46,43 @@ Widget _harness({
       ],
       navigatorObservers: [observer],
       builder: (context, child) {
-        Widget buildHost(bool hostEnabled) => MediaQuery(
+        final appChild = child ?? const SizedBox.shrink();
+        Widget withMediaQuery(Widget content) => MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: textScaler),
-          child: UserMessageHost(
+          child: content,
+        );
+
+        Widget buildHost(bool hostEnabled) => withMediaQuery(
+          UserMessageHost(
             routeObserver: observer,
             actionDispatcher: dispatcher,
             enabled: hostEnabled,
             retryInterval: const Duration(milliseconds: 20),
             criticalOverlayVisible: criticalOverlayVisible ?? (_) => false,
             now: now,
-            child: child ?? const SizedBox.shrink(),
+            child: appChild,
           ),
         );
+
+        Widget buildMountedHost(bool hostEnabled) {
+          if (hostMountedListenable case final listenable?) {
+            return ValueListenableBuilder<bool>(
+              valueListenable: listenable,
+              builder: (_, hostMounted, _) => hostMounted
+                  ? buildHost(hostEnabled)
+                  : withMediaQuery(appChild),
+            );
+          }
+          return buildHost(hostEnabled);
+        }
 
         if (enabledListenable case final listenable?) {
           return ValueListenableBuilder<bool>(
             valueListenable: listenable,
-            builder: (_, hostEnabled, _) => buildHost(hostEnabled),
+            builder: (_, hostEnabled, _) => buildMountedHost(hostEnabled),
           );
         }
-        return buildHost(enabled);
+        return buildMountedHost(enabled);
       },
       home: home ?? const Scaffold(body: Text('home')),
     ),
@@ -221,6 +239,74 @@ void main() {
     expect(repository.acknowledged, ['campaign-1:generation-1']);
   });
 
+  testWidgets('releases an unshown claim when the host is disposed', (
+    tester,
+  ) async {
+    final hostMounted = ValueNotifier(true);
+    addTearDown(hostMounted.dispose);
+    final repository = FakeUserMessageRepository()
+      ..currentMessage = testUserMessage(body: 'Survives host replacement');
+    addTearDown(repository.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        repository: repository,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        hostMountedListenable: hostMounted,
+      ),
+    );
+    await tester.pump();
+
+    hostMounted.value = false;
+    await tester.pump();
+    expect(repository.acknowledged, isEmpty);
+
+    hostMounted.value = true;
+    await _pumpToSnackbar(tester);
+    expect(find.text('Survives host replacement'), findsOneWidget);
+    expect(repository.acknowledged, ['campaign-1:generation-1']);
+  });
+
+  testWidgets('does not wedge when a claimed message expires before display', (
+    tester,
+  ) async {
+    final baseTime = DateTime.now().toUtc();
+    var clockReads = 0;
+    final repository = FakeUserMessageRepository()
+      ..currentMessage = testUserMessage(
+        body: 'Expired during presentation',
+        expiresAt: baseTime.add(const Duration(seconds: 1)),
+      );
+    addTearDown(repository.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        repository: repository,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        now: () => clockReads++ == 0
+            ? baseTime
+            : baseTime.add(const Duration(seconds: 2)),
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    expect(find.text('Expired during presentation'), findsNothing);
+    expect(repository.acknowledged, isEmpty);
+
+    repository.currentMessage = testUserMessage(
+      displayId: 'campaign-2:generation-1',
+      body: 'Next eligible message',
+      expiresAt: baseTime.add(const Duration(hours: 1)),
+    );
+    repository.events.add(null);
+    await _pumpToSnackbar(tester);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Next eligible message'), findsOneWidget);
+    expect(repository.acknowledged, ['campaign-2:generation-1']);
+  });
+
   testWidgets('queues behind a dialog and rechecks expiration before display', (
     tester,
   ) async {
@@ -313,28 +399,34 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       final semantics = tester.ensureSemantics();
-      final body = List.filled(18, 'رسالة طويلة من لانترن').join(' ');
-      final repository = FakeUserMessageRepository()
-        ..currentMessage = testUserMessage(body: body);
-      addTearDown(repository.dispose);
+      try {
+        final body = List.filled(18, 'رسالة طويلة من لانترن').join(' ');
+        final repository = FakeUserMessageRepository()
+          ..currentMessage = testUserMessage(body: body);
+        addTearDown(repository.dispose);
 
-      await tester.pumpWidget(
-        _harness(
-          repository: repository,
-          observer: UserMessageRouteObserver(),
-          dispatcher: _Actions().dispatcher,
-          locale: const Locale('ar'),
-          textScaler: const TextScaler.linear(2),
-        ),
-      );
-      await _pumpToSnackbar(tester);
+        await tester.pumpWidget(
+          _harness(
+            repository: repository,
+            observer: UserMessageRouteObserver(),
+            dispatcher: _Actions().dispatcher,
+            locale: const Locale('ar'),
+            textScaler: const TextScaler.linear(2),
+          ),
+        );
+        await _pumpToSnackbar(tester);
 
-      final bodyFinder = find.byKey(UserMessageHost.bodyKey);
-      expect(bodyFinder, findsOneWidget);
-      expect(Directionality.of(tester.element(bodyFinder)), TextDirection.rtl);
-      expect(find.bySemanticsLabel(body), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      semantics.dispose();
+        final bodyFinder = find.byKey(UserMessageHost.bodyKey);
+        expect(bodyFinder, findsOneWidget);
+        expect(
+          Directionality.of(tester.element(bodyFinder)),
+          TextDirection.rtl,
+        );
+        expect(find.bySemanticsLabel(body), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } finally {
+        semantics.dispose();
+      }
     },
   );
 }

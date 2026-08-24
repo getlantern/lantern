@@ -92,6 +92,7 @@ class UserMessageController extends Notifier<UserMessageState> {
   }
 
   void releaseClaim(String displayId, DateTime now) {
+    if (!ref.mounted) return;
     if (state.displayedThisSession || !state.presentationClaimed) return;
     final pending = state.pending;
     if (pending?.displayId != displayId) return;
