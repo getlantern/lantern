@@ -4,19 +4,19 @@ on:
   workflow_call:
     secrets:
       AC_USERNAME:
-        required: true
+        required: false
       AC_PASSWORD:
-        required: true
+        required: false
       APP_ENV:
-        required: true
+        required: false
       MACOS_BNS_CERT:
-        required: true
+        required: false
       MACOS_BNS_CERT_PASS:
-        required: true
+        required: false
       MACOS_PROVISION_PROFILE_BASE64:
-        required: true
+        required: false
       MACOS_PROVISION_TUNNEL_BASE64:
-        required: true
+        required: false
       SPARKLE_ED_PRIVATE_KEY:
         required: false
     inputs:
@@ -26,6 +26,11 @@ on:
       build_type:
         required: true
         type: string
+      backend_environment:
+        description: "Optional Radiance backend environment compiled into the app"
+        required: false
+        type: string
+        default: ""
       installer_base_name:
         required: true
         type: string
@@ -54,6 +59,11 @@ on:
         required: false
         type: boolean
         default: true
+      secretless_test_build:
+        description: "Build an unsigned staging test artifact without repository secrets"
+        required: false
+        type: boolean
+        default: false
       auto_update_e2e:
         description: "Build a fixture that reads the isolated staging appcast"
         required: false
@@ -92,6 +102,7 @@ jobs:
     env:
       AC_USERNAME: ${{ secrets.AC_USERNAME }}
       AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+      RADIANCE_ENV: ${{ inputs.backend_environment }}
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
     runs-on: ${{ inputs.runner_label }}
@@ -100,6 +111,53 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - name: Validate backend environment
+        shell: bash
+        env:
+          BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          EVENT_NAME: ${{ github.event_name }}
+          SOURCE_REF: ${{ github.ref }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          SECRETLESS_TEST_BUILD: ${{ inputs.secretless_test_build }}
+          SIGN_UPDATE_ARTIFACT: ${{ inputs.sign_update_artifact }}
+          RUN_CONNECT_SMOKE: ${{ inputs.run_connect_smoke }}
+          RUN_PAYMENT_SMOKE: ${{ inputs.run_payment_smoke }}
+        run: |
+          set -euo pipefail
+          case "$BACKEND_ENVIRONMENT" in
+            ""|prod) ;;
+            staging)
+              if [[ "$EVENT_NAME" != "workflow_dispatch" ]]; then
+                echo "Staging-backed builds require a manual workflow dispatch." >&2
+                exit 1
+              fi
+              if [[ "$SOURCE_REF" == refs/tags/* || "$SOURCE_REF" == "refs/heads/$DEFAULT_BRANCH" ]]; then
+                echo "Staging-backed builds cannot run from tags or the default branch." >&2
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Unsupported backend environment: $BACKEND_ENVIRONMENT" >&2
+              exit 1
+              ;;
+          esac
+
+          if [[ "$SECRETLESS_TEST_BUILD" == "true" ]]; then
+            [[ "$BACKEND_ENVIRONMENT" == "staging" && "$BUILD_TYPE" == "staging-test" ]] || {
+              echo "Secretless builds are restricted to staging test artifacts." >&2
+              exit 1
+            }
+            [[ "$SIGN_UPDATE_ARTIFACT" == "false" ]] || {
+              echo "Secretless builds cannot sign update artifacts." >&2
+              exit 1
+            }
+            [[ "$RUN_CONNECT_SMOKE" == "false" && "$RUN_PAYMENT_SMOKE" == "false" ]] || {
+              echo "Secretless builds cannot run credentialed smoke tests." >&2
+              exit 1
+            }
+          fi
 
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
@@ -141,11 +199,20 @@ jobs:
           flutter-version-file: .github/flutter-version.yaml
 
       - name: Decode APP_ENV
+        if: ${{ !inputs.secretless_test_build }}
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: "app.env"
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
+
+      # app.env is a declared Flutter asset. The staging test build does not
+      # need its production values, so use an empty file instead of exposing
+      # the repository secret to feature-branch code.
+      - name: Create placeholder app.env
+        if: ${{ inputs.secretless_test_build }}
+        shell: bash
+        run: touch app.env
 
       - name: Install node on macOS
         uses: actions/setup-node@v4
@@ -157,13 +224,14 @@ jobs:
           xcode-version: latest-stable
 
       - name: Import Code Signing Certificates
+        if: ${{ !inputs.secretless_test_build }}
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.MACOS_BNS_CERT }}
           p12-password: ${{ secrets.MACOS_BNS_CERT_PASS }}
 
       - name: Install Developer ID intermediate
-        if: ${{ inputs.runner_label == 'lantern-macos-smoke' }}
+        if: ${{ !inputs.secretless_test_build && inputs.runner_label == 'lantern-macos-smoke' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -179,12 +247,14 @@ jobs:
           security import "$RUNNER_TEMP/DeveloperIDG2CA.cer" -k signing_temp.keychain
 
       - name: Verify signing identity
+        if: ${{ !inputs.secretless_test_build }}
         shell: bash
         run: |
           security find-identity -p codesigning \
             | grep -F "ACZRKC3LQ9"
 
       - name: Install provisioning profiles for macOS
+        if: ${{ !inputs.secretless_test_build }}
         env:
           BUILD_MACOS_PROVISION_PROFILE_BASE64: ${{ secrets.MACOS_PROVISION_PROFILE_BASE64 }}
           BUILD_MACOS_TUNNEL_PROFILE_BASE64: ${{ secrets.MACOS_PROVISION_TUNNEL_BASE64 }}
@@ -258,6 +328,25 @@ jobs:
       - name: Build macOS app
         shell: bash
         run: |
+          if [[ "$SECRETLESS_TEST_BUILD" == "true" ]]; then
+            # These are forwarded by Flutter to xcodebuild. The resulting app
+            # is suitable only for manual staging tests and never receives a
+            # Developer ID signature or notarization ticket.
+            export CODE_SIGNING_ALLOWED=NO
+            export CODE_SIGNING_REQUIRED=NO
+            export CODE_SIGN_IDENTITY=""
+
+            case "$FLUTTER_BUILD_MODE" in
+              release) make macos pubget gen build-macos-release package-macos ;;
+              profile) make macos pubget gen stage-macos-profile package-macos ;;
+              *)
+                printf 'Unsupported macOS Flutter build mode: %s\n' "$FLUTTER_BUILD_MODE" >&2
+                exit 2
+                ;;
+            esac
+            exit 0
+          fi
+
           case "$FLUTTER_BUILD_MODE" in
             release) make macos-release-ci ;;
             profile) make macos-profile-ci ;;
@@ -274,6 +363,7 @@ jobs:
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+          SECRETLESS_TEST_BUILD: ${{ inputs.secretless_test_build }}
 
       - name: Check system extension build number monotonicity
         if: ${{ inputs.build_type == 'nightly' }}
@@ -296,7 +386,7 @@ jobs:
           ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/Lantern.app.zip"
 
       - name: Sign macOS update
-        if: ${{ inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        if: ${{ !inputs.secretless_test_build && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
         shell: bash
         env:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
@@ -321,7 +411,7 @@ jobs:
           retention-days: 2
 
       - name: Upload macOS update signature
-        if: ${{ inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        if: ${{ !inputs.secretless_test_build && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-dmg-signature
@@ -351,13 +441,13 @@ jobs:
           retention-days: 2
 
       - name: Remove signing keychain
-        if: ${{ always() }}
+        if: ${{ always() && !inputs.secretless_test_build }}
         shell: bash
         run: |
           security delete-keychain signing_temp.keychain 2>/dev/null || true
 
       - name: Remove provisioning profiles
-        if: ${{ always() && inputs.runner_label == 'lantern-macos-smoke' }}
+        if: ${{ always() && !inputs.secretless_test_build && inputs.runner_label == 'lantern-macos-smoke' }}
         shell: bash
         run: |
           rm -f \
