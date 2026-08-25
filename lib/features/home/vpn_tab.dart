@@ -27,28 +27,40 @@ class VpnTab extends ConsumerWidget {
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: defaultSize),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            if (isUserPro) const SizedBox(height: 0) else const ProBanner(),
-            const VPNSwitch(),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                if (!isUserPro) ...{
-                  if (serverType == ServerLocationType.privateServer)
-                    InfoRow(text: 'private_server_usage_message'.i18n)
-                  else if (PlatformUtils.isIOS)
-                    const SizedBox.shrink()
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            key: const Key('vpn.tab.scroll'),
+            primary: false,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  if (isUserPro)
+                    const SizedBox(height: 0)
                   else
-                    const DataUsage(),
-                },
-                const SizedBox(height: 8),
-                _SettingCard(),
-                SizedBox(height: 10.h),
-              ],
+                    const ProBanner(),
+                  const VPNSwitch(),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      if (!isUserPro) ...{
+                        if (serverType == ServerLocationType.privateServer)
+                          InfoRow(text: 'private_server_usage_message'.i18n)
+                        else if (PlatformUtils.isIOS)
+                          const SizedBox.shrink()
+                        else
+                          const DataUsage(),
+                      },
+                      const SizedBox(height: 8),
+                      _SettingCard(),
+                      SizedBox(height: 10.h),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
