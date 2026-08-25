@@ -502,6 +502,7 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      run_installer_smoke: false
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
       run_connect_smoke: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.windows_connect_smoke == 'true' }}
       run_split_tunnel_website_smoke: false
