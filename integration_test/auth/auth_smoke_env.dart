@@ -1,4 +1,4 @@
-import 'auth_smoke_credentials.example.dart';
+import 'auth_smoke_credentials.dart';
 
 /// Roster for the auth smoke suite.
 ///
@@ -11,8 +11,9 @@ import 'auth_smoke_credentials.example.dart';
 /// - `delete_smoke@` is never actually deleted server-side (`skip_delete`),
 ///   so the account stays reusable across runs.
 ///
-/// Credentials live in auth_smoke_credentials.dart, which is gitignored —
-/// see auth_smoke_credentials.example.dart for setup.
+/// Credentials come from auth_smoke_credentials.dart, a committed
+/// String.fromEnvironment shim — see auth_smoke_credentials.example.dart for
+/// how to supply real values locally (auth_smoke.env) and in CI.
 const authSmokeOtp = AuthSmokeCredentials.otp;
 const authSmokeWrongOtp = '000000';
 
@@ -37,3 +38,12 @@ const wrongAuthSmokePassword = '$signInSmokePassword-Wrong1!';
 /// one. Suffix keeps it satisfying the app's password criteria as long as the
 /// fixed password does.
 const tempAuthSmokePassword = '$recoverySmokePassword-Tmp1!';
+
+/// Whether real credentials were supplied (dart-define locally, or the CI
+/// secret overwriting the shim). The suite fails fast when this is false so a
+/// misconfigured run can never silently pass.
+const hasAuthSmokeCredentials =
+    signInSmokePassword != '' &&
+    recoverySmokePassword != '' &&
+    deleteSmokePassword != '' &&
+    proSmokePassword != '';

@@ -60,4 +60,4 @@ app.env
 /.claude/skills
 
 # Local auth smoke credentials (never commit; see auth_smoke_credentials.example.dart)
-integration_test/auth/auth_smoke_credentials.dart
+auth_smoke.env

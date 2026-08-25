@@ -25,6 +25,19 @@ void main() {
 /// state it mutates (password resets, created accounts).
 void registerAuthSmokeTests() {
   group('Auth smoke test', () {
+    setUpAll(() {
+      // Fail fast (rather than skip) so a lost secret or missing dart-define
+      // can never yield a green run that silently tested nothing.
+      if (!hasAuthSmokeCredentials) {
+        throw StateError(
+          'Auth smoke credentials missing. Pass them via '
+          '--dart-define-from-file=auth_smoke.env locally, or the '
+          'AUTH_SMOKE_CREDENTIALS secret in CI '
+          '(see auth_smoke_credentials.example.dart).',
+        );
+      }
+    });
+
     testWidgets(
       'sign in succeeds and logout clears the session',
       (tester) async {

@@ -416,9 +416,11 @@ jobs:
             -EnableIpCheck:$enableIpCheck `
             -ForceFullTunnel:$forceFullTunnelSmoke
 
-      # Gitignored; the auth smoke suite does not compile without it.
+      # Overwrites the committed fromEnvironment shim with real credentials.
+      # Skipped when the secret is absent so an empty file never clobbers the
+      # shim; the auth smoke suite then fails at runtime with a clear message.
       - name: Write auth smoke credentials
-        if: ${{ inputs.run_auth_smoke }}
+        if: ${{ inputs.run_auth_smoke && secrets.AUTH_SMOKE_CREDENTIALS != '' }}
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: "auth_smoke_credentials.dart"

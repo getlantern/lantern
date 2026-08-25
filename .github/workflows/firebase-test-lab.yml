@@ -31,11 +31,13 @@ on:
         required: true
       APP_ENV:
         required: true
-      # Base64 of integration_test/auth/auth_smoke_credentials.dart (see
-      # auth_smoke_credentials.example.dart). Needed to compile the auth
-      # smoke suite registered in android_all_e2e_test.dart.
+      # Base64 of a consts version of
+      # integration_test/auth/auth_smoke_credentials.dart (see
+      # auth_smoke_credentials.example.dart). Optional: without it the
+      # committed fromEnvironment shim still compiles, and the auth smoke
+      # suite fails at runtime with a clear message.
       AUTH_SMOKE_CREDENTIALS:
-        required: true
+        required: false
 
 permissions:
   contents: read
@@ -125,8 +127,11 @@ jobs:
           fileDir: ${{ github.workspace }}
           encodedString: ${{ secrets.APP_ENV }}
 
-      # Gitignored; the auth smoke suite does not compile without it.
+      # Overwrites the committed fromEnvironment shim with real credentials.
+      # Skipped when the secret is absent so an empty file never clobbers the
+      # shim; the auth smoke suite then fails at runtime with a clear message.
       - name: Write auth smoke credentials
+        if: ${{ secrets.AUTH_SMOKE_CREDENTIALS != '' }}
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: "auth_smoke_credentials.dart"
