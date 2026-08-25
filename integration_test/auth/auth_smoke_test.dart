@@ -139,8 +139,8 @@ void registerAuthSmokeTests() {
 
           await auth.enterOtp(authSmokeOtp);
           await auth.waitForResetPasswordScreen();
-          await auth.submitNewPassword(tempPassword);
           passwordChanged = true;
+          await auth.submitNewPassword(tempPassword);
 
           // The new password must actually work end to end.
           await auth.signIn(email: recoverySmokeEmail, password: tempPassword);

@@ -1130,8 +1130,8 @@ class LanternPlatformService implements LanternCoreService {
       });
       final map = jsonDecode(utf8.decode(bytes));
       return Right(UserResponseModel.fromJson(map));
-    } catch (e) {
-      appLogger.error('Error logging ${e.toString()} ', e);
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging in', e, stackTrace);
       return Left(e.toFailure());
     }
   }

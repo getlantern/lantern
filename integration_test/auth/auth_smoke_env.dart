@@ -1,4 +1,4 @@
-import 'auth_smoke_credentials.dart';
+import 'auth_smoke_credentials.example.dart';
 
 /// Roster for the auth smoke suite.
 ///
