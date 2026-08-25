@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -97,7 +98,9 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
     }
   }
 
-  /// Pushes the fastest Lantern server to the Smart Location if the current selection is auto
+  /// Seeds Smart Location with the fastest-probed server while disconnected.
+  /// Smart Location will be updated using radiance's auto select events while
+  /// connected.
   void _pushFastestToSmartLocation(AvailableServers servers) {
     final fastest = servers.fastestLanternServer;
     if (fastest == null) return;
@@ -107,6 +110,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
       return;
     }
     if (current.autoLocation?.tag == fastest.tag) return;
+    if (ref.read(vpnProvider) != VPNStatus.disconnected) return;
 
     final country = fastest.location.country;
     final city = fastest.location.city;
