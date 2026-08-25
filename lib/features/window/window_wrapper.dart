@@ -57,12 +57,25 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     await WidgetsBinding.instance.waitUntilFirstFrameRasterized;
     if (!mounted) return;
 
+    // Showing comes first and is kept separate: close interception is the
+    // nice-to-have, the window is not. Arming it first meant a failure there
+    // skipped the reveal entirely and left the app running with nothing on
+    // screen — worse than the blank window this is all about.
     try {
-      await windowManager.setPreventClose(true);
       await windowManager.show();
       await windowManager.focus();
     } catch (e, st) {
       appLogger.error('Failed to reveal window after first frame', e, st);
+      return;
+    }
+
+    // A failure here costs hide-to-tray, so the close button really closes.
+    // That is a worse product but a working app, and not worth hiding a window
+    // over.
+    try {
+      await windowManager.setPreventClose(true);
+    } catch (e, st) {
+      appLogger.error('Failed to enable close interception', e, st);
     }
   }
 
