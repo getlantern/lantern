@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/desktop/first_frame_watchdog.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/features/window/windows_protocol_registry.dart';
 import 'package:window_manager/window_manager.dart';
@@ -50,17 +49,13 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
 
     // A built frame is not a presented one. addPostFrameCallback fires when the
     // framework has finished the frame, before the rasterizer has put it on
-    // screen — revealing on that signal would expose exactly the blank,
-    // uncloseable window this change exists to prevent. If the frame never
-    // reaches the screen this never completes and FirstFrameWatchdog takes
-    // over instead.
+    // screen — revealing on that signal would expose exactly the blank window
+    // this change exists to prevent. When the frame never reaches the screen
+    // this never completes, so nothing is revealed and the platform runner's
+    // own first-frame gate is left to decide, which is what an unmodified
+    // Flutter app does.
     await WidgetsBinding.instance.waitUntilFirstFrameRasterized;
     if (!mounted) return;
-
-    // The watchdog gave up and revealed the window already, deliberately
-    // closable. A frame arriving after that must not quietly turn the close
-    // button back into minimise-to-tray.
-    if (FirstFrameWatchdog.recoveredFromTimeout) return;
 
     try {
       await windowManager.setPreventClose(true);

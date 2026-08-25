@@ -9,7 +9,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
-import 'package:lantern/core/desktop/first_frame_watchdog.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -64,10 +63,6 @@ Future<void> main() async {
   } catch (e, st) {
     appLogger.error('Failed to start Updater.init', e, st);
   }
-
-  // The window is revealed by WindowWrapper once a frame exists. Watch for the
-  // case where that frame never arrives, which is otherwise invisible in logs.
-  FirstFrameWatchdog.start();
 
   runApp(
     ProviderScope(

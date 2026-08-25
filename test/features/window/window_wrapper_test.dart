@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/desktop/first_frame_watchdog.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
 
 /// Covers the reveal half of getlantern/engineering#3833.
@@ -29,8 +28,6 @@ void main() {
       () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, null),
     );
-    FirstFrameWatchdog.resetForTest();
-    addTearDown(FirstFrameWatchdog.resetForTest);
   });
 
   testWidgets('does not reveal the window until a frame is presented', (
