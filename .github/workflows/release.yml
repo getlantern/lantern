@@ -387,7 +387,9 @@ jobs:
       - name: Validate GitHub Actions workflows
         uses: docker://rhysd/actionlint:1.7.12
         with:
-          args: -color
+          # Keep this gate focused on workflow structure and expressions.
+          # ShellCheck requires a separate repository-wide baseline.
+          args: -color -shellcheck=
 
       - name: Check staging API availability
         if: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
