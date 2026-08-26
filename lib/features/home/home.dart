@@ -155,6 +155,25 @@ class Home extends HookConsumerWidget {
 
     ref.read(appEventProvider);
 
+    // Reconcile the share UI with the backend before anything reads its
+    // state. Peer sharing resumes from persisted settings at process start,
+    // and the peer-status stream is edge-triggered, so without asking
+    // outright the UI opens at mode=off while SmC is already serving.
+    // Deliberately not gated on unboundedAutoEnable: the point is to reflect
+    // what is running, which has nothing to do with the auto-start
+    // preference.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Home can be torn down before the frame settles; reading a
+        // disposed scope throws. Same guard the other post-frame
+        // callbacks in this file use.
+        if (!context.mounted) return;
+        if (!unboundedAvailable) return;
+        ref.read(shareProvider.notifier).syncFromBackend(ref);
+      });
+      return null;
+    }, [unboundedAvailable]);
+
     // Auto-enable Unbounded — gated on the "Auto-enable Unbounded"
     // toggle from Unbounded Settings (opt-in, default off) AND the per-user
     // "Hide Unbounded" toggle. Hiding the tab is the opt-out: a user
@@ -169,23 +188,9 @@ class Home extends HookConsumerWidget {
     // Both paths gate on (active || probing) to avoid re-triggering
     // while a Start is in flight, and skip the disclosure dialog
     // because the user has already opted in via settings.
-    // Reconcile the share UI with the backend before anything reads its
-    // state. Peer sharing resumes from persisted settings at process start,
-    // and the peer-status stream is edge-triggered, so without asking
-    // outright the UI opens at mode=off while SmC is already serving.
-    // Deliberately not gated on unboundedAutoEnable: the point is to reflect
-    // what is running, which has nothing to do with the auto-start
-    // preference.
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!unboundedAvailable) return;
-        ref.read(shareProvider.notifier).syncFromBackend(ref);
-      });
-      return null;
-    }, [unboundedAvailable]);
-
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
         if (!unboundedAvailable) return;
         final appSetting = ref.read(appSettingProvider);
         if (appSetting.unboundedHidden) return;
