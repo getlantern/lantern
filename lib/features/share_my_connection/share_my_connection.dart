@@ -392,35 +392,51 @@ class ShareNotifier extends Notifier<ShareState> {
     if (state.active || state.probing) return;
     final res =
         await widgetRef.read(lanternServiceProvider).getPeerStatusJSON();
-    final raw = res.fold((_) => '', (v) => v);
-    if (raw.isEmpty) return;
+    final phase = adoptablePhase(res.fold((_) => '', (v) => v));
+    if (phase == null) return;
+    state = state.copyWith(active: true, mode: ShareMode.smc, phase: phase);
+    // Start listening now so the transitions after this snapshot land too.
+    _startEventSubscription(widgetRef);
+  }
+
+  /// The phase to adopt from a raw peer-status payload, or null to leave
+  /// state untouched.
+  ///
+  /// Split out from [syncFromBackend] so the parse and the phase gate are
+  /// reachable without a WidgetRef.
+  ///
+  /// Null for anything that isn't sharing actually being up: an empty or
+  /// malformed payload, the requireCore {"error":...} envelope (no phase),
+  /// idle (the backend agreeing we are off), stopping (already tearing
+  /// down), and error (the toggle path owns the Unbounded fallback).
+  @visibleForTesting
+  SharePhase? adoptablePhase(String raw) {
+    if (raw.isEmpty) return null;
     final SharePhase phase;
     try {
       final payload = jsonDecode(raw) as Map<String, dynamic>;
       // No phase means the question went unanswered — that covers
       // requireCore's {"error":...} envelope, which carries no phase.
-      if (payload['phase'] == null) return;
+      // Defensive rather than load-bearing: fromWire maps null to idle,
+      // which the switch below already declines. It is here so the
+      // envelope still cannot be adopted if that fallback ever changes,
+      // and no test can distinguish the two paths today.
+      if (payload['phase'] == null) return null;
       phase = SharePhase.fromWire(payload['phase'] as String?);
     } catch (e) {
       debugPrint('share-my-connection: bad peer status: $e');
-      return;
+      return null;
     }
-    switch (phase) {
-      case SharePhase.idle:
-      case SharePhase.error:
-      case SharePhase.stopping:
-        return;
-      case SharePhase.mappingPort:
-      case SharePhase.detectingIp:
-      case SharePhase.registering:
-      case SharePhase.startingProxy:
-      case SharePhase.verifying:
-      case SharePhase.serving:
-        break;
-    }
-    state = state.copyWith(active: true, mode: ShareMode.smc, phase: phase);
-    // Start listening now so the transitions after this snapshot land too.
-    _startEventSubscription(widgetRef);
+    return switch (phase) {
+      SharePhase.idle || SharePhase.error || SharePhase.stopping => null,
+      SharePhase.mappingPort ||
+      SharePhase.detectingIp ||
+      SharePhase.registering ||
+      SharePhase.startingProxy ||
+      SharePhase.verifying ||
+      SharePhase.serving =>
+        phase,
+    };
   }
 
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
