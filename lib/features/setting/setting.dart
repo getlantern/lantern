@@ -256,38 +256,6 @@ class _SettingState extends ConsumerState<Setting>
               ),
             ),
           },
-          if (unboundedAvailable) ...[
-            const SizedBox(height: defaultSize),
-            Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Text(
-                'lantern_projects'.i18n,
-                style: textTheme.labelLarge!.copyWith(
-                  color: context.textSecondary,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Card(
-              child: AppTile(
-                minHeight: 72,
-                icon: AppImagePaths.lanternLogoRounded,
-                iconUseThemeColor: false,
-                trailing: AppImage(path: AppImagePaths.outsideBrowser),
-                label: 'unbounded'.i18n,
-                subtitle: Text(
-                  'help_fight_global_internet_censorship'.i18n,
-                  style: textTheme.labelMedium!.copyWith(
-                    color: context.textTertiary,
-                  ),
-                ),
-                onPressed: () {
-                  UrlUtils.openUrl(AppUrls.unbounded);
-                },
-              ),
-            ),
-            SizedBox(height: defaultSize),
-          ],
         ],
       ),
     );
