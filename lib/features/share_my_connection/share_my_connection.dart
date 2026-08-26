@@ -392,6 +392,15 @@ class ShareNotifier extends Notifier<ShareState> {
     if (state.active || state.probing) return;
     final res =
         await widgetRef.read(lanternServiceProvider).getPeerStatusJSON();
+    // Re-check: the read above is an IPC round-trip bounded by a 5s
+    // timeout, and this runs at first paint, so the user has a wide window
+    // to hit the toggle while it is in flight. Adopting the snapshot then
+    // would stamp mode=smc over a session that had just started as
+    // Unbounded — a later toggle-off would call setPeerProxy(false) and
+    // leave Unbounded running — and would install a second event
+    // subscription over the first, which _startEventSubscription
+    // overwrites rather than cancels.
+    if (state.active || state.probing) return;
     final phase = adoptablePhase(res.fold((_) => '', (v) => v));
     if (phase == null) return;
     state = state.copyWith(active: true, mode: ShareMode.smc, phase: phase);
