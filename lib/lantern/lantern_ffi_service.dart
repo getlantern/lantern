@@ -1675,10 +1675,25 @@ class LanternFFIService implements LanternCoreService {
           _ffiService.freeCString(resultPtr);
         }
       });
-      return right(res);
+      // requireCore hands back {"error":...} when the core is not up. The
+      // service contract promises "" for a status that could not be read,
+      // so normalize here instead of making every caller recognize the
+      // envelope.
+      return right(_looksLikePeerStatus(res) ? res : '');
     } catch (e, st) {
       appLogger.error('getPeerStatusJSON error: $e', e, st);
       return Left(e.toFailure());
+    }
+  }
+
+  // A peer.Status always carries a phase; the error envelope never does.
+  bool _looksLikePeerStatus(String raw) {
+    if (raw.isEmpty) return false;
+    try {
+      final payload = jsonDecode(raw) as Map<String, dynamic>;
+      return payload['phase'] != null;
+    } catch (_) {
+      return false;
     }
   }
 

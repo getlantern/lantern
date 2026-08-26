@@ -397,9 +397,9 @@ class ShareNotifier extends Notifier<ShareState> {
     final SharePhase phase;
     try {
       final payload = jsonDecode(raw) as Map<String, dynamic>;
-      // requireCore's {"error":...} envelope, or a payload carrying no
-      // phase at all, means the question went unanswered.
-      if (payload['error'] != null || payload['phase'] == null) return;
+      // No phase means the question went unanswered — that covers
+      // requireCore's {"error":...} envelope, which carries no phase.
+      if (payload['phase'] == null) return;
       phase = SharePhase.fromWire(payload['phase'] as String?);
     } catch (e) {
       debugPrint('share-my-connection: bad peer status: $e');

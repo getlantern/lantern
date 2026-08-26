@@ -357,7 +357,7 @@ class LanternPlatformService implements LanternCoreService {
       final res = await _methodChannel.invokeMethod<String>('getPeerStatus');
       return right(res ?? '');
     } catch (e, st) {
-      appLogger.error('getPeerStatus failed', e, st);
+      appLogger.error('getPeerStatusJSON failed', e, st);
       return Left(e.toFailure());
     }
   }
