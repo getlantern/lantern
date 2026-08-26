@@ -1663,6 +1663,26 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> getPeerStatusJSON() async {
+    try {
+      final res = await runInBackground<String>(() async {
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.getPeerStatusJSON();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      return right(res);
+    } catch (e, st) {
+      appLogger.error('getPeerStatusJSON error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
     try {
       final result = await runInBackground<String>(() async {

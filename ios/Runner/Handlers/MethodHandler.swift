@@ -309,6 +309,15 @@ class MethodHandler {
           await MainActor.run { result(Int(MobileGetPeerManualPort())) }
         }
 
+      // Returns the marshalled radiance peer.Status, or "" when it could
+      // not be read. The peer-status event stream carries transitions
+      // only, and peer sharing resumes from persisted settings before the
+      // UI is listening, so the UI needs to be able to ask outright.
+      case "getPeerStatus":
+        Task {
+          await MainActor.run { result(MobileGetPeerStatus()) }
+        }
+
       case "setUnboundedEnabled":
         guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
         self.setUnboundedEnabled(result: result, enabled: enabled)

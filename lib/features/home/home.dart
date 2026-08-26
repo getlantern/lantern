@@ -169,6 +169,21 @@ class Home extends HookConsumerWidget {
     // Both paths gate on (active || probing) to avoid re-triggering
     // while a Start is in flight, and skip the disclosure dialog
     // because the user has already opted in via settings.
+    // Reconcile the share UI with the backend before anything reads its
+    // state. Peer sharing resumes from persisted settings at process start,
+    // and the peer-status stream is edge-triggered, so without asking
+    // outright the UI opens at mode=off while SmC is already serving.
+    // Deliberately not gated on unboundedAutoEnable: the point is to reflect
+    // what is running, which has nothing to do with the auto-start
+    // preference.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!unboundedAvailable) return;
+        ref.read(shareProvider.notifier).syncFromBackend(ref);
+      });
+      return null;
+    }, [unboundedAvailable]);
+
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!unboundedAvailable) return;

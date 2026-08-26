@@ -372,6 +372,57 @@ class ShareNotifier extends Notifier<ShareState> {
     await _start(widgetRef, ShareMode.unbounded);
   }
 
+  /// Reconciles ShareState with what the peer client is actually doing.
+  ///
+  /// Peer sharing resumes from persisted settings at process start, well
+  /// before this notifier exists, and the peer-status stream is
+  /// edge-triggered — transitions only, no snapshot on subscribe. A UI built
+  /// purely on events therefore opens at mode=off while SmC is already
+  /// serving peers. Toggling on from there flips a setting radiance
+  /// considers unchanged, so PatchSettings' diff gate skips Start entirely:
+  /// no phase event ever fires and the card sits on "Configuring network"
+  /// indefinitely while sharing works fine underneath.
+  ///
+  /// Only adopts a phase that means sharing is genuinely up. idle is the
+  /// backend agreeing we are off; error is left to the toggle path, which
+  /// owns the Unbounded fallback. A status that cannot be read leaves state
+  /// untouched — "not sharing" and "could not ask" must not collapse into
+  /// the same render.
+  Future<void> syncFromBackend(WidgetRef widgetRef) async {
+    if (state.active || state.probing) return;
+    final res =
+        await widgetRef.read(lanternServiceProvider).getPeerStatusJSON();
+    final raw = res.fold((_) => '', (v) => v);
+    if (raw.isEmpty) return;
+    final SharePhase phase;
+    try {
+      final payload = jsonDecode(raw) as Map<String, dynamic>;
+      // requireCore's {"error":...} envelope, or a payload carrying no
+      // phase at all, means the question went unanswered.
+      if (payload['error'] != null || payload['phase'] == null) return;
+      phase = SharePhase.fromWire(payload['phase'] as String?);
+    } catch (e) {
+      debugPrint('share-my-connection: bad peer status: $e');
+      return;
+    }
+    switch (phase) {
+      case SharePhase.idle:
+      case SharePhase.error:
+      case SharePhase.stopping:
+        return;
+      case SharePhase.mappingPort:
+      case SharePhase.detectingIp:
+      case SharePhase.registering:
+      case SharePhase.startingProxy:
+      case SharePhase.verifying:
+      case SharePhase.serving:
+        break;
+    }
+    state = state.copyWith(active: true, mode: ShareMode.smc, phase: phase);
+    // Start listening now so the transitions after this snapshot land too.
+    _startEventSubscription(widgetRef);
+  }
+
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
     state = ShareState(
       active: true,
