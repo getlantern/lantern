@@ -266,11 +266,11 @@ extension AppSemanticColors on BuildContext {
 
   // ── Action / Tabbar ─────────────────────────────────────────────────────────
 
-  /// action.tabbar.tabbar-bg  Blue.200 light / Blue.800 dark
-  Color get actionTabbarBg => _isDark ? AppColors.blue8 : AppColors.blue2;
+  /// action.tabbar.tabbar-bg  Blue.100 (#f0fdff) light / Blue.800 dark
+  Color get actionTabbarBg => _isDark ? AppColors.blue8 : AppColors.blue1;
 
-  /// action.tabbar.tabbar-border  Blue.300 light / Blue.700 dark
-  Color get actionTabbarBorder => _isDark ? AppColors.blue7 : AppColors.blue3;
+  /// action.tabbar.tabbar-border  Blue.200 (#d6f6fa) light / Blue.700 dark
+  Color get actionTabbarBorder => _isDark ? AppColors.blue7 : AppColors.blue2;
 
   /// action.tabbar.tabbar-selected-text  Blue.1000 light / Blue.100 dark
   Color get actionTabbarSelectedText =>

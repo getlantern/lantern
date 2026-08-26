@@ -64,8 +64,7 @@ class _SettingState extends ConsumerState<Setting>
 
     final appSetting = ref.watch(appSettingProvider);
     // Server-side gate. Censored regions get Features[unbounded]=false,
-    // and every Unbounded-flavoured row in this menu (the settings sub-
-    // page link AND the project promo card at the bottom) disappears.
+    // which hides the Unbounded settings sub-page link below.
     final unboundedAvailable =
         ref.watch(featureFlagProvider).getBool(FeatureFlag.unbounded);
 
@@ -153,7 +152,7 @@ class _SettingState extends ConsumerState<Setting>
                   DividerSpace(),
                   AppTile(
                     label: 'unbounded_settings_title'.i18n,
-                    icon: Icons.handshake_outlined,
+                    icon: AppImagePaths.handshake,
                     onPressed: () =>
                         settingMenuTap(_SettingType.unboundedSetting),
                   ),
