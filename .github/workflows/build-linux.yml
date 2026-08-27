@@ -55,6 +55,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.linux_arch == 'arm64' && '{"include":[{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}' || inputs.linux_arch == 'amd64' && '{"include":[{"arch":"amd64","runner":"ubuntu-latest"}]}' || inputs.linux_arch == 'all' && '{"include":[{"arch":"amd64","runner":"ubuntu-latest"},{"arch":"arm64","runner":"ubuntu-24.04-arm"}]}') }}
     env:
+      AUTH_SMOKE_CREDENTIALS_AVAILABLE: ${{ secrets.AUTH_SMOKE_CREDENTIALS != '' }}
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
       TARGET_ARCH: ${{ matrix.arch }}
@@ -296,7 +297,7 @@ jobs:
       # Skipped when the secret is absent so an empty file never clobbers the
       # shim; the auth smoke suite then fails at runtime with a clear message.
       - name: Write auth smoke credentials
-        if: ${{ inputs.run_auth_smoke && secrets.AUTH_SMOKE_CREDENTIALS != '' }}
+        if: ${{ inputs.run_auth_smoke && env.AUTH_SMOKE_CREDENTIALS_AVAILABLE == 'true' }}
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: "auth_smoke_credentials.dart"
