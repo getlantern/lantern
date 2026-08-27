@@ -189,6 +189,30 @@ jobs:
         run: |
           ./scripts/ci/verify_linux_package.sh "./${{ env.FULL_INSTALLER_NAME }}.deb" "${{ matrix.arch }}"
 
+      - name: Upload Linux RPM candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-rpm-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.rpm
+          if-no-files-found: error
+          retention-days: 2
+
+      - name: Upload Linux DEB candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-deb-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.deb
+          if-no-files-found: error
+          retention-days: 2
+
+      - name: Upload Linux Arch candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-pkg-${{ matrix.arch }}
+          path: ${{ env.FULL_INSTALLER_NAME }}.pkg.tar.zst
+          if-no-files-found: error
+          retention-days: 2
+
       - name: Install .deb and verify postinst started daemon
         shell: bash
         run: |
@@ -307,24 +331,3 @@ jobs:
           if [[ "$AUTH_SMOKE_EXIT" -ne 0 ]]; then
             exit "$AUTH_SMOKE_EXIT"
           fi
-
-      - name: Upload Linux build
-        uses: actions/upload-artifact@v4
-        with:
-          name: lantern-installer-rpm-${{ matrix.arch }}
-          path: ${{ env.FULL_INSTALLER_NAME }}.rpm
-          retention-days: 2
-
-      - name: Upload Linux build
-        uses: actions/upload-artifact@v4
-        with:
-          name: lantern-installer-deb-${{ matrix.arch }}
-          path: ${{ env.FULL_INSTALLER_NAME }}.deb
-          retention-days: 2
-
-      - name: Upload Linux build (Arch)
-        uses: actions/upload-artifact@v4
-        with:
-          name: lantern-installer-pkg-${{ matrix.arch }}
-          path: ${{ env.FULL_INSTALLER_NAME }}.pkg.tar.zst
-          retention-days: 2

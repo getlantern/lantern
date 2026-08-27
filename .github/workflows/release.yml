@@ -243,6 +243,35 @@ jobs:
               ;;
           esac
 
+          case "$PLATFORM" in
+            all) ;;
+            *)
+              normalized_platforms=()
+              declare -A seen_platforms=()
+              IFS=',' read -ra requested_platforms <<< "$PLATFORM"
+              for requested_platform in "${requested_platforms[@]}"; do
+                requested_platform="${requested_platform//[[:space:]]/}"
+                case "$requested_platform" in
+                  macos|windows|linux|android|ios) ;;
+                  *)
+                    echo "Error: invalid platform '$requested_platform'" >&2
+                    echo "Use 'all' or a comma-separated list of macos,windows,linux,android,ios." >&2
+                    exit 1
+                    ;;
+                esac
+                if [[ -z "${seen_platforms[$requested_platform]:-}" ]]; then
+                  normalized_platforms+=("$requested_platform")
+                  seen_platforms[$requested_platform]=1
+                fi
+              done
+              if [[ "${#normalized_platforms[@]}" -eq 0 ]]; then
+                echo "Error: at least one platform is required" >&2
+                exit 1
+              fi
+              PLATFORM="$(IFS=,; echo "${normalized_platforms[*]}")"
+              ;;
+          esac
+
           case "$LINUX_ARCH" in
             all|amd64|arm64) ;;
             *)
@@ -340,9 +369,84 @@ jobs:
           name: pubspec
           path: pubspec.yaml
 
-  release-notify:
+  preflight:
+    name: Release preflight
     needs: [set-metadata]
+    if: ${{ !cancelled() && needs.set-metadata.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Validate GitHub Actions workflows
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          # Keep this gate focused on workflow structure and expressions.
+          # ShellCheck requires a separate repository-wide baseline.
+          args: -color -shellcheck=
+
+      - name: Check staging API availability
+        if: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://api.staging.iantem.io/v1/"
+          for attempt in 1 2 3; do
+            status="$(curl --silent --show-error --output /dev/null \
+              --write-out '%{http_code}' --connect-timeout 10 --max-time 20 \
+              "$url" || true)"
+            # A 4xx still proves that DNS, TLS, and the staging API route are up.
+            # The installed-app smoke validates authenticated behavior later.
+            if [[ "$status" =~ ^[234][0-9][0-9]$ ]]; then
+              echo "Staging API is reachable (HTTP $status)."
+              exit 0
+            fi
+            echo "Staging API probe $attempt/3 failed (HTTP ${status:-000})." >&2
+            if [[ "$attempt" -lt 3 ]]; then
+              sleep 5
+            fi
+          done
+          echo "Staging API is unavailable; stopping before candidate builds." >&2
+          exit 1
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Verify Go dependencies
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.22.0
+        with:
+          channel: stable
+          flutter-version-file: .github/flutter-version.yaml
+          cache: true
+
+      - name: Resolve Flutter dependencies and generated sources
+        run: |
+          make pubget
+          make gen
+
+      - name: Run Flutter unit and widget tests
+        run: |
+          touch app.env
+          flutter test --no-pub
+
+  release-notify:
+    needs: [set-metadata, preflight]
     if: |
+      needs.preflight.result == 'success' &&
       needs.set-metadata.outputs.build_type == 'production' &&
       needs.set-metadata.outputs.platform == 'all'
     runs-on: ubuntu-latest
@@ -358,8 +462,9 @@ jobs:
             }
 
   release-approval:
-    needs: [set-metadata]
+    needs: [set-metadata, preflight]
     if: |
+      needs.preflight.result == 'success' &&
       needs.set-metadata.outputs.build_type == 'production' &&
       needs.set-metadata.outputs.platform == 'all'
     runs-on: ubuntu-latest
@@ -368,13 +473,13 @@ jobs:
       - run: echo "Approved"
 
   build-macos:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'macos'))
     with:
@@ -384,19 +489,20 @@ jobs:
       runner_label: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.use_self_hosted_macos == 'true' && 'lantern-macos-smoke' || 'macos-15' }}
 
   build-windows:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'windows'))
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
+      run_installer_smoke: false
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
       run_connect_smoke: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.windows_connect_smoke == 'true' }}
       run_split_tunnel_website_smoke: false
@@ -406,13 +512,13 @@ jobs:
       skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}
 
   build-linux:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'linux'))
     with:
@@ -425,13 +531,13 @@ jobs:
       run_auth_smoke: false
 
   build-ios:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-ios.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios'))
     with:
@@ -440,13 +546,13 @@ jobs:
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
 
   build-android:
-    needs: [set-metadata, release-create, release-approval]
+    needs: [set-metadata, preflight, release-approval]
     uses: ./.github/workflows/build-android.yml
     secrets: inherit
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.release-create.result == 'success' &&
+      needs.preflight.result == 'success' &&
       (needs.release-approval.result == 'success' || needs.release-approval.result == 'skipped') &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android'))
     with:
@@ -456,17 +562,14 @@ jobs:
       stealth_leakage_mode: ${{ needs.set-metadata.outputs.stealth_leakage_mode }}
 
   release-create:
-    needs: set-metadata
+    needs: [set-metadata, nightly-gate]
+    if: ${{ !cancelled() && needs.set-metadata.result == 'success' && needs.nightly-gate.result == 'success' }}
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -494,43 +597,102 @@ jobs:
           gh release create "$RELEASE_TAG" \
             --draft \
             $PRERELEASE_FLAG \
+            --target "$GITHUB_SHA" \
             --title "$TITLE" \
-            --notes "Build [in progress](${WORKFLOW_URL})..."
+            --notes "Publication [in progress](${WORKFLOW_URL})..."
 
-  upload-s3:
+  nightly-gate:
+    name: Candidate publication gate
     needs:
       [
         set-metadata,
+        preflight,
         build-macos,
         build-windows,
         build-linux,
         build-android,
         build-ios,
       ]
-    # Nightly builds publish any healthy platform; beta/production remain
-    # all-or-nothing across requested platforms.
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+    env:
+      PLATFORMS: ${{ needs.set-metadata.outputs.platform }}
+      METADATA_RESULT: ${{ needs.set-metadata.result }}
+      PREFLIGHT_RESULT: ${{ needs.preflight.result }}
+      MACOS_RESULT: ${{ needs.build-macos.result }}
+      WINDOWS_RESULT: ${{ needs.build-windows.result }}
+      LINUX_RESULT: ${{ needs.build-linux.result }}
+      ANDROID_RESULT: ${{ needs.build-android.result }}
+      IOS_RESULT: ${{ needs.build-ios.result }}
+    steps:
+      - name: Require every requested candidate to pass
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          failures=()
+          if [[ "$METADATA_RESULT" != "success" ]]; then
+            failures+=("release metadata: $METADATA_RESULT")
+          fi
+          if [[ "$PREFLIGHT_RESULT" != "success" ]]; then
+            failures+=("preflight: $PREFLIGHT_RESULT")
+          fi
+          platform_requested() {
+            local platform="$1"
+            [[ "$PLATFORMS" == "all" || ",$PLATFORMS," == *",$platform,"* ]]
+          }
+
+          check_candidate() {
+            local platform="$1"
+            local result="$2"
+            if platform_requested "$platform" && [[ "$result" != "success" ]]; then
+              failures+=("$platform candidate and smoke suite: $result")
+            fi
+          }
+
+          check_candidate macos "$MACOS_RESULT"
+          check_candidate windows "$WINDOWS_RESULT"
+          check_candidate linux "$LINUX_RESULT"
+          check_candidate android "$ANDROID_RESULT"
+          check_candidate ios "$IOS_RESULT"
+
+          {
+            echo "## Candidate gate"
+            echo
+            echo "**Requested platforms:** \`${PLATFORMS:-unknown}\`"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${#failures[@]}" -gt 0 ]]; then
+            {
+              echo "Publication is blocked:"
+              for failure in "${failures[@]}"; do
+                echo "- $failure"
+              done
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "Every requested candidate and required smoke suite passed." |
+            tee -a "$GITHUB_STEP_SUMMARY"
+
+  upload-s3:
+    needs:
+      [
+        set-metadata,
+        nightly-gate,
+        build-macos,
+        build-windows,
+        build-linux,
+        build-android,
+        build-ios,
+      ]
     if: |
       always() &&
       !cancelled() &&
-      (
-        (
-          needs.set-metadata.outputs.build_type == 'nightly' &&
-          (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
-           needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
-           needs.build-ios.result == 'success')
-        ) ||
-        (
-          needs.set-metadata.outputs.build_type != 'nightly' &&
-          (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
-          (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
-          (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') &&
-          (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') &&
-          (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') &&
-          (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
-           needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
-           needs.build-ios.result == 'success')
-        )
-      )
+      needs.set-metadata.result == 'success' &&
+      needs.set-metadata.outputs.is_test_run != 'true' &&
+      needs.nightly-gate.result == 'success'
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -540,7 +702,6 @@ jobs:
       LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
       BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
-      WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -550,8 +711,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
 
-      - name: Resolve nightly publish scope
-        if: ${{ env.BUILD_TYPE == 'nightly' }}
+      - name: Verify candidate artifact set
         shell: bash
         run: |
           set -euo pipefail
@@ -560,48 +720,58 @@ jobs:
             compgen -G "$1" > /dev/null
           }
 
-          platforms=()
-          if has_artifact "lantern-installer-dmg/*.dmg"; then
-            platforms+=("macos")
+          platform_requested() {
+            local platform="$1"
+            [[ "$PLATFORM" == "all" || ",$PLATFORM," == *",$platform,"* ]]
+          }
+
+          require_artifact() {
+            local label="$1"
+            shift
+            for pattern in "$@"; do
+              if has_artifact "$pattern"; then
+                return 0
+              fi
+            done
+            echo "Missing candidate artifact: $label" >&2
+            return 1
+          }
+
+          missing=0
+          if platform_requested macos; then
+            require_artifact "macOS DMG" "lantern-installer-dmg/*.dmg" || missing=1
           fi
-          if has_artifact "lantern-installer-exe/*.exe"; then
-            platforms+=("windows")
+          if platform_requested windows; then
+            require_artifact "Windows installer" "lantern-installer-exe/*.exe" || missing=1
           fi
-          if has_artifact "lantern-installer-apk/*.apk"; then
-            platforms+=("android")
+          if platform_requested android; then
+            require_artifact "Android APK" "lantern-installer-apk/*.apk" || missing=1
           fi
-          if has_artifact "lantern-installer-ipa/*.ipa"; then
-            platforms+=("ios")
+          if platform_requested ios; then
+            require_artifact "iOS IPA" "lantern-installer-ipa/*.ipa" || missing=1
+          fi
+          if platform_requested linux; then
+            if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "amd64" ]]; then
+              require_artifact "Linux AMD64 DEB" \
+                "lantern-installer-deb-amd64/*.deb" "lantern-installer-deb/*.deb" || missing=1
+              require_artifact "Linux AMD64 RPM" \
+                "lantern-installer-rpm-amd64/*.rpm" "lantern-installer-rpm/*.rpm" || missing=1
+              require_artifact "Linux AMD64 Arch package" \
+                "lantern-installer-pkg-amd64/*.pkg.tar.zst" "lantern-installer-pkg/*.pkg.tar.zst" || missing=1
+            fi
+            if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "arm64" ]]; then
+              require_artifact "Linux ARM64 DEB" "lantern-installer-deb-arm64/*.deb" || missing=1
+              require_artifact "Linux ARM64 RPM" "lantern-installer-rpm-arm64/*.rpm" || missing=1
+              require_artifact "Linux ARM64 Arch package" "lantern-installer-pkg-arm64/*.pkg.tar.zst" || missing=1
+            fi
           fi
 
-          linux_amd64=false
-          linux_arm64=false
-          if has_artifact "lantern-installer-deb-amd64/*.deb" || has_artifact "lantern-installer-rpm-amd64/*.rpm" || has_artifact "lantern-installer-deb/*.deb" || has_artifact "lantern-installer-rpm/*.rpm"; then
-            linux_amd64=true
-          fi
-          if has_artifact "lantern-installer-deb-arm64/*.deb" || has_artifact "lantern-installer-rpm-arm64/*.rpm"; then
-            linux_arm64=true
-          fi
-          if [[ "$linux_amd64" == true || "$linux_arm64" == true ]]; then
-            platforms+=("linux")
-          fi
-
-          if [[ "${#platforms[@]}" -eq 0 ]]; then
-            echo "No publishable nightly artifacts were found." >&2
+          if [[ "$missing" -ne 0 ]]; then
+            echo "Candidate artifacts are incomplete; publication is blocked." >&2
             exit 1
           fi
 
-          nightly_platforms="$(IFS=,; echo "${platforms[*]}")"
-          nightly_linux_arch="amd64"
-          if [[ "$linux_amd64" == true && "$linux_arm64" == true ]]; then
-            nightly_linux_arch="all"
-          elif [[ "$linux_arm64" == true ]]; then
-            nightly_linux_arch="arm64"
-          fi
-
-          echo "Nightly publish scope: ${nightly_platforms} (linux_arch=${nightly_linux_arch})"
-          echo "PLATFORM=${nightly_platforms}" >> "$GITHUB_ENV"
-          echo "LINUX_ARCH=${nightly_linux_arch}" >> "$GITHUB_ENV"
+          echo "All requested candidate artifacts are present."
 
       - name: Upload to S3
         shell: bash
@@ -624,45 +794,24 @@ jobs:
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
 
-      - name: Format Slack message
-        id: slack_msg
-        env:
-          RELEASE_TAG: ${{ env.RELEASE_TAG }}
-          WORKFLOW_URL: ${{ env.WORKFLOW_URL }}
-        run: |
-          text=$(./scripts/ci/format.sh slack)
-          echo "text<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$text" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
-      - name: Notify Slack
-        uses: slackapi/slack-github-action@v2.0.0
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: webhook-trigger
-          payload: |
-            {
-              "text": "${{ steps.slack_msg.outputs.text }}"
-            }
-
   upload-release-artifacts:
     needs:
       [
         set-metadata,
         release-create,
+        nightly-gate,
         build-macos,
         build-windows,
         build-linux,
         build-android,
         build-ios,
       ]
-    # Run if at least one platform build succeeded.
     if: |
+      always() &&
       !cancelled() &&
       needs.release-create.result == 'success' &&
-      (needs.build-macos.result == 'success' || needs.build-windows.result == 'success' ||
-       needs.build-linux.result == 'success' || needs.build-android.result == 'success' ||
-       needs.build-ios.result == 'success')
+      needs.set-metadata.outputs.is_test_run != 'true' &&
+      needs.nightly-gate.result == 'success'
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
@@ -772,10 +921,11 @@ jobs:
   # Post-publish steps. Production/beta always use their release tracks; nightly
   # mobile store uploads run only when set-metadata enables them.
   upload-google-play:
-    needs: [set-metadata, build-android]
+    needs: [set-metadata, nightly-gate, build-android]
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
+      needs.nightly-gate.result == 'success' &&
       needs.build-android.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'android')) &&
       (
@@ -831,10 +981,11 @@ jobs:
           debugSymbols: play/debug-symbols.zip
 
   upload-testflight:
-    needs: [set-metadata, build-ios]
+    needs: [set-metadata, nightly-gate, build-ios]
     if: |
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
+      needs.nightly-gate.result == 'success' &&
       needs.build-ios.result == 'success' &&
       (needs.set-metadata.outputs.platform == 'all' || contains(needs.set-metadata.outputs.platform, 'ios')) &&
       (
@@ -871,6 +1022,7 @@ jobs:
     needs:
       [
         set-metadata,
+        nightly-gate,
         upload-s3,
         upload-release-artifacts,
         upload-google-play,
@@ -879,6 +1031,7 @@ jobs:
     if: |
       always() &&
       !cancelled() &&
+      needs.nightly-gate.result == 'success' &&
       needs.set-metadata.outputs.is_test_run != 'true' &&
       needs.set-metadata.outputs.build_type != 'nightly' &&
       needs.upload-s3.result == 'success' &&
@@ -983,6 +1136,8 @@ jobs:
     needs:
       [
         set-metadata,
+        release-create,
+        nightly-gate,
         upload-s3,
         upload-release-artifacts,
         upload-google-play,
@@ -996,16 +1151,13 @@ jobs:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
       CLEANUP_ON_FAILURE: ${{ github.event.inputs.cleanup_on_failure != 'false' }}
       IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-
       - name: Publish release on success
         if: |
           env.IS_TEST_RUN != 'true' &&
           env.BUILD_TYPE != 'nightly' &&
+          needs.nightly-gate.result == 'success' &&
           needs.upload-s3.result == 'success' &&
           needs.upload-release-artifacts.result == 'success' &&
           (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
@@ -1028,13 +1180,17 @@ jobs:
 
       - name: Delete draft release
         if: |
-          env.IS_TEST_RUN == 'true' ||
-          env.BUILD_TYPE == 'nightly' ||
-          (env.CLEANUP_ON_FAILURE == 'true' &&
-           !(needs.upload-s3.result == 'success' &&
-             needs.upload-release-artifacts.result == 'success' &&
-             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
-             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
+          needs.release-create.result == 'success' &&
+          (
+            env.IS_TEST_RUN == 'true' ||
+            env.BUILD_TYPE == 'nightly' ||
+            (env.CLEANUP_ON_FAILURE == 'true' &&
+             !(needs.nightly-gate.result == 'success' &&
+               needs.upload-s3.result == 'success' &&
+               needs.upload-release-artifacts.result == 'success' &&
+               (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+               (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
+          )
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -1070,10 +1226,12 @@ jobs:
 
       - name: Report failure (cleanup disabled)
         if: |
+          needs.release-create.result == 'success' &&
           env.IS_TEST_RUN != 'true' &&
           env.BUILD_TYPE != 'nightly' &&
           env.CLEANUP_ON_FAILURE != 'true' &&
-          !(needs.upload-s3.result == 'success' &&
+          !(needs.nightly-gate.result == 'success' &&
+            needs.upload-s3.result == 'success' &&
             needs.upload-release-artifacts.result == 'success' &&
             (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
             (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
@@ -1081,3 +1239,190 @@ jobs:
           echo "Build failed or cancelled - draft release preserved for inspection"
           echo "Draft: https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"
           exit 1
+
+  release-success-notify:
+    name: Notify successful publication
+    needs:
+      [
+        set-metadata,
+        nightly-gate,
+        upload-s3,
+        upload-release-artifacts,
+        upload-google-play,
+        upload-testflight,
+        publish-update-metadata,
+        release-finalize,
+      ]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.set-metadata.result == 'success' &&
+      needs.set-metadata.outputs.is_test_run != 'true' &&
+      needs.nightly-gate.result == 'success' &&
+      needs.upload-s3.result == 'success' &&
+      needs.upload-release-artifacts.result == 'success' &&
+      (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
+      (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped') &&
+      (
+        needs.publish-update-metadata.result == 'success' ||
+        (needs.set-metadata.outputs.build_type == 'nightly' && needs.publish-update-metadata.result == 'skipped')
+      ) &&
+      needs.release-finalize.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Format Slack message
+        id: slack-message
+        env:
+          RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+          INSTALLER_BASE_NAME: ${{ needs.set-metadata.outputs.installer_base_name }}
+          PLATFORM: ${{ needs.set-metadata.outputs.platform }}
+          BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
+          BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          text="$(./scripts/ci/format.sh slack)"
+          payload="$(jq --compact-output --null-input --arg text "$text" '{text: $text}')"
+          echo "payload=$payload" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: ${{ steps.slack-message.outputs.payload }}
+
+  nightly-failure-notify:
+    name: Notify failed nightly
+    needs:
+      [
+        set-metadata,
+        preflight,
+        build-macos,
+        build-windows,
+        build-linux,
+        build-android,
+        build-ios,
+        nightly-gate,
+        upload-s3,
+        upload-release-artifacts,
+        upload-google-play,
+        upload-testflight,
+        publish-update-metadata,
+        release-finalize,
+      ]
+    if: |
+      always() &&
+      !cancelled() &&
+      github.event_name == 'schedule' &&
+      (
+        needs.set-metadata.result != 'success' ||
+        needs.preflight.result != 'success' ||
+        needs.nightly-gate.result != 'success' ||
+        needs.upload-s3.result != 'success' ||
+        needs.upload-release-artifacts.result != 'success' ||
+        (needs.upload-google-play.result != 'success' && needs.upload-google-play.result != 'skipped') ||
+        (needs.upload-testflight.result != 'success' && needs.upload-testflight.result != 'skipped') ||
+        needs.release-finalize.result != 'success'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Build failure summary
+        id: failure-message
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GATE_RESULT: ${{ needs.nightly-gate.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" \
+            > jobs.json; then
+            echo '{"jobs":[]}' > jobs.json
+          fi
+
+          failed_checks="$(jq --raw-output '
+            [
+              .jobs[]
+              | select(.conclusion == "failure" or .conclusion == "cancelled")
+              | select(.name != "Notify failed nightly")
+              | . as $job
+              | (
+                  [.steps[]? | select(.conclusion == "failure") | .name]
+                  | if length == 0 then ["job failed"] else . end
+                )[]
+              | "\($job.name): \(.)"
+            ]
+            | if length == 0
+              then ["No failed step was reported; inspect the workflow run."]
+              else .
+              end
+            | join("\n• ")
+          ' jobs.json)"
+
+          failure_text="$(printf '%s' "$failed_checks" | tr '[:upper:]' '[:lower:]')"
+          case "$failure_text" in
+            *staging*|*stripe*|*shepherd*|*payment*|*checkout*|*webview*)
+              category="staging or payment-provider availability"
+              ;;
+            *smoke*|*connect*|*installer*|*lanternd*|*daemon*)
+              category="candidate installation or app smoke"
+              ;;
+            *actionlint*|*workflow*|*flutter\ test*|*unit*|*widget*|*dependenc*)
+              category="preflight validation or dependencies"
+              ;;
+            *runner*|*setup*|*download*|*checkout\ code*)
+              category="runner or CI infrastructure"
+              ;;
+            *build*|*compile*|*package*|*sign*)
+              category="candidate build"
+              ;;
+            *)
+              category="release workflow"
+              ;;
+          esac
+
+          if [[ "$GATE_RESULT" == "success" ]]; then
+            headline=":warning: Lantern nightly publication failed after the candidate gate."
+            publication="Some destinations may need verification before rerunning."
+          else
+            headline=":rotating_light: Lantern nightly blocked."
+            publication="No public nightly artifacts were published."
+          fi
+
+          short_sha="${GITHUB_SHA:0:12}"
+          text="$(printf '%s\n*Commit:* `%s`\n*Branch:* `%s`\n*Failure type:* %s\n*Failed checks:*\n• %s\n*Publication:* %s\n*Run and diagnostics:* <%s|Open workflow logs and artifacts>' \
+            "$headline" "$short_sha" "$GITHUB_REF_NAME" "$category" \
+            "$failed_checks" "$publication" "$RUN_URL")"
+
+          payload="$(jq --compact-output --null-input --arg text "$text" '{text: $text}')"
+          echo "payload=$payload" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Nightly failure"
+            echo
+            echo "**Category:** $category"
+            echo
+            echo "$publication"
+            echo
+            echo "$failed_checks"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: ${{ steps.failure-message.outputs.payload }}
