@@ -111,11 +111,13 @@ class OAuthLogin extends HookConsumerWidget {
             appLogger.debug('DeepLink result: $result');
             if (result != null) {
               // Handle the deep link result here
-              _handleOAuthPayload(
-                type,
-                ref,
-                context,
-                Map<String, dynamic>.from(result as Map),
+              unawaited(
+                _handleOAuthPayload(
+                  type,
+                  ref,
+                  context,
+                  Map<String, dynamic>.from(result as Map),
+                ),
               );
             }
           });
@@ -128,7 +130,7 @@ class OAuthLogin extends HookConsumerWidget {
             title: type.name.capitalize,
             onWebviewResult: (p0) {
               appLogger.debug('WebView result: $p0');
-              _handleOAuthPayload(type, ref, context, p0);
+              unawaited(_handleOAuthPayload(type, ref, context, p0));
             },
           );
         }
@@ -159,18 +161,27 @@ class OAuthLogin extends HookConsumerWidget {
       'OAuth login hit device limit (${devices.length} devices), '
       'starting device flow',
     );
+    // Without the token we can't load the account identity, so the
+    // device-removal request would run unauthenticated — bail out.
     final token = payload['token'];
-    if (token is String && token.isNotEmpty) {
-      final identityResult = await ref
-          .read(authProvider.notifier)
-          .oAuthDeviceLimitCallback(token);
-      final failure = identityResult.fold((f) => f, (_) => null);
-      if (failure != null) {
-        if (context.mounted) {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-        return;
+    if (token is! String || token.isEmpty) {
+      appLogger.error(
+        'OAuth device-limit callback payload is missing the account token',
+      );
+      if (context.mounted) {
+        context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
       }
+      return;
+    }
+    final identityResult = await ref
+        .read(authProvider.notifier)
+        .oAuthDeviceLimitCallback(token);
+    final failure = identityResult.fold((f) => f, (_) => null);
+    if (failure != null) {
+      if (context.mounted) {
+        context.showSnackBar(failure.localizedErrorMessage);
+      }
+      return;
     }
     if (!context.mounted) return;
     await startDeviceLimitFlow(devices, () async {
