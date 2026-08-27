@@ -27,6 +27,7 @@ class UserMessageHost extends ConsumerStatefulWidget {
 
   static const bodyKey = Key('user_message.snackbar.body');
   static const actionKey = Key('user_message.snackbar.action');
+  static const closeKey = Key('user_message.snackbar.close');
 
   final Widget child;
   final UserMessageRouteObserver routeObserver;
@@ -88,7 +89,14 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
   Widget build(BuildContext context) {
     ref.watch(userMessageControllerProvider);
     _scheduleAttempt();
-    return widget.child;
+    final presentation = _presentation;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        widget.child,
+        if (presentation != null) _messageSurface(presentation),
+      ],
+    );
   }
 
   void _scheduleAttempt() {
@@ -117,7 +125,7 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
         widget.criticalOverlayVisible?.call(context) ??
         context.loaderOverlay.visible;
     if (overlayVisible) return false;
-    return ScaffoldMessenger.maybeOf(context) != null;
+    return true;
   }
 
   void _attemptPresentation() {
@@ -145,102 +153,134 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
 
     final message = _controller.claimForPresentation(_now);
     if (message == null) return;
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) {
-      _controller.releaseClaim(message.displayId, _now);
-      return;
-    }
-
-    late final _UserMessagePresentation presentation;
-    final feature = messenger.showSnackBar(
-      _snackBar(message, () => _onVisible(presentation)),
-    );
-    presentation = _UserMessagePresentation(message, feature, messenger);
-    _presentation = presentation;
-
-    // Register cleanup before checking expiration. The clock can advance after
-    // the controller grants the claim, and removing the snackbar must always
-    // release it.
-    unawaited(
-      feature.closed.then((_) {
-        if (!mounted || !identical(_presentation, presentation)) return;
-        presentation.expirationTimer?.cancel();
-        if (!presentation.visible) {
-          _controller.releaseClaim(message.displayId, _now);
-        }
-        _presentation = null;
-        _scheduleAttempt();
-      }),
-    );
+    final presentation = _UserMessagePresentation(message);
+    setState(() => _presentation = presentation);
 
     final untilExpiration = message.expiresAt.difference(_now);
     if (untilExpiration <= Duration.zero) {
-      _expireBeforePresentation(presentation);
+      _closePresentation(presentation);
       return;
     }
     presentation.expirationTimer = Timer(
       untilExpiration,
-      () => _expireBeforePresentation(presentation),
+      () => _closePresentation(presentation),
+    );
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _onVisible(presentation),
     );
   }
 
-  SnackBar _snackBar(UserMessage message, VoidCallback onVisible) {
+  Widget _messageSurface(_UserMessagePresentation presentation) {
+    final message = presentation.message;
     final action = message.action;
-    return SnackBar(
-      key: ValueKey('user_message.snackbar.${message.displayId}'),
-      behavior: SnackBarBehavior.floating,
-      padding: defaultPadding,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: context.bgSnackbar,
-      showCloseIcon: true,
-      closeIconColor: context.textInverse,
-      duration: const Duration(seconds: 10),
-      onVisible: onVisible,
-      content: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.45,
-        ),
-        child: SingleChildScrollView(
-          child: Semantics(
-            liveRegion: true,
-            label: message.body,
-            excludeSemantics: true,
-            child: Text(
-              message.body,
-              key: UserMessageHost.bodyKey,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: context.textInverse),
+    return Positioned(
+      left: 16,
+      right: 16,
+      top: 0,
+      bottom: 16,
+      child: SafeArea(
+        top: false,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            width: double.infinity,
+            child: Material(
+              key: ValueKey('user_message.snackbar.${message.displayId}'),
+              elevation: 6,
+              color: context.bgSnackbar,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: defaultPadding,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Semantics(
+                            liveRegion: true,
+                            label: message.body,
+                            excludeSemantics: true,
+                            child: Text(
+                              message.body,
+                              key: UserMessageHost.bodyKey,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: context.textInverse),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (action != null && message.buttonLabel != null)
+                      KeyedSubtree(
+                        key: UserMessageHost.actionKey,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: context.textInverseColor,
+                          ),
+                          onPressed: () {
+                            unawaited(widget.actionDispatcher.dispatch(action));
+                            _closePresentation(presentation);
+                          },
+                          child: Text(message.buttonLabel!),
+                        ),
+                      ),
+                    Semantics(
+                      label: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonTooltip,
+                      button: true,
+                      child: ExcludeSemantics(
+                        child: IconButton(
+                          key: UserMessageHost.closeKey,
+                          icon: const Icon(Icons.close),
+                          color: context.textInverse,
+                          onPressed: () => _closePresentation(presentation),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
       ),
-      action: action == null || message.buttonLabel == null
-          ? null
-          : SnackBarAction(
-              key: UserMessageHost.actionKey,
-              label: message.buttonLabel!,
-              onPressed: () =>
-                  unawaited(widget.actionDispatcher.dispatch(action)),
-            ),
     );
   }
 
   void _onVisible(_UserMessagePresentation presentation) {
-    if (!mounted || !identical(_presentation, presentation)) return;
-    if (presentation.message.isExpiredAt(_now)) {
-      _expireBeforePresentation(presentation);
+    if (!mounted ||
+        !identical(_presentation, presentation) ||
+        !_isSafeToPresent() ||
+        presentation.message.isExpiredAt(_now)) {
+      _closePresentation(presentation);
       return;
     }
     presentation.visible = true;
     presentation.expirationTimer?.cancel();
+    presentation.dismissalTimer = Timer(
+      const Duration(seconds: 10),
+      () => _closePresentation(presentation),
+    );
     unawaited(_controller.markPresented(presentation.message.displayId));
   }
 
-  void _expireBeforePresentation(_UserMessagePresentation presentation) {
+  void _closePresentation(_UserMessagePresentation presentation) {
     if (!mounted || !identical(_presentation, presentation)) return;
-    if (presentation.visible) return;
-    presentation.messenger.removeCurrentSnackBar();
+    presentation.expirationTimer?.cancel();
+    presentation.dismissalTimer?.cancel();
+    final shouldReleaseClaim = !presentation.visible;
+    setState(() => _presentation = null);
+    if (shouldReleaseClaim) {
+      _controller.releaseClaim(presentation.message.displayId, _now);
+    }
+    _scheduleAttempt();
   }
 
   void _dismissForUnsafeState() {
@@ -248,8 +288,7 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     _retryTimer = null;
     final presentation = _presentation;
     if (presentation == null) return;
-    presentation.expirationTimer?.cancel();
-    presentation.messenger.removeCurrentSnackBar();
+    _closePresentation(presentation);
   }
 
   @override
@@ -261,12 +300,10 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     _presentation = null;
     if (presentation != null) {
       presentation.expirationTimer?.cancel();
+      presentation.dismissalTimer?.cancel();
       final shouldReleaseClaim = !presentation.visible;
       final releaseAt = _now;
       Future.microtask(() {
-        if (presentation.messenger.mounted) {
-          presentation.messenger.removeCurrentSnackBar();
-        }
         if (shouldReleaseClaim) {
           _controller.releaseClaim(presentation.message.displayId, releaseAt);
         }
@@ -287,16 +324,17 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     WidgetsBinding.instance.removeObserver(this);
     widget.routeObserver.changes.removeListener(_scheduleAttempt);
     _retryTimer?.cancel();
+    _presentation?.expirationTimer?.cancel();
+    _presentation?.dismissalTimer?.cancel();
     super.dispose();
   }
 }
 
 class _UserMessagePresentation {
-  _UserMessagePresentation(this.message, this.feature, this.messenger);
+  _UserMessagePresentation(this.message);
 
   final UserMessage message;
-  final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> feature;
-  final ScaffoldMessengerState messenger;
   Timer? expirationTimer;
+  Timer? dismissalTimer;
   bool visible = false;
 }

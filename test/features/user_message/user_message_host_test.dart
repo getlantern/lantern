@@ -33,10 +33,12 @@ Widget _harness({
   DateTime Function()? now,
   ValueListenable<bool>? enabledListenable,
   ValueListenable<bool>? hostMountedListenable,
+  GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey,
 }) {
   return ProviderScope(
     overrides: [userMessageRepositoryProvider.overrideWithValue(repository)],
     child: MaterialApp(
+      scaffoldMessengerKey: scaffoldMessengerKey,
       locale: locale,
       supportedLocales: const [Locale('en'), Locale('ar')],
       localizationsDelegates: const [
@@ -115,7 +117,7 @@ void main() {
 
       expect(find.text('Service announcement'), findsOneWidget);
       expect(find.byKey(UserMessageHost.bodyKey), findsOneWidget);
-      expect(find.byTooltip('Close'), findsOneWidget);
+      expect(find.byKey(UserMessageHost.closeKey), findsOneWidget);
       expect(repository.acknowledged, ['campaign-1:generation-1']);
     },
   );
@@ -149,7 +151,7 @@ void main() {
         find.descendant(of: actionFinder, matching: find.byType(TextButton)),
         findsOneWidget,
       );
-      expect(find.byTooltip('Close'), findsOneWidget);
+      expect(find.byKey(UserMessageHost.closeKey), findsOneWidget);
       await tester.tap(find.byKey(UserMessageHost.actionKey));
       await tester.pump();
       expect(actions.urls, [Uri.parse('https://getlantern.org/learn')]);
@@ -267,6 +269,97 @@ void main() {
     expect(find.text('Survives host replacement'), findsOneWidget);
     expect(repository.acknowledged, ['campaign-1:generation-1']);
   });
+
+  testWidgets(
+    'does not remove an application snackbar when the host deactivates',
+    (tester) async {
+      final hostMounted = ValueNotifier(true);
+      addTearDown(hostMounted.dispose);
+      final messengerKey = GlobalKey<ScaffoldMessengerState>();
+      final repository = FakeUserMessageRepository();
+      addTearDown(repository.dispose);
+
+      await tester.pumpWidget(
+        _harness(
+          repository: repository,
+          observer: UserMessageRouteObserver(),
+          dispatcher: _Actions().dispatcher,
+          hostMountedListenable: hostMounted,
+          scaffoldMessengerKey: messengerKey,
+        ),
+      );
+      await tester.pump();
+      messengerKey.currentState!.showSnackBar(
+        const SnackBar(
+          content: Text('Application snackbar'),
+          duration: Duration(hours: 1),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+
+      repository.currentMessage = testUserMessage(body: 'Queued user message');
+      repository.events.add(null);
+      await _pumpToSnackbar(tester);
+      expect(find.text('Application snackbar'), findsOneWidget);
+      expect(find.text('Queued user message'), findsOneWidget);
+      expect(repository.acknowledged, ['campaign-1:generation-1']);
+
+      hostMounted.value = false;
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Application snackbar'), findsOneWidget);
+      expect(find.text('Queued user message'), findsNothing);
+
+      hostMounted.value = true;
+      await tester.pump();
+      await _pumpToSnackbar(tester);
+      expect(find.text('Application snackbar'), findsOneWidget);
+      expect(find.text('Queued user message'), findsNothing);
+      expect(repository.acknowledged, ['campaign-1:generation-1']);
+    },
+  );
+
+  testWidgets(
+    'does not remove an application snackbar when a message expires before display',
+    (tester) async {
+      final messengerKey = GlobalKey<ScaffoldMessengerState>();
+      final baseTime = DateTime.now().toUtc();
+      var clockReads = 0;
+      final repository = FakeUserMessageRepository();
+      addTearDown(repository.dispose);
+
+      await tester.pumpWidget(
+        _harness(
+          repository: repository,
+          observer: UserMessageRouteObserver(),
+          dispatcher: _Actions().dispatcher,
+          scaffoldMessengerKey: messengerKey,
+          now: () => clockReads++ == 0
+              ? baseTime
+              : baseTime.add(const Duration(seconds: 2)),
+        ),
+      );
+      await tester.pump();
+      messengerKey.currentState!.showSnackBar(
+        const SnackBar(
+          content: Text('Application snackbar'),
+          duration: Duration(hours: 1),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+
+      repository.currentMessage = testUserMessage(
+        body: 'Expiring user message',
+        expiresAt: baseTime.add(const Duration(seconds: 1)),
+      );
+      repository.events.add(null);
+      await _pumpToSnackbar(tester);
+
+      expect(find.text('Application snackbar'), findsOneWidget);
+      expect(find.text('Expiring user message'), findsNothing);
+      expect(repository.acknowledged, isEmpty);
+    },
+  );
 
   testWidgets('does not wedge when a claimed message expires before display', (
     tester,
