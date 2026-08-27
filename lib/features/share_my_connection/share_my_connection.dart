@@ -239,6 +239,7 @@ class ShareNotifier extends Notifier<ShareState> {
   }
 
   StreamSubscription? _appEventSub;
+  Future<void>? _backendSync;
   int _workerSeq = 0;
   // Per-peer arc + active-stream count. samizdat multiplexes many H2 streams
   // over one TCP conn, all sharing the same RemoteAddr — ref-count so the arc
@@ -291,18 +292,28 @@ class ShareNotifier extends Notifier<ShareState> {
   }
 
   /// Toggle entry point. Caller passes its BuildContext so we can show the
-  /// consent modal inline, and a WidgetRef so we can drive the radiance
-  /// peer-share toggle.
+  /// consent modal inline.
   ///
   /// Consent is collected first and covers both modes. The mode itself is not
   /// the user's choice — it follows from the network:
   ///   1. A manual port set in Unbounded Settings means the user has already
   ///      forwarded a port, so use it and skip the probe.
   ///   2. Otherwise probe UPnP: available → SmC, unavailable → Unbounded.
-  Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
+  Future<void> toggle(BuildContext context) async {
     if (state.active || state.probing) {
-      await _stop(widgetRef);
+      await _stop();
       return;
+    }
+
+    // Home normally reconciles at first paint, but a fast tap can land while
+    // that read is still in flight. Let it finish before deciding the backend
+    // is off. Discovering an already-running session satisfies this tap
+    // without sending a duplicate start.
+    final sync = _backendSync;
+    if (sync != null) {
+      await sync;
+      if (state.active || state.probing) return;
+      if (!context.mounted) return;
     }
 
     // Consent gates every start path, before the mode is even known.
@@ -320,17 +331,17 @@ class ShareNotifier extends Notifier<ShareState> {
     // A manually forwarded port doesn't override this — the constraint is the
     // extension's budget, not reachability.
     if (PlatformUtils.isIOS) {
-      await _start(widgetRef, ShareMode.unbounded);
+      await _start(ShareMode.unbounded);
       return;
     }
 
     // Manual port forward skips the UPnP probe: configuring a port by hand is
     // an explicit request for the residential-IP path.
     final manualPortRes =
-        await widgetRef.read(lanternServiceProvider).getPeerManualPort();
+        await ref.read(lanternServiceProvider).getPeerManualPort();
     final manualPort = manualPortRes.fold((_) => 0, (p) => p);
     if (manualPort > 0) {
-      await _start(widgetRef, ShareMode.smc);
+      await _start(ShareMode.smc);
       return;
     }
 
@@ -341,15 +352,14 @@ class ShareNotifier extends Notifier<ShareState> {
     // status from copyWith(probing: true) above is visible to the
     // user. Any failure (no IGD, timeout, FFI / channel error) is
     // treated as "UPnP unavailable" → fall back to Unbounded.
-    final probeRes =
-        await widgetRef.read(lanternServiceProvider).probeUPnP();
+    final probeRes = await ref.read(lanternServiceProvider).probeUPnP();
     final upnpAvailable = probeRes.fold((_) => false, (v) => v);
     if (!upnpAvailable) {
-      await _start(widgetRef, ShareMode.unbounded);
+      await _start(ShareMode.unbounded);
       return;
     }
 
-    await _start(widgetRef, ShareMode.smc);
+    await _start(ShareMode.smc);
   }
 
   /// Programmatic entry point used by the Home shell's auto-enable
@@ -365,11 +375,34 @@ class ShareNotifier extends Notifier<ShareState> {
   /// given — this path cannot prompt, so refusing to start is the only safe
   /// direction. Consent is collected by toggle() or by enabling auto-start in
   /// Unbounded Settings, both of which have a BuildContext.
-  Future<void> autoStart(WidgetRef widgetRef) async {
+  Future<void> autoStart() async {
+    if (state.active || state.probing) return;
+    // Every automatic entry point reconciles first. This covers both Home's
+    // launch hook and VPN-connect events, so neither can start Unbounded while
+    // a persisted SmC session is already running.
+    await syncFromBackend();
+    await _startUnboundedIfAllowed();
+  }
+
+  Future<void> _startUnboundedIfAllowed() async {
     if (state.active || state.probing) return;
     if (!_consentAcked) return;
     state = state.copyWith(probing: true);
-    await _start(widgetRef, ShareMode.unbounded);
+    await _start(ShareMode.unbounded);
+  }
+
+  /// Reconciles persisted backend state and then applies the user's launch
+  /// auto-start preference. Settings are read after reconciliation so a
+  /// preference changed while the IPC request was pending is respected.
+  Future<void> initializeFromBackend() async {
+    await syncFromBackend();
+    final settings = ref.read(appSettingProvider);
+    if (settings.unboundedHidden ||
+        !settings.onboardingCompleted ||
+        !settings.unboundedAutoEnable) {
+      return;
+    }
+    await _startUnboundedIfAllowed();
   }
 
   /// Reconciles ShareState with what the peer client is actually doing.
@@ -388,10 +421,20 @@ class ShareNotifier extends Notifier<ShareState> {
   /// owns the Unbounded fallback. A status that cannot be read leaves state
   /// untouched — "not sharing" and "could not ask" must not collapse into
   /// the same render.
-  Future<void> syncFromBackend(WidgetRef widgetRef) async {
-    if (state.active || state.probing) return;
-    final res =
-        await widgetRef.read(lanternServiceProvider).getPeerStatusJSON();
+  Future<void> syncFromBackend() {
+    if (state.active || state.probing) return Future.value();
+    return _backendSync ??= _syncFromBackend().whenComplete(() {
+      _backendSync = null;
+    });
+  }
+
+  Future<void> _syncFromBackend() async {
+    // Subscribe before taking the snapshot. If the backend advances between
+    // reading and receiving the snapshot, its edge-triggered event still
+    // reaches us. The subscription is idempotent and lives with this
+    // keep-alive notifier, not with the Home widget that initiated the read.
+    _startEventSubscription();
+    final res = await ref.read(lanternServiceProvider).getPeerStatusJSON();
     // Re-check: the read above is an IPC round-trip bounded by a 5s
     // timeout, and this runs at first paint, so the user has a wide window
     // to hit the toggle while it is in flight. Adopting the snapshot then
@@ -404,15 +447,12 @@ class ShareNotifier extends Notifier<ShareState> {
     final phase = adoptablePhase(res.fold((_) => '', (v) => v));
     if (phase == null) return;
     state = state.copyWith(active: true, mode: ShareMode.smc, phase: phase);
-    // Start listening now so the transitions after this snapshot land too.
-    _startEventSubscription(widgetRef);
   }
 
   /// The phase to adopt from a raw peer-status payload, or null to leave
   /// state untouched.
   ///
-  /// Split out from [syncFromBackend] so the parse and the phase gate are
-  /// reachable without a WidgetRef.
+  /// Split out from [syncFromBackend] so the parse and phase gate stay pure.
   ///
   /// Null for anything that isn't sharing actually being up: an empty or
   /// malformed payload, the requireCore {"error":...} envelope (no phase),
@@ -448,7 +488,7 @@ class ShareNotifier extends Notifier<ShareState> {
     };
   }
 
-  Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
+  Future<void> _start(ShareMode mode) async {
     state = ShareState(
       active: true,
       probing: false,
@@ -458,7 +498,7 @@ class ShareNotifier extends Notifier<ShareState> {
       // doesn't reset the user's lifetime count.
       totalCount: state.totalCount,
     );
-    _startEventSubscription(widgetRef);
+    _startEventSubscription();
     switch (mode) {
       case ShareMode.smc:
         // Flip the radiance peer-proxy setting; LocalBackend.PatchSettings
@@ -474,7 +514,7 @@ class ShareNotifier extends Notifier<ShareState> {
         // radiance propagates Start's error out through the settings
         // patch. Both are handled the same way — fall back to Unbounded
         // — and _fallbackToUnbounded ignores whichever arrives second.
-        final smcRes = await widgetRef
+        final smcRes = await ref
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(true);
         smcRes.fold(
@@ -496,7 +536,7 @@ class ShareNotifier extends Notifier<ShareState> {
             appLogger.error(
               'SmC setPeerProxy failed, falling back to Unbounded: ${err.error}',
             );
-            unawaited(_fallbackToUnbounded(widgetRef));
+            unawaited(_fallbackToUnbounded());
           },
           (_) => null,
         );
@@ -516,7 +556,7 @@ class ShareNotifier extends Notifier<ShareState> {
         // setting flip failed (core not initialized, MethodChannel
         // failure, etc.) — otherwise the UI sticks at "Active" while
         // nothing actually started.
-        final res = await widgetRef
+        final res = await ref
             .read(lanternServiceProvider)
             .setUnboundedEnabled(true);
         res.fold(
@@ -543,7 +583,7 @@ class ShareNotifier extends Notifier<ShareState> {
     }
   }
 
-  Future<void> _stop(WidgetRef widgetRef) async {
+  Future<void> _stop() async {
     _stopEventSubscription();
     final priorMode = state.mode;
     // Preserve totalCount across toggle-off (same reason as _start —
@@ -551,12 +591,12 @@ class ShareNotifier extends Notifier<ShareState> {
     state = ShareState(totalCount: state.totalCount);
     switch (priorMode) {
       case ShareMode.smc:
-        await widgetRef
+        await ref
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(false);
         break;
       case ShareMode.unbounded:
-        await widgetRef
+        await ref
             .read(lanternServiceProvider)
             .setUnboundedEnabled(false);
         break;
@@ -577,17 +617,22 @@ class ShareNotifier extends Notifier<ShareState> {
   // which is the same channel server-location updates and data-cap events
   // already use.
 
-  void _startEventSubscription(WidgetRef widgetRef) {
+  void _startEventSubscription() {
+    if (_appEventSub != null) return;
     _peerArcs.clear();
-    _appEventSub = widgetRef
+    _appEventSub = ref
         .read(lanternServiceProvider)
         .watchAppEvents()
         .listen((event) {
       if (event.eventType == 'peer-status') {
-        _handlePeerStatus(event.message, widgetRef);
+        _handlePeerStatus(event.message);
         return;
       }
       if (event.eventType != 'peer-connection') return;
+      // Reconciliation subscribes before it knows whether sharing is active.
+      // Ignore connection traffic until a snapshot or status event confirms a
+      // running session.
+      if (!state.active) return;
       try {
         final payload = jsonDecode(event.message) as Map<String, dynamic>;
         final eventState = (payload['state'] as num?)?.toInt() ?? 0;
@@ -754,7 +799,23 @@ class ShareNotifier extends Notifier<ShareState> {
   // the user's intent ("I want to share") is honoured via broflake
   // regardless of SmC's outcome, and raw protocol error text never
   // reaches the status card.
-  void _handlePeerStatus(String message, WidgetRef widgetRef) {
+  void _handlePeerStatus(String message) {
+    // Reconciliation subscribes before requesting the status snapshot so it
+    // cannot miss an edge-triggered transition. If that transition tells us
+    // SmC is already running, adopt it immediately; the later snapshot is
+    // deliberately prevented from overwriting active state.
+    if (state.mode == ShareMode.off) {
+      final phase = adoptablePhase(message);
+      if (phase == null) return;
+      state = state.copyWith(
+        active: true,
+        probing: false,
+        mode: ShareMode.smc,
+        phase: phase,
+      );
+      return;
+    }
+
     // peer-status describes an SmC session, so it has nothing to say about any
     // other mode. Dropping it otherwise is what keeps a failed start from
     // reporting itself after the fallback has already handled it: if
@@ -781,7 +842,7 @@ class ShareNotifier extends Notifier<ShareState> {
         appLogger.info(
           'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
         );
-        unawaited(_fallbackToUnbounded(widgetRef));
+        unawaited(_fallbackToUnbounded());
         return;
       }
       if (phase == SharePhase.idle) {
@@ -818,7 +879,7 @@ class ShareNotifier extends Notifier<ShareState> {
   // local state.mode keeps the same subscription forwarding events for
   // the new (Unbounded) mode. _stop is the only teardown path for the
   // subscription, and the error path doesn't go through _stop.
-  Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
+  Future<void> _fallbackToUnbounded() async {
     // One failed Start arrives here twice: from the phase=error event and from
     // setPeerProxy's returned error. Without this guard Unbounded is started
     // twice and the second call races the first one's state. A plain field
@@ -833,7 +894,7 @@ class ShareNotifier extends Notifier<ShareState> {
       totalCount: state.totalCount,
       phase: SharePhase.idle,
     );
-    final result = await widgetRef
+    final result = await ref
         .read(lanternServiceProvider)
         .setUnboundedEnabled(true);
     result.fold(
@@ -967,7 +1028,7 @@ class UnboundedTab extends HookConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            _StatusCard(state: state, onToggle: () => notifier.toggle(context, ref)),
+            _StatusCard(state: state, onToggle: () => notifier.toggle(context)),
             const SizedBox(height: 12),
             const _AutoEnableCard(),
             const SizedBox(height: 16),
