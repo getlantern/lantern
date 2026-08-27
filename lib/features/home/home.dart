@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -155,21 +157,15 @@ class Home extends HookConsumerWidget {
 
     ref.read(appEventProvider);
 
-    // Reconcile the share UI with the backend before anything reads its
-    // state. Peer sharing resumes from persisted settings at process start,
-    // and the peer-status stream is edge-triggered, so without asking
-    // outright the UI opens at mode=off while SmC is already serving.
-    // Deliberately not gated on unboundedAutoEnable: the point is to reflect
-    // what is running, which has nothing to do with the auto-start
-    // preference.
+    // Reconcile persisted sharing before considering launch auto-start. SmC
+    // can resume before Flutter does, and its status stream is edge-triggered;
+    // one serialized initializer keeps that running session from racing a new
+    // Unbounded start.
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Home can be torn down before the frame settles; reading a
-        // disposed scope throws. Same guard the other post-frame
-        // callbacks in this file use.
         if (!context.mounted) return;
         if (!unboundedAvailable) return;
-        ref.read(shareProvider.notifier).syncFromBackend(ref);
+        unawaited(ref.read(shareProvider.notifier).initializeFromBackend());
       });
       return null;
     }, [unboundedAvailable]);
@@ -181,28 +177,13 @@ class Home extends HookConsumerWidget {
     // the background. Fires from two entry points so the spec's
     // subtitle "Turn on automatically when Lantern is open" is
     // honoured whether the user connects the VPN or not:
-    //   1. App launch (useEffect below) — once on Home mount.
+    //   1. App launch (initializer above) — once on Home mount.
     //   2. VPN connect (ref.listen further down) — on every
     //      disconnected → connected transition, in case the toggle
     //      flipped on after launch or the user finally connects.
     // Both paths gate on (active || probing) to avoid re-triggering
     // while a Start is in flight, and skip the disclosure dialog
     // because the user has already opted in via settings.
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        if (!unboundedAvailable) return;
-        final appSetting = ref.read(appSettingProvider);
-        if (appSetting.unboundedHidden) return;
-        if (!appSetting.onboardingCompleted) return;
-        if (!appSetting.unboundedAutoEnable) return;
-        final share = ref.read(shareProvider);
-        if (share.active || share.probing) return;
-        ref.read(shareProvider.notifier).autoStart(ref);
-      });
-      return null;
-    }, [unboundedAvailable]);
-
     ref.listen<VPNStatus>(vpnProvider, (prev, next) {
       if (prev == next) return;
       if (next != VPNStatus.connected) return;
@@ -219,7 +200,7 @@ class Home extends HookConsumerWidget {
       // teardown: if Home unmounted between the listener firing and
       // the microtask running, the deferred ref.read would be on a
       // disposed scope.
-      ref.read(shareProvider.notifier).autoStart(ref);
+      unawaited(ref.read(shareProvider.notifier).autoStart());
     });
 
     return Scaffold(
