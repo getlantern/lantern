@@ -352,10 +352,6 @@ class LanternVpnService :
 
     }
 
-    override fun writeLog(p0: String?) {
-        AppLogger.d(TAG, "writeLog: $p0")
-    }
-
     private suspend fun startRadiance() {
         try {
             withContext(Dispatchers.IO) {

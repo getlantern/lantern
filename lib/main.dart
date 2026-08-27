@@ -76,7 +76,6 @@ Future<void> _configureLocalTimeZone() async {
   if (kIsWeb) return;
 
   tz.initializeTimeZones();
-
   try {
     final timeZoneName = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timeZoneName.identifier));

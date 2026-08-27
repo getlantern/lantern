@@ -166,7 +166,7 @@ Future<void> _runPaymentConversionSmoke(
 
   await _waitFor(
     tester,
-    () => checkout.completeClicked || checkout.failure != null,
+    () => checkout.completionRequested || checkout.failure != null,
     timeout: const Duration(minutes: 2),
     failure: () => checkout.failureMessage,
   );
@@ -177,11 +177,15 @@ Future<void> _runPaymentConversionSmoke(
   await _waitFor(
     tester,
     () =>
-        runningApp.container.read(homeProvider).value?.legacyUserData.isPro ==
-        true,
+        (runningApp.container.read(homeProvider).value?.legacyUserData.isPro ==
+            true) ||
+        checkout.failure != null,
     timeout: const Duration(minutes: 2),
-    failure: () => 'The staging account did not become Pro',
+    failure: () => checkout.proConversionFailureMessage,
   );
+  if (checkout.failure != null) {
+    fail('E2E checkout failed after completion: ${checkout.failure}');
+  }
   await _waitFor(
     tester,
     () => find.text('welcome_to_lantern_pro'.i18n).evaluate().isNotEmpty,
@@ -341,6 +345,20 @@ class _StripeCheckoutTracker implements AppWebViewObserver {
 
 /// Tracks the staging checkout state and completes it through the WebView.
 class _PaymentConversionTracker implements AppWebViewObserver {
+  static const _findCompleteScript = r'''
+    (() => {
+      const candidates = Array.from(
+        document.querySelectorAll('button, input[type="button"], input[type="submit"], a')
+      );
+      return candidates.some((element) => {
+        const label = (
+          element.innerText || element.value || element.textContent || ''
+        ).trim().toLowerCase();
+        return label === 'complete';
+      });
+    })()
+  ''';
+
   static const _clickCompleteScript = r'''
     (() => {
       const candidates = Array.from(
@@ -361,12 +379,20 @@ class _PaymentConversionTracker implements AppWebViewObserver {
   Uri? uri;
   int documentLength = 0;
   Uint8List? screenshot;
-  bool completeClicked = false;
+  bool completionRequested = false;
   bool _completionInProgress = false;
+  String? _handoffDiagnostic;
   String? failure;
 
   String get failureMessage =>
       failure ?? 'The staging E2E completion control was not available';
+
+  String get proConversionFailureMessage {
+    final diagnostic = _handoffDiagnostic;
+    return diagnostic == null
+        ? 'The staging account did not become Pro'
+        : 'The staging account did not become Pro after $diagnostic';
+  }
 
   @override
   Future<void> onPageLoaded(
@@ -375,7 +401,7 @@ class _PaymentConversionTracker implements AppWebViewObserver {
     required Future<Uint8List?> Function() captureScreenshot,
     required Future<Object?> Function(String source) evaluateJavaScript,
   }) async {
-    if (uri.host != _e2eHost || completeClicked || _completionInProgress) {
+    if (uri.host != _e2eHost || completionRequested || _completionInProgress) {
       return;
     }
     _completionInProgress = true;
@@ -388,11 +414,26 @@ class _PaymentConversionTracker implements AppWebViewObserver {
 
       final deadline = DateTime.now().add(const Duration(seconds: 30));
       while (DateTime.now().isBefore(deadline)) {
-        final result = await evaluateJavaScript(
-          _clickCompleteScript,
+        final controlReady = await evaluateJavaScript(
+          _findCompleteScript,
         ).timeout(const Duration(seconds: 5));
-        if (_isJavaScriptTrue(result)) {
-          completeClicked = true;
+        if (_isJavaScriptTrue(controlReady)) {
+          // WebView2 reports CONNECTION_ABORTED when Lantern intercepts the
+          // successful callback and closes the checkout. Mark the handoff
+          // before clicking so that expected cancellation cannot race the
+          // JavaScript result back to Dart.
+          completionRequested = true;
+          try {
+            final clicked = await evaluateJavaScript(
+              _clickCompleteScript,
+            ).timeout(const Duration(seconds: 5));
+            if (!_isJavaScriptTrue(clicked)) {
+              failure = 'The staging E2E completion control disappeared';
+            }
+          } catch (error) {
+            _handoffDiagnostic = 'the WebView handoff was interrupted: $error';
+            e2eLog(_handoffDiagnostic!);
+          }
           return;
         }
         await Future<void>.delayed(_screenshotPollInterval);
@@ -406,6 +447,11 @@ class _PaymentConversionTracker implements AppWebViewObserver {
 
   @override
   void onPageLoadFailed(Uri? uri, String reason) {
+    if (completionRequested &&
+        reason.toUpperCase().contains('CONNECTION_ABORTED')) {
+      e2eLog('Ignoring expected WebView cancellation after completion handoff');
+      return;
+    }
     if (uri == null || uri.host == _e2eHost) {
       failure = '${uri?.host ?? 'unknown host'}: $reason';
     }

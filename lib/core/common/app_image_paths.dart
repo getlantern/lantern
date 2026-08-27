@@ -114,6 +114,19 @@ class AppImagePaths {
   static const lightMode = 'assets/images/light_mode.svg';
   static const darkMode = 'assets/images/dark_mode.svg';
 
+  // Material Symbols (Outlined), sourced from google/material-design-icons
+  // to pixel-match the Figma library — Flutter's bundled classic Material
+  // Icons font is a visually different icon set (bolder/extra strokes).
+  static const handshake = 'assets/images/handshake.svg';
+  static const handshakeFill = 'assets/images/handshake_fill.svg';
+  static const vpnKey = 'assets/images/vpn_key.svg';
+  static const vpnKeyFill = 'assets/images/vpn_key_fill.svg';
+  static const autoMode = 'assets/images/auto_mode.svg';
+  static const groups2 = 'assets/images/groups_2.svg';
+  static const person = 'assets/images/person.svg';
+  static const languageGlobe = 'assets/images/language.svg';
+  static const visibilityOff = 'assets/images/visibility_off.svg';
+
   /// Validates and returns a safe flag path for the given country code.
   /// Returns null if the country code is invalid or the flag asset doesn't exist.
   ///
