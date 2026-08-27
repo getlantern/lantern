@@ -18,7 +18,8 @@ import 'package:loader_overlay/loader_overlay.dart';
 
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
-import 'core/utils/deeplink_utils.dart' show DeepLinkCallbackManager;
+import 'core/utils/deeplink_utils.dart'
+    show DeepLinkCallbackManager, isOAuthCallbackResult;
 import 'features/system_tray/system_tray_wrapper.dart';
 
 final globalRouter = sl<AppRouter>();
@@ -121,7 +122,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
     } else if (path.startsWith('/auth') ||
         (uri.scheme == 'lantern' && uri.host == 'auth')) {
-      if (uri.queryParameters.containsKey('token')) {
+      if (isOAuthCallbackResult(uri)) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
     } else if (path.startsWith('/affiliate') ||

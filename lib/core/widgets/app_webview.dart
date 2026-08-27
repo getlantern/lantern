@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart'
+    show isOAuthCallbackResult;
 import 'package:lantern/core/widgets/loading_indicator.dart';
 
 final webViewLoadingProvider = NotifierProvider<WebViewLoading, bool>(
@@ -200,8 +202,20 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
         final uri = Uri.tryParse(webResourceRequest.url.toString());
         if (await _handleCompletionUrl(uri)) return;
         if (!mounted) return;
-        appLogger.error("Received error: $error");
         ref.read(webViewLoadingProvider.notifier).stop();
+        // Intercepting a custom-scheme navigation (e.g. a lantern:// deep
+        // link) surfaces as a load error (WebKit err 102 "Frame load
+        // interrupted" / "scheme is not HTTP(S)"). That's expected, not a
+        // page failure — don't notify the observer.
+        final scheme = uri?.scheme ?? '';
+        if (scheme.isNotEmpty && scheme != 'http' && scheme != 'https') {
+          appLogger.debug(
+            'Ignoring benign non-HTTP(S) navigation error for scheme '
+            '$scheme: $error',
+          );
+          return;
+        }
+        appLogger.error("Received error: $error");
         widget.observer?.onPageLoadFailed(
           uri,
           '${error.type}: ${error.description}',
@@ -275,10 +289,11 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return _finishCompletion(true);
     }
 
-    // OAuth callback.
+    // OAuth callback: either a successful login (token) or a device-limit
+    // response (result=false plus the device[...] list to de-authorize).
     if (uri.scheme == 'lantern' &&
         uri.host == 'auth' &&
-        uri.queryParameters.containsKey('token')) {
+        isOAuthCallbackResult(uri)) {
       return _finishCompletion(uri.queryParameters);
     }
 
@@ -299,7 +314,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
 
     if (isLanternHost(uri.host) &&
         uri.path == '/auth' &&
-        uri.queryParameters.containsKey('token')) {
+        isOAuthCallbackResult(uri)) {
       return _finishCompletion(uri.queryParameters);
     }
 

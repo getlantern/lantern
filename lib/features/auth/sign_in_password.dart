@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
+import 'package:lantern/features/auth/device_limit_flow.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -205,15 +206,9 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
     String password,
     BuildContext context,
   ) {
-    appRouter.push(DeviceLimitReached(devices: devices)).then((value) async {
-      if (value == true) {
-        // Give the backend time to propagate the device removal before
-        // retrying sign-in, otherwise the request may still hit the
-        // device limit.
-        await Future.delayed(const Duration(seconds: 1));
-        if (!mounted) return;
-        signInWithPassword(password);
-      }
+    startDeviceLimitFlow(devices, () async {
+      if (!mounted) return;
+      signInWithPassword(password);
     });
   }
 }

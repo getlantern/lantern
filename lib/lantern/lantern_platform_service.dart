@@ -994,6 +994,26 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
+    String token,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod<String>(
+        'oauthDeviceLimitCallback',
+        token,
+      );
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error handling OAuth device-limit callback',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
   ///App related methods
   ///
   /// Get user data from local storage

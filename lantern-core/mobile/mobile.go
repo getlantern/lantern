@@ -499,6 +499,15 @@ func OAuthLoginCallback(oAuthToken string) (string, error) {
 	})
 }
 
+// OAuthDeviceLimitCallback loads the account identity from a device-limit
+// OAuth callback token so the follow-up device removal authenticates as that
+// account, without logging the user in.
+func OAuthDeviceLimitCallback(oAuthToken string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.OAuthDeviceLimitCallback(oAuthToken)
+	})
+}
+
 func StripeSubscription(email, planID, couponCode string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		return c.StripeSubscription(email, planID, couponCode)
