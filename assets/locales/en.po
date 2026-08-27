@@ -630,7 +630,7 @@ msgstr "Help others bypass censorship by securely sharing your connection."
 
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
-msgstr "About Unbounded"
+msgstr "Learn more about Unbounded"
 
 # Status card — phase labels
 msgid "smc_status_label"
@@ -638,6 +638,9 @@ msgstr "Status"
 
 msgid "smc_status_off"
 msgstr "Off"
+
+msgid "smc_status_configuring"
+msgstr "Configuring network"
 
 msgid "smc_status_probing"
 msgstr "Probing your network…"
@@ -686,9 +689,6 @@ msgstr "People being helped right now"
 # unboundedTotalHelped setting so the count survives app restarts.
 msgid "smc_stat_total_helped"
 msgstr "Total people helped to date"
-
-msgid "smc_connections_tooltip"
-msgstr "Most connections are short liveness probes — Lantern clients periodically check that this peer is reachable before sending real traffic. A quick burst from many locations is normal; an arc that lingers represents an actual user session."
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -757,14 +757,14 @@ msgid "auto_enable_unbounded"
 msgstr "Auto-enable Unbounded"
 
 msgid "auto_enable_unbounded_subtitle"
-msgstr "Turn on automatically when Lantern is open"
+msgstr "Turns on when Lantern opens"
 
 # Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
 msgid "hide_unbounded"
 msgstr "Hide Unbounded"
 
 msgid "hide_unbounded_subtitle"
-msgstr "Removes Unbounded from the top of this screen"
+msgstr "Removes Unbounded from the UI"
 
 msgid "vpn_connected"
 msgstr "Lantern is now connected."

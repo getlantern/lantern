@@ -32,7 +32,7 @@ jobs:
         run: go version
 
       - name: Cache Go modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/Library/Caches/go-build
@@ -52,4 +52,4 @@ jobs:
           fi
 
       - name: Run tests
-        run: CGO_ENABLED=1 go test -v -tags with_gvisor,with_quic,with_wireguard,with_utls,with_grpc,with_conntrack ./...
+        run: CGO_ENABLED=1 go test -v -tags with_gvisor,with_quic,with_wireguard,with_utls,with_grpc ./...

@@ -29,6 +29,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -847,34 +848,22 @@ class UnboundedTab extends HookConsumerWidget {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black12),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Tappable despite reading as a static glyph: it is the only
-                  // way back into the welcome dialog once it has been seen.
-                  IconButton(
-                    icon: const Icon(Icons.info_outline, size: 20),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'about_unbounded'.i18n,
-                    onPressed: () => showUnboundedWelcomeDialog(context, ref),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'smc_intro'.i18n,
-                      style: textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
+            // The whole note re-opens the welcome dialog — a strict superset
+            // of the old icon-only tap target — so it can reuse the app's
+            // shared note component instead of a one-off Container.
+            Tooltip(
+              message: 'about_unbounded'.i18n,
+              child: InfoRow(
+                text: 'smc_intro'.i18n,
+                textStyle: textTheme.labelMedium?.copyWith(
+                  color: context.textSecondary,
+                ),
+                // ListTile's default 56dp minimum height is sized for a
+                // single-line tile; this note's text wraps to two lines,
+                // so without overriding it the tile pads out to that floor
+                // and reads as too much space above/below the text.
+                minTileHeight: 0,
+                onPressed: () => showUnboundedWelcomeDialog(context, ref),
               ),
             ),
             const SizedBox(height: 16),
@@ -924,181 +913,136 @@ class _StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    // Status text source-of-truth, in priority order:
-    //   1. Off and not probing → "Off"
-    //   2. Probing UPnP locally → "Probing your network…"
-    //   3. SmC mode → granular phase from radiance peer.Status. The
-    //      backend emits one phase per stage during Start so the user
-    //      sees real progress instead of "Active" for several seconds.
-    //   4. Unbounded mode → static "Active — Unbounded" (no equivalent
-    //      staged lifecycle on the broflake side yet).
-    final modeLabel = switch ((state.mode, state.phase)) {
-      // Off-with-error is a legitimate terminal state: the enable
-      // path failed (e.g. setUnboundedEnabled / setPeerProxyEnabled
-      // returned Left) and reverted mode to off. Render the error
-      // before the catch-all "Off" so the user sees an actionable
-      // message instead of a misleading off state.
-      (ShareMode.off, SharePhase.error) =>
-        state.errorMessage != null
-            ? 'smc_status_error_with_message'.i18n.fill([state.errorMessage!])
-            : 'smc_status_error_generic'.i18n,
-      (ShareMode.off, _) =>
-        state.probing ? 'smc_status_probing'.i18n : 'smc_status_off'.i18n,
-      (ShareMode.unbounded, _) => 'smc_status_active_unbounded'.i18n,
-      (ShareMode.smc, SharePhase.mappingPort) =>
-        'smc_status_mapping_port'.i18n,
-      (ShareMode.smc, SharePhase.detectingIp) =>
-        'smc_status_detecting_ip'.i18n,
-      (ShareMode.smc, SharePhase.registering) =>
-        'smc_status_registering'.i18n,
-      (ShareMode.smc, SharePhase.startingProxy) =>
-        'smc_status_starting_proxy'.i18n,
-      (ShareMode.smc, SharePhase.verifying) =>
-        'smc_status_verifying'.i18n,
-      (ShareMode.smc, SharePhase.serving) =>
-        'smc_status_serving'.i18n,
-      (ShareMode.smc, SharePhase.stopping) => 'smc_status_stopping'.i18n,
-      (ShareMode.smc, SharePhase.error) =>
-        state.errorMessage != null
-            ? 'smc_status_error_with_message'.i18n.fill([state.errorMessage!])
-            : 'smc_status_error_generic'.i18n,
-      // SmC active but no phase yet (e.g. very first frame after toggle
-      // before the backend's first event arrives) — fall back to the
-      // legacy active label so the UI isn't blank.
-      (ShareMode.smc, SharePhase.idle) => 'smc_status_active_smc'.i18n,
+    // Status text source-of-truth, collapsed to the three states the spec
+    // calls for — "Off", "Enabled", and (while a Start/probe is actually in
+    // flight) "Configuring network" — rather than the old multi-line
+    // per-phase prose. SmC's granular radiance phases still gate the same
+    // "Configuring network" text so the panel doesn't go blank mid-Start.
+    final modeLabel = switch (state.mode) {
+      ShareMode.off => switch (state.phase) {
+          // Off-with-error is a legitimate terminal state: the enable path
+          // failed (e.g. setUnboundedEnabled / setPeerProxyEnabled returned
+          // Left) and reverted mode to off. Render the error before the
+          // catch-all "Off" so the user sees an actionable message instead
+          // of a misleading off state.
+          SharePhase.error => state.errorMessage != null
+              ? 'smc_status_error_with_message'
+                  .i18n
+                  .fill([state.errorMessage!])
+              : 'smc_status_error_generic'.i18n,
+          _ => state.probing
+              ? 'smc_status_configuring'.i18n
+              : 'smc_status_off'.i18n,
+        },
+      ShareMode.unbounded => 'enabled'.i18n,
+      ShareMode.smc => switch (state.phase) {
+          SharePhase.serving => 'enabled'.i18n,
+          SharePhase.error => state.errorMessage != null
+              ? 'smc_status_error_with_message'
+                  .i18n
+                  .fill([state.errorMessage!])
+              : 'smc_status_error_generic'.i18n,
+          // mappingPort / detectingIp / registering / startingProxy /
+          // verifying / stopping / idle — all mid-flight SmC stages.
+          _ => 'smc_status_configuring'.i18n,
+        },
     };
 
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 32,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Icon(Icons.public,
-                    size: 20, color: Theme.of(context).hintColor),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(
-                      style: textTheme.bodyMedium,
-                      children: [
-                        TextSpan(text: '${'smc_status_label'.i18n}: '),
-                        TextSpan(
-                          text: modeLabel,
-                          style: TextStyle(
-                            color: state.active
-                                ? AppColors.green6
-                                : Theme.of(context).hintColor,
-                            fontWeight: FontWeight.w600,
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        child: Column(
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  AppImage(
+                      path: AppImagePaths.languageGlobe,
+                      width: 20,
+                      height: 20,
+                      color: context.textTertiary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        style: textTheme.bodyMedium,
+                        children: [
+                          TextSpan(text: '${'smc_status_label'.i18n}: '),
+                          TextSpan(
+                            text: modeLabel,
+                            style: TextStyle(
+                              color: state.active
+                                  ? AppColors.green6
+                                  : Theme.of(context).hintColor,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Match the rest of the app's toggles (vpn_setting.dart etc.).
-                // SwitchButton has no built-in disabled state, so during the
-                // probe we render the switch but absorb the tap so the user
-                // doesn't double-fire toggle().
-                SwitchButton(
-                  value: state.active || state.probing,
-                  onChanged: (value) {
-                    if (state.probing) return;
-                    onToggle();
-                  },
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  // Match the rest of the app's toggles (vpn_setting.dart etc.).
+                  // SwitchButton has no built-in disabled state, so during the
+                  // probe we render the switch but absorb the tap so the user
+                  // doesn't double-fire toggle().
+                  SwitchButton(
+                    value: state.active || state.probing,
+                    onChanged: (value) {
+                      if (state.probing) return;
+                      onToggle();
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-          if (state.active) ...[
-            const Divider(height: 1),
-            _StatRow(
-              icon: Icons.person_outline,
+            // Always shown — including while Unbounded is off — so the
+            // panel doesn't collapse/expand as the toggle flips. activeCount
+            // reads 0 and totalCount keeps the persisted lifetime total.
+            const DividerSpace(),
+            AppTile(
+              icon: AppImagePaths.person,
               label: 'smc_stat_active_now'.i18n,
-              value: '${state.activeCount}',
-              tooltip: 'smc_connections_tooltip'.i18n,
+              trailing: Text(
+                '${state.activeCount}',
+                style:
+                    textTheme.titleMedium!.copyWith(color: context.textLink),
+              ),
             ),
-            const Divider(height: 1),
-            _StatRow(
-              icon: Icons.people_outline,
+            const DividerSpace(),
+            AppTile(
+              icon: AppImagePaths.groups2,
               label: 'smc_stat_total_helped'.i18n,
-              value: '${state.totalCount}',
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _StatRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final String? tooltip;
-
-  const _StatRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).hintColor),
-          const SizedBox(width: 12),
-          Expanded(child: Text(label, style: textTheme.bodyMedium)),
-          if (tooltip != null) ...[
-            Tooltip(
-              triggerMode: TooltipTriggerMode.tap,
-              waitDuration: const Duration(milliseconds: 200),
-              showDuration: const Duration(seconds: 8),
-              preferBelow: false,
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              textStyle: const TextStyle(color: Colors.white, fontSize: 12),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              message: tooltip!,
-              child: Icon(
-                Icons.info_outline,
-                size: 16,
-                color: Theme.of(context).hintColor,
+              trailing: Text(
+                '${state.totalCount}',
+                style:
+                    textTheme.titleMedium!.copyWith(color: context.textLink),
               ),
             ),
-            const SizedBox(width: 8),
           ],
-          Text(
-            value,
-            style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.blue8, // text/link
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
 /// Mirrors the Unbounded Settings toggle, surfaced on the tab itself because
-/// the spec puts the choice next to the thing it controls.
+/// the spec puts the choice next to the thing it controls. Uses a checkbox
+/// rather than the switch UnboundedSetting's identical row uses — per the
+/// Figma spec, this tab-embedded copy is the one exception.
 class _AutoEnableCard extends ConsumerWidget {
   const _AutoEnableCard();
 
@@ -1109,43 +1053,34 @@ class _AutoEnableCard extends ConsumerWidget {
         ref.watch(appSettingProvider.select((s) => s.unboundedAutoEnable));
     final notifier = ref.read(shareProvider.notifier);
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => notifier.setAutoEnable(context, !autoEnable),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Icon(Icons.auto_mode,
-                  size: 20, color: Theme.of(context).hintColor),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('auto_enable_unbounded'.i18n,
-                        style: textTheme.bodyMedium),
-                    Text('auto_enable_unbounded_subtitle'.i18n,
-                        style: textTheme.labelSmall),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Checkbox(
-                value: autoEnable,
-                onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
-                activeColor: AppColors.blue10,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 32,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
           ),
+        ],
+      ),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        child: AppTile(
+          label: 'auto_enable_unbounded'.i18n,
+          subtitle: Text(
+            'auto_enable_unbounded_subtitle'.i18n,
+            style: textTheme.labelMedium!.copyWith(
+              color: context.textTertiary,
+            ),
+          ),
+          icon: AppImagePaths.autoMode,
+          trailing: Checkbox(
+            value: autoEnable,
+            onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
+            activeColor: context.textLink,
+          ),
+          onPressed: () => notifier.setAutoEnable(context, !autoEnable),
         ),
       ),
     );
@@ -1421,45 +1356,53 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
           constraints.maxWidth * 0.275,
           constraints.maxHeight * 0.42,
         );
-        return ClipRect(
-          // copyWith preserves the inherited devicePixelRatio,
-          // textScaleFactor, padding/insets etc. — constructing
-          // MediaQueryData from scratch with just `size:` would drop
-          // those, breaking high-DPI rendering (pixel ratio falls to
-          // 1.0) and accessibility scaling for the globe subtree.
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(size: widgetSize),
-            child: Stack(
-              children: [
-                // Sits behind the sphere because the package paints no
-                // shadow of its own; matched to the spec's Globe effect.
-                Align(
-                  alignment: const Alignment(0.0, -0.1),
-                  child: Container(
-                    width: radius * 2,
-                    height: radius * 2,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0x42006163),
-                          offset: Offset(0, 4),
-                          blurRadius: 64,
-                        ),
-                      ],
+        return Stack(
+          children: [
+            // Sits behind the sphere because the package paints no shadow of
+            // its own; matched to the spec's Globe effect. Deliberately a
+            // sibling of (not inside) the ClipRect below: that clip exists
+            // for connection arcs, which is much tighter than the shadow's
+            // blur needs and was cropping it at the top.
+            Align(
+              alignment: const Alignment(0.0, -0.1),
+              child: Container(
+                width: radius * 2,
+                height: radius * 2,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      // Half the alpha of the previous 0x42 per design review.
+                      color: Color(0x21006163),
+                      offset: Offset(0, 4),
+                      blurRadius: 64,
                     ),
-                  ),
+                  ],
                 ),
-                Positioned.fill(
+              ),
+            ),
+            SizedBox(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+              child: ClipRect(
+                // ClipRect keeps arcs from painting outside the box when
+                // they curve high.
+                child: MediaQuery(
+                  // copyWith preserves the inherited devicePixelRatio,
+                  // textScaleFactor, padding/insets etc. — constructing
+                  // MediaQueryData from scratch with just `size:` would drop
+                  // those, breaking high-DPI rendering (pixel ratio falls to
+                  // 1.0) and accessibility scaling for the globe subtree.
+                  data: MediaQuery.of(context).copyWith(size: widgetSize),
                   child: FlutterEarthGlobe(
                     controller: _globeController,
                     radius: radius,
                     alignment: const Alignment(0.0, -0.1),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         );
       },
       ),
@@ -1518,11 +1461,17 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
   @override
   Widget build(BuildContext context) {
     final event = _current;
+    final shareState = ref.watch(shareProvider);
     // _current only tracks arrivals from the last few seconds, so its absence
     // does not mean nobody is connected. The idle pill has to key off the live
     // peer count or it claims we are waiting for connections directly above a
-    // stat reporting several active ones.
-    final hasPeers = ref.watch(shareProvider).activeCount > 0;
+    // stat reporting several active ones. It also only makes sense while
+    // Unbounded (not SmC) is actually on — the copy is Unbounded-specific
+    // (unbounded_waiting_for_connections), and shareState.active is also true
+    // during an SmC session, which has no such pill in the spec.
+    final hasPeers = shareState.activeCount > 0;
+    final showWaiting =
+        shareState.mode == ShareMode.unbounded && shareState.active && !hasPeers;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 280),
       transitionBuilder: (child, anim) => FadeTransition(
@@ -1535,9 +1484,9 @@ class _ArrivalToastState extends ConsumerState<_ArrivalToast> {
         ),
       ),
       child: event == null
-          ? (hasPeers
-              ? const SizedBox.shrink(key: ValueKey('arrival-idle'))
-              : const _WaitingCard(key: ValueKey('arrival-waiting')))
+          ? (showWaiting
+              ? const _WaitingCard(key: ValueKey('arrival-waiting'))
+              : const SizedBox.shrink(key: ValueKey('arrival-idle')))
           : _ArrivalCard(
               // ValueKey forces AnimatedSwitcher to swap children when a
               // new arrival lands while the previous toast is still up,

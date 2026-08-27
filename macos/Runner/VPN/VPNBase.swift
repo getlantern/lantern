@@ -158,6 +158,74 @@ func shouldStopTunnel(for status: NEVPNStatus) throws -> Bool {
   }
 }
 
+/// Identity this build expects on a VPN profile it is willing to reuse.
+enum VPNProfileIdentity {
+  /// Bundle ID of the packet-tunnel provider shipped inside this build.
+  static let providerBundleID = "org.getlantern.lantern.PacketTunnel"
+  /// Name the profile carries in System Settings.
+  static let name = "Lantern"
+}
+
+/// Why a saved VPN profile cannot be launched by this build.
+enum VPNProfileDefect: Equatable, CustomStringConvertible {
+  /// The profile carries no `NETunnelProviderProtocol` configuration.
+  case notATunnelProfile
+  /// The profile names a provider this build does not contain.
+  case unknownProvider(found: String?)
+
+  var description: String {
+    switch self {
+    case .notATunnelProfile:
+      return "profile has no tunnel provider configuration"
+    case .unknownProvider(let found):
+      return
+        "profile names provider \(found ?? "none"), this build ships \(VPNProfileIdentity.providerBundleID)"
+    }
+  }
+}
+
+/// Returns why a saved profile is unlaunchable by this build, or nil when it can be reused.
+///
+/// Only the provider bundle ID disqualifies a profile. It has churned across
+/// releases (`.Tunnel` -> `.PacketTunnel` -> `.packet` -> `.PacketTunnel`), and
+/// macOS accepts `startVPNTunnel` against a profile naming a provider that is not
+/// installed: the session is torn down within tens of milliseconds and no error
+/// reaches the caller, so the app reports a successful connect that never happened.
+///
+/// A stale *name* is deliberately not a defect. Such a profile still launches, and
+/// rebuilding costs the user a system VPN-permission prompt, so the name is
+/// repaired in place instead. This is why iOS's `needsMigration()` cannot be reused
+/// verbatim here — it keys on the name, which differs per platform.
+func vpnProfileDefect(isTunnelProfile: Bool, providerBundleID: String?) -> VPNProfileDefect? {
+  guard isTunnelProfile else { return .notATunnelProfile }
+  guard providerBundleID == VPNProfileIdentity.providerBundleID else {
+    return .unknownProvider(found: providerBundleID)
+  }
+  return nil
+}
+
+/// Corrections a launchable profile needs before this build uses it.
+struct VPNProfileRepairs: Equatable {
+  /// Name to write, or nil when the profile is already named correctly.
+  var rename: String?
+  /// Whether the profile has to be re-enabled.
+  var enable: Bool
+
+  var isEmpty: Bool { rename == nil && !enable }
+}
+
+/// Returns what a launchable profile needs corrected.
+///
+/// These are drift, not defects: a profile with a foreign name or one the user
+/// disabled in System Settings still starts a tunnel once fixed up, so it is
+/// corrected in place. Rebuilding instead would cost a VPN-permission prompt.
+func vpnProfileRepairs(currentName: String?, isEnabled: Bool) -> VPNProfileRepairs {
+  VPNProfileRepairs(
+    rename: currentName == VPNProfileIdentity.name ? nil : VPNProfileIdentity.name,
+    enable: !isEnabled
+  )
+}
+
 protocol VPNBase: ObservableObject {
   var connectionStatus: NEVPNStatus { get }
   func startTunnel() async throws
