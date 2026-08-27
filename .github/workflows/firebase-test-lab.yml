@@ -51,6 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
+      AUTH_SMOKE_CREDENTIALS_AVAILABLE: ${{ secrets.AUTH_SMOKE_CREDENTIALS != '' }}
       FTL_RESULTS_BUCKET: lantern-android-ftl-results
       FTL_RESULTS_DIR: ftl-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
@@ -131,7 +132,7 @@ jobs:
       # Skipped when the secret is absent so an empty file never clobbers the
       # shim; the auth smoke suite then fails at runtime with a clear message.
       - name: Write auth smoke credentials
-        if: ${{ secrets.AUTH_SMOKE_CREDENTIALS != '' }}
+        if: ${{ env.AUTH_SMOKE_CREDENTIALS_AVAILABLE == 'true' }}
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: "auth_smoke_credentials.dart"

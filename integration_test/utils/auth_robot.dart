@@ -132,6 +132,7 @@ class AuthRobot {
       AuthKeys.signInPasswordField,
       password,
       name: 'sign-in password',
+      sensitive: true,
     );
     await app.tap(
       find.byKey(AuthKeys.signInPasswordContinueButton),
@@ -331,7 +332,8 @@ class AuthRobot {
     expect(
       find.textContaining(email, findRichText: true),
       findsWidgets,
-      reason: 'Confirm-email screen is not for $email — the flow was '
+      reason:
+          'Confirm-email screen is not for $email — the flow was '
           'rerouted to a different account',
     );
   }
@@ -439,11 +441,13 @@ class AuthRobot {
       AuthKeys.resetPasswordNewPasswordField,
       password,
       name: 'new password',
+      sensitive: true,
     );
     await _enterText(
       AuthKeys.resetPasswordConfirmPasswordField,
       password,
       name: 'confirm new password',
+      sensitive: true,
     );
     await app.tap(
       find.byKey(AuthKeys.resetPasswordSubmitButton),
@@ -476,6 +480,7 @@ class AuthRobot {
       AuthKeys.deleteAccountPasswordField,
       password,
       name: 'delete-account password',
+      sensitive: true,
     );
     await app.tap(
       find.byKey(AuthKeys.deleteAccountConfirmButton),
@@ -525,7 +530,12 @@ class AuthRobot {
 
   // --- Internals ---------------------------------------------------------------
 
-  Future<void> _enterText(Key key, String value, {required String name}) async {
+  Future<void> _enterText(
+    Key key,
+    String value, {
+    required String name,
+    bool sensitive = false,
+  }) async {
     final finder = find.byKey(key);
     await WidgetWaitUtils.waitForFinder(
       tester,
@@ -546,8 +556,17 @@ class AuthRobot {
       matching: find.byType(EditableText),
     );
     if (editable.evaluate().isNotEmpty) {
-      final actual = tester.widget<EditableText>(editable.first).controller.text;
+      final actual = tester
+          .widget<EditableText>(editable.first)
+          .controller
+          .text;
       if (actual != value) {
+        if (sensitive) {
+          fail(
+            'Field $name did not accept the supplied value. The field may be '
+            'disabled or prefilled by app state.',
+          );
+        }
         fail(
           'Field $name did not accept input: expected "$value" but the field '
           'holds "$actual". The field may be disabled or prefilled by app '
