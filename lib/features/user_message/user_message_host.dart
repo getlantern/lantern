@@ -24,10 +24,6 @@ class UserMessageHost extends ConsumerStatefulWidget {
     super.key,
   });
 
-  static const bodyKey = UserMessageSnackbar.bodyKey;
-  static const actionKey = UserMessageSnackbar.actionKey;
-  static const closeKey = UserMessageSnackbar.closeKey;
-
   final Widget child;
   final UserMessageRouteObserver routeObserver;
   final UserMessageActionDispatcher actionDispatcher;
@@ -175,8 +171,9 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
       UserMessageSurface.snackbar => UserMessageSnackbar(
         message: message,
         onAction: (action) {
-          unawaited(widget.actionDispatcher.dispatch(action));
+          if (!identical(_presentation, presentation)) return;
           _closePresentation(presentation);
+          unawaited(widget.actionDispatcher.dispatch(action));
         },
         onDismiss: () => _closePresentation(presentation),
       ),
@@ -192,7 +189,6 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
       return;
     }
     presentation.visible = true;
-    presentation.expirationTimer?.cancel();
     presentation.dismissalTimer = Timer(
       const Duration(seconds: 10),
       () => _closePresentation(presentation),

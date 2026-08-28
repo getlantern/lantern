@@ -8,6 +8,7 @@ import 'package:lantern/features/user_message/user_message_action_dispatcher.dar
 import 'package:lantern/features/user_message/user_message_host.dart';
 import 'package:lantern/features/user_message/user_message_repository.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/features/user_message/user_message_snackbar.dart';
 
 import 'user_message_test_fakes.dart';
 
@@ -116,8 +117,8 @@ void main() {
       await _pumpToSnackbar(tester);
 
       expect(find.text('Service announcement'), findsOneWidget);
-      expect(find.byKey(UserMessageHost.bodyKey), findsOneWidget);
-      expect(find.byKey(UserMessageHost.closeKey), findsOneWidget);
+      expect(find.byKey(UserMessageSnackbar.bodyKey), findsOneWidget);
+      expect(find.byKey(UserMessageSnackbar.closeKey), findsOneWidget);
       expect(repository.acknowledged, ['campaign-1:generation-1']);
     },
   );
@@ -145,18 +146,43 @@ void main() {
       );
       await _pumpToSnackbar(tester);
 
-      final actionFinder = find.byKey(UserMessageHost.actionKey);
+      final actionFinder = find.byKey(UserMessageSnackbar.actionKey);
       expect(actionFinder, findsOneWidget);
       expect(
         find.descendant(of: actionFinder, matching: find.byType(TextButton)),
         findsOneWidget,
       );
-      expect(find.byKey(UserMessageHost.closeKey), findsOneWidget);
-      await tester.tap(find.byKey(UserMessageHost.actionKey));
+      expect(find.byKey(UserMessageSnackbar.closeKey), findsOneWidget);
+      await tester.tap(actionFinder);
+      await tester.tap(actionFinder);
       await tester.pump();
       expect(actions.urls, [Uri.parse('https://getlantern.org/learn')]);
     },
   );
+
+  testWidgets('removes a visible message when it expires', (tester) async {
+    final baseTime = DateTime.now().toUtc();
+    final repository = FakeUserMessageRepository()
+      ..currentMessage = testUserMessage(
+        body: 'Short-lived message',
+        expiresAt: baseTime.add(const Duration(seconds: 2)),
+      );
+    addTearDown(repository.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        repository: repository,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        now: () => baseTime,
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    expect(find.text('Short-lived message'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.text('Short-lived message'), findsNothing);
+  });
 
   testWidgets('enforces one displayed message per Flutter session', (
     tester,
@@ -509,7 +535,7 @@ void main() {
         );
         await _pumpToSnackbar(tester);
 
-        final bodyFinder = find.byKey(UserMessageHost.bodyKey);
+        final bodyFinder = find.byKey(UserMessageSnackbar.bodyKey);
         expect(bodyFinder, findsOneWidget);
         expect(
           Directionality.of(tester.element(bodyFinder)),
