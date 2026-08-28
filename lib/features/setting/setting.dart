@@ -103,6 +103,7 @@ class _SettingState extends ConsumerState<Setting>
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
               child: AppTile(
+                tileKey: const Key('setting.account_tile'),
                 label: 'account'.i18n,
                 labelWidget: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -133,6 +134,7 @@ class _SettingState extends ConsumerState<Setting>
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
+                tileKey: const Key('setting.sign_in_tile'),
                 label: 'sign_in'.i18n,
                 icon: AppImagePaths.signIn,
                 onPressed: () => settingMenuTap(_SettingType.signIn),
