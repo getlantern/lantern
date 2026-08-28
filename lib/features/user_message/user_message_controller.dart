@@ -78,7 +78,7 @@ class UserMessageController extends Notifier<UserMessageState> {
   }
 
   /// Reserves the pending message for the global host. The reservation keeps
-  /// rebuilds and repeated events from creating multiple snackbars.
+  /// rebuilds and repeated events from creating multiple presentations.
   UserMessage? claimForPresentation(DateTime now) {
     if (state.displayedThisSession || state.presentationClaimed) return null;
     final message = state.pending;
@@ -103,7 +103,7 @@ class UserMessageController extends Notifier<UserMessageState> {
   }
 
   /// Marks the session consumed and only then acknowledges Radiance. This is
-  /// called from SnackBar.onVisible, never when the snackbar is merely queued.
+  /// called only after the selected surface is visible.
   Future<void> markPresented(String displayId) async {
     if (state.displayedThisSession || !state.presentationClaimed) return;
     if (state.pending?.displayId != displayId) return;

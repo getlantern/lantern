@@ -71,6 +71,16 @@ func TestUserMessageBridge(t *testing.T) {
 	}
 }
 
+func TestUserMessageCapabilities(t *testing.T) {
+	capabilities := utils.UserMessageCapabilities()
+	if err := capabilities.Validate(); err != nil {
+		t.Fatalf("invalid user-message capabilities: %v", err)
+	}
+	if len(capabilities.Surfaces) != 1 || capabilities.Surfaces[0] != wire.SurfaceSnackbar {
+		t.Fatalf("unexpected user-message surfaces: %v", capabilities.Surfaces)
+	}
+}
+
 func TestCurrentUserMessageNullAndError(t *testing.T) {
 	client := &fakeUserMessageClient{}
 	lc := &LanternCore{ctx: context.Background(), userMessages: client}

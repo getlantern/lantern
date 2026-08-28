@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Tracks root navigator state that is unsafe for a global user-message
-/// snackbar: startup before the first page, popup dialogs, full-screen modal
+/// message surface: startup before the first page, popup dialogs, full-screen modal
 /// pages, and explicitly blocked flows such as checkout.
 class UserMessageRouteObserver extends NavigatorObserver {
   UserMessageRouteObserver({Set<String> blockedRouteNames = const {}})

@@ -130,14 +130,15 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	defer cancelStartup()
 
 	resources, err := startIPCResources(startupCtx, backend.Options{
-		DataDir:           opts.DataDir,
-		LogDir:            opts.LogDir,
-		Locale:            opts.Locale,
-		LogLevel:          opts.LogLevel,
-		DeviceID:          opts.Deviceid,
-		TelemetryConsent:  opts.TelemetryConsent,
-		PlatformInterface: platform,
-		EnvOverrides:      opts.RadianceEnvOverrides(),
+		DataDir:                 opts.DataDir,
+		LogDir:                  opts.LogDir,
+		Locale:                  opts.Locale,
+		LogLevel:                opts.LogLevel,
+		DeviceID:                opts.Deviceid,
+		TelemetryConsent:        opts.TelemetryConsent,
+		PlatformInterface:       platform,
+		EnvOverrides:            opts.RadianceEnvOverrides(),
+		UserMessageCapabilities: utils.UserMessageCapabilities(),
 	})
 	if err != nil {
 		return err

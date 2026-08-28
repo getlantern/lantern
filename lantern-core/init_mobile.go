@@ -13,13 +13,14 @@ import (
 
 func createClient(ctx context.Context, opts *utils.Opts) (*ipc.Client, error) {
 	backendOpts := backend.Options{
-		DataDir:          opts.DataDir,
-		LogDir:           opts.LogDir,
-		DeviceID:         opts.Deviceid,
-		LogLevel:         opts.LogLevel,
-		Locale:           opts.Locale,
-		TelemetryConsent: opts.TelemetryConsent,
-		EnvOverrides:     opts.RadianceEnvOverrides(),
+		DataDir:                 opts.DataDir,
+		LogDir:                  opts.LogDir,
+		DeviceID:                opts.Deviceid,
+		LogLevel:                opts.LogLevel,
+		Locale:                  opts.Locale,
+		TelemetryConsent:        opts.TelemetryConsent,
+		EnvOverrides:            opts.RadianceEnvOverrides(),
+		UserMessageCapabilities: utils.UserMessageCapabilities(),
 	}
 	return ipc.NewClient(ctx, backendOpts)
 }
