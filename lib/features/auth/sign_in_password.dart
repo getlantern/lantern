@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/features/auth/device_limit_flow.dart';
@@ -53,6 +54,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                 Center(child: EmailTag(email: widget.email)),
                 SizedBox(height: defaultSize),
                 AppTextField(
+                  fieldKey: AuthKeys.signInPasswordField,
                   hintText: '',
                   controller: passwordController,
                   autofocus: true,
@@ -95,6 +97,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                   ),
                 SizedBox(height: 32),
                 PrimaryButton(
+                  key: AuthKeys.signInPasswordContinueButton,
                   label: 'continue'.i18n,
                   enabled: passwordController.text.isNotEmpty,
                   isTaller: true,
@@ -105,6 +108,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
                 DividerSpace(),
                 SizedBox(height: 32),
                 AppTextButton(
+                  key: AuthKeys.signInForgotPasswordButton,
                   label: 'forgot_password'.i18n,
                   textColor: context.textPrimary,
                   onPressed: () {
