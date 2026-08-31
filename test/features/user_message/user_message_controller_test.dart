@@ -28,6 +28,7 @@ void main() {
     await pumpProviderQueue();
 
     expect(container.read(userMessageControllerProvider).pending, same(first));
+    expect(repository.refreshCalls, 1);
 
     final second = testUserMessage(displayId: 'campaign-2:generation-1');
     repository.currentMessage = second;
@@ -80,7 +81,9 @@ void main() {
   test(
     'foreground reconciliation pulls current state and requests refresh',
     () async {
+      container.read(userMessageControllerProvider);
       await pumpProviderQueue();
+      repository.refreshCalls = 0;
       final message = testUserMessage();
       repository.currentMessage = message;
 
