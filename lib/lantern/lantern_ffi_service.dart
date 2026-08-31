@@ -236,7 +236,7 @@ class LanternFFIService implements LanternCoreService {
       checkAPIError(encoded);
       return right(UserMessage.tryParse(encoded));
     } catch (e) {
-      // Do not log the encoded response: it can contain localized copy.
+      // The encoded response can contain message copy, so keep it out of logs.
       return left(e.toFailure());
     }
   }

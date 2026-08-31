@@ -4,12 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
+	"time"
+
+	wire "github.com/getlantern/common/usermessage"
 )
 
-const currentUserMessageNull = "null"
+const (
+	currentUserMessageNull          = "null"
+	userMessageAvailabilityInterval = 5 * time.Second
+	userMessageIPCRequestTimeout    = 10 * time.Second
+)
 
-// CurrentUserMessage returns Radiance's durable pending message as the common
-// wire JSON. A null result is explicit so every bridge has identical semantics.
+type userMessageClient interface {
+	CurrentUserMessage(context.Context) (*wire.ResolvedUserMessage, error)
+	RefreshUserMessages(context.Context) error
+	AcknowledgeUserMessage(context.Context, string) error
+}
+
+// CurrentUserMessage returns the pending message as common-contract JSON. It
+// returns an explicit null so every platform bridge handles an empty result the
+// same way.
 func (lc *LanternCore) CurrentUserMessage() (string, error) {
 	if lc.userMessages == nil {
 		return currentUserMessageNull, nil
@@ -30,7 +45,7 @@ func (lc *LanternCore) CurrentUserMessage() (string, error) {
 	return string(encoded), nil
 }
 
-// RefreshUserMessages asks Radiance to run an immediate eligibility refresh.
+// RefreshUserMessages asks Radiance to check for a message now.
 func (lc *LanternCore) RefreshUserMessages() error {
 	if lc.userMessages == nil {
 		return errors.New("user-message subsystem is not initialized")
@@ -40,7 +55,7 @@ func (lc *LanternCore) RefreshUserMessages() error {
 	return lc.userMessages.RefreshUserMessages(ctx)
 }
 
-// AcknowledgeUserMessage records that the UI actually displayed displayID.
+// AcknowledgeUserMessage records that the UI displayed displayID.
 func (lc *LanternCore) AcknowledgeUserMessage(displayID string) error {
 	if lc.userMessages == nil {
 		return errors.New("user-message subsystem is not initialized")
@@ -51,4 +66,42 @@ func (lc *LanternCore) AcknowledgeUserMessage(displayID string) error {
 	ctx, cancel := context.WithTimeout(lc.ctx, userMessageIPCRequestTimeout)
 	defer cancel()
 	return lc.userMessages.AcknowledgeUserMessage(ctx, displayID)
+}
+
+func (lc *LanternCore) listenUserMessageAvailability() {
+	ticker := time.NewTicker(userMessageAvailabilityInterval)
+	defer ticker.Stop()
+
+	lastDisplayID := ""
+	lc.checkUserMessageAvailability(&lastDisplayID)
+	for {
+		select {
+		case <-lc.ctx.Done():
+			return
+		case <-ticker.C:
+			lc.checkUserMessageAvailability(&lastDisplayID)
+		}
+	}
+}
+
+// This only polls the local Radiance bridge; Radiance still owns cloud polling.
+// Tracking the display ID lets us notify Flutter without putting message copy
+// on the event channel.
+func (lc *LanternCore) checkUserMessageAvailability(lastDisplayID *string) {
+	ctx, cancel := context.WithTimeout(lc.ctx, userMessageIPCRequestTimeout)
+	defer cancel()
+	message, err := lc.userMessages.CurrentUserMessage(ctx)
+	if err != nil {
+		slog.Debug("Unable to inspect pending user message", "error", err)
+		return
+	}
+	if message == nil {
+		*lastDisplayID = ""
+		return
+	}
+	if message.DisplayID == *lastDisplayID {
+		return
+	}
+	*lastDisplayID = message.DisplayID
+	lc.notifyFlutter(EventTypeUserMessageAvailable, "")
 }

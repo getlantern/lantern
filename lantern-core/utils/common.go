@@ -1,8 +1,7 @@
 package utils
 
-import commonenv "github.com/getlantern/radiance/common/env"
-
 import (
+	commonenv "github.com/getlantern/radiance/common/env"
 	"github.com/sagernet/sing-box/experimental/libbox"
 )
 
@@ -18,10 +17,9 @@ type Opts struct {
 	Platform         PlatformInterface
 }
 
-// RadianceEnvOverrides returns process environment values that Radiance must
-// read during initialization. Mobile extension processes do not reliably
-// inherit build-time shell variables, so the host passes the installed app's
-// semantic version explicitly.
+// RadianceEnvOverrides returns values that mobile and extension processes may
+// not inherit from the host. In particular, Radiance needs the installed app
+// version for message targeting.
 func (o *Opts) RadianceEnvOverrides() map[string]string {
 	if o == nil || o.AppVersion == "" {
 		return nil

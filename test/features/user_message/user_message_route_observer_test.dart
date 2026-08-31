@@ -41,6 +41,34 @@ void main() {
     observer.didPush(fullscreen, home);
     expect(observer.isReadyForMessages, isFalse);
   });
+
+  test('tracks routes replaced in place, removed, or newly discovered', () {
+    final observer = UserMessageRouteObserver(
+      blockedRouteNames: const {'checkout'},
+    );
+    final home = MaterialPageRoute<void>(
+      settings: const RouteSettings(name: 'home'),
+      builder: (_) => const SizedBox.shrink(),
+    );
+    final checkout = MaterialPageRoute<void>(
+      settings: const RouteSettings(name: 'checkout'),
+      builder: (_) => const SizedBox.shrink(),
+    );
+    final replacementHome = MaterialPageRoute<void>(
+      settings: const RouteSettings(name: 'replacement-home'),
+      builder: (_) => const SizedBox.shrink(),
+    );
+
+    observer.didPush(home, null);
+    observer.didReplace(oldRoute: home, newRoute: checkout);
+    expect(observer.isReadyForMessages, isFalse);
+
+    observer.didReplace(oldRoute: checkout, newRoute: null);
+    expect(observer.isReadyForMessages, isFalse);
+
+    observer.didReplace(oldRoute: home, newRoute: replacementHome);
+    expect(observer.isReadyForMessages, isTrue);
+  });
 }
 
 class _TestPopupRoute extends PopupRoute<void> {

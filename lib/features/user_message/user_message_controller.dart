@@ -48,8 +48,8 @@ class UserMessageController extends Notifier<UserMessageState> {
     return const UserMessageState();
   }
 
-  /// Reconciles Flutter with Radiance's durable pending state. Concurrent
-  /// reads are ordered so an older response cannot overwrite a newer one.
+  /// Loads Radiance's pending message. The generation check keeps a slower,
+  /// older request from overwriting the latest result.
   Future<void> loadCurrent() async {
     final generation = ++_loadGeneration;
     try {
@@ -61,24 +61,21 @@ class UserMessageController extends Notifier<UserMessageState> {
         pending: message == null || message.isExpiredAt(now) ? null : message,
       );
     } on Object {
-      // Delivery is best-effort. Radiance retains durable state for a later
-      // event, foreground transition, or app session.
+      // Radiance keeps the message for the next event or app session.
     }
   }
 
-  /// Pulls any already-pending message, then asks Radiance to refresh its
-  /// eligibility snapshot. A later availability event reconciles the result.
+  /// Pulls local state first, then asks Radiance to check the server again.
   Future<void> onForegrounded() async {
     await loadCurrent();
     try {
       await _repository.refresh();
     } on Object {
-      // The next normal Radiance poll remains authoritative.
+      // The normal Radiance poll will try again.
     }
   }
 
-  /// Reserves the pending message for the global host. The reservation keeps
-  /// rebuilds and repeated events from creating multiple presentations.
+  /// Reserves the pending message so rebuilds cannot present it twice.
   UserMessage? claimForPresentation(DateTime now) {
     if (state.displayedThisSession || state.presentationClaimed) return null;
     final message = state.pending;
@@ -102,8 +99,7 @@ class UserMessageController extends Notifier<UserMessageState> {
     );
   }
 
-  /// Marks the session consumed and only then acknowledges Radiance. This is
-  /// called only after the selected surface is visible.
+  /// Consumes this app session before acknowledging the visible message.
   Future<void> markPresented(String displayId) async {
     if (state.displayedThisSession || !state.presentationClaimed) return;
     if (state.pending?.displayId != displayId) return;
@@ -115,8 +111,7 @@ class UserMessageController extends Notifier<UserMessageState> {
     try {
       await _repository.acknowledge(displayId);
     } on Object {
-      // Do not display again in this app session. If acknowledgment failed,
-      // Radiance will retain the message for a future session.
+      // Keep the one-per-session rule. Radiance can retry next session.
     }
   }
 }

@@ -6,8 +6,8 @@ import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
-/// The narrow Flutter-facing boundary for Radiance's durable message state.
-/// Campaign copy deliberately never enters logs or provider diagnostics.
+/// Reads and updates the message Radiance keeps pending for Flutter. Message
+/// copy is never logged here.
 abstract interface class UserMessageRepository {
   Stream<void> get messageAvailable;
 

@@ -49,8 +49,7 @@ abstract class LanternCoreService {
 
   Stream<AppEvent> watchAppEvents();
 
-  /// Returns Radiance's durable pending message. This pull operation is the
-  /// source of truth even when an availability event was missed.
+  /// Returns Radiance's pending message, even if Flutter missed its event.
   Future<Either<Failure, UserMessage?>> currentUserMessage();
 
   Future<Either<Failure, Unit>> refreshUserMessages();
@@ -251,10 +250,7 @@ abstract class LanternCoreService {
   //Change email
   /// Verifies the account password without mutating anything. Used to gate
   /// the change-email flow before the user enters a new email.
-  Future<Either<Failure, String>> verifyPassword(
-    String email,
-    String password,
-  );
+  Future<Either<Failure, String>> verifyPassword(String email, String password);
 
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,

@@ -39,8 +39,8 @@ class UserMessageAction {
   }
 }
 
-/// Presentation-ready message returned by the common user-message contract.
-/// Campaign targeting and authoring state intentionally do not cross this API.
+/// A message Lantern can display. Campaign targeting and authoring stay in
+/// Lantern Cloud.
 class UserMessage {
   final String displayId;
   final String campaignId;
@@ -70,9 +70,8 @@ class UserMessage {
 
   bool isExpiredAt(DateTime now) => !expiresAt.isAfter(now.toUtc());
 
-  /// Parses a bridge response. An unknown surface drops the message because
-  /// Flutter cannot present it safely. Unknown or unsafe actions degrade to a
-  /// body-only message so future CTA types never block important plain text.
+  /// Reads common-contract bridge JSON. Unknown surfaces are dropped; unknown
+  /// or unsafe actions leave a body-only message.
   static UserMessage? tryParse(String encoded) {
     if (encoded.trim() == 'null') return null;
     try {
@@ -93,7 +92,7 @@ class UserMessage {
         expiresAt: DateTime.parse(_requiredString(value, 'expires_at')).toUtc(),
       );
       return message.isExpired ? null : message;
-    } on Object {
+    } on FormatException {
       return null;
     }
   }

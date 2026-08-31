@@ -42,7 +42,7 @@ final class AppSettingNotifierProvider
 }
 
 String _$appSettingNotifierHash() =>
-    r'321580c8c87843a5285ad7d24f516f6bd7cd005b';
+    r'15fdcdfad400e9a243e2857a0ac05c4c7720698b';
 
 abstract class _$AppSettingNotifier extends $Notifier<AppSetting> {
   AppSetting build();

@@ -160,6 +160,39 @@ void main() {
     },
   );
 
+  testWidgets('contains CTA failures after dismissing the message', (
+    tester,
+  ) async {
+    final repository = FakeUserMessageRepository()
+      ..currentMessage = testUserMessage(
+        buttonLabel: 'Learn more',
+        action: UserMessageAction(
+          type: UserMessageActionType.openHttpsUrl,
+          url: Uri.parse('https://getlantern.org/learn'),
+        ),
+      );
+    addTearDown(repository.dispose);
+    final dispatcher = UserMessageActionDispatcher(
+      openHttpsUrl: (_) async => throw Exception('launcher unavailable'),
+      openPlans: () async {},
+    );
+
+    await tester.pumpWidget(
+      _harness(
+        repository: repository,
+        observer: UserMessageRouteObserver(),
+        dispatcher: dispatcher,
+      ),
+    );
+    await _pumpToSnackbar(tester);
+
+    await tester.tap(find.byKey(UserMessageSnackbar.actionKey));
+    await tester.pump();
+
+    expect(find.byKey(UserMessageSnackbar.bodyKey), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('removes a visible message when it expires', (tester) async {
     final baseTime = DateTime.now().toUtc();
     final repository = FakeUserMessageRepository()

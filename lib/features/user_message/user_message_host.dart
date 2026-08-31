@@ -173,11 +173,20 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
         onAction: (action) {
           if (!identical(_presentation, presentation)) return;
           _closePresentation(presentation);
-          unawaited(widget.actionDispatcher.dispatch(action));
+          unawaited(_dispatchAction(action));
         },
         onDismiss: () => _closePresentation(presentation),
       ),
     };
+  }
+
+  Future<void> _dispatchAction(UserMessageAction action) async {
+    try {
+      await widget.actionDispatcher.dispatch(action);
+    } on Exception {
+      // The message is already gone, so do not let a launcher or router failure
+      // escape this callback.
+    }
   }
 
   void _onVisible(_UserMessagePresentation presentation) {

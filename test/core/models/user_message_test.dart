@@ -81,8 +81,9 @@ void main() {
     expect(parsed!.action, isNull);
   });
 
-  test('returns null for no message and expired content', () {
+  test('returns null for empty, malformed, and expired content', () {
     expect(UserMessage.tryParse('null'), isNull);
+    expect(UserMessage.tryParse('{'), isNull);
     final expired = message();
     expired['expires_at'] = DateTime.now()
         .toUtc()
