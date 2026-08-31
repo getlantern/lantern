@@ -1862,9 +1862,6 @@ msgstr "Configuration cleared"
 msgid "turn_off_vpn"
 msgstr "Turn off VPN"
 
-msgid "turn_on_vpn"
-msgstr "Turn on VPN"
-
 msgid "turn_off_vpn_message"
 msgstr "The VPN needs to be off before you can refresh your configuration. Turn it off, then try again."
 
@@ -1937,9 +1934,6 @@ msgstr "Bypass the VPN for this website?"
 
 msgid "bypass_website_first_time_body"
 msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
-
-msgid "renew_pro"
-msgstr "Renew Pro"
 
 msgid "pro_expires_days_left"
 msgstr "Pro expires %s, %s days left"

@@ -37,28 +37,27 @@ final proRenewalProvider = Provider<ProRenewalInfo>((ref) {
   );
   if (user == null) return ProRenewalInfo.none;
 
+  // Only one-time purchases escalate; auto-renewing subscriptions renew on
+  // their own, so nagging would be wrong (and the store manages lapses).
+  // Note: expired users have isPro == false, so this check must not gate the
+  // expired branch below on isPro.
+  if (user.subscriptionData.autoRenew) return ProRenewalInfo.none;
+
   if (user.isExpired) {
     final expiredOn = user.lastExpiredOn > 0
         ? user.lastExpiredOn
         : user.expiration;
-    return ProRenewalInfo(
-      ProRenewalState.expired,
-      expiredOn > 0 ? _toLocalDate(expiredOn) : null,
-      0,
-    );
+    if (expiredOn <= 0) {
+      return ProRenewalInfo(ProRenewalState.expired, null, 0);
+    }
+    final end = _toLocalDate(expiredOn);
+    return ProRenewalInfo(ProRenewalState.expired, end, _daysFromToday(end));
   }
 
-  // Only one-time purchases escalate; auto-renewing subscriptions renew on
-  // their own, so nagging would be wrong (and the store manages lapses).
-  if (!user.isPro || user.expiration <= 0 || user.subscriptionData.autoRenew) {
-    return ProRenewalInfo.none;
-  }
+  if (!user.isPro || user.expiration <= 0) return ProRenewalInfo.none;
 
   final end = _toLocalDate(user.expiration);
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final endDay = DateTime(end.year, end.month, end.day);
-  final daysLeft = endDay.difference(today).inDays;
+  final daysLeft = _daysFromToday(end);
 
   if (daysLeft < 0) {
     return ProRenewalInfo(ProRenewalState.expired, end, daysLeft);
@@ -76,6 +75,14 @@ DateTime _toLocalDate(int unixSeconds) => DateTime.fromMillisecondsSinceEpoch(
   unixSeconds * 1000,
   isUtc: true,
 ).toLocal();
+
+/// Calendar days from today until [end]: 0 on the last day, negative once
+/// past it.
+int _daysFromToday(DateTime end) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return DateTime(end.year, end.month, end.day).difference(today).inDays;
+}
 
 final isPrivateServerFoundProvider = Provider<bool>((ref) {
   final privateServersAsync = ref.watch(availableServersProvider);

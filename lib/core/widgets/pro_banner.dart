@@ -82,7 +82,14 @@ class ProBanner extends HookConsumerWidget {
         'pro_ends_today'.i18n.fill([date]),
         'renew_now_keep_data'.i18n,
       ),
-      _ => ('pro_expired_on'.i18n.fill([date]), 'renew_now_get_back_data'.i18n),
+      // The expired date can be unknown (no lastExpiredOn/expiration on the
+      // user record) — fall back to a dateless title instead of "expired on ".
+      _ => (
+        date.isEmpty
+            ? 'pro_subscription_expired'.i18n
+            : 'pro_expired_on'.i18n.fill([date]),
+        'renew_now_get_back_data'.i18n,
+      ),
     };
 
     final isError = info.state != ProRenewalState.withinWeek;
