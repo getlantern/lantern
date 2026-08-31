@@ -1937,3 +1937,51 @@ msgstr "Bypass the VPN for this website?"
 
 msgid "bypass_website_first_time_body"
 msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
+
+msgid "renew_pro"
+msgstr "Renew Pro"
+
+msgid "pro_expires_days_left"
+msgstr "Pro expires %s, %s days left"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro expires %s, 1 day left"
+
+msgid "renewing_adds_time"
+msgstr "Renewing adds time to your current end date"
+
+msgid "pro_ends_today"
+msgstr "Pro time ends today, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Renew now to keep unlimited data and Pro features"
+
+msgid "pro_expired_on"
+msgstr "Your Pro time expired on %s"
+
+msgid "renew_now_get_back_data"
+msgstr "Renew now to get back unlimited data"
+
+msgid "days_left"
+msgstr "%s days left"
+
+msgid "one_day_left"
+msgstr "1 day left"
+
+msgid "expires_today"
+msgstr "Expires today"
+
+msgid "pro_time_expired_message"
+msgstr "Lantern Pro time expired, Renew to restore unlimited data and Pro features."
+
+msgid "pro_expires_today_title"
+msgstr "Pro expires today"
+
+msgid "pro_expires_today_popup_message"
+msgstr "Your Pro account ends today. Renew now to keep access to Lantern Pro."
+
+msgid "renew_now"
+msgstr "Renew Now"
+
+msgid "dismiss"
+msgstr "Dismiss"
