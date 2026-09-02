@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/widgets/email_tag.dart';
 import 'package:lantern/core/widgets/password_criteria.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
@@ -32,6 +33,7 @@ class ResetPassword extends HookConsumerWidget {
               Center(child: EmailTag(email: email)),
               SizedBox(height: defaultSize),
               AppTextField(
+                fieldKey: AuthKeys.resetPasswordNewPasswordField,
                 hintText: '',
                 label: 'create_new_password'.i18n,
                 keyboardType: TextInputType.visiblePassword,
@@ -47,6 +49,7 @@ class ResetPassword extends HookConsumerWidget {
               ),
               SizedBox(height: 20),
               AppTextField(
+                fieldKey: AuthKeys.resetPasswordConfirmPasswordField,
                 hintText: '',
                 label: 'confirm_new_password'.i18n,
                 keyboardType: TextInputType.visiblePassword,
@@ -87,6 +90,7 @@ class ResetPassword extends HookConsumerWidget {
               ),
               SizedBox(height: 32),
               PrimaryButton(
+                key: AuthKeys.resetPasswordSubmitButton,
                 label: 'reset_password'.i18n,
                 isTaller: true,
                 enabled:
@@ -158,6 +162,7 @@ class ResetPassword extends HookConsumerWidget {
           ),
           action: [
             AppTextButton(
+              key: AuthKeys.resetPasswordSuccessContinueButton,
               label: 'continue'.i18n,
               textColor: context.textTertiary,
               onPressed: () {
