@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:i18n_extension/i18n_extension.dart';
 import 'package:i18n_extension_importer/i18n_extension_importer.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/datacap_info.dart';
@@ -17,6 +18,8 @@ import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+
+const _windowsSmokeTestTabViewport = Size(374, 569);
 
 class _FakeLanternService implements LanternService {
   @override
@@ -42,15 +45,25 @@ class _FakeLanternService implements LanternService {
 }
 
 void main() {
-  testWidgets('scrolls instead of overflowing at the Windows smoke-test size', (
+  testWidgets('scrolls when the Windows smoke-test tab is height constrained', (
     tester,
   ) async {
-    Localization.translations += await GettextImporter().fromAssetFile(
+    final previousTranslations = Localization.translations;
+    final previousLocale = Localization.defaultLocale;
+    var testTranslations = Translations.byLocale('en');
+    testTranslations += await GettextImporter().fromAssetFile(
       'en',
       'assets/locales/en.po',
     );
+    Localization.translations = testTranslations;
     Localization.defaultLocale = 'en';
-    addTearDown(() => Localization.defaultLocale = 'en_US');
+    addTearDown(() {
+      Localization.translations = previousTranslations;
+      Localization.defaultLocale = previousLocale;
+    });
+
+    // MediaQuery and ScreenUtil should see the full application window. The
+    // smaller box below represents the tab area left after the Windows chrome.
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = desktopWindowSize;
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -83,10 +96,13 @@ void main() {
           designSize: desktopWindowSize,
           child: MaterialApp(
             theme: AppTheme.appTheme(),
-            home: const Scaffold(
+            home: Scaffold(
               body: Align(
                 alignment: Alignment.topCenter,
-                child: SizedBox(width: 374, height: 569, child: VpnTab()),
+                child: SizedBox.fromSize(
+                  size: _windowsSmokeTestTabViewport,
+                  child: const VpnTab(),
+                ),
               ),
             ),
           ),
