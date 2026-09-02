@@ -1937,3 +1937,9 @@ msgstr "Bypass the VPN for this website?"
 
 msgid "bypass_website_first_time_body"
 msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Faster, unlimited data!"
+
+msgid "upsell_expired_suffix"
+msgstr "Your Pro time has expired"

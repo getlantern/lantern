@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import '../common/app_asset.dart';
+import '../common/app_dimens.dart';
 import '../common/app_semantic_colors.dart';
 import '../extensions/string.dart';
 
@@ -36,7 +37,10 @@ class SettingTile extends StatelessWidget {
       onTap: onTap,
       splashColor: context.bgCallout,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: isSmallScreen(context) ? 8 : 10,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,8 +54,9 @@ class SettingTile extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   label,
-                  style: textTheme.labelLarge!
-                      .copyWith(color: context.textSecondary),
+                  style: textTheme.labelLarge!.copyWith(
+                    color: context.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -67,11 +72,12 @@ class SettingTile extends StatelessWidget {
                       maxLines: 1,
                       maxFontSize: 16,
                       minFontSize: 14,
-                      style: textTheme.titleMedium!
-                          .copyWith(color: context.textPrimary),
+                      style: textTheme.titleMedium!.copyWith(
+                        color: context.textPrimary,
+                      ),
                     ),
                   ),
-                ...actions
+                ...actions,
               ],
             ),
             if (subtitle != null && subtitle!.isNotEmpty)
@@ -79,8 +85,9 @@ class SettingTile extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 32.0),
                 child: Text(
                   subtitle!.capitalize,
-                  style: textTheme.labelLarge!
-                      .copyWith(color: context.textSecondary),
+                  style: textTheme.labelLarge!.copyWith(
+                    color: context.textSecondary,
+                  ),
                 ),
               ),
           ],
