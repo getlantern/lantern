@@ -2689,6 +2689,17 @@ class LanternBindings {
         )
       >();
 
+  ffi.Pointer<ffi.Char> getPeerStatusJSON() {
+    return _getPeerStatusJSON();
+  }
+
+  late final _getPeerStatusJSONPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getPeerStatusJSON',
+      );
+  late final _getPeerStatusJSON = _getPeerStatusJSONPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> getSelectedServerJSON() {
     return _getSelectedServerJSON();
   }
