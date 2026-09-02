@@ -58,3 +58,6 @@ app.*.map.json
 app.env
 /android/app/libs
 /.claude/skills
+
+# Local auth smoke credentials (never commit; see auth_smoke_credentials.example.dart)
+auth_smoke.env

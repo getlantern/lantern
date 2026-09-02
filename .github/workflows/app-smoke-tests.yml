@@ -22,6 +22,7 @@ on:
         type: choice
         options:
           - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
+          - auth-smoke # auth flows only (sign-in/up, recovery, deletion) against the smoke roster
           - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
           - payment-smoke # Stripe Checkout rendering and payment-to-Pro conversion
           - all # every suite the platform supports
@@ -73,9 +74,11 @@ jobs:
       test_target: >-
         ${{ (inputs.tests || 'all') == 'vpn-smoke'
             && 'integration_test/vpn/android_vpn_smoke_test.dart'
+            || (inputs.tests || 'all') == 'auth-smoke'
+            && 'integration_test/auth/auth_smoke_test.dart'
             || 'integration_test/android_all_e2e_test.dart' }}
       devices: >-
-        ${{ (inputs.tests || 'all') == 'vpn-smoke'
+        ${{ contains(fromJSON('["vpn-smoke", "auth-smoke"]'), inputs.tests || 'all')
             && 'model=MediumPhone.arm,version=33,locale=en,orientation=portrait'
             || '' }}
       flaky_attempts: ${{ (inputs.tests || 'all') == 'all' && '2' || '' }}
@@ -131,7 +134,7 @@ jobs:
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       linux_arch: ${{ inputs.linux_arch || 'amd64' }}
       force_full_tunnel_smoke: true
-      run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
 
   # Not part of platforms=all (and so not the nightly): the connect smoke
   # needs the self-hosted runner with the approved system extension, so macOS
@@ -146,8 +149,9 @@ jobs:
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       runner_label: lantern-macos-smoke
-      run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
+      run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+      run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
 
   # This is deliberately separate from the regular macOS build job: it
   # replaces /Applications/Lantern.app and verifies Sparkle's relaunch. It is
@@ -169,8 +173,8 @@ jobs:
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       skip_signing: true
       force_full_tunnel_smoke: true
-      run_connect_smoke: ${{ (inputs.tests || 'all') != 'payment-smoke' }}
-      run_auth_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
+      run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
       run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
 
