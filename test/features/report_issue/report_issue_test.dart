@@ -270,6 +270,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(submitter.calls, hasLength(1));
+      // The submitted value must be the untranslated key — lantern-core's
+      // parseIssueType matches on it (getlantern/engineering#3839).
+      expect(submitter.calls.single.issueType, 'cannot_complete_purchase');
       expect(find.text('cannot_complete_purchase'), findsNothing);
     });
 
