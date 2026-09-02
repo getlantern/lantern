@@ -309,6 +309,21 @@ class MethodHandler {
           await MainActor.run { result(Int(MobileGetPeerManualPort())) }
         }
 
+      // Returns the marshalled radiance peer.Status, or "" when it could
+      // not be read. The peer-status event stream carries transitions
+      // only, and peer sharing resumes from persisted settings before the
+      // UI is listening, so the UI needs to be able to ask outright.
+      //
+      // Detached like probeUPnP: this is an IPC round-trip bounded by a 5s
+      // Go-side timeout, and the caller runs it from a post-frame callback
+      // at first paint. Evaluating it on the main actor would stall
+      // rendering for as long as the daemon takes to answer.
+      case "getPeerStatus":
+        Task.detached {
+          let status = MobileGetPeerStatus()
+          await MainActor.run { result(status) }
+        }
+
       case "setUnboundedEnabled":
         guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
         self.setUnboundedEnabled(result: result, enabled: enabled)
