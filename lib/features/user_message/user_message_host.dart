@@ -1,0 +1,275 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/models/user_message.dart';
+import 'package:lantern/features/user_message/user_message_action_dispatcher.dart';
+import 'package:lantern/features/user_message/user_message_controller.dart';
+import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/features/user_message/user_message_snackbar.dart';
+import 'package:loader_overlay/loader_overlay.dart';
+
+typedef UserMessageClock = DateTime Function();
+typedef CriticalOverlayCheck = bool Function(BuildContext context);
+
+class UserMessageHost extends ConsumerStatefulWidget {
+  const UserMessageHost({
+    required this.child,
+    required this.routeObserver,
+    required this.actionDispatcher,
+    required this.enabled,
+    this.now,
+    this.criticalOverlayVisible,
+    this.retryInterval = const Duration(milliseconds: 250),
+    super.key,
+  });
+
+  final Widget child;
+  final UserMessageRouteObserver routeObserver;
+  final UserMessageActionDispatcher actionDispatcher;
+  final bool enabled;
+  final UserMessageClock? now;
+  final CriticalOverlayCheck? criticalOverlayVisible;
+  final Duration retryInterval;
+
+  @override
+  ConsumerState<UserMessageHost> createState() => _UserMessageHostState();
+}
+
+class _UserMessageHostState extends ConsumerState<UserMessageHost>
+    with WidgetsBindingObserver {
+  AppLifecycleState _lifecycleState = AppLifecycleState.resumed;
+  bool _attemptScheduled = false;
+  bool _active = true;
+  Timer? _retryTimer;
+  _UserMessagePresentation? _presentation;
+  late final UserMessageController _controller;
+
+  DateTime get _now => (widget.now?.call() ?? DateTime.now()).toUtc();
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleState =
+        WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
+    _controller = ref.read(userMessageControllerProvider.notifier);
+    WidgetsBinding.instance.addObserver(this);
+    widget.routeObserver.changes.addListener(_scheduleAttempt);
+  }
+
+  @override
+  void didUpdateWidget(UserMessageHost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.routeObserver != widget.routeObserver) {
+      oldWidget.routeObserver.changes.removeListener(_scheduleAttempt);
+      widget.routeObserver.changes.addListener(_scheduleAttempt);
+    }
+    if (oldWidget.enabled != widget.enabled) {
+      _scheduleAttempt();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lifecycleState = state;
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_controller.onForegrounded());
+      _scheduleAttempt();
+    } else {
+      unawaited(_controller.onBackgrounded());
+      _dismissForUnsafeState();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(userMessageControllerProvider);
+    _scheduleAttempt();
+    final presentation = _presentation;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        widget.child,
+        if (presentation != null) _messageSurface(presentation),
+      ],
+    );
+  }
+
+  void _scheduleAttempt() {
+    if (!mounted || !_active || _attemptScheduled) return;
+    _attemptScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _attemptScheduled = false;
+      if (!mounted || !_active) return;
+      final presentation = _presentation;
+      if (presentation != null) {
+        if (!_isSafeToPresent()) _dismissForUnsafeState();
+        return;
+      }
+      _attemptPresentation();
+    });
+  }
+
+  bool _isSafeToPresent() {
+    if (!_active ||
+        !widget.enabled ||
+        _lifecycleState != AppLifecycleState.resumed) {
+      return false;
+    }
+    if (!widget.routeObserver.isReadyForMessages) return false;
+    final overlayVisible =
+        widget.criticalOverlayVisible?.call(context) ??
+        context.loaderOverlay.visible;
+    if (overlayVisible) return false;
+    return true;
+  }
+
+  void _attemptPresentation() {
+    if (_presentation != null) return;
+    final state = ref.read(userMessageControllerProvider);
+    if (state.displayedThisSession || state.pending == null) {
+      _retryTimer?.cancel();
+      _retryTimer = null;
+      return;
+    }
+    if (!_isSafeToPresent()) {
+      if (widget.enabled &&
+          _lifecycleState == AppLifecycleState.resumed &&
+          widget.routeObserver.isReadyForMessages) {
+        _retryTimer ??= Timer(widget.retryInterval, () {
+          _retryTimer = null;
+          _scheduleAttempt();
+        });
+      } else {
+        _retryTimer?.cancel();
+        _retryTimer = null;
+      }
+      return;
+    }
+
+    final message = _controller.claimForPresentation(_now);
+    if (message == null) return;
+    final presentation = _UserMessagePresentation(message);
+    setState(() => _presentation = presentation);
+
+    final untilExpiration = message.expiresAt.difference(_now);
+    if (untilExpiration <= Duration.zero) {
+      _closePresentation(presentation);
+      return;
+    }
+    presentation.expirationTimer = Timer(
+      untilExpiration,
+      () => _closePresentation(presentation),
+    );
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _onVisible(presentation),
+    );
+  }
+
+  Widget _messageSurface(_UserMessagePresentation presentation) {
+    final message = presentation.message;
+    return switch (message.surface) {
+      UserMessageSurface.snackbar => UserMessageSnackbar(
+        message: message,
+        onAction: (action) {
+          if (!identical(_presentation, presentation)) return;
+          _closePresentation(presentation);
+          unawaited(_dispatchAction(action));
+        },
+        onDismiss: () => _closePresentation(presentation),
+      ),
+    };
+  }
+
+  Future<void> _dispatchAction(UserMessageAction action) async {
+    try {
+      await widget.actionDispatcher.dispatch(action);
+    } on Exception {
+      // The message is already gone, so do not let a launcher or router failure
+      // escape this callback.
+    }
+  }
+
+  void _onVisible(_UserMessagePresentation presentation) {
+    if (!mounted ||
+        !identical(_presentation, presentation) ||
+        !_isSafeToPresent() ||
+        presentation.message.isExpiredAt(_now)) {
+      _closePresentation(presentation);
+      return;
+    }
+    presentation.visible = true;
+    presentation.dismissalTimer = Timer(
+      const Duration(seconds: 10),
+      () => _closePresentation(presentation),
+    );
+    unawaited(_controller.markPresented(presentation.message.displayId));
+  }
+
+  void _closePresentation(_UserMessagePresentation presentation) {
+    if (!mounted || !identical(_presentation, presentation)) return;
+    presentation.expirationTimer?.cancel();
+    presentation.dismissalTimer?.cancel();
+    final shouldReleaseClaim = !presentation.visible;
+    setState(() => _presentation = null);
+    if (shouldReleaseClaim) {
+      _controller.releaseClaim(presentation.message.displayId, _now);
+    }
+    _scheduleAttempt();
+  }
+
+  void _dismissForUnsafeState() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    final presentation = _presentation;
+    if (presentation == null) return;
+    _closePresentation(presentation);
+  }
+
+  @override
+  void deactivate() {
+    _active = false;
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    final presentation = _presentation;
+    _presentation = null;
+    if (presentation != null) {
+      presentation.expirationTimer?.cancel();
+      presentation.dismissalTimer?.cancel();
+      final shouldReleaseClaim = !presentation.visible;
+      final releaseAt = _now;
+      Future.microtask(() {
+        if (shouldReleaseClaim) {
+          _controller.releaseClaim(presentation.message.displayId, releaseAt);
+        }
+      });
+    }
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _active = true;
+    _scheduleAttempt();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    widget.routeObserver.changes.removeListener(_scheduleAttempt);
+    _retryTimer?.cancel();
+    _presentation?.expirationTimer?.cancel();
+    _presentation?.dismissalTimer?.cancel();
+    super.dispose();
+  }
+}
+
+class _UserMessagePresentation {
+  _UserMessagePresentation(this.message);
+
+  final UserMessage message;
+  Timer? expirationTimer;
+  Timer? dismissalTimer;
+  bool visible = false;
+}

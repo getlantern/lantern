@@ -17,6 +17,7 @@ import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
 
 import '../core/common/common.dart' hide DeveloperMode;
 import '../core/models/available_servers.dart';
@@ -114,6 +115,38 @@ class LanternService implements LanternCoreService {
       return _ffiService.watchAppEvents();
     }
     return _platformService.watchAppEvents();
+  }
+
+  @override
+  Future<Either<Failure, UserMessage?>> currentUserMessage() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.currentUserMessage();
+    }
+    return _platformService.currentUserMessage();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshUserMessages() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.refreshUserMessages();
+    }
+    return _platformService.refreshUserMessages();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.acknowledgeUserMessage(displayId);
+    }
+    return _platformService.acknowledgeUserMessage(displayId);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setUserMessageActivity(active);
+    }
+    return _platformService.setUserMessageActivity(active);
   }
 
   @override

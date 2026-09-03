@@ -17,6 +17,7 @@ import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
@@ -98,6 +99,51 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEventStatus;
+  }
+
+  @override
+  Future<Either<Failure, UserMessage?>> currentUserMessage() async {
+    try {
+      final encoded = await _methodChannel.invokeMethod<String>(
+        'currentUserMessage',
+      );
+      return right(UserMessage.tryParse(encoded ?? 'null'));
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshUserMessages() async {
+    try {
+      await _methodChannel.invokeMethod<void>('refreshUserMessages');
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId) async {
+    try {
+      await _methodChannel.invokeMethod<void>(
+        'acknowledgeUserMessage',
+        displayId,
+      );
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) async {
+    try {
+      await _methodChannel.invokeMethod<void>('setUserMessageActivity', active);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
   }
 
   Future<void> waitForRadiance() async {

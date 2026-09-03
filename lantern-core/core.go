@@ -57,12 +57,17 @@ const (
 	// .phase to render progress text and on .error to surface
 	// diagnostics on the failure path.
 	EventTypePeerStatus EventType = "peer-status"
-	DefaultLogLevel               = "trace"
+	// EventTypeUserMessageAvailable carries no payload. Flutter pulls the
+	// message from Radiance, which keeps copy out of event logs and makes a
+	// missed event harmless.
+	EventTypeUserMessageAvailable EventType = "user-message-available"
+	DefaultLogLevel                         = "trace"
 )
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
 type LanternCore struct {
 	client       *ipc.Client
+	userMessages userMessageClient
 	ctx          context.Context
 	cancel       context.CancelFunc
 	initOnce     sync.Once
@@ -98,6 +103,10 @@ type App interface {
 	ReferralAttachment(referralCode string) (bool, error)
 	ReferralAttachmentV2(referralCode, channel string) ([]byte, error)
 	UpdateLocale(locale string) error
+	CurrentUserMessage() (string, error)
+	RefreshUserMessages() error
+	AcknowledgeUserMessage(displayID string) error
+	SetUserMessageActivity(active bool) error
 	UpdateTelemetryConsent(consent bool) error
 	IsTelemetryEnabled() bool
 	IsOAuthLogin() bool
@@ -291,6 +300,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	lc.client = client
+	lc.userMessages = client
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
@@ -300,6 +310,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenDataCapEvents()
 	go lc.listenPeerConnectionEvents()
 	go lc.listenPeerStatusEvents()
+	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")

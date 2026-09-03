@@ -223,6 +223,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     let opts = UtilsOpts()
     opts.dataDir = FilePath.dataDirectory.relativePath
     // opts.deviceid = DeviceIdentifier.getUDID()
+    opts.appVersion =
+      Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     opts.locale = Locale.current.identifier
     opts.logLevel = "trace"
     opts.logDir = FilePath.logsDirectory.relativePath

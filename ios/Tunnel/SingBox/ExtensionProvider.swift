@@ -184,6 +184,8 @@ class ExtensionProvider: NEPacketTunnelProvider {
     // Intentionally left empty. The app and extension don't share a keychain access
     // Radiance resolves the device ID from the main app process.
     opts.deviceid = ""
+    opts.appVersion =
+      Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
     return opts

@@ -212,6 +212,64 @@ func updateLocale(_locale *C.char) *C.char {
 	})
 }
 
+//export currentUserMessage
+func currentUserMessage() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		message, err := c.CurrentUserMessage()
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(message)
+	})
+}
+
+//export refreshUserMessages
+func refreshUserMessages() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.RefreshUserMessages(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export acknowledgeUserMessage
+func acknowledgeUserMessage(_displayID *C.char) *C.char {
+	displayID := C.GoString(_displayID)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.AcknowledgeUserMessage(displayID); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export setUserMessageActivity
+func setUserMessageActivity(active C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SetUserMessageActivity(active != 0); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
 //export addSplitTunnelItem
 func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	filterType := C.GoString(filterTypeC)

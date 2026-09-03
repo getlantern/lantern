@@ -29,8 +29,9 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
+	github.com/getlantern/common v1.2.1-0.20260828200436-eb05c571820d
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260902234445-89008b59e595
+	github.com/getlantern/radiance v0.0.0-20260903182822-106c2449d006
 	github.com/sagernet/sing-box v1.13.19
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.45.0
@@ -173,7 +174,6 @@ require (
 	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
 	github.com/getlantern/broflake v0.0.0-20260810172605-bef5e5234952 // indirect
-	github.com/getlantern/common v1.2.1-0.20260708083946-cc657b08792c // indirect
 	github.com/getlantern/dnstt v0.0.0-20260603191204-3b860502c0ac // indirect
 	github.com/getlantern/domainfront v0.0.0-20260722204513-8c1f8acfa715 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260616120552-f204338b01a3 // indirect
