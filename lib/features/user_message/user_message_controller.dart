@@ -44,7 +44,10 @@ class UserMessageController extends Notifier<UserMessageState> {
       onError: (_) {},
     );
     ref.onDispose(subscription.cancel);
-    Future.microtask(loadCurrent);
+    // Pull any message Radiance already has, then wake its cloud fetch. The
+    // explicit refresh matters when the native backend was already running or
+    // first-run account creation finished just after the initial local read.
+    Future.microtask(onForegrounded);
     return const UserMessageState();
   }
 
@@ -67,11 +70,24 @@ class UserMessageController extends Notifier<UserMessageState> {
 
   /// Pulls local state first, then asks Radiance to check the server again.
   Future<void> onForegrounded() async {
+    try {
+      await _repository.setActive(true);
+    } on Object {
+      // The next lifecycle transition will try again.
+    }
     await loadCurrent();
     try {
       await _repository.refresh();
     } on Object {
       // The normal Radiance poll will try again.
+    }
+  }
+
+  Future<void> onBackgrounded() async {
+    try {
+      await _repository.setActive(false);
+    } on Object {
+      // Radiance will keep its current activity state.
     }
   }
 

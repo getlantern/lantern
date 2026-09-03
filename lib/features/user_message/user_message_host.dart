@@ -76,6 +76,7 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
       unawaited(_controller.onForegrounded());
       _scheduleAttempt();
     } else {
+      unawaited(_controller.onBackgrounded());
       _dismissForUnsafeState();
     }
   }

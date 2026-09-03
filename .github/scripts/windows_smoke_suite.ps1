@@ -248,6 +248,103 @@ function Wait-ServiceRunning {
   throw "Windows service did not reach Running state"
 }
 
+function Assert-ServiceNonCrashRecoveryEnabled {
+  param([string]$Name)
+
+  Write-Step "Checking non-crash recovery configuration for $Name"
+  $output = & sc.exe qfailureflag $Name 2>&1
+  $exitCode = $LASTEXITCODE
+  if ($output) {
+    $output | ForEach-Object { Write-Host $_ }
+  }
+  if ($exitCode -ne 0) {
+    throw "Failed to query non-crash recovery configuration for $Name (exit code $exitCode)"
+  }
+
+  $configuration = $output -join [Environment]::NewLine
+  if ($configuration -notmatch '(?im)FAILURE_ACTIONS_ON_NONCRASH_FAILURES\s*:\s*(TRUE|1)\s*$') {
+    throw "Non-crash recovery actions are not enabled for $Name"
+  }
+}
+
+function Wait-ServiceChildProcess {
+  param(
+    [uint32]$ParentProcessId,
+    [string]$ProcessName,
+    [uint32]$ExcludedProcessId = 0,
+    [int]$TimeoutSeconds
+  )
+
+  for ($i = 0; $i -lt $TimeoutSeconds; $i++) {
+    $children = @(
+      Get-CimInstance Win32_Process -Filter "ParentProcessId = $ParentProcessId" -ErrorAction SilentlyContinue |
+        Where-Object {
+          $_.Name -ieq $ProcessName -and $_.ProcessId -ne $ExcludedProcessId
+        }
+    )
+    if ($children.Count -gt 0) {
+      return $children |
+        Sort-Object -Property CreationDate -Descending |
+        Select-Object -First 1
+    }
+    if ($i -gt 0 -and ($i % 5) -eq 0) {
+      Write-Step "Waiting for $ProcessName child under service process $ParentProcessId ($i/$TimeoutSeconds s)"
+    }
+    Start-Sleep -Seconds 1
+  }
+
+  throw "No $ProcessName child appeared under service process $ParentProcessId"
+}
+
+function Test-ServiceChildRecovery {
+  param(
+    [string]$Name,
+    [int]$TimeoutSeconds
+  )
+
+  Assert-ServiceNonCrashRecoveryEnabled -Name $Name
+
+  $serviceBefore = Get-CimInstance Win32_Service -Filter "Name='$Name'" -ErrorAction SilentlyContinue
+  if (-not $serviceBefore -or $serviceBefore.State -ne "Running" -or $serviceBefore.ProcessId -eq 0) {
+    throw "Windows service $Name is not running before child recovery smoke"
+  }
+
+  $serviceProcessId = [uint32]$serviceBefore.ProcessId
+  $serviceProcess = Get-CimInstance Win32_Process -Filter "ProcessId = $serviceProcessId" -ErrorAction SilentlyContinue
+  if (-not $serviceProcess) {
+    throw "Could not inspect Windows service process $serviceProcessId"
+  }
+
+  $childBefore = Wait-ServiceChildProcess `
+    -ParentProcessId $serviceProcessId `
+    -ProcessName $serviceProcess.Name `
+    -TimeoutSeconds $TimeoutSeconds
+  $childProcessId = [uint32]$childBefore.ProcessId
+  Write-Step "Killing daemon child $childProcessId under service host $serviceProcessId"
+  Stop-Process -Id $childProcessId -Force -ErrorAction Stop
+
+  $childAfter = Wait-ServiceChildProcess `
+    -ParentProcessId $serviceProcessId `
+    -ProcessName $serviceProcess.Name `
+    -ExcludedProcessId $childProcessId `
+    -TimeoutSeconds $TimeoutSeconds
+
+  Start-Sleep -Seconds 1
+  if (-not (Get-Process -Id $childAfter.ProcessId -ErrorAction SilentlyContinue)) {
+    throw "Replacement daemon child $($childAfter.ProcessId) exited during recovery smoke"
+  }
+
+  $serviceAfter = Get-CimInstance Win32_Service -Filter "Name='$Name'" -ErrorAction SilentlyContinue
+  if (-not $serviceAfter -or $serviceAfter.State -ne "Running") {
+    throw "Windows service $Name stopped after daemon child exit"
+  }
+  if ([uint32]$serviceAfter.ProcessId -ne $serviceProcessId) {
+    throw "Windows service host restarted after daemon child exit (before=$serviceProcessId after=$($serviceAfter.ProcessId))"
+  }
+
+  Write-Step "Daemon child respawned as $($childAfter.ProcessId); service host remained $serviceProcessId"
+}
+
 function Install-FromInstaller {
   param(
     [string]$Path,
@@ -325,6 +422,8 @@ try {
       -Description "Installing lanternd service from $resolvedServiceExe"
     Wait-ServiceRunning -Name $ServiceName -TimeoutSeconds $WaitSeconds
   }
+
+  Test-ServiceChildRecovery -Name $ServiceName -TimeoutSeconds $WaitSeconds
 
   if ($RunConnectSmoke) {
     Invoke-FlutterSmokeTest `
