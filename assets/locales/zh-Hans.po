@@ -1749,3 +1749,9 @@ msgstr "为此网站绕过 VPN？"
 
 msgid "bypass_website_first_time_body"
 msgstr "%s 将直接连接，不受蓝灯保护。如果它在您所在的国家/地区被封锁，可能会无法使用。"
+
+msgid "upsell_upgrade_suffix"
+msgstr "更快速度，无限数据！"
+
+msgid "upsell_expired_suffix"
+msgstr "您的 Pro 时长已到期"

@@ -200,12 +200,6 @@ void sharePrivateAccessKey(
   SharePlus.instance.share(ShareParams(text: urlString));
 }
 
-bool isSmallScreen(BuildContext context) {
-  //Iphone 12 mini Size(375.0, 812.0)
-  //Iphone 13      Size(390.0, 844.0)
-  return MediaQuery.of(context).size.width <= 380;
-}
-
 String getReferralMessage() {
   // Referral rewards are now a fixed 30 days for every plan. The existing
   // annual-plan key already has the correct one-month copy in every locale.

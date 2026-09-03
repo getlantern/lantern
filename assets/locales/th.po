@@ -1881,3 +1881,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern หากถูกบล็อกในประเทศของคุณ "
 "อาจใช้งานไม่ได้"
+
+msgid "upsell_upgrade_suffix"
+msgstr "เร็วขึ้น ข้อมูลไม่จำกัด!"
+
+msgid "upsell_expired_suffix"
+msgstr "เวลา Pro ของคุณหมดอายุแล้ว"
