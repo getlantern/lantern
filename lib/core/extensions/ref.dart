@@ -22,25 +22,19 @@ final isUserExpiredProvider = Provider<bool>((ref) {
 
 final userEmailProvider = Provider<String>((ref) {
   return ref.watch(
-    homeProvider.select(
-      (value) => value.value?.legacyUserData.email ?? '',
-    ),
+    homeProvider.select((value) => value.value?.legacyUserData.email ?? ''),
   );
 });
 
-/// Escalating renewal state for one-time Pro purchases (engineering#3845),
-/// derived from the same user data as [isUserProProvider]. Drives the home
-/// banner, the account expiration card, and the day-of popup.
+/// Nudges the user about their Pro renewal and shows the appropriate banner.
 final proRenewalProvider = Provider<ProRenewalInfo>((ref) {
   final user = ref.watch(
     homeProvider.select((value) => value.value?.legacyUserData),
   );
   if (user == null) return ProRenewalInfo.none;
 
-  // Only one-time purchases escalate; auto-renewing subscriptions renew on
-  // their own, so nagging would be wrong (and the store manages lapses).
-  // Note: expired users have isPro == false, so this check must not gate the
-  // expired branch below on isPro.
+  // Auto-renewing subscriptions renew on their own, so skip them. Everyone
+  // else (one-time purchases and canceled subscriptions) gets the nudge.
   if (user.subscriptionData.autoRenew) return ProRenewalInfo.none;
 
   if (user.isExpired) {
