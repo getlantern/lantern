@@ -181,6 +181,15 @@ type SmartRouting interface {
 type PeerShare interface {
 	SetPeerShareEnabled(bool) error
 	IsPeerShareEnabled() bool
+	// PeerStatusJSON reports the peer client's current lifecycle state as
+	// the same JSON the peer-status event carries.
+	//
+	// The event stream is edge-triggered, and the peer client resumes from
+	// persisted settings at process start — before the UI subscribes — so a
+	// UI that only listens can miss every transition and never learn that
+	// sharing is already running. This is how it reads the state instead of
+	// assuming one.
+	PeerStatusJSON() string
 	// SetPeerManualPort persists the user's manually-configured router
 	// port forward (Advanced setting in the Share My Connection UI).
 	// 0 clears the override, restoring UPnP-discovered port behavior.
@@ -616,6 +625,32 @@ func (lc *LanternCore) IsPeerShareEnabled() bool {
 	b, _ := lc.settings()[settings.PeerShareEnabledKey].(bool)
 	return b
 }
+
+// PeerStatusJSON returns the marshalled peer.Status, or "" if it cannot be
+// read. Empty rather than an error string or a synthesized "idle": a caller
+// that cannot tell "not sharing" from "could not ask" would render a
+// confident wrong answer, which is the failure this exists to remove.
+func (lc *LanternCore) PeerStatusJSON() string {
+	ctx, cancel := context.WithTimeout(lc.ctx, peerStatusTimeout)
+	defer cancel()
+
+	status, err := lc.client.PeerStatus(ctx)
+	if err != nil {
+		slog.Warn("could not read peer status", "error", err)
+		return ""
+	}
+	b, err := json.Marshal(status)
+	if err != nil {
+		slog.Error("marshal peer status", "error", err)
+		return ""
+	}
+	return string(b)
+}
+
+// peerStatusTimeout bounds the read. It is called on the UI's path to first
+// paint, so a hung daemon must degrade to "unknown" quickly rather than
+// blocking the screen.
+const peerStatusTimeout = 5 * time.Second
 
 func (lc *LanternCore) SetPeerManualPort(port int) error {
 	if port < 0 || port > 65535 {

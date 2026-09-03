@@ -8,8 +8,6 @@ go 1.26.2
 
 // replace github.com/sagernet/sing => github.com/getlantern/sing v0.7.18-lantern
 
-// replace github.com/getlantern/radiance => ../radiance
-
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.13.19-lantern
 
 // replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
@@ -32,7 +30,7 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260831110039-72113f2e5e90
+	github.com/getlantern/radiance v0.0.0-20260901154645-7fcba96d29a6
 	github.com/sagernet/sing-box v1.13.19
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.45.0

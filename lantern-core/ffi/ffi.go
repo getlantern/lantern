@@ -1475,6 +1475,31 @@ func getPeerManualPort() C.int {
 	return C.int(c.GetPeerManualPort())
 }
 
+// getPeerStatusJSON returns the peer client's current lifecycle state as a
+// marshalled peer.Status.
+//
+// The peer-status event bus is edge-triggered on this in-process path: it
+// carries transitions with no snapshot on subscribe. Peer sharing resumes
+// from persisted settings at process start, before the UI is listening, so
+// a UI built purely on events never learns sharing is already running and
+// renders whatever it assumed at startup. This lets it ask.
+//
+// Returns the house `{"error":...}` envelope when the core is not up, and
+// "" when the status could not be read. Callers MUST treat both as "could
+// not ask" and leave their existing state alone — synthesizing an idle
+// status here would reintroduce the confident-wrong-answer this removes.
+//
+//export getPeerStatusJSON
+func getPeerStatusJSON() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		return C.CString(c.PeerStatusJSON())
+	})
+}
+
 // probeUPnP runs the UPnP / IGD discovery scan against the local
 // gateway and returns 1 when discovery succeeds, 0 when it doesn't
 // (no gateway, scan timeout, ctx cancellation). The Share My

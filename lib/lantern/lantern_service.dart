@@ -870,6 +870,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> getPeerStatusJSON() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getPeerStatusJSON();
+    }
+    return _platformService.getPeerStatusJSON();
+  }
+
+  @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.setUnboundedEnabled(enabled);

@@ -3127,6 +3127,228 @@ class LanternBindings {
   late final _startRecoveryByEmail = _startRecoveryByEmailPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> addSplitTunnelItem(
+    ffi.Pointer<ffi.Char> filterTypeC,
+    ffi.Pointer<ffi.Char> itemC,
+  ) {
+    return _addSplitTunnelItem(filterTypeC, itemC);
+  }
+
+  late final _addSplitTunnelItemPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('addSplitTunnelItem');
+  late final _addSplitTunnelItem = _addSplitTunnelItemPtr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
+  ffi.Pointer<ffi.Char> removeSplitTunnelItem(
+    ffi.Pointer<ffi.Char> filterTypeC,
+    ffi.Pointer<ffi.Char> itemC,
+  ) {
+    return _removeSplitTunnelItem(filterTypeC, itemC);
+  }
+
+  late final _removeSplitTunnelItemPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('removeSplitTunnelItem');
+  late final _removeSplitTunnelItem = _removeSplitTunnelItemPtr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
+  ffi.Pointer<ffi.Char> setSplitTunnelingEnabled(int enabled) {
+    return _setSplitTunnelingEnabled(enabled);
+  }
+
+  late final _setSplitTunnelingEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+        'setSplitTunnelingEnabled',
+      );
+  late final _setSplitTunnelingEnabled = _setSplitTunnelingEnabledPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
+  int isSplitTunnelingEnabled() {
+    return _isSplitTunnelingEnabled();
+  }
+
+  late final _isSplitTunnelingEnabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>(
+        'isSplitTunnelingEnabled',
+      );
+  late final _isSplitTunnelingEnabled = _isSplitTunnelingEnabledPtr
+      .asFunction<int Function()>();
+
+  ffi.Pointer<ffi.Char> loadInstalledApps(ffi.Pointer<ffi.Char> dataDir) {
+    return _loadInstalledApps(dataDir);
+  }
+
+  late final _loadInstalledAppsPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+        >
+      >('loadInstalledApps');
+  late final _loadInstalledApps = _loadInstalledAppsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> loadInstalledAppIcon(
+    ffi.Pointer<ffi.Char> appPathC,
+    ffi.Pointer<ffi.Char> iconPathC,
+  ) {
+    return _loadInstalledAppIcon(appPathC, iconPathC);
+  }
+
+  late final _loadInstalledAppIconPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('loadInstalledAppIcon');
+  late final _loadInstalledAppIcon = _loadInstalledAppIconPtr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
+  ffi.Pointer<ffi.Char> getDataCapInfo() {
+    return _getDataCapInfo();
+  }
+
+  late final _getDataCapInfoPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getDataCapInfo',
+      );
+  late final _getDataCapInfo = _getDataCapInfoPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> reportIssue(
+    ffi.Pointer<ffi.Char> emailC,
+    ffi.Pointer<ffi.Char> typeC,
+    ffi.Pointer<ffi.Char> descC,
+    ffi.Pointer<ffi.Char> deviceC,
+    ffi.Pointer<ffi.Char> modelC,
+    ffi.Pointer<ffi.Char> logPathC,
+    ffi.Pointer<ffi.Char> attachmentsJSONC,
+  ) {
+    return _reportIssue(
+      emailC,
+      typeC,
+      descC,
+      deviceC,
+      modelC,
+      logPathC,
+      attachmentsJSONC,
+    );
+  }
+
+  late final _reportIssuePtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('reportIssue');
+  late final _reportIssue = _reportIssuePtr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
+  ffi.Pointer<ffi.Char> getPeerStatusJSON() {
+    return _getPeerStatusJSON();
+  }
+
+  late final _getPeerStatusJSONPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getPeerStatusJSON',
+      );
+  late final _getPeerStatusJSON = _getPeerStatusJSONPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> getSelectedServerJSON() {
+    return _getSelectedServerJSON();
+  }
+
+  late final _getSelectedServerJSONPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getSelectedServerJSON',
+      );
+  late final _getSelectedServerJSON = _getSelectedServerJSONPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> getAutoLocation() {
+    return _getAutoLocation();
+  }
+
+  late final _getAutoLocationPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getAutoLocation',
+      );
+  late final _getAutoLocation = _getAutoLocationPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<ffi.Char> isTagAvailable(ffi.Pointer<ffi.Char> _tag) {
+    return _isTagAvailable(_tag);
+  }
+
+  late final _isTagAvailablePtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+        >
+      >('isTagAvailable');
+  late final _isTagAvailable = _isTagAvailablePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> getAvailableServers() {
+    return _getAvailableServers();
+  }
+
+  late final _getAvailableServersPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getAvailableServers',
+      );
+  late final _getAvailableServers = _getAvailableServersPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> startVPN() {
     return _startVPN();
   }
