@@ -79,9 +79,11 @@ DateTime _toLocalDate(int unixSeconds) => DateTime.fromMillisecondsSinceEpoch(
 /// Calendar days from today until [end]: 0 on the last day, negative once
 /// past it.
 int _daysFromToday(DateTime end) {
+  // UTC date-only values keep the difference an exact multiple of 24h;
+  // local midnights can be 23/25h apart across DST transitions.
   final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  return DateTime(end.year, end.month, end.day).difference(today).inDays;
+  final today = DateTime.utc(now.year, now.month, now.day);
+  return DateTime.utc(end.year, end.month, end.day).difference(today).inDays;
 }
 
 final isPrivateServerFoundProvider = Provider<bool>((ref) {
