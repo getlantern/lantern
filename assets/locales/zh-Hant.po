@@ -1753,3 +1753,9 @@ msgstr "為此網站繞過 VPN？"
 
 msgid "bypass_website_first_time_body"
 msgstr "%s 將直接連線，不受 Lantern 保護。如果它在你所在的國家/地區被封鎖，可能會無法使用。"
+
+msgid "upsell_upgrade_suffix"
+msgstr "更快速度，無限數據！"
+
+msgid "upsell_expired_suffix"
+msgstr "您的 Pro 時長已到期"

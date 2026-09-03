@@ -52,10 +52,14 @@ class SettingTile extends StatelessWidget {
                   child: icon is String ? AppImage(path: icon) : icon as Widget,
                 ),
                 SizedBox(width: 8),
-                Text(
-                  label,
-                  style: textTheme.labelLarge!.copyWith(
-                    color: context.textSecondary,
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.labelLarge!.copyWith(
+                      color: context.textSecondary,
+                    ),
                   ),
                 ),
               ],

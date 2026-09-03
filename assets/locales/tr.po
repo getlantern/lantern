@@ -1913,3 +1913,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s, Lantern'in koruması olmadan doğrudan bağlanacak. Ülkenizde engelliyse "
 "çalışmayı durdurabilir."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Daha hızlı, sınırsız veri!"
+
+msgid "upsell_expired_suffix"
+msgstr "Pro süreniz doldu"

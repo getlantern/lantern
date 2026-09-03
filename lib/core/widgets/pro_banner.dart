@@ -18,7 +18,11 @@ class ProBanner extends HookConsumerWidget {
     // Small screens get the compact one-line
     // pill upsell instead of the full banner.
     if (isSmallScreen(context)) {
-      return _CompactProBanner(isExpired: isExpired, topMargin: topMargin);
+      return _CompactProBanner(
+        isExpired: isExpired,
+        topMargin: topMargin,
+        title: title,
+      );
     }
     return Container(
       margin: EdgeInsets.only(top: topMargin),
@@ -62,10 +66,15 @@ class ProBanner extends HookConsumerWidget {
 /// node 2854-13197). Expired swaps to the status/error palette; the whole
 /// pill opens Plans.
 class _CompactProBanner extends StatelessWidget {
-  const _CompactProBanner({required this.isExpired, required this.topMargin});
+  const _CompactProBanner({
+    required this.isExpired,
+    required this.topMargin,
+    this.title,
+  });
 
   final bool isExpired;
   final double topMargin;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +120,7 @@ class _CompactProBanner extends StatelessWidget {
                         ),
                         TextSpan(
                           text:
-                              ' - ${isExpired ? 'upsell_expired_suffix'.i18n : 'upsell_upgrade_suffix'.i18n}',
+                              ' - ${isExpired ? 'upsell_expired_suffix'.i18n : title ?? 'upsell_upgrade_suffix'.i18n}',
                         ),
                       ],
                     ),

@@ -1914,3 +1914,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s مستقیماً و بدون محافظت Lantern متصل می‌شود. اگر در کشور شما مسدود باشد، "
 "ممکن است از کار بیفتد."
+
+msgid "upsell_upgrade_suffix"
+msgstr "سریع‌تر، داده نامحدود!"
+
+msgid "upsell_expired_suffix"
+msgstr "زمان Pro شما منقضی شده است"
