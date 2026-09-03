@@ -349,6 +349,17 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, String>> getPeerStatusJSON() async {
+    try {
+      final res = await _methodChannel.invokeMethod<String>('getPeerStatus');
+      return right(res ?? '');
+    } catch (e, st) {
+      appLogger.error('getPeerStatusJSON failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
   // Unbounded toggle wired through MethodChannel to the platform-specific
   // handler. macOS / iOS Swift and Android Kotlin each delegate to
   // Mobile.SetUnboundedEnabled via the gomobile binding.
@@ -989,6 +1000,26 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: (e as Exception).localizedDescription,
         ),
       );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
+    String token,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod<String>(
+        'oauthDeviceLimitCallback',
+        token,
+      );
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error handling OAuth device-limit callback',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
     }
   }
 

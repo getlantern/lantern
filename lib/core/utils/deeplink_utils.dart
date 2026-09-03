@@ -1,3 +1,10 @@
+/// An OAuth callback query carries either a `token` (login succeeded) or a
+/// `result` flag (`result=false` plus the account's device[...] list when the
+/// login hit the device limit).
+bool isOAuthCallbackResult(Uri uri) =>
+    uri.queryParameters.containsKey('token') ||
+    uri.queryParameters.containsKey('result');
+
 class DeepLinkCallbackManager {
   static final DeepLinkCallbackManager _instance =
       DeepLinkCallbackManager._internal();

@@ -92,6 +92,19 @@ abstract class LanternCoreService {
   /// Returns the persisted manual port (0 if unset).
   Future<Either<Failure, int>> getPeerManualPort();
 
+  /// Reads the peer client's current lifecycle state as a marshalled
+  /// radiance peer.Status.
+  ///
+  /// The peer-status event stream is edge-triggered on the in-process
+  /// path: transitions only, no snapshot on subscribe. Peer sharing
+  /// resumes from persisted settings before the UI is listening, so a UI
+  /// built purely on events never learns sharing is already running.
+  ///
+  /// Returns an empty string when the status could not be read. Callers
+  /// MUST treat that as "could not ask" and leave existing state alone
+  /// rather than synthesizing an idle status.
+  Future<Either<Failure, String>> getPeerStatusJSON();
+
   /// Local opt-in for the broflake / Unbounded widget proxy ("Basic
   /// mode" in the Share My Connection UI). Actual run state also
   /// depends on server feature-flag and config availability.
@@ -214,6 +227,11 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
 
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token);
+
+  /// Loads the account identity from a device-limit OAuth callback token so
+  /// the follow-up device removal authenticates as that account, without
+  /// logging the user in.
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token);
 
   Future<Either<Failure, Unit>> activationCode({
     required String email,

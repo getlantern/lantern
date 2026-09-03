@@ -63,6 +63,12 @@ class MethodHandler {
         }
         self.oauthLoginCallback(result: result, token: token)
 
+      case "oauthDeviceLimitCallback":
+        guard let token: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.oauthDeviceLimitCallback(result: result, token: token)
+
       case "getUserData":
         self.getUserData(result: result)
 
@@ -309,6 +315,21 @@ class MethodHandler {
           await MainActor.run { result(Int(MobileGetPeerManualPort())) }
         }
 
+      // Returns the marshalled radiance peer.Status, or "" when it could
+      // not be read. The peer-status event stream carries transitions
+      // only, and peer sharing resumes from persisted settings before the
+      // UI is listening, so the UI needs to be able to ask outright.
+      //
+      // Detached like probeUPnP: this is an IPC round-trip bounded by a 5s
+      // Go-side timeout, and the caller runs it from a post-frame callback
+      // at first paint. Evaluating it on the main actor would stall
+      // rendering for as long as the daemon takes to answer.
+      case "getPeerStatus":
+        Task.detached {
+          let status = MobileGetPeerStatus()
+          await MainActor.run { result(status) }
+        }
+
       case "setUnboundedEnabled":
         guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
         self.setUnboundedEnabled(result: result, enabled: enabled)
@@ -536,6 +557,18 @@ class MethodHandler {
         // string back to Data to preserve the Flutter contract.
         result(json.data(using: .utf8))
       }
+    }
+  }
+
+  private func oauthDeviceLimitCallback(result: @escaping FlutterResult, token: String) {
+    Task {
+      var error: NSError?
+      MobileOAuthDeviceLimitCallback(token, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "OAUTH_DEVICE_LIMIT_CALLBACK")
+        return
+      }
+      await self.replyOK(result)
     }
   }
 

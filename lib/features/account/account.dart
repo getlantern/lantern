@@ -67,11 +67,11 @@ class Account extends HookConsumerWidget {
               textStyle: theme.labelLarge!.copyWith(
                 color: buildContext.statusErrorText,
               ),
-              text: 'pro_subscription_expired_message'.i18n,
+              text: 'pro_time_expired_message'.i18n,
             ),
             SizedBox(height: defaultSize),
             ProButton(
-              label: 'renew_pro_subscription'.i18n,
+              label: 'renew_pro'.i18n,
               onPressed: () {
                 appRouter.push(Plans());
               },
@@ -115,7 +115,7 @@ class Account extends HookConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(left: 16),
               child: Text(
-                'last_subscription_renewal_date'.i18n,
+                'pro_account_expiration'.i18n,
                 style: theme.labelLarge!.copyWith(
                   color: buildContext.textSecondary,
                 ),
@@ -133,17 +133,7 @@ class Account extends HookConsumerWidget {
                 ),
               ),
             ),
-          if (!isUserFree)
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: AppTile(
-                label: user!.legacyUserData.toDate(),
-                subtitle: _planSubtitle(user, buildContext, theme),
-                contentPadding: EdgeInsets.only(left: 16),
-                icon: AppImagePaths.autoRenew,
-                trailing: planTrailingWidget(user, buildContext, ref),
-              ),
-            ),
+          if (!isUserFree) _expirationCard(user!, buildContext, theme, ref),
           if (isPro && user!.legacyUserData.devices.toList().isNotEmpty) ...[
             SizedBox(height: defaultSize),
             Padding(
@@ -184,6 +174,80 @@ class Account extends HookConsumerWidget {
           ),
           SizedBox(height: size24),
         ],
+      ),
+    );
+  }
+
+  /// Pro Account Expiration card. For one-time purchases approaching their
+  /// end date it escalates per engineering#3845: amber at 7–1 days left, red
+  /// on the last day. Otherwise it's the plain card (including expired, whose
+  /// alert lives at the top of the screen).
+  Widget _expirationCard(
+    UserResponseModel user,
+    BuildContext buildContext,
+    TextTheme theme,
+    WidgetRef ref,
+  ) {
+    final renewal = ref.watch(proRenewalProvider);
+    final isWithinWeek = renewal.state == ProRenewalState.withinWeek;
+    final isLastDay = renewal.state == ProRenewalState.expiresToday;
+
+    if (!isWithinWeek && !isLastDay) {
+      return AppCard(
+        padding: EdgeInsets.zero,
+        child: AppTile(
+          label: user.legacyUserData.toDate(),
+          subtitle: _planSubtitle(user, buildContext, theme),
+          contentPadding: EdgeInsets.only(left: 16),
+          icon: AppImagePaths.autoRenew,
+          trailing: planTrailingWidget(user, buildContext, ref),
+        ),
+      );
+    }
+
+    final contentColor = isLastDay
+        ? buildContext.statusErrorText
+        : buildContext.textPrimary;
+    final subtitle = isLastDay
+        ? 'expires_today'.i18n
+        : renewal.daysLeft == 1
+        ? 'one_day_left'.i18n
+        : 'days_left'.i18n.fill([renewal.daysLeft]);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isLastDay ? buildContext.statusErrorBg : buildContext.bgPromo,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isLastDay
+              ? buildContext.statusErrorBorder
+              : buildContext.borderPromo,
+        ),
+      ),
+      child: AppTile(
+        label: user.legacyUserData.toDate(),
+        tileTextStyle: theme.labelLarge!.copyWith(
+          color: contentColor,
+          fontSize: 16,
+        ),
+        subtitle: Text(
+          subtitle,
+          style: theme.labelMedium!.copyWith(
+            color: isLastDay
+                ? buildContext.statusErrorText
+                : buildContext.textSecondary,
+          ),
+        ),
+        contentPadding: EdgeInsets.only(left: 16),
+        icon: Icon(
+          Icons.calendar_today_outlined,
+          size: 24,
+          color: contentColor,
+        ),
+        trailing: AppTextButton(
+          label: 'renew_pro'.i18n,
+          onPressed: onRenewTap,
+        ),
       ),
     );
   }
