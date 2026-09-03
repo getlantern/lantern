@@ -159,6 +159,13 @@ class Home extends HookConsumerWidget {
 
     ref.read(appEventProvider);
 
+    // Reconcile the share UI with the backend before anything reads its
+    // state. Peer sharing resumes from persisted settings at process start,
+    // and the peer-status stream is edge-triggered, so without asking
+    // outright the UI opens at mode=off while SmC is already serving.
+    // Deliberately not gated on unboundedAutoEnable: the point is to reflect
+    // what is running, which has nothing to do with the auto-start
+    // preference.
     // Auto-enable Unbounded — gated on the "Auto-enable Unbounded"
     // toggle from Unbounded Settings (opt-in, default off) AND the per-user
     // "Hide Unbounded" toggle. Hiding the tab is the opt-out: a user
@@ -166,16 +173,31 @@ class Home extends HookConsumerWidget {
     // the background. Fires from two entry points so the spec's
     // subtitle "Turn on automatically when Lantern is open" is
     // honoured whether the user connects the VPN or not:
-    //   1. App launch (useEffect below) — once on Home mount.
+    //   1. App launch (this useEffect) — once on Home mount.
     //   2. VPN connect (ref.listen further down) — on every
     //      disconnected → connected transition, in case the toggle
     //      flipped on after launch or the user finally connects.
     // Both paths gate on (active || probing) to avoid re-triggering
     // while a Start is in flight, and skip the disclosure dialog
     // because the user has already opted in via settings.
+    //
+    // The reconciliation must complete before that gate is read, which is
+    // why these are one sequential callback rather than two. Peer sharing
+    // resumes from persisted settings at process start and the peer-status
+    // stream is edge-triggered, so until the UI asks outright it believes
+    // mode=off. Evaluating (active || probing) against that would start
+    // Unbounded on top of an SmC session that is already serving.
     useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // Home can be torn down before the frame settles, and again while
+        // the reconciliation is in flight; reading a disposed scope throws.
+        // Same guard the other post-frame callbacks in this file use.
+        if (!context.mounted) return;
         if (!unboundedAvailable) return;
+        // Not gated on unboundedAutoEnable: reflecting what is actually
+        // running has nothing to do with the auto-start preference.
+        await ref.read(shareProvider.notifier).syncFromBackend(ref);
+        if (!context.mounted) return;
         final appSetting = ref.read(appSettingProvider);
         if (appSetting.unboundedHidden) return;
         if (!appSetting.onboardingCompleted) return;

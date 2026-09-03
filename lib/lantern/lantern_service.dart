@@ -319,6 +319,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.oAuthDeviceLimitCallback(token);
+    }
+    return _platformService.oAuthDeviceLimitCallback(token);
+  }
+
+  @override
   Future<Either<Failure, UserResponseModel>> getUserData() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getUserData();
@@ -859,6 +867,14 @@ class LanternService implements LanternCoreService {
       return _ffiService.getPeerManualPort();
     }
     return _platformService.getPeerManualPort();
+  }
+
+  @override
+  Future<Either<Failure, String>> getPeerStatusJSON() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getPeerStatusJSON();
+    }
+    return _platformService.getPeerStatusJSON();
   }
 
   @override
