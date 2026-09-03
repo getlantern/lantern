@@ -367,9 +367,9 @@ jobs:
             # These are forwarded by Flutter to xcodebuild. The resulting app
             # is suitable only for manual staging tests and never receives a
             # Developer ID signature or notarization ticket.
-            export CODE_SIGNING_ALLOWED=NO
-            export CODE_SIGNING_REQUIRED=NO
-            export CODE_SIGN_IDENTITY=""
+            export FLUTTER_XCODE_CODE_SIGNING_ALLOWED=NO
+            export FLUTTER_XCODE_CODE_SIGNING_REQUIRED=NO
+            export FLUTTER_XCODE_CODE_SIGN_IDENTITY=""
 
             case "$FLUTTER_BUILD_MODE" in
               release) make macos pubget gen build-macos-release package-macos ;;
