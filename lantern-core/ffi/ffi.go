@@ -754,6 +754,25 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 	})
 }
 
+// oAuthDeviceLimitCallback loads the account identity from a device-limit
+// OAuth callback token so the follow-up device removal authenticates as that
+// account, without logging the user in.
+//
+//export oAuthDeviceLimitCallback
+func oAuthDeviceLimitCallback(_oAuthToken *C.char) *C.char {
+	oAuthToken := C.GoString(_oAuthToken)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.OAuthDeviceLimitCallback(oAuthToken); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
 // User management
 //
 // login is called when the user logs in with email and password.

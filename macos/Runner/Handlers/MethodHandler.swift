@@ -75,6 +75,12 @@ class MethodHandler {
         }
         self.oauthLoginCallback(result: result, token: token)
 
+      case "oauthDeviceLimitCallback":
+        guard let token: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.oauthDeviceLimitCallback(result: result, token: token)
+
       case "getUserData":
         self.getUserData(result: result)
 
@@ -700,6 +706,18 @@ class MethodHandler {
         // string back to Data to preserve the Flutter contract.
         result(json.data(using: .utf8))
       }
+    }
+  }
+
+  private func oauthDeviceLimitCallback(result: @escaping FlutterResult, token: String) {
+    Task {
+      var error: NSError?
+      MobileOAuthDeviceLimitCallback(token, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "OAUTH_DEVICE_LIMIT_CALLBACK")
+        return
+      }
+      await self.replyOK(result)
     }
   }
 
