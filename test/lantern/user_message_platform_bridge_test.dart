@@ -54,13 +54,20 @@ void main() {
         (failure) => fail('acknowledgment failed: $failure'),
         (_) {},
       );
+      final activity = await service.setUserMessageActivity(false);
+      activity.fold(
+        (failure) => fail('activity update failed: $failure'),
+        (_) {},
+      );
 
       expect(calls.map((call) => call.method), [
         'currentUserMessage',
         'refreshUserMessages',
         'acknowledgeUserMessage',
+        'setUserMessageActivity',
       ]);
-      expect(calls.last.arguments, 'campaign-1:generation-2');
+      expect(calls[2].arguments, 'campaign-1:generation-2');
+      expect(calls.last.arguments, isFalse);
     },
   );
 }

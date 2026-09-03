@@ -29,6 +29,7 @@ void main() {
 
     expect(container.read(userMessageControllerProvider).pending, same(first));
     expect(repository.refreshCalls, 1);
+    expect(repository.activity, [true]);
 
     final second = testUserMessage(displayId: 'campaign-2:generation-1');
     repository.currentMessage = second;
@@ -96,6 +97,18 @@ void main() {
         same(message),
       );
       expect(repository.refreshCalls, 1);
+      expect(repository.activity.last, isTrue);
     },
   );
+
+  test('pauses polling while backgrounded', () async {
+    container.read(userMessageControllerProvider);
+    await pumpProviderQueue();
+
+    await container
+        .read(userMessageControllerProvider.notifier)
+        .onBackgrounded();
+
+    expect(repository.activity, [true, false]);
+  });
 }

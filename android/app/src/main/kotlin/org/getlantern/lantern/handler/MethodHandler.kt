@@ -58,6 +58,7 @@ enum class Methods(val method: String) {
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
     OAuthLoginCallback("oauthLoginCallback"),
+    OAuthDeviceLimitCallback("oauthDeviceLimitCallback"),
 
     //Forgot password
     StartRecoveryByEmail("startRecoveryByEmail"),
@@ -130,6 +131,7 @@ enum class Methods(val method: String) {
     CurrentUserMessage("currentUserMessage"),
     RefreshUserMessages("refreshUserMessages"),
     AcknowledgeUserMessage("acknowledgeUserMessage"),
+    SetUserMessageActivity("setUserMessageActivity"),
     UpdateTelemetryEvents("updateTelemetryEvents"),
     InstallSideloadUpdate("installSideloadUpdate"),
 
@@ -142,6 +144,7 @@ enum class Methods(val method: String) {
     IsPeerProxyEnabled("isPeerProxyEnabled"),
     SetPeerManualPort("setPeerManualPort"),
     GetPeerManualPort("getPeerManualPort"),
+    GetPeerStatus("getPeerStatus"),
     SetUnboundedEnabled("setUnboundedEnabled"),
     IsUnboundedEnabled("isUnboundedEnabled"),
     ProbeUPnP("probeUPnP"),
@@ -597,6 +600,24 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.OAuthDeviceLimitCallback.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val token = call.arguments<String>()
+                        Mobile.oAuthDeviceLimitCallback(token)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthDeviceLimitCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
             Methods.GetUserData.method -> {
                 scope.launch {
                     result.runCatching {
@@ -688,6 +709,15 @@ class MethodHandler : FlutterPlugin,
                     }
                     require(displayID.isNotBlank()) { "Missing display ID" }
                     Mobile.acknowledgeUserMessage(displayID)
+                }
+            }
+
+            Methods.SetUserMessageActivity.method -> {
+                scope.handleResult(result, "set_user_message_activity") {
+                    val active = requireNotNull(call.arguments<Boolean>()) {
+                        "Missing activity state"
+                    }
+                    Mobile.setUserMessageActivity(active)
                 }
             }
 
@@ -1367,6 +1397,17 @@ class MethodHandler : FlutterPlugin,
             Methods.GetPeerManualPort.method -> {
                 scope.handleValue(result, "get_peer_manual_port") {
                     Mobile.getPeerManualPort().toInt()
+                }
+            }
+
+            // Returns the marshalled radiance peer.Status, or "" when it
+            // could not be read. The peer-status event stream carries
+            // transitions only, and peer sharing resumes from persisted
+            // settings before the UI is listening, so the UI needs to be
+            // able to ask outright.
+            Methods.GetPeerStatus.method -> {
+                scope.handleValue(result, "get_peer_status") {
+                    Mobile.getPeerStatus()
                 }
             }
 

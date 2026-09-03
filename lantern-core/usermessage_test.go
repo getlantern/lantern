@@ -17,10 +17,18 @@ type fakeUserMessageClient struct {
 	currentErr   error
 	refreshCount int
 	acknowledged string
+	activity     []bool
+	eventCount   int
 }
 
 func (f *fakeUserMessageClient) CurrentUserMessage(context.Context) (*wire.ResolvedUserMessage, error) {
 	return f.message, f.currentErr
+}
+
+func (f *fakeUserMessageClient) UserMessageEvents(_ context.Context, handler func()) error {
+	f.eventCount++
+	handler()
+	return nil
 }
 
 func (f *fakeUserMessageClient) RefreshUserMessages(context.Context) error {
@@ -30,6 +38,11 @@ func (f *fakeUserMessageClient) RefreshUserMessages(context.Context) error {
 
 func (f *fakeUserMessageClient) AcknowledgeUserMessage(_ context.Context, displayID string) error {
 	f.acknowledged = displayID
+	return nil
+}
+
+func (f *fakeUserMessageClient) SetUserMessageActivity(_ context.Context, active bool) error {
+	f.activity = append(f.activity, active)
 	return nil
 }
 
@@ -69,6 +82,12 @@ func TestUserMessageBridge(t *testing.T) {
 	if err := lc.AcknowledgeUserMessage(""); err == nil {
 		t.Fatal("expected empty display ID to fail")
 	}
+	if err := lc.SetUserMessageActivity(false); err != nil {
+		t.Fatal(err)
+	}
+	if len(client.activity) != 1 || client.activity[0] {
+		t.Fatalf("unexpected activity updates: %v", client.activity)
+	}
 }
 
 func TestUserMessageCapabilities(t *testing.T) {
@@ -97,7 +116,7 @@ func TestCurrentUserMessageNullAndError(t *testing.T) {
 	}
 }
 
-func TestUserMessageAvailabilityEventIsPayloadFreeAndDeduplicated(t *testing.T) {
+func TestUserMessageAvailabilityEventIsPayloadFree(t *testing.T) {
 	client := &fakeUserMessageClient{message: testResolvedUserMessage()}
 	emitter := &recordingFlutterEmitter{}
 	lc := &LanternCore{
@@ -106,22 +125,15 @@ func TestUserMessageAvailabilityEventIsPayloadFreeAndDeduplicated(t *testing.T) 
 		eventEmitter: emitter,
 	}
 
-	lastDisplayID := ""
-	lc.checkUserMessageAvailability(&lastDisplayID)
-	lc.checkUserMessageAvailability(&lastDisplayID)
+	lc.listenUserMessageAvailability()
 	if len(emitter.events) != 1 {
 		t.Fatalf("got %d events", len(emitter.events))
 	}
 	if emitter.events[0].Type != EventTypeUserMessageAvailable || emitter.events[0].Message != "" {
 		t.Fatalf("unexpected event: %#v", emitter.events[0])
 	}
-
-	client.message = nil
-	lc.checkUserMessageAvailability(&lastDisplayID)
-	client.message = testResolvedUserMessage()
-	lc.checkUserMessageAvailability(&lastDisplayID)
-	if len(emitter.events) != 2 {
-		t.Fatalf("got %d events after pending reset", len(emitter.events))
+	if client.eventCount != 1 {
+		t.Fatalf("got %d event subscriptions", client.eventCount)
 	}
 }
 

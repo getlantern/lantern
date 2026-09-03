@@ -79,5 +79,8 @@ class _FakeRadianceMessageSource implements UserMessageRepository {
   @override
   Future<void> refresh() async {}
 
+  @override
+  Future<void> setActive(bool active) async {}
+
   Future<void> dispose() => _events.close();
 }

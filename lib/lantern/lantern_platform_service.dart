@@ -136,6 +136,16 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) async {
+    try {
+      await _methodChannel.invokeMethod<void>('setUserMessageActivity', active);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
   Future<void> waitForRadiance() async {
     await _methodChannel.invokeMethod<void>('waitForRadiance');
   }
@@ -381,6 +391,17 @@ class LanternPlatformService implements LanternCoreService {
       return right(res ?? 0);
     } catch (e, st) {
       appLogger.error('getPeerManualPort failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getPeerStatusJSON() async {
+    try {
+      final res = await _methodChannel.invokeMethod<String>('getPeerStatus');
+      return right(res ?? '');
+    } catch (e, st) {
+      appLogger.error('getPeerStatusJSON failed', e, st);
       return Left(e.toFailure());
     }
   }
@@ -1025,6 +1046,26 @@ class LanternPlatformService implements LanternCoreService {
           localizedErrorMessage: (e as Exception).localizedDescription,
         ),
       );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
+    String token,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod<String>(
+        'oauthDeviceLimitCallback',
+        token,
+      );
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error handling OAuth device-limit callback',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
     }
   }
 

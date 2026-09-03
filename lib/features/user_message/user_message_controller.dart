@@ -70,11 +70,24 @@ class UserMessageController extends Notifier<UserMessageState> {
 
   /// Pulls local state first, then asks Radiance to check the server again.
   Future<void> onForegrounded() async {
+    try {
+      await _repository.setActive(true);
+    } on Object {
+      // The next lifecycle transition will try again.
+    }
     await loadCurrent();
     try {
       await _repository.refresh();
     } on Object {
       // The normal Radiance poll will try again.
+    }
+  }
+
+  Future<void> onBackgrounded() async {
+    try {
+      await _repository.setActive(false);
+    } on Object {
+      // Radiance will keep its current activity state.
     }
   }
 

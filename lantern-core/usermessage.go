@@ -11,15 +11,16 @@ import (
 )
 
 const (
-	currentUserMessageNull          = "null"
-	userMessageAvailabilityInterval = 5 * time.Second
-	userMessageIPCRequestTimeout    = 10 * time.Second
+	currentUserMessageNull       = "null"
+	userMessageIPCRequestTimeout = 10 * time.Second
 )
 
 type userMessageClient interface {
 	CurrentUserMessage(context.Context) (*wire.ResolvedUserMessage, error)
+	UserMessageEvents(context.Context, func()) error
 	RefreshUserMessages(context.Context) error
 	AcknowledgeUserMessage(context.Context, string) error
+	SetUserMessageActivity(context.Context, bool) error
 }
 
 // CurrentUserMessage returns the pending message as common-contract JSON. It
@@ -68,40 +69,21 @@ func (lc *LanternCore) AcknowledgeUserMessage(displayID string) error {
 	return lc.userMessages.AcknowledgeUserMessage(ctx, displayID)
 }
 
-func (lc *LanternCore) listenUserMessageAvailability() {
-	ticker := time.NewTicker(userMessageAvailabilityInterval)
-	defer ticker.Stop()
-
-	lastDisplayID := ""
-	lc.checkUserMessageAvailability(&lastDisplayID)
-	for {
-		select {
-		case <-lc.ctx.Done():
-			return
-		case <-ticker.C:
-			lc.checkUserMessageAvailability(&lastDisplayID)
-		}
+// SetUserMessageActivity pauses or resumes message polling for the app lifecycle.
+func (lc *LanternCore) SetUserMessageActivity(active bool) error {
+	if lc.userMessages == nil {
+		return errors.New("user-message subsystem is not initialized")
 	}
-}
-
-// This only polls the local Radiance bridge; Radiance still owns cloud polling.
-// Tracking the display ID lets us notify Flutter without putting message copy
-// on the event channel.
-func (lc *LanternCore) checkUserMessageAvailability(lastDisplayID *string) {
 	ctx, cancel := context.WithTimeout(lc.ctx, userMessageIPCRequestTimeout)
 	defer cancel()
-	message, err := lc.userMessages.CurrentUserMessage(ctx)
-	if err != nil {
-		slog.Debug("Unable to inspect pending user message", "error", err)
-		return
+	return lc.userMessages.SetUserMessageActivity(ctx, active)
+}
+
+func (lc *LanternCore) listenUserMessageAvailability() {
+	err := lc.userMessages.UserMessageEvents(lc.ctx, func() {
+		lc.notifyFlutter(EventTypeUserMessageAvailable, "")
+	})
+	if err != nil && !errors.Is(err, context.Canceled) {
+		slog.Debug("User-message event stream ended", "error", err)
 	}
-	if message == nil {
-		*lastDisplayID = ""
-		return
-	}
-	if message.DisplayID == *lastDisplayID {
-		return
-	}
-	*lastDisplayID = message.DisplayID
-	lc.notifyFlutter(EventTypeUserMessageAvailable, "")
 }

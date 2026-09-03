@@ -11,6 +11,7 @@ class FakeUserMessageRepository implements UserMessageRepository {
   Object? acknowledgeError;
   int currentCalls = 0;
   int refreshCalls = 0;
+  final activity = <bool>[];
   final acknowledged = <String>[];
 
   @override
@@ -33,6 +34,11 @@ class FakeUserMessageRepository implements UserMessageRepository {
   Future<void> acknowledge(String displayId) async {
     if (acknowledgeError case final error?) throw error;
     acknowledged.add(displayId);
+  }
+
+  @override
+  Future<void> setActive(bool active) async {
+    activity.add(active);
   }
 
   Future<void> dispose() => events.close();
