@@ -346,14 +346,33 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           await Future.delayed(const Duration(milliseconds: 300));
           if (!context.mounted) return;
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+          final expirationBefore = _currentExpiration(ref);
           try {
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedStripeUrl,
               title: 'stripe_payment'.i18n,
               observer: checkoutObserver,
             );
-            if (!context.mounted || purchaseResult == null) return;
-            await onPurchaseResult(purchaseResult, context, ref);
+            if (!context.mounted) return;
+            if (purchaseResult == null) {
+              // The webview closed without an observed completion redirect;
+              // the payment may still have settled server-side, so verify
+              // with the backend instead of treating this as an abandon.
+              await onPurchaseResult(
+                true,
+                context,
+                ref,
+                expirationBefore: expirationBefore,
+                unconfirmedClose: true,
+              );
+              return;
+            }
+            await onPurchaseResult(
+              purchaseResult,
+              context,
+              ref,
+              expirationBefore: expirationBefore,
+            );
           } catch (_) {
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             rethrow;
@@ -411,13 +430,34 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           }
 
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+          final expirationBefore = _currentExpiration(ref);
           try {
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedUrl,
               observer: checkoutObserver,
             );
-            if (!context.mounted || purchaseResult == null) return;
-            await onPurchaseResult(purchaseResult, context, ref);
+            if (!context.mounted) return;
+            if (purchaseResult == null) {
+              // The webview closed without an observed completion redirect
+              // (the gateway page failed to load, or the user paid in the
+              // external Alipay app and closed the webview manually). The
+              // payment may still have settled server-side, so verify with
+              // the backend instead of treating this as an abandon.
+              await onPurchaseResult(
+                true,
+                context,
+                ref,
+                expirationBefore: expirationBefore,
+                unconfirmedClose: true,
+              );
+              return;
+            }
+            await onPurchaseResult(
+              purchaseResult,
+              context,
+              ref,
+              expirationBefore: expirationBefore,
+            );
           } catch (e) {
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             appLogger.error('Error opening payment redirect URL: $e');
@@ -444,23 +484,43 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     paymentRedirectInFlight.value = false;
   }
 
+  /// Expiration (epoch seconds) currently known for the account, captured
+  /// before a purchase so [checkUserAccountStatus] can detect whether the
+  /// purchase actually extended it. Null when user data isn't loaded yet.
+  int? _currentExpiration(WidgetRef ref) =>
+      ref.read(homeProvider).value?.legacyUserData.expiration;
+
+  /// [unconfirmedClose] marks a webview that was closed without a completion
+  /// redirect: the backend is still checked (the payment may have settled),
+  /// but a negative result is treated as a deliberate cancel, not an error.
   Future<void> onPurchaseResult(
     bool purchased,
     BuildContext context,
-    WidgetRef ref,
-  ) async {
+    WidgetRef ref, {
+    int? expirationBefore,
+    bool unconfirmedClose = false,
+  }) async {
     if (!purchased) {
       context.showSnackBar('purchase_not_completed'.i18n);
       ref.read(paymentSessionProvider.notifier).clearRedirect();
       return;
     }
     context.showLoadingDialog();
-    final isPro = await checkUserAccountStatus(ref, context);
+    final purchaseConfirmed = await checkUserAccountStatus(
+      ref,
+      context,
+      expirationBefore: expirationBefore,
+    );
     if (!context.mounted) return;
     context.hideLoadingDialog();
-    if (isPro) {
+    if (purchaseConfirmed) {
       ref.read(paymentSessionProvider.notifier).clearRedirect();
       resolveRoute(context);
+    } else if (unconfirmedClose) {
+      appLogger.info(
+        'Webview closed without completion redirect and backend shows no '
+        'new purchase; treating as cancel',
+      );
     } else {
       context.showSnackBar('purchase_not_completed'.i18n);
     }

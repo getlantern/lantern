@@ -11,6 +11,7 @@ import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
@@ -137,8 +138,25 @@ Future<String> pasteFromClipboard() async {
   }
 }
 
+/// Whether fetched user data reflects a completed purchase: the user is pro
+/// and, when [expirationBefore] (epoch seconds) is known, the expiration has
+/// advanced past it. Renewing users are already pro, so `isPro` alone cannot
+/// confirm a renewal purchase.
+bool userDataReflectsPurchase(UserDataModel userData, int? expirationBefore) =>
+    userData.isPro &&
+    (expirationBefore == null || userData.expiration > expirationBefore);
+
 /// Check user account status and updates user data if the user has a pro plan
-Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
+///
+/// [expirationBefore] is the account expiration (epoch seconds) captured
+/// before the purchase was initiated. Renewing users are already pro, so
+/// `isPro` alone cannot confirm their purchase — when provided, the purchase
+/// only counts once the expiration has moved past [expirationBefore].
+Future<bool> checkUserAccountStatus(
+  WidgetRef ref,
+  BuildContext context, {
+  int? expirationBefore,
+}) async {
   final delays = [
     Duration(seconds: 1),
     Duration(seconds: 2),
@@ -149,24 +167,30 @@ Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
     if (delay != Duration.zero) await Future.delayed(delay);
 
     final result = await ref.read(lanternServiceProvider).fetchUserData();
-    final isPro = result.fold(
+    final purchased = result.fold(
       (failure) {
         appLogger.error("Failed to fetch user data: $failure");
         return false;
       },
       (newUser) {
-        final isPro = newUser.legacyUserData.isPro;
-        if (isPro) {
+        final userData = newUser.legacyUserData;
+        final purchased = userDataReflectsPurchase(userData, expirationBefore);
+        if (purchased) {
           // User has bought a plan
           // update user data
-          appLogger.info("User is Pro: ${newUser.legacyUserData.email}");
+          appLogger.info("User is Pro: ${userData.email}");
           ref.read(homeProvider.notifier).updateUserData(newUser);
+        } else if (userData.isPro) {
+          appLogger.info(
+            "User is Pro but expiration has not advanced past "
+            "$expirationBefore yet (current: ${userData.expiration})",
+          );
         }
-        return isPro;
+        return purchased;
       },
     );
 
-    if (isPro) return true; //Exit loop is found
+    if (purchased) return true; //Exit loop is found
   }
   return false;
 }
