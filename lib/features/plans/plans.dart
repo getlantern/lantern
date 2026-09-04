@@ -12,6 +12,7 @@ import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
@@ -52,6 +53,8 @@ class _PlansState extends ConsumerState<Plans>
 
   @override
   Widget build(BuildContext context) {
+    // Billing availability changes when the country-code event arrives.
+    ref.watch(countryCodeProvider);
     textTheme = Theme.of(context).textTheme;
     return BaseScreen(
       backgroundColor: context.bgElevated,
@@ -142,8 +145,7 @@ class _PlansState extends ConsumerState<Plans>
                   onPressed: onGetLanternProTap,
                 ),
               ),
-              if (isStoreVersion() &&
-                  (!PlatformUtils.isAndroid || canUsePlayBilling())) ...[
+              if (canUseStoreBilling()) ...[
                 SizedBox(height: 8),
                 Center(
                   child: AppRichText(
@@ -258,7 +260,7 @@ class _PlansState extends ConsumerState<Plans>
     appLogger.info('Removing applied affiliate code');
     ref.read(referralProvider.notifier).resetReferral();
     ref.read(plansProvider.notifier).fetchPlans();
-    if (isStoreVersion()) {
+    if (canUseStoreBilling()) {
       try {
         await sl<AppPurchase>().fetchSubscriptions();
       } catch (e) {
@@ -412,7 +414,7 @@ class _PlansState extends ConsumerState<Plans>
     }
 
     appLogger.info('Successfully applied referral code');
-    if (isStoreVersion()) {
+    if (canUseStoreBilling()) {
       try {
         appLogger.info('Reloading SKUs after applying referral code');
         await sl<AppPurchase>().fetchSubscriptions(includeOffers: true);

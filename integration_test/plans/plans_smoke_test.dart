@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:lantern/core/common/common.dart' show isStoreVersion;
+import 'package:lantern/core/common/common.dart'
+    show canUseStoreBilling, isStoreVersion;
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/localization/i18n.dart';
@@ -113,14 +114,14 @@ void registerPlansSmokeTests() {
       }
       try {
         e2eLog('isStoreVersion=${isStoreVersion()}');
-        // The restore-purchase link is the store-mode marker: present on
-        // store builds (StoreKit/Play), absent on sideload/desktop.
+        // The restore-purchase link is present only when StoreKit or Play
+        // Billing is currently available.
         expect(
           _restoreLink,
-          isStoreVersion() ? findsOneWidget : findsNothing,
+          canUseStoreBilling() ? findsOneWidget : findsNothing,
           reason:
               'Restore-purchase link does not match '
-              'isStoreVersion()=${isStoreVersion()}',
+              'canUseStoreBilling()=${canUseStoreBilling()}',
         );
       } finally {
         await appRobot.resetToRoot();

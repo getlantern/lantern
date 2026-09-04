@@ -131,6 +131,11 @@ bool canUsePlayBilling() {
   );
 }
 
+/// Whether this build can currently use its platform's in-app purchase API.
+bool canUseStoreBilling() {
+  return PlatformUtils.isIOS || canUsePlayBilling();
+}
+
 //copy to clipboard
 void copyToClipboard(String text) {
   Clipboard.setData(ClipboardData(text: text));
