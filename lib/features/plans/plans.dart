@@ -142,7 +142,8 @@ class _PlansState extends ConsumerState<Plans>
                   onPressed: onGetLanternProTap,
                 ),
               ),
-              if (isStoreVersion()) ...[
+              if (isStoreVersion() &&
+                  (!PlatformUtils.isAndroid || canUsePlayBilling())) ...[
                 SizedBox(height: 8),
                 Center(
                   child: AppRichText(
