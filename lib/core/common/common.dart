@@ -123,9 +123,12 @@ bool isStoreVersion() {
 }
 
 bool canUsePlayBilling() {
-  return PlatformUtils.isAndroid &&
-      isStoreVersion() &&
-      !CountryCode.isCensoredRegion;
+  return resolvePlayBillingAvailability(
+    isAndroid: PlatformUtils.isAndroid,
+    isStoreVersion: isStoreVersion(),
+    isCountryKnown: CountryCode.isKnown,
+    isCensoredRegion: CountryCode.isCensoredRegion,
+  );
 }
 
 //copy to clipboard

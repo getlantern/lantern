@@ -11,6 +11,15 @@ bool resolveAndroidStoreVersion({
   return isPlayStoreBuild || (developerOverride ?? !isSideLoaded);
 }
 
+bool resolvePlayBillingAvailability({
+  required bool isAndroid,
+  required bool isStoreVersion,
+  required bool isCountryKnown,
+  required bool isCensoredRegion,
+}) {
+  return isAndroid && isStoreVersion && isCountryKnown && !isCensoredRegion;
+}
+
 class StoreUtils {
   bool _isPlayStoreVersion = false;
 

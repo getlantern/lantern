@@ -43,4 +43,39 @@ void main() {
       );
     });
   });
+
+  group('resolvePlayBillingAvailability', () {
+    test(
+      'requires a known non-censored country for an Android store build',
+      () {
+        expect(
+          resolvePlayBillingAvailability(
+            isAndroid: true,
+            isStoreVersion: true,
+            isCountryKnown: true,
+            isCensoredRegion: false,
+          ),
+          isTrue,
+        );
+        expect(
+          resolvePlayBillingAvailability(
+            isAndroid: true,
+            isStoreVersion: true,
+            isCountryKnown: false,
+            isCensoredRegion: false,
+          ),
+          isFalse,
+        );
+        expect(
+          resolvePlayBillingAvailability(
+            isAndroid: true,
+            isStoreVersion: true,
+            isCountryKnown: true,
+            isCensoredRegion: true,
+          ),
+          isFalse,
+        );
+      },
+    );
+  });
 }
