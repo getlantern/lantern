@@ -120,7 +120,10 @@ class PlansNotifier extends _$PlansNotifier {
   /// Loads store products on store builds; never throws — on failure or
   /// timeout (the billing client has none of its own) cards show API prices.
   Future<void> _loadStoreProducts() async {
-    if (!isStoreVersion()) return;
+    if (!isStoreVersion() ||
+        (PlatformUtils.isAndroid && !canUsePlayBilling())) {
+      return;
+    }
     try {
       await sl<AppPurchase>().fetchSubscriptions().timeout(
         const Duration(seconds: 5),

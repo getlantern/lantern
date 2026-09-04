@@ -36,6 +36,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (isStoreVersion()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          appRouter.replace(Plans());
+        }
+      });
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final userPlan = ref.watch(plansProvider.notifier).getSelectedPlan();
     final plansAsync = ref.watch(plansProvider);
     final paymentRedirectInFlight = useState(false);

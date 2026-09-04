@@ -96,31 +96,36 @@ bool isStoreVersion() {
   if (!PlatformUtils.isMobile) {
     return false;
   }
-
-  // In censored regions Google Play Billing is unreachable, so Android
-  // Play Store builds use the non-store payment path.
-  if (PlatformUtils.isAndroid && CountryCode.isCensoredRegion) {
-    return false;
-  }
   if (PlatformUtils.isIOS) {
+    return true;
+  }
+  if (AppBuildInfo.playStoreBuild) {
     return true;
   }
   try {
     if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
       final devMode = sl<LocalStorageService>().getDeveloperMode();
-      return devMode?.testPlayPurchaseEnabled ??
-          !sl<StoreUtils>().isSideLoaded();
+      return resolveAndroidStoreVersion(
+        isPlayStoreBuild: AppBuildInfo.playStoreBuild,
+        isSideLoaded: sl<StoreUtils>().isSideLoaded(),
+        developerOverride: devMode?.testPlayPurchaseEnabled,
+      );
     }
   } catch (e) {
     appLogger.error("Error checking store version: $e");
     return !sl<StoreUtils>().isSideLoaded();
   }
 
-  return !sl<StoreUtils>().isSideLoaded();
+  return resolveAndroidStoreVersion(
+    isPlayStoreBuild: AppBuildInfo.playStoreBuild,
+    isSideLoaded: sl<StoreUtils>().isSideLoaded(),
+  );
 }
 
 bool canUsePlayBilling() {
-  return PlatformUtils.isAndroid && isStoreVersion();
+  return PlatformUtils.isAndroid &&
+      isStoreVersion() &&
+      !CountryCode.isCensoredRegion;
 }
 
 //copy to clipboard

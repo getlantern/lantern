@@ -234,9 +234,8 @@ class AppPurchase {
 
           // The store is reachable and returned SKUs, but none matched the
           // requested set (e.g. offers requested but none are active).
-          // Retrying the same query won't change that, and this isn't a
-          // Play-unreachable signal, so fail fast without marking the region
-          // censored. Callers fall back to the base-plan fetch.
+          // Retrying the same query won't change that, so fail fast. Callers
+          // fall back to the base-plan fetch.
           final error = StateError(
             'No ${includeOffers ? 'offer' : 'base plan'} SKUs available',
           );
@@ -253,16 +252,6 @@ class AppPurchase {
         final delayMs = 500 * (1 << attempt);
         await Future.delayed(Duration(milliseconds: delayMs));
       }
-    }
-
-    // All retries are exhausted. On Android this is a useful signal that
-    // Play Billing is blocked or unavailable, so offer the non-store flow.
-    if (Platform.isAndroid && !CountryCode.isCensoredRegion) {
-      appLogger.warning(
-        '[AppPurchase] Play Billing unreachable after $maxAttempts attempts; '
-        'marking region as censored to fall back to Stripe.',
-      );
-      CountryCode.markCensored();
     }
 
     final error = StateError(

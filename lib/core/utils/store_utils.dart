@@ -1,7 +1,15 @@
 import 'dart:io';
 
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/logger_service.dart';
 import 'package:store_checker/store_checker.dart';
+
+bool resolveAndroidStoreVersion({
+  required bool isPlayStoreBuild,
+  required bool isSideLoaded,
+  bool? developerOverride,
+}) {
+  return isPlayStoreBuild || (developerOverride ?? !isSideLoaded);
+}
 
 class StoreUtils {
   bool _isPlayStoreVersion = false;
