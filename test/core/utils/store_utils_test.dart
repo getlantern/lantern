@@ -44,6 +44,52 @@ void main() {
     });
   });
 
+  group('resolveStorePurchaseFlow', () {
+    test('Play build normally routes purchases through store billing', () {
+      expect(
+        resolveStorePurchaseFlow(
+          isStoreVersion: true,
+          isAndroid: true,
+          isExternalPaymentRegion: false,
+        ),
+        isTrue,
+      );
+    });
+
+    test('Play build keeps the external path where Play is unenforced', () {
+      expect(
+        resolveStorePurchaseFlow(
+          isStoreVersion: true,
+          isAndroid: true,
+          isExternalPaymentRegion: true,
+        ),
+        isFalse,
+      );
+    });
+
+    test('iOS is unaffected by the Android-only exemption', () {
+      expect(
+        resolveStorePurchaseFlow(
+          isStoreVersion: true,
+          isAndroid: false,
+          isExternalPaymentRegion: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('non-store builds always use the external path', () {
+      expect(
+        resolveStorePurchaseFlow(
+          isStoreVersion: false,
+          isAndroid: true,
+          isExternalPaymentRegion: false,
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('resolvePlayBillingAvailability', () {
     test(
       'requires a known non-censored country for an Android store build',

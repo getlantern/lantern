@@ -11,6 +11,20 @@ bool resolveAndroidStoreVersion({
   return isPlayStoreBuild || (developerOverride ?? !isSideLoaded);
 }
 
+/// Whether purchases must go through the platform store's billing API. Play
+/// builds normally must, since Play policy forbids external payment for
+/// in-app purchases. The exception is a region where Google does not enforce
+/// that requirement and Play Billing is unreachable anyway — routing those
+/// users to the external flow keeps a purchase path open instead of failing
+/// on a billing client that will never connect.
+bool resolveStorePurchaseFlow({
+  required bool isStoreVersion,
+  required bool isAndroid,
+  required bool isExternalPaymentRegion,
+}) {
+  return isStoreVersion && !(isAndroid && isExternalPaymentRegion);
+}
+
 bool resolvePlayBillingAvailability({
   required bool isAndroid,
   required bool isStoreVersion,

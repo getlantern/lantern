@@ -135,6 +135,15 @@ class AppPurchase {
     return allowed;
   }
 
+  /// How long a user-initiated purchase or restore waits for the country-code
+  /// event before giving up. The country only arrives on a config update
+  /// (lantern-core/core.go), so on a cold start it can lag the tap by several
+  /// seconds — and without it [canUsePlayBilling] stays false and the purchase
+  /// fails even in markets where Play Billing works fine. The caller already
+  /// has a loading dialog up, so waiting is cheaper than a spurious failure.
+  /// The background product prefetch keeps the shorter default.
+  static const _purchaseCountryWaitTimeout = Duration(seconds: 10);
+
   Future<bool> _ensurePurchaseStreamReady() async {
     appLogger.info(
       '[AppPurchase] _ensurePurchaseStreamReady: '
@@ -151,7 +160,9 @@ class AppPurchase {
         '[AppPurchase] _ensurePurchaseStreamReady: country unknown, '
         'waiting for country-code event…',
       );
-      final known = await CountryCode.waitUntilKnown();
+      final known = await CountryCode.waitUntilKnown(
+        timeout: _purchaseCountryWaitTimeout,
+      );
       appLogger.info(
         '[AppPurchase] _ensurePurchaseStreamReady: waitUntilKnown returned '
         '$known (country=${CountryCode.current}); retrying init',

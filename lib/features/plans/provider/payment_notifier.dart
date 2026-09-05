@@ -120,7 +120,7 @@ class PaymentNotifier extends _$PaymentNotifier {
     required String provider,
     String couponCode = '',
   }) async {
-    if (isStoreVersion()) {
+    if (useStorePurchaseFlow()) {
       // Google Play build uses IAP
       final result = await startInAppPurchaseFlow(
         planId: planId,

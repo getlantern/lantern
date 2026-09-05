@@ -122,6 +122,18 @@ bool isStoreVersion() {
   );
 }
 
+/// Whether the platform store's purchase flow is the one to present. This is
+/// the routing question — which payment path the user is sent down — as
+/// opposed to [canUsePlayBilling], which asks whether the billing API is
+/// reachable right now.
+bool useStorePurchaseFlow() {
+  return resolveStorePurchaseFlow(
+    isStoreVersion: isStoreVersion(),
+    isAndroid: PlatformUtils.isAndroid,
+    isExternalPaymentRegion: CountryCode.isExternalPaymentRegion,
+  );
+}
+
 bool canUsePlayBilling() {
   return resolvePlayBillingAvailability(
     isAndroid: PlatformUtils.isAndroid,
