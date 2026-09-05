@@ -992,13 +992,17 @@ func parseIssueType(s string) issue.IssueType {
 		return issue.CannotAccessBlockedSites
 	case "slow":
 		return issue.Slow
-	case "cannot_link_device":
+	// the app's dropdown key is plural; accept both forms.
+	case "cannot_link_device", "cannot_link_devices":
 		return issue.CannotLinkDevice
 	case "application_crashes":
 		return issue.ApplicationCrashes
 	case "update_fails":
 		return issue.UpdateFails
 	default:
+		if s != "" && !strings.EqualFold(s, "other") {
+			slog.Warn("parseIssueType: unrecognized issue type", "type", s)
+		}
 		return issue.Other
 	}
 }
