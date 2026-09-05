@@ -129,7 +129,7 @@ class CreatePassword extends HookConsumerWidget {
   }
 
   Future<void> resolveRoutes(BuildContext context, WidgetRef ref) async {
-    if (useStorePurchaseFlow()) {
+    if (isStoreVersion()) {
       //We need call get user details here by then user has made payment
       context.showLoadingDialog();
       await checkUserAccountStatus(ref, context);

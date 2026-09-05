@@ -201,7 +201,7 @@ class ConfirmEmail extends HookConsumerWidget {
 
         /// If user is from store version no need to check anything
         /// send them to create password directly
-        if (PlatformUtils.isMobile && useStorePurchaseFlow()) {
+        if (PlatformUtils.isMobile && isStoreVersion()) {
           appRouter.push(
             CreatePassword(email: email, authFlow: authFlow, code: code),
           );

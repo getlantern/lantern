@@ -286,7 +286,7 @@ class _PlansState extends ConsumerState<Plans>
             if (!isReferralApplied) ...{
               AppTile(
                 icon: AppImagePaths.star,
-                label: useStorePurchaseFlow()
+                label: isStoreVersion()
                     ? 'promo_code'.i18n
                     : 'promo_referral_code'.i18n,
                 onPressed: () {
@@ -329,16 +329,14 @@ class _PlansState extends ConsumerState<Plans>
           AppImage(path: AppImagePaths.star, height: 48),
           SizedBox(height: defaultSize),
           Text(
-            useStorePurchaseFlow()
-                ? 'promo_code'.i18n
-                : 'promo_referral_code'.i18n,
+            isStoreVersion() ? 'promo_code'.i18n : 'promo_referral_code'.i18n,
             style: textTheme.headlineSmall!.copyWith(
               color: context.textPrimary,
             ),
           ),
           SizedBox(height: 24),
           AppTextField(
-            label: useStorePurchaseFlow()
+            label: isStoreVersion()
                 ? 'promo_code'.i18n
                 : 'promo_referral_code'.i18n,
             controller: referralCodeController,
@@ -450,7 +448,7 @@ class _PlansState extends ConsumerState<Plans>
 
     switch (Platform.operatingSystem) {
       case 'android':
-        if (useStorePurchaseFlow()) {
+        if (isStoreVersion()) {
           /// user is using play store version
           appLogger.info('Starting in app purchase flow');
           startInAppPurchaseFlow(userSelectedPlan);
@@ -475,7 +473,7 @@ class _PlansState extends ConsumerState<Plans>
         startInAppPurchaseFlow(plan);
         break;
       case 'android':
-        if (useStorePurchaseFlow()) {
+        if (isStoreVersion()) {
           appLogger.info(
             'Pro renewal: starting in-app purchase flow for Android store',
           );

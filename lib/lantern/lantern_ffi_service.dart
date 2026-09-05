@@ -1445,9 +1445,7 @@ class LanternFFIService implements LanternCoreService {
     String code,
   ) async {
     try {
-      final distributionChannel = useStorePurchaseFlow()
-          ? 'store'
-          : 'non-store';
+      final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
       final result = await runInBackground<String>(() async {
         final resultPtr = _ffiService.referralAttachmentV2(
           code.toCharPtr,

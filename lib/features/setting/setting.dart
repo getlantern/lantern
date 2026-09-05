@@ -228,7 +228,7 @@ class _SettingState extends ConsumerState<Setting>
                     );
                   },
                 ),
-                if (!useStorePurchaseFlow()) ...[
+                if (!isStoreVersion()) ...[
                   DividerSpace(),
                   AppTile(
                     label: 'get_30_days_of_pro_free'.i18n,

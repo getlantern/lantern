@@ -844,7 +844,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, PlansData>> plans() async {
     try {
-      final channel = useStorePurchaseFlow() ? 'store' : 'non-store';
+      final channel = isStoreVersion() ? 'store' : 'non-store';
       final subData = await _methodChannel.invokeMethod<String>(
         'plans',
         channel,
@@ -1677,9 +1677,7 @@ class LanternPlatformService implements LanternCoreService {
     String code,
   ) async {
     try {
-      final distributionChannel = useStorePurchaseFlow()
-          ? 'store'
-          : 'non-store';
+      final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
       final result = await _methodChannel.invokeMethod<String>(
         'attachReferralCodeV2',
         {'code': code, 'distributionChannel': distributionChannel},

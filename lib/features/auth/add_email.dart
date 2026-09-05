@@ -163,8 +163,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   SizedBox(height: defaultSize),
                   DividerSpace(),
                   SizedBox(height: defaultSize),
-                  if (useStorePurchaseFlow() &&
-                      widget.authFlow == AuthFlow.signUp)
+                  if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
                     Center(
                       child: AppTextButton(
                         key: AuthKeys.signUpContinueWithoutEmailButton,
@@ -409,7 +408,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     switch (type) {
       case SignUpMethodType.apple:
       case SignUpMethodType.google:
-        final storeVersion = useStorePurchaseFlow();
+        final storeVersion = isStoreVersion();
         if (storeVersion) {
           AppDialog.showLanternProDialog(
             context: context,

@@ -36,7 +36,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final storeVersion = useStorePurchaseFlow();
+    final storeVersion = isStoreVersion();
     final paymentRedirectInFlight = useState(false);
     useEffect(() {
       if (!storeVersion) return null;
@@ -171,9 +171,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     final isDesktop = PlatformUtils.isDesktop;
     final isAndroid = PlatformUtils.isAndroid;
-    // Android on the external payment path: sideload builds, plus Play
-    // builds in regions where Play's billing requirement is unenforced.
-    final isAndroidExternalPayment = isAndroid && !useStorePurchaseFlow();
+    final isAndroidSideload = isAndroid && !isStoreVersion();
     appLogger.info('User initiated purchase with provider: ${provider.method}');
     switch (provider.providers.name) {
       case 'stripe':
@@ -187,7 +185,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           return;
         }
 
-        if (isAndroidExternalPayment) {
+        if (isAndroidSideload) {
           await androidStripeSubscription(
             provider,
             ref,
@@ -200,7 +198,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         break;
 
       case 'shepherd':
-        if (isDesktop || isAndroidExternalPayment) {
+        if (isDesktop || isAndroidSideload) {
           await paymentRedirectFlow(
             provider.providers.name,
             ref,
