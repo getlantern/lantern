@@ -12,6 +12,11 @@ class AppBuildInfo {
     defaultValue: '',
   );
 
+  static const bool playStoreBuild = bool.fromEnvironment(
+    'PLAY_STORE_BUILD',
+    defaultValue: false,
+  );
+
   static const bool disableSystemTray = bool.fromEnvironment(
     'DISABLE_SYSTEM_TRAY',
     defaultValue: false,

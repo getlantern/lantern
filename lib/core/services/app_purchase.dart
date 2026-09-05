@@ -135,6 +135,15 @@ class AppPurchase {
     return allowed;
   }
 
+  /// How long a user-initiated purchase or restore waits for the country-code
+  /// event before giving up. The country only arrives on a config update
+  /// (lantern-core/core.go), so on a cold start it can lag the tap by several
+  /// seconds — and without it [canUsePlayBilling] stays false and the purchase
+  /// fails even in markets where Play Billing works fine. The caller already
+  /// has a loading dialog up, so waiting is cheaper than a spurious failure.
+  /// The background product prefetch keeps the shorter default.
+  static const _purchaseCountryWaitTimeout = Duration(seconds: 10);
+
   Future<bool> _ensurePurchaseStreamReady() async {
     appLogger.info(
       '[AppPurchase] _ensurePurchaseStreamReady: '
@@ -151,7 +160,9 @@ class AppPurchase {
         '[AppPurchase] _ensurePurchaseStreamReady: country unknown, '
         'waiting for country-code event…',
       );
-      final known = await CountryCode.waitUntilKnown();
+      final known = await CountryCode.waitUntilKnown(
+        timeout: _purchaseCountryWaitTimeout,
+      );
       appLogger.info(
         '[AppPurchase] _ensurePurchaseStreamReady: waitUntilKnown returned '
         '$known (country=${CountryCode.current}); retrying init',
@@ -234,9 +245,8 @@ class AppPurchase {
 
           // The store is reachable and returned SKUs, but none matched the
           // requested set (e.g. offers requested but none are active).
-          // Retrying the same query won't change that, and this isn't a
-          // Play-unreachable signal, so fail fast without marking the region
-          // censored. Callers fall back to the base-plan fetch.
+          // Retrying the same query won't change that, so fail fast. Callers
+          // fall back to the base-plan fetch.
           final error = StateError(
             'No ${includeOffers ? 'offer' : 'base plan'} SKUs available',
           );
@@ -253,16 +263,6 @@ class AppPurchase {
         final delayMs = 500 * (1 << attempt);
         await Future.delayed(Duration(milliseconds: delayMs));
       }
-    }
-
-    // All retries are exhausted. On Android this is a useful signal that
-    // Play Billing is blocked or unavailable, so offer the non-store flow.
-    if (Platform.isAndroid && !CountryCode.isCensoredRegion) {
-      appLogger.warning(
-        '[AppPurchase] Play Billing unreachable after $maxAttempts attempts; '
-        'marking region as censored to fall back to Stripe.',
-      );
-      CountryCode.markCensored();
     }
 
     final error = StateError(

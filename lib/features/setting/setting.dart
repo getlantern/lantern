@@ -8,6 +8,7 @@ import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
@@ -57,6 +58,8 @@ class _SettingState extends ConsumerState<Setting>
 
   @override
   Widget build(BuildContext context) {
+    // Keep store actions in sync with country-based billing availability.
+    ref.watch(countryCodeProvider);
     final isExpired = ref.watch(isUserExpiredProvider);
     final user = ref.watch(homeProvider).value;
     final isUserPro = ref.watch(isUserProProvider);
@@ -65,8 +68,9 @@ class _SettingState extends ConsumerState<Setting>
     final appSetting = ref.watch(appSettingProvider);
     // Server-side gate. Censored regions get Features[unbounded]=false,
     // which hides the Unbounded settings sub-page link below.
-    final unboundedAvailable =
-        ref.watch(featureFlagProvider).getBool(FeatureFlag.unbounded);
+    final unboundedAvailable = ref
+        .watch(featureFlagProvider)
+        .getBool(FeatureFlag.unbounded);
 
     final hasProSession = hasRegisteredProAccount(user);
 
@@ -232,7 +236,7 @@ class _SettingState extends ConsumerState<Setting>
                     onPressed: () => settingMenuTap(_SettingType.getPro),
                   ),
                 ],
-                if (isStoreVersion() && !isUserPro) ...[
+                if (canUseStoreBilling() && !isUserPro) ...[
                   DividerSpace(),
                   AppTile(
                     label: 'restore_purchase'.i18n,
