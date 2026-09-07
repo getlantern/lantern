@@ -245,6 +245,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       'amount: $amount cents, intent: ${intentMode.name})',
     );
 
+    final expirationBefore = _currentExpiration(ref);
+
     /// Deferred-intent flow: the sheet opens right away and the backend
     /// subscription is only created once the user taps Pay (inside
     /// onCreateSubscription), so dismissing the sheet leaves no abandoned
@@ -276,7 +278,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         // been disposed while the sheet was open.
         if (!context.mounted) return;
         finishPaymentRedirect(paymentRedirectInFlight);
-        onPurchaseResult(true, context, ref);
+        onPurchaseResult(
+          true,
+          context,
+          ref,
+          expirationBefore: expirationBefore,
+        );
       },
       onError: (error) {
         if (!context.mounted) return;
@@ -539,6 +546,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         'Webview closed without completion redirect and backend shows no '
         'new purchase; treating as cancel',
       );
+      ref.read(paymentSessionProvider.notifier).clearRedirect();
     } else {
       context.showSnackBar('purchase_not_completed'.i18n);
     }

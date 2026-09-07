@@ -53,6 +53,11 @@ class HomeNotifier extends _$HomeNotifier {
 
   /// Re-reads cached user data from Go without a loading state.
   Future<void> reloadUserData() async {
+    // Let a pending build() finish first so its older read cannot overwrite
+    // the fresher data.
+    try {
+      await future;
+    } catch (_) {}
     final result = await ref.read(lanternServiceProvider).getUserData();
     result.fold(
       (failure) {

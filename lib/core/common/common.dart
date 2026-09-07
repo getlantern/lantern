@@ -203,7 +203,7 @@ Future<bool> checkUserAccountStatus(
         if (purchased) {
           // User has bought a plan
           // update user data
-          appLogger.info("User is Pro: ${userData.email}");
+          appLogger.info("User account has Pro entitlement");
           ref.read(homeProvider.notifier).updateUserData(newUser);
         } else if (userData.isPro) {
           appLogger.info(
