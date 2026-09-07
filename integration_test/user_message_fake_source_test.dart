@@ -2,13 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/user_message.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/user_message/user_message_action_dispatcher.dart';
 import 'package:lantern/features/user_message/user_message_host.dart';
-import 'package:lantern/features/user_message/user_message_repository.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +26,7 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [userMessageRepositoryProvider.overrideWithValue(source)],
+          overrides: [lanternServiceProvider.overrideWithValue(source)],
           child: MaterialApp(
             navigatorObservers: [observer],
             builder: (context, child) => UserMessageHost(
@@ -50,38 +54,48 @@ void main() {
   );
 }
 
-class _FakeRadianceMessageSource implements UserMessageRepository {
-  final _events = StreamController<void>.broadcast();
+class _FakeRadianceMessageSource implements LanternService {
+  final _events = StreamController<AppEvent>.broadcast();
   final acknowledged = <String>[];
 
   @override
-  Stream<void> get messageAvailable => _events.stream;
+  Stream<AppEvent> watchAppEvents() => _events.stream;
 
   @override
-  Future<void> acknowledge(String displayId, String accountId) async {
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
     acknowledged.add(displayId);
+    return right(unit);
   }
 
   @override
-  Future<UserMessage?> current() async {
-    return UserMessage(
-      accountId: '12345',
-      displayId: 'campaign-1:generation-1',
-      campaignId: 'campaign-1',
-      revisionId: 'revision-1',
-      deliveryId: 'delivery-1',
-      surface: UserMessageSurface.snackbar,
-      locale: 'en-US',
-      body: 'Message from fake Radiance',
-      expiresAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
+  Future<Either<Failure, UserMessage?>> currentUserMessage() async {
+    return right(
+      UserMessage(
+        accountId: '12345',
+        displayId: 'campaign-1:generation-1',
+        campaignId: 'campaign-1',
+        revisionId: 'revision-1',
+        deliveryId: 'delivery-1',
+        surface: UserMessageSurface.snackbar,
+        locale: 'en-US',
+        body: 'Message from fake Radiance',
+        expiresAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
+      ),
     );
   }
 
   @override
-  Future<void> refresh() async {}
+  Future<Either<Failure, Unit>> refreshUserMessages() async => right(unit);
 
   @override
-  Future<void> setActive(bool active) async {}
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) async =>
+      right(unit);
 
   Future<void> dispose() => _events.close();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

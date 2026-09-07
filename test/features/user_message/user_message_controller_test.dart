@@ -2,75 +2,103 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/user_message.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/user_message/user_message_controller.dart';
-import 'package:lantern/features/user_message/user_message_repository.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import 'user_message_test_fakes.dart';
 
 void main() {
-  late FakeUserMessageRepository repository;
+  late FakeUserMessageService service;
   late ProviderContainer container;
 
   setUp(() {
-    repository = FakeUserMessageRepository();
+    service = FakeUserMessageService();
     container = ProviderContainer(
-      overrides: [userMessageRepositoryProvider.overrideWithValue(repository)],
+      overrides: [lanternServiceProvider.overrideWithValue(service)],
     );
   });
 
   tearDown(() async {
     container.dispose();
-    await repository.dispose();
+    await service.dispose();
   });
 
   test('loads current state at startup and reloads on availability', () async {
     final first = testUserMessage();
-    repository.currentMessage = first;
+    service.currentMessage = first;
     container.read(userMessageControllerProvider);
     await pumpProviderQueue();
 
     expect(container.read(userMessageControllerProvider).pending, same(first));
-    expect(repository.refreshCalls, 1);
-    expect(repository.activity, [true]);
+    expect(service.refreshCalls, 1);
+    expect(service.activity, [true]);
 
     final second = testUserMessage(displayId: 'campaign-2:generation-1');
-    repository.currentMessage = second;
-    repository.events.add(null);
+    service.currentMessage = second;
+    service.events.add(AppEvent(eventType: 'config', message: 'ignored'));
+    await pumpProviderQueue();
+    expect(service.currentCalls, 1);
+    expect(container.read(userMessageControllerProvider).pending, same(first));
+    service.emitMessageAvailable();
     await pumpProviderQueue();
 
     expect(container.read(userMessageControllerProvider).pending, same(second));
-    expect(repository.currentCalls, 2);
+    expect(service.currentCalls, 2);
   });
 
   test('claims once and acknowledges only after presentation', () async {
     final message = testUserMessage();
-    repository.currentMessage = message;
+    service.currentMessage = message;
     container.read(userMessageControllerProvider);
     await pumpProviderQueue();
     final controller = container.read(userMessageControllerProvider.notifier);
 
     expect(controller.claimForPresentation(DateTime.now()), same(message));
-    expect(repository.acknowledged, isEmpty);
+    expect(service.acknowledged, isEmpty);
     expect(controller.claimForPresentation(DateTime.now()), isNull);
 
     await controller.markPresented(message.displayId);
-    expect(repository.acknowledged, [message.displayId]);
+    expect(service.acknowledged, [message.displayId]);
+    expect(service.acknowledgedAccounts, [message.accountId]);
     expect(
       container.read(userMessageControllerProvider).displayedThisSession,
       isTrue,
     );
 
-    repository.currentMessage = testUserMessage(
+    service.currentMessage = testUserMessage(
       displayId: 'campaign-2:generation-1',
     );
-    repository.events.add(null);
+    service.emitMessageAvailable();
     await pumpProviderQueue();
     expect(container.read(userMessageControllerProvider).pending, isNull);
   });
 
+  test(
+    'drops stale content when the native bridge returns a failure',
+    () async {
+      service.currentMessage = testUserMessage();
+      container.read(userMessageControllerProvider);
+      await pumpProviderQueue();
+      service.currentFailure = Failure(
+        error: 'native details must not escape into UI state',
+        localizedErrorMessage: 'localized content must not escape either',
+      );
+      await container
+          .read(userMessageControllerProvider.notifier)
+          .loadCurrent();
+      expect(container.read(userMessageControllerProvider).pending, isNull);
+      expect(
+        container.read(userMessageControllerProvider).displayedThisSession,
+        isFalse,
+      );
+    },
+  );
+
   test('drops expired messages before they can be claimed', () async {
-    repository.currentMessage = testUserMessage(
+    service.currentMessage = testUserMessage(
       expiresAt: DateTime.now().toUtc().subtract(const Duration(seconds: 1)),
     );
     container.read(userMessageControllerProvider);
@@ -79,7 +107,7 @@ void main() {
     final controller = container.read(userMessageControllerProvider.notifier);
     expect(controller.claimForPresentation(DateTime.now()), isNull);
     expect(container.read(userMessageControllerProvider).pending, isNull);
-    expect(repository.acknowledged, isEmpty);
+    expect(service.acknowledged, isEmpty);
   });
 
   test(
@@ -87,9 +115,9 @@ void main() {
     () async {
       container.read(userMessageControllerProvider);
       await pumpProviderQueue();
-      repository.refreshCalls = 0;
+      service.refreshCalls = 0;
       final message = testUserMessage();
-      repository.currentMessage = message;
+      service.currentMessage = message;
 
       await container
           .read(userMessageControllerProvider.notifier)
@@ -99,8 +127,8 @@ void main() {
         container.read(userMessageControllerProvider).pending,
         same(message),
       );
-      expect(repository.refreshCalls, 1);
-      expect(repository.activity.last, isTrue);
+      expect(service.refreshCalls, 1);
+      expect(service.activity.last, isTrue);
     },
   );
 
@@ -112,15 +140,15 @@ void main() {
         .read(userMessageControllerProvider.notifier)
         .onBackgrounded();
 
-    expect(repository.activity, [true, false]);
+    expect(service.activity, [true, false]);
   });
 
   test('serializes native lifecycle updates', () async {
     container.read(userMessageControllerProvider);
     await pumpProviderQueue();
-    repository.activity.clear();
+    service.activity.clear();
     final backgroundCompleted = Completer<void>();
-    repository.onSetActive = (active) async {
+    service.onSetActive = (active) async {
       if (!active) await backgroundCompleted.future;
     };
     final controller = container.read(userMessageControllerProvider.notifier);
@@ -128,20 +156,20 @@ void main() {
     await pumpProviderQueue();
     final foreground = controller.onForegrounded();
     await pumpProviderQueue();
-    expect(repository.activity, [false]);
+    expect(service.activity, [false]);
     backgroundCompleted.complete();
     await Future.wait([background, foreground]);
-    expect(repository.activity, [false, true]);
+    expect(service.activity, [false, true]);
   });
 
   test(
     'clears queued content while revalidating the current account',
     () async {
-      repository.currentMessage = testUserMessage();
+      service.currentMessage = testUserMessage();
       container.read(userMessageControllerProvider);
       await pumpProviderQueue();
       final pendingRead = Completer<UserMessage?>();
-      repository.onCurrent = () => pendingRead.future;
+      service.onCurrent = () => pendingRead.future;
       final load = container
           .read(userMessageControllerProvider.notifier)
           .loadCurrent();
@@ -157,57 +185,78 @@ void main() {
     () async {
       container.read(userMessageControllerProvider);
       await pumpProviderQueue();
-      repository.activity.clear();
-      repository.refreshCalls = 0;
+      service.activity.clear();
+      service.refreshCalls = 0;
       final backgroundCompleted = Completer<void>();
-      repository.onSetActive = (_) => backgroundCompleted.future;
+      service.onSetActive = (_) => backgroundCompleted.future;
       final controller = container.read(userMessageControllerProvider.notifier);
       final background = controller.onBackgrounded();
       final foreground = controller.onForegrounded();
       final backgroundAgain = controller.onBackgrounded();
       backgroundCompleted.complete();
       await Future.wait([background, foreground, backgroundAgain]);
-      expect(repository.activity, [false, false]);
-      expect(repository.refreshCalls, 0);
+      expect(service.activity, [false, false]);
+      expect(service.refreshCalls, 0);
     },
   );
 
   testWidgets('retries acknowledgment without displaying again', (
     tester,
   ) async {
-    repository.currentMessage = testUserMessage();
-    repository.acknowledgeError = Exception('IPC unavailable');
+    service.currentMessage = testUserMessage();
+    service.acknowledgeError = Exception('IPC unavailable');
     container.read(userMessageControllerProvider);
     await tester.pump();
     final controller = container.read(userMessageControllerProvider.notifier);
     final message = controller.claimForPresentation(DateTime.now())!;
     await controller.markPresented(message.displayId);
-    expect(repository.acknowledgeCalls, 1);
+    expect(service.acknowledgeCalls, 1);
     expect(controller.claimForPresentation(DateTime.now()), isNull);
-    repository.acknowledgeError = null;
+    service.acknowledgeError = null;
     await tester.pump(const Duration(seconds: 1));
-    expect(repository.acknowledged, [message.displayId]);
-    expect(repository.acknowledgedAccounts, [message.accountId]);
+    expect(service.acknowledged, [message.displayId]);
+    expect(service.acknowledgedAccounts, [message.accountId]);
+  });
+
+  testWidgets('retries acknowledgment when the bridge returns a failure', (
+    tester,
+  ) async {
+    service.currentMessage = testUserMessage();
+    service.acknowledgeFailure = Failure(
+      error: 'IPC unavailable',
+      localizedErrorMessage: '',
+    );
+    container.read(userMessageControllerProvider);
+    await tester.pump();
+    final controller = container.read(userMessageControllerProvider.notifier);
+    final message = controller.claimForPresentation(DateTime.now())!;
+    await controller.markPresented(message.displayId);
+    expect(service.acknowledgeCalls, 1);
+    expect(service.acknowledged, isEmpty);
+    service.acknowledgeFailure = null;
+    await tester.pump(const Duration(seconds: 1));
+    expect(service.acknowledged, [message.displayId]);
+    expect(service.acknowledgedAccounts, [message.accountId]);
   });
 
   testWidgets('abandons a retry after switching accounts', (tester) async {
-    repository.currentMessage = testUserMessage();
-    repository.acknowledgeError = Exception('IPC unavailable');
+    service.currentMessage = testUserMessage();
+    service.acknowledgeError = Exception('IPC unavailable');
     container.read(userMessageControllerProvider);
     await tester.pump();
     final controller = container.read(userMessageControllerProvider.notifier);
     final message = controller.claimForPresentation(DateTime.now())!;
     await controller.markPresented(message.displayId);
-    repository.currentMessage = testUserMessage(accountId: '67890');
-    repository.acknowledgeError = null;
+    service.currentMessage = testUserMessage(accountId: '67890');
+    service.acknowledgeError = null;
     await tester.pump(const Duration(seconds: 1));
-    expect(repository.acknowledgeCalls, 1);
-    expect(repository.acknowledged, isEmpty);
+    expect(service.acknowledgeCalls, 1);
+    expect(service.acknowledged, isEmpty);
   });
 
   testWidgets('bounds failed acknowledgment attempts', (tester) async {
-    repository.currentMessage = testUserMessage();
-    repository.acknowledgeError = Exception('IPC unavailable');
+    service.currentMessage = testUserMessage();
+    service.acknowledgeError = Exception('IPC unavailable');
     container.read(userMessageControllerProvider);
     await tester.pump();
     final controller = container.read(userMessageControllerProvider.notifier);
@@ -216,7 +265,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pump(const Duration(seconds: 2));
     await tester.pump(const Duration(minutes: 1));
-    expect(repository.acknowledgeCalls, 3);
+    expect(service.acknowledgeCalls, 3);
     expect(
       container.read(userMessageControllerProvider).displayedThisSession,
       isTrue,

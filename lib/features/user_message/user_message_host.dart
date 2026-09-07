@@ -12,6 +12,8 @@ import 'package:loader_overlay/loader_overlay.dart';
 typedef UserMessageClock = DateTime Function();
 typedef CriticalOverlayCheck = bool Function(BuildContext context);
 
+/// Keeps campaign expiry and dismissal separate from the app's snackbar queue.
+/// ScaffoldMessenger can close its queue head, but not an arbitrary queued item.
 class UserMessageHost extends ConsumerStatefulWidget {
   const UserMessageHost({
     required this.child,

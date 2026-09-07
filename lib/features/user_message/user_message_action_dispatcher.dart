@@ -1,4 +1,4 @@
-import 'package:auto_route/auto_route.dart';
+import 'package:lantern/core/common/common.dart' show appRouter;
 import 'package:lantern/core/models/user_message.dart';
 import 'package:lantern/core/router/router.gr.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,13 +13,13 @@ class UserMessageActionDispatcher {
   }) : _openHttpsUrl = openHttpsUrl,
        _openPlans = openPlans;
 
-  factory UserMessageActionDispatcher.application(StackRouter router) {
+  factory UserMessageActionDispatcher.application() {
     return UserMessageActionDispatcher(
       openHttpsUrl: (uri) async {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       },
       openPlans: () async {
-        await router.push(Plans());
+        await appRouter.push(Plans());
       },
     );
   }

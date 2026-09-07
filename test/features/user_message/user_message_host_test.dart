@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/user_message.dart';
 import 'package:lantern/features/user_message/user_message_action_dispatcher.dart';
 import 'package:lantern/features/user_message/user_message_host.dart';
-import 'package:lantern/features/user_message/user_message_repository.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
 import 'package:lantern/features/user_message/user_message_snackbar.dart';
 
@@ -25,7 +25,7 @@ class _Actions {
 }
 
 Widget _harness({
-  required FakeUserMessageRepository repository,
+  required FakeUserMessageService service,
   required UserMessageRouteObserver observer,
   required UserMessageActionDispatcher dispatcher,
   Widget? home,
@@ -40,7 +40,7 @@ Widget _harness({
   GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey,
 }) {
   return ProviderScope(
-    overrides: [userMessageRepositoryProvider.overrideWithValue(repository)],
+    overrides: [lanternServiceProvider.overrideWithValue(service)],
     child: MaterialApp(
       scaffoldMessengerKey: scaffoldMessengerKey,
       locale: locale,
@@ -108,14 +108,14 @@ void main() {
   testWidgets(
     'presents plain text, dismiss action, and acknowledges on visible',
     (tester) async {
-      final repository = FakeUserMessageRepository()
+      final service = FakeUserMessageService()
         ..currentMessage = testUserMessage(body: 'Service announcement');
-      addTearDown(repository.dispose);
+      addTearDown(service.dispose);
       final observer = UserMessageRouteObserver();
 
       await tester.pumpWidget(
         _harness(
-          repository: repository,
+          service: service,
           observer: observer,
           dispatcher: _Actions().dispatcher,
         ),
@@ -125,7 +125,7 @@ void main() {
       expect(find.text('Service announcement'), findsOneWidget);
       expect(find.byKey(UserMessageSnackbar.bodyKey), findsOneWidget);
       expect(find.byKey(UserMessageSnackbar.closeKey), findsOneWidget);
-      expect(repository.acknowledged, ['campaign-1:generation-1']);
+      expect(service.acknowledged, ['campaign-1:generation-1']);
     },
   );
 
@@ -133,7 +133,7 @@ void main() {
     'routes a validated CTA and exposes keyboard-focusable controls',
     (tester) async {
       final actions = _Actions();
-      final repository = FakeUserMessageRepository()
+      final service = FakeUserMessageService()
         ..currentMessage = testUserMessage(
           buttonLabel: 'Learn more',
           action: UserMessageAction(
@@ -141,11 +141,11 @@ void main() {
             url: Uri.parse('https://getlantern.org/learn'),
           ),
         );
-      addTearDown(repository.dispose);
+      addTearDown(service.dispose);
 
       await tester.pumpWidget(
         _harness(
-          repository: repository,
+          service: service,
           observer: UserMessageRouteObserver(),
           dispatcher: actions.dispatcher,
         ),
@@ -166,7 +166,7 @@ void main() {
   testWidgets('contains CTA failures after dismissing the message', (
     tester,
   ) async {
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(
         buttonLabel: 'Learn more',
         action: UserMessageAction(
@@ -174,7 +174,7 @@ void main() {
           url: Uri.parse('https://getlantern.org/learn'),
         ),
       );
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
     final dispatcher = UserMessageActionDispatcher(
       openHttpsUrl: (_) async => throw Exception('launcher unavailable'),
       openPlans: () async {},
@@ -182,7 +182,7 @@ void main() {
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: dispatcher,
       ),
@@ -198,16 +198,16 @@ void main() {
 
   testWidgets('removes a visible message when it expires', (tester) async {
     final baseTime = DateTime.now().toUtc();
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(
         body: 'Short-lived message',
         expiresAt: baseTime.add(const Duration(seconds: 2)),
       );
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: _Actions().dispatcher,
         now: () => baseTime,
@@ -223,30 +223,30 @@ void main() {
   testWidgets('enforces one displayed message per Flutter session', (
     tester,
   ) async {
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(body: 'First message');
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: _Actions().dispatcher,
       ),
     );
     await _pumpToSnackbar(tester);
-    expect(repository.acknowledged, hasLength(1));
+    expect(service.acknowledged, hasLength(1));
 
-    repository.currentMessage = testUserMessage(
+    service.currentMessage = testUserMessage(
       displayId: 'campaign-2:generation-1',
       body: 'Second message',
     );
-    repository.events.add(null);
+    service.emitMessageAvailable();
     await tester.pump(const Duration(seconds: 11));
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Second message'), findsNothing);
-    expect(repository.acknowledged, ['campaign-1:generation-1']);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
   });
 
   testWidgets('queues in background and reconciles on foreground', (
@@ -256,20 +256,20 @@ void main() {
     addTearDown(() {
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     });
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(body: 'Foreground only');
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: _Actions().dispatcher,
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Foreground only'), findsNothing);
-    expect(repository.acknowledged, isEmpty);
+    expect(service.acknowledged, isEmpty);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await _pumpToSnackbar(tester);
@@ -281,13 +281,13 @@ void main() {
   ) async {
     final enabled = ValueNotifier(false);
     addTearDown(enabled.dispose);
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(body: 'After onboarding');
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: _Actions().dispatcher,
         enabledListenable: enabled,
@@ -295,12 +295,12 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('After onboarding'), findsNothing);
-    expect(repository.acknowledged, isEmpty);
+    expect(service.acknowledged, isEmpty);
 
     enabled.value = true;
     await _pumpToSnackbar(tester);
     expect(find.text('After onboarding'), findsOneWidget);
-    expect(repository.acknowledged, ['campaign-1:generation-1']);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
   });
 
   testWidgets(
@@ -308,23 +308,23 @@ void main() {
     (tester) async {
       final enabled = ValueNotifier(false);
       addTearDown(enabled.dispose);
-      final repository = FakeUserMessageRepository()
+      final service = FakeUserMessageService()
         ..currentMessage = testUserMessage(body: 'Previous account');
-      addTearDown(repository.dispose);
+      addTearDown(service.dispose);
       await tester.pumpWidget(
         _harness(
-          repository: repository,
+          service: service,
           observer: UserMessageRouteObserver(),
           dispatcher: _Actions().dispatcher,
           enabledListenable: enabled,
         ),
       );
       await _pumpToSnackbar(tester);
-      repository.currentMessage = null;
+      service.currentMessage = null;
       enabled.value = true;
       await _pumpToSnackbar(tester);
       expect(find.text('Previous account'), findsNothing);
-      expect(repository.acknowledged, isEmpty);
+      expect(service.acknowledged, isEmpty);
     },
   );
 
@@ -333,12 +333,12 @@ void main() {
   ) async {
     final semantics = tester.ensureSemantics();
     try {
-      final repository = FakeUserMessageRepository()
+      final service = FakeUserMessageService()
         ..currentMessage = testUserMessage(body: 'Take time to read this');
-      addTearDown(repository.dispose);
+      addTearDown(service.dispose);
       await tester.pumpWidget(
         _harness(
-          repository: repository,
+          service: service,
           observer: UserMessageRouteObserver(),
           dispatcher: _Actions().dispatcher,
           accessibleNavigation: true,
@@ -369,16 +369,16 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final label = List.filled(8, 'Mehr erfahren').join(' ');
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(
         body: 'An announcement',
         buttonLabel: label,
         action: const UserMessageAction(type: UserMessageActionType.openPlans),
       );
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: _Actions().dispatcher,
         textScaler: const TextScaler.linear(3),
@@ -394,13 +394,13 @@ void main() {
   ) async {
     final hostMounted = ValueNotifier(true);
     addTearDown(hostMounted.dispose);
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(body: 'Survives host replacement');
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: _Actions().dispatcher,
         hostMountedListenable: hostMounted,
@@ -410,12 +410,12 @@ void main() {
 
     hostMounted.value = false;
     await tester.pump();
-    expect(repository.acknowledged, isEmpty);
+    expect(service.acknowledged, isEmpty);
 
     hostMounted.value = true;
     await _pumpToSnackbar(tester);
     expect(find.text('Survives host replacement'), findsOneWidget);
-    expect(repository.acknowledged, ['campaign-1:generation-1']);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
   });
 
   testWidgets(
@@ -424,12 +424,12 @@ void main() {
       final hostMounted = ValueNotifier(true);
       addTearDown(hostMounted.dispose);
       final messengerKey = GlobalKey<ScaffoldMessengerState>();
-      final repository = FakeUserMessageRepository();
-      addTearDown(repository.dispose);
+      final service = FakeUserMessageService();
+      addTearDown(service.dispose);
 
       await tester.pumpWidget(
         _harness(
-          repository: repository,
+          service: service,
           observer: UserMessageRouteObserver(),
           dispatcher: _Actions().dispatcher,
           hostMountedListenable: hostMounted,
@@ -445,12 +445,12 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 300));
 
-      repository.currentMessage = testUserMessage(body: 'Queued user message');
-      repository.events.add(null);
+      service.currentMessage = testUserMessage(body: 'Queued user message');
+      service.emitMessageAvailable();
       await _pumpToSnackbar(tester);
       expect(find.text('Application snackbar'), findsOneWidget);
       expect(find.text('Queued user message'), findsOneWidget);
-      expect(repository.acknowledged, ['campaign-1:generation-1']);
+      expect(service.acknowledged, ['campaign-1:generation-1']);
 
       hostMounted.value = false;
       await tester.pump();
@@ -463,7 +463,7 @@ void main() {
       await _pumpToSnackbar(tester);
       expect(find.text('Application snackbar'), findsOneWidget);
       expect(find.text('Queued user message'), findsNothing);
-      expect(repository.acknowledged, ['campaign-1:generation-1']);
+      expect(service.acknowledged, ['campaign-1:generation-1']);
     },
   );
 
@@ -473,12 +473,12 @@ void main() {
       final messengerKey = GlobalKey<ScaffoldMessengerState>();
       final baseTime = DateTime.now().toUtc();
       var clockReads = 0;
-      final repository = FakeUserMessageRepository();
-      addTearDown(repository.dispose);
+      final service = FakeUserMessageService();
+      addTearDown(service.dispose);
 
       await tester.pumpWidget(
         _harness(
-          repository: repository,
+          service: service,
           observer: UserMessageRouteObserver(),
           dispatcher: _Actions().dispatcher,
           scaffoldMessengerKey: messengerKey,
@@ -496,16 +496,16 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 300));
 
-      repository.currentMessage = testUserMessage(
+      service.currentMessage = testUserMessage(
         body: 'Expiring user message',
         expiresAt: baseTime.add(const Duration(seconds: 1)),
       );
-      repository.events.add(null);
+      service.emitMessageAvailable();
       await _pumpToSnackbar(tester);
 
       expect(find.text('Application snackbar'), findsOneWidget);
       expect(find.text('Expiring user message'), findsNothing);
-      expect(repository.acknowledged, isEmpty);
+      expect(service.acknowledged, isEmpty);
     },
   );
 
@@ -514,16 +514,16 @@ void main() {
   ) async {
     final baseTime = DateTime.now().toUtc();
     var clockReads = 0;
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(
         body: 'Expired during presentation',
         expiresAt: baseTime.add(const Duration(seconds: 1)),
       );
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: _Actions().dispatcher,
         now: () => clockReads++ == 0
@@ -533,33 +533,33 @@ void main() {
     );
     await _pumpToSnackbar(tester);
     expect(find.text('Expired during presentation'), findsNothing);
-    expect(repository.acknowledged, isEmpty);
+    expect(service.acknowledged, isEmpty);
 
-    repository.currentMessage = testUserMessage(
+    service.currentMessage = testUserMessage(
       displayId: 'campaign-2:generation-1',
       body: 'Next eligible message',
       expiresAt: baseTime.add(const Duration(hours: 1)),
     );
-    repository.events.add(null);
+    service.emitMessageAvailable();
     await _pumpToSnackbar(tester);
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Next eligible message'), findsOneWidget);
-    expect(repository.acknowledged, ['campaign-2:generation-1']);
+    expect(service.acknowledged, ['campaign-2:generation-1']);
   });
 
   testWidgets('queues behind a dialog and rechecks expiration before display', (
     tester,
   ) async {
-    final repository = FakeUserMessageRepository();
-    addTearDown(repository.dispose);
+    final service = FakeUserMessageService();
+    addTearDown(service.dispose);
     final observer = UserMessageRouteObserver();
     final baseTime = DateTime.now().toUtc();
     var currentTime = baseTime;
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: observer,
         dispatcher: _Actions().dispatcher,
         now: () => currentTime,
@@ -580,11 +580,11 @@ void main() {
     await tester.tap(find.text('open dialog'));
     await tester.pumpAndSettle();
 
-    repository.currentMessage = testUserMessage(
+    service.currentMessage = testUserMessage(
       body: 'Expires behind dialog',
       expiresAt: baseTime.add(const Duration(seconds: 1)),
     );
-    repository.events.add(null);
+    service.emitMessageAvailable();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Expires behind dialog'), findsNothing);
 
@@ -593,19 +593,19 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Expires behind dialog'), findsNothing);
-    expect(repository.acknowledged, isEmpty);
+    expect(service.acknowledged, isEmpty);
   });
 
   testWidgets('dismisses a visible message when a critical dialog opens', (
     tester,
   ) async {
-    final repository = FakeUserMessageRepository()
+    final service = FakeUserMessageService()
       ..currentMessage = testUserMessage(body: 'Visible before dialog');
-    addTearDown(repository.dispose);
+    addTearDown(service.dispose);
 
     await tester.pumpWidget(
       _harness(
-        repository: repository,
+        service: service,
         observer: UserMessageRouteObserver(),
         dispatcher: _Actions().dispatcher,
         home: Builder(
@@ -623,13 +623,13 @@ void main() {
     );
     await _pumpToSnackbar(tester);
     expect(find.text('Visible before dialog'), findsOneWidget);
-    expect(repository.acknowledged, ['campaign-1:generation-1']);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
 
     await tester.tap(find.text('open dialog'));
     await tester.pumpAndSettle();
     expect(find.text('critical'), findsOneWidget);
     expect(find.text('Visible before dialog'), findsNothing);
-    expect(repository.acknowledged, ['campaign-1:generation-1']);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
   });
 
   testWidgets(
@@ -642,13 +642,13 @@ void main() {
       final semantics = tester.ensureSemantics();
       try {
         final body = List.filled(18, 'رسالة طويلة من لانترن').join(' ');
-        final repository = FakeUserMessageRepository()
+        final service = FakeUserMessageService()
           ..currentMessage = testUserMessage(body: body);
-        addTearDown(repository.dispose);
+        addTearDown(service.dispose);
 
         await tester.pumpWidget(
           _harness(
-            repository: repository,
+            service: service,
             observer: UserMessageRouteObserver(),
             dispatcher: _Actions().dispatcher,
             locale: const Locale('ar'),

@@ -1,9 +1,13 @@
 import 'dart:async';
 
+import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/user_message.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/utils/latest_async_queue.dart';
-import 'package:lantern/features/user_message/user_message_repository.dart';
+import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 const _unchangedPending = Object();
 
@@ -34,7 +38,7 @@ class UserMessageState {
 }
 
 class UserMessageController extends Notifier<UserMessageState> {
-  late UserMessageRepository _repository;
+  late LanternCoreService _service;
   int _loadGeneration = 0;
   int _lifecycleGeneration = 0;
   late final _activityUpdates = LatestAsyncQueue<bool, void>(
@@ -49,11 +53,11 @@ class UserMessageController extends Notifier<UserMessageState> {
 
   @override
   UserMessageState build() {
-    _repository = ref.watch(userMessageRepositoryProvider);
-    final subscription = _repository.messageAvailable.listen(
-      (_) => unawaited(loadCurrent()),
-      onError: (_) {},
-    );
+    _service = ref.watch(lanternServiceProvider);
+    final subscription = _service
+        .watchAppEvents()
+        .where((event) => event.eventType == AppEvent.userMessageAvailable)
+        .listen((_) => unawaited(loadCurrent()), onError: (_) {});
     ref.onDispose(subscription.cancel);
     ref.onDispose(() => _ackRetry?.cancel());
     // Pull any message Radiance already has, then wake its cloud fetch. The
@@ -74,7 +78,7 @@ class UserMessageController extends Notifier<UserMessageState> {
     final generation = ++_loadGeneration;
     state = state.copyWith(pending: null);
     try {
-      final message = await _repository.current();
+      final message = _unwrap(await _service.currentUserMessage());
       if (!ref.mounted ||
           generation != _loadGeneration ||
           state.displayedThisSession) {
@@ -101,7 +105,7 @@ class UserMessageController extends Notifier<UserMessageState> {
     if (!ref.mounted || generation != _lifecycleGeneration) return;
     unawaited(_acknowledgePresented());
     try {
-      await _repository.refresh();
+      _unwrap(await _service.refreshUserMessages());
     } on Object {
       // The normal Radiance poll will try again.
     }
@@ -117,7 +121,7 @@ class UserMessageController extends Notifier<UserMessageState> {
   Future<void> _setActive(bool active) async {
     if (!ref.mounted) return;
     try {
-      await _repository.setActive(active);
+      _unwrap(await _service.setUserMessageActivity(active));
     } on Object {
       // A later lifecycle update will reconcile the native state.
     }
@@ -177,7 +181,7 @@ class UserMessageController extends Notifier<UserMessageState> {
     _ackAttempts++;
     try {
       if (_ackAttempts > 1) {
-        final current = await _repository.current();
+        final current = _unwrap(await _service.currentUserMessage());
         if (!ref.mounted) return;
         if (current?.accountId != acknowledgment.accountId ||
             current?.displayId != acknowledgment.displayId) {
@@ -185,9 +189,11 @@ class UserMessageController extends Notifier<UserMessageState> {
           return;
         }
       }
-      await _repository.acknowledge(
-        acknowledgment.displayId,
-        acknowledgment.accountId,
+      _unwrap(
+        await _service.acknowledgeUserMessage(
+          acknowledgment.displayId,
+          acknowledgment.accountId,
+        ),
       );
       _acknowledgment = null;
     } on Object {
@@ -199,6 +205,14 @@ class UserMessageController extends Notifier<UserMessageState> {
     } finally {
       _ackInFlight = false;
     }
+  }
+
+  T _unwrap<T>(Either<Failure, T> result) {
+    // Keep native failure details out of provider state and diagnostics.
+    return result.fold(
+      (_) => throw Exception('User-message request failed'),
+      (value) => value,
+    );
   }
 }
 

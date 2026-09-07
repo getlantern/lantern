@@ -51,9 +51,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
   @override
   void initState() {
     super.initState();
-    _userMessageActionDispatcher = UserMessageActionDispatcher.application(
-      globalRouter,
-    );
+    _userMessageActionDispatcher = UserMessageActionDispatcher.application();
     WidgetsBinding.instance.addObserver(this);
     initDeepLinks();
     initLifecycleListener();
