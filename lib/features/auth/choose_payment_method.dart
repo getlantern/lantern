@@ -510,6 +510,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       ref,
       context,
       expirationBefore: expirationBefore,
+      delays: kPurchaseConfirmationDelays,
     );
     if (!context.mounted) return;
     context.hideLoadingDialog();

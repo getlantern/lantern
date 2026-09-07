@@ -57,8 +57,21 @@ const (
 	// .phase to render progress text and on .error to surface
 	// diagnostics on the failure path.
 	EventTypePeerStatus EventType = "peer-status"
-	DefaultLogLevel               = "trace"
+	// EventTypeUserData signals the cached user data was refreshed from the
+	// server; Dart re-reads it via UserData(). Message is empty.
+	EventTypeUserData EventType = "user-data"
+	DefaultLogLevel             = "trace"
 )
+
+// Backoff between startup user-data fetch retries; the first attempt is
+// immediate. Early failures are expected while the tunnel comes up.
+var startupUserDataFetchDelays = []time.Duration{
+	2 * time.Second,
+	5 * time.Second,
+	10 * time.Second,
+	20 * time.Second,
+	40 * time.Second,
+}
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
 type LanternCore struct {
@@ -318,7 +331,9 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	})
 }
 
-// fetchUserDataIfNeeded pulls fresh user data from the server at startup
+// fetchUserDataIfNeeded pulls fresh user data from the server at startup,
+// retrying with backoff, and notifies Flutter so the UI picks up changes
+// (e.g. a purchase credited while the app was closed).
 func (lc *LanternCore) fetchUserDataIfNeeded() {
 	raw := lc.settings()[settings.UserIDKey]
 	userID := userIDAsInt64(raw)
@@ -326,11 +341,29 @@ func (lc *LanternCore) fetchUserDataIfNeeded() {
 		slog.Debug("Skipping startup user-data fetch: no user ID set", "raw", raw)
 		return
 	}
-	if _, err := lc.client.FetchUserData(lc.ctx); err != nil {
-		slog.Error("Startup user-data fetch failed", "error", err)
-		return
+	attempts := len(startupUserDataFetchDelays) + 1
+	for i := 0; i < attempts; i++ {
+		_, err := lc.client.FetchUserData(lc.ctx)
+		if err == nil {
+			slog.Debug("Startup user-data fetch succeeded", "userID", userID, "attempt", i+1)
+			lc.notifyFlutter(EventTypeUserData, "")
+			return
+		}
+		if lc.ctx.Err() != nil {
+			return
+		}
+		if i == attempts-1 {
+			slog.Error("Startup user-data fetch failed; giving up", "error", err, "attempts", attempts)
+			return
+		}
+		delay := startupUserDataFetchDelays[i]
+		slog.Warn("Startup user-data fetch failed; retrying", "error", err, "attempt", i+1, "retryIn", delay)
+		select {
+		case <-lc.ctx.Done():
+			return
+		case <-time.After(delay):
+		}
 	}
-	slog.Debug("Startup user-data fetch succeeded", "userID", userID)
 }
 
 // userIDAsInt64 normalizes the radiance UserIDKey value across the storage

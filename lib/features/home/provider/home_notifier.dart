@@ -51,6 +51,22 @@ class HomeNotifier extends _$HomeNotifier {
     );
   }
 
+  /// Re-reads cached user data from Go without a loading state.
+  Future<void> reloadUserData() async {
+    final result = await ref.read(lanternServiceProvider).getUserData();
+    result.fold(
+      (failure) {
+        appLogger.error(
+          'Error reloading user data: ${failure.error}',
+        );
+      },
+      (userData) {
+        appLogger.debug('Reloaded user data from Go: ${userData.toJson()}');
+        _applyUserData(userData);
+      },
+    );
+  }
+
   /// Force refresh from Go
   Future<void> refreshUser() async {
     state = const AsyncValue.loading();

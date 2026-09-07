@@ -146,22 +146,34 @@ bool userDataReflectsPurchase(UserDataModel userData, int? expirationBefore) =>
     userData.isPro &&
     (expirationBefore == null || userData.expiration > expirationBefore);
 
+/// Default poll schedule for [checkUserAccountStatus]: 3 attempts, ~6s.
+const kDefaultAccountStatusDelays = [
+  Duration(seconds: 1),
+  Duration(seconds: 2),
+  Duration(seconds: 3),
+];
+
+/// Post-checkout poll schedule: 5 attempts, ~19s. Redirect payments are
+/// credited asynchronously server-side, so the entitlement can lag.
+const kPurchaseConfirmationDelays = [
+  Duration(seconds: 1),
+  Duration(seconds: 2),
+  Duration(seconds: 3),
+  Duration(seconds: 5),
+  Duration(seconds: 8),
+];
+
 /// Check user account status and updates user data if the user has a pro plan
 ///
-/// [expirationBefore] is the account expiration (epoch seconds) captured
-/// before the purchase was initiated. Renewing users are already pro, so
-/// `isPro` alone cannot confirm their purchase — when provided, the purchase
-/// only counts once the expiration has moved past [expirationBefore].
+/// [expirationBefore] (epoch seconds) is the expiration captured before
+/// checkout; when set, the purchase only counts once expiration moves past it
+/// (renewing users are already pro). [delays] sets the retry schedule.
 Future<bool> checkUserAccountStatus(
   WidgetRef ref,
   BuildContext context, {
   int? expirationBefore,
+  List<Duration> delays = kDefaultAccountStatusDelays,
 }) async {
-  final delays = [
-    Duration(seconds: 1),
-    Duration(seconds: 2),
-    Duration(seconds: 3),
-  ];
   for (final delay in delays) {
     appLogger.info("Checking user account status with delay: $delay");
     if (delay != Duration.zero) await Future.delayed(delay);
