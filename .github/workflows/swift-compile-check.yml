@@ -10,6 +10,10 @@ on:
       - "**/*.swift"
       - "macos/**"
       - "ios/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "Makefile"
+      - ".github/flutter-version.yaml"
       - ".github/workflows/swift-compile-check.yml"
 
 concurrency:
