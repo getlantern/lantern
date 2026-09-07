@@ -348,6 +348,7 @@ void main() {
     await tester.pump(const Duration(seconds: 11));
     expect(find.text('Take time to read this'), findsOneWidget);
     final close = tester.getSemantics(find.byKey(UserMessageSnackbar.closeKey));
+    expect(close.getSemanticsData().label, 'Close');
     expect(close.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
     tester.binding.pipelineOwner.semanticsOwner!.performAction(
       close.id,

@@ -67,10 +67,14 @@ class UserMessageSnackbar extends StatelessWidget {
                           ),
                           IconButton(
                             key: closeKey,
-                            tooltip: MaterialLocalizations.of(
-                              context,
-                            ).closeButtonTooltip,
-                            icon: const Icon(Icons.close),
+                            // This host is above the Navigator's Overlay, so
+                            // use an icon label rather than a Tooltip.
+                            icon: Icon(
+                              Icons.close,
+                              semanticLabel: MaterialLocalizations.of(
+                                context,
+                              ).closeButtonTooltip,
+                            ),
                             color: context.textInverse,
                             onPressed: onDismiss,
                           ),
