@@ -152,6 +152,26 @@ void main() {
     },
   );
 
+  test(
+    'coalesces lifecycle changes without a stale foreground refresh',
+    () async {
+      container.read(userMessageControllerProvider);
+      await pumpProviderQueue();
+      repository.activity.clear();
+      repository.refreshCalls = 0;
+      final backgroundCompleted = Completer<void>();
+      repository.onSetActive = (_) => backgroundCompleted.future;
+      final controller = container.read(userMessageControllerProvider.notifier);
+      final background = controller.onBackgrounded();
+      final foreground = controller.onForegrounded();
+      final backgroundAgain = controller.onBackgrounded();
+      backgroundCompleted.complete();
+      await Future.wait([background, foreground, backgroundAgain]);
+      expect(repository.activity, [false, false]);
+      expect(repository.refreshCalls, 0);
+    },
+  );
+
   testWidgets('retries acknowledgment without displaying again', (
     tester,
   ) async {

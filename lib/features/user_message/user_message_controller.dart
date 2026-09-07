@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/user_message.dart';
+import 'package:lantern/core/utils/latest_async_queue.dart';
 import 'package:lantern/features/user_message/user_message_repository.dart';
 
 const _unchangedPending = Object();
@@ -36,7 +37,10 @@ class UserMessageController extends Notifier<UserMessageState> {
   late UserMessageRepository _repository;
   int _loadGeneration = 0;
   int _lifecycleGeneration = 0;
-  Future<void> _activityUpdate = Future.value();
+  late final _activityUpdates = LatestAsyncQueue<bool, void>(
+    worker: _setActive,
+    defaultResult: null,
+  );
   bool _foreground = true;
   ({String displayId, String accountId})? _acknowledgment;
   Timer? _ackRetry;
@@ -92,7 +96,7 @@ class UserMessageController extends Notifier<UserMessageState> {
     _foreground = true;
     final generation = ++_lifecycleGeneration;
     final current = loadCurrent();
-    await _setActive(true);
+    await _activityUpdates.enqueue(true);
     await current;
     if (!ref.mounted || generation != _lifecycleGeneration) return;
     unawaited(_acknowledgePresented());
@@ -107,19 +111,16 @@ class UserMessageController extends Notifier<UserMessageState> {
     _foreground = false;
     _lifecycleGeneration++;
     _ackRetry?.cancel();
-    await _setActive(false);
+    await _activityUpdates.enqueue(false);
   }
 
-  Future<void> _setActive(bool active) {
-    _activityUpdate = _activityUpdate.then((_) async {
-      if (!ref.mounted) return;
-      try {
-        await _repository.setActive(active);
-      } on Object {
-        // A later lifecycle update will reconcile the native state.
-      }
-    });
-    return _activityUpdate;
+  Future<void> _setActive(bool active) async {
+    if (!ref.mounted) return;
+    try {
+      await _repository.setActive(active);
+    } on Object {
+      // A later lifecycle update will reconcile the native state.
+    }
   }
 
   /// Reserves the pending message so rebuilds cannot present it twice.
