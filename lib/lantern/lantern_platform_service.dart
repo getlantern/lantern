@@ -124,12 +124,15 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId) async {
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
     try {
-      await _methodChannel.invokeMethod<void>(
-        'acknowledgeUserMessage',
-        displayId,
-      );
+      await _methodChannel.invokeMethod<void>('acknowledgeUserMessage', {
+        'displayId': displayId,
+        'accountId': accountId,
+      });
       return right(unit);
     } catch (e) {
       return left(e.toFailure());

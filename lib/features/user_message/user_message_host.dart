@@ -40,6 +40,7 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     with WidgetsBindingObserver {
   AppLifecycleState _lifecycleState = AppLifecycleState.resumed;
   bool _attemptScheduled = false;
+  bool _checkingCurrent = false;
   bool _active = true;
   Timer? _retryTimer;
   _UserMessagePresentation? _presentation;
@@ -53,6 +54,9 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     _lifecycleState =
         WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
     _controller = ref.read(userMessageControllerProvider.notifier);
+    if (_lifecycleState != AppLifecycleState.resumed) {
+      Future.microtask(_controller.onBackgrounded);
+    }
     WidgetsBinding.instance.addObserver(this);
     widget.routeObserver.changes.addListener(_scheduleAttempt);
   }
@@ -67,6 +71,12 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     if (oldWidget.enabled != widget.enabled) {
       _scheduleAttempt();
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateDismissalTimer();
   }
 
   @override
@@ -124,8 +134,8 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
     return true;
   }
 
-  void _attemptPresentation() {
-    if (_presentation != null) return;
+  Future<void> _attemptPresentation() async {
+    if (_presentation != null || _checkingCurrent) return;
     final state = ref.read(userMessageControllerProvider);
     if (state.displayedThisSession || state.pending == null) {
       _retryTimer?.cancel();
@@ -147,6 +157,15 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
       return;
     }
 
+    _checkingCurrent = true;
+    // The account or locale may have changed while a dialog kept us waiting.
+    await _controller.loadCurrent();
+    _checkingCurrent = false;
+    if (!mounted || !_active || _presentation != null) return;
+    if (!_isSafeToPresent()) {
+      _scheduleAttempt();
+      return;
+    }
     final message = _controller.claimForPresentation(_now);
     if (message == null) return;
     final presentation = _UserMessagePresentation(message);
@@ -199,11 +218,20 @@ class _UserMessageHostState extends ConsumerState<UserMessageHost>
       return;
     }
     presentation.visible = true;
-    presentation.dismissalTimer = Timer(
-      const Duration(seconds: 10),
-      () => _closePresentation(presentation),
-    );
+    _updateDismissalTimer();
     unawaited(_controller.markPresented(presentation.message.displayId));
+  }
+
+  void _updateDismissalTimer() {
+    final presentation = _presentation;
+    if (presentation == null || !presentation.visible) return;
+    presentation.dismissalTimer?.cancel();
+    if (!MediaQuery.accessibleNavigationOf(context)) {
+      presentation.dismissalTimer = Timer(
+        const Duration(seconds: 10),
+        () => _closePresentation(presentation),
+      );
+    }
   }
 
   void _closePresentation(_UserMessagePresentation presentation) {

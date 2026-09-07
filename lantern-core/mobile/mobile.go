@@ -330,10 +330,10 @@ func RefreshUserMessages() error {
 	return withCore(func(c lanterncore.Core) error { return c.RefreshUserMessages() })
 }
 
-// AcknowledgeUserMessage records that Flutter displayed displayID.
-func AcknowledgeUserMessage(displayID string) error {
+// AcknowledgeUserMessage records that Flutter displayed displayID for accountID.
+func AcknowledgeUserMessage(displayID, accountID string) error {
 	return withCore(func(c lanterncore.Core) error {
-		return c.AcknowledgeUserMessage(displayID)
+		return c.AcknowledgeUserMessage(displayID, accountID)
 	})
 }
 

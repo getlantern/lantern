@@ -269,9 +269,11 @@ class MethodHandler {
         self.refreshUserMessages(result: result)
 
       case "acknowledgeUserMessage":
-        guard let displayID: String = self.decodeValue(from: call.arguments, result: result)
+        guard let data = self.decodeDict(from: call.arguments, result: result),
+          let displayID: String = self.decodeValue(from: data["displayId"], result: result),
+          let accountID: String = self.decodeValue(from: data["accountId"], result: result)
         else { return }
-        self.acknowledgeUserMessage(result: result, displayID: displayID)
+        self.acknowledgeUserMessage(result: result, displayID: displayID, accountID: accountID)
 
       case "setUserMessageActivity":
         guard let active: Bool = self.decodeValue(from: call.arguments, result: result)
@@ -1306,10 +1308,10 @@ class MethodHandler {
     }
   }
 
-  func acknowledgeUserMessage(result: @escaping FlutterResult, displayID: String) {
+  func acknowledgeUserMessage(result: @escaping FlutterResult, displayID: String, accountID: String) {
     Task {
       var error: NSError?
-      MobileAcknowledgeUserMessage(displayID, &error)
+      MobileAcknowledgeUserMessage(displayID, accountID, &error)
       if let error {
         await self.handleFlutterError(
           error, result: result, code: "ACKNOWLEDGE_USER_MESSAGE_ERROR")

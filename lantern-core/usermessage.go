@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	wire "github.com/getlantern/common/usermessage"
+	"github.com/getlantern/radiance/usermessage"
 )
 
 const (
@@ -16,10 +16,10 @@ const (
 )
 
 type userMessageClient interface {
-	CurrentUserMessage(context.Context) (*wire.ResolvedUserMessage, error)
+	CurrentUserMessage(context.Context) (*usermessage.Message, error)
 	UserMessageEvents(context.Context, func()) error
 	RefreshUserMessages(context.Context) error
-	AcknowledgeUserMessage(context.Context, string) error
+	AcknowledgeUserMessage(context.Context, string, string) error
 	SetUserMessageActivity(context.Context, bool) error
 }
 
@@ -56,17 +56,17 @@ func (lc *LanternCore) RefreshUserMessages() error {
 	return lc.userMessages.RefreshUserMessages(ctx)
 }
 
-// AcknowledgeUserMessage records that the UI displayed displayID.
-func (lc *LanternCore) AcknowledgeUserMessage(displayID string) error {
+// AcknowledgeUserMessage records that the UI displayed displayID for accountID.
+func (lc *LanternCore) AcknowledgeUserMessage(displayID, accountID string) error {
 	if lc.userMessages == nil {
 		return errors.New("user-message subsystem is not initialized")
 	}
-	if displayID == "" {
-		return errors.New("display ID is required")
+	if displayID == "" || accountID == "" {
+		return errors.New("display ID and account ID are required")
 	}
 	ctx, cancel := context.WithTimeout(lc.ctx, userMessageIPCRequestTimeout)
 	defer cancel()
-	return lc.userMessages.AcknowledgeUserMessage(ctx, displayID)
+	return lc.userMessages.AcknowledgeUserMessage(ctx, displayID, accountID)
 }
 
 // SetUserMessageActivity pauses or resumes message polling for the app lifecycle.

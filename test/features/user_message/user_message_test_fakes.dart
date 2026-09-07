@@ -9,10 +9,14 @@ class FakeUserMessageRepository implements UserMessageRepository {
   Object? currentError;
   Object? refreshError;
   Object? acknowledgeError;
+  Future<UserMessage?> Function()? onCurrent;
+  Future<void> Function(bool)? onSetActive;
+  int acknowledgeCalls = 0;
   int currentCalls = 0;
   int refreshCalls = 0;
   final activity = <bool>[];
   final acknowledged = <String>[];
+  final acknowledgedAccounts = <String>[];
 
   @override
   Stream<void> get messageAvailable => events.stream;
@@ -20,6 +24,7 @@ class FakeUserMessageRepository implements UserMessageRepository {
   @override
   Future<UserMessage?> current() async {
     currentCalls++;
+    if (onCurrent case final read?) return read();
     if (currentError case final error?) throw error;
     return currentMessage;
   }
@@ -31,14 +36,17 @@ class FakeUserMessageRepository implements UserMessageRepository {
   }
 
   @override
-  Future<void> acknowledge(String displayId) async {
+  Future<void> acknowledge(String displayId, String accountId) async {
+    acknowledgeCalls++;
     if (acknowledgeError case final error?) throw error;
     acknowledged.add(displayId);
+    acknowledgedAccounts.add(accountId);
   }
 
   @override
   Future<void> setActive(bool active) async {
     activity.add(active);
+    await onSetActive?.call(active);
   }
 
   Future<void> dispose() => events.close();
@@ -46,12 +54,14 @@ class FakeUserMessageRepository implements UserMessageRepository {
 
 UserMessage testUserMessage({
   String displayId = 'campaign-1:generation-1',
+  String accountId = '12345',
   String body = 'A message from Lantern',
   String? buttonLabel,
   UserMessageAction? action,
   DateTime? expiresAt,
 }) {
   return UserMessage(
+    accountId: accountId,
     displayId: displayId,
     campaignId: 'campaign-1',
     revisionId: 'revision-1',

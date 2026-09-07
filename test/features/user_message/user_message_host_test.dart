@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsAction;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -30,6 +32,7 @@ Widget _harness({
   bool enabled = true,
   Locale locale = const Locale('en'),
   TextScaler textScaler = TextScaler.noScaling,
+  bool accessibleNavigation = false,
   bool Function(BuildContext)? criticalOverlayVisible,
   DateTime Function()? now,
   ValueListenable<bool>? enabledListenable,
@@ -51,7 +54,10 @@ Widget _harness({
       builder: (context, child) {
         final appChild = child ?? const SizedBox.shrink();
         Widget withMediaQuery(Widget content) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+          data: MediaQuery.of(context).copyWith(
+            textScaler: textScaler,
+            accessibleNavigation: accessibleNavigation,
+          ),
           child: content,
         );
 
@@ -148,10 +154,7 @@ void main() {
 
       final actionFinder = find.byKey(UserMessageSnackbar.actionKey);
       expect(actionFinder, findsOneWidget);
-      expect(
-        find.descendant(of: actionFinder, matching: find.byType(TextButton)),
-        findsOneWidget,
-      );
+      expect(tester.widget(actionFinder), isA<TextButton>());
       expect(find.byKey(UserMessageSnackbar.closeKey), findsOneWidget);
       await tester.tap(actionFinder);
       await tester.tap(actionFinder);
@@ -298,6 +301,86 @@ void main() {
     await _pumpToSnackbar(tester);
     expect(find.text('After onboarding'), findsOneWidget);
     expect(repository.acknowledged, ['campaign-1:generation-1']);
+  });
+
+  testWidgets(
+    'revalidates queued content before presenting after a blocked flow',
+    (tester) async {
+      final enabled = ValueNotifier(false);
+      addTearDown(enabled.dispose);
+      final repository = FakeUserMessageRepository()
+        ..currentMessage = testUserMessage(body: 'Previous account');
+      addTearDown(repository.dispose);
+      await tester.pumpWidget(
+        _harness(
+          repository: repository,
+          observer: UserMessageRouteObserver(),
+          dispatcher: _Actions().dispatcher,
+          enabledListenable: enabled,
+        ),
+      );
+      await _pumpToSnackbar(tester);
+      repository.currentMessage = null;
+      enabled.value = true;
+      await _pumpToSnackbar(tester);
+      expect(find.text('Previous account'), findsNothing);
+      expect(repository.acknowledged, isEmpty);
+    },
+  );
+
+  testWidgets('retains accessible messages and exposes the close action', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    addTearDown(semantics.dispose);
+    final repository = FakeUserMessageRepository()
+      ..currentMessage = testUserMessage(body: 'Take time to read this');
+    addTearDown(repository.dispose);
+    await tester.pumpWidget(
+      _harness(
+        repository: repository,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        accessibleNavigation: true,
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    await tester.pump(const Duration(seconds: 11));
+    expect(find.text('Take time to read this'), findsOneWidget);
+    final close = tester.getSemantics(find.byKey(UserMessageSnackbar.closeKey));
+    expect(close.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+    tester.binding.pipelineOwner.semanticsOwner!.performAction(
+      close.id,
+      SemanticsAction.tap,
+    );
+    await tester.pump();
+    expect(find.text('Take time to read this'), findsNothing);
+  });
+
+  testWidgets('wraps translated actions at large text sizes', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final label = List.filled(8, 'Mehr erfahren').join(' ');
+    final repository = FakeUserMessageRepository()
+      ..currentMessage = testUserMessage(
+        body: 'An announcement',
+        buttonLabel: label,
+        action: const UserMessageAction(type: UserMessageActionType.openPlans),
+      );
+    addTearDown(repository.dispose);
+    await tester.pumpWidget(
+      _harness(
+        repository: repository,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        textScaler: const TextScaler.linear(3),
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    expect(find.text(label), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('releases an unshown claim when the host is disposed', (

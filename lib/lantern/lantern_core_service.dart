@@ -54,7 +54,10 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, Unit>> refreshUserMessages();
 
-  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId);
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  );
 
   Future<Either<Failure, Unit>> setUserMessageActivity(bool active);
 

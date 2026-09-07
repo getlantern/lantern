@@ -23,6 +23,7 @@ void main() {
         calls.add(call);
         if (call.method == 'currentUserMessage') {
           return jsonEncode({
+            'account_id': '12345',
             'display_id': 'campaign-1:generation-2',
             'campaign_id': 'campaign-1',
             'revision_id': 'revision-3',
@@ -49,6 +50,7 @@ void main() {
       refresh.fold((failure) => fail('refresh failed: $failure'), (_) {});
       final acknowledge = await service.acknowledgeUserMessage(
         'campaign-1:generation-2',
+        '12345',
       );
       acknowledge.fold(
         (failure) => fail('acknowledgment failed: $failure'),
@@ -66,7 +68,10 @@ void main() {
         'acknowledgeUserMessage',
         'setUserMessageActivity',
       ]);
-      expect(calls[2].arguments, 'campaign-1:generation-2');
+      expect(calls[2].arguments, {
+        'displayId': 'campaign-1:generation-2',
+        'accountId': '12345',
+      });
       expect(calls.last.arguments, isFalse);
     },
   );

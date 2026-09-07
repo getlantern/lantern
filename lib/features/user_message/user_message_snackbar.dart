@@ -41,56 +41,55 @@ class UserMessageSnackbar extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Padding(
-                padding: defaultPadding,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.sizeOf(context).height * 0.45,
-                        ),
-                        child: SingleChildScrollView(
-                          child: Semantics(
-                            liveRegion: true,
-                            label: message.body,
-                            excludeSemantics: true,
-                            child: Text(
-                              message.body,
-                              key: bodyKey,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: context.textInverse),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.6,
+                ),
+                child: SingleChildScrollView(
+                  padding: defaultPadding,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Semantics(
+                              liveRegion: true,
+                              child: Text(
+                                message.body,
+                                key: bodyKey,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: context.textInverse),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    ),
-                    if (action != null && message.buttonLabel != null)
-                      KeyedSubtree(
-                        key: actionKey,
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            foregroundColor: context.textInverseColor,
+                          IconButton(
+                            key: closeKey,
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).closeButtonTooltip,
+                            icon: const Icon(Icons.close),
+                            color: context.textInverse,
+                            onPressed: onDismiss,
                           ),
-                          onPressed: () => onAction(action),
-                          child: Text(message.buttonLabel!),
-                        ),
+                        ],
                       ),
-                    Semantics(
-                      label: MaterialLocalizations.of(
-                        context,
-                      ).closeButtonTooltip,
-                      button: true,
-                      child: ExcludeSemantics(
-                        child: IconButton(
-                          key: closeKey,
-                          icon: const Icon(Icons.close),
-                          color: context.textInverse,
-                          onPressed: onDismiss,
+                      if (action != null && message.buttonLabel != null)
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: TextButton(
+                            key: actionKey,
+                            style: TextButton.styleFrom(
+                              foregroundColor: context.textInverseColor,
+                            ),
+                            onPressed: () => onAction(action),
+                            child: Text(message.buttonLabel!),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

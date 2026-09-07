@@ -31,18 +31,12 @@ class UserMessageActionDispatcher {
     switch (action.type) {
       case UserMessageActionType.openHttpsUrl:
         final uri = action.url;
-        if (uri == null || !isAllowedHttpsUrl(uri)) return;
+        if (uri == null || !UserMessageAction.isAllowedHttpsUrl(uri)) return;
         await _openHttpsUrl(uri);
         return;
       case UserMessageActionType.openPlans:
         await _openPlans();
         return;
     }
-  }
-
-  static bool isAllowedHttpsUrl(Uri uri) {
-    return uri.scheme.toLowerCase() == 'https' &&
-        uri.host.isNotEmpty &&
-        uri.userInfo.isEmpty;
   }
 }

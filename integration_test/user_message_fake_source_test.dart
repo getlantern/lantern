@@ -58,13 +58,14 @@ class _FakeRadianceMessageSource implements UserMessageRepository {
   Stream<void> get messageAvailable => _events.stream;
 
   @override
-  Future<void> acknowledge(String displayId) async {
+  Future<void> acknowledge(String displayId, String accountId) async {
     acknowledged.add(displayId);
   }
 
   @override
   Future<UserMessage?> current() async {
     return UserMessage(
+      accountId: '12345',
       displayId: 'campaign-1:generation-1',
       campaignId: 'campaign-1',
       revisionId: 'revision-1',

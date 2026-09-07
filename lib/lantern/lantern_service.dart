@@ -134,11 +134,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId) {
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.acknowledgeUserMessage(displayId);
+      return _ffiService.acknowledgeUserMessage(displayId, accountId);
     }
-    return _platformService.acknowledgeUserMessage(displayId);
+    return _platformService.acknowledgeUserMessage(displayId, accountId);
   }
 
   @override

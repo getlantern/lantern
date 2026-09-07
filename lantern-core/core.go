@@ -105,7 +105,7 @@ type App interface {
 	UpdateLocale(locale string) error
 	CurrentUserMessage() (string, error)
 	RefreshUserMessages() error
-	AcknowledgeUserMessage(displayID string) error
+	AcknowledgeUserMessage(displayID, accountID string) error
 	SetUserMessageActivity(active bool) error
 	UpdateTelemetryConsent(consent bool) error
 	IsTelemetryEnabled() bool

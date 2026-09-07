@@ -10,18 +10,20 @@ import (
 	wire "github.com/getlantern/common/usermessage"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	commonenv "github.com/getlantern/radiance/common/env"
+	"github.com/getlantern/radiance/usermessage"
 )
 
 type fakeUserMessageClient struct {
-	message      *wire.ResolvedUserMessage
+	message      *usermessage.Message
 	currentErr   error
 	refreshCount int
 	acknowledged string
+	accountID    string
 	activity     []bool
 	eventCount   int
 }
 
-func (f *fakeUserMessageClient) CurrentUserMessage(context.Context) (*wire.ResolvedUserMessage, error) {
+func (f *fakeUserMessageClient) CurrentUserMessage(context.Context) (*usermessage.Message, error) {
 	return f.message, f.currentErr
 }
 
@@ -36,8 +38,9 @@ func (f *fakeUserMessageClient) RefreshUserMessages(context.Context) error {
 	return nil
 }
 
-func (f *fakeUserMessageClient) AcknowledgeUserMessage(_ context.Context, displayID string) error {
+func (f *fakeUserMessageClient) AcknowledgeUserMessage(_ context.Context, displayID, accountID string) error {
 	f.acknowledged = displayID
+	f.accountID = accountID
 	return nil
 }
 
@@ -62,25 +65,28 @@ func TestUserMessageBridge(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var got wire.ResolvedUserMessage
+	var got usermessage.Message
 	if err := json.Unmarshal([]byte(encoded), &got); err != nil {
 		t.Fatal(err)
 	}
-	if got.DisplayID != client.message.DisplayID || got.Body != client.message.Body {
+	if got.DisplayID != client.message.DisplayID || got.Body != client.message.Body || got.AccountID != client.message.AccountID {
 		t.Fatalf("unexpected bridge message: %#v", got)
 	}
 
 	if err := lc.RefreshUserMessages(); err != nil || client.refreshCount != 1 {
 		t.Fatalf("refresh: count=%d err=%v", client.refreshCount, err)
 	}
-	if err := lc.AcknowledgeUserMessage(client.message.DisplayID); err != nil {
+	if err := lc.AcknowledgeUserMessage(client.message.DisplayID, client.message.AccountID); err != nil {
 		t.Fatal(err)
 	}
-	if client.acknowledged != client.message.DisplayID {
+	if client.acknowledged != client.message.DisplayID || client.accountID != client.message.AccountID {
 		t.Fatalf("acknowledged %q", client.acknowledged)
 	}
-	if err := lc.AcknowledgeUserMessage(""); err == nil {
+	if err := lc.AcknowledgeUserMessage("", client.message.AccountID); err == nil {
 		t.Fatal("expected empty display ID to fail")
+	}
+	if err := lc.AcknowledgeUserMessage(client.message.DisplayID, ""); err == nil {
+		t.Fatal("expected empty account ID to fail")
 	}
 	if err := lc.SetUserMessageActivity(false); err != nil {
 		t.Fatal(err)
@@ -147,15 +153,18 @@ func TestRadianceVersionOverride(t *testing.T) {
 	}
 }
 
-func testResolvedUserMessage() *wire.ResolvedUserMessage {
-	return &wire.ResolvedUserMessage{
-		DisplayID:  "campaign-1:generation-2",
-		CampaignID: "campaign-1",
-		RevisionID: "revision-3",
-		DeliveryID: "delivery-4",
-		Surface:    wire.SurfaceSnackbar,
-		Locale:     "en-US",
-		Body:       "Localized content must stay out of events and logs.",
-		ExpiresAt:  time.Now().Add(time.Hour).UTC(),
+func testResolvedUserMessage() *usermessage.Message {
+	return &usermessage.Message{
+		AccountID: "12345",
+		ResolvedUserMessage: wire.ResolvedUserMessage{
+			DisplayID:  "campaign-1:generation-2",
+			CampaignID: "campaign-1",
+			RevisionID: "revision-3",
+			DeliveryID: "delivery-4",
+			Surface:    wire.SurfaceSnackbar,
+			Locale:     "en-US",
+			Body:       "Localized content must stay out of events and logs.",
+			ExpiresAt:  time.Now().Add(time.Hour).UTC(),
+		},
 	}
 }

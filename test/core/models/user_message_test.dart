@@ -11,6 +11,7 @@ void main() {
       'url': 'https://getlantern.org/plans',
     },
   }) => {
+    'account_id': '12345',
     'display_id': 'campaign-1:generation-2',
     'campaign_id': 'campaign-1',
     'revision_id': 'revision-3',
@@ -26,11 +27,12 @@ void main() {
         .toIso8601String(),
   };
 
-  test('parses the common v1 message contract', () {
+  test('parses common v1 content with its local account scope', () {
     final parsed = UserMessage.tryParse(jsonEncode(message()));
 
     expect(parsed, isNotNull);
     expect(parsed!.surface, UserMessageSurface.snackbar);
+    expect(parsed.accountId, '12345');
     expect(parsed.action!.type, UserMessageActionType.openHttpsUrl);
     expect(parsed.action!.url, Uri.parse('https://getlantern.org/plans'));
   });
@@ -90,5 +92,10 @@ void main() {
         .subtract(const Duration(seconds: 1))
         .toIso8601String();
     expect(UserMessage.tryParse(jsonEncode(expired)), isNull);
+  });
+
+  test('rejects bridge content without an account scope', () {
+    final unscoped = message()..remove('account_id');
+    expect(UserMessage.tryParse(jsonEncode(unscoped)), isNull);
   });
 }

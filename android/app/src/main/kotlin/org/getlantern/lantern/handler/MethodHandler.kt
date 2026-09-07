@@ -704,11 +704,15 @@ class MethodHandler : FlutterPlugin,
 
             Methods.AcknowledgeUserMessage.method -> {
                 scope.handleResult(result, "acknowledge_user_message") {
-                    val displayID = requireNotNull(call.arguments<String>()) {
+                    val displayID = requireNotNull(call.argument<String>("displayId")) {
                         "Missing display ID"
                     }
+                    val accountID = requireNotNull(call.argument<String>("accountId")) {
+                        "Missing account ID"
+                    }
                     require(displayID.isNotBlank()) { "Missing display ID" }
-                    Mobile.acknowledgeUserMessage(displayID)
+                    require(accountID.isNotBlank()) { "Missing account ID" }
+                    Mobile.acknowledgeUserMessage(displayID, accountID)
                 }
             }
 

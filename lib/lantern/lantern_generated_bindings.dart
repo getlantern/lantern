@@ -6097,18 +6097,27 @@ class LanternBindings {
 
   ffi.Pointer<ffi.Char> acknowledgeUserMessage(
     ffi.Pointer<ffi.Char> _displayID,
+    ffi.Pointer<ffi.Char> _accountID,
   ) {
-    return _acknowledgeUserMessage(_displayID);
+    return _acknowledgeUserMessage(_displayID, _accountID);
   }
 
   late final _acknowledgeUserMessagePtr =
       _lookup<
         ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
         >
       >('acknowledgeUserMessage');
   late final _acknowledgeUserMessage = _acknowledgeUserMessagePtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
 
   ffi.Pointer<ffi.Char> setUserMessageActivity(int active) {
     return _setUserMessageActivity(active);

@@ -16,6 +16,7 @@ class _FakeCore implements LanternCoreService {
   Either<Failure, Unit> refreshResult = right(unit);
   Either<Failure, Unit> acknowledgeResult = right(unit);
   final acknowledged = <String>[];
+  final acknowledgedAccounts = <String>[];
   final activity = <bool>[];
 
   @override
@@ -29,8 +30,12 @@ class _FakeCore implements LanternCoreService {
   Future<Either<Failure, Unit>> refreshUserMessages() async => refreshResult;
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId) async {
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
     acknowledged.add(displayId);
+    acknowledgedAccounts.add(accountId);
     return acknowledgeResult;
   }
 
@@ -62,9 +67,10 @@ void main() {
 
       expect(await repository.current(), same(message));
       await repository.refresh();
-      await repository.acknowledge(message.displayId);
+      await repository.acknowledge(message.displayId, message.accountId);
       await repository.setActive(false);
       expect(core.acknowledged, [message.displayId]);
+      expect(core.acknowledgedAccounts, [message.accountId]);
       expect(core.activity, [false]);
       await available;
     },

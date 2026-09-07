@@ -10,6 +10,11 @@ class UserMessageAction {
 
   const UserMessageAction({required this.type, this.url});
 
+  static bool isAllowedHttpsUrl(Uri uri) =>
+      uri.scheme.toLowerCase() == 'https' &&
+      uri.host.isNotEmpty &&
+      uri.userInfo.isEmpty;
+
   static UserMessageAction? fromJson(Object? value) {
     if (value == null) return null;
     if (value is! Map<String, dynamic>) return null;
@@ -17,10 +22,7 @@ class UserMessageAction {
       case 'open_https_url':
         final rawUrl = value['url'];
         final url = rawUrl is String ? Uri.tryParse(rawUrl) : null;
-        if (url == null ||
-            url.scheme.toLowerCase() != 'https' ||
-            url.host.isEmpty ||
-            url.userInfo.isNotEmpty) {
+        if (url == null || !isAllowedHttpsUrl(url)) {
           return null;
         }
         return UserMessageAction(
@@ -42,6 +44,8 @@ class UserMessageAction {
 /// A message Lantern can display. Campaign targeting and authoring stay in
 /// Lantern Cloud.
 class UserMessage {
+  /// The account that owns the local pending message, not cloud response data.
+  final String accountId;
   final String displayId;
   final String campaignId;
   final String revisionId;
@@ -54,6 +58,7 @@ class UserMessage {
   final DateTime expiresAt;
 
   const UserMessage({
+    required this.accountId,
     required this.displayId,
     required this.campaignId,
     required this.revisionId,
@@ -80,6 +85,7 @@ class UserMessage {
       if (value['surface'] != 'snackbar') return null;
 
       final message = UserMessage(
+        accountId: _requiredString(value, 'account_id'),
         displayId: _requiredString(value, 'display_id'),
         campaignId: _requiredString(value, 'campaign_id'),
         revisionId: _requiredString(value, 'revision_id'),

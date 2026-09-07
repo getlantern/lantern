@@ -35,6 +35,13 @@ class UserMessageState {
 class UserMessageController extends Notifier<UserMessageState> {
   late UserMessageRepository _repository;
   int _loadGeneration = 0;
+  int _lifecycleGeneration = 0;
+  Future<void> _activityUpdate = Future.value();
+  bool _foreground = true;
+  ({String displayId, String accountId})? _acknowledgment;
+  Timer? _ackRetry;
+  int _ackAttempts = 0;
+  bool _ackInFlight = false;
 
   @override
   UserMessageState build() {
@@ -44,6 +51,7 @@ class UserMessageController extends Notifier<UserMessageState> {
       onError: (_) {},
     );
     ref.onDispose(subscription.cancel);
+    ref.onDispose(() => _ackRetry?.cancel());
     // Pull any message Radiance already has, then wake its cloud fetch. The
     // explicit refresh matters when the native backend was already running or
     // first-run account creation finished just after the initial local read.
@@ -54,10 +62,20 @@ class UserMessageController extends Notifier<UserMessageState> {
   /// Loads Radiance's pending message. The generation check keeps a slower,
   /// older request from overwriting the latest result.
   Future<void> loadCurrent() async {
+    if (!ref.mounted ||
+        state.displayedThisSession ||
+        state.presentationClaimed) {
+      return;
+    }
     final generation = ++_loadGeneration;
+    state = state.copyWith(pending: null);
     try {
       final message = await _repository.current();
-      if (generation != _loadGeneration || state.displayedThisSession) return;
+      if (!ref.mounted ||
+          generation != _loadGeneration ||
+          state.displayedThisSession) {
+        return;
+      }
       if (state.presentationClaimed) return;
       final now = DateTime.now().toUtc();
       state = state.copyWith(
@@ -70,12 +88,14 @@ class UserMessageController extends Notifier<UserMessageState> {
 
   /// Pulls local state first, then asks Radiance to check the server again.
   Future<void> onForegrounded() async {
-    try {
-      await _repository.setActive(true);
-    } on Object {
-      // The next lifecycle transition will try again.
-    }
-    await loadCurrent();
+    if (!ref.mounted) return;
+    _foreground = true;
+    final generation = ++_lifecycleGeneration;
+    final current = loadCurrent();
+    await _setActive(true);
+    await current;
+    if (!ref.mounted || generation != _lifecycleGeneration) return;
+    unawaited(_acknowledgePresented());
     try {
       await _repository.refresh();
     } on Object {
@@ -84,11 +104,22 @@ class UserMessageController extends Notifier<UserMessageState> {
   }
 
   Future<void> onBackgrounded() async {
-    try {
-      await _repository.setActive(false);
-    } on Object {
-      // Radiance will keep its current activity state.
-    }
+    _foreground = false;
+    _lifecycleGeneration++;
+    _ackRetry?.cancel();
+    await _setActive(false);
+  }
+
+  Future<void> _setActive(bool active) {
+    _activityUpdate = _activityUpdate.then((_) async {
+      if (!ref.mounted) return;
+      try {
+        await _repository.setActive(active);
+      } on Object {
+        // A later lifecycle update will reconcile the native state.
+      }
+    });
+    return _activityUpdate;
   }
 
   /// Reserves the pending message so rebuilds cannot present it twice.
@@ -119,15 +150,53 @@ class UserMessageController extends Notifier<UserMessageState> {
   Future<void> markPresented(String displayId) async {
     if (state.displayedThisSession || !state.presentationClaimed) return;
     if (state.pending?.displayId != displayId) return;
+    _acknowledgment = (
+      displayId: displayId,
+      accountId: state.pending!.accountId,
+    );
     state = state.copyWith(
       pending: null,
       presentationClaimed: false,
       displayedThisSession: true,
     );
+    await _acknowledgePresented();
+  }
+
+  Future<void> _acknowledgePresented() async {
+    final acknowledgment = _acknowledgment;
+    if (!ref.mounted ||
+        !_foreground ||
+        _ackInFlight ||
+        acknowledgment == null ||
+        _ackAttempts >= 3) {
+      return;
+    }
+    _ackRetry?.cancel();
+    _ackInFlight = true;
+    _ackAttempts++;
     try {
-      await _repository.acknowledge(displayId);
+      if (_ackAttempts > 1) {
+        final current = await _repository.current();
+        if (!ref.mounted) return;
+        if (current?.accountId != acknowledgment.accountId ||
+            current?.displayId != acknowledgment.displayId) {
+          _acknowledgment = null;
+          return;
+        }
+      }
+      await _repository.acknowledge(
+        acknowledgment.displayId,
+        acknowledgment.accountId,
+      );
+      _acknowledgment = null;
     } on Object {
-      // Keep the one-per-session rule. Radiance can retry next session.
+      if (ref.mounted && _foreground && _ackAttempts < 3) {
+        _ackRetry = Timer(Duration(seconds: 1 << (_ackAttempts - 1)), () {
+          unawaited(_acknowledgePresented());
+        });
+      }
+    } finally {
+      _ackInFlight = false;
     }
   }
 }

@@ -15,7 +15,7 @@ abstract interface class UserMessageRepository {
 
   Future<void> refresh();
 
-  Future<void> acknowledge(String displayId);
+  Future<void> acknowledge(String displayId, String accountId);
 
   Future<void> setActive(bool active);
 }
@@ -42,8 +42,8 @@ class LanternUserMessageRepository implements UserMessageRepository {
   }
 
   @override
-  Future<void> acknowledge(String displayId) async {
-    _unwrap(await _service.acknowledgeUserMessage(displayId));
+  Future<void> acknowledge(String displayId, String accountId) async {
+    _unwrap(await _service.acknowledgeUserMessage(displayId, accountId));
   }
 
   @override

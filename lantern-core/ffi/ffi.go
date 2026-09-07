@@ -242,14 +242,15 @@ func refreshUserMessages() *C.char {
 }
 
 //export acknowledgeUserMessage
-func acknowledgeUserMessage(_displayID *C.char) *C.char {
+func acknowledgeUserMessage(_displayID, _accountID *C.char) *C.char {
 	displayID := C.GoString(_displayID)
+	accountID := C.GoString(_accountID)
 	return runOnGoStack(func() *C.char {
 		c, errStr := requireCore()
 		if errStr != nil {
 			return errStr
 		}
-		if err := c.AcknowledgeUserMessage(displayID); err != nil {
+		if err := c.AcknowledgeUserMessage(displayID, accountID); err != nil {
 			return SendError(err)
 		}
 		return C.CString("ok")

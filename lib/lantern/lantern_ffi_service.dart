@@ -260,12 +260,19 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> acknowledgeUserMessage(String displayId) async {
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
     try {
       final result = await runInBackground<String>(() async {
         final displayIDPtr = displayId.toCharPtr;
+        final accountIDPtr = accountId.toCharPtr;
         try {
-          final resultPtr = _ffiService.acknowledgeUserMessage(displayIDPtr);
+          final resultPtr = _ffiService.acknowledgeUserMessage(
+            displayIDPtr,
+            accountIDPtr,
+          );
           try {
             return resultPtr.toDartString();
           } finally {
@@ -273,6 +280,7 @@ class LanternFFIService implements LanternCoreService {
           }
         } finally {
           malloc.free(displayIDPtr);
+          malloc.free(accountIDPtr);
         }
       });
       checkAPIError(result);
@@ -931,9 +939,7 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
-    String token,
-  ) async {
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService
