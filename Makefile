@@ -219,6 +219,7 @@ IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
+IOS_FRAMEWORK_OUTPUT := $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_grpc
@@ -1132,6 +1133,15 @@ build-ios: $(MAYBE_STEALTH_PROFILE)
 		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
+
+$(IOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	$(MAKE) build-ios
+
+# Unsigned simulator build; PR gate for Swift compile errors.
+.PHONY: ios-compile-check
+ios-compile-check: $(IOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (debug, simulator) for iOS..."
+	flutter build ios --debug --simulator --no-codesign $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: format swift-format
 swift-format:
