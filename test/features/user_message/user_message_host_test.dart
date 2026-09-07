@@ -332,30 +332,35 @@ void main() {
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    addTearDown(semantics.dispose);
-    final repository = FakeUserMessageRepository()
-      ..currentMessage = testUserMessage(body: 'Take time to read this');
-    addTearDown(repository.dispose);
-    await tester.pumpWidget(
-      _harness(
-        repository: repository,
-        observer: UserMessageRouteObserver(),
-        dispatcher: _Actions().dispatcher,
-        accessibleNavigation: true,
-      ),
-    );
-    await _pumpToSnackbar(tester);
-    await tester.pump(const Duration(seconds: 11));
-    expect(find.text('Take time to read this'), findsOneWidget);
-    final close = tester.getSemantics(find.byKey(UserMessageSnackbar.closeKey));
-    expect(close.getSemanticsData().label, 'Close');
-    expect(close.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
-    tester.binding.pipelineOwner.semanticsOwner!.performAction(
-      close.id,
-      SemanticsAction.tap,
-    );
-    await tester.pump();
-    expect(find.text('Take time to read this'), findsNothing);
+    try {
+      final repository = FakeUserMessageRepository()
+        ..currentMessage = testUserMessage(body: 'Take time to read this');
+      addTearDown(repository.dispose);
+      await tester.pumpWidget(
+        _harness(
+          repository: repository,
+          observer: UserMessageRouteObserver(),
+          dispatcher: _Actions().dispatcher,
+          accessibleNavigation: true,
+        ),
+      );
+      await _pumpToSnackbar(tester);
+      await tester.pump(const Duration(seconds: 11));
+      expect(find.text('Take time to read this'), findsOneWidget);
+      final close = tester.getSemantics(
+        find.byKey(UserMessageSnackbar.closeKey),
+      );
+      expect(close.getSemanticsData().label, 'Close');
+      expect(close.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+      tester.binding.pipelineOwner.semanticsOwner!.performAction(
+        close.id,
+        SemanticsAction.tap,
+      );
+      await tester.pump();
+      expect(find.text('Take time to read this'), findsNothing);
+    } finally {
+      semantics.dispose();
+    }
   });
 
   testWidgets('wraps translated actions at large text sizes', (tester) async {
