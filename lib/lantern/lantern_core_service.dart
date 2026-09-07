@@ -228,6 +228,11 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token);
 
+  /// Loads the account identity from a device-limit OAuth callback token so
+  /// the follow-up device removal authenticates as that account, without
+  /// logging the user in.
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token);
+
   Future<Either<Failure, Unit>> activationCode({
     required String email,
     required String resellerCode,

@@ -124,6 +124,7 @@ type User interface {
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
+	OAuthDeviceLimitCallback(oAuthToken string) error
 
 	Login(email, password string) ([]byte, error)
 	SignUp(email, password string) error
@@ -1077,6 +1078,13 @@ func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 		return nil, err
 	}
 	return json.Marshal(userData)
+}
+
+// OAuthDeviceLimitCallback loads the account identity from a device-limit
+// OAuth callback token so the follow-up device removal authenticates as that
+// account, without logging the user in.
+func (lc *LanternCore) OAuthDeviceLimitCallback(oAuthToken string) error {
+	return lc.client.OAuthDeviceLimitCallback(lc.ctx, oAuthToken)
 }
 
 func (lc *LanternCore) Login(email, password string) ([]byte, error) {

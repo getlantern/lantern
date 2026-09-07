@@ -852,6 +852,24 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
+    String token,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .oAuthDeviceLimitCallback(token.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('error oauth device-limit callback', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, UserResponseModel>> getUserData() async {
     try {
       final result = await runInBackground<String>(() async {

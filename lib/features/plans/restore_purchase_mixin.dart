@@ -4,6 +4,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/features/auth/device_limit_flow.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 
@@ -91,15 +92,12 @@ mixin RestorePurchaseMixin<T extends ConsumerStatefulWidget>
   }
 
   void _showRestoredDevicesDialog(List<DeviceModel> devices) {
-    appRouter.push(DeviceLimitReached(devices: devices)).then((value) async {
-      if (value == true) {
-        await Future.delayed(const Duration(seconds: 1));
-        if (!mounted) return;
-        AppDialog.purchaseRestoredDialog(
-          context: context,
-          onPressed: () => appRouter.popUntilRoot(),
-        );
-      }
+    startDeviceLimitFlow(devices, () async {
+      if (!mounted) return;
+      AppDialog.purchaseRestoredDialog(
+        context: context,
+        onPressed: () => appRouter.popUntilRoot(),
+      );
     });
   }
 

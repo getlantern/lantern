@@ -58,6 +58,7 @@ enum class Methods(val method: String) {
     //Oauth
     OAuthLoginUrl("oauthLoginUrl"),
     OAuthLoginCallback("oauthLoginCallback"),
+    OAuthDeviceLimitCallback("oauthDeviceLimitCallback"),
 
     //Forgot password
     StartRecoveryByEmail("startRecoveryByEmail"),
@@ -588,6 +589,24 @@ class MethodHandler : FlutterPlugin,
                     }.onFailure { e ->
                         result.error(
                             "OAuthLoginCallback",
+                            e.localizedMessage ?: "Please try again",
+                            e
+                        )
+                    }
+                }
+            }
+
+            Methods.OAuthDeviceLimitCallback.method -> {
+                scope.launch {
+                    result.runCatching {
+                        val token = call.arguments<String>()
+                        Mobile.oAuthDeviceLimitCallback(token)
+                        withContext(Dispatchers.Main) {
+                            success("ok")
+                        }
+                    }.onFailure { e ->
+                        result.error(
+                            "OAuthDeviceLimitCallback",
                             e.localizedMessage ?: "Please try again",
                             e
                         )

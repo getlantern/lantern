@@ -117,28 +117,28 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-  app_links: 05a6ec2341985eb05e9f97dc63f5837c39895c3f
-  auto_updater_macos: 3a42f1a06be6981f1a18be37e6e7bf86aa732118
-  desktop_drop: 10a3e6a7fa9dbe350541f2574092fecfa345a07b
-  desktop_webview_window: 07ec5b575166556b3b9c96c5b7c962b2c044b452
-  device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
-  file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
-  flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
-  flutter_local_notifications: 1fc7ffb10a83d6a2eeeeddb152d43f1944b0aad0
-  flutter_timezone: d272288c69082ad571630e0d17140b3d6b93dc0c
+  app_links: c3185399a5cabc2e610ee5ad52fb7269b84ff869
+  auto_updater_macos: 3e3462c418fe4e731917eacd8d28eef7af84086d
+  desktop_drop: 1eeeb9484299585770b6461e4f3d60950e99efa2
+  desktop_webview_window: 96a659f19029a9a60377e41be01ee09457d73d35
+  device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
+  file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
+  flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
+  flutter_local_notifications: 14e285ca39907db50704f7f46c9ab7a526bd7ead
+  flutter_timezone: b3bc0c587d8780d395651284a1ff46eb1e5753ac
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
-  mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
+  in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
+  mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
-  package_info_plus: f0052d280d17aa382b932f399edf32507174e870
-  screen_retriever_macos: c5508cc3c66ff0d4db650480cf0ab691e220d933
-  share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
-  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
+  screen_retriever_macos: 038d3f7b34a779b06f536842003e41e8ec1fb4b7
+  share_plus: 1fa619de8392a4398bfaf176d441853922614e89
+  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   Sparkle: a346a4341537c625955751ed3ae4b340b68551fa
-  store_checker: 0b5120a0f0a0f36af7b4be01a049e6006151dc16
-  tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
-  url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
-  window_manager: b729e31d38fb04905235df9ea896128991cad99e
+  store_checker: 387169de0dffe57b6370d54cc027e9f95051b57f
+  tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
+  url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
+  window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
 
 PODFILE CHECKSUM: b1a5a5e815560a377d8b3e64b4f3f97e2bd372ba
 

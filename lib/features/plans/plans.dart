@@ -8,11 +8,11 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plans_list.dart';
@@ -45,12 +45,16 @@ class _PlansState extends ConsumerState<Plans>
     super.initState();
     final code = widget.referralCode?.toUpperCase().trim();
     if (code != null && code.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _applyDeepLinkCode(code));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _applyDeepLinkCode(code),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Billing availability changes when the country-code event arrives.
+    ref.watch(countryCodeProvider);
     textTheme = Theme.of(context).textTheme;
     return BaseScreen(
       backgroundColor: context.bgElevated,
@@ -141,7 +145,7 @@ class _PlansState extends ConsumerState<Plans>
                   onPressed: onGetLanternProTap,
                 ),
               ),
-              if (isStoreVersion()) ...[
+              if (canUseStoreBilling()) ...[
                 SizedBox(height: 8),
                 Center(
                   child: AppRichText(
@@ -256,7 +260,7 @@ class _PlansState extends ConsumerState<Plans>
     appLogger.info('Removing applied affiliate code');
     ref.read(referralProvider.notifier).resetReferral();
     ref.read(plansProvider.notifier).fetchPlans();
-    if (isStoreVersion()) {
+    if (canUseStoreBilling()) {
       try {
         await sl<AppPurchase>().fetchSubscriptions();
       } catch (e) {
@@ -410,7 +414,7 @@ class _PlansState extends ConsumerState<Plans>
     }
 
     appLogger.info('Successfully applied referral code');
-    if (isStoreVersion()) {
+    if (canUseStoreBilling()) {
       try {
         appLogger.info('Reloading SKUs after applying referral code');
         await sl<AppPurchase>().fetchSubscriptions(includeOffers: true);
@@ -512,7 +516,6 @@ class _PlansState extends ConsumerState<Plans>
         ref.read(paymentSessionProvider.notifier).clearRedirect();
         if (!mounted) return;
         context.hideLoadingDialog();
-        if (_redirectToSignupIfPlayBlocked()) return;
         context.showSnackBar(error);
         appLogger.error('Error subscribing to plan: $error');
       },
@@ -521,20 +524,9 @@ class _PlansState extends ConsumerState<Plans>
     result.fold((error) {
       ref.read(paymentSessionProvider.notifier).clearRedirect();
       context.hideLoadingDialog();
-      if (_redirectToSignupIfPlayBlocked()) return;
       context.showSnackBar(error.localizedErrorMessage);
       appLogger.error('Error subscribing to plan: $error', error);
     }, (_) {});
-  }
-
-  // When Play Billing cannot load products, route the same tap to Stripe.
-  bool _redirectToSignupIfPlayBlocked() {
-    if (!Platform.isAndroid || !CountryCode.isCensoredRegion) return false;
-    appLogger.info(
-      'Play Billing unavailable; redirecting to default signup (Stripe) flow',
-    );
-    signUpFlow();
-    return true;
   }
 
   Future<void> processPurchase(PurchaseDetails purchase, Plan plan) async {
