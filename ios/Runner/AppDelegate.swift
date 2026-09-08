@@ -64,6 +64,8 @@ import flutter_local_notifications
       print(exception.callStackSymbols)
     }
 
+    setupWidgetBridge()
+
     // Handle cold-start deep links.
     if let url = AppLinks.shared.getLink(launchOptions: launchOptions) {
       AppLinks.shared.handleLink(url: url)
@@ -74,6 +76,15 @@ import flutter_local_notifications
   }
 
   // MARK: - Private helpers
+
+  /// Routes the shared App Intents (Shortcuts, Siri) through VPNManager and
+  /// publishes the current state so a freshly added widget is not stale.
+  private func setupWidgetBridge() {
+    VPNIntentBridge.handler = { [vpnManager] action in
+      try await vpnManager.perform(widgetAction: action)
+    }
+    VPNWidgetStore.setStatus(vpnManager.connectionStatus.widgetStatus)
+  }
 
   /// Registers Flutter event channel handlers using the plugin registry from
   /// the engine bridge (UIScene lifecycle compatible).

@@ -15,6 +15,7 @@ class VPNManager: VPNBase {
     didSet {
       guard oldValue != connectionStatus else { return }
       didUpdateConnectionStatusCallback?(connectionStatus)
+      VPNWidgetStore.setStatus(connectionStatus.widgetStatus)
     }
   }
 
@@ -89,6 +90,7 @@ class VPNManager: VPNBase {
       "netEx.Type": "Lantern" as NSString,
       "netEx.StartReason": "User Initiated" as NSString,
     ]
+    VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
 
     if manager.connection.status == .connected || manager.connection.status == .connecting {
       appLogger.info("VPN is already connected, sending lantern/auto command to extension")
@@ -121,6 +123,7 @@ class VPNManager: VPNBase {
       )
     }
 
+    VPNWidgetStore.setServerName(serverName)
     if manager.connection.status == .connected || manager.connection.status == .connecting {
       appLogger.info("VPN is already connected, sending privateServer command to extension")
       do {
@@ -166,6 +169,39 @@ class VPNManager: VPNBase {
     manager.isOnDemandEnabled = false
     let elapsed = Date().timeIntervalSince(startTime)
     appLogger.log("Tunnel stopped successfully in \(elapsed) seconds")
+  }
+
+  // MARK: - Widget / App Intent entry point
+
+  /// Applies an action requested from the widget or Control Center. Reconnects
+  /// to the server the user last chose so the widget never silently downgrades
+  /// a private-server session to "auto".
+  func perform(widgetAction action: VPNWidgetAction) async throws {
+    switch action {
+    case .toggle:
+      switch connectionStatus {
+      case .connected:
+        try await stopTunnel()
+      case .disconnected, .invalid:
+        try await startFromWidget()
+      default:
+        appLogger.info("Widget toggle ignored while status is \(connectionStatus.rawValue)")
+      }
+    case .connect:
+      guard connectionStatus == .disconnected || connectionStatus == .invalid else { return }
+      try await startFromWidget()
+    case .disconnect:
+      try await stopTunnel()
+    }
+  }
+
+  private func startFromWidget() async throws {
+    let state = VPNWidgetStore.load()
+    if state.isAutoServer {
+      try await startTunnel()
+    } else {
+      try await connectToServer(serverName: state.serverName)
+    }
   }
 
   /// MARK: - Extension Communication

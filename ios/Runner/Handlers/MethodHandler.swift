@@ -252,6 +252,10 @@ class MethodHandler {
         let locale = call.arguments as? String ?? ""
         self.updateLocale(result: result, locale: locale)
 
+      case "updateWidgetLocation":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.updateWidgetLocation(result: result, data: data)
+
       case "currentUserMessage":
         self.currentUserMessage(result: result)
 
@@ -1149,6 +1153,26 @@ class MethodHandler {
       }
       await self.replyOK(result)
     }
+  }
+
+  /// Mirrors the location the app shows on Home into the widget snapshot.
+  /// Prefers "City, Country"; falls back to the app's display name (private
+  /// servers have no geo data).
+  func updateWidgetLocation(result: @escaping FlutterResult, data: [String: Any]) {
+    let city = (data["city"] as? String ?? "").trimmingCharacters(in: .whitespaces)
+    let country = (data["country"] as? String ?? "").trimmingCharacters(in: .whitespaces)
+    let displayName = (data["displayName"] as? String ?? "").trimmingCharacters(in: .whitespaces)
+    let countryCode = data["countryCode"] as? String ?? ""
+
+    let name: String
+    switch (city.isEmpty, country.isEmpty) {
+    case (false, false): name = "\(city), \(country)"
+    case (false, true): name = city
+    case (true, false): name = country
+    case (true, true): name = displayName
+    }
+    VPNWidgetStore.setLocation(name: name, countryCode: countryCode)
+    result(nil)
   }
 
   func currentUserMessage(result: @escaping FlutterResult) {
