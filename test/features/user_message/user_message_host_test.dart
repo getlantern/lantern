@@ -1,0 +1,673 @@
+import 'dart:ui' show SemanticsAction;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/models/user_message.dart';
+import 'package:lantern/features/user_message/user_message_action_dispatcher.dart';
+import 'package:lantern/features/user_message/user_message_host.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/features/user_message/user_message_snackbar.dart';
+
+import 'user_message_test_fakes.dart';
+
+class _Actions {
+  final urls = <Uri>[];
+  int plans = 0;
+
+  UserMessageActionDispatcher get dispatcher => UserMessageActionDispatcher(
+    openHttpsUrl: (uri) async => urls.add(uri),
+    openPlans: () async => plans++,
+  );
+}
+
+Widget _harness({
+  required FakeUserMessageService service,
+  required UserMessageRouteObserver observer,
+  required UserMessageActionDispatcher dispatcher,
+  Widget? home,
+  bool enabled = true,
+  Locale locale = const Locale('en'),
+  TextScaler textScaler = TextScaler.noScaling,
+  bool accessibleNavigation = false,
+  bool Function(BuildContext)? criticalOverlayVisible,
+  DateTime Function()? now,
+  ValueListenable<bool>? enabledListenable,
+  ValueListenable<bool>? hostMountedListenable,
+  GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey,
+}) {
+  return ProviderScope(
+    overrides: [lanternServiceProvider.overrideWithValue(service)],
+    child: MaterialApp(
+      scaffoldMessengerKey: scaffoldMessengerKey,
+      locale: locale,
+      supportedLocales: const [Locale('en'), Locale('ar')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      navigatorObservers: [observer],
+      builder: (context, child) {
+        final appChild = child ?? const SizedBox.shrink();
+        Widget withMediaQuery(Widget content) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: textScaler,
+            accessibleNavigation: accessibleNavigation,
+          ),
+          child: content,
+        );
+
+        Widget buildHost(bool hostEnabled) => withMediaQuery(
+          UserMessageHost(
+            routeObserver: observer,
+            actionDispatcher: dispatcher,
+            enabled: hostEnabled,
+            retryInterval: const Duration(milliseconds: 20),
+            criticalOverlayVisible: criticalOverlayVisible ?? (_) => false,
+            now: now,
+            child: appChild,
+          ),
+        );
+
+        Widget buildMountedHost(bool hostEnabled) {
+          if (hostMountedListenable case final listenable?) {
+            return ValueListenableBuilder<bool>(
+              valueListenable: listenable,
+              builder: (_, hostMounted, _) => hostMounted
+                  ? buildHost(hostEnabled)
+                  : withMediaQuery(appChild),
+            );
+          }
+          return buildHost(hostEnabled);
+        }
+
+        if (enabledListenable case final listenable?) {
+          return ValueListenableBuilder<bool>(
+            valueListenable: listenable,
+            builder: (_, hostEnabled, _) => buildMountedHost(hostEnabled),
+          );
+        }
+        return buildMountedHost(enabled);
+      },
+      home: home ?? const Scaffold(body: Text('home')),
+    ),
+  );
+}
+
+Future<void> _pumpToSnackbar(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 20));
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
+void main() {
+  testWidgets(
+    'presents plain text, dismiss action, and acknowledges on visible',
+    (tester) async {
+      final service = FakeUserMessageService()
+        ..currentMessage = testUserMessage(body: 'Service announcement');
+      addTearDown(service.dispose);
+      final observer = UserMessageRouteObserver();
+
+      await tester.pumpWidget(
+        _harness(
+          service: service,
+          observer: observer,
+          dispatcher: _Actions().dispatcher,
+        ),
+      );
+      await _pumpToSnackbar(tester);
+
+      expect(find.text('Service announcement'), findsOneWidget);
+      expect(find.byKey(UserMessageSnackbar.bodyKey), findsOneWidget);
+      expect(find.byKey(UserMessageSnackbar.closeKey), findsOneWidget);
+      expect(service.acknowledged, ['campaign-1:generation-1']);
+    },
+  );
+
+  testWidgets(
+    'routes a validated CTA and exposes keyboard-focusable controls',
+    (tester) async {
+      final actions = _Actions();
+      final service = FakeUserMessageService()
+        ..currentMessage = testUserMessage(
+          buttonLabel: 'Learn more',
+          action: UserMessageAction(
+            type: UserMessageActionType.openHttpsUrl,
+            url: Uri.parse('https://getlantern.org/learn'),
+          ),
+        );
+      addTearDown(service.dispose);
+
+      await tester.pumpWidget(
+        _harness(
+          service: service,
+          observer: UserMessageRouteObserver(),
+          dispatcher: actions.dispatcher,
+        ),
+      );
+      await _pumpToSnackbar(tester);
+
+      final actionFinder = find.byKey(UserMessageSnackbar.actionKey);
+      expect(actionFinder, findsOneWidget);
+      expect(tester.widget(actionFinder), isA<TextButton>());
+      expect(find.byKey(UserMessageSnackbar.closeKey), findsOneWidget);
+      await tester.tap(actionFinder);
+      await tester.tap(actionFinder);
+      await tester.pump();
+      expect(actions.urls, [Uri.parse('https://getlantern.org/learn')]);
+    },
+  );
+
+  testWidgets('contains CTA failures after dismissing the message', (
+    tester,
+  ) async {
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(
+        buttonLabel: 'Learn more',
+        action: UserMessageAction(
+          type: UserMessageActionType.openHttpsUrl,
+          url: Uri.parse('https://getlantern.org/learn'),
+        ),
+      );
+    addTearDown(service.dispose);
+    final dispatcher = UserMessageActionDispatcher(
+      openHttpsUrl: (_) async => throw Exception('launcher unavailable'),
+      openPlans: () async {},
+    );
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: dispatcher,
+      ),
+    );
+    await _pumpToSnackbar(tester);
+
+    await tester.tap(find.byKey(UserMessageSnackbar.actionKey));
+    await tester.pump();
+
+    expect(find.byKey(UserMessageSnackbar.bodyKey), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('removes a visible message when it expires', (tester) async {
+    final baseTime = DateTime.now().toUtc();
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(
+        body: 'Short-lived message',
+        expiresAt: baseTime.add(const Duration(seconds: 2)),
+      );
+    addTearDown(service.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        now: () => baseTime,
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    expect(find.text('Short-lived message'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.text('Short-lived message'), findsNothing);
+  });
+
+  testWidgets('enforces one displayed message per Flutter session', (
+    tester,
+  ) async {
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(body: 'First message');
+    addTearDown(service.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    expect(service.acknowledged, hasLength(1));
+
+    service.currentMessage = testUserMessage(
+      displayId: 'campaign-2:generation-1',
+      body: 'Second message',
+    );
+    service.emitMessageAvailable();
+    await tester.pump(const Duration(seconds: 11));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Second message'), findsNothing);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
+  });
+
+  testWidgets('queues in background and reconciles on foreground', (
+    tester,
+  ) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    addTearDown(() {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    });
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(body: 'Foreground only');
+    addTearDown(service.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Foreground only'), findsNothing);
+    expect(service.acknowledged, isEmpty);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await _pumpToSnackbar(tester);
+    expect(find.text('Foreground only'), findsOneWidget);
+  });
+
+  testWidgets('queues until the main shell enables presentation', (
+    tester,
+  ) async {
+    final enabled = ValueNotifier(false);
+    addTearDown(enabled.dispose);
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(body: 'After onboarding');
+    addTearDown(service.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        enabledListenable: enabled,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('After onboarding'), findsNothing);
+    expect(service.acknowledged, isEmpty);
+
+    enabled.value = true;
+    await _pumpToSnackbar(tester);
+    expect(find.text('After onboarding'), findsOneWidget);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
+  });
+
+  testWidgets(
+    'revalidates queued content before presenting after a blocked flow',
+    (tester) async {
+      final enabled = ValueNotifier(false);
+      addTearDown(enabled.dispose);
+      final service = FakeUserMessageService()
+        ..currentMessage = testUserMessage(body: 'Previous account');
+      addTearDown(service.dispose);
+      await tester.pumpWidget(
+        _harness(
+          service: service,
+          observer: UserMessageRouteObserver(),
+          dispatcher: _Actions().dispatcher,
+          enabledListenable: enabled,
+        ),
+      );
+      await _pumpToSnackbar(tester);
+      service.currentMessage = null;
+      enabled.value = true;
+      await _pumpToSnackbar(tester);
+      expect(find.text('Previous account'), findsNothing);
+      expect(service.acknowledged, isEmpty);
+    },
+  );
+
+  testWidgets('retains accessible messages and exposes the close action', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    try {
+      final service = FakeUserMessageService()
+        ..currentMessage = testUserMessage(body: 'Take time to read this');
+      addTearDown(service.dispose);
+      await tester.pumpWidget(
+        _harness(
+          service: service,
+          observer: UserMessageRouteObserver(),
+          dispatcher: _Actions().dispatcher,
+          accessibleNavigation: true,
+        ),
+      );
+      await _pumpToSnackbar(tester);
+      await tester.pump(const Duration(seconds: 11));
+      expect(find.text('Take time to read this'), findsOneWidget);
+      final close = tester.getSemantics(
+        find.byKey(UserMessageSnackbar.closeKey),
+      );
+      expect(close.getSemanticsData().label, 'Close');
+      expect(close.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+      tester.binding.pipelineOwner.semanticsOwner!.performAction(
+        close.id,
+        SemanticsAction.tap,
+      );
+      await tester.pump();
+      expect(find.text('Take time to read this'), findsNothing);
+    } finally {
+      semantics.dispose();
+    }
+  });
+
+  testWidgets('wraps translated actions at large text sizes', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final label = List.filled(8, 'Mehr erfahren').join(' ');
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(
+        body: 'An announcement',
+        buttonLabel: label,
+        action: const UserMessageAction(type: UserMessageActionType.openPlans),
+      );
+    addTearDown(service.dispose);
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        textScaler: const TextScaler.linear(3),
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    expect(find.text(label), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('releases an unshown claim when the host is disposed', (
+    tester,
+  ) async {
+    final hostMounted = ValueNotifier(true);
+    addTearDown(hostMounted.dispose);
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(body: 'Survives host replacement');
+    addTearDown(service.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        hostMountedListenable: hostMounted,
+      ),
+    );
+    await tester.pump();
+
+    hostMounted.value = false;
+    await tester.pump();
+    expect(service.acknowledged, isEmpty);
+
+    hostMounted.value = true;
+    await _pumpToSnackbar(tester);
+    expect(find.text('Survives host replacement'), findsOneWidget);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
+  });
+
+  testWidgets(
+    'does not remove an application snackbar when the host deactivates',
+    (tester) async {
+      final hostMounted = ValueNotifier(true);
+      addTearDown(hostMounted.dispose);
+      final messengerKey = GlobalKey<ScaffoldMessengerState>();
+      final service = FakeUserMessageService();
+      addTearDown(service.dispose);
+
+      await tester.pumpWidget(
+        _harness(
+          service: service,
+          observer: UserMessageRouteObserver(),
+          dispatcher: _Actions().dispatcher,
+          hostMountedListenable: hostMounted,
+          scaffoldMessengerKey: messengerKey,
+        ),
+      );
+      await tester.pump();
+      messengerKey.currentState!.showSnackBar(
+        const SnackBar(
+          content: Text('Application snackbar'),
+          duration: Duration(hours: 1),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+
+      service.currentMessage = testUserMessage(body: 'Queued user message');
+      service.emitMessageAvailable();
+      await _pumpToSnackbar(tester);
+      expect(find.text('Application snackbar'), findsOneWidget);
+      expect(find.text('Queued user message'), findsOneWidget);
+      expect(service.acknowledged, ['campaign-1:generation-1']);
+
+      hostMounted.value = false;
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Application snackbar'), findsOneWidget);
+      expect(find.text('Queued user message'), findsNothing);
+
+      hostMounted.value = true;
+      await tester.pump();
+      await _pumpToSnackbar(tester);
+      expect(find.text('Application snackbar'), findsOneWidget);
+      expect(find.text('Queued user message'), findsNothing);
+      expect(service.acknowledged, ['campaign-1:generation-1']);
+    },
+  );
+
+  testWidgets(
+    'does not remove an application snackbar when a message expires before display',
+    (tester) async {
+      final messengerKey = GlobalKey<ScaffoldMessengerState>();
+      final baseTime = DateTime.now().toUtc();
+      var clockReads = 0;
+      final service = FakeUserMessageService();
+      addTearDown(service.dispose);
+
+      await tester.pumpWidget(
+        _harness(
+          service: service,
+          observer: UserMessageRouteObserver(),
+          dispatcher: _Actions().dispatcher,
+          scaffoldMessengerKey: messengerKey,
+          now: () => clockReads++ == 0
+              ? baseTime
+              : baseTime.add(const Duration(seconds: 2)),
+        ),
+      );
+      await tester.pump();
+      messengerKey.currentState!.showSnackBar(
+        const SnackBar(
+          content: Text('Application snackbar'),
+          duration: Duration(hours: 1),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+
+      service.currentMessage = testUserMessage(
+        body: 'Expiring user message',
+        expiresAt: baseTime.add(const Duration(seconds: 1)),
+      );
+      service.emitMessageAvailable();
+      await _pumpToSnackbar(tester);
+
+      expect(find.text('Application snackbar'), findsOneWidget);
+      expect(find.text('Expiring user message'), findsNothing);
+      expect(service.acknowledged, isEmpty);
+    },
+  );
+
+  testWidgets('does not wedge when a claimed message expires before display', (
+    tester,
+  ) async {
+    final baseTime = DateTime.now().toUtc();
+    var clockReads = 0;
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(
+        body: 'Expired during presentation',
+        expiresAt: baseTime.add(const Duration(seconds: 1)),
+      );
+    addTearDown(service.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        now: () => clockReads++ == 0
+            ? baseTime
+            : baseTime.add(const Duration(seconds: 2)),
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    expect(find.text('Expired during presentation'), findsNothing);
+    expect(service.acknowledged, isEmpty);
+
+    service.currentMessage = testUserMessage(
+      displayId: 'campaign-2:generation-1',
+      body: 'Next eligible message',
+      expiresAt: baseTime.add(const Duration(hours: 1)),
+    );
+    service.emitMessageAvailable();
+    await _pumpToSnackbar(tester);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Next eligible message'), findsOneWidget);
+    expect(service.acknowledged, ['campaign-2:generation-1']);
+  });
+
+  testWidgets('queues behind a dialog and rechecks expiration before display', (
+    tester,
+  ) async {
+    final service = FakeUserMessageService();
+    addTearDown(service.dispose);
+    final observer = UserMessageRouteObserver();
+    final baseTime = DateTime.now().toUtc();
+    var currentTime = baseTime;
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: observer,
+        dispatcher: _Actions().dispatcher,
+        now: () => currentTime,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => const AlertDialog(content: Text('critical')),
+              ),
+              child: const Text('open dialog'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('open dialog'));
+    await tester.pumpAndSettle();
+
+    service.currentMessage = testUserMessage(
+      body: 'Expires behind dialog',
+      expiresAt: baseTime.add(const Duration(seconds: 1)),
+    );
+    service.emitMessageAvailable();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Expires behind dialog'), findsNothing);
+
+    currentTime = baseTime.add(const Duration(seconds: 2));
+    Navigator.of(tester.element(find.text('critical'))).pop();
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('Expires behind dialog'), findsNothing);
+    expect(service.acknowledged, isEmpty);
+  });
+
+  testWidgets('dismisses a visible message when a critical dialog opens', (
+    tester,
+  ) async {
+    final service = FakeUserMessageService()
+      ..currentMessage = testUserMessage(body: 'Visible before dialog');
+    addTearDown(service.dispose);
+
+    await tester.pumpWidget(
+      _harness(
+        service: service,
+        observer: UserMessageRouteObserver(),
+        dispatcher: _Actions().dispatcher,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => const AlertDialog(content: Text('critical')),
+              ),
+              child: const Text('open dialog'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await _pumpToSnackbar(tester);
+    expect(find.text('Visible before dialog'), findsOneWidget);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
+
+    await tester.tap(find.text('open dialog'));
+    await tester.pumpAndSettle();
+    expect(find.text('critical'), findsOneWidget);
+    expect(find.text('Visible before dialog'), findsNothing);
+    expect(service.acknowledged, ['campaign-1:generation-1']);
+  });
+
+  testWidgets(
+    'supports RTL, large text, long copy, and live-region semantics',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final semantics = tester.ensureSemantics();
+      try {
+        final body = List.filled(18, 'رسالة طويلة من لانترن').join(' ');
+        final service = FakeUserMessageService()
+          ..currentMessage = testUserMessage(body: body);
+        addTearDown(service.dispose);
+
+        await tester.pumpWidget(
+          _harness(
+            service: service,
+            observer: UserMessageRouteObserver(),
+            dispatcher: _Actions().dispatcher,
+            locale: const Locale('ar'),
+            textScaler: const TextScaler.linear(2),
+          ),
+        );
+        await _pumpToSnackbar(tester);
+
+        final bodyFinder = find.byKey(UserMessageSnackbar.bodyKey);
+        expect(bodyFinder, findsOneWidget);
+        expect(
+          Directionality.of(tester.element(bodyFinder)),
+          TextDirection.rtl,
+        );
+        expect(find.bySemanticsLabel(body), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } finally {
+        semantics.dispose();
+      }
+    },
+  );
+}

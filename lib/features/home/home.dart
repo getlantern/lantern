@@ -10,6 +10,7 @@ import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/home/pro_renewal_popup.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
@@ -46,9 +47,12 @@ class Home extends HookConsumerWidget {
         final user = next.value;
         if (user == null) return;
         if (!ref.read(appSettingProvider).onboardingCompleted) return;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!context.mounted) return;
-          checkAndShowReferralReward(context, user);
+          await checkAndShowReferralReward(context, user);
+          // Day-of renewal popup, chained so the dialogs never stack.
+          if (!context.mounted) return;
+          await checkAndShowProRenewalPopup(context, ref);
         });
       });
       return sub.close;

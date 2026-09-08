@@ -45,88 +45,107 @@ class _FakeLanternService implements LanternService {
 }
 
 void main() {
-  testWidgets('scrolls when the Windows smoke-test tab is height constrained', (
-    tester,
-  ) async {
-    final previousTranslations = Localization.translations;
-    final previousLocale = Localization.defaultLocale;
-    var testTranslations = Translations.byLocale('en');
-    testTranslations += await GettextImporter().fromAssetFile(
-      'en',
-      'assets/locales/en.po',
-    );
-    Localization.translations = testTranslations;
-    Localization.defaultLocale = 'en';
-    addTearDown(() {
-      Localization.translations = previousTranslations;
-      Localization.defaultLocale = previousLocale;
-    });
+  for (final isPro in [false, true]) {
+    testWidgets(
+      isPro
+          ? 'keeps Pro renewal reminders in the height-constrained VPN tab'
+          : 'scrolls when the Windows smoke-test tab is height constrained',
+      (tester) async {
+        final previousTranslations = Localization.translations;
+        final previousLocale = Localization.defaultLocale;
+        var testTranslations = Translations.byLocale('en');
+        testTranslations += await GettextImporter().fromAssetFile(
+          'en',
+          'assets/locales/en.po',
+        );
+        Localization.translations = testTranslations;
+        Localization.defaultLocale = 'en';
+        addTearDown(() {
+          Localization.translations = previousTranslations;
+          Localization.defaultLocale = previousLocale;
+        });
 
-    // MediaQuery and ScreenUtil should see the full application window. The
-    // smaller box below represents the tab area left after the Windows chrome.
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = desktopWindowSize;
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.view.resetPhysicalSize);
+        // MediaQuery and ScreenUtil should see the full application window. The
+        // smaller box below represents the tab area left after the Windows chrome.
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = desktopWindowSize;
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          lanternServiceProvider.overrideWithValue(_FakeLanternService()),
-          isUserProProvider.overrideWithValue(false),
-          isUserExpiredProvider.overrideWithValue(false),
-          serverLocationProvider.overrideWithValue(
-            initialServerLocation().copyWith(
-              autoLocation: const AutoLocation(
-                country: '',
-                countryCode: '',
-                displayName: 'fastest_server',
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              lanternServiceProvider.overrideWithValue(_FakeLanternService()),
+              isUserProProvider.overrideWithValue(isPro),
+              isUserExpiredProvider.overrideWithValue(false),
+              proRenewalProvider.overrideWithValue(
+                isPro
+                    ? ProRenewalInfo(
+                        ProRenewalState.expiresToday,
+                        DateTime(2026, 9, 8),
+                        0,
+                      )
+                    : ProRenewalInfo.none,
               ),
-            ),
-          ),
-          radianceSettingsProvider.overrideWithValue(
-            const RadianceSettingsState(),
-          ),
-          vpnProvider.overrideWithValue(VPNStatus.disconnected),
-          macosExtensionProvider.overrideWithValue(
-            const MacOSExtensionState(SystemExtensionStatus.activated),
-          ),
-        ],
-        child: ScreenUtilInit(
-          designSize: desktopWindowSize,
-          child: MaterialApp(
-            theme: AppTheme.appTheme(),
-            home: Scaffold(
-              body: Align(
-                alignment: Alignment.topCenter,
-                child: SizedBox.fromSize(
-                  size: _windowsSmokeTestTabViewport,
-                  child: const VpnTab(),
+              serverLocationProvider.overrideWithValue(
+                initialServerLocation().copyWith(
+                  autoLocation: const AutoLocation(
+                    country: '',
+                    countryCode: '',
+                    displayName: 'fastest_server',
+                  ),
+                ),
+              ),
+              radianceSettingsProvider.overrideWithValue(
+                const RadianceSettingsState(),
+              ),
+              vpnProvider.overrideWithValue(VPNStatus.disconnected),
+              macosExtensionProvider.overrideWithValue(
+                const MacOSExtensionState(SystemExtensionStatus.activated),
+              ),
+            ],
+            child: ScreenUtilInit(
+              designSize: desktopWindowSize,
+              child: MaterialApp(
+                theme: AppTheme.appTheme(),
+                home: Scaffold(
+                  body: Align(
+                    alignment: Alignment.topCenter,
+                    child: SizedBox.fromSize(
+                      size: _windowsSmokeTestTabViewport,
+                      child: const VpnTab(),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
 
-    expect(tester.takeException(), isNull);
-    final scrollableFinder = find.descendant(
-      of: find.byType(SingleChildScrollView),
-      matching: find.byType(Scrollable),
-    );
-    final scrollable = tester.state<ScrollableState>(scrollableFinder);
-    expect(scrollable.position.maxScrollExtent, greaterThan(0));
+        expect(tester.takeException(), isNull);
+        expect(find.byType(ProBanner), findsOneWidget);
+        if (isPro) {
+          expect(find.text('renew_pro'.i18n), findsOneWidget);
+          return;
+        }
+        final scrollableFinder = find.descendant(
+          of: find.byType(SingleChildScrollView),
+          matching: find.byType(Scrollable),
+        );
+        final scrollable = tester.state<ScrollableState>(scrollableFinder);
+        expect(scrollable.position.maxScrollExtent, greaterThan(0));
 
-    await tester.drag(
-      find.byType(SingleChildScrollView),
-      const Offset(0, -100),
-    );
-    await tester.pump(const Duration(milliseconds: 300));
+        await tester.drag(
+          find.byType(SingleChildScrollView),
+          const Offset(0, -100),
+        );
+        await tester.pump(const Duration(milliseconds: 300));
 
-    expect(scrollable.position.pixels, greaterThan(0));
-    expect(tester.takeException(), isNull);
-  });
+        expect(scrollable.position.pixels, greaterThan(0));
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }
