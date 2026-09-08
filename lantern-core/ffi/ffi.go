@@ -212,6 +212,65 @@ func updateLocale(_locale *C.char) *C.char {
 	})
 }
 
+//export currentUserMessage
+func currentUserMessage() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		message, err := c.CurrentUserMessage()
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(message)
+	})
+}
+
+//export refreshUserMessages
+func refreshUserMessages() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.RefreshUserMessages(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export acknowledgeUserMessage
+func acknowledgeUserMessage(_displayID, _accountID *C.char) *C.char {
+	displayID := C.GoString(_displayID)
+	accountID := C.GoString(_accountID)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.AcknowledgeUserMessage(displayID, accountID); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export setUserMessageActivity
+func setUserMessageActivity(active C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.SetUserMessageActivity(active != 0); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
 //export addSplitTunnelItem
 func addSplitTunnelItem(filterTypeC, itemC *C.char) *C.char {
 	filterType := C.GoString(filterTypeC)
@@ -751,6 +810,25 @@ func oAuthLoginCallback(_oAuthToken *C.char) *C.char {
 			return SendError(err)
 		}
 		return C.CString(string(bytes))
+	})
+}
+
+// oAuthDeviceLimitCallback loads the account identity from a device-limit
+// OAuth callback token so the follow-up device removal authenticates as that
+// account, without logging the user in.
+//
+//export oAuthDeviceLimitCallback
+func oAuthDeviceLimitCallback(_oAuthToken *C.char) *C.char {
+	oAuthToken := C.GoString(_oAuthToken)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.OAuthDeviceLimitCallback(oAuthToken); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
 	})
 }
 
@@ -1454,6 +1532,31 @@ func getPeerManualPort() C.int {
 		return 0
 	}
 	return C.int(c.GetPeerManualPort())
+}
+
+// getPeerStatusJSON returns the peer client's current lifecycle state as a
+// marshalled peer.Status.
+//
+// The peer-status event bus is edge-triggered on this in-process path: it
+// carries transitions with no snapshot on subscribe. Peer sharing resumes
+// from persisted settings at process start, before the UI is listening, so
+// a UI built purely on events never learns sharing is already running and
+// renders whatever it assumed at startup. This lets it ask.
+//
+// Returns the house `{"error":...}` envelope when the core is not up, and
+// "" when the status could not be read. Callers MUST treat both as "could
+// not ask" and leave their existing state alone — synthesizing an idle
+// status here would reintroduce the confident-wrong-answer this removes.
+//
+//export getPeerStatusJSON
+func getPeerStatusJSON() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		return C.CString(c.PeerStatusJSON())
+	})
 }
 
 // probeUPnP runs the UPnP / IGD discovery scan against the local

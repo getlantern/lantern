@@ -24,6 +24,7 @@ import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/models/available_servers.dart';
@@ -148,7 +149,7 @@ class LanternFFIService implements LanternCoreService {
       _appEvents = flutterEventReceivePort.map((event) {
         final Map<String, dynamic> result = jsonDecode(event);
         return AppEvent.fromJson(result);
-      });
+      }).asBroadcastStream();
 
       _logBatches = loggingReceivePort
           .cast<String>()
@@ -219,6 +220,92 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEvents;
+  }
+
+  @override
+  Future<Either<Failure, UserMessage?>> currentUserMessage() async {
+    try {
+      final encoded = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.currentUserMessage();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(encoded);
+      return right(UserMessage.tryParse(encoded));
+    } catch (e) {
+      // The encoded response can contain message copy, so keep it out of logs.
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshUserMessages() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.refreshUserMessages();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final displayIDPtr = displayId.toCharPtr;
+        final accountIDPtr = accountId.toCharPtr;
+        try {
+          final resultPtr = _ffiService.acknowledgeUserMessage(
+            displayIDPtr,
+            accountIDPtr,
+          );
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(displayIDPtr);
+          malloc.free(accountIDPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.setUserMessageActivity(active ? 1 : 0);
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
   }
 
   @override
@@ -847,6 +934,22 @@ class LanternFFIService implements LanternCoreService {
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error oauth callback', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .oAuthDeviceLimitCallback(token.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('error oauth device-limit callback', e, stackTrace);
       return Left(e.toFailure());
     }
   }
@@ -1659,6 +1762,41 @@ class LanternFFIService implements LanternCoreService {
     } catch (e, st) {
       appLogger.error('getPeerManualPort error: $e', e, st);
       return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getPeerStatusJSON() async {
+    try {
+      final res = await runInBackground<String>(() async {
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.getPeerStatusJSON();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      // requireCore hands back {"error":...} when the core is not up. The
+      // service contract promises "" for a status that could not be read,
+      // so normalize here instead of making every caller recognize the
+      // envelope.
+      return right(_looksLikePeerStatus(res) ? res : '');
+    } catch (e, st) {
+      appLogger.error('getPeerStatusJSON error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  // A peer.Status always carries a phase; the error envelope never does.
+  bool _looksLikePeerStatus(String raw) {
+    if (raw.isEmpty) return false;
+    try {
+      final payload = jsonDecode(raw) as Map<String, dynamic>;
+      return payload['phase'] != null;
+    } catch (_) {
+      return false;
     }
   }
 

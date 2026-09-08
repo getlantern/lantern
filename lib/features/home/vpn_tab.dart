@@ -30,7 +30,7 @@ class VpnTab extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            if (isUserPro) const SizedBox(height: 0) else const ProBanner(),
+            const ProBanner(),
             const VPNSwitch(),
             Column(
               mainAxisSize: MainAxisSize.min,
