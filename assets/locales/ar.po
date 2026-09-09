@@ -138,7 +138,7 @@ msgid "remind_use_code"
 msgstr "ذكّرهم باستخدام الرمز %s عند الترقية!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "ساعد في مكافحة الرقابة العالمية على الإنترنت"
