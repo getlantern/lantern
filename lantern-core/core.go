@@ -322,6 +322,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
 	go lc.listenPeerConnectionEvents()
+	go lc.listenUnboundedSnapshots()
 	go lc.listenPeerStatusEvents()
 	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()

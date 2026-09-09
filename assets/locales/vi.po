@@ -134,7 +134,7 @@ msgid "remind_use_code"
 msgstr "Nhắc họ dùng mã %s khi nâng cấp!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Chung tay chống kiểm duyệt Internet toàn cầu"

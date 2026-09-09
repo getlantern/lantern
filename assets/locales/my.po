@@ -131,7 +131,7 @@ msgid "remind_use_code"
 msgstr "အဆင့်မြှင့်သောအခါ ကုဒ် %s ကို အသုံးပြုရန် သူတို့ကို သတိပေးပါ!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "ကမ္ဘာလုံးဆိုင်ရာ အင်တာနက် ဆင်ဆာဖြတ်ခြင်းကို တိုက်ဖျက်ရန် ကူညီပါ"

@@ -133,7 +133,7 @@ msgid "remind_use_code"
 msgstr "उन्हें याद दिलाएँ कि अपग्रेड करते समय कोड %s का उपयोग करें!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "वैश्विक इंटरनेट सेंसरशिप से लड़ने में मदद करें"

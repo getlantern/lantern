@@ -137,7 +137,7 @@ msgid "remind_use_code"
 msgstr "Yükseltirken %s kodunu kullanmalarını hatırlatın!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Küresel İnternet Sansürüne Karşı Mücadeleye Yardım Et"
