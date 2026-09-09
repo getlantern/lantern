@@ -84,18 +84,18 @@ enum SharePhase {
 class ShareState {
   final bool active;
   final bool probing;
+  final bool unboundedRunning;
   final ShareMode mode;
   final int activeCount;
   final int totalCount;
-  // SmC-only: granular Start/Stop phase from radiance peer.Status. For
-  // Unbounded mode this stays SharePhase.idle (no equivalent staged
-  // lifecycle on the broflake side yet).
+  // SmC uses peer.Status phases; Unbounded uses unboundedRunning from snapshots.
   final SharePhase phase;
   final String? errorMessage;
 
   const ShareState({
     this.active = false,
     this.probing = false,
+    this.unboundedRunning = false,
     this.mode = ShareMode.off,
     this.activeCount = 0,
     this.totalCount = 0,
@@ -106,6 +106,7 @@ class ShareState {
   ShareState copyWith({
     bool? active,
     bool? probing,
+    bool? unboundedRunning,
     ShareMode? mode,
     int? activeCount,
     int? totalCount,
@@ -121,6 +122,7 @@ class ShareState {
       ShareState(
         active: active ?? this.active,
         probing: probing ?? this.probing,
+        unboundedRunning: unboundedRunning ?? this.unboundedRunning,
         mode: mode ?? this.mode,
         activeCount: activeCount ?? this.activeCount,
         totalCount: totalCount ?? this.totalCount,
@@ -138,6 +140,7 @@ class ShareState {
 class _UnsetErrorMessage {
   const _UnsetErrorMessage();
 }
+
 const _unsetErrorMessage = _UnsetErrorMessage();
 
 // ─── Notifier (mock-backed) ──────────────────────────────────────────────────
@@ -239,6 +242,12 @@ class ShareNotifier extends Notifier<ShareState> {
   }
 
   StreamSubscription? _appEventSub;
+  StreamSubscription? _snapshotSub;
+  int _changes = 0;
+  bool get _changing => _changes > 0;
+  String? _snapshotEpoch;
+  int _lastArrivals = 0;
+  bool _hasUnboundedSnapshot = false;
   int _workerSeq = 0;
   // Per-peer arc + active-stream count. samizdat multiplexes many H2 streams
   // over one TCP conn, all sharing the same RemoteAddr — ref-count so the arc
@@ -265,7 +274,27 @@ class ShareNotifier extends Notifier<ShareState> {
     // subscription and stream controller still get cleaned up when
     // it does actually happen.
     ref.keepAlive();
+    _snapshotSub = ref.read(lanternServiceProvider).watchAppEvents().listen((
+      event,
+    ) {
+      if (event.eventType == 'unbounded-unavailable') {
+        if (!_changing && state.mode == ShareMode.unbounded) {
+          _clearPeers();
+          state = state.copyWith(unboundedRunning: false, activeCount: 0);
+        }
+        return;
+      }
+      if (event.eventType != 'unbounded-snapshot') return;
+      try {
+        _applyUnboundedSnapshot(
+          jsonDecode(event.message) as Map<String, dynamic>,
+        );
+      } catch (e) {
+        debugPrint('share-my-connection: bad snapshot: $e');
+      }
+    });
     ref.onDispose(() {
+      _snapshotSub?.cancel();
       _stopEventSubscription();
       _eventController.close();
     });
@@ -300,6 +329,16 @@ class ShareNotifier extends Notifier<ShareState> {
   ///      forwarded a port, so use it and skip the probe.
   ///   2. Otherwise probe UPnP: available → SmC, unavailable → Unbounded.
   Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
+    if (_changing) return;
+    _changes++;
+    try {
+      await _toggle(context, widgetRef);
+    } finally {
+      _changes--;
+    }
+  }
+
+  Future<void> _toggle(BuildContext context, WidgetRef widgetRef) async {
     if (state.active || state.probing) {
       await _stop(widgetRef);
       return;
@@ -341,8 +380,7 @@ class ShareNotifier extends Notifier<ShareState> {
     // status from copyWith(probing: true) above is visible to the
     // user. Any failure (no IGD, timeout, FFI / channel error) is
     // treated as "UPnP unavailable" → fall back to Unbounded.
-    final probeRes =
-        await widgetRef.read(lanternServiceProvider).probeUPnP();
+    final probeRes = await widgetRef.read(lanternServiceProvider).probeUPnP();
     final upnpAvailable = probeRes.fold((_) => false, (v) => v);
     if (!upnpAvailable) {
       await _start(widgetRef, ShareMode.unbounded);
@@ -366,10 +404,15 @@ class ShareNotifier extends Notifier<ShareState> {
   /// direction. Consent is collected by toggle() or by enabling auto-start in
   /// Unbounded Settings, both of which have a BuildContext.
   Future<void> autoStart(WidgetRef widgetRef) async {
-    if (state.active || state.probing) return;
+    if (_changing || state.active || state.probing) return;
     if (!_consentAcked) return;
-    state = state.copyWith(probing: true);
-    await _start(widgetRef, ShareMode.unbounded);
+    _changes++;
+    try {
+      state = state.copyWith(probing: true);
+      await _start(widgetRef, ShareMode.unbounded);
+    } finally {
+      _changes--;
+    }
   }
 
   /// Reconciles ShareState with what the peer client is actually doing.
@@ -502,41 +545,24 @@ class ShareNotifier extends Notifier<ShareState> {
         );
         break;
       case ShareMode.unbounded:
-        // Unbounded is the broflake / WebRTC widget-proxy mode. Local
-        // opt-in only — actual run state also depends on the server's
-        // Features[unbounded] flag and supplied UnboundedConfig. When
-        // running, broflake's OnConnectionChange callback emits
-        // unbounded.ConnectionEvent → forwarded by lantern-core as the
-        // same EventTypePeerConnection FlutterEvent the SmC path uses,
-        // so this Dart subscription consumes both protocols uniformly.
-        //
-        // Unbounded has no equivalent of the peer.Client phase=error
-        // StatusEvent that the SmC path leans on for failure recovery,
-        // so check the Either return here and revert to off if the
-        // setting flip failed (core not initialized, MethodChannel
-        // failure, etc.) — otherwise the UI sticks at "Active" while
-        // nothing actually started.
         final res = await widgetRef
             .read(lanternServiceProvider)
             .setUnboundedEnabled(true);
-        res.fold(
-          (err) {
-            appLogger.error('setUnboundedEnabled failed: ${err.error}');
-            _stopEventSubscription();
-            state = ShareState(
-              active: false,
-              probing: false,
-              mode: ShareMode.off,
-              activeCount: 0,
-              // Preserve lifetime totalCount across a failed Start (see
-              // matching comment in the SmC branch above).
-              totalCount: state.totalCount,
-              phase: SharePhase.error,
-              errorMessage: err.error,
-            );
-          },
-          (_) => null,
-        );
+        res.fold((err) {
+          appLogger.error('setUnboundedEnabled failed: ${err.error}');
+          _stopEventSubscription();
+          state = ShareState(
+            active: false,
+            probing: false,
+            mode: ShareMode.off,
+            activeCount: 0,
+            // Preserve lifetime totalCount across a failed Start (see
+            // matching comment in the SmC branch above).
+            totalCount: state.totalCount,
+            phase: SharePhase.error,
+            errorMessage: err.error,
+          );
+        }, (_) => null);
         break;
       case ShareMode.off:
         break;
@@ -556,9 +582,7 @@ class ShareNotifier extends Notifier<ShareState> {
             .setPeerProxy(false);
         break;
       case ShareMode.unbounded:
-        await widgetRef
-            .read(lanternServiceProvider)
-            .setUnboundedEnabled(false);
+        await widgetRef.read(lanternServiceProvider).setUnboundedEnabled(false);
         break;
       case ShareMode.off:
         break;
@@ -579,15 +603,15 @@ class ShareNotifier extends Notifier<ShareState> {
 
   void _startEventSubscription(WidgetRef widgetRef) {
     _peerArcs.clear();
-    _appEventSub = widgetRef
-        .read(lanternServiceProvider)
-        .watchAppEvents()
-        .listen((event) {
+    _appEventSub =
+        widgetRef.read(lanternServiceProvider).watchAppEvents().listen((event) {
       if (event.eventType == 'peer-status') {
         _handlePeerStatus(event.message, widgetRef);
         return;
       }
-      if (event.eventType != 'peer-connection') return;
+      if (event.eventType != 'peer-connection' || state.mode != ShareMode.smc) {
+        return;
+      }
       try {
         final payload = jsonDecode(event.message) as Map<String, dynamic>;
         final eventState = (payload['state'] as num?)?.toInt() ?? 0;
@@ -642,11 +666,13 @@ class ShareNotifier extends Notifier<ShareState> {
           // the geo lookup completed). Otherwise the globe never saw it
           // and a -1 with no preceding +1 would just be noise.
           if (entry.geo != null) {
-            _eventController.add(UnboundedConnectionEvent(
-              state: -1,
-              workerIdx: entry.workerIdx,
-              addr: '',
-            ));
+            _eventController.add(
+              UnboundedConnectionEvent(
+                state: -1,
+                workerIdx: entry.workerIdx,
+                addr: '',
+              ),
+            );
           }
           state = state.copyWith(
             activeCount: max(0, state.activeCount - 1),
@@ -664,7 +690,65 @@ class ShareNotifier extends Notifier<ShareState> {
     });
   }
 
-  Future<void> _resolveAndEmit(String ip, _PeerArc arc) async {
+  void _applyUnboundedSnapshot(Map<String, dynamic> snapshot) {
+    if (_changing || state.mode == ShareMode.smc) return;
+    final enabled = snapshot['enabled'] as bool;
+    final running = snapshot['running'] as bool;
+    final peers = (snapshot['peers'] as List).cast<String>();
+    final counts = <String, int>{};
+    if (enabled && running) {
+      for (final source in peers) {
+        final ip = _extractIP(source);
+        if (ip.isNotEmpty) counts.update(ip, (n) => n + 1, ifAbsent: () => 1);
+      }
+    }
+    final replay = !_hasUnboundedSnapshot;
+    _hasUnboundedSnapshot = true;
+    for (final ip in _peerArcs.keys.toList()) {
+      if (counts.containsKey(ip)) continue;
+      final arc = _peerArcs.remove(ip)!;
+      if (arc.geo != null) {
+        _eventController.add(
+          UnboundedConnectionEvent(
+            state: -1,
+            workerIdx: arc.workerIdx,
+            addr: '',
+          ),
+        );
+      }
+    }
+    final epoch = snapshot['epoch'] as String;
+    final arrivals = (snapshot['arrivals'] as num).toInt();
+    for (final entry in counts.entries) {
+      var arc = _peerArcs[entry.key];
+      if (arc == null) {
+        arc = _PeerArc(_workerSeq++);
+        _peerArcs[entry.key] = arc;
+        unawaited(_resolveAndEmit(entry.key, arc, isReplay: replay));
+      }
+      arc.streamCount = entry.value;
+    }
+    final total = state.totalCount +
+        (_snapshotEpoch == epoch ? max<int>(0, arrivals - _lastArrivals) : 0);
+    _snapshotEpoch = epoch;
+    _lastArrivals = arrivals;
+    state = state.copyWith(
+      active: enabled,
+      mode: enabled ? ShareMode.unbounded : ShareMode.off,
+      unboundedRunning: enabled && running,
+      activeCount: counts.length,
+      totalCount: total,
+    );
+    if (total != ref.read(appSettingProvider).unboundedTotalHelped) {
+      ref.read(appSettingProvider.notifier).setUnboundedTotalHelped(total);
+    }
+  }
+
+  Future<void> _resolveAndEmit(
+    String ip,
+    _PeerArc arc, {
+    bool isReplay = false,
+  }) async {
     PeerGeo geo;
     try {
       geo = await GeoLookupService.peerLookup(ip);
@@ -676,23 +760,25 @@ class ShareNotifier extends Notifier<ShareState> {
     // a late lookup completion doesn't throw "Bad state: Cannot add
     // event after closing" on the disposed sink.
     if (_eventController.isClosed) return;
-    // Peer may have disconnected before the lookup returned. The map
-    // entry's identity (workerIdx) is the cheapest check.
+    // A lookup from an earlier session must not add an arc to its replacement.
     final current = _peerArcs[ip];
-    if (current == null || current.workerIdx != arc.workerIdx) return;
+    if (!identical(current, arc)) return;
     // Skip arcs we couldn't geo-locate. The peer is still counted in
     // activeCount, but we don't draw a wrong-country arc.
     if (geo.countryCode.isEmpty) return;
     arc.geo = geo;
-    _eventController.add(UnboundedConnectionEvent(
-      state: 1,
-      workerIdx: arc.workerIdx,
-      addr: ip,
-      countryName: geo.countryName,
-      countryCode: geo.countryCode,
-      flagEmoji: geo.flagEmoji,
-      coordinates: geo.coordinates,
-    ));
+    _eventController.add(
+      UnboundedConnectionEvent(
+        state: 1,
+        workerIdx: arc.workerIdx,
+        addr: ip,
+        countryName: geo.countryName,
+        countryCode: geo.countryCode,
+        flagEmoji: geo.flagEmoji,
+        coordinates: geo.coordinates,
+        isReplay: isReplay,
+      ),
+    );
   }
 
   /// Replays a synthetic +1 for every currently-active peer that has a
@@ -706,37 +792,35 @@ class ShareNotifier extends Notifier<ShareState> {
       final arc = entry.value;
       final geo = arc.geo;
       if (geo == null) continue;
-      _eventController.add(UnboundedConnectionEvent(
-        state: 1,
-        workerIdx: arc.workerIdx,
-        addr: entry.key,
-        countryName: geo.countryName,
-        countryCode: geo.countryCode,
-        flagEmoji: geo.flagEmoji,
-        coordinates: geo.coordinates,
-        isReplay: true,
-      ));
+      _eventController.add(
+        UnboundedConnectionEvent(
+          state: 1,
+          workerIdx: arc.workerIdx,
+          addr: entry.key,
+          countryName: geo.countryName,
+          countryCode: geo.countryCode,
+          flagEmoji: geo.flagEmoji,
+          coordinates: geo.coordinates,
+          isReplay: true,
+        ),
+      );
     }
   }
 
   void _stopEventSubscription() {
-    // Synthesize -1 for every active peer BEFORE killing the source
-    // stream. peer.Client.Stop on the Go side suppresses the box.Close
-    // disconnect cascade (correct — avoids a flood of post-Stop noise),
-    // so without this loop the globe would never see -1's for peers
-    // that were live at toggle-time. Their arcs would orphan and rotate
-    // with the globe indefinitely. With this loop, the globe sees real
-    // -1's and runs them through the normal linger-then-remove path.
-    for (final arc in _peerArcs.values) {
-      if (arc.geo == null) continue;
-      _eventController.add(UnboundedConnectionEvent(
-        state: -1,
-        workerIdx: arc.workerIdx,
-        addr: '',
-      ));
-    }
     _appEventSub?.cancel();
     _appEventSub = null;
+    _clearPeers();
+  }
+
+  void _clearPeers() {
+    // Backend shutdown can suppress disconnect events, so remove globe arcs explicitly.
+    for (final arc in _peerArcs.values) {
+      if (arc.geo == null) continue;
+      _eventController.add(
+        UnboundedConnectionEvent(state: -1, workerIdx: arc.workerIdx, addr: ''),
+      );
+    }
     _peerArcs.clear();
     _workerSeq = 0;
   }
@@ -808,42 +892,23 @@ class ShareNotifier extends Notifier<ShareState> {
   // setting back to false, so all we owe is to flip our local state to
   // Unbounded and enable broflake.
   //
-  // Constructs ShareState directly (rather than copyWith) so errorMessage
-  // gets cleared — copyWith's `?? this.errorMessage` keeps the previous
-  // SmC failure string around otherwise.
-  //
-  // Event subscription: deliberately does NOT call _startEventSubscription.
-  // The error path arrives here via _handlePeerStatus which is already
-  // inside the subscription started by the prior _start; flipping the
-  // local state.mode keeps the same subscription forwarding events for
-  // the new (Unbounded) mode. _stop is the only teardown path for the
-  // subscription, and the error path doesn't go through _stop.
   Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
-    // One failed Start arrives here twice: from the phase=error event and from
-    // setPeerProxy's returned error. Without this guard Unbounded is started
-    // twice and the second call races the first one's state. A plain field
-    // check suffices — both callers run on the main isolate and the mode flip
-    // below is synchronous, so whichever arrives second always observes it.
     if (state.mode == ShareMode.unbounded) return;
-    state = ShareState(
-      active: true,
-      probing: false,
-      mode: ShareMode.unbounded,
-      activeCount: 0,
-      totalCount: state.totalCount,
-      phase: SharePhase.idle,
-    );
-    final result = await widgetRef
-        .read(lanternServiceProvider)
-        .setUnboundedEnabled(true);
-    result.fold(
-      (err) {
-        // Both SmC and the fallback to Unbounded failed. Roll back the
-        // optimistic active=true state to off+error so the UI doesn't
-        // claim Unbounded is running when nothing actually started —
-        // same shape as the Unbounded branch in _start. Tear down the
-        // event subscription too, since it was kept alive across the
-        // SmC→Unbounded flip and there's nothing left to consume it.
+    _changes++;
+    try {
+      _stopEventSubscription();
+      state = ShareState(
+        active: true,
+        probing: false,
+        mode: ShareMode.unbounded,
+        activeCount: 0,
+        totalCount: state.totalCount,
+        phase: SharePhase.idle,
+      );
+      final result = await widgetRef
+          .read(lanternServiceProvider)
+          .setUnboundedEnabled(true);
+      result.fold((err) {
         appLogger.error(
           'SmC→Unbounded fallback: setUnboundedEnabled failed: ${err.error}',
         );
@@ -857,9 +922,10 @@ class ShareNotifier extends Notifier<ShareState> {
           phase: SharePhase.error,
           errorMessage: err.error,
         );
-      },
-      (_) => {},
-    );
+      }, (_) => {});
+    } finally {
+      _changes--;
+    }
   }
 }
 
@@ -1010,7 +1076,9 @@ class _StatusCard extends StatelessWidget {
               ? 'smc_status_configuring'.i18n
               : 'smc_status_off'.i18n,
         },
-      ShareMode.unbounded => 'enabled'.i18n,
+      ShareMode.unbounded => state.unboundedRunning
+          ? 'enabled'.i18n
+          : 'unbounded_status_waiting'.i18n,
       ShareMode.smc => switch (state.phase) {
           SharePhase.serving => 'enabled'.i18n,
           SharePhase.error => state.errorMessage != null
