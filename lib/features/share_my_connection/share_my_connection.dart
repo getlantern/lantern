@@ -808,6 +808,7 @@ class ShareNotifier extends Notifier<ShareState> {
   }
 
   void _clearPeers() {
+    _hasUnboundedSnapshot = false;
     // Backend shutdown can suppress disconnect events, so remove globe arcs explicitly.
     for (final arc in _peerArcs.values) {
       if (arc.geo == null) continue;

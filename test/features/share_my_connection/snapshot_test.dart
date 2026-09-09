@@ -1,5 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:lantern/core/models/unbounded_connection_event.dart';
+import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 
@@ -18,10 +22,10 @@ import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class FakeStorage implements LocalStorageService {
- @override
- bool containsKey(String key) => true;
- @override
- dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  bool containsKey(String key) => true;
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class FakeService implements LanternService {
@@ -63,7 +67,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late FakeService service;
   late ProviderContainer container;
-  setUp(() {
+  setUp(() async {
+    await sl.reset();
+    GeoLookupService.resetCacheForTest();
     sl.registerSingleton<LocalStorageService>(FakeStorage());
     service = FakeService();
     container = ProviderContainer(
@@ -162,6 +168,37 @@ void main() {
     expect(container.read(shareProvider).activeCount, 1);
     expect(container.read(shareProvider).totalCount, 10);
   });
+  test('recovered peers replay without a new-arrival animation', () async {
+    const ip = '192.0.2.251';
+    await http.runWithClient(
+      () => GeoLookupService.peerLookup(ip),
+      () => MockClient((_) async => http.Response(
+          jsonEncode({
+            'Country': {
+              'IsoCode': 'US',
+              'Names': {'en': 'United States'}
+            },
+          }),
+          200)),
+    );
+    final events = <UnboundedConnectionEvent>[];
+    final sub = container
+        .read(shareProvider.notifier)
+        .connectionEvents
+        .listen(events.add);
+    addTearDown(sub.cancel);
+    await snapshot(true, true, []);
+    await snapshot(true, true, [ip], arrivals: 3);
+    expect(events.last.state, 1);
+    expect(events.last.isReplay, false);
+    service.events
+        .add(AppEvent(eventType: 'unbounded-unavailable', message: '{}'));
+    await snapshot(true, true, [ip], arrivals: 3);
+    expect(events.last.state, 1);
+    expect(events.last.isReplay, true);
+    expect(container.read(shareProvider).totalCount, 11);
+  });
+
   testWidgets('fallback clears peers and serializes snapshots and toggles',
       (tester) async {
     late WidgetRef widgetRef;
