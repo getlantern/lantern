@@ -1134,7 +1134,8 @@ build-ios: $(MAYBE_STEALTH_PROFILE)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
 
-$(IOS_FRAMEWORK_OUTPUT): check-gomobile $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+$(IOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	$(MAKE) check-gomobile
 	$(MAKE) build-ios
 
 # Unsigned simulator build; PR gate for Swift compile errors.
