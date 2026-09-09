@@ -179,13 +179,21 @@ object DefaultNetworkListener {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
-     * On API 28+ registerDefaultNetworkCallback() may report the VPN as the default.
-     *   We do NOT call requestNetwork() here just to discover the underlying transport,
-     *   because that can keep radios awake and costs battery.
+     * Since Android P, registerDefaultNetworkCallback() reports the VPN's own tun
+     * as the default network to the VPN app:
+     * https://android.googlesource.com/platform/frameworks/base/+/dda156ab0c5d66ad82bdcf76cda07cbc0a9c8a2e
      *
-     *   Instead we passively listen and translate the default
-     *   to the physical network via: ConnectivityManager.getLinkProperties(default).underlyingNetworks
-    */
+     * Feeding that back into setUnderlyingNetworks() and libbox's default
+     * interface leaves sing-box with no physical interface to dial from
+     * ("no available network interface"). On API 28-30 we therefore use
+     * requestNetwork() (REQUEST rather than LISTEN), which is satisfied by the
+     * physical default network and never by a VPN; this needs
+     * android.permission.CHANGE_NETWORK_STATE. The request only asks for
+     * INTERNET + NOT_RESTRICTED, so it is met by the existing default and does
+     * not force any radio up. On API 31+ registerBestMatchingNetworkCallback()
+     * with the same request already excludes VPNs via the builder's default
+     * NOT_VPN capability.
+     */
     private fun register() {
         when (Build.VERSION.SDK_INT) {
             in 31..Int.MAX_VALUE -> {
@@ -195,7 +203,10 @@ object DefaultNetworkListener {
                     mainHandler
                 )
             }
-            in 26..30 -> {
+            in 28..31 -> {  // we want REQUEST here instead of LISTEN
+                LanternApp.connectivity.requestNetwork(request, Callback, mainHandler)
+            }
+            in 26..27 -> {
                 LanternApp.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
             }
             // Handler overload was added in API 26; API 24-25 only have the one-arg version.
