@@ -49,7 +49,8 @@ class DebugPrintLoggyPrinter extends LoggyPrinter {
   @override
   void onLog(LogRecord record) {
     debugPrint(
-        '[${record.level.name}] ${record.loggerName}: ${record.message}');
+      '[${record.level.name}] ${record.loggerName}: ${record.message}',
+    );
     if (record.stackTrace != null) {
       debugPrint('StackTrace:\n${record.stackTrace}');
     }
@@ -79,17 +80,20 @@ class FileLogPrinter extends LoggyPrinter {
   final StreamController<String> _controller;
 
   FileLogPrinter(String path)
-      : _sink = File(path).openWrite(mode: FileMode.append),
-        _controller = StreamController<String>() {
-    _controller.stream.asyncMap(
-      (event) async {
-        _sink.write(event);
-        await _sink.flush();
-      },
-    ).listen((_) {}, onError: (e, st) {
-      // If writing to the file fails, print to console as a fallback.
-      debugPrint("Failed to write log to file: $e\n$st");
-    });
+    : _sink = File(path).openWrite(mode: FileMode.append),
+      _controller = StreamController<String>() {
+    _controller.stream
+        .asyncMap((event) async {
+          _sink.write(event);
+          await _sink.flush();
+        })
+        .listen(
+          (_) {},
+          onError: (e, st) {
+            // If writing to the file fails, print to console as a fallback.
+            debugPrint("Failed to write log to file: $e\n$st");
+          },
+        );
   }
 
   @override

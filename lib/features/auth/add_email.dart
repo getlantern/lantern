@@ -291,6 +291,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             ),
             action: [
               AppTextButton(
+                key: AuthKeys.signUpExistsSignInButton,
                 label: 'sign_in'.i18n,
                 onPressed: () {
                   appRouter.maybePop();
@@ -298,6 +299,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                 },
               ),
               AppTextButton(
+                key: AuthKeys.signUpExistsDismissButton,
                 label: 'ok'.i18n,
                 textColor: AppColors.gray6,
                 onPressed: () {

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 
 import '../../core/common/common.dart';
@@ -33,6 +34,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
             ),
             SizedBox(height: defaultSize),
             AppTextField(
+              fieldKey: AuthKeys.resetPasswordEmailField,
               hintText: '',
               controller: emailController,
               maxLines: 1,
@@ -59,6 +61,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
             ),
             SizedBox(height: 32),
             PrimaryButton(
+              key: AuthKeys.resetPasswordEmailNextButton,
               label: 'next'.i18n,
               isTaller: true,
               enabled: emailController.text.isValidEmail(),

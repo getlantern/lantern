@@ -318,6 +318,32 @@ func UpdateLocale(locale string) error {
 	return withCore(func(c lanterncore.Core) error { return c.UpdateLocale(locale) })
 }
 
+// CurrentUserMessage returns the pending message as common-contract JSON.
+func CurrentUserMessage() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.CurrentUserMessage()
+	})
+}
+
+// RefreshUserMessages asks Radiance to fetch eligibility immediately.
+func RefreshUserMessages() error {
+	return withCore(func(c lanterncore.Core) error { return c.RefreshUserMessages() })
+}
+
+// AcknowledgeUserMessage records that Flutter displayed displayID for accountID.
+func AcknowledgeUserMessage(displayID, accountID string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.AcknowledgeUserMessage(displayID, accountID)
+	})
+}
+
+// SetUserMessageActivity pauses or resumes polling for the app lifecycle.
+func SetUserMessageActivity(active bool) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetUserMessageActivity(active)
+	})
+}
+
 func IsRadianceConnected() bool {
 	ok, err := withCoreR(func(c lanterncore.Core) (bool, error) { return c.IsRadianceConnected(), nil })
 	if err != nil {
@@ -519,6 +545,15 @@ func OAuthLoginCallback(oAuthToken string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		b, err := c.OAuthLoginCallback(oAuthToken)
 		return string(b), err
+	})
+}
+
+// OAuthDeviceLimitCallback loads the account identity from a device-limit
+// OAuth callback token so the follow-up device removal authenticates as that
+// account, without logging the user in.
+func OAuthDeviceLimitCallback(oAuthToken string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.OAuthDeviceLimitCallback(oAuthToken)
 	})
 }
 

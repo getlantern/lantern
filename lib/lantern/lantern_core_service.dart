@@ -15,6 +15,7 @@ import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
 
 import '../core/services/app_purchase.dart';
 
@@ -47,6 +48,18 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> updateLocal(String locale);
 
   Stream<AppEvent> watchAppEvents();
+
+  /// Returns Radiance's pending message, even if Flutter missed its event.
+  Future<Either<Failure, UserMessage?>> currentUserMessage();
+
+  Future<Either<Failure, Unit>> refreshUserMessages();
+
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  );
+
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active);
 
   Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent);
 
@@ -227,6 +240,11 @@ abstract class LanternCoreService {
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
 
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token);
+
+  /// Loads the account identity from a device-limit OAuth callback token so
+  /// the follow-up device removal authenticates as that account, without
+  /// logging the user in.
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token);
 
   Future<Either<Failure, Unit>> activationCode({
     required String email,

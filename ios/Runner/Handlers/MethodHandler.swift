@@ -63,6 +63,12 @@ class MethodHandler {
         }
         self.oauthLoginCallback(result: result, token: token)
 
+      case "oauthDeviceLimitCallback":
+        guard let token: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.oauthDeviceLimitCallback(result: result, token: token)
+
       case "getUserData":
         self.getUserData(result: result)
 
@@ -245,6 +251,24 @@ class MethodHandler {
       case "updateLocale":
         let locale = call.arguments as? String ?? ""
         self.updateLocale(result: result, locale: locale)
+
+      case "currentUserMessage":
+        self.currentUserMessage(result: result)
+
+      case "refreshUserMessages":
+        self.refreshUserMessages(result: result)
+
+      case "acknowledgeUserMessage":
+        guard let data = self.decodeDict(from: call.arguments, result: result),
+          let displayID: String = self.decodeValue(from: data["displayId"], result: result),
+          let accountID: String = self.decodeValue(from: data["accountId"], result: result)
+        else { return }
+        self.acknowledgeUserMessage(result: result, displayID: displayID, accountID: accountID)
+
+      case "setUserMessageActivity":
+        guard let active: Bool = self.decodeValue(from: call.arguments, result: result)
+        else { return }
+        self.setUserMessageActivity(result: result, active: active)
 
       case "reportIssue":
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
@@ -551,6 +575,18 @@ class MethodHandler {
         // string back to Data to preserve the Flutter contract.
         result(json.data(using: .utf8))
       }
+    }
+  }
+
+  private func oauthDeviceLimitCallback(result: @escaping FlutterResult, token: String) {
+    Task {
+      var error: NSError?
+      MobileOAuthDeviceLimitCallback(token, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "OAUTH_DEVICE_LIMIT_CALLBACK")
+        return
+      }
+      await self.replyOK(result)
     }
   }
 
@@ -1109,6 +1145,56 @@ class MethodHandler {
       MobileUpdateLocale(locale, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "UPDATE_LOCALE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func currentUserMessage(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let message = MobileCurrentUserMessage(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "CURRENT_USER_MESSAGE_ERROR")
+        return
+      }
+      await MainActor.run { result(message ?? "null") }
+    }
+  }
+
+  func refreshUserMessages(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileRefreshUserMessages(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "REFRESH_USER_MESSAGES_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func acknowledgeUserMessage(result: @escaping FlutterResult, displayID: String, accountID: String) {
+    Task {
+      var error: NSError?
+      MobileAcknowledgeUserMessage(displayID, accountID, &error)
+      if let error {
+        await self.handleFlutterError(
+          error, result: result, code: "ACKNOWLEDGE_USER_MESSAGE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func setUserMessageActivity(result: @escaping FlutterResult, active: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetUserMessageActivity(active, &error)
+      if let error {
+        await self.handleFlutterError(
+          error, result: result, code: "SET_USER_MESSAGE_ACTIVITY_ERROR")
         return
       }
       await self.replyOK(result)

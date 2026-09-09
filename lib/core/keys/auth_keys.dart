@@ -41,6 +41,36 @@ class AuthKeys {
     'auth.create_password.continue_button',
   );
 
+  static const signInForgotPasswordButton = ValueKey<String>(
+    'auth.sign_in.forgot_password_button',
+  );
+
+  static const signUpExistsSignInButton = ValueKey<String>(
+    'auth.sign_up.exists.sign_in_button',
+  );
+  static const signUpExistsDismissButton = ValueKey<String>(
+    'auth.sign_up.exists.dismiss_button',
+  );
+
+  static const resetPasswordEmailField = ValueKey<String>(
+    'auth.reset_password.email.field',
+  );
+  static const resetPasswordEmailNextButton = ValueKey<String>(
+    'auth.reset_password.email.next_button',
+  );
+  static const resetPasswordNewPasswordField = ValueKey<String>(
+    'auth.reset_password.new_password.field',
+  );
+  static const resetPasswordConfirmPasswordField = ValueKey<String>(
+    'auth.reset_password.confirm_password.field',
+  );
+  static const resetPasswordSubmitButton = ValueKey<String>(
+    'auth.reset_password.submit_button',
+  );
+  static const resetPasswordSuccessContinueButton = ValueKey<String>(
+    'auth.reset_password.success.continue_button',
+  );
+
   static const accountLogoutActionButton = ValueKey<String>(
     'auth.account.logout.action_button',
   );
@@ -59,5 +89,8 @@ class AuthKeys {
   );
   static const deleteAccountCancelButton = ValueKey<String>(
     'auth.delete_account.cancel_button',
+  );
+  static const deleteAccountSuccessCloseButton = ValueKey<String>(
+    'auth.delete_account.success.close_button',
   );
 }

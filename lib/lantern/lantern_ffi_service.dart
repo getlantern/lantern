@@ -24,6 +24,7 @@ import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/models/available_servers.dart';
@@ -148,7 +149,7 @@ class LanternFFIService implements LanternCoreService {
       _appEvents = flutterEventReceivePort.map((event) {
         final Map<String, dynamic> result = jsonDecode(event);
         return AppEvent.fromJson(result);
-      });
+      }).asBroadcastStream();
 
       _logBatches = loggingReceivePort
           .cast<String>()
@@ -219,6 +220,92 @@ class LanternFFIService implements LanternCoreService {
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEvents;
+  }
+
+  @override
+  Future<Either<Failure, UserMessage?>> currentUserMessage() async {
+    try {
+      final encoded = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.currentUserMessage();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(encoded);
+      return right(UserMessage.tryParse(encoded));
+    } catch (e) {
+      // The encoded response can contain message copy, so keep it out of logs.
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshUserMessages() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.refreshUserMessages();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final displayIDPtr = displayId.toCharPtr;
+        final accountIDPtr = accountId.toCharPtr;
+        try {
+          final resultPtr = _ffiService.acknowledgeUserMessage(
+            displayIDPtr,
+            accountIDPtr,
+          );
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(displayIDPtr);
+          malloc.free(accountIDPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.setUserMessageActivity(active ? 1 : 0);
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
   }
 
   @override
@@ -847,6 +934,22 @@ class LanternFFIService implements LanternCoreService {
       return Right(user);
     } catch (e, stackTrace) {
       appLogger.error('error oauth callback', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .oAuthDeviceLimitCallback(token.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('error oauth device-limit callback', e, stackTrace);
       return Left(e.toFailure());
     }
   }
