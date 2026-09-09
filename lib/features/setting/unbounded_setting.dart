@@ -5,7 +5,6 @@ import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 import '../../core/common/common.dart';
-import '../share_my_connection/action_mode_widgets.dart';
 import '../share_my_connection/share_my_connection.dart';
 
 /// Unbounded Settings sheet, reached from the main Settings menu. Two
@@ -50,7 +49,7 @@ class UnboundedSetting extends ConsumerWidget {
                       letterSpacing: 0.0,
                     ),
                   ),
-                  icon: const Icon(Icons.visibility_off_outlined),
+                  icon: Icons.visibility_off_outlined,
                   trailing: SwitchButton(
                     value: hidden,
                     onChanged: notifier.setUnboundedHidden,

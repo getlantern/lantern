@@ -179,6 +179,7 @@ void main() {
           await mount(
             tester,
             ActionModePanel(
+              autoEnable: const ActionModeAutoEnable(),
               globe: const SizedBox(),
               statusCard: status(),
               onAbout: () => about++,
@@ -201,6 +202,59 @@ void main() {
         },
       );
     }
+  }
+
+  for (final scale in [1.0, 2.0, 3.0]) {
+    testWidgets('desktop AppBar contains full labels at text scale $scale', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        Builder(
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(
+                  ActionModeNavigation.desktopHeight(context),
+                ),
+                child: ActionModeNavigation(
+                  selectedIndex: 0,
+                  onSelected: (_) {},
+                  vpnActive: false,
+                  actionActive: true,
+                  desktop: true,
+                ),
+              ),
+            ),
+          ),
+        ),
+        size: const Size(800, 640),
+        scale: scale,
+      );
+      final label = find.text('Action Mode');
+      final element = tester.element(label);
+      final painter = TextPainter(
+        text: TextSpan(
+          text: 'Action Mode',
+          style: tester.widget<Text>(label).style,
+        ),
+        textDirection: TextDirection.ltr,
+        textScaler: MediaQuery.textScalerOf(element),
+        maxLines: 1,
+      )..layout();
+      expect(
+        tester.getSize(label).height,
+        greaterThanOrEqualTo(painter.height),
+      );
+      painter.dispose();
+      final labelRect = tester.getRect(label);
+      final navRect = tester.getRect(find.byType(ActionModeNavigation));
+      final appBarRect = tester.getRect(find.byType(AppBar));
+      expect(navRect.contains(labelRect.topLeft), isTrue);
+      expect(navRect.contains(labelRect.bottomRight), isTrue);
+      expect(appBarRect.bottom, greaterThanOrEqualTo(navRect.bottom));
+      expect(tester.takeException(), isNull);
+    });
   }
 
   for (final desktop in [false, true]) {

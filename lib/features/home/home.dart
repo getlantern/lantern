@@ -288,7 +288,9 @@ class Home extends HookConsumerWidget {
         bottom: !showUnboundedTab || PlatformUtils.isMobile
             ? null
             : PreferredSize(
-                preferredSize: const Size.fromHeight(56),
+                preferredSize: Size.fromHeight(
+                  ActionModeNavigation.desktopHeight(context),
+                ),
                 child: ActionModeNavigation(
                   selectedIndex: onUnboundedTab.value ? 1 : 0,
                   onSelected: tabController.animateTo,

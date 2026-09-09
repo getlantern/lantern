@@ -1,53 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/share_my_connection/share_my_connection.dart';
-
-/// Shared by the feature screen and Settings so both edit the same preference.
-class ActionModeAutoEnable extends ConsumerWidget {
-  const ActionModeAutoEnable({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final enabled = ref.watch(
-      appSettingProvider.select((s) => s.unboundedAutoEnable),
-    );
-    void change(bool? value) {
-      if (value != null) {
-        ref.read(shareProvider.notifier).setAutoEnable(context, value);
-      }
-    }
-
-    return AppCard(
-      padding: EdgeInsets.zero,
-      child: AppTile(
-        label: 'auto_enable_unbounded'.i18n,
-        labelWidget: Text(
-          'auto_enable_unbounded'.i18n,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        subtitle: Text(
-          'auto_enable_unbounded_subtitle'.i18n,
-          style: Theme.of(
-            context,
-          ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
-        ),
-        icon: AppImagePaths.actionModeAuto,
-        trailing: Checkbox(
-          key: const Key('action-mode.auto-enable'),
-          value: enabled,
-          activeColor: context.textLink,
-          onChanged: change,
-        ),
-        onPressed: () => change(!enabled),
-      ),
-    );
-  }
-}
 
 /// Scrolls on small screens and with large accessibility text instead of
 /// squeezing the globe or overflowing the controls.
@@ -56,10 +11,12 @@ class ActionModePanel extends StatelessWidget {
     super.key,
     required this.globe,
     required this.statusCard,
+    required this.autoEnable,
     required this.onAbout,
   });
   final Widget globe;
   final Widget statusCard;
+  final Widget autoEnable;
   final VoidCallback onAbout;
 
   @override
@@ -117,7 +74,7 @@ class ActionModePanel extends StatelessWidget {
               ),
               statusCard,
               const SizedBox(height: 8),
-              const ActionModeAutoEnable(),
+              autoEnable,
             ],
           ),
         );
@@ -268,10 +225,29 @@ class ActionModeNavigation extends StatelessWidget {
   final ValueChanged<int> onSelected;
   final bool vpnActive, actionActive, desktop;
 
+  /// Used by both the desktop strip and its AppBar so neither clips the label.
+  static double desktopHeight(BuildContext context) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: 'unbounded'.i18n,
+        style: Theme.of(
+          context,
+        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    // Eight pixels of padding plus the one-pixel border on each side.
+    final height = math.max(56.0, painter.height + 18);
+    painter.dispose();
+    return height;
+  }
+
   @override
   Widget build(BuildContext context) => Container(
     height: desktop
-        ? 56
+        ? desktopHeight(context)
         : 64 + math.max(0, MediaQuery.textScalerOf(context).scale(14) - 14) * 2,
     padding: EdgeInsets.all(desktop ? 8 : 4),
     decoration: BoxDecoration(

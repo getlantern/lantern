@@ -887,6 +887,48 @@ class UnboundedTabVisible extends Notifier<bool> {
   void set(bool visible) => state = visible;
 }
 
+/// Shared by the feature screen and Settings so both edit the same preference.
+class ActionModeAutoEnable extends ConsumerWidget {
+  const ActionModeAutoEnable({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      appSettingProvider.select((s) => s.unboundedAutoEnable),
+    );
+    void change(bool? value) {
+      if (value != null) {
+        ref.read(shareProvider.notifier).setAutoEnable(context, value);
+      }
+    }
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: AppTile(
+        label: 'auto_enable_unbounded'.i18n,
+        labelWidget: Text(
+          'auto_enable_unbounded'.i18n,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        subtitle: Text(
+          'auto_enable_unbounded_subtitle'.i18n,
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
+        ),
+        icon: AppImagePaths.actionModeAuto,
+        trailing: Checkbox(
+          key: const Key('action-mode.auto-enable'),
+          value: enabled,
+          activeColor: context.textLink,
+          onChanged: change,
+        ),
+        onPressed: () => change(!enabled),
+      ),
+    );
+  }
+}
+
 // ─── Tab body ────────────────────────────────────────────────────────────────
 
 /// Unbounded tab content, rendered inside the Home tab shell (see
@@ -914,6 +956,7 @@ class UnboundedTab extends HookConsumerWidget {
 
     return SafeArea(
       child: ActionModePanel(
+        autoEnable: const ActionModeAutoEnable(),
         onAbout: () => showUnboundedWelcomeDialog(context, ref),
         globe: Stack(
           clipBehavior: Clip.none,
