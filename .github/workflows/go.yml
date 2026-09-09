@@ -8,12 +8,18 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/go.yml'
+      # lantern-core tests assert the report-issue app→core contract
+      # against these files (see lantern-core/core_test.go).
+      - 'lib/features/report_issue/report_issue.dart'
+      - 'assets/locales/en.po'
   pull_request:
     paths:
       - 'lantern-core/**'
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/go.yml'
+      - 'lib/features/report_issue/report_issue.dart'
+      - 'assets/locales/en.po'
 
 jobs:
   build:
