@@ -70,6 +70,18 @@ void main() {
   setUp(() async {
     await sl.reset();
     GeoLookupService.resetCacheForTest();
+    await http.runWithClient(
+      () => Future.wait(['192.0.2.1', '192.0.2.2', '192.0.2.251']
+          .map(GeoLookupService.peerLookup)),
+      () => MockClient((_) async => http.Response(
+          jsonEncode({
+            'Country': {
+              'IsoCode': 'US',
+              'Names': {'en': 'United States'}
+            }
+          }),
+          200)),
+    );
     sl.registerSingleton<LocalStorageService>(FakeStorage());
     service = FakeService();
     container = ProviderContainer(
@@ -170,17 +182,6 @@ void main() {
   });
   test('recovered peers replay without a new-arrival animation', () async {
     const ip = '192.0.2.251';
-    await http.runWithClient(
-      () => GeoLookupService.peerLookup(ip),
-      () => MockClient((_) async => http.Response(
-          jsonEncode({
-            'Country': {
-              'IsoCode': 'US',
-              'Names': {'en': 'United States'}
-            },
-          }),
-          200)),
-    );
     final events = <UnboundedConnectionEvent>[];
     final sub = container
         .read(shareProvider.notifier)
@@ -191,11 +192,13 @@ void main() {
     await snapshot(true, true, [ip], arrivals: 3);
     expect(events.last.state, 1);
     expect(events.last.isReplay, false);
+    final originalWorker = events.last.workerIdx;
     service.events
         .add(AppEvent(eventType: 'unbounded-unavailable', message: '{}'));
     await snapshot(true, true, [ip], arrivals: 3);
     expect(events.last.state, 1);
     expect(events.last.isReplay, true);
+    expect(events.last.workerIdx, greaterThan(originalWorker));
     expect(container.read(shareProvider).totalCount, 11);
   });
 

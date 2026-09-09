@@ -824,7 +824,6 @@ class ShareNotifier extends Notifier<ShareState> {
       );
     }
     _peerArcs.clear();
-    _workerSeq = 0;
   }
 
   // Parses a `peer-status` FlutterEvent and folds the new phase / error
