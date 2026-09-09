@@ -1,3 +1,4 @@
+import 'dart:ui' show SemanticsAction;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -94,6 +95,31 @@ void main() {
         totalCount: 219,
         onToggle: toggle ?? () {},
       );
+
+  testWidgets('busy switch blocks taps, drags, and semantic tap actions', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    var toggles = 0;
+    await mount(tester, status(busy: true, toggle: () => toggles++));
+    final toggle = find.byKey(const Key('action-mode.toggle'));
+    await tester.tapAt(tester.getCenter(toggle));
+    await tester.dragFrom(tester.getCenter(toggle), const Offset(40, 0));
+    await tester.pumpAndSettle();
+    expect(toggles, 0);
+    expect(
+      tester
+          .getSemantics(toggle)
+          .getSemanticsData()
+          .hasAction(SemanticsAction.tap),
+      isFalse,
+    );
+    await mount(tester, status(toggle: () => toggles++));
+    await tester.tapAt(tester.getCenter(toggle));
+    await tester.pumpAndSettle();
+    expect(toggles, 1);
+    semantics.dispose();
+  });
 
   testWidgets('keeps lifetime impact visible while sharing is disabled', (
     tester,

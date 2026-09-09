@@ -144,14 +144,18 @@ class ActionModeStatusCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Semantics(
+                    key: const Key('action-mode.toggle'),
                     label: 'unbounded'.i18n,
                     toggled: enabled,
                     enabled: !busy,
-                    child: SwitchButton(
-                      value: enabled,
-                      onChanged: (_) {
-                        if (!busy) onToggle();
-                      },
+                    child: AbsorbPointer(
+                      absorbing: busy,
+                      child: SwitchButton(
+                        value: enabled,
+                        onChanged: (_) {
+                          if (!busy) onToggle();
+                        },
+                      ),
                     ),
                   ),
                 ],
