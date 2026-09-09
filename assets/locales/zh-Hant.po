@@ -127,7 +127,7 @@ msgid "remind_use_code"
 msgstr "提醒他們升級時使用推薦碼 %s！"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "協助對抗全球網路審查"
