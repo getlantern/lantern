@@ -189,8 +189,10 @@ object DefaultNetworkListener {
      * requestNetwork() (REQUEST rather than LISTEN), which is satisfied by the
      * physical default network and never by a VPN; this needs
      * android.permission.CHANGE_NETWORK_STATE. The request only asks for
-     * INTERNET + NOT_RESTRICTED, so it is met by the existing default and does
-     * not force any radio up. On API 31+ registerBestMatchingNetworkCallback()
+     * INTERNET + NOT_RESTRICTED, so it is met by the existing default. It is an
+     * active request, so it may keep that network up for as long as it is held;
+     * it lives only while a listener is registered (i.e. the VPN is running) and
+     * is released in unregister(). On API 31+ registerBestMatchingNetworkCallback()
      * with the same request already excludes VPNs via the builder's default
      * NOT_VPN capability.
      */
@@ -203,7 +205,7 @@ object DefaultNetworkListener {
                     mainHandler
                 )
             }
-            in 28..31 -> {  // we want REQUEST here instead of LISTEN
+            in 28..30 -> {  // we want REQUEST here instead of LISTEN
                 LanternApp.connectivity.requestNetwork(request, Callback, mainHandler)
             }
             in 26..27 -> {
