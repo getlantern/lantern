@@ -199,6 +199,60 @@ void main() {
     expect(container.read(shareProvider).totalCount, 11);
   });
 
+  testWidgets('pending auto-start ignores failure after disposal',
+      (tester) async {
+    late WidgetRef widgetRef;
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: container,
+      child: Consumer(builder: (ctx, ref, child) {
+        widgetRef = ref;
+        return const SizedBox();
+      }),
+    ));
+    final starting =
+        container.read(shareProvider.notifier).autoStart(widgetRef);
+    expect(service.enableCalls, 1);
+    container.invalidate(shareProvider);
+    await tester.runAsync(() async {
+      service.enableResult.complete(
+          left(Failure(error: 'offline', localizedErrorMessage: 'offline')));
+      await starting;
+    });
+  });
+
+  testWidgets('pending fallback ignores failures after disposal',
+      (tester) async {
+    late WidgetRef widgetRef;
+    late BuildContext context;
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: container,
+      child: Consumer(builder: (ctx, ref, child) {
+        widgetRef = ref;
+        context = ctx;
+        return const SizedBox();
+      }),
+    ));
+    final radiance = container.read(radianceSettingsProvider.notifier)
+        as FakeRadianceSettings;
+    final starting =
+        container.read(shareProvider.notifier).toggle(context, widgetRef);
+    await tester.pump();
+    service.events.add(AppEvent(
+        eventType: 'peer-status',
+        message: jsonEncode({'phase': 'error', 'error': 'port unreachable'})));
+    await tester.pump();
+    expect(service.enableCalls, 1);
+    container.invalidate(shareProvider);
+    final failure = left<Failure, Unit>(
+        Failure(error: 'offline', localizedErrorMessage: 'offline'));
+    await tester.runAsync(() async {
+      service.enableResult.complete(failure);
+      radiance.startResult.complete(failure);
+      await starting;
+    });
+    await tester.pump();
+  });
+
   testWidgets('fallback clears peers and serializes snapshots and toggles',
       (tester) async {
     late WidgetRef widgetRef;
@@ -252,6 +306,7 @@ void main() {
           .complete(right(unit));
       await Future<void>.delayed(Duration.zero);
     });
+    await tester.pump();
     await tester.pump();
     await starting;
     service.events.add(AppEvent(

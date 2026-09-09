@@ -238,6 +238,7 @@ class ShareNotifier extends Notifier<ShareState> {
       return;
     }
     if (!await ensureConsent(context)) return;
+    if (!ref.mounted) return;
     settings.setUnboundedAutoEnable(true);
   }
 
@@ -346,6 +347,7 @@ class ShareNotifier extends Notifier<ShareState> {
 
     // Consent gates every start path, before the mode is even known.
     if (!await ensureConsent(context)) return;
+    if (!ref.mounted) return;
     // Showing it is async, so re-check: another surface — or a second tap on
     // this one — can have started sharing while the dialog was up.
     if (state.active || state.probing) return;
@@ -367,6 +369,7 @@ class ShareNotifier extends Notifier<ShareState> {
     // an explicit request for the residential-IP path.
     final manualPortRes =
         await widgetRef.read(lanternServiceProvider).getPeerManualPort();
+    if (!ref.mounted) return;
     final manualPort = manualPortRes.fold((_) => 0, (p) => p);
     if (manualPort > 0) {
       await _start(widgetRef, ShareMode.smc);
@@ -381,6 +384,7 @@ class ShareNotifier extends Notifier<ShareState> {
     // user. Any failure (no IGD, timeout, FFI / channel error) is
     // treated as "UPnP unavailable" → fall back to Unbounded.
     final probeRes = await widgetRef.read(lanternServiceProvider).probeUPnP();
+    if (!ref.mounted) return;
     final upnpAvailable = probeRes.fold((_) => false, (v) => v);
     if (!upnpAvailable) {
       await _start(widgetRef, ShareMode.unbounded);
@@ -435,6 +439,7 @@ class ShareNotifier extends Notifier<ShareState> {
     if (state.active || state.probing) return;
     final res =
         await widgetRef.read(lanternServiceProvider).getPeerStatusJSON();
+    if (!ref.mounted) return;
     // A toggle during the status read may have already started another mode.
     if (state.active || state.probing) return;
     final phase = adoptablePhase(res.fold((_) => '', (v) => v));
@@ -513,6 +518,7 @@ class ShareNotifier extends Notifier<ShareState> {
         final smcRes = await widgetRef
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(true);
+        if (!ref.mounted) return;
         smcRes.fold(
           (err) {
             // Falls back rather than reporting. setPeerProxy returns
@@ -541,6 +547,7 @@ class ShareNotifier extends Notifier<ShareState> {
         final res = await widgetRef
             .read(lanternServiceProvider)
             .setUnboundedEnabled(true);
+        if (!ref.mounted) return;
         res.fold((err) {
           appLogger.error('setUnboundedEnabled failed: ${err.error}');
           _stopEventSubscription();
@@ -903,6 +910,7 @@ class ShareNotifier extends Notifier<ShareState> {
       final result = await widgetRef
           .read(lanternServiceProvider)
           .setUnboundedEnabled(true);
+      if (!ref.mounted) return;
       result.fold((err) {
         appLogger.error(
           'SmC→Unbounded fallback: setUnboundedEnabled failed: ${err.error}',
