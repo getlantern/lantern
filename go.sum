@@ -275,6 +275,8 @@ github.com/getlantern/radiance v0.0.0-20260908121906-3e3e2489526b h1:NXEQDHkdwpM
 github.com/getlantern/radiance v0.0.0-20260908121906-3e3e2489526b/go.mod h1:yQYp6xgDGi+pk59seIuumS+v68Ziwt9dIVzDIfCR8uk=
 github.com/getlantern/radiance v0.0.0-20260909181327-22dad8652464 h1:OR2g3iBu3XD9a/gbburSJ3X7tTYH1dTR1hXAhrzhcXg=
 github.com/getlantern/radiance v0.0.0-20260909181327-22dad8652464/go.mod h1:yQYp6xgDGi+pk59seIuumS+v68Ziwt9dIVzDIfCR8uk=
+github.com/getlantern/radiance v0.0.0-20260909182533-7c76ec7cb348 h1:RdSPo3YnMjcpAk/pgLNad5idE94T+0Uqn/Xylx9rOGM=
+github.com/getlantern/radiance v0.0.0-20260909182533-7c76ec7cb348/go.mod h1:yQYp6xgDGi+pk59seIuumS+v68Ziwt9dIVzDIfCR8uk=
 github.com/getlantern/samizdat v0.0.3-0.20260819153658-ebc74116a064 h1:NhCyQAWGEWjok/jg4gRD6fzCZvyOQy/4dVSFYhzU5xk=
 github.com/getlantern/samizdat v0.0.3-0.20260819153658-ebc74116a064/go.mod h1:uEeykQSW2/6rTjfPlj3MTTo59poSHXfAHTGgzYDkbr0=
 github.com/getlantern/semconv v0.0.0-20260327040646-21845dda05cb h1:c5YM7b3a4r2J8Eh89KkI6M/iTFe6Bi+b8AJlfkKdFq4=
