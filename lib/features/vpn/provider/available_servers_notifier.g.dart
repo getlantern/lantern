@@ -34,7 +34,7 @@ final class AvailableServersNotifierProvider
 }
 
 String _$availableServersNotifierHash() =>
-    r'42d7ed2c3ea1b54692433201583a79cbaf353cc7';
+    r'e0882458efba7899bfbfe9cadb11c527101f6b5e';
 
 abstract class _$AvailableServersNotifier
     extends $AsyncNotifier<AvailableServers> {

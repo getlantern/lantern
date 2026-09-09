@@ -60,7 +60,11 @@ const (
 	// EventTypeUserData signals the cached user data was refreshed from the
 	// server; Dart re-reads it via UserData(). Message is empty.
 	EventTypeUserData EventType = "user-data"
-	DefaultLogLevel             = "trace"
+	// EventTypeUserMessageAvailable carries no payload. Flutter pulls the
+	// message from Radiance, which keeps copy out of event logs and makes a
+	// missed event harmless.
+	EventTypeUserMessageAvailable EventType = "user-message-available"
+	DefaultLogLevel                         = "trace"
 )
 
 // Backoff between startup user-data fetch retries; the first attempt is
@@ -76,6 +80,7 @@ var startupUserDataFetchDelays = []time.Duration{
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
 type LanternCore struct {
 	client       *ipc.Client
+	userMessages userMessageClient
 	ctx          context.Context
 	cancel       context.CancelFunc
 	initOnce     sync.Once
@@ -111,6 +116,10 @@ type App interface {
 	ReferralAttachment(referralCode string) (bool, error)
 	ReferralAttachmentV2(referralCode, channel string) ([]byte, error)
 	UpdateLocale(locale string) error
+	CurrentUserMessage() (string, error)
+	RefreshUserMessages() error
+	AcknowledgeUserMessage(displayID, accountID string) error
+	SetUserMessageActivity(active bool) error
 	UpdateTelemetryConsent(consent bool) error
 	IsTelemetryEnabled() bool
 	IsOAuthLogin() bool
@@ -304,6 +313,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	lc.client = client
+	lc.userMessages = client
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
@@ -313,6 +323,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenDataCapEvents()
 	go lc.listenPeerConnectionEvents()
 	go lc.listenPeerStatusEvents()
+	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -1025,13 +1036,17 @@ func parseIssueType(s string) issue.IssueType {
 		return issue.CannotAccessBlockedSites
 	case "slow":
 		return issue.Slow
-	case "cannot_link_device":
+	// the app's dropdown key is plural; accept both forms.
+	case "cannot_link_device", "cannot_link_devices":
 		return issue.CannotLinkDevice
 	case "application_crashes":
 		return issue.ApplicationCrashes
 	case "update_fails":
 		return issue.UpdateFails
 	default:
+		if s != "" && !strings.EqualFold(s, "other") {
+			slog.Warn("parseIssueType: unrecognized issue type", "type", s)
+		}
 		return issue.Other
 	}
 }
