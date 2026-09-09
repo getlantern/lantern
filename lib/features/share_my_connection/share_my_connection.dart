@@ -29,8 +29,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
-import 'package:lantern/core/widgets/info_row.dart';
-import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/features/share_my_connection/action_mode_widgets.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -956,6 +955,48 @@ class UnboundedTabVisible extends Notifier<bool> {
   void set(bool visible) => state = visible;
 }
 
+/// Shared by the feature screen and Settings so both edit the same preference.
+class ActionModeAutoEnable extends ConsumerWidget {
+  const ActionModeAutoEnable({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      appSettingProvider.select((s) => s.unboundedAutoEnable),
+    );
+    void change(bool? value) {
+      if (value != null) {
+        ref.read(shareProvider.notifier).setAutoEnable(context, value);
+      }
+    }
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: AppTile(
+        label: 'auto_enable_unbounded'.i18n,
+        labelWidget: Text(
+          'auto_enable_unbounded'.i18n,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        subtitle: Text(
+          'auto_enable_unbounded_subtitle'.i18n,
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
+        ),
+        icon: AppImagePaths.actionModeAuto,
+        trailing: Checkbox(
+          key: const Key('action-mode.auto-enable'),
+          value: enabled,
+          activeColor: context.textLink,
+          onChanged: change,
+        ),
+        onPressed: () => change(!enabled),
+      ),
+    );
+  }
+}
+
 // ─── Tab body ────────────────────────────────────────────────────────────────
 
 /// Unbounded tab content, rendered inside the Home tab shell (see
@@ -969,77 +1010,37 @@ class UnboundedTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final notifier = ref.read(shareProvider.notifier);
-    final textTheme = Theme.of(context).textTheme;
-
-    // First-visit welcome popup. Fires once per device (persisted via
-    // appSettingProvider.unboundedWelcomeSeen) when the user first lands
-    // on the Unbounded tab. Re-openable via the info-bubble icon in the
-    // header.
+    final visible = ref.watch(unboundedTabVisibleProvider);
     useEffect(() {
-      final seen = ref.read(appSettingProvider).unboundedWelcomeSeen;
-      if (!seen) {
+      if (visible && !ref.read(appSettingProvider).unboundedWelcomeSeen) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!context.mounted) return;
-          showUnboundedWelcomeDialog(context, ref);
+          if (context.mounted && ref.read(unboundedTabVisibleProvider)) {
+            showUnboundedWelcomeDialog(context, ref);
+          }
         });
       }
       return null;
-    }, const []);
+    }, [visible]);
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
+      child: ActionModePanel(
+        autoEnable: const ActionModeAutoEnable(),
+        onAbout: () => showUnboundedWelcomeDialog(context, ref),
+        globe: Stack(
+          clipBehavior: Clip.none,
           children: [
-            const SizedBox(height: 12),
-            // The whole note re-opens the welcome dialog — a strict superset
-            // of the old icon-only tap target — so it can reuse the app's
-            // shared note component instead of a one-off Container.
-            Tooltip(
-              message: 'about_unbounded'.i18n,
-              child: InfoRow(
-                text: 'smc_intro'.i18n,
-                textStyle: textTheme.labelMedium?.copyWith(
-                  color: context.textSecondary,
-                ),
-                // ListTile's default 56dp minimum height is sized for a
-                // single-line tile; this note's text wraps to two lines,
-                // so without overriding it the tile pads out to that floor
-                // and reads as too much space above/below the text.
-                minTileHeight: 0,
-                onPressed: () => showUnboundedWelcomeDialog(context, ref),
-              ),
+            Positioned.fill(child: _GlobeView()),
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 8,
+              child: Center(child: _ArrivalToast()),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              flex: 3,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(child: _GlobeView()),
-                  // Floating arrival toast — centered horizontally
-                  // under the globe per unbounded.lantern.io
-                  // (frame-020 of unbounded-russia.mp4 shows the pill
-                  // sitting roughly under the globe's centre, not at
-                  // a corner). The Lottie heart-spray lives INSIDE the
-                  // pill via Stack(Clip.none) + negative offsets, so
-                  // hearts originate from the pill's static heart and
-                  // overflow upward/leftward into the globe area.
-                  const Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 8,
-                    child: Center(child: _ArrivalToast()),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            _StatusCard(state: state, onToggle: () => notifier.toggle(context, ref)),
-            const SizedBox(height: 12),
-            const _AutoEnableCard(),
-            const SizedBox(height: 16),
           ],
+        ),
+        statusCard: _StatusCard(
+          state: state,
+          onToggle: () => notifier.toggle(context, ref),
         ),
       ),
     );
@@ -1056,7 +1057,6 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     // Status text source-of-truth, collapsed to the three states the spec
     // calls for — "Off", "Enabled", and (while a Start/probe is actually in
     // flight) "Configuring network" — rather than the old multi-line
@@ -1094,141 +1094,16 @@ class _StatusCard extends StatelessWidget {
         },
     };
 
-    return Container(
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 32,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        child: Column(
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  AppImage(
-                      path: AppImagePaths.languageGlobe,
-                      width: 20,
-                      height: 20,
-                      color: context.textTertiary),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        style: textTheme.bodyMedium,
-                        children: [
-                          TextSpan(text: '${'smc_status_label'.i18n}: '),
-                          TextSpan(
-                            text: modeLabel,
-                            style: TextStyle(
-                              color: state.active
-                                  ? AppColors.green6
-                                  : Theme.of(context).hintColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Match the rest of the app's toggles (vpn_setting.dart etc.).
-                  // SwitchButton has no built-in disabled state, so during the
-                  // probe we render the switch but absorb the tap so the user
-                  // doesn't double-fire toggle().
-                  SwitchButton(
-                    value: state.active || state.probing,
-                    onChanged: (value) {
-                      if (state.probing) return;
-                      onToggle();
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // Always shown — including while Unbounded is off — so the
-            // panel doesn't collapse/expand as the toggle flips. activeCount
-            // reads 0 and totalCount keeps the persisted lifetime total.
-            const DividerSpace(),
-            AppTile(
-              icon: AppImagePaths.person,
-              label: 'smc_stat_active_now'.i18n,
-              trailing: Text(
-                '${state.activeCount}',
-                style:
-                    textTheme.titleMedium!.copyWith(color: context.textLink),
-              ),
-            ),
-            const DividerSpace(),
-            AppTile(
-              icon: AppImagePaths.groups2,
-              label: 'smc_stat_total_helped'.i18n,
-              trailing: Text(
-                '${state.totalCount}',
-                style:
-                    textTheme.titleMedium!.copyWith(color: context.textLink),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Mirrors the Unbounded Settings toggle, surfaced on the tab itself because
-/// the spec puts the choice next to the thing it controls. Uses a checkbox
-/// rather than the switch UnboundedSetting's identical row uses — per the
-/// Figma spec, this tab-embedded copy is the one exception.
-class _AutoEnableCard extends ConsumerWidget {
-  const _AutoEnableCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final textTheme = Theme.of(context).textTheme;
-    final autoEnable =
-        ref.watch(appSettingProvider.select((s) => s.unboundedAutoEnable));
-    final notifier = ref.read(shareProvider.notifier);
-    return Container(
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 32,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        child: AppTile(
-          label: 'auto_enable_unbounded'.i18n,
-          subtitle: Text(
-            'auto_enable_unbounded_subtitle'.i18n,
-            style: textTheme.labelMedium!.copyWith(
-              color: context.textTertiary,
-            ),
-          ),
-          icon: AppImagePaths.autoMode,
-          trailing: Checkbox(
-            value: autoEnable,
-            onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
-            activeColor: context.textLink,
-          ),
-          onPressed: () => notifier.setAutoEnable(context, !autoEnable),
-        ),
-      ),
+    return ActionModeStatusCard(
+      status: modeLabel,
+      enabled: state.active || state.probing,
+      ready: state.mode == ShareMode.unbounded ||
+          (state.mode == ShareMode.smc && state.phase == SharePhase.serving),
+      busy: state.probing,
+      hasError: state.phase == SharePhase.error,
+      activeCount: state.activeCount,
+      totalCount: state.totalCount,
+      onToggle: onToggle,
     );
   }
 }
@@ -2094,29 +1969,28 @@ class _UnboundedWelcomeDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 360),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+        constraints: const BoxConstraints(maxWidth: 312),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Heart logo, matching the Figma's heart-Lantern motif.
+              // Action Mode handshake icon from the Figma design.
               const Center(
-                child: SizedBox(
-                  width: 40,
-                  height: 34,
-                  child: CustomPaint(painter: _HeartPainter()),
+                child: AppImage(
+                  path: AppImagePaths.actionMode,
+                  width: 48,
+                  height: 48,
                 ),
               ),
               const SizedBox(height: 16),
               Center(
                 child: Text(
                   'unbounded_welcome_title'.i18n,
+                  textAlign: TextAlign.center,
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -2138,13 +2012,24 @@ class _UnboundedWelcomeDialog extends StatelessWidget {
                 style: textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
-              // No "Learn more" button until the explainer URL is wired
-              // (will be re-added pointing at AppUrls.unbounded). Showing
-              // a button with an empty onPressed in production reads as a
-              // dead control.
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Wrap(
+                alignment: WrapAlignment.end,
                 children: [
+                  TextButton(
+                    onPressed: () => UrlUtils.openUrl(AppUrls.unbounded),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('learn_more'.i18n),
+                        const SizedBox(width: 4),
+                        const AppImage(
+                          path: AppImagePaths.outsideBrowser,
+                          width: 16,
+                          height: 16,
+                        ),
+                      ],
+                    ),
+                  ),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text('got_it'.i18n),

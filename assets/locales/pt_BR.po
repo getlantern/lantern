@@ -136,7 +136,7 @@ msgid "remind_use_code"
 msgstr "Lembre-os de usar o código %s ao fazer o upgrade!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Ajude a combater a censura global na Internet"
