@@ -109,6 +109,15 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 	locale := C.GoString(_locale)
 	env := C.GoString(_env)
 	return runOnGoStack(func() *C.char {
+		// Wire the Dart ports before New: it starts goroutines (e.g. the
+		// startup user-data fetch) that emit events immediately.
+		dart_api_dl.Init(api)
+		logsPort.Store(int64(logP))
+		appsPort.Store(int64(appsP))
+		statusPort.Store(int64(statusP))
+		privateserverPort.Store(int64(privateServerP))
+		appEventPort.Store(int64(appEventP))
+
 		core, err := lanterncore.New(&utils.Opts{
 			LogDir:           logDir,
 			DataDir:          dataDir,
@@ -122,13 +131,7 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 		if err != nil {
 			return C.CString(fmt.Sprintf("unable to create LanternCore: %v", err))
 		}
-		dart_api_dl.Init(api)
 		lanternCore.Store(&core)
-		logsPort.Store(int64(logP))
-		appsPort.Store(int64(appsP))
-		statusPort.Store(int64(statusP))
-		privateserverPort.Store(int64(privateServerP))
-		appEventPort.Store(int64(appEventP))
 
 		// Start the VPN status listener immediately so the UI reflects the
 		// current VPN state even if the VPN was already connected (e.g. macOS
