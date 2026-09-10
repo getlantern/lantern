@@ -295,10 +295,10 @@ msgstr "Cannot link devices"
 msgid "split_tunnel"
 msgstr "Split tunneling does not work"
 
-msgid "smart_routing"
+msgid "smart_routing_not_working"
 msgstr "Smart routing does not work"
 
-msgid "server_selection"
+msgid "server_selection_not_working"
 msgstr "Server selection does not work"
 
 msgid "upgrade_fail"

@@ -1013,9 +1013,9 @@ func parseIssueType(s string) issue.IssueType {
 		return issue.UpdateFails
 	case "split_tunnel":
 		return issue.SplitTunnel
-	case "smart_routing":
+	case "smart_routing_not_working":
 		return issue.SmartRouting
-	case "server_selection":
+	case "server_selection_not_working":
 		return issue.ServerSelection
 	case "upgrade_fail":
 		return issue.UpgradeFail
