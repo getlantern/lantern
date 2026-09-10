@@ -24,10 +24,12 @@ class ProBanner extends HookConsumerWidget {
       return _renewalBanner(context, renewal);
     }
     if (ref.watch(isUserProProvider)) return const SizedBox.shrink();
-    return _upsellBanner(context);
+    return _upsellBanner(context, ref);
   }
 
-  Widget _upsellBanner(BuildContext context) {
+  Widget _upsellBanner(BuildContext context, WidgetRef ref) {
+    final isExpired = ref.watch(isUserExpiredProvider);
+
     final textTheme = Theme.of(context).textTheme;
     // Small screens get the compact one-line
     // pill upsell instead of the full banner.
