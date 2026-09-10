@@ -2,6 +2,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
@@ -37,6 +38,7 @@ class SignInEmail extends HookConsumerWidget {
               ),
               SizedBox(height: defaultSize),
               AppTextField(
+                fieldKey: AuthKeys.signInEmailField,
                 hintText: '',
                 prefixIcon: AppImagePaths.email,
                 autofillHints: const [
@@ -64,6 +66,7 @@ class SignInEmail extends HookConsumerWidget {
               ),
               SizedBox(height: 32),
               PrimaryButton(
+                key: AuthKeys.signInEmailContinueButton,
                 label: 'sign_in_with_email'.i18n,
                 enabled: emailController.text.isValidEmail(),
                 onPressed: () => signInWithEmail(emailController.text, context),

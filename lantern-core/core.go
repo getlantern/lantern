@@ -57,12 +57,30 @@ const (
 	// .phase to render progress text and on .error to surface
 	// diagnostics on the failure path.
 	EventTypePeerStatus EventType = "peer-status"
-	DefaultLogLevel               = "trace"
+	// EventTypeUserData signals the cached user data was refreshed from the
+	// server; Dart re-reads it via UserData(). Message is empty.
+	EventTypeUserData EventType = "user-data"
+	// EventTypeUserMessageAvailable carries no payload. Flutter pulls the
+	// message from Radiance, which keeps copy out of event logs and makes a
+	// missed event harmless.
+	EventTypeUserMessageAvailable EventType = "user-message-available"
+	DefaultLogLevel                         = "trace"
 )
+
+// Backoff between startup user-data fetch retries; the first attempt is
+// immediate. Early failures are expected while the tunnel comes up.
+var startupUserDataFetchDelays = []time.Duration{
+	2 * time.Second,
+	5 * time.Second,
+	10 * time.Second,
+	20 * time.Second,
+	40 * time.Second,
+}
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
 type LanternCore struct {
 	client       *ipc.Client
+	userMessages userMessageClient
 	ctx          context.Context
 	cancel       context.CancelFunc
 	initOnce     sync.Once
@@ -98,6 +116,10 @@ type App interface {
 	ReferralAttachment(referralCode string) (bool, error)
 	ReferralAttachmentV2(referralCode, channel string) ([]byte, error)
 	UpdateLocale(locale string) error
+	CurrentUserMessage() (string, error)
+	RefreshUserMessages() error
+	AcknowledgeUserMessage(displayID, accountID string) error
+	SetUserMessageActivity(active bool) error
 	UpdateTelemetryConsent(consent bool) error
 	IsTelemetryEnabled() bool
 	IsOAuthLogin() bool
@@ -111,6 +133,7 @@ type User interface {
 	FetchUserData() ([]byte, error)
 	OAuthLoginUrl(provider string) (string, error)
 	OAuthLoginCallback(oAuthToken string) ([]byte, error)
+	OAuthDeviceLimitCallback(oAuthToken string) error
 
 	Login(email, password string) ([]byte, error)
 	SignUp(email, password string) error
@@ -180,6 +203,15 @@ type SmartRouting interface {
 type PeerShare interface {
 	SetPeerShareEnabled(bool) error
 	IsPeerShareEnabled() bool
+	// PeerStatusJSON reports the peer client's current lifecycle state as
+	// the same JSON the peer-status event carries.
+	//
+	// The event stream is edge-triggered, and the peer client resumes from
+	// persisted settings at process start — before the UI subscribes — so a
+	// UI that only listens can miss every transition and never learn that
+	// sharing is already running. This is how it reads the state instead of
+	// assuming one.
+	PeerStatusJSON() string
 	// SetPeerManualPort persists the user's manually-configured router
 	// port forward (Advanced setting in the Share My Connection UI).
 	// 0 clears the override, restoring UPnP-discovered port behavior.
@@ -281,6 +313,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	}
 
 	lc.client = client
+	lc.userMessages = client
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
@@ -289,7 +322,9 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
 	go lc.listenPeerConnectionEvents()
+	go lc.listenUnboundedSnapshots()
 	go lc.listenPeerStatusEvents()
+	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
 
 	slog.Debug("LanternCore initialized successfully")
@@ -309,7 +344,9 @@ func (lc *LanternCore) notifyFlutter(event EventType, message string) {
 	})
 }
 
-// fetchUserDataIfNeeded pulls fresh user data from the server at startup
+// fetchUserDataIfNeeded pulls fresh user data from the server at startup,
+// retrying with backoff, and notifies Flutter so the UI picks up changes
+// (e.g. a purchase credited while the app was closed).
 func (lc *LanternCore) fetchUserDataIfNeeded() {
 	raw := lc.settings()[settings.UserIDKey]
 	userID := userIDAsInt64(raw)
@@ -317,11 +354,29 @@ func (lc *LanternCore) fetchUserDataIfNeeded() {
 		slog.Debug("Skipping startup user-data fetch: no user ID set", "raw", raw)
 		return
 	}
-	if _, err := lc.client.FetchUserData(lc.ctx); err != nil {
-		slog.Error("Startup user-data fetch failed", "error", err)
-		return
+	attempts := len(startupUserDataFetchDelays) + 1
+	for i := 0; i < attempts; i++ {
+		_, err := lc.client.FetchUserData(lc.ctx)
+		if err == nil {
+			slog.Debug("Startup user-data fetch succeeded", "userID", userID, "attempt", i+1)
+			lc.notifyFlutter(EventTypeUserData, "")
+			return
+		}
+		if lc.ctx.Err() != nil {
+			return
+		}
+		if i == attempts-1 {
+			slog.Error("Startup user-data fetch failed; giving up", "error", err, "attempts", attempts)
+			return
+		}
+		delay := startupUserDataFetchDelays[i]
+		slog.Warn("Startup user-data fetch failed; retrying", "error", err, "attempt", i+1, "retryIn", delay)
+		select {
+		case <-lc.ctx.Done():
+			return
+		case <-time.After(delay):
+		}
 	}
-	slog.Debug("Startup user-data fetch succeeded", "userID", userID)
 }
 
 // userIDAsInt64 normalizes the radiance UserIDKey value across the storage
@@ -615,6 +670,32 @@ func (lc *LanternCore) IsPeerShareEnabled() bool {
 	b, _ := lc.settings()[settings.PeerShareEnabledKey].(bool)
 	return b
 }
+
+// PeerStatusJSON returns the marshalled peer.Status, or "" if it cannot be
+// read. Empty rather than an error string or a synthesized "idle": a caller
+// that cannot tell "not sharing" from "could not ask" would render a
+// confident wrong answer, which is the failure this exists to remove.
+func (lc *LanternCore) PeerStatusJSON() string {
+	ctx, cancel := context.WithTimeout(lc.ctx, peerStatusTimeout)
+	defer cancel()
+
+	status, err := lc.client.PeerStatus(ctx)
+	if err != nil {
+		slog.Warn("could not read peer status", "error", err)
+		return ""
+	}
+	b, err := json.Marshal(status)
+	if err != nil {
+		slog.Error("marshal peer status", "error", err)
+		return ""
+	}
+	return string(b)
+}
+
+// peerStatusTimeout bounds the read. It is called on the UI's path to first
+// paint, so a hung daemon must degrade to "unknown" quickly rather than
+// blocking the screen.
+const peerStatusTimeout = 5 * time.Second
 
 func (lc *LanternCore) SetPeerManualPort(port int) error {
 	if port < 0 || port > 65535 {
@@ -956,13 +1037,17 @@ func parseIssueType(s string) issue.IssueType {
 		return issue.CannotAccessBlockedSites
 	case "slow":
 		return issue.Slow
-	case "cannot_link_device":
+	// the app's dropdown key is plural; accept both forms.
+	case "cannot_link_device", "cannot_link_devices":
 		return issue.CannotLinkDevice
 	case "application_crashes":
 		return issue.ApplicationCrashes
 	case "update_fails":
 		return issue.UpdateFails
 	default:
+		if s != "" && !strings.EqualFold(s, "other") {
+			slog.Warn("parseIssueType: unrecognized issue type", "type", s)
+		}
 		return issue.Other
 	}
 }
@@ -1009,6 +1094,13 @@ func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
 		return nil, err
 	}
 	return json.Marshal(userData)
+}
+
+// OAuthDeviceLimitCallback loads the account identity from a device-limit
+// OAuth callback token so the follow-up device removal authenticates as that
+// account, without logging the user in.
+func (lc *LanternCore) OAuthDeviceLimitCallback(oAuthToken string) error {
+	return lc.client.OAuthDeviceLimitCallback(lc.ctx, oAuthToken)
 }
 
 func (lc *LanternCore) Login(email, password string) ([]byte, error) {

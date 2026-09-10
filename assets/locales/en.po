@@ -112,7 +112,7 @@ msgid "remind_use_code"
 msgstr "Remind them to use code %s when they upgrade!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 # Tab label shown alongside the Unbounded tab on the Home screen when
 # the dual-tab strip is active.
@@ -630,14 +630,14 @@ msgstr "Help others bypass censorship by securely sharing your connection."
 
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
-msgstr "Learn more about Unbounded"
+msgstr "About Action Mode"
 
 # Status card — phase labels
 msgid "smc_status_label"
 msgstr "Status"
 
 msgid "smc_status_off"
-msgstr "Off"
+msgstr "Disabled"
 
 msgid "smc_status_configuring"
 msgstr "Configuring network"
@@ -646,10 +646,10 @@ msgid "smc_status_probing"
 msgstr "Probing your network…"
 
 msgid "smc_status_active_unbounded"
-msgstr "Active — sharing via Unbounded (WebRTC)"
+msgstr "Enabled"
 
 msgid "smc_status_active_smc"
-msgstr "Active — sharing via Share My Connection (residential proxy)"
+msgstr "Starting…"
 
 msgid "smc_status_mapping_port"
 msgstr "Opening port on your router…"
@@ -667,7 +667,7 @@ msgid "smc_status_verifying"
 msgstr "Verifying connectivity…"
 
 msgid "smc_status_serving"
-msgstr "Sharing — ready to serve users in censored regions"
+msgstr "Enabled"
 
 msgid "smc_status_stopping"
 msgstr "Stopping…"
@@ -683,12 +683,12 @@ msgstr "Couldn't share — try toggling again"
 # helped, not helpers); parallel framing to smc_stat_total_helped
 # (same semantics, lifetime).
 msgid "smc_stat_active_now"
-msgstr "People being helped right now"
+msgstr "People you are helping right now:"
 
 # Lifetime ("to date") rather than daily — backed by the persisted
 # unboundedTotalHelped setting so the count survives app restarts.
 msgid "smc_stat_total_helped"
-msgstr "Total people helped to date"
+msgstr "Total people helped to date:"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -703,16 +703,16 @@ msgstr "Waiting for connections..."
 
 # Welcome dialog shown the first time the Unbounded tab opens.
 msgid "unbounded_welcome_title"
-msgstr "Welcome to Unbounded"
+msgstr "Welcome to Action Mode"
 
 msgid "unbounded_welcome_body_1"
-msgstr "When you enable Unbounded, your device becomes part of a network of 'digital bridges' to the open internet. Censored users connect to these bridges, allowing them to bypass government-imposed restrictions and access the information they need."
+msgstr "When you enable Action Mode, your device becomes part of a network of 'digital bridges' to the open internet. Censored users connect to these bridges, allowing them to bypass government-imposed restrictions and access the information they need."
 
 msgid "unbounded_welcome_body_2"
 msgstr "This collective effort makes censorship harder to enforce, expanding access to the open internet."
 
 msgid "unbounded_welcome_body_3"
-msgstr "You can remove Unbounded from the interface anytime in Settings."
+msgstr "You can remove Action Mode from the interface anytime in Settings."
 
 # Advanced section / manual port forward
 msgid "smc_advanced"
@@ -737,7 +737,7 @@ msgid "smc_manual_port_save"
 msgstr "Save"
 
 msgid "smc_manual_port_currently_set"
-msgstr "Currently set to port %d. Toggle Share My Connection off and back on for the change to take effect."
+msgstr "Currently set to port %d. Toggle Action Mode off and back on for the change to take effect."
 
 msgid "smc_manual_port_out_of_range"
 msgstr "Port must be between 1 and 65535"
@@ -750,21 +750,21 @@ msgstr "Manual port set to %d"
 
 # Unbounded Settings menu entry (Settings → Unbounded Settings)
 msgid "unbounded_settings_title"
-msgstr "Unbounded Settings"
+msgstr "Action Mode Settings"
 
 # Auto-enable Unbounded toggle
 msgid "auto_enable_unbounded"
-msgstr "Auto-enable Unbounded"
+msgstr "Auto-enable Action Mode"
 
 msgid "auto_enable_unbounded_subtitle"
 msgstr "Turns on when Lantern opens"
 
 # Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
 msgid "hide_unbounded"
-msgstr "Hide Unbounded"
+msgstr "Hide Action Mode"
 
 msgid "hide_unbounded_subtitle"
-msgstr "Removes Unbounded from the UI"
+msgstr "Removes Action Mode from the UI"
 
 msgid "vpn_connected"
 msgstr "Lantern is now connected."
@@ -1862,9 +1862,6 @@ msgstr "Configuration cleared"
 msgid "turn_off_vpn"
 msgstr "Turn off VPN"
 
-msgid "turn_on_vpn"
-msgstr "Turn on VPN"
-
 msgid "turn_off_vpn_message"
 msgstr "The VPN needs to be off before you can refresh your configuration. Turn it off, then try again."
 
@@ -1937,3 +1934,51 @@ msgstr "Bypass the VPN for this website?"
 
 msgid "bypass_website_first_time_body"
 msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
+
+msgid "pro_expires_days_left"
+msgstr "Pro expires %s, %s days left"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro expires %s, 1 day left"
+
+msgid "renewing_adds_time"
+msgstr "Renewing adds time to your current end date"
+
+msgid "pro_ends_today"
+msgstr "Pro time ends today, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Renew now to keep unlimited data and Pro features"
+
+msgid "pro_expired_on"
+msgstr "Your Pro time expired on %s"
+
+msgid "renew_now_get_back_data"
+msgstr "Renew now to get back unlimited data"
+
+msgid "days_left"
+msgstr "%s days left"
+
+msgid "one_day_left"
+msgstr "1 day left"
+
+msgid "expires_today"
+msgstr "Expires today"
+
+msgid "pro_time_expired_message"
+msgstr "Lantern Pro time expired, Renew to restore unlimited data and Pro features."
+
+msgid "pro_expires_today_title"
+msgstr "Pro expires today"
+
+msgid "pro_expires_today_popup_message"
+msgstr "Your Pro account ends today. Renew now to keep access to Lantern Pro."
+
+msgid "renew_now"
+msgstr "Renew Now"
+
+msgid "dismiss"
+msgstr "Dismiss"
+
+msgid "unbounded_status_waiting"
+msgstr "Waiting to start — Unbounded"

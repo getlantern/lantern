@@ -17,6 +17,7 @@ import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
@@ -98,6 +99,54 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Stream<AppEvent> watchAppEvents() {
     return _appEventStatus;
+  }
+
+  @override
+  Future<Either<Failure, UserMessage?>> currentUserMessage() async {
+    try {
+      final encoded = await _methodChannel.invokeMethod<String>(
+        'currentUserMessage',
+      );
+      return right(UserMessage.tryParse(encoded ?? 'null'));
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshUserMessages() async {
+    try {
+      await _methodChannel.invokeMethod<void>('refreshUserMessages');
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod<void>('acknowledgeUserMessage', {
+        'displayId': displayId,
+        'accountId': accountId,
+      });
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) async {
+    try {
+      await _methodChannel.invokeMethod<void>('setUserMessageActivity', active);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
   }
 
   Future<void> waitForRadiance() async {
@@ -330,9 +379,7 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
     try {
-      await _methodChannel.invokeMethod('setPeerManualPort', {
-        'port': port,
-      });
+      await _methodChannel.invokeMethod('setPeerManualPort', {'port': port});
       return right(unit);
     } catch (e, st) {
       appLogger.error('setPeerManualPort failed', e, st);
@@ -347,6 +394,17 @@ class LanternPlatformService implements LanternCoreService {
       return right(res ?? 0);
     } catch (e, st) {
       appLogger.error('getPeerManualPort failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getPeerStatusJSON() async {
+    try {
+      final res = await _methodChannel.invokeMethod<String>('getPeerStatus');
+      return right(res ?? '');
+    } catch (e, st) {
+      appLogger.error('getPeerStatusJSON failed', e, st);
       return Left(e.toFailure());
     }
   }
@@ -994,6 +1052,26 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
+    String token,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod<String>(
+        'oauthDeviceLimitCallback',
+        token,
+      );
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error handling OAuth device-limit callback',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
   ///App related methods
   ///
   /// Get user data from local storage
@@ -1132,8 +1210,8 @@ class LanternPlatformService implements LanternCoreService {
       });
       final map = jsonDecode(utf8.decode(bytes));
       return Right(UserResponseModel.fromJson(map));
-    } catch (e) {
-      appLogger.error('Error logging', e);
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging in', e, stackTrace);
       return Left(e.toFailure());
     }
   }

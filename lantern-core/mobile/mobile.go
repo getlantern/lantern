@@ -219,6 +219,29 @@ func GetPeerManualPort() int {
 	return v
 }
 
+// GetPeerStatus returns the peer client's current lifecycle state as JSON,
+// or "" if it could not be read.
+//
+// This process shares radiance in-process, where the event bus is purely
+// edge-triggered: it carries transitions only, with no snapshot on subscribe
+// (the SSE path replays one, but that is not the path used here). The peer
+// client resumes from persisted settings at process start, before the UI is
+// listening, so a UI built purely on events never learns that sharing is
+// already running and renders whatever it assumed at startup. This lets it
+// ask.
+//
+// Empty on failure rather than a synthesized status: "not sharing" and "could
+// not ask" must stay distinguishable to the caller.
+func GetPeerStatus() string {
+	v, err := withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.PeerStatusJSON(), nil
+	})
+	if err != nil {
+		return ""
+	}
+	return v
+}
+
 // SetUnboundedEnabled is the local opt-in for the broflake / Unbounded
 // widget proxy ("Basic mode" in the SmC UI). Surfaced through the
 // MethodChannel so platforms running radiance inside a network
@@ -293,6 +316,32 @@ func MyDeviceId() (string, error) {
 
 func UpdateLocale(locale string) error {
 	return withCore(func(c lanterncore.Core) error { return c.UpdateLocale(locale) })
+}
+
+// CurrentUserMessage returns the pending message as common-contract JSON.
+func CurrentUserMessage() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.CurrentUserMessage()
+	})
+}
+
+// RefreshUserMessages asks Radiance to fetch eligibility immediately.
+func RefreshUserMessages() error {
+	return withCore(func(c lanterncore.Core) error { return c.RefreshUserMessages() })
+}
+
+// AcknowledgeUserMessage records that Flutter displayed displayID for accountID.
+func AcknowledgeUserMessage(displayID, accountID string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.AcknowledgeUserMessage(displayID, accountID)
+	})
+}
+
+// SetUserMessageActivity pauses or resumes polling for the app lifecycle.
+func SetUserMessageActivity(active bool) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.SetUserMessageActivity(active)
+	})
 }
 
 func IsRadianceConnected() bool {
@@ -496,6 +545,15 @@ func OAuthLoginCallback(oAuthToken string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		b, err := c.OAuthLoginCallback(oAuthToken)
 		return string(b), err
+	})
+}
+
+// OAuthDeviceLimitCallback loads the account identity from a device-limit
+// OAuth callback token so the follow-up device removal authenticates as that
+// account, without logging the user in.
+func OAuthDeviceLimitCallback(oAuthToken string) error {
+	return withCore(func(c lanterncore.Core) error {
+		return c.OAuthDeviceLimitCallback(oAuthToken)
 	})
 }
 

@@ -251,5 +251,6 @@ class FileLogPrinter extends LoggyPrinter {
 
   Future<void> close() async {
     await _controller.close();
+    await _sink.close();
   }
 }

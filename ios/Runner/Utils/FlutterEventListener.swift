@@ -46,9 +46,9 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
         sink(map)
       }
     } else {
-      // Buffer it. Always logged: buffering means Flutter is not listening
-      // yet, which is rare and worth seeing even for a high-volume type.
-      appLogger.log("FlutterEventListener buffering event: \(event.type)")
+      if logVerbosely {
+        appLogger.log("FlutterEventListener buffering event: \(event.type)")
+      }
       pendingEvents.append(map)
       lock.unlock()
     }
