@@ -50,8 +50,13 @@ void main() {
 
   test('trace is opt-in while debug and errors remain enabled', () async {
     initLogger();
+    final rootLogger = Loggy('');
+    final previousPrinter = Loggy.currentPrinter!;
+    addTearDown(() {
+      rootLogger.printer = previousPrinter;
+    });
     final printer = _RecordingPrinter();
-    appLogger.printer = printer;
+    rootLogger.printer = printer;
     var traceFormatted = false;
     traceLog(() {
       traceFormatted = true;
