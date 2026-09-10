@@ -31,7 +31,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/common v1.2.1-0.20260910154003-08e030318f24
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260910162321-50149728c3d0
+	github.com/getlantern/radiance v0.0.0-20260910183250-bc7dc6dd5faa
 	github.com/sagernet/sing-box v1.13.19
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.45.0
