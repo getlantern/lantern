@@ -41,6 +41,10 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
     'slow',
     'cannot_link_devices',
     'application_crashes',
+    'split_tunnel',
+    'smart_routing',
+    'server_selection',
+    'upgrade_fail',
     'other',
   ];
 

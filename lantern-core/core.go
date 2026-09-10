@@ -1011,6 +1011,14 @@ func parseIssueType(s string) issue.IssueType {
 		return issue.ApplicationCrashes
 	case "update_fails":
 		return issue.UpdateFails
+	case "split_tunnel":
+		return issue.SplitTunnel
+	case "smart_routing":
+		return issue.SmartRouting
+	case "server_selection":
+		return issue.ServerSelection
+	case "upgrade_fail":
+		return issue.UpgradeFail
 	default:
 		if s != "" && !strings.EqualFold(s, "other") {
 			slog.Warn("parseIssueType: unrecognized issue type", "type", s)

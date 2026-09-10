@@ -292,6 +292,18 @@ msgstr "Slow"
 msgid "cannot_link_devices"
 msgstr "Cannot link devices"
 
+msgid "split_tunnel"
+msgstr "Split tunneling does not work"
+
+msgid "smart_routing"
+msgstr "Smart routing does not work"
+
+msgid "server_selection"
+msgstr "Server selection does not work"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro upgrade unsuccessful"
+
 msgid "wrong_device_linking_code"
 msgstr "Wrong or invalid device linking code"
 
