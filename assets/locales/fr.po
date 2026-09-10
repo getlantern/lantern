@@ -132,7 +132,7 @@ msgid "remind_use_code"
 msgstr "Rappelez-leur d'utiliser le code %s lors de leur passage à Pro !"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Aidez à combattre la censure mondiale d'Internet"

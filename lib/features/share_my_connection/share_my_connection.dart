@@ -29,8 +29,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
-import 'package:lantern/core/widgets/info_row.dart';
-import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/features/share_my_connection/action_mode_widgets.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -84,18 +83,18 @@ enum SharePhase {
 class ShareState {
   final bool active;
   final bool probing;
+  final bool unboundedRunning;
   final ShareMode mode;
   final int activeCount;
   final int totalCount;
-  // SmC-only: granular Start/Stop phase from radiance peer.Status. For
-  // Unbounded mode this stays SharePhase.idle (no equivalent staged
-  // lifecycle on the broflake side yet).
+  // SmC uses peer.Status phases; Unbounded uses unboundedRunning from snapshots.
   final SharePhase phase;
   final String? errorMessage;
 
   const ShareState({
     this.active = false,
     this.probing = false,
+    this.unboundedRunning = false,
     this.mode = ShareMode.off,
     this.activeCount = 0,
     this.totalCount = 0,
@@ -106,6 +105,7 @@ class ShareState {
   ShareState copyWith({
     bool? active,
     bool? probing,
+    bool? unboundedRunning,
     ShareMode? mode,
     int? activeCount,
     int? totalCount,
@@ -121,6 +121,7 @@ class ShareState {
       ShareState(
         active: active ?? this.active,
         probing: probing ?? this.probing,
+        unboundedRunning: unboundedRunning ?? this.unboundedRunning,
         mode: mode ?? this.mode,
         activeCount: activeCount ?? this.activeCount,
         totalCount: totalCount ?? this.totalCount,
@@ -138,6 +139,7 @@ class ShareState {
 class _UnsetErrorMessage {
   const _UnsetErrorMessage();
 }
+
 const _unsetErrorMessage = _UnsetErrorMessage();
 
 // ─── Notifier (mock-backed) ──────────────────────────────────────────────────
@@ -235,10 +237,17 @@ class ShareNotifier extends Notifier<ShareState> {
       return;
     }
     if (!await ensureConsent(context)) return;
+    if (!ref.mounted) return;
     settings.setUnboundedAutoEnable(true);
   }
 
   StreamSubscription? _appEventSub;
+  StreamSubscription? _snapshotSub;
+  int _changes = 0;
+  bool get _changing => _changes > 0;
+  String? _snapshotEpoch;
+  int _lastArrivals = 0;
+  bool _hasUnboundedSnapshot = false;
   int _workerSeq = 0;
   // Per-peer arc + active-stream count. samizdat multiplexes many H2 streams
   // over one TCP conn, all sharing the same RemoteAddr — ref-count so the arc
@@ -265,7 +274,27 @@ class ShareNotifier extends Notifier<ShareState> {
     // subscription and stream controller still get cleaned up when
     // it does actually happen.
     ref.keepAlive();
+    _snapshotSub = ref.read(lanternServiceProvider).watchAppEvents().listen((
+      event,
+    ) {
+      if (event.eventType == 'unbounded-unavailable') {
+        if (!_changing && state.mode == ShareMode.unbounded) {
+          _clearPeers();
+          state = state.copyWith(unboundedRunning: false, activeCount: 0);
+        }
+        return;
+      }
+      if (event.eventType != 'unbounded-snapshot') return;
+      try {
+        _applyUnboundedSnapshot(
+          jsonDecode(event.message) as Map<String, dynamic>,
+        );
+      } catch (e) {
+        debugPrint('share-my-connection: bad snapshot: $e');
+      }
+    });
     ref.onDispose(() {
+      _snapshotSub?.cancel();
       _stopEventSubscription();
       _eventController.close();
     });
@@ -300,6 +329,16 @@ class ShareNotifier extends Notifier<ShareState> {
   ///      forwarded a port, so use it and skip the probe.
   ///   2. Otherwise probe UPnP: available → SmC, unavailable → Unbounded.
   Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
+    if (_changing) return;
+    _changes++;
+    try {
+      await _toggle(context, widgetRef);
+    } finally {
+      _changes--;
+    }
+  }
+
+  Future<void> _toggle(BuildContext context, WidgetRef widgetRef) async {
     if (state.active || state.probing) {
       await _stop(widgetRef);
       return;
@@ -307,6 +346,7 @@ class ShareNotifier extends Notifier<ShareState> {
 
     // Consent gates every start path, before the mode is even known.
     if (!await ensureConsent(context)) return;
+    if (!ref.mounted) return;
     // Showing it is async, so re-check: another surface — or a second tap on
     // this one — can have started sharing while the dialog was up.
     if (state.active || state.probing) return;
@@ -328,6 +368,7 @@ class ShareNotifier extends Notifier<ShareState> {
     // an explicit request for the residential-IP path.
     final manualPortRes =
         await widgetRef.read(lanternServiceProvider).getPeerManualPort();
+    if (!ref.mounted) return;
     final manualPort = manualPortRes.fold((_) => 0, (p) => p);
     if (manualPort > 0) {
       await _start(widgetRef, ShareMode.smc);
@@ -341,8 +382,8 @@ class ShareNotifier extends Notifier<ShareState> {
     // status from copyWith(probing: true) above is visible to the
     // user. Any failure (no IGD, timeout, FFI / channel error) is
     // treated as "UPnP unavailable" → fall back to Unbounded.
-    final probeRes =
-        await widgetRef.read(lanternServiceProvider).probeUPnP();
+    final probeRes = await widgetRef.read(lanternServiceProvider).probeUPnP();
+    if (!ref.mounted) return;
     final upnpAvailable = probeRes.fold((_) => false, (v) => v);
     if (!upnpAvailable) {
       await _start(widgetRef, ShareMode.unbounded);
@@ -366,10 +407,15 @@ class ShareNotifier extends Notifier<ShareState> {
   /// direction. Consent is collected by toggle() or by enabling auto-start in
   /// Unbounded Settings, both of which have a BuildContext.
   Future<void> autoStart(WidgetRef widgetRef) async {
-    if (state.active || state.probing) return;
+    if (_changing || state.active || state.probing) return;
     if (!_consentAcked) return;
-    state = state.copyWith(probing: true);
-    await _start(widgetRef, ShareMode.unbounded);
+    _changes++;
+    try {
+      state = state.copyWith(probing: true);
+      await _start(widgetRef, ShareMode.unbounded);
+    } finally {
+      _changes--;
+    }
   }
 
   /// Reconciles ShareState with what the peer client is actually doing.
@@ -392,14 +438,8 @@ class ShareNotifier extends Notifier<ShareState> {
     if (state.active || state.probing) return;
     final res =
         await widgetRef.read(lanternServiceProvider).getPeerStatusJSON();
-    // Re-check: the read above is an IPC round-trip bounded by a 5s
-    // timeout, and this runs at first paint, so the user has a wide window
-    // to hit the toggle while it is in flight. Adopting the snapshot then
-    // would stamp mode=smc over a session that had just started as
-    // Unbounded — a later toggle-off would call setPeerProxy(false) and
-    // leave Unbounded running — and would install a second event
-    // subscription over the first, which _startEventSubscription
-    // overwrites rather than cancels.
+    if (!ref.mounted) return;
+    // A toggle during the status read may have already started another mode.
     if (state.active || state.probing) return;
     final phase = adoptablePhase(res.fold((_) => '', (v) => v));
     if (phase == null) return;
@@ -477,6 +517,7 @@ class ShareNotifier extends Notifier<ShareState> {
         final smcRes = await widgetRef
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(true);
+        if (!ref.mounted) return;
         smcRes.fold(
           (err) {
             // Falls back rather than reporting. setPeerProxy returns
@@ -502,41 +543,25 @@ class ShareNotifier extends Notifier<ShareState> {
         );
         break;
       case ShareMode.unbounded:
-        // Unbounded is the broflake / WebRTC widget-proxy mode. Local
-        // opt-in only — actual run state also depends on the server's
-        // Features[unbounded] flag and supplied UnboundedConfig. When
-        // running, broflake's OnConnectionChange callback emits
-        // unbounded.ConnectionEvent → forwarded by lantern-core as the
-        // same EventTypePeerConnection FlutterEvent the SmC path uses,
-        // so this Dart subscription consumes both protocols uniformly.
-        //
-        // Unbounded has no equivalent of the peer.Client phase=error
-        // StatusEvent that the SmC path leans on for failure recovery,
-        // so check the Either return here and revert to off if the
-        // setting flip failed (core not initialized, MethodChannel
-        // failure, etc.) — otherwise the UI sticks at "Active" while
-        // nothing actually started.
         final res = await widgetRef
             .read(lanternServiceProvider)
             .setUnboundedEnabled(true);
-        res.fold(
-          (err) {
-            appLogger.error('setUnboundedEnabled failed: ${err.error}');
-            _stopEventSubscription();
-            state = ShareState(
-              active: false,
-              probing: false,
-              mode: ShareMode.off,
-              activeCount: 0,
-              // Preserve lifetime totalCount across a failed Start (see
-              // matching comment in the SmC branch above).
-              totalCount: state.totalCount,
-              phase: SharePhase.error,
-              errorMessage: err.error,
-            );
-          },
-          (_) => null,
-        );
+        if (!ref.mounted) return;
+        res.fold((err) {
+          appLogger.error('setUnboundedEnabled failed: ${err.error}');
+          _stopEventSubscription();
+          state = ShareState(
+            active: false,
+            probing: false,
+            mode: ShareMode.off,
+            activeCount: 0,
+            // Preserve lifetime totalCount across a failed Start (see
+            // matching comment in the SmC branch above).
+            totalCount: state.totalCount,
+            phase: SharePhase.error,
+            errorMessage: err.error,
+          );
+        }, (_) => null);
         break;
       case ShareMode.off:
         break;
@@ -556,9 +581,7 @@ class ShareNotifier extends Notifier<ShareState> {
             .setPeerProxy(false);
         break;
       case ShareMode.unbounded:
-        await widgetRef
-            .read(lanternServiceProvider)
-            .setUnboundedEnabled(false);
+        await widgetRef.read(lanternServiceProvider).setUnboundedEnabled(false);
         break;
       case ShareMode.off:
         break;
@@ -578,16 +601,17 @@ class ShareNotifier extends Notifier<ShareState> {
   // already use.
 
   void _startEventSubscription(WidgetRef widgetRef) {
-    _peerArcs.clear();
-    _appEventSub = widgetRef
-        .read(lanternServiceProvider)
-        .watchAppEvents()
-        .listen((event) {
+    _stopEventSubscription();
+    if (state.mode != ShareMode.smc) return;
+    _appEventSub =
+        widgetRef.read(lanternServiceProvider).watchAppEvents().listen((event) {
       if (event.eventType == 'peer-status') {
         _handlePeerStatus(event.message, widgetRef);
         return;
       }
-      if (event.eventType != 'peer-connection') return;
+      if (event.eventType != 'peer-connection' || state.mode != ShareMode.smc) {
+        return;
+      }
       try {
         final payload = jsonDecode(event.message) as Map<String, dynamic>;
         final eventState = (payload['state'] as num?)?.toInt() ?? 0;
@@ -642,11 +666,13 @@ class ShareNotifier extends Notifier<ShareState> {
           // the geo lookup completed). Otherwise the globe never saw it
           // and a -1 with no preceding +1 would just be noise.
           if (entry.geo != null) {
-            _eventController.add(UnboundedConnectionEvent(
-              state: -1,
-              workerIdx: entry.workerIdx,
-              addr: '',
-            ));
+            _eventController.add(
+              UnboundedConnectionEvent(
+                state: -1,
+                workerIdx: entry.workerIdx,
+                addr: '',
+              ),
+            );
           }
           state = state.copyWith(
             activeCount: max(0, state.activeCount - 1),
@@ -664,7 +690,65 @@ class ShareNotifier extends Notifier<ShareState> {
     });
   }
 
-  Future<void> _resolveAndEmit(String ip, _PeerArc arc) async {
+  void _applyUnboundedSnapshot(Map<String, dynamic> snapshot) {
+    if (_changing || state.mode == ShareMode.smc) return;
+    final enabled = snapshot['enabled'] as bool;
+    final running = snapshot['running'] as bool;
+    final peers = (snapshot['peers'] as List).cast<String>();
+    final counts = <String, int>{};
+    if (enabled && running) {
+      for (final source in peers) {
+        final ip = _extractIP(source);
+        if (ip.isNotEmpty) counts.update(ip, (n) => n + 1, ifAbsent: () => 1);
+      }
+    }
+    final replay = !_hasUnboundedSnapshot;
+    _hasUnboundedSnapshot = true;
+    for (final ip in _peerArcs.keys.toList()) {
+      if (counts.containsKey(ip)) continue;
+      final arc = _peerArcs.remove(ip)!;
+      if (arc.geo != null) {
+        _eventController.add(
+          UnboundedConnectionEvent(
+            state: -1,
+            workerIdx: arc.workerIdx,
+            addr: '',
+          ),
+        );
+      }
+    }
+    final epoch = snapshot['epoch'] as String;
+    final arrivals = (snapshot['arrivals'] as num).toInt();
+    for (final entry in counts.entries) {
+      var arc = _peerArcs[entry.key];
+      if (arc == null) {
+        arc = _PeerArc(_workerSeq++);
+        _peerArcs[entry.key] = arc;
+        unawaited(_resolveAndEmit(entry.key, arc, isReplay: replay));
+      }
+      arc.streamCount = entry.value;
+    }
+    final total = state.totalCount +
+        (_snapshotEpoch == epoch ? max<int>(0, arrivals - _lastArrivals) : 0);
+    _snapshotEpoch = epoch;
+    _lastArrivals = arrivals;
+    state = state.copyWith(
+      active: enabled,
+      mode: enabled ? ShareMode.unbounded : ShareMode.off,
+      unboundedRunning: enabled && running,
+      activeCount: counts.length,
+      totalCount: total,
+    );
+    if (total != ref.read(appSettingProvider).unboundedTotalHelped) {
+      ref.read(appSettingProvider.notifier).setUnboundedTotalHelped(total);
+    }
+  }
+
+  Future<void> _resolveAndEmit(
+    String ip,
+    _PeerArc arc, {
+    bool isReplay = false,
+  }) async {
     PeerGeo geo;
     try {
       geo = await GeoLookupService.peerLookup(ip);
@@ -676,23 +760,25 @@ class ShareNotifier extends Notifier<ShareState> {
     // a late lookup completion doesn't throw "Bad state: Cannot add
     // event after closing" on the disposed sink.
     if (_eventController.isClosed) return;
-    // Peer may have disconnected before the lookup returned. The map
-    // entry's identity (workerIdx) is the cheapest check.
+    // A lookup from an earlier session must not add an arc to its replacement.
     final current = _peerArcs[ip];
-    if (current == null || current.workerIdx != arc.workerIdx) return;
+    if (!identical(current, arc)) return;
     // Skip arcs we couldn't geo-locate. The peer is still counted in
     // activeCount, but we don't draw a wrong-country arc.
     if (geo.countryCode.isEmpty) return;
     arc.geo = geo;
-    _eventController.add(UnboundedConnectionEvent(
-      state: 1,
-      workerIdx: arc.workerIdx,
-      addr: ip,
-      countryName: geo.countryName,
-      countryCode: geo.countryCode,
-      flagEmoji: geo.flagEmoji,
-      coordinates: geo.coordinates,
-    ));
+    _eventController.add(
+      UnboundedConnectionEvent(
+        state: 1,
+        workerIdx: arc.workerIdx,
+        addr: ip,
+        countryName: geo.countryName,
+        countryCode: geo.countryCode,
+        flagEmoji: geo.flagEmoji,
+        coordinates: geo.coordinates,
+        isReplay: isReplay,
+      ),
+    );
   }
 
   /// Replays a synthetic +1 for every currently-active peer that has a
@@ -706,39 +792,37 @@ class ShareNotifier extends Notifier<ShareState> {
       final arc = entry.value;
       final geo = arc.geo;
       if (geo == null) continue;
-      _eventController.add(UnboundedConnectionEvent(
-        state: 1,
-        workerIdx: arc.workerIdx,
-        addr: entry.key,
-        countryName: geo.countryName,
-        countryCode: geo.countryCode,
-        flagEmoji: geo.flagEmoji,
-        coordinates: geo.coordinates,
-        isReplay: true,
-      ));
+      _eventController.add(
+        UnboundedConnectionEvent(
+          state: 1,
+          workerIdx: arc.workerIdx,
+          addr: entry.key,
+          countryName: geo.countryName,
+          countryCode: geo.countryCode,
+          flagEmoji: geo.flagEmoji,
+          coordinates: geo.coordinates,
+          isReplay: true,
+        ),
+      );
     }
   }
 
   void _stopEventSubscription() {
-    // Synthesize -1 for every active peer BEFORE killing the source
-    // stream. peer.Client.Stop on the Go side suppresses the box.Close
-    // disconnect cascade (correct — avoids a flood of post-Stop noise),
-    // so without this loop the globe would never see -1's for peers
-    // that were live at toggle-time. Their arcs would orphan and rotate
-    // with the globe indefinitely. With this loop, the globe sees real
-    // -1's and runs them through the normal linger-then-remove path.
-    for (final arc in _peerArcs.values) {
-      if (arc.geo == null) continue;
-      _eventController.add(UnboundedConnectionEvent(
-        state: -1,
-        workerIdx: arc.workerIdx,
-        addr: '',
-      ));
-    }
     _appEventSub?.cancel();
     _appEventSub = null;
+    _clearPeers();
+  }
+
+  void _clearPeers() {
+    _hasUnboundedSnapshot = false;
+    // Backend shutdown can suppress disconnect events, so remove globe arcs explicitly.
+    for (final arc in _peerArcs.values) {
+      if (arc.geo == null) continue;
+      _eventController.add(
+        UnboundedConnectionEvent(state: -1, workerIdx: arc.workerIdx, addr: ''),
+      );
+    }
     _peerArcs.clear();
-    _workerSeq = 0;
   }
 
   // Parses a `peer-status` FlutterEvent and folds the new phase / error
@@ -808,42 +892,24 @@ class ShareNotifier extends Notifier<ShareState> {
   // setting back to false, so all we owe is to flip our local state to
   // Unbounded and enable broflake.
   //
-  // Constructs ShareState directly (rather than copyWith) so errorMessage
-  // gets cleared — copyWith's `?? this.errorMessage` keeps the previous
-  // SmC failure string around otherwise.
-  //
-  // Event subscription: deliberately does NOT call _startEventSubscription.
-  // The error path arrives here via _handlePeerStatus which is already
-  // inside the subscription started by the prior _start; flipping the
-  // local state.mode keeps the same subscription forwarding events for
-  // the new (Unbounded) mode. _stop is the only teardown path for the
-  // subscription, and the error path doesn't go through _stop.
   Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
-    // One failed Start arrives here twice: from the phase=error event and from
-    // setPeerProxy's returned error. Without this guard Unbounded is started
-    // twice and the second call races the first one's state. A plain field
-    // check suffices — both callers run on the main isolate and the mode flip
-    // below is synchronous, so whichever arrives second always observes it.
     if (state.mode == ShareMode.unbounded) return;
-    state = ShareState(
-      active: true,
-      probing: false,
-      mode: ShareMode.unbounded,
-      activeCount: 0,
-      totalCount: state.totalCount,
-      phase: SharePhase.idle,
-    );
-    final result = await widgetRef
-        .read(lanternServiceProvider)
-        .setUnboundedEnabled(true);
-    result.fold(
-      (err) {
-        // Both SmC and the fallback to Unbounded failed. Roll back the
-        // optimistic active=true state to off+error so the UI doesn't
-        // claim Unbounded is running when nothing actually started —
-        // same shape as the Unbounded branch in _start. Tear down the
-        // event subscription too, since it was kept alive across the
-        // SmC→Unbounded flip and there's nothing left to consume it.
+    _changes++;
+    try {
+      _stopEventSubscription();
+      state = ShareState(
+        active: true,
+        probing: false,
+        mode: ShareMode.unbounded,
+        activeCount: 0,
+        totalCount: state.totalCount,
+        phase: SharePhase.idle,
+      );
+      final result = await widgetRef
+          .read(lanternServiceProvider)
+          .setUnboundedEnabled(true);
+      if (!ref.mounted) return;
+      result.fold((err) {
         appLogger.error(
           'SmC→Unbounded fallback: setUnboundedEnabled failed: ${err.error}',
         );
@@ -857,9 +923,10 @@ class ShareNotifier extends Notifier<ShareState> {
           phase: SharePhase.error,
           errorMessage: err.error,
         );
-      },
-      (_) => {},
-    );
+      }, (_) => {});
+    } finally {
+      _changes--;
+    }
   }
 }
 
@@ -888,6 +955,48 @@ class UnboundedTabVisible extends Notifier<bool> {
   void set(bool visible) => state = visible;
 }
 
+/// Shared by the feature screen and Settings so both edit the same preference.
+class ActionModeAutoEnable extends ConsumerWidget {
+  const ActionModeAutoEnable({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      appSettingProvider.select((s) => s.unboundedAutoEnable),
+    );
+    void change(bool? value) {
+      if (value != null) {
+        ref.read(shareProvider.notifier).setAutoEnable(context, value);
+      }
+    }
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: AppTile(
+        label: 'auto_enable_unbounded'.i18n,
+        labelWidget: Text(
+          'auto_enable_unbounded'.i18n,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        subtitle: Text(
+          'auto_enable_unbounded_subtitle'.i18n,
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
+        ),
+        icon: AppImagePaths.actionModeAuto,
+        trailing: Checkbox(
+          key: const Key('action-mode.auto-enable'),
+          value: enabled,
+          activeColor: context.textLink,
+          onChanged: change,
+        ),
+        onPressed: () => change(!enabled),
+      ),
+    );
+  }
+}
+
 // ─── Tab body ────────────────────────────────────────────────────────────────
 
 /// Unbounded tab content, rendered inside the Home tab shell (see
@@ -901,77 +1010,37 @@ class UnboundedTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final notifier = ref.read(shareProvider.notifier);
-    final textTheme = Theme.of(context).textTheme;
-
-    // First-visit welcome popup. Fires once per device (persisted via
-    // appSettingProvider.unboundedWelcomeSeen) when the user first lands
-    // on the Unbounded tab. Re-openable via the info-bubble icon in the
-    // header.
+    final visible = ref.watch(unboundedTabVisibleProvider);
     useEffect(() {
-      final seen = ref.read(appSettingProvider).unboundedWelcomeSeen;
-      if (!seen) {
+      if (visible && !ref.read(appSettingProvider).unboundedWelcomeSeen) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!context.mounted) return;
-          showUnboundedWelcomeDialog(context, ref);
+          if (context.mounted && ref.read(unboundedTabVisibleProvider)) {
+            showUnboundedWelcomeDialog(context, ref);
+          }
         });
       }
       return null;
-    }, const []);
+    }, [visible]);
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
+      child: ActionModePanel(
+        autoEnable: const ActionModeAutoEnable(),
+        onAbout: () => showUnboundedWelcomeDialog(context, ref),
+        globe: Stack(
+          clipBehavior: Clip.none,
           children: [
-            const SizedBox(height: 12),
-            // The whole note re-opens the welcome dialog — a strict superset
-            // of the old icon-only tap target — so it can reuse the app's
-            // shared note component instead of a one-off Container.
-            Tooltip(
-              message: 'about_unbounded'.i18n,
-              child: InfoRow(
-                text: 'smc_intro'.i18n,
-                textStyle: textTheme.labelMedium?.copyWith(
-                  color: context.textSecondary,
-                ),
-                // ListTile's default 56dp minimum height is sized for a
-                // single-line tile; this note's text wraps to two lines,
-                // so without overriding it the tile pads out to that floor
-                // and reads as too much space above/below the text.
-                minTileHeight: 0,
-                onPressed: () => showUnboundedWelcomeDialog(context, ref),
-              ),
+            Positioned.fill(child: _GlobeView()),
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 8,
+              child: Center(child: _ArrivalToast()),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              flex: 3,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(child: _GlobeView()),
-                  // Floating arrival toast — centered horizontally
-                  // under the globe per unbounded.lantern.io
-                  // (frame-020 of unbounded-russia.mp4 shows the pill
-                  // sitting roughly under the globe's centre, not at
-                  // a corner). The Lottie heart-spray lives INSIDE the
-                  // pill via Stack(Clip.none) + negative offsets, so
-                  // hearts originate from the pill's static heart and
-                  // overflow upward/leftward into the globe area.
-                  const Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 8,
-                    child: Center(child: _ArrivalToast()),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            _StatusCard(state: state, onToggle: () => notifier.toggle(context, ref)),
-            const SizedBox(height: 12),
-            const _AutoEnableCard(),
-            const SizedBox(height: 16),
           ],
+        ),
+        statusCard: _StatusCard(
+          state: state,
+          onToggle: () => notifier.toggle(context, ref),
         ),
       ),
     );
@@ -988,7 +1057,6 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     // Status text source-of-truth, collapsed to the three states the spec
     // calls for — "Off", "Enabled", and (while a Start/probe is actually in
     // flight) "Configuring network" — rather than the old multi-line
@@ -1010,7 +1078,9 @@ class _StatusCard extends StatelessWidget {
               ? 'smc_status_configuring'.i18n
               : 'smc_status_off'.i18n,
         },
-      ShareMode.unbounded => 'enabled'.i18n,
+      ShareMode.unbounded => state.unboundedRunning
+          ? 'enabled'.i18n
+          : 'unbounded_status_waiting'.i18n,
       ShareMode.smc => switch (state.phase) {
           SharePhase.serving => 'enabled'.i18n,
           SharePhase.error => state.errorMessage != null
@@ -1024,141 +1094,16 @@ class _StatusCard extends StatelessWidget {
         },
     };
 
-    return Container(
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 32,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        child: Column(
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  AppImage(
-                      path: AppImagePaths.languageGlobe,
-                      width: 20,
-                      height: 20,
-                      color: context.textTertiary),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        style: textTheme.bodyMedium,
-                        children: [
-                          TextSpan(text: '${'smc_status_label'.i18n}: '),
-                          TextSpan(
-                            text: modeLabel,
-                            style: TextStyle(
-                              color: state.active
-                                  ? AppColors.green6
-                                  : Theme.of(context).hintColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Match the rest of the app's toggles (vpn_setting.dart etc.).
-                  // SwitchButton has no built-in disabled state, so during the
-                  // probe we render the switch but absorb the tap so the user
-                  // doesn't double-fire toggle().
-                  SwitchButton(
-                    value: state.active || state.probing,
-                    onChanged: (value) {
-                      if (state.probing) return;
-                      onToggle();
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // Always shown — including while Unbounded is off — so the
-            // panel doesn't collapse/expand as the toggle flips. activeCount
-            // reads 0 and totalCount keeps the persisted lifetime total.
-            const DividerSpace(),
-            AppTile(
-              icon: AppImagePaths.person,
-              label: 'smc_stat_active_now'.i18n,
-              trailing: Text(
-                '${state.activeCount}',
-                style:
-                    textTheme.titleMedium!.copyWith(color: context.textLink),
-              ),
-            ),
-            const DividerSpace(),
-            AppTile(
-              icon: AppImagePaths.groups2,
-              label: 'smc_stat_total_helped'.i18n,
-              trailing: Text(
-                '${state.totalCount}',
-                style:
-                    textTheme.titleMedium!.copyWith(color: context.textLink),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Mirrors the Unbounded Settings toggle, surfaced on the tab itself because
-/// the spec puts the choice next to the thing it controls. Uses a checkbox
-/// rather than the switch UnboundedSetting's identical row uses — per the
-/// Figma spec, this tab-embedded copy is the one exception.
-class _AutoEnableCard extends ConsumerWidget {
-  const _AutoEnableCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final textTheme = Theme.of(context).textTheme;
-    final autoEnable =
-        ref.watch(appSettingProvider.select((s) => s.unboundedAutoEnable));
-    final notifier = ref.read(shareProvider.notifier);
-    return Container(
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 32,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        child: AppTile(
-          label: 'auto_enable_unbounded'.i18n,
-          subtitle: Text(
-            'auto_enable_unbounded_subtitle'.i18n,
-            style: textTheme.labelMedium!.copyWith(
-              color: context.textTertiary,
-            ),
-          ),
-          icon: AppImagePaths.autoMode,
-          trailing: Checkbox(
-            value: autoEnable,
-            onChanged: (v) => notifier.setAutoEnable(context, v ?? false),
-            activeColor: context.textLink,
-          ),
-          onPressed: () => notifier.setAutoEnable(context, !autoEnable),
-        ),
-      ),
+    return ActionModeStatusCard(
+      status: modeLabel,
+      enabled: state.active || state.probing,
+      ready: state.mode == ShareMode.unbounded ||
+          (state.mode == ShareMode.smc && state.phase == SharePhase.serving),
+      busy: state.probing,
+      hasError: state.phase == SharePhase.error,
+      activeCount: state.activeCount,
+      totalCount: state.totalCount,
+      onToggle: onToggle,
     );
   }
 }
@@ -2024,29 +1969,28 @@ class _UnboundedWelcomeDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 360),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+        constraints: const BoxConstraints(maxWidth: 312),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Heart logo, matching the Figma's heart-Lantern motif.
+              // Action Mode handshake icon from the Figma design.
               const Center(
-                child: SizedBox(
-                  width: 40,
-                  height: 34,
-                  child: CustomPaint(painter: _HeartPainter()),
+                child: AppImage(
+                  path: AppImagePaths.actionMode,
+                  width: 48,
+                  height: 48,
                 ),
               ),
               const SizedBox(height: 16),
               Center(
                 child: Text(
                   'unbounded_welcome_title'.i18n,
+                  textAlign: TextAlign.center,
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -2068,13 +2012,24 @@ class _UnboundedWelcomeDialog extends StatelessWidget {
                 style: textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
-              // No "Learn more" button until the explainer URL is wired
-              // (will be re-added pointing at AppUrls.unbounded). Showing
-              // a button with an empty onPressed in production reads as a
-              // dead control.
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Wrap(
+                alignment: WrapAlignment.end,
                 children: [
+                  TextButton(
+                    onPressed: () => UrlUtils.openUrl(AppUrls.unbounded),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('learn_more'.i18n),
+                        const SizedBox(width: 4),
+                        const AppImage(
+                          path: AppImagePaths.outsideBrowser,
+                          width: 16,
+                          height: 16,
+                        ),
+                      ],
+                    ),
+                  ),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text('got_it'.i18n),

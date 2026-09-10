@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/models/app_event.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -25,9 +28,17 @@ class _FakeStorage implements LocalStorageService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _FakeService implements LanternService {
+ @override
+ Stream<AppEvent> watchAppEvents() => const Stream.empty();
+ @override
+ dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 ShareNotifier _notifier() {
   final container = ProviderContainer(
     overrides: [
+      lanternServiceProvider.overrideWithValue(_FakeService()),
       appSettingProvider.overrideWithValue(const AppSetting()),
     ],
   );
