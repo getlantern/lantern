@@ -8,6 +8,12 @@ import 'package:flutter_loggy/flutter_loggy.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:loggy/loggy.dart';
 
+const traceLogLevel = LogLevel('Trace', 1);
+const traceLogsEnabled = bool.fromEnvironment('LANTERN_TRACE_LOGS');
+
+void traceLog(String Function() message) =>
+    appLogger.log(traceLogLevel, message);
+
 final dbLogger = Loggy("DB-Logger");
 final appLogger = Loggy("app-Logger");
 
@@ -39,8 +45,13 @@ void initLogger([String? path]) {
 
   Loggy.initLoggy(
     logPrinter: logPrinter,
-    logOptions: const LogOptions(LogLevel.all),
+    logOptions: const LogOptions(
+      traceLogsEnabled ? traceLogLevel : LogLevel.debug,
+    ),
     hierarchicalLogging: true,
+  );
+  appLogger.level = const LogOptions(
+    traceLogsEnabled ? traceLogLevel : LogLevel.debug,
   );
   appLogger.debug("Logger initialized ✅");
 }

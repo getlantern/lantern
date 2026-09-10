@@ -34,7 +34,7 @@ final class DataCapInfoNotifierProvider
 }
 
 String _$dataCapInfoNotifierHash() =>
-    r'90aaeb34d1801962f3a400834364028fb0f15cd3';
+    r'9a5450d6c2db8a6c44b794b5fac2d39bcb5f9578';
 
 abstract class _$DataCapInfoNotifier
     extends $AsyncNotifier<DataCapUsageResponse> {

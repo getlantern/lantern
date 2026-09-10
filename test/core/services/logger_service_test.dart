@@ -48,6 +48,25 @@ void main() {
       .where((f) => f.path.endsWith('.log.gz'))
       .toList();
 
+  test('trace is opt-in while debug and errors remain enabled', () async {
+    initLogger();
+    final printer = _RecordingPrinter();
+    appLogger.printer = printer;
+    var traceFormatted = false;
+    traceLog(() {
+      traceFormatted = true;
+      return 'frequent-event';
+    });
+    appLogger.debug('ordinary-debug');
+    appLogger.error('event-error');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(traceFormatted, traceLogsEnabled);
+    final messages = printer.records.map((record) => record.message);
+    expect(messages.contains('frequent-event'), traceLogsEnabled);
+    expect(messages, containsAll(['ordinary-debug', 'event-error']));
+  });
+
   test('keeps the live log under the size limit', () async {
     final path = '${dir.path}/flutter.log';
     final printer = FileLogPrinter(
@@ -124,4 +143,11 @@ void main() {
       reason: 'backups must be pruned, or rotation just moves the growth',
     );
   });
+}
+
+class _RecordingPrinter extends LoggyPrinter {
+  final records = <LogRecord>[];
+
+  @override
+  void onLog(LogRecord record) => records.add(record);
 }

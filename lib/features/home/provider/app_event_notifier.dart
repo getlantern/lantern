@@ -40,7 +40,7 @@ class AppEventNotifier extends _$AppEventNotifier {
   /// peer connection, and a data-cap poll every few seconds. Logging a line
   /// each made them 75% of a 297 MB flutter.log, which is what pushed issue
   /// reports past their attachment budget so users could not send logs at all.
-  /// They are still handled below — they are just not each worth a line.
+  /// Per-event diagnostics are available at the opt-in trace level.
   static const _highVolumeEvents = {'peer-connection', 'data-cap-event'};
 
   /// Watches for application events and triggers appropriate actions.
@@ -51,7 +51,9 @@ class AppEventNotifier extends _$AppEventNotifier {
       event,
     ) {
       final eventType = event.eventType;
-      if (!_highVolumeEvents.contains(eventType)) {
+      if (_highVolumeEvents.contains(eventType)) {
+        traceLog(() => 'Received app event of type: $eventType');
+      } else {
         appLogger.debug('Received app event of type: $eventType');
       }
       switch (eventType) {

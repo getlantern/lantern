@@ -14,12 +14,7 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
   private var pendingEvents: [[String: Any?]] = []
   private let lock = NSLock()
 
-  /// Event types that arrive continuously rather than occasionally: one per
-  /// peer connection, and a data-cap poll every few seconds. Each event was
-  /// logged up to twice with its full payload, which made them the bulk of a
-  /// 277 MB log — and an oversized log is what pushes an issue report past its
-  /// attachment budget, so the user cannot send us logs at all. They are still
-  /// delivered; they are just no longer each worth two lines and a payload.
+  /// Frequent event diagnostics use opt-in trace logging.
   private static let highVolumeEvents: Set<String> = [
     "peer-connection",
     "data-cap-event",
@@ -28,10 +23,14 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
   func send(_ event: UtilsFlutterEvent?) {
     guard let event = event else { return }
 
-    let logVerbosely = !Self.highVolumeEvents.contains(event.type)
-    if logVerbosely {
-      appLogger.log("FlutterEventListener sending event: \(event.type) - \(event.message)")
+    func logEvent(_ message: @autoclosure () -> String) {
+      if Self.highVolumeEvents.contains(event.type) {
+        appLogger.trace(message())
+      } else {
+        appLogger.log(message())
+      }
     }
+    logEvent("FlutterEventListener sending event: \(event.type) - \(event.message)")
     let map: [String: Any] = [
       "type": event.type,
       "message": event.message,
@@ -40,16 +39,12 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
     lock.lock()
     if let sink = eventSink {
       lock.unlock()
-      if logVerbosely {
-        appLogger.log("FlutterEventListener sending event immediately: \(map)")
-      }
+      logEvent("FlutterEventListener sending event immediately: \(map)")
       DispatchQueue.main.async {
         sink(map)
       }
     } else {
-      if logVerbosely {
-        appLogger.log("FlutterEventListener buffering event: \(event.type)")
-      }
+      logEvent("FlutterEventListener buffering event: \(event.type)")
       pendingEvents.append(map)
       lock.unlock()
     }

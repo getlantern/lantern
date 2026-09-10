@@ -34,14 +34,12 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   Future<void> checkAndNotify(DataCapUsageResponse dataCapInfo) async {
     final usagePercent = _calculateUsagePercent(dataCapInfo);
     final threshold = _getThreshold(usagePercent);
-    // Logged only once a threshold is actually in play. This runs on every
-    // data-cap poll, so logging the (overwhelmingly common) nothing-to-do case
-    // added 15k lines to a single log with no diagnostic value.
-    if (threshold == null) return;
-    appLogger.debug(
-      'Data cap usage at ${usagePercent.toStringAsFixed(2)}%, '
-      'threshold: $threshold',
+    traceLog(
+      () =>
+          'Data cap usage at ${usagePercent.toStringAsFixed(2)}%, '
+          'threshold: $threshold',
     );
+    if (threshold == null) return;
     final shouldNotify = await _shouldSendNotification(threshold, dataCapInfo);
     if (!shouldNotify) return;
     _sendNotification(threshold, dataCapInfo);
@@ -81,11 +79,12 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     if (savedResetTime != usage!.allotmentEndTime) return true;
     // Same day - only notify if crossing higher threshold
     final showNotification = threshold.value > savedThresholdValue;
-    appLogger.debug(
-      '_shouldSendNotification '
-      'for threshold ${threshold.value}, '
-      'saved threshold: $savedThresholdValue, '
-      'showNotification: $showNotification',
+    traceLog(
+      () =>
+          '_shouldSendNotification '
+          'for threshold ${threshold.value}, '
+          'saved threshold: $savedThresholdValue, '
+          'showNotification: $showNotification',
     );
     return showNotification;
   }
