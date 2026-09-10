@@ -34,8 +34,11 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   Future<void> checkAndNotify(DataCapUsageResponse dataCapInfo) async {
     final usagePercent = _calculateUsagePercent(dataCapInfo);
     final threshold = _getThreshold(usagePercent);
-    appLogger.debug(
-        'Data cap usage at ${usagePercent.toStringAsFixed(2)}%, threshold: $threshold');
+    traceLog(
+      () =>
+          'Data cap usage at ${usagePercent.toStringAsFixed(2)}%, '
+          'threshold: $threshold',
+    );
     if (threshold == null) return;
     final shouldNotify = await _shouldSendNotification(threshold, dataCapInfo);
     if (!shouldNotify) return;
@@ -59,7 +62,9 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
 
   /// Determines if a notification should be sent based on the saved threshold
   Future<bool> _shouldSendNotification(
-      DataCapThreshold threshold, DataCapUsageResponse dataCapInfo) async {
+    DataCapThreshold threshold,
+    DataCapUsageResponse dataCapInfo,
+  ) async {
     final usage = dataCapInfo.usage;
     if (usage?.allotmentEndTime == null) return true;
     final appSetting = ref.read(appSettingProvider);
@@ -74,16 +79,21 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     if (savedResetTime != usage!.allotmentEndTime) return true;
     // Same day - only notify if crossing higher threshold
     final showNotification = threshold.value > savedThresholdValue;
-    appLogger.debug('_shouldSendNotification '
-        'for threshold ${threshold.value}, '
-        'saved threshold: $savedThresholdValue, '
-        'showNotification: $showNotification');
+    traceLog(
+      () =>
+          '_shouldSendNotification '
+          'for threshold ${threshold.value}, '
+          'saved threshold: $savedThresholdValue, '
+          'showNotification: $showNotification',
+    );
     return showNotification;
   }
 
   /// Sends the notification using the NotificationService
-  void _sendNotification(DataCapThreshold threshold,
-      DataCapUsageResponse dataUsageResponse) async {
+  void _sendNotification(
+    DataCapThreshold threshold,
+    DataCapUsageResponse dataUsageResponse,
+  ) async {
     final dataCapInfo = dataUsageResponse.usage!;
     final notification = _buildNotificationContent(threshold, dataCapInfo);
 
@@ -96,7 +106,9 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   }
 
   (String, String) _buildNotificationContent(
-      DataCapThreshold threshold, DataCapUsageDetails dataCapInfo) {
+    DataCapThreshold threshold,
+    DataCapUsageDetails dataCapInfo,
+  ) {
     final usedMB = (dataCapInfo.bytesUsed / (1024 * 1024)).round();
     final limitMB = (dataCapInfo.bytesAllotted / (1024 * 1024)).round();
     final remainingMB = limitMB - usedMB;
@@ -128,13 +140,14 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
       if (serverTime.isEmpty) {
         return "";
       }
-      final DateTime endTime = DateTime.parse(
-        serverTime,
-      ).toLocal();
+      final DateTime endTime = DateTime.parse(serverTime).toLocal();
       final DateTime now = DateTime.now();
       final DateTime today = DateTime(now.year, now.month, now.day);
-      final DateTime endDate =
-          DateTime(endTime.year, endTime.month, endTime.day);
+      final DateTime endDate = DateTime(
+        endTime.year,
+        endTime.month,
+        endTime.day,
+      );
       if (endDate == today) {
         return AppDateFormats.time.format(endTime);
       }
@@ -148,12 +161,15 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   }
 
   void _saveNotifiedThreshold(
-      DataCapThreshold threshold, DataCapUsageResponse dataCapInfo) {
+    DataCapThreshold threshold,
+    DataCapUsageResponse dataCapInfo,
+  ) {
     final usage = dataCapInfo.usage!;
     final thresholdValue = '${usage.allotmentEndTime}_${threshold.value}';
     final appSettingNotifier = ref.read(appSettingProvider.notifier);
     appLogger.debug(
-        'Saving notified threshold: $thresholdValue for end time: ${usage.allotmentEndTime}');
+      'Saving notified threshold: $thresholdValue for end time: ${usage.allotmentEndTime}',
+    );
     appSettingNotifier.updateDataCapThreshold(thresholdValue);
   }
 }
