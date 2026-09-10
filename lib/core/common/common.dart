@@ -11,6 +11,7 @@ import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
@@ -96,31 +97,44 @@ bool isStoreVersion() {
   if (!PlatformUtils.isMobile) {
     return false;
   }
-
-  // In censored regions Google Play Billing is unreachable, so Android
-  // Play Store builds use the non-store payment path.
-  if (PlatformUtils.isAndroid && CountryCode.isCensoredRegion) {
-    return false;
-  }
   if (PlatformUtils.isIOS) {
+    return true;
+  }
+  if (AppBuildInfo.playStoreBuild) {
     return true;
   }
   try {
     if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
       final devMode = sl<LocalStorageService>().getDeveloperMode();
-      return devMode?.testPlayPurchaseEnabled ??
-          !sl<StoreUtils>().isSideLoaded();
+      return resolveAndroidStoreVersion(
+        isPlayStoreBuild: AppBuildInfo.playStoreBuild,
+        isSideLoaded: sl<StoreUtils>().isSideLoaded(),
+        developerOverride: devMode?.testPlayPurchaseEnabled,
+      );
     }
   } catch (e) {
     appLogger.error("Error checking store version: $e");
     return !sl<StoreUtils>().isSideLoaded();
   }
 
-  return !sl<StoreUtils>().isSideLoaded();
+  return resolveAndroidStoreVersion(
+    isPlayStoreBuild: AppBuildInfo.playStoreBuild,
+    isSideLoaded: sl<StoreUtils>().isSideLoaded(),
+  );
 }
 
 bool canUsePlayBilling() {
-  return PlatformUtils.isAndroid && isStoreVersion();
+  return resolvePlayBillingAvailability(
+    isAndroid: PlatformUtils.isAndroid,
+    isStoreVersion: isStoreVersion(),
+    isCountryKnown: CountryCode.isKnown,
+    isCensoredRegion: CountryCode.isCensoredRegion,
+  );
+}
+
+/// Whether this build can currently use its platform's in-app purchase API.
+bool canUseStoreBilling() {
+  return PlatformUtils.isIOS || canUsePlayBilling();
 }
 
 //copy to clipboard
@@ -137,36 +151,88 @@ Future<String> pasteFromClipboard() async {
   }
 }
 
-/// Check user account status and updates user data if the user has a pro plan
-Future<bool> checkUserAccountStatus(WidgetRef ref, BuildContext context) async {
-  final delays = [
-    Duration(seconds: 1),
-    Duration(seconds: 2),
-    Duration(seconds: 3),
-  ];
+/// Renewals must extend Pro access. Stripe can also start a subscription after
+/// an existing one-time plan ends, without extending its expiration yet.
+/// Pass [subscriptionBefore] only for Stripe subscription checkouts.
+bool userDataReflectsPurchase(
+  UserDataModel userData,
+  int? expirationBefore, {
+  String? subscriptionBefore,
+}) {
+  if (!userData.isPro) return false;
+  if (expirationBefore == null || userData.expiration > expirationBefore) {
+    return true;
+  }
+
+  final subscription = userData.subscriptionData;
+  return subscriptionBefore != null &&
+      subscription.subscriptionID.isNotEmpty &&
+      subscription.subscriptionID != subscriptionBefore &&
+      subscription.provider == 'stripe' &&
+      subscription.status == 'active' &&
+      subscription.autoRenew;
+}
+
+/// Default poll schedule for [checkUserAccountStatus]: 3 attempts, ~6s.
+const kDefaultAccountStatusDelays = [
+  Duration(seconds: 1),
+  Duration(seconds: 2),
+  Duration(seconds: 3),
+];
+
+/// Post-checkout poll schedule: 5 attempts, ~19s. Redirect payments are
+/// credited asynchronously server-side, so the entitlement can lag.
+const kPurchaseConfirmationDelays = [
+  Duration(seconds: 1),
+  Duration(seconds: 2),
+  Duration(seconds: 3),
+  Duration(seconds: 5),
+  Duration(seconds: 8),
+];
+
+/// Refreshes Pro status, or confirms a checkout against its pre-purchase state.
+/// Stops when the screen closes. [delays] sets the retry schedule.
+Future<bool> checkUserAccountStatus(
+  WidgetRef ref,
+  BuildContext context, {
+  int? expirationBefore,
+  String? subscriptionBefore,
+  List<Duration> delays = kDefaultAccountStatusDelays,
+}) async {
   for (final delay in delays) {
+    if (!context.mounted) return false;
     appLogger.info("Checking user account status with delay: $delay");
     if (delay != Duration.zero) await Future.delayed(delay);
+    if (!context.mounted) return false;
 
     final result = await ref.read(lanternServiceProvider).fetchUserData();
-    final isPro = result.fold(
+    if (!context.mounted) return false;
+    final purchased = result.fold(
       (failure) {
         appLogger.error("Failed to fetch user data: $failure");
         return false;
       },
       (newUser) {
-        final isPro = newUser.legacyUserData.isPro;
-        if (isPro) {
-          // User has bought a plan
-          // update user data
-          appLogger.info("User is Pro: ${newUser.legacyUserData.email}");
+        final userData = newUser.legacyUserData;
+        final purchased = userDataReflectsPurchase(
+          userData,
+          expirationBefore,
+          subscriptionBefore: subscriptionBefore,
+        );
+        if (purchased) {
+          appLogger.info("User account has Pro entitlement");
           ref.read(homeProvider.notifier).updateUserData(newUser);
+        } else if (userData.isPro) {
+          appLogger.info(
+            "User is Pro but expiration has not advanced past "
+            "$expirationBefore yet (current: ${userData.expiration})",
+          );
         }
-        return isPro;
+        return purchased;
       },
     );
 
-    if (isPro) return true; //Exit loop is found
+    if (purchased) return true;
   }
   return false;
 }

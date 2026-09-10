@@ -132,7 +132,7 @@ msgid "remind_use_code"
 msgstr "انہیں یاد دلائیں کہ اپ گریڈ کرتے وقت کوڈ %s استعمال کریں!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "عالمی انٹرنیٹ سنسرشپ کے خلاف لڑنے میں مدد کریں"

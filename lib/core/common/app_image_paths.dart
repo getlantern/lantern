@@ -1,4 +1,8 @@
 class AppImagePaths {
+  static const actionMode = 'assets/images/action_mode.svg';
+  static const actionModeAuto = 'assets/images/action_mode_auto.svg';
+  static const actionModePerson = 'assets/images/action_mode_person.svg';
+  static const actionModePeople = 'assets/images/action_mode_people.svg';
   static const lanternLogo = 'assets/images/lantern_logo.svg';
   static const menu = 'assets/images/menu.svg';
   static const crown = 'assets/images/crown.svg';

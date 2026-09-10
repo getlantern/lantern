@@ -133,7 +133,7 @@ msgid "remind_use_code"
 msgstr "Ingatkan mereka untuk menggunakan kod %s semasa menaik taraf!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Bantu Menentang Penapisan Internet Global"

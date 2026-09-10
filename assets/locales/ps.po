@@ -130,7 +130,7 @@ msgid "remind_use_code"
 msgstr "دوی ته ورپه یاد کړئ چې د لوړېدو پر مهال %s کوډ وکاروي!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "د نړیوال انټرنیټ سانسورشپ په مقابله کې مرسته وکړئ"

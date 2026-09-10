@@ -128,7 +128,7 @@ msgid "remind_use_code"
 msgstr "Geçenlerinde %s koduny ulanmagy ýatladyň!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Global internet senzurasy bilen göreşmäge kömek ediň"

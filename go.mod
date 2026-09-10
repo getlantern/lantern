@@ -29,8 +29,9 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
+	github.com/getlantern/common v1.2.1-0.20260828200436-eb05c571820d
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260828161011-64ef2af2003b
+	github.com/getlantern/radiance v0.0.0-20260909202009-bfa747746b95
 	github.com/sagernet/sing-box v1.13.19
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.45.0
@@ -170,15 +171,14 @@ require (
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gaissmai/bart v0.18.0 // indirect
 	github.com/gaukas/wazerofs v0.1.0 // indirect
-	github.com/getlantern/algeneva v0.0.0-20250307163401-1824e7b54f52 // indirect
+	github.com/getlantern/algeneva v0.0.0-20260731172949-952f13725b7b // indirect
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
 	github.com/getlantern/broflake v0.0.0-20260810172605-bef5e5234952 // indirect
-	github.com/getlantern/common v1.2.1-0.20260708083946-cc657b08792c // indirect
 	github.com/getlantern/dnstt v0.0.0-20260603191204-3b860502c0ac // indirect
-	github.com/getlantern/domainfront v0.0.0-20260722204513-8c1f8acfa715 // indirect
+	github.com/getlantern/domainfront v0.0.0-20260909200720-c902df092c5f // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20260616120552-f204338b01a3 // indirect
-	github.com/getlantern/kindling v0.0.0-20260818180827-1583458ab9b7 // indirect
-	github.com/getlantern/lantern-box v0.0.119 // indirect
+	github.com/getlantern/kindling v0.0.0-20260909201237-3484cdc8202f // indirect
+	github.com/getlantern/lantern-box v0.0.128 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
@@ -186,6 +186,7 @@ require (
 	github.com/getlantern/samizdat v0.0.3-0.20260819153658-ebc74116a064 // indirect
 	github.com/getlantern/semconv v0.0.0-20260327040646-21845dda05cb // indirect
 	github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 // indirect
+	github.com/getlantern/twiddle v0.0.0-20260907083007-7261fa53edc2 // indirect
 	github.com/go-json-experiment/json v0.0.0-20250813024750-ebf49471dced // indirect
 	github.com/go-llsqlite/adapter v0.0.0-20230927005056-7f5ce7f0c916 // indirect
 	github.com/go-llsqlite/crawshaw v0.5.6-0.20250312230104-194977a03421 // indirect

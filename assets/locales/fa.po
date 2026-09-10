@@ -140,7 +140,7 @@ msgid "remind_use_code"
 msgstr "به آن‌ها یادآوری کنید هنگام ارتقا از کد %s استفاده کنند!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "در مبارزه با سانسور جهانی اینترنت هم‌راه شوید"

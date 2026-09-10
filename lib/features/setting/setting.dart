@@ -8,6 +8,7 @@ import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/core/widgets/subscription_tags.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
@@ -57,6 +58,8 @@ class _SettingState extends ConsumerState<Setting>
 
   @override
   Widget build(BuildContext context) {
+    // Keep store actions in sync with country-based billing availability.
+    ref.watch(countryCodeProvider);
     final isExpired = ref.watch(isUserExpiredProvider);
     final user = ref.watch(homeProvider).value;
     final isUserPro = ref.watch(isUserProProvider);
@@ -64,10 +67,10 @@ class _SettingState extends ConsumerState<Setting>
 
     final appSetting = ref.watch(appSettingProvider);
     // Server-side gate. Censored regions get Features[unbounded]=false,
-    // and every Unbounded-flavoured row in this menu (the settings sub-
-    // page link AND the project promo card at the bottom) disappears.
-    final unboundedAvailable =
-        ref.watch(featureFlagProvider).getBool(FeatureFlag.unbounded);
+    // which hides the Unbounded settings sub-page link below.
+    final unboundedAvailable = ref
+        .watch(featureFlagProvider)
+        .getBool(FeatureFlag.unbounded);
 
     final hasProSession = hasRegisteredProAccount(user);
 
@@ -155,7 +158,7 @@ class _SettingState extends ConsumerState<Setting>
                   DividerSpace(),
                   AppTile(
                     label: 'unbounded_settings_title'.i18n,
-                    icon: AppImagePaths.handshake,
+                    icon: AppImagePaths.actionMode,
                     onPressed: () =>
                         settingMenuTap(_SettingType.unboundedSetting),
                   ),
@@ -233,7 +236,7 @@ class _SettingState extends ConsumerState<Setting>
                     onPressed: () => settingMenuTap(_SettingType.getPro),
                   ),
                 ],
-                if (isStoreVersion() && !isUserPro) ...[
+                if (canUseStoreBilling() && !isUserPro) ...[
                   DividerSpace(),
                   AppTile(
                     label: 'restore_purchase'.i18n,
@@ -258,38 +261,6 @@ class _SettingState extends ConsumerState<Setting>
               ),
             ),
           },
-          if (unboundedAvailable) ...[
-            const SizedBox(height: defaultSize),
-            Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Text(
-                'lantern_projects'.i18n,
-                style: textTheme.labelLarge!.copyWith(
-                  color: context.textSecondary,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Card(
-              child: AppTile(
-                minHeight: 72,
-                icon: AppImagePaths.lanternLogoRounded,
-                iconUseThemeColor: false,
-                trailing: AppImage(path: AppImagePaths.outsideBrowser),
-                label: 'unbounded'.i18n,
-                subtitle: Text(
-                  'help_fight_global_internet_censorship'.i18n,
-                  style: textTheme.labelMedium!.copyWith(
-                    color: context.textTertiary,
-                  ),
-                ),
-                onPressed: () {
-                  UrlUtils.openUrl(AppUrls.unbounded);
-                },
-              ),
-            ),
-            SizedBox(height: defaultSize),
-          ],
         ],
       ),
     );

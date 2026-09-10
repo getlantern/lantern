@@ -12,17 +12,26 @@ import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
+import 'package:lantern/features/user_message/user_message_action_dispatcher.dart';
+import 'package:lantern/features/user_message/user_message_host.dart';
+import 'package:lantern/features/user_message/user_message_route_observer.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
-import 'core/utils/deeplink_utils.dart' show DeepLinkCallbackManager;
+import 'core/utils/deeplink_utils.dart'
+    show DeepLinkCallbackManager, isOAuthCallbackResult;
 import 'features/system_tray/system_tray_wrapper.dart';
 
 final globalRouter = sl<AppRouter>();
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+final UserMessageRouteObserver userMessageRouteObserver =
+    UserMessageRouteObserver(
+      blockedRouteNames: {Onboarding.name, ChoosePaymentMethod.name},
+    );
 
 class LanternApp extends StatefulHookConsumerWidget {
   const LanternApp({super.key});
@@ -37,10 +46,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
   StreamSubscription<Uri>? _deepLinkSubscription;
   Uri? _lastHandledUri;
   DateTime? _lastHandledTime;
+  late final UserMessageActionDispatcher _userMessageActionDispatcher;
 
   @override
   void initState() {
     super.initState();
+    _userMessageActionDispatcher = UserMessageActionDispatcher.application();
     WidgetsBinding.instance.addObserver(this);
     initDeepLinks();
     initLifecycleListener();
@@ -121,7 +132,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
     } else if (path.startsWith('/auth') ||
         (uri.scheme == 'lantern' && uri.host == 'auth')) {
-      if (uri.queryParameters.containsKey('token')) {
+      if (isOAuthCallbackResult(uri)) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
     } else if (path.startsWith('/affiliate') ||
@@ -223,6 +234,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
     final appSetting = ref.watch(appSettingProvider);
     final locale = appSetting.locale;
     final isStaging = appSetting.isStaging;
+    final paymentSessionActive = ref.watch(paymentSessionProvider);
     Localization.defaultLocale = locale;
     return GlobalLoaderOverlay(
       overlayColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5),
@@ -245,12 +257,20 @@ class _LanternAppState extends ConsumerState<LanternApp>
                 debugShowCheckedModeBanner: false,
                 builder: (context, child) {
                   final router = child ?? const SizedBox.shrink();
-                  if (!isStaging) return router;
-                  return Banner(
-                    message: 'STAGING',
-                    location: BannerLocation.topEnd,
-                    color: AppColors.red6,
-                    child: router,
+                  final shell = isStaging
+                      ? Banner(
+                          message: 'STAGING',
+                          location: BannerLocation.topEnd,
+                          color: AppColors.red6,
+                          child: router,
+                        )
+                      : router;
+                  return UserMessageHost(
+                    routeObserver: userMessageRouteObserver,
+                    actionDispatcher: _userMessageActionDispatcher,
+                    enabled:
+                        appSetting.onboardingCompleted && !paymentSessionActive,
+                    child: shell,
                   );
                 },
                 theme: AppTheme.appTheme(),
@@ -268,7 +288,10 @@ class _LanternAppState extends ConsumerState<LanternApp>
                     return DeepLink
                         .defaultPath; // We handle deep links manually, so return null to use the default route
                   },
-                  navigatorObservers: () => [routeObserver],
+                  navigatorObservers: () => [
+                    routeObserver,
+                    userMessageRouteObserver,
+                  ],
                 ),
                 localizationsDelegates: const [
                   GlobalMaterialLocalizations.delegate,
