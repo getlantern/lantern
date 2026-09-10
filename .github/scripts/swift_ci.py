@@ -42,7 +42,7 @@ def fingerprint(ref, platform, framework=False):
 
 
 def api(path):
-    return json.loads(subprocess.check_output(['gh', 'api', path], stderr=subprocess.PIPE))
+    return json.loads(subprocess.check_output(['gh', 'api', path], stderr=subprocess.PIPE, timeout=30))
 
 
 def trusted_run(run, event, repository):
@@ -73,7 +73,7 @@ def find_artifact(name, platform, event):
             jobs = api(f'repos/{repository}/actions/runs/{run_id}/jobs?per_page=100')['jobs']
             if any(j['name'] == JOB_NAMES[platform] and j['conclusion'] == 'success' for j in jobs):
                 return artifact
-    except (subprocess.CalledProcessError, KeyError, ValueError) as error:
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, KeyError, ValueError) as error:
         print(f'Artifact lookup unavailable ({type(error).__name__}); building instead.')
     return None
 

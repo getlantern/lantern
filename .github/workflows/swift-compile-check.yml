@@ -49,8 +49,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           persist-credentials: false
+      - name: Fetch PR base tree
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
       - name: Test native input selection
         run: python3 -m unittest discover -s .github/scripts -p 'test_swift_ci.py'
       - name: Compare native inputs and prior successes
@@ -161,6 +165,7 @@ jobs:
 
       - name: Save framework outside the dependency cache
         if: steps.framework-restore.outcome != 'success'
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.framework.outputs.name }}
@@ -173,6 +178,7 @@ jobs:
         run: echo "${{ needs.plan.outputs.macos_marker }}" > "$RUNNER_TEMP/native-success.txt"
 
       - name: Save successful-check marker
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.plan.outputs.macos_marker }}
@@ -274,6 +280,7 @@ jobs:
 
       - name: Save framework outside the dependency cache
         if: steps.framework-restore.outcome != 'success'
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.framework.outputs.name }}
@@ -286,6 +293,7 @@ jobs:
         run: echo "${{ needs.plan.outputs.ios_marker }}" > "$RUNNER_TEMP/native-success.txt"
 
       - name: Save successful-check marker
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.plan.outputs.ios_marker }}
