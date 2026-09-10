@@ -1,6 +1,7 @@
 package org.getlantern.lantern.service
 
 import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.system.Os
 
@@ -22,6 +23,7 @@ object DefaultNetworkMonitor {
         val index: Int,
     )
 
+    @Volatile
     var defaultNetwork: Network? = null
 
     // Written by setListener and read by checkDefaultInterfaceUpdate on possibly
@@ -39,15 +41,17 @@ object DefaultNetworkMonitor {
     }
 
     suspend fun start() {
+        // During a server switch the active network may be our own VPN. Only
+        // seed a known non-VPN network, and do it before subscribing so a cached
+        // network or a fresh callback from the listener always takes precedence.
+        defaultNetwork = LanternApp.connectivity.activeNetwork?.takeIf { network ->
+            LanternApp.connectivity.getNetworkCapabilities(network)
+                ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) == true
+        }
         DefaultNetworkListener.start(this) {
             defaultNetwork = it
             networkChangeCallback?.invoke(it)
             checkDefaultInterfaceUpdate(it)
-        }
-        defaultNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            LanternApp.connectivity.activeNetwork
-        } else {
-            DefaultNetworkListener.get()
         }
     }
 

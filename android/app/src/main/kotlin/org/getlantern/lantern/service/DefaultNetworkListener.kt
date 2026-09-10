@@ -185,16 +185,18 @@ object DefaultNetworkListener {
      *
      * Feeding that back into setUnderlyingNetworks() and libbox's default
      * interface leaves sing-box with no physical interface to dial from
-     * ("no available network interface"). On API 28-30 we therefore use
-     * requestNetwork() (REQUEST rather than LISTEN), which is satisfied by the
-     * physical default network and never by a VPN; this needs
-     * android.permission.CHANGE_NETWORK_STATE. The request only asks for
-     * INTERNET + NOT_RESTRICTED, so it is met by the existing default. It is an
-     * active request, so it may keep that network up for as long as it is held;
-     * it lives only while a listener is registered (i.e. the VPN is running) and
-     * is released in unregister(). On API 31+ registerBestMatchingNetworkCallback()
-     * with the same request already excludes VPNs via the builder's default
-     * NOT_VPN capability.
+     * ("no available network interface"). Our request explicitly asks for
+     * INTERNET + NOT_RESTRICTED and retains the builder's default TRUSTED +
+     * NOT_VPN capabilities, so both request-based paths below exclude VPNs.
+     *
+     * On API 28-30 we use requestNetwork() (REQUEST rather than LISTEN), which
+     * requires android.permission.CHANGE_NETWORK_STATE. It selects the best
+     * matching non-VPN network, not necessarily the existing system default,
+     * and may bring up or keep that network active. This is intentional while
+     * the VPN needs an underlying network: the request is held from the first
+     * listener's start until the final listener stops and unregister() releases it.
+     * On API 31+ registerBestMatchingNetworkCallback() passively tracks the best
+     * matching network without bringing it up or keeping it active.
      */
     private fun register() {
         when (Build.VERSION.SDK_INT) {
