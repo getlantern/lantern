@@ -6,25 +6,72 @@ name: Swift Compile Check
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    branches: [main]
     paths:
-      - "**/*.swift"
-      - "macos/**"
       - "ios/**"
+      - "macos/**"
+      - "lib/**"
+      - "assets/**"
+      - "lantern-core/**"
+      - "scripts/**"
+      - "profile/**"
+      - "protos/**"
+      - "resources/**"
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
       - "pubspec.yaml"
       - "pubspec.lock"
       - "Makefile"
+      - ".metadata"
       - ".github/flutter-version.yaml"
       - ".github/workflows/swift-compile-check.yml"
+      - ".github/scripts/swift_ci.py"
+
+# Both gomobile and gobind use this exact module version via the Makefile.
+# The workflow is included in both fingerprints, so changing it invalidates reuse.
+env:
+  GOMOBILE_VERSION: v0.0.0-20260908204917-8b95e45f8d3e
+
+permissions:
+  contents: read
+  actions: read
 
 concurrency:
   group: swift-compile-check-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  plan:
+    name: Plan Swift checks
+    runs-on: ubuntu-latest
+    outputs:
+      ios_needed: ${{ steps.plan.outputs.ios_needed }}
+      macos_needed: ${{ steps.plan.outputs.macos_needed }}
+      ios_marker: ${{ steps.plan.outputs.ios_marker }}
+      macos_marker: ${{ steps.plan.outputs.macos_marker }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fetch PR base tree
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      - name: Test native input selection
+        run: python3 -m unittest discover -s .github/scripts -p 'test_swift_ci.py'
+      - name: Compare native inputs and prior successes
+        id: plan
+        run: python3 .github/scripts/swift_ci.py plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   macos-compile-check:
+    needs: plan
+    if: needs.plan.outputs.macos_needed == 'true'
     name: macOS (Runner + PacketTunnel + RunnerTests)
-    permissions:
-      contents: "read"
     runs-on: macos-15
     timeout-minutes: 60
     steps:
@@ -45,17 +92,6 @@ jobs:
           channel: stable
           flutter-version-file: .github/flutter-version.yaml
           cache: true
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
 
       - name: Cache macOS CocoaPods
         uses: actions/cache@v4
@@ -81,35 +117,35 @@ jobs:
           echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
           mkdir -p "$HOME/.cache/gomobile"
 
-      - name: Cache gomobile
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: ~/.cache/gomobile
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
+      - name: Find matching macOS framework artifact
+        id: framework
+        run: python3 .github/scripts/swift_ci.py framework --platform macos
+        env:
+          GH_TOKEN: ${{ github.token }}
 
-      - name: Cache macOS Liblantern.xcframework
-        id: macos-framework-cache
-        uses: actions/cache@v4
-        timeout-minutes: 5
+      - name: Download validated framework
+        id: framework-download
+        if: steps.framework.outputs.artifact_id != ''
         continue-on-error: true
+        uses: actions/download-artifact@v4
         with:
-          path: macos/Frameworks/Liblantern.xcframework
-          key: ${{ runner.os }}-macos-xcframework-${{ hashFiles('go.mod', 'go.sum', 'Makefile', '**/*.go') }}
+          artifact-ids: ${{ steps.framework.outputs.artifact_id }}
+          run-id: ${{ steps.framework.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/native-framework
+          merge-multiple: true
 
-      # Restored files must look newer than the Go sources or make rebinds.
-      - name: Mark restored macOS xcframework fresh
-        if: steps.macos-framework-cache.outputs.cache-hit == 'true'
-        shell: bash
+      - name: Restore framework and refresh timestamps
+        id: framework-restore
+        if: steps.framework-download.outcome == 'success'
+        continue-on-error: true
         run: |
-          test -d macos/Frameworks/Liblantern.xcframework
+          tar -xzf "$RUNNER_TEMP/native-framework/framework.tar.gz"
+          test -f macos/Frameworks/Liblantern.xcframework/Info.plist
           find macos/Frameworks/Liblantern.xcframework -exec touch {} +
 
       - name: Install gomobile
-        if: steps.macos-framework-cache.outputs.cache-hit != 'true'
+        if: steps.framework-restore.outcome != 'success'
         run: make install-gomobile
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
@@ -128,10 +164,37 @@ jobs:
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
+      - name: Package validated framework
+        if: steps.framework-restore.outcome != 'success'
+        run: tar -czf "$RUNNER_TEMP/framework.tar.gz" macos/Frameworks/Liblantern.xcframework
+
+      - name: Save framework outside the dependency cache
+        if: steps.framework-restore.outcome != 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.framework.outputs.name }}
+          path: ${{ runner.temp }}/framework.tar.gz
+          retention-days: 7
+          compression-level: 0
+          overwrite: true
+
+      - name: Record successful native inputs
+        run: echo "${{ needs.plan.outputs.macos_marker }}" > "$RUNNER_TEMP/native-success.txt"
+
+      - name: Save successful-check marker
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.plan.outputs.macos_marker }}
+          path: ${{ runner.temp }}/native-success.txt
+          retention-days: 7
+          overwrite: true
+
   ios-compile-check:
+    needs: plan
+    if: needs.plan.outputs.ios_needed == 'true'
     name: iOS (Runner + Tunnel, simulator)
-    permissions:
-      contents: "read"
     runs-on: macos-26
     timeout-minutes: 60
     steps:
@@ -153,17 +216,6 @@ jobs:
           flutter-version-file: .github/flutter-version.yaml
           cache: true
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
       - name: Cache iOS CocoaPods
         uses: actions/cache@v4
         timeout-minutes: 10
@@ -181,34 +233,35 @@ jobs:
           echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
           mkdir -p "$HOME/.cache/gomobile"
 
-      - name: Cache gomobile
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: ~/.cache/gomobile
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
+      - name: Find matching iOS framework artifact
+        id: framework
+        run: python3 .github/scripts/swift_ci.py framework --platform ios
+        env:
+          GH_TOKEN: ${{ github.token }}
 
-      - name: Cache iOS Liblantern.xcframework
-        id: ios-framework-cache
-        uses: actions/cache@v4
-        timeout-minutes: 5
+      - name: Download validated framework
+        id: framework-download
+        if: steps.framework.outputs.artifact_id != ''
         continue-on-error: true
+        uses: actions/download-artifact@v4
         with:
-          path: ios/Frameworks/Liblantern.xcframework
-          key: ${{ runner.os }}-ios-xcframework-${{ hashFiles('go.mod', 'go.sum', 'Makefile', '**/*.go') }}
+          artifact-ids: ${{ steps.framework.outputs.artifact_id }}
+          run-id: ${{ steps.framework.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/native-framework
+          merge-multiple: true
 
-      - name: Mark restored iOS xcframework fresh
-        if: steps.ios-framework-cache.outputs.cache-hit == 'true'
-        shell: bash
+      - name: Restore framework and refresh timestamps
+        id: framework-restore
+        if: steps.framework-download.outcome == 'success'
+        continue-on-error: true
         run: |
-          test -d ios/Frameworks/Liblantern.xcframework
+          tar -xzf "$RUNNER_TEMP/native-framework/framework.tar.gz"
+          test -f ios/Frameworks/Liblantern.xcframework/Info.plist
           find ios/Frameworks/Liblantern.xcframework -exec touch {} +
 
       - name: Install gomobile
-        if: steps.ios-framework-cache.outputs.cache-hit != 'true'
+        if: steps.framework-restore.outcome != 'success'
         run: make install-gomobile
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
@@ -225,3 +278,30 @@ jobs:
         run: make ios-compile-check
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+
+      - name: Package validated framework
+        if: steps.framework-restore.outcome != 'success'
+        run: tar -czf "$RUNNER_TEMP/framework.tar.gz" ios/Frameworks/Liblantern.xcframework
+
+      - name: Save framework outside the dependency cache
+        if: steps.framework-restore.outcome != 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.framework.outputs.name }}
+          path: ${{ runner.temp }}/framework.tar.gz
+          retention-days: 7
+          compression-level: 0
+          overwrite: true
+
+      - name: Record successful native inputs
+        run: echo "${{ needs.plan.outputs.ios_marker }}" > "$RUNNER_TEMP/native-success.txt"
+
+      - name: Save successful-check marker
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.plan.outputs.ios_marker }}
+          path: ${{ runner.temp }}/native-success.txt
+          retention-days: 7
+          overwrite: true
