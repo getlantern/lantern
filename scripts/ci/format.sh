@@ -152,7 +152,7 @@ slack)
     text="${text}\n• iOS: Build uploaded to TestFlight"
   fi
 
-  echo "$text"
+  printf '%b\n' "$text"
   ;;
 
 *)
