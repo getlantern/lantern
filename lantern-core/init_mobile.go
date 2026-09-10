@@ -4,6 +4,7 @@ package lanterncore
 
 import (
 	"context"
+	"runtime"
 
 	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/ipc"
@@ -12,6 +13,9 @@ import (
 )
 
 func createClient(ctx context.Context, opts *utils.Opts) (*ipc.Client, error) {
+	if runtime.GOOS == "android" {
+		return ipc.NewRemoteClient(), nil
+	}
 	backendOpts := backend.Options{
 		DataDir:                 opts.DataDir,
 		LogDir:                  opts.LogDir,
