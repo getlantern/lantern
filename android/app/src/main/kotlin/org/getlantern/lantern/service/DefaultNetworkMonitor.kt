@@ -41,13 +41,7 @@ object DefaultNetworkMonitor {
     }
 
     suspend fun start() {
-        // During a server switch the active network may be our own VPN. Only
-        // seed a known non-VPN network, and do it before subscribing so a cached
-        // network or a fresh callback from the listener always takes precedence.
-        defaultNetwork = LanternApp.connectivity.activeNetwork?.takeIf { network ->
-            LanternApp.connectivity.getNetworkCapabilities(network)
-                ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) == true
-        }
+        defaultNetwork = LanternApp.connectivity.activeNetwork
         DefaultNetworkListener.start(this) {
             defaultNetwork = it
             networkChangeCallback?.invoke(it)
@@ -90,20 +84,31 @@ object DefaultNetworkMonitor {
                     AppLogger.i(TAG, "Default network lost; clearing default interface")
                     notifyDefaultInterface(listener, NO_INTERFACE_NAME, NO_INTERFACE_INDEX)
                 }
+
                 else -> {
                     val resolved = resolveDefaultInterface(newNetwork)
                     if (resolved == null) {
-                        AppLogger.w(TAG, "Failed to resolve default interface for the new default network")
+                        AppLogger.w(
+                            TAG,
+                            "Failed to resolve default interface for the new default network"
+                        )
                         return@execute
                     }
-                    AppLogger.i(TAG, "Default interface resolved: ${resolved.name} (index ${resolved.index})")
+                    AppLogger.i(
+                        TAG,
+                        "Default interface resolved: ${resolved.name} (index ${resolved.index})"
+                    )
                     notifyDefaultInterface(listener, resolved.name, resolved.index)
                 }
             }
         }
     }
 
-    private fun notifyDefaultInterface(listener: InterfaceUpdateListener, name: String, index: Int) {
+    private fun notifyDefaultInterface(
+        listener: InterfaceUpdateListener,
+        name: String,
+        index: Int
+    ) {
         // A teardown may clear or replace the listener while this update sits queued
         // or is being resolved; don't call into a stale (closed) libbox handler.
         if (this.listener !== listener) return
@@ -142,7 +147,11 @@ object DefaultNetworkMonitor {
         val indexByName = try {
             NetworkInterface.getByName(interfaceName)?.index
         } catch (e: Exception) {
-            AppLogger.w(TAG, "getByName failed for $interfaceName; falling back to if_nametoindex", e)
+            AppLogger.w(
+                TAG,
+                "getByName failed for $interfaceName; falling back to if_nametoindex",
+                e
+            )
             null
         }
         if (indexByName != null) {
