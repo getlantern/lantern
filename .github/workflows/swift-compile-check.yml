@@ -29,6 +29,11 @@ on:
       - ".github/workflows/swift-compile-check.yml"
       - ".github/scripts/swift_ci.py"
 
+# Both gomobile and gobind use this exact module version via the Makefile.
+# The workflow is included in both fingerprints, so changing it invalidates reuse.
+env:
+  GOMOBILE_VERSION: v0.0.0-20260908204917-8b95e45f8d3e
+
 permissions:
   contents: read
   actions: read
