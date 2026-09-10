@@ -989,6 +989,7 @@ class ActionModeAutoEnable extends ConsumerWidget {
           key: const Key('action-mode.auto-enable'),
           value: enabled,
           activeColor: context.textLink,
+          checkColor: context.bgElevated,
           onChanged: change,
         ),
         onPressed: () => change(!enabled),
@@ -1943,8 +1944,8 @@ class ShareConsentDialog extends StatelessWidget {
 // ─── Welcome dialog ──────────────────────────────────────────────────────────
 
 /// Shows the first-visit Unbounded welcome popup per Figma
-/// (figma.com/design/hNlyYToB5TnX9SDBFDYJTq?node-id=2403-19287).
-/// Idempotent: dismissing the dialog (either button OR scrim tap)
+/// (figma.com/design/hNlyYToB5TnX9SDBFDYJTq?node-id=7377-28803).
+/// Idempotent: dismissing the dialog (Got It, back, or scrim tap)
 /// flips appSettingProvider.unboundedWelcomeSeen → true so the dialog
 /// only fires on the first visit. The info-bubble icon in the
 /// Unbounded tab header calls this same function to re-open it later.
@@ -1954,92 +1955,26 @@ void showUnboundedWelcomeDialog(BuildContext context, WidgetRef ref) {
   // disposed if navigation replaced Home — ref.read would then throw. The
   // notifier is owned by the root container and outlives the widget.
   final appSetting = ref.read(appSettingProvider.notifier);
-  showDialog<void>(
+  AppDialog.show(
     context: context,
-    builder: (_) => const _UnboundedWelcomeDialog(),
+    barrierDismissible: true,
+    scrollable: true,
+    header: const Center(
+      child: AppImage(path: AppImagePaths.actionMode, width: 48, height: 48),
+    ),
+    centeredTitle: true,
+    title: 'unbounded_welcome_title'.i18n,
+    body: [
+      'unbounded_welcome_body_1'.i18n,
+      'unbounded_welcome_body_2'.i18n,
+      'unbounded_welcome_body_3'.i18n,
+    ].join('\n\n'),
+    primaryLabel: 'got_it'.i18n,
+    secondaryLabel: 'learn_more'.i18n,
+    secondaryIcon: AppImagePaths.outsideBrowser,
+    dismissOnSecondary: false,
+    onSecondaryPressed: () => UrlUtils.openUrl(AppUrls.unbounded),
   ).whenComplete(() {
     appSetting.setUnboundedWelcomeSeen(true);
   });
-}
-
-class _UnboundedWelcomeDialog extends StatelessWidget {
-  const _UnboundedWelcomeDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 312),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Action Mode handshake icon from the Figma design.
-              const Center(
-                child: AppImage(
-                  path: AppImagePaths.actionMode,
-                  width: 48,
-                  height: 48,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: Text(
-                  'unbounded_welcome_title'.i18n,
-                  textAlign: TextAlign.center,
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'unbounded_welcome_body_1'.i18n,
-                style: textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'unbounded_welcome_body_2'.i18n,
-                style: textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'unbounded_welcome_body_3'.i18n,
-                style: textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                alignment: WrapAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => UrlUtils.openUrl(AppUrls.unbounded),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('learn_more'.i18n),
-                        const SizedBox(width: 4),
-                        const AppImage(
-                          path: AppImagePaths.outsideBrowser,
-                          width: 16,
-                          height: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text('got_it'.i18n),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

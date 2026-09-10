@@ -65,7 +65,9 @@ void main() {
         child: ScreenUtilInit(
           designSize: const Size(393, 852),
           child: MaterialApp(
-            theme: ThemeData(brightness: brightness),
+            theme: brightness == Brightness.dark
+                ? AppTheme.darkTheme()
+                : AppTheme.appTheme(),
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(
                 context,
