@@ -41,12 +41,16 @@ object DefaultNetworkMonitor {
     }
 
     suspend fun start() {
-        defaultNetwork = LanternApp.connectivity.activeNetwork
         DefaultNetworkListener.start(this) {
             defaultNetwork = it
             networkChangeCallback?.invoke(it)
             checkDefaultInterfaceUpdate(it)
         }
+        // Seed from the current default so require()/setUnderlyingNetworks don't
+        // wait for the first callback, as sing-box-for-android does. The listener's
+        // filtered callback overrides this as soon as it fires. Filtering the seed
+        // on NOT_VPN was tried and broke the tunnel on device, so it stays unfiltered.
+        defaultNetwork = LanternApp.connectivity.activeNetwork
     }
 
     suspend fun stop() {
