@@ -87,17 +87,21 @@ class DataUsage extends ConsumerWidget {
                     children: [
                       AppImage(path: AppImagePaths.dataUsage),
                       SizedBox(width: 8),
-                      Text(
-                        isDataCapReached
-                            ? 'daily_data_cap_reached'.i18n
-                            : 'daily_data_usage'.i18n,
-                        style: textTheme.labelLarge!.copyWith(
-                          color: isDataCapReached
-                              ? context.statusErrorText
-                              : context.textTertiary,
+                      Expanded(
+                        child: Text(
+                          isDataCapReached
+                              ? 'daily_data_cap_reached'.i18n
+                              : 'daily_data_usage'.i18n,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelLarge!.copyWith(
+                            color: isDataCapReached
+                                ? context.statusErrorText
+                                : context.textTertiary,
+                          ),
                         ),
                       ),
-                      Spacer(),
+                      if (!isDataCapReached) const SizedBox(width: 8),
                       if (!isDataCapReached)
                         Text(
                           '$usageString${'mb'.i18n}',

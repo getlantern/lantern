@@ -179,13 +179,25 @@ object DefaultNetworkListener {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
-     * On API 28+ registerDefaultNetworkCallback() may report the VPN as the default.
-     *   We do NOT call requestNetwork() here just to discover the underlying transport,
-     *   because that can keep radios awake and costs battery.
+     * Since Android P, registerDefaultNetworkCallback() reports the VPN's own tun
+     * as the default network to the VPN app:
+     * https://android.googlesource.com/platform/frameworks/base/+/dda156ab0c5d66ad82bdcf76cda07cbc0a9c8a2e
      *
-     *   Instead we passively listen and translate the default
-     *   to the physical network via: ConnectivityManager.getLinkProperties(default).underlyingNetworks
-    */
+     * Feeding that back into setUnderlyingNetworks() and libbox's default
+     * interface leaves sing-box with no physical interface to dial from
+     * ("no available network interface"). Our request explicitly asks for
+     * INTERNET + NOT_RESTRICTED and retains the builder's default TRUSTED +
+     * NOT_VPN capabilities, so both request-based paths below exclude VPNs.
+     *
+     * On API 28-30 we use requestNetwork() (REQUEST rather than LISTEN), which
+     * requires android.permission.CHANGE_NETWORK_STATE. It selects the best
+     * matching non-VPN network, not necessarily the existing system default,
+     * and may bring up or keep that network active. This is intentional while
+     * the VPN needs an underlying network: the request is held from the first
+     * listener's start until the final listener stops and unregister() releases it.
+     * On API 31+ registerBestMatchingNetworkCallback() passively tracks the best
+     * matching network without bringing it up or keeping it active.
+     */
     private fun register() {
         when (Build.VERSION.SDK_INT) {
             in 31..Int.MAX_VALUE -> {
@@ -195,7 +207,10 @@ object DefaultNetworkListener {
                     mainHandler
                 )
             }
-            in 26..30 -> {
+            in 28..30 -> {  // we want REQUEST here instead of LISTEN
+                LanternApp.connectivity.requestNetwork(request, Callback, mainHandler)
+            }
+            in 26..27 -> {
                 LanternApp.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
             }
             // Handler overload was added in API 26; API 24-25 only have the one-arg version.

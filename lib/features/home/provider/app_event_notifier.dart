@@ -7,6 +7,7 @@ import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -94,6 +95,10 @@ class AppEventNotifier extends _$AppEventNotifier {
           break;
         case 'country-code':
           ref.read(countryCodeProvider.notifier).update(event.message);
+          break;
+        case 'user-data':
+          // Go refreshed user data from the server; re-read the cache.
+          unawaited(ref.read(homeProvider.notifier).reloadUserData());
           break;
         case 'data-cap-event':
           try {
