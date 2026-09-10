@@ -151,13 +151,27 @@ Future<String> pasteFromClipboard() async {
   }
 }
 
-/// Whether fetched user data reflects a completed purchase: the user is pro
-/// and, when [expirationBefore] (epoch seconds) is known, the expiration has
-/// advanced past it. Renewing users are already pro, so `isPro` alone cannot
-/// confirm a renewal purchase.
-bool userDataReflectsPurchase(UserDataModel userData, int? expirationBefore) =>
-    userData.isPro &&
-    (expirationBefore == null || userData.expiration > expirationBefore);
+/// Renewals must extend Pro access. Stripe can also start a subscription after
+/// an existing one-time plan ends, without extending its expiration yet.
+/// Pass [subscriptionBefore] only for Stripe subscription checkouts.
+bool userDataReflectsPurchase(
+  UserDataModel userData,
+  int? expirationBefore, {
+  String? subscriptionBefore,
+}) {
+  if (!userData.isPro) return false;
+  if (expirationBefore == null || userData.expiration > expirationBefore) {
+    return true;
+  }
+
+  final subscription = userData.subscriptionData;
+  return subscriptionBefore != null &&
+      subscription.subscriptionID.isNotEmpty &&
+      subscription.subscriptionID != subscriptionBefore &&
+      subscription.provider == 'stripe' &&
+      subscription.status == 'active' &&
+      subscription.autoRenew;
+}
 
 /// Default poll schedule for [checkUserAccountStatus]: 3 attempts, ~6s.
 const kDefaultAccountStatusDelays = [
@@ -176,22 +190,23 @@ const kPurchaseConfirmationDelays = [
   Duration(seconds: 8),
 ];
 
-/// Check user account status and updates user data if the user has a pro plan
-///
-/// [expirationBefore] (epoch seconds) is the expiration captured before
-/// checkout; when set, the purchase only counts once expiration moves past it
-/// (renewing users are already pro). [delays] sets the retry schedule.
+/// Refreshes Pro status, or confirms a checkout against its pre-purchase state.
+/// Stops when the screen closes. [delays] sets the retry schedule.
 Future<bool> checkUserAccountStatus(
   WidgetRef ref,
   BuildContext context, {
   int? expirationBefore,
+  String? subscriptionBefore,
   List<Duration> delays = kDefaultAccountStatusDelays,
 }) async {
   for (final delay in delays) {
+    if (!context.mounted) return false;
     appLogger.info("Checking user account status with delay: $delay");
     if (delay != Duration.zero) await Future.delayed(delay);
+    if (!context.mounted) return false;
 
     final result = await ref.read(lanternServiceProvider).fetchUserData();
+    if (!context.mounted) return false;
     final purchased = result.fold(
       (failure) {
         appLogger.error("Failed to fetch user data: $failure");
@@ -199,10 +214,12 @@ Future<bool> checkUserAccountStatus(
       },
       (newUser) {
         final userData = newUser.legacyUserData;
-        final purchased = userDataReflectsPurchase(userData, expirationBefore);
+        final purchased = userDataReflectsPurchase(
+          userData,
+          expirationBefore,
+          subscriptionBefore: subscriptionBefore,
+        );
         if (purchased) {
-          // User has bought a plan
-          // update user data
           appLogger.info("User account has Pro entitlement");
           ref.read(homeProvider.notifier).updateUserData(newUser);
         } else if (userData.isPro) {
@@ -215,7 +232,7 @@ Future<bool> checkUserAccountStatus(
       },
     );
 
-    if (purchased) return true; //Exit loop is found
+    if (purchased) return true;
   }
   return false;
 }

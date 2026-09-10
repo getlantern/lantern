@@ -22,13 +22,11 @@ class HomeNotifier extends _$HomeNotifier {
     final result = await service.getUserData();
     return result.fold(
       (failure) {
-        appLogger.error(
-          'Error getting user data: ${failure.error}',
-        );
+        appLogger.error('Error getting user data: ${failure.error}');
         throw Exception('Failed to get user data');
       },
       (userData) {
-        appLogger.debug('Got the userdata: ${userData.toJson()}');
+        appLogger.debug('Loaded cached user data');
         _applyUserData(userData);
         return userData;
       },
@@ -40,12 +38,10 @@ class HomeNotifier extends _$HomeNotifier {
     final result = await ref.read(lanternServiceProvider).fetchUserData();
     result.fold(
       (failure) {
-        appLogger.error(
-          'Error fetching user data: ${failure.error}',
-        );
+        appLogger.error('Error fetching user data: ${failure.error}');
       },
       (userData) {
-        appLogger.debug('Fetched user data form server: $userData');
+        appLogger.debug('Fetched user data from server');
         _applyUserData(userData);
       },
     );
@@ -58,15 +54,15 @@ class HomeNotifier extends _$HomeNotifier {
     try {
       await future;
     } catch (_) {}
+    if (!ref.mounted) return;
     final result = await ref.read(lanternServiceProvider).getUserData();
+    if (!ref.mounted) return;
     result.fold(
       (failure) {
-        appLogger.error(
-          'Error reloading user data: ${failure.error}',
-        );
+        appLogger.error('Error reloading user data: ${failure.error}');
       },
       (userData) {
-        appLogger.debug('Reloaded user data from Go: ${userData.toJson()}');
+        appLogger.debug('Reloaded cached user data');
         _applyUserData(userData);
       },
     );
@@ -79,13 +75,11 @@ class HomeNotifier extends _$HomeNotifier {
     final result = await ref.read(lanternServiceProvider).getUserData();
     result.fold(
       (failure) {
-        appLogger.error(
-          'Error refreshing user data: ${failure.error}',
-        );
+        appLogger.error('Error refreshing user data: ${failure.error}');
         state = AsyncValue.error(failure, StackTrace.current);
       },
       (userData) {
-        appLogger.debug('Refreshed user data from Go: ${userData.toJson()}');
+        appLogger.debug('Refreshed cached user data');
         _applyUserData(userData);
       },
     );
@@ -159,10 +153,7 @@ class HomeNotifier extends _$HomeNotifier {
     final isDeviceAdded = user.legacyUserData.devices.any(
       (device) => device.deviceId == userDeviceId,
     );
-    appLogger.info(
-      "current device added for user ${user.legacyUserData.email}: "
-      "$isDeviceAdded",
-    );
+    appLogger.info("Current device is linked to the account: $isDeviceAdded");
     if (isDeviceAdded) {
       ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
       appLogger.info(

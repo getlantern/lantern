@@ -8,6 +8,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
@@ -234,18 +235,24 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
+    final userBefore = await _userDataBeforeCheckout(ref, context);
+    if (!context.mounted) return;
+    if (userBefore == null) {
+      finishPaymentRedirect(paymentRedirectInFlight);
+      return;
+    }
     final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
 
     // usdPrice is the backend's plan price in USD cents — always USD,
     // unlike the currency-keyed `price` map (local currency on CNY plans).
     final amount = userPlan.usdPrice;
-    final intentMode = _stripeIntentMode(ref);
+    final intentMode = authFlow == AuthFlow.renewSubscription
+        ? stripeIntentModeForRenewal(userBefore)
+        : StripeIntentMode.payment;
     appLogger.info(
       'Stripe subscription flow started (plan: ${userPlan.id}, '
       'amount: $amount cents, intent: ${intentMode.name})',
     );
-
-    final expirationBefore = _currentExpiration(ref);
 
     /// Deferred-intent flow: the sheet opens right away and the backend
     /// subscription is only created once the user taps Pay (inside
@@ -282,7 +289,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           true,
           context,
           ref,
-          expirationBefore: expirationBefore,
+          expirationBefore: userBefore.expiration,
+          subscriptionBefore: userBefore.subscriptionData.subscriptionID,
         );
       },
       onError: (error) {
@@ -303,25 +311,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     );
   }
 
-  /// The Stripe backend gives users with an active one-time purchase a trial
-  /// subscription backed by a SetupIntent. Everyone else gets a PaymentIntent.
-  StripeIntentMode _stripeIntentMode(WidgetRef ref) {
-    if (authFlow != AuthFlow.renewSubscription) {
-      return StripeIntentMode.payment;
-    }
-
-    final home = ref.read(homeProvider);
-    final userData = home.value?.legacyUserData;
-    if (userData == null) {
-      appLogger.error(
-        'Stripe: renewal intent mode selected without user data '
-        '(homeProvider loading: ${home.isLoading}, '
-        'error: ${home.hasError}); defaulting to PaymentIntent',
-      );
-    }
-    return stripeIntentModeForRenewal(userData);
-  }
-
   Future<void> desktopStripePurchaseFlow(
     Android provider,
     WidgetRef ref,
@@ -330,6 +319,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     try {
+      final userBefore = await _userDataBeforeCheckout(ref, context);
+      if (!context.mounted || userBefore == null) return;
       final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
       context.showLoadingDialog();
 
@@ -370,7 +361,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           await Future.delayed(const Duration(milliseconds: 300));
           if (!context.mounted) return;
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
-          final expirationBefore = _currentExpiration(ref);
           try {
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedStripeUrl,
@@ -378,26 +368,17 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               observer: checkoutObserver,
             );
             if (!context.mounted) return;
-            if (purchaseResult == null) {
-              // The webview closed without an observed completion redirect;
-              // the payment may still have settled server-side, so verify
-              // with the backend instead of treating this as an abandon.
-              await onPurchaseResult(
-                true,
-                context,
-                ref,
-                expirationBefore: expirationBefore,
-                unconfirmedClose: true,
-              );
-              return;
-            }
+            // A closed webview can still have a completed payment behind it.
             await onPurchaseResult(
-              purchaseResult,
+              purchaseResult ?? true,
               context,
               ref,
-              expirationBefore: expirationBefore,
+              expirationBefore: userBefore.expiration,
+              subscriptionBefore: userBefore.subscriptionData.subscriptionID,
+              unconfirmedClose: purchaseResult == null,
             );
           } catch (_) {
+            if (!context.mounted) return;
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             rethrow;
           }
@@ -409,7 +390,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       context.hideLoadingDialog();
       context.showSnackBar(e.localizedDescription);
     } finally {
-      finishPaymentRedirect(paymentRedirectInFlight);
+      if (context.mounted) finishPaymentRedirect(paymentRedirectInFlight);
     }
   }
 
@@ -421,6 +402,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
     try {
+      final userBefore = await _userDataBeforeCheckout(ref, context);
+      if (!context.mounted || userBefore == null) return;
       context.showLoadingDialog();
       final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
       final result = await ref
@@ -454,44 +437,30 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           }
 
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
-          final expirationBefore = _currentExpiration(ref);
           try {
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedUrl,
               observer: checkoutObserver,
             );
             if (!context.mounted) return;
-            if (purchaseResult == null) {
-              // The webview closed without an observed completion redirect
-              // (the gateway page failed to load, or the user paid in the
-              // external Alipay app and closed the webview manually). The
-              // payment may still have settled server-side, so verify with
-              // the backend instead of treating this as an abandon.
-              await onPurchaseResult(
-                true,
-                context,
-                ref,
-                expirationBefore: expirationBefore,
-                unconfirmedClose: true,
-              );
-              return;
-            }
+            // Alipay may finish in its own app, without a webview redirect.
             await onPurchaseResult(
-              purchaseResult,
+              purchaseResult ?? true,
               context,
               ref,
-              expirationBefore: expirationBefore,
+              expirationBefore: userBefore.expiration,
+              unconfirmedClose: purchaseResult == null,
             );
           } catch (e) {
+            if (!context.mounted) return;
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             appLogger.error('Error opening payment redirect URL: $e');
-            if (!context.mounted) return;
             context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
           }
         },
       );
     } finally {
-      finishPaymentRedirect(paymentRedirectInFlight);
+      if (context.mounted) finishPaymentRedirect(paymentRedirectInFlight);
     }
   }
 
@@ -508,11 +477,22 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     paymentRedirectInFlight.value = false;
   }
 
-  /// Expiration (epoch seconds) currently known for the account, captured
-  /// before a purchase so [checkUserAccountStatus] can detect whether the
-  /// purchase actually extended it. Null when user data isn't loaded yet.
-  int? _currentExpiration(WidgetRef ref) =>
-      ref.read(homeProvider).value?.legacyUserData.expiration;
+  /// Wait for the account before opening checkout. Without a baseline, an
+  /// existing Pro plan could look like a successful renewal after a cancel.
+  Future<UserDataModel?> _userDataBeforeCheckout(
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
+    try {
+      return (await ref.read(homeProvider.future)).legacyUserData;
+    } catch (_) {
+      appLogger.error('Could not load account before checkout');
+      if (context.mounted) {
+        context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
+      }
+      return null;
+    }
+  }
 
   /// [unconfirmedClose] marks a webview that was closed without a completion
   /// redirect: the backend is still checked (the payment may have settled),
@@ -521,7 +501,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     bool purchased,
     BuildContext context,
     WidgetRef ref, {
-    int? expirationBefore,
+    required int expirationBefore,
+    String? subscriptionBefore,
     bool unconfirmedClose = false,
   }) async {
     if (!purchased) {
@@ -534,6 +515,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       ref,
       context,
       expirationBefore: expirationBefore,
+      subscriptionBefore: subscriptionBefore,
       delays: kPurchaseConfirmationDelays,
     );
     if (!context.mounted) return;
