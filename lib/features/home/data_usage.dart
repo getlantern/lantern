@@ -76,17 +76,21 @@ class DataUsage extends ConsumerWidget {
               children: [
                 AppImage(path: AppImagePaths.dataUsage),
                 SizedBox(width: 8),
-                Text(
-                  isDataCapReached
-                      ? 'daily_data_cap_reached'.i18n
-                      : 'daily_data_usage'.i18n,
-                  style: textTheme.labelLarge!.copyWith(
-                    color: isDataCapReached
-                        ? context.statusErrorText
-                        : context.textTertiary,
+                Expanded(
+                  child: Text(
+                    isDataCapReached
+                        ? 'daily_data_cap_reached'.i18n
+                        : 'daily_data_usage'.i18n,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.labelLarge!.copyWith(
+                      color: isDataCapReached
+                          ? context.statusErrorText
+                          : context.textTertiary,
+                    ),
                   ),
                 ),
-                Spacer(),
+                if (!isDataCapReached) const SizedBox(width: 8),
                 if (!isDataCapReached)
                   Text(
                     '$usageString${'mb'.i18n}',
@@ -171,87 +175,7 @@ class DataUsage extends ConsumerWidget {
           ),
           child: Card(
             margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      AppImage(path: AppImagePaths.dataUsage),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          isDataCapReached
-                              ? 'daily_data_cap_reached'.i18n
-                              : 'daily_data_usage'.i18n,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.labelLarge!.copyWith(
-                            color: isDataCapReached
-                                ? context.statusErrorText
-                                : context.textTertiary,
-                          ),
-                        ),
-                      ),
-                      if (!isDataCapReached) const SizedBox(width: 8),
-                      if (!isDataCapReached)
-                        Text(
-                          '$usageString${'mb'.i18n}',
-                          style: textTheme.titleSmall!.copyWith(
-                            color: context.textPrimary,
-                          ),
-                        ),
-                    ],
-                  ),
-                  if (isDataCapReached)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 30),
-                      child: AutoSizeText(
-                        dataCapMessage,
-                        minFontSize: 11,
-                        maxFontSize: 12,
-                        maxLines: 1,
-                        style: textTheme.bodySmall!.copyWith(
-                          color: context.statusErrorText,
-                        ),
-                      ),
-                    ),
-                  SizedBox(height: 8),
-                  Container(
-                    decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(
-                        side: isDataCapReached
-                            ? BorderSide.none
-                            : BorderSide(width: 1, color: context.borderInput),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: TweenAnimationBuilder<double>(
-                      duration: Duration(milliseconds: 400),
-                      tween: Tween(begin: 0, end: newProgress),
-                      curve: Curves.easeInOut,
-                      builder: (context, value, child) =>
-                          LinearProgressIndicator(
-                            value: value,
-                            minHeight: 9,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(defaultSize),
-                            ),
-                            trackGap: 10,
-                            backgroundColor: context.bgSurface,
-                            valueColor: AlwaysStoppedAnimation(
-                              isDataCapReached
-                                  ? context.statusErrorBgDot
-                                  : AppColors.yellow3,
-                            ),
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            child: Padding(padding: const EdgeInsets.all(16.0), child: content),
           ),
         );
       },

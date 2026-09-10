@@ -44,9 +44,8 @@ class VpnTab extends ConsumerWidget {
                       if (!isUserPro) ...{
                         if (serverType == ServerLocationType.privateServer)
                           InfoRow(text: 'private_server_usage_message'.i18n)
-                        else if (PlatformUtils.isIOS)
-                          const SizedBox.shrink()
-                        else
+                        else if (!PlatformUtils.isIOS &&
+                            !isSmallScreen(context))
                           const DataUsage(),
                       },
                       const SizedBox(height: 8),
