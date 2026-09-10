@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/common.dart' show AppTheme, AuthFlow;
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/auth/choose_payment_method.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -19,6 +19,7 @@ class _PendingHomeNotifier extends HomeNotifier {
 }
 
 void main() {
+  // Create each completer inside testWidgets so pump() can flush its callbacks.
   late Completer<UserResponseModel> account;
   late ProviderContainer container;
   late ValueNotifier<bool> inFlight;
@@ -31,7 +32,6 @@ void main() {
   );
 
   setUp(() {
-    account = Completer<UserResponseModel>();
     container = ProviderContainer(
       retry: (_, _) => null,
       overrides: [
@@ -68,6 +68,7 @@ void main() {
   testWidgets('waits for the account and stops if checkout closes', (
     tester,
   ) async {
+    account = Completer<UserResponseModel>();
     await tester.pumpWidget(harness());
     final result = checkout.paymentRedirectFlow(
       'shepherd',
@@ -98,6 +99,7 @@ void main() {
   testWidgets('does not open checkout when the account cannot be loaded', (
     tester,
   ) async {
+    account = Completer<UserResponseModel>();
     await tester.pumpWidget(harness());
     final result = checkout.paymentRedirectFlow(
       'shepherd',
