@@ -71,21 +71,9 @@ jobs:
           name: pubspec
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: "go.mod"
-          cache: true
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
+          cache-scope: linux
 
       - name: Cache APT archives
         uses: actions/cache@v4
@@ -136,35 +124,8 @@ jobs:
       - name: Install the ninja build tool
         uses: seanmiddleditch/gha-setup-ninja@master
 
-      - name: Load Flutter version
-        shell: bash
-        run: |
-          set -euo pipefail
-          FLUTTER_VERSION=$(grep -E '^[[:space:]]*flutter:' .github/flutter-version.yaml | sed -E 's/.*"([^"]+)".*/\1/')
-          if [[ -z "$FLUTTER_VERSION" ]]; then
-            echo "Failed to parse Flutter version from .github/flutter-version.yaml" >&2
-            exit 1
-          fi
-          echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> "$GITHUB_ENV"
-
-      - name: Install Flutter (amd64)
-        uses: subosito/flutter-action@v2.23.0
-        if: ${{ matrix.arch == 'amd64' }}
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
-
-      - name: Install Flutter (arm64 fallback)
-        if: ${{ matrix.arch == 'arm64' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          FLUTTER_HOME="$HOME/flutter"
-          git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$FLUTTER_HOME"
-          echo "$FLUTTER_HOME/bin" >> "$GITHUB_PATH"
-          export PATH="$FLUTTER_HOME/bin:$PATH"
-          flutter --version
+      - name: Install Flutter
+        uses: ./.github/actions/setup-flutter
 
       - name: Install dependencies
         run: make install-linux-deps

@@ -1,0 +1,64 @@
+name: Set up Lantern Go toolchain
+description: Install the pinned Go version and cache modules separately from target-specific compilation.
+inputs:
+  cache-scope:
+    description: Build target or test suite; prevents unrelated jobs from racing to save one compiled cache.
+    required: true
+  gomobile-cache:
+    description: Prepare the gomobile cache used by the Makefile (does not install gomobile).
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - name: Install Go
+      id: go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: false
+
+    - name: Locate caches
+      id: paths
+      shell: bash
+      run: |
+        set -euo pipefail
+        build_cache=$(go env GOCACHE)
+        module_cache=$(go env GOMODCACHE)
+        printf 'build=%s\nmodules=%s\n' "$build_cache" "$module_cache" >> "$GITHUB_OUTPUT"
+
+    # Modules can be shared across targets. Compiled objects cannot use one
+    # immutable key: the first macOS/iOS/Android job would win every cache save.
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.paths.outputs.modules }}
+        key: go-mod-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum') }}
+        restore-keys: |
+          go-mod-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-
+
+    - name: Cache Go compilation
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.paths.outputs.build }}
+        # Go validates objects against source/compiler/flags. Never cache final
+        # release binaries, which embed version, environment and identity data.
+        key: go-build-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum') }}-${{ hashFiles('lantern-core/**', 'dart_api_dl/**', 'Makefile') }}
+        restore-keys: |
+          go-build-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum') }}-
+          go-build-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-
+
+    - name: Configure gomobile cache
+      if: inputs.gomobile-cache == 'true'
+      shell: bash
+      run: |
+        mkdir -p "$HOME/.cache/gomobile"
+        echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
+
+    - name: Cache gomobile initialization
+      if: inputs.gomobile-cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/gomobile
+        key: gomobile-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum', 'Makefile') }}
+        restore-keys: |
+          gomobile-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-

@@ -1,0 +1,45 @@
+name: Set up Lantern Android toolchain
+description: Install Java, configure Gradle caching, and provision SDK versions from the Makefile.
+inputs:
+  gradle-version:
+    description: Optional standalone Gradle for jobs that invoke Gradle directly rather than through Flutter.
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Free space on hosted Linux runners
+      if: runner.os == 'Linux' && runner.environment == 'github-hosted'
+      shell: bash
+      # These images are disposable. Keep the Android SDK/NDK and all tools used
+      # by this build; do not run cleanup on a developer or self-hosted machine.
+      run: |
+        sudo rm -rf /usr/share/dotnet /usr/share/swift /opt/hostedtoolcache/CodeQL
+        df -h .
+
+    - name: Install Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+        # setup-gradle owns this cache; never also enable setup-java caching.
+
+    - name: Set up Gradle cache
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: ${{ inputs.gradle-version }}
+        # Manual branch benchmarks must be able to warm their own caches.
+        # PRs only read caches; configuration caches/secrets are not persisted.
+        cache-read-only: ${{ github.event_name == 'pull_request' }}
+        cache-cleanup: on-success
+        dependency-graph: disabled
+        build-scan-publish: false
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Install Android SDK components
+      shell: bash
+      run: |
+        set -euo pipefail
+        make install-android-sdk
+        make android-env >> "$GITHUB_ENV"

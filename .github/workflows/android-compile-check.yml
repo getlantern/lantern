@@ -6,7 +6,7 @@ name: Android Compile Check
 # so without this gate a Kotlin break (e.g. the bare success() call in #8754)
 # could merge undetected.
 #
-# Scope: the PR trigger runs only on Kotlin (*.kt) changes. It intentionally
+# Scope: the PR trigger covers Kotlin (*.kt) and shared CI setup changes. It
 # does NOT run on Go/gomobile-AAR or Flutter/dep changes — a Go change that
 # breaks the AAR<->Kotlin interface would surface in build-android.yml /
 # release, not here. workflow_dispatch exists only for benchmarking/debugging.
@@ -20,6 +20,9 @@ on:
       - "**/*.kt"
       # keep the self-trigger so edits to this workflow re-run it
       - ".github/workflows/android-compile-check.yml"
+      - ".github/actions/setup-android/**"
+      - ".github/actions/setup-flutter/**"
+      - ".github/actions/setup-go/**"
 
 concurrency:
   group: android-compile-check-${{ github.ref }}
@@ -35,90 +38,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: "go.mod"
-          cache: true
+          cache-scope: android-check
+          gomobile-cache: "true"
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Set up Java 17 (Gradle cache)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: "gradle"
-          cache-dependency-path: |
-            **/*.gradle*
-            **/gradle-wrapper.properties
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Free Linux runner disk
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euxo pipefail
-          df -h
-          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
-          sdk_root="${sdk_root%/}"
-          if [[ -z "$sdk_root" || "$sdk_root" == "/" || "$sdk_root" != /* ]]; then
-            echo "Android SDK root is not set to a safe absolute path: '${sdk_root}'" >&2
-            exit 1
-          fi
-          # Keep the preinstalled Android platforms/build-tools/CMake/NDK; the
-          # shared Makefile defaults match the versions this job needs.
-          sudo rm -rf \
-            "$sdk_root/emulator" \
-            "$sdk_root/system-images" \
-            /opt/ghc \
-            /opt/hostedtoolcache/CodeQL \
-            /usr/local/.ghcup \
-            /usr/local/julia* \
-            /usr/local/share/boost \
-            /usr/share/dotnet \
-            /usr/share/swift
-          df -h
-
-      - name: Install Android SDK components
-        shell: bash
-        run: |
-          set -euxo pipefail
-          make install-android-sdk
-          make android-env >> "$GITHUB_ENV"
+      - name: Set up Android
+        uses: ./.github/actions/setup-android
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
-
-      - name: Set gomobile cache dir
-        shell: bash
-        run: |
-          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
-          mkdir -p "$HOME/.cache/gomobile"
-
-      - name: Cache gomobile
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: ~/.cache/gomobile
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
+        uses: ./.github/actions/setup-flutter
 
       - name: Cache Android AAR
         id: android-aar-cache

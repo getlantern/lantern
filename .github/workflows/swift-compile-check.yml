@@ -15,6 +15,8 @@ on:
       - "Makefile"
       - ".github/flutter-version.yaml"
       - ".github/workflows/swift-compile-check.yml"
+      - ".github/actions/setup-flutter/**"
+      - ".github/actions/setup-go/**"
 
 concurrency:
   group: swift-compile-check-${{ github.ref }}
@@ -34,28 +36,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: "go.mod"
-          cache: true
+          cache-scope: macos-check
+          gomobile-cache: "true"
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
+        uses: ./.github/actions/setup-flutter
 
       - name: Cache macOS CocoaPods
         uses: actions/cache@v4
@@ -74,22 +61,6 @@ jobs:
 
       - name: Enable Flutter Desktop Support
         run: flutter config --enable-macos-desktop
-
-      - name: Set gomobile cache dir
-        shell: bash
-        run: |
-          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
-          mkdir -p "$HOME/.cache/gomobile"
-
-      - name: Cache gomobile
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: ~/.cache/gomobile
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
 
       - name: Cache macOS Liblantern.xcframework
         id: macos-framework-cache
@@ -141,28 +112,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: "go.mod"
-          cache: true
+          cache-scope: ios-check
+          gomobile-cache: "true"
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
+        uses: ./.github/actions/setup-flutter
 
       - name: Cache iOS CocoaPods
         uses: actions/cache@v4
@@ -174,22 +130,6 @@ jobs:
           key: ${{ runner.os }}-ios-pods-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-pods-
-
-      - name: Set gomobile cache dir
-        shell: bash
-        run: |
-          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
-          mkdir -p "$HOME/.cache/gomobile"
-
-      - name: Cache gomobile
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: ~/.cache/gomobile
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
 
       - name: Cache iOS Liblantern.xcframework
         id: ios-framework-cache
