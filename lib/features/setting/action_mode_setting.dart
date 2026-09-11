@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
@@ -61,31 +62,38 @@ class ActionModeSetting extends ConsumerWidget {
   }
 }
 
-/// Manual port forward, for routers without UPnP. Lives in Unbounded
-/// Settings; takes effect the next time sharing is turned on.
-class _AdvancedCard extends HookConsumerWidget {
+/// Manual port forward, for routers without UPnP. Takes effect the next time
+/// sharing is turned on.
+class _AdvancedCard extends StatelessWidget {
   const _AdvancedCard();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
-      ),
+    return AppCard(
+      padding: EdgeInsets.zero,
       child: Theme(
-        // The container border already outlines the section.
+        // The card border already outlines the section.
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          title: Text('smc_advanced'.i18n, style: textTheme.labelLarge),
+          tilePadding: const EdgeInsets.symmetric(horizontal: defaultSize),
+          childrenPadding: const EdgeInsets.fromLTRB(
+            defaultSize,
+            0,
+            defaultSize,
+            defaultSize,
+          ),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          title: Text(
+            'smc_advanced'.i18n,
+            style: textTheme.bodyLarge?.copyWith(color: context.textPrimary),
+          ),
           subtitle: Text(
             'smc_advanced_subtitle'.i18n,
-            style: textTheme.labelSmall,
+            style: textTheme.labelMedium?.copyWith(color: context.textTertiary),
           ),
+          iconColor: context.textPrimary,
+          collapsedIconColor: context.textPrimary,
           children: const [_ManualPortField()],
         ),
       ),
@@ -103,14 +111,16 @@ class _ManualPortField extends HookConsumerWidget {
     final loaded = useState(false);
     final saving = useState(false);
     final lastSaved = useState<int?>(null);
+    final ready = loaded.value && !saving.value;
 
     // One-shot load; the guard keeps a late result from writing to disposed
     // controllers.
     useEffect(() {
       var disposed = false;
       Future.microtask(() async {
-        final result =
-            await ref.read(lanternServiceProvider).getPeerManualPort();
+        final result = await ref
+            .read(lanternServiceProvider)
+            .getPeerManualPort();
         if (disposed) return;
         result.fold((_) => null, (port) {
           if (port > 0) controller.text = port.toString();
@@ -126,43 +136,39 @@ class _ManualPortField extends HookConsumerWidget {
       children: [
         Text(
           'smc_manual_port'.i18n,
-          style: textTheme.labelLarge,
+          style: textTheme.titleMedium?.copyWith(color: context.textPrimary),
         ),
         const SizedBox(height: 4),
         Text(
           'smc_manual_port_description'.i18n,
-          style: textTheme.bodySmall,
+          style: textTheme.bodySmall?.copyWith(color: context.textSecondary),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: defaultSize),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
-              child: TextField(
+              child: AppTextField(
+                label: 'smc_manual_port_label'.i18n,
+                hintText: 'smc_manual_port_hint'.i18n,
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: false,
-                  signed: false,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'smc_manual_port_label'.i18n,
-                  hintText: 'smc_manual_port_hint'.i18n,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                  enabled: loaded.value && !saving.value,
-                ),
+                prefixIcon: Icons.settings_ethernet,
+                enable: ready,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                maxLength: 5,
+                autovalidateMode: AutovalidateMode.disabled,
+                onSubmitted: (_) =>
+                    _save(ref, context, controller, saving, lastSaved),
               ),
             ),
             const SizedBox(width: 12),
-            FilledButton(
-              onPressed: (loaded.value && !saving.value)
-                  ? () => _save(ref, context, controller, saving, lastSaved)
-                  : null,
-              child: saving.value
-                  ? const SizedBox(
-                      height: 16, width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text('smc_manual_port_save'.i18n),
+            PrimaryButton(
+              label: 'smc_manual_port_save'.i18n,
+              expanded: false,
+              enabled: ready,
+              onPressed: () =>
+                  _save(ref, context, controller, saving, lastSaved),
             ),
           ],
         ),
@@ -170,9 +176,7 @@ class _ManualPortField extends HookConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'smc_manual_port_currently_set'.i18n.fill([lastSaved.value!]),
-            style: textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).hintColor,
-            ),
+            style: textTheme.bodySmall?.copyWith(color: context.textTertiary),
           ),
         ],
       ],
@@ -201,14 +205,15 @@ class _ManualPortField extends HookConsumerWidget {
           return;
         }
       }
-      final result =
-          await ref.read(lanternServiceProvider).setPeerManualPort(port);
+      final result = await ref
+          .read(lanternServiceProvider)
+          .setPeerManualPort(port);
       result.fold(
         (err) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(err.localizedErrorMessage)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(err.localizedErrorMessage)));
           }
         },
         (_) {
@@ -216,9 +221,11 @@ class _ManualPortField extends HookConsumerWidget {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(port == 0
-                    ? 'smc_manual_port_cleared'.i18n
-                    : 'smc_manual_port_saved'.i18n.fill([port])),
+                content: Text(
+                  port == 0
+                      ? 'smc_manual_port_cleared'.i18n
+                      : 'smc_manual_port_saved'.i18n.fill([port]),
+                ),
               ),
             );
           }
