@@ -1981,4 +1981,4 @@ msgid "dismiss"
 msgstr "Dismiss"
 
 msgid "unbounded_status_waiting"
-msgstr "Waiting to start — Unbounded"
+msgstr "Waiting to start"

@@ -52,7 +52,7 @@ class AppEventNotifier extends _$AppEventNotifier {
     ) {
       final eventType = event.eventType;
       if (_highVolumeEvents.contains(eventType)) {
-        traceLog(() => 'Received app event of type: $eventType');
+        appLogger.trace(() => 'Received app event of type: $eventType');
       } else {
         appLogger.debug('Received app event of type: $eventType');
       }

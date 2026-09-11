@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/share_my_connection/action_mode_widgets.dart';
+import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 
 void main() {
   setUpAll(Localization.loadTranslations);

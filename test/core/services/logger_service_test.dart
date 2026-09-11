@@ -58,7 +58,7 @@ void main() {
     final printer = _RecordingPrinter();
     rootLogger.printer = printer;
     var traceFormatted = false;
-    traceLog(() {
+    appLogger.trace(() {
       traceFormatted = true;
       return 'frequent-event';
     });

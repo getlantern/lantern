@@ -14,62 +14,62 @@ import 'package:collection/collection.dart' as _i49;
 import 'package:flutter/material.dart' as _i46;
 import 'package:lantern/core/common/common.dart' as _i47;
 import 'package:lantern/core/models/user.dart' as _i48;
-import 'package:lantern/core/widgets/app_webview.dart' as _i3;
+import 'package:lantern/core/widgets/app_webview.dart' as _i4;
 import 'package:lantern/features/account/account.dart' as _i1;
-import 'package:lantern/features/account/delete_account.dart' as _i9;
-import 'package:lantern/features/auth/add_email.dart' as _i2;
-import 'package:lantern/features/auth/choose_payment_method.dart' as _i6;
-import 'package:lantern/features/auth/confirm_email.dart' as _i7;
-import 'package:lantern/features/auth/create_password.dart' as _i8;
-import 'package:lantern/features/auth/device_limit_reached.dart' as _i11;
-import 'package:lantern/features/auth/lantern_pro_license.dart' as _i18;
-import 'package:lantern/features/auth/reset_password.dart' as _i32;
-import 'package:lantern/features/auth/reset_password_email.dart' as _i33;
-import 'package:lantern/features/auth/sign_in_email.dart' as _i36;
-import 'package:lantern/features/auth/sign_in_password.dart' as _i37;
-import 'package:lantern/features/developer/developer_mode.dart' as _i10;
-import 'package:lantern/features/home/home.dart' as _i14;
-import 'package:lantern/features/language/language.dart' as _i17;
-import 'package:lantern/features/logs/logs.dart' as _i19;
+import 'package:lantern/features/account/delete_account.dart' as _i10;
+import 'package:lantern/features/auth/add_email.dart' as _i3;
+import 'package:lantern/features/auth/choose_payment_method.dart' as _i7;
+import 'package:lantern/features/auth/confirm_email.dart' as _i8;
+import 'package:lantern/features/auth/create_password.dart' as _i9;
+import 'package:lantern/features/auth/device_limit_reached.dart' as _i12;
+import 'package:lantern/features/auth/lantern_pro_license.dart' as _i19;
+import 'package:lantern/features/auth/reset_password.dart' as _i33;
+import 'package:lantern/features/auth/reset_password_email.dart' as _i34;
+import 'package:lantern/features/auth/sign_in_email.dart' as _i37;
+import 'package:lantern/features/auth/sign_in_password.dart' as _i38;
+import 'package:lantern/features/developer/developer_mode.dart' as _i11;
+import 'package:lantern/features/home/home.dart' as _i15;
+import 'package:lantern/features/language/language.dart' as _i18;
+import 'package:lantern/features/logs/logs.dart' as _i20;
 import 'package:lantern/features/macos_extension/macos_extension_dialog.dart'
-    as _i20;
-import 'package:lantern/features/onboarding/onboarding.dart' as _i23;
-import 'package:lantern/features/plans/plans.dart' as _i24;
-import 'package:lantern/features/private_server/join_private_server.dart'
-    as _i16;
-import 'package:lantern/features/private_server/manage_private_server.dart'
     as _i21;
-import 'package:lantern/features/private_server/manually_server_setup.dart'
+import 'package:lantern/features/onboarding/onboarding.dart' as _i24;
+import 'package:lantern/features/plans/plans.dart' as _i25;
+import 'package:lantern/features/private_server/join_private_server.dart'
+    as _i17;
+import 'package:lantern/features/private_server/manage_private_server.dart'
     as _i22;
+import 'package:lantern/features/private_server/manually_server_setup.dart'
+    as _i23;
 import 'package:lantern/features/private_server/private_server_add_billing.dart'
-    as _i25;
-import 'package:lantern/features/private_server/private_server_deploy.dart'
     as _i26;
-import 'package:lantern/features/private_server/private_server_locations.dart'
+import 'package:lantern/features/private_server/private_server_deploy.dart'
     as _i27;
-import 'package:lantern/features/private_server/private_server_setup.dart'
+import 'package:lantern/features/private_server/private_server_locations.dart'
     as _i28;
-import 'package:lantern/features/private_server/private_sever_details.dart'
+import 'package:lantern/features/private_server/private_server_setup.dart'
     as _i29;
-import 'package:lantern/features/qr_scanner/qr_code_scanner.dart' as _i30;
-import 'package:lantern/features/report_issue/report_issue.dart' as _i31;
-import 'package:lantern/features/setting/appearance.dart' as _i4;
-import 'package:lantern/features/setting/download_links.dart' as _i12;
-import 'package:lantern/features/setting/follow_us.dart' as _i13;
-import 'package:lantern/features/setting/invite_friends.dart' as _i15;
-import 'package:lantern/features/setting/setting.dart' as _i35;
-import 'package:lantern/features/setting/smart_routing.dart' as _i38;
-import 'package:lantern/features/setting/unbounded_setting.dart' as _i42;
+import 'package:lantern/features/private_server/private_sever_details.dart'
+    as _i30;
+import 'package:lantern/features/qr_scanner/qr_code_scanner.dart' as _i31;
+import 'package:lantern/features/report_issue/report_issue.dart' as _i32;
+import 'package:lantern/features/setting/action_mode_setting.dart' as _i2;
+import 'package:lantern/features/setting/appearance.dart' as _i5;
+import 'package:lantern/features/setting/download_links.dart' as _i13;
+import 'package:lantern/features/setting/follow_us.dart' as _i14;
+import 'package:lantern/features/setting/invite_friends.dart' as _i16;
+import 'package:lantern/features/setting/setting.dart' as _i36;
+import 'package:lantern/features/setting/smart_routing.dart' as _i39;
 import 'package:lantern/features/setting/vpn_setting.dart' as _i43;
 import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart'
-    as _i5;
-import 'package:lantern/features/split_tunneling/split_tunneling.dart' as _i39;
+    as _i6;
+import 'package:lantern/features/split_tunneling/split_tunneling.dart' as _i40;
 import 'package:lantern/features/split_tunneling/split_tunneling_info.dart'
-    as _i40;
+    as _i41;
 import 'package:lantern/features/split_tunneling/website_split_tunneling.dart'
     as _i44;
-import 'package:lantern/features/support/support.dart' as _i41;
-import 'package:lantern/features/vpn/server_selection.dart' as _i34;
+import 'package:lantern/features/support/support.dart' as _i42;
+import 'package:lantern/features/vpn/server_selection.dart' as _i35;
 
 /// generated route for
 /// [_i1.Account]
@@ -88,7 +88,23 @@ class Account extends _i45.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.AddEmail]
+/// [_i2.ActionModeSetting]
+class ActionModeSetting extends _i45.PageRouteInfo<void> {
+  const ActionModeSetting({List<_i45.PageRouteInfo>? children})
+    : super(ActionModeSetting.name, initialChildren: children);
+
+  static const String name = 'ActionModeSetting';
+
+  static _i45.PageInfo page = _i45.PageInfo(
+    name,
+    builder: (data) {
+      return const _i2.ActionModeSetting();
+    },
+  );
+}
+
+/// generated route for
+/// [_i3.AddEmail]
 class AddEmail extends _i45.PageRouteInfo<AddEmailArgs> {
   AddEmail({
     _i46.Key? key,
@@ -109,7 +125,7 @@ class AddEmail extends _i45.PageRouteInfo<AddEmailArgs> {
       final args = data.argsAs<AddEmailArgs>(
         orElse: () => const AddEmailArgs(),
       );
-      return _i2.AddEmail(
+      return _i3.AddEmail(
         key: args.key,
         authFlow: args.authFlow,
         password: args.password,
@@ -150,13 +166,13 @@ class AddEmailArgs {
 }
 
 /// generated route for
-/// [_i3.AppWebView]
+/// [_i4.AppWebView]
 class AppWebview extends _i45.PageRouteInfo<AppWebviewArgs> {
   AppWebview({
     _i46.Key? key,
     required String title,
     required String url,
-    _i3.AppWebViewObserver? observer,
+    _i4.AppWebViewObserver? observer,
     List<_i45.PageRouteInfo>? children,
   }) : super(
          AppWebview.name,
@@ -175,7 +191,7 @@ class AppWebview extends _i45.PageRouteInfo<AppWebviewArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<AppWebviewArgs>();
-      return _i3.AppWebView(
+      return _i4.AppWebView(
         key: args.key,
         title: args.title,
         url: args.url,
@@ -199,7 +215,7 @@ class AppWebviewArgs {
 
   final String url;
 
-  final _i3.AppWebViewObserver? observer;
+  final _i4.AppWebViewObserver? observer;
 
   @override
   String toString() {
@@ -222,7 +238,7 @@ class AppWebviewArgs {
 }
 
 /// generated route for
-/// [_i4.Appearance]
+/// [_i5.Appearance]
 class Appearance extends _i45.PageRouteInfo<void> {
   const Appearance({List<_i45.PageRouteInfo>? children})
     : super(Appearance.name, initialChildren: children);
@@ -232,13 +248,13 @@ class Appearance extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i4.Appearance();
+      return const _i5.Appearance();
     },
   );
 }
 
 /// generated route for
-/// [_i5.AppsSplitTunneling]
+/// [_i6.AppsSplitTunneling]
 class AppsSplitTunneling extends _i45.PageRouteInfo<void> {
   const AppsSplitTunneling({List<_i45.PageRouteInfo>? children})
     : super(AppsSplitTunneling.name, initialChildren: children);
@@ -248,20 +264,20 @@ class AppsSplitTunneling extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i5.AppsSplitTunneling();
+      return const _i6.AppsSplitTunneling();
     },
   );
 }
 
 /// generated route for
-/// [_i6.ChoosePaymentMethod]
+/// [_i7.ChoosePaymentMethod]
 class ChoosePaymentMethod extends _i45.PageRouteInfo<ChoosePaymentMethodArgs> {
   ChoosePaymentMethod({
     _i46.Key? key,
     required String email,
     String? code,
     required _i47.AuthFlow authFlow,
-    _i3.AppWebViewObserver? checkoutObserver,
+    _i4.AppWebViewObserver? checkoutObserver,
     List<_i45.PageRouteInfo>? children,
   }) : super(
          ChoosePaymentMethod.name,
@@ -281,7 +297,7 @@ class ChoosePaymentMethod extends _i45.PageRouteInfo<ChoosePaymentMethodArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ChoosePaymentMethodArgs>();
-      return _i6.ChoosePaymentMethod(
+      return _i7.ChoosePaymentMethod(
         key: args.key,
         email: args.email,
         code: args.code,
@@ -309,7 +325,7 @@ class ChoosePaymentMethodArgs {
 
   final _i47.AuthFlow authFlow;
 
-  final _i3.AppWebViewObserver? checkoutObserver;
+  final _i4.AppWebViewObserver? checkoutObserver;
 
   @override
   String toString() {
@@ -337,7 +353,7 @@ class ChoosePaymentMethodArgs {
 }
 
 /// generated route for
-/// [_i7.ConfirmEmail]
+/// [_i8.ConfirmEmail]
 class ConfirmEmail extends _i45.PageRouteInfo<ConfirmEmailArgs> {
   ConfirmEmail({
     _i46.Key? key,
@@ -362,7 +378,7 @@ class ConfirmEmail extends _i45.PageRouteInfo<ConfirmEmailArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ConfirmEmailArgs>();
-      return _i7.ConfirmEmail(
+      return _i8.ConfirmEmail(
         key: args.key,
         email: args.email,
         password: args.password,
@@ -409,7 +425,7 @@ class ConfirmEmailArgs {
 }
 
 /// generated route for
-/// [_i8.CreatePassword]
+/// [_i9.CreatePassword]
 class CreatePassword extends _i45.PageRouteInfo<CreatePasswordArgs> {
   CreatePassword({
     _i46.Key? key,
@@ -434,7 +450,7 @@ class CreatePassword extends _i45.PageRouteInfo<CreatePasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<CreatePasswordArgs>();
-      return _i8.CreatePassword(
+      return _i9.CreatePassword(
         key: args.key,
         email: args.email,
         authFlow: args.authFlow,
@@ -481,7 +497,7 @@ class CreatePasswordArgs {
 }
 
 /// generated route for
-/// [_i9.DeleteAccount]
+/// [_i10.DeleteAccount]
 class DeleteAccount extends _i45.PageRouteInfo<void> {
   const DeleteAccount({List<_i45.PageRouteInfo>? children})
     : super(DeleteAccount.name, initialChildren: children);
@@ -491,13 +507,13 @@ class DeleteAccount extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i9.DeleteAccount();
+      return const _i10.DeleteAccount();
     },
   );
 }
 
 /// generated route for
-/// [_i10.DeveloperMode]
+/// [_i11.DeveloperMode]
 class DeveloperMode extends _i45.PageRouteInfo<void> {
   const DeveloperMode({List<_i45.PageRouteInfo>? children})
     : super(DeveloperMode.name, initialChildren: children);
@@ -507,13 +523,13 @@ class DeveloperMode extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i10.DeveloperMode();
+      return const _i11.DeveloperMode();
     },
   );
 }
 
 /// generated route for
-/// [_i11.DeviceLimitReached]
+/// [_i12.DeviceLimitReached]
 class DeviceLimitReached extends _i45.PageRouteInfo<DeviceLimitReachedArgs> {
   DeviceLimitReached({
     _i46.Key? key,
@@ -531,7 +547,7 @@ class DeviceLimitReached extends _i45.PageRouteInfo<DeviceLimitReachedArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<DeviceLimitReachedArgs>();
-      return _i11.DeviceLimitReached(key: args.key, devices: args.devices);
+      return _i12.DeviceLimitReached(key: args.key, devices: args.devices);
     },
   );
 }
@@ -565,7 +581,7 @@ class DeviceLimitReachedArgs {
 }
 
 /// generated route for
-/// [_i12.DownloadLinks]
+/// [_i13.DownloadLinks]
 class DownloadLinks extends _i45.PageRouteInfo<void> {
   const DownloadLinks({List<_i45.PageRouteInfo>? children})
     : super(DownloadLinks.name, initialChildren: children);
@@ -575,13 +591,13 @@ class DownloadLinks extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i12.DownloadLinks();
+      return const _i13.DownloadLinks();
     },
   );
 }
 
 /// generated route for
-/// [_i13.FollowUs]
+/// [_i14.FollowUs]
 class FollowUs extends _i45.PageRouteInfo<void> {
   const FollowUs({List<_i45.PageRouteInfo>? children})
     : super(FollowUs.name, initialChildren: children);
@@ -591,13 +607,13 @@ class FollowUs extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i13.FollowUs();
+      return const _i14.FollowUs();
     },
   );
 }
 
 /// generated route for
-/// [_i14.Home]
+/// [_i15.Home]
 class Home extends _i45.PageRouteInfo<void> {
   const Home({List<_i45.PageRouteInfo>? children})
     : super(Home.name, initialChildren: children);
@@ -607,13 +623,13 @@ class Home extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i14.Home();
+      return const _i15.Home();
     },
   );
 }
 
 /// generated route for
-/// [_i15.InviteFriends]
+/// [_i16.InviteFriends]
 class InviteFriends extends _i45.PageRouteInfo<void> {
   const InviteFriends({List<_i45.PageRouteInfo>? children})
     : super(InviteFriends.name, initialChildren: children);
@@ -623,13 +639,13 @@ class InviteFriends extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i15.InviteFriends();
+      return const _i16.InviteFriends();
     },
   );
 }
 
 /// generated route for
-/// [_i16.JoinPrivateServer]
+/// [_i17.JoinPrivateServer]
 class JoinPrivateServer extends _i45.PageRouteInfo<JoinPrivateServerArgs> {
   JoinPrivateServer({
     _i46.Key? key,
@@ -649,7 +665,7 @@ class JoinPrivateServer extends _i45.PageRouteInfo<JoinPrivateServerArgs> {
       final args = data.argsAs<JoinPrivateServerArgs>(
         orElse: () => const JoinPrivateServerArgs(),
       );
-      return _i16.JoinPrivateServer(
+      return _i17.JoinPrivateServer(
         key: args.key,
         deepLinkData: args.deepLinkData,
       );
@@ -687,7 +703,7 @@ class JoinPrivateServerArgs {
 }
 
 /// generated route for
-/// [_i17.Language]
+/// [_i18.Language]
 class Language extends _i45.PageRouteInfo<void> {
   const Language({List<_i45.PageRouteInfo>? children})
     : super(Language.name, initialChildren: children);
@@ -697,13 +713,13 @@ class Language extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i17.Language();
+      return const _i18.Language();
     },
   );
 }
 
 /// generated route for
-/// [_i18.LanternProLicense]
+/// [_i19.LanternProLicense]
 class LanternProLicense extends _i45.PageRouteInfo<LanternProLicenseArgs> {
   LanternProLicense({
     _i46.Key? key,
@@ -722,7 +738,7 @@ class LanternProLicense extends _i45.PageRouteInfo<LanternProLicenseArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<LanternProLicenseArgs>();
-      return _i18.LanternProLicense(
+      return _i19.LanternProLicense(
         key: args.key,
         email: args.email,
         code: args.code,
@@ -761,7 +777,7 @@ class LanternProLicenseArgs {
 }
 
 /// generated route for
-/// [_i19.Logs]
+/// [_i20.Logs]
 class Logs extends _i45.PageRouteInfo<void> {
   const Logs({List<_i45.PageRouteInfo>? children})
     : super(Logs.name, initialChildren: children);
@@ -771,13 +787,13 @@ class Logs extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i19.Logs();
+      return const _i20.Logs();
     },
   );
 }
 
 /// generated route for
-/// [_i20.MacOSExtensionDialog]
+/// [_i21.MacOSExtensionDialog]
 class MacOSExtensionDialog extends _i45.PageRouteInfo<void> {
   const MacOSExtensionDialog({List<_i45.PageRouteInfo>? children})
     : super(MacOSExtensionDialog.name, initialChildren: children);
@@ -787,13 +803,13 @@ class MacOSExtensionDialog extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i20.MacOSExtensionDialog();
+      return const _i21.MacOSExtensionDialog();
     },
   );
 }
 
 /// generated route for
-/// [_i21.ManagePrivateServer]
+/// [_i22.ManagePrivateServer]
 class ManagePrivateServer extends _i45.PageRouteInfo<void> {
   const ManagePrivateServer({List<_i45.PageRouteInfo>? children})
     : super(ManagePrivateServer.name, initialChildren: children);
@@ -803,13 +819,13 @@ class ManagePrivateServer extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i21.ManagePrivateServer();
+      return const _i22.ManagePrivateServer();
     },
   );
 }
 
 /// generated route for
-/// [_i22.ManuallyServerSetup]
+/// [_i23.ManuallyServerSetup]
 class ManuallyServerSetup extends _i45.PageRouteInfo<void> {
   const ManuallyServerSetup({List<_i45.PageRouteInfo>? children})
     : super(ManuallyServerSetup.name, initialChildren: children);
@@ -819,13 +835,13 @@ class ManuallyServerSetup extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i22.ManuallyServerSetup();
+      return const _i23.ManuallyServerSetup();
     },
   );
 }
 
 /// generated route for
-/// [_i23.Onboarding]
+/// [_i24.Onboarding]
 class Onboarding extends _i45.PageRouteInfo<void> {
   const Onboarding({List<_i45.PageRouteInfo>? children})
     : super(Onboarding.name, initialChildren: children);
@@ -835,13 +851,13 @@ class Onboarding extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i23.Onboarding();
+      return const _i24.Onboarding();
     },
   );
 }
 
 /// generated route for
-/// [_i24.Plans]
+/// [_i25.Plans]
 class Plans extends _i45.PageRouteInfo<PlansArgs> {
   Plans({
     _i46.Key? key,
@@ -859,7 +875,7 @@ class Plans extends _i45.PageRouteInfo<PlansArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<PlansArgs>(orElse: () => const PlansArgs());
-      return _i24.Plans(key: args.key, referralCode: args.referralCode);
+      return _i25.Plans(key: args.key, referralCode: args.referralCode);
     },
   );
 }
@@ -888,7 +904,7 @@ class PlansArgs {
 }
 
 /// generated route for
-/// [_i25.PrivateServerAddBilling]
+/// [_i26.PrivateServerAddBilling]
 class PrivateServerAddBilling extends _i45.PageRouteInfo<void> {
   const PrivateServerAddBilling({List<_i45.PageRouteInfo>? children})
     : super(PrivateServerAddBilling.name, initialChildren: children);
@@ -898,13 +914,13 @@ class PrivateServerAddBilling extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i25.PrivateServerAddBilling();
+      return const _i26.PrivateServerAddBilling();
     },
   );
 }
 
 /// generated route for
-/// [_i26.PrivateServerDeploy]
+/// [_i27.PrivateServerDeploy]
 class PrivateServerDeploy extends _i45.PageRouteInfo<PrivateServerDeployArgs> {
   PrivateServerDeploy({
     _i46.Key? key,
@@ -922,7 +938,7 @@ class PrivateServerDeploy extends _i45.PageRouteInfo<PrivateServerDeployArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<PrivateServerDeployArgs>();
-      return _i26.PrivateServerDeploy(
+      return _i27.PrivateServerDeploy(
         key: args.key,
         serverName: args.serverName,
       );
@@ -954,7 +970,7 @@ class PrivateServerDeployArgs {
 }
 
 /// generated route for
-/// [_i27.PrivateServerLocation]
+/// [_i28.PrivateServerLocation]
 class PrivateServerLocation
     extends _i45.PageRouteInfo<PrivateServerLocationArgs> {
   PrivateServerLocation({
@@ -982,7 +998,7 @@ class PrivateServerLocation
     name,
     builder: (data) {
       final args = data.argsAs<PrivateServerLocationArgs>();
-      return _i27.PrivateServerLocation(
+      return _i28.PrivateServerLocation(
         key: args.key,
         location: args.location,
         selectedLocation: args.selectedLocation,
@@ -1036,7 +1052,7 @@ class PrivateServerLocationArgs {
 }
 
 /// generated route for
-/// [_i28.PrivateServerSetup]
+/// [_i29.PrivateServerSetup]
 class PrivateServerSetup extends _i45.PageRouteInfo<void> {
   const PrivateServerSetup({List<_i45.PageRouteInfo>? children})
     : super(PrivateServerSetup.name, initialChildren: children);
@@ -1046,13 +1062,13 @@ class PrivateServerSetup extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i28.PrivateServerSetup();
+      return const _i29.PrivateServerSetup();
     },
   );
 }
 
 /// generated route for
-/// [_i29.PrivateSeverDetails]
+/// [_i30.PrivateSeverDetails]
 class PrivateServerDetails
     extends _i45.PageRouteInfo<PrivateServerDetailsArgs> {
   PrivateServerDetails({
@@ -1078,7 +1094,7 @@ class PrivateServerDetails
     name,
     builder: (data) {
       final args = data.argsAs<PrivateServerDetailsArgs>();
-      return _i29.PrivateSeverDetails(
+      return _i30.PrivateSeverDetails(
         key: args.key,
         accounts: args.accounts,
         provider: args.provider,
@@ -1128,7 +1144,7 @@ class PrivateServerDetailsArgs {
 }
 
 /// generated route for
-/// [_i30.QrCodeScanner]
+/// [_i31.QrCodeScanner]
 class QrCodeScanner extends _i45.PageRouteInfo<void> {
   const QrCodeScanner({List<_i45.PageRouteInfo>? children})
     : super(QrCodeScanner.name, initialChildren: children);
@@ -1138,13 +1154,13 @@ class QrCodeScanner extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i30.QrCodeScanner();
+      return const _i31.QrCodeScanner();
     },
   );
 }
 
 /// generated route for
-/// [_i31.ReportIssue]
+/// [_i32.ReportIssue]
 class ReportIssue extends _i45.PageRouteInfo<ReportIssueArgs> {
   ReportIssue({
     _i46.Key? key,
@@ -1165,7 +1181,7 @@ class ReportIssue extends _i45.PageRouteInfo<ReportIssueArgs> {
       final args = data.argsAs<ReportIssueArgs>(
         orElse: () => const ReportIssueArgs(),
       );
-      return _i31.ReportIssue(
+      return _i32.ReportIssue(
         key: args.key,
         description: args.description,
         type: args.type,
@@ -1202,7 +1218,7 @@ class ReportIssueArgs {
 }
 
 /// generated route for
-/// [_i32.ResetPassword]
+/// [_i33.ResetPassword]
 class ResetPassword extends _i45.PageRouteInfo<ResetPasswordArgs> {
   ResetPassword({
     _i46.Key? key,
@@ -1221,7 +1237,7 @@ class ResetPassword extends _i45.PageRouteInfo<ResetPasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<ResetPasswordArgs>();
-      return _i32.ResetPassword(
+      return _i33.ResetPassword(
         key: args.key,
         email: args.email,
         code: args.code,
@@ -1256,7 +1272,7 @@ class ResetPasswordArgs {
 }
 
 /// generated route for
-/// [_i33.ResetPasswordEmail]
+/// [_i34.ResetPasswordEmail]
 class ResetPasswordEmail extends _i45.PageRouteInfo<ResetPasswordEmailArgs> {
   ResetPasswordEmail({
     _i46.Key? key,
@@ -1276,7 +1292,7 @@ class ResetPasswordEmail extends _i45.PageRouteInfo<ResetPasswordEmailArgs> {
       final args = data.argsAs<ResetPasswordEmailArgs>(
         orElse: () => const ResetPasswordEmailArgs(),
       );
-      return _i33.ResetPasswordEmail(key: args.key, email: args.email);
+      return _i34.ResetPasswordEmail(key: args.key, email: args.email);
     },
   );
 }
@@ -1305,7 +1321,7 @@ class ResetPasswordEmailArgs {
 }
 
 /// generated route for
-/// [_i34.ServerSelection]
+/// [_i35.ServerSelection]
 class ServerSelection extends _i45.PageRouteInfo<void> {
   const ServerSelection({List<_i45.PageRouteInfo>? children})
     : super(ServerSelection.name, initialChildren: children);
@@ -1315,13 +1331,13 @@ class ServerSelection extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i34.ServerSelection();
+      return const _i35.ServerSelection();
     },
   );
 }
 
 /// generated route for
-/// [_i35.Setting]
+/// [_i36.Setting]
 class Setting extends _i45.PageRouteInfo<void> {
   const Setting({List<_i45.PageRouteInfo>? children})
     : super(Setting.name, initialChildren: children);
@@ -1331,13 +1347,13 @@ class Setting extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i35.Setting();
+      return const _i36.Setting();
     },
   );
 }
 
 /// generated route for
-/// [_i36.SignInEmail]
+/// [_i37.SignInEmail]
 class SignInEmail extends _i45.PageRouteInfo<void> {
   const SignInEmail({List<_i45.PageRouteInfo>? children})
     : super(SignInEmail.name, initialChildren: children);
@@ -1347,13 +1363,13 @@ class SignInEmail extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i36.SignInEmail();
+      return const _i37.SignInEmail();
     },
   );
 }
 
 /// generated route for
-/// [_i37.SignInPassword]
+/// [_i38.SignInPassword]
 class SignInPassword extends _i45.PageRouteInfo<SignInPasswordArgs> {
   SignInPassword({
     _i46.Key? key,
@@ -1376,7 +1392,7 @@ class SignInPassword extends _i45.PageRouteInfo<SignInPasswordArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SignInPasswordArgs>();
-      return _i37.SignInPassword(
+      return _i38.SignInPassword(
         key: args.key,
         email: args.email,
         fromChangeEmail: args.fromChangeEmail,
@@ -1417,7 +1433,7 @@ class SignInPasswordArgs {
 }
 
 /// generated route for
-/// [_i38.SmartRouting]
+/// [_i39.SmartRouting]
 class SmartRouting extends _i45.PageRouteInfo<void> {
   const SmartRouting({List<_i45.PageRouteInfo>? children})
     : super(SmartRouting.name, initialChildren: children);
@@ -1427,13 +1443,13 @@ class SmartRouting extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i38.SmartRouting();
+      return const _i39.SmartRouting();
     },
   );
 }
 
 /// generated route for
-/// [_i39.SplitTunneling]
+/// [_i40.SplitTunneling]
 class SplitTunneling extends _i45.PageRouteInfo<void> {
   const SplitTunneling({List<_i45.PageRouteInfo>? children})
     : super(SplitTunneling.name, initialChildren: children);
@@ -1443,13 +1459,13 @@ class SplitTunneling extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i39.SplitTunneling();
+      return const _i40.SplitTunneling();
     },
   );
 }
 
 /// generated route for
-/// [_i40.SplitTunnelingInfo]
+/// [_i41.SplitTunnelingInfo]
 class SplitTunnelingInfo extends _i45.PageRouteInfo<void> {
   const SplitTunnelingInfo({List<_i45.PageRouteInfo>? children})
     : super(SplitTunnelingInfo.name, initialChildren: children);
@@ -1459,13 +1475,13 @@ class SplitTunnelingInfo extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i40.SplitTunnelingInfo();
+      return const _i41.SplitTunnelingInfo();
     },
   );
 }
 
 /// generated route for
-/// [_i41.Support]
+/// [_i42.Support]
 class Support extends _i45.PageRouteInfo<void> {
   const Support({List<_i45.PageRouteInfo>? children})
     : super(Support.name, initialChildren: children);
@@ -1475,23 +1491,7 @@ class Support extends _i45.PageRouteInfo<void> {
   static _i45.PageInfo page = _i45.PageInfo(
     name,
     builder: (data) {
-      return const _i41.Support();
-    },
-  );
-}
-
-/// generated route for
-/// [_i42.UnboundedSetting]
-class UnboundedSetting extends _i45.PageRouteInfo<void> {
-  const UnboundedSetting({List<_i45.PageRouteInfo>? children})
-    : super(UnboundedSetting.name, initialChildren: children);
-
-  static const String name = 'UnboundedSetting';
-
-  static _i45.PageInfo page = _i45.PageInfo(
-    name,
-    builder: (data) {
-      return const _i42.UnboundedSetting();
+      return const _i42.Support();
     },
   );
 }

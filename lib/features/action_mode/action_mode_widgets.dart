@@ -1,87 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
-
-/// Scrolls on small screens and with large accessibility text instead of
-/// squeezing the globe or overflowing the controls.
-class ActionModePanel extends StatelessWidget {
-  const ActionModePanel({
-    super.key,
-    required this.globe,
-    required this.statusCard,
-    required this.autoEnable,
-    required this.onAbout,
-  });
-  final Widget globe;
-  final Widget statusCard;
-  final Widget autoEnable;
-  final VoidCallback onAbout;
-
-  @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: context.bgSurface,
-    child: LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          child: Column(
-            children: [
-              Material(
-                color: context.bgElevated,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(color: context.borderDefault),
-                ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: onAbout,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Tooltip(
-                          message: 'about_unbounded'.i18n,
-                          child: const AppImage(
-                            path: AppImagePaths.info,
-                            width: 24,
-                            height: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            'smc_intro'.i18n,
-                            style: Theme.of(context).textTheme.labelMedium
-                                ?.copyWith(
-                                  color: context.textSecondary,
-                                  height: 16 / 12,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: math.max(180, constraints.maxHeight - 336),
-                child: globe,
-              ),
-              statusCard,
-              const SizedBox(height: 8),
-              autoEnable,
-            ],
-          ),
-        );
-      },
-    ),
-  );
-}
 
 class ActionModeStatusCard extends StatelessWidget {
   const ActionModeStatusCard({
@@ -113,7 +35,7 @@ class ActionModeStatusCard extends StatelessWidget {
               child: Row(
                 children: [
                   const AppImage(
-                    path: AppImagePaths.glob,
+                    path: AppImagePaths.globGrid,
                     width: 24,
                     height: 24,
                   ),
@@ -125,17 +47,18 @@ class ActionModeStatusCard extends StatelessWidget {
                           TextSpan(text: '${'smc_status_label'.i18n}: '),
                           TextSpan(
                             text: status,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: hasError
-                                  ? context.statusErrorText
-                                  : ready
-                                  ? (Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? AppColors.green3
-                                        : AppColors.green6)
-                                  : context.textTertiary,
-                            ),
+                            // Same style the VPN tab uses for its status value.
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: hasError
+                                      ? context.statusErrorText
+                                      : ready
+                                      ? (Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? AppColors.green3
+                                            : AppColors.green6)
+                                      : context.textTertiary,
+                                ),
                           ),
                         ],
                       ),
@@ -204,9 +127,10 @@ class _ImpactRow extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             '$value',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            // GoogleFonts encodes the weight in the family name, so copyWith
+            // on bodyLarge would keep the regular face.
+            style: AppTextStyles.bodyLargeBold.copyWith(
               color: context.textLink,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ],
