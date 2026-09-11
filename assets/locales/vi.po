@@ -1919,3 +1919,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s sẽ kết nối trực tiếp, không có sự bảo vệ của Lantern. Nếu trang web này "
 "bị chặn ở quốc gia của bạn, nó có thể ngừng hoạt động."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Nhanh hơn, dữ liệu không giới hạn!"
+
+msgid "upsell_expired_suffix"
+msgstr "Thời gian Pro của bạn đã hết hạn"

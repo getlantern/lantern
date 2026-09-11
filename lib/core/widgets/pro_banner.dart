@@ -15,11 +15,7 @@ class ProBanner extends HookConsumerWidget {
 
   final double topMargin;
 
-  const ProBanner({
-    super.key,
-    this.title,
-    this.topMargin = 16,
-  });
+  const ProBanner({super.key, this.title, this.topMargin = 16});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,11 +24,22 @@ class ProBanner extends HookConsumerWidget {
       return _renewalBanner(context, renewal);
     }
     if (ref.watch(isUserProProvider)) return const SizedBox.shrink();
-    return _upsellBanner(context);
+    return _upsellBanner(context, ref);
   }
 
-  Widget _upsellBanner(BuildContext context) {
+  Widget _upsellBanner(BuildContext context, WidgetRef ref) {
+    final isExpired = ref.watch(isUserExpiredProvider);
+
     final textTheme = Theme.of(context).textTheme;
+    // Small screens get the compact one-line
+    // pill upsell instead of the full banner.
+    if (isSmallScreen(context)) {
+      return _CompactProBanner(
+        isExpired: isExpired,
+        topMargin: topMargin,
+        title: title,
+      );
+    }
     return Container(
       margin: EdgeInsets.only(top: topMargin),
       padding: EdgeInsets.all(defaultSize),
@@ -129,6 +136,82 @@ class ProBanner extends HookConsumerWidget {
             onPressed: () => appRouter.push(Plans()),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// One-line 40px pill upsell for small screens (engineering#3046, Figma
+/// node 2854-13197). Expired swaps to the status/error palette; the whole
+/// pill opens Plans.
+class _CompactProBanner extends StatelessWidget {
+  const _CompactProBanner({
+    required this.isExpired,
+    required this.topMargin,
+    this.title,
+  });
+
+  final bool isExpired;
+  final double topMargin;
+  final String? title;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final textColor = isExpired
+        ? context.statusErrorText
+        : context.textSecondary;
+    return Padding(
+      padding: EdgeInsets.only(top: topMargin),
+      child: Material(
+        color: isExpired ? context.statusErrorBg : context.bgPromo,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(9999),
+          side: BorderSide(
+            color: isExpired ? context.statusErrorBorder : context.borderPromo,
+          ),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(9999),
+          onTap: () => appRouter.push(Plans()),
+          child: Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const AppImage(
+                  path: AppImagePaths.crown,
+                  width: 24,
+                  height: 24,
+                  useThemeColor: false,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: AutoSizeText.rich(
+                    TextSpan(
+                      style: textTheme.bodyMedium!.copyWith(color: textColor),
+                      children: [
+                        TextSpan(
+                          text: isExpired
+                              ? 'renew_pro'.i18n
+                              : 'upgrade_to_pro'.i18n,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(
+                          text:
+                              ' - ${isExpired ? 'upsell_expired_suffix'.i18n : title ?? 'upsell_upgrade_suffix'.i18n}',
+                        ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    minFontSize: 11,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

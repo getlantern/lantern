@@ -18,6 +18,16 @@ const desktopWindowMinSize = Size(390, 750);
 const desktopWindowSize = Size(390, 800);
 const mobileSize = Size(360, 690);
 
+/// Short screens get the compact layout from engineering#3046 (tighter
+/// padding, pill upsell, combined rows). Desktop min height is 750.
+bool isSmallScreen(BuildContext context) =>
+    MediaQuery.sizeOf(context).height < 600;
+
+/// Narrow-width phones (e.g. iPhone 12 mini at 375dp); width-based, unlike
+/// [isSmallScreen].
+bool isNarrowScreen(BuildContext context) =>
+    MediaQuery.sizeOf(context).width <= 380;
+
 Size designSizeFor(BuildContext context) {
   final s = MediaQuery.sizeOf(context);
 

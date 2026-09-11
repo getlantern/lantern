@@ -2095,3 +2095,9 @@ msgstr "Check your connection and try again"
 
 msgid "smart_routing_mode_description"
 msgstr "Smart Location picks the fastest server and switches automatically as it finds better routes."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Plus rapide, données illimitées !"
+
+msgid "upsell_expired_suffix"
+msgstr "Votre temps Pro a expiré"

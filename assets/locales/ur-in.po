@@ -1918,3 +1918,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s براہ راست جڑے گا، Lantern کے تحفظ کے بغیر۔ اگر یہ آپ کے ملک میں بلاک ہے، "
 "تو یہ کام کرنا بند کر سکتا ہے۔"
+
+msgid "upsell_upgrade_suffix"
+msgstr "تیز رفتار، لامحدود ڈیٹا!"
+
+msgid "upsell_expired_suffix"
+msgstr "آپ کا Pro وقت ختم ہو گیا ہے"
