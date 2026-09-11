@@ -81,45 +81,19 @@ jobs:
             --project "$GCP_PROJECT_ID" >/dev/null
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: "go.mod"
-          cache: true
+          cache-scope: android-ftl
+          gomobile-cache: "true"
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - name: Set up Android
+        uses: ./.github/actions/setup-android
         with:
-          distribution: temurin
-          java-version: 17
-          cache: "gradle"
-          cache-dependency-path: |
-            **/*.gradle*
-            **/gradle-wrapper.properties
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      # android/gradlew is gitignored, so install a matching Gradle on the
-      # runner instead (keep the version in sync with
-      # android/gradle/wrapper/gradle-wrapper.properties).
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
+          # This job invokes Gradle directly; keep in sync with the wrapper.
           gradle-version: "8.13"
 
-      - name: Install Android SDK components
-        shell: bash
-        run: |
-          set -euxo pipefail
-          make install-android-sdk
-          make android-env >> "$GITHUB_ENV"
-
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
+        uses: ./.github/actions/setup-flutter
 
       - name: Decode APP_ENV
         uses: timheuer/base64-to-file@v1.2
@@ -138,22 +112,6 @@ jobs:
           fileName: "auth_smoke_credentials.dart"
           fileDir: ${{ github.workspace }}/integration_test/auth
           encodedString: ${{ secrets.AUTH_SMOKE_CREDENTIALS }}
-
-      - name: Set gomobile cache dir
-        shell: bash
-        run: |
-          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
-          mkdir -p "$HOME/.cache/gomobile"
-
-      - name: Cache gomobile
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: ~/.cache/gomobile
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
 
       - name: Install dependencies (gomobile)
         run: make install-android-deps

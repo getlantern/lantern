@@ -140,21 +140,8 @@ jobs:
         with:
           name: windows-auto-update-pubspec
 
-      - name: Read pinned Flutter version
-        id: flutter-version
-        shell: pwsh
-        run: |
-          $match = Select-String -Path '.github/flutter-version.yaml' -Pattern '^\s*flutter:\s*["'']?([^"'']+)["'']?\s*$'
-          if (-not $match) {
-            throw 'Unable to read the pinned Flutter version'
-          }
-          "version=$($match.Matches[0].Groups[1].Value.Trim())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version: ${{ steps.flutter-version.outputs.version }}
+        uses: ./.github/actions/setup-flutter
 
       - name: Resolve Flutter dependencies
         run: flutter pub get

@@ -1,0 +1,68 @@
+name: Set up Lantern Flutter toolchain
+description: Install the pinned SDK and maintain one pub cache per host architecture.
+runs:
+  using: composite
+  steps:
+    - name: Read pinned Flutter version
+      id: version
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      # Passing flutter-version avoids flutter-action's Chocolatey/yq install
+      # on Windows, which has failed release builds during feed outages.
+      run: |
+        version=$(bash "$ACTION_PATH/read-version.sh" .github/flutter-version.yaml)
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Install Flutter SDK
+      id: flutter
+      if: runner.os != 'Linux' || runner.arch != 'ARM64'
+      uses: subosito/flutter-action@v2.23.0
+      with:
+        channel: stable
+        flutter-version: ${{ steps.version.outputs.version }}
+        cache: true
+        # One owner for pub caching, with fallback across lockfile updates.
+        pub-cache: false
+
+    # The pinned Flutter release has no Linux ARM64 SDK archive. Preserve the
+    # source-install path, but cache it instead of bootstrapping on every run.
+    - name: Cache Linux ARM64 Flutter SDK
+      if: runner.os == 'Linux' && runner.arch == 'ARM64'
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/lantern-flutter-sdk
+        key: flutter-source-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
+
+    - name: Install Linux ARM64 Flutter SDK
+      if: runner.os == 'Linux' && runner.arch == 'ARM64'
+      shell: bash
+      env:
+        FLUTTER_VERSION: ${{ steps.version.outputs.version }}
+        SDK_PATH: ${{ runner.temp }}/lantern-flutter-sdk
+      run: |
+        set -euo pipefail
+        if [[ ! -d "$SDK_PATH/.git" ]]; then
+          git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$SDK_PATH"
+        fi
+        echo "$SDK_PATH/bin" >> "$GITHUB_PATH"
+        echo "FLUTTER_ROOT=$SDK_PATH" >> "$GITHUB_ENV"
+        "$SDK_PATH/bin/flutter" --version
+
+    - name: Locate pub cache
+      id: pub
+      shell: bash
+      run: |
+        set -euo pipefail
+        pub_cache="${PUB_CACHE:-$HOME/.pub-cache}"
+        mkdir -p "$pub_cache"
+        printf 'path=%s\n' "$pub_cache" >> "$GITHUB_OUTPUT"
+        printf 'PUB_CACHE=%s\n' "$pub_cache" >> "$GITHUB_ENV"
+
+    - name: Cache pub dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.pub.outputs.path }}
+        key: pub-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}-${{ hashFiles('pubspec.lock') }}
+        restore-keys: |
+          pub-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}-

@@ -137,10 +137,7 @@ jobs:
           name: macos-auto-update-pubspec
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
+        uses: ./.github/actions/setup-flutter
 
       - name: Resolve Flutter dependencies
         run: flutter pub get
