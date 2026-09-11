@@ -39,46 +39,53 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final (width, scale) in [(460.0, 1.0), (780.0, 2.0)]) {
-    testWidgets('desktop label uses available inset space at scale $scale', (
-      tester,
-    ) async {
-      tester.view.physicalSize = Size(width, 852);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(
-            platform: TargetPlatform.windows,
-            textTheme: const TextTheme(labelLarge: TextStyle(fontSize: 14)),
-          ),
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(textScaler: TextScaler.linear(scale)),
-            child: child!,
-          ),
-          home: Scaffold(
-            body: ActionModeNavigation(
-              selectedIndex: 1,
-              onSelected: (_) {},
-              vpnActive: false,
-              actionActive: true,
-              desktop: true,
+  // Ahem renders each character 14 px wide: Action Mode needs 154 px at 1×,
+  // plus 56 px for the icon, gaps, dot, and inner padding.
+  for (final (width, scale, truncated) in [
+    (393.0, 1.0, true),
+    (460.0, 1.0, false),
+    (780.0, 2.0, false),
+  ]) {
+    testWidgets(
+      'desktop label fits available space at width $width and scale $scale',
+      (tester) async {
+        tester.view.physicalSize = Size(width, 852);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(
+              platform: TargetPlatform.windows,
+              textTheme: const TextTheme(labelLarge: TextStyle(fontSize: 14)),
+            ),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(scale)),
+              child: child!,
+            ),
+            home: Scaffold(
+              body: ActionModeNavigation(
+                selectedIndex: 1,
+                onSelected: (_) {},
+                vpnActive: false,
+                actionActive: true,
+                desktop: true,
+              ),
             ),
           ),
-        ),
-      );
-      final label = find.descendant(
-        of: find.text('unbounded'.i18n),
-        matching: find.byType(RichText),
-      );
-      final paragraph = tester.renderObject<RenderParagraph>(label);
-      expect(paragraph.didExceedMaxLines, isFalse);
-      expect(tester.getSize(find.byType(ActionModeNavigation)).width, width);
-      expect(tester.takeException(), isNull);
-    });
+        );
+        final label = find.descendant(
+          of: find.text('unbounded'.i18n),
+          matching: find.byType(RichText),
+        );
+        final paragraph = tester.renderObject<RenderParagraph>(label);
+        expect(paragraph.didExceedMaxLines, truncated);
+        expect(tester.getSize(find.byType(ActionModeNavigation)).width, width);
+        expect(tester.takeException(), isNull);
+      },
+    );
   }
 
   for (final desktop in [false, true]) {
