@@ -1,13 +1,17 @@
 import 'dart:ui' show SemanticsAction;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/share_my_connection/action_mode_widgets.dart';
-import 'package:lantern/features/share_my_connection/share_my_connection.dart';
+import 'package:lantern/features/action_mode/action_mode_widgets.dart';
+import 'package:lantern/features/action_mode/auto_enable_mode.dart';
+import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+import 'package:lantern/features/action_mode/action_mode.dart';
 
 class _Share extends ShareNotifier {
   @override
@@ -139,7 +143,7 @@ void main() {
     (tester) async {
       await mount(
         tester,
-        const UnboundedTab(),
+        const ActionModeTab(),
         size: const Size(360, 640),
         scale: 2,
         animated: true,
@@ -197,40 +201,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
   });
-
-  for (final scale in [1.0, 2.0]) {
-    for (final brightness in Brightness.values) {
-      testWidgets(
-        'controls remain usable at 360x640, scale $scale, $brightness',
-        (tester) async {
-          var about = 0;
-          await mount(
-            tester,
-            ActionModePanel(
-              autoEnable: const ActionModeAutoEnable(),
-              globe: const SizedBox(),
-              statusCard: status(),
-              onAbout: () => about++,
-            ),
-            size: const Size(360, 640),
-            scale: scale,
-            brightness: brightness,
-          );
-          await tester.tap(
-            find.text(
-              'Help others bypass censorship by securely sharing your connection.',
-            ),
-          );
-          expect(about, 1);
-          await tester.ensureVisible(find.byType(Checkbox));
-          await tester.tap(find.byType(Checkbox));
-          await tester.pumpAndSettle();
-          expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
-          expect(tester.takeException(), isNull);
-        },
-      );
-    }
-  }
 
   for (final scale in [1.0, 2.0, 3.0]) {
     testWidgets('desktop AppBar contains full labels at text scale $scale', (

@@ -5,7 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/utils/pro_utils.dart';
-import 'package:lantern/features/share_my_connection/action_mode_widgets.dart';
+import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
@@ -14,7 +14,9 @@ import 'package:lantern/features/home/pro_renewal_popup.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
-import 'package:lantern/features/share_my_connection/share_my_connection.dart';
+import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
+import 'package:lantern/features/action_mode/action_mode.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
@@ -75,7 +77,7 @@ class Home extends HookConsumerWidget {
       void sync() {
         final pos =
             tabController.animation?.value ?? tabController.index.toDouble();
-        ref.read(unboundedTabVisibleProvider.notifier).set(pos > 0.0);
+        ref.read(actionModeTabVisibleProvider.notifier).set(pos > 0.0);
         // Halfway through the swipe, so the title swaps once rather than
         // flickering per frame.
         onUnboundedTab.value = pos >= 0.5;
@@ -304,7 +306,7 @@ class Home extends HookConsumerWidget {
           ? const VpnTab()
           : TabBarView(
               controller: tabController,
-              children: const [VpnTab(), UnboundedTab()],
+              children: const [VpnTab(), ActionModeTab()],
             ),
       bottomNavigationBar: !showUnboundedTab || !PlatformUtils.isMobile
           ? null

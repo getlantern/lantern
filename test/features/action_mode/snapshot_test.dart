@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:lantern/core/models/unbounded_connection_event.dart';
+import 'package:lantern/core/models/action_mode_connection_event.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -17,7 +17,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/share_my_connection/share_my_connection.dart';
+import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -182,7 +183,7 @@ void main() {
   });
   test('recovered peers replay without a new-arrival animation', () async {
     const ip = '192.0.2.251';
-    final events = <UnboundedConnectionEvent>[];
+    final events = <ActionModeConnectionEvent>[];
     final sub = container
         .read(shareProvider.notifier)
         .connectionEvents

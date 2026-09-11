@@ -114,3 +114,18 @@ extension StringCasingExtension on String {
         .join(' ');
   }
 }
+
+extension HostAddressParsing on String {
+  /// The host part of a peer address as emitted by the Go side:
+  /// `[2001:db8::1]:443`, `2001:db8::1`, `203.0.113.5:443`, or `203.0.113.5`.
+  /// Empty for empty or malformed input.
+  String get hostAddress {
+    if (isEmpty) return '';
+    if (startsWith('[')) return Uri.tryParse('p://$this')?.host ?? '';
+    final first = indexOf(':');
+    if (first < 0) return this;
+    // More than one colon without brackets is a bare IPv6 address.
+    if (first != lastIndexOf(':')) return this;
+    return substring(0, first);
+  }
+}

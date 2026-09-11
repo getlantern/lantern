@@ -43,7 +43,7 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(
       path: '/unbounded-setting',
-      page: UnboundedSetting.page,
+      page: ActionModeSetting.page,
     ),
     AutoRoute(
       path: '/account',

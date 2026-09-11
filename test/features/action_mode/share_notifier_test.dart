@@ -7,7 +7,8 @@ import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/share_my_connection/share_my_connection.dart';
+import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 
 // Reconciliation of ShareState against the peer client's real state. The
 // peer-status stream is edge-triggered, so a UI that only listens opens at

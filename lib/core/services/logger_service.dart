@@ -1,18 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_loggy/flutter_loggy.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:loggy/loggy.dart';
+import 'package:path/path.dart' as p;
 
 const traceLogLevel = LogLevel('Trace', 1);
 const traceLogsEnabled = bool.fromEnvironment('LANTERN_TRACE_LOGS');
-
-void traceLog(String Function() message) =>
-    appLogger.log(traceLogLevel, message);
 
 final dbLogger = Loggy("DB-Logger");
 final appLogger = Loggy("app-Logger");
