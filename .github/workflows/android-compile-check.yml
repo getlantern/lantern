@@ -58,7 +58,7 @@ jobs:
           path: |
             bin/android/liblantern.aar
             android/app/libs/liblantern.aar
-          key: ${{ runner.os }}-android-aar-${{ hashFiles('go.mod', 'go.sum', 'Makefile', '**/*.go') }}
+          key: ${{ runner.os }}-android-aar-${{ hashFiles('go.mod', 'go.sum', 'Makefile', '**/*.go', '.github/actions/setup-android/**', '.github/actions/setup-flutter/**', '.github/actions/setup-go/**') }}
 
       - name: Mark restored Android AAR fresh
         if: steps.android-aar-cache.outputs.cache-hit == 'true'

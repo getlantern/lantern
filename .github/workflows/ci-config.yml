@@ -7,6 +7,8 @@ on:
       - ".github/actions/**"
       - ".github/workflows/**"
       - "scripts/ci/setup*.sh"
+      - "scripts/ci/choco-retry.sh"
+      - "scripts/ci/validate_composite_actions.rb"
 
 permissions:
   contents: read
@@ -17,11 +19,16 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Validate workflows
         uses: docker://rhysd/actionlint:1.7.12
         with:
           args: -color -shellcheck=
+      - name: Validate composite actions
+        run: ruby scripts/ci/validate_composite_actions.rb
       - name: Check setup script syntax
         run: |
           bash -n .github/actions/setup-flutter/read-version.sh
+          bash -n scripts/ci/choco-retry.sh
           bash -n scripts/ci/setup-windows-toolchain.sh
