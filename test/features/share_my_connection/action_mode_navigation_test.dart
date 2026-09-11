@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/share_my_connection/action_mode_widgets.dart';
@@ -37,6 +38,48 @@ void main() {
     expect((strip.decoration! as BoxDecoration).border, isNull);
     expect(tester.takeException(), isNull);
   });
+
+  for (final (width, scale) in [(460.0, 1.0), (780.0, 2.0)]) {
+    testWidgets('desktop label uses available inset space at scale $scale', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 852);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            platform: TargetPlatform.windows,
+            textTheme: const TextTheme(labelLarge: TextStyle(fontSize: 14)),
+          ),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(scale)),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: ActionModeNavigation(
+              selectedIndex: 1,
+              onSelected: (_) {},
+              vpnActive: false,
+              actionActive: true,
+              desktop: true,
+            ),
+          ),
+        ),
+      );
+      final label = find.descendant(
+        of: find.text('unbounded'.i18n),
+        matching: find.byType(RichText),
+      );
+      final paragraph = tester.renderObject<RenderParagraph>(label);
+      expect(paragraph.didExceedMaxLines, isFalse);
+      expect(tester.getSize(find.byType(ActionModeNavigation)).width, width);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   for (final desktop in [false, true]) {
     for (final brightness in Brightness.values) {
