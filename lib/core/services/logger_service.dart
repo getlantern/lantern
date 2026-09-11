@@ -10,6 +10,12 @@ import 'package:path/path.dart' as p;
 const traceLogLevel = LogLevel('Trace', 1);
 const traceLogsEnabled = bool.fromEnvironment('LANTERN_TRACE_LOGS');
 
+extension TraceLog on Loggy {
+  /// Opt-in per-event diagnostics. The closure is only evaluated when trace
+  /// logging is enabled, so high-volume callers pay nothing by default.
+  void trace(String Function() message) => log(traceLogLevel, message);
+}
+
 final dbLogger = Loggy("DB-Logger");
 final appLogger = Loggy("app-Logger");
 

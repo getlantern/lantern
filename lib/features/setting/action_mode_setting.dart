@@ -122,11 +122,13 @@ class _ManualPortField extends HookConsumerWidget {
             .read(lanternServiceProvider)
             .getPeerManualPort();
         if (disposed) return;
+        // A failed read leaves the controls disabled: saving the empty field
+        // would clear a port the user may have configured.
         result.fold((_) => null, (port) {
           if (port > 0) controller.text = port.toString();
           lastSaved.value = port;
+          loaded.value = true;
         });
-        loaded.value = true;
       });
       return () => disposed = true;
     }, const []);

@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:ui' show SemanticsAction;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/share_state.dart';
@@ -25,7 +28,13 @@ class _Share extends ShareNotifier {
   void replayCurrentPeers() {}
   @override
   Future<bool> ensureConsent(BuildContext context) async => consent;
+  @override
+  Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
+    toggles++;
+  }
+
   static bool consent = true;
+  static int toggles = 0;
 }
 
 class _Settings extends AppSettingNotifier {
@@ -46,7 +55,10 @@ class _Settings extends AppSettingNotifier {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(Localization.loadTranslations);
-  setUp(() => _Share.consent = true);
+  setUp(() {
+    _Share.consent = true;
+    _Share.toggles = 0;
+  });
 
   Future<void> mount(
     WidgetTester tester,
@@ -60,26 +72,38 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          appSettingProvider.overrideWith(_Settings.new),
-          shareProvider.overrideWith(_Share.new),
-        ],
-        child: ScreenUtilInit(
-          designSize: const Size(393, 852),
-          child: MaterialApp(
-            theme: brightness == Brightness.dark
-                ? AppTheme.darkTheme()
-                : AppTheme.appTheme(),
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(scale)),
-              child: child!,
+    // The globe's origin lookup goes through package:http; answer it locally
+    // so the test never touches the network.
+    await http.runWithClient(
+      () => tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appSettingProvider.overrideWith(_Settings.new),
+            shareProvider.overrideWith(_Share.new),
+          ],
+          child: ScreenUtilInit(
+            designSize: const Size(393, 852),
+            child: MaterialApp(
+              theme: brightness == Brightness.dark
+                  ? AppTheme.darkTheme()
+                  : AppTheme.appTheme(),
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: TextScaler.linear(scale)),
+                child: child!,
+              ),
+              home: Scaffold(body: child),
             ),
-            home: Scaffold(body: child),
           ),
+        ),
+      ),
+      () => MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'Location': {'Latitude': 37.77, 'Longitude': -122.41},
+          }),
+          200,
         ),
       ),
     );
@@ -201,6 +225,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
   });
+
+  for (final scale in [1.0, 2.0]) {
+    for (final brightness in Brightness.values) {
+      testWidgets(
+        'Action Mode tab controls stay usable at 360x640, scale $scale, $brightness',
+        (tester) async {
+          await mount(
+            tester,
+            const ActionModeTab(),
+            size: const Size(360, 640),
+            scale: scale,
+            brightness: brightness,
+            animated: true,
+          );
+          final toggle = find.byKey(const Key('action-mode.toggle'));
+          await tester.ensureVisible(toggle);
+          await tester.pump(const Duration(milliseconds: 300));
+          // Sharing is on, so the knob sits right; tapping the current side
+          // is a no-op for the switch. Tap the off side to toggle.
+          await tester.tapAt(tester.getCenter(toggle) - const Offset(20, 0));
+          await tester.pump(const Duration(milliseconds: 300));
+          expect(_Share.toggles, 1);
+          final checkbox = find.byKey(const Key('action-mode.auto-enable'));
+          await tester.ensureVisible(checkbox);
+          await tester.pump(const Duration(milliseconds: 300));
+          await tester.tap(checkbox);
+          await tester.pump(const Duration(milliseconds: 300));
+          expect(tester.widget<Checkbox>(checkbox).value, isTrue);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox());
+        },
+      );
+    }
+  }
 
   for (final scale in [1.0, 2.0, 3.0]) {
     testWidgets('desktop AppBar contains full labels at text scale $scale', (

@@ -114,7 +114,7 @@ class _StatusCard extends StatelessWidget {
       status: status,
       enabled: state.active || state.probing,
       ready:
-          state.mode == ShareMode.unbounded ||
+          (state.mode == ShareMode.unbounded && state.unboundedRunning) ||
           (state.mode == ShareMode.smc && state.phase == SharePhase.serving),
       busy: state.probing,
       hasError: state.phase == SharePhase.error,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' show max;
 
 import 'package:flutter/material.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/action_mode_connection_event.dart';
@@ -269,19 +270,28 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   Future<void> _stop(WidgetRef widgetRef) async {
-    _stopEventSubscription();
-    final priorMode = state.mode;
-    state = ShareState(totalCount: state.totalCount);
-    switch (priorMode) {
-      case ShareMode.smc:
+    final result = switch (state.mode) {
+      ShareMode.smc =>
         await widgetRef
             .read(radianceSettingsProvider.notifier)
-            .setPeerProxy(false);
-      case ShareMode.unbounded:
-        await widgetRef.read(lanternServiceProvider).setUnboundedEnabled(false);
-      case ShareMode.off:
-        break;
-    }
+            .setPeerProxy(false),
+      ShareMode.unbounded =>
+        await widgetRef.read(lanternServiceProvider).setUnboundedEnabled(false),
+      ShareMode.off => right<Failure, Unit>(unit),
+    };
+    if (!ref.mounted) return;
+    result.fold(
+      (err) {
+        // The backend is still sharing, so keep saying so; the next toggle
+        // retries the stop.
+        appLogger.error('Stop sharing failed: ${err.error}');
+        state = state.copyWith(errorMessage: err.error);
+      },
+      (_) {
+        _stopEventSubscription();
+        state = ShareState(totalCount: state.totalCount);
+      },
+    );
   }
 
   /// Switches a failed SmC session to Unbounded. radiance has already rolled

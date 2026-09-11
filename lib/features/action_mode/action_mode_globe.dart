@@ -46,18 +46,18 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
 
   final FlutterEarthGlobeController _globeController =
       FlutterEarthGlobeController(
-    isRotating: true,
-    rotationSpeed: 0.02,
-    zoom: 0,
-    isZoomEnabled: false,
-    showAtmosphere: true,
-    atmosphereColor: _atmosphereDark,
-    atmosphereOpacity: 0.18,
-    atmosphereBlur: 22,
-    // Mostly ambient so the light texture doesn't render as a grey ball.
-    ambientLight: 0.97,
-    lightIntensity: 0.15,
-  );
+        isRotating: PlatformUtils.isDesktop,
+        rotationSpeed: 0.02,
+        zoom: 0,
+        isZoomEnabled: false,
+        showAtmosphere: true,
+        atmosphereColor: _atmosphereDark,
+        atmosphereOpacity: 0.18,
+        atmosphereBlur: 22,
+        // Mostly ambient so the light texture doesn't render as a grey ball.
+        ambientLight: 0.97,
+        lightIntensity: 0.15,
+      );
 
   StreamSubscription<ActionModeConnectionEvent>? _eventSub;
   GlobeCoordinates? _originCoords;
@@ -106,24 +106,29 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
 
   void _applyTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
-    _globeController.loadSurface(AssetImage(
-      isDark
-          ? 'assets/unbounded/uv-map-dark.png'
-          : 'assets/unbounded/uv-map.png',
-    ));
-    _globeController.atmosphereColor =
-        isDark ? _atmosphereDark : _atmosphereLight;
+    _globeController.loadSurface(
+      AssetImage(
+        isDark
+            ? 'assets/unbounded/uv-map-dark.png'
+            : 'assets/unbounded/uv-map.png',
+      ),
+    );
+    _globeController.atmosphereColor = isDark
+        ? _atmosphereDark
+        : _atmosphereLight;
   }
 
   Future<void> _initOrigin() async {
     final coords = await GeoLookupService.selfLookup();
     if (!mounted) return;
     _originCoords = coords;
-    _globeController.addPoint(Point(
-      id: 'origin',
-      coordinates: coords,
-      style: PointStyle(color: _originPointColor, size: 8),
-    ));
+    _globeController.addPoint(
+      Point(
+        id: 'origin',
+        coordinates: coords,
+        style: PointStyle(color: _originPointColor, size: 8),
+      ),
+    );
     _globeController.focusOnCoordinates(coords, animate: false);
     ref.read(shareProvider.notifier).replayCurrentPeers();
   }
@@ -155,24 +160,28 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
     final coords = _jittered(event.coordinates!, event.workerIdx);
     // dashAnimateTime stays 0: any other value keeps the package's repaint
     // loop running for as long as an arc exists.
-    _globeController.addPointConnection(PointConnection(
-      id: 'conn_${event.workerIdx}',
-      start: coords,
-      end: _originCoords!,
-      curveScale: .6,
-      style: PointConnectionStyle(
-        color: _arcColors[event.workerIdx.abs() % _arcColors.length],
-        lineWidth: 3,
-        type: PointConnectionType.solid,
-        dashAnimateTime: 0,
-        animateOnAdd: !event.isReplay,
+    _globeController.addPointConnection(
+      PointConnection(
+        id: 'conn_${event.workerIdx}',
+        start: coords,
+        end: _originCoords!,
+        curveScale: .6,
+        style: PointConnectionStyle(
+          color: _arcColors[event.workerIdx.abs() % _arcColors.length],
+          lineWidth: 3,
+          type: PointConnectionType.solid,
+          dashAnimateTime: 0,
+          animateOnAdd: !event.isReplay,
+        ),
       ),
-    ));
-    _globeController.addPoint(Point(
-      id: 'peer_${event.workerIdx}',
-      coordinates: coords,
-      style: PointStyle(color: _peerPointColor, size: 6),
-    ));
+    );
+    _globeController.addPoint(
+      Point(
+        id: 'peer_${event.workerIdx}',
+        coordinates: coords,
+        style: PointStyle(color: _peerPointColor, size: 6),
+      ),
+    );
     _drawn.add(event.workerIdx);
     // Replays seed a freshly mounted globe and should not move the camera.
     if (event.isReplay) return;

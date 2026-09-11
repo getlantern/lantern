@@ -58,6 +58,10 @@ void main() {
     final printer = _RecordingPrinter();
     rootLogger.printer = printer;
     var traceFormatted = false;
+    appLogger.trace(() {
+      traceFormatted = true;
+      return 'frequent-event';
+    });
     appLogger.debug('ordinary-debug');
     appLogger.error('event-error');
     await Future<void>.delayed(Duration.zero);

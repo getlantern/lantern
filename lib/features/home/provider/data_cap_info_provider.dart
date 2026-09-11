@@ -34,9 +34,10 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   Future<void> checkAndNotify(DataCapUsageResponse dataCapInfo) async {
     final usagePercent = _calculateUsagePercent(dataCapInfo);
     final threshold = _getThreshold(usagePercent);
-    appLogger.debug(
-      'Data cap usage at ${usagePercent.toStringAsFixed(2)}%, '
-      'threshold: $threshold',
+    appLogger.trace(
+      () =>
+          'Data cap usage at ${usagePercent.toStringAsFixed(2)}%, '
+          'threshold: $threshold',
     );
     if (threshold == null) return;
     final shouldNotify = await _shouldSendNotification(threshold, dataCapInfo);

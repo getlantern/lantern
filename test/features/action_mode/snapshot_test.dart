@@ -34,10 +34,11 @@ class FakeService implements LanternService {
   int enableCalls = 0;
   @override
   Future<Either<Failure, int>> getPeerManualPort() async => right(1);
+  Future<Either<Failure, Unit>>? Function(bool enabled)? onSetUnbounded;
   @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) {
     enableCalls++;
-    return enableResult.future;
+    return onSetUnbounded?.call(enabled) ?? enableResult.future;
   }
 
   final events = StreamController<AppEvent>.broadcast(sync: true);
@@ -60,8 +61,10 @@ class FakeRadianceSettings extends RadianceSettings {
   final startResult = Completer<Either<Failure, Unit>>();
   @override
   RadianceSettingsState build() => const RadianceSettingsState();
+  Future<Either<Failure, Unit>>? Function(bool value)? onSetPeerProxy;
   @override
-  Future<Either<Failure, Unit>> setPeerProxy(bool value) => startResult.future;
+  Future<Either<Failure, Unit>> setPeerProxy(bool value) =>
+      onSetPeerProxy?.call(value) ?? startResult.future;
 }
 
 void main() {
@@ -72,16 +75,24 @@ void main() {
     await sl.reset();
     GeoLookupService.resetCacheForTest();
     await http.runWithClient(
-      () => Future.wait(['192.0.2.1', '192.0.2.2', '192.0.2.251']
-          .map(GeoLookupService.peerLookup)),
-      () => MockClient((_) async => http.Response(
+      () => Future.wait(
+        [
+          '192.0.2.1',
+          '192.0.2.2',
+          '192.0.2.251',
+        ].map(GeoLookupService.peerLookup),
+      ),
+      () => MockClient(
+        (_) async => http.Response(
           jsonEncode({
             'Country': {
               'IsoCode': 'US',
-              'Names': {'en': 'United States'}
-            }
+              'Names': {'en': 'United States'},
+            },
           }),
-          200)),
+          200,
+        ),
+      ),
     );
     sl.registerSingleton<LocalStorageService>(FakeStorage());
     service = FakeService();
@@ -194,8 +205,9 @@ void main() {
     expect(events.last.state, 1);
     expect(events.last.isReplay, false);
     final originalWorker = events.last.workerIdx;
-    service.events
-        .add(AppEvent(eventType: 'unbounded-unavailable', message: '{}'));
+    service.events.add(
+      AppEvent(eventType: 'unbounded-unavailable', message: '{}'),
+    );
     await snapshot(true, true, [ip], arrivals: 3);
     expect(events.last.state, 1);
     expect(events.last.isReplay, true);
@@ -203,52 +215,70 @@ void main() {
     expect(container.read(shareProvider).totalCount, 11);
   });
 
-  testWidgets('pending auto-start ignores failure after disposal',
-      (tester) async {
+  testWidgets('pending auto-start ignores failure after disposal', (
+    tester,
+  ) async {
     late WidgetRef widgetRef;
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: Consumer(builder: (ctx, ref, child) {
-        widgetRef = ref;
-        return const SizedBox();
-      }),
-    ));
-    final starting =
-        container.read(shareProvider.notifier).autoStart(widgetRef);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (ctx, ref, child) {
+            widgetRef = ref;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final starting = container
+        .read(shareProvider.notifier)
+        .autoStart(widgetRef);
     expect(service.enableCalls, 1);
     container.invalidate(shareProvider);
     await tester.runAsync(() async {
       service.enableResult.complete(
-          left(Failure(error: 'offline', localizedErrorMessage: 'offline')));
+        left(Failure(error: 'offline', localizedErrorMessage: 'offline')),
+      );
       await starting;
     });
   });
 
-  testWidgets('pending fallback ignores failures after disposal',
-      (tester) async {
+  testWidgets('pending fallback ignores failures after disposal', (
+    tester,
+  ) async {
     late WidgetRef widgetRef;
     late BuildContext context;
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: Consumer(builder: (ctx, ref, child) {
-        widgetRef = ref;
-        context = ctx;
-        return const SizedBox();
-      }),
-    ));
-    final radiance = container.read(radianceSettingsProvider.notifier)
-        as FakeRadianceSettings;
-    final starting =
-        container.read(shareProvider.notifier).toggle(context, widgetRef);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (ctx, ref, child) {
+            widgetRef = ref;
+            context = ctx;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final radiance =
+        container.read(radianceSettingsProvider.notifier)
+            as FakeRadianceSettings;
+    final starting = container
+        .read(shareProvider.notifier)
+        .toggle(context, widgetRef);
     await tester.pump();
-    service.events.add(AppEvent(
+    service.events.add(
+      AppEvent(
         eventType: 'peer-status',
-        message: jsonEncode({'phase': 'error', 'error': 'port unreachable'})));
+        message: jsonEncode({'phase': 'error', 'error': 'port unreachable'}),
+      ),
+    );
     await tester.pump();
     expect(service.enableCalls, 1);
     container.invalidate(shareProvider);
     final failure = left<Failure, Unit>(
-        Failure(error: 'offline', localizedErrorMessage: 'offline'));
+      Failure(error: 'offline', localizedErrorMessage: 'offline'),
+    );
     await tester.runAsync(() async {
       service.enableResult.complete(failure);
       radiance.startResult.complete(failure);
@@ -257,39 +287,45 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('fallback clears peers and serializes snapshots and toggles',
-      (tester) async {
+  testWidgets('fallback clears peers and serializes snapshots and toggles', (
+    tester,
+  ) async {
     late WidgetRef widgetRef;
     late BuildContext context;
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: Consumer(builder: (ctx, ref, child) {
-        widgetRef = ref;
-        context = ctx;
-        return const SizedBox();
-      }),
-    ));
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (ctx, ref, child) {
+            widgetRef = ref;
+            context = ctx;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
     final notifier = container.read(shareProvider.notifier);
     final starting = notifier.toggle(context, widgetRef);
     await tester.pump();
-    service.events.add(AppEvent(
+    service.events.add(
+      AppEvent(
         eventType: 'peer-connection',
-        message: jsonEncode({
-          'state': 1,
-          'source': '192.0.2.1:1234',
-        })));
+        message: jsonEncode({'state': 1, 'source': '192.0.2.1:1234'}),
+      ),
+    );
     await tester.pump();
     expect(container.read(shareProvider).activeCount, 1);
-    service.events.add(AppEvent(
+    service.events.add(
+      AppEvent(
         eventType: 'peer-status',
-        message: jsonEncode({
-          'phase': 'error',
-          'error': 'port unreachable',
-        })));
+        message: jsonEncode({'phase': 'error', 'error': 'port unreachable'}),
+      ),
+    );
     await tester.pump();
     expect(container.read(shareProvider).mode, ShareMode.unbounded);
     expect(container.read(shareProvider).activeCount, 0);
-    service.events.add(AppEvent(
+    service.events.add(
+      AppEvent(
         eventType: 'unbounded-snapshot',
         message: jsonEncode({
           'enabled': false,
@@ -297,7 +333,9 @@ void main() {
           'peers': [],
           'epoch': 'run-1',
           'arrivals': 0,
-        })));
+        }),
+      ),
+    );
     await tester.pump();
     await notifier.toggle(context, widgetRef);
     expect(service.enableCalls, 1);
@@ -313,7 +351,8 @@ void main() {
     await tester.pump();
     await tester.pump();
     await starting;
-    service.events.add(AppEvent(
+    service.events.add(
+      AppEvent(
         eventType: 'unbounded-snapshot',
         message: jsonEncode({
           'enabled': true,
@@ -321,9 +360,76 @@ void main() {
           'peers': ['192.0.2.1'],
           'epoch': 'run-1',
           'arrivals': 1,
-        })));
+        }),
+      ),
+    );
     await tester.pump();
     expect(container.read(shareProvider).activeCount, 1);
     expect(container.read(shareProvider).unboundedRunning, true);
   });
+
+  for (final smc in [false, true]) {
+    testWidgets(
+      'a failed stop keeps ${smc ? 'SmC' : 'Unbounded'} reported on',
+      (tester) async {
+        late WidgetRef widgetRef;
+        late BuildContext context;
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: Consumer(
+              builder: (ctx, ref, child) {
+                widgetRef = ref;
+                context = ctx;
+                return const SizedBox();
+              },
+            ),
+          ),
+        );
+        final radiance =
+            container.read(radianceSettingsProvider.notifier)
+                as FakeRadianceSettings;
+        final failure = left<Failure, Unit>(
+          Failure(error: 'backend busy', localizedErrorMessage: 'backend busy'),
+        );
+        service.onSetUnbounded = (enabled) async =>
+            enabled ? right(unit) : failure;
+        radiance.onSetPeerProxy = (value) async =>
+            value ? right(unit) : failure;
+        final notifier = container.read(shareProvider.notifier);
+        if (smc) {
+          // Manual port (FakeService returns 1) routes the start to SmC.
+          await notifier.toggle(context, widgetRef);
+          expect(container.read(shareProvider).mode, ShareMode.smc);
+        } else {
+          // snapshot() sleeps on a real timer; under testWidgets pump instead.
+          service.events.add(
+            AppEvent(
+              eventType: 'unbounded-snapshot',
+              message: jsonEncode({
+                'epoch': 'run-1',
+                'arrivals': 1,
+                'enabled': true,
+                'running': true,
+                'peers': ['192.0.2.1'],
+              }),
+            ),
+          );
+          await tester.pump();
+          expect(container.read(shareProvider).mode, ShareMode.unbounded);
+        }
+        await notifier.toggle(context, widgetRef);
+        final state = container.read(shareProvider);
+        expect(state.active, isTrue, reason: 'backend refused to stop');
+        expect(state.mode, smc ? ShareMode.smc : ShareMode.unbounded);
+        expect(state.errorMessage, 'backend busy');
+        // A later successful stop clears it.
+        service.onSetUnbounded = (_) async => right(unit);
+        radiance.onSetPeerProxy = (_) async => right(unit);
+        await notifier.toggle(context, widgetRef);
+        expect(container.read(shareProvider).active, isFalse);
+        expect(container.read(shareProvider).errorMessage, isNull);
+      },
+    );
+  }
 }

@@ -23,10 +23,9 @@ class PeerStatusPill extends HookConsumerWidget {
 
     useEffect(() {
       Timer? timer;
-      final sub = ref
-          .read(shareProvider.notifier)
-          .connectionEvents
-          .listen((event) {
+      final sub = ref.read(shareProvider.notifier).connectionEvents.listen((
+        event,
+      ) {
         if (event.state != 1 || event.isReplay || event.countryName.isEmpty) {
           return;
         }
@@ -43,7 +42,8 @@ class PeerStatusPill extends HookConsumerWidget {
     final share = ref.watch(shareProvider);
     // Keyed off the live peer count: an expired arrival does not mean nobody
     // is connected.
-    final waiting = share.mode == ShareMode.unbounded &&
+    final waiting =
+        share.mode == ShareMode.unbounded &&
         share.active &&
         share.activeCount == 0;
 
@@ -71,8 +71,9 @@ class PeerStatusPill extends HookConsumerWidget {
         opacity: anim,
         child: SlideTransition(
           position: Tween<Offset>(
-                  begin: const Offset(0, 0.4), end: Offset.zero)
-              .animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+            begin: const Offset(0, 0.4),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
           child: child,
         ),
       ),
@@ -170,11 +171,13 @@ class _HeartPainter extends CustomPainter {
       ..cubicTo(-3.17959, 15.7283, 14.7214, 24.5722, 16, 26.0107)
       ..cubicTo(17.2786, 24.8386, 35.1796, 15.5684, 31.5035, 5.87209)
       ..close();
-    final scaled = path.transform(Matrix4.diagonal3Values(
-      size.width / 32.0,
-      size.height / 27.0,
-      1.0,
-    ).storage);
+    final scaled = path.transform(
+      Matrix4.diagonal3Values(
+        size.width / 32.0,
+        size.height / 27.0,
+        1.0,
+      ).storage,
+    );
     canvas.drawPath(scaled, paint);
   }
 

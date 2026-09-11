@@ -30,10 +30,10 @@ class _FakeStorage implements LocalStorageService {
 }
 
 class _FakeService implements LanternService {
- @override
- Stream<AppEvent> watchAppEvents() => const Stream.empty();
- @override
- dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  Stream<AppEvent> watchAppEvents() => const Stream.empty();
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 ShareNotifier _notifier() {
