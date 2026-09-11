@@ -24,7 +24,13 @@ class ActionModeGlobe extends ConsumerStatefulWidget {
   ConsumerState<ActionModeGlobe> createState() => _ActionModeGlobeState();
 }
 
-class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe> {
+class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
+    with AutomaticKeepAliveClientMixin {
+  // TabBarView disposes off-screen pages; keep the globe resident so a tab
+  // switch doesn't redo the origin lookup, texture load, and arc replay.
+  @override
+  bool get wantKeepAlive => true;
+
   // The spec's arcs are a cyan-to-yellow gradient; the package only supports
   // flat colours, so alternate the two ends by workerIdx.
   static final _arcColors = [
@@ -159,7 +165,7 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe> {
         lineWidth: 3,
         type: PointConnectionType.solid,
         dashAnimateTime: 0,
-        animateOnAdd: true,
+        animateOnAdd: !event.isReplay,
       ),
     ));
     _globeController.addPoint(Point(
@@ -168,6 +174,8 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe> {
       style: PointStyle(color: _peerPointColor, size: 6),
     ));
     _drawn.add(event.workerIdx);
+    // Replays seed a freshly mounted globe and should not move the camera.
+    if (event.isReplay) return;
     _globeController.focusOnCoordinates(
       coords,
       animate: true,
@@ -194,6 +202,7 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     // TickerMode freezes the spin and any in-flight turn while the tab is
     // off screen.
     final visible = ref.watch(actionModeTabVisibleProvider);

@@ -61,9 +61,9 @@ class Home extends HookConsumerWidget {
     }, const []);
 
     final tabController = useTabController(initialLength: 2);
-    // Tell the Unbounded globe whether its tab is on screen so it can mute
+    // Tell the Action Mode globe whether its tab is on screen so it can mute
     // its ~60fps sphere re-projection while the user is on the VPN tab
-    // (TabBarView keeps the off-screen tab mounted and ticking). The globe
+    // (the globe keeps itself alive across tab switches). The globe
     // lives in tab index 1, so it should animate whenever any part of it
     // is on screen — including mid-swipe. animation.value is the
     // fractional tab position (0.0 = VPN fully shown, 1.0 = Unbounded
