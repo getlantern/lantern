@@ -242,8 +242,8 @@ class ActionModeNavigation extends StatelessWidget {
       textScaler: MediaQuery.textScalerOf(context),
       maxLines: 1,
     )..layout();
-    // Eight pixels of padding plus the one-pixel border on each side.
-    final height = math.max(56.0, painter.height + 18);
+    // Eight pixels of vertical padding on each side of the pill.
+    final height = math.max(56.0, painter.height + 16);
     painter.dispose();
     return height;
   }
@@ -253,15 +253,32 @@ class ActionModeNavigation extends StatelessWidget {
     height: desktop
         ? desktopHeight(context)
         : 64 + math.max(0, MediaQuery.textScalerOf(context).scale(14) - 14) * 2,
-    padding: EdgeInsets.all(desktop ? 8 : 4),
+    padding: desktop
+        ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+        : const EdgeInsets.all(4),
     decoration: BoxDecoration(
       color: context.bgElevated,
       borderRadius: BorderRadius.circular(desktop ? 0 : 9999),
-      border: Border.all(color: context.borderDefault),
+      border: desktop ? null : Border.all(color: context.borderDefault),
     ),
     child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (var i = 0; i < 2; i++) Expanded(child: _item(context, i)),
+        for (var i = 0; i < 2; i++)
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: desktop
+                    ? 20 /
+                          math.max(
+                            1,
+                            MediaQuery.textScalerOf(context).scale(14) / 14,
+                          )
+                    : 0,
+              ),
+              child: _item(context, i),
+            ),
+          ),
       ],
     ),
   );
@@ -269,12 +286,14 @@ class ActionModeNavigation extends StatelessWidget {
   Widget _item(BuildContext context, int index) {
     final selected = selectedIndex == index;
     final active = index == 0 ? vpnActive : actionActive;
-    final color = selected ? context.textLink : context.textDisabled;
+    final color = selected
+        ? context.actionTabbarSelectedText
+        : context.actionTabbarDisabledText;
     final label = (index == 0 ? 'vpn' : 'unbounded').i18n;
     final icon = AppImage(
       path: index == 0
           ? (selected ? AppImagePaths.vpnKeyFill : AppImagePaths.vpnKey)
-          : (selected ? AppImagePaths.handshakeFill : AppImagePaths.actionMode),
+          : (selected ? AppImagePaths.handshakeFill : AppImagePaths.handshake),
       width: 24,
       height: 24,
       color: color,
@@ -316,11 +335,11 @@ class ActionModeNavigation extends StatelessWidget {
       button: true,
       label: label,
       child: Material(
-        color: selected ? context.bgHover : Colors.transparent,
+        color: selected ? context.actionTabbarBg : Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(9999),
           side: BorderSide(
-            color: selected ? context.borderDefault : Colors.transparent,
+            color: selected ? context.actionTabbarBorder : Colors.transparent,
           ),
         ),
         child: InkWell(
@@ -328,7 +347,7 @@ class ActionModeNavigation extends StatelessWidget {
           borderRadius: BorderRadius.circular(9999),
           onTap: () => onSelected(index),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: EdgeInsets.symmetric(horizontal: desktop ? 4 : 8),
             child: desktop
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
