@@ -427,11 +427,7 @@ jobs:
           go mod verify
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.22.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
+        uses: ./.github/actions/setup-flutter
 
       - name: Resolve Flutter dependencies and generated sources
         run: |

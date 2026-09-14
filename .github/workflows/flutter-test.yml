@@ -25,6 +25,7 @@ on:
       - ".github/flutter-version.yaml"
       # keep the self-trigger so edits to this workflow re-run it
       - ".github/workflows/flutter-test.yml"
+      - ".github/actions/setup-flutter/**"
 
 concurrency:
   group: flutter-test-${{ github.ref }}
@@ -39,23 +40,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
+        uses: ./.github/actions/setup-flutter
 
       # Generated sources are committed, but regenerating means the suite tests
       # the PR's own source rather than whatever .g.dart happened to be checked
