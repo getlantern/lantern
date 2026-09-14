@@ -1418,12 +1418,13 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
                   // 1.0) and accessibility scaling for the globe subtree.
                   data: MediaQuery.of(context).copyWith(
                     size: widgetSize,
-                    // Scale gestures use twice the touch slop of page drags.
-                    // Match the parent's drag threshold so the child globe
-                    // wins before the scroll view or tab pager takes the touch.
+                    // Scale gestures use panSlop = touchSlop * 2. Halving it
+                    // matches the parent scroll and tab drag thresholds. On a
+                    // tie, the deeper globe recognizer accepts first, so it wins
+                    // without making the drag threshold unnecessarily small.
                     gestureSettings: DeviceGestureSettings(
                       touchSlop:
-                          (MediaQuery.gestureSettingsOf(context).touchSlop ??
+                          (MediaQuery.of(context).gestureSettings.touchSlop ??
                               kTouchSlop) /
                           2,
                     ),

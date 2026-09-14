@@ -1,6 +1,8 @@
-import 'package:flutter_earth_globe/rotating_globe.dart';
 import 'dart:ui' show SemanticsAction;
 import 'package:flutter/material.dart';
+// The public globe controller has no rotation readout. This deliberate internal
+// import reads RotatingGlobeState; revisit when upgrading flutter_earth_globe.
+import 'package:flutter_earth_globe/rotating_globe.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -127,9 +129,11 @@ void main() {
         );
         expect(scroll.position.pixels, scrollBefore);
         expect(tabs.animation!.value, 0);
-        await tester.pumpWidget(const SizedBox());
       },
-      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+      variant: const TargetPlatformVariant({
+        TargetPlatform.iOS,
+        TargetPlatform.android,
+      }),
     );
   }
 
