@@ -13,6 +13,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' show max, min;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe.dart';
@@ -1415,7 +1416,19 @@ class _GlobeViewState extends ConsumerState<_GlobeView> {
                   // MediaQueryData from scratch with just `size:` would drop
                   // those, breaking high-DPI rendering (pixel ratio falls to
                   // 1.0) and accessibility scaling for the globe subtree.
-                  data: MediaQuery.of(context).copyWith(size: widgetSize),
+                  data: MediaQuery.of(context).copyWith(
+                    size: widgetSize,
+                    // Scale gestures use panSlop = touchSlop * 2. Halving it
+                    // matches the parent scroll and tab drag thresholds. On a
+                    // tie, the deeper globe recognizer accepts first, so it wins
+                    // without making the drag threshold unnecessarily small.
+                    gestureSettings: DeviceGestureSettings(
+                      touchSlop:
+                          (MediaQuery.of(context).gestureSettings.touchSlop ??
+                              kTouchSlop) /
+                          2,
+                    ),
+                  ),
                   child: FlutterEarthGlobe(
                     controller: _globeController,
                     radius: radius,
