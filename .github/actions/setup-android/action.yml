@@ -36,6 +36,9 @@ runs:
 
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
+      with:
+        # The Makefile installs the required SDK packages.
+        packages: ""
 
     - name: Install Android SDK components
       shell: bash

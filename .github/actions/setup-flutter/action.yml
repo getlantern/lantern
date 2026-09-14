@@ -30,6 +30,9 @@ runs:
     - name: Cache Linux ARM64 Flutter SDK
       if: runner.os == 'Linux' && runner.arch == 'ARM64'
       uses: actions/cache@v4
+      continue-on-error: true
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
       with:
         path: ${{ runner.temp }}/lantern-flutter-sdk
         key: flutter-source-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
@@ -61,6 +64,9 @@ runs:
 
     - name: Cache pub dependencies
       uses: actions/cache@v4
+      continue-on-error: true
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
       with:
         path: ${{ steps.pub.outputs.path }}
         key: pub-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}-${{ hashFiles('pubspec.lock') }}

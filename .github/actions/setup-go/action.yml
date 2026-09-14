@@ -30,6 +30,9 @@ runs:
     # immutable key: the first macOS/iOS/Android job would win every cache save.
     - name: Cache Go modules
       uses: actions/cache@v4
+      continue-on-error: true
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
       with:
         path: ${{ steps.paths.outputs.modules }}
         key: go-mod-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum') }}
@@ -38,6 +41,9 @@ runs:
 
     - name: Cache Go compilation
       uses: actions/cache@v4
+      continue-on-error: true
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
       with:
         path: ${{ steps.paths.outputs.build }}
         # Go validates objects against source/compiler/flags. Never cache final
@@ -57,6 +63,9 @@ runs:
     - name: Cache gomobile initialization
       if: inputs.gomobile-cache == 'true'
       uses: actions/cache@v4
+      continue-on-error: true
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
       with:
         path: ~/.cache/gomobile
         key: gomobile-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum', 'Makefile') }}

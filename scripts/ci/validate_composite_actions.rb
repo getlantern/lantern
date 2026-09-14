@@ -25,8 +25,12 @@ manifests.each do |path|
     has_uses = step.key?("uses")
     abort "#{label} must define exactly one of run or uses" unless has_run ^ has_uses
 
-    if has_run && !step["shell"].is_a?(String)
-      abort "#{label} must define shell for run"
+    fields = has_run ? %w[run shell] : %w[uses]
+    fields.each do |field|
+      value = step[field]
+      unless value.is_a?(String) && !value.strip.empty?
+        abort "#{label}.#{field} must be a non-empty string"
+      end
     end
   end
 end
