@@ -1,6 +1,5 @@
 import 'package:flutter_earth_globe/rotating_globe.dart';
 import 'dart:ui' show SemanticsAction;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
