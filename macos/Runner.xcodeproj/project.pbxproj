@@ -455,6 +455,7 @@
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
+				A38250052FAD000100000001 /* Generate installation strings */,
 				8E19D0FE18076EDF51417438 /* [CP] Embed Pods Frameworks */,
 				29952B112DE79CB200640E7F /* Embed System Extensions */,
 				5F53D06B2E45078500740586 /* Embed Frameworks */,
@@ -559,6 +560,18 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		A38250052FAD000100000001 /* Generate installation strings */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = ();
+			inputPaths = ();
+			outputPaths = ();
+			name = "Generate installation strings";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$PROJECT_DIR/..\"\n\"$FLUTTER_ROOT/bin/dart\" scripts/macos/generate_installation_strings.dart assets/locales \"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\"\n";
+		};
 		3399D490228B24CF009A79C7 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;

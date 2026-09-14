@@ -9,6 +9,9 @@ on:
     paths:
       - "**/*.swift"
       - "macos/**"
+      - "scripts/macos/**"
+      - "test/macos/**"
+      - "assets/locales/**"
       - "ios/**"
       - "pubspec.yaml"
       - "pubspec.lock"
@@ -122,6 +125,11 @@ jobs:
       # Declared pubspec asset; the app never runs here so an empty file is fine.
       - name: Create placeholder app.env
         run: touch app.env
+
+      - name: Test installation preflight and localization
+        run: |
+          python3 scripts/macos/test_installation_preflight.py
+          flutter test test/macos/generate_installation_strings_test.dart --no-pub
 
       - name: Build macOS targets and run RunnerTests
         run: make macos-unit-tests

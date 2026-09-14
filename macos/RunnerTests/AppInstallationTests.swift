@@ -65,6 +65,62 @@ final class AppInstallationTests: XCTestCase {
       try FileManager.default.contentsOfDirectory(atPath: applications.path), ["Lantern.app"])
   }
 
+  func testCopyRunsOffMainThreadAndDeliversCompletionOnMainThread() {
+    class BlockingCopy: FileManager, @unchecked Sendable {
+      let release = DispatchSemaphore(value: 0)
+      var started: XCTestExpectation!
+      override func copyItem(at srcURL: URL, to dstURL: URL) throws {
+        XCTAssertFalse(Thread.isMainThread)
+        started.fulfill()
+        guard release.wait(timeout: .now() + 5) == .success else {
+          throw CocoaError(.userCancelled)
+        }
+        try super.copyItem(at: srcURL, to: dstURL)
+      }
+    }
+    let fileManager = BlockingCopy()
+    fileManager.started = expectation(description: "copy started")
+    let completed = expectation(description: "copy completed")
+    installation().installInBackground(fileManager: fileManager) { result in
+      XCTAssertTrue(Thread.isMainThread)
+      if case .failure(let error) = result { XCTFail("Copy failed: \(error)") }
+      completed.fulfill()
+    }
+    wait(for: [fileManager.started], timeout: 5)
+    // Main-queue work must run while the copy is waiting.
+    DispatchQueue.main.async { fileManager.release.signal() }
+    wait(for: [completed], timeout: 5)
+  }
+
+  func testBackgroundCopyDeliversFailureOnMainThread() throws {
+    try FileManager.default.removeItem(at: source)
+    let completed = expectation(description: "copy failed")
+    installation().installInBackground { result in
+      XCTAssertTrue(Thread.isMainThread)
+      if case .success = result { XCTFail("Copy unexpectedly succeeded") }
+      completed.fulfill()
+    }
+    wait(for: [completed], timeout: 5)
+    XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: applications.path), [])
+  }
+
+  func testLocalizedPlaceholdersPreserveLiteralValues() throws {
+    let resourceBundle = directory.appendingPathComponent("Strings.bundle")
+    let resources = resourceBundle.appendingPathComponent("Contents/Resources/en.lproj")
+    try FileManager.default.createDirectory(at: resources, withIntermediateDirectories: true)
+    let info = ["CFBundleIdentifier": UUID().uuidString, "CFBundleDevelopmentRegion": "en"]
+    try (info as NSDictionary).write(
+      to: resourceBundle.appendingPathComponent("Contents/Info.plist"))
+    let table = ["example": "{error}: Open {appName} / {appName}"]
+    try (table as NSDictionary).write(
+      to: resources.appendingPathComponent("AppInstallation.strings"))
+    let bundle = try XCTUnwrap(Bundle(url: resourceBundle))
+    XCTAssertEqual(
+      InstallationStrings(bundle: bundle).text(
+        "example", values: ["error": "100% {appName}", "appName": "Lantern 🌍"]),
+      "100% {appName}: Open Lantern 🌍 / Lantern 🌍")
+  }
+
   func testExistingInstallationIsNeverReplaced() throws {
     let installed = try installation().install()
     try Data("existing app".utf8).write(to: installed.appendingPathComponent("Contents/payload"))
@@ -74,7 +130,7 @@ final class AppInstallationTests: XCTestCase {
     XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
   }
 
-  func testReadOnlySourceAndFrameworkSymlinksSurviveInstallation() throws {
+  func testUnwritableSourceParentAndFrameworkSymlinksSurviveInstallation() throws {
     let framework = source.appendingPathComponent("Contents/Frameworks/Test.framework")
     try FileManager.default.createDirectory(
       at: framework.appendingPathComponent("Versions/A"), withIntermediateDirectories: true)

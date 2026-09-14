@@ -19,8 +19,7 @@ case .success(let command?):
   dispatchMain()
 case .success(nil):
   #if !DEBUG
-    // This must precede nib loading: AppDelegate creates the extension manager,
-    // and MainFlutterWindow starts Flutter before applicationDidFinishLaunching.
+    // Nib loading creates the extension manager and starts Flutter.
     guard AppInstallationPreflight.run() else { exit(EXIT_SUCCESS) }
   #endif
   _ = NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)
