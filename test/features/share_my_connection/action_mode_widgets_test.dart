@@ -1,4 +1,6 @@
+import 'package:flutter_earth_globe/rotating_globe.dart';
 import 'dart:ui' show SemanticsAction;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -84,6 +86,52 @@ void main() {
     } else {
       await tester.pumpAndSettle();
     }
+  }
+
+  for (final delta in [const Offset(-8, 0), const Offset(0, -8)]) {
+    testWidgets(
+      'globe owns touch drag $delta inside scroll view and pager',
+      (tester) async {
+        final tabs = TabController(length: 2, vsync: tester);
+        addTearDown(tabs.dispose);
+        await mount(
+          tester,
+          TabBarView(
+            controller: tabs,
+            children: const [UnboundedTab(), SizedBox()],
+          ),
+          animated: true,
+        );
+        final globe = find.byType(RotatingGlobe);
+        final state = tester.state<RotatingGlobeState>(globe);
+        tester.widget<RotatingGlobe>(globe).controller.stopRotation();
+        final before = Offset(state.rotationZ, state.rotationX);
+        final scroll = tester.state<ScrollableState>(
+          find
+              .descendant(
+                of: find.byType(SingleChildScrollView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+        final scrollBefore = scroll.position.pixels;
+        final gesture = await tester.startGesture(tester.getCenter(globe));
+        for (var i = 0; i < 10; i++) {
+          await gesture.moveBy(delta);
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await tester.pump();
+        expect(
+          delta.dx != 0 ? state.rotationZ : state.rotationX,
+          isNot(delta.dx != 0 ? before.dx : before.dy),
+        );
+        expect(scroll.position.pixels, scrollBefore);
+        expect(tabs.animation!.value, 0);
+        await tester.pumpWidget(const SizedBox());
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
   }
 
   ActionModeStatusCard status({bool busy = false, VoidCallback? toggle}) =>
