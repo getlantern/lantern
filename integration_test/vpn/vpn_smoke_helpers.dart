@@ -136,10 +136,15 @@ Future<void> waitForVpnToggleWithOnboardingHandling(
   final end = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(end)) {
     if (onboardingScreen.evaluate().isNotEmpty) {
-      if (onboardingSkip.evaluate().isNotEmpty) {
-        await tester.tap(onboardingSkip);
-      } else if (onboardingPrimary.evaluate().isNotEmpty) {
-        await tester.tap(onboardingPrimary);
+      // Gate on hitTestable: onboarding stays mounted while its route animates
+      // out, and tapping the stale button centre falls through to the VPN tab
+      // underneath, which pushes the routing-mode screen over home.
+      final skip = onboardingSkip.hitTestable();
+      final primary = onboardingPrimary.hitTestable();
+      if (skip.evaluate().isNotEmpty) {
+        await tester.tap(skip);
+      } else if (primary.evaluate().isNotEmpty) {
+        await tester.tap(primary);
       }
       await tester.pump(const Duration(milliseconds: 400));
       continue;
