@@ -266,18 +266,42 @@ class ActionModeNavigation extends StatelessWidget {
       children: [
         for (var i = 0; i < 2; i++)
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: desktop
-                    ? 20 /
+            child: desktop
+                ? LayoutBuilder(
+                    builder: (context, constraints) {
+                      final painter = TextPainter(
+                        text: TextSpan(
+                          text: (i == 0 ? 'vpn' : 'unbounded').i18n,
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        textDirection: Directionality.of(context),
+                        textScaler: MediaQuery.textScalerOf(context),
+                        maxLines: 1,
+                      )..layout();
+                      // Icon, gaps, status dot, and the pill's inner padding.
+                      final contentWidth = painter.width.ceilToDouble() + 56;
+                      painter.dispose();
+                      final preferredInset =
+                          20 /
                           math.max(
                             1,
                             MediaQuery.textScalerOf(context).scale(14) / 14,
-                          )
-                    : 0,
-              ),
-              child: _item(context, i),
-            ),
+                          );
+                      final inset = math.min(
+                        preferredInset,
+                        math.max(
+                          0.0,
+                          (constraints.maxWidth - contentWidth) / 2,
+                        ),
+                      );
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: inset),
+                        child: _item(context, i),
+                      );
+                    },
+                  )
+                : _item(context, i),
           ),
       ],
     ),
