@@ -142,12 +142,14 @@ class _Pill extends StatelessWidget {
               ),
               const SizedBox(width: 14),
             ],
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: heart ? null : theme.hintColor,
+            Flexible(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: heart ? null : theme.hintColor,
+                ),
               ),
             ),
           ],
