@@ -35,7 +35,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Update issue status in project
-        if: steps.extract-issue.outputs.issue_number != ''
+        # fork and dependabot runs get no org secrets, so skip them
+        # instead of failing on an empty GH_TOKEN
+        if: >-
+          steps.extract-issue.outputs.issue_number != '' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.actor != 'dependabot[bot]'
         run: |
           # Use GitHub GraphQL API to update the issue's status field in the project
           # First, we need to get the project item ID for this issue
