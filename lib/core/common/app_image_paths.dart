@@ -130,6 +130,7 @@ class AppImagePaths {
   static const person = 'assets/images/person.svg';
   static const languageGlobe = 'assets/images/language.svg';
   static const visibilityOff = 'assets/images/visibility_off.svg';
+  static const globGrid = 'assets/images/glob_grid.svg';
 
   /// Validates and returns a safe flag path for the given country code.
   /// Returns null if the country code is invalid or the flag asset doesn't exist.
