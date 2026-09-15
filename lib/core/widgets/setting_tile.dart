@@ -31,6 +31,7 @@ class SettingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final smallScreen = isSmallScreen(context);
     return InkWell(
       key: tileKey,
       borderRadius: BorderRadius.circular(16),
@@ -39,7 +40,7 @@ class SettingTile extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: isSmallScreen(context) ? 8 : 10,
+          vertical: smallScreen ? 8 : 10,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -55,8 +56,10 @@ class SettingTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: smallScreen ? null : 1,
+                    overflow: smallScreen
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
                     style: textTheme.labelLarge!.copyWith(
                       color: context.textSecondary,
                     ),
@@ -73,7 +76,7 @@ class SettingTile extends StatelessWidget {
                   Expanded(
                     child: AutoSizeText(
                       value,
-                      maxLines: 1,
+                      maxLines: smallScreen ? null : 1,
                       maxFontSize: 16,
                       minFontSize: 14,
                       style: textTheme.titleMedium!.copyWith(
