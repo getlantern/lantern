@@ -98,6 +98,13 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The action's default is "tools platform-tools", and Google has
+          # removed the legacy "tools" package from the SDK repository, so
+          # sdkmanager exits 1 on it. Nothing here needs those anyway: the
+          # install-android-sdk step below pulls platform-tools along with
+          # the platform, build-tools, NDK and CMake the build actually uses.
+          packages: ''
 
       # android/gradlew is gitignored, so install a matching Gradle on the
       # runner instead (keep the version in sync with
