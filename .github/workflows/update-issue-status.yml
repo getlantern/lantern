@@ -37,10 +37,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Update issue status in project
-        # dependabot runs receive only dependabot secrets, so skip them
-        # instead of failing on an empty GH_TOKEN
+        # only same-repo, non-dependabot pull requests may reach the
+        # token-backed update: a pull request description is untrusted
+        # input that names the issue to mutate
         if: >-
           steps.extract-issue.outputs.issue_number != '' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
           github.actor != 'dependabot[bot]'
         run: |
           # Use GitHub GraphQL API to update the issue's status field in the project
