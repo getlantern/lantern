@@ -33,7 +33,7 @@ class ProBanner extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     if (isSmallScreen(context)) {
       return _CompactProBanner(
-        isError: isExpired,
+        isExpired: isExpired,
         topMargin: topMargin,
         actionLabel: isExpired ? 'renew_pro'.i18n : 'upgrade_to_pro'.i18n,
         message: isExpired
@@ -105,7 +105,7 @@ class ProBanner extends HookConsumerWidget {
       return Tooltip(
         message: '$bannerTitle\n$subtitle',
         child: _CompactProBanner(
-          isError: isError,
+          isExpired: isError,
           topMargin: topMargin,
           actionLabel: 'renew_pro'.i18n,
           message: bannerTitle,
@@ -155,13 +155,13 @@ class ProBanner extends HookConsumerWidget {
 
 class _CompactProBanner extends StatelessWidget {
   const _CompactProBanner({
-    required this.isError,
+    required this.isExpired,
     required this.topMargin,
     required this.actionLabel,
     required this.message,
   });
 
-  final bool isError;
+  final bool isExpired;
   final double topMargin;
   final String actionLabel;
   final String message;
@@ -169,15 +169,17 @@ class _CompactProBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final textColor = isError ? context.statusErrorText : context.textSecondary;
+    final textColor = isExpired
+        ? context.statusErrorText
+        : context.textSecondary;
     return Padding(
       padding: EdgeInsets.only(top: topMargin),
       child: Material(
-        color: isError ? context.statusErrorBg : context.bgPromo,
+        color: isExpired ? context.statusErrorBg : context.bgPromo,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(9999),
           side: BorderSide(
-            color: isError ? context.statusErrorBorder : context.borderPromo,
+            color: isExpired ? context.statusErrorBorder : context.borderPromo,
           ),
         ),
         child: InkWell(
