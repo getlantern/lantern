@@ -1,7 +1,9 @@
 name: Update Linked Issue Status
 
 on:
-  pull_request:
+  # pull_request_target runs the base-branch workflow definition, so
+  # pull-request code can never run with, or read, this job's token
+  pull_request_target:
     branches:
       - main
 
@@ -35,11 +37,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Update issue status in project
-        # fork and dependabot runs get no org secrets, so skip them
+        # dependabot runs receive only dependabot secrets, so skip them
         # instead of failing on an empty GH_TOKEN
         if: >-
           steps.extract-issue.outputs.issue_number != '' &&
-          github.event.pull_request.head.repo.full_name == github.repository &&
           github.actor != 'dependabot[bot]'
         run: |
           # Use GitHub GraphQL API to update the issue's status field in the project
@@ -146,5 +147,5 @@ jobs:
 
           echo "Updated issue #${{ steps.extract-issue.outputs.issue_number }} status to 'In Review'"
         env:
-          # github.token cannot see the private getlantern/engineering repo
+          # the default token lacks access for the cross-repo project update
           GH_TOKEN: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
