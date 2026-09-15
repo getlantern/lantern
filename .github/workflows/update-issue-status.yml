@@ -64,7 +64,7 @@ jobs:
                   }
                 }
               }
-            }' -f repo_owner=getlantern -f repo_name=engineering -F issue_number=${{ steps.extract-issue.outputs.issue_number }} -q '.data.repository.issue.projectItems.nodes[0].id')
+            }' -f repo_owner=getlantern -f repo_name=engineering -F issue_number="$ISSUE_NUMBER" -q '.data.repository.issue.projectItems.nodes[0].id')
 
           if [ -z "$ISSUE_NODE_ID" ]; then
             echo "Issue is not in any project"
@@ -84,7 +84,7 @@ jobs:
                   }
                 }
               }
-            }' -f repo_owner=getlantern -f repo_name=engineering -F issue_number=${{ steps.extract-issue.outputs.issue_number }} -q '.data.repository.issue.projectItems.nodes[0].project.id')
+            }' -f repo_owner=getlantern -f repo_name=engineering -F issue_number="$ISSUE_NUMBER" -q '.data.repository.issue.projectItems.nodes[0].project.id')
 
           # Get the status field ID
           STATUS_FIELD_ID=$(gh api graphql -f query='
@@ -147,7 +147,10 @@ jobs:
               }
             }' -F project_id=$PROJECT_ID -F item_id=$ISSUE_NODE_ID -F field_id=$STATUS_FIELD_ID -f option_id=$IN_REVIEW_OPTION_ID
 
-          echo "Updated issue #${{ steps.extract-issue.outputs.issue_number }} status to 'In Review'"
+          echo "Updated issue #$ISSUE_NUMBER status to 'In Review'"
         env:
+          # env indirection keeps this pull-request-derived value out of
+          # template expansion in the script above
+          ISSUE_NUMBER: ${{ steps.extract-issue.outputs.issue_number }}
           # the default token lacks access for the cross-repo project update
           GH_TOKEN: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
