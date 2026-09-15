@@ -182,39 +182,50 @@ class _CompactProBanner extends StatelessWidget {
             color: isExpired ? context.statusErrorBorder : context.borderPromo,
           ),
         ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(9999),
-          onTap: () => appRouter.push(Plans()),
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                const AppImage(
-                  path: AppImagePaths.crown,
-                  width: 24,
-                  height: 24,
-                  useThemeColor: false,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: AutoSizeText.rich(
-                    TextSpan(
-                      style: textTheme.bodyMedium!.copyWith(color: textColor),
-                      children: [
-                        TextSpan(
-                          text: actionLabel,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(text: ' - $message'),
-                      ],
+        child: MergeSemantics(
+          child: Semantics(
+            button: true,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(9999),
+              onTap: () => appRouter.push(Plans()),
+              child: Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    const ExcludeSemantics(
+                      child: AppImage(
+                        path: AppImagePaths.crown,
+                        width: 24,
+                        height: 24,
+                        useThemeColor: false,
+                      ),
                     ),
-                    maxLines: 1,
-                    minFontSize: 11,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: AutoSizeText.rich(
+                        TextSpan(
+                          style: textTheme.bodyMedium!.copyWith(
+                            color: textColor,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: actionLabel,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(text: ' - $message'),
+                          ],
+                        ),
+                        maxLines: 1,
+                        minFontSize: 11,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

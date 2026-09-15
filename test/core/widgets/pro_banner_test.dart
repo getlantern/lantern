@@ -104,6 +104,16 @@ void main() {
             ? context.bgPromo
             : context.statusErrorBg,
       );
+      expect(
+        tester.getSemantics(find.byType(InkWell)),
+        matchesSemantics(
+          label: 'Renew Pro - $title',
+          isButton: true,
+          hasTapAction: true,
+          hasFocusAction: true,
+          isFocusable: true,
+        ),
+      );
       await tester.tap(find.byType(InkWell));
       expect(router.pushedRoutes, [isA<Plans>()]);
       expect(tester.takeException(), isNull);
@@ -135,6 +145,16 @@ void main() {
       findsOneWidget,
     );
     expect(tester.getSize(find.byType(ProBanner)).height, 56);
+    expect(
+      tester.getSemantics(find.byType(InkWell)),
+      matchesSemantics(
+        label: 'Upgrade to Pro - Custom offer',
+        isButton: true,
+        hasTapAction: true,
+        hasFocusAction: true,
+        isFocusable: true,
+      ),
+    );
     await tester.tap(find.byType(InkWell));
     expect(router.pushedRoutes, [isA<Plans>()]);
     expect(tester.takeException(), isNull);
