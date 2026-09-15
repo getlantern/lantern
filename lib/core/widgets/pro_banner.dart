@@ -31,13 +31,14 @@ class ProBanner extends HookConsumerWidget {
     final isExpired = ref.watch(isUserExpiredProvider);
 
     final textTheme = Theme.of(context).textTheme;
-    // Small screens get the compact one-line
-    // pill upsell instead of the full banner.
     if (isSmallScreen(context)) {
       return _CompactProBanner(
-        isExpired: isExpired,
+        isError: isExpired,
         topMargin: topMargin,
-        title: title,
+        actionLabel: isExpired ? 'renew_pro'.i18n : 'upgrade_to_pro'.i18n,
+        message: isExpired
+            ? 'upsell_expired_suffix'.i18n
+            : title ?? 'upsell_upgrade_suffix'.i18n,
       );
     }
     return Container(
@@ -100,6 +101,17 @@ class ProBanner extends HookConsumerWidget {
     };
 
     final isError = info.state != ProRenewalState.withinWeek;
+    if (isSmallScreen(context)) {
+      return Tooltip(
+        message: '$bannerTitle\n$subtitle',
+        child: _CompactProBanner(
+          isError: isError,
+          topMargin: topMargin,
+          actionLabel: 'renew_pro'.i18n,
+          message: bannerTitle,
+        ),
+      );
+    }
     final textColor = isError ? context.statusErrorText : context.textPrimary;
     final textTheme = Theme.of(context).textTheme;
 
@@ -141,34 +153,31 @@ class ProBanner extends HookConsumerWidget {
   }
 }
 
-/// One-line 40px pill upsell for small screens (engineering#3046, Figma
-/// node 2854-13197). Expired swaps to the status/error palette; the whole
-/// pill opens Plans.
 class _CompactProBanner extends StatelessWidget {
   const _CompactProBanner({
-    required this.isExpired,
+    required this.isError,
     required this.topMargin,
-    this.title,
+    required this.actionLabel,
+    required this.message,
   });
 
-  final bool isExpired;
+  final bool isError;
   final double topMargin;
-  final String? title;
+  final String actionLabel;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final textColor = isExpired
-        ? context.statusErrorText
-        : context.textSecondary;
+    final textColor = isError ? context.statusErrorText : context.textSecondary;
     return Padding(
       padding: EdgeInsets.only(top: topMargin),
       child: Material(
-        color: isExpired ? context.statusErrorBg : context.bgPromo,
+        color: isError ? context.statusErrorBg : context.bgPromo,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(9999),
           side: BorderSide(
-            color: isExpired ? context.statusErrorBorder : context.borderPromo,
+            color: isError ? context.statusErrorBorder : context.borderPromo,
           ),
         ),
         child: InkWell(
@@ -192,15 +201,10 @@ class _CompactProBanner extends StatelessWidget {
                       style: textTheme.bodyMedium!.copyWith(color: textColor),
                       children: [
                         TextSpan(
-                          text: isExpired
-                              ? 'renew_pro'.i18n
-                              : 'upgrade_to_pro'.i18n,
+                          text: actionLabel,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        TextSpan(
-                          text:
-                              ' - ${isExpired ? 'upsell_expired_suffix'.i18n : title ?? 'upsell_upgrade_suffix'.i18n}',
-                        ),
+                        TextSpan(text: ' - $message'),
                       ],
                     ),
                     maxLines: 1,
