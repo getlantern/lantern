@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:ui' show SemanticsAction;
 
 import 'package:flutter/material.dart';
+// The public globe controller has no rotation readout. This deliberate internal
+// import reads RotatingGlobeState; revisit when upgrading flutter_earth_globe.
+import 'package:flutter_earth_globe/rotating_globe.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,6 +13,9 @@ import 'package:http/testing.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/action_mode/action_mode_globe.dart';
+import 'package:lantern/features/action_mode/peer_status_pill.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/action_mode/auto_enable_mode.dart';
@@ -17,13 +23,12 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
 
 class _Share extends ShareNotifier {
+  _Share(this.initialState);
+
+  final ShareState initialState;
+
   @override
-  ShareState build() => const ShareState(
-    active: true,
-    mode: ShareMode.unbounded,
-    activeCount: 9,
-    totalCount: 219,
-  );
+  ShareState build() => initialState;
   @override
   void replayCurrentPeers() {}
   @override
@@ -67,6 +72,12 @@ void main() {
     double scale = 1,
     Brightness brightness = Brightness.light,
     bool animated = false,
+    ShareState shareState = const ShareState(
+      active: true,
+      mode: ShareMode.unbounded,
+      activeCount: 9,
+      totalCount: 219,
+    ),
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -79,7 +90,7 @@ void main() {
         ProviderScope(
           overrides: [
             appSettingProvider.overrideWith(_Settings.new),
-            shareProvider.overrideWith(_Share.new),
+            shareProvider.overrideWith(() => _Share(shareState)),
           ],
           child: ScreenUtilInit(
             designSize: const Size(393, 852),
@@ -112,6 +123,112 @@ void main() {
     } else {
       await tester.pumpAndSettle();
     }
+  }
+
+  for (final mode in [ShareMode.smc, ShareMode.unbounded]) {
+    testWidgets('failed $mode stop is visible and can be retried', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        shareState: ShareState(
+          active: true,
+          mode: mode,
+          phase: mode == ShareMode.smc ? SharePhase.serving : SharePhase.idle,
+          unboundedRunning: mode == ShareMode.unbounded,
+          activeCount: 1,
+          errorMessage: 'backend busy',
+        ),
+        animated: true,
+      );
+      final card = tester.widget<ActionModeStatusCard>(
+        find.byType(ActionModeStatusCard),
+      );
+      expect(card.status, contains('backend busy'));
+      expect(card.hasError, isTrue);
+      expect(card.enabled, isTrue);
+      final toggle = find.byKey(const Key('action-mode.toggle'));
+      await tester.tapAt(tester.getCenter(toggle) - const Offset(20, 0));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(_Share.toggles, 1);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  for (final scale in [1.0, 2.0]) {
+    testWidgets('waiting pill stays below the intro at 320x568, scale $scale', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        size: const Size(320, 568),
+        scale: scale,
+        shareState: const ShareState(active: true, mode: ShareMode.unbounded),
+        animated: true,
+      );
+      expect(tester.takeException(), isNull);
+      final pill = tester.getRect(find.byType(PeerStatusPill));
+      final intro = tester.getRect(find.byType(InfoRow));
+      final status = tester.getRect(find.byType(ActionModeStatusCard));
+      expect(pill.top, greaterThanOrEqualTo(intro.bottom));
+      expect(pill.bottom, lessThanOrEqualTo(status.top));
+      expect(
+        tester.getSize(find.byType(ActionModeGlobe)).height,
+        greaterThan(0),
+      );
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  for (final delta in [const Offset(-8, 0), const Offset(0, -8)]) {
+    testWidgets(
+      'globe owns touch drag $delta inside scroll view and pager',
+      (tester) async {
+        final tabs = TabController(length: 2, vsync: tester);
+        addTearDown(tabs.dispose);
+        await mount(
+          tester,
+          TabBarView(
+            controller: tabs,
+            children: const [ActionModeTab(), SizedBox()],
+          ),
+          animated: true,
+        );
+        final globe = find.byType(RotatingGlobe);
+        final state = tester.state<RotatingGlobeState>(globe);
+        tester.widget<RotatingGlobe>(globe).controller.stopRotation();
+        final before = Offset(state.rotationZ, state.rotationX);
+        final scroll = tester.state<ScrollableState>(
+          find
+              .descendant(
+                of: find.byType(SingleChildScrollView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+        final scrollBefore = scroll.position.pixels;
+        final gesture = await tester.startGesture(tester.getCenter(globe));
+        for (var i = 0; i < 10; i++) {
+          await gesture.moveBy(delta);
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await tester.pump();
+        expect(
+          delta.dx != 0 ? state.rotationZ : state.rotationX,
+          isNot(delta.dx != 0 ? before.dx : before.dy),
+        );
+        expect(scroll.position.pixels, scrollBefore);
+        expect(tabs.animation!.value, 0);
+      },
+      variant: const TargetPlatformVariant({
+        TargetPlatform.iOS,
+        TargetPlatform.android,
+      }),
+    );
   }
 
   ActionModeStatusCard status({bool busy = false, VoidCallback? toggle}) =>

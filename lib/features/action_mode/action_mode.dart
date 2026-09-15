@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,47 +35,42 @@ class ActionModeTab extends HookConsumerWidget {
       return null;
     }, [visible]);
 
-    // The globe fills whatever the cards leave over; the page only scrolls
-    // when the cards alone are taller than the screen.
     return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Padding(
-              padding: const EdgeInsets.all(defaultSize),
-              child: Column(
-                children: [
-                  InfoRow(
-                    text: 'smc_intro'.i18n,
-                    onPressed: () => showActionModeWelcomeDialog(context, ref),
-                  ),
-                  const Expanded(
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned.fill(child: ActionModeGlobe()),
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 8,
-                          child: Center(child: PeerStatusPill()),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _StatusCard(
-                    state: state,
-                    onToggle: () =>
-                        ref.read(shareProvider.notifier).toggle(context, ref),
-                  ),
-                  const SizedBox(height: 8),
-                  const ActionModeAutoEnable(),
-                ],
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          padding: const EdgeInsets.all(defaultSize),
+          child: Column(
+            children: [
+              InfoRow(
+                text: 'smc_intro'.i18n,
+                onPressed: () => showActionModeWelcomeDialog(context, ref),
               ),
-            ),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: math.max(180, constraints.maxHeight - 336),
+                ),
+                child: const Stack(
+                  alignment: Alignment.bottomCenter,
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(child: ActionModeGlobe()),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Center(child: PeerStatusPill()),
+                    ),
+                  ],
+                ),
+              ),
+              _StatusCard(
+                state: state,
+                onToggle: () =>
+                    ref.read(shareProvider.notifier).toggle(context, ref),
+              ),
+              const SizedBox(height: 8),
+              const ActionModeAutoEnable(),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -87,28 +84,29 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasError =
+        state.phase == SharePhase.error ||
+        (state.errorMessage?.isNotEmpty ?? false);
     final error = state.errorMessage != null
         ? 'smc_status_error_with_message'.i18n.fill([state.errorMessage!])
         : 'smc_status_error_generic'.i18n;
 
-    // Three states per spec: Off, Enabled, and Configuring while a start or
-    // probe is in flight. An error while off is terminal and shown as-is.
-    final status = switch (state.mode) {
-      ShareMode.off => switch (state.phase) {
-        SharePhase.error => error,
-        _ =>
-          state.probing ? 'smc_status_configuring'.i18n : 'smc_status_off'.i18n,
-      },
-      ShareMode.unbounded =>
-        state.unboundedRunning
-            ? 'enabled'.i18n
-            : 'unbounded_status_waiting'.i18n,
-      ShareMode.smc => switch (state.phase) {
-        SharePhase.serving => 'enabled'.i18n,
-        SharePhase.error => error,
-        _ => 'smc_status_configuring'.i18n,
-      },
-    };
+    final status = hasError
+        ? error
+        : switch (state.mode) {
+            ShareMode.off =>
+              state.probing
+                  ? 'smc_status_configuring'.i18n
+                  : 'smc_status_off'.i18n,
+            ShareMode.unbounded =>
+              state.unboundedRunning
+                  ? 'enabled'.i18n
+                  : 'unbounded_status_waiting'.i18n,
+            ShareMode.smc => switch (state.phase) {
+              SharePhase.serving => 'enabled'.i18n,
+              _ => 'smc_status_configuring'.i18n,
+            },
+          };
 
     return ActionModeStatusCard(
       status: status,
@@ -117,7 +115,7 @@ class _StatusCard extends StatelessWidget {
           (state.mode == ShareMode.unbounded && state.unboundedRunning) ||
           (state.mode == ShareMode.smc && state.phase == SharePhase.serving),
       busy: state.probing,
-      hasError: state.phase == SharePhase.error,
+      hasError: hasError,
       activeCount: state.activeCount,
       totalCount: state.totalCount,
       onToggle: onToggle,

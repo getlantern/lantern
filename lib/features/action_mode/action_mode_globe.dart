@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' show min;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe.dart';
 import 'package:flutter_earth_globe/flutter_earth_globe_controller.dart';
@@ -259,7 +260,17 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
                 // Keeps high-curving arcs inside the slot.
                 child: ClipRect(
                   child: MediaQuery(
-                    data: MediaQuery.of(context).copyWith(size: widgetSize),
+                    data: MediaQuery.of(context).copyWith(
+                      size: widgetSize,
+                      // Match the parent drag thresholds so the deeper globe
+                      // recognizer wins: scale gestures use twice touchSlop.
+                      gestureSettings: DeviceGestureSettings(
+                        touchSlop:
+                            (MediaQuery.of(context).gestureSettings.touchSlop ??
+                                kTouchSlop) /
+                            2,
+                      ),
+                    ),
                     child: FlutterEarthGlobe(
                       controller: _globeController,
                       radius: radius,
