@@ -21,7 +21,7 @@ enum _SettingType {
   account,
   signIn,
   vpnSetting,
-  unboundedSetting,
+  actionModeSetting,
   language,
   appearance,
   support,
@@ -160,7 +160,7 @@ class _SettingState extends ConsumerState<Setting>
                     label: 'unbounded_settings_title'.i18n,
                     icon: AppImagePaths.handshake,
                     onPressed: () =>
-                        settingMenuTap(_SettingType.unboundedSetting),
+                        settingMenuTap(_SettingType.actionModeSetting),
                   ),
                 ],
                 DividerSpace(),
@@ -304,8 +304,8 @@ class _SettingState extends ConsumerState<Setting>
       case _SettingType.vpnSetting:
         appRouter.push(VPNSetting());
         break;
-      case _SettingType.unboundedSetting:
-        appRouter.push(UnboundedSetting());
+      case _SettingType.actionModeSetting:
+        appRouter.push(ActionModeSetting());
         break;
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.
