@@ -97,7 +97,7 @@ jobs:
             **/gradle-wrapper.properties
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           # The action's default is "tools platform-tools", and Google has
           # removed the legacy "tools" package from the SDK repository, so
