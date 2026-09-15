@@ -15,11 +15,7 @@ class ProBanner extends HookConsumerWidget {
 
   final double topMargin;
 
-  const ProBanner({
-    super.key,
-    this.title,
-    this.topMargin = 16,
-  });
+  const ProBanner({super.key, this.title, this.topMargin = 16});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,11 +24,23 @@ class ProBanner extends HookConsumerWidget {
       return _renewalBanner(context, renewal);
     }
     if (ref.watch(isUserProProvider)) return const SizedBox.shrink();
-    return _upsellBanner(context);
+    return _upsellBanner(context, ref);
   }
 
-  Widget _upsellBanner(BuildContext context) {
+  Widget _upsellBanner(BuildContext context, WidgetRef ref) {
+    final isExpired = ref.watch(isUserExpiredProvider);
+
     final textTheme = Theme.of(context).textTheme;
+    if (isSmallScreen(context)) {
+      return _CompactProBanner(
+        isExpired: isExpired,
+        topMargin: topMargin,
+        actionLabel: isExpired ? 'renew_pro'.i18n : 'upgrade_to_pro'.i18n,
+        message: isExpired
+            ? 'upsell_expired_suffix'.i18n
+            : title ?? 'upsell_upgrade_suffix'.i18n,
+      );
+    }
     return Container(
       margin: EdgeInsets.only(top: topMargin),
       padding: EdgeInsets.all(defaultSize),
@@ -93,6 +101,17 @@ class ProBanner extends HookConsumerWidget {
     };
 
     final isError = info.state != ProRenewalState.withinWeek;
+    if (isSmallScreen(context)) {
+      return Tooltip(
+        message: '$bannerTitle\n$subtitle',
+        child: _CompactProBanner(
+          isExpired: isError,
+          topMargin: topMargin,
+          actionLabel: 'renew_pro'.i18n,
+          message: bannerTitle,
+        ),
+      );
+    }
     final textColor = isError ? context.statusErrorText : context.textPrimary;
     final textTheme = Theme.of(context).textTheme;
 
@@ -129,6 +148,87 @@ class ProBanner extends HookConsumerWidget {
             onPressed: () => appRouter.push(Plans()),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CompactProBanner extends StatelessWidget {
+  const _CompactProBanner({
+    required this.isExpired,
+    required this.topMargin,
+    required this.actionLabel,
+    required this.message,
+  });
+
+  final bool isExpired;
+  final double topMargin;
+  final String actionLabel;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final textColor = isExpired
+        ? context.statusErrorText
+        : context.textSecondary;
+    return Padding(
+      padding: EdgeInsets.only(top: topMargin),
+      child: Material(
+        color: isExpired ? context.statusErrorBg : context.bgPromo,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(9999),
+          side: BorderSide(
+            color: isExpired ? context.statusErrorBorder : context.borderPromo,
+          ),
+        ),
+        child: MergeSemantics(
+          child: Semantics(
+            button: true,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(9999),
+              onTap: () => appRouter.push(Plans()),
+              child: Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    const ExcludeSemantics(
+                      child: AppImage(
+                        path: AppImagePaths.crown,
+                        width: 24,
+                        height: 24,
+                        useThemeColor: false,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: AutoSizeText.rich(
+                        TextSpan(
+                          style: textTheme.bodyMedium!.copyWith(
+                            color: textColor,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: actionLabel,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(text: ' - $message'),
+                          ],
+                        ),
+                        maxLines: 1,
+                        minFontSize: 11,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
