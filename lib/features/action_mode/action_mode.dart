@@ -91,6 +91,9 @@ class _StatusCard extends StatelessWidget {
         ? 'smc_status_error_with_message'.i18n.fill([state.errorMessage!])
         : 'smc_status_error_generic'.i18n;
 
+    // Show Off when disabled, Enabled when ready, and Configuring during startup.
+    // Unbounded shows a waiting status until ready. Errors take precedence,
+    // including failed stops while sharing is still active.
     final status = hasError
         ? error
         : switch (state.mode) {
