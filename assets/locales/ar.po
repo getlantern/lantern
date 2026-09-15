@@ -1875,3 +1875,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "سيتصل %s مباشرة، بدون حماية Lantern. إذا كان محجوبًا في بلدك، فقد يتوقف عن "
 "العمل."
+
+msgid "upsell_upgrade_suffix"
+msgstr "أسرع، بيانات غير محدودة!"
+
+msgid "upsell_expired_suffix"
+msgstr "انتهت صلاحية وقت Pro الخاص بك"
