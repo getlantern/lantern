@@ -141,4 +141,5 @@ jobs:
 
           echo "Updated issue #${{ steps.extract-issue.outputs.issue_number }} status to 'In Review'"
         env:
-          GH_TOKEN: ${{ github.token }}
+          # github.token cannot see the private getlantern/engineering repo
+          GH_TOKEN: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
