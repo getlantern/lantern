@@ -13,10 +13,23 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
   private var pendingEvents: [[String: Any?]] = []
   private let lock = NSLock()
 
+  /// Frequent event diagnostics use opt-in trace logging.
+  private static let highVolumeEvents: Set<String> = [
+    "peer-connection",
+    "data-cap-event",
+  ]
+
   func send(_ event: UtilsFlutterEvent?) {
     guard let event = event else { return }
 
-    appLogger.log("FlutterEventListener sending event: \(event.type) - \(event.message)")
+    func logEvent(_ message: @autoclosure () -> String) {
+      if Self.highVolumeEvents.contains(event.type) {
+        appLogger.trace(message())
+      } else {
+        appLogger.log(message())
+      }
+    }
+    logEvent("FlutterEventListener sending event: \(event.type) - \(event.message)")
     let map: [String: Any] = [
       "type": event.type,
       "message": event.message,
@@ -25,13 +38,12 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
     lock.lock()
     if let sink = eventSink {
       lock.unlock()
-      appLogger.log("FlutterEventListener sending event immediately: \(map)")
+      logEvent("FlutterEventListener sending event immediately: \(map)")
       DispatchQueue.main.async {
         sink(map)
       }
     } else {
-      // Buffer it
-      appLogger.log("FlutterEventListener buffering event: \(map)")
+      logEvent("FlutterEventListener buffering event: \(event.type)")
       pendingEvents.append(map)
       lock.unlock()
     }

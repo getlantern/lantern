@@ -1,27 +1,45 @@
+import 'dart:convert';
 import 'dart:ui' show SemanticsAction;
+
 import 'package:flutter/material.dart';
+// The public globe controller has no rotation readout. This deliberate internal
+// import reads RotatingGlobeState; revisit when upgrading flutter_earth_globe.
+import 'package:flutter_earth_globe/rotating_globe.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/action_mode/action_mode_globe.dart';
+import 'package:lantern/features/action_mode/peer_status_pill.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/features/share_my_connection/action_mode_widgets.dart';
-import 'package:lantern/features/share_my_connection/share_my_connection.dart';
+import 'package:lantern/features/action_mode/action_mode_widgets.dart';
+import 'package:lantern/features/action_mode/auto_enable_mode.dart';
+import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+import 'package:lantern/features/action_mode/action_mode.dart';
 
 class _Share extends ShareNotifier {
+  _Share(this.initialState);
+
+  final ShareState initialState;
+
   @override
-  ShareState build() => const ShareState(
-    active: true,
-    mode: ShareMode.unbounded,
-    activeCount: 9,
-    totalCount: 219,
-  );
+  ShareState build() => initialState;
   @override
   void replayCurrentPeers() {}
   @override
   Future<bool> ensureConsent(BuildContext context) async => consent;
+  @override
+  Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
+    toggles++;
+  }
+
   static bool consent = true;
+  static int toggles = 0;
 }
 
 class _Settings extends AppSettingNotifier {
@@ -42,7 +60,10 @@ class _Settings extends AppSettingNotifier {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(Localization.loadTranslations);
-  setUp(() => _Share.consent = true);
+  setUp(() {
+    _Share.consent = true;
+    _Share.toggles = 0;
+  });
 
   Future<void> mount(
     WidgetTester tester,
@@ -51,31 +72,49 @@ void main() {
     double scale = 1,
     Brightness brightness = Brightness.light,
     bool animated = false,
+    ShareState shareState = const ShareState(
+      active: true,
+      mode: ShareMode.unbounded,
+      activeCount: 9,
+      totalCount: 219,
+    ),
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          appSettingProvider.overrideWith(_Settings.new),
-          shareProvider.overrideWith(_Share.new),
-        ],
-        child: ScreenUtilInit(
-          designSize: const Size(393, 852),
-          child: MaterialApp(
-            theme: brightness == Brightness.dark
-                ? AppTheme.darkTheme()
-                : AppTheme.appTheme(),
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(scale)),
-              child: child!,
+    // The globe's origin lookup goes through package:http; answer it locally
+    // so the test never touches the network.
+    await http.runWithClient(
+      () => tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appSettingProvider.overrideWith(_Settings.new),
+            shareProvider.overrideWith(() => _Share(shareState)),
+          ],
+          child: ScreenUtilInit(
+            designSize: const Size(393, 852),
+            child: MaterialApp(
+              theme: brightness == Brightness.dark
+                  ? AppTheme.darkTheme()
+                  : AppTheme.appTheme(),
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: TextScaler.linear(scale)),
+                child: child!,
+              ),
+              home: Scaffold(body: child),
             ),
-            home: Scaffold(body: child),
           ),
+        ),
+      ),
+      () => MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'Location': {'Latitude': 37.77, 'Longitude': -122.41},
+          }),
+          200,
         ),
       ),
     );
@@ -84,6 +123,112 @@ void main() {
     } else {
       await tester.pumpAndSettle();
     }
+  }
+
+  for (final mode in [ShareMode.smc, ShareMode.unbounded]) {
+    testWidgets('failed $mode stop is visible and can be retried', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        shareState: ShareState(
+          active: true,
+          mode: mode,
+          phase: mode == ShareMode.smc ? SharePhase.serving : SharePhase.idle,
+          unboundedRunning: mode == ShareMode.unbounded,
+          activeCount: 1,
+          errorMessage: 'backend busy',
+        ),
+        animated: true,
+      );
+      final card = tester.widget<ActionModeStatusCard>(
+        find.byType(ActionModeStatusCard),
+      );
+      expect(card.status, contains('backend busy'));
+      expect(card.hasError, isTrue);
+      expect(card.enabled, isTrue);
+      final toggle = find.byKey(const Key('action-mode.toggle'));
+      await tester.tapAt(tester.getCenter(toggle) - const Offset(20, 0));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(_Share.toggles, 1);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  for (final scale in [1.0, 2.0]) {
+    testWidgets('waiting pill stays below the intro at 320x568, scale $scale', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        size: const Size(320, 568),
+        scale: scale,
+        shareState: const ShareState(active: true, mode: ShareMode.unbounded),
+        animated: true,
+      );
+      expect(tester.takeException(), isNull);
+      final pill = tester.getRect(find.byType(PeerStatusPill));
+      final intro = tester.getRect(find.byType(InfoRow));
+      final status = tester.getRect(find.byType(ActionModeStatusCard));
+      expect(pill.top, greaterThanOrEqualTo(intro.bottom));
+      expect(pill.bottom, lessThanOrEqualTo(status.top));
+      expect(
+        tester.getSize(find.byType(ActionModeGlobe)).height,
+        greaterThan(0),
+      );
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  for (final delta in [const Offset(-8, 0), const Offset(0, -8)]) {
+    testWidgets(
+      'globe owns touch drag $delta inside scroll view and pager',
+      (tester) async {
+        final tabs = TabController(length: 2, vsync: tester);
+        addTearDown(tabs.dispose);
+        await mount(
+          tester,
+          TabBarView(
+            controller: tabs,
+            children: const [ActionModeTab(), SizedBox()],
+          ),
+          animated: true,
+        );
+        final globe = find.byType(RotatingGlobe);
+        final state = tester.state<RotatingGlobeState>(globe);
+        tester.widget<RotatingGlobe>(globe).controller.stopRotation();
+        final before = Offset(state.rotationZ, state.rotationX);
+        final scroll = tester.state<ScrollableState>(
+          find
+              .descendant(
+                of: find.byType(SingleChildScrollView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+        final scrollBefore = scroll.position.pixels;
+        final gesture = await tester.startGesture(tester.getCenter(globe));
+        for (var i = 0; i < 10; i++) {
+          await gesture.moveBy(delta);
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await tester.pump();
+        expect(
+          delta.dx != 0 ? state.rotationZ : state.rotationX,
+          isNot(delta.dx != 0 ? before.dx : before.dy),
+        );
+        expect(scroll.position.pixels, scrollBefore);
+        expect(tabs.animation!.value, 0);
+      },
+      variant: const TargetPlatformVariant({
+        TargetPlatform.iOS,
+        TargetPlatform.android,
+      }),
+    );
   }
 
   ActionModeStatusCard status({bool busy = false, VoidCallback? toggle}) =>
@@ -139,7 +284,7 @@ void main() {
     (tester) async {
       await mount(
         tester,
-        const UnboundedTab(),
+        const ActionModeTab(),
         size: const Size(360, 640),
         scale: 2,
         animated: true,
@@ -201,32 +346,32 @@ void main() {
   for (final scale in [1.0, 2.0]) {
     for (final brightness in Brightness.values) {
       testWidgets(
-        'controls remain usable at 360x640, scale $scale, $brightness',
+        'Action Mode tab controls stay usable at 360x640, scale $scale, $brightness',
         (tester) async {
-          var about = 0;
           await mount(
             tester,
-            ActionModePanel(
-              autoEnable: const ActionModeAutoEnable(),
-              globe: const SizedBox(),
-              statusCard: status(),
-              onAbout: () => about++,
-            ),
+            const ActionModeTab(),
             size: const Size(360, 640),
             scale: scale,
             brightness: brightness,
+            animated: true,
           );
-          await tester.tap(
-            find.text(
-              'Help others bypass censorship by securely sharing your connection.',
-            ),
-          );
-          expect(about, 1);
-          await tester.ensureVisible(find.byType(Checkbox));
-          await tester.tap(find.byType(Checkbox));
-          await tester.pumpAndSettle();
-          expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+          final toggle = find.byKey(const Key('action-mode.toggle'));
+          await tester.ensureVisible(toggle);
+          await tester.pump(const Duration(milliseconds: 300));
+          // Sharing is on, so the knob sits right; tapping the current side
+          // is a no-op for the switch. Tap the off side to toggle.
+          await tester.tapAt(tester.getCenter(toggle) - const Offset(20, 0));
+          await tester.pump(const Duration(milliseconds: 300));
+          expect(_Share.toggles, 1);
+          final checkbox = find.byKey(const Key('action-mode.auto-enable'));
+          await tester.ensureVisible(checkbox);
+          await tester.pump(const Duration(milliseconds: 300));
+          await tester.tap(checkbox);
+          await tester.pump(const Duration(milliseconds: 300));
+          expect(tester.widget<Checkbox>(checkbox).value, isTrue);
           expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox());
         },
       );
     }

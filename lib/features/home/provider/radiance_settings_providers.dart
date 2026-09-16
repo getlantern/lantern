@@ -137,7 +137,7 @@ class RadianceSettings extends _$RadianceSettings {
 
   /// Mirror of setPeerProxy for the Unbounded toggle. Returns the
   /// Either so callers can react to failure (the Unbounded enable
-  /// path in share_my_connection.dart uses this for UI rollback).
+  /// path in ShareNotifier uses this for UI rollback).
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool value) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setUnboundedEnabled(value);

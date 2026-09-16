@@ -42,6 +42,15 @@ class LanternLogger {
     }
   }
 
+  private let traceEnabled = ProcessInfo.processInfo.environment["LANTERN_TRACE_LOGS"] == "true"
+
+  func trace(_ message: @autoclosure () -> String) {
+    guard traceEnabled else { return }
+    let text = message()
+    logger.debug("\(text, privacy: .public)")
+    writeToFile("[TRACE] \(text)")
+  }
+
   func log(_ message: String) {
     logger.debug("\(message, privacy: .public)")
     writeToFile("[DEBUG] \(message)")
