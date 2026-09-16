@@ -1930,3 +1930,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s vai se conectar diretamente, sem a proteção do Lantern. Se ele estiver "
 "bloqueado no seu país, pode parar de funcionar."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Mais rápido, dados ilimitados!"
+
+msgid "upsell_expired_suffix"
+msgstr "Seu tempo Pro expirou"

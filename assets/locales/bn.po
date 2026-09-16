@@ -1912,3 +1912,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s সরাসরি সংযোগ করবে, Lantern-এর সুরক্ষা ছাড়া। এটি আপনার দেশে ব্লক করা "
 "থাকলে, এটি কাজ করা বন্ধ করে দিতে পারে।"
+
+msgid "upsell_upgrade_suffix"
+msgstr "দ্রুত গতি, আনলিমিটেড ডেটা!"
+
+msgid "upsell_expired_suffix"
+msgstr "আপনার Pro সময় শেষ হয়ে গেছে"

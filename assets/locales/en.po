@@ -292,6 +292,18 @@ msgstr "Slow"
 msgid "cannot_link_devices"
 msgstr "Cannot link devices"
 
+msgid "split_tunnel"
+msgstr "Split tunneling does not work"
+
+msgid "smart_routing_not_working"
+msgstr "Smart routing does not work"
+
+msgid "server_selection_not_working"
+msgstr "Server selection does not work"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro upgrade unsuccessful"
+
 msgid "wrong_device_linking_code"
 msgstr "Wrong or invalid device linking code"
 
@@ -1935,6 +1947,12 @@ msgstr "Bypass the VPN for this website?"
 msgid "bypass_website_first_time_body"
 msgstr "%s will connect directly, without Lantern's protection. If it's blocked in your country, it may stop working."
 
+msgid "upsell_upgrade_suffix"
+msgstr "Faster, unlimited data!"
+
+msgid "upsell_expired_suffix"
+msgstr "Your Pro time has expired"
+
 msgid "pro_expires_days_left"
 msgstr "Pro expires %s, %s days left"
 
@@ -1981,4 +1999,4 @@ msgid "dismiss"
 msgstr "Dismiss"
 
 msgid "unbounded_status_waiting"
-msgstr "Waiting to start — Unbounded"
+msgstr "Waiting to start"

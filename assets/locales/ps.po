@@ -1940,3 +1940,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s به مستقیم وصل شي، د Lantern له ساتنې پرته. که ستاسو په هېواد کې بنده وي، "
 "ښایي کار ونه کړي."
+
+msgid "upsell_upgrade_suffix"
+msgstr "ګړندي، نامحدوده ډیټا!"
+
+msgid "upsell_expired_suffix"
+msgstr "ستاسو د Pro وخت پای ته ورسېد"

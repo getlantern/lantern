@@ -35,7 +35,7 @@ runs:
         build-scan-publish: false
 
     - name: Set up Android SDK
-      uses: android-actions/setup-android@v3
+      uses: android-actions/setup-android@v4
       with:
         # The Makefile installs the required SDK packages.
         packages: ""

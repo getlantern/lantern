@@ -416,10 +416,9 @@ jobs:
           exit 1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: go.mod
-          cache: false
+          cache-scope: release-preflight
 
       - name: Verify Go dependencies
         run: |

@@ -1895,3 +1895,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s Lantern-iň goragy bolmazdan göni birigär. Ýurduňyzda petiklenen bolsa, "
 "işlemegini bes edip biler."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Has çalt, çäksiz maglumat!"
+
+msgid "upsell_expired_suffix"
+msgstr "Pro wagtyňyzyň möhleti gutardy"

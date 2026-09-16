@@ -52,20 +52,14 @@ class LocationSetting extends HookConsumerWidget {
       value: value.i18n,
       subtitle: protocol,
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
+      // Small screens drop the > chevron; the row stays tappable via onTap.
       actions: [
         if (serverType == ServerLocationType.auto)
           AppImage(path: AppImagePaths.blot, useThemeColor: false),
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: () => appRouter.push(const ServerSelection()),
-          style: ElevatedButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          icon: AppImage(path: AppImagePaths.arrowForward),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          visualDensity: VisualDensity.compact,
-        ),
+        if (!isSmallScreen(context)) ...[
+          const SizedBox(width: 8),
+          const AppImage(path: AppImagePaths.arrowForward),
+        ],
       ],
       onTap: () => appRouter.push(const ServerSelection()),
     );

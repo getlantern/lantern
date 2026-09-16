@@ -200,7 +200,14 @@ ANDROID_CMAKE_VERSION        ?= 3.31.5
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
 ANDROID_PLATFORM             ?= android-36
 ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
-SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager
+# setup-android installs cmdline-tools under a revision directory and falls back
+# to cmdline-tools/latest only when the preinstalled revision already matches, so
+# "latest" is not necessarily the toolchain the workflow selected. It does always
+# put its choice on PATH. Take that, but only from inside this SDK: sdkmanager
+# installs relative to its own location, so an unrelated one would populate a
+# different SDK than the rest of the build uses.
+SDKMANAGER_IN_SDK            := $(filter $(ANDROID_SDK_ROOT)/%,$(shell command -v sdkmanager 2>/dev/null))
+SDKMANAGER                   := $(or $(SDKMANAGER_IN_SDK),$(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager)
 ANDROID_DEBUG_FLUTTER_FLAGS  ?= --verbose
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
