@@ -8,6 +8,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
+import 'package:lantern/core/services/rating_prompt_service.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
@@ -19,6 +20,9 @@ part 'vpn_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class VpnNotifier extends _$VpnNotifier {
   bool _hasStatusStreamEmission = false;
+
+  RatingPromptService? get _ratingPrompt =>
+      sl.isRegistered<RatingPromptService>() ? sl<RatingPromptService>() : null;
 
   @override
   VPNStatus build() {
@@ -63,6 +67,9 @@ class VpnNotifier extends _$VpnNotifier {
       final statusChanged = !isFirstEvent && previousStatus != nextStatus;
 
       if (statusChanged) {
+        if (nextStatus == VPNStatus.disconnected) {
+          unawaited(_ratingPrompt?.onDisconnected());
+        }
         if (previousStatus != VPNStatus.connecting &&
             nextStatus == VPNStatus.disconnected) {
           if (!suppressConnectionNotifications) {
@@ -87,6 +94,7 @@ class VpnNotifier extends _$VpnNotifier {
 
         /// Mark successful connection in app settings
         ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
+        unawaited(_ratingPrompt?.onConnected());
 
         if (statusChanged && !suppressConnectionNotifications) {
           sl<NotificationService>().showNotification(
@@ -139,7 +147,11 @@ class VpnNotifier extends _$VpnNotifier {
       return Right("");
     }
     appLogger.info("VPN State Change requested. Current state: $state");
-    return state == VPNStatus.connected ? stopVPN() : startVPN();
+    if (state == VPNStatus.connected) {
+      unawaited(_ratingPrompt?.onUserDisconnected());
+      return stopVPN();
+    }
+    return startVPN();
   }
 
   /// Starts the VPN connection.
