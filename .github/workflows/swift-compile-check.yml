@@ -70,7 +70,14 @@ jobs:
 
   macos-compile-check:
     needs: plan
-    if: needs.plan.outputs.macos_needed == 'true'
+    # Fail closed. A plain `if` on a needs-output skips this job whenever the
+    # planner doesn't succeed -- a force-pushed base making base.sha
+    # unreachable, a red planner unit test, an uncaught exception in
+    # swift_ci.py -- and a skipped native check reports green. That is the
+    # break this workflow exists to catch (engineering#3850), so treat a
+    # planner that did not succeed as "build" rather than "skip".
+    # !cancelled() rather than always(), so cancelling the run still cancels.
+    if: ${{ !cancelled() && (needs.plan.result != 'success' || needs.plan.outputs.macos_needed == 'true') }}
     name: macOS (Runner + PacketTunnel + RunnerTests)
     runs-on: macos-15
     timeout-minutes: 60
@@ -193,7 +200,14 @@ jobs:
 
   ios-compile-check:
     needs: plan
-    if: needs.plan.outputs.ios_needed == 'true'
+    # Fail closed. A plain `if` on a needs-output skips this job whenever the
+    # planner doesn't succeed -- a force-pushed base making base.sha
+    # unreachable, a red planner unit test, an uncaught exception in
+    # swift_ci.py -- and a skipped native check reports green. That is the
+    # break this workflow exists to catch (engineering#3850), so treat a
+    # planner that did not succeed as "build" rather than "skip".
+    # !cancelled() rather than always(), so cancelling the run still cancels.
+    if: ${{ !cancelled() && (needs.plan.result != 'success' || needs.plan.outputs.ios_needed == 'true') }}
     name: iOS (Runner + Tunnel, simulator)
     runs-on: macos-26
     timeout-minutes: 60
