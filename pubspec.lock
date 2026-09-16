@@ -801,7 +801,7 @@ packages:
     source: hosted
     version: "9.2.1"
   gettext_parser:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: gettext_parser
       sha256: "9565c9dd1033ec125e1fbc7ccba6c0d2d753dd356122ba1a17e6aa7dc868f34a"

@@ -5,10 +5,8 @@ name: Swift Compile Check
 
 on:
   workflow_dispatch:
-  # Deliberately unfiltered. The planner below decides per platform from the
-  # actual input tree, which is both more precise than path globs (a Makefile
-  # edit no longer implies a Swift rebuild by itself) and more honest: every PR
-  # gets an explicit skipped or completed native check rather than a missing one.
+  # The planner compares build inputs for each platform. Keep the trigger
+  # unfiltered so every PR gets an explicit skipped or completed native check.
   pull_request:
 
 concurrency:
