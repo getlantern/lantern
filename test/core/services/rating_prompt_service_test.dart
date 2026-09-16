@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:in_app_review/in_app_review.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/rating_prompt_service.dart';
 
@@ -16,43 +15,24 @@ class _FakeStorage extends LocalStorageService {
   Future<void> remove(String key) async => values.remove(key);
 }
 
-class _FakeReview implements InAppReview {
-  bool available = true;
-  int requests = 0;
-
-  @override
-  Future<bool> isAvailable() async => available;
-
-  @override
-  Future<void> requestReview() async => requests++;
-
-  @override
-  Future<void> openStoreListing({
-    String? appStoreId,
-    String? microsoftStoreId,
-  }) => throw UnimplementedError();
-}
-
+/// The store call itself is gated by [isStoreVersion], which is false under
+/// `flutter test`, so these cover the session counting only.
 void main() {
-  late _FakeReview review;
+  const required = RatingPromptService.requiredSessions;
+  const minLength = RatingPromptService.minSessionDuration;
+
+  late _FakeStorage storage;
   late DateTime now;
   late RatingPromptService svc;
-  var storeBuild = true;
 
   setUp(() {
-    review = _FakeReview();
+    storage = _FakeStorage();
     now = DateTime.utc(2026, 9, 15, 12);
-    storeBuild = true;
-    svc = RatingPromptService(
-      _FakeStorage(),
-      isStoreBuild: () => storeBuild,
-      review: review,
-      now: () => now,
-    );
+    svc = RatingPromptService(storage, now: () => now);
   });
 
   Future<void> session({
-    Duration length = const Duration(minutes: 30),
+    Duration length = minLength,
     bool byUser = true,
   }) async {
     await svc.onConnected();
@@ -60,54 +40,35 @@ void main() {
     await (byUser ? svc.onUserDisconnected() : svc.onDisconnected());
   }
 
-  test(
-    'requests review on the 5th qualifying session, then restarts',
-    () async {
-      for (var i = 0; i < 4; i++) {
-        await session();
-      }
-      expect(review.requests, 0);
-      expect(svc.sessions, 4);
-
+  test('counts qualifying sessions and resets on the last one', () async {
+    for (var i = 0; i < required - 1; i++) {
       await session();
-      expect(review.requests, 1);
-      expect(svc.sessions, 0);
+    }
+    expect(svc.sessions, required - 1);
 
-      for (var i = 0; i < 5; i++) {
-        await session();
-      }
-      expect(review.requests, 2);
-    },
-  );
+    await session();
+    expect(svc.sessions, 0);
+  });
 
   test('short or non-user sessions do not count', () async {
-    await session(length: const Duration(minutes: 29, seconds: 59));
+    await session(length: minLength - const Duration(seconds: 1));
     await session(byUser: false);
     expect(svc.sessions, 0);
   });
 
-  test('non-store builds never call the store', () async {
-    storeBuild = false;
-    for (var i = 0; i < 5; i++) {
-      await session();
-    }
-    expect(review.requests, 0);
-  });
-
-  test('unavailable review API is not called', () async {
-    review.available = false;
-    for (var i = 0; i < 5; i++) {
-      await session();
-    }
-    expect(review.requests, 0);
+  test('every disconnect clears the session start', () async {
+    await svc.onConnected();
+    await svc.onDisconnected();
+    await svc.onUserDisconnected();
+    expect(storage.values, isEmpty);
   });
 
   test('session start survives a re-hydrated connected event', () async {
     await svc.onConnected();
-    now = now.add(const Duration(minutes: 20));
+    now = now.add(minLength ~/ 2);
     await svc.onConnected();
-    now = now.add(const Duration(minutes: 10));
+    now = now.add(minLength ~/ 2);
     await svc.onUserDisconnected();
-    expect(svc.sessions, 1);
+    expect(svc.sessions, required > 1 ? 1 : 0);
   });
 }

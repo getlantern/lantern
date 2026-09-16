@@ -13,8 +13,8 @@ class RatingPromptService {
   }) : _review = review ?? InAppReview.instance,
        _now = now ?? DateTime.now;
 
-  static const int requiredSessions = 2;
-  static const Duration minSessionDuration = Duration(seconds: 20);
+  static const int requiredSessions = 5;
+  static const Duration minSessionDuration = Duration(seconds: 30);
 
   static const _sessionsKey = 'rating_prompt_sessions';
   static const _connectedAtKey = 'rating_prompt_connected_at';
