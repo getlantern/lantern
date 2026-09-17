@@ -26,9 +26,11 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
     ]
     post_count = 0
     get_count = 0
+    user_agents: list[str] = []
 
     def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
         self.__class__.post_count += 1
+        self.user_agents.append(self.headers.get("User-Agent", ""))
         length = int(self.headers["Content-Length"])
         body = json.loads(self.rfile.read(length))
         tags = body.get("tags", {})
@@ -56,6 +58,7 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
         self.__class__.get_count += 1
+        self.user_agents.append(self.headers.get("User-Agent", ""))
         if self.path.endswith("channel=beta"):
             self.write_xml(
                 self.appcast_xml(
@@ -128,6 +131,7 @@ class VerifyUpdateServiceTest(unittest.TestCase):
         ]
         UpdateServiceHandler.post_count = 0
         UpdateServiceHandler.get_count = 0
+        UpdateServiceHandler.user_agents = []
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), UpdateServiceHandler)
         self.thread = threading.Thread(target=self.server.serve_forever)
         self.thread.start()
@@ -165,6 +169,18 @@ class VerifyUpdateServiceTest(unittest.TestCase):
                 platforms=verify_update_service.normalize_platforms("all"),
                 sparkle_version="9.2.0-beta",
             )
+        )
+
+    def test_requests_identify_the_lantern_verifier(self) -> None:
+        status, _ = verify_update_service.request_update(self.update_url, "0.0.0", {})
+        self.assertEqual(status, 200)
+        status, _ = verify_update_service.request_text(
+            verify_update_service.appcast_url(self.update_url, "beta")
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(
+            UpdateServiceHandler.user_agents,
+            [verify_update_service.USER_AGENT, verify_update_service.USER_AGENT],
         )
 
     def test_run_checks_once_accepts_single_platform_appcast_release(self) -> None:

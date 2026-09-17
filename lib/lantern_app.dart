@@ -10,12 +10,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/user_message/user_message_action_dispatcher.dart';
 import 'package:lantern/features/user_message/user_message_host.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -59,6 +61,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void initLifecycleListener() {
     _lifecycle = AppLifecycleListener(
+      onResume: _retryPendingUpdateCheck,
       onExitRequested: () async {
         appLogger.info("Exit requested");
         await ref
@@ -68,6 +71,10 @@ class _LanternAppState extends ConsumerState<LanternApp>
         return AppExitResponse.exit;
       },
     );
+  }
+
+  void _retryPendingUpdateCheck() {
+    if (sl.isRegistered<Updater>()) sl<Updater>().retryPendingCheck();
   }
 
   @override
@@ -231,6 +238,11 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(vpnProvider, (previous, next) {
+      if (next == VPNStatus.connected && previous != next) {
+        _retryPendingUpdateCheck();
+      }
+    });
     final appSetting = ref.watch(appSettingProvider);
     final locale = appSetting.locale;
     final isStaging = appSetting.isStaging;

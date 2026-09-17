@@ -16,6 +16,7 @@ from defusedxml.common import DefusedXmlException
 
 
 SPARKLE_NS = "http://www.andymatuschak.org/xml-namespaces/sparkle"
+USER_AGENT = "Lantern-Update-Check/1.0"
 KNOWN_PLATFORMS = frozenset({"android", "ios", "linux", "macos", "windows"})
 JSON_UPDATE_PLATFORMS = {
     "android": {"os": "android", "arch": "arm64", "suffix": ".apk"},
@@ -79,7 +80,7 @@ def request_update(update_url: str, app_version: str, tags: dict[str, str]) -> t
     request = urllib.request.Request(
         update_url,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers={"Content-Type": "application/json", "User-Agent": USER_AGENT},
         method="POST",
     )
     try:
@@ -99,8 +100,9 @@ def request_update(update_url: str, app_version: str, tags: dict[str, str]) -> t
 
 
 def request_text(url: str) -> tuple[int, str]:
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     try:
-        with urllib.request.urlopen(url, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:
             return response.status, response.read().decode("utf-8")
     except urllib.error.HTTPError as err:
         return err.code, err.read().decode("utf-8", errors="replace")
