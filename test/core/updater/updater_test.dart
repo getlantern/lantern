@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/updater.dart';
+import 'package:lantern/core/updater/desktop_update_relay.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
 class _FakeAutoUpdater implements AutoUpdater {
@@ -13,6 +14,7 @@ class _FakeAutoUpdater implements AutoUpdater {
   final checks = <bool?>[];
   int configurations = 0;
   int? interval;
+  String? feedURL;
   Object? configurationError;
   Object? checkError;
   Completer<void>? pendingCheck;
@@ -25,6 +27,7 @@ class _FakeAutoUpdater implements AutoUpdater {
 
   @override
   Future<void> setFeedURL(String url) async {
+    feedURL = url;
     configurations++;
     if (configurationError != null) throw configurationError!;
   }
@@ -42,13 +45,36 @@ class _FakeAutoUpdater implements AutoUpdater {
   void fail() {
     for (final listener in listeners) {
       listener.onUpdaterError(null);
+      (listener as UpdaterLifecycleListener).onUpdaterUpdateCycleFinished(
+        UpdaterError('Network unavailable'),
+      );
     }
   }
 
   void succeed() {
     for (final listener in listeners) {
       listener.onUpdaterUpdateNotAvailable(null);
+      (listener as UpdaterLifecycleListener).onUpdaterUpdateCycleFinished(null);
     }
+  }
+}
+
+class _FakeUpdateRelay implements DesktopUpdateRelay {
+  int starts = 0;
+  int closes = 0;
+  Completer<String>? pending;
+  Object? error;
+
+  @override
+  Future<String> start(String feedUrl) async {
+    starts++;
+    if (error != null) throw error!;
+    return pending?.future ?? 'http://127.0.0.1:12345/token/appcast.xml';
+  }
+
+  @override
+  Future<void> close() async {
+    closes++;
   }
 }
 
@@ -60,8 +86,10 @@ class _FakeLanternService implements LanternService {
 Updater _desktopUpdater(
   _FakeAutoUpdater native, {
   Future<Map<String, dynamic>> Function()? loadFeatureFlags,
+  _FakeUpdateRelay? relay,
 }) => Updater(
   autoUpdater: native,
+  updateRelay: relay ?? _FakeUpdateRelay(),
   platform: TargetPlatform.macOS,
   isDebugMode: false,
   now: TestWidgetsFlutterBinding.ensureInitialized().clock.now,
@@ -85,7 +113,8 @@ void main() {
       await tester.pump(Updater.startupDelay);
 
       expect(native.checks, [true]);
-      expect(native.interval, 3600);
+      expect(native.interval, 0);
+      expect(native.feedURL, 'http://127.0.0.1:12345/token/appcast.xml');
       expect(native.configurations, 1);
     });
 
@@ -134,8 +163,10 @@ void main() {
       expect(flagReads, 1);
       flags.complete({FeatureFlag.autoUpdateEnabled.key: false});
       await tester.pump();
+      native.succeed();
       await updater.checkNow();
       expect(native.checks, [true, true]);
+      updater.dispose();
     });
 
     testWidgets('keeps the last flag value when a later read fails', (
@@ -160,6 +191,7 @@ void main() {
 
       expect(native.configurations, 0);
       expect(native.checks, isEmpty);
+      updater.dispose();
     });
 
     testWidgets(
@@ -183,36 +215,35 @@ void main() {
       },
     );
 
-    testWidgets(
-      'keeps retrying setup hourly until native scheduling is available',
-      (tester) async {
-        final native = _FakeAutoUpdater()
-          ..configurationError = StateError('bridge unavailable');
-        final updater = _desktopUpdater(native);
-        addTearDown(updater.dispose);
-        await updater.init();
-        await tester.pump(Updater.startupDelay);
-        for (final minutes in [1, 5, 15]) {
-          await tester.pump(Duration(minutes: minutes));
-        }
-        expect(native.configurations, 4);
+    testWidgets('retries setup and schedules hourly checks after recovery', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater()
+        ..configurationError = StateError('bridge unavailable');
+      final updater = _desktopUpdater(native);
+      addTearDown(updater.dispose);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      for (final minutes in [1, 5, 15]) {
+        await tester.pump(Duration(minutes: minutes));
+      }
+      expect(native.configurations, 4);
 
-        await tester.pump(const Duration(hours: 1));
-        expect(native.configurations, 5);
-        native.configurationError = null;
-        await tester.pump(const Duration(hours: 1));
-        expect(native.configurations, 6);
-        expect(native.checks, [true]);
-        expect(native.interval, 3600);
-        expect(native.listeners, [updater]);
-        native.succeed();
-        await tester.pump(const Duration(hours: 1));
-        expect(native.configurations, 6);
-        expect(native.checks, [true]);
-      },
-    );
+      await tester.pump(const Duration(hours: 1));
+      expect(native.configurations, 5);
+      native.configurationError = null;
+      await tester.pump(const Duration(hours: 1));
+      expect(native.configurations, 6);
+      expect(native.checks, [true]);
+      expect(native.interval, 0);
+      expect(native.listeners, [updater]);
+      native.succeed();
+      await tester.pump(const Duration(hours: 1));
+      expect(native.configurations, 6);
+      expect(native.checks, [true, true]);
+    });
 
-    testWidgets('backs off native errors and stops after three retries', (
+    testWidgets('backs off native errors then returns to hourly checks', (
       tester,
     ) async {
       final native = _FakeAutoUpdater();
@@ -233,9 +264,11 @@ void main() {
         expect(native.checks.length, ++expectedChecks);
       }
       native.fail();
-      await tester.pump(const Duration(hours: 2));
+      await tester.pump(const Duration(minutes: 59));
       expect(native.checks.length, 4);
-      expect(native.interval, 3600);
+      await tester.pump(const Duration(minutes: 1));
+      expect(native.checks.length, 5);
+      expect(native.interval, 0);
     });
 
     testWidgets('a successful result resets the retry budget', (tester) async {
@@ -247,13 +280,14 @@ void main() {
       native.fail();
       await tester.pump(const Duration(minutes: 1));
       native.succeed();
+      await updater.checkNow();
       native.fail();
       await tester.pump(const Duration(minutes: 1));
 
-      expect(native.checks.length, 3);
+      expect(native.checks.length, 4);
     });
 
-    testWidgets('Sparkle no-update error does not retry a successful check', (
+    testWidgets('no-update completion waits for the next hourly check', (
       tester,
     ) async {
       final native = _FakeAutoUpdater();
@@ -263,29 +297,25 @@ void main() {
       await tester.pump(Updater.startupDelay);
       updater.onUpdaterCheckingForUpdate(null);
       updater.onUpdaterUpdateNotAvailable(UpdaterError('Already up to date'));
-      updater.onUpdaterError(UpdaterError('Already up to date'));
-      await tester.pump(const Duration(hours: 1));
+      updater.onUpdaterUpdateCycleFinished(null);
+      await tester.pump(const Duration(minutes: 59));
       expect(native.checks, [true]);
-
-      updater.onUpdaterError(UpdaterError('Network unavailable'));
       await tester.pump(const Duration(minutes: 1));
       expect(native.checks, [true, true]);
     });
 
-    testWidgets(
-      'a no-update result does not suppress unrelated native errors',
-      (tester) async {
-        final native = _FakeAutoUpdater();
-        final updater = _desktopUpdater(native);
-        addTearDown(updater.dispose);
-        await updater.init();
-        await tester.pump(Updater.startupDelay);
-        updater.onUpdaterUpdateNotAvailable(UpdaterError('Already up to date'));
-        native.fail();
-        await tester.pump(const Duration(minutes: 1));
-        expect(native.checks, [true, true]);
-      },
-    );
+    testWidgets('completion errors retry even without a separate error event', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater();
+      final updater = _desktopUpdater(native);
+      addTearDown(updater.dispose);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      updater.onUpdaterUpdateCycleFinished(UpdaterError('Network unavailable'));
+      await tester.pump(const Duration(minutes: 1));
+      expect(native.checks, [true, true]);
+    });
 
     testWidgets('waits for the native result before retrying again', (
       tester,
@@ -314,7 +344,7 @@ void main() {
       updater.onUpdaterUpdateAvailable(null);
       native.fail();
       updater.retryPendingCheck();
-      await tester.pump(const Duration(hours: 1));
+      await tester.pump(const Duration(minutes: 30));
 
       expect(native.checks, [true]);
       await updater.checkNow();
@@ -344,6 +374,7 @@ void main() {
       updater.retryPendingCheck();
       await tester.pump(const Duration(minutes: 10));
       expect(native.checks.length, 3);
+      updater.dispose();
     });
 
     testWidgets(
@@ -398,7 +429,62 @@ void main() {
       expect(native.checks, [false]);
       native.pendingCheck!.complete();
       await check;
+      await updater.checkNow();
+      await tester.pump(const Duration(hours: 2));
+      expect(native.checks, [false]);
     });
+
+    testWidgets(
+      'relay setup failures retry before configuring native updates',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final relay = _FakeUpdateRelay()
+          ..error = StateError('listener unavailable');
+        final updater = _desktopUpdater(native, relay: relay);
+        addTearDown(updater.dispose);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        expect(native.configurations, 0);
+        relay.error = null;
+        await tester.pump(const Duration(minutes: 1));
+        expect(relay.starts, 2);
+        expect(native.checks, [true]);
+      },
+    );
+
+    testWidgets('cancellation waits for completion and does not retry', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater();
+      final updater = _desktopUpdater(native);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      updater.onUpdaterUpdateCancelled();
+      await updater.checkNow();
+      expect(native.checks, [true]);
+      updater.onUpdaterUpdateCycleFinished(null);
+      updater.retryPendingCheck();
+      await tester.pump(const Duration(minutes: 30));
+      expect(native.checks, [true]);
+      updater.dispose();
+    });
+
+    testWidgets(
+      'disposing during relay startup prevents native configuration',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final relay = _FakeUpdateRelay()..pending = Completer<String>();
+        final updater = _desktopUpdater(native, relay: relay);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        updater.dispose();
+        relay.pending!.complete('http://127.0.0.1:12345/token/appcast.xml');
+        await tester.pump();
+        expect(relay.closes, 1);
+        expect(native.configurations, 0);
+        expect(native.checks, isEmpty);
+      },
+    );
 
     testWidgets(
       'manual dispatch errors reach the caller and schedule recovery',

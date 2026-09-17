@@ -10,16 +10,18 @@ import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
+import 'package:lantern/core/updater/desktop_update_relay.dart';
 import 'package:lantern/core/updater/winsparkle_build_version.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-class Updater with UpdaterListener {
+class Updater with UpdaterLifecycleListener {
   Updater({
     AndroidSideloadUpdater? androidSideloadUpdater,
     AutoUpdater? autoUpdater,
+    DesktopUpdateRelay? updateRelay,
     Future<Map<String, dynamic>> Function()? loadFeatureFlags,
     @visibleForTesting TargetPlatform? platform,
     @visibleForTesting bool? isDebugMode,
@@ -28,6 +30,7 @@ class Updater with UpdaterListener {
   }) : _androidSideloadUpdater =
            androidSideloadUpdater ?? AndroidSideloadUpdater(),
        _autoUpdater = autoUpdater,
+       _updateRelay = updateRelay,
        _loadFeatureFlags = loadFeatureFlags ?? _readFeatureFlags,
        _platform = platform ?? defaultTargetPlatform,
        _isDebugMode = isDebugMode ?? kDebugMode,
@@ -52,15 +55,15 @@ class Updater with UpdaterListener {
   final Future<void> Function()? _quitForUpdate;
 
   AutoUpdater? _autoUpdater;
+  DesktopUpdateRelay? _updateRelay;
   Future<Map<String, dynamic>>? _pendingFeatureFlags;
   Map<String, dynamic> _cachedFeatureFlags = {};
   Timer? _checkTimer;
   DateTime? _nextCheckAt;
-  String? _noUpdateMessage;
   int _retryAttempt = 0;
   bool _desktopConfigured = false;
   bool _started = false;
-  bool _dispatchingCheck = false;
+  bool _checkInProgress = false;
   bool _needsRetry = false;
   bool _updateOffered = false;
   bool _disposed = false;
@@ -113,6 +116,10 @@ class Updater with UpdaterListener {
   Future<void> _configureDesktopUpdater() async {
     final buildType = AppBuildInfo.buildType;
     final feedUrl = AppUrls.appcastFor(buildType);
+    final localFeed = await (_updateRelay ??= DesktopUpdateRelay()).start(
+      feedUrl,
+    );
+    if (_disposed) return;
     final autoUpdater = _desktopAutoUpdater;
     if (!_listenerRegistered) {
       autoUpdater.addListener(this);
@@ -126,11 +133,11 @@ class Updater with UpdaterListener {
         appLogger.warning('Failed to set WinSparkle build version', e, st);
       }
     }
-    await autoUpdater.setFeedURL(feedUrl);
+    // Lantern owns the schedule, including retries and connectivity recovery.
+    await autoUpdater.setScheduledCheckInterval(0);
     if (_disposed) return;
-    await autoUpdater.setScheduledCheckInterval(
-      _regularCheckInterval.inSeconds,
-    );
+    await autoUpdater.setFeedURL(localFeed);
+    if (_disposed) return;
 
     appLogger.info('autoUpdater configured. buildType=$buildType url=$feedUrl');
     _desktopConfigured = true;
@@ -154,14 +161,19 @@ class Updater with UpdaterListener {
     required bool inBackground,
     required String source,
   }) async {
-    if (_disposed || _dispatchingCheck || _quittingForUpdate) return;
-    _dispatchingCheck = true;
+    if (_disposed || _checkInProgress || _quittingForUpdate) return;
+    _checkInProgress = true;
     _cancelScheduledCheck();
     try {
       final flags = await _featureFlags();
-      if (_disposed) return;
+      if (_disposed) {
+        _checkInProgress = false;
+        return;
+      }
       if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
+        _checkInProgress = false;
         _resetRetries();
+        _scheduleCheck(_regularCheckInterval, 'periodic');
         appLogger.info('autoUpdater disabled by feature flag');
         return;
       }
@@ -173,16 +185,12 @@ class Updater with UpdaterListener {
       );
       _needsRetry = false;
       _updateOffered = false;
-      _noUpdateMessage = null;
       await _desktopAutoUpdater.checkForUpdates(inBackground: inBackground);
     } catch (e, st) {
+      _checkInProgress = false;
       appLogger.error('Failed to start desktop update check ($source)', e, st);
       _scheduleRetry();
       if (!inBackground) rethrow;
-    } finally {
-      // The method channel returns before the native check finishes.
-      // Result callbacks, rather than this future, reset the retry budget.
-      _dispatchingCheck = false;
     }
   }
 
@@ -197,6 +205,7 @@ class Updater with UpdaterListener {
     _checkTimer = Timer(delay, () {
       _checkTimer = null;
       _nextCheckAt = null;
+      if (source == 'periodic') _retryAttempt = 0;
       unawaited(_checkDesktop(inBackground: true, source: source));
     });
   }
@@ -206,10 +215,7 @@ class Updater with UpdaterListener {
     _needsRetry = true;
     if (_checkTimer?.isActive == true) return;
     if (_retryAttempt == _retryDelays.length) {
-      // Native hourly checks are only configured after setup succeeds.
-      if (!_desktopConfigured) {
-        _scheduleCheck(_regularCheckInterval, 'configuration-retry');
-      }
+      _scheduleCheck(_regularCheckInterval, 'periodic');
       return;
     }
     final delay = _retryDelays[_retryAttempt];
@@ -227,7 +233,7 @@ class Updater with UpdaterListener {
         _disposed ||
         _isDebugMode ||
         _isAndroidPlatform ||
-        _dispatchingCheck) {
+        _checkInProgress) {
       return;
     }
     _scheduleCheck(recoveryDelay, 'recovery');
@@ -246,9 +252,18 @@ class Updater with UpdaterListener {
   }
 
   void dispose() {
+    if (_disposed) return;
     _disposed = true;
     _cancelScheduledCheck();
     if (_listenerRegistered) _autoUpdater?.removeListener(this);
+    final relay = _updateRelay;
+    if (relay != null) {
+      unawaited(
+        relay.close().catchError((Object error, StackTrace stack) {
+          appLogger.warning('Failed to close update transport', error, stack);
+        }),
+      );
+    }
   }
 
   @override
@@ -291,24 +306,17 @@ class Updater with UpdaterListener {
 
   @override
   void onUpdaterCheckingForUpdate(Appcast? appcast) {
+    _checkInProgress = true;
     _updateOffered = false;
-    _noUpdateMessage = null;
   }
 
   @override
   void onUpdaterError(UpdaterError? error) {
-    // Sparkle also reports "no update" through its error callback. The bridge
-    // only exposes the message, so match it to the preceding result.
-    final noUpdateMessage = _noUpdateMessage;
-    _noUpdateMessage = null;
-    if (error != null && error.message == noUpdateMessage) return;
     appLogger.warning(
       'Desktop update failed: '
-      '${error?.message ?? 'native updater did not provide error details'} '
+      'domain=${error?.domain} code=${error?.code} '
       'url=${AppUrls.appcastFor(AppBuildInfo.buildType)}',
     );
-    // Once an update is offered, let the native UI handle download retries.
-    if (!_updateOffered) _scheduleRetry();
   }
 
   @override
@@ -326,8 +334,25 @@ class Updater with UpdaterListener {
 
   @override
   void onUpdaterUpdateNotAvailable(UpdaterError? error) {
-    _noUpdateMessage = error?.message;
     _resetRetries();
+  }
+
+  @override
+  void onUpdaterUpdateCancelled() {
+    _resetRetries();
+  }
+
+  @override
+  void onUpdaterUpdateCycleFinished(UpdaterError? error) {
+    if (_disposed || !_checkInProgress) return;
+    // The method-channel call completes before the native update cycle does.
+    _checkInProgress = false;
+    if (error != null && !_updateOffered) {
+      _scheduleRetry();
+    } else {
+      _resetRetries();
+      _scheduleCheck(_regularCheckInterval, 'periodic');
+    }
   }
 
   Future<Map<String, dynamic>> _featureFlags() async {
