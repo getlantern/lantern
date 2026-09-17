@@ -60,9 +60,11 @@ class LanternLogger {
       let formatted = "time=\"\(timestamp)\" \(message)\n"
       guard let data = formatted.data(using: .utf8) else { return }
       if let fileHandle = try? FileHandle(forWritingTo: logFileURL) {
+        // Exclusive lock so an append never lands mid-rotation in the other process.
+        flock(fileHandle.fileDescriptor, LOCK_EX)
         fileHandle.seekToEndOfFile()
         fileHandle.write(data)
-        try? fileHandle.close()
+        try? fileHandle.close()  // releases the lock
       }
       guard canRotate else { return }
       sinceCheck += data.count
@@ -79,17 +81,20 @@ class LanternLogger {
     let attrs = try? FileManager.default.attributesOfItem(atPath: logFileURL.path)
     let size = (attrs?[.size] as? NSNumber)?.uint64Value ?? 0
     guard size >= Self.maxFileBytes else { return }
+    // Hold the lock from snapshot through truncate so no append from the
+    // extension can slip in between and be lost.
+    guard let handle = try? FileHandle(forWritingTo: logFileURL) else { return }
+    flock(handle.fileDescriptor, LOCK_EX)
     do {
       try compressToBackup()
     } catch {
       logger.error("Log rotation failure: \(error.localizedDescription, privacy: .public)")
     }
     // Truncate in place (not rename) so the extension keeps writing to the same
-    // file. Done even if compression failed, so the live file stays bounded.
-    if let handle = try? FileHandle(forWritingTo: logFileURL) {
+    // file. Done even if compression failed (e.g. disk full), so the live file
+    // stays bounded.
       try? handle.truncate(atOffset: 0)
-      try? handle.close()
-    }
+    try? handle.close()
     pruneBackups()
   }
 
@@ -108,7 +113,16 @@ class LanternLogger {
   private func compressToBackup() throws {
     let backup = logFileURL.deletingLastPathComponent()
       .appendingPathComponent("\(logName)-\(backupStamp())\(Self.backupExt)")
-    let input = try FileHandle(forReadingFrom: logFileURL)
+    do {
+      try compress(logFileURL, to: backup)
+    } catch {
+      try? FileManager.default.removeItem(at: backup)
+      throw error
+    }
+  }
+
+  private func compress(_ source: URL, to backup: URL) throws {
+    let input = try FileHandle(forReadingFrom: source)
     defer { try? input.close() }
     FileManager.default.createFile(atPath: backup.path, contents: nil)
     let output = try FileHandle(forWritingTo: backup)
@@ -131,11 +145,12 @@ class LanternLogger {
       try inBuf.withUnsafeMutableBufferPointer { inPtr in
         stream.next_in = inPtr.baseAddress
         stream.avail_in = UInt32(inPtr.count)
+        var rc = Z_OK
         repeat {
           try outBuf.withUnsafeMutableBufferPointer { outPtr in
             stream.next_out = outPtr.baseAddress
             stream.avail_out = UInt32(chunk)
-            let rc = deflate(&stream, flush)
+            rc = deflate(&stream, flush)
             guard rc == Z_OK || rc == Z_STREAM_END || rc == Z_BUF_ERROR else {
               throw LogRotationError.deflate(rc)
             }
@@ -144,7 +159,9 @@ class LanternLogger {
               output.write(Data(bytes: outPtr.baseAddress!, count: produced))
             }
           }
-        } while stream.avail_out == 0
+          // Z_FINISH must be repeated until Z_STREAM_END, not just until the
+          // buffer fills, or the gzip trailer may never be written.
+        } while stream.avail_out == 0 || (finished && rc != Z_STREAM_END)
       }
     }
   }

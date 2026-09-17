@@ -105,19 +105,27 @@ object AppLogger {
      */
     private fun rotateIfNeeded() {
         if (!logFile.exists() || logFile.length() < MAX_FILE_BYTES) return
+        val previous = writer
+        writer = null
         try {
-            writer?.close()
+            previous?.close()
             try {
                 compressToBackup()
             } finally {
-                // Truncate even if compressing failed, so a bad backup still
-                // bounds the live file instead of letting it grow unchecked.
+                // Truncate even if compressing failed (e.g. disk full), so the
+                // live file stays bounded instead of growing unchecked.
                 writer = FileWriter(logFile, false)
             }
             pruneBackups()
         } catch (e: Exception) {
             Log.e("AppLogger", "Log rotation failure", e)
-            if (writer == null) writer = FileWriter(logFile, true)
+            if (writer == null) {
+                try {
+                    writer = FileWriter(logFile, true)
+                } catch (reopen: Exception) {
+                    Log.e("AppLogger", "Could not reopen log writer", reopen)
+                }
+            }
         }
     }
 
@@ -135,16 +143,21 @@ object AppLogger {
             ?.forEach { it.delete() }
     }
 
-    /** Streams the live file into `<name>-<stamp>.log.gz`. */
+    /** Streams the live file into `<name>-<stamp>.log.gz`; no partial backup is left on failure. */
     private fun compressToBackup() {
         val backup = File(
             logFile.parentFile,
             "${logName()}-${backupStampFormat.format(Date())}$BACKUP_EXT"
         )
-        logFile.inputStream().use { input ->
-            GZIPOutputStream(backup.outputStream().buffered()).use { gz ->
-                input.copyTo(gz)
+        try {
+            logFile.inputStream().use { input ->
+                GZIPOutputStream(backup.outputStream().buffered()).use { gz ->
+                    input.copyTo(gz)
+                }
             }
+        } catch (e: Exception) {
+            backup.delete()
+            throw e
         }
     }
 
@@ -175,6 +188,9 @@ object AppLogger {
                     append(line)
                     flush()
                 }
+                // UTF-16 length, not bytes: undercounts multi-byte text, which
+                // only delays the check slightly. The decision itself uses the
+                // real file length.
                 sinceCheck += line.length
                 if (sinceCheck >= CHECK_INTERVAL_BYTES) {
                     sinceCheck = 0
