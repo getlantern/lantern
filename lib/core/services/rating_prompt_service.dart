@@ -4,7 +4,7 @@ import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/logger_service.dart';
 
 /// Requests the native store rating prompt after the 5th session connected
-/// for 30+ minutes and disconnected by the user. Store installs only.
+/// for 30 minutes and disconnected by the user. Store installs only.
 class RatingPromptService {
   RatingPromptService(
     this._storage, {
@@ -14,7 +14,7 @@ class RatingPromptService {
        _now = now ?? DateTime.now;
 
   static const int requiredSessions = 5;
-  static const Duration minSessionDuration = Duration(seconds: 30);
+  static const Duration minSessionDuration = Duration(minutes: 30);
 
   static const _sessionsKey = 'rating_prompt_sessions';
   static const _connectedAtKey = 'rating_prompt_connected_at';
@@ -64,8 +64,14 @@ class RatingPromptService {
       await _storage.setString(_sessionsKey, count.toString());
       return;
     }
-    await _storage.remove(_sessionsKey);
-    await requestReview();
+    // Keep the counter at the threshold when the prompt could not be shown so
+    // the next qualifying session retries instead of restarting from zero.
+    // The OS rate-limits how often the prompt is actually displayed.
+    if (await requestReview()) {
+      await _storage.remove(_sessionsKey);
+    } else {
+      await _storage.setString(_sessionsKey, requiredSessions.toString());
+    }
   }
 
   Future<bool> requestReview() async {

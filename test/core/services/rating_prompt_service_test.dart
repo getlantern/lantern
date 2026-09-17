@@ -40,15 +40,22 @@ void main() {
     await (byUser ? svc.onUserDisconnected() : svc.onDisconnected());
   }
 
-  test('counts qualifying sessions and resets on the last one', () async {
-    for (var i = 0; i < required - 1; i++) {
-      await session();
-    }
-    expect(svc.sessions, required - 1);
+  test(
+    'counts qualifying sessions and retries when the prompt is unavailable',
+    () async {
+      for (var i = 0; i < required - 1; i++) {
+        await session();
+      }
+      expect(svc.sessions, required - 1);
 
-    await session();
-    expect(svc.sessions, 0);
-  });
+      // Not a store build under `flutter test`, so the request is skipped and
+      // the counter is held at the threshold rather than reset to zero.
+      await session();
+      expect(svc.sessions, required);
+      await session();
+      expect(svc.sessions, required);
+    },
+  );
 
   test('short or non-user sessions do not count', () async {
     await session(length: minLength - const Duration(seconds: 1));

@@ -66,10 +66,14 @@ class VpnNotifier extends _$VpnNotifier {
       final isFirstEvent = previous == null || previous.value == null;
       final statusChanged = !isFirstEvent && previousStatus != nextStatus;
 
+      // Also on the first event: a session start persisted by a killed
+      // process must not leak into the next connection.
+      if (nextStatus == VPNStatus.disconnected &&
+          (statusChanged || isFirstEvent)) {
+        unawaited(_ratingPrompt?.onDisconnected());
+      }
+
       if (statusChanged) {
-        if (nextStatus == VPNStatus.disconnected) {
-          unawaited(_ratingPrompt?.onDisconnected());
-        }
         if (previousStatus != VPNStatus.connecting &&
             nextStatus == VPNStatus.disconnected) {
           if (!suppressConnectionNotifications) {
@@ -138,6 +142,13 @@ class VpnNotifier extends _$VpnNotifier {
         if (state == VPNStatus.disconnected) {
           state = connected ? VPNStatus.connected : VPNStatus.disconnected;
         }
+        // Hydration bypasses the status listener, so reconcile the persisted
+        // rating session here.
+        unawaited(
+          connected
+              ? _ratingPrompt?.onConnected()
+              : _ratingPrompt?.onDisconnected(),
+        );
       },
     );
   }
