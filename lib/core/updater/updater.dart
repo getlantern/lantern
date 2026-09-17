@@ -4,9 +4,11 @@ import 'dart:io';
 
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
 import 'package:lantern/core/updater/winsparkle_build_version.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -35,6 +37,7 @@ class Updater with UpdaterListener {
   static const startupDelay = Duration(seconds: 5);
   static const featureFlagTimeout = Duration(seconds: 2);
   static const recoveryDelay = Duration(minutes: 1);
+  static const _regularCheckInterval = Duration(hours: 1);
   static const _retryDelays = [
     Duration(minutes: 1),
     Duration(minutes: 5),
@@ -42,24 +45,24 @@ class Updater with UpdaterListener {
   ];
 
   final AndroidSideloadUpdater _androidSideloadUpdater;
-  AutoUpdater? _autoUpdater;
   final Future<Map<String, dynamic>> Function() _loadFeatureFlags;
   final TargetPlatform _platform;
   final bool _isDebugMode;
   final DateTime Function() _now;
   final Future<void> Function()? _quitForUpdate;
 
-  bool _desktopConfigured = false;
+  AutoUpdater? _autoUpdater;
   Future<Map<String, dynamic>>? _pendingFeatureFlags;
   Map<String, dynamic> _cachedFeatureFlags = {};
   Timer? _checkTimer;
   DateTime? _nextCheckAt;
+  String? _noUpdateMessage;
   int _retryAttempt = 0;
+  bool _desktopConfigured = false;
   bool _started = false;
   bool _dispatchingCheck = false;
   bool _needsRetry = false;
   bool _updateOffered = false;
-  String? _noUpdateMessage;
   bool _disposed = false;
   bool _listenerRegistered = false;
   bool _quittingForUpdate = false;
@@ -125,7 +128,9 @@ class Updater with UpdaterListener {
     }
     await autoUpdater.setFeedURL(feedUrl);
     if (_disposed) return;
-    await autoUpdater.setScheduledCheckInterval(3600);
+    await autoUpdater.setScheduledCheckInterval(
+      _regularCheckInterval.inSeconds,
+    );
 
     appLogger.info('autoUpdater configured. buildType=$buildType url=$feedUrl');
     _desktopConfigured = true;
@@ -184,7 +189,9 @@ class Updater with UpdaterListener {
   void _scheduleCheck(Duration delay, String source) {
     if (_disposed || _isDebugMode || _isAndroidPlatform) return;
     final checkAt = _now().add(delay);
-    if (_nextCheckAt != null && !_nextCheckAt!.isAfter(checkAt)) return;
+    final nextCheckAt = _nextCheckAt;
+    // Repeated reconnects should never push an earlier check back.
+    if (nextCheckAt != null && !nextCheckAt.isAfter(checkAt)) return;
     _checkTimer?.cancel();
     _nextCheckAt = checkAt;
     _checkTimer = Timer(delay, () {
@@ -201,11 +208,12 @@ class Updater with UpdaterListener {
     if (_retryAttempt == _retryDelays.length) {
       // Native hourly checks are only configured after setup succeeds.
       if (!_desktopConfigured) {
-        _scheduleCheck(const Duration(hours: 1), 'configuration-retry');
+        _scheduleCheck(_regularCheckInterval, 'configuration-retry');
       }
       return;
     }
-    final delay = _retryDelays[_retryAttempt++];
+    final delay = _retryDelays[_retryAttempt];
+    _retryAttempt++;
     appLogger.info(
       'Retrying desktop update check in ${delay.inSeconds}s '
       '(attempt $_retryAttempt)',
@@ -323,13 +331,18 @@ class Updater with UpdaterListener {
   }
 
   Future<Map<String, dynamic>> _featureFlags() async {
-    // A stalled IPC call must neither block updates nor spawn another IPC call
-    // on every retry. Keep using the last result until that call completes.
-    _pendingFeatureFlags ??= Future.sync(_loadFeatureFlags)
-        .then((flags) => _cachedFeatureFlags = flags)
-        .whenComplete(() => _pendingFeatureFlags = null);
+    // A Dart timeout doesn't cancel the IPC call. Reuse it while it's pending
+    // so retries don't leave more requests waiting on an unresponsive core.
+    final pending = _pendingFeatureFlags ??= Future.sync(_loadFeatureFlags)
+        .then((flags) {
+          _cachedFeatureFlags = flags;
+          return flags;
+        })
+        .whenComplete(() {
+          _pendingFeatureFlags = null;
+        });
     try {
-      return await _pendingFeatureFlags!.timeout(featureFlagTimeout);
+      return await pending.timeout(featureFlagTimeout);
     } catch (e) {
       appLogger.warning('Using cached update feature flags: $e');
       return _cachedFeatureFlags;
@@ -345,7 +358,7 @@ class Updater with UpdaterListener {
     return flagResult.fold(
       (failure) =>
           throw StateError('Feature flags unavailable: ${failure.error}'),
-      (jsonStr) => json.decode(jsonStr) as Map<String, dynamic>,
+      (jsonStr) => jsonDecode(jsonStr) as Map<String, dynamic>,
     );
   }
 }
