@@ -16,7 +16,7 @@ from defusedxml.common import DefusedXmlException
 
 
 SPARKLE_NS = "http://www.andymatuschak.org/xml-namespaces/sparkle"
-USER_AGENT = "Mozilla/5.0 (compatible; LanternUpdateVerifier/1.0)"
+USER_AGENT = "LanternUpdateVerifier/1.0"
 KNOWN_PLATFORMS = frozenset({"android", "ios", "linux", "macos", "windows"})
 JSON_UPDATE_PLATFORMS = {
     "android": {"os": "android", "arch": "arm64", "suffix": ".apk"},

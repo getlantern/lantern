@@ -29,6 +29,9 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
         self.__class__.post_count += 1
+        if self.headers.get("User-Agent") != "LanternUpdateVerifier/1.0":
+            self.send_error(403, "error 1010")
+            return
         length = int(self.headers["Content-Length"])
         body = json.loads(self.rfile.read(length))
         tags = body.get("tags", {})
@@ -59,6 +62,9 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
         self.__class__.get_count += 1
+        if self.headers.get("User-Agent") != "LanternUpdateVerifier/1.0":
+            self.send_error(403, "error 1010")
+            return
         if self.path.endswith("channel=beta"):
             self.write_xml(
                 self.appcast_xml(
