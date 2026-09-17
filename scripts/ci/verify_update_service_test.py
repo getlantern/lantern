@@ -34,6 +34,9 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
         tags = body.get("tags", {})
         channel = tags.get("channel", "stable")
         os_name = tags.get("os", "android")
+        if os_name != "android" and not body.get("checksum"):
+            self.send_error(417, "checksum must not be nil")
+            return
         suffix = ".deb" if os_name == "linux" else ".apk"
 
         if channel == "beta":
