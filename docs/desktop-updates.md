@@ -54,3 +54,35 @@ for Sparkle and WinSparkle in `tests/native_delivery`. Its CI verifies that both
 SDKs download through tokenized HTTP loopback URLs, accept signed bytes, and
 reject invalid signatures. Installer handoff is intercepted in disposable test
 hosts; those fixtures do not replace the signed Lantern rollout test above.
+
+### Signed install and relaunch smoke
+
+Run both `macos-auto-update-smoke.yml` and `windows-auto-update-smoke.yml` with
+each `scenario` input:
+
+| Scenario | Conditions |
+| --- | --- |
+| `baseline` | Check for Updates in Settings, using the staging fixture feed. |
+| `core-unavailable` | Hold core initialization pending and let the startup timer check the staging feed. |
+| `core-unavailable-direct-blocked` | Hold core initialization pending and block direct update/S3 DNS, using the published beta feed and real fronting. |
+
+The blocked scenario needs the cloud/CDN deployment described above. The staging
+hostname has no fronting mapping, so it cannot exercise this path. Each workflow
+builds an unpublished, signed profile fixture one build below its selected target.
+The test clears the relay's cached fronting configuration. The failure scenarios
+also verify that no Lantern bypass proxy is available. They leave the updater,
+relay, and native installer unchanged; only the fixture's core initializer is
+held pending.
+
+The native scripts accept the update, check the target version and signature,
+and require the original process to exit and a new process to show a window.
+For the blocked scenario, IPv4 and IPv6 DNS checks confirm the direct hosts
+resolve to loopback before launch, at the update offer, and after relaunch.
+The diagnostics artifact includes these checks, the source process's handoff,
+version checks, logs, and screenshots.
+
+Use the dedicated macOS smoke runner with an interactive login, Accessibility
+access, and passwordless `sudo`; Windows uses an elevated hosted runner. These
+jobs remove Lantern's installation and test data. Scripts restore only their own
+hosts-file entries on exit, with an additional `always()` workflow cleanup step.
+An interrupted runner must have those entries removed before it is reused.

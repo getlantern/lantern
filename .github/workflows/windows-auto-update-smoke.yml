@@ -2,7 +2,18 @@ name: Windows auto-update smoke
 
 on:
   workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Update conditions to exercise"
+        type: choice
+        options: [baseline, core-unavailable, core-unavailable-direct-blocked]
+        default: baseline
   workflow_call:
+    inputs:
+      scenario:
+        description: "baseline, core-unavailable, or core-unavailable-direct-blocked"
+        type: string
+        default: baseline
 
 permissions:
   contents: read
@@ -13,17 +24,37 @@ concurrency:
 
 jobs:
   resolve-target:
-    name: Resolve staging fixture target
+    name: Resolve signed update target
     runs-on: ubuntu-latest
     outputs:
       display_version: ${{ steps.target.outputs.display_version }}
       fixture_build: ${{ steps.target.outputs.fixture_build }}
       target_build: ${{ steps.target.outputs.target_build }}
+      auto_update_e2e: ${{ steps.scenario.outputs.auto_update_e2e }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - name: Select scenario feed
+        id: scenario
+        shell: bash
+        env:
+          SCENARIO: ${{ inputs.scenario }}
+        run: |
+          case "$SCENARIO" in
+            baseline|core-unavailable)
+              echo 'appcast_url=https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta' >> "$GITHUB_OUTPUT"
+              echo 'auto_update_e2e=true' >> "$GITHUB_OUTPUT"
+              ;;
+            core-unavailable-direct-blocked)
+              # Only the published update hostname has real fronting mappings.
+              echo 'appcast_url=https://update.getlantern.org/update/lantern/appcast.xml?channel=beta' >> "$GITHUB_OUTPUT"
+              echo 'auto_update_e2e=false' >> "$GITHUB_OUTPUT"
+              ;;
+            *) echo 'Unknown update smoke scenario' >&2; exit 2 ;;
+          esac
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,20 +66,21 @@ jobs:
       - name: Install appcast parser dependency
         run: python -m pip install -r scripts/requirements.txt
 
-      - name: Test target resolver
-        run: python -m unittest scripts/ci/resolve_desktop_update_target_test.py
+      - name: Test update smoke helpers
+        run: python -m unittest scripts/ci/resolve_desktop_update_target_test.py scripts/ci/desktop_update_scenario_test.py
 
-      - name: Resolve staging fixture target
+      - name: Resolve signed update target
         id: target
         shell: bash
         env:
           TARGET_DIR: ${{ runner.temp }}/windows-auto-update-target
+          APPCAST_URL: ${{ steps.scenario.outputs.appcast_url }}
         run: |
           set -o pipefail
           mkdir -p "$TARGET_DIR/pubspec"
           python scripts/ci/resolve_desktop_update_target.py \
             --platform windows \
-            --appcast-url "https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta" \
+            --appcast-url "$APPCAST_URL" \
             --appcast-output "$TARGET_DIR/appcast.xml" \
             --target-output "$TARGET_DIR/target.json" \
             --pubspec-input pubspec.yaml \
@@ -60,6 +92,8 @@ jobs:
         if: ${{ steps.target.outcome == 'success' }}
         shell: bash
         env:
+          SCENARIO: ${{ inputs.scenario }}
+          APPCAST_URL: ${{ steps.scenario.outputs.appcast_url }}
           DISPLAY_VERSION: ${{ steps.target.outputs.display_version }}
           FIXTURE_BUILD: ${{ steps.target.outputs.fixture_build }}
           TARGET_BUILD: ${{ steps.target.outputs.target_build }}
@@ -67,6 +101,8 @@ jobs:
           {
             echo "### Windows auto-update target"
             echo
+            echo "- Scenario: \`$SCENARIO\`"
+            echo "- Feed: $APPCAST_URL"
             echo "- Live beta: \`$DISPLAY_VERSION\` build \`$TARGET_BUILD\`"
             echo "- Unpublished fixture: \`$DISPLAY_VERSION\` build \`$FIXTURE_BUILD\`"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -109,7 +145,7 @@ jobs:
       flutter_build_mode: profile
       pubspec_artifact: windows-auto-update-pubspec
       sign_update_artifact: false
-      auto_update_e2e: true
+      auto_update_e2e: ${{ needs.resolve-target.outputs.auto_update_e2e == 'true' }}
       # Exercise WinSparkle's target installer without rebuilding the signed
       # profile fixture through Fastforge's installer packaging step.
       package_installer: false
@@ -129,6 +165,7 @@ jobs:
     timeout-minutes: 30
     env:
       LANTERN_AUTO_UPDATE_SMOKE: "true"
+      UPDATE_SMOKE_SCENARIO: ${{ inputs.scenario }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -142,6 +179,11 @@ jobs:
 
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Resolve Flutter dependencies
         run: flutter pub get
@@ -166,6 +208,11 @@ jobs:
           FIXTURE_APP_DIR: ${{ runner.temp }}/windows-auto-update-fixture
           TARGET_JSON: ${{ runner.temp }}/windows-auto-update-target/target.json
         run: ./.github/scripts/windows_auto_update_smoke.ps1
+
+      - name: Restore update network access
+        if: ${{ always() && inputs.scenario == 'core-unavailable-direct-blocked' }}
+        shell: pwsh
+        run: python scripts/ci/desktop_update_scenario.py restore
 
       - name: Upload auto-update diagnostics
         if: ${{ always() }}

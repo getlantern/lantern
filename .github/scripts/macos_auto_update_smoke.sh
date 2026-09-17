@@ -14,6 +14,8 @@ readonly APPCAST_XML="${APPCAST_XML:?APPCAST_XML is required}"
 readonly ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos-auto-update}"
 readonly UI_TIMEOUT_SECONDS="${UI_TIMEOUT_SECONDS:-120}"
 readonly UPDATE_TIMEOUT_SECONDS="${UPDATE_TIMEOUT_SECONDS:-600}"
+readonly SCENARIO="${UPDATE_SMOKE_SCENARIO:-baseline}"
+readonly SCENARIO_HELPER="scripts/ci/desktop_update_scenario.py"
 
 [[ "$UI_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]] || {
   printf 'UI_TIMEOUT_SECONDS must be a positive integer.\n' >&2
@@ -28,6 +30,7 @@ MOUNT_PATH=""
 ORIGINAL_PID=""
 RELAUNCHED_PID=""
 RESULT="failure"
+NETWORK_BLOCKED=false
 
 log_e2e() {
   printf '[E2E] %s\n' "$*" >&2
@@ -158,14 +161,23 @@ cleanup() {
   done < <(lantern_pids)
   rm -rf -- "$APP_PATH"
   rm -rf -- "$DATA_PATH"
+  rm -rf -- "$HOME/Library/Caches/$DEFAULTS_DOMAIN"
   defaults delete "$DEFAULTS_DOMAIN" >/dev/null 2>&1 || true
+}
+
+restore_network() {
+  if [[ "$NETWORK_BLOCKED" == true ]]; then
+    sudo -n env CI=true GITHUB_ACTIONS=true LANTERN_AUTO_UPDATE_SMOKE=true RUNNER_ENVIRONMENT=self-hosted \
+      "$(command -v python3)" "$SCENARIO_HELPER" restore || return "$?"
+    NETWORK_BLOCKED=false
+  fi
 }
 
 capture_diagnostics() {
   mkdir -p "$ARTIFACT_DIR"
   {
-    printf 'result=%s\noriginal_pid=%s\nrelaunched_pid=%s\n' \
-      "$RESULT" "$ORIGINAL_PID" "$RELAUNCHED_PID"
+    printf 'result=%s\nscenario=%s\noriginal_pid=%s\nrelaunched_pid=%s\n' \
+      "$RESULT" "$SCENARIO" "$ORIGINAL_PID" "$RELAUNCHED_PID"
   } >"$ARTIFACT_DIR/result.txt"
   capture_processes final
   [[ -d "$APP_PATH" ]] && capture_versions final
@@ -188,6 +200,7 @@ on_exit() {
   set +e
   capture_diagnostics
   capture_screenshot final
+  restore_network || status=1
   detach_dmg
   cleanup
   exit "$status"
@@ -227,6 +240,22 @@ install_fixture
 verify_bundle fixture "$FIXTURE_BUILD" "$DISPLAY_VERSION"
 capture_versions fixture
 
+python3 "$SCENARIO_HELPER" prepare --scenario "$SCENARIO" --target "$TARGET_JSON" \
+  --output "$DATA_PATH/E2E/auto-update-scenario.json"
+if [[ "$SCENARIO" != baseline ]]; then
+  scutil --nc list >"$ARTIFACT_DIR/vpn-before.txt"
+  if grep -Ei '\((Connected|Connecting|Reasserting)\).*lantern' "$ARTIFACT_DIR/vpn-before.txt"; then
+    printf 'Stop the Lantern VPN before running this scenario.\n' >&2
+    exit 1
+  fi
+fi
+if [[ "$SCENARIO" == core-unavailable-direct-blocked ]]; then
+  NETWORK_BLOCKED=true
+  sudo -n env CI=true GITHUB_ACTIONS=true LANTERN_AUTO_UPDATE_SMOKE=true RUNNER_ENVIRONMENT=self-hosted \
+    "$(command -v python3)" "$SCENARIO_HELPER" block --scenario "$SCENARIO" --target "$TARGET_JSON" \
+    --output "$ARTIFACT_DIR/network-before.json"
+fi
+
 log_e2e "running the Flutter auto-update robot against the installed fixture"
 set +e
 flutter drive \
@@ -247,6 +276,8 @@ cat "$ARTIFACT_DIR/flutter-drive.log"
   exit 1
 }
 cp "$HANDOFF_PATH" "$ARTIFACT_DIR/auto-update-handoff.json"
+python3 "$SCENARIO_HELPER" verify --scenario "$SCENARIO" --target "$TARGET_JSON" \
+  --handoff "$HANDOFF_PATH" --output "$ARTIFACT_DIR/scenario-verified.json"
 if [[ -f "$DATA_PATH/Logs/screenshots/auto-update-before.png" ]]; then
   cp "$DATA_PATH/Logs/screenshots/auto-update-before.png" "$ARTIFACT_DIR/before.png"
 fi
@@ -284,6 +315,8 @@ RELAUNCHED_PID="$(wait_for_new_pid "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS")"
 osascript "$ROBOT_SCRIPT" wait-main "$RELAUNCHED_PID" "$UI_TIMEOUT_SECONDS" \
   | tee "$ARTIFACT_DIR/main-window-after.txt"
 verify_bundle updated "$TARGET_BUILD" "$DISPLAY_VERSION"
+python3 "$SCENARIO_HELPER" verify --scenario "$SCENARIO" --target "$TARGET_JSON" \
+  --handoff "$ARTIFACT_DIR/auto-update-handoff.json" --output "$ARTIFACT_DIR/scenario-after.json"
 capture_versions updated
 capture_processes after
 capture_screenshot after

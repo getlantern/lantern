@@ -11,6 +11,10 @@ $AppcastXml = $env:APPCAST_XML
 $ArtifactDirectory = $env:ARTIFACT_DIR
 $UiTimeout = if ($env:UI_TIMEOUT_SECONDS) { [int]$env:UI_TIMEOUT_SECONDS } else { 120 }
 $UpdateTimeout = if ($env:UPDATE_TIMEOUT_SECONDS) { [int]$env:UPDATE_TIMEOUT_SECONDS } else { 600 }
+$Scenario = if ($env:UPDATE_SMOKE_SCENARIO) { $env:UPDATE_SMOKE_SCENARIO } else { 'baseline' }
+$ScenarioHelper = 'scripts/ci/desktop_update_scenario.py'
+$script:NetworkBlocked = $false
+$script:StartedAt = [DateTime]::UtcNow
 $script:OriginalPid = 0
 $script:RelaunchedPid = 0
 $script:Result = 'failure'
@@ -95,7 +99,19 @@ function Install-Fixture {
   Reset-Lantern
   New-Item -ItemType Directory -Path $AppDirectory -Force | Out-Null
   Copy-Item -Path (Join-Path $FixtureDirectory '*') -Destination $AppDirectory -Recurse -Force
-  Invoke-Checked (Join-Path $AppDirectory 'lanternd.exe') @('install') 'Registering fixture service'
+  if ($Scenario -eq 'baseline') {
+    Invoke-Checked (Join-Path $AppDirectory 'lanternd.exe') @('install') 'Registering fixture service'
+  } elseif (Get-Process -Name lanternd -ErrorAction SilentlyContinue) {
+    throw 'The Lantern daemon must be stopped for this scenario'
+  }
+}
+
+function Restore-Network {
+  if ($script:NetworkBlocked) {
+    & python $ScenarioHelper restore
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to restore the update DNS entries' }
+    $script:NetworkBlocked = $false
+  }
 }
 
 function Save-Screenshot([string]$Name) {
@@ -214,6 +230,7 @@ function Get-DownloadedInstaller([string]$ExpectedName, [long]$ExpectedLength) {
         Get-ChildItem $_.FullName -Filter $ExpectedName -File -ErrorAction SilentlyContinue
       } |
       Where-Object Length -eq $ExpectedLength |
+      Where-Object LastWriteTimeUtc -GE $script:StartedAt |
       Sort-Object LastWriteTimeUtc -Descending
   ) | Select-Object -First 1
 }
@@ -272,6 +289,7 @@ function Install-Update(
 function Save-Diagnostics {
   @(
     "result=$script:Result"
+    "scenario=$Scenario"
     "original_pid=$script:OriginalPid"
     "relaunched_pid=$script:RelaunchedPid"
   ) | Set-Content (Join-Path $ArtifactDirectory 'result.txt')
@@ -308,6 +326,16 @@ try {
   Assert-AppVersion 'fixture' $fixtureBuild $displayVersion
   Save-Screenshot 'before'
 
+  & python $ScenarioHelper prepare --scenario $Scenario --target $TargetJson `
+    --output (Join-Path $DataDirectory 'E2E\auto-update-scenario.json')
+  if ($LASTEXITCODE -ne 0) { throw 'Invalid update smoke scenario' }
+  if ($Scenario -eq 'core-unavailable-direct-blocked') {
+    $script:NetworkBlocked = $true
+    & python $ScenarioHelper block --scenario $Scenario --target $TargetJson `
+      --output (Join-Path $ArtifactDirectory 'network-before.json')
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to block direct update access' }
+  }
+
   Write-E2E 'running the Flutter auto-update robot against the installed fixture'
   & flutter drive --profile "--use-application-binary=$AppExecutable" --keep-app-running `
     --driver=test_driver/integration_test.dart `
@@ -321,6 +349,9 @@ try {
   }
   $handoff = Get-Content $HandoffPath -Raw | ConvertFrom-Json
   Copy-Item $HandoffPath (Join-Path $ArtifactDirectory 'auto-update-handoff.json')
+  & python $ScenarioHelper verify --scenario $Scenario --target $TargetJson --handoff $HandoffPath `
+    --output (Join-Path $ArtifactDirectory 'scenario-verified.json')
+  if ($LASTEXITCODE -ne 0) { throw 'The update scenario was not exercised' }
   $script:OriginalPid = [int]$handoff.pid
   if ([string]$handoff.build_number -ne [string]$fixtureBuild -or
       [string]$handoff.display_version -ne $displayVersion) {
@@ -342,11 +373,18 @@ try {
     $targetBuild
   $script:RelaunchedPid = $relaunched.Id
   Assert-AppVersion 'updated' $targetBuild $displayVersion
+  & python $ScenarioHelper verify --scenario $Scenario --target $TargetJson `
+    --handoff (Join-Path $ArtifactDirectory 'auto-update-handoff.json') `
+    --output (Join-Path $ArtifactDirectory 'scenario-after.json')
+  if ($LASTEXITCODE -ne 0) { throw 'Update conditions changed before installation completed' }
   Save-Screenshot 'after'
   $script:Result = 'success'
   Write-E2E "auto-update smoke passed: build $fixtureBuild -> $targetBuild"
 } finally {
+  $restoreFailed = $false
+  try { Restore-Network } catch { $restoreFailed = $true; Write-Warning "Unable to restore network: $_" }
   try { Save-Diagnostics } catch { Write-Warning "Unable to save all diagnostics: $_" }
   try { Save-Screenshot 'final' } catch { Write-Warning "Unable to save final screenshot: $_" }
   try { Reset-Lantern } catch { Write-Warning "Unable to clean up Lantern fixture: $_" }
+  if ($restoreFailed) { throw 'Update DNS cleanup failed; see the workflow restoration step' }
 }
