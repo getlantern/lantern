@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -18,6 +20,13 @@ import 'logger_service.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> injectServices() async {
+  sl.registerSingleton<Updater>(
+    Updater(),
+    dispose: (updater) => updater.dispose(),
+  );
+  // Desktop updates must still start if core initialization stalls.
+  if (PlatformUtils.isDesktop) unawaited(sl<Updater>().init());
+
   appLogger.debug('Initializing storage services...');
   final storage = LocalStorageService();
   final storeUtils = StoreUtils();
@@ -37,7 +46,6 @@ Future<void> injectServices() async {
   // so that AppSettingNotifier.build() reads the correct defaults.
   await AppSettingNotifier.resetIfFreshInstall(storage);
 
-  sl.registerLazySingleton<Updater>(() => Updater());
   sl.registerLazySingleton<AppRouter>(() => AppRouter());
   sl.registerLazySingleton<DeepLinkCallbackManager>(
     () => DeepLinkCallbackManager(),
