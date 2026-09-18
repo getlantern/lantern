@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/updater/android_sideload_updater.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
@@ -16,6 +17,7 @@ class _FakeAutoUpdater implements AutoUpdater {
   Object? configurationError;
   Object? checkError;
   Completer<void>? pendingCheck;
+  Completer<void>? pendingFeed;
 
   @override
   void addListener(UpdaterListener listener) => listeners.add(listener);
@@ -27,6 +29,7 @@ class _FakeAutoUpdater implements AutoUpdater {
   Future<void> setFeedURL(String url) async {
     configurations++;
     if (configurationError != null) throw configurationError!;
+    await pendingFeed?.future;
   }
 
   @override
@@ -49,6 +52,29 @@ class _FakeAutoUpdater implements AutoUpdater {
     for (final listener in listeners) {
       listener.onUpdaterUpdateNotAvailable(null);
     }
+  }
+}
+
+class _FakeAndroidUpdater extends AndroidSideloadUpdater {
+  int initializations = 0;
+  int manualChecks = 0;
+
+  @override
+  Future<void> init(Map<String, dynamic> flags) async => initializations++;
+
+  @override
+  bool isEnabled(Map<String, dynamic> flags, {bool logDisabled = false}) =>
+      true;
+
+  @override
+  Future<AndroidSideloadUpdate?> checkForUpdate({
+    bool promptIfAvailable = true,
+    AndroidSideloadUpdateCheckSource source =
+        AndroidSideloadUpdateCheckSource.manual,
+    bool respectStartupThrottle = false,
+  }) async {
+    manualChecks++;
+    return null;
   }
 }
 
@@ -451,6 +477,120 @@ void main() {
       expect(native.configurations, 0);
       expect(native.checks, isEmpty);
     });
+
+    testWidgets('disposing during Windows metadata lookup stops setup', (
+      tester,
+    ) async {
+      const channel = MethodChannel('dev.fluttercommunity.plus/package_info');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final packageInfo = Completer<Map<String, String>>();
+      var metadataRequested = false;
+      messenger.setMockMethodCallHandler(channel, (_) {
+        metadataRequested = true;
+        return packageInfo.future;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      final native = _FakeAutoUpdater();
+      final updater = Updater(
+        autoUpdater: native,
+        platform: TargetPlatform.windows,
+        isDebugMode: false,
+        loadFeatureFlags: () async => {},
+      );
+      addTearDown(updater.dispose);
+
+      final check = updater.checkNow();
+      await tester.pump();
+      expect(metadataRequested, isTrue);
+      updater.dispose();
+      packageInfo.complete({
+        'appName': 'Lantern',
+        'packageName': 'org.getlantern.lantern',
+        'version': '1.0.0',
+        'buildNumber': '1',
+      });
+      await check;
+
+      expect(native.listeners, isEmpty);
+      expect(native.configurations, 0);
+      expect(native.interval, isNull);
+      expect(native.checks, isEmpty);
+      expect(await updater.canCheckForUpdates(), isFalse);
+    });
+
+    testWidgets('disposing during feed setup prevents native scheduling', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater()..pendingFeed = Completer<void>();
+      final updater = _desktopUpdater(native);
+      addTearDown(updater.dispose);
+
+      final check = updater.checkNow();
+      await tester.pump();
+      expect(native.configurations, 1);
+      updater.dispose();
+      native.pendingFeed!.complete();
+      await check;
+
+      expect(native.listeners, isEmpty);
+      expect(native.interval, isNull);
+      expect(native.checks, isEmpty);
+    });
+
+    for (final platform in [TargetPlatform.macOS, TargetPlatform.windows]) {
+      testWidgets(
+        'disabled desktop builds never contact the updater: $platform',
+        (tester) async {
+          final native = _FakeAutoUpdater();
+          var flagReads = 0;
+          final updater = Updater(
+            autoUpdater: native,
+            platform: platform,
+            isDebugMode: false,
+            enableDesktopUpdates: false,
+            loadFeatureFlags: () async {
+              flagReads++;
+              return {};
+            },
+          );
+          addTearDown(updater.dispose);
+
+          await updater.init();
+          expect(await updater.canCheckForUpdates(), isFalse);
+          await updater.checkNow();
+          updater.retryPendingCheck();
+          await tester.pump(const Duration(hours: 1));
+
+          expect(flagReads, 0);
+          expect(native.configurations, 0);
+          expect(native.listeners, isEmpty);
+          expect(native.checks, isEmpty);
+        },
+      );
+    }
+
+    test(
+      'desktop build gate does not disable Android sideload updates',
+      () async {
+        final android = _FakeAndroidUpdater();
+        final updater = Updater(
+          androidSideloadUpdater: android,
+          platform: TargetPlatform.android,
+          isDebugMode: false,
+          enableDesktopUpdates: false,
+          loadFeatureFlags: () async => {},
+        );
+        addTearDown(updater.dispose);
+
+        await updater.init();
+        expect(await updater.canCheckForUpdates(), isTrue);
+        await updater.checkNow();
+
+        expect(android.initializations, 1);
+        expect(android.manualChecks, 1);
+      },
+    );
 
     testWidgets('debug and unsupported platforms do not start native updates', (
       tester,
