@@ -273,6 +273,7 @@ class MainActivity : FlutterFragmentActivity() {
         try {
             val intent = VpnService.prepare(this)
             if (intent != null) {
+                VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
                 startActivityForResult(intent, VPN_PERMISSION_REQUEST_CODE)
                 return false;
             } else {
@@ -280,6 +281,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error preparing VPN service", e)
+            VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
             return false
         }
     }

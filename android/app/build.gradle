@@ -538,6 +538,8 @@ dependencies {
     implementation 'androidx.work:work-runtime-ktx:2.10.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 
+    testImplementation 'junit:junit:4.13.2'
+
     // Instrumentation harness for Flutter integration tests (Firebase Test Lab).
     // 1.2.0 matches what the integration_test Flutter plugin pins on the app
     // runtime classpath (AGP consistent resolution rejects anything newer).
