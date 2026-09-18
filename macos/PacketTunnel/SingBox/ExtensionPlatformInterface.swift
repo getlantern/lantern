@@ -262,18 +262,12 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       return
     }
 
-    // This fallback carries every tunnel on macOS 12, where the KVC path above
-    // never resolves. It scans the process for the lowest-numbered utun, so it is
-    // only correct while exactly one is open — which is what the teardown guard in
-    // ExtensionProvider.startTunnel exists to ensure. Logged so a recurrence can be
-    // told apart from a stale-fd selection in a user's logs.
-    appLogger.info("Accessing tunnel file descriptor from C loop...")
-    let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
-    guard tunFdFromLoop != -1 else {
-      throw NSError(domain: "Missing TUN FD", code: 0)
-    }
-    appLogger.info("Returning tunnel file descriptor \(tunFdFromLoop) (from C loop)")
-    ret0_.pointee = tunFdFromLoop
+    let addresses =
+      (settings.ipv4Settings?.addresses ?? []) + (settings.ipv6Settings?.addresses ?? [])
+    let candidate = try TunnelFileDescriptor.resolve(addresses: addresses)
+    appLogger.info(
+      "Returning tunnel file descriptor \(candidate.descriptor) (\(candidate.interfaceName))")
+    ret0_.pointee = candidate.descriptor
   }
 
   public func usePlatformAutoDetectControl() -> Bool {
