@@ -21,6 +21,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		A37810012FAD000100000001 /* TunnelFileDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37810022FAD000100000001 /* TunnelFileDescriptor.swift */; };
+		A37810032FAD000100000001 /* TunnelFileDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37810022FAD000100000001 /* TunnelFileDescriptor.swift */; };
+		A37810042FAD000100000001 /* TunnelFileDescriptorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37810052FAD000100000001 /* TunnelFileDescriptorTests.swift */; };
 		030897EB2F9F8A27001CBEBF /* FlutterEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030897E82F9F8A27001CBEBF /* FlutterEventListener.swift */; };
 		030897EC2F9F8A27001CBEBF /* PrivateServerListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030897EA2F9F8A27001CBEBF /* PrivateServerListener.swift */; };
 		03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
@@ -138,6 +141,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A37810022FAD000100000001 /* TunnelFileDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelFileDescriptor.swift; sourceTree = "<group>"; };
+		A37810052FAD000100000001 /* TunnelFileDescriptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelFileDescriptorTests.swift; sourceTree = "<group>"; };
 		030897E82F9F8A27001CBEBF /* FlutterEventListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventListener.swift; sourceTree = "<group>"; };
 		030897E92F9F8A27001CBEBF /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
 		030897EA2F9F8A27001CBEBF /* PrivateServerListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerListener.swift; sourceTree = "<group>"; };
@@ -264,6 +269,7 @@
 		2995B4232DF0AA4700429FE9 /* SingBox */ = {
 			isa = PBXGroup;
 			children = (
+				A37810022FAD000100000001 /* TunnelFileDescriptor.swift */,
 				2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */,
 				2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */,
 				2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */,
@@ -286,6 +292,7 @@
 		331C80D6294CF71000263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
+				A37810052FAD000100000001 /* TunnelFileDescriptorTests.swift */,
 				331C80D7294CF71000263BE5 /* RunnerTests.swift */,
 			);
 			path = RunnerTests;
@@ -659,6 +666,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A37810012FAD000100000001 /* TunnelFileDescriptor.swift in Sources */,
 				5F53D0452E4414D000740586 /* FilePath.swift in Sources */,
 				5F53D01A2E440BBC00740586 /* Extension+RunBlocking.swift in Sources */,
 				5F53D01B2E440BBC00740586 /* ExtensionPlatformInterface.swift in Sources */,
@@ -673,6 +681,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A37810032FAD000100000001 /* TunnelFileDescriptor.swift in Sources */,
+				A37810042FAD000100000001 /* TunnelFileDescriptorTests.swift in Sources */,
 				331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
