@@ -35,16 +35,37 @@ enum WidgetTunnelController {
   /// without triggering another reload.
   static func reconciledState() async -> VPNWidgetState {
     let stored = VPNWidgetStore.load()
-    guard let manager = try? await loadManager() else { return stored }
+    // A transient preferences error keeps the snapshot; only an empty list
+    // means the app has never created the profile.
+    guard let managers = try? await NETunnelProviderManager.loadAllFromPreferences() else {
+      return stored
+    }
+    guard let manager = pick(managers) else {
+      return VPNWidgetStore.update(reload: false) {
+        $0.needsSetup = true
+        $0.status = .disconnected
+      }
+    }
     let live = manager.connection.status.widgetStatus
-    guard live != stored.status else { return stored }
+    guard stored.needsSetup || (live != nil && live != stored.status) else { return stored }
     appLogger.info(
-      "Widget reconciling stale status \(stored.status.rawValue) -> \(live.rawValue)")
-    return VPNWidgetStore.update(reload: false) { $0.status = live }
+      "Widget reconciling stale status \(stored.status.rawValue) -> \(live?.rawValue ?? "keep")")
+    return VPNWidgetStore.update(reload: false) {
+      $0.needsSetup = false
+      if let live { $0.status = live }
+    }
   }
 
   static func perform(_ action: VPNWidgetAction) async throws {
-    let manager = try await loadManager()
+    let manager: NETunnelProviderManager
+    do {
+      manager = try await loadManager()
+    } catch WidgetTunnelError.profileNotFound {
+      // Nothing visible comes from a thrown intent error, so flip the widget
+      // into its "open the app" state instead.
+      VPNWidgetStore.setNeedsSetup(true)
+      throw WidgetTunnelError.profileNotFound
+    }
     let status = manager.connection.status
     appLogger.info("Widget action \(action.rawValue) with tunnel status \(status.rawValue)")
 
@@ -73,14 +94,15 @@ enum WidgetTunnelController {
   /// user always goes through the app's VPN permission prompt first.
   private static func loadManager() async throws -> NETunnelProviderManager {
     let managers = try await NETunnelProviderManager.loadAllFromPreferences()
-    guard
-      let manager = managers.first(where: { $0.localizedDescription == FilePath.vpnProfileName })
-        ?? managers.first
-    else {
+    guard let manager = pick(managers) else {
       appLogger.error("Widget: no Lantern VPN profile found")
       throw WidgetTunnelError.profileNotFound
     }
     return manager
+  }
+
+  private static func pick(_ managers: [NETunnelProviderManager]) -> NETunnelProviderManager? {
+    managers.first(where: { $0.localizedDescription == FilePath.vpnProfileName }) ?? managers.first
   }
 
   private static func start(_ manager: NETunnelProviderManager) async throws {

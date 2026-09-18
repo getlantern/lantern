@@ -83,7 +83,9 @@ import flutter_local_notifications
     VPNIntentBridge.handler = { [vpnManager] action in
       try await vpnManager.perform(widgetAction: action)
     }
-    VPNWidgetStore.setStatus(vpnManager.connectionStatus.widgetStatus)
+    if let status = vpnManager.connectionStatus.widgetStatus {
+      VPNWidgetStore.setStatus(status)
+    }
   }
 
   /// Registers Flutter event channel handlers using the plugin registry from

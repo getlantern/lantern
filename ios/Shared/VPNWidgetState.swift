@@ -31,8 +31,15 @@ public struct VPNWidgetState: Codable, Equatable {
   /// Human-readable location resolved by the app ("Frankfurt, Germany"),
   /// empty until the app has fetched it.
   public var locationName: String
+  /// City and country as separate parts so each family can pick its own
+  /// detail level; empty when unknown.
+  public var city: String
+  public var country: String
   /// ISO 3166-1 alpha-2 code for the flag; empty when unknown.
   public var countryCode: String
+  /// True when the widget found no VPN profile: the app has never been
+  /// granted VPN permission, so a tap must open the app instead.
+  public var needsSetup: Bool
   public var updatedAt: Date
 
   public static let initial = VPNWidgetState(
@@ -44,13 +51,19 @@ public struct VPNWidgetState: Codable, Equatable {
     status: VPNWidgetStatus,
     serverName: String,
     locationName: String = "",
+    city: String = "",
+    country: String = "",
     countryCode: String = "",
+    needsSetup: Bool = false,
     updatedAt: Date
   ) {
     self.status = status
     self.serverName = serverName
     self.locationName = locationName
+    self.city = city
+    self.country = country
     self.countryCode = countryCode
+    self.needsSetup = needsSetup
     self.updatedAt = updatedAt
   }
 
@@ -60,7 +73,10 @@ public struct VPNWidgetState: Codable, Equatable {
     status = try c.decode(VPNWidgetStatus.self, forKey: .status)
     serverName = try c.decode(String.self, forKey: .serverName)
     locationName = try c.decodeIfPresent(String.self, forKey: .locationName) ?? ""
+    city = try c.decodeIfPresent(String.self, forKey: .city) ?? ""
+    country = try c.decodeIfPresent(String.self, forKey: .country) ?? ""
     countryCode = try c.decodeIfPresent(String.self, forKey: .countryCode) ?? ""
+    needsSetup = try c.decodeIfPresent(Bool.self, forKey: .needsSetup) ?? false
     updatedAt = try c.decode(Date.self, forKey: .updatedAt)
   }
 
@@ -87,9 +103,7 @@ public enum VPNWidgetStore {
 
   private static let stateKey = "vpn_widget_state"
 
-  private static var defaults: UserDefaults? {
-    UserDefaults(suiteName: FilePath.groupName)
-  }
+  private static let defaults = UserDefaults(suiteName: FilePath.groupName)
 
   private static let encoder = JSONEncoder()
   private static let decoder = JSONDecoder()
@@ -123,14 +137,21 @@ public enum VPNWidgetStore {
     update { $0.status = status }
   }
 
+  public static func setNeedsSetup(_ needsSetup: Bool) {
+    update { $0.needsSetup = needsSetup }
+  }
+
   public static func setServerName(_ serverName: String) {
     update { $0.serverName = serverName.isEmpty ? VPNWidgetState.autoServerName : serverName }
   }
 
   /// Called by the app once radiance has told it where the tunnel exits.
-  public static func setLocation(name: String, countryCode: String) {
+  public static func setLocation(name: String, city: String, country: String, countryCode: String)
+  {
     update {
       $0.locationName = name
+      $0.city = city
+      $0.country = country
       $0.countryCode = countryCode
     }
   }
@@ -158,10 +179,14 @@ extension VPNWidgetState {
 }
 
 extension NEVPNStatus {
-  public var widgetStatus: VPNWidgetStatus {
+  /// Status to publish, or nil to leave the snapshot alone. `.reasserting`
+  /// is nil: the tunnel is still up, and it flips on every network change,
+  /// so publishing it would burn two reloads each time.
+  public var widgetStatus: VPNWidgetStatus? {
     switch self {
     case .connected: return .connected
-    case .connecting, .reasserting: return .connecting
+    case .connecting: return .connecting
+    case .reasserting: return nil
     case .disconnecting: return .disconnecting
     case .disconnected, .invalid: return .disconnected
     @unknown default: return .disconnected

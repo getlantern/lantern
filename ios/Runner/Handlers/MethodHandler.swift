@@ -1171,7 +1171,7 @@ class MethodHandler {
     case (true, false): name = country
     case (true, true): name = displayName
     }
-    VPNWidgetStore.setLocation(name: name, countryCode: countryCode)
+    VPNWidgetStore.setLocation(name: name, city: city, country: country, countryCode: countryCode)
     result(nil)
   }
 

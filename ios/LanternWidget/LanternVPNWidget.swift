@@ -17,16 +17,29 @@ struct VPNWidgetEntry: TimelineEntry {
   static let placeholder = VPNWidgetEntry(
     date: Date(),
     state: VPNWidgetState(
-      status: .connected, serverName: "auto", locationName: "Frankfurt, Germany",
-      countryCode: "DE", updatedAt: Date()))
+      status: .connected, serverName: "auto", locationName: "New York, U.S.A",
+      city: "New York", country: "U.S.A", countryCode: "US", updatedAt: Date()))
 }
 
 struct VPNTimelineProvider: TimelineProvider {
-  /// While a transition is in flight, re-check soon so a lost final write
-  /// cannot leave the widget on "Disconnecting…" indefinitely.
-  private static let transitionRecheck: TimeInterval = 8
-  /// Idle safety net; normal updates are pushed via reloadTimelines.
-  private static let idleRecheck: TimeInterval = 30 * 60
+  /// Updates are pushed by the app and tunnel; scheduled refreshes only catch
+  /// writes that never happened, and each one counts against WidgetKit's
+  /// daily reload budget (~40-70).
+  private static let transitionRecheck: TimeInterval = 5 * 60
+  /// Catches a tunnel killed while the app is suspended (nobody writes then).
+  private static let connectedRecheck: TimeInterval = 60 * 60
+
+  /// Disconnected never refreshes: any start goes through startTunnel, which publishes.
+  private static func policy(for state: VPNWidgetState) -> TimelineReloadPolicy {
+    switch state.status {
+    case .connecting, .disconnecting:
+      return .after(Date().addingTimeInterval(transitionRecheck))
+    case .connected:
+      return .after(Date().addingTimeInterval(connectedRecheck))
+    case .disconnected:
+      return .never
+    }
+  }
 
   func placeholder(in context: Context) -> VPNWidgetEntry {
     .placeholder
@@ -44,9 +57,7 @@ struct VPNTimelineProvider: TimelineProvider {
   {
     Task {
       let entry = await current()
-      let interval = entry.state.status.isTransitioning
-        ? Self.transitionRecheck : Self.idleRecheck
-      completion(Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(interval))))
+      completion(Timeline(entries: [entry], policy: Self.policy(for: entry.state)))
     }
   }
 
@@ -75,27 +86,26 @@ struct LanternVPNWidget: Widget {
 #Preview("Small", as: .systemSmall) {
   LanternVPNWidget()
 } timeline: {
+  VPNWidgetEntry(date: .now, state: VPNWidgetEntry.placeholder.state.with(status: .disconnected))
+  VPNWidgetEntry(date: .now, state: VPNWidgetEntry.placeholder.state.with(status: .connecting))
+  VPNWidgetEntry.placeholder
   VPNWidgetEntry(
     date: .now, state: VPNWidgetState(status: .disconnected, serverName: "auto", updatedAt: .now))
-  VPNWidgetEntry(
-    date: .now, state: VPNWidgetState(status: .connecting, serverName: "auto", updatedAt: .now))
-  VPNWidgetEntry(
-    date: .now,
-    state: VPNWidgetState(
-      status: .connected, serverName: "auto", locationName: "Frankfurt, Germany",
-      countryCode: "DE", updatedAt: .now))
 }
 
 #Preview("Medium", as: .systemMedium) {
   LanternVPNWidget()
 } timeline: {
-  VPNWidgetEntry(
-    date: .now, state: VPNWidgetState(status: .disconnected, serverName: "auto", updatedAt: .now))
-  VPNWidgetEntry(
-    date: .now,
-    state: VPNWidgetState(
-      status: .connected, serverName: "auto", locationName: "Frankfurt, Germany",
-      countryCode: "DE", updatedAt: .now))
+  VPNWidgetEntry(date: .now, state: VPNWidgetEntry.placeholder.state.with(status: .disconnected))
+  VPNWidgetEntry.placeholder
+}
+
+extension VPNWidgetState {
+  fileprivate func with(status: VPNWidgetStatus) -> VPNWidgetState {
+    var copy = self
+    copy.status = status
+    return copy
+  }
 }
 
 #Preview("Lock screen", as: .accessoryRectangular) {

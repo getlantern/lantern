@@ -15,7 +15,7 @@ struct VPNWidgetPresentation {
     case .connected: return "Connected"
     case .connecting: return "Connecting…"
     case .disconnecting: return "Disconnecting…"
-    case .disconnected: return "Not connected"
+    case .disconnected: return "Not Connected"
     }
   }
 
@@ -35,28 +35,27 @@ struct VPNWidgetPresentation {
     return state.serverName
   }
 
+  /// Compact location for the small family: the city alone when known.
+  var shortLocation: String {
+    if !state.city.isEmpty { return state.city }
+    if !state.country.isEmpty { return state.country }
+    return locationText
+  }
+
+  /// Full location for the medium family: "Country - City" when both are known.
+  var longLocation: String {
+    switch (state.country.isEmpty, state.city.isEmpty) {
+    case (false, false): return "\(state.country) - \(state.city)"
+    case (false, true): return state.country
+    case (true, false): return state.city
+    case (true, true): return locationText
+    }
+  }
+
   var flag: String? { state.flagEmoji }
 
-  /// Secondary line under the status.
-  var subtitle: LocalizedStringKey {
-    switch state.status {
-    case .connected, .connecting, .disconnecting:
-      return LocalizedStringKey(locationText)
-    case .disconnected:
-      return state.isAutoServer ? "Protect your connection" : LocalizedStringKey(locationText)
-    }
-  }
-
-  /// Button label. While a transition runs the button is disabled and shows
-  /// what is happening rather than an action that cannot be taken yet.
-  var actionTitle: LocalizedStringKey {
-    switch state.status {
-    case .connected: return "Disconnect"
-    case .disconnected: return "Connect"
-    case .connecting: return "Connecting…"
-    case .disconnecting: return "Disconnecting…"
-    }
-  }
+  /// Shown in place of the location until the app has created the VPN profile.
+  var setupHint: LocalizedStringKey { "Open Lantern to finish setup" }
 
   var symbolName: String {
     switch state.status {
@@ -67,6 +66,7 @@ struct VPNWidgetPresentation {
   }
 
   var accessibilityLabel: Text {
-    Text("Lantern VPN, ") + Text(title) + Text(", ") + Text(locationText)
+    if state.needsSetup { return Text("Lantern VPN, ") + Text(setupHint) }
+    return Text("Lantern VPN, ") + Text(title) + Text(", ") + Text(locationText)
   }
 }

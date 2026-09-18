@@ -15,7 +15,9 @@ class VPNManager: VPNBase {
     didSet {
       guard oldValue != connectionStatus else { return }
       didUpdateConnectionStatusCallback?(connectionStatus)
-      VPNWidgetStore.setStatus(connectionStatus.widgetStatus)
+      if let status = connectionStatus.widgetStatus {
+        VPNWidgetStore.setStatus(status)
+      }
     }
   }
 

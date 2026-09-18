@@ -2,10 +2,9 @@
 //  LanternWidgetEntryView.swift
 //  LanternWidget
 //
-//  Family-specific layouts. No fixed sizes beyond the primary button's minimum
-//  height, so layouts hold up under large Dynamic Type, iPad grid sizes and
-//  StandBy. System content margins are kept (no contentMarginsDisabled) so the
-//  button can never run past the widget's edge.
+//  Family-specific layouts. No fixed sizes beyond the logo, so layouts hold up
+//  under large Dynamic Type, iPad grid sizes and StandBy. System content
+//  margins are kept (no contentMarginsDisabled).
 //
 
 import AppIntents
@@ -14,22 +13,19 @@ import WidgetKit
 
 struct LanternWidgetEntryView: View {
   @Environment(\.widgetFamily) private var family
-  @Environment(\.colorScheme) private var colorScheme
 
   let entry: VPNWidgetEntry
 
   private var presentation: VPNWidgetPresentation { VPNWidgetPresentation(state: entry.state) }
-  private var palette: WidgetPalette {
-    WidgetPalette(status: entry.state.status, colorScheme: colorScheme)
-  }
+  private var palette: WidgetPalette { WidgetPalette(status: entry.state.status) }
 
   var body: some View {
     Group {
       switch family {
       case .systemSmall:
-        SmallLayout(presentation: presentation, palette: palette)
+        HomeLayout(presentation: presentation, palette: palette, compact: true)
       case .systemMedium:
-        MediumLayout(presentation: presentation, palette: palette)
+        HomeLayout(presentation: presentation, palette: palette, compact: false)
       case .accessoryCircular:
         CircularLayout(presentation: presentation)
       case .accessoryRectangular:
@@ -37,7 +33,7 @@ struct LanternWidgetEntryView: View {
       case .accessoryInline:
         InlineLayout(presentation: presentation)
       default:
-        SmallLayout(presentation: presentation, palette: palette)
+        HomeLayout(presentation: presentation, palette: palette, compact: true)
       }
     }
     .containerBackground(for: .widget) {
@@ -47,7 +43,9 @@ struct LanternWidgetEntryView: View {
         WidgetBackgroundView(palette: palette)
       }
     }
-    .widgetURL(URL(string: "lantern://widget"))
+    // With no VPN profile the intents cannot work, so the whole widget opens
+    // the app instead. Nil otherwise: a tap outside the switch does nothing.
+    .widgetURL(entry.state.needsSetup ? URL(string: "lantern://") : nil)
     .accessibilityElement(children: .combine)
     .accessibilityLabel(presentation.accessibilityLabel)
   }
@@ -62,198 +60,119 @@ extension WidgetFamily {
   }
 }
 
-// MARK: - Shared pieces
-
-private struct StatusDot: View {
-  let palette: WidgetPalette
-  var size: CGFloat = 8
-
-  var body: some View {
-    Circle()
-      .fill(palette.statusDot)
-      .frame(width: size, height: size)
-      .shadow(color: palette.statusDot.opacity(0.6), radius: palette.isOn ? 4 : 0)
-      .widgetAccentable()
-  }
-}
-
-/// Status line: dot + title, greyed while an intent is in flight.
-private struct StatusLine: View {
-  let presentation: VPNWidgetPresentation
-  let palette: WidgetPalette
-  var font: Font = .headline
-
-  var body: some View {
-    HStack(spacing: 6) {
-      StatusDot(palette: palette)
-      Text(presentation.title)
-        .font(font)
-        .foregroundStyle(palette.textPrimary)
-        .lineLimit(1)
-        .minimumScaleFactor(0.7)
-        .invalidatableContent()
-    }
-  }
-}
-
-/// Location line with flag; falls back to the CTA copy when disconnected.
-private struct LocationLine: View {
-  let presentation: VPNWidgetPresentation
-  let palette: WidgetPalette
-  var font: Font = .caption
-
-  var body: some View {
-    HStack(spacing: 4) {
-      if presentation.state.status == .connected || presentation.state.status == .connecting,
-        let flag = presentation.flag
-      {
-        Text(flag).font(font)
-      } else {
-        Image(systemName: "location.fill")
-          .font(font.weight(.semibold))
-          .imageScale(.small)
-      }
-      Text(presentation.subtitle)
-        .font(font)
-        .lineLimit(1)
-        .minimumScaleFactor(0.75)
-    }
-    .foregroundStyle(palette.textSecondary)
-  }
-}
-
-/// Primary control. A plain button with an explicit capsule so colors are
-/// exactly the palette's (borderedProminent re-tints inside widgets), sized
-/// by minHeight rather than padding so it can never overflow its column.
-private struct ActionButton: View {
-  let presentation: VPNWidgetPresentation
-  let palette: WidgetPalette
-  var minHeight: CGFloat = 34
-
-  private var busy: Bool { presentation.state.status.isTransitioning }
-
-  var body: some View {
-    Button(intent: ToggleVPNIntent()) {
-      HStack(spacing: 6) {
-        if busy {
-          ProgressView()
-            .controlSize(.small)
-            .tint(palette.buttonText)
-        } else {
-          Image(systemName: "power")
-            .font(.caption.weight(.bold))
-        }
-        Text(presentation.actionTitle)
-          .font(.subheadline.weight(.semibold))
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-      }
-      .foregroundStyle(palette.buttonText)
-      .frame(maxWidth: .infinity, minHeight: minHeight)
-      .background(
-        Capsule()
-          .fill(palette.buttonFill)
-          .overlay(Capsule().strokeBorder(palette.buttonStroke, lineWidth: 1))
-      )
-      .contentShape(Capsule())
-    }
-    .buttonStyle(.plain)
-    .disabled(busy)
-    .invalidatableContent()
-  }
-}
-
-/// Round power button for the medium layout's right column.
-private struct PowerButton: View {
-  let presentation: VPNWidgetPresentation
-  let palette: WidgetPalette
-
-  private var busy: Bool { presentation.state.status.isTransitioning }
-
-  var body: some View {
-    Button(intent: ToggleVPNIntent()) {
-      ZStack {
-        Circle()
-          .fill(palette.buttonFill)
-          .overlay(Circle().strokeBorder(palette.buttonStroke, lineWidth: 2))
-          .shadow(color: palette.accentHighlight.opacity(palette.isOn ? 0.45 : 0), radius: 10)
-        if busy {
-          ProgressView()
-            .tint(palette.buttonText)
-        } else {
-          Image(systemName: "power")
-            .font(.title2.weight(.bold))
-            .foregroundStyle(palette.buttonText)
-        }
-      }
-      .aspectRatio(1, contentMode: .fit)
-      .contentShape(Circle())
-    }
-    .buttonStyle(.plain)
-    .disabled(busy)
-    .invalidatableContent()
-    .accessibilityLabel(Text(presentation.actionTitle))
-  }
-}
-
 // MARK: - Home screen
 
-private struct SmallLayout: View {
+/// Small and medium share one layout: switch and logo on top, status in the
+/// middle, flag and location at the bottom. `compact` picks the small
+/// family's type sizes and city-only location.
+private struct HomeLayout: View {
   let presentation: VPNWidgetPresentation
   let palette: WidgetPalette
+  let compact: Bool
+
+  private var busy: Bool { presentation.state.status.isTransitioning }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      HStack {
-        Image(systemName: presentation.symbolName)
-          .font(.title3.weight(.semibold))
-          .foregroundStyle(palette.accentForeground)
-          .widgetAccentable()
-        Spacer(minLength: 0)
-        Text("Lantern")
-          .font(.caption2.weight(.semibold))
-          .foregroundStyle(palette.accentForeground)
+    VStack(alignment: .leading, spacing: 0) {
+      HStack(alignment: .center) {
+        VPNSwitch(presentation: presentation, palette: palette, compact: compact)
+        Spacer(minLength: 8)
+        Image("LanternLogo")
+          .resizable()
+          .scaledToFit()
+          .frame(width: compact ? 40 : 44, height: compact ? 40 : 44)
+          .accessibilityHidden(true)
       }
 
-      Spacer(minLength: 2)
+      Spacer(minLength: 8)
 
-      StatusLine(presentation: presentation, palette: palette, font: .subheadline.weight(.semibold))
-      LocationLine(presentation: presentation, palette: palette, font: .caption2)
+      HStack(spacing: compact ? 8 : 10) {
+        Circle()
+          .fill(palette.statusDot)
+          .frame(width: compact ? 14 : 18, height: compact ? 14 : 18)
+          .widgetAccentable()
+        Text(presentation.title)
+          .font(compact ? .subheadline.weight(.medium) : .title2.weight(.medium))
+          .foregroundStyle(palette.textPrimary)
+          .lineLimit(1)
+          .minimumScaleFactor(0.7)
+          .invalidatableContent()
+      }
 
       Spacer(minLength: 6)
 
-      ActionButton(presentation: presentation, palette: palette, minHeight: 30)
+      HStack(spacing: compact ? 8 : 10) {
+        if presentation.state.needsSetup {
+          Image(systemName: "arrow.up.forward.app")
+            .font((compact ? Font.subheadline : .body).weight(.semibold))
+            .foregroundStyle(palette.accent)
+          Text(presentation.setupHint)
+            .font(compact ? .subheadline : .body)
+            .foregroundStyle(palette.textSecondary)
+            .lineLimit(compact ? 2 : 1)
+            .minimumScaleFactor(0.75)
+        } else {
+          if let flag = presentation.flag {
+            Text(flag)
+              .font(compact ? .title3 : .title2)
+          } else {
+            Image(systemName: "globe")
+              .font((compact ? Font.subheadline : .body).weight(.semibold))
+              .foregroundStyle(palette.textSecondary)
+          }
+          Text(compact ? presentation.shortLocation : presentation.longLocation)
+            .font(compact ? .subheadline : .body)
+            .foregroundStyle(palette.textSecondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+        }
+      }
     }
   }
 }
 
-private struct MediumLayout: View {
+/// The connect switch, drawn as a track and knob so it reads as a tappable
+/// switch. WidgetKit's own `Toggle` renders as a flat pill in widgets, and
+/// `.toggleStyle(.switch)` is UIKit-backed and gets dropped entirely.
+private struct VPNSwitch: View {
   let presentation: VPNWidgetPresentation
   let palette: WidgetPalette
+  let compact: Bool
+
+  private var busy: Bool { presentation.state.status.isTransitioning }
+  private var height: CGFloat { compact ? 32 : 36 }
+  private var width: CGFloat { height * 1.9 }
+  private var knob: CGFloat { height - 6 }
 
   var body: some View {
-    HStack(spacing: 14) {
-      VStack(alignment: .leading, spacing: 6) {
-        HStack(spacing: 6) {
-          Image(systemName: presentation.symbolName)
-            .font(.subheadline.weight(.semibold))
-            .widgetAccentable()
-          Text("Lantern VPN")
-            .font(.caption.weight(.semibold))
-        }
-        .foregroundStyle(palette.accentForeground)
-
-        Spacer(minLength: 0)
-
-        StatusLine(presentation: presentation, palette: palette, font: .title3.weight(.bold))
-        LocationLine(presentation: presentation, palette: palette, font: .footnote)
+    if presentation.state.needsSetup {
+      // Not a button: the intent would only fail again. widgetURL opens the app.
+      track
+    } else {
+      Button(intent: ToggleVPNIntent()) {
+        track
       }
-      .frame(maxWidth: .infinity, alignment: .leading)
-
-      PowerButton(presentation: presentation, palette: palette)
-        .frame(maxHeight: .infinity)
-        .frame(maxWidth: 72)
+      .buttonStyle(.plain)
+      .disabled(busy)
+      .invalidatableContent()
+      .accessibilityLabel(Text("Lantern VPN"))
+      .accessibilityValue(Text(presentation.title))
+      .accessibilityAddTraits(.isToggle)
     }
+  }
+
+  private var track: some View {
+    ZStack(alignment: palette.isOn ? .trailing : .leading) {
+      Capsule()
+        .fill(palette.isOn ? palette.switchOn : palette.switchOff)
+      Circle()
+        .fill(palette.textPrimary)
+        .frame(width: knob, height: knob)
+        .shadow(color: .black.opacity(0.25), radius: 2, y: 1)
+        .padding(3)
+    }
+    .frame(width: width, height: height)
+    .contentShape(Capsule())
   }
 }
 
@@ -278,7 +197,7 @@ private struct CircularLayout: View {
       }
     }
     .buttonStyle(.plain)
-    .disabled(presentation.state.status.isTransitioning)
+    .disabled(presentation.state.status.isTransitioning || presentation.state.needsSetup)
     .invalidatableContent()
   }
 }
@@ -303,7 +222,11 @@ private struct RectangularLayout: View {
           if let flag = presentation.flag, presentation.state.status != .disconnected {
             Text(flag)
           }
-          Text(presentation.locationText)
+          if presentation.state.needsSetup {
+            Text(presentation.setupHint)
+          } else {
+            Text(presentation.locationText)
+          }
         }
         .font(.caption2)
         .lineLimit(1)
@@ -318,7 +241,7 @@ private struct RectangularLayout: View {
           .font(.title2)
       }
       .buttonStyle(.plain)
-      .disabled(presentation.state.status.isTransitioning)
+      .disabled(presentation.state.status.isTransitioning || presentation.state.needsSetup)
       .invalidatableContent()
     }
   }

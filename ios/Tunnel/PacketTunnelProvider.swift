@@ -49,8 +49,16 @@ class PacketTunnelProvider: ExtensionProvider {
       VPNWidgetStore.setStatus(.disconnected)
       throw error
     }
-    VPNWidgetStore.setStatus(.connected)
+    // Not connected yet: the dial runs after super returns, under `reasserting`.
     startMemoryLogger()
+  }
+
+  /// Publishes "connected" when the initial connect finishes; later reasserts are no-ops.
+  override var reasserting: Bool {
+    didSet {
+      guard oldValue, !reasserting, VPNWidgetStore.load().status == .connecting else { return }
+      VPNWidgetStore.setStatus(.connected)
+    }
   }
 
   override func stopTunnel(with reason: NEProviderStopReason) async {
