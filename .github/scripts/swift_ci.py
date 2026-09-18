@@ -26,7 +26,8 @@ PLATFORMS = ('ios', 'macos')
 SHARED_FILES = {'go.mod', 'go.sum', 'Makefile', 'pubspec.yaml', 'pubspec.lock',
                 '.metadata', '.github/flutter-version.yaml', WORKFLOW, SCRIPT}
 SHARED_DIRS = ('lib/', 'assets/', 'lantern-core/', 'scripts/', 'profile/',
-               'protos/', 'resources/')
+               'protos/', 'resources/', '.github/actions/setup-go/',
+               '.github/actions/setup-flutter/')
 
 
 def relevant(path, platform):
