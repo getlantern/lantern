@@ -33,8 +33,11 @@ class LanternLogger {
   private static let checkIntervalBytes = 256 * 1024
   private static let backupExt = ".log.gz"
 
-  /// Only the app rotates, so it never races the extension.
-  private let canRotate = Bundle.main.bundleURL.pathExtension != "appex"
+  /// Both the app and the tunnel extension rotate. Restricting it to the app
+  /// left the file unbounded whenever the extension was the only live writer,
+  /// which is the normal state during background VPN operation. Concurrent
+  /// rotation is safe because the size check and the truncate both happen under
+  /// the cross-process lock -- see rotateIfNeeded.
   /// Bytes appended since the last size check, so we don't stat on every line.
   private var sinceCheck = 0
 
@@ -48,9 +51,7 @@ class LanternLogger {
       FileManager.default.createFile(
         atPath: logFileURL.path, contents: nil, attributes: nil)
     }
-    if canRotate {
-      queue.async { [weak self] in self?.rotateIfNeeded() }
-    }
+    queue.async { [weak self] in self?.rotateIfNeeded() }
   }
 
   private func writeToFile(_ message: String, level: String) {
@@ -62,11 +63,14 @@ class LanternLogger {
       if let fileHandle = try? FileHandle(forWritingTo: logFileURL) {
         // Exclusive lock so an append never lands mid-rotation in the other process.
         flock(fileHandle.fileDescriptor, LOCK_EX)
-        fileHandle.seekToEndOfFile()
-        fileHandle.write(data)
+        do {
+          try Self.appendAll(fileHandle.fileDescriptor, data)
+        } catch {
+          os_log("Log write failure: %{public}@", log: logger, type: .error,
+               error.localizedDescription)
+        }
         try? fileHandle.close()  // releases the lock
       }
-      guard canRotate else { return }
       sinceCheck += data.count
       if sinceCheck >= Self.checkIntervalBytes {
         sinceCheck = 0
@@ -78,13 +82,18 @@ class LanternLogger {
   // MARK: - Rotation (runs on `queue`)
 
   private func rotateIfNeeded() {
-    let attrs = try? FileManager.default.attributesOfItem(atPath: logFileURL.path)
-    let size = (attrs?[.size] as? NSNumber)?.uint64Value ?? 0
-    guard size >= Self.maxFileBytes else { return }
+    guard currentSize() >= Self.maxFileBytes else { return }
     // Hold the lock from snapshot through truncate so no append from the
     // extension can slip in between and be lost.
     guard let handle = try? FileHandle(forWritingTo: logFileURL) else { return }
     flock(handle.fileDescriptor, LOCK_EX)
+    // Recheck now that the lock is held: the other process may have rotated
+    // while we waited, and rotating again would archive a nearly empty file and
+    // discard the backup it just wrote.
+    guard currentSize() >= Self.maxFileBytes else {
+      try? handle.close()
+      return
+    }
     do {
       try compressToBackup()
     } catch {
@@ -94,7 +103,12 @@ class LanternLogger {
     // Truncate in place (not rename) so the extension keeps writing to the same
     // file. Done even if compression failed (e.g. disk full), so the live file
     // stays bounded.
-      handle.truncateFile(atOffset: 0)
+    // ftruncate rather than FileHandle: truncateFile raises an ObjC exception
+    // and truncate(atOffset:) is 10.15.4+. This is the recovery path for a
+    // failed compression, so it must not be the thing that aborts.
+    if ftruncate(handle.fileDescriptor, 0) != 0 {
+      os_log("Log truncate failure: errno %{public}d", log: logger, type: .error, errno)
+    }
     try? handle.close()
     pruneBackups()
   }
@@ -140,7 +154,7 @@ class LanternLogger {
     var outBuf = [UInt8](repeating: 0, count: chunk)
     var finished = false
     while !finished {
-      var inBuf = [UInt8](input.readData(ofLength: chunk))
+      var inBuf = try Self.readChunk(input.fileDescriptor, max: chunk)
       finished = inBuf.isEmpty
       let flush = finished ? Z_FINISH : Z_NO_FLUSH
       try inBuf.withUnsafeMutableBufferPointer { inPtr in
@@ -157,7 +171,8 @@ class LanternLogger {
             }
             let produced = chunk - Int(stream.avail_out)
             if produced > 0 {
-              output.write(Data(bytes: outPtr.baseAddress!, count: produced))
+              try Self.appendAll(output.fileDescriptor,
+                                 Data(bytes: outPtr.baseAddress!, count: produced))
             }
           }
           // Z_FINISH must be repeated until Z_STREAM_END, not just until the
@@ -181,6 +196,51 @@ class LanternLogger {
   private enum LogRotationError: Error {
     case deflateInit
     case deflate(Int32)
+    case io(Int32)
+  }
+
+  // POSIX rather than FileHandle.write(contentsOf:)/read(upToCount:). Those are
+  // the throwing replacements, but they are macOS 10.15.4+ and this target
+  // deploys to 10.15, so they would need an availability ladder whose fallback
+  // is the very API being replaced. The legacy FileHandle.write/readData raise
+  // NSFileHandleOperationException, which Swift cannot catch -- a full disk
+  // aborts the process instead of reaching the recovery path that truncates the
+  // live log. write(2)/read(2) report failure as a value on every OS we ship.
+
+  /// Writes all of `data`, tolerating short writes and EINTR.
+  private static func appendAll(_ fd: Int32, _ data: Data) throws {
+    guard !data.isEmpty else { return }
+    try data.withUnsafeBytes { raw in
+      var written = 0
+      while written < raw.count {
+        let result = Darwin.write(fd, raw.baseAddress!.advanced(by: written),
+                                  raw.count - written)
+        if result < 0 {
+          if errno == EINTR { continue }
+          throw LogRotationError.io(errno)
+        }
+        written += result
+      }
+    }
+  }
+
+  /// Reads up to `max` bytes. An empty result means end of file.
+  private static func readChunk(_ fd: Int32, max: Int) throws -> [UInt8] {
+    var buf = [UInt8](repeating: 0, count: max)
+    while true {
+      let result = buf.withUnsafeMutableBytes { Darwin.read(fd, $0.baseAddress, max) }
+      if result < 0 {
+        if errno == EINTR { continue }
+        throw LogRotationError.io(errno)
+      }
+      buf.removeLast(max - result)
+      return buf
+    }
+  }
+
+  private func currentSize() -> UInt64 {
+    let attrs = try? FileManager.default.attributesOfItem(atPath: logFileURL.path)
+    return (attrs?[.size] as? NSNumber)?.uint64Value ?? 0
   }
 
   private let traceEnabled = ProcessInfo.processInfo.environment["LANTERN_TRACE_LOGS"] == "true"
