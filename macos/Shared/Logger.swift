@@ -64,6 +64,10 @@ class LanternLogger {
         // Exclusive lock so an append never lands mid-rotation in the other process.
         flock(fileHandle.fileDescriptor, LOCK_EX)
         do {
+          // Each new descriptor starts at zero; seek while holding the append lock.
+          guard lseek(fileHandle.fileDescriptor, 0, SEEK_END) != -1 else {
+            throw LogRotationError.io(errno)
+          }
           try Self.appendAll(fileHandle.fileDescriptor, data)
         } catch {
           os_log("Log write failure: %{public}@", log: logger, type: .error,
