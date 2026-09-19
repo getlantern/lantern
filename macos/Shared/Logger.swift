@@ -41,8 +41,16 @@ class LanternLogger {
   /// Bytes appended since the last size check, so we don't stat on every line.
   private var sinceCheck = 0
 
-  init() {
-    let logsDir = FilePath.logsDirectory
+  convenience init() {
+    self.init(logsDirectory: FilePath.logsDirectory)
+  }
+
+  /// Designated initializer. The directory is a parameter so tests can drive
+  /// the real write path against a temporary location -- appends only reveal
+  /// themselves across repeated open/write/close cycles, which is exactly what
+  /// a unit test can reproduce and a compile check cannot.
+  init(logsDirectory: URL) {
+    let logsDir = logsDirectory
     if !FileManager.default.fileExists(atPath: logsDir.path) {
       try? FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
     }

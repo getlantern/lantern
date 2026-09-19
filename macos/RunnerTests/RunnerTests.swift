@@ -7,6 +7,48 @@ import XCTest
 
 final class RunnerTests: XCTestCase {
 
+  /// Every log line must survive. FileHandle(forWritingTo:) opens at offset 0,
+  /// so a write that does not seek to the end first overwrites from the start
+  /// and the file ends up holding only the most recent line. That regression
+  /// shipped briefly and compiled cleanly -- it is invisible to a build and to
+  /// any test that writes exactly once, because on an empty file offset 0 is
+  /// already the end. It only shows up across repeated open/write/close cycles,
+  /// which is the real usage pattern, so drive several writes and assert that
+  /// all of them are still there.
+  func testLogLinesAccumulateAcrossWrites() throws {
+    let directory = URL(fileURLWithPath: NSTemporaryDirectory())
+      .appendingPathComponent("lantern-logger-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(
+      at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+
+    let logger = LanternLogger(logsDirectory: directory)
+    let lines = (1...5).map { "accumulate-marker-\($0)" }
+    for line in lines {
+      logger.log(line)
+    }
+
+    // Writes are dispatched asynchronously onto the logger's serial queue, so
+    // poll rather than assuming they have landed.
+    let logFile = directory.appendingPathComponent("lantern_macos.log")
+    let deadline = Date().addingTimeInterval(10)
+    var contents = ""
+    while Date() < deadline {
+      contents = (try? String(contentsOf: logFile, encoding: .utf8)) ?? ""
+      if lines.allSatisfy({ contents.contains($0) }) {
+        break
+      }
+      usleep(20_000)
+    }
+
+    for line in lines {
+      XCTAssertTrue(
+        contents.contains(line),
+        "\(line) is missing, so appends are overwriting instead of appending. "
+          + "File held: \(contents.debugDescription)")
+    }
+  }
+
   private func assertVPNManagerError(
     _ expected: VPNManagerError,
     _ operation: () throws -> Void
