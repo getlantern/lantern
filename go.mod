@@ -31,7 +31,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/common v1.2.1-0.20260910154003-08e030318f24
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20260918221418-8d771db2597b
+	github.com/getlantern/radiance v0.0.0-20260919132418-e9d1bb5caad1
 	github.com/sagernet/sing-box v1.13.19
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.47.0
@@ -349,5 +349,3 @@ require (
 	www.bamsoftware.com/git/dnstt.git v1.20241021.0 // indirect
 	zombiezen.com/go/sqlite v0.13.1 // indirect
 )
-
-replace github.com/quic-go/quic-go => github.com/getlantern/quic-go-unbounded-fork v0.62.1-unbounded
