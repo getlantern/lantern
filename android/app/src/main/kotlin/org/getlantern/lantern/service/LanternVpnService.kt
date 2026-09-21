@@ -289,15 +289,8 @@ class LanternVpnService :
         runBlocking(Dispatchers.IO) {
             stopVPNTunnel()
             startVPN()
-            // launchVPN (wrapping startVPN) catches failures via
-            // runCatching { ... }.onFailure { ... } and returns normally,
-            // so a nil return from startVPN doesn't mean the restart
-            // succeeded. Verify the postcondition on the Go side and
-            // throw if it's not met — the exception propagates through
-            // runBlocking → restartService → radiance's Restart() as a
-            // non-nil error, which is what tells the caller the restart
-            // actually failed and the tunnel needs healing rather than
-            // wedging forever in Restarting.
+            // Startup reports recoverable failures without throwing. Radiance
+            // needs an error here if the tunnel did not actually restart.
             if (!Mobile.isVPNConnected()) {
                 val msg = "restartService failed: VPN not connected after stopVPNTunnel + startVPN"
                 AppLogger.e(TAG, msg)
@@ -376,18 +369,23 @@ class LanternVpnService :
     ) = withContext(Dispatchers.IO) {
         // A duplicate may also arrive via startForegroundService, so promote the
         // service before deciding which request owns startup.
-        val foregroundResult = runCatching {
+        val foregroundFailure = try {
             notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
+            null
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            e
         }
         val accepted = vpnStartGate.run { attempt ->
-            runCatching {
+            try {
                 if (prepare(this@LanternVpnService) != null) {
                     VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
                     cleanUpFailedVPNStart()
                     stopSelf()
                     return@run
                 }
-                foregroundResult.getOrThrow()
+                if (foregroundFailure != null) throw foregroundFailure
                 VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
                 if (!Mobile.isRadianceConnected()) {
                     AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
@@ -403,15 +401,15 @@ class LanternVpnService :
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     QuickTileService.triggerUpdateTileState(this@LanternVpnService, true)
                 }
-            }.onFailure { e ->
+            } catch (e: Exception) {
                 val timedOut = e is TimeoutCancellationException
-                if (timedOut) {
-                    AppLogger.e(TAG, "VPN operation ($errorCode) timed out after ${VPN_START_TIMEOUT_MS}ms", e)
-                } else {
-                    AppLogger.e(TAG, "Error in VPN operation ($errorCode)", e)
-                }
                 val cancelled = e is CancellationException && !timedOut
                 if (!cancelled) {
+                    if (timedOut) {
+                        AppLogger.e(TAG, "VPN operation ($errorCode) timed out after ${VPN_START_TIMEOUT_MS}ms", e)
+                    } else {
+                        AppLogger.e(TAG, "Error in VPN operation ($errorCode)", e)
+                    }
                     VpnStatusManager.postVPNError(
                         errorCode = if (timedOut) "${errorCode}_timeout" else errorCode,
                         errorMessage = if (timedOut) "VPN operation timed out" else "Error in VPN operation",
@@ -420,11 +418,16 @@ class LanternVpnService :
                 }
                 // A timeout only stops waiting for JNI. The call can still
                 // succeed and needs the network listener if it does.
-                if (!attempt.isConnectRunning &&
-                    !runCatching { Mobile.isVPNConnected() }.getOrDefault(true)
-                ) {
+                val mayBeConnected = attempt.isConnectRunning || try {
+                    Mobile.isVPNConnected()
+                } catch (statusError: CancellationException) {
+                    throw statusError
+                } catch (_: Exception) {
+                    true
+                }
+                if (!mayBeConnected) {
                     cleanUpFailedVPNStart()
-                    if (foregroundResult.isFailure) stopSelf()
+                    if (foregroundFailure != null) stopSelf()
                 }
                 if (cancelled) throw e
             }
@@ -435,8 +438,13 @@ class LanternVpnService :
     }
 
     private suspend fun cleanUpFailedVPNStart() = withContext(NonCancellable) {
-        runCatching { DefaultNetworkMonitor.stop() }
-            .onFailure { AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed in error path", it) }
+        try {
+            DefaultNetworkMonitor.stop()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed in error path", e)
+        }
         notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
         serviceCleanUp()
     }
