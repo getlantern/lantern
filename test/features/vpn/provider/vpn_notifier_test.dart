@@ -407,14 +407,26 @@ void main() {
 
     test('startup while disconnected clears a persisted session', () async {
       container.dispose();
+      now = now.add(const Duration(days: 1));
       service.isConnectedResult = right(false);
       container = _container(service);
       container.listen(vpnProvider, (_, _) {});
       await _pumpProviderQueue();
+      expect(container.read(vpnProvider), VPNStatus.disconnected);
+
       await emit(VPNStatus.connected);
+      now = now.add(
+        RatingPromptService.minSessionDuration - const Duration(seconds: 1),
+      );
       await container.read(vpnProvider.notifier).onVPNStateChange();
       await emit(VPNStatus.disconnected);
       expect(rating.sessions, 0);
+
+      await emit(VPNStatus.connected);
+      now = now.add(RatingPromptService.minSessionDuration);
+      await container.read(vpnProvider.notifier).onVPNStateChange();
+      await emit(VPNStatus.disconnected);
+      expect(rating.sessions, 1);
     });
   });
 }
