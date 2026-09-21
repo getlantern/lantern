@@ -1,10 +1,10 @@
 # Translators:
 # Ngoc Hoang <ngocit09@gmail.com>, 2025
 # Nathan Tran, 2025
-# Anh Phan <vietnamesel10n@gmail.com>, 2025
-# e2f <projects@e2f.com>, 2026
-# Lantern, 2026
 # Yen Le Van <yenlevanbk@gmail.com>, 2026
+# e2f <projects@e2f.com>, 2026
+# Anh Phan <vietnamesel10n@gmail.com>, 2026
+# Lantern, 2026
 # e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
@@ -135,6 +135,11 @@ msgstr "Nhắc họ dùng mã %s khi nâng cấp!"
 
 msgid "unbounded"
 msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Chung tay chống kiểm duyệt Internet toàn cầu"
@@ -317,6 +322,18 @@ msgstr "Chậm"
 
 msgid "cannot_link_devices"
 msgstr "Không thể liên kết thiết bị"
+
+msgid "split_tunnel"
+msgstr "Split tunneling không hoạt động"
+
+msgid "smart_routing_not_working"
+msgstr "Định tuyến thông minh không hoạt động"
+
+msgid "server_selection_not_working"
+msgstr "Chọn máy chủ không hoạt động"
+
+msgid "upgrade_fail"
+msgstr "Nâng cấp Lantern Pro không thành công"
 
 msgid "wrong_device_linking_code"
 msgstr "Mã liên kết thiết bị sai hoặc không hợp lệ"
@@ -665,6 +682,171 @@ msgstr "Chặn quảng cáo"
 
 msgid "only_active"
 msgstr "Chỉ hoạt động khi VPN được kết nối"
+
+msgid "share_my_connection"
+msgstr "Chia sẻ kết nối của tôi"
+
+msgid "share_my_connection_subtitle"
+msgstr ""
+"Cho phép người dùng Lantern khác đi qua kết nối của bạn để vượt kiểm duyệt."
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr ""
+"Giúp người khác vượt kiểm duyệt bằng cách chia sẻ kết nối của bạn một cách "
+"an toàn."
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Giới thiệu về Action Mode"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Trạng thái"
+
+msgid "smc_status_off"
+msgstr "Đã tắt"
+
+msgid "smc_status_configuring"
+msgstr "Đang cấu hình mạng"
+
+msgid "smc_status_probing"
+msgstr "Đang kiểm tra mạng của bạn…"
+
+msgid "smc_status_active_unbounded"
+msgstr "Đã bật"
+
+msgid "smc_status_active_smc"
+msgstr "Đang khởi động…"
+
+msgid "smc_status_mapping_port"
+msgstr "Đang mở cổng trên router của bạn…"
+
+msgid "smc_status_detecting_ip"
+msgstr "Đang phát hiện IP công khai của bạn…"
+
+msgid "smc_status_registering"
+msgstr "Đang đăng ký với Lantern…"
+
+msgid "smc_status_starting_proxy"
+msgstr "Đang khởi động proxy cục bộ…"
+
+msgid "smc_status_verifying"
+msgstr "Đang xác minh kết nối…"
+
+msgid "smc_status_serving"
+msgstr "Đã bật"
+
+msgid "smc_status_stopping"
+msgstr "Đang dừng…"
+
+msgid "smc_status_error_with_message"
+msgstr "Không thể chia sẻ: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Không thể chia sẻ — hãy thử tắt rồi bật lại"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "Những người bạn đang giúp ngay lúc này:"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "Tổng số người đã được giúp đến nay:"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "Đang giúp một người mới ở %s"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Đang chờ kết nối..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Chào mừng đến với Action Mode"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Khi bạn bật Action Mode, thiết bị của bạn trở thành một phần của mạng lưới "
+"'cầu nối kỹ thuật số' đến internet mở. Người dùng bị kiểm duyệt kết nối đến "
+"những cầu nối này, giúp họ vượt qua các hạn chế do chính phủ áp đặt và tiếp "
+"cận thông tin họ cần."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"Nỗ lực tập thể này khiến việc kiểm duyệt khó thực thi hơn, mở rộng khả năng "
+"tiếp cận internet mở."
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"Bạn có thể gỡ Action Mode khỏi giao diện bất cứ lúc nào trong Cài đặt."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Nâng cao"
+
+msgid "smc_advanced_subtitle"
+msgstr "Dành cho người dùng có router không hỗ trợ UPnP"
+
+msgid "smc_manual_port"
+msgstr "Chuyển tiếp cổng thủ công"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"Nếu router của bạn không hỗ trợ UPnP, hãy cấu hình chuyển tiếp cổng trên "
+"router và nhập số cổng vào đây. Lantern sẽ dùng nó làm cổng ngoài thay vì dò"
+" UPnP. Để trống để dùng UPnP (mặc định)."
+
+msgid "smc_manual_port_label"
+msgstr "Cổng"
+
+msgid "smc_manual_port_hint"
+msgstr "vd: 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Lưu"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"Hiện đang đặt ở cổng %d. Tắt rồi bật lại Action Mode để thay đổi có hiệu "
+"lực."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Cổng phải nằm trong khoảng 1 đến 65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "Đã xóa cổng thủ công — đang dùng UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "Đã đặt cổng thủ công thành %d"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Cài đặt Action Mode"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Tự động bật Action Mode"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Bật khi mở Lantern"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Ẩn Action Mode"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Gỡ Action Mode khỏi giao diện"
 
 msgid "vpn_connected"
 msgstr "Lantern đã được kết nối."
@@ -1878,6 +2060,36 @@ msgstr ""
 "Vị trí thông minh chọn máy chủ nhanh nhất và tự động chuyển đổi khi tìm thấy"
 " tuyến tốt hơn."
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "Chia sẻ kết nối của bạn?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"Khi chia sẻ đang bật, mọi người ở các quốc gia bị kiểm duyệt định tuyến lưu "
+"lượng của họ qua kết nối của bạn để đến internet mở."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"Nếu router của bạn hỗ trợ chuyển tiếp cổng, kết nối tại nhà của bạn được "
+"dùng làm lối ra và địa chỉ IP của bạn sẽ xuất hiện trong nhật ký của đích "
+"đến khi bạn đang chia sẻ. Nếu không, lưu lượng đó sẽ được chuyển tiếp qua "
+"máy chủ của Lantern, và IP của bạn không bị lộ theo cách đó."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"Trong cả hai trường hợp, Lantern chặn các đích đến bị biết là lạm dụng, dải "
+"mạng riêng và các cổng dễ bị lạm dụng, luân chuyển thông tin xác thực, và "
+"hoạt động như một \"kênh truyền dẫn thuần túy\" (mere conduit) theo DMCA § "
+"512(a)."
+
+msgid "share_consent_decline"
+msgstr "Để sau"
+
+msgid "share_consent_accept"
+msgstr "Bật chia sẻ"
+
 msgid "bypass_browser_warning_title"
 msgstr "Thêm %s vào danh sách bỏ qua?"
 
@@ -1925,3 +2137,55 @@ msgstr "Nhanh hơn, dữ liệu không giới hạn!"
 
 msgid "upsell_expired_suffix"
 msgstr "Thời gian Pro của bạn đã hết hạn"
+
+msgid "pro_expires_days_left"
+msgstr "Pro hết hạn %s, còn %s ngày"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro hết hạn %s, còn 1 ngày"
+
+msgid "renewing_adds_time"
+msgstr "Gia hạn sẽ cộng thêm thời gian vào ngày kết thúc hiện tại của bạn"
+
+msgid "pro_ends_today"
+msgstr "Thời gian Pro kết thúc hôm nay, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Gia hạn ngay để giữ dữ liệu không giới hạn và các tính năng Pro"
+
+msgid "pro_expired_on"
+msgstr "Thời gian Pro của bạn đã hết hạn vào %s"
+
+msgid "renew_now_get_back_data"
+msgstr "Gia hạn ngay để lấy lại dữ liệu không giới hạn"
+
+msgid "days_left"
+msgstr "Còn %s ngày"
+
+msgid "one_day_left"
+msgstr "Còn 1 ngày"
+
+msgid "expires_today"
+msgstr "Hết hạn hôm nay"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Thời gian Lantern Pro đã hết. Gia hạn để khôi phục dữ liệu không giới hạn và"
+" các tính năng Pro."
+
+msgid "pro_expires_today_title"
+msgstr "Pro hết hạn hôm nay"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"Tài khoản Pro của bạn kết thúc hôm nay. Gia hạn ngay để giữ quyền truy cập "
+"Lantern Pro."
+
+msgid "renew_now"
+msgstr "Gia hạn ngay"
+
+msgid "dismiss"
+msgstr "Đóng"
+
+msgid "unbounded_status_waiting"
+msgstr "Đang chờ khởi động"
