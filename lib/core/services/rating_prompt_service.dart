@@ -4,8 +4,8 @@ import 'package:lantern/core/common/common.dart' show isStoreVersion;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/logger_service.dart';
 
-/// Requests the native store rating prompt after the 5th session connected
-/// for 30 minutes and disconnected by the user. Store installs only.
+/// Requests a store review after five sessions of at least 30 minutes,
+/// each ended by the user from the app. Store installs only.
 class RatingPromptService {
   RatingPromptService(
     this._storage, {
@@ -27,7 +27,7 @@ class RatingPromptService {
   final DateTime Function() _now;
   final bool Function() _isStoreBuild;
 
-  /// Qualifying sessions since the last prompt.
+  /// Qualifying sessions since the last successful review request.
   int get sessions => int.tryParse(_storage.getString(_sessionsKey) ?? '') ?? 0;
 
   DateTime? get _connectedAt {
@@ -67,6 +67,7 @@ class RatingPromptService {
     // Persist first: the app can be closed while the native review UI is open.
     await _storage.setString(_sessionsKey, count.toString());
     if (count < requiredSessions) return;
+    // Keep the threshold if unavailable or backgrounded; the next session retries.
     if (await requestReview()) {
       await _storage.remove(_sessionsKey);
     }

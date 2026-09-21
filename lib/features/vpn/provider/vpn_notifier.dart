@@ -254,6 +254,7 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, String>> stopVPN({bool userInitiated = false}) {
     if (_stopRequest != null) return _stopRequest!;
     if (_userDisconnectRequested) return Future.value(Right(""));
+    // Only explicit disconnects qualify; setup and shutdown also stop the VPN.
     _userDisconnectRequested = userInitiated && state == VPNStatus.connected;
     return _stopRequest = _requestStop().whenComplete(() {
       _stopRequest = null;
