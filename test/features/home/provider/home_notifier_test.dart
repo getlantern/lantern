@@ -24,6 +24,8 @@ class _FakeLanternService implements LanternService {
   final waitStarted = Completer<void>();
   int waitForRadianceCalls = 0;
   int getUserDataCalls = 0;
+  Future<Either<Failure, UserResponseModel>> Function() readUser = () async =>
+      right(_user);
 
   @override
   Future<void> waitForRadiance() {
@@ -35,7 +37,7 @@ class _FakeLanternService implements LanternService {
   @override
   Future<Either<Failure, UserResponseModel>> getUserData() async {
     getUserDataCalls += 1;
-    return right(_user);
+    return readUser();
   }
 
   @override
@@ -65,5 +67,52 @@ void main() {
 
     expect(await user, _user);
     expect(service.getUserDataCalls, 1);
+  });
+
+  test('reload waits for the initial account read to finish', () async {
+    final service = _FakeLanternService();
+    final container = ProviderContainer(
+      overrides: [
+        lanternServiceProvider.overrideWithValue(service),
+        appSettingProvider.overrideWithValue(
+          const AppSetting(userLoggedIn: true),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final notifier = container.read(homeProvider.notifier);
+    final reload = notifier.reloadUserData();
+    await service.waitStarted.future;
+    expect(service.getUserDataCalls, 0);
+
+    service.ready.complete();
+    await reload;
+    expect(service.getUserDataCalls, 2);
+    expect(container.read(homeProvider).value, _user);
+  });
+
+  test('reload ignores a result after the provider is disposed', () async {
+    final service = _FakeLanternService();
+    final container = ProviderContainer(
+      overrides: [
+        lanternServiceProvider.overrideWithValue(service),
+        appSettingProvider.overrideWithValue(
+          const AppSetting(userLoggedIn: true),
+        ),
+      ],
+    );
+    service.ready.complete();
+    await container.read(homeProvider.future);
+    final readStarted = Completer<void>();
+    final response = Completer<Either<Failure, UserResponseModel>>();
+    service.readUser = () {
+      readStarted.complete();
+      return response.future;
+    };
+    final reload = container.read(homeProvider.notifier).reloadUserData();
+    await readStarted.future;
+    container.dispose();
+    response.complete(right(_user));
+    await reload;
   });
 }

@@ -117,3 +117,30 @@ jobs:
       secretless_test_build: true
       run_connect_smoke: false
       run_payment_smoke: false
+
+  notify:
+    name: Notify staging test build
+    needs: build-macos
+    if: ${{ !cancelled() && needs.build-macos.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Format Slack message
+        id: slack-message
+        env:
+          BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          short_sha="${GITHUB_SHA:0:12}"
+          text="$(printf ':test_tube: Lantern macOS staging test build is ready\n*Branch:* `%s`\n*Commit:* `%s`\n*Backend:* `%s`\n*macOS build:* <%s|Download from GitHub Actions>' \
+            "$GITHUB_REF_NAME" "$short_sha" "$BACKEND_ENVIRONMENT" "$RUN_URL")"
+          payload="$(jq --compact-output --null-input --arg text "$text" '{text: $text}')"
+          echo "payload=$payload" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: ${{ steps.slack-message.outputs.payload }}

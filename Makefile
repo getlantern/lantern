@@ -200,7 +200,14 @@ ANDROID_CMAKE_VERSION        ?= 3.31.5
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
 ANDROID_PLATFORM             ?= android-36
 ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
-SDKMANAGER                   := $(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager
+# setup-android installs cmdline-tools under a revision directory and falls back
+# to cmdline-tools/latest only when the preinstalled revision already matches, so
+# "latest" is not necessarily the toolchain the workflow selected. It does always
+# put its choice on PATH. Take that, but only from inside this SDK: sdkmanager
+# installs relative to its own location, so an unrelated one would populate a
+# different SDK than the rest of the build uses.
+SDKMANAGER_IN_SDK            := $(filter $(ANDROID_SDK_ROOT)/%,$(shell command -v sdkmanager 2>/dev/null))
+SDKMANAGER                   := $(or $(SDKMANAGER_IN_SDK),$(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager)
 ANDROID_DEBUG_FLUTTER_FLAGS  ?= --verbose
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
@@ -219,6 +226,7 @@ IOS_DIR := ios/
 IOS_FRAMEWORK := Liblantern.xcframework
 IOS_FRAMEWORK_DIR := ios/Frameworks
 IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
+IOS_FRAMEWORK_OUTPUT := $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)
 IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
 
 TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_grpc
@@ -239,7 +247,12 @@ GOMOBILECACHE ?= $(HOME)/.cache/gomobile
 # arm64 only — armeabi-v7a (32-bit) is no longer shipped in any artifact
 # (golang/go#70495 SIGSYS on 32-bit Android 8-10).
 GOMOBILE_ANDROID_TARGET ?= android/arm64
-GOMOBILE_VERSION ?= latest
+# Pinned, not "latest". gomobile and gobind are the toolchain that builds the
+# mobile frameworks, so a release has to be reproducible in them -- with "latest"
+# a shipped binary is built by whatever resolved that morning, and nothing
+# records which. This is the version "latest" resolved to for the last green
+# release on all of android, macos and ios, so pinning it changes nothing today.
+GOMOBILE_VERSION ?= v0.0.0-20260908204917-8b95e45f8d3e
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
 	./lantern-core/mobile \
@@ -813,9 +826,27 @@ windows-release: clean windows pubget gen build-windows-release prepare-windows-
 windows-profile-ci: clean windows pubget gen stage-windows-profile
 
 .PHONY: install-gomobile
+# `go install` reaches proxy.golang.org, and one i/o timeout there is enough to
+# lose a whole release: it failed the v10.0.0 iOS build two minutes in and
+# blocked publication. Retry with backoff instead of surrendering the build to a
+# single blip. Joined with `;\` so the loop stays one recipe line.
+GO_INSTALL_ATTEMPTS ?= 3
+
+define go_install_retry
+attempt=1; until GOTOOLCHAIN=$(GO_VERSION) go install -v $(1); do \
+	if [ $$attempt -ge $(GO_INSTALL_ATTEMPTS) ]; then \
+		echo "go install $(1): giving up after $$attempt attempts" >&2; \
+		exit 1; \
+	fi; \
+	echo "go install $(1): attempt $$attempt failed, retrying in $$((attempt * 5))s" >&2; \
+	sleep $$((attempt * 5)); \
+	attempt=$$((attempt + 1)); \
+done
+endef
+
 install-gomobile:
-	GOTOOLCHAIN=$(GO_VERSION) go install -v golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION)
-	GOTOOLCHAIN=$(GO_VERSION) go install -v golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION)
+	@$(call go_install_retry,golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION))
+	@$(call go_install_retry,golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION))
 	@mkdir -p "$(GOMOBILECACHE)"
 	@if [ ! -f "$(GOMOBILECACHE)/.init-$(GO_VERSION)" ]; then \
 		echo "Running gomobile init (first time for $(GO_VERSION))..."; \
@@ -1132,6 +1163,16 @@ build-ios: $(MAYBE_STEALTH_PROFILE)
 		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
+
+$(IOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	$(MAKE) check-gomobile
+	$(MAKE) build-ios
+
+# Unsigned simulator build; PR gate for Swift compile errors.
+.PHONY: ios-compile-check
+ios-compile-check: $(IOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (debug, simulator) for iOS..."
+	flutter build ios --debug --simulator --no-codesign $(DART_DEFINES) $(STEALTH_DART_DEFINES)
 
 .PHONY: format swift-format
 swift-format:

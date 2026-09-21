@@ -131,7 +131,7 @@ msgid "remind_use_code"
 msgstr "အဆင့်မြှင့်သောအခါ ကုဒ် %s ကို အသုံးပြုရန် သူတို့ကို သတိပေးပါ!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "ကမ္ဘာလုံးဆိုင်ရာ အင်တာနက် ဆင်ဆာဖြတ်ခြင်းကို တိုက်ဖျက်ရန် ကူညီပါ"
@@ -1957,3 +1957,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s သည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ပါမည်။ သင့်နိုင်ငံတွင် "
 "ပိတ်ဆို့ထားပါက အလုပ်မလုပ်တော့နိုင်ပါ။"
+
+msgid "upsell_upgrade_suffix"
+msgstr "ပိုမြန်ပြီး ကန့်သတ်မရှိ ဒေတာ!"
+
+msgid "upsell_expired_suffix"
+msgstr "သင်၏ Pro အချိန် ကုန်သွားပါပြီ"

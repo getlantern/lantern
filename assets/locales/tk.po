@@ -128,7 +128,7 @@ msgid "remind_use_code"
 msgstr "Geçenlerinde %s koduny ulanmagy ýatladyň!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Global internet senzurasy bilen göreşmäge kömek ediň"
@@ -1895,3 +1895,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s Lantern-iň goragy bolmazdan göni birigär. Ýurduňyzda petiklenen bolsa, "
 "işlemegini bes edip biler."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Has çalt, çäksiz maglumat!"
+
+msgid "upsell_expired_suffix"
+msgstr "Pro wagtyňyzyň möhleti gutardy"

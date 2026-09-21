@@ -30,15 +30,22 @@ class _ReportIssueState extends ConsumerState<ReportIssue> {
   late final TextEditingController _emailController;
   late final TextEditingController _descriptionController;
   String? _selectedIssue;
+  // Untranslated keys: these are the values submitted to lantern-core's
+  // parseIssueType, which matches on the key, not the display label.
+  // Translation happens at render time in _IssueTypeField.
   List<String> get issueOptions => <String>[
-    'cannot_complete_purchase'.i18n,
-    'cannot_sign_in'.i18n,
-    'spinner_loads_endlessly'.i18n,
-    'cannot_access_blocked_sites'.i18n,
-    'slow'.i18n,
-    'cannot_link_devices'.i18n,
-    'application_crashes'.i18n,
-    'other'.i18n,
+    'cannot_complete_purchase',
+    'cannot_sign_in',
+    'spinner_loads_endlessly',
+    'cannot_access_blocked_sites',
+    'slow',
+    'cannot_link_devices',
+    'application_crashes',
+    'split_tunnel',
+    'smart_routing_not_working',
+    'server_selection_not_working',
+    'upgrade_fail',
+    'other',
   ];
 
   @override
@@ -528,7 +535,7 @@ class _IssueTypeField extends StatelessWidget {
           entries: options
               .map(
                 (issue) =>
-                    DropdownMenuEntry<String>(value: issue, label: issue),
+                    DropdownMenuEntry<String>(value: issue, label: issue.i18n),
               )
               .toList(),
           validator: (value) {

@@ -16,6 +16,15 @@ from defusedxml.common import DefusedXmlException
 
 
 SPARKLE_NS = "http://www.andymatuschak.org/xml-namespaces/sparkle"
+USER_AGENT = "LanternUpdateVerifier/1.0"
+# Retrying is only useful while a release propagates, which surfaces as 204/404
+# or a stale version. These statuses mean the request itself is unacceptable, so
+# polling for 45 minutes cannot change the outcome.
+PERMANENT_STATUS_HINTS = {
+    400: "malformed request payload",
+    403: "blocked before reaching the update service; check the User-Agent",
+    417: "payload rejected; non-Android requests must send a checksum",
+}
 KNOWN_PLATFORMS = frozenset({"android", "ios", "linux", "macos", "windows"})
 JSON_UPDATE_PLATFORMS = {
     "android": {"os": "android", "arch": "arm64", "suffix": ".apk"},
@@ -45,6 +54,10 @@ class VerificationError(Exception):
     pass
 
 
+class PermanentVerificationError(VerificationError):
+    """A failure that retrying cannot clear."""
+
+
 def normalize_version(version: str) -> str:
     return version[1:] if version[:1].lower() == "v" else version
 
@@ -67,19 +80,27 @@ def normalize_platforms(platform: str) -> frozenset[str]:
     return platforms & VERIFIABLE_PLATFORMS
 
 
+def reject_permanent(status: int, url: str, detail: Any) -> None:
+    hint = PERMANENT_STATUS_HINTS.get(status)
+    if hint is None:
+        return
+    raise PermanentVerificationError(f"{url} returned HTTP {status} ({hint}): {detail}")
+
+
 def request_update(update_url: str, app_version: str, tags: dict[str, str]) -> tuple[int, dict[str, Any]]:
     payload = {
         "version": 1,
         "app_version": app_version,
         "os_version": "13.0.0",
-        "checksum": "",
+        # Non-Android clients require a checksum; an unknown binary gets a full download.
+        "checksum": "" if tags.get("os") == "android" else "0" * 64,
         "tags": tags,
     }
     data = json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(
         update_url,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers={"Content-Type": "application/json", "User-Agent": USER_AGENT},
         method="POST",
     )
     try:
@@ -91,19 +112,25 @@ def request_update(update_url: str, app_version: str, tags: dict[str, str]) -> t
     except urllib.error.HTTPError as err:
         body = err.read()
         if not body:
-            return err.code, {}
-        try:
-            return err.code, json.loads(body.decode("utf-8"))
-        except json.JSONDecodeError:
-            return err.code, {"error": body.decode("utf-8", errors="replace")}
+            result: dict[str, Any] = {}
+        else:
+            try:
+                result = json.loads(body.decode("utf-8"))
+            except json.JSONDecodeError:
+                result = {"error": body.decode("utf-8", errors="replace")}
+        reject_permanent(err.code, update_url, result)
+        return err.code, result
 
 
 def request_text(url: str) -> tuple[int, str]:
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     try:
-        with urllib.request.urlopen(url, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:
             return response.status, response.read().decode("utf-8")
     except urllib.error.HTTPError as err:
-        return err.code, err.read().decode("utf-8", errors="replace")
+        body = err.read().decode("utf-8", errors="replace")
+        reject_permanent(err.code, url, body)
+        return err.code, body
 
 
 def appcast_url(update_url: str, channel: str) -> str:
@@ -264,6 +291,11 @@ def poll_until_verified(config: Config) -> None:
             run_checks_once(config)
             print(f"update service verification passed on attempt {attempt}")
             return
+        except PermanentVerificationError as err:
+            raise SystemExit(
+                f"update service verification failed on attempt {attempt}, "
+                f"not retrying: {err}"
+            )
         except Exception as err:  # noqa: BLE001
             last_error = err
             remaining = int(deadline - time.monotonic())

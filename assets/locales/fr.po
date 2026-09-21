@@ -132,7 +132,7 @@ msgid "remind_use_code"
 msgstr "Rappelez-leur d'utiliser le code %s lors de leur passage à Pro !"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Aidez à combattre la censure mondiale d'Internet"
@@ -1942,3 +1942,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s se connectera directement, sans la protection de Lantern. S'il est bloqué"
 " dans votre pays, il risque de ne plus fonctionner."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Plus rapide, données illimitées !"
+
+msgid "upsell_expired_suffix"
+msgstr "Votre temps Pro a expiré"

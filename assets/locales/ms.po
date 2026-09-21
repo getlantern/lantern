@@ -133,7 +133,7 @@ msgid "remind_use_code"
 msgstr "Ingatkan mereka untuk menggunakan kod %s semasa menaik taraf!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Bantu Menentang Penapisan Internet Global"
@@ -1926,3 +1926,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s akan bersambung terus, tanpa perlindungan Lantern. Jika ia disekat di "
 "negara anda, ia mungkin berhenti berfungsi."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Lebih pantas, data tanpa had!"
+
+msgid "upsell_expired_suffix"
+msgstr "Masa Pro anda telah tamat"

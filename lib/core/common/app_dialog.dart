@@ -14,12 +14,15 @@ class AppDialog {
     required String primaryLabel,
     OnPressed? onPrimaryPressed,
     String? secondaryLabel,
+    String? secondaryIcon,
     OnPressed? onSecondaryPressed,
     bool centered = false,
     // Centers just the title while the body stays start-aligned (the
     // browser-warning layout: centered icon + title, left-aligned body).
     bool centeredTitle = false,
     bool barrierDismissible = false,
+    bool scrollable = false,
+    bool dismissOnSecondary = true,
     // When false the primary callback is responsible for dismissing the
     // dialog itself (e.g. vpnConflictDialog callers already pop).
     bool dismissOnPrimary = true,
@@ -30,6 +33,7 @@ class AppDialog {
       builder: (context) {
         final textTheme = Theme.of(context).textTheme;
         return AlertDialog(
+          scrollable: scrollable,
           // backgroundColor and shape come from dialogTheme in app_theme.dart
           contentPadding: EdgeInsets.all(24),
           // Buttons live inside content (not `actions`) so they can stretch
@@ -89,7 +93,13 @@ class AppDialog {
                   SizedBox(height: 12),
                   SecondaryButton(
                     label: secondaryLabel,
+                    icon: secondaryIcon,
+                    useThemeColor: true,
                     onPressed: () {
+                      if (!dismissOnSecondary) {
+                        onSecondaryPressed?.call();
+                        return;
+                      }
                       Navigator.of(context).pop();
                       if (onSecondaryPressed != null) {
                         Future.delayed(

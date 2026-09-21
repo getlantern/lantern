@@ -33,6 +33,48 @@ void main() {
     expect(find.byKey(const Key('dialog_page')), findsOneWidget);
     expect(find.byKey(const Key('home')), findsNothing);
   });
+
+  testWidgets('secondary action can leave the dialog open until dismissed', (
+    tester,
+  ) async {
+    var secondaryCalls = 0;
+    var completed = false;
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: const Size(390, 844),
+        child: MaterialApp(
+          theme: AppTheme.appTheme(),
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => AppDialog.show(
+                  context: context,
+                  title: 'Welcome',
+                  primaryLabel: 'Got it',
+                  secondaryLabel: 'Learn more',
+                  dismissOnSecondary: false,
+                  onSecondaryPressed: () => secondaryCalls++,
+                ).whenComplete(() => completed = true),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Learn more'));
+    await tester.pumpAndSettle();
+    expect(secondaryCalls, 1);
+    expect(completed, isFalse);
+    expect(find.text('Welcome'), findsOneWidget);
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+    expect(completed, isTrue);
+    expect(find.text('Welcome'), findsNothing);
+  });
 }
 
 class _HomePage extends StatelessWidget {

@@ -133,7 +133,7 @@ msgid "remind_use_code"
 msgstr "उन्हें याद दिलाएँ कि अपग्रेड करते समय कोड %s का उपयोग करें!"
 
 msgid "unbounded"
-msgstr "Unbounded"
+msgstr "Action Mode"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "वैश्विक इंटरनेट सेंसरशिप से लड़ने में मदद करें"
@@ -1916,3 +1916,9 @@ msgid "bypass_website_first_time_body"
 msgstr ""
 "%s सीधे कनेक्ट होगा, Lantern की सुरक्षा के बिना। यदि यह आपके देश में अवरुद्ध"
 " है, तो यह काम करना बंद कर सकता है।"
+
+msgid "upsell_upgrade_suffix"
+msgstr "तेज़ गति, असीमित डेटा!"
+
+msgid "upsell_expired_suffix"
+msgstr "आपका Pro समय समाप्त हो गया है"

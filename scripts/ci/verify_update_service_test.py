@@ -26,14 +26,30 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
     ]
     post_count = 0
     get_count = 0
+    forced_post_status = 0
+    forced_get_status = 0
+    transient_post_failures = 0
 
     def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
         self.__class__.post_count += 1
+        if self.headers.get("User-Agent") != "LanternUpdateVerifier/1.0":
+            self.send_error(403, "error 1010")
+            return
+        if self.__class__.forced_post_status:
+            self.send_error(self.__class__.forced_post_status)
+            return
+        if self.__class__.transient_post_failures > 0:
+            self.__class__.transient_post_failures -= 1
+            self.send_error(503)
+            return
         length = int(self.headers["Content-Length"])
         body = json.loads(self.rfile.read(length))
         tags = body.get("tags", {})
         channel = tags.get("channel", "stable")
         os_name = tags.get("os", "android")
+        if os_name != "android" and not body.get("checksum"):
+            self.send_error(417, "checksum must not be nil")
+            return
         suffix = ".deb" if os_name == "linux" else ".apk"
 
         if channel == "beta":
@@ -56,6 +72,12 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
         self.__class__.get_count += 1
+        if self.headers.get("User-Agent") != "LanternUpdateVerifier/1.0":
+            self.send_error(403, "error 1010")
+            return
+        if self.__class__.forced_get_status:
+            self.send_error(self.__class__.forced_get_status)
+            return
         if self.path.endswith("channel=beta"):
             self.write_xml(
                 self.appcast_xml(
@@ -128,6 +150,9 @@ class VerifyUpdateServiceTest(unittest.TestCase):
         ]
         UpdateServiceHandler.post_count = 0
         UpdateServiceHandler.get_count = 0
+        UpdateServiceHandler.forced_post_status = 0
+        UpdateServiceHandler.forced_get_status = 0
+        UpdateServiceHandler.transient_post_failures = 0
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), UpdateServiceHandler)
         self.thread = threading.Thread(target=self.server.serve_forever)
         self.thread.start()
@@ -137,6 +162,31 @@ class VerifyUpdateServiceTest(unittest.TestCase):
         self.server.shutdown()
         self.thread.join()
         self.server.server_close()
+
+    def poll_config(
+        self,
+        platforms: str = "android",
+        sparkle_version: str = "",
+        timeout_seconds: int = 5,
+    ) -> verify_update_service.Config:
+        return verify_update_service.Config(
+            update_url=self.update_url,
+            channel="beta",
+            version="v9.2.0-beta",
+            timeout_seconds=timeout_seconds,
+            interval_seconds=1,
+            platforms=verify_update_service.normalize_platforms(platforms),
+            sparkle_version=sparkle_version,
+        )
+
+    def assert_fails_fast(self, expected_hint: str) -> None:
+        with self.assertRaises(SystemExit) as caught:
+            verify_update_service.poll_until_verified(self.poll_config())
+
+        self.assertIn("not retrying", str(caught.exception))
+        self.assertIn(expected_hint, str(caught.exception))
+        # A retry would have issued a second request against the same failure.
+        self.assertEqual(UpdateServiceHandler.post_count, 1)
 
     def test_run_checks_once_accepts_valid_beta_release(self) -> None:
         UpdateServiceHandler.beta_appcast_version = "920"
@@ -243,6 +293,49 @@ class VerifyUpdateServiceTest(unittest.TestCase):
 
         self.assertEqual(UpdateServiceHandler.get_count, 0)
         self.assertEqual(UpdateServiceHandler.post_count, 0)
+
+    def test_poll_until_verified_fails_fast_on_blocked_request(self) -> None:
+        UpdateServiceHandler.forced_post_status = 403
+        self.assert_fails_fast("check the User-Agent")
+
+    def test_poll_until_verified_fails_fast_on_rejected_payload(self) -> None:
+        UpdateServiceHandler.forced_post_status = 417
+        self.assert_fails_fast("must send a checksum")
+
+    def test_poll_until_verified_fails_fast_on_malformed_request(self) -> None:
+        UpdateServiceHandler.forced_post_status = 400
+        self.assert_fails_fast("malformed request payload")
+
+    def test_poll_until_verified_fails_fast_on_blocked_appcast(self) -> None:
+        UpdateServiceHandler.forced_get_status = 403
+
+        with self.assertRaises(SystemExit) as caught:
+            verify_update_service.poll_until_verified(
+                self.poll_config(platforms="macos", sparkle_version="9.2.0-beta")
+            )
+
+        self.assertIn("not retrying", str(caught.exception))
+        self.assertEqual(UpdateServiceHandler.get_count, 1)
+
+    def test_poll_until_verified_retries_server_errors(self) -> None:
+        UpdateServiceHandler.transient_post_failures = 1
+
+        verify_update_service.poll_until_verified(self.poll_config(timeout_seconds=30))
+
+        # One rejected request, then both checks on the next attempt.
+        self.assertEqual(UpdateServiceHandler.post_count, 3)
+
+    def test_poll_until_verified_retries_while_release_propagates(self) -> None:
+        self.addCleanup(
+            setattr, UpdateServiceHandler, "beta_version", UpdateServiceHandler.beta_version
+        )
+        UpdateServiceHandler.beta_version = "9.1.9-beta"
+
+        with self.assertRaises(SystemExit) as caught:
+            verify_update_service.poll_until_verified(self.poll_config(timeout_seconds=3))
+
+        self.assertNotIn("not retrying", str(caught.exception))
+        self.assertGreater(UpdateServiceHandler.post_count, 1)
 
     def test_normalize_platforms_rejects_unknown_platforms(self) -> None:
         with self.assertRaises(verify_update_service.VerificationError):

@@ -39,7 +39,7 @@ class ProviderCarousel extends HookConsumerWidget {
     final isDesktop = PlatformUtils.isDesktop;
     final defaultHeight = isDesktop
         ? 340.0
-        : isSmallScreen(context)
+        : isNarrowScreen(context)
             ? 390.0
             : 350.0;
     final resolvedHeight = height ?? defaultHeight;

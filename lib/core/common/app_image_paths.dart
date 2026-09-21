@@ -1,4 +1,8 @@
 class AppImagePaths {
+  static const actionMode = 'assets/images/action_mode.svg';
+  static const actionModeAuto = 'assets/images/action_mode_auto.svg';
+  static const actionModePerson = 'assets/images/action_mode_person.svg';
+  static const actionModePeople = 'assets/images/action_mode_people.svg';
   static const lanternLogo = 'assets/images/lantern_logo.svg';
   static const menu = 'assets/images/menu.svg';
   static const crown = 'assets/images/crown.svg';
@@ -126,6 +130,7 @@ class AppImagePaths {
   static const person = 'assets/images/person.svg';
   static const languageGlobe = 'assets/images/language.svg';
   static const visibilityOff = 'assets/images/visibility_off.svg';
+  static const globGrid = 'assets/images/glob_grid.svg';
 
   /// Validates and returns a safe flag path for the given country code.
   /// Returns null if the country code is invalid or the flag asset doesn't exist.
