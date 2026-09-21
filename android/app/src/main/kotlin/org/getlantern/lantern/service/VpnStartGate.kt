@@ -1,63 +1,102 @@
 package org.getlantern.lantern.service
 
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /**
  * Gives one VPN start ownership of shared setup and cleanup.
- * Ownership lasts until the caller's block and any native call have finished.
+ * Stop cancels that attempt and waits for its native call before tearing down.
  */
 internal class VpnStartGate(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    private val inFlight = AtomicBoolean(false)
+    private val stateLock = Any()
+    private val operationMutex = Mutex()
+    private var activeStart: Job? = null
+    private var pendingStops = 0
+    private var stopGeneration = 0L
 
-    /** Returns false without running or queuing [block] if another start owns the gate. */
-    suspend fun run(block: suspend (Attempt) -> Unit): Boolean {
-        if (!inFlight.compareAndSet(false, true)) return false
-
-        val attempt = Attempt(dispatcher)
-        try {
-            block(attempt)
-        } finally {
-            // Cleanup must finish before another attempt can touch the monitor.
-            attempt.onConnectFinished { inFlight.set(false) }
+    /** Ordinary starts are rejected while busy; a restart may wait for the current attempt. */
+    suspend fun run(
+        waitForIdle: Boolean = false,
+        block: suspend (Attempt) -> Unit,
+    ): Boolean = coroutineScope {
+        val job = coroutineContext.job
+        val generation = synchronized(stateLock) {
+            if (pendingStops != 0) return@coroutineScope false
+            stopGeneration
         }
-        return true
-    }
-
-    class Attempt internal constructor(private val dispatcher: CoroutineDispatcher) {
-        private var connection: Deferred<Unit>? = null
-
-        val isConnectRunning: Boolean
-            get() = connection?.isCompleted == false
-
-        suspend fun connect(timeoutMillis: Long, connect: () -> Unit) {
-            // JNI can keep running after cancellation, so it has its own job.
-            // The caller can time out without releasing the gate early.
-            val scope = CoroutineScope(SupervisorJob() + dispatcher)
-            try {
-                val deferred = scope.async { connect() }
-                connection = deferred
-                withTimeout(timeoutMillis) { deferred.await() }
-            } finally {
-                scope.cancel()
+        if (waitForIdle) operationMutex.lock()
+        synchronized(stateLock) {
+            // A restart queued before Stop must not reconnect after teardown.
+            if (pendingStops != 0 || generation != stopGeneration) {
+                if (waitForIdle) operationMutex.unlock()
+                return@coroutineScope false
+            }
+            if (!waitForIdle && !operationMutex.tryLock()) return@coroutineScope false
+            activeStart = job
+        }
+        try {
+            job.ensureActive()
+            block(Attempt(job))
+            true
+        } finally {
+            synchronized(stateLock) {
+                activeStart = null
+                operationMutex.unlock()
             }
         }
+    }
 
-        internal fun onConnectFinished(release: () -> Unit) {
-            val deferred = connection
-            if (deferred == null) {
-                release()
-            } else {
-                deferred.invokeOnCompletion { release() }
+    suspend fun stop(
+        onStopping: () -> Unit = {},
+        block: suspend () -> Unit,
+    ) = withContext(NonCancellable) {
+        synchronized(stateLock) {
+            pendingStops++
+            stopGeneration++
+            activeStart?.cancel()
+        }
+        try {
+            onStopping()
+            operationMutex.withLock { block() }
+        } finally {
+            synchronized(stateLock) { pendingStops-- }
+        }
+    }
+
+    inner class Attempt internal constructor(private val job: Job) {
+        // Serialize status publication with Stop so a cancelled attempt cannot
+        // restore Connected or its notification after Disconnecting is posted.
+        fun publish(block: () -> Unit) = synchronized(stateLock) {
+            if (job.isActive) block()
+        }
+
+        suspend fun connect(
+            timeoutMillis: Long,
+            onTimeout: () -> Unit = {},
+            connect: () -> Unit,
+        ) = coroutineScope {
+            val deadline = launch {
+                delay(timeoutMillis)
+                publish(onTimeout)
+            }
+            try {
+                // JNI is not cancellable. Keep its caller alive until it returns
+                // so success, failure, and Stop all finish through the same path.
+                withContext(dispatcher) { connect() }
+            } finally {
+                deadline.cancel()
             }
         }
     }
