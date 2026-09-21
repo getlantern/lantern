@@ -24,6 +24,7 @@ Censorship circumvention tool available for free download on any operating syste
    - [Unit & Widget Tests](#71-unit--widget-tests)
    - [Integration Tests](#72-integration-tests)
    - [Linux VPN Smoke Test](#73-linux-vpn-smoke-test)
+   - [macOS App Split-Tunneling Smoke Test](#74-macos-app-split-tunneling-smoke-test)
 8. [Release & Publishing](#8-release--publishing)
    - [Tag format](#tag-format)
    - [How to release](#how-to-release)
@@ -516,6 +517,26 @@ flutter test integration_test/vpn/linux_connect_smoke_test.dart \
   --dart-define=DISABLE_SYSTEM_TRAY=true \
   --dart-define=ENABLE_IP_CHECK=true
 ```
+
+### 7.4 macOS App Split-Tunneling Smoke Test
+
+`make macos-unit-tests` includes cross-process connection-owner checks for TCP,
+UDP, and dual-stack UDP. These do not install or start a VPN.
+
+To test actual routing, install and approve a signed build from this branch,
+then run the existing smoke runner against that same build:
+
+```bash
+APP_PATH=/Applications/Lantern.app \
+TEST_PATH=integration_test/vpn/macos_app_split_tunneling_smoke_test.dart \
+  .github/scripts/macos_smoke_suite.sh
+```
+
+Use a test profile with no existing split-tunnel rules. The test checks that
+`curl` uses the VPN, goes direct when excluded, and uses the VPN again after the
+exclusion is removed. It restores routing settings and stops the VPN afterward.
+It requires access to `api.ipify.org`; a passing connection-owner check alone
+does not validate lookup permissions inside the installed NetworkExtension.
 
 ---
 

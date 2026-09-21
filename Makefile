@@ -539,6 +539,7 @@ macos-unit-tests: $(MACOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 		CODE_SIGNING_ALLOWED=NO \
 		CODE_SIGNING_REQUIRED=NO \
 		CODE_SIGN_IDENTITY=""
+	python3 macos/PacketTunnelTests/connection_owner_test.py
 
 $(DARWIN_RELEASE_BUILD): $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (release) for macOS..."

@@ -284,10 +284,23 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   public func autoDetectControl(_: Int32) throws {}
 
   public func findConnectionOwner(
-    _: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?,
-    destinationPort _: Int32
+    _ ipProtocol: Int32, sourceAddress: String?, sourcePort: Int32, destinationAddress: String?,
+    destinationPort: Int32
   ) throws -> LibboxConnectionOwner {
-    throw NSError(domain: "not implemented", code: 0)
+    // The SDK routes owner lookups through this callback on macOS too.
+    // Reuse its Darwin lookup so app exclusions can match the executable path.
+    var error: NSError?
+    let owner = LibboxFindConnectionOwner(
+      ipProtocol, sourceAddress, sourcePort, destinationAddress, destinationPort, &error)
+    if let error {
+      throw error
+    }
+    guard let owner else {
+      throw NSError(
+        domain: "org.getlantern.lantern.PacketTunnel", code: 1,
+        userInfo: [NSLocalizedDescriptionKey: "Connection owner not found"])
+    }
+    return owner
   }
 
   public func useProcFS() -> Bool {

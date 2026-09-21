@@ -277,8 +277,8 @@ github.com/getlantern/samizdat v0.0.3-0.20260819153658-ebc74116a064 h1:NhCyQAWGE
 github.com/getlantern/samizdat v0.0.3-0.20260819153658-ebc74116a064/go.mod h1:uEeykQSW2/6rTjfPlj3MTTo59poSHXfAHTGgzYDkbr0=
 github.com/getlantern/semconv v0.0.0-20260327040646-21845dda05cb h1:c5YM7b3a4r2J8Eh89KkI6M/iTFe6Bi+b8AJlfkKdFq4=
 github.com/getlantern/semconv v0.0.0-20260327040646-21845dda05cb/go.mod h1:GkPT5P9JoOTIRXRmFWxYgu1hhXgTFFTNc2hoG7WQc3g=
-github.com/getlantern/sing-box-minimal v1.13.19-lantern h1:dwVCskH9N3Q5a2wVELdyGDOHKvqWK0D9/rCM/VcaDF0=
-github.com/getlantern/sing-box-minimal v1.13.19-lantern/go.mod h1:4E8WvF7Vi60N1NtPw1CeG994J/yiJZZkty5dKKwG+V0=
+github.com/getlantern/sing-box-minimal v1.13.20-0.20260918180830-66d458e78bfb h1:Z+/LuO4Ub+vi3SVLqla/zW0uMy8W15m0qAwTu2ituIU=
+github.com/getlantern/sing-box-minimal v1.13.20-0.20260918180830-66d458e78bfb/go.mod h1:4E8WvF7Vi60N1NtPw1CeG994J/yiJZZkty5dKKwG+V0=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9 h1:VTNjZxSuAHUzu13lYpEVB8gc3xz5hZePGNHG5enHYLY=
 github.com/getlantern/timezone v0.0.0-20210901200113-3f9de9d360c9/go.mod h1:7uvbzuoOr3uYGHZx5QWlI8/C52XEf/aTb/tJFEe41Ak=
 github.com/getlantern/twiddle v0.0.0-20260914204124-f698a0d67d2f h1:8WL/o8hKl27jpHunB4nO5dJZKSTfyMwvS7J72ix6vqQ=
