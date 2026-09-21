@@ -60,9 +60,9 @@ The following tools must be installed and available on your `PATH` before buildi
 | Git | any recent | system package manager |
 | IDE | — | [Android Studio](https://developer.android.com/studio) or [VS Code](https://code.visualstudio.com) with the [Flutter extension](https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter) |
 | Xcode | 26.x | Required only for iOS and macOS targets. Install from the Mac App Store. |
-| gomobile | latest | Required for all platforms. Install via `make install-gomobile`. |
+| gomobile | pinned by `GOMOBILE_VERSION` | Required for all platforms. Install via `make install-gomobile`. |
 
-> The Flutter version is pinned in `pubspec.yaml` and the Go version is declared in `go.mod`. Using mismatched versions will cause build errors.
+> The Flutter version is pinned in `pubspec.yaml`, the Go version is declared in `go.mod`, and the gomobile/gobind version is pinned by `GOMOBILE_VERSION` in the `Makefile`. Using mismatched versions will cause build errors.
 
 Verify your setup:
 
