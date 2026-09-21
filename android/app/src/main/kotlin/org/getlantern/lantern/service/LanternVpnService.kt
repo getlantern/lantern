@@ -349,15 +349,27 @@ class LanternVpnService :
     ) = withContext(Dispatchers.IO) {
         // A duplicate may also arrive via startForegroundService, so promote the
         // service before deciding which request owns startup.
+        var promotedHere = false
         val foregroundFailure = try {
-            notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
+            promotedHere = notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
             null
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             e
         }
-        val accepted = vpnStartGate.run(waitForIdle = restart) { attempt ->
+        val accepted = vpnStartGate.run(
+            waitForIdle = restart,
+            onRejected = { rejection ->
+                AppLogger.i(TAG, "VPN operation ($errorCode) ignored: $rejection")
+                // Another start owns the notification; a stop leaves nobody to clear
+                // a promotion made here (e.g. a fresh instance during teardown).
+                if (rejection == VpnStartGate.Rejection.STOPPING && promotedHere) {
+                    notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+                    stopSelf()
+                }
+            },
+        ) { attempt ->
             try {
                 if (prepare(this@LanternVpnService) != null) {
                     attempt.publish { VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission) }
@@ -409,9 +421,6 @@ class LanternVpnService :
                 }
                 if (e is CancellationException) throw e
             }
-        }
-        if (!accepted) {
-            AppLogger.i(TAG, "VPN operation ($errorCode) ignored: another start or stop is in progress")
         }
         accepted
     }

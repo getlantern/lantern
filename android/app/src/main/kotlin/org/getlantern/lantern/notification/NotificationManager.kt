@@ -159,13 +159,16 @@ class NotificationHelper {
     /**
      * Shows the starting VPN notification as a foreground notification.
      * Also starts the service in the foreground and promotes it to a foreground service.
+     *
+     * @return true if this call promoted the service; false if it was already in the foreground.
      */
     @Synchronized
-    fun showStartingVPNConnectedNotification(vpnService: LanternVpnService) {
+    fun showStartingVPNConnectedNotification(vpnService: LanternVpnService): Boolean {
         // Duplicate starts must not replace an existing connected notification.
-        if (foregroundStarted) return
+        if (foregroundStarted) return false
         showForegroundNotification(vpnService, VPN_CONNECTED, buildStartingVpnNotification())
         foregroundStarted = true
+        return true
     }
 
     /**
