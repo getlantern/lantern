@@ -19,12 +19,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: "go.mod"
+          cache-scope: windows-service
+
       - name: Set up MinGW
         shell: bash
-        run: ./scripts/ci/choco-retry.sh mingw -y
+        run: bash ./scripts/ci/setup-windows-toolchain.sh
 
       - name: Build Windows service
         shell: pwsh

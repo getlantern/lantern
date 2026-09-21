@@ -25,6 +25,7 @@ class Updater with UpdaterLifecycleListener {
     Future<Map<String, dynamic>> Function()? loadFeatureFlags,
     @visibleForTesting TargetPlatform? platform,
     @visibleForTesting bool? isDebugMode,
+    @visibleForTesting bool? enableDesktopUpdates,
     @visibleForTesting DateTime Function()? now,
     Future<void> Function()? quitForUpdate,
   }) : _androidSideloadUpdater =
@@ -34,6 +35,8 @@ class Updater with UpdaterLifecycleListener {
        _loadFeatureFlags = loadFeatureFlags ?? _readFeatureFlags,
        _platform = platform ?? defaultTargetPlatform,
        _isDebugMode = isDebugMode ?? kDebugMode,
+       _enableDesktopUpdates =
+           enableDesktopUpdates ?? AppBuildInfo.enableAutoUpdate,
        _now = now ?? DateTime.now,
        _quitForUpdate = quitForUpdate;
 
@@ -51,6 +54,7 @@ class Updater with UpdaterLifecycleListener {
   final Future<Map<String, dynamic>> Function() _loadFeatureFlags;
   final TargetPlatform _platform;
   final bool _isDebugMode;
+  final bool _enableDesktopUpdates;
   final DateTime Function() _now;
   final Future<void> Function()? _quitForUpdate;
 
@@ -75,9 +79,9 @@ class Updater with UpdaterLifecycleListener {
 
   bool get _isSupportedPlatform =>
       !kIsWeb &&
-      (_platform == TargetPlatform.macOS ||
-          _isWindowsPlatform ||
-          _isAndroidPlatform);
+      (_isAndroidPlatform ||
+          (_enableDesktopUpdates &&
+              (_platform == TargetPlatform.macOS || _isWindowsPlatform)));
 
   // AutoUpdater opens its native event channel as soon as the singleton is
   // created. Keep that initialization off Linux and Android, where the
@@ -100,7 +104,7 @@ class Updater with UpdaterLifecycleListener {
   }
 
   Future<bool> canCheckForUpdates() async {
-    if (!_isSupportedPlatform) return false;
+    if (_disposed || !_isSupportedPlatform) return false;
     try {
       final flags = await _featureFlags();
       if (_isAndroidPlatform) {
@@ -128,11 +132,13 @@ class Updater with UpdaterLifecycleListener {
     if (_isWindowsPlatform) {
       try {
         final packageInfo = await PackageInfo.fromPlatform();
+        if (_disposed) return;
         setWinSparkleBuildVersion(packageInfo.buildNumber);
       } catch (e, st) {
         appLogger.warning('Failed to set WinSparkle build version', e, st);
       }
     }
+    if (_disposed) return;
     // Lantern owns the schedule, including retries and connectivity recovery.
     await autoUpdater.setScheduledCheckInterval(0);
     if (_disposed) return;
