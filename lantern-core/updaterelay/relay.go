@@ -284,7 +284,10 @@ func (r *relay) rewriteFeed(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	r.mu.Lock()
-	r.artifacts = artifacts
+	// Native updaters may still hold installer URLs from an earlier check.
+	for localPath, target := range artifacts {
+		r.artifacts[localPath] = target
+	}
 	r.mu.Unlock()
 	return output.Bytes(), nil
 }

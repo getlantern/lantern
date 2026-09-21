@@ -202,6 +202,32 @@ func TestInstallerRedirectCannotEscapeToS3(t *testing.T) {
 	}
 }
 
+func TestFeedRefreshKeepsPreviouslyOfferedInstallers(t *testing.T) {
+	var refreshed atomic.Bool
+	r, _ := fixtureRelay(t, func(w http.ResponseWriter, req *http.Request) {
+		if req.URL.Path == "/update/lantern/appcast.xml" {
+			feed := fixtureFeed("update.getlantern.org")
+			if refreshed.Load() {
+				feed = strings.ReplaceAll(feed, "10.0.0-beta5", "10.0.0-beta6")
+			}
+			fmt.Fprint(w, feed)
+			return
+		}
+		fmt.Fprint(w, req.URL.Path)
+	}, false)
+	_, originalFeed := get(t, r.feedURL(), nil)
+	originalInstaller := enclosure(t, originalFeed)
+	refreshed.Store(true)
+	_, refreshedFeed := get(t, r.feedURL(), nil)
+	if enclosure(t, refreshedFeed) == originalInstaller {
+		t.Fatal("feed did not change")
+	}
+	response, data := get(t, originalInstaller, nil)
+	if response.StatusCode != http.StatusOK || string(data) != testArtifact {
+		t.Fatalf("previously offered installer: %d %q", response.StatusCode, data)
+	}
+}
+
 func TestInstallerStreamsAndCancels(t *testing.T) {
 	cancelled := make(chan struct{})
 	r, _ := fixtureRelay(t, func(w http.ResponseWriter, req *http.Request) {
