@@ -77,6 +77,30 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     //let excludeAPNs = await SharedPreferences.excludeAPNsRoute.get()
     // Base network settings
     let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
+    // The fallback identifies the utun by its addresses, even without auto-routing.
+    // Apply the addresses here; routes and DNS remain conditional below.
+    var ipv4Address: [String] = []
+    var ipv4Mask: [String] = []
+    let ipv4AddressIterator = options.getInet4Address()!
+    appLogger.info("iterating over ipv4 addresses")
+    while ipv4AddressIterator.hasNext() {
+      let ipv4Prefix = ipv4AddressIterator.next()!
+      ipv4Address.append(ipv4Prefix.address())
+      ipv4Mask.append(ipv4Prefix.mask())
+    }
+    let ipv4Settings = NEIPv4Settings(addresses: ipv4Address, subnetMasks: ipv4Mask)
+
+    var ipv6Address: [String] = []
+    var ipv6Prefixes: [NSNumber] = []
+    let ipv6AddressIterator = options.getInet6Address()!
+    while ipv6AddressIterator.hasNext() {
+      let ipv6Prefix = ipv6AddressIterator.next()!
+      ipv6Address.append(ipv6Prefix.address())
+      ipv6Prefixes.append(NSNumber(value: ipv6Prefix.prefix()))
+    }
+    let ipv6Settings = NEIPv6Settings(
+      addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
+
     appLogger.info("Checking auto route")
     if options.getAutoRoute() {
       settings.mtu = NSNumber(value: options.getMTU())
@@ -86,17 +110,6 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       dnsSettings.matchDomainsNoSearch = true
       settings.dnsSettings = dnsSettings
 
-      var ipv4Address: [String] = []
-      var ipv4Mask: [String] = []
-      let ipv4AddressIterator = options.getInet4Address()!
-      appLogger.info("iterating over ipv4 addresses")
-      while ipv4AddressIterator.hasNext() {
-        let ipv4Prefix = ipv4AddressIterator.next()!
-        ipv4Address.append(ipv4Prefix.address())
-        ipv4Mask.append(ipv4Prefix.mask())
-      }
-
-      let ipv4Settings = NEIPv4Settings(addresses: ipv4Address, subnetMasks: ipv4Mask)
       var ipv4Routes: [NEIPv4Route] = []
       var ipv4ExcludeRoutes: [NEIPv4Route] = []
 
@@ -161,18 +174,6 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
       ipv4Settings.includedRoutes = ipv4Routes
       ipv4Settings.excludedRoutes = ipv4ExcludeRoutes
-      settings.ipv4Settings = ipv4Settings
-
-      var ipv6Address: [String] = []
-      var ipv6Prefixes: [NSNumber] = []
-      let ipv6AddressIterator = options.getInet6Address()!
-      while ipv6AddressIterator.hasNext() {
-        let ipv6Prefix = ipv6AddressIterator.next()!
-        ipv6Address.append(ipv6Prefix.address())
-        ipv6Prefixes.append(NSNumber(value: ipv6Prefix.prefix()))
-      }
-      let ipv6Settings = NEIPv6Settings(
-        addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
       var ipv6Routes: [NEIPv6Route] = []
       var ipv6ExcludeRoutes: [NEIPv6Route] = []
 
@@ -209,8 +210,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
       ipv6Settings.includedRoutes = ipv6Routes
       ipv6Settings.excludedRoutes = ipv6ExcludeRoutes
-      settings.ipv6Settings = ipv6Settings
     }
+    settings.ipv4Settings = ipv4Settings
+    settings.ipv6Settings = ipv6Settings
     appLogger.info("Checking if HTTP proxy is enabled...")
 
     if options.isHTTPProxyEnabled() {
