@@ -18,6 +18,9 @@ class InputTests(unittest.TestCase):
     def test_shared_inputs_invalidate_both(self):
         for path in ['lib/main.dart', 'assets/locales/en.po', 'go.mod', 'go.sum',
                      'lantern-core/mobile/mobile.go', 'scripts/ci/version.sh',
+                     '.github/actions/setup-go/action.yml',
+                     '.github/actions/setup-flutter/action.yml',
+                     '.github/actions/setup-flutter/read-version.sh',
                      'Makefile', 'pubspec.lock', swift_ci.WORKFLOW, swift_ci.SCRIPT]:
             for platform in swift_ci.PLATFORMS:
                 with self.subTest(path=path, platform=platform):
@@ -25,7 +28,8 @@ class InputTests(unittest.TestCase):
 
     def test_unrelated_edits_do_not_invalidate_native_builds(self):
         for path in ['test/core/services/logger_service_test.dart', 'README.md',
-                     'android/app/build.gradle', 'windows/runner/main.cpp']:
+                     'android/app/build.gradle', 'windows/runner/main.cpp',
+                     '.github/actions/setup-android/action.yml']:
             for platform in swift_ci.PLATFORMS:
                 with self.subTest(path=path, platform=platform):
                     self.assertFalse(swift_ci.relevant(path, platform))
