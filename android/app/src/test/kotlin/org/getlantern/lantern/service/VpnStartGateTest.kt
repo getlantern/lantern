@@ -145,6 +145,43 @@ class VpnStartGateTest {
     }
 
     @Test(timeout = 10_000)
+    fun lateConnectCompletionDoesNotReleaseGateDuringCleanup() = runBlocking {
+        val gate = VpnStartGate()
+        val releaseConnect = CountDownLatch(1)
+        val cleaningUp = CompletableDeferred<Unit>()
+        val finishCleanup = CompletableDeferred<Unit>()
+        try {
+            val first = async {
+                gate.run { attempt ->
+                    val result = runCatching {
+                        attempt.connect(200) {
+                            assertTrue(releaseConnect.await(5, TimeUnit.SECONDS))
+                        }
+                    }
+                    assertTrue(result.exceptionOrNull() is TimeoutCancellationException)
+                    assertTrue(attempt.isConnectRunning)
+                    releaseConnect.countDown()
+                    withTimeout(5_000) {
+                        while (attempt.isConnectRunning) yield()
+                    }
+                    cleaningUp.complete(Unit)
+                    finishCleanup.await()
+                }
+            }
+            cleaningUp.await()
+
+            assertFalse(gate.run { error("cleanup is still running after native completion") })
+
+            finishCleanup.complete(Unit)
+            assertTrue(first.await())
+            assertTrue(gate.run {})
+        } finally {
+            releaseConnect.countDown()
+            finishCleanup.complete(Unit)
+        }
+    }
+
+    @Test(timeout = 10_000)
     fun cancellationKeepsGateUntilBlockingConnectReturns() = runBlocking {
         val gate = VpnStartGate()
         val entered = CompletableDeferred<Unit>()

@@ -356,7 +356,6 @@ class LanternVpnService :
 
     suspend fun startVPN() = launchVPN(
         errorCode = "start_vpn",
-        cleanUpOnFailure = true,
     ) {
         Mobile.startVPN()
         AppLogger.d(TAG, "VPN service started")
@@ -366,7 +365,6 @@ class LanternVpnService :
         tag: String,
     ) = launchVPN(
         errorCode = "connect_to_server",
-        cleanUpOnFailure = false,
     ) {
         Mobile.connectToServer(tag)
         AppLogger.d(TAG, "Connected to server")
@@ -374,13 +372,8 @@ class LanternVpnService :
 
     private suspend fun launchVPN(
         errorCode: String,
-        cleanUpOnFailure: Boolean,
         connect: () -> Unit,
     ) = withContext(Dispatchers.IO) {
-        if (prepare(this@LanternVpnService) != null) {
-            VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
-            return@withContext
-        }
         // A duplicate may also arrive via startForegroundService, so promote the
         // service before deciding which request owns startup.
         val foregroundResult = runCatching {
@@ -388,6 +381,12 @@ class LanternVpnService :
         }
         val accepted = vpnStartGate.run { attempt ->
             runCatching {
+                if (prepare(this@LanternVpnService) != null) {
+                    VpnStatusManager.postVPNStatus(VPNStatus.MissingPermission)
+                    cleanUpFailedVPNStart()
+                    stopSelf()
+                    return@run
+                }
                 foregroundResult.getOrThrow()
                 VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
                 if (!Mobile.isRadianceConnected()) {
@@ -411,28 +410,35 @@ class LanternVpnService :
                 } else {
                     AppLogger.e(TAG, "Error in VPN operation ($errorCode)", e)
                 }
-                DefaultNetworkMonitor.setNetworkChangeCallback(null)
-                withContext(NonCancellable) {
-                    runCatching { DefaultNetworkMonitor.stop() }
-                        .onFailure { stopErr -> AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed in error path", stopErr) }
+                val cancelled = e is CancellationException && !timedOut
+                if (!cancelled) {
+                    VpnStatusManager.postVPNError(
+                        errorCode = if (timedOut) "${errorCode}_timeout" else errorCode,
+                        errorMessage = if (timedOut) "VPN operation timed out" else "Error in VPN operation",
+                        error = e,
+                    )
                 }
-                if (e is CancellationException && !timedOut) throw e
-                VpnStatusManager.postVPNError(
-                    errorCode = if (timedOut) "${errorCode}_timeout" else errorCode,
-                    errorMessage = if (timedOut) "VPN operation timed out" else "Error in VPN operation",
-                    error = e,
-                )
-                // Keep the receiver if a tunnel is active or a timed-out call can
-                // still finish. A failed status query is not proof that it stopped.
-                val mayBeConnected = runCatching { Mobile.isVPNConnected() }.getOrDefault(true)
-                if (cleanUpOnFailure && !mayBeConnected && !attempt.isConnectRunning) {
-                    serviceCleanUp()
+                // A timeout only stops waiting for JNI. The call can still
+                // succeed and needs the network listener if it does.
+                if (!attempt.isConnectRunning &&
+                    !runCatching { Mobile.isVPNConnected() }.getOrDefault(true)
+                ) {
+                    cleanUpFailedVPNStart()
+                    if (foregroundResult.isFailure) stopSelf()
                 }
+                if (cancelled) throw e
             }
         }
         if (!accepted) {
             AppLogger.i(TAG, "VPN operation ($errorCode) ignored: previous connect attempt still in flight")
         }
+    }
+
+    private suspend fun cleanUpFailedVPNStart() = withContext(NonCancellable) {
+        runCatching { DefaultNetworkMonitor.stop() }
+            .onFailure { AppLogger.e(TAG, "DefaultNetworkMonitor.stop() failed in error path", it) }
+        notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
+        serviceCleanUp()
     }
 
     private suspend fun resetVpnAfterAppUpgradeIfNeeded() {
@@ -443,7 +449,6 @@ class LanternVpnService :
         // first tunnel start after the new process comes up.
         AppLogger.i(TAG, "App APK updated; resetting VPN state before first tunnel start")
         stopVPNTunnel()
-        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
         delay(UPGRADE_RESET_SETTLE_MS)
     }
 

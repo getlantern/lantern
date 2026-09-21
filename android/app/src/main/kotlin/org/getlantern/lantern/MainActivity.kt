@@ -233,10 +233,19 @@ class MainActivity : FlutterFragmentActivity() {
     // Replays the pending selection after VPN consent, so consent doesn't fall back to auto.
     private fun resumePendingConnect() {
         val tag = pendingTag
-        if (tag != null) {
-            connectToServer(tag)
-        } else {
-            startVPN()
+        runCatching {
+            if (tag != null) {
+                connectToServer(tag)
+            } else {
+                startVPN()
+            }
+        }.onFailure { e ->
+            AppLogger.e(TAG, "Failed to start VPN after permission request", e)
+            VpnStatusManager.postVPNError(
+                errorCode = "start_vpn",
+                errorMessage = "Error starting VPN service",
+                error = e,
+            )
         }
     }
 
