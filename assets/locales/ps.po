@@ -321,7 +321,7 @@ msgid "cannot_link_devices"
 msgstr "وسایل نښلولی نشم"
 
 msgid "split_tunnel"
-msgstr "Split tunneling کار نه کوي"
+msgstr "وېشل شوی ټنل کار نه کوي"
 
 msgid "smart_routing_not_working"
 msgstr "هوښیار مسیر ورکول کار نه کوي"

@@ -316,7 +316,7 @@ msgid "cannot_link_devices"
 msgstr "Enjamlary baglap bilemok"
 
 msgid "split_tunnel"
-msgstr "Split tunneling işlemeýär"
+msgstr "Bölünişikli tunnelirleme işlemeýär"
 
 msgid "smart_routing_not_working"
 msgstr "Akylly ugrukdyryş işlemeýär"

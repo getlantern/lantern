@@ -798,7 +798,7 @@ msgstr ""
 
 # Advanced section / manual port forward
 msgid "smc_advanced"
-msgstr "Advanced"
+msgstr "Lanjutan"
 
 msgid "smc_advanced_subtitle"
 msgstr "Untuk pengguna yang penghalanya tidak menyokong UPnP"
@@ -2195,7 +2195,7 @@ msgid "renew_now"
 msgstr "Perbaharui Sekarang"
 
 msgid "dismiss"
-msgstr "Dismiss"
+msgstr "Tutup"
 
 msgid "unbounded_status_waiting"
 msgstr "Menunggu untuk bermula"

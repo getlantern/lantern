@@ -1994,7 +1994,7 @@ msgid "renew_now"
 msgstr "立即续订"
 
 msgid "dismiss"
-msgstr "解除"
+msgstr "关闭"
 
 msgid "unbounded_status_waiting"
 msgstr "等待启动"

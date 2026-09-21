@@ -2181,7 +2181,7 @@ msgid "renew_now"
 msgstr "Şimdi Yenile"
 
 msgid "dismiss"
-msgstr "Bırak"
+msgstr "Kapat"
 
 msgid "unbounded_status_waiting"
 msgstr "Başlamak için bekliyor"

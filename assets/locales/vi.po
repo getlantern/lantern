@@ -2185,7 +2185,7 @@ msgid "renew_now"
 msgstr "Gia hạn ngay"
 
 msgid "dismiss"
-msgstr "Dismiss"
+msgstr "Đóng"
 
 msgid "unbounded_status_waiting"
 msgstr "Đang chờ khởi động"

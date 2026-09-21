@@ -2183,7 +2183,7 @@ msgid "renew_now"
 msgstr "अभी नवीनीकरण करें"
 
 msgid "dismiss"
-msgstr "छोड़े"
+msgstr "खारिज करें"
 
 msgid "unbounded_status_waiting"
 msgstr "शुरू होने की प्रतीक्षा में"

@@ -320,7 +320,7 @@ msgid "cannot_link_devices"
 msgstr "ไม่สามารถเชื่อมโยงอุปกรณ์"
 
 msgid "split_tunnel"
-msgstr "Split tunneling ไม่ทำงาน"
+msgstr "การแยกอุโมงค์ไม่ทำงาน"
 
 msgid "smart_routing_not_working"
 msgstr "การกำหนดเส้นทางอัจฉริยะไม่ทำงาน"
@@ -775,7 +775,7 @@ msgstr "คุณสามารถนำ Action Mode ออกจากหน�
 
 # Advanced section / manual port forward
 msgid "smc_advanced"
-msgstr "Advanced"
+msgstr "ขั้นสูง"
 
 msgid "smc_advanced_subtitle"
 msgstr "สำหรับผู้ใช้ที่เราเตอร์ไม่รองรับ UPnP"
@@ -2144,7 +2144,7 @@ msgid "renew_now"
 msgstr "ต่ออายุตอนนี้"
 
 msgid "dismiss"
-msgstr "Dismiss"
+msgstr "ปิด"
 
 msgid "unbounded_status_waiting"
 msgstr "กำลังรอเริ่มต้น"

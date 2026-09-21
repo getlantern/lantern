@@ -657,7 +657,7 @@ msgstr "關於 Action Mode"
 
 # Status card — phase labels
 msgid "smc_status_label"
-msgstr "地位"
+msgstr "狀態"
 
 msgid "smc_status_off"
 msgstr "已停用"
@@ -1999,7 +1999,7 @@ msgid "renew_now"
 msgstr "立即續訂"
 
 msgid "dismiss"
-msgstr "解除"
+msgstr "關閉"
 
 msgid "unbounded_status_waiting"
 msgstr "等待啟動"

@@ -2108,7 +2108,7 @@ msgid "share_consent_decline"
 msgstr "Ahora no"
 
 msgid "share_consent_accept"
-msgstr "Activar el compartir"
+msgstr "Activar el uso compartido"
 
 msgid "bypass_browser_warning_title"
 msgstr "¿Añadir %s a la lista de exclusión?"

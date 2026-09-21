@@ -2133,7 +2133,7 @@ msgid "renew_now"
 msgstr "التجديد الآن"
 
 msgid "dismiss"
-msgstr "أَبعدْ"
+msgstr "إغلاق"
 
 msgid "unbounded_status_waiting"
 msgstr "في انتظار البدء"

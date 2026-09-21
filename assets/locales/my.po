@@ -321,7 +321,7 @@ msgid "cannot_link_devices"
 msgstr "စက်ပစ္စည်းများ ချိတ်ဆက်၍မရပါ"
 
 msgid "split_tunnel"
-msgstr "Split tunneling အလုပ်မလုပ်ပါ"
+msgstr "ခွဲခြားချိတ်ဆက်ခြင်း အလုပ်မလုပ်ပါ"
 
 msgid "smart_routing_not_working"
 msgstr "စမတ်လမ်းကြောင်းသတ်မှတ်မှု အလုပ်မလုပ်ပါ"
