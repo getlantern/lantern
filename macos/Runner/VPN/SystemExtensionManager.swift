@@ -1041,22 +1041,12 @@ internal enum SystemExtensionBundleHasher {
     hasher.update(data: Data(relativePath.utf8))
     hasher.update(data: Data([0]))
 
-    if #available(macOS 10.15.4, *) {
-      do {
-        while let chunk = try fileHandle.read(upToCount: readChunkSize), !chunk.isEmpty {
-          hasher.update(data: chunk)
-        }
-      } catch {
-        return false
-      }
-    } else {
-      while true {
-        let chunk = fileHandle.readData(ofLength: readChunkSize)
-        if chunk.isEmpty {
-          break
-        }
+    do {
+      while let chunk = try fileHandle.read(upToCount: readChunkSize), !chunk.isEmpty {
         hasher.update(data: chunk)
       }
+    } catch {
+      return false
     }
 
     hasher.update(data: Data([0]))
