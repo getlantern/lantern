@@ -2,7 +2,6 @@
 # Lamine Kacimi <k_lamine27@yahoo.fr>, 2025
 # Rima Sghaier, 2025
 # Amin Jobran, 2025
-# dc64c51d94429ef6835e68b9062d8713_f0bbcb2 <c1f4e6afa4193d416d7a55f63ee75536_721142>, 2025
 # Mhawesh, 2025
 # e2f <projects@e2f.com>, 2026
 # 6ad90dadbe5d08991a98500e1efbdbb4_9d79615 <7392e61add82b364ab0393a04573af48_721156>, 2026
@@ -10,6 +9,9 @@
 # Lantern, 2026
 # Abed Abedd <abderrahman.younis@gmail.com>, 2026
 # 160565ee57b988ee904d03fec374ff93_4f79b8c <73ec7ace4de62e6bb6454cb54e990a4d_721149>, 2026
+# Eddie Alshehri <P@ssion.net>, 2026
+# محيي الدين <tx99h4@hotmail.com>, 2026
+# dc64c51d94429ef6835e68b9062d8713_f0bbcb2 <c1f4e6afa4193d416d7a55f63ee75536_721142>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -139,6 +141,11 @@ msgstr "ذكّرهم باستخدام الرمز %s عند الترقية!"
 
 msgid "unbounded"
 msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "ساعد في مكافحة الرقابة العالمية على الإنترنت"
@@ -320,6 +327,18 @@ msgstr "بطيء"
 
 msgid "cannot_link_devices"
 msgstr "لا يمكن ربط الأجهزة"
+
+msgid "split_tunnel"
+msgstr "التقسيم النفقي لا يعمل"
+
+msgid "smart_routing_not_working"
+msgstr "التوجيه الذكي لا يعمل"
+
+msgid "server_selection_not_working"
+msgstr "اختيار الخادم لا يعمل"
+
+msgid "upgrade_fail"
+msgstr "فشلت الترقية إلى Lantern Pro"
 
 msgid "wrong_device_linking_code"
 msgstr "رمز ربط الجهاز خاطئ أو غير صالح"
@@ -655,6 +674,164 @@ msgstr "حظر الإعلانات"
 
 msgid "only_active"
 msgstr "نشط فقط عند الاتصال بـ VPN"
+
+msgid "share_my_connection"
+msgstr "مشاركة اتصالي"
+
+msgid "share_my_connection_subtitle"
+msgstr "اسمح لمستخدمي Lantern الآخرين بالمرور عبر اتصالك لتجاوز الرقابة."
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr "ساعد الآخرين على تجاوز الرقابة من خلال مشاركة اتصالك بأمان."
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "حول Action Mode"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "الحالة"
+
+msgid "smc_status_off"
+msgstr "مُعطّل"
+
+msgid "smc_status_configuring"
+msgstr "جارٍ إعداد الشبكة"
+
+msgid "smc_status_probing"
+msgstr "جارٍ فحص شبكتك…"
+
+msgid "smc_status_active_unbounded"
+msgstr "مُفعّل"
+
+msgid "smc_status_active_smc"
+msgstr "جارٍ البدء…"
+
+msgid "smc_status_mapping_port"
+msgstr "جارٍ فتح منفذ على جهاز التوجيه…"
+
+msgid "smc_status_detecting_ip"
+msgstr "جارٍ اكتشاف عنوان IP العام الخاص بك…"
+
+msgid "smc_status_registering"
+msgstr "جارٍ التسجيل لدى Lantern…"
+
+msgid "smc_status_starting_proxy"
+msgstr "جارٍ تشغيل الوكيل المحلي…"
+
+msgid "smc_status_verifying"
+msgstr "جارٍ التحقق من الاتصال…"
+
+msgid "smc_status_serving"
+msgstr "مُفعّل"
+
+msgid "smc_status_stopping"
+msgstr "جارٍ الإيقاف…"
+
+msgid "smc_status_error_with_message"
+msgstr "تعذّرت المشاركة: %s"
+
+msgid "smc_status_error_generic"
+msgstr "تعذّرت المشاركة — جرّب إيقاف التبديل وتشغيله مرة أخرى"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "الأشخاص الذين تساعدهم الآن:"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "إجمالي الأشخاص الذين تمت مساعدتهم حتى الآن:"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "جارٍ مساعدة شخص جديد في %s"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "في انتظار الاتصالات..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "مرحبًا بك في Action Mode"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"عند تفعيل Action Mode، يصبح جهازك جزءًا من شبكة من «الجسور الرقمية» إلى "
+"الإنترنت المفتوح. يتصل المستخدمون الخاضعون للرقابة بهذه الجسور، ما يتيح لهم "
+"تجاوز القيود التي تفرضها الحكومات والوصول إلى المعلومات التي يحتاجونها."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"هذا الجهد الجماعي يجعل فرض الرقابة أصعب، ويوسّع الوصول إلى الإنترنت المفتوح."
+
+msgid "unbounded_welcome_body_3"
+msgstr "يمكنك إزالة Action Mode من الواجهة في أي وقت من الإعدادات."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "متقدم"
+
+msgid "smc_advanced_subtitle"
+msgstr "للمستخدمين الذين لا يدعم جهاز التوجيه لديهم UPnP"
+
+msgid "smc_manual_port"
+msgstr "إعادة توجيه منفذ يدويًا"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"إذا كان جهاز التوجيه لديك لا يدعم UPnP، فقم بإعداد إعادة توجيه منفذ على جهاز"
+" التوجيه وأدخل رقم المنفذ هنا. سيستخدمه Lantern كمنفذ خارجي بدلاً من فحص "
+"UPnP. اتركه فارغًا لاستخدام UPnP (الافتراضي)."
+
+msgid "smc_manual_port_label"
+msgstr "المنفذ"
+
+msgid "smc_manual_port_hint"
+msgstr "مثال: 5698"
+
+msgid "smc_manual_port_save"
+msgstr "حفظ"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"المنفذ المحدد حاليًا هو %d. أوقف Action Mode ثم أعد تشغيله ليسري التغيير."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "يجب أن يكون المنفذ بين 1 و65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "تم مسح المنفذ اليدوي — يتم استخدام UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "تم تعيين المنفذ اليدوي إلى %d"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "إعدادات Action Mode"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "تفعيل Action Mode تلقائيًا"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "يعمل عند فتح Lantern"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "إخفاء Action Mode"
+
+msgid "hide_unbounded_subtitle"
+msgstr "يزيل Action Mode من الواجهة"
 
 msgid "vpn_connected"
 msgstr "تم الاتصال بـ Lantern الآن."
@@ -1834,6 +2011,35 @@ msgstr "إجمالي الطلب"
 msgid "smart_routing_mode_description"
 msgstr "يختار الموقع الذكي أسرع خادم ويبدّل تلقائيًا كلما وجد مسارات أفضل."
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "مشاركة اتصالك؟"
+
+msgid "share_consent_body_what"
+msgstr ""
+"أثناء تفعيل المشاركة، يمرر الأشخاص في البلدان الخاضعة للرقابة حركة بياناتهم "
+"عبر اتصالك للوصول إلى الإنترنت المفتوح."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"إذا كان جهاز التوجيه لديك يدعم إعادة توجيه المنافذ، فسيُستخدم اتصالك المنزلي"
+" كنقطة خروج وسيظهر عنوان IP الخاص بك في سجلات الوجهة أثناء المشاركة. وإلا، "
+"فسيتم تمرير تلك الحركة عبر خوادم Lantern بدلاً من ذلك، ولن يُكشف عنوان IP "
+"الخاص بك بهذه الطريقة."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"في كلتا الحالتين، يحجب Lantern الوجهات المعروفة بإساءة الاستخدام ونطاقات "
+"الشبكات الخاصة والمنافذ المعرضة لإساءة الاستخدام، ويقوم بتدوير بيانات "
+"الاعتماد، ويعمل بصفته «ناقلًا محضًا» (mere conduit) بموجب DMCA § 512(a)."
+
+msgid "share_consent_decline"
+msgstr "ليس الآن"
+
+msgid "share_consent_accept"
+msgstr "تفعيل المشاركة"
+
 msgid "bypass_browser_warning_title"
 msgstr "هل تريد إضافة %s إلى قائمة التجاوز؟"
 
@@ -1877,7 +2083,57 @@ msgstr ""
 "العمل."
 
 msgid "upsell_upgrade_suffix"
-msgstr "أسرع، بيانات غير محدودة!"
+msgstr "أسرع وبيانات غير محدودة!"
 
 msgid "upsell_expired_suffix"
-msgstr "انتهت صلاحية وقت Pro الخاص بك"
+msgstr "انتهت مدة برو الخاصة بك"
+
+msgid "pro_expires_days_left"
+msgstr "تنتهي صلاحية برو في %s، متبقّي %s يومًا"
+
+msgid "pro_expires_one_day_left"
+msgstr "تنتهي صلاحية برو في %s، متبقٍ يوم واحد"
+
+msgid "renewing_adds_time"
+msgstr "التجديد يضيف وقتًا إلى تاريخ الانتهاء الحالي"
+
+msgid "pro_ends_today"
+msgstr "تنتهي مدة برو اليوم، %s"
+
+msgid "renew_now_keep_data"
+msgstr "جدّد الآن للاحتفاظ بالبيانات غير المحدودة وميزات برو"
+
+msgid "pro_expired_on"
+msgstr "انتهت مدة برو الخاصة بك في %s"
+
+msgid "renew_now_get_back_data"
+msgstr "جدّد الآن لاستعادة البيانات غير المحدودة"
+
+msgid "days_left"
+msgstr "متبقّي %s يومًا"
+
+msgid "one_day_left"
+msgstr "متبقٍ يوم واحد"
+
+msgid "expires_today"
+msgstr "تنتهي الصلاحية اليوم"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"انتهت مدة Lantern Pro. جدّد لاستعادة البيانات غير المحدودة وميزات برو."
+
+msgid "pro_expires_today_title"
+msgstr "تنتهي صلاحية برو اليوم"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"ينتهي حساب برو الخاص بك اليوم. جدّد الآن للاحتفاظ بالوصول إلى Lantern Pro."
+
+msgid "renew_now"
+msgstr "التجديد الآن"
+
+msgid "dismiss"
+msgstr "أَبعدْ"
+
+msgid "unbounded_status_waiting"
+msgstr "في انتظار البدء"

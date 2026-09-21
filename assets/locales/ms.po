@@ -1,10 +1,10 @@
 # Translators:
 # tx_e2f_ms t9 <tx_e2f_ms_t9@ate2f.com>, 2026
-# e2f_my c2 <tx_e2f_my_c2@ate2f.com>, 2026
-# Lantern, 2026
 # Alyssa Chung <lisiachung7@gmail.com>, 2026
 # e2f <projects@e2f.com>, 2026
 # tx_e2f_my t1 <divinahramaroson@gmail.com>, 2026
+# Lantern, 2026
+# e2f_my c2 <tx_e2f_my_c2@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
 msgid ""
@@ -134,6 +134,11 @@ msgstr "Ingatkan mereka untuk menggunakan kod %s semasa menaik taraf!"
 
 msgid "unbounded"
 msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Bantu Menentang Penapisan Internet Global"
@@ -316,6 +321,18 @@ msgstr "Perlahan"
 
 msgid "cannot_link_devices"
 msgstr "Tidak dapat memautkan peranti"
+
+msgid "split_tunnel"
+msgstr "Penerowongan pisah tidak berfungsi"
+
+msgid "smart_routing_not_working"
+msgstr "Penghalaan pintar tidak berfungsi"
+
+msgid "server_selection_not_working"
+msgstr "Pemilihan pelayan tidak berfungsi"
+
+msgid "upgrade_fail"
+msgstr "Naik taraf Lantern Pro tidak berjaya"
 
 msgid "wrong_device_linking_code"
 msgstr "Kod pautan peranti salah atau tidak sah"
@@ -668,6 +685,174 @@ msgstr "Sekat Iklan"
 
 msgid "only_active"
 msgstr "Hanya aktif apabila VPN disambungkan"
+
+msgid "share_my_connection"
+msgstr "Kongsi Sambungan Saya"
+
+msgid "share_my_connection_subtitle"
+msgstr ""
+"Benarkan pengguna Lantern lain melalui sambungan anda untuk memintas "
+"penapisan."
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr ""
+"Bantu orang lain memintas penapisan dengan berkongsi sambungan anda secara "
+"selamat."
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Perihal Action Mode"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Status"
+
+msgid "smc_status_off"
+msgstr "Dilumpuhkan"
+
+msgid "smc_status_configuring"
+msgstr "Mengkonfigurasi rangkaian"
+
+msgid "smc_status_probing"
+msgstr "Memeriksa rangkaian anda…"
+
+msgid "smc_status_active_unbounded"
+msgstr "Didayakan"
+
+msgid "smc_status_active_smc"
+msgstr "Memulakan…"
+
+msgid "smc_status_mapping_port"
+msgstr "Membuka port pada penghala anda…"
+
+msgid "smc_status_detecting_ip"
+msgstr "Mengesan IP awam anda…"
+
+msgid "smc_status_registering"
+msgstr "Mendaftar dengan Lantern…"
+
+msgid "smc_status_starting_proxy"
+msgstr "Memulakan proksi tempatan…"
+
+msgid "smc_status_verifying"
+msgstr "Mengesahkan sambungan…"
+
+msgid "smc_status_serving"
+msgstr "Didayakan"
+
+msgid "smc_status_stopping"
+msgstr "Menghentikan…"
+
+msgid "smc_status_error_with_message"
+msgstr "Tidak dapat berkongsi: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Tidak dapat berkongsi — cuba togol semula"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "Orang yang anda bantu sekarang:"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "Jumlah orang yang telah dibantu setakat ini:"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "Membantu seorang baharu di %s"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Menunggu sambungan..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Selamat datang ke Action Mode"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Apabila anda mendayakan Action Mode, peranti anda menjadi sebahagian "
+"daripada rangkaian 'jambatan digital' ke internet terbuka. Pengguna yang "
+"ditapis menyambung ke jambatan ini, membolehkan mereka memintas sekatan "
+"kerajaan dan mengakses maklumat yang mereka perlukan."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"Usaha kolektif ini menjadikan penapisan lebih sukar dikuatkuasakan, "
+"meluaskan akses kepada internet terbuka."
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"Anda boleh mengeluarkan Action Mode daripada antara muka pada bila-bila masa"
+" dalam Tetapan."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Advanced"
+
+msgid "smc_advanced_subtitle"
+msgstr "Untuk pengguna yang penghalanya tidak menyokong UPnP"
+
+msgid "smc_manual_port"
+msgstr "Pemajuan port manual"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"Jika penghala anda tidak menyokong UPnP, konfigurasikan pemajuan port pada "
+"penghala anda dan masukkan nombor port di sini. Lantern akan menggunakannya "
+"sebagai port luaran dan tidak lagi memeriksa UPnP. Biarkan kosong untuk "
+"menggunakan UPnP (lalai)."
+
+msgid "smc_manual_port_label"
+msgstr "Port"
+
+msgid "smc_manual_port_hint"
+msgstr "cth. 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Simpan"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"Kini ditetapkan pada port %d. Togol Action Mode tutup dan buka semula supaya"
+" perubahan berkuat kuasa."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Port mesti antara 1 hingga 65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "Port manual dikosongkan — menggunakan UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "Port manual ditetapkan pada %d"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Tetapan Action Mode"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Auto-dayakan Action Mode"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Dihidupkan apabila Lantern dibuka"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Sembunyikan Action Mode"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Mengeluarkan Action Mode daripada UI"
 
 msgid "vpn_connected"
 msgstr "Lantern kini disambungkan."
@@ -1885,6 +2070,36 @@ msgstr ""
 "Lokasi Pintar memilih pelayan terpantas dan bertukar secara automatik "
 "apabila menemui laluan yang lebih baik."
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "Kongsi sambungan anda?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"Semasa perkongsian dihidupkan, orang di negara yang ditapis menghalakan "
+"trafik mereka melalui sambungan anda untuk mencapai internet terbuka."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"Jika penghala anda menyokong pemajuan port, sambungan rumah anda digunakan "
+"sebagai laluan keluar dan alamat IP anda akan muncul dalam log destinasi "
+"semasa anda berkongsi. Jika tidak, trafik itu disampaikan melalui pelayan "
+"Lantern, dan IP anda tidak terdedah dengan cara itu."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"Dalam kedua-dua kes, Lantern menyekat destinasi yang diketahui "
+"disalahgunakan, julat rangkaian peribadi dan port yang terdedah kepada "
+"penyalahgunaan, menggilirkan kelayakan, dan beroperasi sebagai \"saluran "
+"semata-mata\" (mere conduit) di bawah DMCA § 512(a)."
+
+msgid "share_consent_decline"
+msgstr "Tidak sekarang"
+
+msgid "share_consent_accept"
+msgstr "Hidupkan perkongsian"
+
 msgid "bypass_browser_warning_title"
 msgstr "Tambah %s ke senarai pintasan?"
 
@@ -1932,3 +2147,55 @@ msgstr "Lebih pantas, data tanpa had!"
 
 msgid "upsell_expired_suffix"
 msgstr "Masa Pro anda telah tamat"
+
+msgid "pro_expires_days_left"
+msgstr "Pro tamat pada %s, %s hari lagi"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro tamat pada %s, 1 hari lagi"
+
+msgid "renewing_adds_time"
+msgstr "Pembaharuan menambah masa pada tarikh tamat semasa anda"
+
+msgid "pro_ends_today"
+msgstr "Masa Pro berakhir hari ini, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Perbaharui sekarang untuk mengekalkan data tanpa had dan ciri Pro"
+
+msgid "pro_expired_on"
+msgstr "Masa Pro anda tamat pada %s"
+
+msgid "renew_now_get_back_data"
+msgstr "Perbaharui sekarang untuk mendapatkan semula data tanpa had"
+
+msgid "days_left"
+msgstr "%s hari lagi"
+
+msgid "one_day_left"
+msgstr "1 hari lagi"
+
+msgid "expires_today"
+msgstr "Tamat hari ini"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Masa Lantern Pro telah tamat. Perbaharui untuk memulihkan data tanpa had dan"
+" ciri Pro."
+
+msgid "pro_expires_today_title"
+msgstr "Pro tamat hari ini"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"Akaun Pro anda berakhir hari ini. Perbaharui sekarang untuk mengekalkan "
+"akses kepada Lantern Pro."
+
+msgid "renew_now"
+msgstr "Perbaharui Sekarang"
+
+msgid "dismiss"
+msgstr "Dismiss"
+
+msgid "unbounded_status_waiting"
+msgstr "Menunggu untuk bermula"

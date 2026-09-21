@@ -135,6 +135,11 @@ msgstr "उन्हें याद दिलाएँ कि अपग्र�
 msgid "unbounded"
 msgstr "Action Mode"
 
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
+
 msgid "help_fight_global_internet_censorship"
 msgstr "वैश्विक इंटरनेट सेंसरशिप से लड़ने में मदद करें"
 
@@ -315,6 +320,18 @@ msgstr "धीमा"
 
 msgid "cannot_link_devices"
 msgstr "डिवाइस लिंक नहीं हो पा रहे"
+
+msgid "split_tunnel"
+msgstr "स्प्लिट टनलिंग काम नहीं कर रही है"
+
+msgid "smart_routing_not_working"
+msgstr "स्मार्ट रूटिंग काम नहीं कर रही है"
+
+msgid "server_selection_not_working"
+msgstr "सर्वर चयन काम नहीं कर रहा है"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro अपग्रेड असफल रहा"
 
 msgid "wrong_device_linking_code"
 msgstr "गलत या अमान्य डिवाइस लिंकिंग कोड"
@@ -664,6 +681,172 @@ msgstr "विज्ञापन ब्लॉक करें"
 
 msgid "only_active"
 msgstr "केवल तभी सक्रिय जब VPN कनेक्ट हो"
+
+msgid "share_my_connection"
+msgstr "मेरा कनेक्शन साझा करें"
+
+msgid "share_my_connection_subtitle"
+msgstr ""
+"अन्य Lantern उपयोगकर्ताओं को सेंसरशिप से बचने के लिए आपके कनेक्शन के माध्यम "
+"से रूट करने दें।"
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr ""
+"अपना कनेक्शन सुरक्षित रूप से साझा करके दूसरों को सेंसरशिप से बचने में मदद "
+"करें।"
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Action Mode के बारे में"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "स्थिति"
+
+msgid "smc_status_off"
+msgstr "अक्षम"
+
+msgid "smc_status_configuring"
+msgstr "नेटवर्क कॉन्फ़िगर किया जा रहा है"
+
+msgid "smc_status_probing"
+msgstr "आपका नेटवर्क जाँचा जा रहा है…"
+
+msgid "smc_status_active_unbounded"
+msgstr "सक्षम"
+
+msgid "smc_status_active_smc"
+msgstr "शुरू हो रहा है…"
+
+msgid "smc_status_mapping_port"
+msgstr "आपके राउटर पर पोर्ट खोला जा रहा है…"
+
+msgid "smc_status_detecting_ip"
+msgstr "आपका सार्वजनिक IP पता लगाया जा रहा है…"
+
+msgid "smc_status_registering"
+msgstr "Lantern के साथ पंजीकरण हो रहा है…"
+
+msgid "smc_status_starting_proxy"
+msgstr "लोकल प्रॉक्सी शुरू हो रही है…"
+
+msgid "smc_status_verifying"
+msgstr "कनेक्टिविटी सत्यापित की जा रही है…"
+
+msgid "smc_status_serving"
+msgstr "सक्षम"
+
+msgid "smc_status_stopping"
+msgstr "रोका जा रहा है…"
+
+msgid "smc_status_error_with_message"
+msgstr "साझा नहीं कर सके: %s"
+
+msgid "smc_status_error_generic"
+msgstr "साझा नहीं कर सके — फिर से टॉगल करके देखें"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "जिन लोगों की आप अभी मदद कर रहे हैं:"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "अब तक मदद पाए कुल लोग:"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "%s में एक नए व्यक्ति की मदद की जा रही है"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "कनेक्शन की प्रतीक्षा हो रही है..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Action Mode में आपका स्वागत है"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"जब आप Action Mode चालू करते हैं, तो आपका डिवाइस खुले इंटरनेट तक 'डिजिटल "
+"पुलों' के एक नेटवर्क का हिस्सा बन जाता है। सेंसर किए गए उपयोगकर्ता इन पुलों "
+"से जुड़ते हैं, जिससे वे सरकार द्वारा लगाए गए प्रतिबंधों से बचकर आवश्यक "
+"जानकारी तक पहुँच पाते हैं।"
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"यह सामूहिक प्रयास सेंसरशिप लागू करना कठिन बनाता है और खुले इंटरनेट तक पहुँच "
+"का विस्तार करता है।"
+
+msgid "unbounded_welcome_body_3"
+msgstr "आप सेटिंग्स में जाकर कभी भी इंटरफ़ेस से Action Mode हटा सकते हैं।"
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "उन्नत"
+
+msgid "smc_advanced_subtitle"
+msgstr "उन उपयोगकर्ताओं के लिए जिनका राउटर UPnP का समर्थन नहीं करता"
+
+msgid "smc_manual_port"
+msgstr "मैनुअल पोर्ट फ़ॉरवर्ड"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"यदि आपका राउटर UPnP का समर्थन नहीं करता, तो अपने राउटर पर पोर्ट फ़ॉरवर्ड "
+"कॉन्फ़िगर करें और यहाँ पोर्ट नंबर दर्ज करें। Lantern UPnP जाँचने के बजाय इसे"
+" बाहरी पोर्ट के रूप में उपयोग करेगा। UPnP (डिफ़ॉल्ट) उपयोग करने के लिए खाली "
+"छोड़ें।"
+
+msgid "smc_manual_port_label"
+msgstr "पोर्ट"
+
+msgid "smc_manual_port_hint"
+msgstr "जैसे 5698"
+
+msgid "smc_manual_port_save"
+msgstr "सेव करें"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"वर्तमान में पोर्ट %d सेट है। परिवर्तन लागू करने के लिए Action Mode बंद करके "
+"फिर चालू करें।"
+
+msgid "smc_manual_port_out_of_range"
+msgstr "पोर्ट 1 और 65535 के बीच होना चाहिए"
+
+msgid "smc_manual_port_cleared"
+msgstr "मैनुअल पोर्ट हटाया गया — UPnP उपयोग हो रहा है"
+
+msgid "smc_manual_port_saved"
+msgstr "मैनुअल पोर्ट %d पर सेट किया गया"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Action Mode सेटिंग्स"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Action Mode स्वतः चालू करें"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Lantern खुलने पर चालू होता है"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Action Mode छिपाएँ"
+
+msgid "hide_unbounded_subtitle"
+msgstr "UI से Action Mode हटा देता है"
 
 msgid "vpn_connected"
 msgstr "Lantern अब कनेक्ट हो गया है।"
@@ -1875,6 +2058,36 @@ msgstr ""
 "स्मार्ट लोकेशन सबसे तेज़ सर्वर चुनता है और बेहतर मार्ग मिलने पर स्वतः बदल "
 "देता है।"
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "अपना कनेक्शन साझा करें?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"साझाकरण चालू रहने के दौरान, सेंसर वाले देशों के लोग खुले इंटरनेट तक पहुँचने "
+"के लिए अपना ट्रैफ़िक आपके कनेक्शन से रूट करते हैं।"
+
+msgid "share_consent_body_ip"
+msgstr ""
+"यदि आपका राउटर पोर्ट फ़ॉरवर्डिंग का समर्थन करता है, तो आपका घरेलू कनेक्शन "
+"निकास के रूप में उपयोग होता है और साझा करते समय आपका IP पता गंतव्य के लॉग "
+"में दिखाई देगा। अन्यथा वह ट्रैफ़िक Lantern के सर्वरों के माध्यम से रिले किया"
+" जाता है, और उस तरह आपका IP उजागर नहीं होता।"
+
+msgid "share_consent_body_safety"
+msgstr ""
+"दोनों ही स्थितियों में Lantern ज्ञात-दुरुपयोग वाले गंतव्यों, निजी नेटवर्क "
+"रेंज और दुरुपयोग-प्रवण पोर्ट को ब्लॉक करता है, क्रेडेंशियल बदलता रहता है, और"
+" DMCA § 512(a) के तहत \"मात्र माध्यम\" (mere conduit) के रूप में कार्य करता "
+"है।"
+
+msgid "share_consent_decline"
+msgstr "अभी नहीं"
+
+msgid "share_consent_accept"
+msgstr "साझाकरण चालू करें"
+
 msgid "bypass_browser_warning_title"
 msgstr "%s को बाईपास सूची में जोड़ें?"
 
@@ -1918,7 +2131,59 @@ msgstr ""
 " है, तो यह काम करना बंद कर सकता है।"
 
 msgid "upsell_upgrade_suffix"
-msgstr "तेज़ गति, असीमित डेटा!"
+msgstr "और तेज़, असीमित डेटा!"
 
 msgid "upsell_expired_suffix"
 msgstr "आपका Pro समय समाप्त हो गया है"
+
+msgid "pro_expires_days_left"
+msgstr "Pro %s को समाप्त होगा, %s दिन शेष"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro %s को समाप्त होगा, 1 दिन शेष"
+
+msgid "renewing_adds_time"
+msgstr "नवीनीकरण आपकी वर्तमान समाप्ति तिथि में समय जोड़ता है"
+
+msgid "pro_ends_today"
+msgstr "Pro समय आज समाप्त हो रहा है, %s"
+
+msgid "renew_now_keep_data"
+msgstr "असीमित डेटा और Pro सुविधाएँ बनाए रखने के लिए अभी नवीनीकरण करें"
+
+msgid "pro_expired_on"
+msgstr "आपका Pro समय %s को समाप्त हो गया"
+
+msgid "renew_now_get_back_data"
+msgstr "असीमित डेटा वापस पाने के लिए अभी नवीनीकरण करें"
+
+msgid "days_left"
+msgstr "%s दिन शेष"
+
+msgid "one_day_left"
+msgstr "1 दिन शेष"
+
+msgid "expires_today"
+msgstr "आज समाप्त हो रहा है"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Lantern Pro समय समाप्त हो गया। असीमित डेटा और Pro सुविधाएँ बहाल करने के लिए "
+"नवीनीकरण करें।"
+
+msgid "pro_expires_today_title"
+msgstr "Pro आज समाप्त हो रहा है"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"आपका Pro खाता आज समाप्त हो रहा है। Lantern Pro तक पहुँच बनाए रखने के लिए अभी"
+" नवीनीकरण करें।"
+
+msgid "renew_now"
+msgstr "अभी नवीनीकरण करें"
+
+msgid "dismiss"
+msgstr "छोड़े"
+
+msgid "unbounded_status_waiting"
+msgstr "शुरू होने की प्रतीक्षा में"

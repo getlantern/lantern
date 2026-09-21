@@ -1,6 +1,5 @@
 # Translators:
 # tx_e2f_ru c4 <tx_e2f_ru_c4@ate2f.com>, 2025
-# Anna Evdokimova <anna.evdokimova@yahoo.com>, 2025
 # krivtsovvasily <krivtsov.vasily@gmail.com>, 2025
 # Lowrider <pams@imail.ru>, 2025
 # e2f <projects@e2f.com>, 2026
@@ -9,6 +8,9 @@
 # sayanvd <sayanvd@yandex.ru>, 2026
 # Helen Russel <coo@workogram.com>, 2026
 # Tina T, 2026
+# e2f_ru r1 <tx_e2f_ru_r1@ate2f.com>, 2026
+# Anna Evdokimova <anna.evdokimova@yahoo.com>, 2026
+# IvanLykov <chabib@list.ru>, 2026
 # e2f_ru c1 <tx_e2f_ru_c1@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
@@ -139,6 +141,11 @@ msgstr "Напомните им использовать код %s при пер
 
 msgid "unbounded"
 msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Помогите бороться с интернет-цензурой по всему миру"
@@ -321,6 +328,18 @@ msgstr "Медленно"
 
 msgid "cannot_link_devices"
 msgstr "Не могу связать устройства"
+
+msgid "split_tunnel"
+msgstr "Раздельное туннелирование не работает"
+
+msgid "smart_routing_not_working"
+msgstr "Умная маршрутизация не работает"
+
+msgid "server_selection_not_working"
+msgstr "Выбор сервера не работает"
+
+msgid "upgrade_fail"
+msgstr "Не удалось перейти на Lantern Pro"
 
 msgid "wrong_device_linking_code"
 msgstr "Неправильный или недействительный код связывания устройства"
@@ -668,6 +687,172 @@ msgstr "Блокировка рекламы"
 
 msgid "only_active"
 msgstr "Активна только при подключении к VPN"
+
+msgid "share_my_connection"
+msgstr "Поделиться моим подключением"
+
+msgid "share_my_connection_subtitle"
+msgstr ""
+"Разрешите другим пользователям Lantern выходить в сеть через ваше "
+"подключение, чтобы обходить цензуру."
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr ""
+"Помогайте другим обходить цензуру, безопасно делясь своим подключением."
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Об Action Mode"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Статус"
+
+msgid "smc_status_off"
+msgstr "Отключено"
+
+msgid "smc_status_configuring"
+msgstr "Настройка сети"
+
+msgid "smc_status_probing"
+msgstr "Проверка вашей сети…"
+
+msgid "smc_status_active_unbounded"
+msgstr "Включено"
+
+msgid "smc_status_active_smc"
+msgstr "Запуск…"
+
+msgid "smc_status_mapping_port"
+msgstr "Открытие порта на вашем роутере…"
+
+msgid "smc_status_detecting_ip"
+msgstr "Определение вашего публичного IP…"
+
+msgid "smc_status_registering"
+msgstr "Регистрация в Lantern…"
+
+msgid "smc_status_starting_proxy"
+msgstr "Запуск локального прокси…"
+
+msgid "smc_status_verifying"
+msgstr "Проверка подключения…"
+
+msgid "smc_status_serving"
+msgstr "Включено"
+
+msgid "smc_status_stopping"
+msgstr "Остановка…"
+
+msgid "smc_status_error_with_message"
+msgstr "Не удалось поделиться: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Не удалось поделиться — попробуйте выключить и включить снова"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "Люди, которым вы помогаете прямо сейчас:"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "Всего людей, которым вы помогли:"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "Помогаем новому человеку: %s"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Ожидание подключений..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Добро пожаловать в Action Mode"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Когда вы включаете Action Mode, ваше устройство становится частью сети "
+"«цифровых мостов» к открытому интернету. Пользователи под цензурой "
+"подключаются к этим мостам, что позволяет им обходить введённые государством"
+" ограничения и получать нужную информацию."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"Эти совместные усилия усложняют применение цензуры и расширяют доступ к "
+"открытому интернету."
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"Вы можете в любой момент убрать Action Mode из интерфейса в настройках."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Расширенный"
+
+msgid "smc_advanced_subtitle"
+msgstr "Для пользователей, чей роутер не поддерживает UPnP"
+
+msgid "smc_manual_port"
+msgstr "Ручной проброс порта"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"Если ваш роутер не поддерживает UPnP, настройте проброс порта на роутере и "
+"введите номер порта здесь. Lantern будет использовать его как внешний порт "
+"вместо проверки UPnP. Оставьте пустым, чтобы использовать UPnP (по "
+"умолчанию)."
+
+msgid "smc_manual_port_label"
+msgstr "Порт"
+
+msgid "smc_manual_port_hint"
+msgstr "напр. 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Сохранить"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"Сейчас установлен порт %d. Выключите и снова включите Action Mode, чтобы "
+"изменение вступило в силу."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Порт должен быть от 1 до 65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "Ручной порт сброшен — используется UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "Ручной порт установлен: %d"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Настройки Action Mode"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Автовключение Action Mode"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Включается при открытии Lantern"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Скрыть Action Mode"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Убирает Action Mode из интерфейса"
 
 msgid "vpn_connected"
 msgstr "Lantern подключен."
@@ -1890,6 +2075,36 @@ msgstr ""
 "Умное расположение выбирает самый быстрый сервер и автоматически "
 "переключается, находя лучшие маршруты."
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "Поделиться подключением?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"Пока общий доступ включён, люди в странах с цензурой направляют свой трафик "
+"через ваше подключение, чтобы достичь открытого интернета."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"Если ваш роутер поддерживает проброс портов, ваше домашнее подключение "
+"используется как выход, и ваш IP-адрес будет виден в журналах точки "
+"назначения, пока вы делитесь. В противном случае этот трафик ретранслируется"
+" через серверы Lantern, и ваш IP таким образом не раскрывается."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"В обоих случаях Lantern блокирует известные вредоносные направления, "
+"диапазоны частных сетей и уязвимые для злоупотреблений порты, ротирует "
+"учётные данные и действует как «простой канал передачи» (mere conduit) "
+"согласно DMCA § 512(a)."
+
+msgid "share_consent_decline"
+msgstr "Не сейчас"
+
+msgid "share_consent_accept"
+msgstr "Включить общий доступ"
+
 msgid "bypass_browser_warning_title"
 msgstr "Добавить %s в список обхода?"
 
@@ -1936,4 +2151,56 @@ msgid "upsell_upgrade_suffix"
 msgstr "Быстрее, безлимитный трафик!"
 
 msgid "upsell_expired_suffix"
-msgstr "Срок действия вашего Pro истёк"
+msgstr "Ваше время Про истекло"
+
+msgid "pro_expires_days_left"
+msgstr "Про истекает %s, осталось %s дн."
+
+msgid "pro_expires_one_day_left"
+msgstr "Про истекает %s, остался 1 день"
+
+msgid "renewing_adds_time"
+msgstr "Продление добавляет время к текущей дате окончания"
+
+msgid "pro_ends_today"
+msgstr "Время Про заканчивается сегодня, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Продлите сейчас, чтобы сохранить безлимитный трафик и функции Про"
+
+msgid "pro_expired_on"
+msgstr "Ваше время Про истекло %s"
+
+msgid "renew_now_get_back_data"
+msgstr "Продлите сейчас, чтобы вернуть безлимитный трафик"
+
+msgid "days_left"
+msgstr "Осталось %s дн."
+
+msgid "one_day_left"
+msgstr "Остался 1 день"
+
+msgid "expires_today"
+msgstr "Истекает сегодня"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Время Lantern Pro истекло. Продлите, чтобы восстановить безлимитный трафик и"
+" функции Про."
+
+msgid "pro_expires_today_title"
+msgstr "Про истекает сегодня"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"Ваш аккаунт Про заканчивается сегодня. Продлите сейчас, чтобы сохранить "
+"доступ к Lantern Pro."
+
+msgid "renew_now"
+msgstr "Продлить сейчас"
+
+msgid "dismiss"
+msgstr "Отключить"
+
+msgid "unbounded_status_waiting"
+msgstr "Ожидание запуска"

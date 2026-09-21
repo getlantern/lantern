@@ -4,10 +4,11 @@
 # efe kerem sözeri <eksozeri@hotmail.com>, 2025
 # Volkan Gezer <volkangezer@gmail.com>, 2025
 # Emre Deniz, 2025
-# Zeynel Cebeci <cebeciz@gmail.com>, 2026
 # Lantern, 2026
 # Teo Westbrook, 2026
 # Gökhan Kalayci <gkmediagokhan@gmail.com>, 2026
+# Mehmet Çağrı Aksoy <mcagriaksoy@yandex.com>, 2026
+# Zeynel Cebeci <cebeciz@gmail.com>, 2026
 # e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
@@ -138,6 +139,11 @@ msgstr "Yükseltirken %s kodunu kullanmalarını hatırlatın!"
 
 msgid "unbounded"
 msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "Küresel İnternet Sansürüne Karşı Mücadeleye Yardım Et"
@@ -320,6 +326,18 @@ msgstr "Yavaş"
 
 msgid "cannot_link_devices"
 msgstr "Cihazlar bağlanamıyor"
+
+msgid "split_tunnel"
+msgstr "Bölünmüş tünelleme çalışmıyor"
+
+msgid "smart_routing_not_working"
+msgstr "Akıllı yönlendirme çalışmıyor"
+
+msgid "server_selection_not_working"
+msgstr "Sunucu seçimi çalışmıyor"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro yükseltmesi başarısız oldu"
 
 msgid "wrong_device_linking_code"
 msgstr "Yanlış veya geçersiz cihaz bağlama kodu"
@@ -661,6 +679,172 @@ msgstr "Reklamları Engelle"
 
 msgid "only_active"
 msgstr "Yalnızca VPN bağlıyken aktif"
+
+msgid "share_my_connection"
+msgstr "Bağlantımı Paylaş"
+
+msgid "share_my_connection_subtitle"
+msgstr ""
+"Diğer Lantern kullanıcılarının sansürü aşmak için bağlantınız üzerinden "
+"geçmesine izin verin."
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr ""
+"Bağlantınızı güvenle paylaşarak başkalarının sansürü aşmasına yardımcı olun."
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Action Mode Hakkında"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Durum"
+
+msgid "smc_status_off"
+msgstr "Devre Dışı"
+
+msgid "smc_status_configuring"
+msgstr "Ağ yapılandırılıyor"
+
+msgid "smc_status_probing"
+msgstr "Ağınız inceleniyor…"
+
+msgid "smc_status_active_unbounded"
+msgstr "Etkin"
+
+msgid "smc_status_active_smc"
+msgstr "Başlatılıyor…"
+
+msgid "smc_status_mapping_port"
+msgstr "Yönlendiricinizde bağlantı noktası açılıyor…"
+
+msgid "smc_status_detecting_ip"
+msgstr "Genel IP'niz tespit ediliyor…"
+
+msgid "smc_status_registering"
+msgstr "Lantern'e kaydolunuyor…"
+
+msgid "smc_status_starting_proxy"
+msgstr "Yerel proxy başlatılıyor…"
+
+msgid "smc_status_verifying"
+msgstr "Bağlantı doğrulanıyor…"
+
+msgid "smc_status_serving"
+msgstr "Etkin"
+
+msgid "smc_status_stopping"
+msgstr "Durduruluyor…"
+
+msgid "smc_status_error_with_message"
+msgstr "Paylaşılamadı: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Paylaşılamadı — kapatıp yeniden açmayı deneyin"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "Şu anda yardım ettiğiniz kişiler:"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "Bugüne kadar yardım edilen toplam kişi:"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "%s ülkesinde yeni bir kişiye yardım ediliyor"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Bağlantılar bekleniyor..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Action Mode'a hoş geldiniz"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Action Mode'u etkinleştirdiğinizde, cihazınız açık internete uzanan bir "
+"'dijital köprüler' ağının parçası olur. Sansüre maruz kalan kullanıcılar bu "
+"köprülere bağlanarak devletlerin koyduğu kısıtlamaları aşar ve ihtiyaç "
+"duydukları bilgilere erişir."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"Bu ortak çaba, sansürün uygulanmasını zorlaştırarak açık internete erişimi "
+"genişletir."
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"Action Mode'u istediğiniz zaman Ayarlar'dan arayüzden kaldırabilirsiniz."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Gelişmiş"
+
+msgid "smc_advanced_subtitle"
+msgstr "Yönlendiricisi UPnP desteklemeyen kullanıcılar için"
+
+msgid "smc_manual_port"
+msgstr "Manuel bağlantı noktası yönlendirme"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"Yönlendiriciniz UPnP desteklemiyorsa, yönlendiricinizde bir bağlantı noktası"
+" yönlendirmesi yapılandırın ve numarasını buraya girin. Lantern, UPnP "
+"sorgulamak yerine bunu harici bağlantı noktası olarak kullanır. UPnP "
+"(varsayılan) kullanmak için boş bırakın."
+
+msgid "smc_manual_port_label"
+msgstr "Bağlantı noktası"
+
+msgid "smc_manual_port_hint"
+msgstr "örn. 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Kaydet"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"Şu anda %d numaralı bağlantı noktasına ayarlı. Değişikliğin geçerli olması "
+"için Action Mode'u kapatıp yeniden açın."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Bağlantı noktası 1 ile 65535 arasında olmalıdır"
+
+msgid "smc_manual_port_cleared"
+msgstr "Manuel bağlantı noktası temizlendi — UPnP kullanılıyor"
+
+msgid "smc_manual_port_saved"
+msgstr "Manuel bağlantı noktası %d olarak ayarlandı"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Action Mode Ayarları"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Action Mode'u otomatik etkinleştir"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Lantern açıldığında devreye girer"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Action Mode'u gizle"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Action Mode'u arayüzden kaldırır"
 
 msgid "vpn_connected"
 msgstr "Lantern şimdi bağlı."
@@ -1872,6 +2056,36 @@ msgstr ""
 "Akıllı Konum en hızlı sunucuyu seçer ve daha iyi rotalar buldukça otomatik "
 "olarak geçiş yapar."
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "Bağlantınızı paylaşmak istiyor musunuz?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"Paylaşım açıkken, sansürlü ülkelerdeki insanlar açık internete ulaşmak için "
+"trafiklerini bağlantınız üzerinden yönlendirir."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"Yönlendiriciniz bağlantı noktası yönlendirmeyi destekliyorsa, ev bağlantınız"
+" çıkış olarak kullanılır ve paylaşım sırasında IP adresiniz hedefin "
+"günlüklerinde görünür. Aksi halde bu trafik Lantern'in sunucuları üzerinden "
+"aktarılır ve IP'niz bu şekilde açığa çıkmaz."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"Her iki durumda da Lantern bilinen kötüye kullanım hedeflerini, özel ağ "
+"aralıklarını ve kötüye kullanıma açık bağlantı noktalarını engeller, kimlik "
+"bilgilerini düzenli olarak değiştirir ve DMCA § 512(a) kapsamında \"salt "
+"iletici\" (mere conduit) olarak çalışır."
+
+msgid "share_consent_decline"
+msgstr "Şimdi Değil"
+
+msgid "share_consent_accept"
+msgstr "Paylaşımı aç"
+
 msgid "bypass_browser_warning_title"
 msgstr "%s atlama listesine eklensin mi?"
 
@@ -1919,3 +2133,55 @@ msgstr "Daha hızlı, sınırsız veri!"
 
 msgid "upsell_expired_suffix"
 msgstr "Pro süreniz doldu"
+
+msgid "pro_expires_days_left"
+msgstr "Pro %s tarihinde sona eriyor, %s gün kaldı"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro %s tarihinde sona eriyor, 1 gün kaldı"
+
+msgid "renewing_adds_time"
+msgstr "Yenileme, mevcut bitiş tarihinize süre ekler"
+
+msgid "pro_ends_today"
+msgstr "Pro süresi bugün sona eriyor, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Sınırsız veriyi ve Pro özelliklerini korumak için şimdi yenileyin"
+
+msgid "pro_expired_on"
+msgstr "Pro süreniz %s tarihinde doldu"
+
+msgid "renew_now_get_back_data"
+msgstr "Sınırsız veriyi geri almak için şimdi yenileyin"
+
+msgid "days_left"
+msgstr "%s gün kaldı"
+
+msgid "one_day_left"
+msgstr "1 gün kaldı"
+
+msgid "expires_today"
+msgstr "Bugün sona eriyor"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Lantern Pro süresi doldu. Sınırsız veriyi ve Pro özelliklerini geri getirmek"
+" için yenileyin."
+
+msgid "pro_expires_today_title"
+msgstr "Pro bugün sona eriyor"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"Pro hesabınız bugün sona eriyor. Lantern Pro erişiminizi korumak için şimdi "
+"yenileyin."
+
+msgid "renew_now"
+msgstr "Şimdi Yenile"
+
+msgid "dismiss"
+msgstr "Bırak"
+
+msgid "unbounded_status_waiting"
+msgstr "Başlamak için bekliyor"
