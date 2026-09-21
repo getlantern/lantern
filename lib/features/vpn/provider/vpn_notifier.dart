@@ -20,6 +20,8 @@ part 'vpn_notifier.g.dart';
 @Riverpod(keepAlive: true)
 class VpnNotifier extends _$VpnNotifier {
   bool _hasStatusStreamEmission = false;
+  Future<Either<Failure, String>>? _stopRequest;
+  bool _userDisconnectRequested = false;
 
   RatingPromptService? get _ratingPrompt =>
       sl.isRegistered<RatingPromptService>() ? sl<RatingPromptService>() : null;
@@ -30,6 +32,7 @@ class VpnNotifier extends _$VpnNotifier {
     ref.listen(vPNStatusProvider, (previous, next) {
       if (next.hasError) {
         _hasStatusStreamEmission = true;
+        _userDisconnectRequested = false;
         appLogger.error(
           'VPN status provider failed',
           next.error,
@@ -66,11 +69,24 @@ class VpnNotifier extends _$VpnNotifier {
       final isFirstEvent = previous == null || previous.value == null;
       final statusChanged = !isFirstEvent && previousStatus != nextStatus;
 
-      // Also on the first event: a session start persisted by a killed
-      // process must not leak into the next connection.
+      if (nextStatus == VPNStatus.error ||
+          nextStatus == VPNStatus.connecting ||
+          (nextStatus == VPNStatus.connected &&
+              previousStatus == VPNStatus.disconnecting)) {
+        _userDisconnectRequested = false;
+      }
+
       if (nextStatus == VPNStatus.disconnected &&
           (statusChanged || isFirstEvent)) {
-        unawaited(_ratingPrompt?.onDisconnected());
+        // A successful stop request can return before the tunnel is down.
+        // Count the session once, when the native status confirms it.
+        final byUser = _userDisconnectRequested;
+        _userDisconnectRequested = false;
+        unawaited(
+          byUser
+              ? _ratingPrompt?.onUserDisconnected()
+              : _ratingPrompt?.onDisconnected(),
+        );
       }
 
       if (statusChanged) {
@@ -154,13 +170,15 @@ class VpnNotifier extends _$VpnNotifier {
   }
 
   Future<Either<Failure, String>> onVPNStateChange() async {
-    if (state == VPNStatus.connecting || state == VPNStatus.disconnecting) {
+    if (_stopRequest != null ||
+        _userDisconnectRequested ||
+        state == VPNStatus.connecting ||
+        state == VPNStatus.disconnecting) {
       return Right("");
     }
     appLogger.info("VPN State Change requested. Current state: $state");
     if (state == VPNStatus.connected) {
-      unawaited(_ratingPrompt?.onUserDisconnected());
-      return stopVPN();
+      return stopVPN(userInitiated: true);
     }
     return startVPN();
   }
@@ -233,8 +251,23 @@ class VpnNotifier extends _$VpnNotifier {
     return hasConflict ? Left(VpnConflictFailure()) : null;
   }
 
-  Future<Either<Failure, String>> stopVPN() async {
-    final result = await ref.read(lanternServiceProvider).stopVPN();
-    return result;
+  Future<Either<Failure, String>> stopVPN({bool userInitiated = false}) {
+    if (_stopRequest != null) return _stopRequest!;
+    if (_userDisconnectRequested) return Future.value(Right(""));
+    _userDisconnectRequested = userInitiated && state == VPNStatus.connected;
+    return _stopRequest = _requestStop().whenComplete(() {
+      _stopRequest = null;
+    });
+  }
+
+  Future<Either<Failure, String>> _requestStop() async {
+    try {
+      final result = await ref.read(lanternServiceProvider).stopVPN();
+      if (result.isLeft()) _userDisconnectRequested = false;
+      return result;
+    } catch (_) {
+      _userDisconnectRequested = false;
+      rethrow;
+    }
   }
 }

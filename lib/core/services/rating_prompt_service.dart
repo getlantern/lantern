@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:lantern/core/common/common.dart' show isStoreVersion;
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -10,8 +11,10 @@ class RatingPromptService {
     this._storage, {
     InAppReview? review,
     DateTime Function()? now,
+    bool Function() isStoreBuild = isStoreVersion,
   }) : _review = review ?? InAppReview.instance,
-       _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now,
+       _isStoreBuild = isStoreBuild;
 
   static const int requiredSessions = 5;
   static const Duration minSessionDuration = Duration(minutes: 30);
@@ -22,6 +25,7 @@ class RatingPromptService {
   final LocalStorageService _storage;
   final InAppReview _review;
   final DateTime Function() _now;
+  final bool Function() _isStoreBuild;
 
   /// Qualifying sessions since the last prompt.
   int get sessions => int.tryParse(_storage.getString(_sessionsKey) ?? '') ?? 0;
@@ -58,30 +62,32 @@ class RatingPromptService {
       return;
     }
 
-    final count = sessions + 1;
+    final count = (sessions + 1).clamp(0, requiredSessions);
     appLogger.info('Rating prompt: session $count/$requiredSessions');
-    if (count < requiredSessions) {
-      await _storage.setString(_sessionsKey, count.toString());
-      return;
-    }
-    // Keep the counter at the threshold when the prompt could not be shown so
-    // the next qualifying session retries instead of restarting from zero.
-    // The OS rate-limits how often the prompt is actually displayed.
+    // Persist first: the app can be closed while the native review UI is open.
+    await _storage.setString(_sessionsKey, count.toString());
+    if (count < requiredSessions) return;
     if (await requestReview()) {
       await _storage.remove(_sessionsKey);
-    } else {
-      await _storage.setString(_sessionsKey, requiredSessions.toString());
     }
   }
 
+  /// The store decides whether a successful request actually shows a prompt.
   Future<bool> requestReview() async {
-    if (!isStoreVersion()) {
-      appLogger.info('Rating prompt: skipped, not a store build');
-      return false;
-    }
     try {
+      if (!_isStoreBuild()) {
+        appLogger.info('Rating prompt: skipped, not a store build');
+        return false;
+      }
+      if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        return false;
+      }
       if (!await _review.isAvailable()) {
         appLogger.info('Rating prompt: in-app review not available');
+        return false;
+      }
+      // The app may have gone into the background while checking availability.
+      if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
         return false;
       }
       await _review.requestReview();
