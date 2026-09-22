@@ -435,6 +435,68 @@ class VpnStartGateTest {
     }
 
     @Test(timeout = 10_000)
+    fun duplicateRejectedByInFlightStartReportsStartInProgress() = runBlocking {
+        val gate = VpnStartGate()
+        val prepared = CompletableDeferred<Unit>()
+        val finish = CompletableDeferred<Unit>()
+        val rejections = mutableListOf<VpnStartGate.Rejection>()
+        val first = launch {
+            gate.run {
+                prepared.complete(Unit)
+                finish.await()
+            }
+        }
+        prepared.await()
+
+        assertFalse(gate.run(onRejected = { rejections.add(it) }) { error("duplicate must not run") })
+        assertEquals(listOf(VpnStartGate.Rejection.START_IN_PROGRESS), rejections)
+
+        finish.complete(Unit)
+        first.join()
+        assertTrue(gate.run(onRejected = { error("accepted start must not report a rejection") }) {})
+    }
+
+    @Test(timeout = 10_000)
+    fun startsRejectedByStopReportStopping() = runBlocking {
+        val gate = VpnStartGate()
+        val entered = CompletableDeferred<Unit>()
+        val finish = CompletableDeferred<Unit>()
+        val rejections = mutableListOf<VpnStartGate.Rejection>()
+        val stop = launch {
+            gate.stop {
+                entered.complete(Unit)
+                finish.await()
+            }
+        }
+        entered.await()
+
+        // Rejected up front: a stop is already pending.
+        assertFalse(gate.run(onRejected = { rejections.add(it) }) { error("stop is running") })
+        finish.complete(Unit)
+        stop.join()
+
+        // Rejected after waiting: a restart queued before Stop finished must not reconnect.
+        val prepared = CompletableDeferred<Unit>()
+        val busy = launch {
+            gate.run {
+                prepared.complete(Unit)
+                CompletableDeferred<Unit>().await()
+            }
+        }
+        prepared.await()
+        val restart = async(start = CoroutineStart.UNDISPATCHED) {
+            gate.run(waitForIdle = true, onRejected = { rejections.add(it) }) { error("restart must not undo Stop") }
+        }
+        val secondStop = launch { gate.stop {} }
+        busy.join()
+        assertFalse(restart.await())
+        secondStop.join()
+
+        assertEquals(listOf(VpnStartGate.Rejection.STOPPING, VpnStartGate.Rejection.STOPPING), rejections)
+        assertTrue(gate.run {})
+    }
+
+    @Test(timeout = 10_000)
     fun cancellingStopDoesNotAbandonTeardown() = runBlocking {
         val gate = VpnStartGate()
         val entered = CompletableDeferred<Unit>()

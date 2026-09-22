@@ -26,26 +26,39 @@ internal class VpnStartGate(
     private var pendingStops = 0
     private var stopGeneration = 0L
 
-    /** Ordinary starts are rejected while busy; a restart may wait for the current attempt. */
+    /** Why [run] declined a start. Decided atomically with the gate state. */
+    enum class Rejection {
+        /** Another start owns the gate and will publish its own result. */
+        START_IN_PROGRESS,
+        /** A stop is running or completed while this start waited; nothing owns startup. */
+        STOPPING,
+    }
+
+    /**
+     * Ordinary starts are rejected while busy; a restart may wait for the current attempt.
+     * [onRejected] runs, outside the lock, with the reason when the start is declined.
+     */
     suspend fun run(
         waitForIdle: Boolean = false,
+        onRejected: (Rejection) -> Unit = {},
         block: suspend (Attempt) -> Unit,
     ): Boolean = coroutineScope {
         val job = coroutineContext.job
         val generation = synchronized(stateLock) {
-            if (pendingStops != 0) return@coroutineScope false
-            stopGeneration
-        }
+            if (pendingStops != 0) null else stopGeneration
+        } ?: return@coroutineScope reject(Rejection.STOPPING, onRejected)
         if (waitForIdle) operationMutex.lock()
-        synchronized(stateLock) {
+        val rejection = synchronized(stateLock) {
             // A restart queued before Stop must not reconnect after teardown.
             if (pendingStops != 0 || generation != stopGeneration) {
                 if (waitForIdle) operationMutex.unlock()
-                return@coroutineScope false
+                return@synchronized Rejection.STOPPING
             }
-            if (!waitForIdle && !operationMutex.tryLock()) return@coroutineScope false
+            if (!waitForIdle && !operationMutex.tryLock()) return@synchronized Rejection.START_IN_PROGRESS
             activeStart = job
+            null
         }
+        if (rejection != null) return@coroutineScope reject(rejection, onRejected)
         try {
             job.ensureActive()
             block(Attempt(job))
@@ -56,6 +69,11 @@ internal class VpnStartGate(
                 operationMutex.unlock()
             }
         }
+    }
+
+    private fun reject(rejection: Rejection, onRejected: (Rejection) -> Unit): Boolean {
+        onRejected(rejection)
+        return false
     }
 
     suspend fun stop(
