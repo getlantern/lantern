@@ -121,6 +121,22 @@ final class AppInstallationTests: XCTestCase {
       "100% {appName}: Open Lantern 🌍 / Lantern 🌍")
   }
 
+  func testNativeCatalogIsBundledAndUntranslatedPromptsFallBackToEnglish() throws {
+    let appBundle = Bundle(for: AppDelegate.self)
+    let englishURL = try XCTUnwrap(appBundle.url(forResource: "en", withExtension: "lproj"))
+    let english = try XCTUnwrap(Bundle(url: englishURL))
+    XCTAssertEqual(
+      english.localizedString(forKey: "Move and Relaunch", value: "missing", table: "AppInstallation"),
+      "Move and Relaunch")
+
+    let chineseURL = try XCTUnwrap(appBundle.url(forResource: "zh-Hans", withExtension: "lproj"))
+    let chinese = InstallationStrings(bundle: try XCTUnwrap(Bundle(url: chineseURL)))
+    XCTAssertEqual(chinese.text("Quit"), "退出")
+    XCTAssertEqual(
+      chinese.text("Move {appName} to Applications to continue", values: ["appName": "Lantern"]),
+      "Move Lantern to Applications to continue")
+  }
+
   func testExistingInstallationIsNeverReplaced() throws {
     let installed = try installation().install()
     try Data("existing app".utf8).write(to: installed.appendingPathComponent("Contents/payload"))

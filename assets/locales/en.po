@@ -2000,39 +2000,3 @@ msgstr "Dismiss"
 
 msgid "unbounded_status_waiting"
 msgstr "Waiting to start"
-
-msgid "macos_installation_use_finder"
-msgstr "Use Finder to move the app into Applications, then open it from there."
-
-msgid "macos_installation_destination_exists"
-msgstr "An app with this name is already in Applications. Use Finder to replace it, then open it from there."
-
-msgid "macos_installation_title"
-msgstr "Move {appName} to Applications to continue"
-
-msgid "macos_installation_automatic"
-msgstr "{appName} needs to run from /Applications to set up its VPN. It will copy itself there and reopen."
-
-msgid "macos_installation_move_relaunch"
-msgstr "Move and Relaunch"
-
-msgid "macos_installation_replace"
-msgstr "An app with this name is already in /Applications. Quit {appName}, then use Finder to replace it with the copy you want to use and open it from Applications."
-
-msgid "macos_installation_manual"
-msgstr "{appName} needs to run from /Applications to set up its VPN. Quit the app, then drag it from its download location into Applications in Finder and open it from there."
-
-msgid "macos_installation_show_applications"
-msgstr "Show Applications"
-
-msgid "macos_installation_progress"
-msgstr "Copying {appName} to Applications…"
-
-msgid "macos_installation_please_wait"
-msgstr "Please wait. The app will reopen when the copy is complete."
-
-msgid "macos_installation_open"
-msgstr "Open {appName} from Applications"
-
-msgid "macos_installation_recovery"
-msgstr "{error}\n\nQuit {appName}, then use Finder to move it to /Applications and open it there. You may need an administrator's permission."

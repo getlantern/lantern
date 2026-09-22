@@ -33,9 +33,11 @@ struct AppInstallation {
     var errorDescription: String? {
       switch self {
       case .needsFinder:
-        return InstallationStrings().text("macos_installation_use_finder")
+        return InstallationStrings().text(
+          "Use Finder to move the app into Applications, then open it from there.")
       case .destinationExists:
-        return InstallationStrings().text("macos_installation_destination_exists")
+        return InstallationStrings().text(
+          "An app with this name is already in Applications. Use Finder to replace it, then open it from there.")
       }
     }
   }
@@ -95,8 +97,9 @@ struct AppInstallation {
 struct InstallationStrings {
   var bundle: Bundle = .main
 
-  func text(_ key: String, values: [String: String] = [:]) -> String {
-    let localized = bundle.localizedString(forKey: key, value: nil, table: "AppInstallation")
+  func text(_ source: String, values: [String: String] = [:]) -> String {
+    // English source text is also the fallback for untranslated native strings.
+    let localized = bundle.localizedString(forKey: source, value: nil, table: "AppInstallation")
     let result = NSMutableString(string: localized)
     let placeholders = try! NSRegularExpression(pattern: #"\{(\w+)\}"#)
     // Work backwards so replacements don't shift the remaining match ranges.
@@ -135,17 +138,23 @@ enum AppInstallationPreflight {
     let canInstall = !installation.needsFinder && !destinationExists
     let alert = NSAlert()
     alert.alertStyle = .warning
-    alert.messageText = strings.text("macos_installation_title", values: values)
+    alert.messageText = strings.text("Move {appName} to Applications to continue", values: values)
     if canInstall {
-      alert.informativeText = strings.text("macos_installation_automatic", values: values)
-      alert.addButton(withTitle: strings.text("macos_installation_move_relaunch"))
+      alert.informativeText = strings.text(
+        "{appName} needs to run from /Applications to set up its VPN. It will copy itself there and reopen.",
+        values: values)
+      alert.addButton(withTitle: strings.text("Move and Relaunch"))
     } else if destinationExists {
-      alert.informativeText = strings.text("macos_installation_replace", values: values)
+      alert.informativeText = strings.text(
+        "An app with this name is already in /Applications. Quit {appName}, then use Finder to replace it with the copy you want to use and open it from Applications.",
+        values: values)
     } else {
-      alert.informativeText = strings.text("macos_installation_manual", values: values)
+      alert.informativeText = strings.text(
+        "{appName} needs to run from /Applications to set up its VPN. Quit the app, then drag it from its download location into Applications in Finder and open it from there.",
+        values: values)
     }
-    alert.addButton(withTitle: strings.text("macos_installation_show_applications"))
-    alert.addButton(withTitle: strings.text("quit")).keyEquivalent = "\u{1b}"
+    alert.addButton(withTitle: strings.text("Show Applications"))
+    alert.addButton(withTitle: strings.text("Quit")).keyEquivalent = "\u{1b}"
 
     let response = alert.runModal()
     if canInstall && response == .alertFirstButtonReturn {
@@ -181,9 +190,11 @@ enum AppInstallationPreflight {
     _ installation: AppInstallation, appName: String, strings: InstallationStrings
   ) throws -> URL {
     let progress = NSAlert()
-    progress.messageText = strings.text("macos_installation_progress", values: ["appName": appName])
-    progress.informativeText = strings.text("macos_installation_please_wait")
-    progress.addButton(withTitle: strings.text("macos_installation_move_relaunch")).isEnabled =
+    progress.messageText = strings.text(
+      "Copying {appName} to Applications…", values: ["appName": appName])
+    progress.informativeText = strings.text(
+      "Please wait. The app will reopen when the copy is complete.")
+    progress.addButton(withTitle: strings.text("Move and Relaunch")).isEnabled =
       false
     let indicator = NSProgressIndicator(frame: NSRect(x: 0, y: 0, width: 300, height: 16))
     indicator.isIndeterminate = true
@@ -208,12 +219,12 @@ enum AppInstallationPreflight {
   ) {
     let failure = NSAlert()
     failure.alertStyle = .warning
-    failure.messageText = strings.text("macos_installation_open", values: ["appName": appName])
+    failure.messageText = strings.text("Open {appName} from Applications", values: ["appName": appName])
     failure.informativeText = strings.text(
-      "macos_installation_recovery",
+      "{error}\n\nQuit {appName}, then use Finder to move it to /Applications and open it there. You may need an administrator's permission.",
       values: ["appName": appName, "error": error.localizedDescription])
-    failure.addButton(withTitle: strings.text("macos_installation_show_applications"))
-    failure.addButton(withTitle: strings.text("quit")).keyEquivalent = "\u{1b}"
+    failure.addButton(withTitle: strings.text("Show Applications"))
+    failure.addButton(withTitle: strings.text("Quit")).keyEquivalent = "\u{1b}"
     if failure.runModal() == .alertFirstButtonReturn {
       NSWorkspace.shared.open(applicationsURL)
     }
