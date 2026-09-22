@@ -18,5 +18,9 @@ case .success(let command?):
   smokeCommandRunner?.start()
   dispatchMain()
 case .success(nil):
+  #if !DEBUG
+    // Nib loading creates the extension manager and starts Flutter.
+    guard AppInstallationPreflight.run() else { exit(EXIT_SUCCESS) }
+  #endif
   _ = NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)
 }
