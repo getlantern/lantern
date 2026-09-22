@@ -1,8 +1,8 @@
 # Translators:
 # tx_e2f_pk r6 <tx_e2f_pk_r6@ate2f.com>, 2025
-# e2f <projects@e2f.com>, 2025
 # Lantern, 2026
 # Diversity83 83, 2026
+# e2f <projects@e2f.com>, 2026
 # tx_e2f_ur c1 <tx_e2f_ur_c1@ate2f.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
@@ -133,6 +133,11 @@ msgstr "انہیں یاد دلائیں کہ اپ گریڈ کرتے وقت کوڈ
 
 msgid "unbounded"
 msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "عالمی انٹرنیٹ سنسرشپ کے خلاف لڑنے میں مدد کریں"
@@ -314,6 +319,18 @@ msgstr "سست"
 
 msgid "cannot_link_devices"
 msgstr "ڈیوائسز کو لنک نہیں کر سکتے"
+
+msgid "split_tunnel"
+msgstr "اسپلٹ ٹنلنگ کام نہیں کر رہی"
+
+msgid "smart_routing_not_working"
+msgstr "اسمارٹ روٹنگ کام نہیں کر رہی"
+
+msgid "server_selection_not_working"
+msgstr "سرور کا انتخاب کام نہیں کر رہا"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro اپ گریڈ ناکام رہا"
 
 msgid "wrong_device_linking_code"
 msgstr "غلط یا غیر درست ڈیوائس لنکنگ کوڈ"
@@ -659,6 +676,171 @@ msgstr "اشتہارات کو بلاک کریں"
 
 msgid "only_active"
 msgstr "صرف اس وقت فعال جب VPN منسلک ہو"
+
+msgid "share_my_connection"
+msgstr "میرا کنکشن شیئر کریں"
+
+msgid "share_my_connection_subtitle"
+msgstr ""
+"دوسرے Lantern صارفین کو سنسرشپ سے بچنے کے لیے آپ کے کنکشن کے ذریعے روٹ کرنے "
+"دیں۔"
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr ""
+"اپنا کنکشن محفوظ طریقے سے شیئر کر کے دوسروں کو سنسرشپ سے بچنے میں مدد کریں۔"
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Action Mode کے بارے میں"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "حالت"
+
+msgid "smc_status_off"
+msgstr "غیر فعال"
+
+msgid "smc_status_configuring"
+msgstr "نیٹ ورک کنفیگر ہو رہا ہے"
+
+msgid "smc_status_probing"
+msgstr "آپ کا نیٹ ورک جانچا جا رہا ہے…"
+
+msgid "smc_status_active_unbounded"
+msgstr "فعال"
+
+msgid "smc_status_active_smc"
+msgstr "شروع ہو رہا ہے…"
+
+msgid "smc_status_mapping_port"
+msgstr "آپ کے راؤٹر پر پورٹ کھولا جا رہا ہے…"
+
+msgid "smc_status_detecting_ip"
+msgstr "آپ کا عوامی IP معلوم کیا جا رہا ہے…"
+
+msgid "smc_status_registering"
+msgstr "Lantern کے ساتھ رجسٹر ہو رہا ہے…"
+
+msgid "smc_status_starting_proxy"
+msgstr "لوکل پراکسی شروع ہو رہی ہے…"
+
+msgid "smc_status_verifying"
+msgstr "کنیکٹیویٹی کی تصدیق ہو رہی ہے…"
+
+msgid "smc_status_serving"
+msgstr "فعال"
+
+msgid "smc_status_stopping"
+msgstr "روکا جا رہا ہے…"
+
+msgid "smc_status_error_with_message"
+msgstr "شیئر نہیں ہو سکا: %s"
+
+msgid "smc_status_error_generic"
+msgstr "شیئر نہیں ہو سکا — دوبارہ ٹوگل کر کے دیکھیں"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "جن لوگوں کی آپ اس وقت مدد کر رہے ہیں:"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "اب تک مدد پانے والے کل لوگ:"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "%s میں ایک نئے شخص کی مدد کی جا رہی ہے"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "کنکشنز کا انتظار ہے..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Action Mode میں خوش آمدید"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"جب آپ Action Mode فعال کرتے ہیں، تو آپ کا آلہ کھلے انٹرنیٹ تک 'ڈیجیٹل پلوں' "
+"کے نیٹ ورک کا حصہ بن جاتا ہے۔ سنسر شدہ صارفین ان پلوں سے جڑتے ہیں، جس سے وہ "
+"حکومتوں کی عائد کردہ پابندیوں سے بچ کر مطلوبہ معلومات تک رسائی حاصل کر پاتے "
+"ہیں۔"
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"یہ اجتماعی کوشش سنسرشپ کا نفاذ مشکل بناتی ہے اور کھلے انٹرنیٹ تک رسائی کو "
+"وسعت دیتی ہے۔"
+
+msgid "unbounded_welcome_body_3"
+msgstr "آپ سیٹنگز میں جا کر کسی بھی وقت انٹرفیس سے Action Mode ہٹا سکتے ہیں۔"
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "ایڈوانسڈ"
+
+msgid "smc_advanced_subtitle"
+msgstr "ان صارفین کے لیے جن کا راؤٹر UPnP کو سپورٹ نہیں کرتا"
+
+msgid "smc_manual_port"
+msgstr "دستی پورٹ فارورڈ"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"اگر آپ کا راؤٹر UPnP کو سپورٹ نہیں کرتا، تو اپنے راؤٹر پر پورٹ فارورڈ کنفیگر"
+" کریں اور یہاں پورٹ نمبر درج کریں۔ Lantern اسے UPnP جانچنے کے بجائے بیرونی "
+"پورٹ کے طور پر استعمال کرے گا۔ UPnP (ڈیفالٹ) استعمال کرنے کے لیے خالی چھوڑ "
+"دیں۔"
+
+msgid "smc_manual_port_label"
+msgstr "پورٹ"
+
+msgid "smc_manual_port_hint"
+msgstr "مثلاً 5698"
+
+msgid "smc_manual_port_save"
+msgstr "محفوظ کریں"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"فی الحال پورٹ %d مقرر ہے۔ تبدیلی مؤثر بنانے کے لیے Action Mode بند کر کے "
+"دوبارہ چالو کریں۔"
+
+msgid "smc_manual_port_out_of_range"
+msgstr "پورٹ 1 اور 65535 کے درمیان ہونا چاہیے"
+
+msgid "smc_manual_port_cleared"
+msgstr "دستی پورٹ صاف کر دیا گیا — UPnP استعمال ہو رہا ہے"
+
+msgid "smc_manual_port_saved"
+msgstr "دستی پورٹ %d پر مقرر کر دیا گیا"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Action Mode کی ترتیبات"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Action Mode خودکار فعال کریں"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Lantern کھلنے پر چالو ہو جاتا ہے"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Action Mode چھپائیں"
+
+msgid "hide_unbounded_subtitle"
+msgstr "UI سے Action Mode ہٹا دیتا ہے"
 
 msgid "vpn_connected"
 msgstr "Lantern منسلک ہو گیا ہے۔"
@@ -1877,6 +2059,35 @@ msgstr ""
 "اسمارٹ لوکیشن تیز ترین سرور منتخب کرتی ہے اور بہتر راستے ملنے پر خود بخود "
 "تبدیل ہو جاتی ہے۔"
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "اپنا کنکشن شیئر کریں؟"
+
+msgid "share_consent_body_what"
+msgstr ""
+"شیئرنگ آن ہونے کے دوران، سنسر شدہ ممالک کے لوگ کھلے انٹرنیٹ تک پہنچنے کے لیے"
+" اپنا ٹریفک آپ کے کنکشن سے روٹ کرتے ہیں۔"
+
+msgid "share_consent_body_ip"
+msgstr ""
+"اگر آپ کا راؤٹر پورٹ فارورڈنگ کو سپورٹ کرتا ہے، تو آپ کا گھریلو کنکشن بطور "
+"خروج استعمال ہوتا ہے اور شیئرنگ کے دوران آپ کا IP ایڈریس منزل کے لاگز میں "
+"نظر آئے گا۔ بصورت دیگر وہ ٹریفک Lantern کے سرورز کے ذریعے ریلے کیا جاتا ہے، "
+"اور اس طرح آپ کا IP ظاہر نہیں ہوتا۔"
+
+msgid "share_consent_body_safety"
+msgstr ""
+"دونوں صورتوں میں Lantern معلوم بدسلوکی والی منزلوں، نجی نیٹ ورک رینجز اور "
+"بدسلوکی کے خطرے والے پورٹس کو بلاک کرتا ہے، اسناد بدلتا رہتا ہے، اور DMCA § "
+"512(a) کے تحت \"محض ذریعہ\" (mere conduit) کے طور پر کام کرتا ہے۔"
+
+msgid "share_consent_decline"
+msgstr "ابھی نہیں"
+
+msgid "share_consent_accept"
+msgstr "شیئرنگ آن کریں"
+
 msgid "bypass_browser_warning_title"
 msgstr "%s کو بائی پاس فہرست میں شامل کریں؟"
 
@@ -1920,7 +2131,59 @@ msgstr ""
 "تو یہ کام کرنا بند کر سکتا ہے۔"
 
 msgid "upsell_upgrade_suffix"
-msgstr "تیز رفتار، لامحدود ڈیٹا!"
+msgstr "زیادہ تیز، لامحدود ڈیٹا!"
 
 msgid "upsell_expired_suffix"
 msgstr "آپ کا Pro وقت ختم ہو گیا ہے"
+
+msgid "pro_expires_days_left"
+msgstr "Pro %s کو ختم ہو گا، %s دن باقی ہیں"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro %s کو ختم ہو گا، 1 دن باقی ہے"
+
+msgid "renewing_adds_time"
+msgstr "تجدید آپ کی موجودہ اختتامی تاریخ میں وقت جوڑتی ہے"
+
+msgid "pro_ends_today"
+msgstr "Pro وقت آج ختم ہو رہا ہے، %s"
+
+msgid "renew_now_keep_data"
+msgstr "لامحدود ڈیٹا اور Pro خصوصیات برقرار رکھنے کے لیے ابھی تجدید کریں"
+
+msgid "pro_expired_on"
+msgstr "آپ کا Pro وقت %s کو ختم ہو گیا"
+
+msgid "renew_now_get_back_data"
+msgstr "لامحدود ڈیٹا واپس پانے کے لیے ابھی تجدید کریں"
+
+msgid "days_left"
+msgstr "%s دن باقی ہیں"
+
+msgid "one_day_left"
+msgstr "1 دن باقی ہے"
+
+msgid "expires_today"
+msgstr "آج ختم ہو رہا ہے"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Lantern Pro وقت ختم ہو گیا۔ لامحدود ڈیٹا اور Pro خصوصیات بحال کرنے کے لیے "
+"تجدید کریں۔"
+
+msgid "pro_expires_today_title"
+msgstr "Pro آج ختم ہو رہا ہے"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"آپ کا Pro اکاؤنٹ آج ختم ہو رہا ہے۔ Lantern Pro تک رسائی برقرار رکھنے کے لیے "
+"ابھی تجدید کریں۔"
+
+msgid "renew_now"
+msgstr "ابھی تجدید کریں"
+
+msgid "dismiss"
+msgstr "برخاست کریں"
+
+msgid "unbounded_status_waiting"
+msgstr "شروع ہونے کا انتظار"
