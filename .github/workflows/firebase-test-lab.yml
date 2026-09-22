@@ -142,7 +142,7 @@ jobs:
         run: |
           set -euo pipefail
           expected_version=$(sed -n 's/^version:[[:space:]]*\([^+[:space:]]*\).*/\1/p' pubspec.yaml)
-          actual_version=$("$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" manifest version-name \
+          actual_version=$(apkanalyzer manifest version-name \
             build/app/outputs/apk/debug/app-debug.apk)
           if [[ -z "$expected_version" || "$actual_version" != "$expected_version" ]]; then
             echo "::error::Integration APK version is '$actual_version'; expected '$expected_version' from pubspec.yaml."
