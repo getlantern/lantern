@@ -101,8 +101,9 @@ enum WidgetTunnelController {
     return manager
   }
 
+  /// Only the app's profile; a stale pre-migration one must not be driven from here.
   private static func pick(_ managers: [NETunnelProviderManager]) -> NETunnelProviderManager? {
-    managers.first(where: { $0.localizedDescription == FilePath.vpnProfileName }) ?? managers.first
+    managers.first(where: { $0.localizedDescription == FilePath.vpnProfileName })
   }
 
   private static func start(_ manager: NETunnelProviderManager) async throws {

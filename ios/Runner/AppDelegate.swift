@@ -77,14 +77,11 @@ import flutter_local_notifications
 
   // MARK: - Private helpers
 
-  /// Routes the shared App Intents (Shortcuts, Siri) through VPNManager and
-  /// publishes the current state so a freshly added widget is not stale.
+  /// Routes the shared App Intents (Shortcuts, Siri) through VPNManager.
+  /// VPNManager publishes the widget status itself once it has restored it.
   private func setupWidgetBridge() {
     VPNIntentBridge.handler = { [vpnManager] action in
       try await vpnManager.perform(widgetAction: action)
-    }
-    if let status = vpnManager.connectionStatus.widgetStatus {
-      VPNWidgetStore.setStatus(status)
     }
   }
 

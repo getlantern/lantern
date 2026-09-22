@@ -15,6 +15,17 @@
 import AppIntents
 import Foundation
 
+public enum VPNIntentError: LocalizedError {
+  case handlerUnavailable
+
+  public var errorDescription: String? {
+    switch self {
+    case .handlerUnavailable:
+      return "Lantern is not ready yet. Open the app and try again."
+    }
+  }
+}
+
 public enum VPNIntentBridge {
   /// Installed by the host app; unused inside the widget extension.
   public static var handler: ((VPNWidgetAction) async throws -> Void)?
@@ -23,9 +34,10 @@ public enum VPNIntentBridge {
     #if LANTERN_WIDGET_EXTENSION
       try await WidgetTunnelController.perform(action)
     #else
+      // Can fire before AppDelegate installs the handler; don't report success.
       guard let handler else {
         appLogger.error("VPN intent \(action.rawValue) fired before the app installed a handler")
-        return
+        throw VPNIntentError.handlerUnavailable
       }
       try await handler(action)
     #endif

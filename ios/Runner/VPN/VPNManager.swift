@@ -76,7 +76,7 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
-    guard connectionStatus == .disconnected else { return }
+    guard connectionStatus == .disconnected || connectionStatus == .invalid else { return }
     appLogger.log("Starting tunnel..")
     guard let manager = await Profile.shared.getManager() else {
       let msg = "Unable to load or create VPN manager."
@@ -153,7 +153,10 @@ class VPNManager: VPNBase {
   /// Stops the VPN tunnel.
   /// Terminates the VPN connection and updates the configuration.
   func stopTunnel() async throws {
-    guard connectionStatus == .connected else { return }
+    switch connectionStatus {
+    case .connected, .connecting, .reasserting: break
+    default: return
+    }
 
     guard let manager = await Profile.shared.getManager() else {
       let msg = "Unable to load or create VPN manager."
@@ -182,7 +185,7 @@ class VPNManager: VPNBase {
     switch action {
     case .toggle:
       switch connectionStatus {
-      case .connected:
+      case .connected, .connecting, .reasserting:
         try await stopTunnel()
       case .disconnected, .invalid:
         try await startFromWidget()

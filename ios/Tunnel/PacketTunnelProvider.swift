@@ -56,9 +56,18 @@ class PacketTunnelProvider: ExtensionProvider {
   /// Publishes "connected" when the initial connect finishes; later reasserts are no-ops.
   override var reasserting: Bool {
     didSet {
-      guard oldValue, !reasserting, VPNWidgetStore.load().status == .connecting else { return }
-      VPNWidgetStore.setStatus(.connected)
+      guard oldValue, !reasserting else { return }
+      VPNWidgetStore.update {
+        if $0.status == .connecting { $0.status = .connected }
+      }
     }
+  }
+
+  /// A failed connect ends here, not in stopTunnel(with:); publish it before
+  /// the start task clears `reasserting`.
+  override func cancelTunnelWithError(_ error: Error?) {
+    VPNWidgetStore.setStatus(.disconnected)
+    super.cancelTunnelWithError(error)
   }
 
   override func stopTunnel(with reason: NEProviderStopReason) async {

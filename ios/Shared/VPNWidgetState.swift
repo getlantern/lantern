@@ -20,7 +20,8 @@ public enum VPNWidgetStatus: String, Codable {
   case connected
   case disconnecting
 
-  public var isOn: Bool { self == .connected }
+  /// Includes connecting so the Control Center toggle does not snap back after a tap.
+  public var isOn: Bool { self == .connected || self == .connecting }
   public var isTransitioning: Bool { self == .connecting || self == .disconnecting }
 }
 
@@ -108,6 +109,22 @@ public enum VPNWidgetStore {
   private static let encoder = JSONEncoder()
   private static let decoder = JSONDecoder()
 
+  /// Three processes read-modify-write this snapshot; a file lock in the group
+  /// container keeps them from dropping each other's updates.
+  private static let lockURL = FileManager.default
+    .containerURL(forSecurityApplicationGroupIdentifier: FilePath.groupName)?
+    .appendingPathComponent("vpn_widget_state.lock")
+
+  private static func withLock<T>(_ body: () -> T) -> T {
+    guard let path = lockURL?.path else { return body() }
+    let fd = open(path, O_RDWR | O_CREAT, 0o644)
+    guard fd >= 0 else { return body() }
+    defer { close(fd) }
+    if flock(fd, LOCK_EX) != 0 { return body() }
+    defer { flock(fd, LOCK_UN) }
+    return body()
+  }
+
   public static func load() -> VPNWidgetState {
     guard let data = defaults?.data(forKey: stateKey),
       let state = try? decoder.decode(VPNWidgetState.self, from: data)
@@ -122,15 +139,18 @@ public enum VPNWidgetStore {
   public static func update(reload: Bool = true, _ mutate: (inout VPNWidgetState) -> Void)
     -> VPNWidgetState
   {
-    let previous = load()
-    var next = previous
-    mutate(&next)
-    guard next != previous.withUpdatedAt(next.updatedAt) else { return previous }
-    next.updatedAt = Date()
-    guard let data = try? encoder.encode(next) else { return previous }
-    defaults?.set(data, forKey: stateKey)
-    if reload { reloadWidgets() }
-    return next
+    let (changed, state) = withLock { () -> (Bool, VPNWidgetState) in
+      let previous = load()
+      var next = previous
+      mutate(&next)
+      guard next != previous.withUpdatedAt(next.updatedAt) else { return (false, previous) }
+      next.updatedAt = Date()
+      guard let data = try? encoder.encode(next) else { return (false, previous) }
+      defaults?.set(data, forKey: stateKey)
+      return (true, next)
+    }
+    if changed && reload { reloadWidgets() }
+    return state
   }
 
   public static func setStatus(_ status: VPNWidgetStatus) {
