@@ -137,6 +137,19 @@ jobs:
           make android-integration-apks ANDROID_GRADLE=gradle \
             "ANDROID_INTEGRATION_TARGET=$ANDROID_INTEGRATION_TARGET"
 
+      - name: Verify integration APK version
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_version=$(sed -n 's/^version:[[:space:]]*\([^+[:space:]]*\).*/\1/p' pubspec.yaml)
+          actual_version=$("$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" manifest version-name \
+            build/app/outputs/apk/debug/app-debug.apk)
+          if [[ -z "$expected_version" || "$actual_version" != "$expected_version" ]]; then
+            echo "::error::Integration APK version is '$actual_version'; expected '$expected_version' from pubspec.yaml."
+            exit 1
+          fi
+          echo "Verified integration APK version: $actual_version"
+
       - name: Run tests on Firebase Test Lab
         id: ftl
         shell: bash
