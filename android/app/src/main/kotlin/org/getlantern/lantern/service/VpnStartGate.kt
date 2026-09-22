@@ -30,43 +30,53 @@ internal class VpnStartGate(
     enum class Rejection {
         /** Another start owns the gate and will publish its own result. */
         START_IN_PROGRESS,
-        /** A stop is running or completed while this start waited; nothing owns startup. */
+        /** A stop is running or superseded this request. */
         STOPPING,
     }
 
     /**
      * Ordinary starts are rejected while busy; a restart may wait for the current attempt.
-     * [onRejected] runs, outside the lock, with the reason when the start is declined.
+     * [onRequest] and [onRejected] run under the same lock as the decision, so rejected
+     * requests finish their foreground cleanup before another start can be admitted.
      */
     suspend fun run(
         waitForIdle: Boolean = false,
+        onRequest: () -> Unit = {},
         onRejected: (Rejection) -> Unit = {},
         block: suspend (Attempt) -> Unit,
     ): Boolean = coroutineScope {
         val job = coroutineContext.job
         val generation = synchronized(stateLock) {
-            if (pendingStops != 0) null else stopGeneration
-        } ?: return@coroutineScope reject(Rejection.STOPPING, onRejected)
-        if (waitForIdle) operationMutex.lock()
-        val rejection = synchronized(stateLock) {
-            // A restart queued before Stop must not reconnect after teardown.
-            if (pendingStops != 0 || generation != stopGeneration) {
-                if (waitForIdle) operationMutex.unlock()
-                return@synchronized Rejection.STOPPING
+            if (pendingStops != 0) {
+                onRequest()
+                return@coroutineScope reject(Rejection.STOPPING, onRejected)
             }
-            if (!waitForIdle && !operationMutex.tryLock()) return@synchronized Rejection.START_IN_PROGRESS
-            activeStart = job
-            null
+            stopGeneration
         }
-        if (rejection != null) return@coroutineScope reject(rejection, onRejected)
+        if (waitForIdle) operationMutex.lock()
+        var ownsOperation = waitForIdle
         try {
+            synchronized(stateLock) {
+                onRequest()
+                // A restart queued before Stop must not reconnect after teardown.
+                if (pendingStops != 0 || generation != stopGeneration) {
+                    return@coroutineScope reject(Rejection.STOPPING, onRejected)
+                }
+                if (!waitForIdle) {
+                    ownsOperation = operationMutex.tryLock()
+                    if (!ownsOperation) return@coroutineScope reject(Rejection.START_IN_PROGRESS, onRejected)
+                }
+                activeStart = job
+            }
             job.ensureActive()
             block(Attempt(job))
             true
         } finally {
             synchronized(stateLock) {
-                activeStart = null
-                operationMutex.unlock()
+                if (ownsOperation) {
+                    if (activeStart === job) activeStart = null
+                    operationMutex.unlock()
+                }
             }
         }
     }

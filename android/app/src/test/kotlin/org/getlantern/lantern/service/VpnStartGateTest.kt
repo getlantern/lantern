@@ -2,6 +2,7 @@ package org.getlantern.lantern.service
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CompletableDeferred
@@ -55,6 +56,21 @@ class VpnStartGateTest {
         val result = runCatching { gate.run { throw failure } }
 
         assertEquals(failure.javaClass, result.exceptionOrNull()?.javaClass)
+        assertEquals(failure.message, result.exceptionOrNull()?.message)
+        assertTrue(gate.run {})
+    }
+
+    @Test(timeout = 10_000)
+    fun foregroundCallbackFailureDoesNotLeakRestartGate() = runBlocking {
+        val gate = VpnStartGate()
+        val failure = IllegalStateException("foreground promotion failed")
+
+        val result = runCatching {
+            gate.run(waitForIdle = true, onRequest = { throw failure }) {
+                error("failed promotion must not enter startup")
+            }
+        }
+
         assertEquals(failure.message, result.exceptionOrNull()?.message)
         assertTrue(gate.run {})
     }
@@ -389,6 +405,7 @@ class VpnStartGateTest {
         val gate = VpnStartGate()
         val prepared = CompletableDeferred<Unit>()
         val finish = CompletableDeferred<Unit>()
+        var foregroundRequested = false
         var restarted = false
         val first = launch {
             gate.run {
@@ -398,12 +415,14 @@ class VpnStartGateTest {
         }
         prepared.await()
         val restart = async(start = CoroutineStart.UNDISPATCHED) {
-            gate.run(waitForIdle = true) { restarted = true }
+            gate.run(waitForIdle = true, onRequest = { foregroundRequested = true }) { restarted = true }
         }
+        assertFalse(foregroundRequested)
         assertFalse(restarted)
         finish.complete(Unit)
         first.join()
         assertTrue(restart.await())
+        assertTrue(foregroundRequested)
         assertTrue(restarted)
     }
 
@@ -494,6 +513,60 @@ class VpnStartGateTest {
 
         assertEquals(listOf(VpnStartGate.Rejection.STOPPING, VpnStartGate.Rejection.STOPPING), rejections)
         assertTrue(gate.run {})
+    }
+
+    @Test(timeout = 10_000)
+    fun rejectedCleanupCannotRemoveALaterStartsForegroundNotification() = runBlocking {
+        val gate = VpnStartGate()
+        val foreground = AtomicBoolean()
+        val stopping = CompletableDeferred<Unit>()
+        val finishStop = CompletableDeferred<Unit>()
+        val cleaningUp = CountDownLatch(1)
+        val finishCleanup = CountDownLatch(1)
+        val nextRequested = CountDownLatch(1)
+        val nextStarted = CountDownLatch(1)
+        try {
+            val stop = launch(Dispatchers.IO) {
+                gate.stop {
+                    foreground.set(false)
+                    stopping.complete(Unit)
+                    finishStop.await()
+                }
+            }
+            stopping.await()
+            val rejected = async(Dispatchers.IO) {
+                var promotedHere = false
+                gate.run(
+                    onRequest = { promotedHere = !foreground.getAndSet(true) },
+                    onRejected = { reason ->
+                        assertEquals(VpnStartGate.Rejection.STOPPING, reason)
+                        cleaningUp.countDown()
+                        assertTrue(finishCleanup.await(5, TimeUnit.SECONDS))
+                        if (promotedHere) foreground.set(false)
+                    },
+                ) { error("start during Stop must be rejected") }
+            }
+            assertTrue(cleaningUp.await(5, TimeUnit.SECONDS))
+            finishStop.complete(Unit)
+            val next = async(Dispatchers.IO) {
+                nextRequested.countDown()
+                stop.join()
+                gate.run(onRequest = { foreground.set(true) }) {
+                    nextStarted.countDown()
+                }
+            }
+            assertTrue(nextRequested.await(5, TimeUnit.SECONDS))
+            // Give the next request a chance to expose cleanup running outside the gate.
+            nextStarted.await(200, TimeUnit.MILLISECONDS)
+            finishCleanup.countDown()
+
+            assertFalse(rejected.await())
+            assertTrue(next.await())
+            assertTrue("rejected cleanup removed the new start's notification", foreground.get())
+        } finally {
+            finishStop.complete(Unit)
+            finishCleanup.countDown()
+        }
     }
 
     @Test(timeout = 10_000)

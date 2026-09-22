@@ -347,26 +347,27 @@ class LanternVpnService :
         restart: Boolean = false,
         connect: () -> Unit,
     ) = withContext(Dispatchers.IO) {
-        // A duplicate may also arrive via startForegroundService, so promote the
-        // service before deciding which request owns startup.
         var promotedHere = false
-        val foregroundFailure = try {
-            promotedHere = notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
-            null
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            e
-        }
+        var foregroundFailure: Exception? = null
         val accepted = vpnStartGate.run(
             waitForIdle = restart,
+            onRequest = {
+                // Duplicates can arrive via startForegroundService too, so they
+                // still need promotion even when the gate rejects them.
+                foregroundFailure = try {
+                    promotedHere = notificationHelper.showStartingVPNConnectedNotification(this@LanternVpnService)
+                    null
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    e
+                }
+            },
             onRejected = { rejection ->
                 AppLogger.i(TAG, "VPN operation ($errorCode) ignored: $rejection")
-                // Another start owns the notification; a stop leaves nobody to clear
-                // a promotion made here (e.g. a fresh instance during teardown).
+                // Only remove this request's promotion; Stop owns tunnel teardown.
                 if (rejection == VpnStartGate.Rejection.STOPPING && promotedHere) {
                     notificationHelper.stopVPNConnectedNotification(this@LanternVpnService)
-                    stopSelf()
                 }
             },
         ) { attempt ->
@@ -377,7 +378,7 @@ class LanternVpnService :
                     stopSelf()
                     return@run
                 }
-                if (foregroundFailure != null) throw foregroundFailure
+                foregroundFailure?.let { throw it }
                 attempt.publish { VpnStatusManager.postVPNStatus(VPNStatus.Connecting) }
                 if (!Mobile.isRadianceConnected()) {
                     AppLogger.d(TAG, "Radiance not ready, setting up before VPN start")
