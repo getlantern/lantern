@@ -204,11 +204,9 @@ class MethodHandler : FlutterPlugin,
             Methods.Start.method -> {
                 scope.launch {
                     result.runCatching {
-                        VpnStatusManager.postVPNStatus(VPNStatus.Connecting)
                         MainActivity.instance.startVPN()
                         success("VPN started")
                     }.onFailure { e ->
-                        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                         result.error("start_vpn", e.localizedMessage ?: "Please try again", e)
                     }
                 }
