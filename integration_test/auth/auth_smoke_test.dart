@@ -83,7 +83,12 @@ void registerAuthSmokeTests() {
               expect(cached.legacyToken == refreshed.legacyToken, isTrue);
             }
 
-            await auth.container.read(homeProvider.notifier).reloadUserData();
+            await auth.container.read(homeProvider.notifier).refreshUser();
+            final reloadedState = auth.container.read(homeProvider);
+            expect(reloadedState.hasError, isFalse);
+            expect(reloadedState.isLoading, isFalse);
+            final reloaded = reloadedState.requireValue;
+            _expectLoginFields(reloaded, login);
             expect(auth.isSignedIn, isTrue);
             expect(auth.signedInEmail.toLowerCase(), account.email);
             await auth.logoutViaUi();
@@ -104,6 +109,11 @@ void registerAuthSmokeTests() {
             expect(signedOut.legacyID, isNot(login.legacyID));
             expect(signedOut.legacyUserData.userId, signedOut.legacyID);
             expect(signedOut.legacyUserData.email, isEmpty);
+            expect(signedOut.legacyToken == reloaded.legacyToken, isFalse);
+            expect(
+              signedOut.legacyUserData.token == reloaded.legacyToken,
+              isFalse,
+            );
           }
         } finally {
           await auth.tryEnsureSignedOut();
