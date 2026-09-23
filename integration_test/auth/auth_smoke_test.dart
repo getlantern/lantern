@@ -99,7 +99,11 @@ void registerAuthSmokeTests() {
             expect(signedOut.success, isFalse);
             expect(signedOut.emailConfirmed, isFalse);
             expect(signedOut.devices, isEmpty);
+            // Logout creates a fresh anonymous account.
+            expect(signedOut.legacyID, greaterThan(0));
             expect(signedOut.legacyID, isNot(login.legacyID));
+            expect(signedOut.legacyUserData.userId, signedOut.legacyID);
+            expect(signedOut.legacyUserData.email, isEmpty);
           }
         } finally {
           await auth.tryEnsureSignedOut();
@@ -298,4 +302,10 @@ void _expectLoginFields(UserResponseModel actual, UserResponseModel login) {
   expect(actual.legacyUserData.userId, login.legacyID);
   expect(actual.legacyUserData.email, login.legacyUserData.email);
   expect(actual.legacyToken.isNotEmpty, isTrue);
+  // Refresh can rotate the legacy token; both response fields must agree.
+  expect(
+    actual.legacyToken == actual.legacyUserData.token,
+    isTrue,
+    reason: 'Legacy token differs between the account response fields',
+  );
 }
