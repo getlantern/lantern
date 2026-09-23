@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
