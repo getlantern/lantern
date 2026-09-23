@@ -22,7 +22,9 @@ class CountryCodeNotifier extends _$CountryCodeNotifier {
     appLogger.debug('Updating country code to: $state');
     if (Platform.isAndroid && sl.isRegistered<AppPurchase>()) {
       final appPurchase = sl<AppPurchase>();
-      if (!CountryCode.isCensoredRegion) {
+      if (CountryCode.isCensoredRegion) {
+        appPurchase.stopBilling();
+      } else {
         appPurchase.init();
       }
     }
