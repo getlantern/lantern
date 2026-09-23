@@ -30,6 +30,7 @@ object DefaultNetworkMonitor {
     // different threads, so @Volatile guarantees the read sees the latest write.
     @Volatile
     private var listener: InterfaceUpdateListener? = null
+    @Volatile
     private var networkChangeCallback: ((Network?) -> Unit)? = null
 
     /**

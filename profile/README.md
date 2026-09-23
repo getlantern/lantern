@@ -21,7 +21,6 @@ Censorship circumvention tool available for free download on any operating syste
     <tr>
         <th>Windows</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe">Windows 10&#43;</a> <br> 
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-win7.exe">Windows 7</a>    
@@ -34,7 +33,6 @@ Censorship circumvention tool available for free download on any operating syste
     <tr>
         <th>Android</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk">Android 6&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.apk">Android 6&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 6&#43;</a>
         </td>
@@ -48,7 +46,6 @@ Censorship circumvention tool available for free download on any operating syste
     <tr>
         <th>macOS</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">macOS 10.15&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 10.15&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 10.15&#43;</a>
         </td>

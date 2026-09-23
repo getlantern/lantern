@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
+import 'package:lantern/core/services/rating_prompt_service.dart';
 import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
@@ -45,6 +46,8 @@ Future<void> injectServices() async {
   // (e.g. NSUserDefaults on macOS) survived.  Must run before runApp()
   // so that AppSettingNotifier.build() reads the correct defaults.
   await AppSettingNotifier.resetIfFreshInstall(storage);
+
+  sl.registerSingleton<RatingPromptService>(RatingPromptService(storage));
 
   sl.registerLazySingleton<AppRouter>(() => AppRouter());
   sl.registerLazySingleton<DeepLinkCallbackManager>(
