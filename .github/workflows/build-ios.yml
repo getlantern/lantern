@@ -69,7 +69,7 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           EXPORT_OPTIONS: ${{ secrets.EXPORT_OPTION_PLIST }}
         run: |
-          set -x
+          set -euo pipefail
           # create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
@@ -100,6 +100,38 @@ jobs:
 
           # Create ExportOptions.plist
           echo "$EXPORT_OPTIONS" | base64 --decode > "$EXPORT_OPTIONS_PATH"
+
+      - name: Install widget provisioning profile and configure export
+        env:
+          IOS_WIDGET_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_WIDGET_PROVISION_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$IOS_WIDGET_PROVISION_PROFILE_BASE64" ]]; then
+            echo "::error::Set IOS_WIDGET_PROVISION_PROFILE_BASE64 to the base64-encoded IOS Lantern Widget Distribution profile."
+            exit 1
+          fi
+
+          WIDGET_PROFILE_PATH="$RUNNER_TEMP/lantern-widget.mobileprovision"
+          printf '%s' "$IOS_WIDGET_PROVISION_PROFILE_BASE64" | base64 --decode > "$WIDGET_PROFILE_PATH"
+          security cms -D -i "$WIDGET_PROFILE_PATH" > "$RUNNER_TEMP/lantern-widget-profile.plist"
+          python3 - "$RUNNER_TEMP/lantern-widget-profile.plist" <<'PY'
+          import plistlib
+          import sys
+          from pathlib import Path
+
+          profile = plistlib.loads(Path(sys.argv[1]).read_bytes())
+          bundle_id = "org.getlantern.lantern.lanternwidget"
+          if profile["Name"] != "IOS Lantern Widget Distribution":
+              sys.exit("::error::Widget profile name must match IOS Lantern Widget Distribution in the Xcode project.")
+          if not profile["Entitlements"]["application-identifier"].endswith("." + bundle_id):
+              sys.exit("::error::Widget provisioning profile has the wrong application identifier.")
+
+          export_path = Path("ExportOptions.plist")
+          options = plistlib.loads(export_path.read_bytes())
+          options.setdefault("provisioningProfiles", {})[bundle_id] = profile["UUID"]
+          export_path.write_bytes(plistlib.dumps(options))
+          PY
+          cp "$WIDGET_PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/"
 
       - name: Install dependencies
         run: make install-gomobile
