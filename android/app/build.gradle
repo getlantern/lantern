@@ -380,7 +380,8 @@ android {
         // (locally and on Firebase Test Lab); see MainActivityTest.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionCode = code
-        versionName = flutter.versionName
+        // Direct Gradle test builds do not refresh Flutter's local.properties.
+        versionName = project.findProperty("lantern.versionName") ?: flutter.versionName
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
         manifestPlaceholders = [
                 appName: androidIdentity.appLabel,
