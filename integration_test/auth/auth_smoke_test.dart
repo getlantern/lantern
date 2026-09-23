@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:lantern/core/models/user.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:lantern/main.dart' as app;
 
@@ -39,26 +41,71 @@ void registerAuthSmokeTests() {
     });
 
     testWidgets(
-      'sign in succeeds and logout clears the session',
+      'account refresh preserves login fields across sign-in and logout',
       (tester) async {
-        final password = signInSmokePassword;
         await app.main();
         final appRobot = AppRobot(tester);
         final auth = AuthRobot(tester, appRobot);
         await auth.ensureSignedOut();
         try {
-          await auth.signIn(email: signInSmokeEmail, password: password);
-          expect(auth.isSignedIn, isTrue);
-          expect(auth.signedInEmail.toLowerCase(), signInSmokeEmail);
+          final service = auth.container.read(lanternServiceProvider);
+          int? previousAccount;
+          for (final account in [
+            (email: signInSmokeEmail, password: signInSmokePassword),
+            (email: proSmokeEmail, password: proSmokePassword),
+          ]) {
+            await auth.signIn(email: account.email, password: account.password);
+            expect(auth.isSignedIn, isTrue);
+            expect(auth.signedInEmail.toLowerCase(), account.email);
 
-          await auth.logoutViaUi();
-          expect(auth.isSignedIn, isFalse);
-          expect(auth.signedInEmail, isEmpty);
+            final login = auth.container.read(homeProvider).requireValue;
+            expect(login.id, isNotEmpty);
+            expect(login.success, isTrue);
+            expect(login.emailConfirmed, isTrue);
+            expect(login.legacyID, greaterThan(0));
+            expect(login.legacyID, isNot(previousAccount));
+            previousAccount = login.legacyID;
+
+            for (var refresh = 0; refresh < 2; refresh++) {
+              final refreshed = (await service.fetchUserData()).fold(
+                (failure) => fail('Account refresh failed: ${failure.error}'),
+                (user) => user,
+              );
+              _expectLoginFields(refreshed, login);
+
+              // Read the native cache instead of trusting the copy held by Dart.
+              final cached = (await service.getUserData()).fold(
+                (failure) =>
+                    fail('Cached account read failed: ${failure.error}'),
+                (user) => user,
+              );
+              _expectLoginFields(cached, login);
+              expect(cached.legacyToken == refreshed.legacyToken, isTrue);
+            }
+
+            await auth.container.read(homeProvider.notifier).reloadUserData();
+            expect(auth.isSignedIn, isTrue);
+            expect(auth.signedInEmail.toLowerCase(), account.email);
+            await auth.logoutViaUi();
+            expect(auth.isSignedIn, isFalse);
+            expect(auth.signedInEmail, isEmpty);
+
+            final signedOut = (await service.getUserData()).fold(
+              (failure) =>
+                  fail('Signed-out account read failed: ${failure.error}'),
+              (user) => user,
+            );
+            expect(signedOut.id, isEmpty);
+            expect(signedOut.success, isFalse);
+            expect(signedOut.emailConfirmed, isFalse);
+            expect(signedOut.devices, isEmpty);
+            expect(signedOut.legacyID, isNot(login.legacyID));
+          }
         } finally {
           await auth.tryEnsureSignedOut();
         }
       },
-      timeout: const Timeout(Duration(minutes: 5)),
+      timeout: const Timeout(Duration(minutes: 8)),
     );
 
     testWidgets(
@@ -237,4 +284,18 @@ void registerAuthSmokeTests() {
       timeout: const Timeout(Duration(minutes: 5)),
     );
   });
+}
+
+void _expectLoginFields(UserResponseModel actual, UserResponseModel login) {
+  expect(actual.id, login.id);
+  expect(actual.legacyID, login.legacyID);
+  expect(actual.emailConfirmed, login.emailConfirmed);
+  expect(actual.success, login.success);
+  expect(
+    actual.devices.map((device) => device.toJson()).toList(),
+    login.devices.map((device) => device.toJson()).toList(),
+  );
+  expect(actual.legacyUserData.userId, login.legacyID);
+  expect(actual.legacyUserData.email, login.legacyUserData.email);
+  expect(actual.legacyToken.isNotEmpty, isTrue);
 }
