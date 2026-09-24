@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
@@ -13,6 +14,7 @@ import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
+import 'package:lantern/features/split_tunneling/alphabet_index_bar.dart';
 import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
@@ -21,11 +23,16 @@ import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.da
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
-class AppsSplitTunneling extends ConsumerWidget {
+class AppsSplitTunneling extends HookConsumerWidget {
   const AppsSplitTunneling({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // One key per index letter, kept across rebuilds so the alphabet bar can
+    // scroll to the first installed app of that letter.
+    final letterKeys = useMemoized(() => <String, GlobalKey>{});
+    // Letter whose first installed app is at or above the top of the list.
+    final currentLetter = useState<String?>(null);
     final searchQuery = ref.watch(searchQueryProvider);
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
 
@@ -51,6 +58,50 @@ class AppsSplitTunneling extends ConsumerWidget {
         .where((a) => !enabledIds.contains(normalizedAppId(a)))
         .where(matchesSearch)
         .toList();
+    final firstIndexByLetter = firstAppIndexByLetter(filteredDisabled);
+    final showIndexBar = firstIndexByLetter.length > 1;
+
+    /// Picks the letter at the top of the viewport from the positions of the
+    /// first row of each letter. Rows are all laid out (the inner lists are
+    /// shrink-wrapped), so every key that is present has a render box.
+    void updateCurrentLetter(BuildContext scrollContext) {
+      final viewport = scrollContext.findRenderObject();
+      if (viewport is! RenderBox) return;
+
+      String? best;
+      var bestDy = double.negativeInfinity;
+      String? first;
+      var firstDy = double.infinity;
+      for (final letter in firstIndexByLetter.keys) {
+        final box = letterKeys[letter]?.currentContext?.findRenderObject();
+        if (box is! RenderBox || !box.attached) continue;
+        final dy = box.localToGlobal(Offset.zero, ancestor: viewport).dy;
+        // Small tolerance so the row that ensureVisible aligns flush with the
+        // top still counts as the current letter.
+        if (dy <= 8 && dy > bestDy) {
+          best = letter;
+          bestDy = dy;
+        }
+        if (dy < firstDy) {
+          first = letter;
+          firstDy = dy;
+        }
+      }
+      final next = best ?? first;
+      if (next != currentLetter.value) {
+        currentLetter.value = next;
+      }
+    }
+
+    Future<void> scrollToLetter(String letter) async {
+      final target = letterKeys[letter]?.currentContext;
+      if (target == null) return;
+      await Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    }
 
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
@@ -59,104 +110,151 @@ class AppsSplitTunneling extends ConsumerWidget {
         title: 'apps_split_tunneling'.i18n,
         hintText: 'search_apps'.i18n,
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Row(
-              children: [
-                SectionLabel(
-                  'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
-                ),
-                const Spacer(),
-              ],
+      body: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+              right: showIndexBar ? AlphabetIndexBar.width : 0,
             ),
-          ),
-          if (enabledApps.isEmpty)
-            SliverToBoxAdapter(
-              child: AppCard(
-                padding: EdgeInsets.all(0),
-                child: AppTile(label: 'no_apps_selected'.i18n),
-              ),
-            )
-          else
-            SliverToBoxAdapter(
-              child: AppCard(
-                child: ListView.separated(
-                  padding: EdgeInsets.all(0),
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredEnabled.length + 1,
-                  separatorBuilder: (_, separatorIndex) =>
-                      DividerSpace(padding: EdgeInsets.zero),
-                  itemBuilder: (ctx, i) {
-                    if (i == 0) {
-                      return AppTile(
-                        minHeight: 40,
-                        contentPadding: EdgeInsets.zero,
-                        label: '',
-                        trailing: AppTextButton(
-                          label: 'deselect_all'.i18n,
-                          fontSize: 14,
-                          onPressed: () async {
-                            await notifier.deselectApps(filteredEnabled);
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                updateCurrentLetter(n.context ?? context);
+                return false;
+              },
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        SectionLabel(
+                          'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                  ),
+                  if (enabledApps.isEmpty)
+                    SliverToBoxAdapter(
+                      child: AppCard(
+                        padding: EdgeInsets.all(0),
+                        child: AppTile(label: 'no_apps_selected'.i18n),
+                      ),
+                    )
+                  else
+                    SliverToBoxAdapter(
+                      child: AppCard(
+                        child: ListView.separated(
+                          padding: EdgeInsets.all(0),
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: filteredEnabled.length + 1,
+                          separatorBuilder: (_, separatorIndex) =>
+                              DividerSpace(padding: EdgeInsets.zero),
+                          itemBuilder: (ctx, i) {
+                            if (i == 0) {
+                              return AppTile(
+                                minHeight: 40,
+                                contentPadding: EdgeInsets.zero,
+                                label: '',
+                                trailing: AppTextButton(
+                                  label: 'deselect_all'.i18n,
+                                  fontSize: 14,
+                                  onPressed: () async {
+                                    await notifier.deselectApps(
+                                      filteredEnabled,
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+                            final app = filteredEnabled[i - 1];
+                            return AppRow(
+                              app: app,
+                              enabled: true,
+                              onToggle: () => notifier.toggleApp(app),
+                            );
                           },
                         ),
-                      );
-                    }
-                    final app = filteredEnabled[i - 1];
-                    return AppRow(
-                      app: app,
-                      enabled: true,
-                      onToggle: () => notifier.toggleApp(app),
-                    );
-                  },
-                ),
-              ),
-            ),
-          SliverToBoxAdapter(child: SizedBox(height: 20)),
-          SliverToBoxAdapter(child: SectionLabel('installed_apps'.i18n)),
-          SliverToBoxAdapter(
-            child: allApps.isEmpty
-                ? AppCard(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-                    child: Center(child: LoadingIndicator()),
-                  )
-                : AppCard(
-                    child: filteredDisabled.isEmpty
-                        ? AppTile(minHeight: 40, label: 'no_apps_selected'.i18n)
-                        : ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: filteredDisabled.length + 1,
-                            separatorBuilder: (_, separatorIndex) =>
-                                DividerSpace(padding: EdgeInsets.zero),
-                            itemBuilder: (ctx, i) {
-                              if (i == 0) {
-                                return AppTile(
-                                  minHeight: 40,
-                                  contentPadding: EdgeInsets.zero,
-                                  label: '',
-                                  trailing: AppTextButton(
-                                    label: 'select_all'.i18n,
-                                    fontSize: 14,
-                                    onPressed: () => onTapSelectAll(
-                                      ctx,
-                                      notifier,
-                                      filteredDisabled,
-                                    ),
+                      ),
+                    ),
+                  SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  SliverToBoxAdapter(
+                    child: SectionLabel('installed_apps'.i18n),
+                  ),
+                  SliverToBoxAdapter(
+                    child: allApps.isEmpty
+                        ? AppCard(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 48,
+                            ),
+                            child: Center(child: LoadingIndicator()),
+                          )
+                        : AppCard(
+                            child: filteredDisabled.isEmpty
+                                ? AppTile(
+                                    minHeight: 40,
+                                    label: 'no_apps_selected'.i18n,
+                                  )
+                                : ListView.separated(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: filteredDisabled.length + 1,
+                                    separatorBuilder: (_, separatorIndex) =>
+                                        DividerSpace(padding: EdgeInsets.zero),
+                                    itemBuilder: (ctx, i) {
+                                      if (i == 0) {
+                                        return AppTile(
+                                          minHeight: 40,
+                                          contentPadding: EdgeInsets.zero,
+                                          label: '',
+                                          trailing: AppTextButton(
+                                            label: 'select_all'.i18n,
+                                            fontSize: 14,
+                                            onPressed: () => onTapSelectAll(
+                                              ctx,
+                                              notifier,
+                                              filteredDisabled,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      final app = filteredDisabled[i - 1];
+                                      final letter = appIndexLetter(app);
+                                      final isFirstOfLetter =
+                                          firstIndexByLetter[letter] == i - 1;
+                                      return AppRow(
+                                        key: isFirstOfLetter
+                                            ? letterKeys.putIfAbsent(
+                                                letter,
+                                                GlobalKey.new,
+                                              )
+                                            : null,
+                                        app: app,
+                                        enabled: false,
+                                        onToggle: () =>
+                                            onTapAddApp(ctx, notifier, app),
+                                      );
+                                    },
                                   ),
-                                );
-                              }
-                              final app = filteredDisabled[i - 1];
-                              return AppRow(
-                                app: app,
-                                enabled: false,
-                                onToggle: () => onTapAddApp(ctx, notifier, app),
-                              );
-                            },
                           ),
                   ),
+                ],
+              ),
+            ),
           ),
+          if (showIndexBar)
+            Positioned.fill(
+              left: null,
+              child: AlphabetIndexBar(
+                availableLetters: firstIndexByLetter.keys.toSet(),
+                // Before any scroll, the top of the list is the first letter.
+                currentLetter:
+                    currentLetter.value ?? firstIndexByLetter.keys.firstOrNull,
+                onLetterSelected: scrollToLetter,
+              ),
+            ),
         ],
       ),
     );

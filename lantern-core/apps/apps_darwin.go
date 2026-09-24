@@ -36,8 +36,27 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 	return scanAppDirs(appDirs, seen, excludeDirs, cb)
 }
 
+// bundleInfoPlist returns the bundle's Info.plist path and, for iPhone/iPad
+// apps (<App>.app/Wrapper/<Inner>.app, no Contents/), the inner bundle name.
+func bundleInfoPlist(appPath string) (plistPath, wrappedBundle string) {
+	native := filepath.Join(appPath, "Contents", "Info.plist")
+	if _, err := os.Stat(native); err == nil {
+		return native, ""
+	}
+	matches, _ := filepath.Glob(filepath.Join(appPath, "Wrapper", "*.app", "Info.plist"))
+	if len(matches) == 0 {
+		return native, ""
+	}
+	return matches[0], filepath.Base(filepath.Dir(matches[0]))
+}
+
+func wrappedBundleName(appPath string) string {
+	_, wrapped := bundleInfoPlist(appPath)
+	return wrapped
+}
+
 func getAppID(appPath string) (string, error) {
-	plistPath := filepath.Join(appPath, "Contents", "Info.plist")
+	plistPath, _ := bundleInfoPlist(appPath)
 	file, err := os.Open(plistPath)
 	if err != nil {
 		return "", fmt.Errorf("unable to open plist: %w", err)

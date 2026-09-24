@@ -22,9 +22,29 @@ func getIconPath(appPath string) (string, error) {
 		return "", wrapped
 	}
 	if len(matches) == 0 {
-		return "", nil
+		return wrappedIconPath(appPath), nil
 	}
 	return matches[0], nil
+}
+
+// wrappedIconPath picks the largest AppIcon*.png from an iPhone/iPad bundle's
+// inner .app. Those bundles carry no .icns; sips resizes PNG just as well.
+func wrappedIconPath(appPath string) string {
+	plistPath, wrapped := bundleInfoPlist(appPath)
+	if wrapped == "" {
+		return ""
+	}
+	matches, err := filepath.Glob(filepath.Join(filepath.Dir(plistPath), "AppIcon*.png"))
+	if err != nil || len(matches) == 0 {
+		return ""
+	}
+	best, bestSize := "", int64(-1)
+	for _, m := range matches {
+		if info, err := os.Stat(m); err == nil && info.Size() > bestSize {
+			best, bestSize = m, info.Size()
+		}
+	}
+	return best
 }
 
 func getIconBytes(appPath string) ([]byte, error) {

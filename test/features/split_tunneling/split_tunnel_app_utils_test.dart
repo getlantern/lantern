@@ -23,6 +23,8 @@ AppData _app({
 }
 
 void main() {
+  _macOSRuleTests();
+  _indexTests();
   test('pickPreferredAppEntry prefers app with icon metadata', () {
     final current = _app(
       name: 'Sample',
@@ -149,5 +151,81 @@ void main() {
 
     expect(deduped, hasLength(1));
     expect(deduped.single.name, 'Lantern');
+  });
+}
+
+void _indexTests() {
+  test('appIndexLetter uppercases A-Z and buckets everything else under #', () {
+    expect(
+      appIndexLetter(_app(name: 'chrome', bundleId: 'a', appPath: '/a')),
+      'C',
+    );
+    expect(
+      appIndexLetter(_app(name: 'Zoom', bundleId: 'b', appPath: '/b')),
+      'Z',
+    );
+    expect(
+      appIndexLetter(_app(name: '1Password', bundleId: 'c', appPath: '/c')),
+      '#',
+    );
+    expect(
+      appIndexLetter(_app(name: 'Éclair', bundleId: 'd', appPath: '/d')),
+      '#',
+    );
+    expect(appIndexLetter(_app(name: '  ', bundleId: 'e', appPath: '/e')), '#');
+  });
+
+  test('firstAppIndexByLetter records the first row of each letter', () {
+    final apps = dedupeAndSortApps([
+      _app(name: '1Password', bundleId: 'com.1p', appPath: '/1p'),
+      _app(name: 'Brave', bundleId: 'com.brave', appPath: '/brave'),
+      _app(name: 'calendar', bundleId: 'com.cal', appPath: '/cal'),
+      _app(name: 'Chrome', bundleId: 'com.chrome', appPath: '/chrome'),
+    ]);
+
+    expect(firstAppIndexByLetter(apps), {'#': 0, 'B': 1, 'C': 2});
+    expect(firstAppIndexByLetter(const []), isEmpty);
+  });
+}
+
+void _macOSRuleTests() {
+  test('macOSSplitTunnelRule keeps the Contents rule for native bundles', () {
+    final app = _app(
+      name: 'Firefox',
+      bundleId: 'org.mozilla.firefox',
+      appPath: '/Applications/Firefox.app',
+    );
+    expect(macOSSplitTunnelRule(app), '/Applications/Firefox.app/Contents/.*');
+  });
+
+  test('macOSSplitTunnelRule matches iPhone/iPad apps on the inner bundle', () {
+    final app = _app(
+      name: 'Stream',
+      bundleId: 'com.fish.stream',
+      appPath: '/Applications/Stream.app',
+    ).copyWith(wrappedBundle: 'NetworkSniffer.app');
+
+    final rule = macOSSplitTunnelRule(app);
+    expect(rule, r'/Wrapper/NetworkSniffer\.app/.*');
+
+    // The path macOS actually runs the app from (observed on macOS 26).
+    const translocated =
+        '/private/var/folders/v0/7k3mc29n0g3g_t5kw4fpp0yc0000gn/X/'
+        '1A83308F-8D8A-528B-ABB7-839ECC657228/d/Wrapper/NetworkSniffer.app/NetworkSniffer';
+    expect(RegExp(rule).hasMatch(translocated), isTrue);
+    expect(
+      RegExp(rule).hasMatch(
+        '/Applications/Stream.app/Wrapper/NetworkSniffer.app/NetworkSniffer',
+      ),
+      isTrue,
+    );
+    expect(
+      RegExp(rule).hasMatch('/Applications/Stream.app/Contents/MacOS/Stream'),
+      isFalse,
+    );
+    expect(
+      RegExp(rule).hasMatch('/x/Wrapper/NetworkSnifferXapp/NetworkSniffer'),
+      isFalse,
+    );
   });
 }
