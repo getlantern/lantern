@@ -4,8 +4,6 @@ set -euo pipefail
 TEST_PATH="${TEST_PATH:-integration_test/vpn/macos_connect_smoke_test.dart}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos}"
 RUN_CONNECT_SMOKE="${RUN_CONNECT_SMOKE:-true}"
-ENABLE_IP_CHECK="${ENABLE_IP_CHECK:-false}"
-FORCE_FULL_TUNNEL="${FORCE_FULL_TUNNEL:-true}"
 VPN_LIFECYCLE_SMOKE="${VPN_LIFECYCLE_SMOKE:-false}"
 EXTENSION_TIMEOUT_SECONDS="${EXTENSION_TIMEOUT_SECONDS:-120}"
 APP_INSTALL_DIR="${APP_INSTALL_DIR:-/Applications/Lantern.app}"
@@ -307,26 +305,18 @@ run_system_extension_preflight() {
 }
 
 run_flutter_connect_smoke() {
+  local app_path="$1"
   local args=(
-    "test"
-    "$TEST_PATH"
+    "drive"
+    "--profile"
+    "--use-application-binary=$app_path"
+    "--driver=test_driver/integration_test.dart"
+    "--target=$TEST_PATH"
     "-d"
     "macos"
-    "--reporter=expanded"
-    "--dart-define=DISABLE_SYSTEM_TRAY=true"
   )
 
-  if [[ "$ENABLE_IP_CHECK" == "true" ]]; then
-    args+=("--dart-define=ENABLE_IP_CHECK=true")
-  fi
-
-  if [[ "$FORCE_FULL_TUNNEL" == "true" ]]; then
-    args+=("--dart-define=SMOKE_FORCE_FULL_TUNNEL=true")
-  fi
-  if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
-    args+=("--dart-define=VPN_LIFECYCLE_SMOKE=true")
-  fi
-
+  # Smoke options are compiled into the signed fixture before it is installed.
   log_step "Running macOS connect smoke: flutter ${args[*]}"
   flutter "${args[@]}"
 }
@@ -367,7 +357,7 @@ fi
 
 if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
   run_system_extension_preflight "$app_executable"
-  run_flutter_connect_smoke
+  run_flutter_connect_smoke "$app_path"
 else
   log_step "Skipping macOS connect smoke test."
 fi
