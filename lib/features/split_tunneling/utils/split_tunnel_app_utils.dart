@@ -162,10 +162,12 @@ String appIndexLetter(AppData app) {
   if (name.isEmpty) {
     return otherAppsIndexLetter;
   }
-  final first = String.fromCharCode(name.runes.first).toUpperCase();
-  final code = first.codeUnitAt(0);
-  final isAsciiLetter = code >= 0x41 && code <= 0x5A;
-  return isAsciiLetter ? first : otherAppsIndexLetter;
+  final code = name.runes.first;
+  final isAsciiLetter =
+      (code >= 0x41 && code <= 0x5A) || (code >= 0x61 && code <= 0x7A);
+  return isAsciiLetter
+      ? String.fromCharCode(code).toUpperCase()
+      : otherAppsIndexLetter;
 }
 
 /// [apps] grouped by index letter, keyed in [alphabetIndexLetters] order and

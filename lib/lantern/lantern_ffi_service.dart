@@ -385,6 +385,7 @@ class LanternFFIService implements LanternCoreService {
           iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
           isEnabled: enabledKeys.contains(key),
           isBrowser: raw["isBrowser"] == true,
+          wrappedBundle: raw["wrappedBundle"] as String? ?? '',
         );
       }).toList();
     } catch (e, st) {

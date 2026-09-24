@@ -236,10 +236,12 @@ func TestScanAppDirs_FindsWrappedIOSApp(t *testing.T) {
 	}
 	appPath := makeWrappedAppBundle(t, root, "Stream", "NetworkSniffer", "com.fish.stream")
 	nativePath := makeAppBundle(t, root, "Native", "com.example.native", false)
+	// Brackets are glob metacharacters; the bundle must still be found.
+	makeWrappedAppBundle(t, root, "Stream [Beta]", "NetworkSnifferBeta", "com.fish.stream.beta")
 
 	apps := scanAppDirs([]string{root}, map[string]bool{}, excludeDirs, nil)
-	if len(apps) != 2 {
-		t.Fatalf("expected 2 apps (outer wrapper only, inner bundle must not be listed separately), got %d: %+v", len(apps), apps)
+	if len(apps) != 3 {
+		t.Fatalf("expected 3 apps (outer wrappers only, inner bundles must not be listed separately), got %d: %+v", len(apps), apps)
 	}
 	byID := map[string]*AppData{}
 	for _, a := range apps {
@@ -261,6 +263,10 @@ func TestScanAppDirs_FindsWrappedIOSApp(t *testing.T) {
 	}
 	if filepath.Base(wrapped.IconPath) != "AppIcon60x60@3x.png" {
 		t.Errorf("icon should be the largest PNG: %s", wrapped.IconPath)
+	}
+
+	if beta := byID["com.fish.stream.beta"]; beta == nil || beta.WrappedBundle != "NetworkSnifferBeta.app" {
+		t.Errorf("bracketed wrapped app missing or wrong inner bundle: %+v", beta)
 	}
 
 	native := byID["com.example.native"]

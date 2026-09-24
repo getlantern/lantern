@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -21,6 +22,13 @@ import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
+/// Extra width taken from the cards, on the right, for the index bar.
+const _indexBarGutter = 12.0;
+
+/// Least height the index bar keeps when the "Installed Apps" header is
+/// pushed below the fold by a long bypass list.
+const _indexBarMinHeight = 120.0;
+
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
 class AppsSplitTunneling extends HookConsumerWidget {
@@ -31,8 +39,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
     // One key per index letter, kept across rebuilds so the alphabet bar can
     // scroll to the first installed app of that letter.
     final letterKeys = useMemoized(() => <String, GlobalKey>{});
-    // Letter whose first installed app is at or above the top of the list.
-    final currentLetter = useState<String?>(null);
     // The index bar hangs from the "Installed Apps" header: it follows the
     // header while that scrolls and pins to the top once the header is gone.
     final installedHeaderKey = useMemoized(GlobalKey.new);
@@ -67,54 +73,24 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final indexLetters = appsByLetter.keys.toList();
     final showIndexBar = indexLetters.length > 1;
 
-    /// Picks the letter at the top of the viewport from the positions of the
-    /// letter headers. Rows are all laid out (the inner lists are
-    /// shrink-wrapped), so every key that is present has a render box.
-    void updateCurrentLetter() {
+    void updateIndexBarTop() {
       final viewport = scrollViewKey.currentContext?.findRenderObject();
-      if (viewport is! RenderBox) return;
-
       final header = installedHeaderKey.currentContext?.findRenderObject();
-      if (header is RenderBox && header.attached) {
-        final top = header
-            .localToGlobal(Offset.zero, ancestor: viewport)
-            .dy
-            .clamp(0.0, viewport.size.height);
-        if (top != indexBarTop.value) {
-          indexBarTop.value = top;
-        }
+      if (viewport is! RenderBox || header is! RenderBox || !header.attached) {
+        return;
       }
-
-      String? best;
-      var bestDy = double.negativeInfinity;
-      String? first;
-      var firstDy = double.infinity;
-      for (final letter in indexLetters) {
-        final box = letterKeys[letter]?.currentContext?.findRenderObject();
-        if (box is! RenderBox || !box.attached) continue;
-        final dy = box.localToGlobal(Offset.zero, ancestor: viewport).dy;
-        // Small tolerance so the row that ensureVisible aligns flush with the
-        // top still counts as the current letter.
-        if (dy <= 8 && dy > bestDy) {
-          best = letter;
-          bestDy = dy;
-        }
-        if (dy < firstDy) {
-          first = letter;
-          firstDy = dy;
-        }
-      }
-      final next = best ?? first;
-      if (next != currentLetter.value) {
-        currentLetter.value = next;
+      final top = header
+          .localToGlobal(Offset.zero, ancestor: viewport)
+          .dy
+          .clamp(0.0, viewport.size.height - _indexBarMinHeight);
+      if (top != indexBarTop.value) {
+        indexBarTop.value = top;
       }
     }
 
     // Measure after layout so the bar is placed correctly before any scroll.
     useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => updateCurrentLetter(),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) => updateIndexBarTop());
       return null;
     });
 
@@ -135,18 +111,20 @@ class AppsSplitTunneling extends HookConsumerWidget {
         title: 'apps_split_tunneling'.i18n,
         hintText: 'search_apps'.i18n,
       ),
+      // The screen pads itself so the index bar can live in the right-hand
+      // gutter, inside the Stack, where it can be tapped.
+      padded: false,
       body: Stack(
-        // The index bar sits in the screen's side margin, over the edge of the
-        // padded body, so the cards keep their normal width and stay centered.
-        clipBehavior: Clip.none,
         children: [
           Padding(
-            // Left edge keeps the screen's 16px padding; the right edge makes
-            // room for the index bar, like the reference design.
-            padding: EdgeInsets.only(right: showIndexBar ? 12 : 0),
+            padding: defaultPadding.copyWith(
+              right: showIndexBar
+                  ? defaultPadding.right + _indexBarGutter
+                  : defaultPadding.right,
+            ),
             child: NotificationListener<ScrollNotification>(
               onNotification: (n) {
-                updateCurrentLetter();
+                updateIndexBarTop();
                 return false;
               },
               child: CustomScrollView(
@@ -282,13 +260,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
           if (showIndexBar)
             Positioned(
               top: indexBarTop.value + 10,
-              bottom: 0,
-              // Keep a small margin from the screen edge.
-              right: -defaultPadding.right + 6,
+              bottom: defaultPadding.bottom,
+              right: 6,
               child: AlphabetIndexBar(
                 letters: indexLetters,
-                // Before any scroll, the top of the list is the first letter.
-                currentLetter: currentLetter.value ?? indexLetters.firstOrNull,
                 onLetterSelected: scrollToLetter,
               ),
             ),
@@ -499,7 +474,10 @@ class AppRow extends ConsumerWidget {
           if (onToggle != null)
             AppIconButton(
               path: enabled ? AppImagePaths.minus : AppImagePaths.plus,
-              onPressed: onToggle!,
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                onToggle!();
+              },
             ),
         ],
       ),

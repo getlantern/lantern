@@ -521,6 +521,7 @@ class LanternPlatformService implements LanternCoreService {
         removed: removed,
         isEnabled: enabled.contains(key: key, name: name),
         isBrowser: raw["isBrowser"] == true,
+        wrappedBundle: (raw["wrappedBundle"] ?? "").toString(),
       );
     }).toList();
   }

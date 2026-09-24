@@ -173,6 +173,11 @@ void _indexTests() {
       '#',
     );
     expect(appIndexLetter(_app(name: '  ', bundleId: 'e', appPath: '/e')), '#');
+    // Uppercases to "SS"; must not leak a multi-character key.
+    expect(
+      appIndexLetter(_app(name: 'ßeta', bundleId: 'f', appPath: '/f')),
+      '#',
+    );
   });
 
   test('groupAppsByLetter keeps letter order with # first', () {

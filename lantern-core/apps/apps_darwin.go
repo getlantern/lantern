@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"howett.net/plist"
 )
@@ -43,11 +44,18 @@ func bundleInfoPlist(appPath string) (plistPath, wrappedBundle string) {
 	if _, err := os.Stat(native); err == nil {
 		return native, ""
 	}
-	matches, _ := filepath.Glob(filepath.Join(appPath, "Wrapper", "*.app", "Info.plist"))
-	if len(matches) == 0 {
-		return native, ""
+	// Not Glob: appPath may contain pattern characters such as "[".
+	entries, _ := os.ReadDir(filepath.Join(appPath, "Wrapper"))
+	for _, e := range entries {
+		if !e.IsDir() || !strings.HasSuffix(e.Name(), ".app") {
+			continue
+		}
+		plist := filepath.Join(appPath, "Wrapper", e.Name(), "Info.plist")
+		if _, err := os.Stat(plist); err == nil {
+			return plist, e.Name()
+		}
 	}
-	return matches[0], filepath.Base(filepath.Dir(matches[0]))
+	return native, ""
 }
 
 func wrappedBundleName(appPath string) string {
