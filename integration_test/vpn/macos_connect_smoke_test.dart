@@ -73,6 +73,7 @@ Future<void> _runLifecycleSmoke(WidgetTester tester) async {
   Future<Map<String, dynamic>> waitForResult(String id, String stage) async {
     final deadline = DateTime.now().add(const Duration(seconds: 60));
     while (DateTime.now().isBefore(deadline)) {
+      await confirmVpnConflictForSmoke(tester);
       if (await result.exists()) {
         final receipt =
             jsonDecode(await result.readAsString()) as Map<String, dynamic>;

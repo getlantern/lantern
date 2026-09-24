@@ -186,6 +186,7 @@ Future<void> runConnectSmokeHarness(
       expected: const [VPNStatus.connected],
       timeout: const Duration(seconds: 45),
       reason: 'VPN did not reach connected state within 45 seconds',
+      allowVpnConflict: true,
     );
 
     if (requireTrafficAfterConnect) {
