@@ -150,9 +150,9 @@ const otherAppsIndexLetter = '#';
 
 /// Letters shown by the alphabet index, in display order.
 const alphabetIndexLetters = [
+  otherAppsIndexLetter, //
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', //
   'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', //
-  otherAppsIndexLetter,
 ];
 
 /// Index letter for [app]: its uppercased first character when that is A-Z,
@@ -168,11 +168,15 @@ String appIndexLetter(AppData app) {
   return isAsciiLetter ? first : otherAppsIndexLetter;
 }
 
-/// Position of the first app for each index letter present in [sortedApps].
-Map<String, int> firstAppIndexByLetter(List<AppData> sortedApps) {
-  final result = <String, int>{};
-  for (var i = 0; i < sortedApps.length; i++) {
-    result.putIfAbsent(appIndexLetter(sortedApps[i]), () => i);
+/// [apps] grouped by index letter, keyed in [alphabetIndexLetters] order and
+/// containing only letters that have at least one app.
+Map<String, List<AppData>> groupAppsByLetter(Iterable<AppData> apps) {
+  final byLetter = <String, List<AppData>>{};
+  for (final app in apps) {
+    byLetter.putIfAbsent(appIndexLetter(app), () => []).add(app);
   }
-  return result;
+  return {
+    for (final letter in alphabetIndexLetters)
+      if (byLetter.containsKey(letter)) letter: byLetter[letter]!,
+  };
 }

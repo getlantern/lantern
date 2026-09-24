@@ -175,16 +175,20 @@ void _indexTests() {
     expect(appIndexLetter(_app(name: '  ', bundleId: 'e', appPath: '/e')), '#');
   });
 
-  test('firstAppIndexByLetter records the first row of each letter', () {
+  test('groupAppsByLetter keeps letter order with # first', () {
     final apps = dedupeAndSortApps([
-      _app(name: '1Password', bundleId: 'com.1p', appPath: '/1p'),
       _app(name: 'Brave', bundleId: 'com.brave', appPath: '/brave'),
+      _app(name: '~tilde', bundleId: 'com.tilde', appPath: '/tilde'),
       _app(name: 'calendar', bundleId: 'com.cal', appPath: '/cal'),
       _app(name: 'Chrome', bundleId: 'com.chrome', appPath: '/chrome'),
+      _app(name: '1Password', bundleId: 'com.1p', appPath: '/1p'),
     ]);
 
-    expect(firstAppIndexByLetter(apps), {'#': 0, 'B': 1, 'C': 2});
-    expect(firstAppIndexByLetter(const []), isEmpty);
+    final groups = groupAppsByLetter(apps);
+    expect(groups.keys.toList(), ['#', 'B', 'C']);
+    expect(groups['#']!.map((a) => a.name), ['1Password', '~tilde']);
+    expect(groups['C']!.map((a) => a.name), ['calendar', 'Chrome']);
+    expect(groupAppsByLetter(const []), isEmpty);
   });
 }
 

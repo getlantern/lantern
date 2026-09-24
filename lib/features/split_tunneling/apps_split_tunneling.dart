@@ -33,6 +33,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final letterKeys = useMemoized(() => <String, GlobalKey>{});
     // Letter whose first installed app is at or above the top of the list.
     final currentLetter = useState<String?>(null);
+    // The index bar hangs from the "Installed Apps" header: it follows the
+    // header while that scrolls and pins to the top once the header is gone.
+    final installedHeaderKey = useMemoized(GlobalKey.new);
+    final scrollViewKey = useMemoized(GlobalKey.new);
+    final indexBarTop = useState(0.0);
     final searchQuery = ref.watch(searchQueryProvider);
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
 
@@ -58,21 +63,33 @@ class AppsSplitTunneling extends HookConsumerWidget {
         .where((a) => !enabledIds.contains(normalizedAppId(a)))
         .where(matchesSearch)
         .toList();
-    final firstIndexByLetter = firstAppIndexByLetter(filteredDisabled);
-    final showIndexBar = firstIndexByLetter.length > 1;
+    final appsByLetter = groupAppsByLetter(filteredDisabled);
+    final indexLetters = appsByLetter.keys.toList();
+    final showIndexBar = indexLetters.length > 1;
 
     /// Picks the letter at the top of the viewport from the positions of the
-    /// first row of each letter. Rows are all laid out (the inner lists are
+    /// letter headers. Rows are all laid out (the inner lists are
     /// shrink-wrapped), so every key that is present has a render box.
-    void updateCurrentLetter(BuildContext scrollContext) {
-      final viewport = scrollContext.findRenderObject();
+    void updateCurrentLetter() {
+      final viewport = scrollViewKey.currentContext?.findRenderObject();
       if (viewport is! RenderBox) return;
+
+      final header = installedHeaderKey.currentContext?.findRenderObject();
+      if (header is RenderBox && header.attached) {
+        final top = header
+            .localToGlobal(Offset.zero, ancestor: viewport)
+            .dy
+            .clamp(0.0, viewport.size.height);
+        if (top != indexBarTop.value) {
+          indexBarTop.value = top;
+        }
+      }
 
       String? best;
       var bestDy = double.negativeInfinity;
       String? first;
       var firstDy = double.infinity;
-      for (final letter in firstIndexByLetter.keys) {
+      for (final letter in indexLetters) {
         final box = letterKeys[letter]?.currentContext?.findRenderObject();
         if (box is! RenderBox || !box.attached) continue;
         final dy = box.localToGlobal(Offset.zero, ancestor: viewport).dy;
@@ -93,13 +110,21 @@ class AppsSplitTunneling extends HookConsumerWidget {
       }
     }
 
+    // Measure after layout so the bar is placed correctly before any scroll.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => updateCurrentLetter(),
+      );
+      return null;
+    });
+
     Future<void> scrollToLetter(String letter) async {
       final target = letterKeys[letter]?.currentContext;
       if (target == null) return;
       await Scrollable.ensureVisible(
         target,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOutCubic,
       );
     }
 
@@ -111,17 +136,21 @@ class AppsSplitTunneling extends HookConsumerWidget {
         hintText: 'search_apps'.i18n,
       ),
       body: Stack(
+        // The index bar sits in the screen's side margin, over the edge of the
+        // padded body, so the cards keep their normal width and stay centered.
+        clipBehavior: Clip.none,
         children: [
           Padding(
-            padding: EdgeInsets.only(
-              right: showIndexBar ? AlphabetIndexBar.width : 0,
-            ),
+            // Left edge keeps the screen's 16px padding; the right edge makes
+            // room for the index bar, like the reference design.
+            padding: EdgeInsets.only(right: showIndexBar ? 12 : 0),
             child: NotificationListener<ScrollNotification>(
               onNotification: (n) {
-                updateCurrentLetter(n.context ?? context);
+                updateCurrentLetter();
                 return false;
               },
               child: CustomScrollView(
+                key: scrollViewKey,
                 slivers: [
                   SliverToBoxAdapter(
                     child: Row(
@@ -179,79 +208,87 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     ),
                   SliverToBoxAdapter(child: SizedBox(height: 20)),
                   SliverToBoxAdapter(
-                    child: SectionLabel('installed_apps'.i18n),
-                  ),
-                  SliverToBoxAdapter(
-                    child: allApps.isEmpty
-                        ? AppCard(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 48,
+                    child: Row(
+                      key: installedHeaderKey,
+                      children: [
+                        SectionLabel('installed_apps'.i18n),
+                        const Spacer(),
+                        if (filteredDisabled.isNotEmpty)
+                          AppTextButton(
+                            label: 'select_all'.i18n,
+                            fontSize: 14,
+                            onPressed: () => onTapSelectAll(
+                              context,
+                              notifier,
+                              filteredDisabled,
                             ),
-                            child: Center(child: LoadingIndicator()),
-                          )
-                        : AppCard(
-                            child: filteredDisabled.isEmpty
-                                ? AppTile(
-                                    minHeight: 40,
-                                    label: 'no_apps_selected'.i18n,
-                                  )
-                                : ListView.separated(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    itemCount: filteredDisabled.length + 1,
-                                    separatorBuilder: (_, separatorIndex) =>
-                                        DividerSpace(padding: EdgeInsets.zero),
-                                    itemBuilder: (ctx, i) {
-                                      if (i == 0) {
-                                        return AppTile(
-                                          minHeight: 40,
-                                          contentPadding: EdgeInsets.zero,
-                                          label: '',
-                                          trailing: AppTextButton(
-                                            label: 'select_all'.i18n,
-                                            fontSize: 14,
-                                            onPressed: () => onTapSelectAll(
-                                              ctx,
-                                              notifier,
-                                              filteredDisabled,
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                      final app = filteredDisabled[i - 1];
-                                      final letter = appIndexLetter(app);
-                                      final isFirstOfLetter =
-                                          firstIndexByLetter[letter] == i - 1;
-                                      return AppRow(
-                                        key: isFirstOfLetter
-                                            ? letterKeys.putIfAbsent(
-                                                letter,
-                                                GlobalKey.new,
-                                              )
-                                            : null,
-                                        app: app,
-                                        enabled: false,
-                                        onToggle: () =>
-                                            onTapAddApp(ctx, notifier, app),
-                                      );
-                                    },
-                                  ),
                           ),
+                      ],
+                    ),
                   ),
+                  if (allApps.isEmpty)
+                    SliverToBoxAdapter(
+                      child: AppCard(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 48,
+                        ),
+                        child: Center(child: LoadingIndicator()),
+                      ),
+                    )
+                  else if (filteredDisabled.isEmpty)
+                    SliverToBoxAdapter(
+                      child: AppCard(
+                        child: AppTile(
+                          minHeight: 40,
+                          label: 'no_apps_selected'.i18n,
+                        ),
+                      ),
+                    )
+                  else
+                    for (final entry in appsByLetter.entries) ...[
+                      SliverToBoxAdapter(
+                        child: SectionLabel(
+                          entry.key,
+                          key: letterKeys.putIfAbsent(entry.key, GlobalKey.new),
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: AppCard(
+                          child: ListView.separated(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: entry.value.length,
+                            separatorBuilder: (_, separatorIndex) =>
+                                DividerSpace(padding: EdgeInsets.zero),
+                            itemBuilder: (ctx, i) {
+                              final app = entry.value[i];
+                              return AppRow(
+                                app: app,
+                                enabled: false,
+                                onToggle: () => onTapAddApp(ctx, notifier, app),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      SliverToBoxAdapter(child: SizedBox(height: 12)),
+                    ],
                 ],
               ),
             ),
           ),
           if (showIndexBar)
-            Positioned.fill(
-              left: null,
+            Positioned(
+              top: indexBarTop.value + 10,
+              bottom: 0,
+              // Keep a small margin from the screen edge.
+              right: -defaultPadding.right + 6,
               child: AlphabetIndexBar(
-                availableLetters: firstIndexByLetter.keys.toSet(),
+                letters: indexLetters,
                 // Before any scroll, the top of the list is the first letter.
-                currentLetter:
-                    currentLetter.value ?? firstIndexByLetter.keys.firstOrNull,
+                currentLetter: currentLetter.value ?? indexLetters.firstOrNull,
                 onLetterSelected: scrollToLetter,
               ),
             ),
