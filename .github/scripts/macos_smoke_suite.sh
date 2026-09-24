@@ -180,9 +180,10 @@ reset_lantern_logs() {
 capture_unified_logs() {
   log_step "Capturing unified logs"
   log show \
-    --last 30m \
+    --last 10m \
+    --info --debug \
     --style syslog \
-    --predicate 'subsystem == "org.getlantern.lantern" OR subsystem == "org.getlantern.lantern.PacketTunnel"' \
+    --predicate 'subsystem == "org.getlantern.lantern" OR subsystem == "org.getlantern.lantern.PacketTunnel" OR process == "neagent" OR process == "nehelper"' \
     >"$ARTIFACT_DIR/unified-lantern.log" 2>&1 || true
 }
 
@@ -201,7 +202,9 @@ capture_diagnostics() {
     date
   } >"$ARTIFACT_DIR/diagnostics.txt"
 
+  capture_screenshot
   capture_command "systemextensionsctl-list" systemextensionsctl list
+  capture_command "vpn-profiles" scutil --nc list
   capture_command "process-list" ps aux
   capture_command "packet-tunnel-processes" pgrep -fl "org.getlantern.lantern.PacketTunnel"
   capture_command "interfaces" ifconfig
@@ -211,7 +214,6 @@ capture_diagnostics() {
   fi
   capture_lantern_logs
   capture_unified_logs
-  capture_screenshot
 }
 
 quit_lantern() {
@@ -310,6 +312,7 @@ run_flutter_connect_smoke() {
     "drive"
     "--profile"
     "--use-application-binary=$app_path"
+    "--keep-app-running"
     "--driver=test_driver/integration_test.dart"
     "--target=$TEST_PATH"
     "-d"
@@ -324,10 +327,11 @@ run_flutter_connect_smoke() {
 on_exit() {
   local status=$?
 
-  quit_lantern
   if [[ "$status" -ne 0 ]]; then
+    # Preserve native permission prompts in the failure screenshot.
     capture_diagnostics "failure"
   fi
+  quit_lantern
   if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
     rm -f /Users/Shared/Lantern/E2E/vpn-smoke-request.json \
       /Users/Shared/Lantern/E2E/vpn-smoke-request.json.tmp \
