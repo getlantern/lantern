@@ -5,23 +5,54 @@ name: Swift Compile Check
 
 on:
   workflow_dispatch:
+  # The planner compares build inputs for each platform. Keep the trigger
+  # unfiltered so every PR gets an explicit skipped or completed native check.
   pull_request:
-    paths:
-      - "**/*.swift"
-      - "macos/**"
-      - "ios/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - "Makefile"
-      - ".github/flutter-version.yaml"
-      - ".github/workflows/swift-compile-check.yml"
 
 concurrency:
   group: swift-compile-check-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  plan:
+    name: Plan Swift checks
+    permissions:
+      contents: "read"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      ios_needed: ${{ steps.plan.outputs.ios_needed }}
+      macos_needed: ${{ steps.plan.outputs.macos_needed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Fetch PR base tree
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+
+      # The planner gates the only checks that catch a Swift break, so its own
+      # tests run before it is trusted to skip anything.
+      - name: Test native input selection
+        run: python3 -m unittest discover -s .github/scripts -p 'test_swift_ci.py'
+
+      - name: Compare native inputs against the PR base
+        id: plan
+        run: python3 .github/scripts/swift_ci.py plan
+
   macos-compile-check:
+    needs: plan
+    # Fail closed. A plain `if` on a needs-output does not run when the
+    # dependency fails, so a broken planner -- an unreachable base.sha after a
+    # force-push, a red planner test, an uncaught exception -- would report this
+    # check as skipped, which reads green. Skipping because inputs are unchanged
+    # is the optimization; skipping because the planner broke is how a Swift
+    # break reaches main (engineering#3850). !cancelled() rather than always(),
+    # so cancelling a run still cancels these 30-minute jobs.
+    if: ${{ !cancelled() && (needs.plan.result != 'success' || needs.plan.outputs.macos_needed == 'true') }}
     name: macOS (Runner + PacketTunnel + RunnerTests)
     permissions:
       contents: "read"
@@ -34,28 +65,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: "go.mod"
-          cache: true
+          cache-scope: macos-check
+          gomobile-cache: "true"
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
+        uses: ./.github/actions/setup-flutter
 
       - name: Cache macOS CocoaPods
         uses: actions/cache@v4
@@ -74,22 +90,6 @@ jobs:
 
       - name: Enable Flutter Desktop Support
         run: flutter config --enable-macos-desktop
-
-      - name: Set gomobile cache dir
-        shell: bash
-        run: |
-          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
-          mkdir -p "$HOME/.cache/gomobile"
-
-      - name: Cache gomobile
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: ~/.cache/gomobile
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
 
       - name: Cache macOS Liblantern.xcframework
         id: macos-framework-cache
@@ -129,6 +129,9 @@ jobs:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
   ios-compile-check:
+    needs: plan
+    # Fail closed -- see the macOS gate above.
+    if: ${{ !cancelled() && (needs.plan.result != 'success' || needs.plan.outputs.ios_needed == 'true') }}
     name: iOS (Runner + Tunnel, simulator)
     permissions:
       contents: "read"
@@ -141,28 +144,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: ./.github/actions/setup-go
         with:
-          go-version-file: "go.mod"
-          cache: true
+          cache-scope: ios-check
+          gomobile-cache: "true"
 
       - name: Install Flutter
-        uses: subosito/flutter-action@v2.23.0
-        with:
-          channel: stable
-          flutter-version-file: .github/flutter-version.yaml
-          cache: true
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        timeout-minutes: 5
-        continue-on-error: true
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
+        uses: ./.github/actions/setup-flutter
 
       - name: Cache iOS CocoaPods
         uses: actions/cache@v4
@@ -174,22 +162,6 @@ jobs:
           key: ${{ runner.os }}-ios-pods-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-ios-pods-
-
-      - name: Set gomobile cache dir
-        shell: bash
-        run: |
-          echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
-          mkdir -p "$HOME/.cache/gomobile"
-
-      - name: Cache gomobile
-        uses: actions/cache@v4
-        timeout-minutes: 10
-        continue-on-error: true
-        with:
-          path: ~/.cache/gomobile
-          key: ${{ runner.os }}-gomobile-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomobile-
 
       - name: Cache iOS Liblantern.xcframework
         id: ios-framework-cache

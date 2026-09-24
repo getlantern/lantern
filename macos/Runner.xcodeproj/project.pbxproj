@@ -21,6 +21,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		A38250062FAD000100000001 /* AppInstallation.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A38250072FAD000100000001 /* AppInstallation.xcstrings */; };
+		A38250012FAD000100000001 /* AppInstallation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38250022FAD000100000001 /* AppInstallation.swift */; };
+		A38250032FAD000100000001 /* AppInstallationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38250042FAD000100000001 /* AppInstallationTests.swift */; };
 		030897EB2F9F8A27001CBEBF /* FlutterEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030897E82F9F8A27001CBEBF /* FlutterEventListener.swift */; };
 		030897EC2F9F8A27001CBEBF /* PrivateServerListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030897EA2F9F8A27001CBEBF /* PrivateServerListener.swift */; };
 		03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C30602DEF68B300691115 /* Logger.swift */; };
@@ -138,6 +141,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A38250072FAD000100000001 /* AppInstallation.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = AppInstallation.xcstrings; sourceTree = "<group>"; };
+		A38250022FAD000100000001 /* AppInstallation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInstallation.swift; sourceTree = "<group>"; };
+		A38250042FAD000100000001 /* AppInstallationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInstallationTests.swift; sourceTree = "<group>"; };
 		030897E82F9F8A27001CBEBF /* FlutterEventListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventListener.swift; sourceTree = "<group>"; };
 		030897E92F9F8A27001CBEBF /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
 		030897EA2F9F8A27001CBEBF /* PrivateServerListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerListener.swift; sourceTree = "<group>"; };
@@ -287,6 +293,7 @@
 			isa = PBXGroup;
 			children = (
 				331C80D7294CF71000263BE5 /* RunnerTests.swift */,
+				A38250042FAD000100000001 /* AppInstallationTests.swift */,
 			);
 			path = RunnerTests;
 			sourceTree = "<group>";
@@ -354,6 +361,8 @@
 				293C305D2DEF67EB00691115 /* VPN */,
 				293C30572DEF649500691115 /* Handlers */,
 				5FAE10032F1C000100000001 /* main.swift */,
+				A38250022FAD000100000001 /* AppInstallation.swift */,
+				A38250072FAD000100000001 /* AppInstallation.xcstrings */,
 				33CC10F02044A3C60003C045 /* AppDelegate.swift */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
 				33E51914231749380026EE4D /* Release.entitlements */,
@@ -507,8 +516,27 @@
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				ar,
+				bn,
+				en,
+				es,
+				es-CU,
+				fa,
+				fr,
+				hi,
+				ms,
+				my,
+				ps,
+				pt-BR,
+				ru,
+				th,
+				tk,
+				tr,
+				ur-IN,
+				vi,
+				zh-Hans,
+				zh-Hant,
 			);
 			mainGroup = 33CC10E42044A3C60003C045;
 			packageReferences = (
@@ -546,6 +574,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
+				A38250062FAD000100000001 /* AppInstallation.xcstrings in Resources */,
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -674,6 +703,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */,
+				A38250032FAD000100000001 /* AppInstallationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -687,6 +717,7 @@
 				5F53D03A2E44112E00740586 /* SystemExtensionManager.swift in Sources */,
 				5FAE10022F1C000100000001 /* SystemExtensionSmokeCommand.swift in Sources */,
 				5FAE10042F1C000100000001 /* main.swift in Sources */,
+				A38250012FAD000100000001 /* AppInstallation.swift in Sources */,
 				33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */,
 				293C305E2DEF67EB00691115 /* VPNManager.swift in Sources */,
 				293C305F2DEF67EB00691115 /* VPNBase.swift in Sources */,
@@ -782,7 +813,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -835,7 +866,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "-lc++";
@@ -885,7 +916,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "-lc++";
@@ -907,7 +938,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -923,7 +954,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -939,7 +970,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.getlantern.lantern.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -989,7 +1020,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -1021,7 +1052,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;
@@ -1085,7 +1116,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -1135,7 +1166,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -1168,7 +1199,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;
@@ -1202,7 +1233,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Macos Development Profile";
 				REGISTER_APP_GROUPS = YES;

@@ -380,7 +380,8 @@ android {
         // (locally and on Firebase Test Lab); see MainActivityTest.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionCode = code
-        versionName = flutter.versionName
+        // Direct Gradle test builds do not refresh Flutter's local.properties.
+        versionName = project.findProperty("lantern.versionName") ?: flutter.versionName
         buildConfigField "String", "SIDELOAD_SIGNING_CERTIFICATE_SHA256", "\"${sideloadSigningCertificateSha256}\""
         manifestPlaceholders = [
                 appName: androidIdentity.appLabel,
@@ -537,6 +538,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
     implementation 'androidx.work:work-runtime-ktx:2.10.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+
+    testImplementation 'junit:junit:4.13.2'
 
     // Instrumentation harness for Flutter integration tests (Firebase Test Lab).
     // 1.2.0 matches what the integration_test Flutter plugin pins on the app
