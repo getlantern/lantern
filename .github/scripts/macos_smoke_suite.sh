@@ -151,6 +151,24 @@ resolve_app_path() {
   return 1
 }
 
+register_installed_app() {
+  local app_path="$1"
+  local registry="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+  local mode bundle
+
+  # Build and XCTest copies share Lantern's bundle ID. macOS VPN approval must
+  # resolve the installed fixture, even after those temporary copies are deleted.
+  for mode in Debug Profile Release; do
+    "$registry" -u "$PWD/build/macos/Build/Products/$mode/Lantern.app" 2>/dev/null || true
+  done
+  for bundle in "$HOME"/Library/Developer/Xcode/DerivedData/Runner-*/Build/Products/*/Lantern.app; do
+    [[ -d "$bundle" ]] || continue
+    "$registry" -u "$bundle" 2>/dev/null || true
+  done
+  log_step "Registering installed Lantern app at $app_path"
+  "$registry" -f "$app_path"
+}
+
 capture_command() {
   local name="$1"
   shift
@@ -360,6 +378,7 @@ if [[ ! -x "$app_executable" ]]; then
 fi
 
 if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
+  register_installed_app "$app_path"
   run_system_extension_preflight "$app_executable"
   run_flutter_connect_smoke "$app_path"
 else
