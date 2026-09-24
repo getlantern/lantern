@@ -75,7 +75,8 @@ Future<String?> _fetchPublicIpOnce() async {
 
     final body = await response
         .transform(const SystemEncoding().decoder)
-        .join();
+        .join()
+        .timeout(const Duration(seconds: 6));
     final ip = body.trim();
     if (ip.isNotEmpty && InternetAddress.tryParse(ip) != null) {
       return ip;
@@ -88,7 +89,7 @@ Future<String?> _fetchPublicIpOnce() async {
   return null;
 }
 
-Future<String> _fetchPublicIpWithRetry({
+Future<String> fetchPublicIpForSmoke({
   required Duration timeout,
   required String reason,
 }) async {
@@ -104,6 +105,15 @@ Future<String> _fetchPublicIpWithRetry({
   fail('Failed to fetch public IP: $reason');
 }
 
+Future<void> expectPublicIpRestored(String baselineIp) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 60));
+  while (DateTime.now().isBefore(deadline)) {
+    if (await _fetchPublicIpOnce() == baselineIp) return;
+    await Future<void>.delayed(const Duration(seconds: 2));
+  }
+  fail('Public IP did not return to its pre-connect value');
+}
+
 Future<bool> _didPublicIpChangeFromBaseline(String baselineIp) async {
   final deadline = DateTime.now().add(const Duration(seconds: 60));
   while (DateTime.now().isBefore(deadline)) {
@@ -117,7 +127,7 @@ Future<bool> _didPublicIpChangeFromBaseline(String baselineIp) async {
   return false;
 }
 
-Future<void> _disconnectVpn(
+Future<void> disconnectVpnForSmoke(
   WidgetTester tester, {
   required Finder vpnToggle,
   required VpnStateFinders vpnStateFinders,
@@ -143,6 +153,8 @@ Future<void> runConnectSmokeHarness(
   WidgetTester tester, {
   bool enableIpCheck = false,
   bool requireTrafficAfterConnect = false,
+  bool requireIpRestored = false,
+  Future<void> Function()? afterConnect,
 }) async {
   final finders = VpnSmokeFinders();
   final vpnStateFinders = VpnStateFinders(textLabels: _vpnStateLabels);
@@ -156,9 +168,9 @@ Future<void> runConnectSmokeHarness(
   );
   await _setRoutingModeToFullTunnelForSmoke(tester, finders: finders);
 
-  if (enableIpCheck) {
+  if (enableIpCheck || requireIpRestored) {
     debugPrint('IP check: enabled; fetching baseline before connect');
-    baselinePublicIp = await _fetchPublicIpWithRetry(
+    baselinePublicIp = await fetchPublicIpForSmoke(
       timeout: const Duration(seconds: 40),
       reason: 'before connect',
     );
@@ -178,7 +190,7 @@ Future<void> runConnectSmokeHarness(
 
     if (requireTrafficAfterConnect) {
       debugPrint('IP check: confirming public traffic after connect');
-      await _fetchPublicIpWithRetry(
+      await fetchPublicIpForSmoke(
         timeout: const Duration(seconds: 45),
         reason: 'after connect',
       );
@@ -192,12 +204,17 @@ Future<void> runConnectSmokeHarness(
         debugPrint('IP check: passed');
       }
     }
+    await afterConnect?.call();
   } finally {
-    await _disconnectVpn(
+    await disconnectVpnForSmoke(
       tester,
       vpnToggle: finders.vpnToggle,
       vpnStateFinders: vpnStateFinders,
     );
+  }
+
+  if (requireIpRestored && baselinePublicIp != null) {
+    await expectPublicIpRestored(baselinePublicIp);
   }
 
   if (enableIpCheck && baselinePublicIp != null && !ipChanged) {

@@ -59,7 +59,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     // previous start that failed after applying network settings.
     if claimTunnel() {
       appLogger.info("(lantern-tunnel) start arrived with a live tunnel; stopping it first")
-      stopService()
+      try stopService()
     }
 
     // Start the IPC server before any VPN operations
@@ -168,12 +168,15 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     platformInterface.reset()
   }
 
-  private func stopService() {
+  private func stopService() throws {
     appLogger.info("ExtensionProvider stopService")
     var error: NSError?
     MobileStopVPN(&error)
-    if error != nil {
-      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+    if let error {
+      // A timed-out stop may still be closing the old tunnel. Do not start over it.
+      appLogger.error("error while stopping tunnel \(error.localizedDescription)")
+      cancelTunnelWithError(error)
+      throw error
     }
     // Deliberately does not release the claim. This is a teardown primitive:
     // startTunnel calls it to replace a tunnel it still owns, and restartService
@@ -190,7 +193,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     defer {
       reasserting = false
     }
-    stopService()
+    try stopService()
 
     var error: NSError?
     MobileStartVPN(&error)

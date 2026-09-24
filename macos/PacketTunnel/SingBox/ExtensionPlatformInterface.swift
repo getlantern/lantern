@@ -257,8 +257,23 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     appLogger.info("Setting tunnel network settings to \(settings)...")
     try applyNetworkSettings(settings)
 
+    #if VPN_SMOKE_TEST
+      let smokeRequest = try VPNSmokeRequest.load()
+      if smokeRequest?.action == .failAfterSettings {
+        try smokeRequest?.record(stage: "failed-after-settings")
+        throw NSError(
+          domain: "VPNSmokeTest", code: 1,
+          userInfo: [NSLocalizedDescriptionKey: "Injected failure after applying tunnel settings"])
+      }
+      let forceFallback = smokeRequest?.action == .fallback
+    #else
+      let forceFallback = false
+    #endif
+
     appLogger.info("Accessing the socket file descriptor...")
-    if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
+    if !forceFallback,
+      let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32
+    {
       ret0_.pointee = tunFd
       appLogger.info("Returning tunnel file descriptor \(tunFd)")
       return
@@ -269,6 +284,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     let candidate = try TunnelFileDescriptor.resolve(addresses: addresses)
     appLogger.info(
       "Returning tunnel file descriptor \(candidate.descriptor) (\(candidate.interfaceName))")
+    #if VPN_SMOKE_TEST
+      try smokeRequest?.record(stage: "fallback", candidate: candidate)
+    #endif
     ret0_.pointee = candidate.descriptor
   }
 
@@ -478,6 +496,8 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   func reset() {
     networkSettings = nil
+    nwMonitor?.cancel()
+    nwMonitor = nil
   }
 
   public func restartService() throws {
@@ -527,3 +547,35 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
 }
+#if VPN_SMOKE_TEST
+  // Only the dedicated CI fixture reads these files; normal builds omit this code.
+  private struct VPNSmokeRequest: Decodable {
+    enum Action: String, Decodable {
+      case fallback
+      case failAfterSettings
+    }
+
+    let id: String
+    let action: Action
+    private static let directory = FilePath.dataDirectory.appendingPathComponent("E2E")
+
+    static func load() throws -> Self? {
+      let url = directory.appendingPathComponent("vpn-smoke-request.json")
+      guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+      return try JSONDecoder().decode(Self.self, from: Data(contentsOf: url))
+    }
+
+    func record(stage: String, candidate: TunnelFileDescriptor.Candidate? = nil) throws {
+      var result: [String: Any] = [
+        "id": id, "stage": stage, "pid": ProcessInfo.processInfo.processIdentifier,
+      ]
+      if let candidate {
+        result["interface"] = candidate.interfaceName
+        result["addresses"] = candidate.addresses
+      }
+      try JSONSerialization.data(withJSONObject: result).write(
+        to: Self.directory.appendingPathComponent("vpn-smoke-result.json"), options: .atomic)
+      appLogger.info("VPN smoke: \(id) \(stage)")
+    }
+  }
+#endif

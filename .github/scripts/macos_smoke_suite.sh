@@ -6,6 +6,7 @@ ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos}"
 RUN_CONNECT_SMOKE="${RUN_CONNECT_SMOKE:-true}"
 ENABLE_IP_CHECK="${ENABLE_IP_CHECK:-false}"
 FORCE_FULL_TUNNEL="${FORCE_FULL_TUNNEL:-true}"
+VPN_LIFECYCLE_SMOKE="${VPN_LIFECYCLE_SMOKE:-false}"
 EXTENSION_TIMEOUT_SECONDS="${EXTENSION_TIMEOUT_SECONDS:-120}"
 APP_INSTALL_DIR="${APP_INSTALL_DIR:-/Applications/Lantern.app}"
 LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-/Users/Shared/Lantern/Logs}"
@@ -205,6 +206,11 @@ capture_diagnostics() {
   capture_command "systemextensionsctl-list" systemextensionsctl list
   capture_command "process-list" ps aux
   capture_command "packet-tunnel-processes" pgrep -fl "org.getlantern.lantern.PacketTunnel"
+  capture_command "interfaces" ifconfig
+  capture_command "routes" netstat -rn
+  if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
+    cp /Users/Shared/Lantern/E2E/vpn-smoke-*.json "$ARTIFACT_DIR/" 2>/dev/null || true
+  fi
   capture_lantern_logs
   capture_unified_logs
   capture_screenshot
@@ -317,6 +323,9 @@ run_flutter_connect_smoke() {
   if [[ "$FORCE_FULL_TUNNEL" == "true" ]]; then
     args+=("--dart-define=SMOKE_FORCE_FULL_TUNNEL=true")
   fi
+  if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
+    args+=("--dart-define=VPN_LIFECYCLE_SMOKE=true")
+  fi
 
   log_step "Running macOS connect smoke: flutter ${args[*]}"
   flutter "${args[@]}"
@@ -329,6 +338,11 @@ on_exit() {
   if [[ "$status" -ne 0 ]]; then
     capture_diagnostics "failure"
   fi
+  if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
+    rm -f /Users/Shared/Lantern/E2E/vpn-smoke-request.json \
+      /Users/Shared/Lantern/E2E/vpn-smoke-request.json.tmp \
+      /Users/Shared/Lantern/E2E/vpn-smoke-result.json
+  fi
   detach_dmg
 
   exit "$status"
@@ -339,6 +353,10 @@ trap on_exit EXIT
 mkdir -p "$ARTIFACT_DIR"
 reset_lantern_logs
 capture_command "systemextensionsctl-list-initial" systemextensionsctl list
+if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
+  rm -f /Users/Shared/Lantern/E2E/vpn-smoke-request.json \
+    /Users/Shared/Lantern/E2E/vpn-smoke-result.json
+fi
 
 app_path="$(resolve_app_path)"
 app_executable="$app_path/Contents/MacOS/Lantern"

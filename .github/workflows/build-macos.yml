@@ -83,6 +83,11 @@ on:
         required: false
         type: boolean
         default: false
+      vpn_lifecycle_smoke:
+        description: "Build a test-only extension for reconnect and failed-start smoke tests"
+        required: false
+        type: boolean
+        default: false
       run_auth_smoke:
         description: "Run macOS auth smoke integration tests"
         required: false
@@ -167,6 +172,24 @@ jobs:
               exit 1
             }
           fi
+
+      - name: Enable VPN lifecycle test fixture
+        if: ${{ inputs.vpn_lifecycle_smoke }}
+        shell: bash
+        env:
+          RUNNER_LABEL: ${{ inputs.runner_label }}
+          RUN_CONNECT_SMOKE: ${{ inputs.run_connect_smoke }}
+          SECRETLESS_TEST_BUILD: ${{ inputs.secretless_test_build }}
+        run: |
+          set -euo pipefail
+          [[ "$RUNNER_LABEL" == "lantern-macos-smoke" && "$RUN_CONNECT_SMOKE" == "true" &&
+             "$BUILD_TYPE" == "nightly" && "$SECRETLESS_TEST_BUILD" == "false" ]] || {
+            echo "VPN fault injection is restricted to the signed macOS smoke fixture." >&2
+            exit 1
+          }
+          printf '%s\n' 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) VPN_SMOKE_TEST' \
+            > "$RUNNER_TEMP/vpn-smoke.xcconfig"
+          echo "XCODE_XCCONFIG_FILE=$RUNNER_TEMP/vpn-smoke.xcconfig" >> "$GITHUB_ENV"
 
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
@@ -404,14 +427,14 @@ jobs:
       - name: Upload macOS app
         uses: actions/upload-artifact@v4
         with:
-          name: lantern-macos-app
+          name: ${{ inputs.vpn_lifecycle_smoke && 'lantern-macos-vpn-smoke-app' || 'lantern-macos-app' }}
           path: ${{ runner.temp }}/Lantern.app.zip
           retention-days: 2
 
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4
         with:
-          name: lantern-installer-dmg
+          name: ${{ inputs.vpn_lifecycle_smoke && 'lantern-macos-vpn-smoke-dmg' || 'lantern-installer-dmg' }}
           path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg
           retention-days: 2
 
@@ -434,6 +457,7 @@ jobs:
           FORCE_FULL_TUNNEL: ${{ inputs.force_full_tunnel_smoke }}
           EXTENSION_TIMEOUT_SECONDS: ${{ inputs.extension_timeout_seconds }}
           RUN_CONNECT_SMOKE: true
+          VPN_LIFECYCLE_SMOKE: ${{ inputs.vpn_lifecycle_smoke }}
         run: ./.github/scripts/macos_smoke_suite.sh
 
       - name: Upload macOS smoke diagnostics
