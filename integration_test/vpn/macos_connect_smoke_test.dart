@@ -45,7 +45,7 @@ void main() {
         );
       }
     },
-    timeout: const Timeout(Duration(minutes: 15)),
+    timeout: const Timeout(Duration(minutes: _lifecycleSmoke ? 45 : 15)),
   );
 }
 

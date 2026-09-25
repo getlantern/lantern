@@ -453,7 +453,7 @@ jobs:
 
       - name: Run macOS connect smoke
         if: ${{ inputs.run_connect_smoke }}
-        timeout-minutes: 30
+        timeout-minutes: ${{ inputs.vpn_lifecycle_smoke && 60 || 30 }}
         shell: bash
         env:
           ARTIFACT_DIR: ${{ runner.temp }}/macos-smoke-artifacts
