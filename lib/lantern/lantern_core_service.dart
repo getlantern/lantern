@@ -47,6 +47,15 @@ abstract class LanternCoreService {
   ///App Methods
   Future<Either<Failure, Unit>> updateLocal(String locale);
 
+  /// Pushes the resolved server location to the native home-screen widget.
+  /// No-op on platforms without a widget.
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+  });
+
   Stream<AppEvent> watchAppEvents();
 
   /// Returns Radiance's pending message, even if Flutter missed its event.
