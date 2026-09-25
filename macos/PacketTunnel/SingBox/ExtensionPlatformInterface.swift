@@ -262,18 +262,97 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       return
     }
 
-    // This fallback carries every tunnel on macOS 12, where the KVC path above
-    // never resolves. It scans the process for the lowest-numbered utun, so it is
-    // only correct while exactly one is open — which is what the teardown guard in
-    // ExtensionProvider.startTunnel exists to ensure. Logged so a recurrence can be
-    // told apart from a stale-fd selection in a user's logs.
+    // The KVC path above never resolves on macOS 12 or macOS 26, so this fallback
+    // carries every tunnel there. LibboxGetTunnelFileDescriptor scans the process for
+    // the lowest-numbered utun with no notion of which tunnel it belongs to, and a
+    // start that fails after applyNetworkSettings leaves an orphaned utun descriptor
+    // open for the life of the extension process. That orphan wins every later scan:
+    // sing-box reads a dead device while the system routes into the live one,
+    // blackholing every packet while the UI reads Connected. Pick the descriptor whose
+    // interface actually carries the address just installed instead.
     appLogger.info("Accessing tunnel file descriptor from C loop...")
-    let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
-    guard tunFdFromLoop != -1 else {
+    ret0_.pointee = try tunnelFileDescriptor(
+      carrying: Set(settings.ipv4Settings?.addresses ?? []))
+  }
+
+  // SYSPROTO_CONTROL and UTUN_OPT_IFNAME, spelled out because <sys/sys_domain.h> and
+  // <net/if_utun.h> are not exposed to Swift.
+  private static let sysprotoControl: Int32 = 2
+  private static let utunOptIfname: Int32 = 2
+
+  /// Interface name of `fd` when it is a utun descriptor, otherwise nil.
+  ///
+  /// This is the same query sing-box makes of the descriptor it is handed
+  /// (`getTunnelName`), so a name returned here is the name sing-box will bind to.
+  private func utunInterfaceName(of fd: Int32) -> String? {
+    var name = [CChar](repeating: 0, count: 64)
+    var length = socklen_t(name.count)
+    guard getsockopt(fd, Self.sysprotoControl, Self.utunOptIfname, &name, &length) == 0 else {
+      return nil
+    }
+    let interfaceName = String(cString: name)
+    // Other kernel-control sockets answer option 2 with something of their own, so
+    // require the answer to actually name a utun.
+    return interfaceName.hasPrefix("utun") ? interfaceName : nil
+  }
+
+  /// Names of the interfaces currently carrying any of `addresses`.
+  private func interfaceNames(carrying addresses: Set<String>) -> Set<String> {
+    var names: Set<String> = []
+    var head: UnsafeMutablePointer<ifaddrs>?
+    guard getifaddrs(&head) == 0, let first = head else {
+      return names
+    }
+    defer { freeifaddrs(first) }
+    for ifa in sequence(first: first, next: { $0.pointee.ifa_next }) {
+      guard let address = ifa.pointee.ifa_addr, address.pointee.sa_family == UInt8(AF_INET)
+      else {
+        continue
+      }
+      var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+      guard
+        getnameinfo(
+          address, socklen_t(address.pointee.sa_len), &host, socklen_t(host.count), nil, 0,
+          NI_NUMERICHOST) == 0,
+        addresses.contains(String(cString: host))
+      else {
+        continue
+      }
+      names.insert(String(cString: ifa.pointee.ifa_name))
+    }
+    return names
+  }
+
+  /// The descriptor of the utun this tunnel just created.
+  ///
+  /// Scans the process the way LibboxGetTunnelFileDescriptor does, then keeps the
+  /// candidate whose interface holds one of the addresses just installed — the one
+  /// property that distinguishes this tunnel's device from an orphan left by an earlier
+  /// start. With no match (auto-route off, so no address was installed, or getifaddrs
+  /// racing the settings apply) it takes the highest-numbered utun rather than the
+  /// lowest: descriptors are handed out lowest-free-first, so while an orphan is still
+  /// open the newest utun sits above it.
+  private func tunnelFileDescriptor(carrying addresses: Set<String>) throws -> Int32 {
+    var candidates: [(fd: Int32, name: String)] = []
+    for fd in Int32(0)..<1024 {
+      if let name = utunInterfaceName(of: fd) {
+        candidates.append((fd, name))
+      }
+    }
+    guard let newest = candidates.last else {
       throw NSError(domain: "Missing TUN FD", code: 0)
     }
-    appLogger.info("Returning tunnel file descriptor \(tunFdFromLoop) (from C loop)")
-    ret0_.pointee = tunFdFromLoop
+    let found = candidates.map { "\($0.fd):\($0.name)" }.joined(separator: ", ")
+    let liveNames = interfaceNames(carrying: addresses)
+    if let live = candidates.last(where: { liveNames.contains($0.name) }) {
+      appLogger.info(
+        "Returning tunnel file descriptor \(live.fd) (\(live.name), from C loop; utuns: \(found))")
+      return live.fd
+    }
+    appLogger.error(
+      "No utun carries \(addresses.sorted()); returning newest tunnel file descriptor "
+        + "\(newest.fd) (\(newest.name), from C loop; utuns: \(found))")
+    return newest.fd
   }
 
   public func usePlatformAutoDetectControl() -> Bool {
