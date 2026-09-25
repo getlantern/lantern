@@ -66,6 +66,7 @@ jobs:
           P12_PASSWORD: ${{ secrets.IOS_CERTIFICATE_P12_PASS }}
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
           BUILD_TUNNEL_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_TUNNEL_PROVISION_PROFILE_BASE64 }}
+          BUILD_WIDGET_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_WIDGET_PROVISION_PROFILE_BASE64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           EXPORT_OPTIONS: ${{ secrets.EXPORT_OPTION_PLIST }}
         run: |
@@ -74,6 +75,7 @@ jobs:
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           TPP_PATH=$RUNNER_TEMP/build_tpp.mobileprovision
+          WPP_PATH=$RUNNER_TEMP/build_wpp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           EXPORT_OPTIONS_PATH=$GITHUB_WORKSPACE/ExportOptions.plist
           # import certificate from secrets
@@ -97,6 +99,10 @@ jobs:
           # apply tunnel provisioning profile
           echo -n "$BUILD_TUNNEL_PROVISION_PROFILE_BASE64" | base64 --decode -o $TPP_PATH
           cp $TPP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+          # apply widget extension provisioning profile
+          echo -n "$BUILD_WIDGET_PROVISION_PROFILE_BASE64" | base64 --decode -o $WPP_PATH
+          cp $WPP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
           # Create ExportOptions.plist
           echo "$EXPORT_OPTIONS" | base64 --decode > "$EXPORT_OPTIONS_PATH"

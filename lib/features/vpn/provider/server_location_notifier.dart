@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
@@ -14,6 +15,9 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
 
   @override
   ServerLocation build() {
+    // Every change to the selected/resolved location is mirrored into the
+    // native widget so it can show where the tunnel exits.
+    listenSelf((_, next) => _publishToWidget(next));
     final cached = _storage.getServerLocation();
     final initial = cached ?? _defaultLocation();
     appLogger.debug(
@@ -151,6 +155,26 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     final updated = state.copyWith(serverType: ServerLocationType.auto.name);
     state = updated;
     await _storage.saveServerLocation(updated);
+  }
+
+  void _publishToWidget(ServerLocation location) {
+    final isAuto =
+        location.serverType.toServerLocationType == ServerLocationType.auto;
+    final auto = location.autoLocation;
+    unawaited(
+      ref
+          .read(lanternServiceProvider)
+          .updateWidgetLocation(
+            city: location.city,
+            country: isAuto ? (auto?.country ?? '') : location.country,
+            countryCode: isAuto
+                ? (auto?.countryCode ?? '')
+                : location.countryCode,
+            displayName: isAuto
+                ? (auto?.displayName ?? '')
+                : location.displayName,
+          ),
+    );
   }
 
   static ServerLocation _defaultLocation() => ServerLocation(
