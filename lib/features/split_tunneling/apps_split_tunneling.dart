@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -24,10 +25,6 @@ import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.da
 
 /// Extra width taken from the cards, on the right, for the index bar.
 const _indexBarGutter = 12.0;
-
-/// Least height the index bar keeps when the "Installed Apps" header is
-/// pushed below the fold by a long bypass list.
-const _indexBarMinHeight = 120.0;
 
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
@@ -79,10 +76,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
       if (viewport is! RenderBox || header is! RenderBox || !header.attached) {
         return;
       }
-      final top = header
-          .localToGlobal(Offset.zero, ancestor: viewport)
-          .dy
-          .clamp(0.0, viewport.size.height - _indexBarMinHeight);
+      final top = math.max(
+        0.0,
+        header.localToGlobal(Offset.zero, ancestor: viewport).dy,
+      );
       if (top != indexBarTop.value) {
         indexBarTop.value = top;
       }
@@ -258,13 +255,34 @@ class AppsSplitTunneling extends HookConsumerWidget {
             ),
           ),
           if (showIndexBar)
-            Positioned(
-              top: indexBarTop.value + 10,
-              bottom: defaultPadding.bottom,
+            Positioned.fill(
               right: 6,
-              child: AlphabetIndexBar(
-                letters: indexLetters,
-                onLetterSelected: scrollToLetter,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final bottom = math.min(
+                    defaultPadding.bottom,
+                    constraints.maxHeight,
+                  );
+                  // Keep every letter reachable when the bypass list pushes the
+                  // installed-apps header below the viewport.
+                  final minHeight =
+                      indexLetters.length * AlphabetIndexBar.minLetterHeight;
+                  final maxTop = math.max(
+                    0.0,
+                    constraints.maxHeight - bottom - minHeight,
+                  );
+                  final top = math.min(
+                    defaultPadding.top + indexBarTop.value + 10,
+                    maxTop,
+                  );
+                  return Padding(
+                    padding: EdgeInsets.only(top: top, bottom: bottom),
+                    child: AlphabetIndexBar(
+                      letters: indexLetters,
+                      onLetterSelected: scrollToLetter,
+                    ),
+                  );
+                },
               ),
             ),
         ],
