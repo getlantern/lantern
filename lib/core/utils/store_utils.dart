@@ -11,13 +11,17 @@ bool resolveAndroidStoreVersion({
   return isPlayStoreBuild || (developerOverride ?? !isSideLoaded);
 }
 
+/// Play Billing is available on Android store builds unless core has
+/// reported a censored country (CN/RU/IR), where Play is unreachable. An
+/// unknown country is not a reason to block: the country only arrives on a
+/// config fetch, which can lag a cold start by minutes, and Play Billing
+/// itself fails fast when it is genuinely unavailable.
 bool resolvePlayBillingAvailability({
   required bool isAndroid,
   required bool isStoreVersion,
-  required bool isCountryKnown,
   required bool isCensoredRegion,
 }) {
-  return isAndroid && isStoreVersion && isCountryKnown && !isCensoredRegion;
+  return isAndroid && isStoreVersion && !isCensoredRegion;
 }
 
 class StoreUtils {
