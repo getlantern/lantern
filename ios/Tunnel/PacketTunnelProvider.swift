@@ -35,8 +35,39 @@ class PacketTunnelProvider: ExtensionProvider {
   private let memoryQueue = DispatchQueue(label: "org.getlantern.lantern.tunnel.memory")
 
   override func startTunnel(options: [String: NSObject]?) async throws {
-    try await super.startTunnel(options: options)
+    // The app may be suspended (widget, on-demand, reboot), so the tunnel
+    // publishes its own lifecycle for the widget as well.
+    VPNWidgetStore.setStatus(.connecting)
+    if let server = options?["netEx.ServerName"] as? String {
+      VPNWidgetStore.setServerName(server)
+    } else if options?["netEx.Type"] as? String == "Lantern" {
+      VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
+    }
+    do {
+      try await super.startTunnel(options: options)
+    } catch {
+      VPNWidgetStore.setStatus(.disconnected)
+      throw error
+    }
+    // Not connected yet: the dial runs after super returns, under `reasserting`.
     startMemoryLogger()
+  }
+
+  /// Publishes "connected" when the initial connect finishes; later reasserts are no-ops.
+  override var reasserting: Bool {
+    didSet {
+      guard oldValue, !reasserting else { return }
+      VPNWidgetStore.update {
+        if $0.status == .connecting { $0.status = .connected }
+      }
+    }
+  }
+
+  /// A failed connect ends here, not in stopTunnel(with:); publish it before
+  /// the start task clears `reasserting`.
+  override func cancelTunnelWithError(_ error: Error?) {
+    VPNWidgetStore.setStatus(.disconnected)
+    super.cancelTunnelWithError(error)
   }
 
   override func stopTunnel(with reason: NEProviderStopReason) async {
@@ -45,7 +76,9 @@ class PacketTunnelProvider: ExtensionProvider {
     appLogger.info("PacketTunnelProvider stopping, reason: \(reason.rawValue)")
     memoryQueue.sync { _ = logMemoryUsage() }
     stopMemoryLogger()
+    VPNWidgetStore.setStatus(.disconnecting)
     try? await super.stopTunnel(with: reason)
+    VPNWidgetStore.setStatus(.disconnected)
   }
 
   private func startMemoryLogger(interval: TimeInterval = PacketTunnelProvider.memorySampleInterval)
