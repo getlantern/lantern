@@ -55,20 +55,11 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       platformInterface = ExtensionPlatformInterface(self)
     }
 
-    // A start can arrive while the previous tunnel is still up: the extension
-    // process outlives the app, so a force-quit without disconnecting — or an
-    // app-side stop that no-ops on a stale NEVPNStatus — leaves it running.
-    // Starting on top leaves the old utun open, and openTun's fallback then
-    // hands the new sing-box the lowest-numbered utun in the process (the dead
-    // one) while the system routes traffic to the new interface. Every packet
-    // is blackholed until the extension process is killed, which is why
-    // reporters find that only a reboot fixes it (getlantern/engineering#3781).
-    //
-    // Claimed before the bring-up rather than after: a start that fails partway
-    // can still have opened a utun.
+    // The extension outlives the app. Replacing a session must also clean up a
+    // previous start that failed after applying network settings.
     if claimTunnel() {
       appLogger.info("(lantern-tunnel) start arrived with a live tunnel; stopping it first")
-      stopService()
+      try stopService()
     }
 
     // Start the IPC server before any VPN operations
@@ -177,12 +168,15 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     platformInterface.reset()
   }
 
-  private func stopService() {
+  private func stopService() throws {
     appLogger.info("ExtensionProvider stopService")
     var error: NSError?
     MobileStopVPN(&error)
-    if error != nil {
-      appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
+    if let error {
+      // A timed-out stop may still be closing the old tunnel. Do not start over it.
+      appLogger.error("error while stopping tunnel \(error.localizedDescription)")
+      cancelTunnelWithError(error)
+      throw error
     }
     // Deliberately does not release the claim. This is a teardown primitive:
     // startTunnel calls it to replace a tunnel it still owns, and restartService
@@ -199,7 +193,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     defer {
       reasserting = false
     }
-    stopService()
+    try stopService()
 
     var error: NSError?
     MobileStartVPN(&error)

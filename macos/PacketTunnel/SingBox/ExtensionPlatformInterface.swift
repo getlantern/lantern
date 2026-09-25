@@ -77,6 +77,30 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     //let excludeAPNs = await SharedPreferences.excludeAPNsRoute.get()
     // Base network settings
     let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
+    // The fallback identifies the utun by its addresses, even without auto-routing.
+    // Apply the addresses here; routes and DNS remain conditional below.
+    var ipv4Address: [String] = []
+    var ipv4Mask: [String] = []
+    let ipv4AddressIterator = options.getInet4Address()!
+    appLogger.info("iterating over ipv4 addresses")
+    while ipv4AddressIterator.hasNext() {
+      let ipv4Prefix = ipv4AddressIterator.next()!
+      ipv4Address.append(ipv4Prefix.address())
+      ipv4Mask.append(ipv4Prefix.mask())
+    }
+    let ipv4Settings = NEIPv4Settings(addresses: ipv4Address, subnetMasks: ipv4Mask)
+
+    var ipv6Address: [String] = []
+    var ipv6Prefixes: [NSNumber] = []
+    let ipv6AddressIterator = options.getInet6Address()!
+    while ipv6AddressIterator.hasNext() {
+      let ipv6Prefix = ipv6AddressIterator.next()!
+      ipv6Address.append(ipv6Prefix.address())
+      ipv6Prefixes.append(NSNumber(value: ipv6Prefix.prefix()))
+    }
+    let ipv6Settings = NEIPv6Settings(
+      addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
+
     appLogger.info("Checking auto route")
     if options.getAutoRoute() {
       settings.mtu = NSNumber(value: options.getMTU())
@@ -86,17 +110,6 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       dnsSettings.matchDomainsNoSearch = true
       settings.dnsSettings = dnsSettings
 
-      var ipv4Address: [String] = []
-      var ipv4Mask: [String] = []
-      let ipv4AddressIterator = options.getInet4Address()!
-      appLogger.info("iterating over ipv4 addresses")
-      while ipv4AddressIterator.hasNext() {
-        let ipv4Prefix = ipv4AddressIterator.next()!
-        ipv4Address.append(ipv4Prefix.address())
-        ipv4Mask.append(ipv4Prefix.mask())
-      }
-
-      let ipv4Settings = NEIPv4Settings(addresses: ipv4Address, subnetMasks: ipv4Mask)
       var ipv4Routes: [NEIPv4Route] = []
       var ipv4ExcludeRoutes: [NEIPv4Route] = []
 
@@ -161,18 +174,6 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
       ipv4Settings.includedRoutes = ipv4Routes
       ipv4Settings.excludedRoutes = ipv4ExcludeRoutes
-      settings.ipv4Settings = ipv4Settings
-
-      var ipv6Address: [String] = []
-      var ipv6Prefixes: [NSNumber] = []
-      let ipv6AddressIterator = options.getInet6Address()!
-      while ipv6AddressIterator.hasNext() {
-        let ipv6Prefix = ipv6AddressIterator.next()!
-        ipv6Address.append(ipv6Prefix.address())
-        ipv6Prefixes.append(NSNumber(value: ipv6Prefix.prefix()))
-      }
-      let ipv6Settings = NEIPv6Settings(
-        addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
       var ipv6Routes: [NEIPv6Route] = []
       var ipv6ExcludeRoutes: [NEIPv6Route] = []
 
@@ -209,8 +210,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
       ipv6Settings.includedRoutes = ipv6Routes
       ipv6Settings.excludedRoutes = ipv6ExcludeRoutes
-      settings.ipv6Settings = ipv6Settings
     }
+    settings.ipv4Settings = ipv4Settings
+    settings.ipv6Settings = ipv6Settings
     appLogger.info("Checking if HTTP proxy is enabled...")
 
     if options.isHTTPProxyEnabled() {
@@ -255,25 +257,37 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     appLogger.info("Setting tunnel network settings to \(settings)...")
     try applyNetworkSettings(settings)
 
+    #if VPN_SMOKE_TEST
+      let smokeRequest = try VPNSmokeRequest.load()
+      if smokeRequest?.action == .failAfterSettings {
+        try smokeRequest?.record(stage: "failed-after-settings")
+        throw NSError(
+          domain: "VPNSmokeTest", code: 1,
+          userInfo: [NSLocalizedDescriptionKey: "Injected failure after applying tunnel settings"])
+      }
+      let forceFallback = smokeRequest?.action == .fallback
+    #else
+      let forceFallback = false
+    #endif
+
     appLogger.info("Accessing the socket file descriptor...")
-    if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
+    if !forceFallback,
+      let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32
+    {
       ret0_.pointee = tunFd
       appLogger.info("Returning tunnel file descriptor \(tunFd)")
       return
     }
 
-    // This fallback carries every tunnel on macOS 12, where the KVC path above
-    // never resolves. It scans the process for the lowest-numbered utun, so it is
-    // only correct while exactly one is open — which is what the teardown guard in
-    // ExtensionProvider.startTunnel exists to ensure. Logged so a recurrence can be
-    // told apart from a stale-fd selection in a user's logs.
-    appLogger.info("Accessing tunnel file descriptor from C loop...")
-    let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
-    guard tunFdFromLoop != -1 else {
-      throw NSError(domain: "Missing TUN FD", code: 0)
-    }
-    appLogger.info("Returning tunnel file descriptor \(tunFdFromLoop) (from C loop)")
-    ret0_.pointee = tunFdFromLoop
+    let addresses =
+      (settings.ipv4Settings?.addresses ?? []) + (settings.ipv6Settings?.addresses ?? [])
+    let candidate = try TunnelFileDescriptor.resolve(addresses: addresses)
+    appLogger.info(
+      "Returning tunnel file descriptor \(candidate.descriptor) (\(candidate.interfaceName))")
+    #if VPN_SMOKE_TEST
+      try smokeRequest?.record(stage: "fallback", candidate: candidate)
+    #endif
+    ret0_.pointee = candidate.descriptor
   }
 
   public func usePlatformAutoDetectControl() -> Bool {
@@ -482,6 +496,8 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   func reset() {
     networkSettings = nil
+    nwMonitor?.cancel()
+    nwMonitor = nil
   }
 
   public func restartService() throws {
@@ -531,3 +547,35 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
 }
+#if VPN_SMOKE_TEST
+  // Only the dedicated CI fixture reads these files; normal builds omit this code.
+  private struct VPNSmokeRequest: Decodable {
+    enum Action: String, Decodable {
+      case fallback
+      case failAfterSettings
+    }
+
+    let id: String
+    let action: Action
+    private static let directory = FilePath.dataDirectory.appendingPathComponent("E2E")
+
+    static func load() throws -> Self? {
+      let url = directory.appendingPathComponent("vpn-smoke-request.json")
+      guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+      return try JSONDecoder().decode(Self.self, from: Data(contentsOf: url))
+    }
+
+    func record(stage: String, candidate: TunnelFileDescriptor.Candidate? = nil) throws {
+      var result: [String: Any] = [
+        "id": id, "stage": stage, "pid": ProcessInfo.processInfo.processIdentifier,
+      ]
+      if let candidate {
+        result["interface"] = candidate.interfaceName
+        result["addresses"] = candidate.addresses
+      }
+      try JSONSerialization.data(withJSONObject: result).write(
+        to: Self.directory.appendingPathComponent("vpn-smoke-result.json"), options: .atomic)
+      appLogger.info("VPN smoke: \(id) \(stage)")
+    }
+  }
+#endif
