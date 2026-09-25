@@ -5,26 +5,26 @@ package apps
 import (
 	"bytes"
 	"fmt"
-	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 // getIconPath finds the .icns file inside the app bundle
 func getIconPath(appPath string) (string, error) {
 	resourcesPath := filepath.Join(appPath, "Contents", "Resources")
-	matches, err := filepath.Glob(filepath.Join(resourcesPath, "*.icns"))
-	if err != nil {
-		wrapped := fmt.Errorf("error globbing icons for %s: %w", appPath, err)
-		slog.Error("glob error:", "error", wrapped)
-		return "", wrapped
+	entries, err := os.ReadDir(resourcesPath)
+	if err != nil && !os.IsNotExist(err) {
+		return "", fmt.Errorf("read icon directory: %w", err)
 	}
-	if len(matches) == 0 {
-		return wrappedIconPath(appPath), nil
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".icns") {
+			return filepath.Join(resourcesPath, entry.Name()), nil
+		}
 	}
-	return matches[0], nil
+	return wrappedIconPath(appPath), nil
 }
 
 // wrappedIconPath picks the largest AppIcon*.png from an iPhone/iPad bundle's
@@ -34,14 +34,19 @@ func wrappedIconPath(appPath string) string {
 	if wrapped == "" {
 		return ""
 	}
-	matches, err := filepath.Glob(filepath.Join(filepath.Dir(plistPath), "AppIcon*.png"))
-	if err != nil || len(matches) == 0 {
+	iconDir := filepath.Dir(plistPath)
+	entries, err := os.ReadDir(iconDir)
+	if err != nil {
 		return ""
 	}
 	best, bestSize := "", int64(-1)
-	for _, m := range matches {
-		if info, err := os.Stat(m); err == nil && info.Size() > bestSize {
-			best, bestSize = m, info.Size()
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasPrefix(entry.Name(), "AppIcon") || !strings.HasSuffix(entry.Name(), ".png") {
+			continue
+		}
+		iconPath := filepath.Join(iconDir, entry.Name())
+		if info, err := os.Stat(iconPath); err == nil && !info.IsDir() && info.Size() > bestSize {
+			best, bestSize = iconPath, info.Size()
 		}
 	}
 	return best
