@@ -17,6 +17,10 @@ class AppData {
   /// Windows (registry default-app scan); defaults to false elsewhere.
   final bool isBrowser;
 
+  /// macOS only: inner bundle name (`<App>.app/Wrapper/<this>`) for iPhone
+  /// and iPad apps; split tunneling matches on it instead of [appPath].
+  final String wrappedBundle;
+
   const AppData({
     required this.name,
     required this.bundleId,
@@ -27,6 +31,7 @@ class AppData {
     this.lastUpdateTime = 0,
     this.removed = false,
     this.isBrowser = false,
+    this.wrappedBundle = '',
   });
 
   AppData copyWith({
@@ -39,6 +44,7 @@ class AppData {
     int? lastUpdateTime,
     bool? removed,
     bool? isBrowser,
+    String? wrappedBundle,
   }) {
     return AppData(
       name: name ?? this.name,
@@ -50,6 +56,7 @@ class AppData {
       lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
       removed: removed ?? this.removed,
       isBrowser: isBrowser ?? this.isBrowser,
+      wrappedBundle: wrappedBundle ?? this.wrappedBundle,
     );
   }
 
@@ -69,6 +76,7 @@ class AppData {
       lastUpdateTime: (m['lastUpdateTime'] as num?)?.toInt() ?? 0,
       removed: m['removed'] == true || m['isRemoved'] == true,
       isBrowser: m['isBrowser'] == true,
+      wrappedBundle: (m['wrappedBundle'] as String?) ?? '',
     );
   }
 
@@ -82,6 +90,7 @@ class AppData {
         lastUpdateTime: (json['lastUpdateTime'] as num?)?.toInt() ?? 0,
         removed: json['removed'] == true || json['isRemoved'] == true,
         isBrowser: json['isBrowser'] == true,
+        wrappedBundle: (json['wrappedBundle'] ?? '').toString(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -94,5 +103,6 @@ class AppData {
         'lastUpdateTime': lastUpdateTime,
         'removed': removed,
         'isBrowser': isBrowser,
+        'wrappedBundle': wrappedBundle,
       };
 }

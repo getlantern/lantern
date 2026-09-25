@@ -1913,3 +1913,6 @@ func dirExists(p string) bool {
 func getAppID(appPath string) (string, error) {
 	return appPath, nil
 }
+
+// Only macOS has iPhone/iPad wrapper bundles.
+func wrappedBundleName(string) string { return "" }

@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
@@ -13,19 +15,35 @@ import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
+import 'package:lantern/features/split_tunneling/alphabet_index_bar.dart';
 import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
+/// Extra width taken from the cards, on the right, for the index bar.
+const _indexBarGutter = 12.0;
+
+/// Least height the index bar keeps when the "Installed Apps" header is
+/// pushed below the fold by a long bypass list.
+const _indexBarMinHeight = 120.0;
+
 // Widget to display and manage split tunneling apps
 @RoutePage(name: 'AppsSplitTunneling')
-class AppsSplitTunneling extends ConsumerWidget {
+class AppsSplitTunneling extends HookConsumerWidget {
   const AppsSplitTunneling({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // One key per index letter, kept across rebuilds so the alphabet bar can
+    // scroll to the first installed app of that letter.
+    final letterKeys = useMemoized(() => <String, GlobalKey>{});
+    // The index bar hangs from the "Installed Apps" header: it follows the
+    // header while that scrolls and pins to the top once the header is gone.
+    final installedHeaderKey = useMemoized(GlobalKey.new);
+    final scrollViewKey = useMemoized(GlobalKey.new);
+    final indexBarTop = useState(0.0);
     final searchQuery = ref.watch(searchQueryProvider);
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
 
@@ -51,6 +69,40 @@ class AppsSplitTunneling extends ConsumerWidget {
         .where((a) => !enabledIds.contains(normalizedAppId(a)))
         .where(matchesSearch)
         .toList();
+    final appsByLetter = groupAppsByLetter(filteredDisabled);
+    final indexLetters = appsByLetter.keys.toList();
+    final showIndexBar = indexLetters.length > 1;
+
+    void updateIndexBarTop() {
+      final viewport = scrollViewKey.currentContext?.findRenderObject();
+      final header = installedHeaderKey.currentContext?.findRenderObject();
+      if (viewport is! RenderBox || header is! RenderBox || !header.attached) {
+        return;
+      }
+      final top = header
+          .localToGlobal(Offset.zero, ancestor: viewport)
+          .dy
+          .clamp(0.0, viewport.size.height - _indexBarMinHeight);
+      if (top != indexBarTop.value) {
+        indexBarTop.value = top;
+      }
+    }
+
+    // Measure after layout so the bar is placed correctly before any scroll.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) => updateIndexBarTop());
+      return null;
+    });
+
+    Future<void> scrollToLetter(String letter) async {
+      final target = letterKeys[letter]?.currentContext;
+      if (target == null) return;
+      await Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOutCubic,
+      );
+    }
 
     return BaseScreen(
       title: 'apps_split_tunneling'.i18n,
@@ -59,95 +111,137 @@ class AppsSplitTunneling extends ConsumerWidget {
         title: 'apps_split_tunneling'.i18n,
         hintText: 'search_apps'.i18n,
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Row(
-              children: [
-                SectionLabel(
-                  'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
-                ),
-                const Spacer(),
-              ],
+      // The screen pads itself so the index bar can live in the right-hand
+      // gutter, inside the Stack, where it can be tapped.
+      padded: false,
+      body: Stack(
+        children: [
+          Padding(
+            padding: defaultPadding.copyWith(
+              right: showIndexBar
+                  ? defaultPadding.right + _indexBarGutter
+                  : defaultPadding.right,
             ),
-          ),
-          if (enabledApps.isEmpty)
-            SliverToBoxAdapter(
-              child: AppCard(
-                padding: EdgeInsets.all(0),
-                child: AppTile(label: 'no_apps_selected'.i18n),
-              ),
-            )
-          else
-            SliverToBoxAdapter(
-              child: AppCard(
-                child: ListView.separated(
-                  padding: EdgeInsets.all(0),
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredEnabled.length + 1,
-                  separatorBuilder: (_, separatorIndex) =>
-                      DividerSpace(padding: EdgeInsets.zero),
-                  itemBuilder: (ctx, i) {
-                    if (i == 0) {
-                      return AppTile(
-                        minHeight: 40,
-                        contentPadding: EdgeInsets.zero,
-                        label: '',
-                        trailing: AppTextButton(
-                          label: 'deselect_all'.i18n,
-                          fontSize: 14,
-                          onPressed: () async {
-                            await notifier.deselectApps(filteredEnabled);
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                updateIndexBarTop();
+                return false;
+              },
+              child: CustomScrollView(
+                key: scrollViewKey,
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        SectionLabel(
+                          'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                  ),
+                  if (enabledApps.isEmpty)
+                    SliverToBoxAdapter(
+                      child: AppCard(
+                        padding: EdgeInsets.all(0),
+                        child: AppTile(label: 'no_apps_selected'.i18n),
+                      ),
+                    )
+                  else
+                    SliverToBoxAdapter(
+                      child: AppCard(
+                        child: ListView.separated(
+                          padding: EdgeInsets.all(0),
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: filteredEnabled.length + 1,
+                          separatorBuilder: (_, separatorIndex) =>
+                              DividerSpace(padding: EdgeInsets.zero),
+                          itemBuilder: (ctx, i) {
+                            if (i == 0) {
+                              return AppTile(
+                                minHeight: 40,
+                                contentPadding: EdgeInsets.zero,
+                                label: '',
+                                trailing: AppTextButton(
+                                  label: 'deselect_all'.i18n,
+                                  fontSize: 14,
+                                  onPressed: () async {
+                                    await notifier.deselectApps(
+                                      filteredEnabled,
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+                            final app = filteredEnabled[i - 1];
+                            return AppRow(
+                              app: app,
+                              enabled: true,
+                              onToggle: () => notifier.toggleApp(app),
+                            );
                           },
                         ),
-                      );
-                    }
-                    final app = filteredEnabled[i - 1];
-                    return AppRow(
-                      app: app,
-                      enabled: true,
-                      onToggle: () => notifier.toggleApp(app),
-                    );
-                  },
-                ),
-              ),
-            ),
-          SliverToBoxAdapter(child: SizedBox(height: 20)),
-          SliverToBoxAdapter(child: SectionLabel('installed_apps'.i18n)),
-          SliverToBoxAdapter(
-            child: allApps.isEmpty
-                ? AppCard(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-                    child: Center(child: LoadingIndicator()),
-                  )
-                : AppCard(
-                    child: filteredDisabled.isEmpty
-                        ? AppTile(minHeight: 40, label: 'no_apps_selected'.i18n)
-                        : ListView.separated(
+                      ),
+                    ),
+                  SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  SliverToBoxAdapter(
+                    child: Row(
+                      key: installedHeaderKey,
+                      children: [
+                        SectionLabel('installed_apps'.i18n),
+                        const Spacer(),
+                        if (filteredDisabled.isNotEmpty)
+                          AppTextButton(
+                            label: 'select_all'.i18n,
+                            fontSize: 14,
+                            onPressed: () => onTapSelectAll(
+                              context,
+                              notifier,
+                              filteredDisabled,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (allApps.isEmpty)
+                    SliverToBoxAdapter(
+                      child: AppCard(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 48,
+                        ),
+                        child: Center(child: LoadingIndicator()),
+                      ),
+                    )
+                  else if (filteredDisabled.isEmpty)
+                    SliverToBoxAdapter(
+                      child: AppCard(
+                        child: AppTile(
+                          minHeight: 40,
+                          label: 'no_apps_selected'.i18n,
+                        ),
+                      ),
+                    )
+                  else
+                    for (final entry in appsByLetter.entries) ...[
+                      SliverToBoxAdapter(
+                        child: SectionLabel(
+                          entry.key,
+                          key: letterKeys.putIfAbsent(entry.key, GlobalKey.new),
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: AppCard(
+                          child: ListView.separated(
+                            padding: EdgeInsets.zero,
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: filteredDisabled.length + 1,
+                            itemCount: entry.value.length,
                             separatorBuilder: (_, separatorIndex) =>
                                 DividerSpace(padding: EdgeInsets.zero),
                             itemBuilder: (ctx, i) {
-                              if (i == 0) {
-                                return AppTile(
-                                  minHeight: 40,
-                                  contentPadding: EdgeInsets.zero,
-                                  label: '',
-                                  trailing: AppTextButton(
-                                    label: 'select_all'.i18n,
-                                    fontSize: 14,
-                                    onPressed: () => onTapSelectAll(
-                                      ctx,
-                                      notifier,
-                                      filteredDisabled,
-                                    ),
-                                  ),
-                                );
-                              }
-                              final app = filteredDisabled[i - 1];
+                              final app = entry.value[i];
                               return AppRow(
                                 app: app,
                                 enabled: false,
@@ -155,8 +249,24 @@ class AppsSplitTunneling extends ConsumerWidget {
                               );
                             },
                           ),
-                  ),
+                        ),
+                      ),
+                      SliverToBoxAdapter(child: SizedBox(height: 12)),
+                    ],
+                ],
+              ),
+            ),
           ),
+          if (showIndexBar)
+            Positioned(
+              top: indexBarTop.value + 10,
+              bottom: defaultPadding.bottom,
+              right: 6,
+              child: AlphabetIndexBar(
+                letters: indexLetters,
+                onLetterSelected: scrollToLetter,
+              ),
+            ),
         ],
       ),
     );
@@ -364,7 +474,10 @@ class AppRow extends ConsumerWidget {
           if (onToggle != null)
             AppIconButton(
               path: enabled ? AppImagePaths.minus : AppImagePaths.plus,
-              onPressed: onToggle!,
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                onToggle!();
+              },
             ),
         ],
       ),

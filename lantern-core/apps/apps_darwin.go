@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"howett.net/plist"
 )
@@ -36,8 +37,34 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 	return scanAppDirs(appDirs, seen, excludeDirs, cb)
 }
 
+// bundleInfoPlist returns the bundle's Info.plist path and, for iPhone/iPad
+// apps (<App>.app/Wrapper/<Inner>.app, no Contents/), the inner bundle name.
+func bundleInfoPlist(appPath string) (plistPath, wrappedBundle string) {
+	native := filepath.Join(appPath, "Contents", "Info.plist")
+	if _, err := os.Stat(native); err == nil {
+		return native, ""
+	}
+	// Not Glob: appPath may contain pattern characters such as "[".
+	entries, _ := os.ReadDir(filepath.Join(appPath, "Wrapper"))
+	for _, e := range entries {
+		if !e.IsDir() || !strings.HasSuffix(e.Name(), ".app") {
+			continue
+		}
+		plist := filepath.Join(appPath, "Wrapper", e.Name(), "Info.plist")
+		if _, err := os.Stat(plist); err == nil {
+			return plist, e.Name()
+		}
+	}
+	return native, ""
+}
+
+func wrappedBundleName(appPath string) string {
+	_, wrapped := bundleInfoPlist(appPath)
+	return wrapped
+}
+
 func getAppID(appPath string) (string, error) {
-	plistPath := filepath.Join(appPath, "Contents", "Info.plist")
+	plistPath, _ := bundleInfoPlist(appPath)
 	file, err := os.Open(plistPath)
 	if err != nil {
 		return "", fmt.Errorf("unable to open plist: %w", err)

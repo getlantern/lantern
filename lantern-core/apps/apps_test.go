@@ -200,3 +200,100 @@ func TestLoadInstalledAppsWithDirs_EmitsCachedThenNew(t *testing.T) {
 		t.Fatalf("callback did not receive both cached and fresh apps; got %v", seen)
 	}
 }
+
+// makeWrappedAppBundle mimics an iPhone/iPad app installed from the Mac App
+// Store: no Contents/, the real bundle under Wrapper/ with a different name,
+// Info.plist at its root and PNG icons instead of .icns.
+func makeWrappedAppBundle(t *testing.T, root, name, inner, bundleID string) string {
+	t.Helper()
+	app := filepath.Join(root, name+".app")
+	innerApp := filepath.Join(app, "Wrapper", inner+".app")
+	infoPlist := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>` + bundleID + `</string>
+</dict>
+</plist>`
+	writeFile(t, filepath.Join(innerApp, "Info.plist"), infoPlist, 0o644)
+	writeFile(t, filepath.Join(innerApp, "AppIcon29x29.png"), "small", 0o644)
+	writeFile(t, filepath.Join(innerApp, "AppIcon60x60@3x.png"), "largest-icon", 0o644)
+	if err := os.Symlink(filepath.Join("Wrapper", inner+".app"), filepath.Join(app, "WrappedBundle")); err != nil {
+		t.Fatal(err)
+	}
+	return app
+}
+
+func TestScanAppDirs_FindsWrappedIOSApp(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("test requires macOS .app bundle scanning")
+	}
+	tmp := t.TempDir()
+	root := filepath.Join(tmp, "Applications")
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	appPath := makeWrappedAppBundle(t, root, "Stream", "NetworkSniffer", "com.fish.stream")
+	nativePath := makeAppBundle(t, root, "Native", "com.example.native", false)
+	// Brackets are glob metacharacters; the bundle must still be found.
+	makeWrappedAppBundle(t, root, "Stream [Beta]", "NetworkSnifferBeta", "com.fish.stream.beta")
+
+	apps := scanAppDirs([]string{root}, map[string]bool{}, excludeDirs, nil)
+	if len(apps) != 3 {
+		t.Fatalf("expected 3 apps (outer wrappers only, inner bundles must not be listed separately), got %d: %+v", len(apps), apps)
+	}
+	byID := map[string]*AppData{}
+	for _, a := range apps {
+		byID[a.BundleID] = a
+	}
+
+	wrapped := byID["com.fish.stream"]
+	if wrapped == nil {
+		t.Fatalf("wrapped app missing: %+v", apps)
+	}
+	if wrapped.AppPath != appPath {
+		t.Errorf("app path: got %s want %s", wrapped.AppPath, appPath)
+	}
+	if wrapped.Name != "Stream" {
+		t.Errorf("name should come from the outer bundle: %s", wrapped.Name)
+	}
+	if wrapped.WrappedBundle != "NetworkSniffer.app" {
+		t.Errorf("wrappedBundle: got %q want NetworkSniffer.app", wrapped.WrappedBundle)
+	}
+	if filepath.Base(wrapped.IconPath) != "AppIcon60x60@3x.png" {
+		t.Errorf("icon should be the largest PNG: %s", wrapped.IconPath)
+	}
+
+	if beta := byID["com.fish.stream.beta"]; beta == nil || beta.WrappedBundle != "NetworkSnifferBeta.app" {
+		t.Errorf("bracketed wrapped app missing or wrong inner bundle: %+v", beta)
+	}
+
+	native := byID["com.example.native"]
+	if native == nil || native.AppPath != nativePath {
+		t.Fatalf("native app missing or wrong path: %+v", native)
+	}
+	if native.WrappedBundle != "" {
+		t.Errorf("native app must not report a wrapped bundle: %q", native.WrappedBundle)
+	}
+}
+
+func TestScanAppDirs_SeenBundleIsNotDescendedInto(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("test requires macOS .app bundle scanning")
+	}
+	root := filepath.Join(t.TempDir(), "Applications")
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	outer := makeAppBundle(t, root, "Xcode", "com.apple.dt.Xcode", false)
+	// Helper app embedded in the outer bundle, as Xcode ships.
+	makeAppBundle(t, filepath.Join(outer, "Contents", "Applications"), "Instruments", "com.apple.dt.Instruments", false)
+
+	// Outer bundle already known from the cache.
+	seen := map[string]bool{normalizeKey(outer): true}
+	apps := scanAppDirs([]string{root}, seen, excludeDirs, nil)
+	if len(apps) != 0 {
+		t.Fatalf("expected no apps (outer already seen, helper must not surface), got %+v", apps)
+	}
+}

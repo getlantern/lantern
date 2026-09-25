@@ -158,6 +158,12 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			keyName := normalizeKey(rawName)
 
 			if seen[keyID] || seen[keyPath] || (runtime.GOOS != "windows" && seen[keyName]) {
+				// Don't descend into a bundle we already know about, or its
+				// embedded helper apps (Xcode's agents, inspectors, ...) get
+				// listed as if they were installed apps.
+				if appIsDir {
+					return filepath.SkipDir
+				}
 				return nil
 			}
 
@@ -176,6 +182,8 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 				AppPath:   path,
 				IconPath:  iconPath,
 				IconBytes: iconBytes,
+
+				WrappedBundle: wrappedBundleName(path),
 			}
 
 			if cb != nil {
