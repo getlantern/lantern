@@ -29,39 +29,41 @@ class _WidgetSheetContent extends StatelessWidget {
 
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'add_lantern_widget'.i18n,
-              style: textTheme.headlineSmall!.copyWith(
-                color: context.textPrimary,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'add_lantern_widget'.i18n,
+                style: textTheme.headlineSmall!.copyWith(
+                  color: context.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'add_lantern_widget_description'.i18n,
-              style: textTheme.bodyMedium!.copyWith(
-                color: context.textSecondary,
+              const SizedBox(height: 8),
+              Text(
+                'add_lantern_widget_description'.i18n,
+                style: textTheme.bodyMedium!.copyWith(
+                  color: context.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const _WidgetPreview(),
-            const SizedBox(height: 24),
-            for (var i = 0; i < steps.length; i++) ...[
-              _StepRow(index: i + 1, text: steps[i]),
-              if (i < steps.length - 1) const SizedBox(height: 12),
+              const SizedBox(height: 24),
+              const _WidgetPreview(),
+              const SizedBox(height: 24),
+              for (var i = 0; i < steps.length; i++) ...[
+                _StepRow(index: i + 1, text: steps[i]),
+                if (i < steps.length - 1) const SizedBox(height: 12),
+              ],
+              const SizedBox(height: 24),
+              PrimaryButton(
+                buttonKey: const Key('widget_sheet.got_it'),
+                label: 'got_it'.i18n,
+                onPressed: () => Navigator.of(context).pop(),
+              ),
             ],
-            const SizedBox(height: 24),
-            PrimaryButton(
-              buttonKey: const Key('widget_sheet.got_it'),
-              label: 'got_it'.i18n,
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -122,9 +124,7 @@ class _StepRow extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textPrimary,
-            ),
+            style: textTheme.bodyMedium!.copyWith(color: context.textPrimary),
           ),
         ),
       ],
