@@ -40,8 +40,8 @@ class Updater with UpdaterListener {
   static const startupDelay = Duration(seconds: 5);
   static const featureFlagTimeout = Duration(seconds: 2);
   static const recoveryDelay = Duration(minutes: 1);
-  static const _regularCheckInterval = Duration(hours: 1);
-  static const _retryDelays = [
+  static const _nativeCheckInterval = Duration(hours: 1);
+  static const _configurationRetryDelays = [
     Duration(minutes: 1),
     Duration(minutes: 5),
     Duration(minutes: 15),
@@ -61,12 +61,11 @@ class Updater with UpdaterListener {
   Timer? _checkTimer;
   DateTime? _nextCheckAt;
   String? _noUpdateMessage;
-  int _retryAttempt = 0;
+  int _configurationRetryAttempt = 0;
   bool _desktopConfigured = false;
   bool _started = false;
   bool _dispatchingCheck = false;
-  bool _needsRetry = false;
-  bool _updateOffered = false;
+  bool _needsConfigurationRetry = false;
   bool _disposed = false;
   bool _listenerRegistered = false;
   bool _quittingForUpdate = false;
@@ -134,13 +133,12 @@ class Updater with UpdaterListener {
     if (_disposed) return;
     await autoUpdater.setFeedURL(feedUrl);
     if (_disposed) return;
-    await autoUpdater.setScheduledCheckInterval(
-      _regularCheckInterval.inSeconds,
-    );
+    await autoUpdater.setScheduledCheckInterval(_nativeCheckInterval.inSeconds);
     if (_disposed) return;
 
     appLogger.info('autoUpdater configured. buildType=$buildType url=$feedUrl');
     _desktopConfigured = true;
+    _resetConfigurationRetries();
   }
 
   Future<void> checkNow() async {
@@ -168,7 +166,7 @@ class Updater with UpdaterListener {
       final flags = await _featureFlags();
       if (_disposed) return;
       if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
-        _resetRetries();
+        _resetConfigurationRetries();
         appLogger.info('autoUpdater disabled by feature flag');
         return;
       }
@@ -178,17 +176,13 @@ class Updater with UpdaterListener {
         'Desktop update check: source=$source '
         'url=${AppUrls.appcastFor(AppBuildInfo.buildType)}',
       );
-      _needsRetry = false;
-      _updateOffered = false;
       _noUpdateMessage = null;
       await _desktopAutoUpdater.checkForUpdates(inBackground: inBackground);
     } catch (e, st) {
       appLogger.error('Failed to start desktop update check ($source)', e, st);
-      _scheduleRetry();
+      _scheduleConfigurationRetry();
       if (!inBackground) rethrow;
     } finally {
-      // The method channel returns before the native check finishes.
-      // Result callbacks, rather than this future, reset the retry budget.
       _dispatchingCheck = false;
     }
   }
@@ -208,29 +202,27 @@ class Updater with UpdaterListener {
     });
   }
 
-  void _scheduleRetry() {
-    if (_disposed || _quittingForUpdate) return;
-    _needsRetry = true;
+  void _scheduleConfigurationRetry() {
+    // Once setup succeeds, Sparkle/WinSparkle own the check schedule.
+    if (_disposed || _quittingForUpdate || _desktopConfigured) return;
+    _needsConfigurationRetry = true;
     if (_checkTimer?.isActive == true) return;
-    if (_retryAttempt == _retryDelays.length) {
-      // Native hourly checks are only configured after setup succeeds.
-      if (!_desktopConfigured) {
-        _scheduleCheck(_regularCheckInterval, 'configuration-retry');
-      }
+    if (_configurationRetryAttempt == _configurationRetryDelays.length) {
+      _scheduleCheck(_nativeCheckInterval, 'configuration-retry');
       return;
     }
-    final delay = _retryDelays[_retryAttempt];
-    _retryAttempt++;
+    final delay = _configurationRetryDelays[_configurationRetryAttempt];
+    _configurationRetryAttempt++;
     appLogger.info(
-      'Retrying desktop update check in ${delay.inSeconds}s '
-      '(attempt $_retryAttempt)',
+      'Retrying desktop updater setup in ${delay.inSeconds}s '
+      '(attempt $_configurationRetryAttempt)',
     );
-    _scheduleCheck(delay, 'retry');
+    _scheduleCheck(delay, 'configuration-retry');
   }
 
-  /// Gives a failed check another chance after reconnecting or resuming.
-  void retryPendingCheck() {
-    if (!_needsRetry ||
+  /// Retries unfinished native setup after reconnecting or resuming.
+  void retryPendingSetup() {
+    if (!_needsConfigurationRetry ||
         _disposed ||
         _isDebugMode ||
         _isAndroidPlatform ||
@@ -240,9 +232,9 @@ class Updater with UpdaterListener {
     _scheduleCheck(recoveryDelay, 'recovery');
   }
 
-  void _resetRetries() {
-    _needsRetry = false;
-    _retryAttempt = 0;
+  void _resetConfigurationRetries() {
+    _needsConfigurationRetry = false;
+    _configurationRetryAttempt = 0;
     _cancelScheduledCheck();
   }
 
@@ -298,7 +290,6 @@ class Updater with UpdaterListener {
 
   @override
   void onUpdaterCheckingForUpdate(Appcast? appcast) {
-    _updateOffered = false;
     _noUpdateMessage = null;
   }
 
@@ -314,27 +305,21 @@ class Updater with UpdaterListener {
       '${error?.message ?? 'native updater did not provide error details'} '
       'url=${AppUrls.appcastFor(AppBuildInfo.buildType)}',
     );
-    // Once an update is offered, let the native UI handle download retries.
-    if (!_updateOffered) _scheduleRetry();
   }
 
   @override
   void onUpdaterUpdateAvailable(AppcastItem? appcastItem) {
-    _updateOffered = true;
-    _resetRetries();
     appLogger.info('Desktop update available');
   }
 
   @override
   void onUpdaterUpdateDownloaded(AppcastItem? appcastItem) {
-    _resetRetries();
     appLogger.info('Desktop update downloaded');
   }
 
   @override
   void onUpdaterUpdateNotAvailable(UpdaterError? error) {
     _noUpdateMessage = error?.message;
-    _resetRetries();
   }
 
   Future<Map<String, dynamic>> _featureFlags() async {
