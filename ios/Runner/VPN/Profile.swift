@@ -44,6 +44,7 @@ public class Profile {
       manager = createNewProfile()
       try await manager.saveToPreferences()
       try await manager.loadFromPreferences()
+      VPNWidgetStore.setNeedsSetup(false)
       // 3️⃣ Cache it and return
       self.manager = manager
       return manager
