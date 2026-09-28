@@ -187,9 +187,8 @@ jobs:
             echo "VPN fault injection is restricted to the signed macOS smoke fixture." >&2
             exit 1
           }
-          printf '%s\n' 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) VPN_SMOKE_TEST' \
-            > "$RUNNER_TEMP/vpn-smoke.xcconfig"
-          echo "XCODE_XCCONFIG_FILE=$RUNNER_TEMP/vpn-smoke.xcconfig" >> "$GITHUB_ENV"
+          echo 'FLUTTER_XCODE_SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) VPN_SMOKE_TEST' \
+            >> "$GITHUB_ENV"
 
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
@@ -397,6 +396,18 @@ jobs:
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
           SECRETLESS_TEST_BUILD: ${{ inputs.secretless_test_build }}
+
+      - name: Verify VPN lifecycle test fixture
+        if: ${{ inputs.vpn_lifecycle_smoke }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          extension="build/macos/Build/Products/Release/Lantern.app/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension"
+          binary="$extension/Contents/MacOS/org.getlantern.lantern.PacketTunnel"
+          if ! LC_ALL=C grep -aFq 'vpn-smoke-request.json' "$binary"; then
+            echo '::error::The built PacketTunnel is missing VPN lifecycle test hooks.'
+            exit 1
+          fi
 
       - name: Check system extension build number monotonicity
         if: ${{ inputs.build_type == 'nightly' }}
