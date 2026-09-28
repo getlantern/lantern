@@ -533,7 +533,7 @@ gh workflow run app-smoke-tests.yml --ref <branch> \
 The workflow builds, signs, and installs a profile fixture, then drives that same
 app without rebuilding it. Use a test profile with no existing split-tunnel
 rules. The test checks that `curl` uses the VPN, goes direct when excluded, and
-uses the VPN again after the exclusion is removed. A copy at another path must
+uses the VPN again after the exclusion is removed. Requests from the app must
 stay on the VPN while `/usr/bin/curl` is excluded. Settings are restored and the
 VPN is stopped afterward.
 

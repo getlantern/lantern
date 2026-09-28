@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -18,8 +19,8 @@ const _filter = SplitTunnelFilterType.processPathRegex;
 T _value<T>(Either<Failure, T> result) =>
     result.fold((failure) => fail('$failure'), (value) => value);
 
-Future<String> _curlPublicIp({String executable = '/usr/bin/curl'}) async {
-  final result = await Process.run(executable, [
+Future<String> _curlPublicIp() async {
+  final result = await Process.run('/usr/bin/curl', [
     '--disable',
     '--ipv4',
     '--noproxy',
@@ -39,25 +40,45 @@ Future<String> _curlPublicIp({String executable = '/usr/bin/curl'}) async {
   return ip;
 }
 
+Future<String> _appPublicIp() async {
+  final client = HttpClient()
+    ..connectionTimeout = const Duration(seconds: 5)
+    ..findProxy = (_) => 'DIRECT';
+  try {
+    final request = await client.getUrl(Uri.parse('https://api.ipify.org'));
+    final response = await request.close().timeout(const Duration(seconds: 20));
+    expect(response.statusCode, HttpStatus.ok);
+    final ip =
+        (await response
+                .transform(utf8.decoder)
+                .join()
+                .timeout(const Duration(seconds: 20)))
+            .trim();
+    expect(InternetAddress.tryParse(ip)?.type, InternetAddressType.IPv4);
+    return ip;
+  } finally {
+    client.close(force: true);
+  }
+}
+
 Future<void> _expectPublicIp(
   WidgetTester tester,
   LanternService service,
   String baseline, {
   required bool direct,
-  String executable = '/usr/bin/curl',
+  Future<String> Function() fetchIp = _curlPublicIp,
 }) async {
   final deadline = DateTime.now().add(const Duration(seconds: 45));
   var matches = 0;
   while (DateTime.now().isBefore(deadline)) {
     expect(_value(await service.isVPNConnected()), isTrue);
-    final matched =
-        (await _curlPublicIp(executable: executable) == baseline) == direct;
+    final matched = (await fetchIp() == baseline) == direct;
     expect(_value(await service.isVPNConnected()), isTrue);
     matches = matched ? matches + 1 : 0;
     if (matches == 2) return;
     await tester.pump(const Duration(seconds: 1));
   }
-  fail('curl did not use the ${direct ? 'direct' : 'VPN'} route');
+  fail('Traffic did not use the ${direct ? 'direct' : 'VPN'} route');
 }
 
 void main() {
@@ -91,15 +112,6 @@ void main() {
         );
       }
 
-      // The same binary at another path must stay on the VPN during exclusion.
-      final directory = await Directory.systemTemp.createTemp('lantern-split-');
-      addTearDown(() => directory.delete(recursive: true));
-      final control = await File(
-        '/usr/bin/curl',
-      ).copy('${directory.path}/curl');
-      final chmod = await Process.run('/bin/chmod', ['700', control.path]);
-      expect(chmod.exitCode, 0, reason: '${chmod.stderr}');
-
       // Restore settings before stopping the extension and handing IPC back to the app.
       addTearDown(() async => _value(await service.stopVPN()));
       addTearDown(
@@ -120,6 +132,7 @@ void main() {
       _value(await service.setSplitTunnelingEnabled(false));
       _value(await service.setRoutingMode(false));
       final baseline = await _curlPublicIp();
+      expect(await _appPublicIp(), baseline);
       _value(await service.startVPN());
       await states.waitFor(
         tester,
@@ -133,12 +146,13 @@ void main() {
       _value(await service.addSplitTunnelItem(_filter, _curlRule));
       _value(await service.setSplitTunnelingEnabled(true));
       await _expectPublicIp(tester, service, baseline, direct: true);
+      // Requests from the app must stay on the VPN while curl is excluded.
       await _expectPublicIp(
         tester,
         service,
         baseline,
         direct: false,
-        executable: control.path,
+        fetchIp: _appPublicIp,
       );
       debugPrint(
         '[E2E] Excluded curl uses the direct route; control uses the VPN',
