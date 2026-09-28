@@ -74,7 +74,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     // on a censored network, so the connect is dispatched rather than awaited —
     // it may begin before this returns, it just cannot hold the system's start
     // call open (getlantern/engineering#3822). Nothing reached the system from
-    // here anyway: startVPN reports its own failures via cancelTunnelWithError.
+    // here anyway: startVPN reports its own failures via cancelTunnel.
     //
     // Returning marks the provider started, but no tunnel settings exist until
     // the connect below applies them, so the system claims no routes and
@@ -112,7 +112,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       code: 1,
       userInfo: [NSLocalizedDescriptionKey: message]
     )
-    cancelTunnelWithError(error)
+    cancelTunnel(error)
   }
 
   func startVPN(completion: ((Bool, String?) -> Void)? = nil) {
@@ -120,11 +120,10 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
 
     MobileStartVPN(&error)
-    if error != nil {
-      appLogger.error("error while starting tunnel \(error?.localizedDescription ?? "")")
-      // Inform system and close tunnel
-      cancelTunnelWithError(error)
-      completion?(false, error?.localizedDescription)
+    if let error {
+      appLogger.error("error while starting tunnel \(error.localizedDescription)")
+      cancelTunnel(error)
+      completion?(false, error.localizedDescription)
 
       return
     }
@@ -139,10 +138,10 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     appLogger.log("(lantern-tunnel) connecting to server")
     var error: NSError?
     MobileConnectToServer(serverName, &error)
-    if error != nil {
-      appLogger.error("error while connecting to server \(error?.localizedDescription ?? "")")
-      cancelTunnelWithError(error)
-      completion?(false, error?.localizedDescription)
+    if let error {
+      appLogger.error("error while connecting to server \(error.localizedDescription)")
+      cancelTunnel(error)
+      completion?(false, error.localizedDescription)
 
       return
     }
@@ -153,19 +152,32 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
   override open func stopTunnel(with reason: NEProviderStopReason) async {
     appLogger.log("(lantern-tunnel) stopping, reason:\(String(describing: reason))")
+    closeTunnel()
+  }
+
+  private func cancelTunnel(_ error: Error) {
+    // Cancellation may skip stopTunnel. Close IPC so reconnect cannot reuse this
+    // provider, and run teardown off the Go callback thread to avoid blocking it.
+    DispatchQueue.global().async {
+      self.closeTunnel()
+      self.cancelTunnelWithError(error)
+    }
+  }
+
+  private func closeTunnel() {
     var error: NSError?
     MobileStopVPN(&error)
     if error != nil {
       appLogger.log("error while stopping tunnel \(error?.localizedDescription ?? "")")
     }
+    error = nil
     MobileCloseIPCServer(&error)
     if error != nil {
       appLogger.log("error closing IPC server \(error?.localizedDescription ?? "")")
     }
     appLogger.log("(lantern-tunnel) tunnel closed")
-    // The tunnel is genuinely going away — the one place ownership is released.
     setTunnelRunning(false)
-    platformInterface.reset()
+    platformInterface?.reset()
   }
 
   private func stopService() throws {
@@ -175,15 +187,10 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     if let error {
       // A timed-out stop may still be closing the old tunnel. Do not start over it.
       appLogger.error("error while stopping tunnel \(error.localizedDescription)")
-      cancelTunnelWithError(error)
+      cancelTunnel(error)
       throw error
     }
-    // Deliberately does not release the claim. This is a teardown primitive:
-    // startTunnel calls it to replace a tunnel it still owns, and restartService
-    // calls it mid-restart. Releasing here would let a second start observe
-    // "nothing running" and begin a bring-up overlapping the replacement.
-    // Ownership is released only where the tunnel is genuinely going away —
-    // stopTunnel(with:).
+    // Keep ownership while replacing a session; closeTunnel releases it on exit.
     postServiceClose()
   }
 
@@ -202,7 +209,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       // A failed (re)start must tear the tunnel down so on-demand/the app can recover
       // rather than leaving a dead-but-"connected" tunnel; the throw propagates the
       // failure to radiance's Restart so it reports ErrorStatus instead of success.
-      cancelTunnelWithError(error)
+      cancelTunnel(error)
       throw error
     }
     setTunnelRunning(true)
