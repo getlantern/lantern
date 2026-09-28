@@ -3,6 +3,7 @@
 package apps
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -26,5 +27,30 @@ func TestGetIconPath_LiteralBundlePaths(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestWrappedIconPath_RanksByPixelsNotBytes(t *testing.T) {
+	root := t.TempDir()
+	app := makeWrappedAppBundle(t, root, "Ranked", "Inner", "test.ranked")
+	inner := filepath.Join(app, "Wrapper", "Inner.app")
+	for _, e := range []struct{ name, data string }{
+		{"AppIcon40x40.png", pngBytes(t, 40, true)},   // few pixels, many bytes
+		{"AppIcon1024.png", pngBytes(t, 1024, false)}, // many pixels, few bytes
+		{"AppIcon-bad.png", "not a png"},
+	} {
+		writeFile(t, filepath.Join(inner, e.name), e.data, 0o644)
+	}
+	if err := os.Remove(filepath.Join(inner, "AppIcon60x60@3x.png")); err != nil {
+		t.Fatal(err)
+	}
+	small, _ := os.Stat(filepath.Join(inner, "AppIcon40x40.png"))
+	large, _ := os.Stat(filepath.Join(inner, "AppIcon1024.png"))
+	if small.Size() <= large.Size() {
+		t.Fatalf("fixture invalid: noisy 40px icon (%d B) should exceed flat 1024px icon (%d B)", small.Size(), large.Size())
+	}
+	want := filepath.Join(inner, "AppIcon1024.png")
+	if got := wrappedIconPath(app); got != want {
+		t.Errorf("wrappedIconPath = %q, want %q", got, want)
 	}
 }

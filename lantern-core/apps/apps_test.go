@@ -3,6 +3,10 @@
 package apps
 
 import (
+	"bytes"
+	"image"
+	"image/png"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,6 +15,26 @@ import (
 
 	"github.com/alecthomas/assert/v2"
 )
+
+// pngBytes encodes a square PNG of the given side. A noisy image compresses
+// poorly, so a small noisy icon can be more bytes than a large flat one.
+func pngBytes(t *testing.T, side int, noisy bool) string {
+	t.Helper()
+	img := image.NewNRGBA(image.Rect(0, 0, side, side))
+	rng := rand.New(rand.NewSource(int64(side)))
+	for i := range img.Pix {
+		if noisy {
+			img.Pix[i] = byte(rng.Intn(256))
+		} else {
+			img.Pix[i] = 0xff
+		}
+	}
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		t.Fatal(err)
+	}
+	return buf.String()
+}
 
 func writeFile(t *testing.T, path, content string, mode os.FileMode) {
 	t.Helper()
@@ -217,8 +241,8 @@ func makeWrappedAppBundle(t *testing.T, root, name, inner, bundleID string) stri
 </dict>
 </plist>`
 	writeFile(t, filepath.Join(innerApp, "Info.plist"), infoPlist, 0o644)
-	writeFile(t, filepath.Join(innerApp, "AppIcon29x29.png"), "small", 0o644)
-	writeFile(t, filepath.Join(innerApp, "AppIcon60x60@3x.png"), "largest-icon", 0o644)
+	writeFile(t, filepath.Join(innerApp, "AppIcon29x29.png"), pngBytes(t, 29, false), 0o644)
+	writeFile(t, filepath.Join(innerApp, "AppIcon60x60@3x.png"), pngBytes(t, 180, false), 0o644)
 	if err := os.Symlink(filepath.Join("Wrapper", inner+".app"), filepath.Join(app, "WrappedBundle")); err != nil {
 		t.Fatal(err)
 	}

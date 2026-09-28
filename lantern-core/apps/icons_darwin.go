@@ -5,6 +5,8 @@ package apps
 import (
 	"bytes"
 	"fmt"
+	"image"
+	_ "image/png"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -27,8 +29,10 @@ func getIconPath(appPath string) (string, error) {
 	return wrappedIconPath(appPath), nil
 }
 
-// wrappedIconPath picks the largest AppIcon*.png from an iPhone/iPad bundle's
-// inner .app. Those bundles carry no .icns; sips resizes PNG just as well.
+// wrappedIconPath picks the AppIcon*.png with the most pixels from an
+// iPhone/iPad bundle's inner .app. Those bundles carry no .icns; sips resizes
+// PNG just as well. Ranking is by raster size, not byte size: a detailed
+// small icon can encode to more bytes than a flat large one.
 func wrappedIconPath(appPath string) string {
 	plistPath, wrapped := bundleInfoPlist(appPath)
 	if wrapped == "" {
@@ -39,17 +43,32 @@ func wrappedIconPath(appPath string) string {
 	if err != nil {
 		return ""
 	}
-	best, bestSize := "", int64(-1)
+	best, bestPixels := "", -1
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasPrefix(entry.Name(), "AppIcon") || !strings.HasSuffix(entry.Name(), ".png") {
 			continue
 		}
 		iconPath := filepath.Join(iconDir, entry.Name())
-		if info, err := os.Stat(iconPath); err == nil && !info.IsDir() && info.Size() > bestSize {
-			best, bestSize = iconPath, info.Size()
+		if pixels := pngPixels(iconPath); pixels > bestPixels {
+			best, bestPixels = iconPath, pixels
 		}
 	}
 	return best
+}
+
+// pngPixels returns width*height from the PNG header, or -1 if the file is
+// not a decodable PNG. Only the header is read.
+func pngPixels(path string) int {
+	f, err := os.Open(path)
+	if err != nil {
+		return -1
+	}
+	defer f.Close()
+	cfg, _, err := image.DecodeConfig(f)
+	if err != nil {
+		return -1
+	}
+	return cfg.Width * cfg.Height
 }
 
 func getIconBytes(appPath string) ([]byte, error) {
