@@ -523,18 +523,20 @@ flutter test integration_test/vpn/linux_connect_smoke_test.dart \
 `make macos-unit-tests` includes cross-process connection-owner checks for TCP,
 UDP, and dual-stack UDP. These do not install or start a VPN.
 
-To test actual routing, install and approve a signed build from this branch,
-then run the existing smoke runner against that same build:
+Run the signed extension test on the dedicated macOS smoke runner:
 
 ```bash
-APP_PATH=/Applications/Lantern.app \
-TEST_PATH=integration_test/vpn/macos_app_split_tunneling_smoke_test.dart \
-  .github/scripts/macos_smoke_suite.sh
+gh workflow run app-smoke-tests.yml --ref <branch> \
+  -f platforms=macos -f tests=app-split-tunneling
 ```
 
-Use a test profile with no existing split-tunnel rules. The test checks that
-`curl` uses the VPN, goes direct when excluded, and uses the VPN again after the
-exclusion is removed. It restores routing settings and stops the VPN afterward.
+The workflow builds, signs, and installs a profile fixture, then drives that same
+app without rebuilding it. Use a test profile with no existing split-tunnel
+rules. The test checks that `curl` uses the VPN, goes direct when excluded, and
+uses the VPN again after the exclusion is removed. A copy at another path must
+stay on the VPN while `/usr/bin/curl` is excluded. Settings are restored and the
+VPN is stopped afterward.
+
 It requires access to `api.ipify.org`; a passing connection-owner check alone
 does not validate lookup permissions inside the installed NetworkExtension.
 

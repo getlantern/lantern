@@ -363,8 +363,12 @@ jobs:
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
-          FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
-          FLUTTER_TARGET: ${{ inputs.flutter_target }}
+          # Drive the installed fixture; rebuilding a debug app changes its extension hash.
+          FLUTTER_BUILD_MODE: ${{ inputs.run_connect_smoke && 'profile' || inputs.flutter_build_mode }}
+          FLUTTER_TARGET: ${{ inputs.flutter_target || (inputs.run_connect_smoke && 'integration_test/vpn/macos_connect_smoke_test.dart' || '') }}
+          RUN_CONNECT_SMOKE: ${{ inputs.run_connect_smoke }}
+          ENABLE_IP_CHECK: ${{ inputs.enable_ip_check }}
+          FORCE_FULL_TUNNEL: ${{ inputs.force_full_tunnel_smoke }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
@@ -434,6 +438,7 @@ jobs:
           FORCE_FULL_TUNNEL: ${{ inputs.force_full_tunnel_smoke }}
           EXTENSION_TIMEOUT_SECONDS: ${{ inputs.extension_timeout_seconds }}
           RUN_CONNECT_SMOKE: true
+          TEST_PATH: ${{ inputs.flutter_target || 'integration_test/vpn/macos_connect_smoke_test.dart' }}
         run: ./.github/scripts/macos_smoke_suite.sh
 
       - name: Upload macOS smoke diagnostics

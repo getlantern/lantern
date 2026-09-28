@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:integration_test/integration_test.dart';
@@ -17,8 +18,8 @@ const _filter = SplitTunnelFilterType.processPathRegex;
 T _value<T>(Either<Failure, T> result) =>
     result.fold((failure) => fail('$failure'), (value) => value);
 
-Future<String> _curlPublicIp() async {
-  final result = await Process.run('/usr/bin/curl', [
+Future<String> _curlPublicIp({String executable = '/usr/bin/curl'}) async {
+  final result = await Process.run(executable, [
     '--disable',
     '--ipv4',
     '--noproxy',
@@ -43,12 +44,14 @@ Future<void> _expectPublicIp(
   LanternService service,
   String baseline, {
   required bool direct,
+  String executable = '/usr/bin/curl',
 }) async {
   final deadline = DateTime.now().add(const Duration(seconds: 45));
   var matches = 0;
   while (DateTime.now().isBefore(deadline)) {
     expect(_value(await service.isVPNConnected()), isTrue);
-    final matched = (await _curlPublicIp() == baseline) == direct;
+    final matched =
+        (await _curlPublicIp(executable: executable) == baseline) == direct;
     expect(_value(await service.isVPNConnected()), isTrue);
     matches = matched ? matches + 1 : 0;
     if (matches == 2) return;
@@ -79,6 +82,23 @@ void main() {
       final hadRule = _value(
         await service.getSplitTunnelItems(_filter),
       ).contains(_curlRule);
+      for (final filter in SplitTunnelFilterType.values) {
+        final rules = _value(await service.getSplitTunnelItems(filter));
+        expect(
+          rules.where((rule) => filter != _filter || rule != _curlRule),
+          isEmpty,
+          reason: 'Use a smoke profile without other split-tunnel rules',
+        );
+      }
+
+      // The same binary at another path must stay on the VPN during exclusion.
+      final directory = await Directory.systemTemp.createTemp('lantern-split-');
+      addTearDown(() => directory.delete(recursive: true));
+      final control = await File(
+        '/usr/bin/curl',
+      ).copy('${directory.path}/curl');
+      final chmod = await Process.run('/bin/chmod', ['700', control.path]);
+      expect(chmod.exitCode, 0, reason: '${chmod.stderr}');
 
       // Restore settings before stopping the extension and handing IPC back to the app.
       addTearDown(() async => _value(await service.stopVPN()));
@@ -108,14 +128,26 @@ void main() {
         reason: 'VPN did not connect before testing app exclusions',
       );
       await _expectPublicIp(tester, service, baseline, direct: false);
+      debugPrint('[E2E] curl uses the VPN before exclusion');
 
       _value(await service.addSplitTunnelItem(_filter, _curlRule));
       _value(await service.setSplitTunnelingEnabled(true));
       await _expectPublicIp(tester, service, baseline, direct: true);
+      await _expectPublicIp(
+        tester,
+        service,
+        baseline,
+        direct: false,
+        executable: control.path,
+      );
+      debugPrint(
+        '[E2E] Excluded curl uses the direct route; control uses the VPN',
+      );
 
       // Removing only the app rule must put the same request back through the VPN.
       _value(await service.removeSplitTunnelItem(_filter, _curlRule));
       await _expectPublicIp(tester, service, baseline, direct: false);
+      debugPrint('[E2E] curl returns to the VPN after removing its exclusion');
     },
     skip: !Platform.isMacOS,
     timeout: const Timeout(Duration(minutes: 8)),
