@@ -45,37 +45,45 @@ void main() {
   });
 
   group('resolvePlayBillingAvailability', () {
-    test(
-      'requires a known non-censored country for an Android store build',
-      () {
-        expect(
-          resolvePlayBillingAvailability(
-            isAndroid: true,
-            isStoreVersion: true,
-            isCountryKnown: true,
-            isCensoredRegion: false,
-          ),
-          isTrue,
-        );
-        expect(
-          resolvePlayBillingAvailability(
-            isAndroid: true,
-            isStoreVersion: true,
-            isCountryKnown: false,
-            isCensoredRegion: false,
-          ),
-          isFalse,
-        );
-        expect(
-          resolvePlayBillingAvailability(
-            isAndroid: true,
-            isStoreVersion: true,
-            isCountryKnown: true,
-            isCensoredRegion: true,
-          ),
-          isFalse,
-        );
-      },
-    );
+    test('is available on an Android store build outside censored regions', () {
+      expect(
+        resolvePlayBillingAvailability(
+          isAndroid: true,
+          isStoreVersion: true,
+          isCensoredRegion: false,
+        ),
+        isTrue,
+      );
+    });
+
+    test('is unavailable in a censored region', () {
+      expect(
+        resolvePlayBillingAvailability(
+          isAndroid: true,
+          isStoreVersion: true,
+          isCensoredRegion: true,
+        ),
+        isFalse,
+      );
+    });
+
+    test('is unavailable off Android or on non-store builds', () {
+      expect(
+        resolvePlayBillingAvailability(
+          isAndroid: false,
+          isStoreVersion: true,
+          isCensoredRegion: false,
+        ),
+        isFalse,
+      );
+      expect(
+        resolvePlayBillingAvailability(
+          isAndroid: true,
+          isStoreVersion: false,
+          isCensoredRegion: false,
+        ),
+        isFalse,
+      );
+    });
   });
 }

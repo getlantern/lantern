@@ -6,7 +6,6 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/stripe_service.dart';
-import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -120,23 +119,15 @@ class PlansNotifier extends _$PlansNotifier {
 
   /// Loads store products on store builds; never throws — on failure or
   /// timeout (the billing client has none of its own) cards show API prices.
+  /// Does not wait for the country-code event: an unknown country must not
+  /// delay or skip the prefetch, and the timeout bounds the cost where Play
+  /// is unreachable.
   Future<void> _loadStoreProducts() async {
     if (!isStoreVersion()) {
       return;
     }
-    if (PlatformUtils.isAndroid) {
-      if (!CountryCode.isKnown) {
-        final known = await CountryCode.waitUntilKnown();
-        if (!known) {
-          appLogger.warning(
-            '[PlansNotifier] Country unavailable; skipping Play Billing products',
-          );
-          return;
-        }
-      }
-      if (!canUsePlayBilling()) {
-        return;
-      }
+    if (PlatformUtils.isAndroid && !canUsePlayBilling()) {
+      return;
     }
     try {
       await sl<AppPurchase>().fetchSubscriptions().timeout(
