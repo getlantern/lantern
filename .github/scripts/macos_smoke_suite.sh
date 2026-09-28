@@ -8,6 +8,7 @@ VPN_LIFECYCLE_SMOKE="${VPN_LIFECYCLE_SMOKE:-false}"
 EXTENSION_TIMEOUT_SECONDS="${EXTENSION_TIMEOUT_SECONDS:-120}"
 APP_INSTALL_DIR="${APP_INSTALL_DIR:-/Applications/Lantern.app}"
 LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-/Users/Shared/Lantern/Logs}"
+LANTERN_IPC_SOCKET="${LANTERN_IPC_SOCKET:-/var/run/lantern/lanternd.sock}"
 DMG_MOUNT_DIR=""
 
 if ! [[ "$EXTENSION_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
@@ -241,23 +242,29 @@ quit_lantern() {
   sleep 2
 }
 
-packet_tunnel_processes() {
-  pgrep -fl "org.getlantern.lantern.PacketTunnel" 2>/dev/null || true
-}
-
-wait_for_packet_tunnel_exit() {
+wait_for_vpn_disconnect() {
   local timeout_seconds="${1:-30}"
+  local profiles i
 
+  # macOS can keep the system extension alive between sessions. Check the VPN
+  # and its IPC socket instead; a resident process does not mean a live tunnel.
   for ((i = 0; i < timeout_seconds; i++)); do
-    if [[ -z "$(packet_tunnel_processes)" ]]; then
-      log_step "PacketTunnel is not running"
+    profiles="$(LC_ALL=C scutil --nc list)" || return 1
+    if printf '%s\n' "$profiles" | awk '
+      index($0, "[VPN:org.getlantern.lantern]") {
+        found = 1
+        if ($1 != "(Disconnected)" && $2 != "(Disconnected)") active = 1
+      }
+      END { exit (!found || active) }
+    ' && [[ ! -e "$LANTERN_IPC_SOCKET" ]]; then
+      log_step "Lantern VPN is disconnected and its IPC socket is closed"
       return 0
     fi
     sleep 1
   done
 
-  packet_tunnel_processes >"$ARTIFACT_DIR/packet-tunnel-still-running.txt"
-  printf 'PacketTunnel was still running after disconnect/quit\n' >&2
+  printf '%s\n' "$profiles" >"$ARTIFACT_DIR/vpn-profiles.txt"
+  printf 'Lantern VPN is not disconnected or its IPC socket still exists after quit\n' >&2
   return 1
 }
 
@@ -386,5 +393,7 @@ else
 fi
 
 quit_lantern
-wait_for_packet_tunnel_exit 30
+if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
+  wait_for_vpn_disconnect 30
+fi
 capture_diagnostics "success"
