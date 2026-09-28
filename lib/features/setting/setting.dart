@@ -14,6 +14,7 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import 'package:lantern/features/setting/appearance.dart'
     show appearanceModeLabel, showAppearanceBottomSheet;
+import 'package:lantern/features/setting/widget_sheet.dart';
 
 import '../../core/services/injection_container.dart';
 
@@ -23,6 +24,7 @@ enum _SettingType {
   vpnSetting,
   actionModeSetting,
   language,
+  widget,
   appearance,
   support,
   getPro,
@@ -176,6 +178,15 @@ class _SettingState extends ConsumerState<Setting>
                   ),
                   onPressed: () => settingMenuTap(_SettingType.language),
                 ),
+                if (PlatformUtils.isIOS) ...[
+                  DividerSpace(),
+                  AppTile(
+                    tileKey: const Key('setting.widget_tile'),
+                    label: 'widget'.i18n,
+                    icon: AppImagePaths.widgets,
+                    onPressed: () => settingMenuTap(_SettingType.widget),
+                  ),
+                ],
                 DividerSpace(),
                 AppTile(
                   tileKey: const Key('setting.appearance_tile'),
@@ -274,6 +285,9 @@ class _SettingState extends ConsumerState<Setting>
       case _SettingType.language:
         appRouter.push(Language());
         return;
+      case _SettingType.widget:
+        showWidgetBottomSheet(context: context);
+        break;
       case _SettingType.appearance:
         if (PlatformUtils.isDesktop) {
           appRouter.push(const Appearance());

@@ -110,6 +110,23 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+  }) {
+    // Only iOS ships a WidgetKit extension today.
+    if (!PlatformUtils.isIOS) return Future.value();
+    return _platformService.updateWidgetLocation(
+      city: city,
+      country: country,
+      countryCode: countryCode,
+      displayName: displayName,
+    );
+  }
+
+  @override
   Stream<AppEvent> watchAppEvents() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.watchAppEvents();

@@ -2000,3 +2000,21 @@ msgstr "Dismiss"
 
 msgid "unbounded_status_waiting"
 msgstr "Waiting to start"
+
+msgid "widget"
+msgstr "Widget"
+
+msgid "add_lantern_widget"
+msgstr "Add the Lantern widget"
+
+msgid "add_lantern_widget_description"
+msgstr "Connect from your phone's home screen without opening the app."
+
+msgid "widget_step_1"
+msgstr "Touch and hold an empty spot on your phone's home screen."
+
+msgid "widget_step_2"
+msgstr "Tap Edit, then Add Widget."
+
+msgid "widget_step_3"
+msgstr "Search for Lantern, choose a size, and tap add widget."
