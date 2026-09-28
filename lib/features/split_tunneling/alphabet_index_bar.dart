@@ -19,6 +19,7 @@ class AlphabetIndexBar extends StatefulWidget {
   });
 
   static const width = 16.0;
+  static const minLetterHeight = 8.0;
 
   @override
   State<AlphabetIndexBar> createState() => _AlphabetIndexBarState();
@@ -46,7 +47,9 @@ class _AlphabetIndexBarState extends State<AlphabetIndexBar> {
       builder: (context, constraints) {
         final count = math.max(widget.letters.length, 1);
         final letterHeight = math.min(22.0, constraints.maxHeight / count);
-        if (letterHeight < 8) return const SizedBox.shrink();
+        if (letterHeight < AlphabetIndexBar.minLetterHeight) {
+          return const SizedBox.shrink();
+        }
         final fontSize = math.min(10.5, letterHeight * 0.58);
 
         return Align(
