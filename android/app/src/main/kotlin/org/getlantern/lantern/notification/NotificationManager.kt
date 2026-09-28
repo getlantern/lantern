@@ -45,6 +45,7 @@ class NotificationHelper {
 
     private lateinit var dataUsageNotificationChannel: NotificationChannel
     private lateinit var vpnNotificationChannel: NotificationChannel
+    private var foregroundStarted = false
 
 
     init {
@@ -158,9 +159,16 @@ class NotificationHelper {
     /**
      * Shows the starting VPN notification as a foreground notification.
      * Also starts the service in the foreground and promotes it to a foreground service.
+     *
+     * @return true if this call promoted the service; false if it was already in the foreground.
      */
-    fun showStartingVPNConnectedNotification(vpnService: LanternVpnService) {
+    @Synchronized
+    fun showStartingVPNConnectedNotification(vpnService: LanternVpnService): Boolean {
+        // Duplicate starts must not replace an existing connected notification.
+        if (foregroundStarted) return false
         showForegroundNotification(vpnService, VPN_CONNECTED, buildStartingVpnNotification())
+        foregroundStarted = true
+        return true
     }
 
     /**
@@ -184,6 +192,7 @@ class NotificationHelper {
      * @param service The service whose foreground status should be stopped.
      * @param removeNotification Whether to remove the notification from the status bar.
      */
+    @Synchronized
     private fun stopForegroundNotification(service: LanternVpnService) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             service.stopForeground(STOP_FOREGROUND_REMOVE)
@@ -191,6 +200,7 @@ class NotificationHelper {
             // For API < 24, stopForeground without flags
             service.stopForeground(true)
         }
+        foregroundStarted = false
     }
 
 

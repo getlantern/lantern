@@ -72,11 +72,10 @@ class LanternLogger {
         // Exclusive lock so an append never lands mid-rotation in the other process.
         flock(fileHandle.fileDescriptor, LOCK_EX)
         do {
-          // Each new descriptor starts at zero; seek while holding the append lock.
-          guard lseek(fileHandle.fileDescriptor, 0, SEEK_END) != -1 else {
-            throw LogRotationError.io(errno)
-          }
-          try Self.appendAll(fileHandle.fileDescriptor, data)
+          // Each new descriptor starts at zero and write(contentsOf:) writes at
+          // the current offset, so seek -- while holding the append lock.
+          try fileHandle.seekToEnd()
+          try fileHandle.write(contentsOf: data)
         } catch {
           os_log("Log write failure: %{public}@", log: logger, type: .error,
                error.localizedDescription)
@@ -115,11 +114,11 @@ class LanternLogger {
     // Truncate in place (not rename) so the extension keeps writing to the same
     // file. Done even if compression failed (e.g. disk full), so the live file
     // stays bounded.
-    // ftruncate rather than FileHandle: truncateFile raises an ObjC exception
-    // and truncate(atOffset:) is 10.15.4+. This is the recovery path for a
-    // failed compression, so it must not be the thing that aborts.
-    if ftruncate(handle.fileDescriptor, 0) != 0 {
-      os_log("Log truncate failure: errno %{public}d", log: logger, type: .error, errno)
+    do {
+      try handle.truncate(atOffset: 0)
+    } catch {
+      os_log("Log truncate failure: %{public}@", log: logger, type: .error,
+             error.localizedDescription)
     }
     try? handle.close()
     pruneBackups()
@@ -166,7 +165,7 @@ class LanternLogger {
     var outBuf = [UInt8](repeating: 0, count: chunk)
     var finished = false
     while !finished {
-      var inBuf = try Self.readChunk(input.fileDescriptor, max: chunk)
+      var inBuf = [UInt8](try input.read(upToCount: chunk) ?? Data())
       finished = inBuf.isEmpty
       let flush = finished ? Z_FINISH : Z_NO_FLUSH
       try inBuf.withUnsafeMutableBufferPointer { inPtr in
@@ -183,8 +182,7 @@ class LanternLogger {
             }
             let produced = chunk - Int(stream.avail_out)
             if produced > 0 {
-              try Self.appendAll(output.fileDescriptor,
-                                 Data(bytes: outPtr.baseAddress!, count: produced))
+              try output.write(contentsOf: Data(bytes: outPtr.baseAddress!, count: produced))
             }
           }
           // Z_FINISH must be repeated until Z_STREAM_END, not just until the
@@ -208,46 +206,6 @@ class LanternLogger {
   private enum LogRotationError: Error {
     case deflateInit
     case deflate(Int32)
-    case io(Int32)
-  }
-
-  // POSIX rather than FileHandle.write(contentsOf:)/read(upToCount:). Those are
-  // the throwing replacements, but they are macOS 10.15.4+ and this target
-  // deploys to 10.15, so they would need an availability ladder whose fallback
-  // is the very API being replaced. The legacy FileHandle.write/readData raise
-  // NSFileHandleOperationException, which Swift cannot catch -- a full disk
-  // aborts the process instead of reaching the recovery path that truncates the
-  // live log. write(2)/read(2) report failure as a value on every OS we ship.
-
-  /// Writes all of `data`, tolerating short writes and EINTR.
-  private static func appendAll(_ fd: Int32, _ data: Data) throws {
-    guard !data.isEmpty else { return }
-    try data.withUnsafeBytes { raw in
-      var written = 0
-      while written < raw.count {
-        let result = Darwin.write(fd, raw.baseAddress!.advanced(by: written),
-                                  raw.count - written)
-        if result < 0 {
-          if errno == EINTR { continue }
-          throw LogRotationError.io(errno)
-        }
-        written += result
-      }
-    }
-  }
-
-  /// Reads up to `max` bytes. An empty result means end of file.
-  private static func readChunk(_ fd: Int32, max: Int) throws -> [UInt8] {
-    var buf = [UInt8](repeating: 0, count: max)
-    while true {
-      let result = buf.withUnsafeMutableBytes { Darwin.read(fd, $0.baseAddress, max) }
-      if result < 0 {
-        if errno == EINTR { continue }
-        throw LogRotationError.io(errno)
-      }
-      buf.removeLast(max - result)
-      return buf
-    }
   }
 
   private func currentSize() -> UInt64 {

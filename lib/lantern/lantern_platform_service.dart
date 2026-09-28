@@ -164,6 +164,26 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('updateWidgetLocation', {
+        'city': city,
+        'country': country,
+        'countryCode': countryCode,
+        'displayName': displayName,
+      });
+    } catch (e, stackTrace) {
+      // Cosmetic: the widget just keeps its previous label.
+      appLogger.error('Error updating widget location', e, stackTrace);
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
     try {
       final _ = await _methodChannel.invokeMethod(

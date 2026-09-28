@@ -130,6 +130,11 @@ msgstr "Geçenlerinde %s koduny ulanmagy ýatladyň!"
 msgid "unbounded"
 msgstr "Action Mode"
 
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
+
 msgid "help_fight_global_internet_censorship"
 msgstr "Global internet senzurasy bilen göreşmäge kömek ediň"
 
@@ -309,6 +314,18 @@ msgstr "Haýal"
 
 msgid "cannot_link_devices"
 msgstr "Enjamlary baglap bilemok"
+
+msgid "split_tunnel"
+msgstr "Bölünişikli tunnelirleme işlemeýär"
+
+msgid "smart_routing_not_working"
+msgstr "Akylly ugrukdyryş işlemeýär"
+
+msgid "server_selection_not_working"
+msgstr "Serwer saýlamak işlemeýär"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro-a geçmek şowsuz boldy"
 
 msgid "wrong_device_linking_code"
 msgstr "Enjam baglaýyş kody nädogry ýa-da nädogry"
@@ -650,6 +667,172 @@ msgstr "Reklamalary blokla"
 
 msgid "only_active"
 msgstr "Diňe VPN birikdirilende işjeň"
+
+msgid "share_my_connection"
+msgstr "Birikmämi paýlaş"
+
+msgid "share_my_connection_subtitle"
+msgstr ""
+"Beýleki Lantern ulanyjylaryna senzurany aýlanyp geçmek üçin siziň "
+"birikmäňizden geçmäge rugsat beriň."
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr ""
+"Birikmäňizi howpsuz paýlaşyp, başgalara senzurany aýlanyp geçmäge kömek "
+"ediň."
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Action Mode barada"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Ýagdaý"
+
+msgid "smc_status_off"
+msgstr "Ýapyk"
+
+msgid "smc_status_configuring"
+msgstr "Tor sazlanýar"
+
+msgid "smc_status_probing"
+msgstr "Toruňyz barlanýar…"
+
+msgid "smc_status_active_unbounded"
+msgstr "Açyk"
+
+msgid "smc_status_active_smc"
+msgstr "Başlanýar…"
+
+msgid "smc_status_mapping_port"
+msgstr "Routeriňizde port açylýar…"
+
+msgid "smc_status_detecting_ip"
+msgstr "Umumy IP-iňiz kesgitlenýär…"
+
+msgid "smc_status_registering"
+msgstr "Lantern-de bellige alynýar…"
+
+msgid "smc_status_starting_proxy"
+msgstr "Ýerli proksi başladylýar…"
+
+msgid "smc_status_verifying"
+msgstr "Birikme barlanýar…"
+
+msgid "smc_status_serving"
+msgstr "Açyk"
+
+msgid "smc_status_stopping"
+msgstr "Duruzylýar…"
+
+msgid "smc_status_error_with_message"
+msgstr "Paýlaşyp bolmady: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Paýlaşyp bolmady — ýene öçürip-açyp görüň"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "Häzir kömek edýän adamlaryňyz:"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "Şu güne çenli kömek edilen adamlaryň jemi:"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "%s ýurdunda täze adama kömek edilýär"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Birikmelere garaşylýar..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Action Mode-a hoş geldiňiz"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Action Mode-y açanyňyzda, enjamyňyz açyk internete barýan 'sanly köprüleriň'"
+" torunyň bölegine öwrülýär. Senzura astyndaky ulanyjylar bu köprülere "
+"birigip, hökümetleriň girizen çäklendirmelerini aýlanyp geçýärler we gerekli"
+" maglumatlaryna ýetýärler."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"Bu bilelikdäki tagalla senzurany ýerine ýetirmegi kynlaşdyrýar we açyk "
+"internete elýeterliligi giňeldýär."
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"Sazlamalarda islendik wagt Action Mode-y interfeýsden aýryp bilersiňiz."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Giňişleýin"
+
+msgid "smc_advanced_subtitle"
+msgstr "Routeri UPnP goldamaýan ulanyjylar üçin"
+
+msgid "smc_manual_port"
+msgstr "El bilen port ugrukdyrmasy"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"Routeriňiz UPnP goldamaýan bolsa, routerde port ugrukdyrmasyny sazlaň we "
+"port belgisini şu ýere giriziň. Lantern UPnP barlamagyň ýerine ony daşarky "
+"port hökmünde ulanar. UPnP (adaty) ulanmak üçin boş goýuň."
+
+msgid "smc_manual_port_label"
+msgstr "Port"
+
+msgid "smc_manual_port_hint"
+msgstr "meselem 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Ýatda sakla"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"Häzir %d portuna bellenen. Üýtgeşme güýje girmegi üçin Action Mode-y öçürip,"
+" täzeden açyň."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Port 1 bilen 65535 aralygynda bolmaly"
+
+msgid "smc_manual_port_cleared"
+msgstr "El bilen bellenen port arassalandy — UPnP ulanylýar"
+
+msgid "smc_manual_port_saved"
+msgstr "El bilen port %d edilip bellendi"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Action Mode sazlamalary"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Action Mode-y awto-açmak"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Lantern açylanda işläp başlaýar"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Action Mode-y gizle"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Action Mode-y interfeýsden aýyrýar"
 
 msgid "vpn_connected"
 msgstr "Lantern indi birikdirildi."
@@ -1854,6 +2037,36 @@ msgstr ""
 "Akylly ýerleşiş iň çalt serwer saýlaýar we has gowy ýollar tapanda awtomatik"
 " çalyşýar."
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "Birikmäňizi paýlaşmalymy?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"Paýlaşmak açykka, senzuraly ýurtlardaky adamlar açyk internete ýetmek üçin "
+"öz trafigini siziň birikmäňizden geçirýärler."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"Routeriňiz port ugrukdyrmasyny goldaýan bolsa, öý birikmäňiz çykalga "
+"hökmünde ulanylýar we paýlaşýan wagtyňyz IP salgyňyz barylýan ýeriň "
+"ýazgylarynda görüner. Ýogsa, ol trafik Lantern-iň serwerlerinden geçirilýär "
+"we IP-iňiz şeýle ýol bilen açylmaýar."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"Iki ýagdaýda-da Lantern belli bolan hyýanatçylykly barylýan ýerleri, hususy "
+"tor aralyklaryny we hyýanatçylyga ýykgyn portlary petikleýär, "
+"şahsyýetnamalary çalşyryp durýar we DMCA § 512(a) boýunça \"diňe geçiriji\" "
+"(mere conduit) hökmünde işleýär."
+
+msgid "share_consent_decline"
+msgstr "Häzir däl"
+
+msgid "share_consent_accept"
+msgstr "Paýlaşmagy aç"
+
 msgid "bypass_browser_warning_title"
 msgstr "%s aýlanyp geçme sanawyna goşulsynmy?"
 
@@ -1900,4 +2113,56 @@ msgid "upsell_upgrade_suffix"
 msgstr "Has çalt, çäksiz maglumat!"
 
 msgid "upsell_expired_suffix"
-msgstr "Pro wagtyňyzyň möhleti gutardy"
+msgstr "Pro wagtyňyz gutardy"
+
+msgid "pro_expires_days_left"
+msgstr "Pro %s güni gutarýar, %s gün galdy"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro %s güni gutarýar, 1 gün galdy"
+
+msgid "renewing_adds_time"
+msgstr "Täzelemek häzirki gutarýan senäňize wagt goşýar"
+
+msgid "pro_ends_today"
+msgstr "Pro wagty şu gün gutarýar, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Çäksiz maglumaty we Pro aýratynlyklaryny saklamak üçin häzir täzeläň"
+
+msgid "pro_expired_on"
+msgstr "Pro wagtyňyz %s güni gutardy"
+
+msgid "renew_now_get_back_data"
+msgstr "Çäksiz maglumaty yzyna almak üçin häzir täzeläň"
+
+msgid "days_left"
+msgstr "%s gün galdy"
+
+msgid "one_day_left"
+msgstr "1 gün galdy"
+
+msgid "expires_today"
+msgstr "Şu gün gutarýar"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Lantern Pro wagty gutardy. Çäksiz maglumaty we Pro aýratynlyklaryny "
+"dikeltmek üçin täzeläň."
+
+msgid "pro_expires_today_title"
+msgstr "Pro şu gün gutarýar"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"Pro hasabyňyz şu gün tamamlanýar. Lantern Pro elýeterliligini saklamak üçin "
+"häzir täzeläň."
+
+msgid "renew_now"
+msgstr "Häzir täzele"
+
+msgid "dismiss"
+msgstr "Ýap"
+
+msgid "unbounded_status_waiting"
+msgstr "Başlamaga garaşylýar"

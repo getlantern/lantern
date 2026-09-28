@@ -183,6 +183,38 @@ void main() {
     });
   }
 
+  testWidgets(
+    'content outside the globe scrolls on a small screen',
+    (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        size: const Size(320, 568),
+        scale: 2,
+        animated: true,
+      );
+      final scroll = tester.state<ScrollableState>(
+        find.descendant(
+          of: find.byType(CustomScrollView),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      expect(scroll.position.maxScrollExtent, greaterThan(0));
+      final scrollBefore = scroll.position.pixels;
+
+      await tester.drag(find.byType(InfoRow), const Offset(0, -100));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(scroll.position.pixels, greaterThan(scrollBefore));
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+    variant: const TargetPlatformVariant({
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+    }),
+  );
+
   for (final delta in [const Offset(-8, 0), const Offset(0, -8)]) {
     testWidgets(
       'globe owns touch drag $delta inside scroll view and pager',
@@ -204,7 +236,7 @@ void main() {
         final scroll = tester.state<ScrollableState>(
           find
               .descendant(
-                of: find.byType(SingleChildScrollView),
+                of: find.byType(CustomScrollView),
                 matching: find.byType(Scrollable),
               )
               .first,

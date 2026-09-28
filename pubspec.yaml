@@ -118,6 +118,7 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   desktop_webview_window: ^0.3.0
   store_checker: ^1.8.0
+  in_app_review: ^2.0.12
   # payment
   in_app_purchase: ^3.3.0
   flutter_stripe: 12.4.0

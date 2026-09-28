@@ -1993,6 +1993,16 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+  }) async {
+    // Desktop has no home-screen widget.
+  }
+
+  @override
   Future<Either<Failure, Unit>> updateLocal(String locale) async {
     try {
       final result = await runInBackground<String>(() async {

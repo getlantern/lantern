@@ -8,6 +8,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/developer_daemon_state.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/services/rating_prompt_service.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/section_label.dart';
@@ -19,7 +20,7 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 
 import '../../core/services/injection_container.dart' show sl;
 
-enum _DevAction { sendConfig, runURLTests, showState }
+enum _DevAction { sendConfig, runURLTests, showState, requestReview }
 
 @RoutePage(name: 'DeveloperMode')
 class DeveloperMode extends StatefulHookConsumerWidget {
@@ -307,6 +308,15 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
               );
             },
           ),
+          if (PlatformUtils.isMobile) ...[
+            DividerSpace(),
+            _asyncActionTile(
+              id: _DevAction.requestReview,
+              label: 'Request store review',
+              icon: Icons.star_rate_outlined,
+              action: _requestStoreReview,
+            ),
+          ],
           DividerSpace(),
           AppTile(
             label: 'Reset App',
@@ -393,6 +403,18 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
   void _snackFailure(Failure f) {
     if (!mounted) return;
     context.showSnackBar('Failed: ${f.localizedErrorMessage}');
+  }
+
+  /// Bypasses the session counter for manual testing.
+  Future<void> _requestStoreReview() async {
+    final service = sl<RatingPromptService>();
+    final requested = await service.requestReview();
+    if (!mounted) return;
+    context.showSnackBar(
+      requested
+          ? 'Review requested (sessions so far: ${service.sessions})'
+          : 'In-app review unavailable on this install',
+    );
   }
 
   Future<void> _resetAppData() async {

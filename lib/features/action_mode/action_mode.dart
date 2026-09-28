@@ -37,39 +37,46 @@ class ActionModeTab extends HookConsumerWidget {
 
     return SafeArea(
       child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          padding: const EdgeInsets.all(defaultSize),
-          child: Column(
-            children: [
-              InfoRow(
-                text: 'smc_intro'.i18n,
-                onPressed: () => showActionModeWelcomeDialog(context, ref),
-              ),
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: math.max(180, constraints.maxHeight - 336),
-                ),
-                child: const Stack(
-                  alignment: Alignment.bottomCenter,
-                  clipBehavior: Clip.none,
+        builder: (context, constraints) => CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.all(defaultSize),
+              sliver: SliverToBoxAdapter(
+                child: Column(
                   children: [
-                    Positioned.fill(child: ActionModeGlobe()),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 8),
-                      child: Center(child: PeerStatusPill()),
+                    InfoRow(
+                      text: 'smc_intro'.i18n,
+                      onPressed: () =>
+                          showActionModeWelcomeDialog(context, ref),
                     ),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: math.max(180, constraints.maxHeight - 336),
+                      ),
+                      child: const Stack(
+                        alignment: Alignment.bottomCenter,
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned.fill(child: ActionModeGlobe()),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: Center(child: PeerStatusPill()),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _StatusCard(
+                      state: state,
+                      onToggle: () =>
+                          ref.read(shareProvider.notifier).toggle(context, ref),
+                    ),
+                    const SizedBox(height: 8),
+                    const ActionModeAutoEnable(),
                   ],
                 ),
               ),
-              _StatusCard(
-                state: state,
-                onToggle: () =>
-                    ref.read(shareProvider.notifier).toggle(context, ref),
-              ),
-              const SizedBox(height: 8),
-              const ActionModeAutoEnable(),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

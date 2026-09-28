@@ -1,0 +1,263 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "An app with this name is already in /Applications. Quit {appName}, then use Finder to replace it with the copy you want to use and open it from Applications.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An app with this name is already in /Applications. Quit {appName}, then use Finder to replace it with the copy you want to use and open it from Applications."
+          }
+        }
+      }
+    },
+    "An app with this name is already in Applications. Use Finder to replace it, then open it from there.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An app with this name is already in Applications. Use Finder to replace it, then open it from there."
+          }
+        }
+      }
+    },
+    "Copying {appName} to Applications…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copying {appName} to Applications…"
+          }
+        }
+      }
+    },
+    "Move and Relaunch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move and Relaunch"
+          }
+        }
+      }
+    },
+    "Move {appName} to Applications to continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move {appName} to Applications to continue"
+          }
+        }
+      }
+    },
+    "Open {appName} from Applications": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open {appName} from Applications"
+          }
+        }
+      }
+    },
+    "Please wait. The app will reopen when the copy is complete.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please wait. The app will reopen when the copy is complete."
+          }
+        }
+      }
+    },
+    "Quit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إنهاء"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রস্থান করুন"
+          }
+        },
+        "es-CU": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خروج"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बाहर निकलें"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keluar"
+          }
+        },
+        "my": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ထွက်ရန်"
+          }
+        },
+        "ps": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پریږدئ"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выход"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ออก"
+          }
+        },
+        "tk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çyk"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çık"
+          }
+        },
+        "ur-IN": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "باہر نکلیں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thoát"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結束"
+          }
+        }
+      }
+    },
+    "Show Applications": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Applications"
+          }
+        }
+      }
+    },
+    "Use Finder to move the app into Applications, then open it from there.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Finder to move the app into Applications, then open it from there."
+          }
+        }
+      }
+    },
+    "{appName} needs to run from /Applications to set up its VPN. It will copy itself there and reopen.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{appName} needs to run from /Applications to set up its VPN. It will copy itself there and reopen."
+          }
+        }
+      }
+    },
+    "{appName} needs to run from /Applications to set up its VPN. Quit the app, then drag it from its download location into Applications in Finder and open it from there.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{appName} needs to run from /Applications to set up its VPN. Quit the app, then drag it from its download location into Applications in Finder and open it from there."
+          }
+        }
+      }
+    },
+    "{error}\n\nQuit {appName}, then use Finder to move it to /Applications and open it there. You may need an administrator's permission.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{error}\n\nQuit {appName}, then use Finder to move it to /Applications and open it there. You may need an administrator's permission."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,12 +1,12 @@
 name: Android Compile Check
 
-# Compiles all app Kotlin (by building the debug APK) on PRs that change Kotlin
-# source, to catch Kotlin compile breaks before they reach main. The full signed
+# Builds the debug APK and runs native unit tests on PRs that change Kotlin or
+# Gradle files, to catch regressions before they reach main. The full signed
 # release build (build-android.yml) is workflow_call-only and never runs on PRs,
 # so without this gate a Kotlin break (e.g. the bare success() call in #8754)
 # could merge undetected.
 #
-# Scope: the PR trigger covers Kotlin (*.kt) and shared CI setup changes. It
+# Scope: the PR trigger covers Kotlin, Android Gradle, and shared CI setup changes. It
 # does NOT run on Go/gomobile-AAR or Flutter/dep changes — a Go change that
 # breaks the AAR<->Kotlin interface would surface in build-android.yml /
 # release, not here. workflow_dispatch exists only for benchmarking/debugging.
@@ -18,6 +18,7 @@ on:
   pull_request:
     paths:
       - "**/*.kt"
+      - "android/**/*.gradle"
       # keep the self-trigger so edits to this workflow re-run it
       - ".github/workflows/android-compile-check.yml"
       - ".github/actions/setup-android/**"
@@ -91,3 +92,7 @@ jobs:
         run: make android-debug-ci
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
+
+      - name: Run Android unit tests
+        working-directory: android
+        run: ./gradlew :app:testDebugUnitTest

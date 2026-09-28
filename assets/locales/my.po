@@ -1,7 +1,7 @@
 # Translators:
-# tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2026
 # Lantern, 2026
 # e2f <projects@e2f.com>, 2026
+# tx_e2f_bu r2 <tx_e2f_bu_r2@ate2f.com>, 2026
 # tx_e2f_my t1 <divinahramaroson@gmail.com>, 2026
 # Derek F <derek@getlantern.org>, 2026
 # 
@@ -132,6 +132,11 @@ msgstr "အဆင့်မြှင့်သောအခါ ကုဒ် %s က�
 
 msgid "unbounded"
 msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
 
 msgid "help_fight_global_internet_censorship"
 msgstr "ကမ္ဘာလုံးဆိုင်ရာ အင်တာနက် ဆင်ဆာဖြတ်ခြင်းကို တိုက်ဖျက်ရန် ကူညီပါ"
@@ -314,6 +319,18 @@ msgstr "နှေးသည်"
 
 msgid "cannot_link_devices"
 msgstr "စက်ပစ္စည်းများ ချိတ်ဆက်၍မရပါ"
+
+msgid "split_tunnel"
+msgstr "ခွဲခြားချိတ်ဆက်ခြင်း အလုပ်မလုပ်ပါ"
+
+msgid "smart_routing_not_working"
+msgstr "စမတ်လမ်းကြောင်းသတ်မှတ်မှု အလုပ်မလုပ်ပါ"
+
+msgid "server_selection_not_working"
+msgstr "ဆာဗာရွေးချယ်မှု အလုပ်မလုပ်ပါ"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro အဆင့်မြှင့်ခြင်း မအောင်မြင်ပါ"
 
 msgid "wrong_device_linking_code"
 msgstr "မှားသော သို့မဟုတ် မမှန်ကန်သော စက်ပစ္စည်း ချိတ်ဆက်ကုဒ်"
@@ -673,6 +690,173 @@ msgstr "ကြော်ငြာများကို ပိတ်ဆို့�
 
 msgid "only_active"
 msgstr "VPN ချိတ်ဆက်ထားမှသာ အသက်ဝင်သည်"
+
+msgid "share_my_connection"
+msgstr "ကျွန်ုပ်၏ချိတ်ဆက်မှုကို မျှဝေရန်"
+
+msgid "share_my_connection_subtitle"
+msgstr ""
+"ဆင်ဆာဖြတ်တောက်မှုကို ကျော်လွှားနိုင်ရန် အခြား Lantern အသုံးပြုသူများကို "
+"သင့်ချိတ်ဆက်မှုမှတစ်ဆင့် လမ်းကြောင်းသုံးခွင့်ပြုပါ။"
+
+# Unbounded tab — hero copy. Short variant for the tab embed; the
+# longer privacy explanation now lives in the welcome dialog
+# (showUnboundedWelcomeDialog) so the tab body stays scannable.
+msgid "smc_intro"
+msgstr ""
+"သင့်ချိတ်ဆက်မှုကို လုံခြုံစွာမျှဝေခြင်းဖြင့် အခြားသူများကို "
+"ဆင်ဆာကျော်လွှားရန် ကူညီပါ။"
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Action Mode အကြောင်း"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "အခြေအနေ"
+
+msgid "smc_status_off"
+msgstr "ပိတ်ထားသည်"
+
+msgid "smc_status_configuring"
+msgstr "ကွန်ရက်ကို ပြင်ဆင်နေသည်"
+
+msgid "smc_status_probing"
+msgstr "သင့်ကွန်ရက်ကို စစ်ဆေးနေသည်…"
+
+msgid "smc_status_active_unbounded"
+msgstr "ဖွင့်ထားသည်"
+
+msgid "smc_status_active_smc"
+msgstr "စတင်နေသည်…"
+
+msgid "smc_status_mapping_port"
+msgstr "သင့် router ပေါ်တွင် port ဖွင့်နေသည်…"
+
+msgid "smc_status_detecting_ip"
+msgstr "သင်၏ public IP ကို ရှာဖွေနေသည်…"
+
+msgid "smc_status_registering"
+msgstr "Lantern တွင် မှတ်ပုံတင်နေသည်…"
+
+msgid "smc_status_starting_proxy"
+msgstr "local proxy ကို စတင်နေသည်…"
+
+msgid "smc_status_verifying"
+msgstr "ချိတ်ဆက်မှုကို စစ်ဆေးအတည်ပြုနေသည်…"
+
+msgid "smc_status_serving"
+msgstr "ဖွင့်ထားသည်"
+
+msgid "smc_status_stopping"
+msgstr "ရပ်တန့်နေသည်…"
+
+msgid "smc_status_error_with_message"
+msgstr "မျှဝေ၍မရပါ - %s"
+
+msgid "smc_status_error_generic"
+msgstr "မျှဝေ၍မရပါ — ထပ်ပြီး ပိတ်ဖွင့်ကြည့်ပါ"
+
+# Status card — stats + tooltip. Counts the number of remote
+# clients currently routing through THIS device (people being
+# helped, not helpers); parallel framing to smc_stat_total_helped
+# (same semantics, lifetime).
+msgid "smc_stat_active_now"
+msgstr "ယခု သင်ကူညီနေသောသူများ -"
+
+# Lifetime ("to date") rather than daily — backed by the persisted
+# unboundedTotalHelped setting so the count survives app restarts.
+msgid "smc_stat_total_helped"
+msgstr "ယနေ့အထိ ကူညီပြီးသူ စုစုပေါင်း -"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "%s တွင် လူသစ်တစ်ဦးကို ကူညီနေသည်"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "ချိတ်ဆက်မှုများကို စောင့်နေသည်..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Action Mode မှ ကြိုဆိုပါသည်"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Action Mode ကိုဖွင့်သောအခါ သင့်စက်ပစ္စည်းသည် ပွင့်လင်းသောအင်တာနက်ဆီသို့ "
+"'ဒစ်ဂျစ်တယ်တံတားများ' ကွန်ရက်၏ အစိတ်အပိုင်းဖြစ်လာသည်။ ဆင်ဆာခံရသော "
+"အသုံးပြုသူများသည် ဤတံတားများသို့ ချိတ်ဆက်ကာ အစိုးရချမှတ်ထားသော "
+"ကန့်သတ်ချက်များကို ကျော်လွှားပြီး လိုအပ်သောအချက်အလက်များကို ရယူနိုင်ကြသည်။"
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"ဤစုပေါင်းအားထုတ်မှုသည် ဆင်ဆာဖြတ်တောက်မှုကို ကျင့်သုံးရခက်စေပြီး "
+"ပွင့်လင်းသောအင်တာနက်သို့ ဝင်ရောက်ခွင့်ကို ချဲ့ထွင်ပေးသည်။"
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"ဆက်တင်များတွင် အချိန်မရွေး interface မှ Action Mode ကို ဖယ်ရှားနိုင်သည်။"
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "အဆင့်မြင့်"
+
+msgid "smc_advanced_subtitle"
+msgstr "Router က UPnP ကို မပံ့ပိုးသော အသုံးပြုသူများအတွက်"
+
+msgid "smc_manual_port"
+msgstr "ကိုယ်တိုင်သတ်မှတ် port forward"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"သင့် router က UPnP ကို မပံ့ပိုးပါက router တွင် port forward တစ်ခု "
+"ပြင်ဆင်သတ်မှတ်ပြီး port နံပါတ်ကို ဤနေရာတွင် ထည့်ပါ။ Lantern သည် UPnP "
+"စစ်ဆေးမည့်အစား ၎င်းကို ပြင်ပ port အဖြစ် အသုံးပြုပါမည်။ UPnP (မူရင်း) ကို "
+"အသုံးပြုရန် ကွက်လပ်ထားပါ။"
+
+msgid "smc_manual_port_label"
+msgstr "Port"
+
+msgid "smc_manual_port_hint"
+msgstr "ဥပမာ - 5698"
+
+msgid "smc_manual_port_save"
+msgstr "သိမ်းဆည်းမည်"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"လက်ရှိတွင် port %d သတ်မှတ်ထားသည်။ ပြောင်းလဲမှု အကျိုးသက်ရောက်စေရန် Action "
+"Mode ကို ပိတ်ပြီး ပြန်ဖွင့်ပါ။"
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Port သည် 1 နှင့် 65535 အကြား ဖြစ်ရမည်"
+
+msgid "smc_manual_port_cleared"
+msgstr "ကိုယ်တိုင်သတ်မှတ် port ကို ဖယ်ရှားပြီး — UPnP ကို အသုံးပြုနေသည်"
+
+msgid "smc_manual_port_saved"
+msgstr "ကိုယ်တိုင်သတ်မှတ် port ကို %d အဖြစ် သတ်မှတ်ပြီးပါပြီ"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Action Mode ဆက်တင်များ"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Action Mode ကို အလိုအလျောက်ဖွင့်ရန်"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Lantern ဖွင့်သောအခါ ပွင့်လာသည်"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Action Mode ကို ဖျောက်ရန်"
+
+msgid "hide_unbounded_subtitle"
+msgstr "UI မှ Action Mode ကို ဖယ်ရှားသည်"
 
 msgid "vpn_connected"
 msgstr "Lantern သည် ယခု ချိတ်ဆက်ပြီးပါပြီ။"
@@ -1914,6 +2098,38 @@ msgstr ""
 "စမတ်တည်နေရာသည် အမြန်ဆုံးဆာဗာကို ရွေးချယ်ပြီး ပိုကောင်းသောလမ်းကြောင်းများ "
 "တွေ့ရှိသည်နှင့်အမျှ အလိုအလျောက် ပြောင်းလဲပေးသည်။"
 
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "သင့်ချိတ်ဆက်မှုကို မျှဝေမလား။"
+
+msgid "share_consent_body_what"
+msgstr ""
+"မျှဝေမှုဖွင့်ထားစဉ် ဆင်ဆာလုပ်ခံရသော နိုင်ငံများရှိ လူများသည် "
+"ပွင့်လင်းသောအင်တာနက်သို့ ရောက်ရှိရန် ၎င်းတို့၏ traffic ကို "
+"သင့်ချိတ်ဆက်မှုမှတစ်ဆင့် လမ်းကြောင်းပေးကြသည်။"
+
+msgid "share_consent_body_ip"
+msgstr ""
+"သင့် router က port forwarding ကို ပံ့ပိုးပါက သင့်အိမ်ချိတ်ဆက်မှုကို "
+"ထွက်ပေါက်အဖြစ် အသုံးပြုပြီး မျှဝေနေစဉ်အတွင်း သင့် IP လိပ်စာသည် "
+"သွားရောက်သည့်နေရာ၏ မှတ်တမ်းများတွင် ပေါ်လာပါမည်။ သို့မဟုတ်ပါက ထို traffic "
+"ကို Lantern ၏ ဆာဗာများမှတစ်ဆင့် လွှဲပြောင်းပေးပြီး ထိုနည်းဖြင့် သင့် IP "
+"မပေါ်ပါ။"
+
+msgid "share_consent_body_safety"
+msgstr ""
+"နှစ်မျိုးစလုံးတွင် Lantern သည် အလွဲသုံးမှုကြောင်း သိရှိထားသော နေရာများ၊ "
+"သီးသန့်ကွန်ရက် အပိုင်းအခြားများနှင့် အလွဲသုံးခံရလွယ်သော port များကို "
+"ပိတ်ဆို့ကာ အထောက်အထားများကို လှည့်ပြောင်းအသုံးပြုပြီး DMCA § 512(a) အရ "
+"\"သက်သက်လမ်းကြောင်း\" (mere conduit) အဖြစ် လုပ်ဆောင်သည်။"
+
+msgid "share_consent_decline"
+msgstr "ယခုမဟုတ်ပါ"
+
+msgid "share_consent_accept"
+msgstr "မျှဝေမှုကို ဖွင့်ရန်"
+
 msgid "bypass_browser_warning_title"
 msgstr "%s ကို ကျော်လွှားစာရင်းထဲ ထည့်မလား။"
 
@@ -1959,7 +2175,60 @@ msgstr ""
 "ပိတ်ဆို့ထားပါက အလုပ်မလုပ်တော့နိုင်ပါ။"
 
 msgid "upsell_upgrade_suffix"
-msgstr "ပိုမြန်ပြီး ကန့်သတ်မရှိ ဒေတာ!"
+msgstr "ပိုမြန်ပြီး ဒေတာအကန့်အသတ်မရှိ!"
 
 msgid "upsell_expired_suffix"
-msgstr "သင်၏ Pro အချိန် ကုန်သွားပါပြီ"
+msgstr "သင်၏ Pro အချိန် ကုန်ဆုံးသွားပါပြီ"
+
+msgid "pro_expires_days_left"
+msgstr "Pro သည် %s တွင် သက်တမ်းကုန်မည်၊ %s ရက် ကျန်သည်"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro သည် %s တွင် သက်တမ်းကုန်မည်၊ 1 ရက် ကျန်သည်"
+
+msgid "renewing_adds_time"
+msgstr "သက်တမ်းတိုးခြင်းက သင့်လက်ရှိ ပြီးဆုံးရက်တွင် အချိန်ထပ်ပေါင်းပေးသည်"
+
+msgid "pro_ends_today"
+msgstr "Pro အချိန် ယနေ့ ကုန်ဆုံးမည်၊ %s"
+
+msgid "renew_now_keep_data"
+msgstr ""
+"ဒေတာအကန့်အသတ်မရှိနှင့် Pro လုပ်ဆောင်ချက်များ ဆက်ရရှိရန် ယခုပင် သက်တမ်းတိုးပါ"
+
+msgid "pro_expired_on"
+msgstr "သင်၏ Pro အချိန်သည် %s တွင် ကုန်ဆုံးခဲ့သည်"
+
+msgid "renew_now_get_back_data"
+msgstr "ဒေတာအကန့်အသတ်မရှိ ပြန်ရရန် ယခုပင် သက်တမ်းတိုးပါ"
+
+msgid "days_left"
+msgstr "%s ရက် ကျန်သည်"
+
+msgid "one_day_left"
+msgstr "1 ရက် ကျန်သည်"
+
+msgid "expires_today"
+msgstr "ယနေ့ သက်တမ်းကုန်မည်"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Lantern Pro အချိန် ကုန်ဆုံးသွားပါပြီ။ ဒေတာအကန့်အသတ်မရှိနှင့် Pro "
+"လုပ်ဆောင်ချက်များ ပြန်လည်ရရှိရန် သက်တမ်းတိုးပါ။"
+
+msgid "pro_expires_today_title"
+msgstr "Pro ယနေ့ သက်တမ်းကုန်မည်"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"သင့် Pro အကောင့် ယနေ့ ပြီးဆုံးပါမည်။ Lantern Pro ကို ဆက်လက်အသုံးပြုနိုင်ရန် "
+"ယခုပင် သက်တမ်းတိုးပါ။"
+
+msgid "renew_now"
+msgstr "ယခု သက်တမ်းတိုးရန်"
+
+msgid "dismiss"
+msgstr "ဖယ်ထုတ်မည်"
+
+msgid "unbounded_status_waiting"
+msgstr "စတင်ရန် စောင့်နေသည်"

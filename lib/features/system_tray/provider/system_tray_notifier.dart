@@ -113,7 +113,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   Future<void> toggleVPN() async {
     final notifier = ref.read(vpnProvider.notifier);
     if (_currentStatus == VPNStatus.connected) {
-      await notifier.stopVPN();
+      await notifier.stopVPN(userInitiated: true);
     } else if (_currentStatus == VPNStatus.disconnected) {
       await notifier.startVPN();
     }

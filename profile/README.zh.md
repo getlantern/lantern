@@ -21,7 +21,6 @@
     <tr>
         <th>视窗/Windows</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.exe">Windows 10&#43;</a> <br> 
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.exe">Windows 10&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern-binaries/raw/main/lantern-installer-win7.exe">Windows 7</a>    
@@ -34,7 +33,6 @@
     <tr>
         <th>安卓</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.apk">安卓 6&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.apk">安卓 6&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">安卓 6&#43;</a>
         </td>
@@ -48,7 +46,6 @@
     <tr>
         <th>苹果Mac系统</th>
         <td>
-            <a href="https://gitlab.com/getlantern/lantern-binaries-mirror/-/raw/master/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a> <br>
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">苹果Mac系统 10.15&#43;</a>
         </td>
