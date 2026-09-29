@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
-import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/updater/desktop_update_relay.dart';
+import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
 class _FakeAutoUpdater implements AutoUpdater {
@@ -50,18 +52,21 @@ class _FakeAutoUpdater implements AutoUpdater {
   }
 
   void fail() {
+    final error = UpdaterError('Network unavailable');
     for (final listener in listeners) {
-      listener.onUpdaterError(null);
-      (listener as UpdaterLifecycleListener).onUpdaterUpdateCycleFinished(
-        UpdaterError('Network unavailable'),
-      );
+      listener.onUpdaterError(error);
+      if (listener is UpdaterLifecycleListener) {
+        listener.onUpdaterUpdateCycleFinished(error);
+      }
     }
   }
 
   void succeed() {
     for (final listener in listeners) {
       listener.onUpdaterUpdateNotAvailable(null);
-      (listener as UpdaterLifecycleListener).onUpdaterUpdateCycleFinished(null);
+      if (listener is UpdaterLifecycleListener) {
+        listener.onUpdaterUpdateCycleFinished(null);
+      }
     }
   }
 }
@@ -69,12 +74,14 @@ class _FakeAutoUpdater implements AutoUpdater {
 class _FakeUpdateRelay implements DesktopUpdateRelay {
   int starts = 0;
   int closes = 0;
+  String? feedURL;
   Completer<String>? pending;
   Object? error;
 
   @override
   Future<String> start(String feedUrl) async {
     starts++;
+    feedURL = feedUrl;
     if (error != null) throw error!;
     return pending?.future ?? 'http://127.0.0.1:12345/token/appcast.xml';
   }
@@ -134,7 +141,8 @@ void main() {
   group('Desktop update recovery', () {
     testWidgets('checks at startup with no core service', (tester) async {
       final native = _FakeAutoUpdater();
-      final updater = _desktopUpdater(native);
+      final relay = _FakeUpdateRelay();
+      final updater = _desktopUpdater(native, relay: relay);
       addTearDown(updater.dispose);
 
       await updater.init();
@@ -145,6 +153,7 @@ void main() {
       expect(native.checks, [true]);
       expect(native.interval, 3600);
       expect(native.feedURL, 'http://127.0.0.1:12345/token/appcast.xml');
+      expect(relay.feedURL, AppUrls.appcastFor(AppBuildInfo.buildType));
       expect(native.configurations, 1);
     });
 
@@ -470,6 +479,7 @@ void main() {
     ) async {
       final native = _FakeAutoUpdater();
       final updater = _desktopUpdater(native);
+      addTearDown(updater.dispose);
       await updater.init();
       await tester.pump(Updater.startupDelay);
       updater.onUpdaterUpdateCancelled();
@@ -479,7 +489,6 @@ void main() {
       updater.retryPendingSetup();
       await tester.pump(const Duration(minutes: 30));
       expect(native.checks, [true]);
-      updater.dispose();
     });
 
     testWidgets(

@@ -566,6 +566,7 @@ stage-macos-profile: build-macos-profile
 
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
+	scripts/ci/sign_macos_dmg.sh "$(DARWIN_RELEASE_BUILD)" "$(MACOS_INSTALLER)"
 	@echo "Notarizing distribution package..."
 	xcrun notarytool submit $(MACOS_INSTALLER) \
 		--apple-id $$AC_USERNAME \
@@ -585,6 +586,9 @@ notarize-darwin: require-ac-username require-ac-password
 	fi
 	@echo "Stapling notarization ticket..."
 	xcrun stapler staple $(MACOS_INSTALLER)
+	codesign --verify --strict --verbose=2 "$(MACOS_INSTALLER)"
+	xcrun stapler validate "$(MACOS_INSTALLER)"
+	spctl --assess --type open --context context:primary-signature --verbose=4 "$(MACOS_INSTALLER)"
 	@echo "Notarization complete"
 
 
