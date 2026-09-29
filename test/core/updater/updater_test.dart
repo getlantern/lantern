@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
@@ -14,6 +16,7 @@ class _FakeAutoUpdater implements AutoUpdater {
   final checks = <bool?>[];
   int configurations = 0;
   int? interval;
+  String? feedURL;
   Object? configurationError;
   Object? checkError;
   Object? intervalError;
@@ -28,6 +31,7 @@ class _FakeAutoUpdater implements AutoUpdater {
 
   @override
   Future<void> setFeedURL(String url) async {
+    feedURL = url;
     configurations++;
     if (configurationError != null) throw configurationError!;
     await pendingFeed?.future;
@@ -35,7 +39,7 @@ class _FakeAutoUpdater implements AutoUpdater {
 
   @override
   Future<void> setScheduledCheckInterval(int value) async {
-    if (intervalError != null) throw intervalError!;
+    if (value > 0 && intervalError != null) throw intervalError!;
     interval = value;
   }
 
@@ -49,12 +53,16 @@ class _FakeAutoUpdater implements AutoUpdater {
   void fail() {
     for (final listener in listeners) {
       listener.onUpdaterError(null);
+      (listener as UpdaterLifecycleListener).onUpdaterUpdateCycleFinished(
+        UpdaterError('Network unavailable'),
+      );
     }
   }
 
   void succeed() {
     for (final listener in listeners) {
       listener.onUpdaterUpdateNotAvailable(null);
+      (listener as UpdaterLifecycleListener).onUpdaterUpdateCycleFinished(null);
     }
   }
 }
@@ -116,6 +124,7 @@ void main() {
 
       expect(native.checks, [true]);
       expect(native.interval, 3600);
+      expect(native.feedURL, AppUrls.appcastFor(AppBuildInfo.buildType));
       expect(native.configurations, 1);
     });
 
@@ -157,6 +166,7 @@ void main() {
       await tester.pump(Updater.featureFlagTimeout);
       expect(native.checks, [true]);
 
+      native.succeed();
       final check = updater.checkNow();
       await tester.pump();
       await tester.pump(Updater.featureFlagTimeout);
@@ -165,6 +175,7 @@ void main() {
       expect(flagReads, 1);
       flags.complete({FeatureFlag.autoUpdateEnabled.key: false});
       await tester.pump();
+      native.succeed();
       await updater.checkNow();
       expect(native.checks, [true, false]);
     });
@@ -252,7 +263,8 @@ void main() {
       await updater.init();
       await tester.pump(Updater.startupDelay);
       expect(native.checks, isEmpty);
-      expect(native.interval, isNull);
+      expect(native.configurations, 1);
+      expect(native.interval, 0);
 
       native.intervalError = null;
       await tester.pump(const Duration(minutes: 1));
@@ -389,6 +401,47 @@ void main() {
       expect(native.checks, [false]);
       native.pendingCheck!.complete();
       await check;
+      await updater.checkNow();
+      await tester.pump(const Duration(hours: 2));
+      expect(native.checks, [false]);
+      native.succeed();
+      await updater.checkNow();
+      expect(native.checks, [false, false]);
+    });
+
+    testWidgets('manual checks wait for a native scheduled cycle to finish', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater();
+      final updater = _desktopUpdater(native);
+      addTearDown(updater.dispose);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      native.succeed();
+
+      updater.onUpdaterCheckingForUpdate(null);
+      await updater.checkNow();
+      expect(native.checks, [true]);
+      native.succeed();
+      await updater.checkNow();
+      expect(native.checks, [true, false]);
+    });
+
+    testWidgets('cancellation waits for completion and does not retry', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater();
+      final updater = _desktopUpdater(native);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      updater.onUpdaterUpdateCancelled();
+      await updater.checkNow();
+      expect(native.checks, [true]);
+      updater.onUpdaterUpdateCycleFinished(null);
+      updater.retryPendingSetup();
+      await tester.pump(const Duration(minutes: 30));
+      expect(native.checks, [true]);
+      updater.dispose();
     });
 
     testWidgets(
@@ -503,7 +556,7 @@ void main() {
       await check;
 
       expect(native.listeners, isEmpty);
-      expect(native.interval, isNull);
+      expect(native.interval, 0);
       expect(native.checks, isEmpty);
     });
 

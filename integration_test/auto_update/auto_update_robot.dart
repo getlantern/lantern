@@ -51,7 +51,12 @@ class AutoUpdateRobot {
     await app.tap(checkForUpdates, name: 'Check for Updates', settle: false);
   }
 
-  Future<void> writeNativeHandoff() async {
+  Future<void> writeNativeHandoff({
+    required String scenario,
+    required String feedUrl,
+    required bool coreInitializationHeld,
+    required bool coreReady,
+  }) async {
     final packageInfo = await PackageInfo.fromPlatform();
     final handoff = File(autoUpdateHandoffPath);
     final payload = {
@@ -59,6 +64,11 @@ class AutoUpdateRobot {
       'display_version': packageInfo.version,
       'build_number': packageInfo.buildNumber,
       'created_at': DateTime.now().toUtc().toIso8601String(),
+      'scenario': scenario,
+      'feed_url': feedUrl,
+      'core_initialization_held': coreInitializationHeld,
+      'core_ready': coreReady,
+      'update_offered': true,
     };
     await handoff.parent.create(recursive: true);
     await handoff.writeAsString('${jsonEncode(payload)}\n', flush: true);

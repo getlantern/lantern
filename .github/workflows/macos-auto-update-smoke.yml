@@ -1,8 +1,20 @@
 name: macOS auto-update smoke
+run-name: "macOS auto-update: ${{ inputs.scenario || 'baseline' }}"
 
 on:
   workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Update conditions to exercise"
+        type: choice
+        options: [baseline, core-unavailable]
+        default: baseline
   workflow_call:
+    inputs:
+      scenario:
+        description: "baseline or core-unavailable"
+        type: string
+        default: baseline
 
 permissions:
   contents: read
@@ -35,8 +47,8 @@ jobs:
       - name: Install appcast parser dependency
         run: python -m pip install -r scripts/requirements.txt
 
-      - name: Test target resolver
-        run: python -m unittest scripts/ci/resolve_desktop_update_target_test.py
+      - name: Test update smoke helpers
+        run: python -m unittest scripts/ci/resolve_desktop_update_target_test.py scripts/ci/desktop_update_scenario_test.py
 
       - name: Resolve staging fixture target
         id: target
@@ -60,6 +72,7 @@ jobs:
         if: ${{ steps.target.outcome == 'success' }}
         shell: bash
         env:
+          SCENARIO: ${{ inputs.scenario }}
           DISPLAY_VERSION: ${{ steps.target.outputs.display_version }}
           FIXTURE_BUILD: ${{ steps.target.outputs.fixture_build }}
           TARGET_BUILD: ${{ steps.target.outputs.target_build }}
@@ -67,6 +80,7 @@ jobs:
           {
             echo "### macOS auto-update target"
             echo
+            echo "- Scenario: \`$SCENARIO\`"
             echo "- Live beta: \`$DISPLAY_VERSION\` build \`$TARGET_BUILD\`"
             echo "- Unpublished fixture: \`$DISPLAY_VERSION\` build \`$FIXTURE_BUILD\`"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -125,6 +139,7 @@ jobs:
     timeout-minutes: 30
     env:
       LANTERN_AUTO_UPDATE_SMOKE: "true"
+      UPDATE_SMOKE_SCENARIO: ${{ inputs.scenario }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -138,6 +153,11 @@ jobs:
 
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Resolve Flutter dependencies
         run: flutter pub get
