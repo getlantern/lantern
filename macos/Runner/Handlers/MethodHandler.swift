@@ -29,6 +29,29 @@ class MethodHandler {
       guard let self = self else { return }
 
       switch call.method {
+      case "startUpdateRelay":
+        guard let cacheDir: String = requireArg(call: call, name: "cacheDir", result: result),
+          let feedURL: String = requireArg(call: call, name: "feedURL", result: result)
+        else { return }
+        Task.detached {
+          var error: NSError?
+          let address = MobileStartUpdateRelay(cacheDir, feedURL, &error)
+          let failure = error
+          await MainActor.run {
+            if let failure {
+              result(FlutterError(code: "update_relay", message: failure.localizedDescription, details: nil))
+            } else {
+              result(address)
+            }
+          }
+        }
+
+      case "stopUpdateRelay":
+        Task.detached {
+          MobileStopUpdateRelay()
+          await MainActor.run { result(nil) }
+        }
+
       case "setupRadiance":
         guard
           let environment: String = self.decodeValue(
