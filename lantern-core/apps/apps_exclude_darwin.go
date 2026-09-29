@@ -4,7 +4,6 @@ package apps
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 
 	"howett.net/plist"
@@ -24,7 +23,7 @@ func shouldExcludeAppBundle(appPath, rawName, bundleID string) bool {
 		return true
 	}
 
-	plistPath := filepath.Join(appPath, "Contents", "Info.plist")
+	plistPath, _ := bundleInfoPlist(appPath)
 	f, err := os.Open(plistPath)
 	if err != nil {
 		return false

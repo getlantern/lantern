@@ -21,6 +21,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		A37810012FAD000100000001 /* TunnelFileDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37810022FAD000100000001 /* TunnelFileDescriptor.swift */; };
+		A37810032FAD000100000001 /* TunnelFileDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37810022FAD000100000001 /* TunnelFileDescriptor.swift */; };
+		A37810042FAD000100000001 /* TunnelFileDescriptorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37810052FAD000100000001 /* TunnelFileDescriptorTests.swift */; };
 		A38250062FAD000100000001 /* AppInstallation.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A38250072FAD000100000001 /* AppInstallation.xcstrings */; };
 		A38250012FAD000100000001 /* AppInstallation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38250022FAD000100000001 /* AppInstallation.swift */; };
 		A38250032FAD000100000001 /* AppInstallationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38250042FAD000100000001 /* AppInstallationTests.swift */; };
@@ -141,6 +144,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A37810022FAD000100000001 /* TunnelFileDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelFileDescriptor.swift; sourceTree = "<group>"; };
+		A37810052FAD000100000001 /* TunnelFileDescriptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelFileDescriptorTests.swift; sourceTree = "<group>"; };
 		A38250072FAD000100000001 /* AppInstallation.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = AppInstallation.xcstrings; sourceTree = "<group>"; };
 		A38250022FAD000100000001 /* AppInstallation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInstallation.swift; sourceTree = "<group>"; };
 		A38250042FAD000100000001 /* AppInstallationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInstallationTests.swift; sourceTree = "<group>"; };
@@ -270,6 +275,7 @@
 		2995B4232DF0AA4700429FE9 /* SingBox */ = {
 			isa = PBXGroup;
 			children = (
+				A37810022FAD000100000001 /* TunnelFileDescriptor.swift */,
 				2995B4202DF0AA4700429FE9 /* Extension+RunBlocking.swift */,
 				2995B4212DF0AA4700429FE9 /* ExtensionPlatformInterface.swift */,
 				2995B4222DF0AA4700429FE9 /* ExtensionProvider.swift */,
@@ -292,6 +298,7 @@
 		331C80D6294CF71000263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
+				A37810052FAD000100000001 /* TunnelFileDescriptorTests.swift */,
 				331C80D7294CF71000263BE5 /* RunnerTests.swift */,
 				A38250042FAD000100000001 /* AppInstallationTests.swift */,
 			);
@@ -688,6 +695,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A37810012FAD000100000001 /* TunnelFileDescriptor.swift in Sources */,
 				5F53D0452E4414D000740586 /* FilePath.swift in Sources */,
 				5F53D01A2E440BBC00740586 /* Extension+RunBlocking.swift in Sources */,
 				5F53D01B2E440BBC00740586 /* ExtensionPlatformInterface.swift in Sources */,
@@ -702,6 +710,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A37810032FAD000100000001 /* TunnelFileDescriptor.swift in Sources */,
+				A37810042FAD000100000001 /* TunnelFileDescriptorTests.swift in Sources */,
 				331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */,
 				A38250032FAD000100000001 /* AppInstallationTests.swift in Sources */,
 			);

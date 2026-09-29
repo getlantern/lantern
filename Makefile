@@ -290,6 +290,7 @@ APPDMG    := $(call get-command,appdmg)
 AUTO_UPDATE_E2E_DART_DEFINE := $(if $(filter true 1 yes,$(AUTO_UPDATE_E2E)),--dart-define=AUTO_UPDATE_E2E=true,)
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),) $(if $(RADIANCE_ENV),--dart-define=RADIANCE_ENV=$(RADIANCE_ENV),) $(AUTO_UPDATE_E2E_DART_DEFINE)
 FLUTTER_TARGET_ARG := $(if $(FLUTTER_TARGET),--target=$(FLUTTER_TARGET),)
+MACOS_CONNECT_SMOKE_DEFINES := $(if $(filter true,$(RUN_CONNECT_SMOKE)),--dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=$(ENABLE_IP_CHECK) --dart-define=SMOKE_FORCE_FULL_TUNNEL=$(FORCE_FULL_TUNNEL) --dart-define=VPN_LIFECYCLE_SMOKE=$(VPN_LIFECYCLE_SMOKE),)
 STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
 STEALTH_VPN_BUILD_VARS   := BUILD_TYPE=stealth-vpn  STEALTH_MODE=stealth-vpn  STEALTH_LEAKAGE_MODE=stealth-vpn
 STEALTH_ICON_SEED ?=
@@ -550,7 +551,7 @@ build-macos-release: $(DARWIN_RELEASE_BUILD)
 $(DARWIN_PROFILE_BUILD): $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (profile) for macOS..."
 	rm -vf $(MACOS_INSTALLER)
-	flutter build macos --profile $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	flutter build macos --profile $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(MACOS_CONNECT_SMOKE_DEFINES)
 
 .PHONY: build-macos-release build-macos-profile stage-macos-profile
 build-macos-profile: $(DARWIN_PROFILE_BUILD)

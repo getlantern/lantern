@@ -4,11 +4,11 @@ set -euo pipefail
 TEST_PATH="${TEST_PATH:-integration_test/vpn/macos_connect_smoke_test.dart}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos}"
 RUN_CONNECT_SMOKE="${RUN_CONNECT_SMOKE:-true}"
-ENABLE_IP_CHECK="${ENABLE_IP_CHECK:-false}"
-FORCE_FULL_TUNNEL="${FORCE_FULL_TUNNEL:-true}"
+VPN_LIFECYCLE_SMOKE="${VPN_LIFECYCLE_SMOKE:-false}"
 EXTENSION_TIMEOUT_SECONDS="${EXTENSION_TIMEOUT_SECONDS:-120}"
 APP_INSTALL_DIR="${APP_INSTALL_DIR:-/Applications/Lantern.app}"
 LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-/Users/Shared/Lantern/Logs}"
+LANTERN_IPC_SOCKET="${LANTERN_IPC_SOCKET:-/var/run/lantern/lanternd.sock}"
 DMG_MOUNT_DIR=""
 
 if ! [[ "$EXTENSION_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
@@ -152,6 +152,24 @@ resolve_app_path() {
   return 1
 }
 
+register_installed_app() {
+  local app_path="$1"
+  local registry="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+  local mode bundle
+
+  # Build and XCTest copies share Lantern's bundle ID. macOS VPN approval must
+  # resolve the installed fixture, even after those temporary copies are deleted.
+  for mode in Debug Profile Release; do
+    "$registry" -u "$PWD/build/macos/Build/Products/$mode/Lantern.app" 2>/dev/null || true
+  done
+  for bundle in "$HOME"/Library/Developer/Xcode/DerivedData/Runner-*/Build/Products/*/Lantern.app; do
+    [[ -d "$bundle" ]] || continue
+    "$registry" -u "$bundle" 2>/dev/null || true
+  done
+  log_step "Registering installed Lantern app at $app_path"
+  "$registry" -f "$app_path"
+}
+
 capture_command() {
   local name="$1"
   shift
@@ -181,9 +199,10 @@ reset_lantern_logs() {
 capture_unified_logs() {
   log_step "Capturing unified logs"
   log show \
-    --last 30m \
+    --last 10m \
+    --info --debug \
     --style syslog \
-    --predicate 'subsystem == "org.getlantern.lantern" OR subsystem == "org.getlantern.lantern.PacketTunnel"' \
+    --predicate 'subsystem == "org.getlantern.lantern" OR subsystem == "org.getlantern.lantern.PacketTunnel" OR process == "neagent" OR process == "nehelper"' \
     >"$ARTIFACT_DIR/unified-lantern.log" 2>&1 || true
 }
 
@@ -202,12 +221,18 @@ capture_diagnostics() {
     date
   } >"$ARTIFACT_DIR/diagnostics.txt"
 
+  capture_screenshot
   capture_command "systemextensionsctl-list" systemextensionsctl list
+  capture_command "vpn-profiles" scutil --nc list
   capture_command "process-list" ps aux
   capture_command "packet-tunnel-processes" pgrep -fl "org.getlantern.lantern.PacketTunnel"
+  capture_command "interfaces" ifconfig
+  capture_command "routes" netstat -rn
+  if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
+    cp /Users/Shared/Lantern/E2E/vpn-smoke-*.json "$ARTIFACT_DIR/" 2>/dev/null || true
+  fi
   capture_lantern_logs
   capture_unified_logs
-  capture_screenshot
 }
 
 quit_lantern() {
@@ -217,23 +242,29 @@ quit_lantern() {
   sleep 2
 }
 
-packet_tunnel_processes() {
-  pgrep -fl "org.getlantern.lantern.PacketTunnel" 2>/dev/null || true
-}
-
-wait_for_packet_tunnel_exit() {
+wait_for_vpn_disconnect() {
   local timeout_seconds="${1:-30}"
+  local profiles i
 
+  # macOS can keep the system extension alive between sessions. Check the VPN
+  # and its IPC socket instead; a resident process does not mean a live tunnel.
   for ((i = 0; i < timeout_seconds; i++)); do
-    if [[ -z "$(packet_tunnel_processes)" ]]; then
-      log_step "PacketTunnel is not running"
+    profiles="$(LC_ALL=C scutil --nc list)" || return 1
+    if printf '%s\n' "$profiles" | awk '
+      index($0, "[VPN:org.getlantern.lantern]") {
+        found = 1
+        if ($1 != "(Disconnected)" && $2 != "(Disconnected)") active = 1
+      }
+      END { exit (!found || active) }
+    ' && [[ ! -e "$LANTERN_IPC_SOCKET" ]]; then
+      log_step "Lantern VPN is disconnected and its IPC socket is closed"
       return 0
     fi
     sleep 1
   done
 
-  packet_tunnel_processes >"$ARTIFACT_DIR/packet-tunnel-still-running.txt"
-  printf 'PacketTunnel was still running after disconnect/quit\n' >&2
+  printf '%s\n' "$profiles" >"$ARTIFACT_DIR/vpn-profiles.txt"
+  printf 'Lantern VPN is not disconnected or its IPC socket still exists after quit\n' >&2
   return 1
 }
 
@@ -301,23 +332,19 @@ run_system_extension_preflight() {
 }
 
 run_flutter_connect_smoke() {
+  local app_path="$1"
   local args=(
-    "test"
-    "$TEST_PATH"
+    "drive"
+    "--profile"
+    "--use-application-binary=$app_path"
+    "--keep-app-running"
+    "--driver=test_driver/integration_test.dart"
+    "--target=$TEST_PATH"
     "-d"
     "macos"
-    "--reporter=expanded"
-    "--dart-define=DISABLE_SYSTEM_TRAY=true"
   )
 
-  if [[ "$ENABLE_IP_CHECK" == "true" ]]; then
-    args+=("--dart-define=ENABLE_IP_CHECK=true")
-  fi
-
-  if [[ "$FORCE_FULL_TUNNEL" == "true" ]]; then
-    args+=("--dart-define=SMOKE_FORCE_FULL_TUNNEL=true")
-  fi
-
+  # Smoke options are compiled into the signed fixture before it is installed.
   log_step "Running macOS connect smoke: flutter ${args[*]}"
   flutter "${args[@]}"
 }
@@ -325,9 +352,15 @@ run_flutter_connect_smoke() {
 on_exit() {
   local status=$?
 
-  quit_lantern
   if [[ "$status" -ne 0 ]]; then
+    # Preserve native permission prompts in the failure screenshot.
     capture_diagnostics "failure"
+  fi
+  quit_lantern
+  if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
+    rm -f /Users/Shared/Lantern/E2E/vpn-smoke-request.json \
+      /Users/Shared/Lantern/E2E/vpn-smoke-request.json.tmp \
+      /Users/Shared/Lantern/E2E/vpn-smoke-result.json
   fi
   detach_dmg
 
@@ -339,6 +372,10 @@ trap on_exit EXIT
 mkdir -p "$ARTIFACT_DIR"
 reset_lantern_logs
 capture_command "systemextensionsctl-list-initial" systemextensionsctl list
+if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
+  rm -f /Users/Shared/Lantern/E2E/vpn-smoke-request.json \
+    /Users/Shared/Lantern/E2E/vpn-smoke-result.json
+fi
 
 app_path="$(resolve_app_path)"
 app_executable="$app_path/Contents/MacOS/Lantern"
@@ -348,12 +385,15 @@ if [[ ! -x "$app_executable" ]]; then
 fi
 
 if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
+  register_installed_app "$app_path"
   run_system_extension_preflight "$app_executable"
-  run_flutter_connect_smoke
+  run_flutter_connect_smoke "$app_path"
 else
   log_step "Skipping macOS connect smoke test."
 fi
 
 quit_lantern
-wait_for_packet_tunnel_exit 30
+if [[ "$RUN_CONNECT_SMOKE" == "true" ]]; then
+  wait_for_vpn_disconnect 30
+fi
 capture_diagnostics "success"

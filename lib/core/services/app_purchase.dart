@@ -122,9 +122,9 @@ class AppPurchase {
     if (!Platform.isAndroid) {
       return true;
     }
-    // Subscribing to purchaseStream initializes BillingClient, which OOMs
-    // the Dalvik heap via an internal reconnect loop when Play Billing
-    // isn't reachable. See getlantern/engineering#3485.
+    // Play Billing is unreachable in censored regions, so don't bind
+    // BillingClient there. Sideload builds are excluded by isStoreVersion().
+    // An unknown country is allowed; see resolvePlayBillingAvailability.
     final allowed = canUsePlayBilling();
     if (!allowed) {
       appLogger.info(
@@ -135,43 +135,29 @@ class AppPurchase {
     return allowed;
   }
 
-  /// How long a user-initiated purchase or restore waits for the country-code
-  /// event before giving up. The country only arrives on a config update
-  /// (lantern-core/core.go), so on a cold start it can lag the tap by several
-  /// seconds — and without it [canUsePlayBilling] stays false and the purchase
-  /// fails even in markets where Play Billing works fine. The caller already
-  /// has a loading dialog up, so waiting is cheaper than a spurious failure.
-  /// The background product prefetch keeps the shorter default.
-  static const _purchaseCountryWaitTimeout = Duration(seconds: 10);
-
+  /// Subscribes to the purchase stream if allowed and reports whether it is
+  /// live. Never waits for the country-code event: Play Billing is allowed
+  /// while the country is unknown (see [resolvePlayBillingAvailability]).
   Future<bool> _ensurePurchaseStreamReady() async {
     appLogger.info(
       '[AppPurchase] _ensurePurchaseStreamReady: '
-      'country=${CountryCode.current}, isKnown=${CountryCode.isKnown}, '
+      'country=${CountryCode.current}, '
       'subscribed=${_subscription != null}',
     );
     init();
-    if (_subscription != null) {
-      appLogger.info('[AppPurchase] _ensurePurchaseStreamReady: ready');
-      return true;
-    }
-    if (Platform.isAndroid && !CountryCode.isKnown) {
-      appLogger.info(
-        '[AppPurchase] _ensurePurchaseStreamReady: country unknown, '
-        'waiting for country-code event…',
-      );
-      final known = await CountryCode.waitUntilKnown(
-        timeout: _purchaseCountryWaitTimeout,
-      );
-      appLogger.info(
-        '[AppPurchase] _ensurePurchaseStreamReady: waitUntilKnown returned '
-        '$known (country=${CountryCode.current}); retrying init',
-      );
-      init();
-    }
     final ready = _subscription != null;
     appLogger.info('[AppPurchase] _ensurePurchaseStreamReady: ready=$ready');
     return ready;
+  }
+
+  /// Tears down the purchase stream. Called when core reports a censored
+  /// country after Billing was already initialized on a cold start, so the
+  /// client stops binding to an unreachable Play service.
+  void stopBilling() {
+    if (_subscription == null) return;
+    appLogger.info('[AppPurchase] Stopping Play Billing: censored region');
+    _subscription?.cancel();
+    _subscription = null;
   }
 
   /// The product IDs to query from the store. iOS additionally queries the
