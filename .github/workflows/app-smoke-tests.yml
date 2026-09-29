@@ -22,6 +22,7 @@ on:
         type: choice
         options:
           - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
+          - vpn-lifecycle # macOS: reconnects, forced descriptor fallback, and failed-start recovery
           - auth-smoke # auth flows only (sign-in/up, recovery, deletion) against the smoke roster
           - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
           - payment-smoke # Stripe Checkout rendering and payment-to-Pro conversion
@@ -53,6 +54,11 @@ jobs:
   validate-inputs:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate VPN lifecycle selection
+        if: ${{ inputs.tests == 'vpn-lifecycle' && inputs.platforms != 'macos' }}
+        run: |
+          echo '::error title=Invalid smoke selection::vpn-lifecycle requires platforms=macos'
+          exit 2
       - name: Validate auto-update selection
         if: ${{ inputs.tests == 'auto-update' && !contains(fromJSON('["all", "macos", "windows"]'), inputs.platforms) }}
         shell: bash
@@ -149,6 +155,8 @@ jobs:
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       runner_label: lantern-macos-smoke
+      vpn_lifecycle_smoke: ${{ inputs.tests == 'vpn-lifecycle' }}
+      enable_ip_check: true
       run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
       run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
