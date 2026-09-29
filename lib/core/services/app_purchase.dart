@@ -37,13 +37,14 @@ class _PurchaseSession {
 }
 
 class AppPurchase {
-  /// [inAppPurchase], [pendingStore] and [acknowledger] are injectable for
-  /// tests; production uses the store plugin singleton and the service locator.
+  /// Tests can supply their own store, storage, and billing policy.
   AppPurchase({
     InAppPurchase? inAppPurchase,
     PendingPurchaseStore? pendingStore,
     PurchaseAcknowledger? acknowledger,
-  }) : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance {
+    bool Function()? canUseBilling,
+  }) : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance,
+       _canUseBilling = canUseBilling ?? canUseStoreBilling {
     _pendingStore =
         pendingStore ?? PendingPurchaseStore(() => sl<LocalStorageService>());
     _acknowledger =
@@ -68,6 +69,7 @@ class AppPurchase {
   }
 
   final InAppPurchase _inAppPurchase;
+  final bool Function() _canUseBilling;
   late final PendingPurchaseStore _pendingStore;
   late final PurchaseAcknowledger _acknowledger;
 
@@ -111,53 +113,32 @@ class AppPurchase {
   }
 
   bool _canInitializeStorePurchases() {
-    if (PlatformUtils.isDesktop) {
-      appLogger.debug('[AppPurchase] Skipping init: desktop platform');
-      return false;
-    }
     if (_subscription != null) {
       appLogger.debug('[AppPurchase] Skipping init: already subscribed');
       return false;
     }
-    if (!Platform.isAndroid) {
-      return true;
-    }
-    // Play Billing is unreachable in censored regions, so don't bind
-    // BillingClient there. Sideload builds are excluded by isStoreVersion().
-    // An unknown country is allowed; see resolvePlayBillingAvailability.
-    final allowed = canUsePlayBilling();
+    final allowed = _canUseBilling();
     if (!allowed) {
       appLogger.info(
-        '[AppPurchase] Skipping Play Billing init: canUsePlayBilling=false '
+        '[AppPurchase] Skipping init: store billing unavailable '
         '(country=${CountryCode.current}, censored=${CountryCode.isCensoredRegion})',
       );
     }
     return allowed;
   }
 
-  /// Subscribes to the purchase stream if allowed and reports whether it is
-  /// live. Never waits for the country-code event: Play Billing is allowed
-  /// while the country is unknown (see [resolvePlayBillingAvailability]).
-  Future<bool> _ensurePurchaseStreamReady() async {
+  /// Starts listening if needed. Returns false when new purchases are blocked.
+  bool _preparePurchaseStream() {
+    if (!_canUseBilling()) return false;
     appLogger.info(
-      '[AppPurchase] _ensurePurchaseStreamReady: '
+      '[AppPurchase] Preparing purchase stream: '
       'country=${CountryCode.current}, '
       'subscribed=${_subscription != null}',
     );
     init();
     final ready = _subscription != null;
-    appLogger.info('[AppPurchase] _ensurePurchaseStreamReady: ready=$ready');
+    appLogger.info('[AppPurchase] Purchase stream ready=$ready');
     return ready;
-  }
-
-  /// Tears down the purchase stream. Called when core reports a censored
-  /// country after Billing was already initialized on a cold start, so the
-  /// client stops binding to an unreachable Play service.
-  void stopBilling() {
-    if (_subscription == null) return;
-    appLogger.info('[AppPurchase] Stopping Play Billing: censored region');
-    _subscription?.cancel();
-    _subscription = null;
   }
 
   /// The product IDs to query from the store. iOS additionally queries the
@@ -270,7 +251,7 @@ class AppPurchase {
     return null;
   }
 
-  /// Ensures products are available before starting a purchase.
+  /// Loads product details if they aren't already available.
   Future<void> _waitForProducts() async {
     if (_productsLoaded) return;
 
@@ -297,6 +278,13 @@ class AppPurchase {
     required void Function(String error) onError,
     String couponCode = '',
   }) async {
+    if (!_preparePurchaseStream()) {
+      onError(
+        "Unable to access in-app purchases. Check your network and try again.",
+      );
+      return;
+    }
+
     _session.onSuccess = onSuccess;
     _session.onError = onError;
     // Store the exact plan id user chose (ex: "1y-usd-10")
@@ -305,13 +293,6 @@ class AppPurchase {
     // acknowledgment. Reset to '' when none so a prior purchase's code never
     // leaks into an unrelated one.
     _session.pendingCouponCode = couponCode;
-
-    if (!await _ensurePurchaseStreamReady()) {
-      _session.onError?.call(
-        "Unable to access in-app purchases. Check your network and try again.",
-      );
-      return;
-    }
 
     try {
       await _waitForProducts();
@@ -347,6 +328,23 @@ class AppPurchase {
         planId: plan,
         couponCode: couponCode,
       );
+      // The country can change while we load products or save purchase details.
+      if (!_canUseBilling()) {
+        clearCallbacks();
+        try {
+          await _pendingStore.forgetProduct(product.id);
+        } catch (error, stackTrace) {
+          appLogger.error(
+            '[AppPurchase] Unable to clear pending purchase metadata',
+            error,
+            stackTrace,
+          );
+        }
+        onError(
+          "Unable to access in-app purchases. Check your network and try again.",
+        );
+        return;
+      }
       final started = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
@@ -371,22 +369,19 @@ class AppPurchase {
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   }) async {
+    if (!_preparePurchaseStream()) {
+      onError(
+        "Unable to access in-app purchases. Check your network and try again.",
+      );
+      return;
+    }
+
     _session.onSuccess = onSuccess;
     _session.onError = onError;
     _session.isRestoreFlow = true;
     _session.restoreReceivedAny = false;
     _session.pendingPlanId = null;
     _session.pendingCouponCode = '';
-
-    if (!await _ensurePurchaseStreamReady()) {
-      _session.isRestoreFlow = false;
-      final onError = _session.onError;
-      clearCallbacks();
-      onError?.call(
-        "Unable to access in-app purchases. Check your network and try again.",
-      );
-      return;
-    }
 
     try {
       appLogger.info('[AppPurchase] Initiating restore purchases');
