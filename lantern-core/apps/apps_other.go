@@ -19,3 +19,6 @@ func getAppID(appPath string) (string, error) { return appPath, nil }
 func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDirs []string, cb Callback) []*AppData {
 	return nil
 }
+
+// Only macOS has iPhone/iPad wrapper bundles.
+func wrappedBundleName(string) string { return "" }
