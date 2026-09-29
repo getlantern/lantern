@@ -154,10 +154,11 @@ jobs:
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      # The smoke helper only needs the standard library from the runner's Python.
+      - name: Check runner Python
+        run: |
+          python3 --version
+          python3 -m unittest scripts/ci/desktop_update_scenario_test.py
 
       - name: Resolve Flutter dependencies
         run: flutter pub get
