@@ -47,21 +47,9 @@ Future<void> main() async {
     appLogger.error("Error during app initialization", e, st);
   }
 
-  // Auto-updater is internally guarded by kDebugMode and platform checks.
-  // Do not await: Sparkle bridge calls on desktop and the Android sideload
-  // update check are both deferred inside init().
-  //
-  // Guard the sl<Updater>() lookup: if injectServices() threw above, Updater
-  // (registered at injection_container.dart:40) may not be in the registry,
-  // and the synchronous lookup would throw and prevent runApp.
-  try {
-    if (sl.isRegistered<Updater>()) {
-      unawaited(sl<Updater>().init());
-    } else {
-      appLogger.warning('Updater not registered, skipping init');
-    }
-  } catch (e, st) {
-    appLogger.error('Failed to start Updater.init', e, st);
+  // Mobile updates need the store and notification services.
+  if (PlatformUtils.isMobile && sl.isRegistered<Updater>()) {
+    unawaited(sl<Updater>().init());
   }
 
   runApp(
