@@ -98,6 +98,8 @@ func parseFeedURL(raw string) (*url.URL, error) {
 	return u, nil
 }
 
+// startRelay starts the loopback server without taking ownership of transport.
+// The caller is responsible for cancelling ctx and closing transport.
 func startRelay(ctx context.Context, feed *url.URL, transport http.RoundTripper) (*relay, error) {
 	listener, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
@@ -142,6 +144,7 @@ func (r *relay) close() {
 	}
 }
 
+// ServeHTTP accepts only the configured feed and previously registered installers.
 func (r *relay) ServeHTTP(w http.ResponseWriter, request *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	// Checking the Host as well as the secret path rejects DNS rebinding.
@@ -213,6 +216,7 @@ func (t relayTransport) RoundTrip(req *http.Request) (*http.Response, error) { r
 func (r *relay) serveFeed(w http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithTimeout(request.Context(), time.Minute)
 	defer cancel()
+	// The feed URL was validated before the relay started.
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, r.feed.String(), nil)
 	req.Header = updateHeaders()
 	response, err := r.client.Do(req)
@@ -248,6 +252,8 @@ func (r *relay) feedFailure(w http.ResponseWriter, err error) {
 	http.Error(w, "update feed unavailable", http.StatusBadGateway)
 }
 
+// rewriteFeed replaces installer URLs while preserving version and signature metadata.
+// New installer routes become available only after the whole feed is rewritten.
 func (r *relay) rewriteFeed(data []byte) ([]byte, error) {
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 	var output bytes.Buffer

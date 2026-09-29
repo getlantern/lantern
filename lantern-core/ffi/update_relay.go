@@ -12,6 +12,9 @@ import (
 	"github.com/getlantern/lantern/lantern-core/utils"
 )
 
+// startUpdateRelay returns a caller-owned feed URL or JSON error.
+// Non-nil results must be released with freeCString.
+//
 //export startUpdateRelay
 func startUpdateRelay(cacheDir, feedURL *C.char) *C.char {
 	return runOnGoStack(func() *C.char {
@@ -23,6 +26,8 @@ func startUpdateRelay(cacheDir, feedURL *C.char) *C.char {
 	})
 }
 
+// stopUpdateRelay cancels in-flight requests and releases the listener.
+//
 //export stopUpdateRelay
 func stopUpdateRelay() {
 	_, _ = utils.RunOffCgoStack(func() (struct{}, error) {

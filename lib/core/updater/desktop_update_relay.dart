@@ -19,6 +19,8 @@ class DesktopUpdateRelay {
   Future<String>? _starting;
   bool _closed = false;
 
+  /// Returns the local feed URL, sharing startup work between callers.
+  /// A failed start can be retried.
   Future<String> start(String feedUrl) {
     if (_closed) throw StateError('Update relay is closed');
     return _starting ??= _start(feedUrl).catchError((Object error) {
@@ -46,6 +48,7 @@ class DesktopUpdateRelay {
     throw UnsupportedError('Desktop update relay requires macOS or Windows');
   }
 
+  /// Waits for pending startup, then stops the relay. This instance cannot restart.
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
