@@ -51,18 +51,21 @@ class _FakeAutoUpdater implements AutoUpdater {
   }
 
   void fail() {
+    final error = UpdaterError('Network unavailable');
     for (final listener in listeners) {
-      listener.onUpdaterError(null);
-      (listener as UpdaterLifecycleListener).onUpdaterUpdateCycleFinished(
-        UpdaterError('Network unavailable'),
-      );
+      listener.onUpdaterError(error);
+      if (listener is UpdaterLifecycleListener) {
+        listener.onUpdaterUpdateCycleFinished(error);
+      }
     }
   }
 
   void succeed() {
     for (final listener in listeners) {
       listener.onUpdaterUpdateNotAvailable(null);
-      (listener as UpdaterLifecycleListener).onUpdaterUpdateCycleFinished(null);
+      if (listener is UpdaterLifecycleListener) {
+        listener.onUpdaterUpdateCycleFinished(null);
+      }
     }
   }
 }
@@ -432,6 +435,7 @@ void main() {
     ) async {
       final native = _FakeAutoUpdater();
       final updater = _desktopUpdater(native);
+      addTearDown(updater.dispose);
       await updater.init();
       await tester.pump(Updater.startupDelay);
       updater.onUpdaterUpdateCancelled();
@@ -441,7 +445,6 @@ void main() {
       updater.retryPendingSetup();
       await tester.pump(const Duration(minutes: 30));
       expect(native.checks, [true]);
-      updater.dispose();
     });
 
     testWidgets(

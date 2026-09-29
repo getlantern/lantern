@@ -128,7 +128,10 @@ class _UpdateProbe with UpdaterListener {
 
   @override
   void onUpdaterError(UpdaterError? error) {
-    errors.add('${error?.domain}: ${error?.code}');
+    errors.add(
+      '${error?.message ?? 'No error details from the native updater'} '
+      '(domain=${error?.domain}, code=${error?.code})',
+    );
   }
 
   @override

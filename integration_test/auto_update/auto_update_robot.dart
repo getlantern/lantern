@@ -22,7 +22,7 @@ String get autoUpdateHandoffPath {
   throw UnsupportedError('Auto-update handoff is desktop-only');
 }
 
-/// Drives Lantern up to the native Sparkle boundary.
+/// Opens the update check and records the handoff to the native installer.
 class AutoUpdateRobot {
   AutoUpdateRobot(this.tester) : app = AppRobot(tester);
 
