@@ -7,7 +7,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/purchase/pending_purchase_store.dart';
 import 'package:lantern/core/services/purchase/purchase_acknowledger.dart';
-import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
 import 'injection_container.dart' show sl;
@@ -89,6 +88,14 @@ class AppPurchase {
   ];
 
   bool _productsLoaded = false;
+
+  /// Whether a store purchase or restore can be offered right now. On Android
+  /// this also requires that a product query has reached Google Play: that
+  /// query is the only real reachability check, since the billing client
+  /// binds locally and cannot tell a blocked network from a working one.
+  /// StoreKit is local, so iOS is never gated on a fetch.
+  bool get isStoreBillingAvailable =>
+      canUseStoreBilling() && (!Platform.isAndroid || _productsLoaded);
   Completer<void>? _productsLoadedCompleter;
 
   final _PurchaseSession _session = _PurchaseSession();
@@ -103,7 +110,7 @@ class AppPurchase {
 
     appLogger.info(
       '[AppPurchase] Subscribing to purchaseStream '
-      '(platform=${Platform.operatingSystem}, country=${CountryCode.current})',
+      '(platform=${Platform.operatingSystem})',
     );
     _subscription = _inAppPurchase.purchaseStream.listen(
       _onPurchaseUpdates,
@@ -120,8 +127,7 @@ class AppPurchase {
     final allowed = _canUseBilling();
     if (!allowed) {
       appLogger.info(
-        '[AppPurchase] Skipping init: store billing unavailable '
-        '(country=${CountryCode.current}, censored=${CountryCode.isCensoredRegion})',
+        '[AppPurchase] Skipping init: store billing unavailable on this build',
       );
     }
     return allowed;
@@ -132,7 +138,6 @@ class AppPurchase {
     if (!_canUseBilling()) return false;
     appLogger.info(
       '[AppPurchase] Preparing purchase stream: '
-      'country=${CountryCode.current}, '
       'subscribed=${_subscription != null}',
     );
     init();
@@ -328,7 +333,8 @@ class AppPurchase {
         planId: plan,
         couponCode: couponCode,
       );
-      // The country can change while we load products or save purchase details.
+      // Billing can become unavailable while we load products or save
+      // purchase details.
       if (!_canUseBilling()) {
         clearCallbacks();
         try {

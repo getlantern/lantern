@@ -145,7 +145,7 @@ class _PlansState extends ConsumerState<Plans>
                   onPressed: onGetLanternProTap,
                 ),
               ),
-              if (canUseStoreBilling()) ...[
+              if (sl<AppPurchase>().isStoreBillingAvailable) ...[
                 SizedBox(height: 8),
                 Center(
                   child: AppRichText(
