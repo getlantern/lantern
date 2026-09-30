@@ -430,6 +430,31 @@ void main() {
       expect(native.checks, [true, false]);
     });
 
+    testWidgets(
+      'manual checks wait for scheduled updates without a checking event',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final updater = _desktopUpdater(native);
+        addTearDown(updater.dispose);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        native.succeed();
+
+        // WinSparkle's scheduled checks first notify Dart when an update is found.
+        updater.onUpdaterUpdateAvailable(null);
+        await updater.checkNow();
+        expect(native.checks, [true]);
+
+        updater.onUpdaterUpdateCancelled();
+        await updater.checkNow();
+        expect(native.checks, [true]);
+
+        updater.onUpdaterUpdateCycleFinished(null);
+        await updater.checkNow();
+        expect(native.checks, [true, false]);
+      },
+    );
+
     testWidgets('cancellation waits for completion and does not retry', (
       tester,
     ) async {

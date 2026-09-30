@@ -307,6 +307,8 @@ class Updater with UpdaterLifecycleListener {
 
   @override
   void onUpdaterUpdateAvailable(AppcastItem? appcastItem) {
+    // WinSparkle doesn't send a checking event for its scheduled checks.
+    _checkInProgress = true;
     appLogger.info('Desktop update available');
   }
 
