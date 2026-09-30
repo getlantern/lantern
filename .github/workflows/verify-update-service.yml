@@ -1,6 +1,12 @@
 name: Verify Update Service
 
 on:
+  pull_request:
+    paths:
+      - "scripts/ci/**"
+      - "scripts/requirements.txt"
+      - ".github/workflows/release.yml"
+      - ".github/workflows/verify-update-service.yml"
   workflow_dispatch:
     inputs:
       version:
@@ -17,6 +23,7 @@ on:
         required: false
         type: choice
         options:
+          - stable
           - beta
         default: beta
       platform:
@@ -24,11 +31,21 @@ on:
         required: false
         type: string
         default: all
+      linux_arch:
+        description: "Linux architectures to verify"
+        type: choice
+        options: [all, amd64, arm64]
+        default: all
       update_url:
         description: "Lantern update endpoint"
         required: false
         type: string
         default: "https://update.getlantern.org/update/lantern"
+      asset_base_url:
+        description: "Expected public directory containing the promoted assets"
+        required: false
+        type: string
+        default: ""
       timeout_seconds:
         description: "How long to poll the update service"
         required: false
@@ -56,10 +73,17 @@ on:
         required: false
         type: string
         default: all
+      linux_arch:
+        type: string
+        default: all
       update_url:
         required: false
         type: string
         default: "https://update.getlantern.org/update/lantern"
+      asset_base_url:
+        required: false
+        type: string
+        default: ""
       timeout_seconds:
         required: false
         type: number
@@ -73,27 +97,31 @@ permissions:
   contents: read
 
 concurrency:
-  group: verify-update-service-${{ inputs.channel }}-${{ inputs.platform }}-${{ inputs.version }}
+  group: verify-update-service-${{ github.ref }}-${{ inputs.channel }}-${{ inputs.platform }}-${{ inputs.version }}
   cancel-in-progress: false
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install Python dependencies
-        run: python3 -m pip install -r scripts/requirements.txt
-
-      - name: Test update service verifier
-        run: python3 -m unittest scripts/ci/verify_update_service_test.py
+      - uses: actions/checkout@v4
+      - name: Install test dependencies
+        run: python3 -m pip install -r scripts/requirements.txt PyYAML
+      - name: Test release tooling
+        run: python3 -m unittest discover -s scripts/ci -p '*_test.py'
+      - name: Validate workflows
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color -shellcheck=
 
       - name: Run update service verifier
+        if: github.event_name != 'pull_request'
         env:
           UPDATE_URL: ${{ inputs.update_url }}
+          ASSET_BASE_URL: ${{ inputs.asset_base_url }}
           CHANNEL: ${{ inputs.channel }}
           PLATFORM: ${{ inputs.platform }}
+          LINUX_ARCH: ${{ inputs.linux_arch }}
           VERSION: ${{ inputs.version }}
           SPARKLE_VERSION: ${{ inputs.sparkle_version }}
           TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
@@ -101,8 +129,10 @@ jobs:
         run: |
           python3 scripts/ci/verify_update_service.py \
             --update-url "$UPDATE_URL" \
+            --asset-base-url "$ASSET_BASE_URL" \
             --channel "$CHANNEL" \
             --platform "$PLATFORM" \
+            --linux-arch "$LINUX_ARCH" \
             --version "$VERSION" \
             --sparkle-version "$SPARKLE_VERSION" \
             --timeout-seconds "$TIMEOUT_SECONDS" \

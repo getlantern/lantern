@@ -61,22 +61,26 @@ upload_file() {
   local filepath="$2"
   local filename
   filename="$(basename "$filepath")"
+  local checksum
+  checksum="$(sha256sum "$filepath" | awk '{print $1}')"
   echo "↑ Uploading $platform: $filename"
   # Upload to versioned path
-  if ! aws s3 cp "$filepath" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}" --acl public-read; then
+  if ! aws s3 cp "$filepath" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}" --acl public-read --metadata "sha256=${checksum}"; then
     echo "✗ Failed to upload $filename to versioned path" >&2
     return 2
   fi
 
-  # Upload to latest alias
-  if ! aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" --acl public-read; then
+  # Stable and beta aliases move only after the GitHub release is verified.
+  if [[ "$BUILD_TYPE" == "nightly" ]] && ! aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" --acl public-read --metadata "sha256=${checksum}"; then
     echo "✗ Failed to upload $filename to latest path" >&2
     return 2
   fi
 
   echo "✓ Uploaded $platform successfully"
   echo "  - https://s3.amazonaws.com/${BUCKET}/${VERSION_PREFIX}/${filename}"
-  echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
+  if [[ "$BUILD_TYPE" == "nightly" ]]; then
+    echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
+  fi
   return 0
 }
 
