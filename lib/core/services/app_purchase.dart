@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/purchase/pending_purchase_store.dart';
 import 'package:lantern/core/services/purchase/purchase_acknowledger.dart';
-import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
 import 'injection_container.dart' show sl;
@@ -88,7 +88,15 @@ class AppPurchase {
     '1y_sub_affiliate',
   ];
 
-  bool _productsLoaded = false;
+  /// True once a product query has reached the store; cleared when one fails.
+  final ValueNotifier<bool> _productsLoaded = ValueNotifier<bool>(false);
+
+  /// Lets the UI rebuild when [isStoreBillingAvailable] changes.
+  ValueListenable<bool> get productsLoaded => _productsLoaded;
+
+  /// On Android, true only once a product query has reached Google Play.
+  bool get isStoreBillingAvailable =>
+      _canUseBilling() && (!Platform.isAndroid || _productsLoaded.value);
   Completer<void>? _productsLoadedCompleter;
 
   final _PurchaseSession _session = _PurchaseSession();
@@ -103,7 +111,7 @@ class AppPurchase {
 
     appLogger.info(
       '[AppPurchase] Subscribing to purchaseStream '
-      '(platform=${Platform.operatingSystem}, country=${CountryCode.current})',
+      '(platform=${Platform.operatingSystem})',
     );
     _subscription = _inAppPurchase.purchaseStream.listen(
       _onPurchaseUpdates,
@@ -120,8 +128,7 @@ class AppPurchase {
     final allowed = _canUseBilling();
     if (!allowed) {
       appLogger.info(
-        '[AppPurchase] Skipping init: store billing unavailable '
-        '(country=${CountryCode.current}, censored=${CountryCode.isCensoredRegion})',
+        '[AppPurchase] Skipping init: store billing unavailable on this build',
       );
     }
     return allowed;
@@ -132,7 +139,6 @@ class AppPurchase {
     if (!_canUseBilling()) return false;
     appLogger.info(
       '[AppPurchase] Preparing purchase stream: '
-      'country=${CountryCode.current}, '
       'subscribed=${_subscription != null}',
     );
     init();
@@ -168,8 +174,10 @@ class AppPurchase {
     if (inFlight != null && !inFlight.isCompleted) {
       return inFlight.future;
     }
-    _productsLoaded = false;
     final completer = Completer<void>();
+    // Callers that piggy-back await this future; when none do, its error must
+    // not surface as an unhandled async error alongside the thrown one.
+    completer.future.ignore();
     _productsLoadedCompleter = completer;
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
@@ -205,7 +213,7 @@ class AppPurchase {
             _subscriptionSku
               ..clear()
               ..addAll(products);
-            _productsLoaded = true;
+            _productsLoaded.value = true;
             if (!completer.isCompleted) completer.complete();
             return;
           }
@@ -232,6 +240,7 @@ class AppPurchase {
       }
     }
 
+    _productsLoaded.value = false;
     final error = StateError(
       'Unable to load in-app purchase products after $maxAttempts attempts',
     );
@@ -253,14 +262,14 @@ class AppPurchase {
 
   /// Loads product details if they aren't already available.
   Future<void> _waitForProducts() async {
-    if (_productsLoaded) return;
-
-    // If a fetch is already in progress, piggy-back on it.
+    // If a fetch is already in progress, piggy-back on it so the purchase
+    // uses the SKU set being loaded rather than the previous one.
     if (_productsLoadedCompleter != null &&
         !_productsLoadedCompleter!.isCompleted) {
       await _productsLoadedCompleter!.future;
       return;
     }
+    if (_productsLoaded.value) return;
 
     // No active fetch — reset so fetchSubscriptions creates a fresh completer.
     _productsLoadedCompleter = null;
@@ -328,7 +337,8 @@ class AppPurchase {
         planId: plan,
         couponCode: couponCode,
       );
-      // The country can change while we load products or save purchase details.
+      // Billing can become unavailable while we load products or save
+      // purchase details.
       if (!_canUseBilling()) {
         clearCallbacks();
         try {

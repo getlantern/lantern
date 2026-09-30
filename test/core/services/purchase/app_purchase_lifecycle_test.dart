@@ -47,7 +47,7 @@ class _Store extends Fake implements InAppPurchase {
   int listeners = 0;
   int checkouts = 0;
   int restores = 0;
-  int completions = 0;
+  final completions = <PurchaseDetails>[];
 
   @override
   Stream<List<PurchaseDetails>> get purchaseStream {
@@ -75,14 +75,13 @@ class _Store extends Fake implements InAppPurchase {
 
   @override
   Future<void> completePurchase(PurchaseDetails purchase) async {
-    completions++;
+    completions.add(purchase);
   }
 }
 
 class _Storage extends LocalStorageService {
   final maps = <String, Map<String, String>>{};
   Future<void>? saving;
-  bool failCleanup = false;
 
   @override
   Future<Map<String, String>> getStringMap(String key) async =>
@@ -91,7 +90,6 @@ class _Storage extends LocalStorageService {
   @override
   Future<void> setStringMap(String key, Map<String, String> value) async {
     await saving;
-    if (failCleanup && value.isEmpty) throw StateError('Storage unavailable');
     maps[key] = Map.of(value);
   }
 }
@@ -139,11 +137,8 @@ void main() {
     purchases = AppPurchase(
       inAppPurchase: store,
       pendingStore: pending,
-      canUseBilling: () => resolvePlayBillingAvailability(
-        isAndroid: true,
-        isStoreVersion: true,
-        isCensoredRegion: CountryCode.isCensoredRegion,
-      ),
+      canUseBilling: () =>
+          resolvePlayBillingAvailability(isAndroid: true, isStoreVersion: true),
     );
     sl.registerSingleton<LanternPlatformService>(backend);
     sl.registerSingleton<AppPurchase>(purchases);
@@ -176,30 +171,30 @@ void main() {
       expect(store.checkouts, 1);
       changeCountry(country);
 
-      // Rejected attempts must not replace the active checkout's callbacks.
-      final rejected = <String>[];
-      await purchases.startSubscription(
-        plan: '1y-usd-100',
-        onSuccess: (_) => fail('Blocked checkout must not start'),
-        onError: rejected.add,
-      );
-      await purchases.restorePurchases(
-        onSuccess: (_) => fail('Blocked restore must not start'),
-        onError: rejected.add,
-      );
-      expect(rejected, hasLength(2));
-      expect(store.checkouts, 1);
-      expect(store.restores, 0);
-
       final receipt = _receipt(PurchaseStatus.purchased);
+      expect(await pending.planFor(receipt), '1m-usd-10');
+      expect(await pending.couponFor(receipt), 'AFF20');
       store.updates.add([receipt]);
       await tester.pump();
       expect(backend.receipts, ['receipt:1m-usd-10:AFF20']);
-      expect(store.completions, 1);
+      expect(store.completions, [receipt]);
       expect(successes, [receipt]);
       expect(errors, isEmpty);
       expect(await pending.planFor(receipt), isNull);
       expect(await pending.couponFor(receipt), isNull);
+    });
+
+    testWidgets('$country allows a new checkout', (tester) async {
+      changeCountry(country);
+      await checkout();
+
+      expect(store.checkouts, 1);
+      expect(store.listeners, 1);
+      expect(errors, isEmpty);
+      expect(
+        await pending.planFor(_receipt(PurchaseStatus.purchased)),
+        '1m-usd-10',
+      );
     });
   }
 
@@ -207,27 +202,51 @@ void main() {
     testWidgets('country update still delivers $status', (tester) async {
       await checkout();
       changeCountry('CN');
-      store.updates.add([_receipt(status)]);
+      final receipt = _receipt(status);
+      if (status == PurchaseStatus.error) {
+        receipt.error = IAPError(
+          source: 'test',
+          code: 'billing_error',
+          message: 'Payment declined',
+        );
+      }
+      store.updates.add([receipt]);
       await tester.pump();
-      expect(errors, hasLength(1));
+      expect(errors, [
+        status == PurchaseStatus.canceled
+            ? 'Purchase canceled'
+            : 'Payment declined',
+      ]);
       expect(successes, isEmpty);
-      expect(store.completions, 0);
+      expect(store.completions, isEmpty);
+      expect(backend.receipts, isEmpty);
+      expect(await pending.planFor(receipt), isNull);
+      expect(await pending.couponFor(receipt), isNull);
     });
   }
 
-  testWidgets('pending payment completes after country becomes blocked', (
+  testWidgets('pending payment completes after a country update', (
     tester,
   ) async {
     await checkout();
     store.updates.add([_receipt(PurchaseStatus.pending)]);
     await tester.pump();
+    expect(errors.single, contains('pending'));
+    expect(successes, isEmpty);
+    expect(store.completions, isEmpty);
+    expect(backend.receipts, isEmpty);
     changeCountry('CN');
     final receipt = _receipt(PurchaseStatus.purchased);
+    expect(await pending.planFor(receipt), '1m-usd-10');
+    expect(await pending.couponFor(receipt), 'AFF20');
     store.updates.add([receipt]);
     await tester.pump();
     expect(errors.single, contains('pending'));
     expect(successes, [receipt]);
-    expect(store.completions, 1);
+    expect(backend.receipts, ['receipt:1m-usd-10:AFF20']);
+    expect(store.completions, [receipt]);
+    expect(await pending.planFor(receipt), isNull);
+    expect(await pending.couponFor(receipt), isNull);
   });
 
   testWidgets('country update preserves an in-flight restore', (tester) async {
@@ -245,15 +264,13 @@ void main() {
     restoring.complete();
     await started;
     await tester.pump();
-    expect(store.completions, 1);
+    expect(store.completions, [receipt]);
     expect(successes, [receipt]);
     expect(errors, isEmpty);
   });
 
   for (final phase in ['product loading', 'metadata storage']) {
-    testWidgets('blocked country during $phase prevents checkout', (
-      tester,
-    ) async {
+    testWidgets('country update during $phase allows checkout', (tester) async {
       final ready = Completer<void>();
       if (phase == 'product loading') {
         store.loadingProducts = ready.future;
@@ -265,51 +282,36 @@ void main() {
       changeCountry('CN');
       ready.complete();
       await started;
-      expect(store.checkouts, 0);
-      expect(errors, hasLength(1));
-      expect(await pending.planFor(_receipt(PurchaseStatus.purchased)), isNull);
+      expect(store.checkouts, 1);
+      final receipt = _receipt(PurchaseStatus.purchased);
+      store.updates.add([receipt]);
+      await tester.pump();
+      expect(backend.receipts, ['receipt:1m-usd-10:AFF20']);
+      expect(store.completions, [receipt]);
+      expect(successes, [receipt]);
+      expect(errors, isEmpty);
+      expect(await pending.planFor(receipt), isNull);
+      expect(await pending.couponFor(receipt), isNull);
     });
   }
-
-  testWidgets('failed metadata cleanup still reports the blocked checkout', (
-    tester,
-  ) async {
-    final ready = Completer<void>();
-    storage.saving = ready.future;
-    storage.failCleanup = true;
-    final started = checkout();
-    await tester.pump();
-    changeCountry('CN');
-    ready.complete();
-    await started;
-    expect(store.checkouts, 0);
-    expect(errors, hasLength(1));
-    expect(errors.single, contains('Unable to access in-app purchases'));
-    expect(successes, isEmpty);
-  });
-
-  testWidgets('initially blocked country prevents checkout and restore', (
-    tester,
-  ) async {
-    changeCountry('CN');
-    await checkout();
-    await purchases.restorePurchases(
-      onSuccess: successes.add,
-      onError: errors.add,
-    );
-    expect(store.listeners, 0);
-    expect(store.checkouts, 0);
-    expect(store.restores, 0);
-    expect(errors, hasLength(2));
-  });
 
   testWidgets('country changes reuse the existing purchase listener', (
     tester,
   ) async {
     await checkout();
+    purchases.init();
     changeCountry('CN');
+    changeCountry('RU');
+    changeCountry('IR');
     changeCountry('US');
     expect(store.listeners, 1);
     expect(store.updates.hasListener, isTrue);
+    final receipt = _receipt(PurchaseStatus.purchased);
+    store.updates.add([receipt]);
+    await tester.pump();
+    expect(backend.receipts, ['receipt:1m-usd-10:AFF20']);
+    expect(store.completions, [receipt]);
+    expect(successes, [receipt]);
+    expect(errors, isEmpty);
   });
 }
