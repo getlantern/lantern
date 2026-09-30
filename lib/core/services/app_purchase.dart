@@ -89,11 +89,7 @@ class AppPurchase {
 
   bool _productsLoaded = false;
 
-  /// Whether a store purchase or restore can be offered right now. On Android
-  /// this also requires that a product query has reached Google Play: that
-  /// query is the only real reachability check, since the billing client
-  /// binds locally and cannot tell a blocked network from a working one.
-  /// StoreKit is local, so iOS is never gated on a fetch.
+  /// On Android, true only once a product query has reached Google Play.
   bool get isStoreBillingAvailable =>
       canUseStoreBilling() && (!Platform.isAndroid || _productsLoaded);
   Completer<void>? _productsLoadedCompleter;

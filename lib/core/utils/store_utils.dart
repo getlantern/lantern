@@ -11,10 +11,7 @@ bool resolveAndroidStoreVersion({
   return isPlayStoreBuild || (developerOverride ?? !isSideLoaded);
 }
 
-/// Play Billing is offered on every Android store build, whatever the
-/// country. Whether Google Play can actually be reached is answered by the
-/// product query itself (see [AppPurchase.isStoreBillingAvailable]), not by
-/// location, which only ever hid the store from users who could reach it.
+/// Play Billing is offered on every Android store build, whatever the country.
 bool resolvePlayBillingAvailability({
   required bool isAndroid,
   required bool isStoreVersion,
