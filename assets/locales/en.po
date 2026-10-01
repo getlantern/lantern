@@ -1824,7 +1824,7 @@ msgid "vpn_conflict_title"
 msgstr "Another VPN is already on"
 
 msgid "vpn_conflict_body"
-msgstr "Lantern couldn't connect because another VPN or network app is active on this device. Android allows only one VPN at a time. Turn off the other VPN in your device settings, or tap Connect Anyway to let Lantern replace it."
+msgstr "Lantern couldn't connect because another VPN or network app is active on this device. Android allows only one VPN at a time. Disconnect the other VPN, or Connect Anyway to let Lantern replace it."
 
 msgid "vpn_conflict_dismiss"
 msgstr "Not now"
