@@ -4,6 +4,19 @@
 property installButtonNames : {"Install Update", "Install and Relaunch"}
 property pollInterval : 0.5
 
+on checkAccess()
+  try
+    with timeout of 10 seconds
+      tell application "System Events"
+        if not UI elements enabled then error "Accessibility access is disabled"
+      end tell
+    end timeout
+  on error errorMessage number errorNumber
+    error "Allow Runner.Listener in System Settings > Privacy & Security > Accessibility and Automation > System Events. " & errorMessage number errorNumber
+  end try
+  return "native UI automation ready"
+end checkAccess
+
 on findButton(elementRef)
   tell application "System Events"
     try
@@ -98,20 +111,20 @@ end waitForMainWindow
 
 on installUntilExit(targetPID, timeoutSeconds)
   set deadline to (current date) + timeoutSeconds
-  set pressed to false
+  set pressedButtons to {}
   repeat while (current date) is less than deadline
     set processRef to my processForPID(targetPID)
     if processRef is missing value then return "original process exited"
-    if not pressed then
-      set buttonRef to my findInstallButton(processRef)
-      if buttonRef is not missing value then
-        tell application "System Events"
-          set buttonName to name of buttonRef as text
+    set buttonRef to my findInstallButton(processRef)
+    if buttonRef is not missing value then
+      tell application "System Events"
+        set buttonName to name of buttonRef as text
+        if pressedButtons does not contain buttonName then
           perform action "AXPress" of buttonRef
-        end tell
-        set pressed to true
-        log "[E2E] pressed Sparkle " & buttonName
-      end if
+          set end of pressedButtons to buttonName
+          log "[E2E] pressed Sparkle " & buttonName
+        end if
+      end tell
     end if
     delay pollInterval
   end repeat
@@ -129,6 +142,7 @@ on positiveInteger(valueText, fieldName)
 end positiveInteger
 
 on run argv
+  if argv is {"check-access"} then return my checkAccess()
   if (count of argv) is not 3 then error "action, PID, and timeout are required"
   set actionName to item 1 of argv
   set targetPID to my positiveInteger(item 2 of argv, "PID")
