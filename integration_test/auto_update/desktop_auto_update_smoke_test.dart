@@ -45,17 +45,17 @@ void main() {
         'core-unavailable',
         'core-unavailable-direct-blocked',
       ], contains(scenario));
-      expect(
-        AppBuildInfo.autoUpdateE2E,
-        scenario != 'core-unavailable-direct-blocked',
-      );
+      final blocked = scenario == 'core-unavailable-direct-blocked';
+      expect(AppBuildInfo.autoUpdateE2E, !blocked);
       final feedUrl = AppUrls.appcastFor(AppBuildInfo.buildType);
       expect(feedUrl, config['appcast_url']);
 
-      // Start from the embedded fronting configuration, not a previous run's cache.
-      final support = await getApplicationSupportDirectory();
-      final cache = Directory(p.join(support.path, 'update-transport'));
-      if (await cache.exists()) await cache.delete(recursive: true);
+      if (blocked) {
+        // Exercise startup using only the bundled fronting configuration.
+        final support = await getApplicationSupportDirectory();
+        final cache = Directory(p.join(support.path, 'update-transport'));
+        if (await cache.exists()) await cache.delete(recursive: true);
+      }
 
       var coreInitializationHeld = false;
       final originalInitializer = initializeLanternService;
@@ -141,7 +141,10 @@ class _UpdateProbe with UpdaterListener {
 
   @override
   void onUpdaterError(UpdaterError? error) {
-    errors.add('${error?.domain}: ${error?.code}');
+    errors.add(
+      '${error?.message ?? 'No error details from the native updater'} '
+      '(domain=${error?.domain}, code=${error?.code})',
+    );
   }
 
   @override

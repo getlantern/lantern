@@ -157,8 +157,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/auto_updater"
-      ref: "05811444d86c28161c4049de84f7e84374fd9ce2"
-      resolved-ref: "05811444d86c28161c4049de84f7e84374fd9ce2"
+      ref: "53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da"
+      resolved-ref: "53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da"
       url: "https://github.com/getlantern/auto_updater.git"
     source: git
     version: "1.0.0"
@@ -166,8 +166,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "packages/auto_updater_macos"
-      ref: "05811444d86c28161c4049de84f7e84374fd9ce2"
-      resolved-ref: "05811444d86c28161c4049de84f7e84374fd9ce2"
+      ref: "53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da"
+      resolved-ref: "53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da"
       url: "https://github.com/getlantern/auto_updater.git"
     source: git
     version: "1.0.0"
@@ -175,8 +175,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "packages/auto_updater_platform_interface"
-      ref: "05811444d86c28161c4049de84f7e84374fd9ce2"
-      resolved-ref: "05811444d86c28161c4049de84f7e84374fd9ce2"
+      ref: "53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da"
+      resolved-ref: "53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da"
       url: "https://github.com/getlantern/auto_updater.git"
     source: git
     version: "1.0.0"
@@ -184,8 +184,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "packages/auto_updater_windows"
-      ref: "05811444d86c28161c4049de84f7e84374fd9ce2"
-      resolved-ref: "05811444d86c28161c4049de84f7e84374fd9ce2"
+      ref: "53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da"
+      resolved-ref: "53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da"
       url: "https://github.com/getlantern/auto_updater.git"
     source: git
     version: "1.0.1"

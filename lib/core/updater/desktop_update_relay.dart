@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -19,6 +20,8 @@ class DesktopUpdateRelay {
   Future<String>? _starting;
   bool _closed = false;
 
+  /// Returns the local feed URL, sharing startup work between callers.
+  /// A failed start can be retried.
   Future<String> start(String feedUrl) {
     if (_closed) throw StateError('Update relay is closed');
     return _starting ??= _start(feedUrl).catchError((Object error) {
@@ -46,6 +49,7 @@ class DesktopUpdateRelay {
     throw UnsupportedError('Desktop update relay requires macOS or Windows');
   }
 
+  /// Waits for pending startup, then stops the relay. This instance cannot restart.
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
@@ -60,15 +64,13 @@ class DesktopUpdateRelay {
       await _channel.invokeMethod<void>('stopUpdateRelay');
     } else if (_platform == TargetPlatform.windows) {
       await Isolate.run(() {
-        _windowsLibrary().lookupFunction<Void Function(), void Function()>(
-          'stopUpdateRelay',
-        )();
+        _windowsBindings().stopUpdateRelay();
       });
     }
   }
 }
 
-DynamicLibrary _windowsLibrary() {
+LanternBindings _windowsBindings() {
   final directory = p.dirname(Platform.resolvedExecutable);
   for (final relative in [
     'liblantern.dll',
@@ -76,38 +78,30 @@ DynamicLibrary _windowsLibrary() {
     'bin/windows/liblantern.dll',
   ]) {
     final file = p.join(directory, relative);
-    if (File(file).existsSync()) return DynamicLibrary.open(file);
+    if (File(file).existsSync()) {
+      return LanternBindings(DynamicLibrary.open(file));
+    }
   }
   throw StateError('Lantern native library was not found');
 }
 
 String _startWindows(String cacheDir, String feedUrl) {
-  final library = _windowsLibrary();
-  final start = library
-      .lookupFunction<
-        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>),
-        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>)
-      >('startUpdateRelay');
-  final free = library
-      .lookupFunction<
-        Void Function(Pointer<Utf8>),
-        void Function(Pointer<Utf8>)
-      >('freeCString');
+  final bindings = _windowsBindings();
   final cache = cacheDir.toNativeUtf8();
   final feed = feedUrl.toNativeUtf8();
   try {
-    final response = start(cache, feed);
+    final response = bindings.startUpdateRelay(cache.cast(), feed.cast());
     if (response == nullptr) {
       throw StateError('Update relay did not return a URL');
     }
     try {
-      final value = response.toDartString();
+      final value = response.cast<Utf8>().toDartString();
       if (value.startsWith('{')) {
         throw StateError('Update relay failed: ${jsonDecode(value)['error']}');
       }
       return value;
     } finally {
-      free(response);
+      bindings.freeCString(response);
     }
   } finally {
     calloc.free(cache);

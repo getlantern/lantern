@@ -13,7 +13,8 @@ import sys
 from urllib.parse import urlsplit
 
 
-SCENARIOS = ("baseline", "core-unavailable", "core-unavailable-direct-blocked")
+BLOCKED_SCENARIO = "core-unavailable-direct-blocked"
+SCENARIOS = ("baseline", "core-unavailable", BLOCKED_SCENARIO)
 PRODUCTION_FEED = (
     "https://update.getlantern.org/update/lantern/appcast.xml?channel=beta"
 )
@@ -33,7 +34,7 @@ MARKER = "# lantern-auto-update-smoke"
 def validate_target(scenario, target):
     if scenario not in SCENARIOS:
         raise ValueError(f"Unknown update scenario: {scenario}")
-    blocked = scenario == SCENARIOS[2]
+    blocked = scenario == BLOCKED_SCENARIO
     expected_feed = PRODUCTION_FEED if blocked else STAGING_FEED
     if target["appcast_url"] != expected_feed:
         raise ValueError(f"{scenario} requires {expected_feed}")
@@ -167,7 +168,7 @@ def main():
             edit_hosts(hosts, False)
             flush_dns()
             return
-        if args.scenario != SCENARIOS[2]:
+        if args.scenario != BLOCKED_SCENARIO:
             parser.error("Only the blocked scenario may change DNS")
 
     if args.target is None or args.output is None:
@@ -185,7 +186,7 @@ def main():
         handoff = json.loads(args.handoff.read_text(encoding="utf-8-sig"))
         verify_handoff(args.scenario, target, handoff)
         evidence["handoff"] = handoff
-        if args.scenario == SCENARIOS[2]:
+        if args.scenario == BLOCKED_SCENARIO:
             evidence["blocked_dns"] = require_blocked_dns()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")

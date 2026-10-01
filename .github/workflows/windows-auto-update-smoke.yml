@@ -1,4 +1,5 @@
 name: Windows auto-update smoke
+run-name: "Windows auto-update: ${{ inputs.scenario || 'baseline' }}"
 
 on:
   workflow_dispatch:

@@ -20,11 +20,12 @@ const (
 	idleTimeout          = time.Minute
 )
 
+// newTransport creates a transport independent of VPN startup. The caller must
+// call the returned cleanup function to stop its background work.
 func newTransport(ctx context.Context, cacheDir string) (http.RoundTripper, func(), error) {
 	if err := os.MkdirAll(cacheDir, 0o700); err != nil {
 		return nil, nil, err
 	}
-	// The app owns this client independently of the tunnel and closes it with the relay.
 	front, err := fronted.NewFronted(ctx, filepath.Join(cacheDir, "fronted_cache.json"), io.Discard)
 	if err != nil {
 		return nil, nil, err
@@ -45,6 +46,7 @@ type deliveryTransport struct {
 	fronted http.RoundTripper
 }
 
+// RoundTrip requires a bodyless request so direct delivery can be retried through fronting.
 func (t *deliveryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	response, err := roundTrip(t.direct, req, directHeaderTimeout)
 	if err == nil && response.StatusCode != http.StatusForbidden && response.StatusCode < 500 {

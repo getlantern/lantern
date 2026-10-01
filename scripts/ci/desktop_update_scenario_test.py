@@ -9,7 +9,7 @@ import socket
 import sys
 import tempfile
 import unittest
-from unittest import mock
+import unittest.mock as mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -20,10 +20,10 @@ def target(name="core-unavailable-direct-blocked"):
     return {
         "appcast_url": (
             scenario.PRODUCTION_FEED
-            if name == scenario.SCENARIOS[2]
+            if name == scenario.BLOCKED_SCENARIO
             else scenario.STAGING_FEED
         ),
-        "artifact_url": "https://s3.amazonaws.com/lantern.io/releases/9.2.0/lantern-beta.dmg",
+        "artifact_url": "https://s3.amazonaws.com/lantern.io/releases/beta/9.2.0/lantern-installer-beta.dmg",
         "fixture_build": 919,
         "display_version": "9.2.0",
     }
@@ -123,10 +123,10 @@ class DesktopUpdateScenarioTest(unittest.TestCase):
         ):
             for extension in ("dmg", "exe"):
                 scenario.validate_target(
-                    scenario.SCENARIOS[2],
+                    scenario.BLOCKED_SCENARIO,
                     dict(
                         target(),
-                        artifact_url=f"https://{host}{prefix}9.2.0/lantern.{extension}",
+                        artifact_url=f"https://{host}{prefix}beta/9.2.0/lantern-installer-beta.{extension}",
                     ),
                 )
         for url in (
@@ -144,7 +144,7 @@ class DesktopUpdateScenarioTest(unittest.TestCase):
                 ValueError, "published beta installer"
             ):
                 scenario.validate_target(
-                    scenario.SCENARIOS[2], dict(target(), artifact_url=url)
+                    scenario.BLOCKED_SCENARIO, dict(target(), artifact_url=url)
                 )
 
     def test_handoff_proves_update_offer_before_core_readiness(self):
@@ -165,16 +165,16 @@ class DesktopUpdateScenarioTest(unittest.TestCase):
         ):
             with self.subTest(key=key, value=value), self.assertRaises(ValueError):
                 scenario.verify_handoff(
-                    scenario.SCENARIOS[2], target(), dict(handoff(), **{key: value})
+                    scenario.BLOCKED_SCENARIO, target(), dict(handoff(), **{key: value})
                 )
         for key in handoff():
             incomplete = handoff()
             del incomplete[key]
             with self.subTest(missing=key), self.assertRaises(ValueError):
-                scenario.verify_handoff(scenario.SCENARIOS[2], target(), incomplete)
+                scenario.verify_handoff(scenario.BLOCKED_SCENARIO, target(), incomplete)
 
-    def test_network_commands_require_ci_guard(self):
-        for command in ("block", "restore"):
+    def test_commands_require_ci_guard(self):
+        for command in ("prepare", "verify", "block", "restore"):
             with mock.patch.dict(os.environ, {}, clear=True), mock.patch.object(
                 sys, "argv", ["scenario", command]
             ), contextlib.redirect_stderr(io.StringIO()):

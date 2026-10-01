@@ -33,6 +33,7 @@ class MethodHandler {
         guard let cacheDir: String = requireArg(call: call, name: "cacheDir", result: result),
           let feedURL: String = requireArg(call: call, name: "feedURL", result: result)
         else { return }
+        // The Go bridge is synchronous; keep startup off the main thread.
         Task.detached {
           var error: NSError?
           let address = MobileStartUpdateRelay(cacheDir, feedURL, &error)

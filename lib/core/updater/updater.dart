@@ -138,7 +138,7 @@ class Updater with UpdaterLifecycleListener {
       }
     }
     if (_disposed) return;
-    // Install the relay URL before allowing native background checks.
+    // Setting the feed starts the native updater, so disable its timer first.
     await autoUpdater.setScheduledCheckInterval(0);
     if (_disposed) return;
     await autoUpdater.setFeedURL(localFeed);
@@ -315,6 +315,7 @@ class Updater with UpdaterLifecycleListener {
   void onUpdaterError(UpdaterError? error) {
     appLogger.warning(
       'Desktop update failed: '
+      '${error?.message ?? 'No error details from the native updater'} '
       'domain=${error?.domain} code=${error?.code} '
       'url=${AppUrls.appcastFor(AppBuildInfo.buildType)}',
     );
@@ -322,6 +323,8 @@ class Updater with UpdaterLifecycleListener {
 
   @override
   void onUpdaterUpdateAvailable(AppcastItem? appcastItem) {
+    // WinSparkle doesn't send a checking event for its scheduled checks.
+    _checkInProgress = true;
     appLogger.info('Desktop update available');
   }
 
@@ -337,7 +340,7 @@ class Updater with UpdaterLifecycleListener {
 
   @override
   void onUpdaterUpdateCycleFinished(UpdaterError? error) {
-    // The method-channel call completes before the native update cycle does.
+    // Returning from checkForUpdates doesn't mean the native check has finished.
     _checkInProgress = false;
   }
 

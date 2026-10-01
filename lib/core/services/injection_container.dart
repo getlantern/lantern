@@ -21,7 +21,7 @@ import 'logger_service.dart';
 
 final GetIt sl = GetIt.instance;
 
-// Lets the signed smoke test stall core startup while the real updater runs.
+// The smoke test replaces this to hold core startup while updates still run.
 @visibleForTesting
 Future<void> Function(LanternService) initializeLanternService = (service) =>
     service.init();

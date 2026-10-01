@@ -1,4 +1,5 @@
 name: macOS auto-update smoke
+run-name: "macOS auto-update: ${{ inputs.scenario || 'baseline' }}"
 
 on:
   workflow_dispatch:
@@ -23,6 +24,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check-runner:
+    name: Verify native UI driver
+    runs-on: [self-hosted, lantern-macos-smoke]
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Test Accessibility and native controls
+        run: python3 -m unittest -v scripts/ci/macos_sparkle_handoff_test.py
+
   resolve-target:
     name: Resolve signed update target
     runs-on: ubuntu-latest
@@ -130,7 +144,7 @@ jobs:
 
   build-fixture:
     name: Build signed lower fixture
-    needs: resolve-target
+    needs: [check-runner, resolve-target]
     permissions:
       contents: read
       id-token: write
@@ -176,10 +190,11 @@ jobs:
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      # The smoke helper only needs the standard library from the runner's Python.
+      - name: Check runner Python
+        run: |
+          python3 --version
+          python3 -m unittest scripts/ci/desktop_update_scenario_test.py
 
       - name: Resolve Flutter dependencies
         run: flutter pub get

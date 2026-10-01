@@ -145,18 +145,26 @@ class _PlansState extends ConsumerState<Plans>
                   onPressed: onGetLanternProTap,
                 ),
               ),
-              if (canUseStoreBilling()) ...[
-                SizedBox(height: 8),
-                Center(
-                  child: AppRichText(
-                    key: const Key('plans.restore'),
-                    texts: '${'already_purchased'.i18n} ',
-                    boldTexts: 'restore_purchase'.i18n,
-                    boldUnderline: true,
-                    boldOnPressed: _restorePurchaseFlow,
-                  ),
-                ),
-              ],
+              ValueListenableBuilder<bool>(
+                valueListenable: sl<AppPurchase>().productsLoaded,
+                builder: (context, _, _) {
+                  if (!sl<AppPurchase>().isStoreBillingAvailable) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Center(
+                      child: AppRichText(
+                        key: const Key('plans.restore'),
+                        texts: '${'already_purchased'.i18n} ',
+                        boldTexts: 'restore_purchase'.i18n,
+                        boldUnderline: true,
+                        boldOnPressed: _restorePurchaseFlow,
+                      ),
+                    ),
+                  );
+                },
+              ),
               if (PlatformUtils.isIOS) ...{
                 SizedBox(height: 8),
                 Padding(
