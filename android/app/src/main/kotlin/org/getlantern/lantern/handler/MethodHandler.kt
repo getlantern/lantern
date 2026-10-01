@@ -9,7 +9,6 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
-import android.os.Build
 import android.net.NetworkCapabilities
 import android.net.Uri
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -1600,17 +1599,7 @@ class MethodHandler : FlutterPlugin,
         for (network in cm.allNetworks) {
             val capabilities = cm.getNetworkCapabilities(network) ?: continue
             if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                val owner = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    capabilities.ownerUid.takeIf { it != android.os.Process.INVALID_UID }
-                        ?.let { uid -> context.packageManager.getNameForUid(uid) ?: uid.toString() }
-                        ?: "unknown"
-                } else {
-                    "unavailable"
-                }
-                AppLogger.w(
-                    TAG,
-                    "Another VPN is active: network=$network owner=$owner capabilities=$capabilities",
-                )
+                AppLogger.w(TAG, "Another VPN is active: network=$network capabilities=$capabilities")
                 return true
             }
         }

@@ -1814,13 +1814,13 @@ msgid "renew"
 msgstr "续费"
 
 msgid "vpn_conflict_title"
-msgstr "检测到 VPN 冲突"
+msgstr "另一个 VPN 已开启"
 
 msgid "vpn_conflict_body"
-msgstr "您的设备上正在运行另一个 VPN。蓝灯作为唯一启用的 VPN 时效果最佳。为获得最佳效果，请在使用蓝灯前断开该 VPN。"
+msgstr "蓝灯无法连接，因为设备上有另一个 VPN 或网络应用正在运行。Android 同一时间只允许一个 VPN。请在设备设置中关闭该 VPN，或点击“仍然连接”让蓝灯接管。"
 
 msgid "vpn_conflict_dismiss"
-msgstr "明白了"
+msgstr "暂不"
 
 msgid "vpn_conflict_connect_anyway"
 msgstr "仍然连接"
