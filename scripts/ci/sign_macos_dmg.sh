@@ -17,7 +17,7 @@ certificate_dir="$(mktemp -d)"
 trap 'rm -rf "$certificate_dir"' EXIT
 
 # Reuse the app's certificate; several signing identities can share a name.
-codesign --display --extract-certificates "$certificate_dir/cert" "$app_path"
+codesign --display --extract-certificates="$certificate_dir/cert" "$app_path"
 sign_id="$(openssl x509 -inform DER -in "$certificate_dir/cert0" \
   -noout -fingerprint -sha1 | sed 's/.*=//; s/://g')"
 [[ "$sign_id" =~ ^[0-9A-Fa-f]{40}$ ]] || {
