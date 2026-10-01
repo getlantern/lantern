@@ -180,6 +180,9 @@ capture_diagnostics() {
     mkdir -p "$ARTIFACT_DIR/sparkle-logs"
     cp -R "$HOME/Library/Logs/Sparkle/." "$ARTIFACT_DIR/sparkle-logs/" 2>/dev/null || true
   fi
+  log show --last 15m --style compact \
+    --predicate 'process == "tccd" AND (eventMessage CONTAINS "Runner.Listener" OR eventMessage CONTAINS "com.apple.systemevents")' \
+    >"$ARTIFACT_DIR/ui-permissions.log" 2>&1 || true
   log show --last 90m --style syslog \
     --predicate 'process == "Lantern" OR process == "Updater" OR process == "Installer" OR process == "Downloader" OR eventMessage CONTAINS[c] "Sparkle" OR subsystem == "org.getlantern.lantern"' \
     >"$ARTIFACT_DIR/unified-lantern-sparkle.log" 2>&1 || true
@@ -214,6 +217,7 @@ mkdir -p "$ARTIFACT_DIR"
 cp "$APPCAST_XML" "$ARTIFACT_DIR/appcast.xml"
 cp "$TARGET_JSON" "$ARTIFACT_DIR/resolved-target.json"
 osacompile -o "$ROBOT_SCRIPT" "$ROBOT_SOURCE"
+osascript "$ROBOT_SCRIPT" check-access 2>&1 | tee "$ARTIFACT_DIR/ui-access.txt"
 
 TARGET_BUILD="$(jq -er '.target_build | tostring' "$TARGET_JSON")"
 FIXTURE_BUILD="$(jq -er '.fixture_build | tostring' "$TARGET_JSON")"
@@ -285,7 +289,7 @@ capture_processes prompt
 
 log_e2e "waiting for the native Sparkle prompt from process $ORIGINAL_PID"
 osascript "$ROBOT_SCRIPT" wait-prompt "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS" \
-  | tee "$ARTIFACT_DIR/sparkle-prompt.txt"
+  2>&1 | tee "$ARTIFACT_DIR/sparkle-prompt.txt"
 capture_screenshot prompt
 osascript "$ROBOT_SCRIPT" install-until-exit "$ORIGINAL_PID" "$UPDATE_TIMEOUT_SECONDS" \
   2>&1 | tee "$ARTIFACT_DIR/sparkle-install.txt"

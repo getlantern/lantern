@@ -374,6 +374,10 @@ jobs:
             exit 0
           fi
 
+          # CocoaPods skips embedded-framework signing when signing is optional.
+          export FLUTTER_XCODE_CODE_SIGNING_ALLOWED=YES
+          export FLUTTER_XCODE_CODE_SIGNING_REQUIRED=YES
+
           case "$FLUTTER_BUILD_MODE" in
             release) make macos-release-ci ;;
             profile) make macos-profile-ci ;;
