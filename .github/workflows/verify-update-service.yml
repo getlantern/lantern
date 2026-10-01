@@ -108,7 +108,12 @@ jobs:
       - name: Install test dependencies
         run: python3 -m pip install -r scripts/requirements.txt PyYAML
       - name: Test release tooling
-        run: python3 -m unittest discover -s scripts/ci -p '*_test.py'
+        run: |
+          python3 -m unittest \
+            scripts/ci/generate_update_metadata_test.py \
+            scripts/ci/verify_release_alignment_test.py \
+            scripts/ci/verify_update_service_test.py \
+            scripts/ci/release_workflow_test.py
       - name: Validate workflows
         uses: docker://rhysd/actionlint:1.7.12
         with:

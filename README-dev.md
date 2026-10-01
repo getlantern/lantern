@@ -583,7 +583,7 @@ git push origin v1.2.3-android
 
 ### Nightly builds
 
-A nightly build runs automatically every day at 04:00 UTC from the default branch, building all platforms with `BUILD_TYPE=nightly`. No source tag or durable GitHub release is created. Healthy artifacts are uploaded to the nightly S3 channel, and the temporary draft is then deleted.
+A nightly build runs automatically every day at 04:00 UTC from the default branch, building all platforms with `BUILD_TYPE=nightly`. No source tag or durable GitHub release is created. All requested builds and smoke tests must pass before artifacts are uploaded to the nightly S3 channel. The temporary draft is then deleted.
 
 ---
 

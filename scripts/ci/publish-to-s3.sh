@@ -48,45 +48,35 @@ echo "  Version path:  $VERSION_PREFIX"
 echo "  Latest path:   $LATEST_PREFIX"
 echo ""
 
-# Check if a platform should be uploaded based on the platforms list
 should_upload() {
   local platform="$1"
-  [[ "$PLATFORMS" == "all" ]] || [[ "$PLATFORMS" == *"$platform"* ]]
+  [[ "$PLATFORMS" == "all" || ",$PLATFORMS," == *",$platform,"* ]]
 }
 
-# Upload a single file
-# Returns: 0=success, 2=upload failed
 upload_file() {
-  local platform="$1"
-  local filepath="$2"
+  local filepath="$1"
   local filename
   filename="$(basename "$filepath")"
   local checksum
   checksum="$(sha256sum "$filepath" | awk '{print $1}')"
-  echo "↑ Uploading $platform: $filename"
-  # Upload to versioned path
-  if ! aws s3 cp "$filepath" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}" --acl public-read --metadata "sha256=${checksum}"; then
-    echo "✗ Failed to upload $filename to versioned path" >&2
-    return 2
-  fi
+  echo "↑ Uploading $filename"
+  aws s3 cp "$filepath" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}" \
+    --acl public-read --metadata "sha256=${checksum}"
 
   # Stable and beta aliases move only after the GitHub release is verified.
-  if [[ "$BUILD_TYPE" == "nightly" ]] && ! aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" --acl public-read --metadata "sha256=${checksum}"; then
-    echo "✗ Failed to upload $filename to latest path" >&2
-    return 2
+  if [[ "$BUILD_TYPE" == "nightly" ]]; then
+    aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" \
+      --acl public-read --metadata "sha256=${checksum}"
   fi
 
-  echo "✓ Uploaded $platform successfully"
+  echo "✓ Uploaded $filename"
   echo "  - https://s3.amazonaws.com/${BUCKET}/${VERSION_PREFIX}/${filename}"
   if [[ "$BUILD_TYPE" == "nightly" ]]; then
     echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
   fi
-  return 0
 }
 
-# Upload an artifact from known directories/naming
-# Returns: 0=success, 1=not found, 2=upload failed
-upload_artifact() {
+artifact_path() {
   local platform="$1"
   local extension="$2"
   local arch="${3:-}"
@@ -113,21 +103,17 @@ upload_artifact() {
     candidate_dirs=("lantern-installer-${dir_ext}")
   fi
 
-  local filepath=""
+  local dir candidate
   for dir in "${candidate_dirs[@]}"; do
-    local candidate="${dir}/${filename}"
+    candidate="${dir}/${filename}"
     if [[ -f "$candidate" ]]; then
-      filepath="$candidate"
-      break
+      printf '%s\n' "$candidate"
+      return 0
     fi
   done
 
-  if [[ -z "$filepath" ]]; then
-    echo "⊘ Skipping $platform ($filename not found)"
-    return 1
-  fi
-
-  upload_file "$platform" "$filepath"
+  echo "Required $platform release artifact is missing: $filename" >&2
+  return 1
 }
 
 # platform:extension:arch(optional)
@@ -145,10 +131,8 @@ if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "arm64" ]]; then
   artifacts+=("linux:deb:arm64" "linux:rpm:arm64" "linux:pkg.tar.zst:arm64")
 fi
 
-uploaded=0
-skipped=0
-failed=0
-
+# Check the whole candidate set before uploading anything, including nightly aliases.
+files=()
 for artifact in "${artifacts[@]}"; do
   IFS=':' read -r platform extension arch <<<"$artifact"
 
@@ -156,28 +140,16 @@ for artifact in "${artifacts[@]}"; do
     continue
   fi
 
-  upload_artifact "$platform" "$extension" "${arch:-}"
-  result=$?
-
-  case $result in
-  0) uploaded=$((uploaded + 1)) ;;
-  1) skipped=$((skipped + 1)) ;;
-  2) failed=$((failed + 1)) ;;
-  esac
+  files+=("$(artifact_path "$platform" "$extension" "$arch")")
 done
 
-echo ""
-echo "Upload summary: $uploaded uploaded, $skipped skipped, $failed failed"
-
-if [[ $failed -gt 0 ]]; then
-  echo "✗ $failed artifact(s) failed to upload" >&2
+if [[ ${#files[@]} -eq 0 ]]; then
+  echo "No release artifacts selected for: $PLATFORMS" >&2
   exit 1
 fi
 
-if [[ $uploaded -eq 0 ]]; then
-  echo "✗ No artifacts were uploaded" >&2
-  exit 1
-fi
+for file in "${files[@]}"; do
+  upload_file "$file"
+done
 
-echo "✓ All uploads successful"
-exit 0
+echo "✓ Uploaded ${#files[@]} artifacts"

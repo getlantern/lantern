@@ -421,7 +421,11 @@ jobs:
       - name: Test release tooling
         run: |
           python3 -m pip install -r scripts/requirements.txt PyYAML
-          python3 -m unittest discover -s scripts/ci -p '*_test.py'
+          python3 -m unittest \
+            scripts/ci/generate_update_metadata_test.py \
+            scripts/ci/verify_release_alignment_test.py \
+            scripts/ci/verify_update_service_test.py \
+            scripts/ci/release_workflow_test.py
 
       - name: Set up Go
         uses: ./.github/actions/setup-go
@@ -715,68 +719,6 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
 
-      - name: Verify candidate artifact set
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          has_artifact() {
-            compgen -G "$1" > /dev/null
-          }
-
-          platform_requested() {
-            local platform="$1"
-            [[ "$PLATFORM" == "all" || ",$PLATFORM," == *",$platform,"* ]]
-          }
-
-          require_artifact() {
-            local label="$1"
-            shift
-            for pattern in "$@"; do
-              if has_artifact "$pattern"; then
-                return 0
-              fi
-            done
-            echo "Missing candidate artifact: $label" >&2
-            return 1
-          }
-
-          missing=0
-          if platform_requested macos; then
-            require_artifact "macOS DMG" "lantern-installer-dmg/*.dmg" || missing=1
-          fi
-          if platform_requested windows; then
-            require_artifact "Windows installer" "lantern-installer-exe/*.exe" || missing=1
-          fi
-          if platform_requested android; then
-            require_artifact "Android APK" "lantern-installer-apk/*.apk" || missing=1
-          fi
-          if platform_requested ios; then
-            require_artifact "iOS IPA" "lantern-installer-ipa/*.ipa" || missing=1
-          fi
-          if platform_requested linux; then
-            if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "amd64" ]]; then
-              require_artifact "Linux AMD64 DEB" \
-                "lantern-installer-deb-amd64/*.deb" "lantern-installer-deb/*.deb" || missing=1
-              require_artifact "Linux AMD64 RPM" \
-                "lantern-installer-rpm-amd64/*.rpm" "lantern-installer-rpm/*.rpm" || missing=1
-              require_artifact "Linux AMD64 Arch package" \
-                "lantern-installer-pkg-amd64/*.pkg.tar.zst" "lantern-installer-pkg/*.pkg.tar.zst" || missing=1
-            fi
-            if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "arm64" ]]; then
-              require_artifact "Linux ARM64 DEB" "lantern-installer-deb-arm64/*.deb" || missing=1
-              require_artifact "Linux ARM64 RPM" "lantern-installer-rpm-arm64/*.rpm" || missing=1
-              require_artifact "Linux ARM64 Arch package" "lantern-installer-pkg-arm64/*.pkg.tar.zst" || missing=1
-            fi
-          fi
-
-          if [[ "$missing" -ne 0 ]]; then
-            echo "Candidate artifacts are incomplete; publication is blocked." >&2
-            exit 1
-          fi
-
-          echo "All requested candidate artifacts are present."
-
       - name: Upload to S3
         shell: bash
         run: |
@@ -926,10 +868,6 @@ jobs:
                 return 0
               fi
             done
-            if [[ "$BUILD_TYPE" == "nightly" ]]; then
-              echo "Skipping unavailable nightly artifact: $filename"
-              return 0
-            fi
             echo "Required $platform release artifact is missing: $filename" >&2
             return 1
           }

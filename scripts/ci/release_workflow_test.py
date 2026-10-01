@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -31,6 +32,7 @@ class ReleaseWorkflowTest(unittest.TestCase):
             "COMMAND_LOG": str(self.work / "commands.jsonl"),
             "GITHUB_OUTPUT": str(self.work / "output"),
             "BUILD_TYPE": "production", "PLATFORM": "all", "LINUX_ARCH": "all",
+            "INSTALLER_BASE_NAME": "lantern-installer",
             "RELEASE_TAG": "v9.2.0", "VERSION": "9.2.0", "STORAGE_VERSION": "9.2.0",
             "BUCKET": "release-test", "GITHUB_REPOSITORY": "getlantern/lantern",
             "GITHUB_SHA": "a" * 40,
@@ -52,12 +54,20 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
             command.chmod(0o755)
 
     def commands(self) -> list[list[str]]:
-        return [json.loads(line) for line in (self.work / "commands.jsonl").read_text().splitlines()]
+        log = self.work / "commands.jsonl"
+        return [json.loads(line) for line in log.read_text().splitlines()] if log.exists() else []
 
-    def run_step(self, name: str, **env: str) -> subprocess.CompletedProcess:
-        step = next(step for step in self.jobs["release-finalize"]["steps"] if step["name"] == name)
+    def run_step(self, name: str, job: str = "release-finalize", **env: str) -> subprocess.CompletedProcess:
+        step = next(step for step in self.jobs[job]["steps"] if step["name"] == name)
         return subprocess.run(
             ["bash", "-e", "-o", "pipefail", "-c", step["run"]],
+            cwd=self.work, env={**self.env, **env}, text=True, capture_output=True, timeout=10,
+        )
+
+    def run_s3_upload(self, build_type: str, platforms: str, **env: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            ["bash", str(ROOT / "scripts/ci/publish-to-s3.sh"),
+             build_type, "9.2.0", "lantern-installer", platforms],
             cwd=self.work, env={**self.env, **env}, text=True, capture_output=True, timeout=10,
         )
 
@@ -116,15 +126,78 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
                 suffix = "" if build_type == "production" else f"-{build_type}"
                 (directory / f"lantern-installer{suffix}.apk").write_bytes(b"installer")
                 (self.work / "commands.jsonl").write_text("")
-                result = subprocess.run(
-                    ["bash", str(ROOT / "scripts/ci/publish-to-s3.sh"),
-                     build_type, "9.2.0", "lantern-installer", "android"],
-                    cwd=self.work, env=self.env, text=True, capture_output=True, timeout=10,
-                )
+                result = self.run_s3_upload(build_type, "android")
                 self.assertEqual(result.returncode, 0, result.stderr)
                 destinations = [command[4] for command in self.commands()]
                 self.assertEqual(len(destinations), 2 if build_type == "nightly" else 1)
                 self.assertIn(f"/{build_type}/9.2.0/", destinations[0])
+                checksum = hashlib.sha256(b"installer").hexdigest()
+                for command in self.commands():
+                    self.assertEqual(command[-2:], ["--metadata", f"sha256={checksum}"])
+
+    def test_incomplete_candidate_set_blocks_all_s3_uploads(self) -> None:
+        directory = self.work / "lantern-installer-dmg"
+        directory.mkdir()
+        for build_type in ("production", "beta", "nightly"):
+            with self.subTest(build_type=build_type):
+                suffix = "" if build_type == "production" else f"-{build_type}"
+                (directory / f"lantern-installer{suffix}.dmg").write_bytes(b"installer")
+                result = self.run_s3_upload(build_type, "macos,windows")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("Required windows release artifact is missing", result.stderr)
+                self.assertEqual(self.commands(), [])
+
+    def test_missing_requested_github_artifact_fails_for_every_channel(self) -> None:
+        for build_type in ("production", "beta", "nightly"):
+            with self.subTest(build_type=build_type):
+                result = self.run_step(
+                    "Upload artifacts to GitHub Release", job="upload-release-artifacts",
+                    BUILD_TYPE=build_type, PLATFORM="windows",
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("Required windows release artifact is missing", result.stderr)
+                self.assertEqual(self.commands(), [])
+
+    def test_failed_upload_does_not_promote_nightly_alias(self) -> None:
+        directory = self.work / "lantern-installer-apk"
+        directory.mkdir()
+        (directory / "lantern-installer-nightly.apk").write_bytes(b"installer")
+        result = self.run_s3_upload("nightly", "android", FAIL_COMMAND="aws")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(len(self.commands()), 1)
+        self.assertIn("/nightly/9.2.0/", self.commands()[0][4])
+
+    def test_failed_checksum_blocks_upload(self) -> None:
+        directory = self.work / "lantern-installer-apk"
+        directory.mkdir()
+        (directory / "lantern-installer.apk").write_bytes(b"installer")
+        checksum = self.bin / "sha256sum"
+        checksum.write_text("#!/bin/sh\nexit 1\n")
+        checksum.chmod(0o755)
+        result = self.run_s3_upload("production", "android")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.commands(), [])
+
+    def test_linux_uploads_respect_architecture_and_legacy_directory(self) -> None:
+        expected = {"amd64": set(), "arm64": set()}
+        for arch, suffix in (("amd64", ""), ("arm64", "-arm64")):
+            for extension, directory_suffix in (("deb", "deb"), ("rpm", "rpm"), ("pkg.tar.zst", "pkg")):
+                directory = self.work / f"lantern-installer-{directory_suffix}{suffix}"
+                directory.mkdir()
+                filename = f"lantern-installer{suffix}.{extension}"
+                (directory / filename).write_bytes(b"installer")
+                expected[arch].add(filename)
+
+        for arch in ("amd64", "arm64", "all"):
+            with self.subTest(arch=arch):
+                (self.work / "commands.jsonl").write_text("")
+                result = self.run_s3_upload("production", "linux", LINUX_ARCH=arch)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                filenames = {Path(command[3]).name for command in self.commands()}
+                self.assertEqual(
+                    filenames,
+                    expected[arch] if arch != "all" else expected["amd64"] | expected["arm64"],
+                )
 
     def test_publication_and_success_notification_wait_for_verification(self) -> None:
         publish = next(step for step in self.jobs["release-finalize"]["steps"] if step.get("id") == "publish")
