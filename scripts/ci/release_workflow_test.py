@@ -135,17 +135,56 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
                 for command in self.commands():
                     self.assertEqual(command[-2:], ["--metadata", f"sha256={checksum}"])
 
-    def test_incomplete_candidate_set_blocks_all_s3_uploads(self) -> None:
+    def test_incomplete_candidate_set_blocks_all_uploads(self) -> None:
         directory = self.work / "lantern-installer-dmg"
         directory.mkdir()
         for build_type in ("production", "beta", "nightly"):
             with self.subTest(build_type=build_type):
+                (self.work / "commands.jsonl").write_text("")
                 suffix = "" if build_type == "production" else f"-{build_type}"
                 (directory / f"lantern-installer{suffix}.dmg").write_bytes(b"installer")
                 result = self.run_s3_upload(build_type, "macos,windows")
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("Required windows release artifact is missing", result.stderr)
                 self.assertEqual(self.commands(), [])
+                result = self.run_step(
+                    "Upload artifacts to GitHub Release", job="upload-release-artifacts",
+                    BUILD_TYPE=build_type, PLATFORM="macos,windows",
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("Required windows release artifact is missing", result.stderr)
+                self.assertEqual(self.commands(), [])
+
+    def test_missing_arm64_package_blocks_all_github_uploads(self) -> None:
+        for suffix in ("", "-arm64"):
+            for extension, directory_suffix in (("deb", "deb"), ("rpm", "rpm"), ("pkg.tar.zst", "pkg")):
+                if suffix == "-arm64" and extension == "pkg.tar.zst":
+                    continue
+                directory = self.work / f"lantern-installer-{directory_suffix}{suffix}"
+                directory.mkdir()
+                (directory / f"lantern-installer{suffix}.{extension}").write_bytes(b"installer")
+        result = self.run_step(
+            "Upload artifacts to GitHub Release", job="upload-release-artifacts",
+            PLATFORM="linux", LINUX_ARCH="all",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("lantern-installer-arm64.pkg.tar.zst", result.stderr)
+        self.assertEqual(self.commands(), [])
+
+    def test_complete_candidates_upload_to_github(self) -> None:
+        for extension in ("dmg", "exe"):
+            directory = self.work / f"lantern-installer-{extension}"
+            directory.mkdir()
+            (directory / f"lantern-installer.{extension}").write_bytes(b"installer")
+        result = self.run_step(
+            "Upload artifacts to GitHub Release", job="upload-release-artifacts",
+            PLATFORM="macos,windows",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.commands(), [
+            ["gh", "release", "upload", "v9.2.0", f"lantern-installer-{extension}/lantern-installer.{extension}", "--clobber"]
+            for extension in ("dmg", "exe")
+        ])
 
     def test_missing_requested_github_artifact_fails_for_every_channel(self) -> None:
         for build_type in ("production", "beta", "nightly"):
@@ -190,14 +229,21 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
 
         for arch in ("amd64", "arm64", "all"):
             with self.subTest(arch=arch):
+                wanted = expected[arch] if arch != "all" else expected["amd64"] | expected["arm64"]
                 (self.work / "commands.jsonl").write_text("")
                 result = self.run_s3_upload("production", "linux", LINUX_ARCH=arch)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 filenames = {Path(command[3]).name for command in self.commands()}
-                self.assertEqual(
-                    filenames,
-                    expected[arch] if arch != "all" else expected["amd64"] | expected["arm64"],
+                self.assertEqual(filenames, wanted)
+
+                (self.work / "commands.jsonl").write_text("")
+                result = self.run_step(
+                    "Upload artifacts to GitHub Release", job="upload-release-artifacts",
+                    PLATFORM="linux", LINUX_ARCH=arch,
                 )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                filenames = {Path(command[4]).name for command in self.commands()}
+                self.assertEqual(filenames, wanted)
 
     def test_publication_and_success_notification_wait_for_verification(self) -> None:
         publish = next(step for step in self.jobs["release-finalize"]["steps"] if step.get("id") == "publish")

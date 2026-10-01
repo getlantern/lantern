@@ -854,9 +854,11 @@ jobs:
             done
           }
 
-          upload_required() {
+          artifacts=()
+          collect_required() {
             local platform="$1"
             local filename="$2"
+            local file
             shift 2
 
             if ! platform_selected "$platform"; then
@@ -864,7 +866,7 @@ jobs:
             fi
             for file in "$@"; do
               if [[ -f "$file" ]]; then
-                upload_file "$file"
+                artifacts+=("$file")
                 return 0
               fi
             done
@@ -872,34 +874,36 @@ jobs:
             return 1
           }
 
-          upload_required macos "${FULL_NAME}.dmg" \
+          collect_required macos "${FULL_NAME}.dmg" \
             "lantern-installer-dmg/${FULL_NAME}.dmg"
-          upload_required windows "${FULL_NAME}.exe" \
+          collect_required windows "${FULL_NAME}.exe" \
             "lantern-installer-exe/${FULL_NAME}.exe"
-          upload_required android "${FULL_NAME}.apk" \
+          collect_required android "${FULL_NAME}.apk" \
             "lantern-installer-apk/${FULL_NAME}.apk"
-          upload_required ios "${FULL_NAME}.ipa" \
+          collect_required ios "${FULL_NAME}.ipa" \
             "lantern-installer-ipa/${FULL_NAME}.ipa"
 
-          if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "amd64" ]]; then
-            upload_required linux "${FULL_NAME}.deb" \
-              "lantern-installer-deb-amd64/${FULL_NAME}.deb" \
-              "lantern-installer-deb/${FULL_NAME}.deb"
-            upload_required linux "${FULL_NAME}.rpm" \
-              "lantern-installer-rpm-amd64/${FULL_NAME}.rpm" \
-              "lantern-installer-rpm/${FULL_NAME}.rpm"
-            upload_required linux "${FULL_NAME}.pkg.tar.zst" \
-              "lantern-installer-pkg-amd64/${FULL_NAME}.pkg.tar.zst" \
-              "lantern-installer-pkg/${FULL_NAME}.pkg.tar.zst"
-          fi
-          if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "arm64" ]]; then
-            upload_required linux "${FULL_NAME}-arm64.deb" \
-              "lantern-installer-deb-arm64/${FULL_NAME}-arm64.deb"
-            upload_required linux "${FULL_NAME}-arm64.rpm" \
-              "lantern-installer-rpm-arm64/${FULL_NAME}-arm64.rpm"
-            upload_required linux "${FULL_NAME}-arm64.pkg.tar.zst" \
-              "lantern-installer-pkg-arm64/${FULL_NAME}-arm64.pkg.tar.zst"
-          fi
+          for arch in amd64 arm64; do
+            if [[ "$LINUX_ARCH" != "all" && "$LINUX_ARCH" != "$arch" ]]; then
+              continue
+            fi
+            suffix=""
+            [[ "$arch" == "arm64" ]] && suffix="-arm64"
+            for extension in deb rpm pkg.tar.zst; do
+              filename="${FULL_NAME}${suffix}.${extension}"
+              directory="lantern-installer-${extension%%.*}"
+              candidates=("${directory}-${arch}/${filename}")
+              if [[ "$arch" == "amd64" ]]; then
+                candidates+=("${directory}/${filename}")
+              fi
+              collect_required linux "$filename" "${candidates[@]}"
+            done
+          done
+
+          # Check the full candidate set before uploading any files.
+          for file in "${artifacts[@]}"; do
+            upload_file "$file"
+          done
 
   # Post-publish steps. Production/beta always use their release tracks; nightly
   # mobile store uploads run only when set-metadata enables them.

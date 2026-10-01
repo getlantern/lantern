@@ -96,7 +96,7 @@ def required_asset_names(
     return frozenset(assets)
 
 
-def request_json(url: str, token: str = "") -> dict[str, Any]:
+def request_json(url: str, token: str = "") -> Any:
     headers = {
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
@@ -125,6 +125,20 @@ def request_headers(url: str) -> Mapping[str, str]:
             return {key.lower(): value for key, value in response.headers.items()}
     except urllib.error.HTTPError as err:
         raise VerificationError(f"HEAD {url} returned HTTP {err.code}") from err
+
+
+def find_release(config: Config) -> dict[str, Any]:
+    # The tag endpoint only returns published releases; the listing includes drafts.
+    url = f"{config.github_api_url.rstrip('/')}/repos/{config.repository}/releases"
+    page = 1
+    while True:
+        releases = request_json(f"{url}?per_page=100&page={page}", config.github_token)
+        for release in releases:
+            if release.get("tag_name") == config.release_tag:
+                return release
+        if len(releases) < 100:
+            raise VerificationError(f"GitHub release {config.release_tag} not found")
+        page += 1
 
 
 def validate_release(
@@ -245,11 +259,7 @@ def verify(config: Config) -> None:
     )
     require(bool(required_assets), "release has no required downloadable assets")
 
-    encoded_tag = urllib.parse.quote(config.release_tag, safe="")
-    release = request_json(
-        f"{config.github_api_url.rstrip('/')}/repos/{config.repository}/releases/tags/{encoded_tag}",
-        config.github_token,
-    )
+    release = find_release(config)
     release_assets = validate_release(release, config, required_assets)
 
     tag_commit = resolve_tag_commit(config)

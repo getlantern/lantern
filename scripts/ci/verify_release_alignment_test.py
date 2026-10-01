@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
+import io
+import json
 import pathlib
 import sys
-import unittest
-from unittest import mock
+from unittest import TestCase, main, mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 import verify_release_alignment
 
 
-class VerifyReleaseAlignmentTest(unittest.TestCase):
+class VerifyReleaseAlignmentTest(TestCase):
     def config(self, **overrides: object) -> verify_release_alignment.Config:
         values: dict[str, object] = {
             "repository": "getlantern/lantern",
@@ -27,6 +28,41 @@ class VerifyReleaseAlignmentTest(unittest.TestCase):
         }
         values.update(overrides)
         return verify_release_alignment.Config(**values)
+
+    @mock.patch.object(verify_release_alignment.urllib.request, "urlopen")
+    def test_find_release_includes_drafts_and_paginates(self, urlopen: mock.Mock) -> None:
+        config = self.config(github_token="test-token")
+        for draft in (True, False):
+            with self.subTest(draft=draft):
+                release = {"tag_name": config.release_tag, "draft": draft}
+                pages = [[{"tag_name": "other"}] * 100, [release]]
+                urlopen.reset_mock()
+                urlopen.side_effect = [
+                    io.BytesIO(json.dumps(page).encode()) for page in pages
+                ]
+
+                self.assertEqual(verify_release_alignment.find_release(config), release)
+                requests = [call.args[0] for call in urlopen.call_args_list]
+                self.assertEqual(
+                    [request.full_url for request in requests],
+                    [f"https://api.github.com/repos/getlantern/lantern/releases?per_page=100&page={page}"
+                     for page in (1, 2)],
+                )
+                for request in requests:
+                    self.assertEqual(request.get_header("Authorization"), "Bearer test-token")
+
+    @mock.patch.object(verify_release_alignment, "request_json")
+    def test_missing_release_stops_at_last_page(self, request_json: mock.Mock) -> None:
+        for last_page in ([], [{"tag_name": "other"}]):
+            with self.subTest(last_page=last_page):
+                request_json.reset_mock()
+                request_json.side_effect = [[{"tag_name": "other"}] * 100, last_page]
+                with self.assertRaisesRegex(
+                    verify_release_alignment.VerificationError,
+                    "GitHub release v9.2.0-beta not found",
+                ):
+                    verify_release_alignment.find_release(self.config())
+                self.assertEqual(request_json.call_count, 2)
 
     def test_required_assets_cover_all_platforms_and_linux_architectures(self) -> None:
         assets = verify_release_alignment.required_asset_names(
@@ -246,15 +282,15 @@ class VerifyReleaseAlignmentTest(unittest.TestCase):
     @mock.patch.object(verify_release_alignment, "resolve_tag_commit", return_value="b" * 40)
     @mock.patch.object(verify_release_alignment, "request_json")
     def test_wrong_source_commit_blocks_release(self, request_json, resolve_tag, validate_aliases) -> None:
-        request_json.return_value = {
+        request_json.return_value = [{
             "tag_name": "v9.2.0-beta", "name": "Beta 9.2.0-beta",
             "draft": True, "prerelease": True,
             "assets": [{"name": "lantern-installer-beta.apk", "size": 42, "state": "uploaded"}],
-        }
+        }]
         with self.assertRaisesRegex(verify_release_alignment.VerificationError, "release tag points to"):
             verify_release_alignment.verify(self.config(platforms=frozenset({"android"})))
         validate_aliases.assert_not_called()
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
