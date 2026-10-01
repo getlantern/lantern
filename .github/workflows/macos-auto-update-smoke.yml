@@ -24,6 +24,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check-runner:
+    name: Verify native UI driver
+    runs-on: [self-hosted, lantern-macos-smoke]
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Test Accessibility and native controls
+        run: python3 -m unittest -v scripts/ci/macos_sparkle_handoff_test.py
+
   resolve-target:
     name: Resolve staging fixture target
     runs-on: ubuntu-latest
@@ -108,7 +121,7 @@ jobs:
 
   build-fixture:
     name: Build signed lower fixture
-    needs: resolve-target
+    needs: [check-runner, resolve-target]
     permissions:
       contents: read
       id-token: write

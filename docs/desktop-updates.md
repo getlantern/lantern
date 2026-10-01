@@ -62,6 +62,12 @@ Both workflows accept a `scenario` input:
   startup update check runs. The test verifies that core is still unavailable and
   no VPN bypass proxy is listening when the native updater offers an update.
 
+The macOS workflow first tests the native UI driver against a small fixture
+window. It uses the public Accessibility API to press Sparkle's install buttons
+and detect the relaunched window. The active `Runner.Listener` needs Accessibility
+approval in the runner's logged-in desktop session; System Events Automation
+approval is not required.
+
 The workflows replace the installed app and clear test data on their runners.
 Diagnostics include the target version, Flutter log, native handoff, process IDs,
 signatures, and screenshots. Both scenarios use the staging feed and its signed
