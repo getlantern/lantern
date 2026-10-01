@@ -30,6 +30,7 @@ MOUNT_PATH=""
 ORIGINAL_PID=""
 RELAUNCHED_PID=""
 RESULT="failure"
+NETWORK_BLOCKED=false
 
 log_e2e() {
   printf '[E2E] %s\n' "$*" >&2
@@ -163,6 +164,14 @@ cleanup() {
   defaults delete "$DEFAULTS_DOMAIN" >/dev/null 2>&1 || true
 }
 
+restore_network() {
+  if [[ "$NETWORK_BLOCKED" == true ]]; then
+    sudo -n env CI=true GITHUB_ACTIONS=true LANTERN_AUTO_UPDATE_SMOKE=true RUNNER_ENVIRONMENT=self-hosted \
+      "$(command -v python3)" "$SCENARIO_HELPER" restore || return "$?"
+    NETWORK_BLOCKED=false
+  fi
+}
+
 capture_diagnostics() {
   mkdir -p "$ARTIFACT_DIR"
   {
@@ -193,6 +202,7 @@ on_exit() {
   set +e
   capture_diagnostics
   capture_screenshot final
+  restore_network || status=1
   detach_dmg
   cleanup
   exit "$status"
@@ -241,6 +251,12 @@ if [[ "$SCENARIO" != baseline ]]; then
     printf 'Stop the Lantern VPN before running this scenario.\n' >&2
     exit 1
   fi
+fi
+if [[ "$SCENARIO" == core-unavailable-direct-blocked ]]; then
+  NETWORK_BLOCKED=true
+  sudo -n env CI=true GITHUB_ACTIONS=true LANTERN_AUTO_UPDATE_SMOKE=true RUNNER_ENVIRONMENT=self-hosted \
+    "$(command -v python3)" "$SCENARIO_HELPER" block --scenario "$SCENARIO" --target "$TARGET_JSON" \
+    --output "$ARTIFACT_DIR/network-before.json"
 fi
 
 log_e2e "running the Flutter auto-update robot against the installed fixture"
@@ -302,6 +318,8 @@ RELAUNCHED_PID="$(wait_for_new_pid "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS")"
 "$ROBOT" wait-main "$RELAUNCHED_PID" "$UI_TIMEOUT_SECONDS" \
   | tee "$ARTIFACT_DIR/main-window-after.txt"
 verify_bundle updated "$TARGET_BUILD" "$DISPLAY_VERSION"
+python3 "$SCENARIO_HELPER" verify --scenario "$SCENARIO" --target "$TARGET_JSON" \
+  --handoff "$ARTIFACT_DIR/auto-update-handoff.json" --output "$ARTIFACT_DIR/scenario-after.json"
 capture_versions updated
 capture_processes after
 capture_screenshot after
