@@ -15,7 +15,6 @@ import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/logger_service.dart';
-import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -127,8 +126,6 @@ bool canUsePlayBilling() {
   return resolvePlayBillingAvailability(
     isAndroid: PlatformUtils.isAndroid,
     isStoreVersion: isStoreVersion(),
-    isCountryKnown: CountryCode.isKnown,
-    isCensoredRegion: CountryCode.isCensoredRegion,
   );
 }
 

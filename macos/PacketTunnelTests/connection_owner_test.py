@@ -32,6 +32,7 @@ class ConnectionOwnerTests(unittest.TestCase):
             "macos/PacketTunnel/SingBox/ExtensionPlatformInterface.swift",
             "macos/PacketTunnel/SingBox/ExtensionProvider.swift",
             "macos/PacketTunnel/SingBox/Extension+RunBlocking.swift",
+            "macos/PacketTunnel/SingBox/TunnelFileDescriptor.swift",
             "macos/Shared/Logger.swift",
             "macos/Shared/FilePath.swift",
             "macos/PacketTunnelTests/ConnectionOwnerProbe.swift",

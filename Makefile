@@ -290,7 +290,7 @@ APPDMG    := $(call get-command,appdmg)
 AUTO_UPDATE_E2E_DART_DEFINE := $(if $(filter true 1 yes,$(AUTO_UPDATE_E2E)),--dart-define=AUTO_UPDATE_E2E=true,)
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),) $(if $(RADIANCE_ENV),--dart-define=RADIANCE_ENV=$(RADIANCE_ENV),) $(AUTO_UPDATE_E2E_DART_DEFINE)
 FLUTTER_TARGET_ARG := $(if $(FLUTTER_TARGET),--target=$(FLUTTER_TARGET),)
-MACOS_CONNECT_SMOKE_DEFINES := $(if $(filter true,$(RUN_CONNECT_SMOKE)),--dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=$(ENABLE_IP_CHECK) --dart-define=SMOKE_FORCE_FULL_TUNNEL=$(FORCE_FULL_TUNNEL),)
+MACOS_CONNECT_SMOKE_DEFINES := $(if $(filter true,$(RUN_CONNECT_SMOKE)),--dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=$(ENABLE_IP_CHECK) --dart-define=SMOKE_FORCE_FULL_TUNNEL=$(FORCE_FULL_TUNNEL) --dart-define=VPN_LIFECYCLE_SMOKE=$(VPN_LIFECYCLE_SMOKE),)
 STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
 STEALTH_VPN_BUILD_VARS   := BUILD_TYPE=stealth-vpn  STEALTH_MODE=stealth-vpn  STEALTH_LEAKAGE_MODE=stealth-vpn
 STEALTH_ICON_SEED ?=
@@ -567,6 +567,7 @@ stage-macos-profile: build-macos-profile
 
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
+	scripts/ci/sign_macos_dmg.sh "$(DARWIN_RELEASE_BUILD)" "$(MACOS_INSTALLER)"
 	@echo "Notarizing distribution package..."
 	xcrun notarytool submit $(MACOS_INSTALLER) \
 		--apple-id $$AC_USERNAME \
@@ -586,6 +587,9 @@ notarize-darwin: require-ac-username require-ac-password
 	fi
 	@echo "Stapling notarization ticket..."
 	xcrun stapler staple $(MACOS_INSTALLER)
+	codesign --verify --strict --verbose=2 "$(MACOS_INSTALLER)"
+	xcrun stapler validate "$(MACOS_INSTALLER)"
+	spctl --assess --type open --context context:primary-signature --verbose=4 "$(MACOS_INSTALLER)"
 	@echo "Notarization complete"
 
 

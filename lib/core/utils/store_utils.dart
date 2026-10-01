@@ -11,13 +11,12 @@ bool resolveAndroidStoreVersion({
   return isPlayStoreBuild || (developerOverride ?? !isSideLoaded);
 }
 
+/// Play Billing is offered on every Android store build, whatever the country.
 bool resolvePlayBillingAvailability({
   required bool isAndroid,
   required bool isStoreVersion,
-  required bool isCountryKnown,
-  required bool isCensoredRegion,
 }) {
-  return isAndroid && isStoreVersion && isCountryKnown && !isCensoredRegion;
+  return isAndroid && isStoreVersion;
 }
 
 class StoreUtils {

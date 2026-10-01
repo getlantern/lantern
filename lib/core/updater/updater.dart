@@ -4,9 +4,11 @@ import 'dart:io';
 
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
-import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
 import 'package:lantern/core/updater/winsparkle_build_version.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -18,50 +20,88 @@ class Updater with UpdaterListener {
   Updater({
     AndroidSideloadUpdater? androidSideloadUpdater,
     AutoUpdater? autoUpdater,
-    bool? isWindows,
+    Future<Map<String, dynamic>> Function()? loadFeatureFlags,
+    @visibleForTesting TargetPlatform? platform,
+    @visibleForTesting bool? isDebugMode,
+    @visibleForTesting bool? enableDesktopUpdates,
+    @visibleForTesting DateTime Function()? now,
     Future<void> Function()? quitForUpdate,
   }) : _androidSideloadUpdater =
            androidSideloadUpdater ?? AndroidSideloadUpdater(),
        _autoUpdater = autoUpdater,
-       _isWindowsPlatform = isWindows ?? (!kIsWeb && Platform.isWindows),
+       _loadFeatureFlags = loadFeatureFlags ?? _readFeatureFlags,
+       _platform = platform ?? defaultTargetPlatform,
+       _isDebugMode = isDebugMode ?? kDebugMode,
+       _enableDesktopUpdates =
+           enableDesktopUpdates ?? AppBuildInfo.enableAutoUpdate,
+       _now = now ?? DateTime.now,
        _quitForUpdate = quitForUpdate;
 
+  static const startupDelay = Duration(seconds: 5);
+  static const featureFlagTimeout = Duration(seconds: 2);
+  static const recoveryDelay = Duration(minutes: 1);
+  static const _nativeCheckInterval = Duration(hours: 1);
+  static const _configurationRetryDelays = [
+    Duration(minutes: 1),
+    Duration(minutes: 5),
+    Duration(minutes: 15),
+  ];
+
   final AndroidSideloadUpdater _androidSideloadUpdater;
-  AutoUpdater? _autoUpdater;
-  final bool _isWindowsPlatform;
+  final Future<Map<String, dynamic>> Function() _loadFeatureFlags;
+  final TargetPlatform _platform;
+  final bool _isDebugMode;
+  final bool _enableDesktopUpdates;
+  final DateTime Function() _now;
   final Future<void> Function()? _quitForUpdate;
 
-  Future<void>? _initialization;
+  AutoUpdater? _autoUpdater;
+  Future<Map<String, dynamic>>? _pendingFeatureFlags;
+  Map<String, dynamic> _cachedFeatureFlags = {};
+  Timer? _checkTimer;
+  DateTime? _nextCheckAt;
+  String? _noUpdateMessage;
+  int _configurationRetryAttempt = 0;
+  bool _desktopConfigured = false;
+  bool _started = false;
+  bool _dispatchingCheck = false;
+  bool _needsConfigurationRetry = false;
+  bool _disposed = false;
   bool _listenerRegistered = false;
   bool _quittingForUpdate = false;
 
-  bool get _isAndroidPlatform => !kIsWeb && Platform.isAndroid;
+  bool get _isWindowsPlatform => !kIsWeb && _platform == TargetPlatform.windows;
+  bool get _isAndroidPlatform => !kIsWeb && _platform == TargetPlatform.android;
 
   bool get _isSupportedPlatform =>
-      !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isAndroid);
+      !kIsWeb &&
+      (_isAndroidPlatform ||
+          (_enableDesktopUpdates &&
+              (_platform == TargetPlatform.macOS || _isWindowsPlatform)));
 
   // AutoUpdater opens its native event channel as soon as the singleton is
   // created. Keep that initialization off Linux and Android, where the
   // desktop plugin is not registered.
   AutoUpdater get _desktopAutoUpdater => _autoUpdater ??= AutoUpdater.instance;
 
-  Future<void> init() => _initialization ??= _initialize();
-
-  Future<void> _initialize() async {
-    if (kDebugMode || !_isSupportedPlatform) return;
-
-    final flags = await _featureFlags();
+  Future<void> init() async {
+    if (_started || _disposed || _isDebugMode || !_isSupportedPlatform) return;
+    _started = true;
     if (_isAndroidPlatform) {
-      await _androidSideloadUpdater.init(flags);
+      try {
+        await _androidSideloadUpdater.init(await _featureFlags());
+      } catch (e, st) {
+        _started = false;
+        appLogger.error('Failed to initialize Android updater', e, st);
+      }
     } else {
-      await _initDesktopUpdater(flags);
+      _scheduleCheck(startupDelay, 'startup');
     }
   }
 
   Future<bool> canCheckForUpdates() async {
-    if (!_isSupportedPlatform) return false;
+    if (_disposed || !_isSupportedPlatform) return false;
     try {
-      await init();
       final flags = await _featureFlags();
       if (_isAndroidPlatform) {
         return _androidSideloadUpdater.isEnabled(flags, logDisabled: false);
@@ -73,71 +113,141 @@ class Updater with UpdaterListener {
     }
   }
 
-  Future<void> _initDesktopUpdater(Map<String, dynamic> flags) async {
-    if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
-      appLogger.info('autoUpdater disabled by feature flag');
-      return;
+  Future<void> _configureDesktopUpdater() async {
+    final buildType = AppBuildInfo.buildType;
+    final feedUrl = AppUrls.appcastFor(buildType);
+    final autoUpdater = _desktopAutoUpdater;
+    if (!_listenerRegistered) {
+      autoUpdater.addListener(this);
+      _listenerRegistered = true;
     }
-
-    try {
-      final buildType = AppBuildInfo.buildType;
-      final feedUrl = AppUrls.appcastFor(buildType);
-      final autoUpdater = _desktopAutoUpdater;
-      if (!_listenerRegistered) {
-        autoUpdater.addListener(this);
-        _listenerRegistered = true;
+    if (_isWindowsPlatform) {
+      try {
+        final packageInfo = await PackageInfo.fromPlatform();
+        if (_disposed) return;
+        setWinSparkleBuildVersion(packageInfo.buildNumber);
+      } catch (e, st) {
+        appLogger.warning('Failed to set WinSparkle build version', e, st);
       }
-      if (Platform.isWindows) {
-        try {
-          final packageInfo = await PackageInfo.fromPlatform();
-          setWinSparkleBuildVersion(packageInfo.buildNumber);
-        } catch (e, st) {
-          appLogger.warning('Failed to set WinSparkle build version', e, st);
-        }
-      }
-      await autoUpdater.setFeedURL(feedUrl);
-      await autoUpdater.setScheduledCheckInterval(3600);
-
-      // Background check after startup (avoid modal immediately on launch)
-      const firstPromptDelay = Duration(seconds: 45);
-      unawaited(
-        Future<void>.delayed(firstPromptDelay, () async {
-          try {
-            await autoUpdater.checkForUpdates(inBackground: true);
-          } catch (e, st) {
-            appLogger.error('Failed to check for auto-updates', e, st);
-          }
-        }),
-      );
-
-      appLogger.info(
-        'autoUpdater configured. buildType=$buildType url=$feedUrl',
-      );
-    } catch (e, st) {
-      appLogger.error('Failed to configure autoUpdater:', e, st);
     }
+    if (_disposed) return;
+    await autoUpdater.setFeedURL(feedUrl);
+    if (_disposed) return;
+    await autoUpdater.setScheduledCheckInterval(_nativeCheckInterval.inSeconds);
+    if (_disposed) return;
+
+    appLogger.info('autoUpdater configured. buildType=$buildType url=$feedUrl');
+    _desktopConfigured = true;
+    _resetConfigurationRetries();
   }
 
   Future<void> checkNow() async {
-    if (!_isSupportedPlatform) return;
-    await init();
-    final flags = await _featureFlags();
-
+    if (_disposed || !_isSupportedPlatform) return;
     if (_isAndroidPlatform) {
+      await init();
+      final flags = await _featureFlags();
       if (!_androidSideloadUpdater.isEnabled(flags)) return;
       await _androidSideloadUpdater.checkForUpdate(
         source: AndroidSideloadUpdateCheckSource.manual,
       );
       return;
     }
+    await _checkDesktop(inBackground: false, source: 'manual');
+  }
 
-    if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
+  Future<void> _checkDesktop({
+    required bool inBackground,
+    required String source,
+  }) async {
+    if (_disposed || _dispatchingCheck || _quittingForUpdate) return;
+    _dispatchingCheck = true;
+    _cancelScheduledCheck();
+    try {
+      final flags = await _featureFlags();
+      if (_disposed) return;
+      if (!flags.getBool(FeatureFlag.autoUpdateEnabled, defaultValue: true)) {
+        _resetConfigurationRetries();
+        appLogger.info('autoUpdater disabled by feature flag');
+        return;
+      }
+      if (!_desktopConfigured) await _configureDesktopUpdater();
+      if (_disposed) return;
       appLogger.info(
-        'autoUpdater disabled by feature flag; ignoring manual check',
+        'Desktop update check: source=$source '
+        'url=${AppUrls.appcastFor(AppBuildInfo.buildType)}',
       );
+      _noUpdateMessage = null;
+      await _desktopAutoUpdater.checkForUpdates(inBackground: inBackground);
+    } catch (e, st) {
+      appLogger.error('Failed to start desktop update check ($source)', e, st);
+      _scheduleConfigurationRetry();
+      if (!inBackground) rethrow;
+    } finally {
+      _dispatchingCheck = false;
+    }
+  }
+
+  void _scheduleCheck(Duration delay, String source) {
+    if (_disposed || _isDebugMode || _isAndroidPlatform) return;
+    final checkAt = _now().add(delay);
+    final nextCheckAt = _nextCheckAt;
+    // Repeated reconnects should never push an earlier check back.
+    if (nextCheckAt != null && !nextCheckAt.isAfter(checkAt)) return;
+    _checkTimer?.cancel();
+    _nextCheckAt = checkAt;
+    _checkTimer = Timer(delay, () {
+      _checkTimer = null;
+      _nextCheckAt = null;
+      unawaited(_checkDesktop(inBackground: true, source: source));
+    });
+  }
+
+  void _scheduleConfigurationRetry() {
+    // Once setup succeeds, Sparkle/WinSparkle own the check schedule.
+    if (_disposed || _quittingForUpdate || _desktopConfigured) return;
+    _needsConfigurationRetry = true;
+    if (_checkTimer?.isActive == true) return;
+    if (_configurationRetryAttempt == _configurationRetryDelays.length) {
+      _scheduleCheck(_nativeCheckInterval, 'configuration-retry');
       return;
     }
-    await _desktopAutoUpdater.checkForUpdates();
+    final delay = _configurationRetryDelays[_configurationRetryAttempt];
+    _configurationRetryAttempt++;
+    appLogger.info(
+      'Retrying desktop updater setup in ${delay.inSeconds}s '
+      '(attempt $_configurationRetryAttempt)',
+    );
+    _scheduleCheck(delay, 'configuration-retry');
+  }
+
+  /// Retries unfinished native setup after reconnecting or resuming.
+  void retryPendingSetup() {
+    if (!_needsConfigurationRetry ||
+        _disposed ||
+        _isDebugMode ||
+        _isAndroidPlatform ||
+        _dispatchingCheck) {
+      return;
+    }
+    _scheduleCheck(recoveryDelay, 'recovery');
+  }
+
+  void _resetConfigurationRetries() {
+    _needsConfigurationRetry = false;
+    _configurationRetryAttempt = 0;
+    _cancelScheduledCheck();
+  }
+
+  void _cancelScheduledCheck() {
+    _checkTimer?.cancel();
+    _checkTimer = null;
+    _nextCheckAt = null;
+  }
+
+  void dispose() {
+    _disposed = true;
+    _cancelScheduledCheck();
+    if (_listenerRegistered) _autoUpdater?.removeListener(this);
   }
 
   @override
@@ -179,11 +289,22 @@ class Updater with UpdaterListener {
   }
 
   @override
-  void onUpdaterCheckingForUpdate(Appcast? appcast) {}
+  void onUpdaterCheckingForUpdate(Appcast? appcast) {
+    _noUpdateMessage = null;
+  }
 
   @override
   void onUpdaterError(UpdaterError? error) {
-    appLogger.warning('Desktop update check failed: $error');
+    // Sparkle also reports "no update" through its error callback. The bridge
+    // only exposes the message, so match it to the preceding result.
+    final noUpdateMessage = _noUpdateMessage;
+    _noUpdateMessage = null;
+    if (error != null && error.message == noUpdateMessage) return;
+    appLogger.warning(
+      'Desktop update failed: '
+      '${error?.message ?? 'native updater did not provide error details'} '
+      'url=${AppUrls.appcastFor(AppBuildInfo.buildType)}',
+    );
   }
 
   @override
@@ -197,17 +318,39 @@ class Updater with UpdaterListener {
   }
 
   @override
-  void onUpdaterUpdateNotAvailable(UpdaterError? error) {}
+  void onUpdaterUpdateNotAvailable(UpdaterError? error) {
+    _noUpdateMessage = error?.message;
+  }
 
   Future<Map<String, dynamic>> _featureFlags() async {
+    // A Dart timeout doesn't cancel the IPC call. Reuse it while it's pending
+    // so retries don't leave more requests waiting on an unresponsive core.
+    final pending = _pendingFeatureFlags ??= Future.sync(_loadFeatureFlags)
+        .then((flags) {
+          _cachedFeatureFlags = flags;
+          return flags;
+        })
+        .whenComplete(() {
+          _pendingFeatureFlags = null;
+        });
+    try {
+      return await pending.timeout(featureFlagTimeout);
+    } catch (e) {
+      appLogger.warning('Using cached update feature flags: $e');
+      return _cachedFeatureFlags;
+    }
+  }
+
+  static Future<Map<String, dynamic>> _readFeatureFlags() async {
+    if (!sl.isRegistered<LanternService>() ||
+        !sl.isReadySync<LanternService>()) {
+      throw StateError('LanternService is not ready');
+    }
     final flagResult = await sl<LanternService>().featureFlag();
-    return flagResult.fold((_) => <String, dynamic>{}, (jsonStr) {
-      try {
-        return json.decode(jsonStr) as Map<String, dynamic>;
-      } catch (e, st) {
-        appLogger.warning('Failed to decode feature flags JSON', e, st);
-        return <String, dynamic>{};
-      }
-    });
+    return flagResult.fold(
+      (failure) =>
+          throw StateError('Feature flags unavailable: ${failure.error}'),
+      (jsonStr) => jsonDecode(jsonStr) as Map<String, dynamic>,
+    );
   }
 }

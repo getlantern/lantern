@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/localization/i18n.dart';
 
 import '../utils/widget_wait_utils.dart';
 
@@ -58,10 +59,12 @@ class VpnStateFinders {
     WidgetTester tester, {
     required List<VPNStatus> expected,
     required Duration timeout,
+    bool allowVpnConflict = false,
   }) async {
     final end = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(end)) {
       await tester.pump(const Duration(milliseconds: 200));
+      if (allowVpnConflict) await confirmVpnConflictForSmoke(tester);
       final state = current();
       if (expected.contains(state)) {
         return state;
@@ -75,17 +78,34 @@ class VpnStateFinders {
     required List<VPNStatus> expected,
     required Duration timeout,
     required String reason,
+    bool allowVpnConflict = false,
   }) async {
     final state = await tryWaitFor(
       tester,
       expected: expected,
       timeout: timeout,
+      allowVpnConflict: allowVpnConflict,
     );
     if (state != null) {
       return state;
     }
     fail('$reason. ${buildVpnDebugSnapshot(tester, this)}');
   }
+}
+
+Future<void> confirmVpnConflictForSmoke(WidgetTester tester) async {
+  final connectAnyway = find
+      .descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('vpn_conflict_connect_anyway'.i18n),
+      )
+      .hitTestable();
+  if (connectAnyway.evaluate().isEmpty) return;
+
+  // CI runners may use Tailscale for management. Follow the normal UI override.
+  debugPrint('VPN smoke: confirming Connect anyway in the VPN conflict dialog');
+  await tester.tap(connectAnyway);
+  await tester.pump(const Duration(milliseconds: 200));
 }
 
 String buildVpnDebugSnapshot(

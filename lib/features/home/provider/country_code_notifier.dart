@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/utils/country_code.dart';
@@ -20,11 +18,9 @@ class CountryCodeNotifier extends _$CountryCodeNotifier {
     CountryCode.update(code);
     state = CountryCode.current;
     appLogger.debug('Updating country code to: $state');
-    if (Platform.isAndroid && sl.isRegistered<AppPurchase>()) {
-      final appPurchase = sl<AppPurchase>();
-      if (!CountryCode.isCensoredRegion) {
-        appPurchase.init();
-      }
+    if (sl.isRegistered<AppPurchase>()) {
+      // Keep the listener for any payment already in progress.
+      sl<AppPurchase>().init();
     }
   }
 }

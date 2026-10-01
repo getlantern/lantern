@@ -22,6 +22,7 @@ on:
         type: choice
         options:
           - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
+          - vpn-lifecycle # macOS: reconnects, forced descriptor fallback, and failed-start recovery
           - app-split-tunneling # macOS: verify excluded-app traffic through the signed extension
           - auth-smoke # auth flows only (sign-in/up, recovery, deletion) against the smoke roster
           - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
@@ -54,11 +55,10 @@ jobs:
   validate-inputs:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate app split-tunneling selection
-        if: ${{ inputs.tests == 'app-split-tunneling' && inputs.platforms != 'macos' }}
-        shell: bash
+      - name: Validate macOS smoke selection
+        if: ${{ contains(fromJSON('["vpn-lifecycle", "app-split-tunneling"]'), inputs.tests) && inputs.platforms != 'macos' }}
         run: |
-          echo '::error title=Invalid smoke selection::app-split-tunneling requires platforms=macos'
+          echo '::error title=Invalid smoke selection::Selected smoke test requires platforms=macos'
           exit 2
       - name: Validate auto-update selection
         if: ${{ inputs.tests == 'auto-update' && !contains(fromJSON('["all", "macos", "windows"]'), inputs.platforms) }}
@@ -157,6 +157,8 @@ jobs:
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       runner_label: lantern-macos-smoke
       flutter_target: ${{ inputs.tests == 'app-split-tunneling' && 'integration_test/vpn/macos_app_split_tunneling_smoke_test.dart' || '' }}
+      vpn_lifecycle_smoke: ${{ inputs.tests == 'vpn-lifecycle' }}
+      enable_ip_check: true
       run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
       run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
