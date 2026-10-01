@@ -18,6 +18,12 @@ branch to test and either scenario. macOS uses the dedicated smoke runner;
 Windows uses a disposable hosted runner. The scripts replace the installed app
 and remove its test data, so run them only through these guarded CI workflows.
 
+The macOS workflow first tests the native UI driver against a small fixture
+window. It uses the public Accessibility API to press Sparkle's install buttons
+and detect the relaunched window. The active `Runner.Listener` needs Accessibility
+approval in the runner's logged-in desktop session; System Events Automation
+approval is not required.
+
 The diagnostics include the resolved target, Flutter log, native handoff, process
 IDs, signatures, versions, and screenshots. These scenarios use the staging feed
 and its signed fixtures. They do not test blocked endpoints or domain fronting.

@@ -6,8 +6,8 @@ readonly APP_EXECUTABLE="$APP_PATH/Contents/MacOS/Lantern"
 readonly DATA_PATH="/Users/Shared/Lantern"
 readonly HANDOFF_PATH="$DATA_PATH/E2E/auto-update-handoff.json"
 readonly DEFAULTS_DOMAIN="org.getlantern.lantern"
-readonly ROBOT_SOURCE=".github/scripts/macos_sparkle_handoff.applescript"
-readonly ROBOT_SCRIPT="${RUNNER_TEMP:?RUNNER_TEMP is required}/macos-sparkle-handoff.scpt"
+readonly ROBOT_SOURCE=".github/scripts/macos_sparkle_handoff.swift"
+readonly ROBOT="${RUNNER_TEMP:?RUNNER_TEMP is required}/macos-sparkle-handoff"
 readonly FIXTURE_DMG="${FIXTURE_DMG:?FIXTURE_DMG is required}"
 readonly TARGET_JSON="${TARGET_JSON:?TARGET_JSON is required}"
 readonly APPCAST_XML="${APPCAST_XML:?APPCAST_XML is required}"
@@ -59,7 +59,6 @@ lantern_pids() {
 }
 
 quit_lantern() {
-  osascript -e 'tell application id "org.getlantern.lantern" to quit' >/dev/null 2>&1 || true
   local pid
   while IFS= read -r pid; do
     [[ -n "$pid" ]] && kill -TERM "$pid" 2>/dev/null || true
@@ -216,8 +215,8 @@ guard_ci_paths
 mkdir -p "$ARTIFACT_DIR"
 cp "$APPCAST_XML" "$ARTIFACT_DIR/appcast.xml"
 cp "$TARGET_JSON" "$ARTIFACT_DIR/resolved-target.json"
-osacompile -o "$ROBOT_SCRIPT" "$ROBOT_SOURCE"
-osascript "$ROBOT_SCRIPT" check-access 2>&1 | tee "$ARTIFACT_DIR/ui-access.txt"
+xcrun swiftc "$ROBOT_SOURCE" -o "$ROBOT"
+"$ROBOT" check-access 2>&1 | tee "$ARTIFACT_DIR/ui-access.txt"
 
 TARGET_BUILD="$(jq -er '.target_build | tostring' "$TARGET_JSON")"
 FIXTURE_BUILD="$(jq -er '.fixture_build | tostring' "$TARGET_JSON")"
@@ -288,10 +287,10 @@ original_command="$(ps -p "$ORIGINAL_PID" -o command=)"
 capture_processes prompt
 
 log_e2e "waiting for the native Sparkle prompt from process $ORIGINAL_PID"
-osascript "$ROBOT_SCRIPT" wait-prompt "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS" \
+"$ROBOT" wait-prompt "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS" \
   2>&1 | tee "$ARTIFACT_DIR/sparkle-prompt.txt"
 capture_screenshot prompt
-osascript "$ROBOT_SCRIPT" install-until-exit "$ORIGINAL_PID" "$UPDATE_TIMEOUT_SECONDS" \
+"$ROBOT" install-until-exit "$ORIGINAL_PID" "$UPDATE_TIMEOUT_SECONDS" \
   2>&1 | tee "$ARTIFACT_DIR/sparkle-install.txt"
 
 log_e2e "waiting for Sparkle to replace and relaunch Lantern"
@@ -300,7 +299,7 @@ if kill -0 "$ORIGINAL_PID" 2>/dev/null; then
   exit 1
 fi
 RELAUNCHED_PID="$(wait_for_new_pid "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS")"
-osascript "$ROBOT_SCRIPT" wait-main "$RELAUNCHED_PID" "$UI_TIMEOUT_SECONDS" \
+"$ROBOT" wait-main "$RELAUNCHED_PID" "$UI_TIMEOUT_SECONDS" \
   | tee "$ARTIFACT_DIR/main-window-after.txt"
 verify_bundle updated "$TARGET_BUILD" "$DISPLAY_VERSION"
 capture_versions updated
