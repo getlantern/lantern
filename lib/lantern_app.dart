@@ -226,8 +226,10 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
       return accessKey;
     }
-    if (uri.scheme == 'lantern') {
-      // lantern://private-server?key=value → lantern//private-server?key=value
+    if (uri.scheme == 'lantern' || AppBuildInfo.isAppAuthUri(uri)) {
+      // The downstream parser only accepts the canonical `lantern//` prefix, so
+      // a per-build custom scheme (APP_AUTH_SCHEME) is normalized here:
+      // <scheme>://private-server?key=value → lantern//private-server?key=value
       var accessKey = 'lantern//${uri.host}';
       if (uri.hasQuery) {
         accessKey += '?${uri.query}';
