@@ -19,6 +19,9 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
     beta_version = "9.2.0-beta"
     beta_appcast_version = "9.2.0-beta"
     stable_version = "9.1.0"
+    stable_appcast_version = "9.1.0"
+    linux_arm64_version = ""
+    requests = []
     stable_appcast_status = 200
     beta_enclosures = [
         ("macos", "macos-signature", "https://example.com/lantern-installer-beta.dmg"),
@@ -45,17 +48,21 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
         length = int(self.headers["Content-Length"])
         body = json.loads(self.rfile.read(length))
         tags = body.get("tags", {})
+        self.requests.append(tags)
         channel = tags.get("channel", "stable")
         os_name = tags.get("os", "android")
         if os_name != "android" and not body.get("checksum"):
             self.send_error(417, "checksum must not be nil")
             return
         suffix = ".deb" if os_name == "linux" else ".apk"
+        if os_name == "linux" and tags.get("arch") == "arm64":
+            suffix = "-arm64.deb"
 
         if channel == "beta":
             self.write_json(
                 {
-                    "version": self.beta_version,
+                    "version": (self.linux_arm64_version or self.beta_version)
+                    if suffix == "-arm64.deb" else self.beta_version,
                     "url": f"https://example.com/lantern-installer-beta{suffix}",
                     "checksum": "a" * 64,
                 }
@@ -92,7 +99,7 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
             return
         self.write_xml(
             self.appcast_xml(
-                self.stable_version,
+                self.stable_appcast_version,
                 [
                     ("macos", "macos-signature", "https://example.com/lantern-installer.dmg"),
                     ("windows", "windows-signature", "https://example.com/lantern-installer.exe"),
@@ -143,6 +150,10 @@ class UpdateServiceHandler(BaseHTTPRequestHandler):
 class VerifyUpdateServiceTest(unittest.TestCase):
     def setUp(self) -> None:
         UpdateServiceHandler.stable_appcast_status = 200
+        UpdateServiceHandler.stable_version = "9.1.0"
+        UpdateServiceHandler.stable_appcast_version = "9.1.0"
+        UpdateServiceHandler.linux_arm64_version = ""
+        UpdateServiceHandler.requests = []
         UpdateServiceHandler.beta_appcast_version = UpdateServiceHandler.beta_version
         UpdateServiceHandler.beta_enclosures = [
             ("macos", "macos-signature", "https://example.com/lantern-installer-beta.dmg"),
@@ -201,6 +212,86 @@ class VerifyUpdateServiceTest(unittest.TestCase):
                 sparkle_version="920",
             )
         )
+
+    def test_run_checks_once_accepts_valid_stable_release(self) -> None:
+        UpdateServiceHandler.stable_version = "9.2.0"
+        UpdateServiceHandler.stable_appcast_version = "920"
+        verify_update_service.run_checks_once(
+            verify_update_service.Config(
+                update_url=self.update_url,
+                channel="stable",
+                version="v9.2.0",
+                timeout_seconds=1,
+                interval_seconds=1,
+                platforms=verify_update_service.normalize_platforms("all"),
+                sparkle_version="920",
+                asset_base_url="https://example.com",
+            )
+        )
+
+    def test_run_checks_once_rejects_wrong_promoted_asset_url(self) -> None:
+        UpdateServiceHandler.stable_version = "9.2.0"
+        with self.assertRaisesRegex(
+            verify_update_service.VerificationError,
+            "want https://releases.example/9.2.0/lantern-installer.apk",
+        ):
+            verify_update_service.run_checks_once(
+                verify_update_service.Config(
+                    update_url=self.update_url,
+                    channel="stable",
+                    version="9.2.0",
+                    timeout_seconds=1,
+                    interval_seconds=1,
+                    platforms=verify_update_service.normalize_platforms("android"),
+                    asset_base_url="https://releases.example/9.2.0",
+                )
+            )
+
+    def test_appcast_accepts_origin_and_update_server_downloads(self) -> None:
+        release_path = "/releases/beta/9.2.0-beta"
+        endpoint = self.update_url.removesuffix("/update/lantern")
+        for host in ("s3.amazonaws.com", "s3.us-east-1.amazonaws.com"):
+            origin = f"https://{host}/lantern.io{release_path}"
+            for base in (origin, endpoint + release_path):
+                with self.subTest(base=base):
+                    UpdateServiceHandler.beta_enclosures = [
+                        (os_name, "signature", f"{base}/lantern-installer-beta{suffix}")
+                        for os_name, suffix in (("macos", ".dmg"), ("windows", ".exe"))
+                    ]
+                    verify_update_service.verify_appcast_channel(
+                        self.update_url, "9.2.0-beta", frozenset({"macos", "windows"}),
+                        "beta", origin,
+                    )
+
+    def test_appcast_rejects_other_hosts_and_release_objects(self) -> None:
+        endpoint = self.update_url.removesuffix("/update/lantern")
+        release_path = "/releases/beta/9.2.0-beta"
+        origin = f"https://s3.amazonaws.com/lantern.io{release_path}"
+        for base in (
+            "https://other.example" + release_path,
+            endpoint + "/releases/beta/9.1.0-beta",
+            endpoint + "/releases/beta/latest",
+            endpoint + "/releases/production/9.2.0-beta",
+        ):
+            with self.subTest(base=base):
+                UpdateServiceHandler.beta_enclosures = [
+                    ("windows", "signature", base + "/lantern-installer-beta.exe"),
+                ]
+                with self.assertRaisesRegex(verify_update_service.VerificationError, "returned URL"):
+                    verify_update_service.verify_appcast_channel(
+                        self.update_url, "9.2.0-beta", frozenset({"windows"}), "beta", origin,
+                    )
+
+    def test_appcast_does_not_reroute_unrelated_origins(self) -> None:
+        for origin in (
+            "https://example.com/releases/beta/9.2.0-beta/lantern-installer-beta.exe",
+            "https://s3.amazonaws.com/other/releases/beta/9.2.0-beta/lantern-installer-beta.exe",
+            "https://s3.amazonaws.com.evil.example/lantern.io/releases/beta/9.2.0-beta/lantern-installer-beta.exe",
+        ):
+            with self.subTest(origin=origin):
+                self.assertEqual(
+                    verify_update_service.appcast_download_urls(self.update_url, origin), {origin},
+                )
 
     def test_run_checks_once_accepts_missing_stable_appcast(self) -> None:
         UpdateServiceHandler.stable_appcast_status = 404
@@ -276,8 +367,33 @@ class VerifyUpdateServiceTest(unittest.TestCase):
                 timeout_seconds=1,
                 interval_seconds=1,
                 platforms=verify_update_service.normalize_platforms("linux"),
+                asset_base_url="https://example.com",
             )
         )
+        self.assertEqual(
+            {(request["arch"], request["channel"]) for request in UpdateServiceHandler.requests},
+            {("amd64", "beta"), ("amd64", "stable"), ("arm64", "beta"), ("arm64", "stable")},
+        )
+
+    def test_stale_linux_arm64_feed_fails_verification(self) -> None:
+        UpdateServiceHandler.linux_arm64_version = "9.1.0-beta"
+        with self.assertRaisesRegex(verify_update_service.VerificationError, "returned 9.1.0-beta"):
+            verify_update_service.run_checks_once(
+                verify_update_service.Config(
+                    update_url=self.update_url, channel="beta", version="9.2.0-beta",
+                    timeout_seconds=1, interval_seconds=1, platforms=frozenset({"linux"}),
+                )
+            )
+
+    def test_arm64_only_release_does_not_require_amd64_update(self) -> None:
+        verify_update_service.run_checks_once(
+            verify_update_service.Config(
+                update_url=self.update_url, channel="beta", version="9.2.0-beta",
+                timeout_seconds=1, interval_seconds=1, platforms=frozenset({"linux"}),
+                linux_arch="arm64", asset_base_url="https://example.com",
+            )
+        )
+        self.assertEqual({request["arch"] for request in UpdateServiceHandler.requests}, {"arm64"})
 
     def test_run_checks_once_skips_ios_only_release(self) -> None:
         verify_update_service.run_checks_once(
