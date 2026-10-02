@@ -75,7 +75,8 @@ permissions:
   id-token: "write"
 
 concurrency:
-  group: ${{ github.ref }}
+  # Releases in one channel share aliases and must not promote concurrently.
+  group: release-${{ startsWith(github.ref, 'refs/tags/') && (contains(github.ref_name, '-beta') && 'beta' || 'production') || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -88,6 +89,7 @@ jobs:
     outputs:
       build_type: ${{ steps.meta.outputs.build_type }}
       release_tag: ${{ steps.meta.outputs.release_tag }}
+      storage_version: ${{ steps.meta.outputs.storage_version }}
       version: ${{ steps.meta.outputs.version }}
       installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
       platform: ${{ steps.meta.outputs.platform }}
@@ -328,6 +330,7 @@ jobs:
 
           echo "build_type=$BUILD_TYPE" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "storage_version=${RELEASE_TAG#v}" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
           echo "linux_arch=$LINUX_ARCH" >> $GITHUB_OUTPUT
@@ -414,6 +417,15 @@ jobs:
           done
           echo "Staging API is unavailable; stopping before candidate builds." >&2
           exit 1
+
+      - name: Test release tooling
+        run: |
+          python3 -m pip install -r scripts/requirements.txt PyYAML
+          python3 -m unittest \
+            scripts/ci/generate_update_metadata_test.py \
+            scripts/ci/verify_release_alignment_test.py \
+            scripts/ci/verify_update_service_test.py \
+            scripts/ci/release_workflow_test.py
 
       - name: Set up Go
         uses: ./.github/actions/setup-go
@@ -563,36 +575,37 @@ jobs:
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      VERSION: ${{ needs.set-metadata.outputs.version }}
       GH_REPO: ${{ github.repository }}
     steps:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Strip 'v' prefix for display
-          VERSION="${RELEASE_TAG#v}"
-
           case "$BUILD_TYPE" in
             production)
-              PRERELEASE_FLAG=""
+              PRERELEASE_ARGS=()
               TITLE="Lantern $VERSION"
+              TAG_ARGS=(--verify-tag)
               ;;
             beta)
-              PRERELEASE_FLAG="--prerelease"
+              PRERELEASE_ARGS=(--prerelease)
               TITLE="Beta $VERSION"
+              TAG_ARGS=(--verify-tag)
               ;;
             nightly)
-              PRERELEASE_FLAG="--prerelease"
+              PRERELEASE_ARGS=(--prerelease)
               TITLE="Nightly $VERSION"
+              TAG_ARGS=(--target "$GITHUB_SHA")
               ;;
           esac
 
           WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           gh release create "$RELEASE_TAG" \
-            --draft \
-            $PRERELEASE_FLAG \
-            --target "$GITHUB_SHA" \
+            --draft --latest=false \
+            "${PRERELEASE_ARGS[@]}" \
+            "${TAG_ARGS[@]}" \
             --title "$TITLE" \
             --notes "Publication [in progress](${WORKFLOW_URL})..."
 
@@ -706,68 +719,6 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
 
-      - name: Verify candidate artifact set
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          has_artifact() {
-            compgen -G "$1" > /dev/null
-          }
-
-          platform_requested() {
-            local platform="$1"
-            [[ "$PLATFORM" == "all" || ",$PLATFORM," == *",$platform,"* ]]
-          }
-
-          require_artifact() {
-            local label="$1"
-            shift
-            for pattern in "$@"; do
-              if has_artifact "$pattern"; then
-                return 0
-              fi
-            done
-            echo "Missing candidate artifact: $label" >&2
-            return 1
-          }
-
-          missing=0
-          if platform_requested macos; then
-            require_artifact "macOS DMG" "lantern-installer-dmg/*.dmg" || missing=1
-          fi
-          if platform_requested windows; then
-            require_artifact "Windows installer" "lantern-installer-exe/*.exe" || missing=1
-          fi
-          if platform_requested android; then
-            require_artifact "Android APK" "lantern-installer-apk/*.apk" || missing=1
-          fi
-          if platform_requested ios; then
-            require_artifact "iOS IPA" "lantern-installer-ipa/*.ipa" || missing=1
-          fi
-          if platform_requested linux; then
-            if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "amd64" ]]; then
-              require_artifact "Linux AMD64 DEB" \
-                "lantern-installer-deb-amd64/*.deb" "lantern-installer-deb/*.deb" || missing=1
-              require_artifact "Linux AMD64 RPM" \
-                "lantern-installer-rpm-amd64/*.rpm" "lantern-installer-rpm/*.rpm" || missing=1
-              require_artifact "Linux AMD64 Arch package" \
-                "lantern-installer-pkg-amd64/*.pkg.tar.zst" "lantern-installer-pkg/*.pkg.tar.zst" || missing=1
-            fi
-            if [[ "$LINUX_ARCH" == "all" || "$LINUX_ARCH" == "arm64" ]]; then
-              require_artifact "Linux ARM64 DEB" "lantern-installer-deb-arm64/*.deb" || missing=1
-              require_artifact "Linux ARM64 RPM" "lantern-installer-rpm-arm64/*.rpm" || missing=1
-              require_artifact "Linux ARM64 Arch package" "lantern-installer-pkg-arm64/*.pkg.tar.zst" || missing=1
-            fi
-          fi
-
-          if [[ "$missing" -ne 0 ]]; then
-            echo "Candidate artifacts are incomplete; publication is blocked." >&2
-            exit 1
-          fi
-
-          echo "All requested candidate artifacts are present."
-
       - name: Upload to S3
         shell: bash
         run: |
@@ -870,15 +821,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+
           # Construct full filename with build type (Makefile appends it)
           FULL_NAME="${INSTALLER_BASE_NAME}"
           [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_NAME="${FULL_NAME}-${BUILD_TYPE}"
 
-          upload_if_exists() {
+          platform_selected() {
+            local platform="$1"
+            [[ "$PLATFORM" == "all" || ",${PLATFORM}," == *",${platform},"* ]]
+          }
+
+          upload_file() {
             local file="$1"
-            if [[ ! -f "$file" ]]; then
-              return 0
-            fi
             echo "Uploading $file to GitHub release..."
             local deadline=$(( SECONDS + 600 ))
             local delay=5 attempt=0
@@ -899,19 +854,56 @@ jobs:
             done
           }
 
-          upload_if_exists "lantern-installer-dmg/${FULL_NAME}.dmg"
-          upload_if_exists "lantern-installer-exe/${FULL_NAME}.exe"
-          upload_if_exists "lantern-installer-apk/${FULL_NAME}.apk"
-          upload_if_exists "lantern-installer-deb-amd64/${FULL_NAME}.deb"
-          upload_if_exists "lantern-installer-rpm-amd64/${FULL_NAME}.rpm"
-          upload_if_exists "lantern-installer-deb-arm64/${FULL_NAME}-arm64.deb"
-          upload_if_exists "lantern-installer-rpm-arm64/${FULL_NAME}-arm64.rpm"
-          upload_if_exists "lantern-installer-deb/${FULL_NAME}.deb"
-          upload_if_exists "lantern-installer-rpm/${FULL_NAME}.rpm"
-          upload_if_exists "lantern-installer-pkg-amd64/${FULL_NAME}.pkg.tar.zst"
-          upload_if_exists "lantern-installer-pkg-arm64/${FULL_NAME}-arm64.pkg.tar.zst"
-          upload_if_exists "lantern-installer-pkg/${FULL_NAME}.pkg.tar.zst"
-          upload_if_exists "lantern-installer-ipa/${FULL_NAME}.ipa"
+          artifacts=()
+          collect_required() {
+            local platform="$1"
+            local filename="$2"
+            local file
+            shift 2
+
+            if ! platform_selected "$platform"; then
+              return 0
+            fi
+            for file in "$@"; do
+              if [[ -f "$file" ]]; then
+                artifacts+=("$file")
+                return 0
+              fi
+            done
+            echo "Required $platform release artifact is missing: $filename" >&2
+            return 1
+          }
+
+          collect_required macos "${FULL_NAME}.dmg" \
+            "lantern-installer-dmg/${FULL_NAME}.dmg"
+          collect_required windows "${FULL_NAME}.exe" \
+            "lantern-installer-exe/${FULL_NAME}.exe"
+          collect_required android "${FULL_NAME}.apk" \
+            "lantern-installer-apk/${FULL_NAME}.apk"
+          collect_required ios "${FULL_NAME}.ipa" \
+            "lantern-installer-ipa/${FULL_NAME}.ipa"
+
+          for arch in amd64 arm64; do
+            if [[ "$LINUX_ARCH" != "all" && "$LINUX_ARCH" != "$arch" ]]; then
+              continue
+            fi
+            suffix=""
+            [[ "$arch" == "arm64" ]] && suffix="-arm64"
+            for extension in deb rpm pkg.tar.zst; do
+              filename="${FULL_NAME}${suffix}.${extension}"
+              directory="lantern-installer-${extension%%.*}"
+              candidates=("${directory}-${arch}/${filename}")
+              if [[ "$arch" == "amd64" ]]; then
+                candidates+=("${directory}/${filename}")
+              fi
+              collect_required linux "$filename" "${candidates[@]}"
+            done
+          done
+
+          # Check the full candidate set before uploading any files.
+          for file in "${artifacts[@]}"; do
+            upload_file "$file"
+          done
 
   # Post-publish steps. Production/beta always use their release tracks; nightly
   # mobile store uploads run only when set-metadata enables them.
@@ -1071,10 +1063,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
           RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+          STORAGE_VERSION: ${{ needs.set-metadata.outputs.storage_version }}
+          APPLICATION_VERSION: ${{ needs.set-metadata.outputs.version }}
           BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
         run: |
-          # Strip 'v' prefix for S3 paths
-          VERSION="${RELEASE_TAG#v}"
+          ASSET_BASE_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/${STORAGE_VERSION}"
 
           rm -rf release-assets update-metadata
           mkdir -p release-assets update-metadata
@@ -1096,34 +1089,77 @@ jobs:
 
           python3 scripts/ci/generate_update_metadata.py \
             --build-type "$BUILD_TYPE" \
-            --version "$VERSION" \
+            --version "$APPLICATION_VERSION" \
             --sparkle-version "${{ needs.set-metadata.outputs.sparkle_version }}" \
             --bucket "$BUCKET" \
             --output-dir update-metadata \
             --sparkle-signature-dir update-signatures \
+            --asset-base-url "$ASSET_BASE_URL" \
             "${artifacts[@]}"
 
           for metadata in update-metadata/*.update.json; do
             name="$(basename "$metadata")"
-            aws s3 cp "$metadata" "s3://${BUCKET}/releases/${BUILD_TYPE}/${VERSION}/${name}" --acl public-read
-            aws s3 cp "$metadata" "s3://${BUCKET}/releases/${BUILD_TYPE}/latest/${name}" --acl public-read
+            aws s3 cp "$metadata" "s3://${BUCKET}/releases/${BUILD_TYPE}/${STORAGE_VERSION}/${name}" --acl public-read
             gh release upload "$RELEASE_TAG" "$metadata" --clobber
           done
+
+  verify-release-assets:
+    needs: [set-metadata, upload-s3, upload-release-artifacts, publish-update-metadata]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.set-metadata.outputs.is_test_run != 'true' &&
+      needs.set-metadata.outputs.build_type != 'nightly' &&
+      needs.upload-s3.result == 'success' &&
+      needs.upload-release-artifacts.result == 'success' &&
+      needs.publish-update-metadata.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Verify source and versioned release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+          VERSION: ${{ needs.set-metadata.outputs.version }}
+          BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+          PLATFORM: ${{ needs.set-metadata.outputs.platform }}
+          LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
+          BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
+        run: |
+          python3 scripts/ci/verify_release_alignment.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --release-tag "$RELEASE_TAG" \
+            --version "$VERSION" \
+            --storage-version "${{ needs.set-metadata.outputs.storage_version }}" \
+            --build-type "$BUILD_TYPE" \
+            --platform "$PLATFORM" \
+            --linux-arch "$LINUX_ARCH" \
+            --bucket "$BUCKET" \
+            --expected-commit "$GITHUB_SHA"
 
   verify-update-service:
     needs: [set-metadata, publish-update-metadata, release-finalize]
     if: |
       !cancelled() &&
-      needs.set-metadata.outputs.build_type == 'beta' &&
+      needs.set-metadata.outputs.is_test_run != 'true' &&
+      (needs.set-metadata.outputs.build_type == 'beta' ||
+       needs.set-metadata.outputs.build_type == 'production') &&
       needs.publish-update-metadata.result == 'success' &&
-      needs.release-finalize.result == 'success'
+      needs.release-finalize.result == 'success' &&
+      needs.release-finalize.outputs.published == 'true'
     uses: ./.github/workflows/verify-update-service.yml
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       sparkle_version: ${{ needs.set-metadata.outputs.sparkle_version }}
-      channel: beta
+      channel: ${{ needs.set-metadata.outputs.build_type == 'production' && 'stable' || 'beta' }}
       platform: ${{ needs.set-metadata.outputs.platform }}
+      linux_arch: ${{ needs.set-metadata.outputs.linux_arch }}
       update_url: "https://update.getlantern.org/update/lantern"
+      asset_base_url: "https://s3.amazonaws.com/${{ vars.S3_RELEASES_BUCKET }}/releases/${{ needs.set-metadata.outputs.build_type }}/${{ needs.set-metadata.outputs.storage_version }}"
       timeout_seconds: 2700
       interval_seconds: 60
 
@@ -1138,101 +1174,131 @@ jobs:
         upload-google-play,
         upload-testflight,
         publish-update-metadata,
+        verify-release-assets,
       ]
     if: always()
     runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.publish.outputs.published }}
     env:
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
+      VERSION: ${{ needs.set-metadata.outputs.version }}
+      STORAGE_VERSION: ${{ needs.set-metadata.outputs.storage_version }}
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+      PLATFORM: ${{ needs.set-metadata.outputs.platform }}
+      LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
+      BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       CLEANUP_ON_FAILURE: ${{ github.event.inputs.cleanup_on_failure != 'false' }}
       IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
       GH_REPO: ${{ github.repository }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
       - name: Publish release on success
+        id: publish
         if: |
+          !cancelled() &&
           env.IS_TEST_RUN != 'true' &&
           env.BUILD_TYPE != 'nightly' &&
-          needs.nightly-gate.result == 'success' &&
-          needs.upload-s3.result == 'success' &&
-          needs.upload-release-artifacts.result == 'success' &&
-          (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
-          (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "Required release artifacts succeeded - publishing draft release"
-          gh release edit "$RELEASE_TAG" --draft=false
-
-      - name: Report update metadata failure
-        if: |
-          env.IS_TEST_RUN != 'true' &&
-          env.BUILD_TYPE != 'nightly' &&
-          needs.publish-update-metadata.result == 'failure'
-        run: |
-          echo "::warning title=Auto-update metadata was not published::The release remains valid, but desktop auto-update metadata needs follow-up."
-          echo "### Auto-update metadata publishing failed" >> "$GITHUB_STEP_SUMMARY"
-          echo "The release was preserved, but desktop auto-update metadata needs follow-up." >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Delete draft release
-        if: |
           needs.release-create.result == 'success' &&
-          (
-            env.IS_TEST_RUN == 'true' ||
-            env.BUILD_TYPE == 'nightly' ||
-            (env.CLEANUP_ON_FAILURE == 'true' &&
-             !(needs.nightly-gate.result == 'success' &&
-               needs.upload-s3.result == 'success' &&
-               needs.upload-release-artifacts.result == 'success' &&
-               (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
-               (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped')))
-          )
+          needs.verify-release-assets.result == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ "$IS_TEST_RUN" == "true" ]]; then
-            echo "Test run from non-main branch - deleting draft release"
-          elif [[ "$BUILD_TYPE" == "nightly" ]]; then
-            echo "Nightly build - deleting draft release"
-          else
-            echo "Build failed or cancelled - cleaning up draft release"
+          latest=false
+          if [[ "$BUILD_TYPE" == "production" && "$PLATFORM" == "all" ]]; then
+            latest=true
+          fi
+          gh release edit "$RELEASE_TAG" --draft=false --latest="$latest"
+          echo "published=true" >> "$GITHUB_OUTPUT"
+
+      - name: Promote and verify download aliases
+        if: steps.publish.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          # Copy the verified objects, including their checksum metadata.
+          if ! aws s3 cp "s3://${BUCKET}/releases/${BUILD_TYPE}/${STORAGE_VERSION}/" \
+            "s3://${BUCKET}/releases/${BUILD_TYPE}/latest/" \
+            --recursive --exclude '*' --include 'lantern-installer*' \
+            --acl public-read --copy-props metadata-directive; then
+            echo "::error::Failed to promote download aliases from s3://${BUCKET}/releases/${BUILD_TYPE}/${STORAGE_VERSION}/ to releases/${BUILD_TYPE}/latest/."
+            exit 1
           fi
 
-          attempt=0
-          max_retries=5
-          while [ "$attempt" -lt "$max_retries" ]; do
-            attempt=$((attempt + 1))
-            echo "Deleting release $RELEASE_TAG (attempt $attempt/$max_retries)..."
+          if ! python3 scripts/ci/verify_release_alignment.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --release-tag "$RELEASE_TAG" \
+            --version "$VERSION" \
+            --storage-version "$STORAGE_VERSION" \
+            --build-type "$BUILD_TYPE" \
+            --platform "$PLATFORM" \
+            --linux-arch "$LINUX_ARCH" \
+            --bucket "$BUCKET" \
+            --expected-commit "$GITHUB_SHA" \
+            --no-expect-draft; then
+            echo "::error::Release alignment verification failed for ${RELEASE_TAG} after publication. See the verifier output above."
+            exit 1
+          fi
+
+      - name: Verify GitHub latest-release policy
+        if: steps.publish.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LATEST_TAG="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name)"
+          if [[ "$BUILD_TYPE" == "production" && "$PLATFORM" == "all" ]]; then
+            if [[ "$LATEST_TAG" != "$RELEASE_TAG" ]]; then
+              echo "GitHub latest release is $LATEST_TAG, want $RELEASE_TAG" >&2
+              exit 1
+            fi
+          elif [[ "$LATEST_TAG" == "$RELEASE_TAG" ]]; then
+            echo "$BUILD_TYPE/$PLATFORM release unexpectedly became GitHub latest" >&2
+            exit 1
+          fi
+
+      - name: Clean up draft release
+        if: |
+          always() &&
+          needs.release-create.result == 'success' &&
+          (env.IS_TEST_RUN == 'true' || env.BUILD_TYPE == 'nightly' ||
+           (env.CLEANUP_ON_FAILURE == 'true' && steps.publish.outputs.published != 'true'))
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A failed API response may still have published the release.
+          is_draft="$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)"
+          if [[ "$is_draft" != "true" ]]; then
+            echo "Release is public; preserving it for recovery."
+            exit 0
+          fi
+          for attempt in 1 2 3 4 5; do
             if delete_output="$(gh release delete "$RELEASE_TAG" --yes 2>&1)"; then
-              echo "$delete_output"
-              echo "Release $RELEASE_TAG deleted"
-              break
+              echo "Draft release $RELEASE_TAG deleted"
+              exit 0
             fi
             echo "$delete_output"
             if echo "$delete_output" | grep -qiE "Reference does not exist|release not found"; then
-              echo "Release cleanup already complete"
-              break
-            fi
-            if [ "$attempt" -eq "$max_retries" ]; then
-              echo "Failed to delete release after $max_retries attempts"
-              exit 1
+              exit 0
             fi
             sleep 3
           done
+          exit 1
 
-      - name: Report failure (cleanup disabled)
+      - name: Report unpublished release
         if: |
+          always() &&
           needs.release-create.result == 'success' &&
-          env.IS_TEST_RUN != 'true' &&
-          env.BUILD_TYPE != 'nightly' &&
-          env.CLEANUP_ON_FAILURE != 'true' &&
-          !(needs.nightly-gate.result == 'success' &&
-            needs.upload-s3.result == 'success' &&
-            needs.upload-release-artifacts.result == 'success' &&
-            (needs.upload-google-play.result == 'success' || needs.upload-google-play.result == 'skipped') &&
-            (needs.upload-testflight.result == 'success' || needs.upload-testflight.result == 'skipped'))
+          env.IS_TEST_RUN != 'true' && env.BUILD_TYPE != 'nightly' &&
+          steps.publish.outputs.published != 'true'
         run: |
-          echo "Build failed or cancelled - draft release preserved for inspection"
-          echo "Draft: https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"
+          echo "::error::Release publication failed. Inspect the preceding checks before retrying."
           exit 1
 
   release-success-notify:
@@ -1247,6 +1313,7 @@ jobs:
         upload-testflight,
         publish-update-metadata,
         release-finalize,
+        verify-update-service,
       ]
     if: |
       always() &&
@@ -1262,7 +1329,9 @@ jobs:
         needs.publish-update-metadata.result == 'success' ||
         (needs.set-metadata.outputs.build_type == 'nightly' && needs.publish-update-metadata.result == 'skipped')
       ) &&
-      needs.release-finalize.result == 'success'
+      needs.release-finalize.result == 'success' &&
+      (needs.verify-update-service.result == 'success' ||
+       (needs.set-metadata.outputs.build_type == 'nightly' && needs.verify-update-service.result == 'skipped'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

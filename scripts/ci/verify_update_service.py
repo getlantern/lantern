@@ -7,6 +7,7 @@ import argparse
 import json
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from typing import Any, Optional
@@ -48,6 +49,8 @@ class Config:
     interval_seconds: int
     platforms: frozenset[str]
     sparkle_version: str = ""
+    asset_base_url: str = ""
+    linux_arch: str = "all"
 
 
 class VerificationError(Exception):
@@ -142,32 +145,46 @@ def require(condition: bool, message: str) -> None:
         raise VerificationError(message)
 
 
-def verify_json_beta(update_url: str, expected_version: str, platform: str) -> None:
+def verify_json_channel(
+    update_url: str,
+    expected_version: str,
+    platform: str,
+    channel: str,
+    expected_url: str = "",
+    arch: str = "",
+) -> None:
     update = JSON_UPDATE_PLATFORMS[platform]
     status, result = request_update(
         update_url,
         "0.0.0",
-        {"os": update["os"], "arch": update["arch"], "channel": "beta"},
+        {"os": update["os"], "arch": arch or update["arch"], "channel": channel},
     )
-    require(status == 200, f"beta {platform} update returned HTTP {status}: {result}")
+    require(status == 200, f"{channel} {platform} update returned HTTP {status}: {result}")
     require(
         result.get("version") == expected_version,
-        f"beta {platform} returned {result.get('version')}, want {expected_version}",
+        f"{channel} {platform} returned {result.get('version')}, want {expected_version}",
     )
     require(
         result.get("url", "").endswith(update["suffix"]),
-        f"beta {platform} update URL does not end with {update['suffix']}: "
+        f"{channel} {platform} update URL does not end with {update['suffix']}: "
         f"{result.get('url')}",
     )
-    require(result.get("checksum"), f"beta {platform} update is missing checksum")
+    if expected_url:
+        require(
+            result.get("url") == expected_url,
+            f"{channel} {platform} returned URL {result.get('url')}, want {expected_url}",
+        )
+    require(result.get("checksum"), f"{channel} {platform} update is missing checksum")
 
 
-def verify_stable_excludes_beta(update_url: str, beta_version: str, platform: str) -> None:
+def verify_stable_excludes_beta(
+    update_url: str, beta_version: str, platform: str, arch: str = ""
+) -> None:
     update = JSON_UPDATE_PLATFORMS[platform]
     status, result = request_update(
         update_url,
         "0.0.0",
-        {"os": update["os"], "arch": update["arch"], "channel": "stable"},
+        {"os": update["os"], "arch": arch or update["arch"], "channel": "stable"},
     )
     if status == 204:
         return
@@ -205,10 +222,29 @@ def parse_appcast(xml_text: str) -> tuple[str, list[dict[str, str]]]:
     return version_node.text, enclosures
 
 
-def verify_beta_appcast(
+def appcast_download_urls(update_url: str, asset_url: str) -> set[str]:
+    """Accept the release object at its origin or through the update server."""
+    urls = {asset_url}
+    asset = urllib.parse.urlsplit(asset_url)
+    if (
+        asset.scheme == "https"
+        and asset.netloc in {"s3.amazonaws.com", "s3.us-east-1.amazonaws.com"}
+        and asset.path.startswith("/lantern.io/releases/")
+        and not (asset.query or asset.fragment or "%" in asset.path)
+    ):
+        endpoint = urllib.parse.urlsplit(update_url)
+        urls.add(urllib.parse.urlunsplit((
+            endpoint.scheme, endpoint.netloc, asset.path.removeprefix("/lantern.io"), "", "",
+        )))
+    return urls
+
+
+def verify_appcast_channel(
     update_url: str,
-    beta_version: str,
+    expected_version: str,
     platforms: frozenset[str],
+    channel: str,
+    expected_base_url: str = "",
 ) -> None:
     # The appcast is channel-wide, so partial desktop releases should only
     # require the enclosures they actually published.
@@ -220,23 +256,40 @@ def verify_beta_appcast(
     if not required_platforms:
         return
 
-    status, xml_text = request_text(appcast_url(update_url, "beta"))
-    require(status == 200, f"beta appcast returned HTTP {status}: {xml_text}")
+    status, xml_text = request_text(appcast_url(update_url, channel))
+    require(status == 200, f"{channel} appcast returned HTTP {status}: {xml_text}")
     version, enclosures = parse_appcast(xml_text)
-    require(version == beta_version, f"beta appcast version is {version}, want {beta_version}")
+    require(
+        version == expected_version,
+        f"{channel} appcast version is {version}, want {expected_version}",
+    )
 
     by_os = {enclosure["os"]: enclosure for enclosure in enclosures}
     for os_name, suffix in required_platforms.items():
         enclosure = by_os.get(os_name)
-        require(enclosure is not None, f"beta appcast missing {os_name} enclosure")
+        require(enclosure is not None, f"{channel} appcast missing {os_name} enclosure")
         require(
             enclosure["ed_signature"],
-            f"beta appcast {os_name} enclosure missing EdDSA signature",
+            f"{channel} appcast {os_name} enclosure missing EdDSA signature",
         )
         require(
             enclosure["url"].endswith(suffix),
-            f"beta appcast {os_name} URL does not end with {suffix}: {enclosure['url']}",
+            f"{channel} appcast {os_name} URL does not end with {suffix}: "
+            f"{enclosure['url']}",
         )
+        if expected_base_url:
+            channel_suffix = "-beta" if channel == "beta" else ""
+            expected_url = (
+                f"{expected_base_url.rstrip('/')}/"
+                f"lantern-installer{channel_suffix}{suffix}"
+            )
+            # The feed may serve the same installer through its /releases/ route.
+            expected_urls = appcast_download_urls(update_url, expected_url)
+            require(
+                enclosure["url"] in expected_urls,
+                f"{channel} appcast {os_name} returned URL {enclosure['url']}, "
+                f"want one of {sorted(expected_urls)}",
+            )
 
 
 def verify_stable_appcast_excludes_beta(update_url: str, beta_version: str) -> None:
@@ -253,15 +306,32 @@ def verify_stable_appcast_excludes_beta(update_url: str, beta_version: str) -> N
 
 def run_checks_once(config: Config) -> None:
     expected_version = normalize_version(config.version)
-    if config.channel != "beta":
+    if config.channel not in {"beta", "stable"}:
         raise VerificationError(f"unsupported verification channel: {config.channel}")
+    require(config.linux_arch in {"all", "amd64", "arm64"}, "unsupported Linux architecture")
     if not config.platforms:
         print("no updater-backed artifacts for this release platform; skipping update verification")
         return
 
     for platform in sorted(config.platforms & set(JSON_UPDATE_PLATFORMS)):
-        verify_json_beta(config.update_url, expected_version, platform)
-        verify_stable_excludes_beta(config.update_url, expected_version, platform)
+        update = JSON_UPDATE_PLATFORMS[platform]
+        channel_suffix = "-beta" if config.channel == "beta" else ""
+        arches = [update["arch"]]
+        if platform == "linux":
+            arches = ["amd64", "arm64"] if config.linux_arch == "all" else [config.linux_arch]
+        for arch in arches:
+            expected_url = ""
+            if config.asset_base_url:
+                arch_suffix = "-arm64" if platform == "linux" and arch == "arm64" else ""
+                expected_url = (
+                    f"{config.asset_base_url.rstrip('/')}/"
+                    f"lantern-installer{channel_suffix}{arch_suffix}{update['suffix']}"
+                )
+            verify_json_channel(
+                config.update_url, expected_version, platform, config.channel, expected_url, arch,
+            )
+            if config.channel == "beta":
+                verify_stable_excludes_beta(config.update_url, expected_version, platform, arch)
 
     if config.platforms & set(APPCAST_PLATFORMS):
         require(
@@ -269,15 +339,18 @@ def run_checks_once(config: Config) -> None:
             "--sparkle-version is required when verifying macOS or Windows appcasts",
         )
         expected_sparkle_version = normalize_version(config.sparkle_version)
-        verify_beta_appcast(
+        verify_appcast_channel(
             config.update_url,
             expected_sparkle_version,
             config.platforms,
+            config.channel,
+            config.asset_base_url,
         )
-        verify_stable_appcast_excludes_beta(
-            config.update_url,
-            expected_sparkle_version,
-        )
+        if config.channel == "beta":
+            verify_stable_appcast_excludes_beta(
+                config.update_url,
+                expected_sparkle_version,
+            )
 
 
 def poll_until_verified(config: Config) -> None:
@@ -311,7 +384,7 @@ def poll_until_verified(config: Config) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--update-url", default="https://update.getlantern.org/update/lantern")
-    parser.add_argument("--channel", default="beta")
+    parser.add_argument("--channel", choices=("stable", "beta"), default="beta")
     parser.add_argument(
         "--platform",
         default="all",
@@ -319,6 +392,12 @@ def main() -> None:
     )
     parser.add_argument("--version", required=True, help="Release version, with or without leading v")
     parser.add_argument("--sparkle-version", default="", help="Desktop bundle build number")
+    parser.add_argument("--linux-arch", choices=("all", "amd64", "arm64"), default="all")
+    parser.add_argument(
+        "--asset-base-url",
+        default="",
+        help="Expected public directory for the promoted release assets",
+    )
     parser.add_argument("--timeout-seconds", type=int, default=2700)
     parser.add_argument("--interval-seconds", type=int, default=60)
     args = parser.parse_args()
@@ -338,6 +417,8 @@ def main() -> None:
             interval_seconds=args.interval_seconds,
             platforms=platforms,
             sparkle_version=args.sparkle_version,
+            asset_base_url=args.asset_base_url,
+            linux_arch=args.linux_arch,
         )
     )
 
