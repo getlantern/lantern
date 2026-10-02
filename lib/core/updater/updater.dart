@@ -10,6 +10,7 @@ import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
+import 'package:lantern/core/updater/desktop_update_relay.dart';
 import 'package:lantern/core/updater/winsparkle_build_version.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -20,6 +21,7 @@ class Updater with UpdaterLifecycleListener {
   Updater({
     AndroidSideloadUpdater? androidSideloadUpdater,
     AutoUpdater? autoUpdater,
+    DesktopUpdateRelay? updateRelay,
     Future<Map<String, dynamic>> Function()? loadFeatureFlags,
     @visibleForTesting TargetPlatform? platform,
     @visibleForTesting bool? isDebugMode,
@@ -29,6 +31,7 @@ class Updater with UpdaterLifecycleListener {
   }) : _androidSideloadUpdater =
            androidSideloadUpdater ?? AndroidSideloadUpdater(),
        _autoUpdater = autoUpdater,
+       _updateRelay = updateRelay,
        _loadFeatureFlags = loadFeatureFlags ?? _readFeatureFlags,
        _platform = platform ?? defaultTargetPlatform,
        _isDebugMode = isDebugMode ?? kDebugMode,
@@ -56,6 +59,7 @@ class Updater with UpdaterLifecycleListener {
   final Future<void> Function()? _quitForUpdate;
 
   AutoUpdater? _autoUpdater;
+  DesktopUpdateRelay? _updateRelay;
   Future<Map<String, dynamic>>? _pendingFeatureFlags;
   Map<String, dynamic> _cachedFeatureFlags = {};
   Timer? _checkTimer;
@@ -115,6 +119,10 @@ class Updater with UpdaterLifecycleListener {
   Future<void> _configureDesktopUpdater() async {
     final buildType = AppBuildInfo.buildType;
     final feedUrl = AppUrls.appcastFor(buildType);
+    final localFeed = await (_updateRelay ??= DesktopUpdateRelay()).start(
+      feedUrl,
+    );
+    if (_disposed) return;
     final autoUpdater = _desktopAutoUpdater;
     if (!_listenerRegistered) {
       autoUpdater.addListener(this);
@@ -133,7 +141,7 @@ class Updater with UpdaterLifecycleListener {
     // Setting the feed starts the native updater, so disable its timer first.
     await autoUpdater.setScheduledCheckInterval(0);
     if (_disposed) return;
-    await autoUpdater.setFeedURL(feedUrl);
+    await autoUpdater.setFeedURL(localFeed);
     if (_disposed) return;
     await autoUpdater.setScheduledCheckInterval(_nativeCheckInterval.inSeconds);
     if (_disposed) return;
@@ -250,6 +258,14 @@ class Updater with UpdaterLifecycleListener {
     _disposed = true;
     _cancelScheduledCheck();
     if (_listenerRegistered) _autoUpdater?.removeListener(this);
+    final relay = _updateRelay;
+    if (relay != null) {
+      unawaited(
+        relay.close().catchError((Object error, StackTrace stack) {
+          appLogger.warning('Failed to close update transport', error, stack);
+        }),
+      );
+    }
   }
 
   @override
