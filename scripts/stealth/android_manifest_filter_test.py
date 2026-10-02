@@ -387,7 +387,7 @@ class NoVpnModeTest(unittest.TestCase):
 
 
 # A merged manifest that already declares a legacy-named no-VPN special-use
-# foreground service (as android/app/src/main/AndroidManifest.novpn.xml does).
+# foreground service (as the earlier hand-maintained no-VPN manifest did).
 LEGACY_NOVPN_MANIFEST = """\
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
