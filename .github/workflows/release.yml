@@ -1224,12 +1224,15 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           # Copy the verified objects, including their checksum metadata.
-          aws s3 cp "s3://${BUCKET}/releases/${BUILD_TYPE}/${STORAGE_VERSION}/" \
+          if ! aws s3 cp "s3://${BUCKET}/releases/${BUILD_TYPE}/${STORAGE_VERSION}/" \
             "s3://${BUCKET}/releases/${BUILD_TYPE}/latest/" \
             --recursive --exclude '*' --include 'lantern-installer*' \
-            --acl public-read --copy-props metadata-directive
+            --acl public-read --copy-props metadata-directive; then
+            echo "::error::Failed to promote download aliases from s3://${BUCKET}/releases/${BUILD_TYPE}/${STORAGE_VERSION}/ to releases/${BUILD_TYPE}/latest/."
+            exit 1
+          fi
 
-          python3 scripts/ci/verify_release_alignment.py \
+          if ! python3 scripts/ci/verify_release_alignment.py \
             --repository "$GITHUB_REPOSITORY" \
             --release-tag "$RELEASE_TAG" \
             --version "$VERSION" \
@@ -1239,7 +1242,10 @@ jobs:
             --linux-arch "$LINUX_ARCH" \
             --bucket "$BUCKET" \
             --expected-commit "$GITHUB_SHA" \
-            --no-expect-draft
+            --no-expect-draft; then
+            echo "::error::Release alignment verification failed for ${RELEASE_TAG} after publication. See the verifier output above."
+            exit 1
+          fi
 
       - name: Verify GitHub latest-release policy
         if: steps.publish.outputs.published == 'true'
@@ -1292,7 +1298,7 @@ jobs:
           env.IS_TEST_RUN != 'true' && env.BUILD_TYPE != 'nightly' &&
           steps.publish.outputs.published != 'true'
         run: |
-          echo "Release publication failed. Inspect the preceding checks before retrying."
+          echo "::error::Release publication failed. Inspect the preceding checks before retrying."
           exit 1
 
   release-success-notify:

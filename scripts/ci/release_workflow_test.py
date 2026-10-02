@@ -107,7 +107,20 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
     def test_alias_copy_failure_stops_verification(self) -> None:
         result = self.run_step("Promote and verify download aliases", FAIL_COMMAND="aws")
         self.assertNotEqual(result.returncode, 0)
+        self.assertIn("::error::Failed to promote download aliases", result.stdout)
+        self.assertIn("s3://release-test/releases/production/9.2.0/", result.stdout)
         self.assertEqual([command[0] for command in self.commands()], ["aws"])
+
+    def test_alias_verification_failure_reports_an_error(self) -> None:
+        result = self.run_step("Promote and verify download aliases", FAIL_COMMAND="python3")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("::error::Release alignment verification failed for v9.2.0", result.stdout)
+        self.assertEqual([command[0] for command in self.commands()], ["aws", "python3"])
+
+    def test_unpublished_release_reports_an_error(self) -> None:
+        result = self.run_step("Report unpublished release")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("::error::Release publication failed", result.stdout)
 
     def test_alias_promotion_preserves_metadata_and_verifies_public_release(self) -> None:
         result = self.run_step("Promote and verify download aliases")
