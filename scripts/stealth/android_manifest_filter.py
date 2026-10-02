@@ -138,10 +138,10 @@ STEALTH_TILE_SERVICE_NAME = "foundation.bridge.service.QuickTileService"
 # log tag do not advertise VPN heritage. Keep in sync with debrand_kotlin.py.
 STEALTH_NOVPN_SERVICE_NAME = "foundation.bridge.service.LocalConnectionService"
 NOVPN_SPECIAL_USE_REASON = "User-controlled local proxy connection"
-# Pre-existing no-VPN service names that may already be declared in the input
-# manifest (e.g. android/app/src/main/AndroidManifest.novpn.xml). These are
-# normalized to STEALTH_NOVPN_SERVICE_NAME so the filter never emits duplicate
-# special-use foreground services.
+# Legacy no-VPN service names from the earlier hand-maintained no-VPN manifest
+# (since removed) that may still appear in a merged input. These are normalized
+# to STEALTH_NOVPN_SERVICE_NAME so the filter never emits duplicate special-use
+# foreground services.
 LEGACY_NOVPN_SERVICE_NAMES = {
     "foundation.bridge.SyncService",
 }
