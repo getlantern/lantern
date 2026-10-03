@@ -544,7 +544,30 @@ does not validate lookup permissions inside the installed NetworkExtension.
 
 ## 8. Release & Publishing
 
-Releases are triggered by pushing a Git tag. CI picks up the tag, determines the build type and target platforms from the tag format, builds all relevant platform artifacts, and publishes a GitHub release.
+Production and beta releases are triggered by pushing a Git tag. CI picks up the tag, determines the channel and target platforms, builds the requested artifacts, and stages a draft GitHub release.
+
+### Release channels
+
+| Build type | GitHub release | Downloads and updates |
+|---|---|---|
+| Production | Published after artifact verification; a full-platform tag becomes GitHub `latest` | `releases/production/latest/`; `stable` update channel |
+| Beta | Published as a prerelease; never GitHub `latest` | `releases/beta/latest/`; `beta` update channel |
+| Nightly | Temporary draft, deleted after S3 publishing | `releases/nightly/latest/`; no production update metadata |
+
+A single-platform production tag keeps the base application version (for example, `9.2.0` for `v9.2.0-android`) and includes the platform suffix in its storage path. It does not replace the full-platform GitHub `latest` release. S3 channel aliases track each platform independently; GitHub's `releases/latest/download/...` links follow the latest full-platform production release.
+
+Before a production or beta draft is published, CI verifies all of the following:
+
+1. The release tag resolves to the workflow commit.
+2. Every requested platform artifact is present and complete on GitHub.
+3. The versioned S3 objects have the same size and SHA-256 digest as the GitHub assets.
+4. The update metadata for updater-backed requested artifacts was generated and published successfully.
+
+CI publishes the verified draft, then copies its versioned objects to the channel's `latest` aliases and checks their digests. It sets GitHub's `latest` flag explicitly when publishing. Release runs in the same channel are serialized to prevent overlapping promotions.
+
+Once the release is public, CI polls the update service, which ignores drafts. It checks the application version, exact artifact URLs, signed desktop appcast entries, and the requested Linux architectures. Desktop URLs may point to the versioned S3 object or the same object through the update server's `/releases/` route. Success is reported only after these checks pass. Pull-request checks run the release-tooling tests without accessing production services.
+
+GitHub, S3, and the update service cannot be updated atomically. A promotion or feed-check failure leaves the published release available for inspection and recovery; cleanup only deletes drafts. Retrying an older release can move channel aliases back to that version.
 
 ### Tag format
 
@@ -583,27 +606,22 @@ git push origin v1.2.3-android
 
 ### Nightly builds
 
-A nightly build runs automatically every day at 04:00 UTC from the default branch, building all platforms with `BUILD_TYPE=nightly`. No tag is required. The draft release is deleted after artifacts are uploaded to S3.
+A nightly build runs automatically every day at 04:00 UTC from the default branch, building all platforms with `BUILD_TYPE=nightly`. No source tag or durable GitHub release is created. All requested builds and smoke tests must pass before artifacts are uploaded to the nightly S3 channel. The temporary draft is then deleted.
 
 ---
 
 ## 9. Auto-Updater
 
-The app supports automatic updates on macOS and Windows using the [auto_updater](https://pub.dev/packages/auto_updater) package, which is a Flutter-friendly wrapper around the Sparkle update framework.
+Desktop apps use [auto_updater](https://pub.dev/packages/auto_updater) to integrate Sparkle on macOS and WinSparkle on Windows.
 
 ### How it works
 
-On startup, the app downloads the `appcast.xml` feed hosted [in the repo](appcast.xml) and on S3. This file lists the latest version and the signed `.dmg` or `.zip` update files. The updater downloads the update and installs it via Sparkle.
+The update service provides JSON metadata for Android and Linux and Sparkle appcasts for macOS and Windows. Stable clients query the `stable` channel and beta clients query `beta`.
 
-### Generating the appcast
+### Publishing update metadata
 
-The `appcast.xml` is generated dynamically as part of the release process using a [Python script](scripts/generate_appcast.py):
+The native macOS and Windows build jobs sign their installers. After all requested artifacts reach GitHub and S3, the release workflow runs [`generate_update_metadata.py`](scripts/ci/generate_update_metadata.py) to create signed metadata sidecars for the update service.
 
-```bash
-python3 scripts/generate_appcast.py
-```
+After the release is published, [`verify_update_service.py`](scripts/ci/verify_update_service.py) polls the public update endpoint. It checks the expected app version and artifact type for Android and Linux, and the expected build number, URL, and EdDSA signature for each requested desktop platform. Beta verification also confirms the beta version has not leaked into the stable channel.
 
-The script:
-1. Fetches releases and their associated `.dmg` and `.exe` files via the GitHub API
-2. Signs each asset using the `auto_updater:sign_update` Dart CLI tool
-3. Emits an [appcast.xml](appcast.xml) with signature, size, and version metadata
+The verifier can also be run manually with the **Verify Update Service** GitHub Actions workflow for either `stable` or `beta`.
