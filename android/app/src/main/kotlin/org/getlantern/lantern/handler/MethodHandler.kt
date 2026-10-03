@@ -1599,9 +1599,11 @@ class MethodHandler : FlutterPlugin,
         for (network in cm.allNetworks) {
             val capabilities = cm.getNetworkCapabilities(network) ?: continue
             if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                AppLogger.w(TAG, "Another VPN is active: network=$network capabilities=$capabilities")
                 return true
             }
         }
+        AppLogger.d(TAG, "No conflicting VPN network found")
         return false
     }
 }

@@ -1817,15 +1817,15 @@ msgid "renew"
 msgstr "續訂"
 
 msgid "vpn_conflict_title"
-msgstr "偵測到 VPN 衝突"
+msgstr "另一個 VPN 已開啟"
 
 msgid "vpn_conflict_body"
-msgstr ""
+msgstr "藍燈無法連線，因為裝置上有另一個 VPN 或網路應用程式正在執行。Android 同一時間只允許一個 VPN。請中斷該 VPN，或選擇「仍要連線」讓藍燈接管。"
 "你的裝置上正在執行另一個 VPN。Lantern 作為唯一啟用的 VPN 時效果最佳。為獲得最佳效果，請在使用 Lantern 前中斷該 VPN "
 "的連線。"
 
 msgid "vpn_conflict_dismiss"
-msgstr "我知道了"
+msgstr "暫不"
 
 msgid "vpn_conflict_connect_anyway"
 msgstr "仍要連線"
