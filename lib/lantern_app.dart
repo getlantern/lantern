@@ -61,7 +61,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void initLifecycleListener() {
     _lifecycle = AppLifecycleListener(
-      onResume: _retryPendingUpdaterSetup,
+      onResume: _retryPendingUpdate,
       onExitRequested: () async {
         appLogger.info("Exit requested");
         await ref
@@ -73,8 +73,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
     );
   }
 
-  void _retryPendingUpdaterSetup() {
-    if (sl.isRegistered<Updater>()) sl<Updater>().retryPendingSetup();
+  void _retryPendingUpdate() {
+    if (sl.isRegistered<Updater>()) sl<Updater>().retryPendingCheck();
   }
 
   @override
@@ -240,7 +240,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
   Widget build(BuildContext context) {
     ref.listen(vpnProvider, (previous, next) {
       if (next == VPNStatus.connected && previous != next) {
-        _retryPendingUpdaterSetup();
+        _retryPendingUpdate();
       }
     });
     final appSetting = ref.watch(appSettingProvider);
