@@ -4,10 +4,13 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/purchase/pending_purchase_store.dart';
 import 'package:lantern/core/services/purchase/purchase_acknowledger.dart';
+import 'package:lantern/core/utils/currency_utils.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 
 import 'injection_container.dart' show sl;
@@ -36,6 +39,16 @@ class _PurchaseSession {
   bool restoreReceivedAny = false;
 }
 
+/// A store-quoted price: display string, amount in major units, currency
+/// code, and the base SKU's display price ([regular] == [formatted] when no
+/// discount applies).
+typedef StorePrice = ({
+  String formatted,
+  double amount,
+  String currencyCode,
+  String regular,
+});
+
 class AppPurchase {
   /// Tests can supply their own store, storage, and billing policy.
   AppPurchase({
@@ -43,8 +56,11 @@ class AppPurchase {
     PendingPurchaseStore? pendingStore,
     PurchaseAcknowledger? acknowledger,
     bool Function()? canUseBilling,
+    Future<bool> Function(String productId)? introOfferEligibility,
   }) : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance,
-       _canUseBilling = canUseBilling ?? canUseStoreBilling {
+       _canUseBilling = canUseBilling ?? canUseStoreBilling,
+       _introOfferEligibility =
+           introOfferEligibility ?? SK2Product.isIntroductoryOfferEligible {
     _pendingStore =
         pendingStore ?? PendingPurchaseStore(() => sl<LocalStorageService>());
     _acknowledger =
@@ -69,6 +85,14 @@ class AppPurchase {
   }
 
   final InAppPurchase _inAppPurchase;
+
+  /// Whether this Apple ID can still redeem [productId]'s introductory offer.
+  /// StoreKit lists the offer on the product even when the user can't.
+  final Future<bool> Function(String productId) _introOfferEligibility;
+
+  /// Charge price per plan family ("1y", "1m"), resolved once per SKU fetch.
+  final Map<String, StorePrice> _storePrices = <String, StorePrice>{};
+
   final bool Function() _canUseBilling;
   late final PendingPurchaseStore _pendingStore;
   late final PurchaseAcknowledger _acknowledger;
@@ -213,6 +237,10 @@ class AppPurchase {
             _subscriptionSku
               ..clear()
               ..addAll(products);
+            await _resolveStorePrices(
+              products,
+              _selectSkus(response.productDetails, includeOffers: false),
+            );
             _productsLoaded.value = true;
             if (!completer.isCompleted) completer.complete();
             return;
@@ -248,17 +276,70 @@ class AppPurchase {
     throw error;
   }
 
-  /// The loaded store product matching [planId]'s plan family ("1m…" → the
-  /// monthly SKU), or null when products aren't loaded or nothing matches.
-  ProductDetails? storeProductFor(String planId) {
-    final prefix = _planPrefix(planId);
-    for (final sku in _subscriptionSku) {
-      if (_planPrefix(sku.id) == prefix) {
-        return sku;
-      }
+  /// Resolves each loaded SKU's charge price, keyed by plan family. The
+  /// strikethrough comes from the matching base SKU in [baseProducts] so both
+  /// prices share the storefront's currency.
+  Future<void> _resolveStorePrices(
+    List<ProductDetails> products,
+    List<ProductDetails> baseProducts,
+  ) async {
+    final prices = await Future.wait(
+      products.map((product) {
+        final base = baseProducts
+            .where((p) => _planPrefix(p.id) == _planPrefix(product.id))
+            .firstOrNull;
+        return _chargePrice(product, regular: (base ?? product).price);
+      }),
+    );
+    _storePrices.clear();
+    for (var i = 0; i < products.length; i++) {
+      _storePrices[_planPrefix(products[i].id)] = prices[i];
     }
-    return null;
   }
+
+  /// The intro offer price of an iOS affiliate SKU when the user is eligible,
+  /// otherwise `ProductDetails.price` (Play already folds its offer into it).
+  /// A failed eligibility lookup only affects display, so it is treated as
+  /// eligible.
+  Future<StorePrice> _chargePrice(
+    ProductDetails product, {
+    required String regular,
+  }) async {
+    final undiscounted = (
+      formatted: product.price,
+      amount: product.rawPrice,
+      currencyCode: product.currencyCode,
+      regular: regular,
+    );
+    if (product is! AppStoreProduct2Details) return undiscounted;
+    final intro = product.sk2Product.subscription?.promotionalOffers
+        .where((offer) => offer.type == SK2SubscriptionOfferType.introductory)
+        .firstOrNull;
+    if (intro == null) return undiscounted;
+    try {
+      final eligible = await _introOfferEligibility(product.id);
+      appLogger.info(
+        '[AppPurchase] Intro offer eligibility for ${product.id}: $eligible',
+      );
+      if (!eligible) return undiscounted;
+    } catch (e) {
+      appLogger.warning(
+        '[AppPurchase] Intro offer eligibility check failed for '
+        '${product.id}, assuming eligible: $e',
+      );
+    }
+    // SK2 offers carry no localized display string, only the amount.
+    final currencyCode = product.sk2Product.priceLocale.currencyCode;
+    return (
+      formatted: CurrencyUtils.formatCurrency(intro.price * 100, currencyCode),
+      amount: intro.price,
+      currencyCode: currencyCode,
+      regular: regular,
+    );
+  }
+
+  /// The charge price for [planId]'s plan family, or null if not loaded.
+  StorePrice? storePriceFor(String planId) => _storePrices[_planPrefix(planId)];
 
   /// Loads product details if they aren't already available.
   Future<void> _waitForProducts() async {

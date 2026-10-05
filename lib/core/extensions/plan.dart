@@ -1,4 +1,3 @@
-import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -17,28 +16,34 @@ extension PlanExtension on Plan {
 
   /// Price shown on the plan card: the store's localized price (what it will
   /// actually charge) on store builds, the API price otherwise/as fallback.
-  String get displayPrice => _storeProduct?.price ?? formattedYearlyPrice;
+  String get displayPrice => _storePrice?.formatted ?? formattedYearlyPrice;
 
   /// Per-month line under [displayPrice]: store yearly price ÷ 12 on store
   /// builds, the API's expected monthly price otherwise.
   String get displayMonthlyPrice {
-    final product = _storeProduct;
-    if (product == null) return formattedMonthlyPrice;
+    final price = _storePrice;
+    if (price == null) return formattedMonthlyPrice;
     final months = id.startsWith('1y') ? 12 : 1;
     return CurrencyUtils.formatCurrency(
-      product.rawPrice * 100 / months,
-      product.currencyCode,
+      price.amount * 100 / months,
+      price.currencyCode,
     );
   }
 
-  ProductDetails? get _storeProduct =>
-      isStoreVersion() ? sl<AppPurchase>().storeProductFor(id) : null;
+  StorePrice? get _storePrice =>
+      isStoreVersion() ? sl<AppPurchase>().storePriceFor(id) : null;
 
-  /// The original (pre-discount) yearly price, taken directly from the
-  /// backend's `originalPrice` (no calculation). Shown as the strikethrough
-  /// price next to the discounted price when an affiliate code is applied.
-  /// Empty when the backend didn't supply an original price.
-  String get formatOriginalPrice => _formatPriceMap(originalPrice);
+  /// The pre-discount yearly price shown struck through next to the
+  /// discounted one. On store builds it is the base SKU's store price, so it
+  /// matches the charge price's currency; otherwise the backend's
+  /// `originalPrice`. Empty when nothing is discounted.
+  String get formatOriginalPrice {
+    final store = _storePrice;
+    if (store != null) {
+      return store.regular == store.formatted ? '' : store.regular;
+    }
+    return _formatPriceMap(originalPrice);
+  }
 
   /// The amount deducted by the affiliate discount: original − discounted
   /// yearly price, both taken directly from the backend (no percentage math).

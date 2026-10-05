@@ -31,7 +31,7 @@ class ReferralNotifier extends _$ReferralNotifier {
       // has no discounted plans to push into the plans UI.
       final plansData = response?.plansData;
       if (plansData != null) {
-        ref.read(plansProvider.notifier).updatePlans(plansData);
+        await ref.read(plansProvider.notifier).updatePlans(plansData);
         final plans = plansData.plans;
         if (plans.isNotEmpty) {
           // The backend may not flag a best-value plan (and discounted sets

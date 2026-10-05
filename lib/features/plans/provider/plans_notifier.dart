@@ -70,6 +70,8 @@ class PlansNotifier extends _$PlansNotifier {
     );
     if (!fromBackground && attempt == 0) {
       state = const AsyncLoading();
+      // Retry / code removal must publish with the base SKUs, not offers.
+      _storeProductsReady = _loadStoreProducts();
     }
     final result = await ref.read(lanternServiceProvider).plans();
     return result.fold(
@@ -122,7 +124,7 @@ class PlansNotifier extends _$PlansNotifier {
   /// Does not wait for the country-code event: an unknown country must not
   /// delay or skip the prefetch, and the timeout bounds the cost where Play
   /// is unreachable.
-  Future<void> _loadStoreProducts() async {
+  Future<void> _loadStoreProducts({bool includeOffers = false}) async {
     if (!isStoreVersion()) {
       return;
     }
@@ -130,9 +132,9 @@ class PlansNotifier extends _$PlansNotifier {
       return;
     }
     try {
-      await sl<AppPurchase>().fetchSubscriptions().timeout(
-        const Duration(seconds: 5),
-      );
+      await sl<AppPurchase>()
+          .fetchSubscriptions(includeOffers: includeOffers)
+          .timeout(const Duration(seconds: 5));
     } catch (e) {
       appLogger.warning(
         '[PlansNotifier] Store products unavailable, showing API prices: $e',
@@ -149,12 +151,13 @@ class PlansNotifier extends _$PlansNotifier {
     state = AsyncData(remotePlans);
   }
 
-  /// Replaces the current plans with [plans] — e.g. the discounted plans
-  /// returned after applying a referral code. Kept in-memory only: the
-  /// discount is session-specific and must not overwrite the cached base
-  /// plans used by non-referral sessions.
-  void updatePlans(PlansData plans) {
+  /// Publishes the discounted [plans] from an applied affiliate code, after
+  /// loading the offer SKUs so the cards rebuild once with store prices.
+  /// In-memory only: the discount must not overwrite the cached base plans.
+  Future<void> updatePlans(PlansData plans) async {
     appLogger.info('[PlansNotifier] updatePlans: ${plans.plans.length} plans');
+    _storeProductsReady = _loadStoreProducts(includeOffers: true);
+    await _storeProductsReady;
     state = AsyncData(plans);
   }
 
