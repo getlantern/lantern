@@ -675,6 +675,7 @@ class LanternVpnService :
                 deviceid = DeviceUtil.deviceId()
                 appVersion = BuildConfig.VERSION_NAME
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
+                timeZone = java.util.TimeZone.getDefault().id
                 telemetryConsent = isTelemetryEnabled()
                 env = getRadianceEnv()
                 platform = this@LanternVpnService
