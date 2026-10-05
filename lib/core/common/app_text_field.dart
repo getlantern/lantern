@@ -29,6 +29,7 @@ class AppTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final int? maxLength;
   final bool? autocorrect;
+  final bool? enableIMEPersonalizedLearning;
   final Widget? counter;
   final List<String>? autofillHints;
   final bool? autofocus;
@@ -57,6 +58,7 @@ class AppTextField extends StatelessWidget {
     this.onTap,
     this.maxLength,
     this.autocorrect,
+    this.enableIMEPersonalizedLearning,
     this.onSubmitted,
     this.onEditingComplete,
     this.counter,
@@ -81,6 +83,9 @@ class AppTextField extends StatelessWidget {
       autocorrect: autocorrect ?? !obscureText,
       autofillHints: autofillHints,
       enableSuggestions: enableSuggestions,
+      // Sensitive inputs (no suggestions / obscured) must not train the IME.
+      enableIMEPersonalizedLearning:
+          enableIMEPersonalizedLearning ?? (enableSuggestions && !obscureText),
       controller: controller,
       maxLength: maxLength,
       enabled: enable,

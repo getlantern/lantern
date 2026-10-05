@@ -127,6 +127,8 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                   hintText: "access_key".i18n,
                   label: 'access_key'.i18n,
                   controller: accessKeyController,
+                  enableSuggestions: false,
+                  autocorrect: false,
                   prefixIcon: AppImage(path: AppImagePaths.key),
                   onChanged: (value) {
                     buttonValid.value =
