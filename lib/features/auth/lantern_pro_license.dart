@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -17,6 +18,7 @@ class LanternProLicense extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final codeController = useTextEditingController();
+    final obscureText = useState(true);
     final validCode = useState(false);
     final normalizedLen = useState<int>(0);
 
@@ -44,6 +46,31 @@ class LanternProLicense extends HookConsumerWidget {
               controller: codeController,
               prefixIcon: AppImagePaths.keypad,
               label: 'lantern_pro_license'.i18n,
+              obscureText: obscureText.value,
+              keyboardType: TextInputType.visiblePassword,
+              autocorrect: false,
+              enableSuggestions: false,
+              enableIMEPersonalizedLearning: false,
+              // Enter on the reveal button should not submit the license.
+              suffixIcon: Shortcuts(
+                shortcuts: const <ShortcutActivator, Intent>{
+                  SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+                  SingleActivator(LogicalKeyboardKey.numpadEnter):
+                      ActivateIntent(),
+                },
+                child: IconButton(
+                  tooltip: (obscureText.value ? 'show_license' : 'hide_license')
+                      .i18n,
+                  onPressed: () => obscureText.value = !obscureText.value,
+                  icon: AppImage(
+                    path: obscureText.value
+                        ? AppImagePaths.eyeHide
+                        : AppImagePaths.eye,
+                    width: 24,
+                    height: 24,
+                  ),
+                ),
+              ),
               inputFormatters: [
                 ResellerCodeFormatter(),
                 UpperCaseTextFormatter(),
