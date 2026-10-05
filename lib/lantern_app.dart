@@ -11,6 +11,7 @@ import 'package:i18n_extension/i18n_extension.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/updater/updater.dart';
+import 'package:lantern/core/utils/referral_code.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
@@ -100,7 +101,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void _handleDeepLinkUri(Uri uri) {
     if (!context.mounted) return;
-    final safeLogUri = uri.replace(query: '').toString();
+    final safeLogUri = '${uri.scheme}://${uri.host}';
 
     // Deduplicate: on cold start macOS may deliver the same URI via multiple
     // OS callbacks (URL scheme + NSAppleEventManager), causing a double push.
@@ -117,7 +118,16 @@ class _LanternAppState extends ConsumerState<LanternApp>
     appLogger.debug("DeepLink received: $safeLogUri");
     final path = uri.path;
 
-    if (path.startsWith('/report-issue') ||
+    if (path.startsWith('/affiliate') ||
+        (uri.scheme == 'lantern' && uri.host == 'affiliate')) {
+      final code = affiliateCodeFromUri(uri);
+      if (code == null) {
+        appLogger.debug('DeepLink affiliate: invalid link or code');
+        context.showSnackBar('invalid_deep_link'.i18n);
+        return;
+      }
+      _pushWithHome(Plans(referralCode: code));
+    } else if (path.startsWith('/report-issue') ||
         (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
@@ -142,23 +152,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
       if (isOAuthCallbackResult(uri)) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
-    } else if (path.startsWith('/affiliate') ||
-        (uri.scheme == 'lantern' && uri.host == 'affiliate')) {
-      // https://lantern.io/affiliate/<code> or lantern://affiliate/<code>;
-      // ?code=<code> is accepted as a fallback.
-      final segments = uri.pathSegments
-          .where((s) => s.isNotEmpty && s != 'affiliate')
-          .toList();
-      final code = segments.isNotEmpty
-          ? segments.first
-          : (uri.queryParameters['code'] ?? '');
-      if (code.isEmpty) {
-        appLogger.debug("DeepLink affiliate: missing code");
-        context.showSnackBar('invalid_deep_link'.i18n);
-        return;
-      }
-      appLogger.debug("DeepLink affiliate: navigating to Plans with code");
-      _pushWithHome(Plans(referralCode: code));
     } else if (path.startsWith('/private-server') ||
         (uri.scheme == 'lantern' && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);

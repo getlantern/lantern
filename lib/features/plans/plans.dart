@@ -43,7 +43,7 @@ class _PlansState extends ConsumerState<Plans>
   @override
   void initState() {
     super.initState();
-    final code = widget.referralCode?.toUpperCase().trim();
+    final code = widget.referralCode;
     if (code != null && code.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => _applyDeepLinkCode(code),
@@ -352,8 +352,7 @@ class _PlansState extends ConsumerState<Plans>
             prefixIcon: AppImagePaths.star,
             autofocus: true,
             textInputAction: TextInputAction.done,
-            onSubmitted: (value) =>
-                onReferralCodeContinue(value.toUpperCase().trim()),
+            onSubmitted: onReferralCodeContinue,
           ),
         ],
       ),
@@ -368,9 +367,7 @@ class _PlansState extends ConsumerState<Plans>
         ),
         AppTextButton(
           label: 'continue'.i18n,
-          onPressed: () => onReferralCodeContinue(
-            referralCodeController.text.toUpperCase().trim(),
-          ),
+          onPressed: () => onReferralCodeContinue(referralCodeController.text),
         ),
       ],
     );
@@ -394,7 +391,7 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   Future<void> onReferralCodeContinue(String code) async {
-    if (code.isEmpty) {
+    if (code.trim().isEmpty) {
       context.showSnackBar('please_enter_referral_code'.i18n);
       return;
     }

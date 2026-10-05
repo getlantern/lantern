@@ -1,0 +1,117 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:i18n_extension/i18n_extension.dart' show Translations;
+import 'package:i18n_extension_importer/i18n_extension_importer.dart';
+import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/core/models/referral_attach_response.dart';
+import 'package:lantern/core/utils/failure.dart';
+import 'package:lantern/features/plans/provider/referral_notifier.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
+
+class _FakeLanternService implements LanternService {
+  final submittedCodes = <String>[];
+  Failure? failure;
+
+  @override
+  Future<Either<Failure, ReferralAttachV2Response>> attachReferralCodeV2(
+    String code,
+  ) async {
+    submittedCodes.add(code);
+    if (failure != null) return left(failure!);
+    return right(
+      ReferralAttachV2Response(
+        plansData: null,
+        code: code,
+        discountPct: 0,
+        type: ReferralType.referral,
+      ),
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  late _FakeLanternService service;
+  late ProviderContainer container;
+  late ReferralNotifier notifier;
+
+  setUpAll(() async {
+    final previousTranslations = Localization.translations;
+    final previousLocale = Localization.defaultLocale;
+    final translations = await GettextImporter().fromAssetFile(
+      'en',
+      'assets/locales/en.po',
+    );
+    Localization.translations = Translations.byLocale('en') + translations;
+    Localization.defaultLocale = 'en';
+    addTearDown(() {
+      Localization.translations = previousTranslations;
+      Localization.defaultLocale = previousLocale;
+    });
+  });
+
+  setUp(() {
+    service = _FakeLanternService();
+    container = ProviderContainer(
+      overrides: [lanternServiceProvider.overrideWithValue(service)],
+    );
+    notifier = container.read(referralProvider.notifier);
+    addTearDown(container.dispose);
+  });
+
+  test('malformed codes never reach the referral service', () async {
+    for (final code in [
+      '',
+      'A' * 501,
+      'ſAVE15',
+      'SAVE15&code=OTHER',
+      'LSG_PROBE_1512_HTTPS_AFF_20260918T0608Z:JAVASCRIPT:ALERT(1)',
+    ]) {
+      final result = await notifier.applyReferralCodeV2(code);
+      final failure = result.getLeft().toNullable();
+      expect(failure?.error, 'invalid-referral-code');
+      expect(failure?.localizedErrorMessage, 'referral_code_invalid'.i18n);
+    }
+    expect(service.submittedCodes, isEmpty);
+    expect(container.read(referralProvider), isNull);
+  });
+
+  test('normalizes valid manual input before submission', () async {
+    for (final code in [' half ', 'save15', 'summer-20', 'pygfj4']) {
+      final result = await notifier.applyReferralCodeV2(code);
+      expect(result.isRight(), isTrue);
+      expect(container.read(referralProvider)?.code, code.trim().toUpperCase());
+    }
+    expect(service.submittedCodes, ['HALF', 'SAVE15', 'SUMMER-20', 'PYGFJ4']);
+  });
+
+  test('invalid input leaves the previously applied code intact', () async {
+    await notifier.applyReferralCodeV2('HALF');
+    final previous = container.read(referralProvider);
+
+    final result = await notifier.applyReferralCodeV2('javascript:alert(1)');
+
+    expect(result.isLeft(), isTrue);
+    expect(container.read(referralProvider), same(previous));
+    expect(service.submittedCodes, ['HALF']);
+  });
+
+  test('keeps backend validation for well-formed but unknown codes', () async {
+    final failure = Failure(
+      error: 'invalid-referral-code',
+      localizedErrorMessage: 'Unknown code',
+    );
+    service.failure = failure;
+
+    final result = await notifier.applyReferralCodeV2('UNKNOWN');
+
+    expect(result.getLeft().toNullable(), same(failure));
+    expect(service.submittedCodes, ['UNKNOWN']);
+    expect(container.read(referralProvider), isNull);
+  });
+}
