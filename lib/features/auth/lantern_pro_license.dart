@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -21,6 +20,8 @@ class LanternProLicense extends HookConsumerWidget {
     final obscureText = useState(true);
     final validCode = useState(false);
     final normalizedLen = useState<int>(0);
+
+    void toggleVisibility() => obscureText.value = !obscureText.value;
 
     void syncFromText(String text) {
       final cleanedLen = text.replaceAll('-', '').length;
@@ -52,23 +53,15 @@ class LanternProLicense extends HookConsumerWidget {
               enableSuggestions: false,
               enableIMEPersonalizedLearning: false,
               // Enter on the reveal button should not submit the license.
-              suffixIcon: Shortcuts(
-                shortcuts: const <ShortcutActivator, Intent>{
-                  SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-                  SingleActivator(LogicalKeyboardKey.numpadEnter):
-                      ActivateIntent(),
-                },
-                child: IconButton(
+              suffixIcon: EnterKeyShortcut(
+                onEnter: toggleVisibility,
+                child: AppIconButton(
                   tooltip: (obscureText.value ? 'show_license' : 'hide_license')
                       .i18n,
-                  onPressed: () => obscureText.value = !obscureText.value,
-                  icon: AppImage(
-                    path: obscureText.value
-                        ? AppImagePaths.eyeHide
-                        : AppImagePaths.eye,
-                    width: 24,
-                    height: 24,
-                  ),
+                  onPressed: toggleVisibility,
+                  path: obscureText.value
+                      ? AppImagePaths.eyeHide
+                      : AppImagePaths.eye,
                 ),
               ),
               inputFormatters: [
