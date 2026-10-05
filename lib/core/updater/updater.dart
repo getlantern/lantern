@@ -130,7 +130,8 @@ class Updater with UpdaterLifecycleListener {
       }
     }
     if (_disposed) return;
-    // setFeedURL starts the native updater. Disable scheduling before it runs.
+    // Disable scheduling before setFeedURL starts the native updater.
+    // Sparkle's start is idempotent, so a failed interval change can retry setup.
     await autoUpdater.setScheduledCheckInterval(0);
     if (_disposed) return;
     await autoUpdater.setFeedURL(feedUrl);
@@ -304,6 +305,8 @@ class Updater with UpdaterLifecycleListener {
 
   @override
   void onUpdaterCheckingForUpdate(Appcast? appcast) {
+    // Sparkle sends this after loading the feed. Its native session guard
+    // already prevents another check while that request is in flight.
     _checkInProgress = true;
   }
 

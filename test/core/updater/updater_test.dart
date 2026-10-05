@@ -501,7 +501,7 @@ void main() {
       },
     );
 
-    testWidgets('retries setup if configuring the native interval fails', (
+    testWidgets('recovers after macOS starts but enabling its schedule fails', (
       tester,
     ) async {
       final native = _FakeAutoUpdater()
@@ -514,13 +514,30 @@ void main() {
       expect(native.configurations, 1);
       expect(native.interval, 0);
 
-      native.intervalError = null;
       await tester.pump(const Duration(minutes: 1));
+      expect(native.configurations, 2);
+      expect(native.checks, isEmpty);
+
+      native.intervalError = null;
+      await tester.pump(const Duration(minutes: 5));
       expect(native.interval, 3600);
       expect(native.checks, [true]);
       expect(native.listeners, [updater]);
+      expect(native.configurations, 3);
+      expect(native.configurationCalls, [
+        for (var attempt = 0; attempt < 3; attempt++) ...[
+          'interval:0',
+          'feed',
+          'interval:3600',
+        ],
+      ]);
+
+      native.succeed();
       await tester.pump(const Duration(hours: 2));
       expect(native.checks, [true]);
+      await updater.checkNow();
+      expect(native.checks, [true, false]);
+      expect(native.configurations, 3);
     });
 
     testWidgets('leaves check scheduling to the native updater after setup', (

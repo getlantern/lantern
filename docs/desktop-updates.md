@@ -8,7 +8,9 @@ Resuming the app or reconnecting can bring a pending retry forward.
 
 Manual and automatic Windows checks share the same guard. The guard stays held
 while the native prompt or download is active and is released by the completion
-callback. Sparkle and WinSparkle handle signatures, installation, and relaunch.
+callback. On macOS, Sparkle prevents overlapping checks within its native update
+session, including while the feed is loading. Sparkle and WinSparkle handle
+signatures, installation, and relaunch.
 
 ## Smoke tests
 
