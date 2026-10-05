@@ -23,6 +23,8 @@ on:
       # needed when run_auth_smoke is true.
       AUTH_SMOKE_CREDENTIALS:
         required: false
+      JOIN_SERVER_CONFIG_URLS:
+        required: false
     inputs:
       version:
         required: true
@@ -85,6 +87,11 @@ on:
         default: false
       vpn_lifecycle_smoke:
         description: "Build a test-only extension for reconnect and failed-start smoke tests"
+        required: false
+        type: boolean
+        default: false
+      vpn_vision_smoke:
+        description: "Run the signed macOS fixture through a secure VLESS-Vision server"
         required: false
         type: boolean
         default: false
@@ -189,6 +196,43 @@ jobs:
           }
           echo 'FLUTTER_XCODE_SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) VPN_SMOKE_TEST' \
             >> "$GITHUB_ENV"
+
+      - name: Validate VPN Vision test fixture
+        if: ${{ inputs.vpn_vision_smoke }}
+        shell: bash
+        env:
+          RUNNER_LABEL: ${{ inputs.runner_label }}
+          RUN_CONNECT_SMOKE: ${{ inputs.run_connect_smoke }}
+          SECRETLESS_TEST_BUILD: ${{ inputs.secretless_test_build }}
+          VPN_LIFECYCLE_SMOKE: ${{ inputs.vpn_lifecycle_smoke }}
+        run: |
+          set -euo pipefail
+          [[ "$RUNNER_LABEL" == "lantern-macos-smoke" && "$RUN_CONNECT_SMOKE" == "true" &&
+             "$BUILD_TYPE" == "nightly" && "$SECRETLESS_TEST_BUILD" == "false" &&
+             "$VPN_LIFECYCLE_SMOKE" == "false" ]] || {
+            echo "VPN Vision tests require the signed macOS connect smoke fixture." >&2
+            exit 1
+          }
+
+      - name: Set up TLS 1.3 curl for Vision smoke
+        if: ${{ inputs.vpn_vision_smoke }}
+        shell: bash
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+        run: |
+          set -euo pipefail
+          if ! brew list --versions curl >/dev/null 2>&1; then
+            brew install curl
+          fi
+          vision_curl="$(brew --prefix curl)/bin/curl"
+          curl_version="$("$vision_curl" --tlsv1.3 --tls-max 1.3 --version)"
+          printf '%s\n' "$curl_version"
+          printf '%s\n' "$curl_version" | grep -Eq '^Features:.* SSL( |$)'
+          printf '%s\n' "$curl_version" | grep -Eq 'OpenSSL/(1\.1\.1|[3-9]\.)' || {
+            echo "Vision smoke requires curl built with TLS 1.3-capable OpenSSL." >&2
+            exit 1
+          }
+          printf 'VISION_CURL=%s\n' "$vision_curl" >> "$GITHUB_ENV"
 
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
@@ -396,6 +440,7 @@ jobs:
           ENABLE_IP_CHECK: ${{ inputs.enable_ip_check }}
           FORCE_FULL_TUNNEL: ${{ inputs.force_full_tunnel_smoke }}
           VPN_LIFECYCLE_SMOKE: ${{ inputs.vpn_lifecycle_smoke }}
+          VPN_VISION_SMOKE: ${{ inputs.vpn_vision_smoke }}
           VERSION: ${{ inputs.version }}
           INSTALLER_NAME: ${{ inputs.installer_base_name }}
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
@@ -447,14 +492,14 @@ jobs:
       - name: Upload macOS app
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.vpn_lifecycle_smoke && 'lantern-macos-vpn-smoke-app' || 'lantern-macos-app' }}
+          name: ${{ inputs.vpn_vision_smoke && 'lantern-macos-vpn-vision-app' || inputs.vpn_lifecycle_smoke && 'lantern-macos-vpn-smoke-app' || 'lantern-macos-app' }}
           path: ${{ runner.temp }}/Lantern.app.zip
           retention-days: 2
 
       - name: Upload macOS installer
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.vpn_lifecycle_smoke && 'lantern-macos-vpn-smoke-dmg' || 'lantern-installer-dmg' }}
+          name: ${{ inputs.vpn_vision_smoke && 'lantern-macos-vpn-vision-dmg' || inputs.vpn_lifecycle_smoke && 'lantern-macos-vpn-smoke-dmg' || 'lantern-installer-dmg' }}
           path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.dmg
           retention-days: 2
 
@@ -476,7 +521,16 @@ jobs:
           EXTENSION_TIMEOUT_SECONDS: ${{ inputs.extension_timeout_seconds }}
           RUN_CONNECT_SMOKE: true
           VPN_LIFECYCLE_SMOKE: ${{ inputs.vpn_lifecycle_smoke }}
+          VPN_VISION_SMOKE: ${{ inputs.vpn_vision_smoke }}
+          JOIN_SERVER_CONFIG_URLS: ${{ inputs.vpn_vision_smoke && secrets.JOIN_SERVER_CONFIG_URLS || '' }}
         run: ./.github/scripts/macos_smoke_suite.sh
+
+      - name: Remove Vision smoke configuration
+        if: ${{ always() && inputs.vpn_vision_smoke }}
+        shell: bash
+        run: |
+          rm -f /Users/Shared/Lantern/E2E/vision-server-urls \
+            /Users/Shared/Lantern/E2E/vision-curl-path
 
       - name: Upload macOS smoke diagnostics
         if: ${{ always() && inputs.run_connect_smoke }}

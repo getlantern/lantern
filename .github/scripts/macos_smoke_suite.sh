@@ -5,6 +5,9 @@ TEST_PATH="${TEST_PATH:-integration_test/vpn/macos_connect_smoke_test.dart}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos}"
 RUN_CONNECT_SMOKE="${RUN_CONNECT_SMOKE:-true}"
 VPN_LIFECYCLE_SMOKE="${VPN_LIFECYCLE_SMOKE:-false}"
+VPN_VISION_SMOKE="${VPN_VISION_SMOKE:-false}"
+VISION_CONFIG_FILE="/Users/Shared/Lantern/E2E/vision-server-urls"
+VISION_CURL_PATH_FILE="/Users/Shared/Lantern/E2E/vision-curl-path"
 EXTENSION_TIMEOUT_SECONDS="${EXTENSION_TIMEOUT_SECONDS:-120}"
 APP_INSTALL_DIR="${APP_INSTALL_DIR:-/Applications/Lantern.app}"
 LANTERN_LOG_DIR="${LANTERN_LOG_DIR:-/Users/Shared/Lantern/Logs}"
@@ -221,7 +224,12 @@ capture_diagnostics() {
     date
   } >"$ARTIFACT_DIR/diagnostics.txt"
 
-  capture_screenshot
+  if [[ "$VPN_VISION_SMOKE" == "true" ]]; then
+    rm -rf "$ARTIFACT_DIR/lantern-logs"
+    rm -f "$ARTIFACT_DIR/unified-lantern.log" "$ARTIFACT_DIR/screenshot.png"
+  else
+    capture_screenshot
+  fi
   capture_command "systemextensionsctl-list" systemextensionsctl list
   capture_command "vpn-profiles" scutil --nc list
   capture_command "process-list" ps aux
@@ -231,8 +239,10 @@ capture_diagnostics() {
   if [[ "$VPN_LIFECYCLE_SMOKE" == "true" ]]; then
     cp /Users/Shared/Lantern/E2E/vpn-smoke-*.json "$ARTIFACT_DIR/" 2>/dev/null || true
   fi
-  capture_lantern_logs
-  capture_unified_logs
+  if [[ "$VPN_VISION_SMOKE" != "true" ]]; then
+    capture_lantern_logs
+    capture_unified_logs
+  fi
 }
 
 quit_lantern() {
@@ -352,6 +362,10 @@ run_flutter_connect_smoke() {
 on_exit() {
   local status=$?
 
+  if [[ "$VPN_VISION_SMOKE" == "true" ]]; then
+    rm -f "$VISION_CONFIG_FILE" "$VISION_CURL_PATH_FILE"
+  fi
+  unset JOIN_SERVER_CONFIG_URLS
   if [[ "$status" -ne 0 ]]; then
     # Preserve native permission prompts in the failure screenshot.
     capture_diagnostics "failure"
@@ -368,6 +382,17 @@ on_exit() {
 }
 
 trap on_exit EXIT
+
+if [[ "$VPN_VISION_SMOKE" == "true" ]]; then
+  rm -f "$VISION_CONFIG_FILE" "$VISION_CURL_PATH_FILE"
+  [[ -n "${VISION_CURL:-}" && -x "$VISION_CURL" ]] || {
+    printf 'Vision smoke requires the configured Homebrew curl executable.\n' >&2
+    exit 2
+  }
+  python3 .github/scripts/vision_smoke_config.py --mask --output "$VISION_CONFIG_FILE"
+  (umask 077; printf '%s\n' "$VISION_CURL" > "$VISION_CURL_PATH_FILE")
+fi
+unset JOIN_SERVER_CONFIG_URLS
 
 mkdir -p "$ARTIFACT_DIR"
 reset_lantern_logs

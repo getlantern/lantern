@@ -12,6 +12,7 @@ import 'package:lantern/main.dart' as app;
 
 import '../utils/widget_wait_utils.dart';
 import 'connect_smoke_harness.dart';
+import 'macos_vision_smoke.dart';
 import 'vpn_smoke_helpers.dart';
 
 const _enableIpCheck = bool.fromEnvironment(
@@ -19,6 +20,7 @@ const _enableIpCheck = bool.fromEnvironment(
   defaultValue: false,
 );
 const _lifecycleSmoke = bool.fromEnvironment('VPN_LIFECYCLE_SMOKE');
+const _visionSmoke = bool.fromEnvironment('VPN_VISION_SMOKE');
 
 const _extensionBlockingStatuses = <SystemExtensionStatus>{
   SystemExtensionStatus.requiresApproval,
@@ -35,7 +37,9 @@ void main() {
     (tester) async {
       await app.main();
       await _requireSystemExtensionReady(tester);
-      if (_lifecycleSmoke) {
+      if (_visionSmoke) {
+        await runMacosVisionSmoke(tester);
+      } else if (_lifecycleSmoke) {
         await _runLifecycleSmoke(tester);
       } else {
         await runConnectSmokeHarness(

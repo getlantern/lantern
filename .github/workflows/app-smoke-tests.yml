@@ -23,6 +23,7 @@ on:
         options:
           - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
           - vpn-lifecycle # macOS: reconnects, forced descriptor fallback, and failed-start recovery
+          - vpn-vision
           - auth-smoke # auth flows only (sign-in/up, recovery, deletion) against the smoke roster
           - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
           - payment-smoke # Stripe Checkout rendering and payment-to-Pro conversion
@@ -54,11 +55,23 @@ jobs:
   validate-inputs:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate VPN lifecycle selection
-        if: ${{ inputs.tests == 'vpn-lifecycle' && inputs.platforms != 'macos' }}
+      - name: Validate macOS VPN selection
+        if: ${{ contains(fromJSON('["vpn-lifecycle", "vpn-vision"]'), inputs.tests) && inputs.platforms != 'macos' }}
         run: |
-          echo '::error title=Invalid smoke selection::vpn-lifecycle requires platforms=macos'
+          echo '::error title=Invalid smoke selection::vpn-lifecycle and vpn-vision require platforms=macos'
           exit 2
+      - name: Checkout Vision smoke validator
+        if: ${{ inputs.tests == 'vpn-vision' }}
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate Vision smoke configuration
+        if: ${{ inputs.tests == 'vpn-vision' }}
+        env:
+          JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
+        run: |
+          python3 -m unittest discover -s .github/scripts -p 'test_vision_smoke_config.py'
+          python3 .github/scripts/vision_smoke_config.py
       - name: Validate auto-update selection
         if: ${{ inputs.tests == 'auto-update' && !contains(fromJSON('["all", "macos", "windows"]'), inputs.platforms) }}
         shell: bash
@@ -156,6 +169,7 @@ jobs:
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       runner_label: lantern-macos-smoke
       vpn_lifecycle_smoke: ${{ inputs.tests == 'vpn-lifecycle' }}
+      vpn_vision_smoke: ${{ inputs.tests == 'vpn-vision' }}
       enable_ip_check: true
       run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}

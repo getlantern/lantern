@@ -24,6 +24,7 @@ Censorship circumvention tool available for free download on any operating syste
    - [Unit & Widget Tests](#71-unit--widget-tests)
    - [Integration Tests](#72-integration-tests)
    - [Linux VPN Smoke Test](#73-linux-vpn-smoke-test)
+   - [macOS VLESS-Vision Smoke Test](#74-macos-vless-vision-smoke-test)
 8. [Release & Publishing](#8-release--publishing)
    - [Tag format](#tag-format)
    - [How to release](#how-to-release)
@@ -516,6 +517,22 @@ flutter test integration_test/vpn/linux_connect_smoke_test.dart \
   --dart-define=DISABLE_SYSTEM_TRAY=true \
   --dart-define=ENABLE_IP_CHECK=true
 ```
+
+---
+
+### 7.4 macOS VLESS-Vision Smoke Test
+
+Dispatch **App Smoke Tests** with `platforms=macos` and `tests=vpn-vision`.
+The `JOIN_SERVER_CONFIG_URLS` CI secret must include a working `vless://` URL
+using `flow=xtls-rprx-vision`, TCP, and verified TLS or Reality. Configuration is
+checked before the signed build starts; credentials are supplied only at runtime.
+
+The installed extension makes a bootstrap connection, imports the private server,
+then runs three Vision connect/disconnect cycles. Each cycle checks the selected
+outbound, a complete 1 MiB HTTPS download using TLS 1.3, traffic through that
+outbound, and public IP change and restoration. The download uses Homebrew curl;
+the workflow installs it when needed. Raw application logs are omitted from this
+scenario's artifacts because they can contain server credentials.
 
 ---
 
