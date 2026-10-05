@@ -2018,6 +2018,19 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> updateTimeZone(String timeZone) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.updateTimeZone(timeZone.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, List<String>>> diagnosticLogFiles() {
     // TODO: implement diagnosticLogFiles
     throw UnimplementedError();

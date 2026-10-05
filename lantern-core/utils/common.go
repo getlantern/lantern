@@ -12,6 +12,7 @@ type Opts struct {
 	AppVersion       string
 	LogLevel         string
 	Locale           string
+	TimeZone         string
 	Env              string
 	TelemetryConsent bool
 	Platform         PlatformInterface

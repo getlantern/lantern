@@ -128,6 +128,7 @@ enum class Methods(val method: String) {
     FeatureFlag("featureFlag"),
     GetDataCapInfo("getDataCapInfo"),
     UpdateLocale("updateLocale"),
+    UpdateTimeZone("updateTimeZone"),
     CurrentUserMessage("currentUserMessage"),
     RefreshUserMessages("refreshUserMessages"),
     AcknowledgeUserMessage("acknowledgeUserMessage"),
@@ -673,6 +674,13 @@ class MethodHandler : FlutterPlugin,
                 scope.handleResult(result, "UpdateLocale") {
                     val locale = call.arguments<String>()
                     Mobile.updateLocale(locale)
+                }
+            }
+
+            Methods.UpdateTimeZone.method -> {
+                scope.handleResult(result, "UpdateTimeZone") {
+                    val timeZone = call.arguments<String>()
+                    Mobile.updateTimeZone(timeZone)
                 }
             }
 

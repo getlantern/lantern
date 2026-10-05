@@ -286,6 +286,10 @@ class MethodHandler {
         let locale = call.arguments as? String ?? ""
         self.updateLocale(result: result, locale: locale)
 
+      case "updateTimeZone":
+        let timeZone = call.arguments as? String ?? ""
+        self.updateTimeZone(result: result, timeZone: timeZone)
+
       case "currentUserMessage":
         self.currentUserMessage(result: result)
 
@@ -528,6 +532,7 @@ class MethodHandler {
     opts.telemetryConsent = FilePath.isTelemetryEnabled()
     opts.env = environment
     opts.locale = Locale.current.identifier
+    opts.timeZone = TimeZone.current.identifier
     appLogger.info(
       "Setting up Radiance in \(environment), logging to \(opts.logDir), dataDir: \(opts.dataDir), telemetryConsent: \(opts.telemetryConsent), locale: \(opts.locale)"
     )
@@ -1302,6 +1307,18 @@ class MethodHandler {
       MobileUpdateLocale(locale, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "UPDATE_LOCALE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updateTimeZone(result: @escaping FlutterResult, timeZone: String) {
+    Task {
+      var error: NSError?
+      MobileUpdateTimeZone(timeZone, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_TIME_ZONE_ERROR")
         return
       }
       await self.replyOK(result)
