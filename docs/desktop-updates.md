@@ -33,11 +33,21 @@ a total timeout on slow downloads. Closing the relay cancels active requests.
 
 ## Native updater lifecycle
 
-Sparkle and WinSparkle schedule checks, select versions, verify signatures,
-install, and relaunch. The relay preserves version and signature metadata when
-rewriting the feed, and passes installer bytes through unchanged. Lantern retries
-unfinished relay/native setup and waits for native completion before allowing
-another manual check.
+Sparkle schedules recurring checks on macOS. On Windows, Lantern schedules a
+check an hour after the previous update cycle finishes. WinSparkle's periodic
+worker can stop after a failed request, so its timer stays disabled. Failed
+Windows checks retry after 1, 5, and 15 minutes, then hourly until a check succeeds.
+Resuming the app or reconnecting can bring a pending retry forward.
+
+Manual and automatic Windows checks share the same guard. The guard stays held
+while the native prompt or download is active and is released by the completion
+callback. On macOS, Sparkle prevents overlapping checks within its native update
+session, including while the feed is loading. Sparkle and WinSparkle handle
+signatures, installation, and relaunch.
+
+The relay preserves version and signature metadata when rewriting the feed and
+passes installer bytes through unchanged. Lantern retries unfinished relay and
+native updater setup.
 
 ## Test coverage
 
