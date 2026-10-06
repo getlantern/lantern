@@ -312,8 +312,14 @@ class AppTextButton extends StatelessWidget {
 class AppIconButton extends StatelessWidget {
   final String path;
   final OnPressed? onPressed;
+  final String? tooltip;
 
-  const AppIconButton({super.key, required this.path, this.onPressed});
+  const AppIconButton({
+    super.key,
+    required this.path,
+    this.onPressed,
+    this.tooltip,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -321,6 +327,7 @@ class AppIconButton extends StatelessWidget {
 
     return IconButton(
       onPressed: onPressed,
+      tooltip: tooltip,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       icon: AppImage(path: path, height: iconHeight),
     );

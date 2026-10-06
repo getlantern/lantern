@@ -17,8 +17,11 @@ class LanternProLicense extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final codeController = useTextEditingController();
+    final obscureText = useState(true);
     final validCode = useState(false);
     final normalizedLen = useState<int>(0);
+
+    void toggleVisibility() => obscureText.value = !obscureText.value;
 
     void syncFromText(String text) {
       final cleanedLen = text.replaceAll('-', '').length;
@@ -44,6 +47,23 @@ class LanternProLicense extends HookConsumerWidget {
               controller: codeController,
               prefixIcon: AppImagePaths.keypad,
               label: 'lantern_pro_license'.i18n,
+              obscureText: obscureText.value,
+              keyboardType: TextInputType.visiblePassword,
+              autocorrect: false,
+              enableSuggestions: false,
+              enableIMEPersonalizedLearning: false,
+              // Enter on the reveal button should not submit the license.
+              suffixIcon: EnterKeyShortcut(
+                onEnter: toggleVisibility,
+                child: AppIconButton(
+                  tooltip: (obscureText.value ? 'show_license' : 'hide_license')
+                      .i18n,
+                  onPressed: toggleVisibility,
+                  path: obscureText.value
+                      ? AppImagePaths.eyeHide
+                      : AppImagePaths.eye,
+                ),
+              ),
               inputFormatters: [
                 ResellerCodeFormatter(),
                 UpperCaseTextFormatter(),
