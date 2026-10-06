@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -345,10 +346,14 @@ class LanternPlatformService implements LanternCoreService {
   Future<bool> checkVpnConflict() async {
     if (!Platform.isAndroid && !Platform.isMacOS) return false;
     try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'checkVpnConflict',
-      );
+      final result = await _methodChannel
+          .invokeMethod<bool>('checkVpnConflict')
+          .timeout(const Duration(seconds: 5));
+      appLogger.info('checkVpnConflict returned $result');
       return result ?? false;
+    } on TimeoutException catch (e, stackTrace) {
+      appLogger.error('checkVpnConflict timed out', e, stackTrace);
+      return false;
     } catch (e, stackTrace) {
       appLogger.error('checkVpnConflict failed', e, stackTrace);
       return false;
@@ -1084,9 +1089,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
-    String token,
-  ) async {
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token) async {
     try {
       await _methodChannel.invokeMethod<String>(
         'oauthDeviceLimitCallback',
