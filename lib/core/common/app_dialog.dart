@@ -249,15 +249,22 @@ class AppDialog {
     required BuildContext context,
     required VoidCallback onConnectAnyway,
   }) {
+    appLogger.info('Showing VPN conflict dialog');
     show(
       context: context,
       title: 'vpn_conflict_title'.i18n,
       body: 'vpn_conflict_body'.i18n,
       primaryLabel: 'vpn_conflict_connect_anyway'.i18n,
-      onPrimaryPressed: onConnectAnyway,
+      onPrimaryPressed: () {
+        appLogger.info('VPN conflict dialog: user chose connect anyway');
+        onConnectAnyway();
+      },
       // Callers pop the dialog inside onConnectAnyway themselves.
       dismissOnPrimary: false,
       secondaryLabel: 'vpn_conflict_dismiss'.i18n,
+      onSecondaryPressed: () {
+        appLogger.info('VPN conflict dialog: user dismissed');
+      },
     );
   }
 
