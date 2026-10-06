@@ -165,6 +165,16 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> updateTimeZone(String timeZone) async {
+    try {
+      await _methodChannel.invokeMethod('updateTimeZone', timeZone);
+      return Right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<void> updateWidgetLocation({
     required String city,
     required String country,

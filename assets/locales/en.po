@@ -1496,6 +1496,12 @@ msgstr "Not a Lantern Pro user yet? You'll become one when your first referral s
 msgid "lantern_pro_license"
 msgstr "Lantern Pro License"
 
+msgid "show_license"
+msgstr "Show license"
+
+msgid "hide_license"
+msgstr "Hide license"
+
 msgid "lantern_pro_license_required"
 msgstr "Lantern Pro license is required"
 
