@@ -318,6 +318,12 @@ func UpdateLocale(locale string) error {
 	return withCore(func(c lanterncore.Core) error { return c.UpdateLocale(locale) })
 }
 
+// UpdateTimeZone sets the device's IANA time zone name, which the API uses to locate clients whose
+// requests arrive through a relay.
+func UpdateTimeZone(timeZone string) error {
+	return withCore(func(c lanterncore.Core) error { return c.UpdateTimeZone(timeZone) })
+}
+
 // CurrentUserMessage returns the pending message as common-contract JSON.
 func CurrentUserMessage() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {

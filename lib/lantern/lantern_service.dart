@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
@@ -29,6 +30,8 @@ class LanternService implements LanternCoreService {
 
   final LanternPlatformService _platformService;
 
+  String? _syncedTimeZone;
+
   LanternService({
     required LanternFFIService ffiService,
     required LanternPlatformService platformService,
@@ -37,11 +40,36 @@ class LanternService implements LanternCoreService {
        _ffiService = ffiService;
 
   @override
-  Future<void> init() {
+  Future<void> init() async {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.init();
+      await _ffiService.init();
+      // Windows/Linux backends run in lanternd, which starts without app-supplied options, so
+      // the app-reported zone can only arrive through this update. Other platforms pass it at
+      // startup.
+      await syncTimeZone();
+      return;
     }
     return _platformService.init();
+  }
+
+  /// Sends the device's current time zone to the backend if it changed since the last
+  /// successful update. The API uses it to locate clients whose requests arrive through a
+  /// relay, so it must follow zone changes while the app runs.
+  Future<void> syncTimeZone() async {
+    final String timeZone;
+    try {
+      timeZone = (await FlutterTimezone.getLocalTimezone()).identifier;
+    } catch (e) {
+      appLogger.warning('Failed to read the device time zone: $e');
+      return;
+    }
+    if (timeZone.isEmpty || timeZone == _syncedTimeZone) return;
+    final result = await updateTimeZone(timeZone);
+    result.fold(
+      (failure) =>
+          appLogger.warning('Failed to update time zone: ${failure.error}'),
+      (_) => _syncedTimeZone = timeZone,
+    );
   }
 
   Future<void> waitForRadiance() {
@@ -107,6 +135,14 @@ class LanternService implements LanternCoreService {
       return _ffiService.updateLocal(locale);
     }
     return _platformService.updateLocal(locale);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateTimeZone(String timeZone) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.updateTimeZone(timeZone);
+    }
+    return _platformService.updateTimeZone(timeZone);
   }
 
   @override

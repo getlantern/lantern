@@ -22,6 +22,7 @@ func createClient(ctx context.Context, opts *utils.Opts) (*ipc.Client, error) {
 		DeviceID:                opts.Deviceid,
 		LogLevel:                opts.LogLevel,
 		Locale:                  opts.Locale,
+		TimeZone:                opts.TimeZone,
 		TelemetryConsent:        opts.TelemetryConsent,
 		EnvOverrides:            opts.RadianceEnvOverrides(),
 		UserMessageCapabilities: utils.UserMessageCapabilities(),
