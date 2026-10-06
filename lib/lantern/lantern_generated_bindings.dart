@@ -6475,6 +6475,19 @@ class LanternBindings {
   late final _updateLocale = _updateLocalePtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
+  ffi.Pointer<ffi.Char> updateTimeZone(ffi.Pointer<ffi.Char> _timeZone) {
+    return _updateTimeZone(_timeZone);
+  }
+
+  late final _updateTimeZonePtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+        >
+      >('updateTimeZone');
+  late final _updateTimeZone = _updateTimeZonePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
   ffi.Pointer<ffi.Char> updatePrivateServerName(
     ffi.Pointer<ffi.Char> _oldName,
     ffi.Pointer<ffi.Char> _newName,
