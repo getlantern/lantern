@@ -133,6 +133,7 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		DataDir:                 opts.DataDir,
 		LogDir:                  opts.LogDir,
 		Locale:                  opts.Locale,
+		TimeZone:                opts.TimeZone,
 		LogLevel:                opts.LogLevel,
 		DeviceID:                opts.Deviceid,
 		TelemetryConsent:        opts.TelemetryConsent,

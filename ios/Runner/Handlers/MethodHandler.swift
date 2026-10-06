@@ -252,6 +252,10 @@ class MethodHandler {
         let locale = call.arguments as? String ?? ""
         self.updateLocale(result: result, locale: locale)
 
+      case "updateTimeZone":
+        let timeZone = call.arguments as? String ?? ""
+        self.updateTimeZone(result: result, timeZone: timeZone)
+
       case "updateWidgetLocation":
         guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
         self.updateWidgetLocation(result: result, data: data)
@@ -1149,6 +1153,18 @@ class MethodHandler {
       MobileUpdateLocale(locale, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "UPDATE_LOCALE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updateTimeZone(result: @escaping FlutterResult, timeZone: String) {
+    Task {
+      var error: NSError?
+      MobileUpdateTimeZone(timeZone, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_TIME_ZONE_ERROR")
         return
       }
       await self.replyOK(result)
