@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/logs/log_exporter.dart';
 import 'package:lantern/features/logs/log_line.dart';
 import 'package:lantern/features/logs/provider/diagnostic_log_notifier.dart';
+import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 const int _maxVisibleLogLines = 500;
@@ -69,14 +71,24 @@ class _LogsState extends ConsumerState<Logs> {
         return;
       }
 
+      final title = 'logs'.i18n;
+      final text = 'logs_share_message'.i18n;
+
+      if (Platform.isAndroid) {
+        // Native share sheet with read-only URI grants
+        // share_plus grants read+write to every resolvable package
+        await sl<LanternPlatformService>().shareFiles(
+          files.map((f) => f.path).toList(),
+          title: title,
+          text: text,
+        );
+        return;
+      }
+
       final xFiles = files.map((file) => XFile(file.path)).toList();
 
       final result = await SharePlus.instance.share(
-        ShareParams(
-          title: 'logs'.i18n,
-          text: 'logs_share_message'.i18n,
-          files: xFiles,
-        ),
+        ShareParams(title: title, text: text, files: xFiles),
       );
       appLogger.debug("Share result: $result");
       // The Windows native share sheet always reports `unavailable` even on

@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import androidx.core.content.FileProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -20,6 +21,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
@@ -53,6 +55,7 @@ enum class Methods(val method: String) {
     RestoreInAppPurchase("restoreInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
     LaunchExternalUrl("launchExternalUrl"),
+    ShareFiles("shareFiles"),
     ReportIssue("reportIssue"),
 
     //Oauth
@@ -550,6 +553,24 @@ class MethodHandler : FlutterPlugin,
                     }
                     withContext(Dispatchers.Main) {
                         launchExternalUrl(url)
+                    }
+                }
+            }
+
+            Methods.ShareFiles.method -> {
+                scope.handleResult(result, "share_files") {
+                    val args = call.arguments as Map<*, *>
+                    val paths = (args["paths"] as? List<*>)
+                        ?.filterIsInstance<String>()
+                        .orEmpty()
+                    if (paths.isEmpty()) {
+                        throw IllegalArgumentException("No files to share")
+                    }
+                    val title = args["title"] as? String
+                    val text = args["text"] as? String
+                    val uris = stageFilesForSharing(paths)
+                    withContext(Dispatchers.Main) {
+                        shareFiles(uris, title, text)
                     }
                 }
             }
@@ -1578,6 +1599,54 @@ class MethodHandler : FlutterPlugin,
         }
 
         return false
+    }
+
+    /**
+     * Copies files into a private cache directory exposed by the app FileProvider
+     * so the share sheet only ever sees a snapshot, never the live log files.
+     */
+    private fun stageFilesForSharing(paths: List<String>): List<Uri> {
+        val shareDir = File(appContext.cacheDir, "share_logs")
+        shareDir.deleteRecursively()
+        shareDir.mkdirs()
+        return paths.map { path ->
+            val source = File(path)
+            if (!source.isFile) {
+                throw IllegalArgumentException("File not found: ${source.name}")
+            }
+            val staged = File(shareDir, source.name)
+            source.copyTo(staged)
+            FileProvider.getUriForFile(
+                appContext,
+                "${BuildConfig.APPLICATION_ID}.fileProvider",
+                staged
+            )
+        }
+    }
+
+    /**
+     * Launches the system share sheet with a read-only URI grant. createChooser
+     * migrates EXTRA_STREAM into ClipData so the grant reaches whichever target
+     * the user picks; no per-package grantUriPermission calls are needed and
+     * recipients cannot modify or delete the shared files.
+     */
+    private fun shareFiles(uris: List<Uri>, title: String?, text: String?) {
+        val shareIntent = Intent().apply {
+            type = "text/plain"
+            if (uris.size == 1) {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_STREAM, uris.first())
+            } else {
+                action = Intent.ACTION_SEND_MULTIPLE
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+            }
+            if (!text.isNullOrBlank()) putExtra(Intent.EXTRA_TEXT, text)
+            if (!title.isNullOrBlank()) putExtra(Intent.EXTRA_TITLE, title)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        val chooser = Intent.createChooser(shareIntent, title)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        appContext.startActivity(chooser)
     }
 
     private fun startExternalIntent(intent: Intent): Boolean {
