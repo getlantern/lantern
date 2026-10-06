@@ -15,8 +15,15 @@ const geoLookupTimeout = 10 * time.Second
 var (
 	// geoLookupURL is Lantern's public geolocation service. It answers with a
 	// MaxMind GeoIP2 City record for the IP appended to the path.
-	geoLookupURL    = "https://geo.getiantem.org/lookup/"
-	geoLookupClient = &http.Client{Timeout: geoLookupTimeout}
+	geoLookupURL = "https://geo.getiantem.org/lookup/"
+	// Redirects are not followed so that a redirect to a cleartext URL cannot
+	// leak the server IP; a 3xx is treated as a failed lookup.
+	geoLookupClient = &http.Client{
+		Timeout: geoLookupTimeout,
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 )
 
 type geoNames struct {

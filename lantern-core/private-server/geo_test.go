@@ -38,7 +38,9 @@ func withGeoLookupServer(t *testing.T, handler http.HandlerFunc) {
 
 	origURL, origClient := geoLookupURL, geoLookupClient
 	geoLookupURL = srv.URL + "/lookup/"
-	geoLookupClient = srv.Client()
+	client := srv.Client()
+	client.CheckRedirect = origClient.CheckRedirect
+	geoLookupClient = client
 	t.Cleanup(func() {
 		geoLookupURL, geoLookupClient = origURL, origClient
 	})
@@ -92,6 +94,22 @@ func TestGetGeoInfoRejectsInvalidIP(t *testing.T) {
 	}
 	if called {
 		t.Error("invalid IPs must not reach the geo service")
+	}
+}
+
+func TestGetGeoInfoDoesNotFollowRedirects(t *testing.T) {
+	plain := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("redirect to cleartext URL was followed: %s", r.URL)
+		_, _ = w.Write([]byte(amsterdamLookupResponse))
+	}))
+	t.Cleanup(plain.Close)
+
+	withGeoLookupServer(t, func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, plain.URL+r.URL.Path, http.StatusFound)
+	})
+
+	if got := getGeoInfo("2.16.6.1"); got != "" {
+		t.Errorf("getGeoInfo after redirect = %q, want empty", got)
 	}
 }
 
