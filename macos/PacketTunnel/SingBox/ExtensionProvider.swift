@@ -227,6 +227,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     opts.appVersion =
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     opts.locale = Locale.current.identifier
+    opts.timeZone = TimeZone.current.identifier
     opts.logLevel = "trace"
     opts.logDir = FilePath.logsDirectory.relativePath
     appLogger.info("logging to \(opts.logDir)")

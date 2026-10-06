@@ -29,6 +29,30 @@ class MethodHandler {
       guard let self = self else { return }
 
       switch call.method {
+      case "startUpdateRelay":
+        guard let cacheDir: String = requireArg(call: call, name: "cacheDir", result: result),
+          let feedURL: String = requireArg(call: call, name: "feedURL", result: result)
+        else { return }
+        // The Go bridge is synchronous; keep startup off the main thread.
+        Task.detached {
+          var error: NSError?
+          let address = MobileStartUpdateRelay(cacheDir, feedURL, &error)
+          let failure = error
+          await MainActor.run {
+            if let failure {
+              result(FlutterError(code: "update_relay", message: failure.localizedDescription, details: nil))
+            } else {
+              result(address)
+            }
+          }
+        }
+
+      case "stopUpdateRelay":
+        Task.detached {
+          MobileStopUpdateRelay()
+          await MainActor.run { result(nil) }
+        }
+
       case "setupRadiance":
         guard
           let environment: String = self.decodeValue(
@@ -261,6 +285,10 @@ class MethodHandler {
       case "updateLocale":
         let locale = call.arguments as? String ?? ""
         self.updateLocale(result: result, locale: locale)
+
+      case "updateTimeZone":
+        let timeZone = call.arguments as? String ?? ""
+        self.updateTimeZone(result: result, timeZone: timeZone)
 
       case "currentUserMessage":
         self.currentUserMessage(result: result)
@@ -504,6 +532,7 @@ class MethodHandler {
     opts.telemetryConsent = FilePath.isTelemetryEnabled()
     opts.env = environment
     opts.locale = Locale.current.identifier
+    opts.timeZone = TimeZone.current.identifier
     appLogger.info(
       "Setting up Radiance in \(environment), logging to \(opts.logDir), dataDir: \(opts.dataDir), telemetryConsent: \(opts.telemetryConsent), locale: \(opts.locale)"
     )
@@ -1278,6 +1307,18 @@ class MethodHandler {
       MobileUpdateLocale(locale, &error)
       if let error {
         await self.handleFlutterError(error, result: result, code: "UPDATE_LOCALE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updateTimeZone(result: @escaping FlutterResult, timeZone: String) {
+    Task {
+      var error: NSError?
+      MobileUpdateTimeZone(timeZone, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_TIME_ZONE_ERROR")
         return
       }
       await self.replyOK(result)
