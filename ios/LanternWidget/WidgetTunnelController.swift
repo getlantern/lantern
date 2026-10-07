@@ -90,9 +90,6 @@ enum WidgetTunnelController {
     }
   }
 
-  /// How long an unchanged terminal status may still be the pre-action value.
-  private static let settleGrace: Duration = .seconds(1.5)
-
   /// Waits for the tunnel to settle, then records the outcome; the intent must
   /// publish the final state since WidgetKit defers reloads from the tunnel or
   /// a backgrounded app. Re-loads each poll because a cached connection is stale.
@@ -101,24 +98,30 @@ enum WidgetTunnelController {
     terminal: Set<NEVPNStatus>
   ) async {
     let start = ContinuousClock.now
-    var last = initial
-    while true {
+    var observed: NEVPNStatus?
+    var sawTransition = false
+    while ContinuousClock.now - start < timeout {
       if let status = (try? await loadManager())?.connection.status {
-        if status != last {
+        if status != observed {
           appLogger.info("Widget observed tunnel status \(status.rawValue)")
-          last = status
+          observed = status
         }
-        if terminal.contains(status),
-          status != initial || ContinuousClock.now - start >= settleGrace
-        {
-          break
-        }
+        if status != initial { sawTransition = true }
+        // Only a terminal status reached after leaving the pre-action one counts.
+        if sawTransition, terminal.contains(status) { break }
       }
-      if ContinuousClock.now - start >= timeout { break }
-      try? await Task.sleep(for: .milliseconds(250))
+      do {
+        try await Task.sleep(for: .milliseconds(250))
+      } catch {
+        break  // Intent cancelled.
+      }
     }
-    appLogger.info("Widget \(action) settled with tunnel status \(last.rawValue)")
-    if let status = last.widgetStatus {
+    guard let observed else {
+      appLogger.error("Widget \(action) could not read the tunnel status")
+      return
+    }
+    appLogger.info("Widget \(action) settled with tunnel status \(observed.rawValue)")
+    if let status = observed.widgetStatus {
       VPNWidgetStore.setStatus(status)
     }
   }

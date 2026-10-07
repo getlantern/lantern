@@ -27,6 +27,9 @@ struct VPNTimelineProvider: TimelineProvider {
   /// daily reload budget (~40-70). Covers an intent that timed out before the
   /// tunnel settled.
   private static let transitionRecheck: TimeInterval = 30
+  /// A transition this old is stuck; back off so it cannot drain the budget.
+  private static let staleTransitionAge: TimeInterval = 2 * 60
+  private static let staleTransitionRecheck: TimeInterval = 5 * 60
   /// Catches a tunnel killed while the app is suspended (nobody writes then).
   private static let connectedRecheck: TimeInterval = 60 * 60
 
@@ -34,7 +37,9 @@ struct VPNTimelineProvider: TimelineProvider {
   private static func policy(for state: VPNWidgetState) -> TimelineReloadPolicy {
     switch state.status {
     case .connecting, .disconnecting:
-      return .after(Date().addingTimeInterval(transitionRecheck))
+      let stale = Date().timeIntervalSince(state.updatedAt) >= staleTransitionAge
+      return .after(
+        Date().addingTimeInterval(stale ? staleTransitionRecheck : transitionRecheck))
     case .connected:
       return .after(Date().addingTimeInterval(connectedRecheck))
     case .disconnected:
