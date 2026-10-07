@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- VS_USER_PROPS replaces this normal CMake import; preserve developer settings. -->
+  <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+          Condition="Exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+          Label="LocalAppDataPlatform" />
+
+  <!-- Run even on an incremental build, so a repaired or updated toolchain is restaged. -->
+  <Target Name="LanternStageVCRedist" AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'Profile'">
+    <Error Condition="'$(VCToolsRedistDir)' == '' Or !Exists('$(VCToolsRedistDir)vc_redist.x64.exe')"
+           Text="Visual C++ redistributable not found at $(VCToolsRedistDir)vc_redist.x64.exe. Install the C++ redistributable component for the selected Visual Studio toolchain." />
+    <MakeDir Directories="$(OutDir)installer-dependencies" />
+    <Copy SourceFiles="$(VCToolsRedistDir)vc_redist.x64.exe"
+          DestinationFiles="$(OutDir)installer-dependencies\VC_redist.x64.exe"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

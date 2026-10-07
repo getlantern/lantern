@@ -254,6 +254,7 @@ jobs:
           $thirdParty = @(
             'flutter_windows.dll',  # Google/Flutter
             'WebView2Loader.dll',   # Microsoft
+            'VC_redist.x64.exe',    # Microsoft; bundled installer prerequisite
             'WinSparkle.dll'        # WinSparkle
           )
 
