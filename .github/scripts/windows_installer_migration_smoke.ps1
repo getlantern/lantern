@@ -155,11 +155,18 @@ function Assert-NoFixtureLaunch {
   }
 }
 
-function Test-Rejection([string]$Name, [string]$Installer, [string]$ExtraArguments = '', [bool]$ExistingService = $false, [string]$LegacySource = $LegacyDirectory, [string]$MigrationVersion = '1', [string]$SourceSID = $MigrationSID, [string]$HandoffID = $MigrationID) {
+function Test-Rejection([string]$Name, [string]$Installer, [string]$ExtraArguments = '', [bool]$ExistingService = $false, [string]$LegacySource = $LegacyDirectory, [string]$MigrationVersion = '1', [string]$SourceSID = $MigrationSID, [string]$HandoffID = $MigrationID, [string]$ExpectedError = '') {
+  $targetExisted = Test-Path -LiteralPath $TargetDirectory
+  $dataExisted = Test-Path -LiteralPath $FixtureData
   $code = Wait-Installer (Start-Installer $Name $Installer $ExtraArguments -LegacySource $LegacySource -MigrationVersion $MigrationVersion -SourceSID $SourceSID -HandoffID $HandoffID)
   Assert-True ($code -ne 0) "$Name unexpectedly succeeded"
   Assert-True (-not (Test-Path -LiteralPath $env:LANTERN_FIXTURE_DEPENDENCY_MARKER)) "$Name ran prerequisites before rejecting migration"
   Assert-True ((Service-Exists) -eq $ExistingService) "$Name changed the existing service state"
+  Assert-True ((Test-Path -LiteralPath $TargetDirectory) -eq $targetExisted) "$Name created or removed the destination directory"
+  Assert-True ((Test-Path -LiteralPath $FixtureData) -eq $dataExisted) "$Name created or removed the service data directory"
+  if ($ExpectedError) {
+    Assert-True ((Get-Content -LiteralPath (Join-Path $ArtifactDirectory "$Name.log") -Raw).Contains($ExpectedError)) "$Name did not reach the expected rejection"
+  }
   Assert-NoFixtureLaunch
   Assert-LegacyPreserved
   Record-Case $Name $code
@@ -314,12 +321,20 @@ try {
   Record-Case 'enrollment-failure' $code
 
   $installer = Build-Installer 'running'
-  foreach ($case in @('missing-sid', 'invalid-id')) {
+  $sidRejection = 'Restart migration from the legacy app to authorize identity transfer.'
+  foreach ($case in @(
+    @{ Name = 'missing-sid'; SID = '' }
+    @{ Name = 'malformed-sid'; SID = 'S-1------' }
+    @{ Name = 'noncanonical-sid'; SID = $MigrationSID.Replace('S-1-5-', 'S-1-05-') }
+    @{ Name = 'group-sid'; SID = 'S-1-5-32-544' }
+    @{ Name = 'system-sid'; SID = 'S-1-5-18' }
+    @{ Name = 'unresolved-sid'; SID = 'S-1-5-21-2147483647-2147483647-2147483647-2147483647' }
+  )) {
     Reset-Case
-    $sourceSID = if ($case -eq 'missing-sid') { '' } else { $MigrationSID }
-    $handoffID = if ($case -eq 'invalid-id') { 'invalid' } else { $MigrationID }
-    Test-Rejection $case $installer -SourceSID $sourceSID -HandoffID $handoffID
+    Test-Rejection $case.Name $installer -SourceSID $case.SID -ExpectedError $sidRejection
   }
+  Reset-Case
+  Test-Rejection 'invalid-id' $installer -HandoffID 'invalid' -ExpectedError $sidRejection
 
   Reset-Case
   New-Item -ItemType Directory -Path $TargetDirectory, $FixtureData | Out-Null
@@ -337,6 +352,40 @@ try {
   Test-Rejection 'missing-contract' $installer -MigrationVersion '0'
   Test-Rejection 'relative-source' $installer -LegacySource 'relative-legacy-folder'
   Test-Rejection 'missing-source' $installer -LegacySource (Join-Path $WorkDirectory 'missing-source')
+
+  $pathRejection = 'Restart migration from the legacy app with its installation folder on a fixed local drive.'
+  foreach ($case in @(
+    @{ Name = 'source-trailing-dot'; Source = "$LegacyDirectory." }
+    @{ Name = 'source-trailing-space'; Source = "$LegacyDirectory " }
+    @{ Name = 'source-dot-component'; Source = "$WorkDirectory\.\legacy installation" }
+    @{ Name = 'source-parent-component'; Source = "$LegacyDirectory\..\legacy installation" }
+  )) {
+    Reset-Case
+    Assert-True ([IO.File]::Exists("$($case.Source)\lantern.exe")) "$($case.Name) does not resolve to the legacy executable"
+    Test-Rejection $case.Name $installer -LegacySource $case.Source -ExpectedError $pathRejection
+  }
+
+  Reset-Case
+  $shareName = 'LanternMigrationFixture-' + [Guid]::NewGuid().ToString('N')
+  $networkDrive = @('Z:', 'Y:', 'X:') | Where-Object { [IO.Directory]::GetLogicalDrives() -notcontains "$_\" } | Select-Object -First 1
+  Assert-True ($null -ne $networkDrive) 'No unused drive letter for the network source fixture'
+  $share = $null
+  $mapped = $false
+  try {
+    $share = New-SmbShare -Name $shareName -Path $WorkDirectory -FullAccess ([Security.Principal.WindowsIdentity]::GetCurrent().Name)
+    New-SmbMapping -LocalPath $networkDrive -RemotePath "\\localhost\$shareName" -Persistent $false | Out-Null
+    $mapped = $true
+    Assert-True ([IO.DriveInfo]::new("$networkDrive\").DriveType -eq [IO.DriveType]::Network) 'Fixture drive is not a network drive'
+    $networkSource = "$networkDrive\legacy installation"
+    Assert-True ([IO.File]::Exists("$networkSource\lantern.exe")) 'Network source fixture cannot read the legacy executable'
+    Test-Rejection 'network-source' $installer -LegacySource $networkSource -ExpectedError $pathRejection
+  } finally {
+    try {
+      if ($mapped) { Remove-SmbMapping -LocalPath $networkDrive -Force -Confirm:$false }
+    } finally {
+      if ($null -ne $share) { Remove-SmbShare -Name $shareName -Force -Confirm:$false }
+    }
+  }
 
   foreach ($case in @(
     @{ Name = 'occupied-target'; Directory = $TargetDirectory; File = 'existing-installation.txt'; Content = 'do not overwrite' }

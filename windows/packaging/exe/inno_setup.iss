@@ -343,6 +343,10 @@ const
   ServicePollIntervalMs = 250;
   ServiceAbsent = 0;
   ServiceRunning = 4;
+  DriveFixed = 3;
+  SidTypeUser = 1;
+  CstrEqual = 2;
+  ErrorInsufficientBuffer = 122;
   UninstallRegSubKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}_is1';
 
 type
@@ -357,6 +361,20 @@ var
 
 function MigrationGetFileAttributes(Path: String): LongWord;
   external 'GetFileAttributesW@kernel32.dll stdcall';
+function MigrationGetDriveType(Root: String): LongWord;
+  external 'GetDriveTypeW@kernel32.dll stdcall';
+function MigrationStringToSID(Value: String; var SID: UINT_PTR): BOOL;
+  external 'ConvertStringSidToSidW@advapi32.dll stdcall';
+function MigrationSIDToString(SID: UINT_PTR; var Value: UINT_PTR): BOOL;
+  external 'ConvertSidToStringSidW@advapi32.dll stdcall';
+function MigrationCompareSID(Value: String; ValueLength: Integer; Canonical: UINT_PTR;
+  CanonicalLength: Integer; IgnoreCase: BOOL): Integer;
+  external 'CompareStringOrdinal@kernel32.dll stdcall';
+function MigrationLookupAccountSID(SystemName, SID: UINT_PTR; Name: String;
+  var NameLength: LongWord; Domain: String; var DomainLength, AccountType: LongWord): BOOL;
+  external 'LookupAccountSidW@advapi32.dll stdcall';
+function MigrationLocalFree(Memory: UINT_PTR): UINT_PTR;
+  external 'LocalFree@kernel32.dll stdcall';
 function MigrationOpenSCManager(MachineName, DatabaseName: Integer; Access: LongWord): LongWord;
   external 'OpenSCManagerW@advapi32.dll stdcall';
 function MigrationOpenService(Manager: LongWord; Name: String; Access: LongWord): LongWord;
@@ -385,14 +403,58 @@ end;
 
 function ValidLegacySID(const Value: String): Boolean;
 var
-  I: Integer;
+  SID, CanonicalSID: UINT_PTR;
+  Name, Domain: String;
+  NameLength, DomainLength, AccountType: LongWord;
 begin
   Result := False;
   if (Length(Value) < 9) or (Length(Value) > 184) or
     (Copy(Value, 1, 4) <> 'S-1-') then exit;
-  for I := 5 to Length(Value) do
-    if ((Value[I] < '0') or (Value[I] > '9')) and (Value[I] <> '-') then exit;
-  Result := True;
+  if not MigrationStringToSID(Value, SID) then exit;
+  try
+    if not MigrationSIDToString(SID, CanonicalSID) then exit;
+    try
+      // Match the daemon's canonical SID check before prerequisites can run.
+      if MigrationCompareSID(Value, Length(Value), CanonicalSID, -1, False) <> CstrEqual then exit;
+    finally
+      MigrationLocalFree(CanonicalSID);
+    end;
+    NameLength := 0;
+    DomainLength := 0;
+    MigrationLookupAccountSID(0, SID, '', NameLength, '', DomainLength, AccountType);
+    if (DLLGetLastError <> ErrorInsufficientBuffer) or (NameLength = 0) then exit;
+    SetLength(Name, NameLength);
+    SetLength(Domain, DomainLength);
+    // Resolve the original user, including domain users, not the UAC approver.
+    Result := MigrationLookupAccountSID(0, SID, Name, NameLength, Domain,
+      DomainLength, AccountType) and (AccountType = SidTypeUser);
+  finally
+    MigrationLocalFree(SID);
+  end;
+end;
+
+function ValidLegacySourcePath(const Path: String): Boolean;
+var
+  Directory: String;
+  I, ComponentStart: Integer;
+begin
+  Result := False;
+  Directory := RemoveBackslashUnlessRoot(Path);
+  if (Length(Directory) < 4) or (Directory[2] <> ':') or (Directory[3] <> '\') or
+    not (((Directory[1] >= 'A') and (Directory[1] <= 'Z')) or
+      ((Directory[1] >= 'a') and (Directory[1] <= 'z'))) then exit;
+  // Check the supplied spelling before ExpandFileName can normalize it.
+  Directory := AddBackslash(Directory);
+  ComponentStart := 4;
+  for I := 4 to Length(Directory) do begin
+    if Directory[I] = '\' then begin
+      if (I = ComponentStart) or (Directory[I - 1] = '.') or
+        (Directory[I - 1] = ' ') then exit;
+      ComponentStart := I + 1;
+    end else if (Ord(Directory[I]) < 32) or
+      (Pos(Directory[I], ':"<>|?*/') > 0) then exit;
+  end;
+  Result := MigrationGetDriveType(Copy(Directory, 1, 3)) = DriveFixed;
 end;
 
 function ValidLegacyID(const Value: String): Boolean;
@@ -533,6 +595,10 @@ begin
   end;
 
   if not LegacyMigration then exit;
+  if not ValidLegacySourcePath(LegacyDirectory) then begin
+    Result := 'Legacy migration requires an unambiguous installation folder on a fixed local drive.';
+    exit;
+  end;
   DefaultTarget := ExpandConstant('{#DefaultInstallDir}');
   DataDirectory := ExpandConstant('{#ProgramDataDir}');
   if CompareText(ExpandFileName(DefaultTarget), ExpandFileName('{#ServiceInstallDir}')) <> 0 then begin
@@ -838,9 +904,8 @@ begin
       ErrorMessage := 'Legacy migration requires native x64 Windows 10 version 1903 or later.'
     else if not ValidLegacySID(LegacySID) or not ValidLegacyID(LegacyID) then
       ErrorMessage := 'Restart migration from the legacy app to authorize identity transfer.'
-    else if (Length(LegacyDirectory) < 3) or not IsAbsoluteWindowsPath(LegacyDirectory) or
-      (Copy(LegacyDirectory, 1, 2) = '\\') then
-      ErrorMessage := 'Restart migration from the legacy app with its absolute local installation folder.'
+    else if not ValidLegacySourcePath(LegacyDirectory) then
+      ErrorMessage := 'Restart migration from the legacy app with its installation folder on a fixed local drive.'
     else if HasUnsafePathComponent(LegacyDirectory) or
       not FileExists(AddBackslash(LegacyDirectory) + 'lantern.exe') then
       ErrorMessage := 'The legacy Lantern installation could not be verified. It has not been changed.';

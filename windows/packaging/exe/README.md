@@ -10,9 +10,11 @@ The bridge verifies the installer signature before launch, keeps its executable
 and settings, and waits for the installer to exit. `/VERYSILENT /SUPPRESSMSGBOXES`
 is optional.
 
-- `LEGACYDIR` is the actual legacy installation folder. It must be absolute,
-  local, accessible, contain `lantern.exe`, and have no junction/symlink components.
-- `LEGACYSID` is the original user's SID, even when someone else approves UAC.
+- `LEGACYDIR` is the actual legacy installation folder. It must be absolute, on a
+  fixed local drive, accessible, and contain `lantern.exe`. Junctions, symlinks,
+  empty or dot components, and components ending in a dot or space are rejected.
+- `LEGACYSID` is the original user's canonical SID, even when someone else approves
+  UAC. Setup must resolve it to a user account before running prerequisites.
 - `LEGACYID` is a random identifier saved by the bridge before elevation:
   exactly 32 lowercase hexadecimal digits.
 
