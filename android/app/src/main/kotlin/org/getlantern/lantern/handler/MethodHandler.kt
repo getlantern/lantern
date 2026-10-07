@@ -183,6 +183,7 @@ class MethodHandler : FlutterPlugin,
         const val TAG = "A/MethodHandler"
         const val channelName = "org.getlantern.lantern/method"
         private const val MAX_EXTERNAL_URL_FALLBACK_DEPTH = 3
+        private const val SHARE_SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000L
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -1602,12 +1603,15 @@ class MethodHandler : FlutterPlugin,
     }
 
     /**
-     * Copies files into a private cache directory exposed by the app FileProvider
-     * so the share sheet only ever sees a snapshot, never the live log files.
+     * Copies files into a unique private cache directory exposed by the app FileProvider
+     * so the share sheet only ever sees a snapshot, never the live log files. Each share
+     * gets its own directory so URIs are never reused and earlier recipients keep
+     * reading the snapshot they were granted.
      */
     private fun stageFilesForSharing(paths: List<String>): List<Uri> {
-        val shareDir = File(appContext.cacheDir, "share_logs")
-        shareDir.deleteRecursively()
+        val shareRoot = File(appContext.cacheDir, "share_logs")
+        pruneStaleShareSnapshots(shareRoot)
+        val shareDir = File(shareRoot, System.currentTimeMillis().toString())
         shareDir.mkdirs()
         return paths.map { path ->
             val source = File(path)
@@ -1622,6 +1626,14 @@ class MethodHandler : FlutterPlugin,
                 staged
             )
         }
+    }
+
+    // Old snapshots are removed by age rather than on the next share so in-flight reads survive
+    private fun pruneStaleShareSnapshots(shareRoot: File) {
+        val cutoff = System.currentTimeMillis() - SHARE_SNAPSHOT_TTL_MS
+        shareRoot.listFiles()
+            ?.filter { it.lastModified() < cutoff }
+            ?.forEach { it.deleteRecursively() }
     }
 
     /**
