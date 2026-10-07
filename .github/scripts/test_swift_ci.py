@@ -58,7 +58,10 @@ class InputTests(unittest.TestCase):
     def test_native_sources_outside_platform_directories_invalidate_both(self):
         for path in ['bridge/native.c', 'bridge/native.h', 'bridge/native.cpp',
                      'bridge/native.mm', 'bridge/native.swift', 'bridge/native.S',
-                     'bridge/native.rs', 'bridge/native_test.go']:
+                     'bridge/native.rs', 'bridge/native_test.go',
+                     'bridge/native.f', 'bridge/native.F', 'bridge/native.for',
+                     'bridge/native.f90', 'bridge/native.syso', 'bridge/native.a',
+                     'bridge/native.def', 'bridge/native.pc']:
             for platform in swift_ci.PLATFORMS:
                 with self.subTest(path=path, platform=platform):
                     self.assertTrue(swift_ci.relevant(path, platform))
@@ -167,6 +170,30 @@ class PlanTests(unittest.TestCase):
             written = self.run_plan(event)
         self.assertIn('ios_needed=true', written)
         self.assertIn('macos_needed=true', written)
+
+    def test_syso_only_change_builds_both_platforms(self):
+        with tempfile.TemporaryDirectory() as directory:
+            old = os.getcwd()
+            os.chdir(directory)
+            try:
+                subprocess.run(['git', 'init', '-q'], check=True)
+                subprocess.run(['git', 'config', 'user.email', 'ci@example.test'], check=True)
+                subprocess.run(['git', 'config', 'user.name', 'CI Test'], check=True)
+                Path('bridge').mkdir()
+                Path('bridge/native.go').write_text('package bridge')
+                source = Path('bridge/native.syso')
+                source.write_bytes(b'original object')
+                subprocess.run(['git', 'add', '-A'], check=True)
+                subprocess.run(['git', 'commit', '-qm', 'base'], check=True)
+                base = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+                source.write_bytes(b'updated object')
+                subprocess.run(['git', 'add', '-A'], check=True)
+                subprocess.run(['git', 'commit', '-qm', 'native object update'], check=True)
+                written = self.run_plan({'pull_request': {'base': {'sha': base}}})
+                self.assertIn('ios_needed=true', written)
+                self.assertIn('macos_needed=true', written)
+            finally:
+                os.chdir(old)
 
     def test_only_changed_platform_is_built(self):
         event = {'pull_request': {'base': {'sha': 'base'}}}

@@ -10,11 +10,12 @@ import os
 from pathlib import Path
 import subprocess
 
+from swift_framework_cache import NATIVE_EXTENSIONS
+
 WORKFLOW = '.github/workflows/swift-compile-check.yml'
 SCRIPT = '.github/scripts/swift_ci.py'
 PLATFORMS = ('ios', 'macos')
-NATIVE_SUFFIXES = {'.go', '.c', '.h', '.cc', '.cpp', '.cxx', '.hpp', '.hh',
-                   '.hxx', '.inc', '.m', '.mm', '.swift', '.s', '.rs'}
+NATIVE_SUFFIXES = {suffix.lower() for suffix in NATIVE_EXTENSIONS} | {'.swift', '.rs'}
 
 # Dependencies can affect native plugins. Changes to this gate must also run it.
 SHARED_FILES = {'go.mod', 'go.sum', 'Makefile', 'pubspec.yaml', 'pubspec.lock',
