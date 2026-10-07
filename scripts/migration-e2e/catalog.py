@@ -29,7 +29,7 @@ def assemble(root, digest, output):
         "bridge_raw_sha256": m["artifacts"]["bridge"]["sha256"],
         "installer_sha256": m["artifacts"]["installer"]["sha256"],
         "production_activation_ready": False,
-    }, indent=2) + "\n")
+    }, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

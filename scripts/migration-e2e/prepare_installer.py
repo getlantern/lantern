@@ -70,7 +70,7 @@ def main():
         "template_output_sha256": hashlib.sha256(rendered).hexdigest(),
         "production_activation_ready": False,
     }
-    args.metadata.write_text(json.dumps(evidence, indent=2) + "\n")
+    args.metadata.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

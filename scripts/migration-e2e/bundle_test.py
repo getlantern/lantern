@@ -28,7 +28,7 @@ class BundleTest(unittest.TestCase):
                              "autoupdateca": "-----BEGIN CERTIFICATE-----\ntest\n",
                              "trustedcas": [{"cert": "test"}],
                              "client": {"fronted": {"providers": {"test": {"masquerades": []}}}}})
-        (self.root / "global.json").write_text(config)
+        (self.root / "global.json").write_text(config, encoding="utf-8")
         assets["global_config"] = {"file": "global.json", "sha256": hashlib.sha256(config.encode()).hexdigest()}
         self.m = dict(schema_version=1, run_id="a" * 32, lane="rebuilt-staging", scenario="success",
                       endpoint=bundle.ENDPOINT, catalog=bundle.CATALOG, artifacts=assets,
@@ -39,7 +39,7 @@ class BundleTest(unittest.TestCase):
 
     def validate(self):
         path = self.root / "manifest.json"
-        path.write_text(json.dumps(self.m))
+        path.write_text(json.dumps(self.m), encoding="utf-8")
         return bundle.validate(self.root, bundle.sha256(path))
 
     def test_valid(self):

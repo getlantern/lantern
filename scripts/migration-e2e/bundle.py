@@ -97,7 +97,7 @@ def verify_binary_builds(root, manifest):
         # go version inspects the binary; it does not execute it. Do not accept a
         # text descriptor as proof of the executable's account endpoint or source.
         result = subprocess.run(["go", "version", "-m", str(exe)], capture_output=True,
-                                text=True, timeout=30, check=True)
+                                text=True, encoding="utf-8", timeout=30, check=True)
         verify_legacy_build(result.stdout, role,
                             manifest["source_commits"]["seed" if role == "seed" else "lantern-desktop"],
                             "7.9.5" if role == "seed" else manifest["bridge_version"])
@@ -142,7 +142,7 @@ def validate(root, manifest_hash):
             require(pe_machine(file) == (0x14C if name != "probe" else 0x8664), "wrong_pe_arch")
     # Use JSON (a YAML subset) to avoid ambiguous/duplicate YAML keys and keep the
     # seed's sticky config inspectable. The application still reads real global.yaml.
-    config = json.loads(local_file(root, artifacts["global_config"]["file"]).read_text())
+    config = json.loads(local_file(root, artifacts["global_config"]["file"]).read_text(encoding="utf-8"))
     require(config.get("updateserverurl") == "https://update.staging.iantem.io", "wrong_global_endpoint")
     require(isinstance(config.get("autoupdateca"), str)
             and config["autoupdateca"].startswith("-----BEGIN CERTIFICATE-----"), "missing_update_ca")

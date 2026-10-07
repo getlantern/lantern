@@ -7,7 +7,7 @@ import prepare_installer as installer
 class InstallerEnvironmentTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.template = (Path(__file__).resolve().parents[2] / "windows/packaging/exe/inno_setup.iss").read_text()
+        cls.template = (Path(__file__).resolve().parents[2] / "windows/packaging/exe/inno_setup.iss").read_text(encoding="utf-8")
 
     def test_production_template_remains_byte_identical(self):
         self.assertEqual(self.template, installer.render(self.template, "prod", False, "production", False))
@@ -35,7 +35,7 @@ class InstallerEnvironmentTest(unittest.TestCase):
                 installer.render(changed, "staging", True, "migration-e2e", True)
 
     def test_workflow_passes_environment_to_initial_build_and_packaging(self):
-        text = (Path(__file__).resolve().parents[2] / ".github/workflows/build-windows.yml").read_text()
+        text = (Path(__file__).resolve().parents[2] / ".github/workflows/build-windows.yml").read_text(encoding="utf-8")
         self.assertIn("RADIANCE_ENV: ${{ inputs.backend_environment == 'staging' && 'staging' || '' }}", text)
         self.assertIn("--build-dart-define=RADIANCE_ENV=staging", text)
         self.assertIn("--build-dart-define=AUTO_UPDATE_E2E=true", text)
