@@ -405,7 +405,9 @@ try {
   Assert-True (((Get-Item -LiteralPath $FixtureData).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) 'Installer changed the rejected data junction'
 
   Reset-Case
-  Test-Rejection 'nondefault-target' $installer "/DIR=`"$(Join-Path $WorkDirectory 'other-target')`""
+  $alternateTarget = Join-Path $WorkDirectory 'other-target'
+  Test-Rejection 'nondefault-target' $installer "/DIR=`"$alternateTarget`"" -ExpectedError 'Legacy migration requires the default Lantern installation folder.'
+  Assert-True (-not (Test-Path -LiteralPath $alternateTarget)) 'Installer created the nondefault destination'
 
   Reset-Case
   Test-Rejection 'source-as-target' $installer "/DIR=`"$LegacyDirectory`""
