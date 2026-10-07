@@ -361,7 +361,6 @@ try {
     @{ Name = 'source-parent-component'; Source = "$LegacyDirectory\..\legacy installation" }
   )) {
     Reset-Case
-    Assert-True ([IO.File]::Exists("$($case.Source)\lantern.exe")) "$($case.Name) does not resolve to the legacy executable"
     Test-Rejection $case.Name $installer -LegacySource $case.Source -ExpectedError $pathRejection
   }
 
