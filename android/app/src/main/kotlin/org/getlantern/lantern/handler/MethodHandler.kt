@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -1613,12 +1614,14 @@ class MethodHandler : FlutterPlugin,
         pruneStaleShareSnapshots(shareRoot)
         val shareDir = File(shareRoot, System.currentTimeMillis().toString())
         shareDir.mkdirs()
-        return paths.map { path ->
+        return paths.mapIndexed { index, path ->
             val source = File(path)
             if (!source.isFile) {
                 throw IllegalArgumentException("File not found: ${source.name}")
             }
-            val staged = File(shareDir, source.name)
+            // Inputs from different directories may share a basename
+            var staged = File(shareDir, source.name)
+            if (staged.exists()) staged = File(shareDir, "${index}_${source.name}")
             source.copyTo(staged)
             FileProvider.getUriForFile(
                 appContext,
@@ -1636,29 +1639,15 @@ class MethodHandler : FlutterPlugin,
             ?.forEach { it.deleteRecursively() }
     }
 
-    /**
-     * Launches the system share sheet with a read-only URI grant. createChooser
-     * migrates EXTRA_STREAM into ClipData so the grant reaches whichever target
-     * the user picks; no per-package grantUriPermission calls are needed and
-     * recipients cannot modify or delete the shared files.
-     */
+    // ShareCompat attaches ClipData with a read-only grant; no write access, no per-package grants
     private fun shareFiles(uris: List<Uri>, title: String?, text: String?) {
-        val shareIntent = Intent().apply {
-            type = "text/plain"
-            if (uris.size == 1) {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_STREAM, uris.first())
-            } else {
-                action = Intent.ACTION_SEND_MULTIPLE
-                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
-            }
-            if (!text.isNullOrBlank()) putExtra(Intent.EXTRA_TEXT, text)
-            if (!title.isNullOrBlank()) putExtra(Intent.EXTRA_TITLE, title)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        val chooser = Intent.createChooser(shareIntent, title)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        appContext.startActivity(chooser)
+        val builder = ShareCompat.IntentBuilder(appContext).setType("text/plain")
+        uris.forEach { builder.addStream(it) }
+        if (!text.isNullOrBlank()) builder.setText(text)
+        if (!title.isNullOrBlank()) builder.setChooserTitle(title)
+        appContext.startActivity(
+            builder.createChooserIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
     private fun startExternalIntent(intent: Intent): Boolean {
