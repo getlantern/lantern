@@ -24,6 +24,7 @@ class AppTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final bool enableSuggestions;
+  final bool enableIMEPersonalizedLearning;
   final bool obscureText;
   final List<TextInputFormatter> inputFormatters;
   final VoidCallback? onTap;
@@ -49,6 +50,7 @@ class AppTextField extends StatelessWidget {
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     this.enable = true,
     this.enableSuggestions = true,
+    this.enableIMEPersonalizedLearning = true,
     this.obscureText = false,
     this.inputFormatters = const [],
     this.keyboardType,
@@ -81,6 +83,7 @@ class AppTextField extends StatelessWidget {
       autocorrect: autocorrect ?? !obscureText,
       autofillHints: autofillHints,
       enableSuggestions: enableSuggestions,
+      enableIMEPersonalizedLearning: enableIMEPersonalizedLearning,
       controller: controller,
       maxLength: maxLength,
       enabled: enable,

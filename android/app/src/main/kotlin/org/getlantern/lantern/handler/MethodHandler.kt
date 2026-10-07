@@ -128,6 +128,7 @@ enum class Methods(val method: String) {
     FeatureFlag("featureFlag"),
     GetDataCapInfo("getDataCapInfo"),
     UpdateLocale("updateLocale"),
+    UpdateTimeZone("updateTimeZone"),
     CurrentUserMessage("currentUserMessage"),
     RefreshUserMessages("refreshUserMessages"),
     AcknowledgeUserMessage("acknowledgeUserMessage"),
@@ -676,6 +677,13 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.UpdateTimeZone.method -> {
+                scope.handleResult(result, "UpdateTimeZone") {
+                    val timeZone = call.arguments<String>()
+                    Mobile.updateTimeZone(timeZone)
+                }
+            }
+
             Methods.CurrentUserMessage.method -> {
                 scope.launch {
                     runCatching { Mobile.currentUserMessage() }
@@ -829,7 +837,7 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val email = call.arguments<String>();
-                        AppLogger.d(TAG, "Logout email: $email")
+                        AppLogger.d(TAG, "Logout requested")
                         val json = Mobile.logout(email)
                         withContext(Dispatchers.Main) {
                             success(json.toByteArray(Charsets.UTF_8))
@@ -1599,9 +1607,11 @@ class MethodHandler : FlutterPlugin,
         for (network in cm.allNetworks) {
             val capabilities = cm.getNetworkCapabilities(network) ?: continue
             if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                AppLogger.w(TAG, "Another VPN is active: network=$network capabilities=$capabilities")
                 return true
             }
         }
+        AppLogger.d(TAG, "No conflicting VPN network found")
         return false
     }
 }

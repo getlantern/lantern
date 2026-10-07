@@ -61,7 +61,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void initLifecycleListener() {
     _lifecycle = AppLifecycleListener(
-      onResume: _retryPendingUpdate,
+      onResume: _onResume,
       onExitRequested: () async {
         appLogger.info("Exit requested");
         await ref
@@ -71,6 +71,11 @@ class _LanternAppState extends ConsumerState<LanternApp>
         return AppExitResponse.exit;
       },
     );
+  }
+
+  void _onResume() {
+    _retryPendingUpdate();
+    unawaited(ref.read(lanternServiceProvider).syncTimeZone());
   }
 
   void _retryPendingUpdate() {

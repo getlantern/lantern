@@ -8,6 +8,7 @@ import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
+import 'package:lantern/core/updater/desktop_update_relay.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
@@ -73,6 +74,27 @@ class _FakeAutoUpdater implements AutoUpdater {
   }
 }
 
+class _FakeUpdateRelay implements DesktopUpdateRelay {
+  int starts = 0;
+  int closes = 0;
+  String? feedURL;
+  Completer<String>? pending;
+  Object? error;
+
+  @override
+  Future<String> start(String feedUrl) async {
+    starts++;
+    feedURL = feedUrl;
+    if (error != null) throw error!;
+    return pending?.future ?? 'http://127.0.0.1:12345/token/appcast.xml';
+  }
+
+  @override
+  Future<void> close() async {
+    closes++;
+  }
+}
+
 class _FakeAndroidUpdater extends AndroidSideloadUpdater {
   int initializations = 0;
   int manualChecks = 0;
@@ -104,10 +126,12 @@ class _FakeLanternService implements LanternService {
 Updater _desktopUpdater(
   _FakeAutoUpdater native, {
   TargetPlatform platform = TargetPlatform.macOS,
+  _FakeUpdateRelay? relay,
   Future<Map<String, dynamic>> Function()? loadFeatureFlags,
   Future<void> Function()? quitForUpdate,
 }) => Updater(
   autoUpdater: native,
+  updateRelay: relay ?? _FakeUpdateRelay(),
   platform: platform,
   isDebugMode: false,
   now: TestWidgetsFlutterBinding.ensureInitialized().clock.now,
@@ -136,7 +160,12 @@ void main() {
       tester,
     ) async {
       final native = _FakeAutoUpdater();
-      final updater = _desktopUpdater(native, platform: TargetPlatform.windows);
+      final relay = _FakeUpdateRelay();
+      final updater = _desktopUpdater(
+        native,
+        platform: TargetPlatform.windows,
+        relay: relay,
+      );
       addTearDown(updater.dispose);
 
       await updater.init();
@@ -144,6 +173,8 @@ void main() {
       expect(native.checks, [true]);
       expect(native.configurationCalls, ['interval:0', 'feed']);
       expect(native.interval, 0);
+      expect(native.feedURL, 'http://127.0.0.1:12345/token/appcast.xml');
+      expect(relay.feedURL, AppUrls.appcastFor(AppBuildInfo.buildType));
 
       native.succeed();
       await tester.pump(const Duration(minutes: 30));
@@ -164,6 +195,7 @@ void main() {
       await tester.pump(const Duration(minutes: 1));
       expect(native.checks, [true, true, true]);
       expect(native.configurationCalls, ['interval:0', 'feed']);
+      expect(relay.starts, 1);
     });
 
     testWidgets('backs off failures, ignores duplicate endings, and resets', (
@@ -357,7 +389,8 @@ void main() {
   group('Desktop update recovery', () {
     testWidgets('checks at startup with no core service', (tester) async {
       final native = _FakeAutoUpdater();
-      final updater = _desktopUpdater(native);
+      final relay = _FakeUpdateRelay();
+      final updater = _desktopUpdater(native, relay: relay);
       addTearDown(updater.dispose);
 
       await updater.init();
@@ -372,7 +405,8 @@ void main() {
         'feed',
         'interval:3600',
       ]);
-      expect(native.feedURL, AppUrls.appcastFor(AppBuildInfo.buildType));
+      expect(native.feedURL, 'http://127.0.0.1:12345/token/appcast.xml');
+      expect(relay.feedURL, AppUrls.appcastFor(AppBuildInfo.buildType));
       expect(native.configurations, 1);
     });
 
@@ -753,6 +787,41 @@ void main() {
       },
     );
 
+    testWidgets(
+      'relay setup failures retry before configuring native updates',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final relay = _FakeUpdateRelay()
+          ..error = StateError('listener unavailable');
+        final updater = _desktopUpdater(native, relay: relay);
+        addTearDown(updater.dispose);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        expect(native.configurations, 0);
+        relay.error = null;
+        await tester.pump(const Duration(minutes: 1));
+        expect(relay.starts, 2);
+        expect(native.checks, [true]);
+      },
+    );
+
+    testWidgets(
+      'disposing during relay startup prevents native configuration',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final relay = _FakeUpdateRelay()..pending = Completer<String>();
+        final updater = _desktopUpdater(native, relay: relay);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        updater.dispose();
+        relay.pending!.complete('http://127.0.0.1:12345/token/appcast.xml');
+        await tester.pump();
+        expect(relay.closes, 1);
+        expect(native.configurations, 0);
+        expect(native.checks, isEmpty);
+      },
+    );
+
     testWidgets('disposing cancels setup retries and removes the listener', (
       tester,
     ) async {
@@ -806,6 +875,7 @@ void main() {
       final native = _FakeAutoUpdater();
       final updater = Updater(
         autoUpdater: native,
+        updateRelay: _FakeUpdateRelay(),
         platform: TargetPlatform.windows,
         isDebugMode: false,
         loadFeatureFlags: () async => {},
@@ -858,6 +928,7 @@ void main() {
           var flagReads = 0;
           final updater = Updater(
             autoUpdater: native,
+            updateRelay: _FakeUpdateRelay(),
             platform: platform,
             isDebugMode: false,
             enableDesktopUpdates: false,
@@ -915,6 +986,7 @@ void main() {
       ]) {
         final updater = Updater(
           autoUpdater: native,
+          updateRelay: _FakeUpdateRelay(),
           platform: platform,
           isDebugMode: platform == TargetPlatform.macOS,
         );

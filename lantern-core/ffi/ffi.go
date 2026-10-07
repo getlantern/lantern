@@ -215,6 +215,21 @@ func updateLocale(_locale *C.char) *C.char {
 	})
 }
 
+//export updateTimeZone
+func updateTimeZone(_timeZone *C.char) *C.char {
+	timeZone := C.GoString(_timeZone)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.UpdateTimeZone(timeZone); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
 //export currentUserMessage
 func currentUserMessage() *C.char {
 	return runOnGoStack(func() *C.char {
