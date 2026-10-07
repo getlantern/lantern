@@ -113,7 +113,7 @@ class PlansNotifier extends _$PlansNotifier {
         // removing an affiliate code) leave the loading state. When invoked
         // from build() the framework also assigns the returned value — this
         // extra set is harmless and redundant there.
-        state = AsyncData(remote);
+        if (ref.mounted) state = AsyncData(remote);
         return remote;
       },
     );
@@ -148,7 +148,7 @@ class PlansNotifier extends _$PlansNotifier {
     appLogger.info(
       '[PlansNotifier] Background refresh complete, updating state',
     );
-    state = AsyncData(remotePlans);
+    if (ref.mounted) state = AsyncData(remotePlans);
   }
 
   /// Publishes the discounted [plans] from an applied affiliate code, after
@@ -158,6 +158,8 @@ class PlansNotifier extends _$PlansNotifier {
     appLogger.info('[PlansNotifier] updatePlans: ${plans.plans.length} plans');
     _storeProductsReady = _loadStoreProducts(includeOffers: true);
     await _storeProductsReady;
+    // The plans screen may have closed while the store was queried.
+    if (!ref.mounted) return;
     state = AsyncData(plans);
   }
 

@@ -18,16 +18,15 @@ extension PlanExtension on Plan {
   /// actually charge) on store builds, the API price otherwise/as fallback.
   String get displayPrice => _storePrice?.formatted ?? formattedYearlyPrice;
 
-  /// Per-month line under [displayPrice]: store yearly price ÷ 12 on store
-  /// builds, the API's expected monthly price otherwise.
+  /// Per-month line under [displayPrice]: the store price spread over the
+  /// months it covers on store builds, the API's expected monthly price
+  /// otherwise. Empty when the store charge has no per-month equivalent.
   String get displayMonthlyPrice {
     final price = _storePrice;
     if (price == null) return formattedMonthlyPrice;
-    final months = id.startsWith('1y') ? 12 : 1;
-    return CurrencyUtils.formatCurrency(
-      price.amount * 100 / months,
-      price.currencyCode,
-    );
+    final monthly = price.monthly;
+    if (monthly == null) return '';
+    return CurrencyUtils.formatCurrency(monthly * 100, price.currencyCode);
   }
 
   StorePrice? get _storePrice =>

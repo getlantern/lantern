@@ -40,13 +40,15 @@ class _PurchaseSession {
 }
 
 /// A store-quoted price: display string, amount in major units, currency
-/// code, and the base SKU's display price ([regular] == [formatted] when no
-/// discount applies).
+/// code, the base SKU's display price ([regular] == [formatted] when no
+/// discount applies), and the per-month amount ([monthly] is null when the
+/// charge doesn't cover whole months, e.g. a weekly intro offer).
 typedef StorePrice = ({
   String formatted,
   double amount,
   String currencyCode,
   String regular,
+  double? monthly,
 });
 
 class AppPurchase {
@@ -93,6 +95,12 @@ class AppPurchase {
   /// Charge price per plan family ("1y", "1m"), resolved once per SKU fetch.
   final Map<String, StorePrice> _storePrices = <String, StorePrice>{};
 
+  /// Bumped whenever [storePriceFor] results change, so price labels rebuild
+  /// even when the fetch outlives the caller's timeout.
+  final ValueNotifier<int> _storePricesVersion = ValueNotifier<int>(0);
+
+  ValueListenable<int> get storePricesVersion => _storePricesVersion;
+
   final bool Function() _canUseBilling;
   late final PendingPurchaseStore _pendingStore;
   late final PurchaseAcknowledger _acknowledger;
@@ -122,6 +130,9 @@ class AppPurchase {
   bool get isStoreBillingAvailable =>
       _canUseBilling() && (!Platform.isAndroid || _productsLoaded.value);
   Completer<void>? _productsLoadedCompleter;
+
+  /// Mode of the fetch behind [_productsLoadedCompleter].
+  bool _inFlightIncludeOffers = false;
 
   final _PurchaseSession _session = _PurchaseSession();
 
@@ -192,17 +203,30 @@ class AppPurchase {
     bool includeOffers = false,
     int maxAttempts = 3,
   }) async {
-    // Piggy-back only on a fetch that's still running; a completed one must
-    // re-run so the SKU set can switch between base plans and offers.
+    // Piggy-back only on a running fetch of the same mode. An opposite-mode
+    // request queues behind it so the SKU set and prices always end up
+    // matching the latest request; a completed fetch must re-run so the set
+    // can switch between base plans and offers.
     final inFlight = _productsLoadedCompleter;
-    if (inFlight != null && !inFlight.isCompleted) {
-      return inFlight.future;
-    }
     final completer = Completer<void>();
     // Callers that piggy-back await this future; when none do, its error must
     // not surface as an unhandled async error alongside the thrown one.
     completer.future.ignore();
-    _productsLoadedCompleter = completer;
+    if (inFlight != null && !inFlight.isCompleted) {
+      if (_inFlightIncludeOffers == includeOffers) {
+        return inFlight.future;
+      }
+      _productsLoadedCompleter = completer;
+      _inFlightIncludeOffers = includeOffers;
+      try {
+        await inFlight.future;
+      } catch (_) {
+        // The chained fetch below decides the outcome.
+      }
+    } else {
+      _productsLoadedCompleter = completer;
+      _inFlightIncludeOffers = includeOffers;
+    }
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
       try {
@@ -269,6 +293,9 @@ class AppPurchase {
     }
 
     _productsLoaded.value = false;
+    // The cached prices belong to the previous SKU set; the next purchase
+    // refetches, so cards must fall back to API prices rather than quote them.
+    _clearStorePrices();
     final error = StateError(
       'Unable to load in-app purchase products after $maxAttempts attempts',
     );
@@ -276,26 +303,66 @@ class AppPurchase {
     throw error;
   }
 
-  /// Resolves each loaded SKU's charge price, keyed by plan family. The
-  /// strikethrough comes from the matching base SKU in [baseProducts] so both
-  /// prices share the storefront's currency.
+  /// Resolves each loaded SKU's charge price, keyed by plan family. Play can
+  /// return several SKUs per family (one per offer); the first is priced
+  /// because that is the one [_normalizePlan] purchases. The strikethrough
+  /// comes from the matching base SKU in [baseProducts] so both prices share
+  /// the storefront's currency.
   Future<void> _resolveStorePrices(
     List<ProductDetails> products,
     List<ProductDetails> baseProducts,
   ) async {
+    final selected = <String, ProductDetails>{};
+    for (final product in products) {
+      selected.putIfAbsent(_planPrefix(product.id), () => product);
+    }
     final prices = await Future.wait(
-      products.map((product) {
+      selected.values.map((product) {
         final base = baseProducts
             .where((p) => _planPrefix(p.id) == _planPrefix(product.id))
             .firstOrNull;
         return _chargePrice(product, regular: (base ?? product).price);
       }),
     );
-    _storePrices.clear();
-    for (var i = 0; i < products.length; i++) {
-      _storePrices[_planPrefix(products[i].id)] = prices[i];
-    }
+    _storePrices
+      ..clear()
+      ..addEntries(
+        selected.keys.indexed.map((e) => MapEntry(e.$2, prices[e.$1])),
+      );
+    _storePricesVersion.value++;
   }
+
+  void _clearStorePrices() {
+    if (_storePrices.isEmpty) return;
+    _storePrices.clear();
+    _storePricesVersion.value++;
+  }
+
+  /// Months a plan family's regular price covers, from its id ("1y_sub" → 12).
+  static int? _planMonths(String id) {
+    final match = RegExp(r'^(\d+)([my])$').firstMatch(_planPrefix(id));
+    if (match == null) return null;
+    final count = int.parse(match.group(1)!);
+    return match.group(2) == 'y' ? count * 12 : count;
+  }
+
+  /// Months an SK2 offer's price pays for: pay-up-front charges once for all
+  /// its periods, pay-as-you-go (and free trials) per period. Null for
+  /// weekly/daily periods, which have no honest per-month figure.
+  static int? _offerMonths(SK2SubscriptionOffer offer) {
+    final perPeriod = switch (offer.period.unit) {
+      SK2SubscriptionPeriodUnit.month => offer.period.value,
+      SK2SubscriptionPeriodUnit.year => offer.period.value * 12,
+      _ => null,
+    };
+    if (perPeriod == null) return null;
+    return offer.paymentMode == SK2SubscriptionOfferPaymentMode.payUpFront
+        ? perPeriod * offer.periodCount
+        : perPeriod;
+  }
+
+  static double? _perMonth(double amount, int? months) =>
+      months == null || months == 0 ? null : amount / months;
 
   /// The intro offer price of an iOS affiliate SKU when the user is eligible,
   /// otherwise `ProductDetails.price` (Play already folds its offer into it).
@@ -310,6 +377,7 @@ class AppPurchase {
       amount: product.rawPrice,
       currencyCode: product.currencyCode,
       regular: regular,
+      monthly: _perMonth(product.rawPrice, _planMonths(product.id)),
     );
     if (product is! AppStoreProduct2Details) return undiscounted;
     final intro = product.sk2Product.subscription?.promotionalOffers
@@ -335,6 +403,7 @@ class AppPurchase {
       amount: intro.price,
       currencyCode: currencyCode,
       regular: regular,
+      monthly: _perMonth(intro.price, _offerMonths(intro)),
     );
   }
 
