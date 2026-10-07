@@ -24,8 +24,9 @@ struct VPNWidgetEntry: TimelineEntry {
 struct VPNTimelineProvider: TimelineProvider {
   /// Updates are pushed by the app and tunnel; scheduled refreshes only catch
   /// writes that never happened, and each one counts against WidgetKit's
-  /// daily reload budget (~40-70).
-  private static let transitionRecheck: TimeInterval = 5 * 60
+  /// daily reload budget (~40-70). Covers an intent that timed out before the
+  /// tunnel settled.
+  private static let transitionRecheck: TimeInterval = 30
   /// Catches a tunnel killed while the app is suspended (nobody writes then).
   private static let connectedRecheck: TimeInterval = 60 * 60
 
@@ -53,8 +54,7 @@ struct VPNTimelineProvider: TimelineProvider {
     Task { completion(await current()) }
   }
 
-  func getTimeline(in context: Context, completion: @escaping (Timeline<VPNWidgetEntry>) -> Void)
-  {
+  func getTimeline(in context: Context, completion: @escaping (Timeline<VPNWidgetEntry>) -> Void) {
     Task {
       let entry = await current()
       completion(Timeline(entries: [entry], policy: Self.policy(for: entry.state)))
