@@ -37,7 +37,23 @@ try {
   catch {
     if ($_.Exception.Data['migration-e2e-code']) { throw 'raw_error_became_diagnostic' }
   }
-  'PowerShell parser and read-sharing/error-code checks passed'
+  $culture = [Globalization.CultureInfo]::CurrentCulture
+  try {
+    $timestamp = '2026-10-20T14:15:16.0000000Z'
+    $expectedTime = [DateTime]::new(2026, 10, 20, 14, 15, 16, [DateTimeKind]::Utc)
+    Write-Json $renamed @{expires_utc=$timestamp; boot=$timestamp}
+    foreach ($cultureName in @('en-US', 'en-GB', 'fr-FR')) {
+      [Globalization.CultureInfo]::CurrentCulture = [Globalization.CultureInfo]::GetCultureInfo($cultureName)
+      $roundtrip = Read-Json $renamed
+      foreach ($value in @($roundtrip.expires_utc, $expectedTime.ToLocalTime(), $timestamp, '2026-10-20T07:15:16-07:00')) {
+        $actual = ConvertTo-UtcTime $value
+        if ($actual.Kind -ne [DateTimeKind]::Utc -or $actual -ne $expectedTime) { throw 'lease_expiry_changed' }
+      }
+      if ((ConvertTo-UtcTime $roundtrip.boot) -ne (ConvertTo-UtcTime $timestamp)) { throw 'unchanged_boot_accepted' }
+      if ((ConvertTo-UtcTime $roundtrip.boot) -eq (ConvertTo-UtcTime $expectedTime.AddMinutes(1))) { throw 'changed_boot_rejected' }
+    }
+  } finally { [Globalization.CultureInfo]::CurrentCulture = $culture }
+  'PowerShell parser, read-sharing/error-code and UTC timestamp checks passed'
 } finally {
   # Only the unique directory created by this test is removed.
   Remove-Item -LiteralPath $temp -Recurse -Force

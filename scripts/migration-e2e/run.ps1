@@ -40,6 +40,11 @@ function Read-Json([string]$Path) {
 function Write-Json([string]$Path, $Value) {
   $Value | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $Path -Encoding utf8NoBOM
 }
+function ConvertTo-UtcTime($Value) {
+  if ($Value -is [DateTime]) { return $Value.ToUniversalTime() }
+  [DateTime]::Parse([string]$Value, [Globalization.CultureInfo]::InvariantCulture,
+    [Globalization.DateTimeStyles]::AdjustToUniversal)
+}
 function Wait-Until([scriptblock]$Check, [string]$Code, [int]$Seconds = $TimeoutSeconds) {
   $until = [DateTime]::UtcNow.AddSeconds($Seconds)
   do {
@@ -253,7 +258,7 @@ try {
   }
   $lease = Read-Json $leasePath
   Require ($lease.run_id -eq $script:M.run_id -and $lease.machine -eq $env:COMPUTERNAME -and
-    $lease.original_sid -eq $script:SID -and [DateTime]::Parse($lease.expires_utc).ToUniversalTime() -gt [DateTime]::UtcNow) 'invalid_vm_lease'
+    $lease.original_sid -eq $script:SID -and (ConvertTo-UtcTime $lease.expires_utc) -gt [DateTime]::UtcNow) 'invalid_vm_lease'
   $root = Join-Path $env:LOCALAPPDATA ('LanternMigrationE2E\' + $script:M.run_id)
   $script:Config = Join-Path $env:APPDATA 'Lantern'
   $script:LegacyExe = Join-Path $root 'legacy app\lantern.exe'
@@ -388,7 +393,8 @@ try {
     $state = Read-Json $statePath
     Require ($state.pending_reboot -eq $true -and $state.manifest_sha256 -eq $ManifestSHA256 -and
       $state.original_sid -eq $script:SID -and $state.identity_sha256 -eq $script:IdentityHash -and
-      $state.expected_sha256 -eq (Hash $Expected) -and $state.boot -ne $boot) 'reboot_not_proven'
+      $state.expected_sha256 -eq (Hash $Expected) -and
+      (ConvertTo-UtcTime $state.boot) -ne (ConvertTo-UtcTime $boot)) 'reboot_not_proven'
     No-Reparse $diagnostics
     Require-Private $diagnostics
     Require (-not (Test-Path -LiteralPath (Join-Path $diagnostics 'AfterReboot.json'))) 'existing_reboot_result'

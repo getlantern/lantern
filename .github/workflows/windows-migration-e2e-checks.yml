@@ -6,6 +6,7 @@ on:
       - 'scripts/migration-e2e/**'
       - '.github/workflows/*migration-e2e*'
       - '.github/workflows/build-windows.yml'
+      - 'windows/packaging/exe/inno_setup.iss'
   workflow_dispatch:
 
 permissions:
