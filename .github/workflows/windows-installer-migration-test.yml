@@ -1,0 +1,53 @@
+name: Windows installer migration safeguards
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "windows/packaging/exe/**"
+      - "scripts/ci/render_windows_installer_fixture*.py"
+      - "scripts/ci/windows_installer_fixture.cs"
+      - "scripts/requirements.txt"
+      - ".github/scripts/windows_installer_migration_smoke.ps1"
+      - ".github/scripts/windows_smoke_suite.ps1"
+      - ".github/workflows/windows-installer-migration-test.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-installer-migration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installer-safeguards:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install fixture dependencies
+        run: python -m pip install -r scripts/requirements.txt
+      - name: Check fixture rendering
+        run: python -m unittest -v scripts/ci/render_windows_installer_fixture_test.py
+      - name: Install pinned Inno Setup compiler
+        shell: bash
+        run: ./scripts/ci/choco-retry.sh -y innosetup --version=6.7.1 --allow-downgrade
+      - name: Exercise migration success, rejection, cancellation, and failure
+        shell: pwsh
+        run: |
+          ./.github/scripts/windows_installer_migration_smoke.ps1 `
+            -WorkDirectory "$env:RUNNER_TEMP\installer-migration-fixture" `
+            -ArtifactDirectory "$env:RUNNER_TEMP\installer-migration-diagnostics"
+      - name: Upload installer logs and preservation evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-migration-diagnostics
+          path: ${{ runner.temp }}/installer-migration-diagnostics
+          if-no-files-found: warn
+          retention-days: 7
