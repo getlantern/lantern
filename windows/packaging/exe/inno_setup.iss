@@ -426,8 +426,9 @@ begin
     SetLength(Name, NameLength);
     SetLength(Domain, DomainLength);
     // Resolve the original user, including domain users, not the UAC approver.
-    Result := MigrationLookupAccountSID(0, SID, Name, NameLength, Domain,
-      DomainLength, AccountType) and (AccountType = SidTypeUser);
+    if not MigrationLookupAccountSID(0, SID, Name, NameLength, Domain,
+      DomainLength, AccountType) then exit;
+    Result := AccountType = SidTypeUser;
   finally
     MigrationLocalFree(SID);
   end;
