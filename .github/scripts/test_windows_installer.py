@@ -28,14 +28,15 @@ def generate_staging_fixture(output):
     directory = output / "staging fixture"
     toolchain = directory / "selected toolchain"
     user_props = directory / "user props"
-    toolchain.mkdir(parents=True, exist_ok=True)
+    redist = toolchain / "Redist/MSVC/v143"
+    redist.mkdir(parents=True, exist_ok=True)
     user_props.mkdir(exist_ok=True)
-    (toolchain / "vc_redist.x64.exe").write_bytes(b"selected toolchain runtime\n")
+    (redist / "vc_redist.x64.exe").write_bytes(b"selected toolchain runtime\n")
 
     project = ET.Element("Project", xmlns="http://schemas.microsoft.com/developer/msbuild/2003")
     properties = ET.SubElement(project, "PropertyGroup")
     for name, value in {
-        "VCToolsRedistDir": str(toolchain) + os.sep,
+        "VCToolsRedistInstallDir": str(redist) + os.sep,
         "OutDir": "$(MSBuildProjectDirectory)\\build $(Configuration)\\",
         "UserRootDir": str(user_props),
         "Platform": "x64",
@@ -54,7 +55,7 @@ def generate_staging_fixture(output):
     )
 
 
-def test_staging(output):
+def find_msbuild():
     msbuild = shutil.which("MSBuild.exe")
     if not msbuild:
         vswhere = Path(os.environ["ProgramFiles(x86)"]) / "Microsoft Visual Studio/Installer/vswhere.exe"
@@ -65,9 +66,13 @@ def test_staging(output):
         if not installation:
             raise FileNotFoundError("Visual Studio with MSBuild was not found")
         msbuild = str(Path(installation) / "MSBuild/Current/Bin/MSBuild.exe")
+    return msbuild
+
+
+def test_staging(output, msbuild):
 
     directory = output / "staging fixture"
-    source = directory / "selected toolchain/vc_redist.x64.exe"
+    source = directory / "selected toolchain/Redist/MSVC/v143/vc_redist.x64.exe"
 
     def build(configuration, should_succeed=True):
         completed = subprocess.run(
@@ -93,6 +98,38 @@ def test_staging(output):
     print("PASS: Debug needs no redistributable")
     build("Release", should_succeed=False)
     print("PASS: Release rejects missing selected-toolchain redistributable")
+
+
+def test_generated_project(output, msbuild):
+    directory = output / "CMake staging fixture"
+    directory.mkdir(exist_ok=True)
+    (directory / "main.cpp").write_text('int main() { return 0; }\n', encoding="utf-8")
+    props = (ROOT / "windows/runner/stage_vcredist.props").as_posix()
+    (directory / "CMakeLists.txt").write_text(
+        'cmake_minimum_required(VERSION 3.14)\n'
+        'project(LanternStagingFixture LANGUAGES CXX)\n'
+        'add_executable(fixture main.cpp)\n'
+        f'set_target_properties(fixture PROPERTIES VS_USER_PROPS "{props}")\n'
+        'set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile" CACHE STRING "" FORCE)\n',
+        encoding="utf-8",
+    )
+    build = directory / "build"
+    subprocess.run(["cmake", "-S", str(directory), "-B", str(build), "-A", "x64"],
+                   check=True, timeout=120)
+    for configuration in ("Release", "Profile"):
+        subprocess.run(["cmake", "--build", str(build), "--config", configuration],
+                       check=True, timeout=120)
+        staged = build / configuration / "installer-dependencies/VC_redist.x64.exe"
+        redist_directory = subprocess.check_output(
+            [msbuild, str(build / "fixture.vcxproj"), "/nologo",
+             "-getProperty:VCToolsRedistInstallDir", f"/p:Configuration={configuration}",
+             "/p:Platform=x64"], text=True, timeout=60,
+        ).strip()
+        if not redist_directory:
+            raise AssertionError("Generated project has no redistributable directory")
+        source = Path(redist_directory) / "vc_redist.x64.exe"
+        assert staged.read_bytes() == source.read_bytes(), configuration + " staged wrong toolchain payload"
+        print(f"PASS: generated CMake {configuration} project stages the real toolchain redistributable")
 
 
 def render_compile_fixture(source, payload):
@@ -152,7 +189,9 @@ def generate(output):
 
 
 def run(output, compiler):
-    test_staging(output)
+    msbuild = find_msbuild()
+    test_staging(output, msbuild)
+    test_generated_project(output, msbuild)
     for script in ("compile-fixture.iss", HARNESS.name):
         subprocess.run([compiler, "/Qp", str(output / script)], check=True, timeout=120)
 
