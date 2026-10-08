@@ -8,10 +8,13 @@
   <!-- Run even on an incremental build, so a repaired or updated toolchain is restaged. -->
   <Target Name="LanternStageVCRedist" AfterTargets="Build"
           Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'Profile'">
-    <Error Condition="'$(VCToolsRedistDir)' == '' Or !Exists('$(VCToolsRedistDir)vc_redist.x64.exe')"
-           Text="Visual C++ redistributable not found at $(VCToolsRedistDir)vc_redist.x64.exe. Install the C++ redistributable component for the selected Visual Studio toolchain." />
+    <PropertyGroup>
+      <LanternVCRedistPath>$(VCInstallDir)Redist\MSVC\$(PlatformToolset)\vc_redist.x64.exe</LanternVCRedistPath>
+    </PropertyGroup>
+    <Error Condition="'$(VCInstallDir)' == '' Or '$(PlatformToolset)' == '' Or !Exists('$(LanternVCRedistPath)')"
+           Text="Visual C++ redistributable not found at $(LanternVCRedistPath). Install the C++ redistributable component for the selected Visual Studio toolchain." />
     <MakeDir Directories="$(OutDir)installer-dependencies" />
-    <Copy SourceFiles="$(VCToolsRedistDir)vc_redist.x64.exe"
+    <Copy SourceFiles="$(LanternVCRedistPath)"
           DestinationFiles="$(OutDir)installer-dependencies\VC_redist.x64.exe"
           SkipUnchangedFiles="true" />
   </Target>

@@ -28,14 +28,16 @@ def generate_staging_fixture(output):
     directory = output / "staging fixture"
     toolchain = directory / "selected toolchain"
     user_props = directory / "user props"
-    toolchain.mkdir(parents=True, exist_ok=True)
+    redist = toolchain / "Redist/MSVC/v143"
+    redist.mkdir(parents=True, exist_ok=True)
     user_props.mkdir(exist_ok=True)
-    (toolchain / "vc_redist.x64.exe").write_bytes(b"selected toolchain runtime\n")
+    (redist / "vc_redist.x64.exe").write_bytes(b"selected toolchain runtime\n")
 
     project = ET.Element("Project", xmlns="http://schemas.microsoft.com/developer/msbuild/2003")
     properties = ET.SubElement(project, "PropertyGroup")
     for name, value in {
-        "VCToolsRedistDir": str(toolchain) + os.sep,
+        "VCInstallDir": str(toolchain) + os.sep,
+        "PlatformToolset": "v143",
         "OutDir": "$(MSBuildProjectDirectory)\\build $(Configuration)\\",
         "UserRootDir": str(user_props),
         "Platform": "x64",
@@ -67,7 +69,7 @@ def test_staging(output):
         msbuild = str(Path(installation) / "MSBuild/Current/Bin/MSBuild.exe")
 
     directory = output / "staging fixture"
-    source = directory / "selected toolchain/vc_redist.x64.exe"
+    source = directory / "selected toolchain/Redist/MSVC/v143/vc_redist.x64.exe"
 
     def build(configuration, should_succeed=True):
         completed = subprocess.run(
@@ -93,6 +95,31 @@ def test_staging(output):
     print("PASS: Debug needs no redistributable")
     build("Release", should_succeed=False)
     print("PASS: Release rejects missing selected-toolchain redistributable")
+
+
+def test_generated_project(output):
+    directory = output / "CMake staging fixture"
+    directory.mkdir(exist_ok=True)
+    (directory / "main.cpp").write_text('int main() { return 0; }\n', encoding="utf-8")
+    props = (ROOT / "windows/runner/stage_vcredist.props").as_posix()
+    (directory / "CMakeLists.txt").write_text(
+        'cmake_minimum_required(VERSION 3.14)\n'
+        'project(LanternStagingFixture LANGUAGES CXX)\n'
+        'add_executable(fixture main.cpp)\n'
+        f'set_target_properties(fixture PROPERTIES VS_USER_PROPS "{props}")\n'
+        'set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile" CACHE STRING "" FORCE)\n',
+        encoding="utf-8",
+    )
+    build = directory / "build"
+    subprocess.run(["cmake", "-S", str(directory), "-B", str(build), "-A", "x64"],
+                   check=True, timeout=120)
+    for configuration in ("Release", "Profile"):
+        subprocess.run(["cmake", "--build", str(build), "--config", configuration],
+                       check=True, timeout=120)
+        staged = build / configuration / "installer-dependencies/VC_redist.x64.exe"
+        if not staged.is_file():
+            raise AssertionError(f"Generated CMake project did not stage {configuration} redistributable")
+        print(f"PASS: generated CMake {configuration} project stages the real toolchain redistributable")
 
 
 def render_compile_fixture(source, payload):
@@ -153,6 +180,7 @@ def generate(output):
 
 def run(output, compiler):
     test_staging(output)
+    test_generated_project(output)
     for script in ("compile-fixture.iss", HARNESS.name):
         subprocess.run([compiler, "/Qp", str(output / script)], check=True, timeout=120)
 
