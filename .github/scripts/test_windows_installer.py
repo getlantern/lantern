@@ -36,8 +36,7 @@ def generate_staging_fixture(output):
     project = ET.Element("Project", xmlns="http://schemas.microsoft.com/developer/msbuild/2003")
     properties = ET.SubElement(project, "PropertyGroup")
     for name, value in {
-        "VCInstallDir": str(toolchain) + os.sep,
-        "PlatformToolset": "v143",
+        "VCToolsRedistInstallDir": str(redist) + os.sep,
         "OutDir": "$(MSBuildProjectDirectory)\\build $(Configuration)\\",
         "UserRootDir": str(user_props),
         "Platform": "x64",
@@ -56,7 +55,7 @@ def generate_staging_fixture(output):
     )
 
 
-def test_staging(output):
+def find_msbuild():
     msbuild = shutil.which("MSBuild.exe")
     if not msbuild:
         vswhere = Path(os.environ["ProgramFiles(x86)"]) / "Microsoft Visual Studio/Installer/vswhere.exe"
@@ -67,6 +66,10 @@ def test_staging(output):
         if not installation:
             raise FileNotFoundError("Visual Studio with MSBuild was not found")
         msbuild = str(Path(installation) / "MSBuild/Current/Bin/MSBuild.exe")
+    return msbuild
+
+
+def test_staging(output, msbuild):
 
     directory = output / "staging fixture"
     source = directory / "selected toolchain/Redist/MSVC/v143/vc_redist.x64.exe"
@@ -97,7 +100,7 @@ def test_staging(output):
     print("PASS: Release rejects missing selected-toolchain redistributable")
 
 
-def test_generated_project(output):
+def test_generated_project(output, msbuild):
     directory = output / "CMake staging fixture"
     directory.mkdir(exist_ok=True)
     (directory / "main.cpp").write_text('int main() { return 0; }\n', encoding="utf-8")
@@ -117,8 +120,15 @@ def test_generated_project(output):
         subprocess.run(["cmake", "--build", str(build), "--config", configuration],
                        check=True, timeout=120)
         staged = build / configuration / "installer-dependencies/VC_redist.x64.exe"
-        if not staged.is_file():
-            raise AssertionError(f"Generated CMake project did not stage {configuration} redistributable")
+        redist_directory = subprocess.check_output(
+            [msbuild, str(build / "fixture.vcxproj"), "/nologo",
+             "-getProperty:VCToolsRedistInstallDir", f"/p:Configuration={configuration}",
+             "/p:Platform=x64"], text=True, timeout=60,
+        ).strip()
+        if not redist_directory:
+            raise AssertionError("Generated project has no redistributable directory")
+        source = Path(redist_directory) / "vc_redist.x64.exe"
+        assert staged.read_bytes() == source.read_bytes(), configuration + " staged wrong toolchain payload"
         print(f"PASS: generated CMake {configuration} project stages the real toolchain redistributable")
 
 
@@ -179,8 +189,9 @@ def generate(output):
 
 
 def run(output, compiler):
-    test_staging(output)
-    test_generated_project(output)
+    msbuild = find_msbuild()
+    test_staging(output, msbuild)
+    test_generated_project(output, msbuild)
     for script in ("compile-fixture.iss", HARNESS.name):
         subprocess.run([compiler, "/Qp", str(output / script)], check=True, timeout=120)
 
