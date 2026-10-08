@@ -73,9 +73,9 @@ enum WidgetTunnelController {
     case .toggle:
       switch status {
       case .connected, .connecting, .reasserting:
-        stop(manager)
+        await stop(manager, from: status)
       case .disconnected, .invalid:
-        try await start(manager)
+        try await start(manager, from: status)
       case .disconnecting:
         break
       @unknown default:
@@ -83,10 +83,46 @@ enum WidgetTunnelController {
       }
     case .connect:
       guard status == .disconnected || status == .invalid else { return }
-      try await start(manager)
+      try await start(manager, from: status)
     case .disconnect:
       guard status != .disconnected && status != .invalid else { return }
-      stop(manager)
+      await stop(manager, from: status)
+    }
+  }
+
+  /// Waits for the tunnel to settle, then records the outcome; the intent must
+  /// publish the final state since WidgetKit defers reloads from the tunnel or
+  /// a backgrounded app. Re-loads each poll because a cached connection is stale.
+  private static func settle(
+    _ action: String, from initial: NEVPNStatus, timeout: Duration,
+    terminal: Set<NEVPNStatus>
+  ) async {
+    let start = ContinuousClock.now
+    var observed: NEVPNStatus?
+    var sawTransition = false
+    while ContinuousClock.now - start < timeout {
+      if let status = (try? await loadManager())?.connection.status {
+        if status != observed {
+          appLogger.info("Widget observed tunnel status \(status.rawValue)")
+          observed = status
+        }
+        if status != initial { sawTransition = true }
+        // Only a terminal status reached after leaving the pre-action one counts.
+        if sawTransition, terminal.contains(status) { break }
+      }
+      do {
+        try await Task.sleep(for: .milliseconds(250))
+      } catch {
+        break  // Intent cancelled.
+      }
+    }
+    guard let observed else {
+      appLogger.error("Widget \(action) could not read the tunnel status")
+      return
+    }
+    appLogger.info("Widget \(action) settled with tunnel status \(observed.rawValue)")
+    if let status = observed.widgetStatus {
+      VPNWidgetStore.setStatus(status)
     }
   }
 
@@ -106,7 +142,9 @@ enum WidgetTunnelController {
     managers.first(where: { $0.localizedDescription == FilePath.vpnProfileName })
   }
 
-  private static func start(_ manager: NETunnelProviderManager) async throws {
+  private static func start(_ manager: NETunnelProviderManager, from initial: NEVPNStatus)
+    async throws
+  {
     if !manager.isEnabled {
       manager.isEnabled = true
       try await manager.saveToPreferences()
@@ -126,10 +164,15 @@ enum WidgetTunnelController {
 
     try manager.connection.startVPNTunnel(options: options)
     VPNWidgetStore.setStatus(.connecting)
+    // `.reasserting` is still dialing; wait through it so a failed dial is recorded.
+    await settle(
+      "start", from: initial, timeout: .seconds(20),
+      terminal: [.connected, .disconnected, .invalid])
   }
 
-  private static func stop(_ manager: NETunnelProviderManager) {
+  private static func stop(_ manager: NETunnelProviderManager, from initial: NEVPNStatus) async {
     manager.connection.stopVPNTunnel()
     VPNWidgetStore.setStatus(.disconnecting)
+    await settle("stop", from: initial, timeout: .seconds(10), terminal: [.disconnected, .invalid])
   }
 }

@@ -17,6 +17,8 @@ def sideloadSigningCertificateSha256 =
                 : "108f612ae55354078ec12b10bb705362840d48fa78b9262c11b6d0adeff6f289"
 def sideloadUpdates = project.findProperty("lantern.sideloadUpdates") == "true"
 def sideloadManifestPath = "$buildDir/generated/lantern/sideload/AndroidManifest.xml"
+// Play AAB passes false; sideload builds keep cleartext for the Alipay gateway.
+def cleartextTraffic = (project.findProperty("lantern.cleartextTraffic") ?: "true").toString()
 def generateSideloadManifest = tasks.register("generateSideloadManifest") {
     def sourceManifest = file("src/main/AndroidManifest.xml")
     def permissionAnchor = '    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />'
@@ -396,6 +398,7 @@ android {
                 identityMetadata: androidIdentity.identityMetadata,
                 quickTileIcon: androidIdentity.quickTileIcon,
                 appAuthScheme: androidIdentity.appAuthScheme,
+                usesCleartextTraffic: cleartextTraffic,
         ]
         resValue "string", "app_name", androidIdentity.appLabel
 

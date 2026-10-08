@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"regexp"
 
 	"strconv"
@@ -378,32 +377,6 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *ipc.Client,
 	}
 	events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
 	return nil
-}
-
-type geoInfo struct {
-	CountryCode string `json:"countryCode"`
-	Country     string `json:"country"`
-	Region      string `json:"regionName"`
-	City        string `json:"city"`
-}
-
-// getGeoInfo fetches geographical information for a given IP address using the ip-api.com service.
-func getGeoInfo(ip string) string {
-	slog.Debug("Fetching geo info for IP", slog.String("ip", ip))
-	resp, err := http.Get("http://ip-api.com/json/" + ip)
-	if err != nil {
-		slog.Error("Error fetching geo info", slog.Any("error", err))
-		return ""
-	}
-	defer resp.Body.Close()
-
-	var info geoInfo
-	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
-		slog.Error("Error decoding geo info response", slog.Any("error", err))
-		return ""
-	}
-	slog.Debug("Geo info for IP", slog.String("ip", ip), slog.Any("info", info))
-	return fmt.Sprintf("%s - %s [%s]", info.Region, info.Country, info.CountryCode)
 }
 
 func convertStatusToJSON(status, data string) string {
