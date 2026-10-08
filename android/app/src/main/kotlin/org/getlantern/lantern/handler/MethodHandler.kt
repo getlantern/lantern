@@ -837,7 +837,7 @@ class MethodHandler : FlutterPlugin,
                 scope.launch {
                     result.runCatching {
                         val email = call.arguments<String>();
-                        AppLogger.d(TAG, "Logout email: $email")
+                        AppLogger.d(TAG, "Logout requested")
                         val json = Mobile.logout(email)
                         withContext(Dispatchers.Main) {
                             success(json.toByteArray(Charsets.UTF_8))
@@ -1607,9 +1607,11 @@ class MethodHandler : FlutterPlugin,
         for (network in cm.allNetworks) {
             val capabilities = cm.getNetworkCapabilities(network) ?: continue
             if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                AppLogger.w(TAG, "Another VPN is active: network=$network capabilities=$capabilities")
                 return true
             }
         }
+        AppLogger.d(TAG, "No conflicting VPN network found")
         return false
     }
 }
