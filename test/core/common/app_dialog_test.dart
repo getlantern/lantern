@@ -75,6 +75,56 @@ void main() {
     expect(completed, isTrue);
     expect(find.text('Welcome'), findsNothing);
   });
+
+  group('shareLogsWarningDialog', () {
+    Future<void> pumpOpener(WidgetTester tester, void Function(bool) onResult) {
+      return tester.pumpWidget(
+        ScreenUtilInit(
+          designSize: const Size(390, 844),
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () async => onResult(
+                    await AppDialog.shareLogsWarningDialog(context: context),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('cancel resolves false and closes the dialog', (tester) async {
+      bool? result;
+      await pumpOpener(tester, (v) => result = v);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      expect(find.text('share_logs_warning_title'), findsOneWidget);
+
+      await tester.tap(find.text('cancel'));
+      await tester.pumpAndSettle();
+      expect(result, isFalse);
+      expect(find.text('share_logs_warning_title'), findsNothing);
+    });
+
+    testWidgets('share resolves true and closes the dialog', (tester) async {
+      bool? result;
+      await pumpOpener(tester, (v) => result = v);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('share_logs_anyway'));
+      await tester.pumpAndSettle();
+      expect(result, isTrue);
+      expect(find.text('share_logs_warning_title'), findsNothing);
+    });
+  });
 }
 
 class _HomePage extends StatelessWidget {

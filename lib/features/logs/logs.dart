@@ -71,6 +71,13 @@ class _LogsState extends ConsumerState<Logs> {
         return;
       }
 
+      // Logs leave the sandbox as plaintext; the user must acknowledge that
+      if (!mounted) return;
+      final confirmed = await AppDialog.shareLogsWarningDialog(
+        context: context,
+      );
+      if (!confirmed) return;
+
       final title = 'logs'.i18n;
       final text = 'logs_share_message'.i18n;
 

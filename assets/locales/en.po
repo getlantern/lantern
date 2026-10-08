@@ -1929,6 +1929,15 @@ msgstr "%s will connect directly, without Lantern's protection. In countries tha
 msgid "add_anyway"
 msgstr "Add Anyway"
 
+msgid "share_logs_warning_title"
+msgstr "Share diagnostic logs?"
+
+msgid "share_logs_warning_body"
+msgstr "These logs contain information that can identify you and your account, and they are not encrypted. Share them only with the Lantern support person helping you."
+
+msgid "share_logs_anyway"
+msgstr "Share Logs"
+
 msgid "bypass_all_warning_title"
 msgstr "Add all apps to the bypass list?"
 

@@ -286,6 +286,29 @@ class AppDialog {
     );
   }
 
+  /// Warns that diagnostic logs are shared unencrypted and may contain
+  /// account data. Resolves true only when the user chooses to share.
+  static Future<bool> shareLogsWarningDialog({
+    required BuildContext context,
+  }) async {
+    var confirmed = false;
+    await show(
+      context: context,
+      header: Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
+      centeredTitle: true,
+      title: 'share_logs_warning_title'.i18n,
+      body: 'share_logs_warning_body'.i18n,
+      primaryLabel: 'cancel'.i18n,
+      secondaryLabel: 'share_logs_anyway'.i18n,
+      dismissOnSecondary: false,
+      onSecondaryPressed: () {
+        confirmed = true;
+        Navigator.of(context, rootNavigator: true).pop();
+      },
+    );
+    return confirmed;
+  }
+
   static void dialog({
     required BuildContext context,
     required String title,
