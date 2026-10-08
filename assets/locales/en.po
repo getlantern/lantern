@@ -1933,7 +1933,7 @@ msgid "share_logs_warning_title"
 msgstr "Share diagnostic logs?"
 
 msgid "share_logs_warning_body"
-msgstr "These logs contain information that can identify you and your account, and they are not encrypted. Share them only with the Lantern support person helping you."
+msgstr "These logs may include your email, IP address, device identifiers, and the Lantern servers you connected to. They are not protected once they leave the app, so anyone who receives them can read them. Only send them to Lantern support at support@lantern.io."
 
 msgid "share_logs_anyway"
 msgstr "Share Logs"

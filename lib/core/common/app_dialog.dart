@@ -298,13 +298,13 @@ class AppDialog {
       centeredTitle: true,
       title: 'share_logs_warning_title'.i18n,
       body: 'share_logs_warning_body'.i18n,
-      primaryLabel: 'cancel'.i18n,
-      secondaryLabel: 'share_logs_anyway'.i18n,
-      dismissOnSecondary: false,
-      onSecondaryPressed: () {
+      primaryLabel: 'share_logs_anyway'.i18n,
+      dismissOnPrimary: false,
+      onPrimaryPressed: () {
         confirmed = true;
         Navigator.of(context, rootNavigator: true).pop();
       },
+      secondaryLabel: 'cancel'.i18n,
     );
     return confirmed;
   }
