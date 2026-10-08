@@ -248,7 +248,11 @@ class VpnNotifier extends _$VpnNotifier {
     final hasConflict = await ref
         .read(lanternServiceProvider)
         .checkVpnConflict();
-    return hasConflict ? Left(VpnConflictFailure()) : null;
+    if (!hasConflict) return null;
+    appLogger.warning(
+      'Another VPN is active, blocking connect until user confirms',
+    );
+    return Left(VpnConflictFailure());
   }
 
   Future<Either<Failure, String>> stopVPN({bool userInitiated = false}) {
