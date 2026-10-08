@@ -17,7 +17,8 @@ class ReferralNotifier extends _$ReferralNotifier {
   /// Applies a referral code via the V2 endpoint. On success the returned
   /// discounted plans are pushed into [plansProvider] so the plans UI updates
   /// immediately, the response becomes the notifier state, and it is returned
-  /// to the caller.
+  /// to the caller. Fails when the store's offer SKUs cannot be loaded, so the
+  /// user is never quoted a discount that checkout would not charge.
   Future<Either<Failure, ReferralAttachV2Response>> applyReferralCodeV2(
     String code,
   ) async {
@@ -26,12 +27,21 @@ class ReferralNotifier extends _$ReferralNotifier {
         .attachReferralCodeV2(code);
     if (result.isRight()) {
       final response = result.getRight().toNullable();
-      state = response;
       // plansData is only present for the affiliate flow; the referral flow
       // has no discounted plans to push into the plans UI.
       final plansData = response?.plansData;
       if (plansData != null) {
-        ref.read(plansProvider.notifier).updatePlans(plansData);
+        final published = await ref
+            .read(plansProvider.notifier)
+            .updatePlans(plansData);
+        if (!published) {
+          return Left(
+            Failure(
+              error: 'affiliate_offer_unavailable',
+              localizedErrorMessage: 'affiliate_offer_unavailable'.i18n,
+            ),
+          );
+        }
         final plans = plansData.plans;
         if (plans.isNotEmpty) {
           // The backend may not flag a best-value plan (and discounted sets
@@ -44,6 +54,7 @@ class ReferralNotifier extends _$ReferralNotifier {
           ref.read(plansProvider.notifier).setSelectedPlan(defaultPlan);
         }
       }
+      state = response;
     }
     return result;
   }
