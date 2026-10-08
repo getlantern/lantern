@@ -239,10 +239,16 @@ GO_SOURCES := go.mod go.sum
 UNAME_S := Windows
 else
 GO_VERSION ?= $(shell grep '^go ' go.mod | awk '{print "go" $$2}')
-GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
+GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go' ! -name '*_test.go')
 UNAME_S := $(shell uname -s)
 endif
-GOMOBILECACHE ?= $(HOME)/.cache/gomobile
+# gomobile stores initialization data under the first GOPATH entry.
+ifeq ($(OS),Windows_NT)
+GOMOBILE_INIT_DIR = $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command 'Write-Output (((go env GOPATH) -split ";")[0] + "/pkg/gomobile")')
+else
+GOMOBILE_INIT_DIR = $(shell go env GOPATH | cut -d: -f1)/pkg/gomobile
+endif
+GOMOBILECACHE ?= $(GOMOBILE_INIT_DIR)
 # gomobile bind produces the AAR consumed by both the APK and the AAB.
 # arm64 only — armeabi-v7a (32-bit) is no longer shipped in any artifact
 # (golang/go#70495 SIGSYS on 32-bit Android 8-10).
@@ -253,6 +259,30 @@ GOMOBILE_ANDROID_TARGET ?= android/arm64
 # records which. This is the version "latest" resolved to for the last green
 # release on all of android, macos and ios, so pinning it changes nothing today.
 GOMOBILE_VERSION ?= v0.0.0-20260908204917-8b95e45f8d3e
+GOMOBILE_INIT_STAMP = $(GOMOBILE_INIT_DIR)/.init-$(GO_VERSION)-$(GOMOBILE_VERSION)
+
+# CI builds only the runner's architecture and uses stable version metadata.
+GOMOBILE_MACOS_TARGET := macos
+GOMOBILE_IOS_TARGET := ios
+APPLE_FRAMEWORK_LDFLAGS = $(GO_EXTRA_LDFLAGS)
+SWIFT_CHECK_XCODE_ARGS :=
+SWIFT_CHECK_MACOS_DESTINATION := platform=macOS
+ifeq ($(SWIFT_CHECK),1)
+ifeq ($(SWIFT_CHECK_ARCH),arm64)
+SWIFT_CHECK_XCODE_ARCH := arm64
+else ifeq ($(SWIFT_CHECK_ARCH),amd64)
+SWIFT_CHECK_XCODE_ARCH := x86_64
+else
+$(error SWIFT_CHECK_ARCH must be arm64 or amd64 when SWIFT_CHECK=1)
+endif
+GOMOBILE_MACOS_TARGET := macos/$(SWIFT_CHECK_ARCH)
+GOMOBILE_IOS_TARGET := iossimulator/$(SWIFT_CHECK_ARCH)
+APPLE_FRAMEWORK_LDFLAGS = -X '$(RADIANCE_REPO)/common.Version=0.0.0-swift-ci' -X '$(RADIANCE_REPO)/common.BuildTime=1970-01-01T00:00:00Z' -X '$(RADIANCE_REPO)/common.Commit=swift-ci' $(STEALTH_GO_LDFLAGS)
+SWIFT_CHECK_XCODE_ARGS := ARCHS=$(SWIFT_CHECK_XCODE_ARCH) ONLY_ACTIVE_ARCH=YES
+SWIFT_CHECK_MACOS_DESTINATION := platform=macOS,arch=$(SWIFT_CHECK_XCODE_ARCH)
+SWIFT_CHECK_FRAMEWORK_STAMP := swift-check-v1-$(SWIFT_CHECK_ARCH)-$(GO_VERSION)-$(GOMOBILE_VERSION)
+endif
+
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
 	./lantern-core/mobile \
@@ -499,6 +529,25 @@ install-macos-deps: install-gomobile
 	brew install joshdk/tap/retry
 	brew install imagemagick || true
 
+# Rebuild when switching between CI and normal frameworks.
+.PHONY: force-apple-framework
+force-apple-framework:
+ifeq ($(SWIFT_CHECK),1)
+ifneq ($(shell cat $(MACOS_FRAMEWORK_OUTPUT)/.swift-check-build 2>/dev/null),$(SWIFT_CHECK_FRAMEWORK_STAMP))
+$(MACOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+ifneq ($(shell cat $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build 2>/dev/null),$(SWIFT_CHECK_FRAMEWORK_STAMP))
+$(IOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+else
+ifneq ($(wildcard $(MACOS_FRAMEWORK_OUTPUT)/.swift-check-build),)
+$(MACOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+ifneq ($(wildcard $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build),)
+$(IOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+endif
+
 .PHONY: macos
 macos: $(MACOS_FRAMEWORK_OUTPUT)
 
@@ -507,11 +556,14 @@ $(MACOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	rm -rf $(MACOS_FRAMEWORK_BUILD) $@ && mkdir -p $(MACOS_FRAMEWORK_DIR)
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
 		-tags=$(TAGS),netgo$(STEALTH_GO_TAGS)  -trimpath \
-		-target=macos \
+		-target=$(GOMOBILE_MACOS_TARGET) \
 		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
+		-ldflags="-w -s -checklinkname=0 $(APPLE_FRAMEWORK_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	mv $(MACOS_FRAMEWORK_BUILD) $@
+ifeq ($(SWIFT_CHECK),1)
+	printf '%s\n' '$(SWIFT_CHECK_FRAMEWORK_STAMP)' > $@/.swift-check-build
+endif
 	@echo "Built macOS Framework: $@"
 
 
@@ -535,8 +587,9 @@ macos-unit-tests: $(MACOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 		-workspace macos/Runner.xcworkspace \
 		-scheme Runner \
 		-configuration Debug \
-		-destination "platform=macOS" \
+		-destination "$(SWIFT_CHECK_MACOS_DESTINATION)" \
 		-only-testing:RunnerTests \
+		$(SWIFT_CHECK_XCODE_ARGS) \
 		CODE_SIGNING_ALLOWED=NO \
 		CODE_SIGNING_REQUIRED=NO \
 		CODE_SIGN_IDENTITY=""
@@ -851,15 +904,16 @@ endef
 
 install-gomobile:
 	@$(call go_install_retry,golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION))
-	@$(call go_install_retry,golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION))
-	@mkdir -p "$(GOMOBILECACHE)"
-	@if [ ! -f "$(GOMOBILECACHE)/.init-$(GO_VERSION)" ]; then \
-		echo "Running gomobile init (first time for $(GO_VERSION))..."; \
-		GOMOBILECACHE="$(GOMOBILECACHE)" GOTOOLCHAIN=$(GO_VERSION) gomobile init; \
-		touch "$(GOMOBILECACHE)/.init-$(GO_VERSION)"; \
+	@mkdir -p "$(GOMOBILE_INIT_DIR)"
+	@set -e; if [ ! -f "$(GOMOBILE_INIT_STAMP)" ]; then \
+		echo "Running gomobile init for $(GO_VERSION)/$(GOMOBILE_VERSION)..."; \
+		GOTOOLCHAIN=$(GO_VERSION) gomobile init; \
 	else \
-		echo "Skipping gomobile init (cached for $(GO_VERSION))"; \
+		echo "Skipping gomobile init (cached for $(GO_VERSION)/$(GOMOBILE_VERSION))"; \
 	fi
+# gomobile init installs gobind@latest, so install the pinned version last.
+	@$(call go_install_retry,golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION))
+	@touch "$(GOMOBILE_INIT_STAMP)"
 
 .PHONY: install-garble
 install-garble:
@@ -1160,14 +1214,17 @@ build-ios: $(MAYBE_STEALTH_PROFILE)
 	@echo "Building iOS Framework.."
 	rm -rf $(IOS_FRAMEWORK_BUILD)
 	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
-	GOOS=ios gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=ios gomobile bind -v \
 		-tags=$(TAGS),with_low_memory$(STEALTH_GO_TAGS) -trimpath \
-		-target=ios \
+		-target=$(GOMOBILE_IOS_TARGET) \
 		-o $(IOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
+		-ldflags="-w -s -checklinkname=0 $(APPLE_FRAMEWORK_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
+ifeq ($(SWIFT_CHECK),1)
+	printf '%s\n' '$(SWIFT_CHECK_FRAMEWORK_STAMP)' > $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build
+endif
 
 $(IOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) check-gomobile
@@ -1177,7 +1234,23 @@ $(IOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 .PHONY: ios-compile-check
 ios-compile-check: $(IOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (debug, simulator) for iOS..."
+ifeq ($(SWIFT_CHECK),1)
+# Generate Flutter configuration and install Pods before building with Xcode.
+	flutter build ios --debug --simulator --no-codesign --config-only $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	xcodebuild build \
+		-workspace ios/Runner.xcworkspace \
+		-scheme Runner \
+		-configuration Debug \
+		-sdk iphonesimulator \
+		-destination "generic/platform=iOS Simulator" \
+		BUILD_DIR="$(abspath $(BUILD_DIR))/ios" \
+		$(SWIFT_CHECK_XCODE_ARGS) \
+		CODE_SIGNING_ALLOWED=NO \
+		CODE_SIGNING_REQUIRED=NO \
+		CODE_SIGN_IDENTITY=""
+else
 	flutter build ios --debug --simulator --no-codesign $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+endif
 
 .PHONY: format swift-format
 swift-format:
