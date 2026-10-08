@@ -1,6 +1,4 @@
-; The app build stages the redistributable from its selected MSVC toolchain.
-; Derive the requirement from that same payload so compiler upgrades cannot
-; leave a stale version check or download URL in the installer.
+; Read the required runtime version from the selected MSVC toolchain's bundle.
 #define VCRedistPath "{{SOURCE_DIR}}\installer-dependencies\VC_redist.x64.exe"
 #if !FileExists(VCRedistPath)
   #error "Missing staged Visual C++ redistributable; rebuild the Windows app."
@@ -235,8 +233,7 @@ var
   PackedVersion, RequiredVersion: Int64;
 begin
   Result := False;
-  // On ARM64, the x64 bundle installs ARM64X runtime DLLs that also support
-  // our x64 UI. The x64 MSIs are skipped, so check the native runtime instead.
+  // The x64 bundle installs ARM64X DLLs on ARM64, supporting our x64 UI.
   // https://learn.microsoft.com/en-us/windows/arm/arm64x-pe
   if IsArm64 then
     Arch := 'arm64'
@@ -275,11 +272,8 @@ procedure Dependency_AddVCRuntime;
 var
   LogPath: String;
 begin
-  // Keep the x64 bundle for our x64 UI; it also contains the ARM64 runtime.
-  // https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
   if not Dependency_IsVCRuntimeInstalled then begin
-    // Keep the redist log next to the setup log, outside Inno's temporary
-    // directory (which is deleted when setup exits). SetupLogging is enabled.
+    // Preserve the runtime log after Inno removes its temporary directory.
     LogPath := ChangeFileExt(ExpandConstant('{log}'), '-vcredist.log');
     Log('Visual C++ redistributable log: ' + LogPath);
     ExtractTemporaryFile('VC_redist.x64.exe');
