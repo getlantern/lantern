@@ -9,9 +9,11 @@ on:
       - windows/runner/stage_vcredist.props
       - .github/scripts/test_windows_installer.py
       - .github/scripts/windows_installer_test.iss
+      - .github/scripts/windows_smoke_suite.ps1
       - .github/workflows/windows-installer-test.yml
       - .github/workflows/build-windows.yml
       - scripts/ci/choco-retry.sh
+      - scripts/ci/windows_installer_template.py
 
 permissions:
   contents: read
