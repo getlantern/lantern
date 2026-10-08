@@ -9,6 +9,13 @@ on:
       - windows/runner/stage_vcredist.props
       - .github/scripts/test_windows_installer.py
       - .github/scripts/windows_installer_test.iss
+      - .github/scripts/windows_arm_smoke.ps1
+      - .github/scripts/test_windows_arm_smoke.ps1
+      - .github/scripts/windows_smoke_suite.ps1
+      - scripts/ci/package_windows_upgrade_fixture.py
+      - scripts/ci/package_windows_upgrade_fixture_test.py
+      - scripts/ci/windows_installer_template.py
+      - .github/workflows/app-smoke-tests.yml
       - .github/workflows/windows-installer-test.yml
       - .github/workflows/build-windows.yml
       - scripts/ci/choco-retry.sh
@@ -35,6 +42,13 @@ jobs:
 
       - name: Test toolchain staging and installer prerequisite behavior
         run: python .github/scripts/test_windows_installer.py --output "${{ runner.temp }}/lantern-installer-tests"
+
+      - name: Test ARM smoke script helpers
+        shell: pwsh
+        run: ./.github/scripts/test_windows_arm_smoke.ps1
+
+      - name: Test upgrade fixture rendering
+        run: python -m unittest scripts/ci/package_windows_upgrade_fixture_test.py
 
       - name: Upload installer test diagnostics
         if: failure()

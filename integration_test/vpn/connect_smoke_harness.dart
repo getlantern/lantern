@@ -114,6 +114,22 @@ Future<void> expectPublicIpRestored(String baselineIp) async {
   fail('Public IP did not return to its pre-connect value');
 }
 
+Future<void> expectDnsResolutionForSmoke() async {
+  if (Platform.isWindows) {
+    final result = await Process.run('ipconfig', const [
+      '/flushdns',
+    ]).timeout(const Duration(seconds: 10));
+    if (result.exitCode != 0) {
+      fail('Failed to clear the Windows DNS cache before checking resolution');
+    }
+  }
+  final addresses = await InternetAddress.lookup(
+    'example.com',
+    type: InternetAddressType.IPv4,
+  ).timeout(const Duration(seconds: 10));
+  if (addresses.isEmpty) fail('DNS returned no IPv4 addresses');
+}
+
 Future<bool> _didPublicIpChangeFromBaseline(String baselineIp) async {
   final deadline = DateTime.now().add(const Duration(seconds: 60));
   while (DateTime.now().isBefore(deadline)) {
@@ -154,6 +170,7 @@ Future<void> runConnectSmokeHarness(
   bool enableIpCheck = false,
   bool requireTrafficAfterConnect = false,
   bool requireIpRestored = false,
+  bool requireDnsResolution = false,
   Future<void> Function()? afterConnect,
 }) async {
   final finders = VpnSmokeFinders();
@@ -167,6 +184,7 @@ Future<void> runConnectSmokeHarness(
     scenario: 'connect/disconnect smoke',
   );
   await _setRoutingModeToFullTunnelForSmoke(tester, finders: finders);
+  if (requireDnsResolution) await expectDnsResolutionForSmoke();
 
   if (enableIpCheck || requireIpRestored) {
     debugPrint('IP check: enabled; fetching baseline before connect');
@@ -196,6 +214,7 @@ Future<void> runConnectSmokeHarness(
         reason: 'after connect',
       );
     }
+    if (requireDnsResolution) await expectDnsResolutionForSmoke();
 
     if (enableIpCheck && baselinePublicIp != null) {
       debugPrint('IP check: waiting for IP change after connect');
@@ -215,6 +234,7 @@ Future<void> runConnectSmokeHarness(
   }
 
   if (requireIpRestored && baselinePublicIp != null) {
+    if (requireDnsResolution) await expectDnsResolutionForSmoke();
     await expectPublicIpRestored(baselinePublicIp);
   }
 

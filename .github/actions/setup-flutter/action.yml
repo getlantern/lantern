@@ -1,5 +1,10 @@
 name: Set up Lantern Flutter toolchain
 description: Install the pinned SDK and maintain one pub cache per host architecture.
+inputs:
+  architecture:
+    description: Flutter SDK architecture; defaults to the runner architecture.
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -21,6 +26,7 @@ runs:
       with:
         channel: stable
         flutter-version: ${{ steps.version.outputs.version }}
+        architecture: ${{ inputs.architecture || runner.arch }}
         cache: true
         # One owner for pub caching, with fallback across lockfile updates.
         pub-cache: false

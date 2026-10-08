@@ -15,6 +15,7 @@ on:
           - linux
           - macos
           - windows
+          - windows-arm
         default: all
       tests:
         description: "Which test suites to run on the selected platforms"
@@ -64,6 +65,12 @@ jobs:
         shell: bash
         run: |
           echo '::error title=Invalid smoke selection::auto-update requires platforms=all, macos, or windows'
+          exit 2
+
+      - name: Validate Windows ARM selection
+        if: ${{ inputs.platforms == 'windows-arm' && !contains(fromJSON('["all", "vpn-smoke"]'), inputs.tests || 'all') }}
+        run: |
+          echo '::error title=Invalid smoke selection::windows-arm supports vpn-smoke or all'
           exit 2
 
   # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
@@ -172,7 +179,7 @@ jobs:
 
   windows:
     needs: prepare
-    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) && inputs.tests != 'auto-update' }}
+    if: ${{ contains(fromJSON('["all", "windows", "windows-arm", ""]'), inputs.platforms) && inputs.tests != 'auto-update' }}
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     with:
@@ -180,11 +187,65 @@ jobs:
       build_type: nightly
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       skip_signing: true
+      prepare_arm_smoke: ${{ contains(fromJSON('["all", "vpn-smoke"]'), inputs.tests || 'all') }}
+      run_installer_smoke: ${{ inputs.platforms != 'windows-arm' }}
       force_full_tunnel_smoke: true
-      run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
-      run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
-      run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
-      run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+      run_connect_smoke: ${{ inputs.platforms != 'windows-arm' && !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
+      run_auth_smoke: ${{ inputs.platforms != 'windows-arm' && contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
+      run_split_tunnel_website_smoke: ${{ inputs.platforms != 'windows-arm' && (inputs.tests || 'all') == 'all' }}
+      run_payment_smoke: ${{ inputs.platforms != 'windows-arm' && contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+
+  windows-arm:
+    name: Windows 11 ARM install, upgrade, and VPN smoke
+    needs: windows
+    if: ${{ needs.windows.result == 'success' && contains(fromJSON('["all", "vpn-smoke"]'), inputs.tests || 'all') }}
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+    env:
+      LANTERN_WINDOWS_ARM_SMOKE: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download Windows installer
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-installer-exe
+          path: ${{ runner.temp }}/windows-arm-installer
+
+      - name: Download ARM smoke inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: lantern-windows-arm-smoke
+          path: ${{ runner.temp }}/windows-arm-smoke-inputs
+
+      - name: Install x64 Flutter driver SDK
+        uses: ./.github/actions/setup-flutter
+        with:
+          architecture: x64
+
+      - name: Resolve Flutter driver dependencies
+        run: flutter pub get
+
+      - name: Test installation, upgrade, native service, and VPN
+        shell: pwsh
+        run: |
+          ./.github/scripts/windows_arm_smoke.ps1 `
+            -InstallerPath "$env:RUNNER_TEMP/windows-arm-installer/lantern-smoke-test-nightly.exe" `
+            -UpgradeFromInstallerPath "$env:RUNNER_TEMP/windows-arm-smoke-inputs/upgrade-from.exe" `
+            -VpnTestAppPath "$env:RUNNER_TEMP/windows-arm-smoke-inputs/vpn-test-app/lantern.exe" `
+            -VCRedistPath "$env:RUNNER_TEMP/windows-arm-smoke-inputs/VC_redist.x64.exe" `
+            -ArtifactDirectory "$env:RUNNER_TEMP/windows-arm-smoke"
+
+      - name: Upload ARM smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-arm-smoke-diagnostics
+          path: ${{ runner.temp }}/windows-arm-smoke
+          if-no-files-found: warn
+          retention-days: 7
 
   windows-auto-update:
     needs: validate-inputs

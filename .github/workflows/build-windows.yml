@@ -60,6 +60,11 @@ on:
         required: false
         type: boolean
         default: true
+      prepare_arm_smoke:
+        description: "Package an upgrade fixture and Flutter VPN test app for ARM smoke tests"
+        required: false
+        type: boolean
+        default: false
       skip_signing:
         description: "Skip code signing (e.g. for nightly builds)"
         required: false
@@ -361,6 +366,41 @@ jobs:
           Write-Host ""
 
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
+
+      - name: Prepare Windows ARM smoke artifacts
+        if: ${{ inputs.package_installer && inputs.prepare_arm_smoke }}
+        shell: pwsh
+        env:
+          CL: /MP4
+        run: |
+          $output = Join-Path $env:RUNNER_TEMP 'windows-arm-smoke-inputs'
+          python scripts/ci/package_windows_upgrade_fixture.py `
+            --bundle build/windows/x64/runner/Release `
+            --output $output
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          flutter build windows --profile --no-pub `
+            --target=integration_test/vpn/windows_connect_smoke_test.dart `
+            --dart-define=BUILD_TYPE=$env:BUILD_TYPE `
+            --dart-define=VERSION=$env:VERSION `
+            --dart-define=ENABLE_IP_CHECK=true `
+            --dart-define=SMOKE_FORCE_FULL_TUNNEL=true `
+            --dart-define=DISABLE_SYSTEM_TRAY=true
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item build/windows/x64/runner/Profile "$output/vpn-test-app" -Recurse
+          Copy-Item build/windows/x64/runner/Release/installer-dependencies/VC_redist.x64.exe $output
+
+      - name: Upload Windows ARM smoke artifacts
+        if: ${{ inputs.package_installer && inputs.prepare_arm_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-windows-arm-smoke
+          path: |
+            ${{ runner.temp }}/windows-arm-smoke-inputs/upgrade-from.exe
+            ${{ runner.temp }}/windows-arm-smoke-inputs/vpn-test-app
+            ${{ runner.temp }}/windows-arm-smoke-inputs/VC_redist.x64.exe
+          if-no-files-found: error
+          retention-days: 2
 
       - name: Sign installer
         if: ${{ inputs.package_installer && !inputs.skip_signing }}

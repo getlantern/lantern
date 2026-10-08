@@ -14,6 +14,11 @@ void main() {
 
   testWidgets('Windows VPN connect/disconnect smoke', (tester) async {
     await app.main();
-    await runConnectSmokeHarness(tester, enableIpCheck: _enableIpCheck);
+    await runConnectSmokeHarness(
+      tester,
+      enableIpCheck: _enableIpCheck,
+      requireIpRestored: _enableIpCheck,
+      requireDnsResolution: _enableIpCheck,
+    );
   });
 }

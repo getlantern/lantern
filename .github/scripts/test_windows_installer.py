@@ -12,11 +12,14 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'scripts/ci'))
+from windows_installer_template import render as render_template
 TEMPLATE = ROOT / "windows/packaging/exe/inno_setup.iss"
 HARNESS = Path(__file__).with_name("windows_installer_test.iss")
 
@@ -93,26 +96,6 @@ def test_staging(output):
 
 
 def render_compile_fixture(source, payload):
-    # Render only the template's English locale and desktop-icon flag. Fail on
-    # new template syntax instead of silently compiling a different installer.
-    def english_loop(match):
-        return re.sub(
-            r"{% if locale == '([^']+)' %}(.*?){% endif %}",
-            lambda condition: condition[2] if condition[1] == "en" else "",
-            match[1],
-            flags=re.DOTALL,
-        )
-
-    source = re.sub(
-        r"{% for locale in LOCALES %}(.*?){% endfor %}",
-        english_loop,
-        source,
-        flags=re.DOTALL,
-    )
-    source = source.replace(
-        "{% if CREATE_DESKTOP_ICON != true %}unchecked{% else %}checkedonce{% endif %}",
-        "checkedonce",
-    )
     values = {
         "SOURCE_DIR": str(payload),
         "APP_ID": "LanternInstallerCompileFixture",
@@ -123,10 +106,7 @@ def render_compile_fixture(source, payload):
         "OUTPUT_BASE_FILENAME": "compile-fixture",
         "EXECUTABLE_NAME": "lantern.exe",
     }
-    source = re.sub(r"{{(\w+)}}", lambda match: values[match[1]], source)
-    if "{{" in source or "{%" in source:
-        raise ValueError("Unrendered installer template syntax")
-    return source
+    return render_template(source, values, create_desktop_icon=True)
 
 
 def generate(output):
