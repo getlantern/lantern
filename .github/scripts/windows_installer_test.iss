@@ -116,14 +116,15 @@ procedure RunTests;
 begin
   SetMachine(True);
   Check('Clean ARM64 uses embedded x64 bundle', True);
+  // On ARM64, the x64 bundle installs ARM64X runtime DLLs for both ARM64 and x64 apps.
   SetRuntime(HKLM64, 'arm64', 1, 'v14.99.12345.0');
-  Check('Minimum ARM64 runtime without x64 key', False);
+  Check('Minimum ARM64X runtime serves x64 UI without x64 key', False);
   SetRuntime(HKLM64, 'arm64', 1, 'V14.100.35719.0');
   Check('Newer ARM64 runtime with uppercase prefix', False);
   SetRuntime(HKLM64, 'arm64', 1, '14.99.12345.1');
   Check('Newer fourth component without prefix', False);
   SetRuntime(HKLM64, 'x64', 1, 'v14.100.35719.0');
-  Check('x64 key alone cannot satisfy ARM64', True);
+  Check('x64 key alone cannot satisfy ARM64X runtime detection', True);
   SetRuntime(HKLM32, 'arm64', 1, 'v14.100.35719.0');
   Check('Wrong registry view cannot satisfy ARM64', True);
   SetRuntime(HKLM64, 'arm64', 1, 'v14.99.12344.0');

@@ -235,8 +235,9 @@ var
   PackedVersion, RequiredVersion: Int64;
 begin
   Result := False;
-  // The x64 redist bundle installs the ARM64 runtime on ARM64 Windows.
-  // Checking the x64 MSI identity there misses even a newer installed runtime.
+  // On ARM64, the x64 bundle installs ARM64X runtime DLLs that also support
+  // our x64 UI. The x64 MSIs are skipped, so check the native runtime instead.
+  // https://learn.microsoft.com/en-us/windows/arm/arm64x-pe
   if IsArm64 then
     Arch := 'arm64'
   else
