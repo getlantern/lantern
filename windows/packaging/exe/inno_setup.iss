@@ -1,3 +1,13 @@
+; Read the required runtime version from the selected MSVC toolchain's bundle.
+#define VCRedistPath "{{SOURCE_DIR}}\installer-dependencies\VC_redist.x64.exe"
+#if !FileExists(VCRedistPath)
+  #error "Missing staged Visual C++ redistributable; rebuild the Windows app."
+#endif
+#define VCRedistVersion GetFileVersion(VCRedistPath)
+#if VCRedistVersion == ""
+  #error "The staged Visual C++ redistributable has no file version."
+#endif
+
 [Code]
 // https://github.com/DomGries/InnoDependencyInstaller
 
@@ -79,7 +89,7 @@ begin
               Result := Dependency_List[DependencyIndex].Title;
               DependencyIndex := DependencyCount;
             end else begin
-              case SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbError, MB_ABORTRETRYIGNORE, IDIGNORE) of
+              case SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbError, MB_ABORTRETRYIGNORE, IDABORT) of
                 IDABORT: begin
                   Result := Dependency_List[DependencyIndex].Title;
                   DependencyIndex := DependencyCount;
@@ -101,11 +111,15 @@ begin
 
         while True do begin
           ResultCode := 0;
+          Log('Starting dependency: ' + Dependency_List[DependencyIndex].Title +
+            '; parameters: ' + Dependency_List[DependencyIndex].Parameters);
 #ifdef Dependency_CustomExecute
           if {#Dependency_CustomExecute}(ExpandConstant('{tmp}{\}') + Dependency_List[DependencyIndex].Filename, Dependency_List[DependencyIndex].Parameters, ResultCode) then begin
 #else
           if ShellExec('', ExpandConstant('{tmp}{\}') + Dependency_List[DependencyIndex].Filename, Dependency_List[DependencyIndex].Parameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then begin
 #endif
+            Log('Dependency exit code: ' + IntToStr(ResultCode) +
+              '; dependency: ' + Dependency_List[DependencyIndex].Title);
             if Dependency_List[DependencyIndex].RestartAfter then begin
               if DependencyIndex = DependencyCount - 1 then begin
                 Dependency_NeedToRestart := True;
@@ -124,9 +138,13 @@ begin
               Dependency_NeedToRestart := True;
               break;
             end;
+          end else begin
+            Log('Failed to start dependency: ' + Dependency_List[DependencyIndex].Title +
+              '; error: ' + IntToStr(ResultCode));
           end;
 
-          case SuppressibleMsgBox(FmtMessage(SetupMessage(msgErrorFunctionFailed), [Dependency_List[DependencyIndex].Title, IntToStr(ResultCode)]), mbError, MB_ABORTRETRYIGNORE, IDIGNORE) of
+          // An unattended install must not report success after a prerequisite fails.
+          case SuppressibleMsgBox(FmtMessage(SetupMessage(msgErrorFunctionFailed), [Dependency_List[DependencyIndex].Title, IntToStr(ResultCode)]), mbError, MB_ABORTRETRYIGNORE, IDABORT) of
             IDABORT: begin
               Result := Dependency_List[DependencyIndex].Title;
               break;
@@ -208,24 +226,61 @@ begin
   end;
 end;
 
-function Dependency_ArchSuffix: String;
+function Dependency_IsVCRuntimeInstalled: Boolean;
+var
+  Arch, Key, Version: String;
+  Installed: Cardinal;
+  PackedVersion, RequiredVersion: Int64;
 begin
-  Result := Dependency_String('', '_x64');
+  Result := False;
+  // The x64 bundle installs ARM64X DLLs on ARM64, supporting our x64 UI.
+  // https://learn.microsoft.com/en-us/windows/arm/arm64x-pe
+  if IsArm64 then
+    Arch := 'arm64'
+  else
+    Arch := 'x64';
+
+  // https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files
+  Key := 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\' + Arch;
+  Log('Checking Visual C++ runtime: ' + Arch);
+  if not RegQueryDWordValue(HKLM64, Key, 'Installed', Installed) or (Installed <> 1) then begin
+    Log('Visual C++ runtime is not installed: ' + Arch);
+    exit;
+  end;
+  if not RegQueryStringValue(HKLM64, Key, 'Version', Version) then begin
+    Log('Visual C++ runtime version is missing: ' + Arch);
+    exit;
+  end;
+  Log('Installed Visual C++ runtime version: ' + Version);
+  if Lowercase(Copy(Version, 1, 1)) = 'v' then
+    Delete(Version, 1, 1);
+  if not StrToVersion(Version, PackedVersion) then begin
+    Log('Visual C++ runtime version is invalid: ' + Version);
+    exit;
+  end;
+
+  if not StrToVersion('{#VCRedistVersion}', RequiredVersion) then
+    RaiseException('Invalid bundled Visual C++ runtime version: {#VCRedistVersion}');
+  Result := ComparePackedVersion(PackedVersion, RequiredVersion) >= 0;
+  if Result then
+    Log('Visual C++ runtime meets minimum {#VCRedistVersion}; skipping installation')
+  else
+    Log('Visual C++ runtime is below minimum {#VCRedistVersion}; installation required');
 end;
 
-function Dependency_ArchTitle: String;
+procedure Dependency_AddVCRuntime;
+var
+  LogPath: String;
 begin
-  Result := Dependency_String(' (x86)', ' (x64)');
-end;
-
-procedure Dependency_AddVC2015To2022;
-begin
-  // https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
-  if not IsMsiProductInstalled(Dependency_String('{65E5BD06-6392-3027-8C26-853107D3CF1A}', '{36F68A90-239C-34DF-B58C-64B30153CE35}'), PackVersionComponents(14, 42, 34433, 0)) then begin
-    Dependency_Add('vcredist2022' + Dependency_ArchSuffix + '.exe',
-      '/passive /norestart',
-      'Visual C++ 2015-2022 Redistributable' + Dependency_ArchTitle,
-      Dependency_String('https://aka.ms/vs/17/release/vc_redist.x86.exe', 'https://aka.ms/vs/17/release/vc_redist.x64.exe'),
+  if not Dependency_IsVCRuntimeInstalled then begin
+    // Preserve the runtime log after Inno removes its temporary directory.
+    LogPath := ChangeFileExt(ExpandConstant('{log}'), '-vcredist.log');
+    Log('Visual C++ redistributable log: ' + LogPath);
+    ExtractTemporaryFile('VC_redist.x64.exe');
+    Dependency_Add('VC_redist.x64.exe',
+      '/install /passive /norestart /log "' + LogPath + '"',
+      'Microsoft Visual C++ Runtime {#VCRedistVersion}',
+      '',
       '', False, False);
   end;
 end;
@@ -262,8 +317,10 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
-ArchitecturesAllowed=x64compatible arm64
-ArchitecturesInstallIn64BitMode=x64compatible arm64
+; The UI is x64. x64compatible includes ARM64 Windows 11 with x64 emulation,
+; but excludes ARM64 Windows 10, which cannot run the UI.
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 SetupLogging=yes
 UninstallLogging=yes
 CloseApplications=yes
@@ -301,7 +358,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "{#ProgramDataDir}"; Permissions: users-modify
 
 [Files]
-Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Put the prerequisite first for fast extraction from the solid archive.
+Source: "{#VCRedistPath}"; DestDir: "{tmp}"; Flags: dontcopy
+Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Excludes: "\installer-dependencies"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
@@ -489,6 +548,6 @@ begin
   RemoveStaleUninstallEntry(HKCU, 'HKCU');
 
   Dependency_AddWebView2;
-  Dependency_AddVC2015To2022;
+  Dependency_AddVCRuntime;
   Result := True;
 end;

@@ -1,0 +1,51 @@
+name: Windows Installer Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - windows/packaging/exe/**
+      - windows/runner/CMakeLists.txt
+      - windows/runner/stage_vcredist.props
+      - .github/scripts/test_windows_installer.py
+      - .github/scripts/windows_installer_test.iss
+      - .github/scripts/windows_smoke_suite.ps1
+      - .github/workflows/windows-installer-test.yml
+      - .github/workflows/build-windows.yml
+      - scripts/ci/choco-retry.sh
+      - scripts/ci/windows_installer_template.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-installer-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installer:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Inno Setup 6
+        shell: bash
+        run: ./scripts/ci/choco-retry.sh -y innosetup --version=6.7.1 --allow-downgrade
+
+      - name: Test toolchain staging and installer prerequisite behavior
+        run: python .github/scripts/test_windows_installer.py --output "${{ runner.temp }}/lantern-installer-tests"
+
+      - name: Upload installer test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-test-diagnostics
+          path: |
+            ${{ runner.temp }}/lantern-installer-tests/*.iss
+            ${{ runner.temp }}/lantern-installer-tests/*.log
+            ${{ runner.temp }}/lantern-installer-tests/results.txt
+            ${{ runner.temp }}/lantern-installer-tests/staging fixture/**/*.proj
+            ${{ runner.temp }}/lantern-installer-tests/staging fixture/**/*.props
