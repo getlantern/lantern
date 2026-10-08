@@ -7,12 +7,12 @@ on:
       scenario:
         description: "Update conditions to exercise"
         type: choice
-        options: [baseline, core-unavailable]
+        options: [baseline, core-unavailable, core-unavailable-direct-blocked]
         default: baseline
   workflow_call:
     inputs:
       scenario:
-        description: "baseline or core-unavailable"
+        description: "baseline, core-unavailable, or core-unavailable-direct-blocked"
         type: string
         default: baseline
 
@@ -38,17 +38,37 @@ jobs:
         run: python3 -m unittest -v scripts/ci/macos_sparkle_handoff_test.py
 
   resolve-target:
-    name: Resolve staging fixture target
+    name: Resolve signed update target
     runs-on: ubuntu-latest
     outputs:
       display_version: ${{ steps.target.outputs.display_version }}
       fixture_build: ${{ steps.target.outputs.fixture_build }}
       target_build: ${{ steps.target.outputs.target_build }}
+      auto_update_e2e: ${{ steps.scenario.outputs.auto_update_e2e }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - name: Select scenario feed
+        id: scenario
+        shell: bash
+        env:
+          SCENARIO: ${{ inputs.scenario }}
+        run: |
+          case "$SCENARIO" in
+            baseline|core-unavailable)
+              echo 'appcast_url=https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta' >> "$GITHUB_OUTPUT"
+              echo 'auto_update_e2e=true' >> "$GITHUB_OUTPUT"
+              ;;
+            core-unavailable-direct-blocked)
+              # Only the published update hostname has real fronting mappings.
+              echo 'appcast_url=https://update.getlantern.org/update/lantern/appcast.xml?channel=beta' >> "$GITHUB_OUTPUT"
+              echo 'auto_update_e2e=false' >> "$GITHUB_OUTPUT"
+              ;;
+            *) echo 'Unknown update smoke scenario' >&2; exit 2 ;;
+          esac
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -63,17 +83,18 @@ jobs:
       - name: Test update smoke helpers
         run: python -m unittest scripts/ci/resolve_desktop_update_target_test.py scripts/ci/desktop_update_scenario_test.py
 
-      - name: Resolve staging fixture target
+      - name: Resolve signed update target
         id: target
         shell: bash
         env:
           TARGET_DIR: ${{ runner.temp }}/macos-auto-update-target
+          APPCAST_URL: ${{ steps.scenario.outputs.appcast_url }}
         run: |
           set -o pipefail
           mkdir -p "$TARGET_DIR/pubspec"
           python scripts/ci/resolve_desktop_update_target.py \
             --platform macos \
-            --appcast-url "https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta" \
+            --appcast-url "$APPCAST_URL" \
             --appcast-output "$TARGET_DIR/appcast.xml" \
             --target-output "$TARGET_DIR/target.json" \
             --pubspec-input pubspec.yaml \
@@ -86,6 +107,7 @@ jobs:
         shell: bash
         env:
           SCENARIO: ${{ inputs.scenario }}
+          APPCAST_URL: ${{ steps.scenario.outputs.appcast_url }}
           DISPLAY_VERSION: ${{ steps.target.outputs.display_version }}
           FIXTURE_BUILD: ${{ steps.target.outputs.fixture_build }}
           TARGET_BUILD: ${{ steps.target.outputs.target_build }}
@@ -94,6 +116,7 @@ jobs:
             echo "### macOS auto-update target"
             echo
             echo "- Scenario: \`$SCENARIO\`"
+            echo "- Feed: $APPCAST_URL"
             echo "- Live beta: \`$DISPLAY_VERSION\` build \`$TARGET_BUILD\`"
             echo "- Unpublished fixture: \`$DISPLAY_VERSION\` build \`$FIXTURE_BUILD\`"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -137,7 +160,7 @@ jobs:
       flutter_build_mode: profile
       pubspec_artifact: macos-auto-update-pubspec
       sign_update_artifact: false
-      auto_update_e2e: true
+      auto_update_e2e: ${{ needs.resolve-target.outputs.auto_update_e2e == 'true' }}
       run_connect_smoke: false
       run_payment_smoke: false
 
@@ -196,6 +219,13 @@ jobs:
           FIXTURE_DMG: ${{ runner.temp }}/macos-auto-update-fixture/lantern-autoupdate-fixture-beta.dmg
           TARGET_JSON: ${{ runner.temp }}/macos-auto-update-target/target.json
         run: bash ./.github/scripts/macos_auto_update_smoke.sh
+
+      - name: Restore update network access
+        if: ${{ always() && inputs.scenario == 'core-unavailable-direct-blocked' }}
+        shell: bash
+        run: |
+          sudo -n env CI=true GITHUB_ACTIONS=true LANTERN_AUTO_UPDATE_SMOKE=true RUNNER_ENVIRONMENT=self-hosted \
+            "$(command -v python3)" scripts/ci/desktop_update_scenario.py restore
 
       - name: Upload auto-update diagnostics
         if: ${{ always() }}

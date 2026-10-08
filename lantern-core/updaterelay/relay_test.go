@@ -309,9 +309,9 @@ func (b stalledBody) Close() error { return nil }
 
 func TestIdleTimeoutIsReportedAsDeadline(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		ctx, cancel := context.WithCancel(t.Context())
-		defer cancel()
-		body := &downloadBody{ReadCloser: stalledBody{ctx}, cancel: cancel}
+		ctx, cancel := context.WithCancelCause(t.Context())
+		defer cancel(nil)
+		body := &downloadBody{ReadCloser: stalledBody{ctx}, ctx: ctx, cancel: cancel}
 		if _, err := body.Read(make([]byte, 1)); !errors.Is(err, context.DeadlineExceeded) {
 			t.Fatalf("stalled download: %v", err)
 		}

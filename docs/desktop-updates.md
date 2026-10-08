@@ -60,7 +60,7 @@ than installing the app.
 The [macOS](../.github/workflows/macos-auto-update-smoke.yml) and
 [Windows](../.github/workflows/windows-auto-update-smoke.yml) auto-update
 workflows build a signed beta fixture from the selected branch, with a build
-number below the target in the staging appcast.
+number below the target in the selected appcast.
 Sparkle or WinSparkle downloads and installs the target. The smoke checks its
 signature and version, waits for the original process to exit, and verifies that
 the updated app relaunches with a visible window.
@@ -71,6 +71,11 @@ Both workflows accept a `scenario` input:
 - `core-unavailable`: holds core initialization indefinitely while the normal
   startup update check runs. The test verifies that core is still unavailable and
   no VPN bypass proxy is listening when the native updater offers an update.
+- `core-unavailable-direct-blocked`: also maps the direct update and S3 hostnames
+  to loopback for IPv4 and IPv6. The relay starts without cached fronting
+  configuration and uses the published beta feed, whose hostname has a CDN
+  fronting route. Both the feed and installer must remain reachable through that
+  route while direct access is blocked.
 
 The macOS workflow first tests the native UI driver against a small fixture
 window. It uses the public Accessibility API to press Sparkle's install buttons
@@ -80,5 +85,9 @@ approval is not required.
 
 The workflows replace the installed app and clear test data on their runners.
 Diagnostics include the target version, Flutter log, native handoff, process IDs,
-signatures, and screenshots. Both scenarios use the staging feed and its signed
-GitHub fixtures; they do not test blocked endpoints or domain fronting.
+signatures, and screenshots. Baseline and stalled-core scenarios use the staging
+feed and its signed GitHub fixtures. The blocked scenario uses the production
+update hostname and checks the DNS block before launch, at the update offer, and
+after relaunch. Script cleanup and an `always()` workflow step remove only the
+hosts-file entries added by the test. A passing build alone does not validate
+fronted delivery; the signed installation and relaunch checks must pass too.
