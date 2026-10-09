@@ -1661,10 +1661,10 @@ class LanternPlatformService implements LanternCoreService {
       final result = await _methodChannel.invokeMethod(
         'getLanternAvailableServers',
       );
-      appLogger.info("Servers JSON: $result");
       final servers = AvailableServers.fromJson(
         jsonDecode(result) as List<dynamic>,
       );
+      appLogger.info("Loaded ${servers.servers.length} available servers");
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error(

@@ -631,7 +631,7 @@ func AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error
 			if err != nil {
 				return "", err
 			}
-			slog.Debug("fetched user data after account switch", "userdata", userData)
+			slog.Debug("fetched user data after account switch")
 			return userData, nil
 		}
 		/// Purchase was made on the same account, just return "" to indicate success
@@ -693,7 +693,7 @@ func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey, c
 func Login(email, password string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		b, err := c.Login(email, password)
-		slog.Debug("Login response", "response", string(b), "error", err)
+		slog.Debug("Login response", "success", err == nil, "error", err)
 		return string(b), err
 	})
 }
@@ -742,11 +742,11 @@ func CompleteRecoveryByEmail(email, newPassword, code string) error {
 
 func RemoveDevice(deviceId string) error {
 	return withCore(func(c lanterncore.Core) error {
-		linkresp, err := c.RemoveDevice(deviceId)
+		_, err := c.RemoveDevice(deviceId)
 		if err != nil {
 			return err
 		}
-		slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
+		slog.Debug("Device removed successfully", "deviceId", deviceId)
 		return nil
 	})
 }
