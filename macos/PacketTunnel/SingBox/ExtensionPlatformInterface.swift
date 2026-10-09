@@ -394,7 +394,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     // libbox only resets when the default interface's name or index changes, so a new
     // address on the same interface would leave connections bound to the old one.
     if let previous, previous.name == defaultInterface.name,
-      previous.index == defaultInterface.index, previous.ipv4 != ipv4, !ipv4.isEmpty
+      previous.index == defaultInterface.index, previous.ipv4 != ipv4
     {
       appLogger.info(
         "default interface \(defaultInterface.name) IPv4 changed from \(previous.ipv4) to \(ipv4); scheduling network reset"
@@ -405,16 +405,19 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   private func scheduleNetworkReset() {
     pendingNetworkReset?.cancel()
+    // Runs on pathQueue so clearPathState's cancel either precedes it or follows a reset
+    // that was already due; the IPC call itself must not block path updates.
     let reset = DispatchWorkItem {
-      var error: NSError?
-      MobileResetNetwork(&error)
-      if let error {
-        appLogger.error("network reset failed: \(error.localizedDescription)")
+      DispatchQueue.global().async {
+        var error: NSError?
+        MobileResetNetwork(&error)
+        if let error {
+          appLogger.error("network reset failed: \(error.localizedDescription)")
+        }
       }
     }
     pendingNetworkReset = reset
-    DispatchQueue.global().asyncAfter(
-      deadline: .now() + Self.networkResetDelay, execute: reset)
+    pathQueue.asyncAfter(deadline: .now() + Self.networkResetDelay, execute: reset)
   }
 
   private func clearPathState() {
@@ -602,6 +605,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     networkSettings = nil
     nwMonitor?.cancel()
     nwMonitor = nil
+    pathQueue.async { self.clearPathState() }
   }
 
   public func restartService() throws {

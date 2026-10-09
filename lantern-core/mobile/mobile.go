@@ -398,6 +398,10 @@ func ResetNetwork() error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		slog.Info("Resetting VPN network")
 		client, err := getClient()
+		// No IPC server or core means no tunnel to reset.
+		if errors.Is(err, errLanternNotReady) {
+			return struct{}{}, nil
+		}
 		if err != nil {
 			return struct{}{}, err
 		}
