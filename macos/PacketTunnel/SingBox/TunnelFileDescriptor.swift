@@ -76,7 +76,7 @@ enum TunnelFileDescriptor {
     return value
   }
 
-  private static func interfaceAddresses() throws -> [String: [String]] {
+  static func interfaceAddresses() throws -> [String: [String]] {
     var head: UnsafeMutablePointer<ifaddrs>?
     guard getifaddrs(&head) == 0 else {
       throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
