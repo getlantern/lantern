@@ -3,6 +3,8 @@ name: Windows migration E2E harness checks
 on:
   pull_request:
     paths:
+      - 'go.mod'
+      - 'go.sum'
       - 'scripts/migration-e2e/**'
       - '.github/workflows/*migration-e2e*'
       - '.github/workflows/build-windows.yml'
