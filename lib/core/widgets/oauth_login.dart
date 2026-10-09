@@ -108,7 +108,7 @@ class OAuthLogin extends HookConsumerWidget {
         if (PlatformUtils.isMobile) {
           // listen to handle the deep link
           sl<DeepLinkCallbackManager>().registerHandler((result) {
-            appLogger.debug('DeepLink result: $result');
+            appLogger.debug('DeepLink result received: ${result != null}');
             if (result != null) {
               // Handle the deep link result here
               unawaited(

@@ -164,6 +164,20 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  /// Android only: opens the system share sheet for [paths] with read-only
+  /// URI grants (share_plus grants read+write to every resolvable package).
+  Future<void> shareFiles(
+    List<String> paths, {
+    String? title,
+    String? text,
+  }) async {
+    await _methodChannel.invokeMethod<void>('shareFiles', {
+      'paths': paths,
+      'title': title,
+      'text': text,
+    });
+  }
+
   @override
   Future<Either<Failure, Unit>> updateTimeZone(String timeZone) async {
     try {
@@ -1647,10 +1661,10 @@ class LanternPlatformService implements LanternCoreService {
       final result = await _methodChannel.invokeMethod(
         'getLanternAvailableServers',
       );
-      appLogger.info("Servers JSON: $result");
       final servers = AvailableServers.fromJson(
         jsonDecode(result) as List<dynamic>,
       );
+      appLogger.info("Loaded ${servers.servers.length} available servers");
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error(
