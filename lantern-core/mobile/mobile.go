@@ -392,6 +392,22 @@ func StopVPN() error {
 	return err
 }
 
+// ResetNetwork closes the tunnel's connections so they are redialed on the current
+// network. It is a no-op when the tunnel is not running.
+func ResetNetwork() error {
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		slog.Info("Resetting VPN network")
+		client, err := getClient()
+		if err != nil {
+			return struct{}{}, err
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		return struct{}{}, client.ResetNetwork(ctx)
+	})
+	return err
+}
+
 // IsTagAvailable checks if a server with the given tag exists in the server list.
 // Returns true if the tag is found. Returns true when the check cannot be performed
 // (fail-open: allows connection attempts to proceed normally).
