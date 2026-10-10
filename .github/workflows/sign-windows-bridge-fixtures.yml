@@ -27,7 +27,7 @@ jobs:
           repository: getlantern/lantern-desktop
           ref: 7e2fbb7e4c5aed86dcf81e6585667d246fdcd9bf
           path: desktop-tooling
-          token: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+          token: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
           persist-credentials: false
           sparse-checkout: |
             scripts/bridge-release
@@ -39,7 +39,7 @@ jobs:
       - name: Download the pinned unsigned artifact
         shell: python
         env:
-          GH_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
         run: |
           import hashlib
           import json
