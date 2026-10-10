@@ -308,6 +308,8 @@ build/app/outputs/flutter-apk/app-debug.apk
 
 The Windows build separates the backend (a Windows Service binary) from the Flutter UI. During development you can run the backend in console mode instead of registering it as a real service, which makes for a faster iteration loop.
 
+For the legacy x86 upgrade path, see the [Windows migration installer contract](windows/packaging/exe/README.md), including recovery guarantees and the required bridge/Radiance identity handoff.
+
 #### Prerequisites
 
 - **Windows 10** or newer

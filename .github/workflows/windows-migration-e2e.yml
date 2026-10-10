@@ -1,0 +1,80 @@
+name: Staging Windows migration E2E checkpoint
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifest_sha256:
+        description: 'Reviewed SHA256 of the signed, pre-provisioned bundle manifest'
+        type: string
+        required: true
+      phase:
+        description: 'Run ends awaiting a real reboot; AfterReboot completes the successful chain'
+        type: choice
+        options: [Run, AfterReboot]
+        default: Run
+
+permissions:
+  contents: read
+
+# This serializes this repository only. Reserve the shared staging pins/cohort
+# externally for the entire run, reboot, and cleanup window.
+concurrency:
+  group: staging-windows-migration-e2e
+  cancel-in-progress: false
+
+jobs:
+  checkpoint:
+    environment: staging-migration-e2e
+    runs-on: [self-hosted, Windows, X64, lantern-migration-e2e]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run the real chain as the original standard user
+        shell: pwsh
+        env:
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+          MIGRATION_PHASE: ${{ inputs.phase }}
+        run: |
+          # Python 3.11+, Go and PowerShell 7.2+ are provisioned in the disposable VM.
+          "MIGRATION_CHECKPOINT_STARTED=$([DateTime]::UtcNow.ToString('o'))" >> $env:GITHUB_ENV
+          & ./scripts/migration-e2e/run.ps1 `
+            -Bundle 'C:\MigrationE2E\bundle' `
+            -Expected "$env:LOCALAPPDATA\LanternMigrationFixture\expected.json" `
+            -ManifestSHA256 $env:MANIFEST_SHA256 -Phase $env:MIGRATION_PHASE
+          $result = $LASTEXITCODE
+          if ($result -eq 2) {
+            'PENDING: migration checks passed; a real reboot and AfterReboot pass are still required. This is not completed E2E proof.' >> $env:GITHUB_STEP_SUMMARY
+            exit 0
+          }
+          if ($result -ne 0) { exit $result }
+          'Checkpoint passed. See the allowlisted JSON result for scenario and scope; production activation remains disabled.' >> $env:GITHUB_STEP_SUMMARY
+      - name: Upload only allowlisted diagnostics
+        if: always()
+        shell: pwsh
+        env:
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+          MIGRATION_PHASE: ${{ inputs.phase }}
+        run: |
+          # No recursive logs, registry dumps, private fixture, settings, screenshots,
+          # crash dumps or service data are collected.
+          $manifestPath = 'C:\MigrationE2E\bundle\manifest.json'
+          if ((Get-FileHash $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:MANIFEST_SHA256) { exit 1 }
+          $m = Get-Content $manifestPath -Raw | ConvertFrom-Json
+          if ($m.run_id -cnotmatch '^[a-f0-9]{32}$') { exit 1 }
+          $resultPath = "$env:LOCALAPPDATA\LanternMigrationE2E\$($m.run_id)\diagnostics\$env:MIGRATION_PHASE.json"
+          New-Item -ItemType Directory -Path migration-diagnostics -Force | Out-Null
+          if (Test-Path $resultPath) {
+            if ((Get-Item $resultPath).LastWriteTimeUtc -le [DateTime]::Parse($env:MIGRATION_CHECKPOINT_STARTED).ToUniversalTime()) {
+              throw 'Refusing diagnostics left by an earlier invocation'
+            }
+            Copy-Item $resultPath migration-diagnostics/result.json
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: migration-e2e-${{ inputs.phase }}
+          path: migration-diagnostics/result.json
+          if-no-files-found: warn
+          retention-days: 7

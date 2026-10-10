@@ -1,0 +1,66 @@
+name: Build staging Windows migration destination
+
+on:
+  workflow_dispatch:
+    inputs:
+      installer_version:
+        description: 'Unused stable 10.x.y version reserved in the isolated fixture catalog'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-migration-fixture-build
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Stamp the isolated fixture
+        env:
+          FIXTURE_VERSION: ${{ inputs.installer_version }}
+        run: |
+          python - <<'PY'
+          import os, pathlib, re
+          version = os.environ['FIXTURE_VERSION']
+          if not re.fullmatch(r'10\.(0|[1-9]\d*)\.(0|[1-9]\d*)', version):
+              raise SystemExit('Expected a stable 10.x.y fixture version')
+          path = pathlib.Path('pubspec.yaml')
+          text, count = re.subn(r'^version:.*$', f'version: {version}+1', path.read_text(), flags=re.M)
+          if count != 1:
+              raise SystemExit('Expected exactly one pubspec version')
+          path.write_text(text)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: migration-e2e-pubspec
+          path: pubspec.yaml
+          if-no-files-found: error
+          retention-days: 7
+  build:
+    needs: prepare
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      version: ${{ inputs.installer_version }}
+      build_type: migration-e2e
+      installer_base_name: lantern-installer
+      pubspec_artifact: migration-e2e-pubspec
+      backend_environment: staging
+      migration_e2e: true
+      auto_update_e2e: true
+      sign_update_artifact: false
+      run_installer_smoke: false
+      run_connect_smoke: false
+    secrets:
+      APP_ENV: ${{ secrets.STAGING_APP_ENV }}
+      JOIN_SERVER_CONFIG_URLS: ${{ secrets.STAGING_JOIN_SERVER_CONFIG_URLS }}
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}

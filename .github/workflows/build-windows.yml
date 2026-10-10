@@ -50,6 +50,16 @@ on:
         required: false
         type: boolean
         default: false
+      backend_environment:
+        description: "Backend environment: prod, or staging for an explicit migration fixture"
+        required: false
+        type: string
+        default: prod
+      migration_e2e:
+        description: "Allow staging backend in an isolated non-production migration fixture"
+        required: false
+        type: boolean
+        default: false
       package_installer:
         description: "Package and upload the Windows installer"
         required: false
@@ -115,6 +125,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate backend environment isolation
+        shell: pwsh
+        env:
+          BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
+          MIGRATION_E2E: ${{ inputs.migration_e2e }}
+          AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+        run: |
+          python scripts/migration-e2e/prepare_installer.py validate `
+            --backend-environment "$env:BACKEND_ENVIRONMENT" `
+            --migration-e2e "$env:MIGRATION_E2E" `
+            --auto-update-e2e "$env:AUTO_UPDATE_E2E" `
+            --build-type "$env:BUILD_TYPE"
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid backend environment isolation inputs' }
 
       - name: Download pubspec.yaml
         uses: actions/download-artifact@v4
@@ -196,6 +220,7 @@ jobs:
         shell: pwsh
         env:
           AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+          RADIANCE_ENV: ${{ inputs.backend_environment == 'staging' && 'staging' || '' }}
           FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
           FLUTTER_TARGET: ${{ inputs.flutter_target }}
           # Parallelize translation units, not MSBuild projects: plugins install
@@ -339,20 +364,57 @@ jobs:
           if-no-files-found: error
           retention-days: 2
 
+      - name: Render staging migration service commands
+        if: ${{ inputs.package_installer && inputs.migration_e2e }}
+        shell: pwsh
+        env:
+          BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
+          MIGRATION_E2E: ${{ inputs.migration_e2e }}
+          AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+        run: |
+          python scripts/migration-e2e/prepare_installer.py render `
+            --backend-environment "$env:BACKEND_ENVIRONMENT" `
+            --migration-e2e "$env:MIGRATION_E2E" `
+            --auto-update-e2e "$env:AUTO_UPDATE_E2E" `
+            --build-type "$env:BUILD_TYPE" `
+            --template windows/packaging/exe/inno_setup.iss `
+            --output windows/packaging/exe/inno_setup.iss `
+            --metadata "$env:RUNNER_TEMP/migration-e2e-installer-build.json"
+          if ($LASTEXITCODE -ne 0) { throw 'Staging installer rendering failed' }
+
+      - name: Upload staging migration installer build evidence
+        if: ${{ inputs.package_installer && inputs.migration_e2e }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-migration-e2e-build
+          path: ${{ runner.temp }}/migration-e2e-installer-build.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Package installer
         if: ${{ inputs.package_installer }}
         shell: pwsh
         env:
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+          BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
+          AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
         run: |
           dart pub global activate fastforge
-          fastforge package `
-            --platform=windows `
-            --targets=exe `
-            --skip-clean `
-            --build-dart-define=BUILD_TYPE=${{ env.BUILD_TYPE }} `
-            --build-dart-define=VERSION=${{ inputs.version }} `
-            --flutter-build-args=verbose
+          $packageArgs = @(
+            'package', '--platform=windows', '--targets=exe', '--skip-clean',
+            "--build-dart-define=BUILD_TYPE=$env:BUILD_TYPE",
+            "--build-dart-define=VERSION=$env:VERSION", '--flutter-build-args=verbose'
+          )
+          # Fastforge may rebuild Flutter: preserve the original staging defines
+          # during packaging, not just during the preceding make invocation.
+          if ($env:BACKEND_ENVIRONMENT -eq 'staging') {
+            $packageArgs += '--build-dart-define=RADIANCE_ENV=staging'
+          }
+          if ($env:AUTO_UPDATE_E2E -eq 'true') {
+            $packageArgs += '--build-dart-define=AUTO_UPDATE_E2E=true'
+          }
+          & fastforge @packageArgs
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installer packaging failed' }
 
           Write-Host ""
           Write-Host "=== Contents of dist/$env:APP_VERSION/ ==="
