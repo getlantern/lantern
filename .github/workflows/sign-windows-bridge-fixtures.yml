@@ -13,25 +13,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  inspect-request:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - name: Read failed request and bundle configuration
-        shell: pwsh
-        env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
-          SIGNPATH_ORG_ID: ${{ vars.SIGNPATH_ORG_ID }}
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $base = "https://app.signpath.io/API/v1/$env:SIGNPATH_ORG_ID"
-          $headers = @{ Authorization = "Bearer $env:SIGNPATH_API_TOKEN" }
-          $request = Invoke-RestMethod -Uri "$base/SigningRequests/58297ccb-f894-44a7-bc0c-a9ac2cd4ab75" -Headers $headers -TimeoutSec 30
-          $request | Select-Object status, workflowStatus, malwareScanningStatus, artifactConfigurationSlug, webLink | ConvertTo-Json
-          $config = Invoke-WebRequest -Uri "$base/Projects/lantern/ArtifactConfigurations/zip-bundle/Xml" -Headers $headers -TimeoutSec 30
-          Write-Host $config.Content
   sign:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.repository == 'getlantern/lantern'
     runs-on: windows-2025
     timeout-minutes: 25
     steps:
@@ -104,7 +87,7 @@ jobs:
                   raise SystemExit('Unexpected Desktop artifact files')
               bundle.extractall(Path(os.environ['RUNNER_TEMP']) / 'migration-unsigned')
           print(f'Verified Desktop run {run_id}, artifact {artifact_id}, source {source_sha}')
-      - name: Check executable metadata and prepare signing bundle
+      - name: Check executable metadata before signing
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -126,7 +109,6 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "Invalid $mode fixture" }
             Copy-Item "$inputDir/lantern.exe" "$toSign/$mode.exe"
           }
-          Compress-Archive -LiteralPath "$toSign/seed.exe", "$toSign/bridge.exe" -DestinationPath "$env:RUNNER_TEMP/migration-to-sign.zip"
       - name: Sign with Lantern's existing production policy
         shell: pwsh
         env:
@@ -134,24 +116,20 @@ jobs:
           SIGNPATH_ORG_ID: ${{ vars.SIGNPATH_ORG_ID }}
           SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
         run: |
-          ./scripts/ci/sign-windows.ps1 `
-            -FilePath "$env:RUNNER_TEMP/migration-to-sign.zip" `
-            -SigningPolicy prod-policy `
-            -OrganizationId $env:SIGNPATH_ORG_ID `
-            -ProjectSlug $env:SIGNPATH_PROJECT_SLUG `
-            -ApiToken $env:SIGNPATH_API_TOKEN `
-            -ArtifactConfigurationSlug zip-bundle `
-            -Description "Staging migration fixtures from Desktop run 38009138148"
+          foreach ($mode in @('seed', 'bridge')) {
+            ./scripts/ci/sign-windows.ps1 `
+              -FilePath "$env:RUNNER_TEMP/migration-to-sign/$mode.exe" `
+              -SigningPolicy prod-policy `
+              -OrganizationId $env:SIGNPATH_ORG_ID `
+              -ProjectSlug $env:SIGNPATH_PROJECT_SLUG `
+              -ApiToken $env:SIGNPATH_API_TOKEN `
+              -Description "Staging migration $mode from Desktop run 38009138148"
+          }
       - name: Verify and package signed fixtures
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $signed = "$env:RUNNER_TEMP/migration-signed"
-          Expand-Archive -LiteralPath "$env:RUNNER_TEMP/migration-to-sign.zip" -DestinationPath $signed
-          $files = @(Get-ChildItem $signed -Recurse -File)
-          if ($files.Count -ne 2 -or -not (Test-Path "$signed/seed.exe") -or -not (Test-Path "$signed/bridge.exe")) {
-            throw 'Unexpected signed bundle contents'
-          }
+          $signed = "$env:RUNNER_TEMP/migration-to-sign"
           $output = "$env:RUNNER_TEMP/migration-packaged"
           foreach ($mode in @('seed', 'bridge')) {
             $executable = "$signed/$mode.exe"
