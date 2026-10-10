@@ -13,8 +13,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  inspect-request:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Read failed request and bundle configuration
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORG_ID: ${{ vars.SIGNPATH_ORG_ID }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = "https://app.signpath.io/API/v1/$env:SIGNPATH_ORG_ID"
+          $headers = @{ Authorization = "Bearer $env:SIGNPATH_API_TOKEN" }
+          $request = Invoke-RestMethod -Uri "$base/SigningRequests/58297ccb-f894-44a7-bc0c-a9ac2cd4ab75" -Headers $headers -TimeoutSec 30
+          $request | Select-Object status, workflowStatus, malwareScanningStatus, artifactConfigurationSlug, webLink | ConvertTo-Json
+          $config = Invoke-WebRequest -Uri "$base/Projects/lantern/ArtifactConfigurations/zip-bundle/Xml" -Headers $headers -TimeoutSec 30
+          Write-Host $config.Content
   sign:
-    if: github.repository == 'getlantern/lantern'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: windows-2025
     timeout-minutes: 25
     steps:
