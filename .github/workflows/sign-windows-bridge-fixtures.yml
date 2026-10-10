@@ -1,0 +1,165 @@
+name: Sign pinned Windows migration fixtures
+
+on:
+  push:
+    branches: [atavism/bridge-signing-e2e]
+    paths: [.github/workflows/sign-windows-bridge-fixtures.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sign-windows-bridge-fixtures
+  cancel-in-progress: false
+
+jobs:
+  sign:
+    if: github.repository == 'getlantern/lantern'
+    runs-on: windows-2025
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out reviewed Desktop validators
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: getlantern/lantern-desktop
+          ref: 7e2fbb7e4c5aed86dcf81e6585667d246fdcd9bf
+          path: desktop-tooling
+          token: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/bridge-release
+            scripts/bridge-e2e
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.22.4'
+          cache: false
+      - name: Download the pinned unsigned artifact
+        shell: python
+        env:
+          GH_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+        run: |
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import zipfile
+
+          repo = 'repos/getlantern/lantern-desktop'
+          run_id = 38009138148
+          artifact_id = 11652793099
+          source_sha = '5f21295e523591bed136fab3ff4eb75069e118e9'
+          digest = '560e2ee55ee215fc09056e8d929bea138fbad41e43d703d555c80fdf46376408'
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'{repo}/{path}']))
+
+          run = api(f'actions/runs/{run_id}')
+          if (run['head_sha'] != source_sha or run['event'] != 'workflow_dispatch'
+                  or run['path'] != '.github/workflows/windows-bridge-e2e.yml'
+                  or run['status'] != 'completed'
+                  or run['head_repository']['full_name'] != 'getlantern/lantern-desktop'):
+              raise SystemExit('Unexpected Desktop build provenance')
+          # The build passed; the later Azure signing step failed.
+          jobs = api(f'actions/runs/{run_id}/jobs?filter=all&per_page=100')['jobs']
+          for name in ('contracts', 'native-evidence', 'build-fixtures'):
+              if not any(job['name'] == name and job['conclusion'] == 'success' for job in jobs):
+                  raise SystemExit(f'Desktop check did not pass: {name}')
+          artifact = api(f'actions/artifacts/{artifact_id}')
+          if (artifact['expired'] or artifact['workflow_run']['id'] != run_id
+                  or artifact['workflow_run']['head_sha'] != source_sha
+                  or artifact['name'] != 'migration-e2e-UNSIGNED-rebuilt-fixtures'
+                  or artifact['digest'] != 'sha256:' + digest):
+              raise SystemExit('Unexpected Desktop artifact')
+          archive = Path(os.environ['RUNNER_TEMP']) / 'desktop-unsigned.zip'
+          with archive.open('wb') as output:
+              subprocess.run(['gh', 'api', f'{repo}/actions/artifacts/{artifact_id}/zip'], stdout=output, check=True)
+          if hashlib.sha256(archive.read_bytes()).hexdigest() != digest:
+              raise SystemExit('Desktop artifact archive checksum mismatch')
+          expected = {'global-config-check.exe'} | {
+              f'{mode}/{name}' for mode in ('seed', 'bridge')
+              for name in ('lantern.exe', 'build-info.txt', 'e2e-artifact.json')
+          }
+          with zipfile.ZipFile(archive) as bundle:
+              if set(bundle.namelist()) != expected or len(bundle.namelist()) != len(expected):
+                  raise SystemExit('Unexpected Desktop artifact files')
+              bundle.extractall(Path(os.environ['RUNNER_TEMP']) / 'migration-unsigned')
+          print(f'Verified Desktop run {run_id}, artifact {artifact_id}, source {source_sha}')
+      - name: Check executable metadata and prepare signing bundle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expected = @{
+            seed = @{ Source = '1145e4ca7a7d1d5bfb7b4cd9cdb719a7aaea202e'; Version = '7.9.5' }
+            bridge = @{ Source = '5f21295e523591bed136fab3ff4eb75069e118e9'; Version = '7.9.6' }
+          }
+          $toSign = "$env:RUNNER_TEMP/migration-to-sign"
+          New-Item -ItemType Directory $toSign | Out-Null
+          foreach ($mode in @('seed', 'bridge')) {
+            $inputDir = "$env:RUNNER_TEMP/migration-unsigned/$mode"
+            $metadata = Get-Content "$inputDir/e2e-artifact.json" -Raw | ConvertFrom-Json
+            if ($metadata.mode -ne $mode -or $metadata.source_commit -ne $expected[$mode].Source -or $metadata.version -ne $expected[$mode].Version) {
+              throw "Unexpected $mode source or version"
+            }
+            go version -m "$inputDir/lantern.exe" | Set-Content "$inputDir/build-info.txt" -Encoding utf8
+            if ($LASTEXITCODE -ne 0) { throw "Could not inspect $mode executable" }
+            python desktop-tooling/scripts/bridge-e2e/artifact.py check --directory $inputDir
+            if ($LASTEXITCODE -ne 0) { throw "Invalid $mode fixture" }
+            Copy-Item "$inputDir/lantern.exe" "$toSign/$mode.exe"
+          }
+          Compress-Archive -LiteralPath "$toSign/seed.exe", "$toSign/bridge.exe" -DestinationPath "$env:RUNNER_TEMP/migration-to-sign.zip"
+      - name: Sign with Lantern's existing production policy
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORG_ID: ${{ vars.SIGNPATH_ORG_ID }}
+          SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+        run: |
+          ./scripts/ci/sign-windows.ps1 `
+            -FilePath "$env:RUNNER_TEMP/migration-to-sign.zip" `
+            -SigningPolicy prod-policy `
+            -OrganizationId $env:SIGNPATH_ORG_ID `
+            -ProjectSlug $env:SIGNPATH_PROJECT_SLUG `
+            -ApiToken $env:SIGNPATH_API_TOKEN `
+            -ArtifactConfigurationSlug zip-bundle `
+            -Description "Staging migration fixtures from Desktop run 38009138148"
+      - name: Verify and package signed fixtures
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $signed = "$env:RUNNER_TEMP/migration-signed"
+          Expand-Archive -LiteralPath "$env:RUNNER_TEMP/migration-to-sign.zip" -DestinationPath $signed
+          $files = @(Get-ChildItem $signed -Recurse -File)
+          if ($files.Count -ne 2 -or -not (Test-Path "$signed/seed.exe") -or -not (Test-Path "$signed/bridge.exe")) {
+            throw 'Unexpected signed bundle contents'
+          }
+          $output = "$env:RUNNER_TEMP/migration-packaged"
+          foreach ($mode in @('seed', 'bridge')) {
+            $executable = "$signed/$mode.exe"
+            $signature = "$env:RUNNER_TEMP/$mode-authenticode.json"
+            $info = "$env:RUNNER_TEMP/$mode-build-info.txt"
+            ./desktop-tooling/scripts/bridge-release/verify-authenticode.ps1 -Executable $executable -Output $signature
+            go version -m $executable | Set-Content $info -Encoding utf8
+            if ($LASTEXITCODE -ne 0) { throw "Could not inspect signed $mode executable" }
+            python desktop-tooling/scripts/bridge-e2e/artifact.py package --executable $executable --source "$env:RUNNER_TEMP/migration-unsigned/$mode/e2e-artifact.json" --build-info $info --signature-report $signature --output "$output/$mode"
+            if ($LASTEXITCODE -ne 0) { throw "Could not package signed $mode fixture" }
+          }
+          Copy-Item "$env:RUNNER_TEMP/migration-unsigned/global-config-check.exe" "$output/global-config-check.exe"
+          [ordered]@{
+            desktop_run_id = 38009138148
+            unsigned_artifact_id = 11652793099
+            unsigned_artifact_sha256 = '560e2ee55ee215fc09056e8d929bea138fbad41e43d703d555c80fdf46376408'
+            desktop_source_commit = '5f21295e523591bed136fab3ff4eb75069e118e9'
+            desktop_tooling_commit = '7e2fbb7e4c5aed86dcf81e6585667d246fdcd9bf'
+            signing_commit = $env:GITHUB_SHA
+            signing_run_id = $env:GITHUB_RUN_ID
+            production_activation_ready = $false
+          } | ConvertTo-Json | Set-Content "$output/signing-provenance.json" -Encoding utf8
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: migration-e2e-signed-rebuilt-fixtures
+          path: ${{ runner.temp }}/migration-packaged/
+          if-no-files-found: error
+          retention-days: 14
