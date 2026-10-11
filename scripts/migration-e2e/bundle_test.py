@@ -27,6 +27,7 @@ class BundleTest(unittest.TestCase):
         config = json.dumps({"updateserverurl": "https://update.staging.iantem.io",
                              "autoupdateca": "-----BEGIN CERTIFICATE-----\ntest\n",
                              "trustedcas": [{"cert": "test"}],
+                             "domainroutingrules": {"pro-api.staging.iantem.io": "m"},
                              "client": {"fronted": {"providers": {"test": {"masquerades": []}}}}})
         (self.root / "global.json").write_text(config, encoding="utf-8")
         assets["global_config"] = {"file": "global.json", "sha256": hashlib.sha256(config.encode()).hexdigest()}
@@ -44,6 +45,21 @@ class BundleTest(unittest.TestCase):
 
     def test_valid(self):
         self.assertEqual(self.validate()["lane"], "rebuilt-staging")
+
+    def test_account_requires_must_proxy_route(self):
+        path = self.root / "global.json"
+        config = json.loads(path.read_text(encoding="utf-8"))
+        del config["domainroutingrules"]
+        invalid = [{}, {"domainroutingrules": None}, {"domainroutingrules": []},
+                   {"domainroutingrules": {}}]
+        invalid += [{"domainroutingrules": {"pro-api.staging.iantem.io": value}}
+                    for value in ("d", "p", "", None, True)]
+        for routing in invalid:
+            with self.subTest(routing=routing):
+                path.write_text(json.dumps({**config, **routing}), encoding="utf-8")
+                self.m["artifacts"]["global_config"]["sha256"] = bundle.sha256(path)
+                with self.assertRaisesRegex(ValueError, "missing_account_must_proxy_route"):
+                    self.validate()
 
     def test_fail_closed_contract(self):
         for key, value in [("lane", "released-7.9.5"), ("endpoint", "https://update.getlantern.org"),

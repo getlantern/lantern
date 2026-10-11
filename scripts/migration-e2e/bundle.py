@@ -149,6 +149,9 @@ def validate(root, manifest_hash):
     require(isinstance(config.get("trustedcas"), list) and bool(config["trustedcas"]), "missing_trusted_cas")
     require(isinstance(config.get("client"), dict)
             and config["client"].get("fronted", {}).get("providers"), "missing_fronted_providers")
+    routing = config.get("domainroutingrules")
+    require(isinstance(routing, dict) and routing.get("pro-api.staging.iantem.io") == "m",
+            "missing_account_must_proxy_route")
     # The Windows runner also invokes the companion's validator, compiled against
     # the frozen legacy config decoder/types. Structural checks alone cannot prove
     # the old app will accept global.yaml instead of its embedded fallback.
