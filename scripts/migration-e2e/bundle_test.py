@@ -79,14 +79,15 @@ class BundleTest(unittest.TestCase):
 
     def test_actual_binary_metadata_contract(self):
         flags = ('-H=windowsgui -X github.com/getlantern/lantern-desktop/desktop.ApplicationVersion=7.9.5 '
-                 '-X github.com/getlantern/flashlight/v7/common.ProAPIHost=api-staging.getiantem.org')
+                 '-X github.com/getlantern/flashlight/v7/common.ProAPIHost=pro-api.staging.iantem.io')
         def info(flags):
             return ('seed.exe: go1.22.4\n\tpath\tgithub.com/getlantern/lantern-desktop/main\n'
                     '\tbuild\tGOOS=windows\n\tbuild\tGOARCH=386\n\tbuild\tvcs.modified=false\n'
                     '\tbuild\tvcs.revision=' + bundle.SEED_COMMIT + '\n'
                     '\tbuild\t-tags=lantern,walk_use_cgo\n\tbuild\t-ldflags=' + shlex.quote(flags) + '\n')
         bundle.verify_legacy_build(info(flags), 'seed', bundle.SEED_COMMIT, '7.9.5')
-        for invalid in [flags.replace('api-staging.getiantem.org', 'api.getiantem.org'),
+        for invalid in [flags.replace('pro-api.staging.iantem.io', 'api.getiantem.org'),
+                        flags.replace('pro-api.staging.iantem.io', 'api-staging.getiantem.org'),
                         flags + ' -X github.com/getlantern/flashlight/v7/common.ProAPIHost=api.getiantem.org',
                         flags + ' -X github.com/getlantern/lantern-desktop/autoupdate.PublicKey=changed',
                         flags + ' -X github.com/getlantern/flashlight/v7/common.StagingMode=true']:

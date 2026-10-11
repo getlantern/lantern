@@ -4,7 +4,9 @@ This exercises **7.9.5 x86 → bridge x86 → v10 installer → authenticated Ra
 
 ## What a pass means
 
-The executable lane is `rebuilt-staging`. The seed is rebuilt from the exact Windows `lantern-7.9.5` source (`1145e4ca7a7d1d5bfb7b4cd9cdb719a7aaea202e`) with the account host linker override `github.com/getlantern/flashlight/v7/common.ProAPIHost=api-staging.getiantem.org`. The updater implementation and embedded RSA public key remain unchanged. Do **not** use `StagingMode`/`STAGING=1`: that mode substitutes a shared hardcoded account.
+The executable lane is `rebuilt-staging`. The seed is rebuilt from the exact Windows `lantern-7.9.5` source (`1145e4ca7a7d1d5bfb7b4cd9cdb719a7aaea202e`) with the account host linker override `github.com/getlantern/flashlight/v7/common.ProAPIHost=pro-api.staging.iantem.io`. The updater implementation and embedded RSA public key remain unchanged. Do **not** use `StagingMode`/`STAGING=1`: that mode substitutes a shared hardcoded account.
+
+The legacy client requires a hostname and sends account requests at the root, such as `/user-data`. Lantern Cloud routes `pro-api.staging.iantem.io` to the same staging account service that v10 uses at `api.staging.iantem.io/pro-server`.
 
 The original released 7.9.5 binary hardcodes the production account API. Its supported configuration changes the updater endpoint/CA, not that account API. Consequently an isolated full account-migration test with the original release is **blocked pending a reviewed endpoint/account strategy**. This harness rejects a `released-7.9.5` manifest and always records `production_activation_ready: false`. Neither a rebuilt pass nor synthetic HTTP requests satisfy that release prerequisite.
 

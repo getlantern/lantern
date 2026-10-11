@@ -70,7 +70,7 @@ def verify_legacy_build(info, role, commit, version):
     tags = {"lantern", "walk_use_cgo"} | ({"migratione2e"} if role == "bridge" else set())
     require(set(re.split("[, ]+", settings.get("-tags", ""))) == tags, "legacy_build_tags")
     prefix = "github.com/getlantern/lantern-desktop/"
-    expected = {"github.com/getlantern/flashlight/v7/common.ProAPIHost": "api-staging.getiantem.org",
+    expected = {"github.com/getlantern/flashlight/v7/common.ProAPIHost": "pro-api.staging.iantem.io",
                 prefix + "desktop.ApplicationVersion": version}
     if role == "bridge":
         expected[prefix + "autoupdate.WindowsInstallerHandoff"] = "1"
