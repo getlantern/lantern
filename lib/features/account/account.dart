@@ -98,7 +98,7 @@ class Account extends HookConsumerWidget {
                       copyToClipboard(email);
                     }
                   : null,
-              trailing: isOAuthLogin
+              trailing: isOAuthLogin || email.isEmpty
                   ? null
                   : AppTextButton(
                       label: 'change_email'.i18n,
