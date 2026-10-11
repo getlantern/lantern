@@ -85,6 +85,10 @@ endif
 ## signal from logs.
 GIT_REVISION := $(or $(strip $(shell git rev-parse --short=7 HEAD)),unknown)
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_REVISION)'
+## The Soar DNS-tunnel server kindling falls back to. CI sets SOAR_ZONE (a secret, kept out of
+## this public repo and its logs) and SOAR_PUBLIC_KEY (a variable); without them it's left out.
+SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR_ZONE)' -X '$(RADIANCE_REPO)/kindling/soar.PublicKey=$(SOAR_PUBLIC_KEY)')
+EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
 # Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
