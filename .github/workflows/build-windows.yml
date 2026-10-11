@@ -7,6 +7,8 @@ on:
         required: true
       JOIN_SERVER_CONFIG_URLS:
         required: false
+      SOAR_ZONE:
+        required: false
       # Base64 of integration_test/auth/auth_smoke_credentials.dart; only
       # needed when run_auth_smoke is true.
       AUTH_SMOKE_CREDENTIALS:
@@ -117,6 +119,8 @@ jobs:
       AUTH_SMOKE_CREDENTIALS_AVAILABLE: ${{ secrets.AUTH_SMOKE_CREDENTIALS != '' }}
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
+      SOAR_ZONE: ${{ secrets.SOAR_ZONE }}
+      SOAR_PUBLIC_KEY: ${{ vars.SOAR_PUBLIC_KEY }}
       SIGNPATH_SIGNING_POLICY: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
     permissions:
       contents: "read"
