@@ -53,7 +53,44 @@ try {
       if ((ConvertTo-UtcTime $roundtrip.boot) -eq (ConvertTo-UtcTime $expectedTime.AddMinutes(1))) { throw 'changed_boot_rejected' }
     }
   } finally { [Globalization.CultureInfo]::CurrentCulture = $culture }
-  'PowerShell parser, read-sharing/error-code and UTC timestamp checks passed'
+  $script:M = @{endpoint='https://update.staging.iantem.io/update/lantern'; bridge_version='7.9.6'; installer_version='10.99.1';
+    artifacts=@{seed=@{sha256=('a' * 64)}; bridge=@{sha256=('b' * 64)}; installer=@{sha256=('c' * 64)}}}
+  $script:Result = @{}
+  $script:routeURLOverrides = @{}
+  function Invoke-WebRequest {
+    param($Uri, $Method, $ContentType, $Body, $Headers, $MaximumRedirection, $TimeoutSec, [switch]$SkipHttpErrorCheck)
+    $request = $Body | ConvertFrom-Json -AsHashtable
+    $seed = $request.app_version -eq '7.9.5'
+    if (-not $seed -and $request.tags.os_arch -ne 'amd64') { return @{StatusCode=204} }
+    $hop = if ($seed) {'bridge'} else {'installer'}
+    $version = if ($seed) {'7.9.6'} else {'10.99.1'}
+    $arch = if ($seed) {'386'} else {'amd64'}
+    $url = if ($script:routeURLOverrides.ContainsKey($hop)) {$script:routeURLOverrides[$hop]} else {
+      "https://update.staging.iantem.io/update/lantern/windows-migration/$arch/$version"
+    }
+    return @{StatusCode=200; Content=(@{version=$version; initiative='auto'; patch_url=''; patch_type='';
+      checksum=$script:M.artifacts[$hop].sha256; update_type=$(if ($seed) {'binary'} else {'installer'});
+      target_arch=$arch; url=$url} | ConvertTo-Json -Compress)}
+  }
+  Check-Routes
+  foreach ($badURL in @(
+    'https://github.com/getlantern/lantern-update-fixtures/releases/download/v7.9.6/update_windows_386_7.9.6.bz2',
+    'https://update.staging.iantem.io.evil.test/update/lantern/windows-migration/386/7.9.6',
+    'http://update.staging.iantem.io/update/lantern/windows-migration/386/7.9.6',
+    'https://user@update.staging.iantem.io/update/lantern/windows-migration/386/7.9.6',
+    'https://update.staging.iantem.io/update/lantern/windows-migration/amd64/7.9.6',
+    'https://update.staging.iantem.io/update/lantern/windows-migration/386/7.9.7',
+    'https://update.staging.iantem.io/update/lantern/windows-migration/386/7.9.6?download=1',
+    'https://update.staging.iantem.io/update/lantern/windows-migration/386/7.9.6#fragment'
+  )) {
+    $script:routeURLOverrides = @{bridge=$badURL}
+    try { Check-Routes; throw 'accepted_wrong_download_url' }
+    catch { if ($_.Exception.Data['migration-e2e-code'] -ne 'catalog_drift') { throw } }
+  }
+  $script:routeURLOverrides = @{installer='https://update.staging.iantem.io/update/lantern/windows-migration/386/10.99.1'}
+  try { Check-Routes; throw 'accepted_wrong_installer_url' }
+  catch { if ($_.Exception.Data['migration-e2e-code'] -ne 'catalog_drift') { throw } }
+  'PowerShell parser, read-sharing/error-code, UTC timestamp and download routing checks passed'
 } finally {
   # Only the unique directory created by this test is removed.
   Remove-Item -LiteralPath $temp -Recurse -Force

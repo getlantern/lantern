@@ -190,13 +190,17 @@ function Check-Routes {
     if ($hop -in @('bridge', 'installer')) {
       Require ($response.StatusCode -eq 200) 'catalog_not_ready'
       $offer = $response.Content | ConvertFrom-Json -AsHashtable
-      Require ($offer.version -eq $(if ($isSeed) {$script:M.bridge_version} else {$script:M.installer_version}) -and
+      $targetVersion = if ($isSeed) {$script:M.bridge_version} else {$script:M.installer_version}
+      $targetArch = if ($isSeed) {'386'} else {'amd64'}
+      $origin = ([Uri]$script:M.endpoint).GetLeftPart([UriPartial]::Authority)
+      $downloadURL = "$origin/update/lantern/windows-migration/$targetArch/$targetVersion"
+      Require ($offer.version -eq $targetVersion -and
                $offer.initiative -eq 'auto' -and [string]::IsNullOrEmpty($offer['patch_url']) -and
                [string]::IsNullOrEmpty($offer['patch_type']) -and
                $offer.checksum -eq $script:M.artifacts[$hop].sha256 -and
                $offer.update_type -eq $(if ($isSeed) {'binary'} else {'installer'}) -and
-               $offer.target_arch -eq $(if ($isSeed) {'386'} else {'amd64'}) -and
-               $offer.url.StartsWith('https://github.com/getlantern/lantern-update-fixtures/releases/download/')) 'catalog_drift'
+               $offer.target_arch -eq $targetArch -and
+               $offer.url -ceq $downloadURL) 'catalog_drift'
     } else {
       Require ($response.StatusCode -eq 204) 'unsupported_route'
     }
