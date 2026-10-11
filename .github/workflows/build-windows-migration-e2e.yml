@@ -64,3 +64,4 @@ jobs:
       APP_ENV: ${{ secrets.STAGING_APP_ENV }}
       JOIN_SERVER_CONFIG_URLS: ${{ secrets.STAGING_JOIN_SERVER_CONFIG_URLS }}
       SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      SOAR_ZONE: ${{ secrets.SOAR_ZONE }}
