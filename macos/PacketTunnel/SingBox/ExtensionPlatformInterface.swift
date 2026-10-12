@@ -309,11 +309,10 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   private var nwMonitor: NWPathMonitor? = nil
-  /// Serializes path updates; lastDefaultInterface and pendingNetworkReset are only
-  /// touched on this queue.
+  /// Serializes path updates and lastDefaultInterface.
   private let pathQueue = DispatchQueue(label: "org.getlantern.PacketTunnel.path")
   private var lastDefaultInterface: DefaultInterface?
-  private var pendingNetworkReset: DispatchWorkItem?
+  private let networkResets = NetworkResetScheduler()
   /// An address change can settle in several path updates; wait for them to stop so
   /// the tunnel resets once.
   private static let networkResetDelay: DispatchTimeInterval = .seconds(1)
@@ -338,15 +337,16 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     // closed. Replacing the reference without cancelling leaks the old
     // NWPathMonitor, which keeps pushing path updates into a dead sing-box.
     nwMonitor?.cancel()
-    pathQueue.async { self.clearPathState() }
+    let session = networkResets.startSession()
+    pathQueue.async { self.clearPathState(session) }
     let monitor = NWPathMonitor()
     nwMonitor = monitor
     let semaphore = DispatchSemaphore(value: 0)
     monitor.pathUpdateHandler = { path in
-      self.onUpdateDefaultInterface(listener, path)
+      self.onUpdateDefaultInterface(listener, path, session)
       semaphore.signal()
       monitor.pathUpdateHandler = { path in
-        self.onUpdateDefaultInterface(listener, path)
+        self.onUpdateDefaultInterface(listener, path, session)
       }
     }
     monitor.start(queue: pathQueue)
@@ -361,11 +361,13 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   private func onUpdateDefaultInterface(
-    _ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath
+    _ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath,
+    _ session: NetworkResetScheduler.Session
   ) {
+    guard networkResets.isCurrent(session) else { return }
     if path.status == .unsatisfied {
       appLogger.info("network path: \(describeNetworkPath(path))")
-      clearPathState()
+      clearPathState(session)
       listener.updateDefaultInterface(
         "", interfaceIndex: -1, isExpensive: false, isConstrained: false)
       return
@@ -375,7 +377,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     if let last = lastDefaultInterface,
       last.name != defaultInterface.name || last.index != defaultInterface.index
     {
-      clearPathState()
+      clearPathState(session)
     }
     let ipv4 = ipv4Addresses(of: defaultInterface.name)
     let ipv4Description = ipv4?.joined(separator: ",") ?? "unknown"
@@ -399,31 +401,28 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       appLogger.info(
         "default interface \(defaultInterface.name) IPv4 changed from \(previous.ipv4) to \(ipv4); scheduling network reset"
       )
-      scheduleNetworkReset()
+      scheduleNetworkReset(session)
     }
   }
 
-  private func scheduleNetworkReset() {
-    pendingNetworkReset?.cancel()
-    // Runs on pathQueue so clearPathState's cancel either precedes it or follows a reset
-    // that was already due; the IPC call itself must not block path updates.
-    let reset = DispatchWorkItem {
-      DispatchQueue.global().async {
-        var error: NSError?
-        MobileResetNetwork(&error)
-        if let error {
-          appLogger.error("network reset failed: \(error.localizedDescription)")
-        }
+  private func scheduleNetworkReset(_ session: NetworkResetScheduler.Session) {
+    networkResets.schedule(for: session, after: Self.networkResetDelay) {
+      var error: NSError?
+      MobileResetNetwork(&error)
+      if let error {
+        appLogger.error("network reset failed: \(error.localizedDescription)")
       }
     }
-    pendingNetworkReset = reset
-    pathQueue.asyncAfter(deadline: .now() + Self.networkResetDelay, execute: reset)
   }
 
-  private func clearPathState() {
-    pendingNetworkReset?.cancel()
-    pendingNetworkReset = nil
+  private func clearPathState(_ session: NetworkResetScheduler.Session) {
+    guard networkResets.isCurrent(session) else { return }
+    networkResets.cancelPending(for: session)
     lastDefaultInterface = nil
+  }
+
+  func cancelNetworkResetsAndWait() {
+    networkResets.endSessionAndWait()
   }
 
   /// Returns the interface's IPv4 addresses sorted, or nil if they cannot be read.
@@ -467,9 +466,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
     appLogger.info("Close default interface monitor")
+    networkResets.endSession()
     nwMonitor?.cancel()
     nwMonitor = nil
-    pathQueue.async { self.clearPathState() }
   }
 
   public func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
@@ -603,9 +602,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   func reset() {
     networkSettings = nil
+    networkResets.endSession()
     nwMonitor?.cancel()
     nwMonitor = nil
-    pathQueue.async { self.clearPathState() }
   }
 
   public func restartService() throws {
