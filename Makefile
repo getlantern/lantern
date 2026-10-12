@@ -85,6 +85,10 @@ endif
 ## signal from logs.
 GIT_REVISION := $(or $(strip $(shell git rev-parse --short=7 HEAD)),unknown)
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_REVISION)'
+## The Soar DNS-tunnel server kindling falls back to. CI sets SOAR_ZONE (a secret, kept out of
+## this public repo and its logs) and SOAR_PUBLIC_KEY (a variable); without them it's left out.
+SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR_ZONE)' -X '$(RADIANCE_REPO)/kindling/soar.PublicKey=$(SOAR_PUBLIC_KEY)')
+EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
 # Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
@@ -300,7 +304,7 @@ GARBLE ?= garble
 GARBLE_VERSION ?= v0.16.0
 GARBLE_SEED ?= $(STEALTH_GARBLE_SEED)
 GARBLE_FLAGS ?= -literals
-STEALTH_GOGARBLE_PACKAGES := github.com/getlantern/lantern,github.com/getlantern/radiance,github.com/getlantern/common,github.com/getlantern/lantern-box,github.com/getlantern/kindling,github.com/getlantern/netx,github.com/getlantern/flashlight,github.com/getlantern/golog,github.com/getlantern/sing-box-minimal,github.com/getlantern/amp,github.com/getlantern/broflake,github.com/getlantern/samizdat,github.com/getlantern/domainfront,github.com/getlantern/semconv,github.com/getlantern/publicip,github.com/getlantern/dnstt,github.com/getlantern/keepcurrent,github.com/getlantern/algeneva,github.com/getlantern/lantern-water,github.com/getlantern/water,github.com/getlantern/wazero,github.com/getlantern/wireguard-go,github.com/getlantern/sing,github.com/getlantern/osversion,github.com/getlantern/timezone,github.com/getlantern/pluriconfig,github.com/getlantern/appdir,github.com/getlantern/context,github.com/getlantern/fronted,github.com/getlantern/lantern-server-provisioner,github.com/getlantern/ops
+STEALTH_GOGARBLE_PACKAGES := github.com/getlantern/lantern,github.com/getlantern/radiance,github.com/getlantern/common,github.com/getlantern/lantern-box,github.com/getlantern/kindling,github.com/getlantern/netx,github.com/getlantern/flashlight,github.com/getlantern/golog,github.com/getlantern/sing-box-minimal,github.com/getlantern/amp,github.com/getlantern/broflake,github.com/getlantern/samizdat,github.com/getlantern/domainfront,github.com/getlantern/semconv,github.com/getlantern/publicip,github.com/getlantern/soar,github.com/getlantern/keepcurrent,github.com/getlantern/algeneva,github.com/getlantern/lantern-water,github.com/getlantern/water,github.com/getlantern/wazero,github.com/getlantern/wireguard-go,github.com/getlantern/sing,github.com/getlantern/osversion,github.com/getlantern/timezone,github.com/getlantern/pluriconfig,github.com/getlantern/appdir,github.com/getlantern/context,github.com/getlantern/fronted,github.com/getlantern/lantern-server-provisioner,github.com/getlantern/ops
 GARBLE_GOGARBLE ?= $(if $(STEALTH_ENABLED),$(STEALTH_GOGARBLE_PACKAGES),github.com/getlantern/lantern)
 GARBLE_LDFLAGS ?= -w -s -buildid=
 

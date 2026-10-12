@@ -9,6 +9,8 @@ on:
         required: false
       APP_ENV:
         required: false
+      SOAR_ZONE:
+        required: false
       MACOS_BNS_CERT:
         required: false
       MACOS_BNS_CERT_PASS:
@@ -119,6 +121,8 @@ jobs:
       RADIANCE_ENV: ${{ inputs.backend_environment }}
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
+      SOAR_ZONE: ${{ secrets.SOAR_ZONE }}
+      SOAR_PUBLIC_KEY: ${{ vars.SOAR_PUBLIC_KEY }}
     runs-on: ${{ inputs.runner_label }}
     steps:
       - name: Checkout code

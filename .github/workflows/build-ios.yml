@@ -21,6 +21,8 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
+      SOAR_ZONE: ${{ secrets.SOAR_ZONE }}
+      SOAR_PUBLIC_KEY: ${{ vars.SOAR_PUBLIC_KEY }}
     runs-on: macos-26
     steps:
       - name: Checkout code

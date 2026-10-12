@@ -34,6 +34,8 @@ on:
         required: true
       STEALTH_GARBLE_SEED:
         required: false
+      SOAR_ZONE:
+        required: false
 
 jobs:
   build-android:
@@ -43,6 +45,8 @@ jobs:
     env:
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
+      SOAR_ZONE: ${{ secrets.SOAR_ZONE }}
+      SOAR_PUBLIC_KEY: ${{ vars.SOAR_PUBLIC_KEY }}
     # Android needs no Apple tooling. Public Linux runners have 4 CPUs/16 GB,
     # versus 3 CPUs/7 GB on macOS ARM64, leaving more headroom for Gradle/R8.
     runs-on: ubuntu-24.04

@@ -1,0 +1,49 @@
+name: Windows migration E2E harness checks
+
+on:
+  pull_request:
+    paths:
+      - 'go.mod'
+      - 'go.sum'
+      - 'scripts/migration-e2e/**'
+      - '.github/workflows/*migration-e2e*'
+      - '.github/workflows/build-windows.yml'
+      - 'windows/packaging/exe/inno_setup.iss'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: ./.github/actions/setup-go
+        with:
+          cache-scope: migration-e2e-probe
+      - name: Validate bundle and staging installer guards
+        run: python -m unittest discover -s scripts/migration-e2e -p '*_test.py' -v
+      - name: Check harness parsing, atomic read sharing and diagnostic errors
+        shell: pwsh
+        run: ./scripts/migration-e2e/harness_checks.ps1
+      - name: Test and build the real IPC probe
+        shell: pwsh
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          go test -tags with_clash_api ./scripts/migration-e2e/probe
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          go build -tags with_clash_api -o migration-probe.exe ./scripts/migration-e2e/probe
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: migration-probe-windows-amd64
+          path: migration-probe.exe
+          if-no-files-found: error
+          retention-days: 7
