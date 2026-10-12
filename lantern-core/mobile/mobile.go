@@ -392,6 +392,26 @@ func StopVPN() error {
 	return err
 }
 
+// ResetNetwork closes the tunnel's connections so they are redialed on the current
+// network. It is a no-op when the tunnel is not running.
+func ResetNetwork() error {
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		slog.Info("Resetting VPN network")
+		client, err := getClient()
+		// No IPC server or core means no tunnel to reset.
+		if errors.Is(err, errLanternNotReady) {
+			return struct{}{}, nil
+		}
+		if err != nil {
+			return struct{}{}, err
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		return struct{}{}, client.ResetNetwork(ctx)
+	})
+	return err
+}
+
 // IsTagAvailable checks if a server with the given tag exists in the server list.
 // Returns true if the tag is found. Returns true when the check cannot be performed
 // (fail-open: allows connection attempts to proceed normally).
@@ -631,7 +651,7 @@ func AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error
 			if err != nil {
 				return "", err
 			}
-			slog.Debug("fetched user data after account switch", "userdata", userData)
+			slog.Debug("fetched user data after account switch")
 			return userData, nil
 		}
 		/// Purchase was made on the same account, just return "" to indicate success
@@ -693,7 +713,7 @@ func StripeSubscriptionPaymentRedirect(subType, planId, email, idempotencyKey, c
 func Login(email, password string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		b, err := c.Login(email, password)
-		slog.Debug("Login response", "response", string(b), "error", err)
+		slog.Debug("Login response", "success", err == nil, "error", err)
 		return string(b), err
 	})
 }
@@ -742,11 +762,11 @@ func CompleteRecoveryByEmail(email, newPassword, code string) error {
 
 func RemoveDevice(deviceId string) error {
 	return withCore(func(c lanterncore.Core) error {
-		linkresp, err := c.RemoveDevice(deviceId)
+		_, err := c.RemoveDevice(deviceId)
 		if err != nil {
 			return err
 		}
-		slog.Debug("Device removed successfully", "deviceId", deviceId, "response", linkresp)
+		slog.Debug("Device removed successfully", "deviceId", deviceId)
 		return nil
 	})
 }

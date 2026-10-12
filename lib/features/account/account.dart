@@ -531,7 +531,7 @@ class Account extends HookConsumerWidget {
         ref.read(homeProvider.notifier).clearLogoutData();
         ref.read(homeProvider.notifier).updateUserData(user);
         appRouter.popUntilRoot();
-        appLogger.info('Logout success: got user data userId=${user.toJson()}');
+        appLogger.info('Logout success');
       },
     );
   }

@@ -11,6 +11,8 @@ import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import androidx.core.app.ShareCompat
+import androidx.core.content.FileProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -20,6 +22,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
@@ -53,6 +56,7 @@ enum class Methods(val method: String) {
     RestoreInAppPurchase("restoreInAppPurchase"),
     PaymentRedirect("paymentRedirect"),
     LaunchExternalUrl("launchExternalUrl"),
+    ShareFiles("shareFiles"),
     ReportIssue("reportIssue"),
 
     //Oauth
@@ -180,6 +184,7 @@ class MethodHandler : FlutterPlugin,
         const val TAG = "A/MethodHandler"
         const val channelName = "org.getlantern.lantern/method"
         private const val MAX_EXTERNAL_URL_FALLBACK_DEPTH = 3
+        private const val SHARE_SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000L
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -550,6 +555,24 @@ class MethodHandler : FlutterPlugin,
                     }
                     withContext(Dispatchers.Main) {
                         launchExternalUrl(url)
+                    }
+                }
+            }
+
+            Methods.ShareFiles.method -> {
+                scope.handleResult(result, "share_files") {
+                    val args = call.arguments as Map<*, *>
+                    val paths = (args["paths"] as? List<*>)
+                        ?.filterIsInstance<String>()
+                        .orEmpty()
+                    if (paths.isEmpty()) {
+                        throw IllegalArgumentException("No files to share")
+                    }
+                    val title = args["title"] as? String
+                    val text = args["text"] as? String
+                    val uris = stageFilesForSharing(paths)
+                    withContext(Dispatchers.Main) {
+                        shareFiles(uris, title, text)
                     }
                 }
             }
@@ -1578,6 +1601,53 @@ class MethodHandler : FlutterPlugin,
         }
 
         return false
+    }
+
+    /**
+     * Copies files into a unique private cache directory exposed by the app FileProvider
+     * so the share sheet only ever sees a snapshot, never the live log files. Each share
+     * gets its own directory so URIs are never reused and earlier recipients keep
+     * reading the snapshot they were granted.
+     */
+    private fun stageFilesForSharing(paths: List<String>): List<Uri> {
+        val shareRoot = File(appContext.cacheDir, "share_logs")
+        pruneStaleShareSnapshots(shareRoot)
+        val shareDir = File(shareRoot, System.currentTimeMillis().toString())
+        shareDir.mkdirs()
+        return paths.mapIndexed { index, path ->
+            val source = File(path)
+            if (!source.isFile) {
+                throw IllegalArgumentException("File not found: ${source.name}")
+            }
+            // Inputs from different directories may share a basename
+            var staged = File(shareDir, source.name)
+            if (staged.exists()) staged = File(shareDir, "${index}_${source.name}")
+            source.copyTo(staged)
+            FileProvider.getUriForFile(
+                appContext,
+                "${BuildConfig.APPLICATION_ID}.fileProvider",
+                staged
+            )
+        }
+    }
+
+    // Old snapshots are removed by age rather than on the next share so in-flight reads survive
+    private fun pruneStaleShareSnapshots(shareRoot: File) {
+        val cutoff = System.currentTimeMillis() - SHARE_SNAPSHOT_TTL_MS
+        shareRoot.listFiles()
+            ?.filter { it.lastModified() < cutoff }
+            ?.forEach { it.deleteRecursively() }
+    }
+
+    // ShareCompat attaches ClipData with a read-only grant; no write access, no per-package grants
+    private fun shareFiles(uris: List<Uri>, title: String?, text: String?) {
+        val builder = ShareCompat.IntentBuilder(appContext).setType("text/plain")
+        uris.forEach { builder.addStream(it) }
+        if (!text.isNullOrBlank()) builder.setText(text)
+        if (!title.isNullOrBlank()) builder.setChooserTitle(title)
+        appContext.startActivity(
+            builder.createChooserIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
     private fun startExternalIntent(intent: Intent): Boolean {

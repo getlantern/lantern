@@ -65,7 +65,7 @@ class ConfirmEmail extends HookConsumerWidget {
               },
               onCompleted: (String value) {
                 isPinCodeValid.value = value.length == 6;
-                appLogger.info('PIN code completed: $value');
+                appLogger.info('PIN code completed');
                 onContinueTap(context, ref, codeController.text);
               },
             ),
@@ -240,7 +240,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.resetPassword:
       case AuthFlow.lanternProLicense:
       case AuthFlow.signUp:
-        appLogger.info('Resend email for sign up to $email');
+        appLogger.info('Resend code requested for ${authFlow.name}');
         onResendCode(context, ref);
         break;
       case AuthFlow.oauth:
