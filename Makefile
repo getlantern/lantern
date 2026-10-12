@@ -85,6 +85,10 @@ endif
 ## signal from logs.
 GIT_REVISION := $(or $(strip $(shell git rev-parse --short=7 HEAD)),unknown)
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_REVISION)'
+## The Soar DNS-tunnel server kindling falls back to. CI sets SOAR_ZONE (a secret, kept out of
+## this public repo and its logs) and SOAR_PUBLIC_KEY (a variable); without them it's left out.
+SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR_ZONE)' -X '$(RADIANCE_REPO)/kindling/soar.PublicKey=$(SOAR_PUBLIC_KEY)')
+EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
 # Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
@@ -220,6 +224,7 @@ ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTIT
 ANDROID_AUTH_SCHEME = $(strip $(if $(ANDROID_IDENTITY_PROFILE),$(shell sed -n 's/^appAuthScheme=//p' "$(ANDROID_IDENTITY_PROFILE)" 2>/dev/null | tail -n 1),))
 ANDROID_IDENTITY_DART_DEFINES = $(if $(STEALTH_ENABLED),,$(if $(ANDROID_AUTH_SCHEME),--dart-define=APP_AUTH_SCHEME=$(ANDROID_AUTH_SCHEME)))
 PLAY_STORE_DART_DEFINE = $(if $(STEALTH_ACTIVE),,--dart-define=PLAY_STORE_BUILD=true)
+PLAY_STORE_GRADLE_FLAGS = $(if $(STEALTH_ACTIVE),,-Plantern.cleartextTraffic=false)
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -299,7 +304,7 @@ GARBLE ?= garble
 GARBLE_VERSION ?= v0.16.0
 GARBLE_SEED ?= $(STEALTH_GARBLE_SEED)
 GARBLE_FLAGS ?= -literals
-STEALTH_GOGARBLE_PACKAGES := github.com/getlantern/lantern,github.com/getlantern/radiance,github.com/getlantern/common,github.com/getlantern/lantern-box,github.com/getlantern/kindling,github.com/getlantern/netx,github.com/getlantern/flashlight,github.com/getlantern/golog,github.com/getlantern/sing-box-minimal,github.com/getlantern/amp,github.com/getlantern/broflake,github.com/getlantern/samizdat,github.com/getlantern/domainfront,github.com/getlantern/semconv,github.com/getlantern/publicip,github.com/getlantern/dnstt,github.com/getlantern/keepcurrent,github.com/getlantern/algeneva,github.com/getlantern/lantern-water,github.com/getlantern/water,github.com/getlantern/wazero,github.com/getlantern/wireguard-go,github.com/getlantern/sing,github.com/getlantern/osversion,github.com/getlantern/timezone,github.com/getlantern/pluriconfig,github.com/getlantern/appdir,github.com/getlantern/context,github.com/getlantern/fronted,github.com/getlantern/lantern-server-provisioner,github.com/getlantern/ops
+STEALTH_GOGARBLE_PACKAGES := github.com/getlantern/lantern,github.com/getlantern/radiance,github.com/getlantern/common,github.com/getlantern/lantern-box,github.com/getlantern/kindling,github.com/getlantern/netx,github.com/getlantern/flashlight,github.com/getlantern/golog,github.com/getlantern/sing-box-minimal,github.com/getlantern/amp,github.com/getlantern/broflake,github.com/getlantern/samizdat,github.com/getlantern/domainfront,github.com/getlantern/semconv,github.com/getlantern/publicip,github.com/getlantern/soar,github.com/getlantern/keepcurrent,github.com/getlantern/algeneva,github.com/getlantern/lantern-water,github.com/getlantern/water,github.com/getlantern/wazero,github.com/getlantern/wireguard-go,github.com/getlantern/sing,github.com/getlantern/osversion,github.com/getlantern/timezone,github.com/getlantern/pluriconfig,github.com/getlantern/appdir,github.com/getlantern/context,github.com/getlantern/fronted,github.com/getlantern/lantern-server-provisioner,github.com/getlantern/ops
 GARBLE_GOGARBLE ?= $(if $(STEALTH_ENABLED),$(STEALTH_GOGARBLE_PACKAGES),github.com/getlantern/lantern)
 GARBLE_LDFLAGS ?= -w -s -buildid=
 
@@ -1121,7 +1126,7 @@ android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 # crash-looping on Android 8-10 regardless.
 .PHONY: android-aab-release
 android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE)
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE) $(PLAY_STORE_GRADLE_FLAGS)
 	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_AAB_RELEASE_BUILD),true)
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	$(MAKE) android-copy-play-artifacts

@@ -309,6 +309,20 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   private var nwMonitor: NWPathMonitor? = nil
+  /// Serializes path updates; lastDefaultInterface and pendingNetworkReset are only
+  /// touched on this queue.
+  private let pathQueue = DispatchQueue(label: "org.getlantern.PacketTunnel.path")
+  private var lastDefaultInterface: DefaultInterface?
+  private var pendingNetworkReset: DispatchWorkItem?
+  /// An address change can settle in several path updates; wait for them to stop so
+  /// the tunnel resets once.
+  private static let networkResetDelay: DispatchTimeInterval = .seconds(1)
+
+  private struct DefaultInterface {
+    let name: String
+    let index: Int
+    let ipv4: [String]
+  }
 
   public func startDefaultInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol?)
     throws
@@ -324,6 +338,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     // closed. Replacing the reference without cancelling leaks the old
     // NWPathMonitor, which keeps pushing path updates into a dead sing-box.
     nwMonitor?.cancel()
+    pathQueue.async { self.clearPathState() }
     let monitor = NWPathMonitor()
     nwMonitor = monitor
     let semaphore = DispatchSemaphore(value: 0)
@@ -334,7 +349,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
         self.onUpdateDefaultInterface(listener, path)
       }
     }
-    monitor.start(queue: DispatchQueue.global())
+    monitor.start(queue: pathQueue)
     // Wait for the first path so libbox starts with an interface, but never
     // indefinitely: with no network at all the first update may not arrive, and this
     // runs on the libbox thread during tunnel bring-up. On timeout carry on — the
@@ -349,20 +364,112 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     _ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath
   ) {
     if path.status == .unsatisfied {
+      appLogger.info("network path: \(describeNetworkPath(path))")
+      clearPathState()
       listener.updateDefaultInterface(
         "", interfaceIndex: -1, isExpensive: false, isConstrained: false)
-    } else {
-      let defaultInterface = path.availableInterfaces.first!
-      listener.updateDefaultInterface(
-        defaultInterface.name, interfaceIndex: Int32(defaultInterface.index),
-        isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+      return
     }
+    let defaultInterface = path.availableInterfaces.first!
+    // libbox resets on its own when the default interface changes.
+    if let last = lastDefaultInterface,
+      last.name != defaultInterface.name || last.index != defaultInterface.index
+    {
+      clearPathState()
+    }
+    let ipv4 = ipv4Addresses(of: defaultInterface.name)
+    let ipv4Description = ipv4?.joined(separator: ",") ?? "unknown"
+    appLogger.info(
+      "network path: \(describeNetworkPath(path)) default=\(defaultInterface.name) ipv4=\(ipv4Description)"
+    )
+    listener.updateDefaultInterface(
+      defaultInterface.name, interfaceIndex: Int32(defaultInterface.index),
+      isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+    guard let ipv4 else {
+      return
+    }
+    let previous = lastDefaultInterface
+    lastDefaultInterface = DefaultInterface(
+      name: defaultInterface.name, index: defaultInterface.index, ipv4: ipv4)
+    // libbox only resets when the default interface's name or index changes, so a new
+    // address on the same interface would leave connections bound to the old one.
+    if let previous, previous.name == defaultInterface.name,
+      previous.index == defaultInterface.index, previous.ipv4 != ipv4
+    {
+      appLogger.info(
+        "default interface \(defaultInterface.name) IPv4 changed from \(previous.ipv4) to \(ipv4); scheduling network reset"
+      )
+      scheduleNetworkReset()
+    }
+  }
+
+  private func scheduleNetworkReset() {
+    pendingNetworkReset?.cancel()
+    // Runs on pathQueue so clearPathState's cancel either precedes it or follows a reset
+    // that was already due; the IPC call itself must not block path updates.
+    let reset = DispatchWorkItem {
+      DispatchQueue.global().async {
+        var error: NSError?
+        MobileResetNetwork(&error)
+        if let error {
+          appLogger.error("network reset failed: \(error.localizedDescription)")
+        }
+      }
+    }
+    pendingNetworkReset = reset
+    pathQueue.asyncAfter(deadline: .now() + Self.networkResetDelay, execute: reset)
+  }
+
+  private func clearPathState() {
+    pendingNetworkReset?.cancel()
+    pendingNetworkReset = nil
+    lastDefaultInterface = nil
+  }
+
+  /// Returns the interface's IPv4 addresses sorted, or nil if they cannot be read.
+  private func ipv4Addresses(of interfaceName: String) -> [String]? {
+    do {
+      let addresses = try TunnelFileDescriptor.interfaceAddresses()[interfaceName] ?? []
+      return addresses.filter { IPv4Address($0) != nil }.sorted()
+    } catch {
+      appLogger.error("read addresses of \(interfaceName): \(error.localizedDescription)")
+      return nil
+    }
+  }
+
+  private func describeNetworkPath(_ path: Network.NWPath) -> String {
+    var components = ["status=\(path.status)"]
+    if path.status == .unsatisfied {
+      components.append("reason=\(path.unsatisfiedReason)")
+    }
+    components.append(
+      "interfaces="
+        + path.availableInterfaces.map { "\($0.name)#\($0.index)/\($0.type)" }.joined(
+          separator: ","))
+    components.append("gateways=" + path.gateways.map { "\($0)" }.sorted().joined(separator: ","))
+    if path.supportsIPv4 {
+      components.append("ipv4")
+    }
+    if path.supportsIPv6 {
+      components.append("ipv6")
+    }
+    if path.supportsDNS {
+      components.append("dns")
+    }
+    if path.isExpensive {
+      components.append("expensive")
+    }
+    if path.isConstrained {
+      components.append("constrained")
+    }
+    return components.joined(separator: " ")
   }
 
   public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
     appLogger.info("Close default interface monitor")
     nwMonitor?.cancel()
     nwMonitor = nil
+    pathQueue.async { self.clearPathState() }
   }
 
   public func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
@@ -498,6 +605,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     networkSettings = nil
     nwMonitor?.cancel()
     nwMonitor = nil
+    pathQueue.async { self.clearPathState() }
   }
 
   public func restartService() throws {

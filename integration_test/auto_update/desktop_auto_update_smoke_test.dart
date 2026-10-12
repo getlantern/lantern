@@ -12,6 +12,7 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/main.dart' as app;
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'auto_update_robot.dart';
 
@@ -39,10 +40,22 @@ void main() {
       final config =
           jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;
       final scenario = config['scenario'] as String;
-      expect(['baseline', 'core-unavailable'], contains(scenario));
-      expect(AppBuildInfo.autoUpdateE2E, isTrue);
+      expect([
+        'baseline',
+        'core-unavailable',
+        'core-unavailable-direct-blocked',
+      ], contains(scenario));
+      final blocked = scenario == 'core-unavailable-direct-blocked';
+      expect(AppBuildInfo.autoUpdateE2E, !blocked);
       final feedUrl = AppUrls.appcastFor(AppBuildInfo.buildType);
       expect(feedUrl, config['appcast_url']);
+
+      if (blocked) {
+        // Exercise startup using only the bundled fronting configuration.
+        final support = await getApplicationSupportDirectory();
+        final cache = Directory(p.join(support.path, 'update-transport'));
+        if (await cache.exists()) await cache.delete(recursive: true);
+      }
 
       var coreInitializationHeld = false;
       final originalInitializer = initializeLanternService;
