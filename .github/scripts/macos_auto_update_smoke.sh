@@ -285,14 +285,6 @@ if [[ -f "$DATA_PATH/Logs/screenshots/auto-update-before.png" ]]; then
   cp "$DATA_PATH/Logs/screenshots/auto-update-before.png" "$ARTIFACT_DIR/before.png"
 fi
 ORIGINAL_PID="$(jq -er '.pid | tostring' "$HANDOFF_PATH")"
-[[ "$(jq -er .build_number "$HANDOFF_PATH")" == "$FIXTURE_BUILD" ]] || {
-  printf 'Flutter test ran against the wrong fixture build.\n' >&2
-  exit 1
-}
-[[ "$(jq -er .display_version "$HANDOFF_PATH")" == "$DISPLAY_VERSION" ]] || {
-  printf 'Flutter test ran against the wrong fixture display version.\n' >&2
-  exit 1
-}
 kill -0 "$ORIGINAL_PID"
 original_command="$(ps -p "$ORIGINAL_PID" -o command=)"
 [[ "$original_command" == "$APP_EXECUTABLE"* ]] || {

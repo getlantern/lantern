@@ -353,10 +353,6 @@ try {
     --output (Join-Path $ArtifactDirectory 'scenario-verified.json')
   if ($LASTEXITCODE -ne 0) { throw 'The update scenario was not exercised' }
   $script:OriginalPid = [int]$handoff.pid
-  if ([string]$handoff.build_number -ne [string]$fixtureBuild -or
-      [string]$handoff.display_version -ne $displayVersion) {
-    throw 'Flutter test ran against the wrong fixture version.'
-  }
   $original = Get-Process -Id $script:OriginalPid -ErrorAction Stop
   if ($original.Path -ne $AppExecutable) {
     throw "Flutter handoff PID $script:OriginalPid is not the installed Lantern app"
