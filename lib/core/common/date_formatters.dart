@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:lantern/core/localization/i18n.dart';
 
 class AppDateFormats {
   /// 3:00 AM
@@ -19,15 +20,18 @@ class AppDateFormats {
     return '${DateFormat.MMMM().format(date)} ${date.day}${_ordinalSuffix(date.day)}';
   }
 
-  /// 12th October 26 — ordinal day, full month name, two-digit year, per the
-  /// account screen designs. Non-English locales get a plain day-month-year.
+  /// 12th October 26 in English; other app languages get "12 octubre 26".
   static String dayMonthYearOrdinal(DateTime date) {
-    final locale = Intl.getCurrentLocale();
+    final locale = Localization.defaultLocale;
     if (!locale.startsWith('en')) {
-      return DateFormat('d MMMM yy', locale).format(date);
+      try {
+        return DateFormat('d MMMM yy', locale).format(date);
+      } catch (_) {
+        // No date symbols for this locale; fall through to English.
+      }
     }
     return '${date.day}${_ordinalSuffix(date.day)} '
-        '${DateFormat('MMMM yy').format(date)}';
+        '${DateFormat('MMMM yy', 'en_US').format(date)}';
   }
 
   static String _ordinalSuffix(int day) => switch (day % 100) {

@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/services.dart';
 import 'package:i18n_extension/i18n_extension.dart';
 import 'package:i18n_extension_importer/i18n_extension_importer.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:lantern/core/utils/once.dart';
 
 extension Localization on String {
@@ -17,6 +18,8 @@ extension Localization on String {
 
   static Future<void> loadTranslations() async {
     translations += await fromAssetDirectory("assets/locales");
+    // Month names for non-English date formatting.
+    await initializeDateFormatting();
   }
 
   String get i18n =>

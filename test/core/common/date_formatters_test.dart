@@ -1,7 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:lantern/core/common/date_formatters.dart';
+import 'package:lantern/core/localization/i18n.dart';
 
 void main() {
+  setUpAll(initializeDateFormatting);
+  tearDown(() => Localization.defaultLocale = 'en_US');
+
   group('AppDateFormats.dayMonthYearOrdinal', () {
     test('formats as ordinal day, full month name, two-digit year', () {
       expect(
@@ -36,6 +41,22 @@ void main() {
       expect(
         AppDateFormats.dayMonthYearOrdinal(DateTime(2005, 3, 1)),
         '1st March 05',
+      );
+    });
+
+    test('uses the app language month name without an English suffix', () {
+      Localization.defaultLocale = 'es_CU';
+      expect(
+        AppDateFormats.dayMonthYearOrdinal(DateTime(2026, 10, 12)),
+        '12 octubre 26',
+      );
+    });
+
+    test('falls back to English for a language intl has no symbols for', () {
+      Localization.defaultLocale = 'tk';
+      expect(
+        AppDateFormats.dayMonthYearOrdinal(DateTime(2026, 10, 12)),
+        '12th October 26',
       );
     });
   });
