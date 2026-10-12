@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/getlantern/radiance/bypass"
@@ -65,41 +66,58 @@ func (t *deliveryTransport) RoundTrip(req *http.Request) (*http.Response, error)
 // roundTrip limits the wait for headers; the response body owns cancellation
 // after that so a slow installer download can outlive the header timeout.
 func roundTrip(transport http.RoundTripper, req *http.Request, timeout time.Duration) (*http.Response, error) {
-	ctx, cancel := context.WithCancel(req.Context())
-	timer := time.AfterFunc(timeout, cancel)
+	ctx, cancel := context.WithCancelCause(req.Context())
+	timer := time.AfterFunc(timeout, func() { cancel(context.DeadlineExceeded) })
 	response, err := transport.RoundTrip(req.Clone(ctx))
 	if !timer.Stop() {
-		cancel()
+		cancel(context.DeadlineExceeded)
 		if response != nil {
 			response.Body.Close()
 		}
 		err = context.DeadlineExceeded
 	}
 	if err != nil {
-		cancel()
+		cancel(nil)
 		return nil, err
 	}
-	response.Body = &downloadBody{ReadCloser: response.Body, cancel: cancel}
+	response.Body = &downloadBody{ReadCloser: response.Body, ctx: ctx, cancel: cancel}
 	return response, nil
 }
 
 type downloadBody struct {
 	io.ReadCloser
-	cancel context.CancelFunc
+	ctx    context.Context
+	cancel context.CancelCauseFunc
 }
 
 func (b *downloadBody) Read(p []byte) (int, error) {
 	// Bound a stalled read without imposing a total deadline on a slow download.
-	timer := time.AfterFunc(idleTimeout, b.cancel)
+	var mu sync.Mutex
+	active := true
+	timer := time.AfterFunc(idleTimeout, func() {
+		mu.Lock()
+		defer mu.Unlock()
+		if active {
+			b.cancel(context.DeadlineExceeded)
+		}
+	})
 	n, err := b.ReadCloser.Read(p)
-	if !timer.Stop() {
+	// Stop alone cannot prevent an already scheduled callback from cancelling
+	// the next read. Let completion and timeout claim this read under the lock.
+	mu.Lock()
+	active = false
+	mu.Unlock()
+	timer.Stop()
+	// Cancellation may surface on a later read if this one returned buffered
+	// bytes. Keep its cause, without replacing EOF or unrelated reader errors.
+	if errors.Is(err, context.Canceled) && errors.Is(context.Cause(b.ctx), context.DeadlineExceeded) {
 		err = context.DeadlineExceeded
 	}
 	return n, err
 }
 
 func (b *downloadBody) Close() error {
-	b.cancel()
+	b.cancel(nil)
 	return b.ReadCloser.Close()
 }
 
