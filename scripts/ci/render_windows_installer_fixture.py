@@ -70,9 +70,9 @@ def render_fixture(
     )
     # Preserve Dependency_PrepareToInstall, including the production migration
     # guard and dependency error handling. Only the prerequisite sources change.
-    for procedure in ("Dependency_AddVC2015To2022", "Dependency_AddWebView2"):
+    for procedure in ("Dependency_AddVCRuntime", "Dependency_AddWebView2"):
         rendered = replace_once(
-            rf"^procedure {procedure};\s*begin\n.*?^end;",
+            rf"^procedure {procedure};\s*(?:var\s+.*?)?^begin\n.*?^end;",
             f"""procedure {procedure};
 begin
   if not FileExists(ExpandConstant('{{tmp}}\\fixture-dependency.exe')) then

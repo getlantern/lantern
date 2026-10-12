@@ -31,8 +31,10 @@ class FixtureRendererTest(unittest.TestCase):
         self.assertNotIn("aka.ms/vs/17/release", result)
         # Only the prerequisite registration procedures may change in this section.
         self.assertEqual(
-            result.split("procedure Dependency_AddVC2015To2022;", 1)[0],
-            source.split("procedure Dependency_AddVC2015To2022;", 1)[0],
+            result.split("procedure Dependency_AddVCRuntime;", 1)[0],
+            source.split("procedure Dependency_AddVCRuntime;", 1)[0].replace(
+                "{{SOURCE_DIR}}", str(Path("payload").resolve())
+            ),
         )
         self.assertEqual(
             result.rsplit("[Code]", 1)[1],

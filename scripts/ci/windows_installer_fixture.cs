@@ -8,8 +8,10 @@ using System.ServiceProcess;
 
 #if LEGACY
 [assembly: AssemblyVersion("7.9.5.0")]
+[assembly: AssemblyFileVersion("7.9.5.0")]
 #else
 [assembly: AssemblyVersion("10.0.0.0")]
+[assembly: AssemblyFileVersion("10.0.0.0")]
 #endif
 
 class Fixture

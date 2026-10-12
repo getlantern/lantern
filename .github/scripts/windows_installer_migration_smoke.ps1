@@ -247,6 +247,9 @@ try {
   New-FixtureBinary 'APP;LEGACY' (Join-Path $LegacyDirectory 'lantern.exe') 'x86'
   $dependency = Join-Path $WorkDirectory 'fixture-dependency.exe'
   New-FixtureBinary 'DEPENDENCY' $dependency 'x86'
+  $installerDependencies = Join-Path $PayloadDirectory 'installer-dependencies'
+  New-Item -ItemType Directory -Path $installerDependencies -Force | Out-Null
+  Copy-Item -LiteralPath $dependency -Destination (Join-Path $installerDependencies 'VC_redist.x64.exe')
   Set-Content -LiteralPath (Join-Path $LegacyDirectory 'settings.yaml') -Value 'userID: 12345' -Encoding utf8
   Set-Content -LiteralPath (Join-Path $UserSettingsDirectory 'settings.yaml') -Value "userID: 12345`nuserToken: fixture-legacy-token`nuserPro: true" -Encoding utf8
   New-Item -Path $LegacyRegistry -Force | Out-Null
