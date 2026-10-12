@@ -16,11 +16,27 @@ class AppDateFormats {
     if (!locale.startsWith('en')) {
       return DateFormat.MMMMd(locale).format(date);
     }
-    final day = date.day;
-    final suffix = switch (day % 100) {
-      11 || 12 || 13 => 'th',
-      _ => switch (day % 10) { 1 => 'st', 2 => 'nd', 3 => 'rd', _ => 'th' },
-    };
-    return '${DateFormat.MMMM().format(date)} $day$suffix';
+    return '${DateFormat.MMMM().format(date)} ${date.day}${_ordinalSuffix(date.day)}';
   }
+
+  /// 12th October 26 — ordinal day, full month name, two-digit year, per the
+  /// account screen designs. Non-English locales get a plain day-month-year.
+  static String dayMonthYearOrdinal(DateTime date) {
+    final locale = Intl.getCurrentLocale();
+    if (!locale.startsWith('en')) {
+      return DateFormat('d MMMM yy', locale).format(date);
+    }
+    return '${date.day}${_ordinalSuffix(date.day)} '
+        '${DateFormat('MMMM yy').format(date)}';
+  }
+
+  static String _ordinalSuffix(int day) => switch (day % 100) {
+    11 || 12 || 13 => 'th',
+    _ => switch (day % 10) {
+      1 => 'st',
+      2 => 'nd',
+      3 => 'rd',
+      _ => 'th',
+    },
+  };
 }
