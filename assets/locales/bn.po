@@ -641,6 +641,24 @@ msgstr "এই Apple ID-এর সাথে কোনো সক্রিয় �
 msgid "no_purchase_found_body_android"
 msgstr "এই Google অ্যাকাউন্টের সাথে কোনো সক্রিয় সাবস্ক্রিপশন যুক্ত নেই।"
 
+msgid "authorize_device_for_pro"
+msgstr "Pro-এর জন্য ডিভাইস অনুমোদন করুন"
+
+msgid "device_linking_replaced_title"
+msgstr "ডিভাইস লিঙ্কিং কোড প্রতিস্থাপিত হয়েছে"
+
+msgid "device_linking_replaced_body"
+msgstr "Lantern সংস্করণ 10 এবং নতুন সংস্করণগুলি ডিভাইস লিঙ্কিং কোড ব্যবহার করে না। এখন আপনি আপনার ইমেল এবং একটি পাসওয়ার্ড দিয়ে আপনার Lantern Pro অ্যাকাউন্টে সাইন ইন করবেন।"
+
+msgid "device_linking_replaced_body_two"
+msgstr "আপনার যদি Lantern Pro অ্যাকাউন্ট থাকে এবং এখনও পাসওয়ার্ড না থাকে, তাহলে এই ডিভাইসে সাইন ইন করতে এখনই একটি পাসওয়ার্ড যোগ করুন।"
+
+msgid "add_an_account_password"
+msgstr "অ্যাকাউন্টের পাসওয়ার্ড যোগ করুন"
+
+msgid "have_a_password_sign_in"
+msgstr "পাসওয়ার্ড আছে? সাইন ইন করুন"
+
 msgid "plans_fetch_error"
 msgstr "প্ল্যান আনতে ত্রুটি। পরে আবার চেষ্টা করুন।"
 
