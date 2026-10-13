@@ -4,6 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
+import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
@@ -21,6 +23,9 @@ class PlansListView extends HookConsumerWidget {
     // show strikethrough discount pricing.
     final showReferralBonus = referral.isReferral;
     final discountPct = referral.isAffiliate ? referral.discountPct : 0;
+    // Store prices can resolve after the plans were published (slow store,
+    // affiliate switch); rebuild the cards whenever they change.
+    useValueListenable(sl<AppPurchase>().storePricesVersion);
     final size = MediaQuery.of(context).size;
     final selectedId = useState<String>(
       data.plans.firstWhere((Plan plan) => plan.bestValue == true).id,
