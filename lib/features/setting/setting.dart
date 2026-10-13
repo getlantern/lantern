@@ -21,6 +21,7 @@ import '../../core/services/injection_container.dart';
 enum _SettingType {
   account,
   signIn,
+  authorizeDevice,
   vpnSetting,
   actionModeSetting,
   language,
@@ -138,11 +139,24 @@ class _SettingState extends ConsumerState<Setting>
           if (!isAuthenticated)
             AppCard(
               padding: EdgeInsets.zero,
-              child: AppTile(
-                tileKey: const Key('setting.sign_in_tile'),
-                label: 'sign_in'.i18n,
-                icon: AppImagePaths.signIn,
-                onPressed: () => settingMenuTap(_SettingType.signIn),
+              child: Column(
+                children: [
+                  AppTile(
+                    tileKey: const Key('setting.sign_in_tile'),
+                    label: 'sign_in'.i18n,
+                    icon: AppImagePaths.signIn,
+                    onPressed: () => settingMenuTap(_SettingType.signIn),
+                  ),
+                  DividerSpace(),
+                  // Pre-v10 users look for the old device link code here.
+                  AppTile(
+                    tileKey: const Key('setting.authorize_device_tile'),
+                    label: 'authorize_device_for_pro'.i18n,
+                    icon: AppImagePaths.connectDevice,
+                    onPressed: () =>
+                        settingMenuTap(_SettingType.authorizeDevice),
+                  ),
+                ],
               ),
             ),
           const SizedBox(height: defaultSize),
@@ -281,6 +295,16 @@ class _SettingState extends ConsumerState<Setting>
     switch (menu) {
       case _SettingType.signIn:
         appRouter.push(const SignInEmail());
+        break;
+      case _SettingType.authorizeDevice:
+        final email = ref.read(userEmailProvider);
+        AppDialog.deviceLinkingReplacedDialog(
+          context: context,
+          onAddPassword: () => appRouter.push(
+            ResetPasswordEmail(email: email.isEmpty ? null : email),
+          ),
+          onSignIn: () => appRouter.push(const SignInEmail()),
+        );
         break;
       case _SettingType.language:
         appRouter.push(Language());

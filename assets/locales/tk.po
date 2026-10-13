@@ -635,6 +635,24 @@ msgstr "Bu Apple ID bilen baglanyşykly işjeň abuna ýok."
 msgid "no_purchase_found_body_android"
 msgstr "Bu Google hasaby bilen baglanyşykly işjeň abuna ýok."
 
+msgid "authorize_device_for_pro"
+msgstr "Enjamy Pro üçin tassyklaň"
+
+msgid "device_linking_replaced_title"
+msgstr "Enjam baglanyşyk kodlary çalşyryldy"
+
+msgid "device_linking_replaced_body"
+msgstr "Lantern 10 we ondan täze wersiýalary enjam baglanyşyk kodlaryny ulanmaýar. Indi Lantern Pro hasabyňyza e-poçtaňyz we parolyňyz bilen girýärsiňiz."
+
+msgid "device_linking_replaced_body_two"
+msgstr "Lantern Pro hasabyňyz bar bolsa we entek parolyňyz ýok bolsa, bu enjamda girmek üçin häzir parol goşuň."
+
+msgid "add_an_account_password"
+msgstr "Hasap paroly goşuň"
+
+msgid "have_a_password_sign_in"
+msgstr "Parolyňyz barmy? Içeri gir"
+
 msgid "plans_fetch_error"
 msgstr "Planlar alyňanda ýalňyşlyk. Soňra täzeden synanyň."
 
