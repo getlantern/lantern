@@ -1004,7 +1004,7 @@ packages:
     source: hosted
     version: "1.4.1"
   in_app_purchase_storekit:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       name: in_app_purchase_storekit
       sha256: "1d512809edd9f12ff88fce4596a13a18134e2499013f4d6a8894b04699363c93"

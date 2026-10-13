@@ -260,23 +260,12 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
-  /// Removes the applied affiliate code: clears the referral state and
-  /// re-fetches the original (non-discounted) plans. On a Play Store build the
-  /// SKUs are also reloaded back to base plans so a later purchase is charged
-  /// at full price rather than the (now removed) offer.
-  Future<void> _onRemoveAffiliateCode() async {
+  /// Clears the affiliate code and refetches the base plans; the notifier
+  /// reloads the base SKUs so a later purchase is charged full price.
+  void _onRemoveAffiliateCode() {
     appLogger.info('Removing applied affiliate code');
     ref.read(referralProvider.notifier).resetReferral();
     ref.read(plansProvider.notifier).fetchPlans();
-    if (canUseStoreBilling()) {
-      try {
-        await sl<AppPurchase>().fetchSubscriptions();
-      } catch (e) {
-        appLogger.warning(
-          '[Plans] Failed to reload base SKUs after removing code: $e',
-        );
-      }
-    }
   }
 
   void onMenuTap() {
@@ -422,18 +411,6 @@ class _PlansState extends ConsumerState<Plans>
     }
 
     appLogger.info('Successfully applied referral code');
-    if (canUseStoreBilling()) {
-      try {
-        appLogger.info('Reloading SKUs after applying referral code');
-        await sl<AppPurchase>().fetchSubscriptions(includeOffers: true);
-      } catch (e) {
-        appLogger.warning(
-          '[Plans] No offer SKUs after applying code; base plan will be used: $e',
-        );
-      }
-      if (!mounted) return;
-    }
-
     context.hideLoadingDialog();
     context.showSnackBar('referral_code_applied'.i18n);
   }
