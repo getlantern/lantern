@@ -140,10 +140,6 @@ extension IsoDateFormatter on UserDataModel {
     }
   }
 
-  String _formatDate(DateTime dateTime) {
-    final mm = dateTime.month.toString().padLeft(2, '0');
-    final dd = dateTime.day.toString().padLeft(2, '0');
-    final yy = (dateTime.year % 100).toString().padLeft(2, '0');
-    return "$mm/$dd/$yy";
-  }
+  String _formatDate(DateTime dateTime) =>
+      AppDateFormats.dayMonthYearOrdinal(dateTime);
 }
