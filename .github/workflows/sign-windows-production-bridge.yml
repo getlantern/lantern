@@ -9,15 +9,15 @@ permissions:
   contents: read
 
 concurrency:
-  group: windows-production-bridge-7.9.6
+  group: windows-production-bridge-7.9.8
   cancel-in-progress: false
 
 env:
-  BRIDGE_VERSION: '7.9.6'
-  DESKTOP_SOURCE_SHA: c83756f01b273e57be3fa5e5ed607ca6e4ac039b
-  DESKTOP_RUN_ID: '38383034787'
-  DESKTOP_ARTIFACT_ID: '11804548371'
-  DESKTOP_ARTIFACT_SHA256: a5cb144013baec68d31052c25cc172231c28217818c84752bf62bd953ea6cf00
+  BRIDGE_VERSION: '7.9.8'
+  DESKTOP_SOURCE_SHA: e20efdd159766ed563a547b8f49664184c0d6919
+  DESKTOP_RUN_ID: '38419781559'
+  DESKTOP_ARTIFACT_ID: '11825618848'
+  DESKTOP_ARTIFACT_SHA256: 9de3641e5fd53192bda42205ffc4939fb4e65af82221d78431b35137b6bd940c
 
 jobs:
   sign:
@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: getlantern/lantern-desktop
-          ref: c83756f01b273e57be3fa5e5ed607ca6e4ac039b
+          ref: e20efdd159766ed563a547b8f49664184c0d6919
           path: desktop-tooling
           token: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
           persist-credentials: false
@@ -162,7 +162,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: getlantern/lantern-desktop
-          ref: c83756f01b273e57be3fa5e5ed607ca6e4ac039b
+          ref: e20efdd159766ed563a547b8f49664184c0d6919
           token: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
           persist-credentials: false
           sparse-checkout: scripts/bridge-release
