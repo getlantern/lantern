@@ -262,7 +262,9 @@ class SecondaryButton extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      minimumSize: WidgetStatePropertyAll<Size>(Size(double.infinity, height)),
+      minimumSize: WidgetStatePropertyAll<Size>(
+        expanded ? Size(double.infinity, height) : Size(0, height),
+      ),
     );
   }
 }
