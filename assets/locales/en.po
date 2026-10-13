@@ -601,6 +601,9 @@ msgstr "No active subscription is tied to this Google account."
 msgid "plans_fetch_error"
 msgstr "Error fetching plans. Please try again later."
 
+msgid "affiliate_offer_unavailable"
+msgstr "Unable to load the discounted plans from the store. Please try again."
+
 msgid "best_value"
 msgstr "Best Value!"
 

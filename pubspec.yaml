@@ -136,6 +136,9 @@ dependencies:
   in_app_review: ^2.0.12
   # payment
   in_app_purchase: ^3.3.0
+  # Imported directly for the StoreKit 2 product type and intro-offer
+  # eligibility check (affiliate pricing).
+  in_app_purchase_storekit: 0.4.8+1
   flutter_stripe: 12.4.0
   # protobuf
   protobuf: ^6.0.0
