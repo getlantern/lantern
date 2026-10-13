@@ -51,7 +51,7 @@ class PrimaryButton extends StatelessWidget {
             key: buttonKey,
             onPressed: enabled ? onPressed : null,
             style: _buildButtonStyle(context, button!, iconSz),
-            child: Text(label),
+            child: Text(label, textAlign: TextAlign.center),
           )
         : ElevatedButton.icon(
             key: buttonKey,
@@ -62,7 +62,7 @@ class PrimaryButton extends StatelessWidget {
               color: iconColor,
               useThemeColor: useThemeColor ?? true,
             ),
-            label: Text(label),
+            label: Text(label, textAlign: TextAlign.center),
             style: _buildButtonStyle(context, button!, iconSz),
           );
   }
@@ -118,7 +118,10 @@ class PrimaryButton extends StatelessWidget {
       }),
       iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsets.symmetric(vertical: verticalPad, horizontal: 40.0),
+        EdgeInsets.symmetric(
+          vertical: verticalPad,
+          horizontal: expanded ? 16.0 : 40.0,
+        ),
       ),
       textStyle: WidgetStatePropertyAll<TextStyle>(
         AppTextStyles.primaryButtonTextStyle.copyWith(
@@ -132,9 +135,6 @@ class PrimaryButton extends StatelessWidget {
       ),
       minimumSize: WidgetStatePropertyAll<Size>(
         expanded ? Size(double.infinity, height) : Size(0, height),
-      ),
-      maximumSize: WidgetStatePropertyAll<Size>(
-        Size(double.infinity, height),
       ),
     );
   }
@@ -180,7 +180,7 @@ class SecondaryButton extends StatelessWidget {
         ? ElevatedButton(
             onPressed: enabled ? onPressed : null,
             style: _buildButtonStyle(context, button!, iconSz),
-            child: Text(label),
+            child: Text(label, textAlign: TextAlign.center),
           )
         : ElevatedButton.icon(
             onPressed: enabled ? onPressed : null,
@@ -190,7 +190,7 @@ class SecondaryButton extends StatelessWidget {
               color: foregroundColor,
               useThemeColor: useThemeColor ?? false,
             ),
-            label: Text(label),
+            label: Text(label, textAlign: TextAlign.center),
             style: _buildButtonStyle(context, button!, iconSz),
           );
   }
@@ -251,7 +251,10 @@ class SecondaryButton extends StatelessWidget {
       ),
       iconSize: WidgetStatePropertyAll<double>(iconSz),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsets.symmetric(vertical: verticalPad, horizontal: 40.0),
+        EdgeInsets.symmetric(
+          vertical: verticalPad,
+          horizontal: expanded ? 16.0 : 40.0,
+        ),
       ),
       textStyle: WidgetStatePropertyAll<TextStyle>(
         AppTextStyles.primaryButtonTextStyle.copyWith(
@@ -259,7 +262,6 @@ class SecondaryButton extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      maximumSize: WidgetStatePropertyAll<Size>(Size(double.infinity, height)),
       minimumSize: WidgetStatePropertyAll<Size>(Size(double.infinity, height)),
     );
   }
