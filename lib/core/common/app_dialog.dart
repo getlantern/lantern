@@ -204,6 +204,7 @@ class AppDialog {
       header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
       centeredTitle: true,
       barrierDismissible: true,
+      scrollable: true,
       title: 'device_linking_replaced_title'.i18n,
       body:
           '${'device_linking_replaced_body'.i18n}\n\n${'device_linking_replaced_body_two'.i18n}',

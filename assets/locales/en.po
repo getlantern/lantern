@@ -605,7 +605,7 @@ msgid "device_linking_replaced_title"
 msgstr "Device linking codes have been replaced"
 
 msgid "device_linking_replaced_body"
-msgstr "Lantern version 10 and newer does not use device linking codes. You now sign in to your Lantern Pro account with your email and a password."
+msgstr "Lantern versions 10 and newer do not use device linking codes. You now sign in to your Lantern Pro account with your email and a password."
 
 msgid "device_linking_replaced_body_two"
 msgstr "If you have a Lantern Pro account and do not have a password yet, add one now to sign in on this device."
