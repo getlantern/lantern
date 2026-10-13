@@ -1,0 +1,181 @@
+name: Sign and publish pinned Windows production bridge
+
+on:
+  push:
+    branches: [atavism/bridge-signing-production]
+    paths: [.github/workflows/sign-windows-production-bridge.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-production-bridge-7.9.6
+  cancel-in-progress: false
+
+env:
+  BRIDGE_VERSION: '7.9.6'
+  DESKTOP_SOURCE_SHA: c83756f01b273e57be3fa5e5ed607ca6e4ac039b
+  DESKTOP_RUN_ID: '38383034787'
+  DESKTOP_ARTIFACT_ID: '11804548371'
+  DESKTOP_ARTIFACT_SHA256: a5cb144013baec68d31052c25cc172231c28217818c84752bf62bd953ea6cf00
+
+jobs:
+  sign:
+    if: github.repository == 'getlantern/lantern'
+    runs-on: windows-2025
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out pinned Desktop release tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: getlantern/lantern-desktop
+          ref: c83756f01b273e57be3fa5e5ed607ca6e4ac039b
+          path: desktop-tooling
+          token: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
+          persist-credentials: false
+          sparse-checkout: scripts/bridge-release
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.22.4'
+          cache: false
+      - name: Download and verify the pinned production build
+        shell: python
+        env:
+          GH_TOKEN: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
+        run: |
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import zipfile
+
+          repo = 'repos/getlantern/lantern-desktop'
+          run_id = int(os.environ['DESKTOP_RUN_ID'])
+          artifact_id = int(os.environ['DESKTOP_ARTIFACT_ID'])
+          source_sha = os.environ['DESKTOP_SOURCE_SHA']
+          digest = os.environ['DESKTOP_ARTIFACT_SHA256']
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'{repo}/{path}']))
+
+          run = api(f'actions/runs/{run_id}')
+          if (run['head_sha'] != source_sha or run['event'] != 'workflow_dispatch'
+                  or run['path'] != '.github/workflows/windows-bridge.yml'
+                  or run['status'] != 'completed' or run['conclusion'] != 'success'
+                  or run['head_repository']['full_name'] != 'getlantern/lantern-desktop'):
+              raise SystemExit('Unexpected Desktop build provenance')
+          jobs = api(f'actions/runs/{run_id}/jobs?filter=latest&per_page=100')['jobs']
+          for name in ('unit-tests', 'native-tests', 'build'):
+              if not any(job['name'] == name and job['conclusion'] == 'success' for job in jobs):
+                  raise SystemExit(f'Desktop check did not pass: {name}')
+          artifact = api(f'actions/artifacts/{artifact_id}')
+          if (artifact['expired'] or artifact['workflow_run']['id'] != run_id
+                  or artifact['workflow_run']['head_sha'] != source_sha
+                  or artifact['name'] != 'windows-bridge-unsigned'
+                  or artifact['digest'] != 'sha256:' + digest):
+              raise SystemExit('Unexpected Desktop artifact')
+          archive = Path(os.environ['RUNNER_TEMP']) / 'bridge-unsigned.zip'
+          with archive.open('wb') as output:
+              subprocess.run(['gh', 'api', f'{repo}/actions/artifacts/{artifact_id}/zip'], stdout=output, check=True)
+          if hashlib.sha256(archive.read_bytes()).hexdigest() != digest:
+              raise SystemExit('Desktop artifact archive checksum mismatch')
+          expected = {'lantern.exe', 'build-info.txt', 'source.json'}
+          with zipfile.ZipFile(archive) as bundle:
+              if set(bundle.namelist()) != expected or len(bundle.namelist()) != len(expected):
+                  raise SystemExit('Unexpected Desktop artifact files')
+              bundle.extractall(Path(os.environ['RUNNER_TEMP']) / 'bridge-unsigned')
+          print(f'Verified Desktop run {run_id}, artifact {artifact_id}, source {source_sha}')
+      - name: Validate production executable before signing
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+          sys.path.insert(0, 'desktop-tooling/scripts/bridge-release')
+          import validate
+
+          root = Path(os.environ['RUNNER_TEMP']) / 'bridge-unsigned'
+          source = json.loads((root / 'source.json').read_text())
+          validate.require(source['source_commit'] == os.environ['DESKTOP_SOURCE_SHA'], 'Wrong source commit')
+          validate.require(source['version'] == os.environ['BRIDGE_VERSION'], 'Wrong bridge version')
+          validate.require(source['dependency_base_commit'] == validate.BASE_COMMIT, 'Wrong dependency base')
+          validate.require(source['windows_installer_handoff'] is True, 'Installer handoff is disabled')
+          validate.validate_pe386((root / 'lantern.exe').read_bytes())
+          info = subprocess.check_output(['go', 'version', '-m', str(root / 'lantern.exe')], text=True)
+          validate.validate_build_info(info, source)
+          (root / 'build-info.txt').write_text(info, encoding='utf-8')
+      - name: Sign with Lantern's existing production policy
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORG_ID: ${{ vars.SIGNPATH_ORG_ID }}
+          SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+        run: |
+          ./scripts/ci/sign-windows.ps1 `
+            -FilePath "$env:RUNNER_TEMP/bridge-unsigned/lantern.exe" `
+            -SigningPolicy prod-policy `
+            -OrganizationId $env:SIGNPATH_ORG_ID `
+            -ProjectSlug $env:SIGNPATH_PROJECT_SLUG `
+            -ApiToken $env:SIGNPATH_API_TOKEN `
+            -Description "Production Windows bridge $env:BRIDGE_VERSION from Desktop run $env:DESKTOP_RUN_ID"
+      - name: Verify Authenticode and package the signed release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $inputDir = "$env:RUNNER_TEMP/bridge-unsigned"
+          $outputDir = "$env:RUNNER_TEMP/bridge-signed"
+          ./desktop-tooling/scripts/bridge-release/verify-authenticode.ps1 -Executable "$inputDir/lantern.exe" -Output "$inputDir/authenticode.json"
+          go version -m "$inputDir/lantern.exe" | Set-Content "$inputDir/build-info.txt" -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw 'Could not inspect signed bridge' }
+          python desktop-tooling/scripts/bridge-release/validate.py package --executable "$inputDir/lantern.exe" --source "$inputDir/source.json" --build-info "$inputDir/build-info.txt" --signature-report "$inputDir/authenticode.json" --output "$outputDir/package"
+          if ($LASTEXITCODE -ne 0) { throw 'Bridge packaging failed' }
+          python desktop-tooling/scripts/bridge-release/validate.py check --directory "$outputDir/package" --version $env:BRIDGE_VERSION --expected-commit $env:DESKTOP_SOURCE_SHA
+          if ($LASTEXITCODE -ne 0) { throw 'Bridge package verification failed' }
+          [ordered]@{
+            desktop_run_id = $env:DESKTOP_RUN_ID
+            unsigned_artifact_id = $env:DESKTOP_ARTIFACT_ID
+            unsigned_artifact_sha256 = $env:DESKTOP_ARTIFACT_SHA256
+            desktop_source_commit = $env:DESKTOP_SOURCE_SHA
+            signing_commit = $env:GITHUB_SHA
+            signing_run_id = $env:GITHUB_RUN_ID
+          } | ConvertTo-Json | Set-Content "$outputDir/signing-provenance.json" -Encoding utf8
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-bridge-production-signed
+          path: ${{ runner.temp }}/bridge-signed/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    needs: sign
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out pinned Desktop release tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: getlantern/lantern-desktop
+          ref: c83756f01b273e57be3fa5e5ed607ca6e4ac039b
+          token: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
+          persist-credentials: false
+          sparse-checkout: scripts/bridge-release
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: windows-bridge-production-signed
+          path: ${{ runner.temp }}/bridge-signed
+      - name: Publish the validated bridge without changing latest
+        env:
+          BRIDGE_CATALOG_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          python3 scripts/bridge-release/publish.py
+          --directory "$RUNNER_TEMP/bridge-signed/package"
+          --version "$BRIDGE_VERSION"
+          --expected-commit "$DESKTOP_SOURCE_SHA"
+          --repository getlantern/lantern
