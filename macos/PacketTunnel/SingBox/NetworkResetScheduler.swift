@@ -37,6 +37,7 @@ final class NetworkResetScheduler {
     pending?.cancel()
     let work = DispatchWorkItem { [weak self] in
       guard let self, self.isCurrent(session) else { return }
+      // The reset must also check its target in Go, where tunnel replacement is locked.
       reset()
     }
     pending = work
@@ -51,10 +52,11 @@ final class NetworkResetScheduler {
     pending = nil
   }
 
-  func endSession() {
+  func endSession(_ session: Session? = nil) {
     lock.lock()
     defer { lock.unlock() }
-    session = nil
+    if let session, self.session !== session { return }
+    self.session = nil
     pending?.cancel()
     pending = nil
   }

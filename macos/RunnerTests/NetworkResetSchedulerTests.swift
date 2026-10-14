@@ -109,12 +109,38 @@ final class NetworkResetSchedulerTests: XCTestCase {
     }
     scheduler.schedule(for: old, after: .nanoseconds(0)) { resets.append("old") }
     scheduler.cancelPending(for: old)
+    scheduler.endSession(old)
     release.signal()
     wait(for: [completed], timeout: 5)
     queue.sync {}
 
     XCTAssertEqual(resets.values, ["replacement"])
     XCTAssertTrue(scheduler.isCurrent(replacement))
+  }
+
+  func testMonitorReplacementDoesNotWaitForRunningReset() {
+    let scheduler = NetworkResetScheduler()
+    let old = scheduler.startSession()
+    let started = DispatchSemaphore(value: 0)
+    let release = DispatchSemaphore(value: 0)
+    defer { release.signal() }
+    scheduler.schedule(for: old, after: .nanoseconds(0)) {
+      started.signal()
+      release.wait()
+    }
+    XCTAssertEqual(started.wait(timeout: .now() + 5), .success)
+
+    // Go may be holding the tunnel lock while it starts the replacement monitor.
+    let replaced = expectation(description: "monitor replacement returns")
+    DispatchQueue.global().async {
+      let replacement = scheduler.startSession()
+      scheduler.endSession(old)
+      XCTAssertTrue(scheduler.isCurrent(replacement))
+      replaced.fulfill()
+    }
+    wait(for: [replaced], timeout: 5)
+    release.signal()
+    scheduler.endSessionAndWait()
   }
 
   func testEndSessionDoesNotWaitForRunningReset() {

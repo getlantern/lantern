@@ -309,6 +309,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   private var nwMonitor: NWPathMonitor? = nil
+  private var monitorListener: LibboxInterfaceUpdateListenerProtocol?
+  private var monitorSession: NetworkResetScheduler.Session?
+  private let monitorLock = NSLock()
   /// Serializes path updates and lastDefaultInterface.
   private let pathQueue = DispatchQueue(label: "org.getlantern.PacketTunnel.path")
   private var lastDefaultInterface: DefaultInterface?
@@ -336,11 +339,14 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     // logs in getlantern/engineering#3781 show 72 monitors started against 59
     // closed. Replacing the reference without cancelling leaks the old
     // NWPathMonitor, which keeps pushing path updates into a dead sing-box.
+    monitorLock.lock()
     nwMonitor?.cancel()
     let session = networkResets.startSession()
     pathQueue.async { self.clearPathState(session) }
     let monitor = NWPathMonitor()
     nwMonitor = monitor
+    monitorListener = listener
+    monitorSession = session
     let semaphore = DispatchSemaphore(value: 0)
     monitor.pathUpdateHandler = { path in
       self.onUpdateDefaultInterface(listener, path, session)
@@ -350,6 +356,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       }
     }
     monitor.start(queue: pathQueue)
+    monitorLock.unlock()
     // Wait for the first path so libbox starts with an interface, but never
     // indefinitely: with no network at all the first update may not arrive, and this
     // runs on the libbox thread during tunnel bring-up. On timeout carry on — the
@@ -401,14 +408,16 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       appLogger.info(
         "default interface \(defaultInterface.name) IPv4 changed from \(previous.ipv4) to \(ipv4); scheduling network reset"
       )
-      scheduleNetworkReset(session)
+      scheduleNetworkReset(session, listener)
     }
   }
 
-  private func scheduleNetworkReset(_ session: NetworkResetScheduler.Session) {
+  private func scheduleNetworkReset(
+    _ session: NetworkResetScheduler.Session, _ listener: LibboxInterfaceUpdateListenerProtocol
+  ) {
     networkResets.schedule(for: session, after: Self.networkResetDelay) {
       var error: NSError?
-      MobileResetNetwork(&error)
+      MobileResetNetworkForMonitor(listener, &error)
       if let error {
         appLogger.error("network reset failed: \(error.localizedDescription)")
       }
@@ -464,18 +473,32 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     return components.joined(separator: " ")
   }
 
-  public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
+  public func closeDefaultInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol?)
+    throws
+  {
     appLogger.info("Close default interface monitor")
-    networkResets.endSession()
+    guard let listener else { return }
+    closeInterfaceMonitor(listener)
+  }
+
+  private func closeInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol? = nil) {
+    monitorLock.lock()
+    defer { monitorLock.unlock() }
+    // Gomobile can wrap the same Go listener in different Objective-C objects.
+    if let listener, !UtilsSameInterfaceUpdateListener(listener, monitorListener) { return }
+    networkResets.endSession(monitorSession)
     nwMonitor?.cancel()
     nwMonitor = nil
+    monitorListener = nil
+    monitorSession = nil
   }
 
   public func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
-    guard let nwMonitor else {
+    let monitor = monitorLock.withLock { nwMonitor }
+    guard let monitor else {
       throw NSError(domain: "NWMonitor not started", code: 0)
     }
-    let path = nwMonitor.currentPath
+    let path = monitor.currentPath
     if path.status == .unsatisfied {
       return networkInterfaceArray([])
     }
@@ -602,9 +625,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   func reset() {
     networkSettings = nil
-    networkResets.endSession()
-    nwMonitor?.cancel()
-    nwMonitor = nil
+    closeInterfaceMonitor()
   }
 
   public func restartService() throws {
