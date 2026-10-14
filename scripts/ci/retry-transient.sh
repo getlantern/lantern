@@ -14,7 +14,11 @@ match=
 
 while getopts "n:m:" opt; do
   case "$opt" in
-    n) attempts=$OPTARG ;;
+    n)
+      case "$OPTARG" in
+        ""|*[!0-9]*|0) echo "$0: -n must be a positive integer" >&2; exit 2 ;;
+      esac
+      attempts=$OPTARG ;;
     m) match=$OPTARG ;;
     *) echo "usage: $0 [-n ATTEMPTS] [-m REGEX] -- COMMAND [ARGS...]" >&2; exit 2 ;;
   esac

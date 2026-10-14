@@ -625,7 +625,7 @@ stage-macos-profile: build-macos-profile
 # stapler fetches the ticket from Apple's CloudKit, and one dropped connection
 # there failed v10.0.3-beta-3 after notarization had been accepted. Stapling is
 # idempotent, so every failure is retried.
-STAPLER_RETRY = $(CURDIR)/scripts/ci/retry-transient.sh --
+STAPLER_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" --
 
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
@@ -916,7 +916,7 @@ endef
 # build checks each module against sum.golang.org. A sum.golang.org outage
 # (stream INTERNAL_ERROR, 2026-10-14) failed iOS and macOS builds for 40
 # minutes. Only those network errors are retried; compile errors fail at once.
-GOMOBILE_BIND_RETRY = $(CURDIR)/scripts/ci/retry-transient.sh \
+GOMOBILE_BIND_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" \
 	-m 'reading https://(sum|proxy)\.golang\.org/|stream error|i/o timeout|TLS handshake timeout|connection reset by peer' --
 
 install-gomobile:
