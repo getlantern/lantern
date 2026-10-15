@@ -113,6 +113,8 @@ class HomeNotifier extends _$HomeNotifier {
     } catch (e) {
       appLogger.error('Data cap info unavailable, resetting location: $e');
     }
+    // The user may have upgraded while the data cap info was loading.
+    if (state.value?.legacyUserData.isPro ?? false) return;
     resetServerLocation();
   }
 
