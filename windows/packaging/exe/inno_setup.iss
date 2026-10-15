@@ -414,7 +414,7 @@ type
   end;
 
 var
-  LegacyDirectory, LegacySID, LegacyID, MigrationFailure: String;
+  LegacyDirectory, LegacySID, LegacyID, LegacyRequest, MigrationFailure: String;
   MigrationServiceReady: Boolean;
 
 function MigrationGetFileAttributes(Path: String): LongWord;
@@ -456,7 +456,7 @@ function AllowSharedDataAccess: Boolean;
 begin
   // Later ordinary upgrades must preserve migrated account storage permissions.
   Result := not LegacyMigration and
-    not RegKeyExists(HKLM64, 'Software\Lantern\LegacyMigrationV1');
+    not RegValueExists(HKLM64, 'Software\Lantern\Service', 'OwnerSID');
 end;
 
 function ValidLegacySID(const Value: String): Boolean;
@@ -602,6 +602,18 @@ begin
   end;
 end;
 
+function ValidLegacyRequestPath(const Path: String): Boolean;
+var
+  Attributes: LongWord;
+begin
+  Result := False;
+  if not ValidLegacySourcePath(Path) or HasUnsafePathComponent(Path) then exit;
+  Attributes := MigrationGetFileAttributes(Path);
+  // Require an existing regular file, including when the snapshot is rechecked.
+  if (Attributes = $FFFFFFFF) or ((Attributes and $410) <> 0) then exit;
+  Result := FileExists(Path);
+end;
+
 // -1 means unknown/error, 0 means absent; other values are SCM service states.
 // Query the SCM directly: parsing localized sc.exe output is not reliable.
 function GetServiceState: Integer;
@@ -656,6 +668,10 @@ begin
   if not LegacyMigration then exit;
   if not ValidLegacySourcePath(LegacyDirectory) then begin
     Result := 'Legacy migration requires an unambiguous installation folder on a fixed local drive.';
+    exit;
+  end;
+  if not ValidLegacyRequestPath(LegacyRequest) then begin
+    Result := 'Restart migration from the legacy app with a valid account snapshot on a fixed local drive.';
     exit;
   end;
   DefaultTarget := ExpandConstant('{#DefaultInstallDir}');
@@ -838,18 +854,19 @@ begin
   MigrationFailure := 'Lantern could not start its new service. Your legacy app, account, and settings have been kept. Return to the legacy app; repair the new installation before retrying.';
   // This route never removes or reconfigures a service that predated migration.
   if GetServiceState <> ServiceAbsent then exit;
-  // Bind enrollment to the original user before the LocalSystem service starts.
-  // The daemon validates the SID and protects enrollment and account storage.
+  // Import the verified snapshot before the normal LocalSystem service starts.
+  // The daemon validates the original user and protects owner/account storage.
   if not Exec(LanterndExecutablePath(''),
-    'prepare-legacy-migration --sid "' + LegacySID + '" --source "' +
-    RemoveBackslashUnlessRoot(LegacyDirectory) + '" --migration-id "' + LegacyID + '"',
+    'migrate --sid "' + LegacySID + '" --source "' +
+    RemoveBackslashUnlessRoot(LegacyDirectory) + '" --migration-id "' + LegacyID +
+    '" --request "' + LegacyRequest + '"',
     '', SW_HIDE, ewWaitUntilTerminated, ExitCode) then begin
     MigrationFailure := 'Lantern could not prepare identity transfer. Your legacy app and settings have been kept.';
     exit;
   end;
   if ExitCode <> 0 then begin
     MigrationFailure := 'Lantern could not authorize identity transfer. Your legacy app and settings have been kept.';
-    Log('Migration enrollment failed: ' + IntToStr(ExitCode));
+    Log('Migration account import failed: ' + IntToStr(ExitCode));
     exit;
   end;
   try
@@ -865,7 +882,7 @@ begin
     if WaitForServiceState(ServiceRunning, ServiceDeleteTimeoutMs) then begin
       MigrationServiceReady := True;
       MigrationFailure := '';
-      Log('Migration destination installed; service is waiting for authenticated identity handoff.');
+      Log('Migration destination installed; account imported and service is running.');
     end else begin
       Log('Migration service did not reach RUNNING');
     end;
@@ -953,10 +970,12 @@ begin
   LegacyDirectory := ExpandConstant('{param:LEGACYDIR|}');
   LegacySID := ExpandConstant('{param:LEGACYSID|}');
   LegacyID := ExpandConstant('{param:LEGACYID|}');
+  LegacyRequest := ExpandConstant('{param:LEGACYREQUEST|}');
   ErrorMessage := '';
   if (Mode <> '0') and (Mode <> '1') then
     ErrorMessage := 'Unsupported legacy migration contract.'
-  else if not LegacyMigration and ((LegacyDirectory <> '') or (LegacySID <> '') or (LegacyID <> '')) then
+  else if not LegacyMigration and ((LegacyDirectory <> '') or (LegacySID <> '') or
+    (LegacyID <> '') or (LegacyRequest <> '')) then
     ErrorMessage := 'Legacy handoff arguments require LEGACYMIGRATION=1.'
   else if LegacyMigration then begin
     if ProcessorArchitecture <> paX64 then
@@ -965,6 +984,8 @@ begin
       ErrorMessage := 'Restart migration from the legacy app to authorize identity transfer.'
     else if not ValidLegacySourcePath(LegacyDirectory) then
       ErrorMessage := 'Restart migration from the legacy app with its installation folder on a fixed local drive.'
+    else if not ValidLegacyRequestPath(LegacyRequest) then
+      ErrorMessage := 'Restart migration from the legacy app with a valid account snapshot on a fixed local drive.'
     else if HasUnsafePathComponent(LegacyDirectory) or
       not FileExists(AddBackslash(LegacyDirectory) + 'lantern.exe') then
       ErrorMessage := 'The legacy Lantern installation could not be verified. It has not been changed.';

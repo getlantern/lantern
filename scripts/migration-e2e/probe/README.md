@@ -38,8 +38,11 @@ artifacts. The account ID is a positive decimal string to preserve all int64 bit
 
 All modes use ordinary Radiance IPC to compare cached and freshly authenticated
 account data, exact account tokens, runtime device identity, Pro/free status, and
-settings. The startup preference is the adopted `legacy_auto_launch` setting;
-the harness must verify the original user's actual Run entry separately.
+settings. `preferences_match` covers locale, telemetry consent, and routing.
+The fixture's `auto_launch` remains required by the harness: `run.ps1` checks the
+original user's actual Run entry before and after reboot, then confirms that the
+destination UI starts after reboot exactly when requested. Startup ownership is
+verified through those Windows artifacts and processes.
 `verify` does not change VPN connection state. `connect` waits for Connected,
 requires a successful HTTPS response without redirects, and rechecks Connected.
 This proves connectivity while the VPN reports connected, not that a particular

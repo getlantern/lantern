@@ -3,7 +3,7 @@
 The legacy x86 bridge installs v10 alongside the existing app with:
 
 ```text
-lantern-installer.exe /LEGACYMIGRATION=1 /LEGACYDIR="C:\Users\Alice\AppData\Roaming\Lantern" /LEGACYSID="S-1-5-21-..." /LEGACYID="<32 lowercase hexadecimal digits>" /NORESTART
+lantern-installer.exe /LEGACYMIGRATION=1 /LEGACYDIR="C:\Users\Alice\AppData\Roaming\Lantern" /LEGACYSID="S-1-5-21-..." /LEGACYID="<32 lowercase hexadecimal digits>" /LEGACYREQUEST="C:\Users\Alice\AppData\Roaming\Lantern\bridge-migration\account-snapshot.json" /NORESTART
 ```
 
 The bridge verifies the installer signature before launch, keeps its executable
@@ -17,6 +17,10 @@ is optional.
   UAC. Setup must resolve it to a user account before running prerequisites.
 - `LEGACYID` is a random identifier saved by the bridge before elevation:
   exactly 32 lowercase hexadecimal digits.
+- `LEGACYREQUEST` is the private JSON account snapshot saved by the bridge before
+  elevation. It must be an existing regular file at an absolute path on a fixed
+  local drive, with the same path-component restrictions as `LEGACYDIR`. Setup
+  rejects reparse points and checks the snapshot again before changing files.
 
 Unknown contract versions and handoff arguments without `/LEGACYMIGRATION=1`
 are rejected. Account credentials must never appear in arguments or logs.
@@ -41,10 +45,13 @@ with legacy settings, pre-v9 executables, or executables of unknown version.
 
 ## Installation and recovery
 
-Setup calls `lanternd prepare-legacy-migration` with the original SID, source
-folder and migration ID before installing the service. The daemon validates the
-user, protects the data directory and saves the enrollment. Later ordinary
-upgrades also preserve those restricted permissions while the enrollment exists.
+Setup calls `lanternd migrate --sid "<SID>" --source "<legacy folder>"
+--migration-id "<ID>" --request "<snapshot path>"` before installing the service.
+This one-shot command validates the original user and snapshot, verifies and
+imports the account, protects its storage, and saves the normal service owner
+metadata. Credentials stay in the private snapshot; only its quoted path appears
+in the command. Later ordinary upgrades preserve restricted permissions while
+the normal service owner is configured.
 
 Success requires `lanternd install` to exit successfully and SCM to report
 `RUNNING`. On failure, setup attempts to stop/delete its service before reporting
@@ -53,7 +60,7 @@ return control to the bridge without scheduling an elevated RunOnce retry.
 
 | Exit | Bridge action |
 | --- | --- |
-| `0` | Begin authenticated account handoff; SCM `RUNNING` alone does not prove application readiness. |
+| `0` | Verify the imported account and backend readiness through ordinary IPC; SCM `RUNNING` alone does not prove application readiness. |
 | Nonzero, including cancellation, restart or service failure (`1`) | Continue/restart the legacy app and retain its startup entries. |
 
 Setup preserves legacy files, settings, registry entries and shortcuts. It never
@@ -65,9 +72,9 @@ new files, registration, data and prerequisites behind. Recovery preserves the
 legacy app; it is not a complete rollback of machine changes.
 
 The bridge and Radiance own account/device/settings adoption, readiness checks,
-startup switching and explicit recovery. The installer does not perform those
-steps. Keep rollout disabled until signed-artifact E2E tests verify the handoff
-and recovery.
+startup switching and explicit recovery. Setup only invokes the import command
+and checks service installation. Keep rollout disabled until signed-artifact E2E
+tests verify the handoff and recovery.
 
 ## Tests
 
@@ -80,7 +87,7 @@ python3 -m unittest -v scripts/ci/render_windows_installer_fixture_test.py
 
 `.github/workflows/windows-installer-migration-test.yml` builds the production
 template with isolated unsigned payloads on an ephemeral Windows runner. It tests
-success, rejection, cancellation, prerequisite/enrollment/service/file-copy
+success, snapshot-path rejection, cancellation, prerequisite/import/service/file-copy
 failures, and legacy preservation. The harness refuses to mutate ordinary
 workstations. These fixtures do not prove real account adoption or replace tests
 on unsupported Windows/ARM systems.
