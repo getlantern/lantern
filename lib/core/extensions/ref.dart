@@ -18,8 +18,11 @@ final isUserProProvider = Provider<bool>((ref) {
 /// Pro-only.
 final canSelectServerProvider = Provider<bool>((ref) {
   if (ref.watch(isUserProProvider)) return true;
-  final dataCap = ref.watch(dataCapInfoProvider).value;
-  return dataCap != null && !dataCap.enabled;
+  final dataCap = ref.watch(dataCapInfoProvider);
+  // AsyncValue.value keeps the previous result while refetching or after an
+  // error, which may predate a Pro-to-free downgrade.
+  if (dataCap.isLoading || dataCap.hasError) return false;
+  return dataCap.value?.enabled == false;
 });
 
 final isUserExpiredProvider = Provider<bool>((ref) {
