@@ -16,6 +16,10 @@ part 'home_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class HomeNotifier extends _$HomeNotifier {
+  // Tracked separately from state, which refreshUser() clears to loading
+  // before new user data arrives.
+  bool _isPro = false;
+
   @override
   Future<UserResponseModel> build() async {
     /// Check if user data is stored locally
@@ -95,10 +99,11 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   void _applyUserData(UserResponseModel userData) {
-    final wasPro = state.value?.legacyUserData.isPro ?? false;
+    final wasPro = _isPro;
     state = AsyncValue.data(userData);
 
     final isPro = userData.legacyUserData.isPro;
+    _isPro = isPro;
     if (wasPro && !isPro) {
       // Data cap info cached while Pro reports the cap as off; refetch it.
       ref.invalidate(dataCapInfoProvider);
@@ -118,8 +123,9 @@ class HomeNotifier extends _$HomeNotifier {
     } catch (e) {
       appLogger.error('Data cap info unavailable, resetting location: $e');
     }
+    if (!ref.mounted) return;
     // The user may have upgraded while the data cap info was loading.
-    if (state.value?.legacyUserData.isPro ?? false) return;
+    if (_isPro) return;
     resetServerLocation();
   }
 
