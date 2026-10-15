@@ -1,0 +1,63 @@
+name: Go checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lantern-core/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.golangci.yml'
+      - '.github/workflows/go-checks.yml'
+      - '.github/actions/setup-go/**'
+  pull_request:
+    paths:
+      - 'lantern-core/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.golangci.yml'
+      - '.github/workflows/go-checks.yml'
+      - '.github/actions/setup-go/**'
+  schedule:
+    - cron: "0 14 * * 1"
+
+jobs:
+  lint:
+    # A scheduled run has no diff to scope only-new-issues to.
+    if: github.event_name != 'schedule'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-go
+        with:
+          cache-scope: go-lint
+      - uses: golangci/golangci-lint-action@v9.3.0
+        env:
+          CGO_ENABLED: "1"
+        with:
+          version: v2.13.0
+          # Build the linter with the repo's Go so it can type-check this module.
+          install-mode: goinstall
+          only-new-issues: true
+
+  race:
+    if: github.event_name != 'schedule'
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-go
+        with:
+          cache-scope: go-race
+      - name: Test with the race detector
+        run: CGO_ENABLED=1 go test -race -tags with_gvisor,with_quic,with_wireguard,with_utls,with_grpc ./...
+
+  govulncheck:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-go
+        with:
+          cache-scope: go-vulncheck
+      - name: Scan reachable vulnerabilities
+        run: CGO_ENABLED=1 go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 -tags with_gvisor,with_quic,with_wireguard,with_utls,with_grpc ./...
