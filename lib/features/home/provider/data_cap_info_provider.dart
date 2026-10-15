@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -42,7 +40,7 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
     if (!dataCapInfo.enabled) return;
     final user = ref.read(homeProvider).value;
     if (user == null || user.legacyUserData.isPro) return;
-    unawaited(ref.read(homeProvider.notifier).resetServerLocation());
+    ref.read(homeProvider.notifier).resetServerLocation();
   }
 
   /// Main entry point - checks usage and sends notification if threshold crossed
