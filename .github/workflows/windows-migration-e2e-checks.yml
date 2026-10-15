@@ -32,6 +32,9 @@ jobs:
       - name: Check harness parsing, atomic read sharing and diagnostic errors
         shell: pwsh
         run: ./scripts/migration-e2e/harness_checks.ps1
+      - name: Check ephemeral lab signing
+        shell: pwsh
+        run: ./scripts/migration-e2e/lab-signing_checks.ps1
       - name: Test and build the real IPC probe
         shell: pwsh
         env:

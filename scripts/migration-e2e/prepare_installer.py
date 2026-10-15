@@ -17,12 +17,17 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def validate(environment, migration_e2e, build_type, auto_update_e2e):
+def validate(environment, migration_e2e, build_type, auto_update_e2e,
+             lab_signing=False, sign_update_artifact=True, skip_signing=False):
     require(environment in ("prod", "staging"), "backend environment must be prod or staging")
     if environment == "staging" or migration_e2e:
         require(environment == "staging" and migration_e2e and auto_update_e2e and bool(build_type)
                 and build_type.strip().lower() != "production",
                 "staging backend requires migration_e2e, auto_update_e2e, and a non-production build")
+    if lab_signing:
+        require(environment == "staging" and migration_e2e and auto_update_e2e
+                and build_type == "migration-e2e" and not sign_update_artifact and not skip_signing,
+                "lab signing requires the isolated staging migration fixture without update signing")
 
 
 def render(template, environment, migration_e2e, build_type, auto_update_e2e):
@@ -49,13 +54,17 @@ def main():
     parser.add_argument("--migration-e2e", choices=("true", "false"), required=True)
     parser.add_argument("--auto-update-e2e", choices=("true", "false"), required=True)
     parser.add_argument("--build-type", required=True)
+    parser.add_argument("--lab-signing", choices=("true", "false"), default="false")
+    parser.add_argument("--sign-update-artifact", choices=("true", "false"), default="true")
+    parser.add_argument("--skip-signing", choices=("true", "false"), default="false")
     parser.add_argument("--template", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--metadata", type=Path)
     args = parser.parse_args()
     migration = args.migration_e2e == "true"
     auto_update = args.auto_update_e2e == "true"
-    validate(args.backend_environment, migration, args.build_type, auto_update)
+    validate(args.backend_environment, migration, args.build_type, auto_update,
+             args.lab_signing == "true", args.sign_update_artifact == "true", args.skip_signing == "true")
     if args.command == "validate":
         return
     require(args.template and args.output and args.metadata, "render requires template, output, and metadata paths")
@@ -69,6 +78,7 @@ def main():
         "migration_e2e": migration,
         "auto_update_e2e": auto_update,
         "build_type": args.build_type,
+        "signing_mode": "lab" if args.lab_signing == "true" else "production",
         "service_install_arguments": "install --environment staging" if migration else "install",
         "migration_import_command": "migrate --environment staging" if migration else "migrate",
         "dart_environment": "staging" if migration else "unchanged",

@@ -1,4 +1,5 @@
 import copy
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -45,6 +46,28 @@ class BundleTest(unittest.TestCase):
 
     def test_valid(self):
         self.assertEqual(self.validate()["lane"], "rebuilt-staging")
+
+    def test_lab_certificates_match_every_signer(self):
+        certificates = [b"seed and bridge public DER", b"installer public DER"]
+        self.m["lab_signing_certificates"] = [base64.b64encode(der).decode() for der in certificates]
+        for role in ("seed", "bridge", "installer"):
+            der = certificates[role == "installer"]
+            self.m["artifacts"][role]["signer_thumbprint"] = hashlib.sha1(der).hexdigest().upper()
+        self.validate()
+        for invalid in ([], None, "certificate", self.m["lab_signing_certificates"] * 2,
+                        [self.m["lab_signing_certificates"][0]] * 2,
+                        ["not base64"], [base64.b64encode(b"x" * 16385).decode()],
+                        self.m["lab_signing_certificates"] + [base64.b64encode(b"unused certificate").decode()],
+                        [self.m["lab_signing_certificates"][0]]):
+            with self.subTest(invalid=str(invalid)[:40]):
+                original = self.m["lab_signing_certificates"]
+                self.m["lab_signing_certificates"] = invalid
+                with self.assertRaises(ValueError):
+                    self.validate()
+                self.m["lab_signing_certificates"] = original
+        self.m["artifacts"]["installer"]["signer_thumbprint"] = "A" * 40
+        with self.assertRaisesRegex(ValueError, "lab_signer_mismatch"):
+            self.validate()
 
     def test_account_requires_must_proxy_route(self):
         path = self.root / "global.json"

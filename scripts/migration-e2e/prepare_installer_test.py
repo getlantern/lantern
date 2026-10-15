@@ -27,6 +27,15 @@ class InstallerEnvironmentTest(unittest.TestCase):
             with self.subTest(args=args), self.assertRaises(ValueError):
                 installer.validate(*args)
 
+    def test_lab_signing_requires_every_isolation_guard(self):
+        allowed = ["staging", True, "migration-e2e", True, True, False, False]
+        installer.validate(*allowed)
+        for index, value in ((0, "prod"), (1, False), (2, "nightly"), (3, False), (5, True), (6, True)):
+            args = allowed.copy()
+            args[index] = value
+            with self.subTest(index=index), self.assertRaises(ValueError):
+                installer.validate(*args)
+
     def test_missing_duplicate_or_changed_site_fails_closed(self):
         for changed in (self.template.replace(installer.ORDINARY_INSTALL, ""),
                         self.template + "\n" + installer.MIGRATION_INSTALL,
@@ -45,6 +54,8 @@ class InstallerEnvironmentTest(unittest.TestCase):
         self.assertIn("--build-dart-define=AUTO_UPDATE_E2E=true", text)
         self.assertLess(text.index("Validate backend environment isolation"), text.index("Decode APP_ENV"))
         self.assertLess(text.index("Render staging migration service commands"), text.index("      - name: Package installer"))
+        self.assertIn("--hook-pre=pwsh -NoProfile -File scripts/migration-e2e/lab-signing.ps1", text)
+        self.assertIn("dart pub global activate fastforge 0.6.12", text)
 
 
 if __name__ == "__main__":

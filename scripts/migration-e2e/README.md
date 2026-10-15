@@ -74,6 +74,28 @@ Manifest structure (replace all example hashes, versions, commits, thumbprints a
 
 ## Provision one disposable VM per scenario
 
+### Lab signing without production credentials
+
+`build-windows-migration-e2e.yml` accepts `lab_signing: true` for staging fixtures.
+The temporary `sign-windows-bridge-fixtures-lab.yml` workflow signs the pinned
+seed and bridge the same way. Each signing job creates a short-lived,
+non-exportable code-signing key on its hosted Windows runner, timestamps the
+signatures, and exports only its public certificate. No production signing
+credentials are used.
+
+Include the public certificates as base64 DER strings in the optional manifest
+field `lab_signing_certificates`. Their SHA-1 thumbprints must exactly match the
+seed, bridge and installer signer thumbprints. The externally pinned manifest
+hash covers these certificates. The staging VM controller validates each
+certificate and installs its public trust only on the disposable VM before
+starting the standard-user runner. Authenticode must still report `Valid`;
+updater RSA signatures, payload hashes and all migration checks remain enabled.
+
+Results record `lab_signing: true` and `production_activation_ready: false`.
+This verifies the rebuilt staging migration chain, including account adoption,
+connectivity and reboot. Production publisher trust and SmartScreen behavior
+still require production-signed artifacts.
+
 Use native x64 Windows 10 1903+ or Windows 11, with Python 3.11+, PowerShell 7.2+, Go (for inspecting build metadata), required app prerequisites, and an interactive **standard user** session. A separate administrator approves the real UAC prompt. The GitHub runner must run interactively as that original user; a Session 0 service runner or elevated administrator runner is rejected. Register only this leased VM under `lantern-migration-e2e`, and configure the protected `staging-migration-e2e` environment. Do not run this on a personal workstation.
 
 The administrator/provider creates `C:\ProgramData\LanternMigrationE2E\lease.json`, with administrator/SYSTEM ownership, write access restricted to those principals (including its directory), and standard-user read access:

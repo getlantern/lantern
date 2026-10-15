@@ -77,6 +77,11 @@ on:
         required: false
         type: boolean
         default: false
+      lab_signing:
+        description: "Use an ephemeral lab certificate for the isolated staging migration fixture"
+        required: false
+        type: boolean
+        default: false
       enable_ip_check:
         description: "Enable public IP change validation in Windows smoke suite"
         required: false
@@ -136,12 +141,18 @@ jobs:
           BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
           MIGRATION_E2E: ${{ inputs.migration_e2e }}
           AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+          LAB_SIGNING: ${{ inputs.lab_signing }}
+          SIGN_UPDATE_ARTIFACT: ${{ inputs.sign_update_artifact }}
+          SKIP_SIGNING: ${{ inputs.skip_signing }}
         run: |
           python scripts/migration-e2e/prepare_installer.py validate `
             --backend-environment "$env:BACKEND_ENVIRONMENT" `
             --migration-e2e "$env:MIGRATION_E2E" `
             --auto-update-e2e "$env:AUTO_UPDATE_E2E" `
-            --build-type "$env:BUILD_TYPE"
+            --build-type "$env:BUILD_TYPE" `
+            --lab-signing "$env:LAB_SIGNING" `
+            --sign-update-artifact "$env:SIGN_UPDATE_ARTIFACT" `
+            --skip-signing "$env:SKIP_SIGNING"
           if ($LASTEXITCODE -ne 0) { throw 'Invalid backend environment isolation inputs' }
 
       - name: Download pubspec.yaml
@@ -272,7 +283,7 @@ jobs:
           retention-days: 7
 
       - name: Sign embedded binaries
-        if: ${{ !inputs.skip_signing }}
+        if: ${{ !inputs.skip_signing && !inputs.lab_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -354,6 +365,17 @@ jobs:
           Remove-Item -Recurse -Force $stage, $zipPath
           Write-Host "All binaries signed successfully"
 
+      - name: Create ephemeral lab certificate
+        if: ${{ inputs.lab_signing }}
+        shell: pwsh
+        run: |
+          . ./scripts/migration-e2e/lab-signing.ps1
+          $certificate = New-LabSigningCertificate -OutputDirectory "$env:RUNNER_TEMP/lab-signing"
+          "LAB_SIGNING_THUMBPRINT=$($certificate.Thumbprint)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          if ('${{ inputs.package_installer }}' -ne 'true') {
+            Invoke-LabBuildSigning -BuildDirectory build/windows/x64/runner/Release -Thumbprint $certificate.Thumbprint
+          }
+
       - name: Signing disabled for this run
         if: ${{ inputs.skip_signing }}
         shell: pwsh
@@ -376,12 +398,18 @@ jobs:
           BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
           MIGRATION_E2E: ${{ inputs.migration_e2e }}
           AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+          LAB_SIGNING: ${{ inputs.lab_signing }}
+          SIGN_UPDATE_ARTIFACT: ${{ inputs.sign_update_artifact }}
+          SKIP_SIGNING: ${{ inputs.skip_signing }}
         run: |
           python scripts/migration-e2e/prepare_installer.py render `
             --backend-environment "$env:BACKEND_ENVIRONMENT" `
             --migration-e2e "$env:MIGRATION_E2E" `
             --auto-update-e2e "$env:AUTO_UPDATE_E2E" `
             --build-type "$env:BUILD_TYPE" `
+            --lab-signing "$env:LAB_SIGNING" `
+            --sign-update-artifact "$env:SIGN_UPDATE_ARTIFACT" `
+            --skip-signing "$env:SKIP_SIGNING" `
             --template windows/packaging/exe/inno_setup.iss `
             --output windows/packaging/exe/inno_setup.iss `
             --metadata "$env:RUNNER_TEMP/migration-e2e-installer-build.json"
@@ -403,8 +431,14 @@ jobs:
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
           BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
           AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+          LAB_SIGNING: ${{ inputs.lab_signing }}
         run: |
-          dart pub global activate fastforge
+          if ($env:LAB_SIGNING -eq 'true') {
+            dart pub global activate fastforge 0.6.12
+          } else {
+            dart pub global activate fastforge
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Fastforge installation failed' }
           $packageArgs = @(
             'package', '--platform=windows', '--targets=exe', '--skip-clean',
             "--build-dart-define=BUILD_TYPE=$env:BUILD_TYPE",
@@ -418,6 +452,10 @@ jobs:
           if ($env:AUTO_UPDATE_E2E -eq 'true') {
             $packageArgs += '--build-dart-define=AUTO_UPDATE_E2E=true'
           }
+          if ($env:LAB_SIGNING -eq 'true') {
+            # The hook runs after Flutter's rebuild and before Inno copies the binaries.
+            $packageArgs += "--hook-pre=pwsh -NoProfile -File scripts/migration-e2e/lab-signing.ps1 -BuildDirectory build/windows/x64/runner/Release -Thumbprint $env:LAB_SIGNING_THUMBPRINT"
+          }
           & fastforge @packageArgs
           if ($LASTEXITCODE -ne 0) { throw 'Windows installer packaging failed' }
 
@@ -429,7 +467,7 @@ jobs:
           Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
 
       - name: Sign installer
-        if: ${{ inputs.package_installer && !inputs.skip_signing }}
+        if: ${{ inputs.package_installer && !inputs.skip_signing && !inputs.lab_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -446,6 +484,24 @@ jobs:
             -ProjectSlug $env:SIGNPATH_PROJECT_SLUG `
             -ApiToken $env:SIGNPATH_API_TOKEN `
             -Description "Installer - GitHub Actions build $env:VERSION"
+
+      - name: Sign lab installer
+        if: ${{ inputs.package_installer && inputs.lab_signing }}
+        shell: pwsh
+        env:
+          FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+        run: |
+          . ./scripts/migration-e2e/lab-signing.ps1
+          Invoke-LabSigning -FilePath "$env:FULL_INSTALLER_NAME.exe" -Thumbprint $env:LAB_SIGNING_THUMBPRINT
+
+      - name: Upload public lab signing certificate
+        if: ${{ inputs.lab_signing }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lantern-installer-lab-signing
+          path: ${{ runner.temp }}/lab-signing
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Sign Windows update
         if: ${{ inputs.package_installer && !inputs.skip_signing && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
@@ -519,3 +575,10 @@ jobs:
           name: lantern-installer-exe-signature
           path: ${{ runner.temp }}/${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.exe.sparkle-signature
           retention-days: 2
+
+      - name: Remove ephemeral lab certificate
+        if: ${{ always() && inputs.lab_signing && env.LAB_SIGNING_THUMBPRINT != '' }}
+        shell: pwsh
+        run: |
+          . ./scripts/migration-e2e/lab-signing.ps1
+          Remove-LabSigningCertificate -Thumbprint $env:LAB_SIGNING_THUMBPRINT

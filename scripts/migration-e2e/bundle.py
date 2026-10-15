@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Validate a reviewed, local staging migration bundle. Never fetch or run assets."""
 import argparse
+import base64
+import binascii
 import hashlib
 import json
 from pathlib import Path, PureWindowsPath
@@ -52,6 +54,30 @@ def pe_machine(path):
         stream.seek(offset)
         require(stream.read(4) == b"PE\0\0", "invalid_pe")
         return struct.unpack("<H", stream.read(2))[0]
+
+
+def validate_lab_certificates(manifest):
+    if "lab_signing_certificates" not in manifest:
+        return
+    certificates = manifest["lab_signing_certificates"]
+    require(isinstance(certificates, list) and 1 <= len(certificates) <= 3, "invalid_lab_certificates")
+    thumbprints = set()
+    for encoded in certificates:
+        require(isinstance(encoded, str) and 0 < len(encoded) <= 21848, "invalid_lab_certificate")
+        try:
+            der = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error):
+            raise ValueError("invalid_lab_certificate") from None
+        require(0 < len(der) <= 16384 and base64.b64encode(der).decode("ascii") == encoded,
+                "invalid_lab_certificate")
+        # The controller validates DER, self-signature and code-signing usage
+        # before trusting these public certificates on the disposable VM.
+        thumbprint = hashlib.sha1(der).hexdigest()
+        require(thumbprint not in thumbprints, "duplicate_lab_certificate")
+        thumbprints.add(thumbprint)
+    signers = {manifest["artifacts"][role]["signer_thumbprint"].lower()
+               for role in ("seed", "bridge", "installer")}
+    require(thumbprints == signers, "lab_signer_mismatch")
 
 
 def verify_legacy_build(info, role, commit, version):
@@ -108,7 +134,7 @@ def validate(root, manifest_hash):
     path = local_file(root, "manifest.json")
     require(sha256(path) == manifest_hash, "manifest_hash_mismatch")
     m = json.loads(path.read_text(encoding="utf-8-sig"))
-    require(set(m) == {"schema_version", "run_id", "lane", "scenario", "endpoint", "catalog",
+    require(set(m) - {"lab_signing_certificates"} == {"schema_version", "run_id", "lane", "scenario", "endpoint", "catalog",
                        "source_commits", "artifacts", "bridge_version", "installer_version",
                        "probe_url", "account_environment", "production_activation_ready"}, "manifest_fields")
     require(m["schema_version"] == 1 and m["production_activation_ready"] is False, "manifest_version")
@@ -140,6 +166,7 @@ def validate(root, manifest_hash):
             require(bool(re.fullmatch(r"[A-Fa-f0-9]{40}", asset["signer_thumbprint"])), "invalid_signer")
         if name in {"seed", "bridge", "probe", "global_checker"}:
             require(pe_machine(file) == (0x14C if name != "probe" else 0x8664), "wrong_pe_arch")
+    validate_lab_certificates(m)
     # Use JSON (a YAML subset) to avoid ambiguous/duplicate YAML keys and keep the
     # seed's sticky config inspectable. The application still reads real global.yaml.
     config = json.loads(local_file(root, artifacts["global_config"]["file"]).read_text(encoding="utf-8"))
@@ -167,7 +194,8 @@ def main():
         m = validate(args.bundle, args.manifest_sha256)
         verify_binary_builds(args.bundle, m)
         print(json.dumps({"ok": True, "schema_version": 1, "run_id": m["run_id"],
-                          "lane": m["lane"], "scenario": m["scenario"], "production_activation_ready": False}))
+                          "lane": m["lane"], "scenario": m["scenario"],
+                          "lab_signing": "lab_signing_certificates" in m, "production_activation_ready": False}))
         return 0
     except (ValueError, OSError, KeyError, TypeError, subprocess.SubprocessError):
         # A malformed bundle must not put arbitrary data or paths in uploaded logs.

@@ -283,6 +283,7 @@ try {
   $script:Result.lane = $script:M.lane
   $script:Result.scenario = $script:M.scenario
   $script:Result.manifest_sha256 = $ManifestSHA256
+  $script:Result.lab_signing = $script:M.ContainsKey('lab_signing_certificates')
   if ($Phase -eq 'Run') {
     foreach ($path in @($root,$script:Config,$destination,'C:\ProgramData\Lantern')) {
       Require (-not (Test-Path -LiteralPath $path)) 'existing_installation_or_run'
