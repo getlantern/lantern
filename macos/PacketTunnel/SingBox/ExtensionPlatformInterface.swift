@@ -27,6 +27,8 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   init(_ tunnel: ExtensionProvider) {
     self.tunnel = tunnel
+    super.init()
+    pathQueue.setSpecific(key: pathQueueKey, value: true)
   }
 
   /// Applies tunnel network settings and waits for NetworkExtension's completion.
@@ -312,8 +314,9 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   private var monitorListener: LibboxInterfaceUpdateListenerProtocol?
   private var monitorSession: NetworkResetScheduler.Session?
   private let monitorLock = NSLock()
-  /// Serializes path updates and lastDefaultInterface.
+  /// Serializes path updates, monitor replacement and lastDefaultInterface.
   private let pathQueue = DispatchQueue(label: "org.getlantern.PacketTunnel.path")
+  private let pathQueueKey = DispatchSpecificKey<Bool>()
   private var lastDefaultInterface: DefaultInterface?
   private let networkResets = NetworkResetScheduler()
   /// An address change can settle in several path updates; wait for them to stop so
@@ -339,24 +342,29 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     // logs in getlantern/engineering#3781 show 72 monitors started against 59
     // closed. Replacing the reference without cancelling leaks the old
     // NWPathMonitor, which keeps pushing path updates into a dead sing-box.
-    monitorLock.lock()
-    nwMonitor?.cancel()
-    let session = networkResets.startSession()
-    pathQueue.async { self.clearPathState(session) }
-    let monitor = NWPathMonitor()
-    nwMonitor = monitor
-    monitorListener = listener
-    monitorSession = session
     let semaphore = DispatchSemaphore(value: 0)
-    monitor.pathUpdateHandler = { path in
-      self.onUpdateDefaultInterface(listener, path, session)
-      semaphore.signal()
+    withPathQueue {
+      monitorLock.lock()
+      defer { monitorLock.unlock() }
+      nwMonitor?.cancel()
+      let session = networkResets.startSession()
+      clearPathState(session)
+      let monitor = NWPathMonitor()
+      nwMonitor = monitor
+      monitorListener = listener
+      monitorSession = session
       monitor.pathUpdateHandler = { path in
         self.onUpdateDefaultInterface(listener, path, session)
+        semaphore.signal()
+        monitor.pathUpdateHandler = { path in
+          self.onUpdateDefaultInterface(listener, path, session)
+        }
       }
+      monitor.start(queue: pathQueue)
     }
-    monitor.start(queue: pathQueue)
-    monitorLock.unlock()
+    // A listener callback may replace its monitor on this queue. Its first update
+    // cannot arrive until that callback returns.
+    guard DispatchQueue.getSpecific(key: pathQueueKey) == nil else { return }
     // Wait for the first path so libbox starts with an interface, but never
     // indefinitely: with no network at all the first update may not arrive, and this
     // runs on the libbox thread during tunnel bring-up. On timeout carry on — the
@@ -394,7 +402,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     listener.updateDefaultInterface(
       defaultInterface.name, interfaceIndex: Int32(defaultInterface.index),
       isExpensive: path.isExpensive, isConstrained: path.isConstrained)
-    guard let ipv4 else {
+    guard networkResets.isCurrent(session), let ipv4 else {
       return
     }
     let previous = lastDefaultInterface
@@ -431,7 +439,13 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   func cancelNetworkResetsAndWait() {
+    withPathQueue { networkResets.endSession() }
     networkResets.endSessionAndWait()
+  }
+
+  private func withPathQueue<T>(_ body: () -> T) -> T {
+    if DispatchQueue.getSpecific(key: pathQueueKey) != nil { return body() }
+    return pathQueue.sync(execute: body)
   }
 
   /// Returns the interface's IPv4 addresses sorted, or nil if they cannot be read.
@@ -482,15 +496,17 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   private func closeInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol? = nil) {
-    monitorLock.lock()
-    defer { monitorLock.unlock() }
-    // Gomobile can wrap the same Go listener in different Objective-C objects.
-    if let listener, !UtilsSameInterfaceUpdateListener(listener, monitorListener) { return }
-    networkResets.endSession(monitorSession)
-    nwMonitor?.cancel()
-    nwMonitor = nil
-    monitorListener = nil
-    monitorSession = nil
+    withPathQueue {
+      monitorLock.lock()
+      defer { monitorLock.unlock() }
+      // Gomobile can wrap the same Go listener in different Objective-C objects.
+      if let listener, !UtilsSameInterfaceUpdateListener(listener, monitorListener) { return }
+      networkResets.endSession(monitorSession)
+      nwMonitor?.cancel()
+      nwMonitor = nil
+      monitorListener = nil
+      monitorSession = nil
+    }
   }
 
   public func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
