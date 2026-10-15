@@ -108,22 +108,20 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "Invalid $mode fixture" }
             Copy-Item "$inputDir/lantern.exe" "$toSign/$mode.exe"
           }
-      - name: Sign with Lantern's existing production policy
-        shell: pwsh
-        env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
-          SIGNPATH_ORG_ID: ${{ vars.SIGNPATH_ORG_ID }}
-          SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
-        run: |
-          foreach ($mode in @('seed', 'bridge')) {
-            ./scripts/ci/sign-windows.ps1 `
-              -FilePath "$env:RUNNER_TEMP/migration-to-sign/$mode.exe" `
-              -SigningPolicy prod-policy `
-              -OrganizationId $env:SIGNPATH_ORG_ID `
-              -ProjectSlug $env:SIGNPATH_PROJECT_SLUG `
-              -ApiToken $env:SIGNPATH_API_TOKEN `
-              -Description "Staging migration $mode from Desktop run 38704567311"
-          }
+      - name: Sign staging fixtures with Azure Trusted Signing
+        uses: getlantern/trusted-signing-action@9b9fc935a1fafece03665b44ebe468435d9f185d
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: https://wus2.codesigning.azure.net/
+          code-signing-account-name: code-signing
+          certificate-profile-name: Lantern
+          files-folder: ${{ runner.temp }}\migration-to-sign
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
       - name: Verify and package signed fixtures
         shell: pwsh
         run: |
