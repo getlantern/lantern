@@ -22,8 +22,11 @@ try {
     $source = Join-Path $directory 'main.go'
     $executable = Join-Path $directory 'signed.exe'
     Set-Content $source 'package main; func main() {}' -Encoding utf8
-    & go build -o $executable $source
-    if ($LASTEXITCODE -ne 0) { throw 'Lab signing fixture compilation failed' }
+    Push-Location $directory
+    try {
+        & go build -o $executable $source
+        if ($LASTEXITCODE -ne 0) { throw 'Lab signing fixture compilation failed' }
+    } finally { Pop-Location }
     Invoke-LabSigning -FilePath $executable -Thumbprint $certificate.Thumbprint
     Assert-Rejected { Assert-LabSignature -FilePath $executable -Thumbprint ('0' * 40) }
     $bytes = [IO.File]::ReadAllBytes($executable)
