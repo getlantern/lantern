@@ -18,6 +18,13 @@ part 'home_notifier.g.dart';
 class HomeNotifier extends _$HomeNotifier {
   @override
   Future<UserResponseModel> build() async {
+    // A free user whose data cap turns on loses manual location selection.
+    ref.listen(dataCapInfoProvider, (previous, next) {
+      final capped = next.value?.enabled ?? false;
+      final isPro = state.value?.legacyUserData.isPro ?? true;
+      if (capped && !isPro) resetServerLocation();
+    });
+
     /// Check if user data is stored locally
     /// If yes, load it first to avoid delay in UI
     final service = ref.read(lanternServiceProvider);
@@ -95,9 +102,14 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   void _applyUserData(UserResponseModel userData) {
+    final wasPro = state.value?.legacyUserData.isPro ?? false;
     state = AsyncValue.data(userData);
 
     final isPro = userData.legacyUserData.isPro;
+    if (wasPro && !isPro) {
+      // Data cap info cached while Pro reports the cap as off; refetch it.
+      ref.invalidate(dataCapInfoProvider);
+    }
     if (!isPro) {
       unawaited(_resetServerLocationIfDataCapped());
     }
