@@ -31,7 +31,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/common v1.2.1-0.20260910154003-08e030318f24
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261015150152-346e62ad5317
+	github.com/getlantern/radiance v0.0.0-20261015201452-d031191b6c27
 	github.com/sagernet/sing-box v1.13.19
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.47.0
@@ -182,7 +182,7 @@ require (
 	github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b // indirect
 	github.com/getlantern/samizdat v0.0.3-0.20260819153658-ebc74116a064 // indirect
 	github.com/getlantern/semconv v0.0.0-20261011133221-f5e57ec9c1c5 // indirect
-	github.com/getlantern/soar v0.2.1 // indirect
+	github.com/getlantern/soar v0.2.2 // indirect
 	github.com/getlantern/twiddle v0.0.0-20260914204124-f698a0d67d2f // indirect
 	github.com/go-json-experiment/json v0.0.0-20250813024750-ebf49471dced // indirect
 	github.com/go-llsqlite/adapter v0.0.0-20230927005056-7f5ce7f0c916 // indirect
