@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -96,9 +99,21 @@ class HomeNotifier extends _$HomeNotifier {
 
     final isPro = userData.legacyUserData.isPro;
     if (!isPro) {
-      resetServerLocation();
+      unawaited(_resetServerLocationIfDataCapped());
     }
     checkIfUserProAndDeviceIsAdded();
+  }
+
+  /// Free users without a data cap may keep a manually selected location
+  /// (see canSelectServerProvider); everyone else falls back to smart location.
+  Future<void> _resetServerLocationIfDataCapped() async {
+    try {
+      final dataCap = await ref.read(dataCapInfoProvider.future);
+      if (!dataCap.enabled) return;
+    } catch (e) {
+      appLogger.error('Data cap info unavailable, resetting location: $e');
+    }
+    resetServerLocation();
   }
 
   Future<Either<Failure, Unit>> updateLocale(String locale) {
