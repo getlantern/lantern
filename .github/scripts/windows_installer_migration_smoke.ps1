@@ -121,9 +121,9 @@ function Build-Installer([string]$Mode, [switch]$FailFileCopy) {
   return $installer
 }
 
-function Start-Installer([string]$Name, [string]$Installer, [string]$ExtraArguments = '', [switch]$Interactive, [string]$LegacySource = $LegacyDirectory, [string]$MigrationVersion = '1', [string]$SourceSID = $MigrationSID, [string]$HandoffID = $MigrationID) {
+function Start-Installer([string]$Name, [string]$Installer, [string]$ExtraArguments = '', [switch]$Interactive, [string]$LegacySource = $LegacyDirectory, [string]$MigrationVersion = '1', [string]$SourceSID = $MigrationSID, [string]$HandoffID = $MigrationID, [string]$RequestPath = $LegacyRequest) {
   $log = Join-Path $ArtifactDirectory "$Name.log"
-  $arguments = "/SP- /NORESTART /LEGACYMIGRATION=$MigrationVersion /LEGACYDIR=`"$LegacySource`" /LEGACYSID=`"$SourceSID`" /LEGACYID=`"$HandoffID`" /LOG=`"$log`" $ExtraArguments"
+  $arguments = "/SP- /NORESTART /LEGACYMIGRATION=$MigrationVersion /LEGACYDIR=`"$LegacySource`" /LEGACYSID=`"$SourceSID`" /LEGACYID=`"$HandoffID`" /LEGACYREQUEST=`"$RequestPath`" /LOG=`"$log`" $ExtraArguments"
   if (-not $Interactive) { $arguments = "/VERYSILENT /SUPPRESSMSGBOXES $arguments" }
   return Start-Process -FilePath $Installer -ArgumentList $arguments -PassThru
 }
@@ -155,10 +155,10 @@ function Assert-NoFixtureLaunch {
   }
 }
 
-function Test-Rejection([string]$Name, [string]$Installer, [string]$ExtraArguments = '', [bool]$ExistingService = $false, [string]$LegacySource = $LegacyDirectory, [string]$MigrationVersion = '1', [string]$SourceSID = $MigrationSID, [string]$HandoffID = $MigrationID, [string]$ExpectedError = '') {
+function Test-Rejection([string]$Name, [string]$Installer, [string]$ExtraArguments = '', [bool]$ExistingService = $false, [string]$LegacySource = $LegacyDirectory, [string]$MigrationVersion = '1', [string]$SourceSID = $MigrationSID, [string]$HandoffID = $MigrationID, [string]$ExpectedError = '', [string]$RequestPath = $LegacyRequest) {
   $targetExisted = Test-Path -LiteralPath $TargetDirectory
   $dataExisted = Test-Path -LiteralPath $FixtureData
-  $code = Wait-Installer (Start-Installer $Name $Installer $ExtraArguments -LegacySource $LegacySource -MigrationVersion $MigrationVersion -SourceSID $SourceSID -HandoffID $HandoffID)
+  $code = Wait-Installer (Start-Installer $Name $Installer $ExtraArguments -LegacySource $LegacySource -MigrationVersion $MigrationVersion -SourceSID $SourceSID -HandoffID $HandoffID -RequestPath $RequestPath)
   Assert-True ($code -ne 0) "$Name unexpectedly succeeded"
   Assert-True (-not (Test-Path -LiteralPath $env:LANTERN_FIXTURE_DEPENDENCY_MARKER)) "$Name ran prerequisites before rejecting migration"
   Assert-True ((Service-Exists) -eq $ExistingService) "$Name changed the existing service state"
@@ -232,6 +232,7 @@ $WorkDirectory = (Resolve-Path -LiteralPath $WorkDirectory).Path
 $ArtifactDirectory = (Resolve-Path -LiteralPath $ArtifactDirectory).Path
 $PayloadDirectory = Join-Path $WorkDirectory 'payload'
 $LegacyDirectory = Join-Path $WorkDirectory 'legacy installation'
+$LegacyRequest = Join-Path $WorkDirectory 'account snapshot.json'
 $RenderedScript = Join-Path $ArtifactDirectory 'installer-fixture.iss'
 $CopyFailureScript = Join-Path $ArtifactDirectory 'installer-copy-failure-fixture.iss'
 $env:LANTERN_FIXTURE_DEPENDENCY_MARKER = Join-Path $WorkDirectory 'prerequisite-ran.txt'
@@ -252,6 +253,10 @@ try {
   Copy-Item -LiteralPath $dependency -Destination (Join-Path $installerDependencies 'VC_redist.x64.exe')
   Set-Content -LiteralPath (Join-Path $LegacyDirectory 'settings.yaml') -Value 'userID: 12345' -Encoding utf8
   Set-Content -LiteralPath (Join-Path $UserSettingsDirectory 'settings.yaml') -Value "userID: 12345`nuserToken: fixture-legacy-token`nuserPro: true" -Encoding utf8
+  @{version=1; migration_id=$MigrationID; source_directory=$LegacyDirectory; user_id=12345;
+    token='fixture-legacy-token'; device_id='701e8a45-e1f8-4aca-8771-003273a31e68'; locale='en-US';
+    auto_report=$true; proxy_all=$false; auto_launch=$true} |
+    ConvertTo-Json -Compress | Set-Content -LiteralPath $LegacyRequest -Encoding utf8
   New-Item -Path $LegacyRegistry -Force | Out-Null
   New-ItemProperty -LiteralPath $LegacyRegistry -Name UninstallString -Value "`"$LegacyDirectory\uninstall.exe`"" -PropertyType String | Out-Null
   New-ItemProperty -LiteralPath $LegacyRegistry -Name InstallLocation -Value $LegacyDirectory -PropertyType String | Out-Null
@@ -281,8 +286,10 @@ try {
   $service = Get-Service -Name $ServiceName -ErrorAction Stop
   Assert-True ($service.Status -eq 'Running') 'Installer did not leave its service running'
   $service.Close()
-  $enrollment = Get-Content -LiteralPath (Join-Path $TargetDirectory 'fixture-enrollment.json') -Raw | ConvertFrom-Json
-  Assert-True ($enrollment.sid -eq $MigrationSID -and $enrollment.migration_id -eq $MigrationID) 'Installer did not bind the enrollment to the original user and handoff'
+  $import = Get-Content -LiteralPath (Join-Path $TargetDirectory 'fixture-import.json') -Raw | ConvertFrom-Json
+  Assert-True ($import.sid -eq $MigrationSID -and $import.migration_id -eq $MigrationID) 'Installer did not bind the import to the original user and handoff'
+  Assert-True ($import.request_sha256 -eq (Get-FileHash -LiteralPath $LegacyRequest -Algorithm SHA256).Hash.ToLowerInvariant()) 'Installer did not pass the quoted account snapshot path to the import command'
+  Assert-True (-not (Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'success.log') -Raw).Contains('fixture-legacy-token')) 'Installer logged account credentials'
   Assert-True (Test-Path -LiteralPath $env:LANTERN_FIXTURE_DEPENDENCY_MARKER) 'Successful fixture did not execute the real prerequisite pipeline'
   Assert-NoFixtureLaunch
   Assert-LegacyPreserved
@@ -314,14 +321,14 @@ try {
   Record-Case 'uninstall-retains-recovery' $code
 
   Reset-Case
-  $installer = Build-Installer 'prepare-fail'
-  $code = Wait-Installer (Start-Installer 'enrollment-failure' $installer)
-  Assert-True ($code -ne 0) 'Enrollment failure unexpectedly succeeded'
-  Assert-True ((Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'enrollment-failure.log') -Raw) -match 'Migration enrollment failed: 47') 'Enrollment failure did not reach the preparation command'
-  Assert-True (-not (Service-Exists)) 'Service was installed before enrollment succeeded'
+  $installer = Build-Installer 'import-fail'
+  $code = Wait-Installer (Start-Installer 'import-failure' $installer)
+  Assert-True ($code -ne 0) 'Account import failure unexpectedly succeeded'
+  Assert-True ((Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'import-failure.log') -Raw) -match 'Migration account import failed: 47') 'Account import failure did not reach the import command'
+  Assert-True (-not (Service-Exists)) 'Service was installed before account import succeeded'
   Assert-NoFixtureLaunch
   Assert-LegacyPreserved
-  Record-Case 'enrollment-failure' $code
+  Record-Case 'import-failure' $code
 
   $installer = Build-Installer 'running'
   $sidRejection = 'Restart migration from the legacy app to authorize identity transfer.'
@@ -338,6 +345,40 @@ try {
   }
   Reset-Case
   Test-Rejection 'invalid-id' $installer -HandoffID 'invalid' -ExpectedError $sidRejection
+
+  $requestRejection = 'Restart migration from the legacy app with a valid account snapshot on a fixed local drive.'
+  foreach ($case in @(
+    @{ Name = 'missing-request'; Request = '' }
+    @{ Name = 'relative-request'; Request = 'account snapshot.json' }
+    @{ Name = 'absent-request'; Request = (Join-Path $WorkDirectory 'missing snapshot.json') }
+    @{ Name = 'directory-request'; Request = $WorkDirectory }
+    @{ Name = 'request-trailing-dot'; Request = "$LegacyRequest." }
+    @{ Name = 'request-trailing-space'; Request = "$LegacyRequest " }
+    @{ Name = 'request-dot-component'; Request = "$WorkDirectory\.\account snapshot.json" }
+    @{ Name = 'request-alternate-stream'; Request = "${LegacyRequest}:snapshot" }
+    @{ Name = 'request-unc'; Request = '\\localhost\invalid\account snapshot.json' }
+  )) {
+    Reset-Case
+    Test-Rejection $case.Name $installer -RequestPath $case.Request -ExpectedError $requestRejection
+  }
+
+  Reset-Case
+  $requestJunction = Join-Path $WorkDirectory 'request-junction'
+  New-Item -ItemType Junction -Path $requestJunction -Target $WorkDirectory | Out-Null
+  try {
+    Test-Rejection 'request-parent-junction' $installer -RequestPath (Join-Path $requestJunction 'account snapshot.json') -ExpectedError $requestRejection
+  } finally {
+    Remove-FixturePath $requestJunction
+  }
+
+  Reset-Case
+  $requestLink = Join-Path $WorkDirectory 'linked snapshot.json'
+  New-Item -ItemType SymbolicLink -Path $requestLink -Target $LegacyRequest | Out-Null
+  try {
+    Test-Rejection 'request-symlink' $installer -RequestPath $requestLink -ExpectedError $requestRejection
+  } finally {
+    [IO.File]::Delete($requestLink)
+  }
 
   Reset-Case
   New-Item -ItemType Directory -Path $TargetDirectory, $FixtureData | Out-Null
@@ -381,6 +422,7 @@ try {
     $networkSource = "$networkDrive\legacy installation"
     Assert-True ([IO.File]::Exists("$networkSource\lantern.exe")) 'Network source fixture cannot read the legacy executable'
     Test-Rejection 'network-source' $installer -LegacySource $networkSource -ExpectedError $pathRejection
+    Test-Rejection 'network-request' $installer -RequestPath "$networkDrive\account snapshot.json" -ExpectedError $requestRejection
   } finally {
     try {
       if ($mapped) { Remove-SmbMapping -LocalPath $networkDrive -Force -Confirm:$false }

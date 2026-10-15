@@ -70,7 +70,7 @@ func matchingClient(expected Expected) *fakeClient {
 	return &fakeClient{account: account, fresh: account, status: "disconnected", settings: settingsFacts{
 		Valid: true, Token: expected.Token, DeviceID: expected.DeviceID, Locale: *expected.Locale,
 		UserLevel: expected.UserLevel, AutoReport: *expected.AutoReport,
-		SmartRouting: !*expected.ProxyAll, AutoLaunch: *expected.AutoLaunch,
+		SmartRouting: !*expected.ProxyAll,
 	}}
 }
 
@@ -117,7 +117,7 @@ func TestVerifyPreservesLargeIdentityWithoutConnectionChanges(t *testing.T) {
 	}
 }
 
-func TestMismatchedIdentityAndEveryPreferenceFailClosed(t *testing.T) {
+func TestMismatchedIdentityAndServicePreferencesFailClosed(t *testing.T) {
 	expected := fixture(t)
 	for name, mutate := range map[string]func(*fakeClient){
 		"cached token":       func(client *fakeClient) { client.account.Token = "other" },
@@ -131,7 +131,6 @@ func TestMismatchedIdentityAndEveryPreferenceFailClosed(t *testing.T) {
 		"settings locale":    func(client *fakeClient) { client.settings.Locale = "en" },
 		"settings telemetry": func(client *fakeClient) { client.settings.AutoReport = true },
 		"settings routing":   func(client *fakeClient) { client.settings.SmartRouting = true },
-		"settings startup":   func(client *fakeClient) { client.settings.AutoLaunch = false },
 		"settings level":     func(client *fakeClient) { client.settings.UserLevel = "free" },
 		"missing setting":    func(client *fakeClient) { client.settings.Valid = false },
 	} {
@@ -143,6 +142,18 @@ func TestMismatchedIdentityAndEveryPreferenceFailClosed(t *testing.T) {
 				t.Fatal("mismatched identity or preferences allowed connection")
 			}
 		})
+	}
+}
+
+func TestVerifyAcceptsServiceSettingsForEitherStartupPreference(t *testing.T) {
+	for _, autoLaunch := range []bool{false, true} {
+		expected := fixture(t)
+		expected.AutoLaunch = &autoLaunch
+		client := matchingClient(expected)
+		result := runProbe(context.Background(), "verify", "", expected, client, nil)
+		if !result.OK || !result.PreferencesMatch {
+			t.Fatalf("service preferences rejected for auto_launch=%t: %+v", autoLaunch, result)
+		}
 	}
 }
 

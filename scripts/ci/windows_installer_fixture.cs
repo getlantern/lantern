@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.ServiceProcess;
 
 #if LEGACY
@@ -31,21 +32,24 @@ class Fixture
         if (args.Length > 0 && args[0] == "--hold") System.Threading.Thread.Sleep(300000);
         return 0;
 #else
-        if (args.Length > 0 && args[0] == "prepare-legacy-migration")
+        if (args.Length > 0 && args[0] == "migrate")
         {
-            if (args.Length != 7 || args[1] != "--sid" || args[3] != "--source" || args[5] != "--migration-id") return 45;
+            if (args.Length != 9 || args[1] != "--sid" || args[3] != "--source" || args[5] != "--migration-id" || args[7] != "--request") return 45;
             var sid = new System.Security.Principal.SecurityIdentifier(args[2]);
-            if (!File.Exists(Path.Combine(args[4], "lantern.exe")) || args[6].Length != 32) return 46;
+            if (!File.Exists(Path.Combine(args[4], "lantern.exe")) || args[6].Length != 32 || !Path.IsPathRooted(args[8]) || !File.Exists(args[8])) return 46;
             string folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string mode = File.ReadAllText(Path.Combine(folder, "fixture-service-mode.txt")).Trim();
-            if (mode == "prepare-fail") return 47;
-            File.WriteAllText(Path.Combine(folder, "fixture-enrollment.json"), "{\"sid\":\"" + sid.Value + "\",\"migration_id\":\"" + args[6] + "\"}");
+            if (mode == "import-fail") return 47;
+            string requestHash;
+            using (var hash = SHA256.Create())
+                requestHash = BitConverter.ToString(hash.ComputeHash(File.ReadAllBytes(args[8]))).Replace("-", "").ToLowerInvariant();
+            File.WriteAllText(Path.Combine(folder, "fixture-import.json"), "{\"sid\":\"" + sid.Value + "\",\"migration_id\":\"" + args[6] + "\",\"request_sha256\":\"" + requestHash + "\"}");
             return 0;
         }
         if (args.Length > 0 && args[0] == "install")
         {
             string executable = Assembly.GetExecutingAssembly().Location;
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(executable), "fixture-enrollment.json"))) return 48;
+            if (!File.Exists(Path.Combine(Path.GetDirectoryName(executable), "fixture-import.json"))) return 48;
             string mode = File.ReadAllText(Path.Combine(Path.GetDirectoryName(executable), "fixture-service-mode.txt")).Trim();
             int result = Sc("create " + ServiceName + " binPath= \"\\\"" + executable + "\\\"\" start= demand");
             if (result != 0) return result;

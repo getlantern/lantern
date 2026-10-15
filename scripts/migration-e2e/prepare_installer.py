@@ -9,6 +9,7 @@ from pathlib import Path
 
 ORDINARY_INSTALL = 'Filename: "{code:LanterndExecutablePath}"; Parameters: "install"; Flags: runhidden; Check: IsOrdinaryInstall'
 MIGRATION_INSTALL = "if not Exec(LanterndExecutablePath(''), 'install', '', SW_HIDE,"
+MIGRATION_IMPORT = "'migrate --sid \"'"
 
 
 def require(condition, message):
@@ -28,12 +29,16 @@ def render(template, environment, migration_e2e, build_type, auto_update_e2e):
     validate(environment, migration_e2e, build_type, auto_update_e2e)
     if environment == "prod":
         return template
-    require(template.count(ORDINARY_INSTALL) == 1 and template.count(MIGRATION_INSTALL) == 1,
-            "expected exactly one ordinary and one migration service installation site")
-    require("install --environment" not in template, "template already selects a service environment")
+    require(template.count(ORDINARY_INSTALL) == 1 and template.count(MIGRATION_INSTALL) == 1
+            and template.count(MIGRATION_IMPORT) == 1,
+            "expected exactly one ordinary install, migration import, and migration service installation site")
+    require("install --environment" not in template and "migrate --environment" not in template,
+            "template already selects a backend environment")
     rendered = template.replace(ORDINARY_INSTALL, ORDINARY_INSTALL.replace('Parameters: "install"', 'Parameters: "install --environment staging"'))
     rendered = rendered.replace(MIGRATION_INSTALL, MIGRATION_INSTALL.replace("'install'", "'install --environment staging'"))
+    rendered = rendered.replace(MIGRATION_IMPORT, MIGRATION_IMPORT.replace("migrate --sid", "migrate --environment staging --sid"))
     require(rendered.count("install --environment staging") == 2, "staging service command count differs")
+    require(rendered.count("migrate --environment staging") == 1, "staging migration import command count differs")
     return rendered
 
 
@@ -65,6 +70,7 @@ def main():
         "auto_update_e2e": auto_update,
         "build_type": args.build_type,
         "service_install_arguments": "install --environment staging" if migration else "install",
+        "migration_import_command": "migrate --environment staging" if migration else "migrate",
         "dart_environment": "staging" if migration else "unchanged",
         "template_input_sha256": hashlib.sha256(original).hexdigest(),
         "template_output_sha256": hashlib.sha256(rendered).hexdigest(),

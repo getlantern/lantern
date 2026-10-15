@@ -13,11 +13,12 @@ class InstallerEnvironmentTest(unittest.TestCase):
         self.assertEqual(self.template, installer.render(self.template, "prod", False, "production", False))
         self.assertEqual(self.template, installer.render(self.template, "prod", False, "nightly", True))
 
-    def test_staging_changes_only_the_two_service_commands(self):
+    def test_staging_changes_only_the_import_and_service_commands(self):
         rendered = installer.render(self.template, "staging", True, "migration-e2e", True)
         self.assertEqual(rendered.count("install --environment staging"), 2)
-        self.assertEqual(rendered.replace("install --environment staging", "install"), self.template)
-        self.assertIn("prepare-legacy-migration --sid", rendered)
+        self.assertEqual(rendered.count("migrate --environment staging --sid"), 1)
+        self.assertEqual(rendered.replace("install --environment staging", "install")
+                         .replace("migrate --environment staging", "migrate"), self.template)
 
     def test_all_staging_guards_required(self):
         for args in (("staging", False, "migration-e2e", True), ("staging", True, "production", True),
@@ -29,8 +30,11 @@ class InstallerEnvironmentTest(unittest.TestCase):
     def test_missing_duplicate_or_changed_site_fails_closed(self):
         for changed in (self.template.replace(installer.ORDINARY_INSTALL, ""),
                         self.template + "\n" + installer.MIGRATION_INSTALL,
+                        self.template.replace(installer.MIGRATION_IMPORT, ""),
+                        self.template + "\n" + installer.MIGRATION_IMPORT,
                         self.template.replace(installer.MIGRATION_INSTALL, installer.MIGRATION_INSTALL.replace("SW_HIDE", "SW_SHOW")),
-                        self.template + "\ninstall --environment staging"):
+                        self.template + "\ninstall --environment staging",
+                        self.template + "\nmigrate --environment staging"):
             with self.assertRaises(ValueError):
                 installer.render(changed, "staging", True, "migration-e2e", True)
 
