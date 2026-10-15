@@ -649,6 +649,24 @@ msgstr "هیچ اشتراک فعالی به این Apple ID متصل نیست."
 msgid "no_purchase_found_body_android"
 msgstr "هیچ اشتراک فعالی به این حساب Google متصل نیست."
 
+msgid "authorize_device_for_pro"
+msgstr "مجوز دستگاه برای Pro"
+
+msgid "device_linking_replaced_title"
+msgstr "کدهای اتصال دستگاه جایگزین شده‌اند"
+
+msgid "device_linking_replaced_body"
+msgstr "نسخه‌های 10 و جدیدتر Lantern از کدهای اتصال دستگاه استفاده نمی‌کنند. اکنون با ایمیل و رمز عبور خود وارد حساب Lantern Pro می‌شوید."
+
+msgid "device_linking_replaced_body_two"
+msgstr "اگر حساب Lantern Pro دارید و هنوز رمز عبور ندارید، همین حالا یکی اضافه کنید تا در این دستگاه وارد شوید."
+
+msgid "add_an_account_password"
+msgstr "افزودن رمز عبور حساب"
+
+msgid "have_a_password_sign_in"
+msgstr "رمز عبور دارید؟ ورود"
+
 msgid "plans_fetch_error"
 msgstr "خطا در دریافت طرح‌ها. بعداً دوباره امتحان کنید."
 

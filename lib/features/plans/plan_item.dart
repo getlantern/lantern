@@ -31,6 +31,7 @@ class PlanItem extends StatelessWidget {
     final finalSize = (width * 0.5) - (defaultSize * 3);
     final originalPrice = plan.formatOriginalPrice;
     final showOriginalPrice = discountPct > 0 && originalPrice.isNotEmpty;
+    final monthlyPrice = plan.displayMonthlyPrice;
 
     return badges.Badge(
       // Hide the Best Value badge when an affiliate discount is applied so it
@@ -98,12 +99,13 @@ class PlanItem extends StatelessWidget {
                       ],
                     ],
                   ),
-                  Text(
-                    '${plan.displayMonthlyPrice}/month',
-                    style: textTheme.labelMedium!.copyWith(
-                      color: context.textTertiary,
+                  if (monthlyPrice.isNotEmpty)
+                    Text(
+                      '$monthlyPrice/month',
+                      style: textTheme.labelMedium!.copyWith(
+                        color: context.textTertiary,
+                      ),
                     ),
-                  ),
                 ],
               ),
               Radio(

@@ -559,7 +559,7 @@ macos: $(MACOS_FRAMEWORK_OUTPUT)
 $(MACOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) $@ && mkdir -p $(MACOS_FRAMEWORK_DIR)
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-tags=$(TAGS),netgo$(STEALTH_GO_TAGS)  -trimpath \
 		-target=$(GOMOBILE_MACOS_TARGET) \
 		-o $(MACOS_FRAMEWORK_BUILD) \
@@ -622,6 +622,11 @@ stage-macos-profile: build-macos-profile
 	mkdir -p $(DARWIN_RELEASE_DIR)
 	ditto $(DARWIN_PROFILE_BUILD) $(DARWIN_RELEASE_BUILD)
 
+# stapler fetches the ticket from Apple's CloudKit, and one dropped connection
+# there failed v10.0.3-beta-3 after notarization had been accepted. Stapling is
+# idempotent, so every failure is retried.
+STAPLER_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" --
+
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
 	scripts/ci/sign_macos_dmg.sh "$(DARWIN_RELEASE_BUILD)" "$(MACOS_INSTALLER)"
@@ -643,9 +648,9 @@ notarize-darwin: require-ac-username require-ac-password
 		exit 1; \
 	fi
 	@echo "Stapling notarization ticket..."
-	xcrun stapler staple $(MACOS_INSTALLER)
+	$(STAPLER_RETRY) xcrun stapler staple $(MACOS_INSTALLER)
 	codesign --verify --strict --verbose=2 "$(MACOS_INSTALLER)"
-	xcrun stapler validate "$(MACOS_INSTALLER)"
+	$(STAPLER_RETRY) xcrun stapler validate "$(MACOS_INSTALLER)"
 	spctl --assess --type open --context context:primary-signature --verbose=4 "$(MACOS_INSTALLER)"
 	@echo "Notarization complete"
 
@@ -907,6 +912,13 @@ attempt=1; until GOTOOLCHAIN=$(GO_VERSION) go install -v $(1); do \
 done
 endef
 
+# gomobile bind runs `go mod tidy` in a scratch module with no go.sum, so every
+# build checks each module against sum.golang.org. A sum.golang.org outage
+# (stream INTERNAL_ERROR, 2026-10-14) failed iOS and macOS builds for 40
+# minutes. Only those network errors are retried; compile errors fail at once.
+GOMOBILE_BIND_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" \
+	-m 'reading https://(sum|proxy)\.golang\.org/|stream error|i/o timeout|TLS handshake timeout|connection reset by peer' --
+
 install-gomobile:
 	@$(call go_install_retry,golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION))
 	@mkdir -p "$(GOMOBILE_INIT_DIR)"
@@ -985,7 +997,7 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
 
 	GOMOBILECACHE="$(GOMOBILECACHE)" \
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
 		-javapkg=$(GOMOBILE_JAVAPKG) \
@@ -1013,7 +1025,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 	GARBLE_FLAGS="$(GARBLE_FLAGS)" \
 	GARBLE_GOGARBLE="$(GARBLE_GOGARBLE)" \
 	GOMOBILECACHE="$(GOMOBILECACHE)" \
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
 		-javapkg=$(GOMOBILE_JAVAPKG) \
@@ -1219,7 +1231,7 @@ build-ios: $(MAYBE_STEALTH_PROFILE)
 	@echo "Building iOS Framework.."
 	rm -rf $(IOS_FRAMEWORK_BUILD)
 	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=ios gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=ios $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-tags=$(TAGS),with_low_memory$(STEALTH_GO_TAGS) -trimpath \
 		-target=$(GOMOBILE_IOS_TARGET) \
 		-o $(IOS_FRAMEWORK_BUILD) \

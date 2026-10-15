@@ -193,6 +193,28 @@ class AppDialog {
     );
   }
 
+  /// Tells pre-v10 users device link codes are gone; set a password instead.
+  static Future<void> deviceLinkingReplacedDialog({
+    required BuildContext context,
+    required VoidCallback onAddPassword,
+    required VoidCallback onSignIn,
+  }) {
+    return show(
+      context: context,
+      header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
+      centeredTitle: true,
+      barrierDismissible: true,
+      scrollable: true,
+      title: 'device_linking_replaced_title'.i18n,
+      body:
+          '${'device_linking_replaced_body'.i18n}\n\n${'device_linking_replaced_body_two'.i18n}',
+      primaryLabel: 'add_an_account_password'.i18n,
+      onPrimaryPressed: onAddPassword,
+      secondaryLabel: 'have_a_password_sign_in'.i18n,
+      onSecondaryPressed: onSignIn,
+    );
+  }
+
   static Future<void> customDialog({
     required BuildContext context,
     required Widget content,
@@ -284,6 +306,29 @@ class AppDialog {
       secondaryLabel: 'add_anyway'.i18n,
       onSecondaryPressed: onAddAnyway,
     );
+  }
+
+  /// Warns that diagnostic logs are shared unencrypted and may contain
+  /// account data. Resolves true only when the user chooses to share.
+  static Future<bool> shareLogsWarningDialog({
+    required BuildContext context,
+  }) async {
+    var confirmed = false;
+    await show(
+      context: context,
+      header: Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
+      centeredTitle: true,
+      title: 'share_logs_warning_title'.i18n,
+      body: 'share_logs_warning_body'.i18n,
+      primaryLabel: 'share_logs_anyway'.i18n,
+      dismissOnPrimary: false,
+      onPrimaryPressed: () {
+        confirmed = true;
+        Navigator.of(context, rootNavigator: true).pop();
+      },
+      secondaryLabel: 'cancel'.i18n,
+    );
+    return confirmed;
   }
 
   static void dialog({

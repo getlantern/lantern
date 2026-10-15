@@ -2101,3 +2101,21 @@ msgstr "Plus rapide, données illimitées !"
 
 msgid "upsell_expired_suffix"
 msgstr "Votre temps Pro a expiré"
+
+msgid "authorize_device_for_pro"
+msgstr "Autoriser l'appareil pour Pro"
+
+msgid "device_linking_replaced_title"
+msgstr "Les codes de liaison d'appareil ont été remplacés"
+
+msgid "device_linking_replaced_body"
+msgstr "Les versions 10 et ultérieures de Lantern n'utilisent plus de codes de liaison d'appareil. Vous vous connectez désormais à votre compte Lantern Pro avec votre courriel et un mot de passe."
+
+msgid "device_linking_replaced_body_two"
+msgstr "Si vous avez un compte Lantern Pro et que vous n'avez pas encore de mot de passe, ajoutez-en un maintenant pour vous connecter sur cet appareil."
+
+msgid "add_an_account_password"
+msgstr "Ajouter un mot de passe au compte"
+
+msgid "have_a_password_sign_in"
+msgstr "Vous avez un mot de passe? Connexion"
