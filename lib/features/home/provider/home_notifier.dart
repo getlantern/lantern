@@ -9,6 +9,7 @@ import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -126,7 +127,7 @@ class HomeNotifier extends _$HomeNotifier {
     if (!ref.mounted) return;
     // The user may have upgraded while the data cap info was loading.
     if (_isPro) return;
-    resetServerLocation();
+    await resetServerLocation();
   }
 
   Future<Either<Failure, Unit>> updateLocale(String locale) {
@@ -137,15 +138,31 @@ class HomeNotifier extends _$HomeNotifier {
   /// Resets the server location to default.
   /// if user logs out or downgrade to free plan
   /// we need to reset the server location set to smart location
-  void resetServerLocation() {
+  Future<void> resetServerLocation() async {
     final serverLocation = ref.read(serverLocationProvider);
 
-    if (serverLocation.serverType.toServerLocationType ==
+    if (serverLocation.serverType.toServerLocationType !=
         ServerLocationType.lanternLocation) {
-      ref
-          .read(serverLocationProvider.notifier)
-          .updateServerLocation(initialServerLocation());
+      return;
     }
+    // A connected tunnel keeps using the manual server until it is switched,
+    // so only record smart location once the switch succeeds.
+    if (ref.read(vpnProvider) == VPNStatus.connected) {
+      final result = await ref
+          .read(vpnProvider.notifier)
+          .startVPN(force: true, skipConflictCheck: true);
+      if (!ref.mounted) return;
+      if (result.isLeft()) {
+        appLogger.error(
+          'Failed to switch to smart location, keeping '
+          '${serverLocation.serverName}',
+        );
+        return;
+      }
+    }
+    ref
+        .read(serverLocationProvider.notifier)
+        .updateServerLocation(initialServerLocation());
   }
 
   /// Fetches the latest user data from the server if not cached locally.
