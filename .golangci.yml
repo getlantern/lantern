@@ -14,9 +14,9 @@ linters:
     - noctx
   settings:
     gosec:
-      # File-permission and path-from-variable findings are noise for a client
-      # that only writes its own data dir; G104 duplicates errcheck.
-      excludes: [G104, G115, G301, G302, G304, G306]
+      # G104 duplicates errcheck. G115 flags every integer conversion, and G304
+      # every file read from a computed path.
+      excludes: [G104, G115, G304]
     staticcheck:
       checks: ["all", "-ST1000", "-ST1003", "-ST1016", "-ST1020", "-ST1021", "-ST1022", "-QF*"]
   exclusions:

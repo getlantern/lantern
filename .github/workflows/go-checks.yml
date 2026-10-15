@@ -23,8 +23,8 @@ on:
 
 jobs:
   lint:
-    # only-new-issues needs a PR diff; on a push it would report the whole backlog.
-    if: github.event_name == 'pull_request'
+    # A scheduled run has no diff to scope only-new-issues to.
+    if: github.event_name != 'schedule'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
