@@ -2,6 +2,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,13 +14,16 @@ part 'data_cap_info_provider.g.dart';
 class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   @override
   Future<DataCapUsageResponse> build() async {
-    final result = await ref.read(lanternServiceProvider).getDataCapInfo();
+    final service = ref.read(lanternServiceProvider);
+    await service.waitForRadiance();
+    final result = await service.getDataCapInfo();
     return result.fold(
       (failure) {
         throw Exception('Failed to fetch data cap info: $failure');
       },
       (dataCapInfo) {
         checkAndNotify(dataCapInfo);
+        _resetLocationIfCapped(dataCapInfo);
         return dataCapInfo;
       },
     );
@@ -28,6 +32,15 @@ class DataCapInfoNotifier extends _$DataCapInfoNotifier {
   void updateDataCapInfo(DataCapUsageResponse newInfo) {
     state = AsyncValue.data(newInfo);
     checkAndNotify(newInfo);
+    _resetLocationIfCapped(newInfo);
+  }
+
+  /// A free user whose data cap turns on loses manual location selection.
+  void _resetLocationIfCapped(DataCapUsageResponse dataCapInfo) {
+    if (!dataCapInfo.enabled) return;
+    final user = ref.read(homeProvider).value;
+    if (user == null || user.legacyUserData.isPro) return;
+    ref.read(homeProvider.notifier).resetServerLocation();
   }
 
   /// Main entry point - checks usage and sends notification if threshold crossed
