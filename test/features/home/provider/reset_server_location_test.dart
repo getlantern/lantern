@@ -215,6 +215,21 @@ void main() {
     expect(h.vpn.startCalls, 0);
   });
 
+  test('does not save auto when a connect starts mid-reset', () async {
+    final h = _harness(VPNStatus.disconnected);
+    final status = Completer<Either<Failure, bool>>();
+    h.service.pendingConnected = status;
+
+    final reset = h.container.read(homeProvider.notifier).resetServerLocation();
+    await pumpEventQueue();
+    h.vpn.setStatus(VPNStatus.connecting);
+    status.complete(right(false));
+    await reset;
+
+    expect(h.vpn.startCalls, 0);
+    expect(_savedType(h.container), ServerLocationType.lanternLocation);
+  });
+
   test('waits for a pending connect to settle before acting', () async {
     final h = _harness(VPNStatus.connecting);
     h.service.connected = right(true);

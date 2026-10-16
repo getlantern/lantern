@@ -170,9 +170,8 @@ class HomeNotifier extends _$HomeNotifier {
     }
     if (!stillApplies()) return;
 
-    // Ask native directly: VpnNotifier reports disconnected until it has
-    // hydrated. startVPN would turn on a disconnected tunnel, so if the
-    // check fails, skip the reset rather than guess; the next trigger retries.
+    // startVPN would turn on a disconnected tunnel, so if the status check
+    // fails, skip the reset rather than guess; the next trigger retries.
     final status = await ref.read(lanternServiceProvider).isVPNConnected();
     if (status.isLeft()) {
       appLogger.warning('VPN status unavailable, skipping location reset');
@@ -181,12 +180,22 @@ class HomeNotifier extends _$HomeNotifier {
     final connected = status.getOrElse((_) => false);
     if (!stillApplies()) return;
 
+    // Act only when native and the app agree. A mismatch means the tunnel
+    // changed during the check (a connect or disconnect began, so startVPN
+    // could start a fresh tunnel or a manual connect could finish after we
+    // save auto) or the app hasn't hydrated yet; the next trigger retries.
+    final appStatus = ref.read(vpnProvider);
+    final agreed = connected
+        ? appStatus == VPNStatus.connected
+        : appStatus == VPNStatus.disconnected || appStatus == VPNStatus.error;
+    if (!agreed) {
+      appLogger.debug('VPN state changing, skipping location reset');
+      return;
+    }
+
     // A connected tunnel keeps using the manual server until it is switched,
     // so record smart location only once the switch succeeds.
     if (connected) {
-      // The user may have disconnected while the status check ran; startVPN
-      // would then start a fresh tunnel instead of switching this one.
-      if (ref.read(vpnProvider) != VPNStatus.connected) return;
       final result = await ref
           .read(vpnProvider.notifier)
           .startVPN(force: true, skipConflictCheck: true);
