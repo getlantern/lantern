@@ -22,6 +22,19 @@ class VpnNotifier extends _$VpnNotifier {
   bool _hasStatusStreamEmission = false;
   Future<Either<Failure, String>>? _stopRequest;
   bool _userDisconnectRequested = false;
+  int _switchesInFlight = 0;
+
+  /// Whether a connect or server switch the app requested is still running.
+  bool get switchInProgress => _switchesInFlight > 0;
+
+  Future<T> _trackSwitch<T>(Future<T> Function() request) async {
+    _switchesInFlight += 1;
+    try {
+      return await request();
+    } finally {
+      _switchesInFlight -= 1;
+    }
+  }
 
   RatingPromptService? get _ratingPrompt =>
       sl.isRegistered<RatingPromptService>() ? sl<RatingPromptService>() : null;
@@ -207,7 +220,7 @@ class VpnNotifier extends _$VpnNotifier {
       appLogger.debug(
         'Got server location with type auto or force is true, starting VPN with auto',
       );
-      return lantern.startVPN();
+      return _trackSwitch(lantern.startVPN);
     }
 
     final tag = serverLocation.serverName;
@@ -216,7 +229,7 @@ class VpnNotifier extends _$VpnNotifier {
       appLogger.debug(
         'Server tag "$tag" not available, falling back to auto VPN',
       );
-      return lantern.startVPN();
+      return _trackSwitch(lantern.startVPN);
     }
     return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
   }
@@ -237,10 +250,10 @@ class VpnNotifier extends _$VpnNotifier {
     }
 
     appLogger.debug("Connecting to server: $location with tag: $tag");
-    final result = await ref
-        .read(lanternServiceProvider)
-        .connectToServer(location.name, tag);
-    return result;
+    return _trackSwitch(
+      () =>
+          ref.read(lanternServiceProvider).connectToServer(location.name, tag),
+    );
   }
 
   Future<Left<Failure, String>?> _checkVpnConflict() async {

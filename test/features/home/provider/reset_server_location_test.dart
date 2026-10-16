@@ -34,6 +34,10 @@ class _FakeVpnNotifier extends VpnNotifier {
 
   final VPNStatus _initial;
   int startCalls = 0;
+  bool pendingSwitch = false;
+
+  @override
+  bool get switchInProgress => pendingSwitch;
   Completer<Either<Failure, String>> switchResult = Completer();
 
   @override
@@ -265,6 +269,33 @@ void main() {
         h.container.read(serverLocationProvider.notifier)
             as _FakeServerLocationNotifier;
     expect(locations.autoRefreshes, 1);
+  });
+
+  test('skips when the status query itself changes the app status', () async {
+    final h = _harness(VPNStatus.error);
+    final status = Completer<Either<Failure, bool>>();
+    h.service.pendingConnected = status;
+
+    final reset = h.container.read(homeProvider.notifier).resetServerLocation();
+    await pumpEventQueue();
+    // Android's isVPNConnected posts a status event before replying.
+    h.vpn.setStatus(VPNStatus.disconnected);
+    status.complete(right(false));
+    await reset;
+
+    expect(h.vpn.startCalls, 0);
+    expect(_savedType(h.container), ServerLocationType.lanternLocation);
+  });
+
+  test('skips while a switch the app requested is still running', () async {
+    final h = _harness(VPNStatus.connected);
+    h.service.connected = right(true);
+    h.vpn.pendingSwitch = true;
+
+    await h.container.read(homeProvider.notifier).resetServerLocation();
+
+    expect(h.vpn.startCalls, 0);
+    expect(_savedType(h.container), ServerLocationType.lanternLocation);
   });
 
   test('waits for a pending connect to settle before acting', () async {

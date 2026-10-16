@@ -175,6 +175,9 @@ class HomeNotifier extends _$HomeNotifier {
 
     // startVPN would turn on a disconnected tunnel, so if the status check
     // fails, skip the reset rather than guess; the next trigger retries.
+    // On Android the query itself posts a status event, so remember the
+    // app's status first: a change means the query (or the tunnel) moved it.
+    final statusBefore = ref.read(vpnProvider);
     final status = await ref.read(lanternServiceProvider).isVPNConnected();
     if (status.isLeft()) {
       appLogger.warning('VPN status unavailable, skipping location reset');
@@ -183,17 +186,21 @@ class HomeNotifier extends _$HomeNotifier {
     final connected = status.getOrElse((_) => false);
     if (!stillApplies()) return;
 
-    // Act only when native and the app agree. A mismatch means the tunnel
-    // changed during the check (a connect or disconnect began, so startVPN
-    // could start a fresh tunnel or a manual connect could finish after we
-    // save auto) or the app hasn't hydrated yet; the next trigger retries.
+    // Act only when native and the app agree, the app's status held steady
+    // through the check, and no switch the app requested is still running.
+    // Otherwise the tunnel is changing (startVPN could start a fresh tunnel,
+    // or a manual connect could finish after we save auto) or the app hasn't
+    // hydrated yet; the next trigger retries.
     final appStatus = ref.read(vpnProvider);
+    final steady =
+        appStatus == statusBefore &&
+        !ref.read(vpnProvider.notifier).switchInProgress;
     final agreed = connected
         ? appStatus == VPNStatus.connected
         // An error can be reported while a native connect is still running,
         // so only a confirmed disconnect counts.
         : appStatus == VPNStatus.disconnected;
-    if (!agreed) {
+    if (!steady || !agreed) {
       appLogger.debug('VPN state changing, skipping location reset');
       return;
     }
