@@ -184,6 +184,9 @@ class HomeNotifier extends _$HomeNotifier {
     // A connected tunnel keeps using the manual server until it is switched,
     // so record smart location only once the switch succeeds.
     if (connected) {
+      // The user may have disconnected while the status check ran; startVPN
+      // would then start a fresh tunnel instead of switching this one.
+      if (ref.read(vpnProvider) != VPNStatus.connected) return;
       final result = await ref
           .read(vpnProvider.notifier)
           .startVPN(force: true, skipConflictCheck: true);

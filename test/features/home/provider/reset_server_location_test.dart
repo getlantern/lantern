@@ -19,8 +19,11 @@ class _FakeLanternService implements LanternService {
   @override
   Future<void> waitForRadiance() => Completer<void>().future;
 
+  Completer<Either<Failure, bool>>? pendingConnected;
+
   @override
-  Future<Either<Failure, bool>> isVPNConnected() async => connected;
+  Future<Either<Failure, bool>> isVPNConnected() async =>
+      pendingConnected?.future ?? connected;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -196,6 +199,20 @@ void main() {
 
     expect(h.vpn.startCalls, 0);
     expect(_savedType(h.container), ServerLocationType.lanternLocation);
+  });
+
+  test('does not restart a tunnel the user disconnected mid-reset', () async {
+    final h = _harness(VPNStatus.connected);
+    final status = Completer<Either<Failure, bool>>();
+    h.service.pendingConnected = status;
+
+    final reset = h.container.read(homeProvider.notifier).resetServerLocation();
+    await pumpEventQueue();
+    h.vpn.setStatus(VPNStatus.disconnected);
+    status.complete(right(true));
+    await reset;
+
+    expect(h.vpn.startCalls, 0);
   });
 
   test('waits for a pending connect to settle before acting', () async {
