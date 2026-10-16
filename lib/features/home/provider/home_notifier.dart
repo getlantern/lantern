@@ -152,9 +152,10 @@ class HomeNotifier extends _$HomeNotifier {
         ServerLocationType.lanternLocation) {
       return;
     }
-    // Abandon the reset if the user picked another location while it waited.
-    bool stillSelected() {
-      if (!ref.mounted) return false;
+    // Abandon the reset if, while it waited, the user picked another
+    // location or became free to choose one (upgraded, or cap turned off).
+    bool stillApplies() {
+      if (!ref.mounted || ref.read(canSelectServerProvider)) return false;
       final current = ref.read(serverLocationProvider);
       return current.serverType == original.serverType &&
           current.serverName == original.serverName;
@@ -167,13 +168,18 @@ class HomeNotifier extends _$HomeNotifier {
       appLogger.warning('VPN status did not settle, skipping location reset');
       return;
     }
-    if (!stillSelected()) return;
+    if (!stillApplies()) return;
 
     // Ask native directly: VpnNotifier reports disconnected until it has
-    // hydrated. If the check fails, assume connected and try the switch.
-    final connected = (await ref.read(lanternServiceProvider).isVPNConnected())
-        .getOrElse((_) => true);
-    if (!stillSelected()) return;
+    // hydrated. startVPN would turn on a disconnected tunnel, so if the
+    // check fails, skip the reset rather than guess; the next trigger retries.
+    final status = await ref.read(lanternServiceProvider).isVPNConnected();
+    if (status.isLeft()) {
+      appLogger.warning('VPN status unavailable, skipping location reset');
+      return;
+    }
+    final connected = status.getOrElse((_) => false);
+    if (!stillApplies()) return;
 
     // A connected tunnel keeps using the manual server until it is switched,
     // so record smart location only once the switch succeeds.
@@ -187,7 +193,7 @@ class HomeNotifier extends _$HomeNotifier {
         );
         return;
       }
-      if (!stillSelected()) return;
+      if (!stillApplies()) return;
     }
     ref
         .read(serverLocationProvider.notifier)

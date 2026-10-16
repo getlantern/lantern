@@ -66,13 +66,16 @@ typedef _Harness = ({
   ProviderContainer container,
   _FakeLanternService service,
   _FakeVpnNotifier vpn,
+  void Function() allowSelection,
 });
 
 _Harness _harness(VPNStatus vpnStatus) {
   final service = _FakeLanternService();
   final vpn = _FakeVpnNotifier(vpnStatus);
+  var canSelect = false;
   final container = ProviderContainer(
     overrides: [
+      canSelectServerProvider.overrideWith((ref) => canSelect),
       lanternServiceProvider.overrideWithValue(service),
       vpnProvider.overrideWith(() => vpn),
       serverLocationProvider.overrideWith(_FakeServerLocationNotifier.new),
@@ -82,7 +85,15 @@ _Harness _harness(VPNStatus vpnStatus) {
   // Build the fakes before HomeNotifier reads them.
   container.read(vpnProvider);
   container.read(serverLocationProvider);
-  return (container: container, service: service, vpn: vpn);
+  return (
+    container: container,
+    service: service,
+    vpn: vpn,
+    allowSelection: () {
+      canSelect = true;
+      container.invalidate(canSelectServerProvider);
+    },
+  );
 }
 
 ServerLocationType _savedType(ProviderContainer container) =>
@@ -128,15 +139,14 @@ void main() {
     expect(_savedType(h.container), ServerLocationType.lanternLocation);
   });
 
-  test('unknown native status is treated as connected', () async {
+  test('skips the reset when native status is unavailable', () async {
     final h = _harness(VPNStatus.disconnected);
     h.service.connected = left(Failure(error: 'x', localizedErrorMessage: 'x'));
-    h.vpn.switchResult.complete(right('ok'));
 
     await h.container.read(homeProvider.notifier).resetServerLocation();
 
-    expect(h.vpn.startCalls, 1);
-    expect(_savedType(h.container), ServerLocationType.auto);
+    expect(h.vpn.startCalls, 0);
+    expect(_savedType(h.container), ServerLocationType.lanternLocation);
   });
 
   test('concurrent resets share one switch', () async {
@@ -171,6 +181,21 @@ void main() {
     await reset;
 
     expect(_savedType(h.container), ServerLocationType.privateServer);
+  });
+
+  test('stops if the user may choose servers again mid-reset', () async {
+    final h = _harness(VPNStatus.connecting);
+    h.service.connected = right(true);
+    h.vpn.switchResult.complete(right('ok'));
+
+    final reset = h.container.read(homeProvider.notifier).resetServerLocation();
+    await pumpEventQueue();
+    h.allowSelection();
+    h.vpn.setStatus(VPNStatus.connected);
+    await reset;
+
+    expect(h.vpn.startCalls, 0);
+    expect(_savedType(h.container), ServerLocationType.lanternLocation);
   });
 
   test('waits for a pending connect to settle before acting', () async {
