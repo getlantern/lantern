@@ -147,17 +147,33 @@ class HomeNotifier extends _$HomeNotifier {
   Future<void>? _resetInFlight;
 
   Future<void> _resetServerLocation() async {
-    if (!_isManualLanternLocation) return;
+    final original = ref.read(serverLocationProvider);
+    if (original.serverType.toServerLocationType !=
+        ServerLocationType.lanternLocation) {
+      return;
+    }
+    // Abandon the reset if the user picked another location while it waited.
+    bool stillSelected() {
+      if (!ref.mounted) return false;
+      final current = ref.read(serverLocationProvider);
+      return current.serverType == original.serverType &&
+          current.serverName == original.serverName;
+    }
+
     // Act on the tunnel's settled state, not a connect or disconnect that is
-    // still in progress.
-    await _waitForSettledVpnStatus();
-    if (!ref.mounted || !_isManualLanternLocation) return;
+    // still in progress. If it never settles, keep the manual location rather
+    // than guess; the next reset trigger retries.
+    if (!await _waitForSettledVpnStatus()) {
+      appLogger.warning('VPN status did not settle, skipping location reset');
+      return;
+    }
+    if (!stillSelected()) return;
 
     // Ask native directly: VpnNotifier reports disconnected until it has
     // hydrated. If the check fails, assume connected and try the switch.
     final connected = (await ref.read(lanternServiceProvider).isVPNConnected())
         .getOrElse((_) => true);
-    if (!ref.mounted) return;
+    if (!stillSelected()) return;
 
     // A connected tunnel keeps using the manual server until it is switched,
     // so record smart location only once the switch succeeds.
@@ -165,40 +181,43 @@ class HomeNotifier extends _$HomeNotifier {
       final result = await ref
           .read(vpnProvider.notifier)
           .startVPN(force: true, skipConflictCheck: true);
-      if (!ref.mounted) return;
       if (result.isLeft()) {
         appLogger.error(
           'Failed to switch to smart location, keeping the manual location',
         );
         return;
       }
+      if (!stillSelected()) return;
     }
     ref
         .read(serverLocationProvider.notifier)
         .updateServerLocation(initialServerLocation());
   }
 
-  bool get _isManualLanternLocation =>
-      ref.read(serverLocationProvider).serverType.toServerLocationType ==
-      ServerLocationType.lanternLocation;
-
-  Future<void> _waitForSettledVpnStatus() async {
+  /// Waits for any connect or disconnect in progress to finish. Returns
+  /// false if it is still in progress after [_vpnSettleTimeout].
+  Future<bool> _waitForSettledVpnStatus() async {
     bool settled(VPNStatus status) =>
         status != VPNStatus.connecting && status != VPNStatus.disconnecting;
-    if (settled(ref.read(vpnProvider))) return;
+    if (settled(ref.read(vpnProvider))) return true;
 
-    final done = Completer<void>();
+    final done = Completer<bool>();
     final sub = ref.listen<VPNStatus>(vpnProvider, (_, next) {
-      if (settled(next) && !done.isCompleted) done.complete();
+      if (settled(next) && !done.isCompleted) done.complete(true);
     });
     try {
-      await done.future.timeout(_vpnSettleTimeout, onTimeout: () {});
+      return await done.future.timeout(
+        _vpnSettleTimeout,
+        onTimeout: () => false,
+      );
     } finally {
       sub.close();
     }
   }
 
-  static const _vpnSettleTimeout = Duration(seconds: 30);
+  // Longer than the native connect timeout (60s on Android), so a slow
+  // connect settles before we give up on it.
+  static const _vpnSettleTimeout = Duration(seconds: 75);
 
   /// Fetches the latest user data from the server if not cached locally.
   Future<void> fetchUserDataIfNeeded() async {

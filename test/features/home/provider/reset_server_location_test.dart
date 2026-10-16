@@ -154,6 +154,25 @@ void main() {
     expect(_savedType(h.container), ServerLocationType.auto);
   });
 
+  test('does not overwrite a location the user picks mid-reset', () async {
+    final h = _harness(VPNStatus.connected);
+    h.service.connected = right(true);
+
+    final reset = h.container.read(homeProvider.notifier).resetServerLocation();
+    await pumpEventQueue();
+    final privateServer = ServerLocation(
+      serverName: 'my-private-server',
+      serverType: ServerLocationType.privateServer.name,
+    );
+    h.container
+        .read(serverLocationProvider.notifier)
+        .updateServerLocation(privateServer);
+    h.vpn.switchResult.complete(right('ok'));
+    await reset;
+
+    expect(_savedType(h.container), ServerLocationType.privateServer);
+  });
+
   test('waits for a pending connect to settle before acting', () async {
     final h = _harness(VPNStatus.connecting);
     h.service.connected = right(true);
