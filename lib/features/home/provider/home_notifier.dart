@@ -152,14 +152,17 @@ class HomeNotifier extends _$HomeNotifier {
         ServerLocationType.lanternLocation) {
       return;
     }
-    // Abandon the reset if, while it waited, the user picked another
-    // location or became free to choose one (upgraded, or cap turned off).
-    bool stillApplies() {
-      if (!ref.mounted || ref.read(canSelectServerProvider)) return false;
+    bool stillSelected() {
+      if (!ref.mounted) return false;
       final current = ref.read(serverLocationProvider);
       return current.serverType == original.serverType &&
           current.serverName == original.serverName;
     }
+
+    // Abandon the reset if, while it waited, the user picked another
+    // location or became free to choose one (upgraded, or cap turned off).
+    bool stillApplies() =>
+        stillSelected() && !ref.read(canSelectServerProvider);
 
     // Act on the tunnel's settled state, not a connect or disconnect that is
     // still in progress. If it never settles, keep the manual location rather
@@ -187,7 +190,9 @@ class HomeNotifier extends _$HomeNotifier {
     final appStatus = ref.read(vpnProvider);
     final agreed = connected
         ? appStatus == VPNStatus.connected
-        : appStatus == VPNStatus.disconnected || appStatus == VPNStatus.error;
+        // An error can be reported while a native connect is still running,
+        // so only a confirmed disconnect counts.
+        : appStatus == VPNStatus.disconnected;
     if (!agreed) {
       appLogger.debug('VPN state changing, skipping location reset');
       return;
@@ -205,7 +210,15 @@ class HomeNotifier extends _$HomeNotifier {
         );
         return;
       }
-      if (!stillApplies()) return;
+      // The tunnel is now on auto, so record that even if the user became
+      // free to choose meanwhile; only a newer selection takes precedence.
+      if (!stillSelected()) return;
+      final locations = ref.read(serverLocationProvider.notifier);
+      await locations.switchToAuto();
+      // server-location events are ignored while the selection is manual, so
+      // fetch the resolved auto location that arrived during the switch.
+      unawaited(locations.refreshAutoLocationIfNeeded());
+      return;
     }
     ref
         .read(serverLocationProvider.notifier)

@@ -62,6 +62,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
         .read(lanternServiceProvider)
         .getAutoServerLocation();
     if (!ref.mounted) return;
+    // The user may have picked a manual server while this was in flight.
+    if (state.serverType.toServerLocationType != ServerLocationType.auto) {
+      return;
+    }
     result.fold(
       (error) {
         // Expected when VPN isn't connected yet — auto location is only

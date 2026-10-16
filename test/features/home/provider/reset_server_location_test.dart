@@ -61,8 +61,17 @@ class _FakeServerLocationNotifier extends ServerLocationNotifier {
     city: 'Berlin',
   );
 
+  int autoRefreshes = 0;
+
   @override
   void updateServerLocation(ServerLocation entity) => state = entity;
+
+  @override
+  Future<void> switchToAuto() async =>
+      state = state.copyWith(serverType: ServerLocationType.auto.name);
+
+  @override
+  Future<void> refreshAutoLocationIfNeeded() async => autoRefreshes += 1;
 }
 
 typedef _Harness = ({
@@ -228,6 +237,34 @@ void main() {
 
     expect(h.vpn.startCalls, 0);
     expect(_savedType(h.container), ServerLocationType.lanternLocation);
+  });
+
+  test('an error status is not treated as disconnected', () async {
+    final h = _harness(VPNStatus.error);
+    h.service.connected = right(false);
+
+    await h.container.read(homeProvider.notifier).resetServerLocation();
+
+    expect(h.vpn.startCalls, 0);
+    expect(_savedType(h.container), ServerLocationType.lanternLocation);
+  });
+
+  test('records a completed switch even if the user may now choose', () async {
+    final h = _harness(VPNStatus.connected);
+    h.service.connected = right(true);
+
+    final reset = h.container.read(homeProvider.notifier).resetServerLocation();
+    await pumpEventQueue();
+    expect(h.vpn.startCalls, 1);
+    h.allowSelection();
+    h.vpn.switchResult.complete(right('ok'));
+    await reset;
+
+    expect(_savedType(h.container), ServerLocationType.auto);
+    final locations =
+        h.container.read(serverLocationProvider.notifier)
+            as _FakeServerLocationNotifier;
+    expect(locations.autoRefreshes, 1);
   });
 
   test('waits for a pending connect to settle before acting', () async {

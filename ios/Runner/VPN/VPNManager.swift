@@ -96,13 +96,14 @@ class VPNManager: VPNBase {
       "netEx.Type": "Lantern" as NSString,
       "netEx.StartReason": "User Initiated" as NSString,
     ]
-    VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
-
     switch manager.connection.status {
     case .connected, .connecting, .reasserting:
       appLogger.info("VPN is already connected, sending lantern/auto command to extension")
       do {
         let result = try await triggerExtensionMethod(methodName: "Lantern")
+        // Only record auto once the extension confirms the switch, so a
+        // failed switch leaves the widget on the server still in use.
+        VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
         return
       } catch {
         // Rethrow so caller can handle it
@@ -112,6 +113,7 @@ class VPNManager: VPNBase {
       break
     }
 
+    VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
     try manager.connection.startVPNTunnel(options: options)
     /// Enable on-demand to allow automatic reconnections
     /// this getting stuck in infinite loop
