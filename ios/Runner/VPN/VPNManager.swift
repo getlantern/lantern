@@ -78,7 +78,9 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
-    guard connectionStatus == .disconnected || connectionStatus == .invalid else { return }
+    // A live tunnel falls through to the extension's auto switch below, so a
+    // connected caller gets the outcome of the switch instead of a no-op.
+    guard connectionStatus != .disconnecting else { return }
     appLogger.log("Starting tunnel..")
     guard let manager = await Profile.shared.getManager() else {
       let msg = "Unable to load or create VPN manager."
@@ -94,19 +96,24 @@ class VPNManager: VPNBase {
       "netEx.Type": "Lantern" as NSString,
       "netEx.StartReason": "User Initiated" as NSString,
     ]
-    VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
-
-    if manager.connection.status == .connected || manager.connection.status == .connecting {
+    switch manager.connection.status {
+    case .connected, .connecting, .reasserting:
       appLogger.info("VPN is already connected, sending lantern/auto command to extension")
       do {
         let result = try await triggerExtensionMethod(methodName: "Lantern")
+        // Only record auto once the extension confirms the switch, so a
+        // failed switch leaves the widget on the server still in use.
+        VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
         return
       } catch {
         // Rethrow so caller can handle it
         throw error
       }
+    default:
+      break
     }
 
+    VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
     try manager.connection.startVPNTunnel(options: options)
     /// Enable on-demand to allow automatic reconnections
     /// this getting stuck in infinite loop

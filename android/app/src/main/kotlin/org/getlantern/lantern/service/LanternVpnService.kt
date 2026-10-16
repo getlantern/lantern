@@ -333,13 +333,17 @@ class LanternVpnService :
         }
     }
 
+    /** Returns true only if the tunnel actually connected to [tag]. */
     suspend fun connectToServer(
         tag: String,
-    ) {
+    ): Boolean {
+        var connected = false
         launchVPN(errorCode = "connect_to_server") {
             Mobile.connectToServer(tag)
+            connected = true
             AppLogger.d(TAG, "Connected to server")
         }
+        return connected
     }
 
     private suspend fun launchVPN(
