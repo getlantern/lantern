@@ -1,14 +1,14 @@
-# Windows legacy migration staging E2E
+# Windows legacy migration E2E
 
-This exercises **7.9.5 x86 → bridge x86 → v10 installer → authenticated Radiance adoption → startup → reboot**, using the real updater, installer, service and IPC. It does not deploy, publish, enable flags, create accounts or provision machines. All production rollout gates remain disabled.
+This exercises **7.9.5 x86 → bridge x86 → v10 installer → authenticated Radiance adoption → startup → reboot**, using the real updater, installer, service and IPC. It does not deploy, publish, enable flags, create accounts or provision machines.
 
 ## What a pass means
 
-The executable lane is `rebuilt-staging`. The seed is rebuilt from the exact Windows `lantern-7.9.5` source (`1145e4ca7a7d1d5bfb7b4cd9cdb719a7aaea202e`) with the account host linker override `github.com/getlantern/flashlight/v7/common.ProAPIHost=pro-api.staging.iantem.io`. The updater implementation and embedded RSA public key remain unchanged. Do **not** use `StagingMode`/`STAGING=1`: that mode substitutes a shared hardcoded account.
+The default lane is `rebuilt-staging`. The seed is rebuilt from the exact Windows `lantern-7.9.5` source (`1145e4ca7a7d1d5bfb7b4cd9cdb719a7aaea202e`) with the account host linker override `github.com/getlantern/flashlight/v7/common.ProAPIHost=pro-api.staging.iantem.io`. The updater implementation and embedded RSA public key remain unchanged. Do **not** use `StagingMode`/`STAGING=1`: that mode substitutes a shared hardcoded account.
 
 The legacy client requires a hostname and sends account requests at the root, such as `/user-data`. Lantern Cloud routes `pro-api.staging.iantem.io` to the same staging account service that v10 uses at `api.staging.iantem.io/pro-server`.
 
-The original released 7.9.5 binary hardcodes the production account API. Its supported configuration changes the updater endpoint/CA, not that account API. Consequently an isolated full account-migration test with the original release is **blocked pending a reviewed endpoint/account strategy**. This harness rejects a `released-7.9.5` manifest and always records `production_activation_ready: false`. Neither a rebuilt pass nor synthetic HTTP requests satisfy that release prerequisite.
+The original released 7.9.5 binary hardcodes the production account API. It cannot use an isolated staging account. The separate, opt-in `production-beta-canary` lane below uses that exact release with a disposable production account. Both lanes record `production_activation_ready: false`: a beta canary does not establish readiness for a stable installer or an untested Windows cohort.
 
 The real clients must accept signatures from the staging updater using the RSA key compiled into 7.9.5. Replacing that public key, disabling TLS verification, hosts-file/TLS interception, or using `mockupdate` would change the property being tested and is not supported. If staging's signing key is incompatible, stop and resolve the trust arrangement separately.
 
@@ -128,3 +128,53 @@ Run each case on a fresh leased VM and staging account, with a new run ID and ma
 Diagnostics are allowlisted booleans/hashes/fixed codes only, under the private run directory's `diagnostics` folder. The workflow uploads only the requested phase JSON; it does not upload raw settings, tokens, account IDs, device IDs, service data, journals, logs, dumps or screenshots. Inspect sensitive failure state inside the disposable VM if needed.
 
 After recording evidence, disable the staging migration cohort, clear the staged pins using the cloud deployment procedure, release the shared test window, revoke the fixture account/token, and destroy the VM. Do not reuse its snapshot or manually delete migration journals to retry. Production activation is separate work with its own released-binary proof and rollout decision.
+
+## Production beta canary
+
+Use this lane to test the production upgrade path before publishing a new stable
+v10 installer. It uses production account and update services on a disposable
+Windows VM. The rebuilt staging lane and its failure scenarios stay separate.
+
+1. Publish a signed, unused stable bridge version **above 7.9.8** from the frozen
+   maintenance branch and a signed v10 beta installer from the reviewed Lantern
+   commit. Use the normal production catalog, `getlantern/lantern`; the installer
+   asset is `lantern-installer-beta.exe`. Preserve existing release assets.
+2. Download the original [7.9.5 x86 update](https://github.com/getlantern/lantern/releases/download/7.9.5/update_windows_386.bz2)
+   and decompress it to `seed.exe`. Its raw SHA256 must be
+   `e63e12b594edfed8dd4b7ccac5b2dabb27436d0168c004d7667ba04ab7b9a055`.
+   Keep its original signature. Build the probe at the reviewed harness commit.
+3. Prepare the reviewed manifest using the schema above, with these differences:
+   `lane: production-beta-canary`, `scenario: success`,
+   `endpoint: https://update.getlantern.org/update/lantern`,
+   `catalog: getlantern/lantern`, and `account_environment: prod`.
+   Set the exact stable bridge and beta installer versions, source commits,
+   post-signing hashes and signer thumbprints. Include only `seed`, `bridge`,
+   `installer` and `probe` artifacts. Keep `production_activation_ready: false`.
+   Beta suffixes are `beta`, `beta4`, `beta-4` or `beta.4`, with no leading zero
+   in multi-digit counters or build metadata. `catalog.py` remains staging-only;
+   this lane consumes published assets without assembling a new catalog.
+4. Use a new disposable **production** account/device in the private expected
+   fixture, with `account_environment: prod`. Keep the VM lease, standard user,
+   separate approving administrator and private-file ACL requirements above.
+   Do not override the legacy account host, global configuration, updater CA or
+   public key. The validator rejects rebuilt seeds and staging bridge binaries.
+5. Pin both published versions using Cloud's production procedure, initially with
+   migration flags off. Constrain the installer gate and the additional
+   `autoupdate_windows_installer_beta_canary` gate to the dedicated VM's egress
+   IP, exact bridge source and beta target. Constrain the bridge gate to that VM,
+   original source and stable bridge target. Give `autoupdate_allow` two matching
+   strategies, one for each source/target pair, restricted to the same VM IP. The
+   legacy client still requests the **stable** channel. Do not use a percentage
+   rollout or share the VM's egress IP with real users.
+6. Configure the protected `windows-migration-canary` GitHub environment before
+   dispatch, then select `production_canary: true` in both workflow phases. Or
+   run the same standard-user command above with `-ProductionCanary`. Standalone
+   bundle validation also requires `--allow-production-canary`. The existing
+   account, device, preferences, service, startup, connectivity and real reboot
+   checks apply; the staging-only runtime reporter and global-config checker do
+   not run. Only AfterReboot can report `production_beta_canary_passed`.
+7. Save the allowlisted diagnostics, disable the test cohort, revoke the fixture
+   account/token and destroy the VM and dedicated host. Follow Cloud's procedure
+   when changing pins; clearing a pin does not immediately update every running
+   updater. A successful beta canary covers the tested artifacts, account and
+   Windows version; validate Windows 10 separately before including it.

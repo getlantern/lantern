@@ -53,21 +53,98 @@ try {
       if ((ConvertTo-UtcTime $roundtrip.boot) -eq (ConvertTo-UtcTime $expectedTime.AddMinutes(1))) { throw 'changed_boot_rejected' }
     }
   } finally { [Globalization.CultureInfo]::CurrentCulture = $culture }
+  foreach ($test in @(
+    @{lane='rebuilt-staging'; environment='staging'; enabled=$false; scenario='success'; ready=$false; allowed=$true},
+    @{lane='rebuilt-staging'; environment='staging'; enabled=$true; scenario='success'; ready=$false; allowed=$false},
+    @{lane='production-beta-canary'; environment='prod'; enabled=$false; scenario='success'; ready=$false; allowed=$false},
+    @{lane='production-beta-canary'; environment='prod'; enabled=$true; scenario='success'; ready=$false; allowed=$true},
+    @{lane='production-beta-canary'; environment='staging'; enabled=$true; scenario='success'; ready=$false; allowed=$false},
+    @{lane='production-beta-canary'; environment='prod'; enabled=$true; scenario='cancel'; ready=$false; allowed=$false},
+    @{lane='production-beta-canary'; environment='prod'; enabled=$true; scenario='installer-failure'; ready=$false; allowed=$false},
+    @{lane='production-beta-canary'; environment='prod'; enabled=$true; scenario='success'; ready=$true; allowed=$false},
+    @{lane='other'; environment='prod'; enabled=$true; scenario='success'; ready=$false; allowed=$false}
+  )) {
+    $script:M = @{lane=$test.lane; account_environment=$test.environment; scenario=$test.scenario; production_activation_ready=$test.ready}
+    if ($test.allowed) {
+      Check-Lane $test.enabled
+      if ($script:ProductionLane -ne ($test.environment -eq 'prod')) { throw 'wrong_lane_environment' }
+    } else {
+      try { Check-Lane $test.enabled; throw 'accepted_unsafe_lane' }
+      catch {
+        if ($_.Exception.Data['migration-e2e-code'] -notin @('invalid_migration_lane','production_canary_not_enabled')) { throw }
+      }
+    }
+  }
+  $script:LegacyExe = 'C:\fixture\lantern.exe'
+  function Start-Process {
+    param($FilePath, $ArgumentList, [switch]$PassThru)
+    return @{path=$FilePath; arguments=$ArgumentList}
+  }
+  foreach ($production in @($false, $true)) {
+    $script:ProductionLane = $production
+    $launched = Launch-Legacy
+    $expectedArguments = if ($production) {'-readableconfig'} else {'-readableconfig,-stickyconfig'}
+    if ($launched.path -ne $script:LegacyExe -or ($launched.arguments -join ',') -ne $expectedArguments) { throw 'wrong_legacy_launch_flags' }
+  }
+  $script:Result = @{}
+  $serviceCommand = '"C:\Program Files\Lantern\LanternSvc.exe" run'
+  function Get-CimInstance {
+    param($ClassName, $Filter)
+    return $script:testService
+  }
+  foreach ($test in @(
+    @{environment='staging'; arguments=' --environment staging'; allowed=$true},
+    @{environment='staging'; arguments=' "--environment" "staging"'; allowed=$true},
+    @{environment='staging'; arguments=' --environment=staging'; allowed=$true},
+    @{environment='staging'; arguments=''; allowed=$false},
+    @{environment='staging'; arguments=' --environment prod'; allowed=$false},
+    @{environment='prod'; arguments=''; allowed=$true},
+    @{environment='prod'; arguments=' --environment prod'; allowed=$true},
+    @{environment='prod'; arguments=' "--environment" "prod"'; allowed=$true},
+    @{environment='prod'; arguments=' --environment=prod'; allowed=$true},
+    @{environment='prod'; arguments=' --environment staging'; allowed=$false},
+    @{environment='prod'; arguments=' --environment production'; allowed=$false},
+    @{environment='prod'; arguments=' --environment'; allowed=$false},
+    @{environment='prod'; arguments=' --environment='; allowed=$false},
+    @{environment='prod'; arguments=' --dotenv staging.env'; allowed=$false},
+    @{environment='prod'; arguments=' --data-path C:\other'; allowed=$false},
+    @{environment='prod'; arguments=' --ENVIRONMENT staging'; allowed=$false},
+    @{environment='prod'; arguments=' --environment prod --environment staging'; allowed=$false},
+    @{environment='staging'; arguments=' --environment staging --environment prod'; allowed=$false},
+    @{environment='production'; arguments=''; allowed=$false}
+  )) {
+    $script:testService = @{State='Running'; StartName='LocalSystem'; StartMode='Auto'; PathName=($serviceCommand + $test.arguments)}
+    if ($test.allowed) { Service-Ready $test.environment }
+    else {
+      try { Service-Ready $test.environment; throw 'accepted_wrong_service_environment' }
+      catch { if ($_.Exception.Data['migration-e2e-code'] -ne 'service_environment_mismatch') { throw } }
+    }
+  }
+  foreach ($change in @(
+    @{State='Stopped'}, @{StartName='OtherUser'}, @{StartMode='Manual'},
+    @{PathName='"C:\other\LanternSvc.exe" run'}, @{PathName='"C:\Program Files\Lantern\LanternSvc.exe" other'}
+  )) {
+    $script:testService = @{State='Running'; StartName='LocalSystem'; StartMode='Auto'; PathName=$serviceCommand}
+    foreach ($key in $change.Keys) { $script:testService[$key] = $change[$key] }
+    try { Service-Ready 'prod'; throw 'accepted_wrong_service' }
+    catch { if ($_.Exception.Data['migration-e2e-code'] -notin @('service_not_ready','service_not_automatic','service_command_mismatch')) { throw } }
+  }
   $script:M = @{endpoint='https://update.staging.iantem.io/update/lantern'; bridge_version='7.9.6'; installer_version='10.99.1';
     artifacts=@{seed=@{sha256=('a' * 64)}; bridge=@{sha256=('b' * 64)}; installer=@{sha256=('c' * 64)}}}
   $script:Result = @{}
   $script:routeOfferOverrides = @{}
+  $script:routeOrigin = 'https://update.staging.iantem.io'
   function Invoke-WebRequest {
     param($Uri, $Method, $ContentType, $Body, $Headers, $MaximumRedirection, $TimeoutSec, [switch]$SkipHttpErrorCheck)
     $request = $Body | ConvertFrom-Json -AsHashtable
     $seed = $request.app_version -eq '7.9.5'
     if (-not $seed -and $request.tags.os_arch -ne 'amd64') { return @{StatusCode=204} }
     $hop = if ($seed) {'bridge'} else {'installer'}
-    $version = if ($seed) {'7.9.6'} else {'10.99.1'}
+    $version = if ($seed) {$script:M.bridge_version} else {$script:M.installer_version}
     $arch = if ($seed) {'386'} else {'amd64'}
     $offer = @{version=$version; initiative='auto'; patch_url=''; patch_type='';
       checksum=$script:M.artifacts[$hop].sha256; update_type=$(if ($seed) {'binary'} else {'installer'});
-      target_arch=$arch; url="https://update.staging.iantem.io/update/lantern/windows-migration/$arch/$version"}
+      target_arch=$arch; url="$script:routeOrigin/update/lantern/windows-migration/$arch/$version"}
     if ($script:routeOfferOverrides.ContainsKey($hop)) {
       foreach ($field in $script:routeOfferOverrides[$hop].Keys) {
         $offer[$field] = $script:routeOfferOverrides[$hop][$field]
@@ -103,7 +180,15 @@ try {
     try { Check-Routes; throw 'accepted_wrong_offer' }
     catch { if ($_.Exception.Data['migration-e2e-code'] -ne 'catalog_drift') { throw } }
   }
-  'PowerShell parser, read-sharing/error-code, UTC timestamp and download routing checks passed'
+  $script:M.endpoint = 'https://update.getlantern.org/update/lantern'
+  $script:M.installer_version = '10.0.3-beta-4'
+  $script:routeOrigin = 'https://update.getlantern.org'
+  $script:routeOfferOverrides = @{}
+  Check-Routes
+  $script:routeOfferOverrides = @{installer=@{url='https://update.staging.iantem.io/update/lantern/windows-migration/amd64/10.0.3-beta-4'}}
+  try { Check-Routes; throw 'accepted_staging_canary_download' }
+  catch { if ($_.Exception.Data['migration-e2e-code'] -ne 'catalog_drift') { throw } }
+  'PowerShell parser, read-sharing/error-code, UTC timestamp, lane, service and download routing checks passed'
 } finally {
   # Only the unique directory created by this test is removed.
   Remove-Item -LiteralPath $temp -Recurse -Force
