@@ -196,7 +196,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    fun connectToServer(tag: String) {
+    suspend fun connectToServer(tag: String) {
         if (!isVPNServiceReady()) {
             // Preserve the selection across the consent dialog; resumePendingConnect replays it.
             pendingTag = tag
@@ -209,10 +209,12 @@ class MainActivity : FlutterFragmentActivity() {
 
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching server")
-            CoroutineScope(Dispatchers.Main).launch {
+            pendingTag = null
+            // Wait for the switch so the caller learns whether it took effect.
+            val switched = withContext(Dispatchers.Main) {
                 LanternVpnService.instance.connectToServer(tag)
             }
-            pendingTag = null
+            check(switched) { "Failed to switch to server $tag" }
             return
         }
 
