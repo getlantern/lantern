@@ -12,11 +12,20 @@ class LanternProLicense extends HookConsumerWidget {
   final String email;
   final String code;
 
-  const LanternProLicense({super.key, required this.email, required this.code});
+  /// Pre-fills the field, e.g. from the web-licensing deep link.
+  final String licenseKey;
+
+  const LanternProLicense({
+    super.key,
+    required this.email,
+    required this.code,
+    this.licenseKey = '',
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final codeController = useTextEditingController();
+    final initialText = formatLicenseKey(licenseKey);
+    final codeController = useTextEditingController(text: initialText);
     final obscureText = useState(true);
     final validCode = useState(false);
     final normalizedLen = useState<int>(0);
@@ -24,11 +33,16 @@ class LanternProLicense extends HookConsumerWidget {
     void toggleVisibility() => obscureText.value = !obscureText.value;
 
     void syncFromText(String text) {
-      final cleanedLen = text.replaceAll('-', '').length;
+      final cleanedLen = licenseKeyCode(text).length;
       normalizedLen.value = cleanedLen;
       validCode.value =
           RegExp(r'^[A-Z0-9-]*$').hasMatch(text) && cleanedLen == 25;
     }
+
+    useEffect(() {
+      if (initialText.isNotEmpty) syncFromText(initialText);
+      return null;
+    }, const []);
 
     return EnterKeyShortcut(
       onEnter: () {
@@ -42,7 +56,7 @@ class LanternProLicense extends HookConsumerWidget {
           children: <Widget>[
             SizedBox(height: defaultSize),
             AppTextField(
-              maxLength: 29,
+              maxLength: 33,
               hintText: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
               controller: codeController,
               prefixIcon: AppImagePaths.keypad,
@@ -78,7 +92,7 @@ class LanternProLicense extends HookConsumerWidget {
                   return 'lantern_pro_license_invalid'.i18n;
                 }
 
-                if (v.replaceAll('-', '').length != 25) {
+                if (licenseKeyCode(v).length != 25) {
                   return 'lantern_pro_license_invalid_length'.i18n;
                 }
 

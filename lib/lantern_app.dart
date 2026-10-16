@@ -164,6 +164,26 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
       appLogger.debug("DeepLink affiliate: navigating to Plans with code");
       _pushWithHome(Plans(referralCode: code));
+    } else if (path.startsWith('/web-licensing') ||
+        (uri.scheme == 'lantern' && uri.host == 'web-licensing')) {
+      // lantern://web-licensing?code=<license key>, sent by the website's
+      // post-purchase page.
+      final licenseKey = (uri.queryParameters['code'] ?? '').trim();
+      if (licenseKey.isEmpty) {
+        appLogger.debug("DeepLink web-licensing: missing code");
+        context.showSnackBar('invalid_deep_link'.i18n);
+        return;
+      }
+      appLogger.debug(
+        "DeepLink web-licensing: navigating to LanternProLicense",
+      );
+      _pushWithHome(
+        LanternProLicense(
+          email: ref.read(userEmailProvider),
+          code: '',
+          licenseKey: licenseKey,
+        ),
+      );
     } else if (path.startsWith('/private-server') ||
         (uri.scheme == 'lantern' && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);

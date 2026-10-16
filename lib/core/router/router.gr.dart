@@ -725,10 +725,16 @@ class LanternProLicense extends _i45.PageRouteInfo<LanternProLicenseArgs> {
     _i46.Key? key,
     required String email,
     required String code,
+    String licenseKey = '',
     List<_i45.PageRouteInfo>? children,
   }) : super(
          LanternProLicense.name,
-         args: LanternProLicenseArgs(key: key, email: email, code: code),
+         args: LanternProLicenseArgs(
+           key: key,
+           email: email,
+           code: code,
+           licenseKey: licenseKey,
+         ),
          initialChildren: children,
        );
 
@@ -742,6 +748,7 @@ class LanternProLicense extends _i45.PageRouteInfo<LanternProLicenseArgs> {
         key: args.key,
         email: args.email,
         code: args.code,
+        licenseKey: args.licenseKey,
       );
     },
   );
@@ -752,6 +759,7 @@ class LanternProLicenseArgs {
     this.key,
     required this.email,
     required this.code,
+    this.licenseKey = '',
   });
 
   final _i46.Key? key;
@@ -760,20 +768,26 @@ class LanternProLicenseArgs {
 
   final String code;
 
+  final String licenseKey;
+
   @override
   String toString() {
-    return 'LanternProLicenseArgs{key: $key, email: $email, code: $code}';
+    return 'LanternProLicenseArgs{key: $key, email: $email, code: $code, licenseKey: $licenseKey}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! LanternProLicenseArgs) return false;
-    return key == other.key && email == other.email && code == other.code;
+    return key == other.key &&
+        email == other.email &&
+        code == other.code &&
+        licenseKey == other.licenseKey;
   }
 
   @override
-  int get hashCode => key.hashCode ^ email.hashCode ^ code.hashCode;
+  int get hashCode =>
+      key.hashCode ^ email.hashCode ^ code.hashCode ^ licenseKey.hashCode;
 }
 
 /// generated route for
