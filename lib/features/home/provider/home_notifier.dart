@@ -141,8 +141,14 @@ class HomeNotifier extends _$HomeNotifier {
   ///
   /// Concurrent callers share one reset, so a switch in flight is never
   /// raced by a second one.
-  Future<void> resetServerLocation() => _resetInFlight ??=
-      _resetServerLocation().whenComplete(() => _resetInFlight = null);
+  Future<void> resetServerLocation() =>
+      _resetInFlight ??= _resetServerLocation()
+          // Callers don't await this, and a failed reset is retried by the
+          // next trigger like any other skipped one.
+          .catchError((Object e, StackTrace st) {
+            appLogger.error('Server location reset failed', e, st);
+          })
+          .whenComplete(() => _resetInFlight = null);
 
   Future<void>? _resetInFlight;
 

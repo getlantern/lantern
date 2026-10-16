@@ -15,6 +15,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -246,6 +247,8 @@ class MainActivity : FlutterFragmentActivity() {
                     startVPN()
                 }
             }.onFailure { e ->
+                // A stop cancels the start; that's not a start failure.
+                if (e is CancellationException) throw e
                 AppLogger.e(TAG, "Failed to start VPN after permission request", e)
                 VpnStatusManager.postVPNError(
                     errorCode = "start_vpn",

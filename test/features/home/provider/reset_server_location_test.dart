@@ -289,6 +289,19 @@ void main() {
     expect(_savedType(h.container), ServerLocationType.lanternLocation);
   });
 
+  test('a failing switch call is caught, not left unhandled', () async {
+    final h = _harness(VPNStatus.connected);
+    h.service.connected = right(true);
+
+    final reset = h.container.read(homeProvider.notifier).resetServerLocation();
+    await pumpEventQueue();
+    expect(h.vpn.startCalls, 1);
+    h.vpn.switchResult.completeError(StateError('platform channel failed'));
+    await reset;
+
+    expect(_savedType(h.container), ServerLocationType.lanternLocation);
+  });
+
   test('waits for a pending connect to settle before acting', () async {
     final h = _harness(VPNStatus.connecting);
     h.service.connected = right(true);
