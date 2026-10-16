@@ -70,7 +70,7 @@ def verify_legacy_build(info, role, commit, version):
     tags = {"lantern", "walk_use_cgo"} | ({"migratione2e"} if role == "bridge" else set())
     require(set(re.split("[, ]+", settings.get("-tags", ""))) == tags, "legacy_build_tags")
     prefix = "github.com/getlantern/lantern-desktop/"
-    expected = {"github.com/getlantern/flashlight/v7/common.ProAPIHost": "api-staging.getiantem.org",
+    expected = {"github.com/getlantern/flashlight/v7/common.ProAPIHost": "pro-api.staging.iantem.io",
                 prefix + "desktop.ApplicationVersion": version}
     if role == "bridge":
         expected[prefix + "autoupdate.WindowsInstallerHandoff"] = "1"
@@ -149,6 +149,9 @@ def validate(root, manifest_hash):
     require(isinstance(config.get("trustedcas"), list) and bool(config["trustedcas"]), "missing_trusted_cas")
     require(isinstance(config.get("client"), dict)
             and config["client"].get("fronted", {}).get("providers"), "missing_fronted_providers")
+    routing = config.get("domainroutingrules")
+    require(isinstance(routing, dict) and routing.get("pro-api.staging.iantem.io") == "m",
+            "missing_account_must_proxy_route")
     # The Windows runner also invokes the companion's validator, compiled against
     # the frozen legacy config decoder/types. Structural checks alone cannot prove
     # the old app will accept global.yaml instead of its embedded fallback.

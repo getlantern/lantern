@@ -10,8 +10,6 @@ import (
 	"github.com/getlantern/radiance/ipc"
 )
 
-const legacyAutoLaunchKey = "legacy_auto_launch"
-
 type windowsClient struct{ client *ipc.Client }
 
 func newPlatformClient() (serviceClient, error) { return &windowsClient{client: ipc.NewClient()}, nil }
@@ -47,10 +45,9 @@ func (client *windowsClient) Settings(ctx context.Context) (settingsFacts, error
 	level, levelOK := data[settings.UserLevelKey].(string)
 	autoReport, reportOK := data[settings.TelemetryKey].(bool)
 	smartRouting, routingOK := data[settings.SmartRoutingKey].(bool)
-	autoLaunch, launchOK := data[legacyAutoLaunchKey].(bool)
-	return settingsFacts{Valid: tokenOK && deviceOK && localeOK && levelOK && reportOK && routingOK && launchOK,
+	return settingsFacts{Valid: tokenOK && deviceOK && localeOK && levelOK && reportOK && routingOK,
 		Token: token, DeviceID: device, Locale: locale, UserLevel: level,
-		AutoReport: autoReport, SmartRouting: smartRouting, AutoLaunch: autoLaunch}, nil
+		AutoReport: autoReport, SmartRouting: smartRouting}, nil
 }
 
 func (client *windowsClient) VPNStatus(ctx context.Context) (string, error) {

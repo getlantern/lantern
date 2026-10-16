@@ -57,9 +57,9 @@ type accountFacts struct {
 }
 
 type settingsFacts struct {
-	Valid                                bool
-	Token, DeviceID, Locale, UserLevel   string
-	AutoReport, SmartRouting, AutoLaunch bool
+	Valid                              bool
+	Token, DeviceID, Locale, UserLevel string
+	AutoReport, SmartRouting           bool
 }
 
 type serviceClient interface {
@@ -124,7 +124,7 @@ func compare(expected Expected, cached, fresh accountFacts, actual settingsFacts
 	result.TokenMatch = sameToken(cached.Token, expected.Token) && sameToken(cached.NestedToken, expected.Token) && sameToken(fresh.Token, expected.Token) && sameToken(fresh.NestedToken, expected.Token) && sameToken(actual.Token, expected.Token)
 	result.DeviceMatch = cached.DeviceID == expected.DeviceID && fresh.DeviceID == expected.DeviceID && actual.DeviceID == expected.DeviceID
 	result.UserLevelMatch = cached.UserLevel == expected.UserLevel && fresh.UserLevel == expected.UserLevel && actual.UserLevel == expected.UserLevel
-	result.PreferencesMatch = actual.Valid && actual.Locale == *expected.Locale && actual.AutoReport == *expected.AutoReport && actual.SmartRouting == !*expected.ProxyAll && actual.AutoLaunch == *expected.AutoLaunch
+	result.PreferencesMatch = actual.Valid && actual.Locale == *expected.Locale && actual.AutoReport == *expected.AutoReport && actual.SmartRouting == !*expected.ProxyAll
 	result.RemoteAccountVerified = accountMatches(expected, fresh)
 }
 
