@@ -24,7 +24,9 @@ class VpnNotifier extends _$VpnNotifier {
   bool _userDisconnectRequested = false;
   int _switchesInFlight = 0;
 
-  /// Whether a connect or server switch the app requested is still running.
+  /// Whether a connect or server switch the app requested is still running,
+  /// from the start of [startVPN] or [connectToServer] (including their
+  /// conflict check and tag lookup) until the native call returns.
   bool get switchInProgress => _switchesInFlight > 0;
 
   Future<T> _trackSwitch<T>(Future<T> Function() request) async {
@@ -205,6 +207,13 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, String>> startVPN({
     bool force = false,
     bool skipConflictCheck = false,
+  }) => _trackSwitch(
+    () => _startVPN(force: force, skipConflictCheck: skipConflictCheck),
+  );
+
+  Future<Either<Failure, String>> _startVPN({
+    required bool force,
+    required bool skipConflictCheck,
   }) async {
     final lantern = ref.read(lanternServiceProvider);
 
@@ -220,7 +229,7 @@ class VpnNotifier extends _$VpnNotifier {
       appLogger.debug(
         'Got server location with type auto or force is true, starting VPN with auto',
       );
-      return _trackSwitch(lantern.startVPN);
+      return lantern.startVPN();
     }
 
     final tag = serverLocation.serverName;
@@ -229,9 +238,9 @@ class VpnNotifier extends _$VpnNotifier {
       appLogger.debug(
         'Server tag "$tag" not available, falling back to auto VPN',
       );
-      return _trackSwitch(lantern.startVPN);
+      return lantern.startVPN();
     }
-    return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
+    return _connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
   }
 
   /// Connects to a specific server location.
@@ -240,6 +249,14 @@ class VpnNotifier extends _$VpnNotifier {
     ServerLocationType location,
     String tag, {
     bool skipConflictCheck = false,
+  }) => _trackSwitch(
+    () => _connectToServer(location, tag, skipConflictCheck: skipConflictCheck),
+  );
+
+  Future<Either<Failure, String>> _connectToServer(
+    ServerLocationType location,
+    String tag, {
+    required bool skipConflictCheck,
   }) async {
     // Check for a conflicting VPN before initiating a new connection.
     // The native side guards against false positives by returning false when
@@ -250,10 +267,7 @@ class VpnNotifier extends _$VpnNotifier {
     }
 
     appLogger.debug("Connecting to server: $location with tag: $tag");
-    return _trackSwitch(
-      () =>
-          ref.read(lanternServiceProvider).connectToServer(location.name, tag),
-    );
+    return ref.read(lanternServiceProvider).connectToServer(location.name, tag);
   }
 
   Future<Left<Failure, String>?> _checkVpnConflict() async {
