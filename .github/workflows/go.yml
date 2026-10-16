@@ -1,6 +1,7 @@
 name: Go CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -53,3 +54,20 @@ jobs:
 
       - name: Run tests
         run: CGO_ENABLED=1 go test -v -tags with_gvisor,with_quic,with_wireguard,with_utls,with_grpc ./...
+
+  telemetry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      CGO_ENABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+        with:
+          cache-scope: telemetry-smoke
+      - name: Verify OTLP trace and metric export over TLS
+        run: go test -mod=readonly -count=1 -v -timeout=1m ./lantern-core/telemetry
