@@ -134,7 +134,13 @@ jobs:
             echo "::notice::UPDATE_SERVICE_REFRESH_TOKEN is not set; waiting for the update service's own refresh"
             exit 0
           fi
-          refresh_url="${UPDATE_URL%/update*}/update/refresh"
+          # update_url is a dispatch input, so the token is only ever sent to
+          # this fixed host.
+          refresh_url="https://update.getlantern.org/update/refresh"
+          if [[ "$UPDATE_URL" != https://update.getlantern.org/* ]]; then
+            echo "::notice::Not refreshing: $UPDATE_URL is not on update.getlantern.org"
+            exit 0
+          fi
           if ! curl -fsS -X POST --retry 3 --max-time 30 \
               -H "Authorization: Bearer $REFRESH_TOKEN" "$refresh_url"; then
             echo "::warning::Update service refresh request failed; waiting for its own refresh"
