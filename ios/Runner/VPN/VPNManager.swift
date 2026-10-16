@@ -78,7 +78,9 @@ class VPNManager: VPNBase {
   /// Starts the VPN tunnel.
   /// Loads VPN preferences and initiates the VPN connection.
   func startTunnel() async throws {
-    guard connectionStatus == .disconnected || connectionStatus == .invalid else { return }
+    // A live tunnel falls through to the extension's auto switch below, so a
+    // connected caller gets the outcome of the switch instead of a no-op.
+    guard connectionStatus != .disconnecting else { return }
     appLogger.log("Starting tunnel..")
     guard let manager = await Profile.shared.getManager() else {
       let msg = "Unable to load or create VPN manager."
@@ -96,7 +98,8 @@ class VPNManager: VPNBase {
     ]
     VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
 
-    if manager.connection.status == .connected || manager.connection.status == .connecting {
+    switch manager.connection.status {
+    case .connected, .connecting, .reasserting:
       appLogger.info("VPN is already connected, sending lantern/auto command to extension")
       do {
         let result = try await triggerExtensionMethod(methodName: "Lantern")
@@ -105,6 +108,8 @@ class VPNManager: VPNBase {
         // Rethrow so caller can handle it
         throw error
       }
+    default:
+      break
     }
 
     try manager.connection.startVPNTunnel(options: options)

@@ -18,6 +18,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.handler.EventHandler
@@ -162,7 +163,7 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
 
-    fun startVPN() {
+    suspend fun startVPN() {
         pendingTag = null
         if (!isVPNServiceReady()) {
             AppLogger.d(TAG, "VPN service not ready")
@@ -174,9 +175,11 @@ class MainActivity : FlutterFragmentActivity() {
         // Do not need to create service again just switch server
         if (Mobile.isVPNConnected()) {
             AppLogger.d(TAG, "VPN is already connected, switching auto server")
-            CoroutineScope(Dispatchers.Main).launch {
+            // Wait for the switch so the caller learns whether it took effect.
+            val switched = withContext(Dispatchers.Main) {
                 LanternVpnService.instance.connectToServer("auto")
             }
+            check(switched) { "Failed to switch to auto server" }
             return
         }
 
@@ -233,19 +236,21 @@ class MainActivity : FlutterFragmentActivity() {
     // Replays the pending selection after VPN consent, so consent doesn't fall back to auto.
     private fun resumePendingConnect() {
         val tag = pendingTag
-        runCatching {
-            if (tag != null) {
-                connectToServer(tag)
-            } else {
-                startVPN()
+        CoroutineScope(Dispatchers.Main).launch {
+            runCatching {
+                if (tag != null) {
+                    connectToServer(tag)
+                } else {
+                    startVPN()
+                }
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Failed to start VPN after permission request", e)
+                VpnStatusManager.postVPNError(
+                    errorCode = "start_vpn",
+                    errorMessage = "Error starting VPN service",
+                    error = e,
+                )
             }
-        }.onFailure { e ->
-            AppLogger.e(TAG, "Failed to start VPN after permission request", e)
-            VpnStatusManager.postVPNError(
-                errorCode = "start_vpn",
-                errorMessage = "Error starting VPN service",
-                error = e,
-            )
         }
     }
 

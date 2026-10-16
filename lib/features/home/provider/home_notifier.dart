@@ -9,6 +9,7 @@ import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -126,7 +127,7 @@ class HomeNotifier extends _$HomeNotifier {
     if (!ref.mounted) return;
     // The user may have upgraded while the data cap info was loading.
     if (_isPro) return;
-    resetServerLocation();
+    await resetServerLocation();
   }
 
   Future<Either<Failure, Unit>> updateLocale(String locale) {
@@ -137,16 +138,67 @@ class HomeNotifier extends _$HomeNotifier {
   /// Resets the server location to default.
   /// if user logs out or downgrade to free plan
   /// we need to reset the server location set to smart location
-  void resetServerLocation() {
-    final serverLocation = ref.read(serverLocationProvider);
+  ///
+  /// Concurrent callers share one reset, so a switch in flight is never
+  /// raced by a second one.
+  Future<void> resetServerLocation() => _resetInFlight ??=
+      _resetServerLocation().whenComplete(() => _resetInFlight = null);
 
-    if (serverLocation.serverType.toServerLocationType ==
-        ServerLocationType.lanternLocation) {
-      ref
-          .read(serverLocationProvider.notifier)
-          .updateServerLocation(initialServerLocation());
+  Future<void>? _resetInFlight;
+
+  Future<void> _resetServerLocation() async {
+    if (!_isManualLanternLocation) return;
+    // Act on the tunnel's settled state, not a connect or disconnect that is
+    // still in progress.
+    await _waitForSettledVpnStatus();
+    if (!ref.mounted || !_isManualLanternLocation) return;
+
+    // Ask native directly: VpnNotifier reports disconnected until it has
+    // hydrated. If the check fails, assume connected and try the switch.
+    final connected = (await ref.read(lanternServiceProvider).isVPNConnected())
+        .getOrElse((_) => true);
+    if (!ref.mounted) return;
+
+    // A connected tunnel keeps using the manual server until it is switched,
+    // so record smart location only once the switch succeeds.
+    if (connected) {
+      final result = await ref
+          .read(vpnProvider.notifier)
+          .startVPN(force: true, skipConflictCheck: true);
+      if (!ref.mounted) return;
+      if (result.isLeft()) {
+        appLogger.error(
+          'Failed to switch to smart location, keeping the manual location',
+        );
+        return;
+      }
+    }
+    ref
+        .read(serverLocationProvider.notifier)
+        .updateServerLocation(initialServerLocation());
+  }
+
+  bool get _isManualLanternLocation =>
+      ref.read(serverLocationProvider).serverType.toServerLocationType ==
+      ServerLocationType.lanternLocation;
+
+  Future<void> _waitForSettledVpnStatus() async {
+    bool settled(VPNStatus status) =>
+        status != VPNStatus.connecting && status != VPNStatus.disconnecting;
+    if (settled(ref.read(vpnProvider))) return;
+
+    final done = Completer<void>();
+    final sub = ref.listen<VPNStatus>(vpnProvider, (_, next) {
+      if (settled(next) && !done.isCompleted) done.complete();
+    });
+    try {
+      await done.future.timeout(_vpnSettleTimeout, onTimeout: () {});
+    } finally {
+      sub.close();
     }
   }
+
+  static const _vpnSettleTimeout = Duration(seconds: 30);
 
   /// Fetches the latest user data from the server if not cached locally.
   Future<void> fetchUserDataIfNeeded() async {
