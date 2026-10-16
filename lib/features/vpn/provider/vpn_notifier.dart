@@ -23,16 +23,35 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, String>>? _stopRequest;
   bool _userDisconnectRequested = false;
   int _switchesInFlight = 0;
+  DateTime? _dispatchedStartDeadline;
 
   /// Whether a connect or server switch the app requested is still running,
   /// from the start of [startVPN] or [connectToServer] (including their
-  /// conflict check and tag lookup) until the native call returns.
-  bool get switchInProgress => _switchesInFlight > 0;
+  /// conflict check and tag lookup) until the native call returns, and for
+  /// a start from disconnected, until the tunnel reports a new status.
+  bool get switchInProgress {
+    if (_switchesInFlight > 0) return true;
+    final deadline = _dispatchedStartDeadline;
+    return deadline != null &&
+        state == VPNStatus.disconnected &&
+        DateTime.now().isBefore(deadline);
+  }
 
-  Future<T> _trackSwitch<T>(Future<T> Function() request) async {
+  // Android returns once the service intent is dispatched, before the service
+  // reports Connecting, so a start from disconnected stays pending until the
+  // status moves (or this long passes, if the service never starts).
+  static const _dispatchedStartGrace = Duration(seconds: 15);
+
+  Future<Either<Failure, String>> _trackSwitch(
+    Future<Either<Failure, String>> Function() request,
+  ) async {
     _switchesInFlight += 1;
     try {
-      return await request();
+      final result = await request();
+      if (result.isRight() && state == VPNStatus.disconnected) {
+        _dispatchedStartDeadline = DateTime.now().add(_dispatchedStartGrace);
+      }
+      return result;
     } finally {
       _switchesInFlight -= 1;
     }
@@ -140,6 +159,7 @@ class VpnNotifier extends _$VpnNotifier {
         }
       }
 
+      if (nextStatus != VPNStatus.disconnected) _dispatchedStartDeadline = null;
       state = nextStatus;
     });
     return VPNStatus.disconnected;

@@ -220,11 +220,7 @@ class HomeNotifier extends _$HomeNotifier {
       // The tunnel is now on auto, so record that even if the user became
       // free to choose meanwhile; only a newer selection takes precedence.
       if (!stillSelected()) return;
-      final locations = ref.read(serverLocationProvider.notifier);
-      await locations.switchToAuto();
-      // server-location events are ignored while the selection is manual, so
-      // fetch the resolved auto location that arrived during the switch.
-      unawaited(locations.refreshAutoLocationIfNeeded());
+      await ref.read(serverLocationProvider.notifier).switchToAuto();
       return;
     }
     ref

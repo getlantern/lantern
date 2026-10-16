@@ -159,6 +159,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     final updated = state.copyWith(serverType: ServerLocationType.auto.name);
     state = updated;
     await _storage.saveServerLocation(updated);
+    // server-location events are ignored while the selection is manual, so
+    // fetch the resolved auto location that may have arrived during the
+    // switch.
+    unawaited(refreshAutoLocationIfNeeded());
   }
 
   void _publishToWidget(ServerLocation location) {

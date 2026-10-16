@@ -150,6 +150,12 @@ void main() {
           ],
         );
         _disposeContainerAndService(container, service);
+        final statusSub = container.listen(
+          vPNStatusProvider,
+          (previous, next) {},
+          fireImmediately: true,
+        );
+        addTearDown(statusSub.close);
         final notifier = container.read(vpnProvider.notifier);
 
         final start = notifier.startVPN(skipConflictCheck: true);
@@ -158,6 +164,38 @@ void main() {
 
         service.tagAvailableCompleter!.complete(true);
         await start;
+        service.statusController.add(
+          LanternStatus(status: VPNStatus.connected),
+        );
+        await _pumpProviderQueue();
+        expect(notifier.switchInProgress, isFalse);
+      },
+    );
+
+    test(
+      'a start from disconnected stays in progress until status moves',
+      () async {
+        final service = _FakeLanternService();
+        final container = _container(service);
+        _disposeContainerAndService(container, service);
+        final statusSub = container.listen(
+          vPNStatusProvider,
+          (previous, next) {},
+          fireImmediately: true,
+        );
+        addTearDown(statusSub.close);
+        final notifier = container.read(vpnProvider.notifier);
+        await _pumpProviderQueue();
+        expect(container.read(vpnProvider), VPNStatus.disconnected);
+
+        // Android returns once the service intent is dispatched.
+        await notifier.startVPN(skipConflictCheck: true);
+        expect(notifier.switchInProgress, isTrue);
+
+        service.statusController.add(
+          LanternStatus(status: VPNStatus.connecting),
+        );
+        await _pumpProviderQueue();
         expect(notifier.switchInProgress, isFalse);
       },
     );
