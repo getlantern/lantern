@@ -92,6 +92,9 @@ on:
         required: false
         type: number
         default: 60
+    secrets:
+      UPDATE_SERVICE_REFRESH_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -118,6 +121,24 @@ jobs:
         uses: docker://rhysd/actionlint:1.7.12
         with:
           args: -color -shellcheck=
+
+      # The update service otherwise picks up a new release only on its next
+      # scheduled poll of GitHub. A failed request only makes the verifier wait.
+      - name: Ask update service to refresh
+        if: github.event_name != 'pull_request'
+        env:
+          UPDATE_URL: ${{ inputs.update_url }}
+          REFRESH_TOKEN: ${{ secrets.UPDATE_SERVICE_REFRESH_TOKEN }}
+        run: |
+          if [[ -z "$REFRESH_TOKEN" ]]; then
+            echo "::notice::UPDATE_SERVICE_REFRESH_TOKEN is not set; waiting for the update service's own refresh"
+            exit 0
+          fi
+          refresh_url="${UPDATE_URL%/update*}/update/refresh"
+          if ! curl -fsS -X POST --retry 3 --max-time 30 \
+              -H "Authorization: Bearer $REFRESH_TOKEN" "$refresh_url"; then
+            echo "::warning::Update service refresh request failed; waiting for its own refresh"
+          fi
 
       - name: Run update service verifier
         if: github.event_name != 'pull_request'

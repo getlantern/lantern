@@ -1152,6 +1152,8 @@ jobs:
       needs.release-finalize.result == 'success' &&
       needs.release-finalize.outputs.published == 'true'
     uses: ./.github/workflows/verify-update-service.yml
+    secrets:
+      UPDATE_SERVICE_REFRESH_TOKEN: ${{ secrets.UPDATE_SERVICE_REFRESH_TOKEN }}
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       sparkle_version: ${{ needs.set-metadata.outputs.sparkle_version }}
