@@ -10,6 +10,9 @@ go 1.26.9
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.13.20-0.20261017021932-5a256d757969
 
+// Backport gVisor reader shutdown fix (upstream be4ce8d320a5).
+replace github.com/sagernet/sing-tun => github.com/getlantern/sing-tun v0.0.0-20261017114032-5448fbd8b70b
+
 // replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
 
 // sing-box/sing-tun/tailscale need gvisor's v0.0.0-20250811.0-sing-box-mod.1
