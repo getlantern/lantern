@@ -4,6 +4,7 @@ param(
   [Parameter(Mandatory)][string]$Bundle,
   [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{64}$')][string]$ManifestSHA256,
   [Parameter(Mandatory)][string]$Expected,
+  [switch]$ProductionCanary,
   [ValidateSet('Run', 'AfterReboot')][string]$Phase = 'Run',
   [ValidateRange(120, 3600)][int]$TimeoutSeconds = 1200
 )
@@ -117,7 +118,9 @@ function Process-At([string]$Path) {
   @(Get-Process -Name lantern -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $Path })
 }
 function Launch-Legacy {
-  Start-Process -FilePath $script:LegacyExe -ArgumentList @('-readableconfig', '-stickyconfig') -PassThru
+  $arguments = @('-readableconfig')
+  if (-not $script:ProductionLane) { $arguments += '-stickyconfig' }
+  Start-Process -FilePath $script:LegacyExe -ArgumentList $arguments -PassThru
 }
 function Stop-Legacy {
   # Only processes launched from this run's fresh legacy directory are stopped.
@@ -135,7 +138,8 @@ function Stop-Legacy {
   Wait-Until { @(Process-At $script:LegacyExe).Count -eq 0 } 'legacy_stop_failed' 30
 }
 function Probe([string]$Mode) {
-  $probeArgs = @('--expected', $Expected, '--mode', $Mode, '--timeout', '90s')
+  $probeArgs = @('--expected', $Expected, '--account-environment', $script:M.account_environment,
+    '--mode', $Mode, '--timeout', '90s')
   if ($Mode -eq 'connect') { $probeArgs += @('--probe-url', $script:M.probe_url) }
   $raw = & (Asset 'probe') @probeArgs 2>$null
   Require ($LASTEXITCODE -eq 0) ('probe_' + $Mode)
@@ -161,14 +165,28 @@ function Check-GlobalConfig {
   } finally { Remove-Item -LiteralPath $scratch -Recurse -Force }
   $script:Result.global_config_verified = $true
 }
-function Service-Staging {
+function Check-Lane([bool]$ProductionEnabled) {
+  Require ($script:M.production_activation_ready -is [bool] -and -not $script:M.production_activation_ready) 'invalid_migration_lane'
+  $script:ProductionLane = $script:M.lane -ceq 'production-beta-canary'
+  if ($script:ProductionLane) {
+    Require ($ProductionEnabled -and $script:M.account_environment -ceq 'prod' -and
+      $script:M.scenario -ceq 'success') 'production_canary_not_enabled'
+  } else {
+    Require (-not $ProductionEnabled -and $script:M.lane -ceq 'rebuilt-staging' -and
+      $script:M.account_environment -ceq 'staging') 'invalid_migration_lane'
+  }
+}
+function Service-Ready([string]$ExpectedEnvironment) {
+  Require ($ExpectedEnvironment -cin @('staging', 'prod')) 'service_environment_mismatch'
   $service = Get-CimInstance Win32_Service -Filter "Name='LanternSvc'"
   Require ($null -ne $service -and $service.State -eq 'Running' -and $service.StartName -eq 'LocalSystem') 'service_not_ready'
-  # SCM quotes the executable and arguments containing spaces. Permit quoted
-  # staging values, but reject a second environment flag that could override it.
-  Require ($service.PathName -match '^"C:\\Program Files\\Lantern\\LanternSvc\.exe"\s+run(?:\s|$)' -and
-           $service.PathName -match '(?:^|\s)"?--environment"?(?:=|\s+)(?:"staging"|staging)(?:\s|$)' -and
-           [regex]::Matches($service.PathName, '(?:^|\s)"?--environment"?(?:=|\s+)').Count -eq 1) 'service_not_staging'
+  Require ($service.PathName -cmatch '^"C:\\Program Files\\Lantern\\LanternSvc\.exe"\s+run(?:\s|$)') 'service_command_mismatch'
+  $environmentCount = [regex]::Matches($service.PathName, '(?i)(?:^|\s)"?--environment"?(?==|\s|$)').Count
+  $environmentPattern = '(?:^|\s)"?--environment"?(?:=|\s+)(?:"' + $ExpectedEnvironment + '"|' + $ExpectedEnvironment + ')(?:\s|$)'
+  $explicitEnvironment = $environmentCount -eq 1 -and $service.PathName -cmatch $environmentPattern
+  $defaultProduction = $ExpectedEnvironment -ceq 'prod' -and
+    $service.PathName -cmatch '^"C:\\Program Files\\Lantern\\LanternSvc\.exe" run\s*$'
+  Require ($explicitEnvironment -or $defaultProduction) 'service_environment_mismatch'
   Require ($service.StartMode -eq 'Auto') 'service_not_automatic'
   $script:Result.service_ready = $true
 }
@@ -234,12 +252,15 @@ try {
   No-Reparse $Bundle
   No-Reparse $Expected
   Require-Private $Expected
-  $validation = & python "$PSScriptRoot/bundle.py" $Bundle --manifest-sha256 $ManifestSHA256 2>$null
+  $validationArgs = @("$PSScriptRoot/bundle.py", $Bundle, '--manifest-sha256', $ManifestSHA256)
+  if ($ProductionCanary) { $validationArgs += '--allow-production-canary' }
+  $validation = & python @validationArgs 2>$null
   Require ($LASTEXITCODE -eq 0) 'invalid_bundle'
   $script:M = Read-Json (Join-Path $Bundle 'manifest.json')
+  Check-Lane $ProductionCanary.IsPresent
   $script:E = Read-Json $Expected
   [long]$parsedID = 0
-  Require ($script:E.schema_version -eq 1 -and $script:E.account_environment -eq 'staging' -and
+  Require ($script:E.schema_version -eq 1 -and $script:E.account_environment -ceq $script:M.account_environment -and
     $script:E.user_id -is [string] -and $script:E.user_id -match '^[1-9][0-9]{0,18}$' -and
     [long]::TryParse($script:E.user_id, [ref]$parsedID) -and $parsedID -gt 0 -and
     $script:E.token -is [string] -and $script:E.token.Length -gt 0 -and
@@ -292,7 +313,7 @@ try {
     Require (@(Get-Process -Name lantern -ErrorAction SilentlyContinue).Count -eq 0) 'existing_process'
     Require (-not (Test-Path 'HKLM:\Software\Lantern\Service')) 'existing_service_owner'
     Require (-not (Test-Path 'HKCU:\Sofware\Lantern')) 'existing_device_identity'
-    Check-GlobalConfig
+    if (-not $script:ProductionLane) { Check-GlobalConfig }
     Check-Routes
     Private-Directory $root -InstallerReadable
     Private-Directory (Join-Path $root 'legacy app') -InstallerReadable
@@ -300,7 +321,9 @@ try {
     Private-Directory $diagnostics
     $script:Out = $diagnostics
     Copy-Item -LiteralPath (Asset 'seed') -Destination $script:LegacyExe
-    Copy-Item -LiteralPath (Asset 'global_config') -Destination (Join-Path $script:Config 'global.yaml')
+    if (-not $script:ProductionLane) {
+      Copy-Item -LiteralPath (Asset 'global_config') -Destination (Join-Path $script:Config 'global.yaml')
+    }
     $settings = [ordered]@{userID=$parsedID; userToken=$script:E.token; migratedDeviceIDForUserID=$parsedID;
       lang=$script:E.locale; autoReport=$script:E.auto_report; proxyAll=$script:E.proxy_all; autoLaunch=$script:E.auto_launch}
     Write-Json (Join-Path $script:Config 'settings.yaml') $settings
@@ -318,7 +341,7 @@ try {
     # The released updater replaces the EXE but only notifies the running process.
     # Model a user restart; never copy the bridge fixture over the executable.
     Stop-Legacy
-    Require (-not (Test-Path -LiteralPath $runtimePath)) 'stale_runtime_evidence'
+    if (-not $script:ProductionLane) { Require (-not (Test-Path -LiteralPath $runtimePath)) 'stale_runtime_evidence' }
     if ($script:M.scenario -eq 'installer-failure') {
       Write-Host 'Create C:\Program Files\Lantern\migration-e2e-sentinel.txt containing the run ID using the VM administrator. The real installer must reject this occupied destination.'
       Wait-Until { Test-Path -LiteralPath (Join-Path $destination 'migration-e2e-sentinel.txt') } 'fault_not_prepared'
@@ -326,17 +349,19 @@ try {
     }
     Write-Host $(if ($script:M.scenario -eq 'cancel') {'Decline the real UAC prompt for the migration installer.'} else {'Approve the migration installer UAC prompt using the VM administrator; complete the installer.'})
     $bridge = Launch-Legacy
-    Wait-Until { Test-Path -LiteralPath $runtimePath } 'bridge_runtime_timeout'
-    $runtime = Read-Json $runtimePath
-    $runtimeProcess = Get-Process -Id $runtime.pid -ErrorAction SilentlyContinue
-    Require ($runtimeProcess -and $runtimeProcess.Path -eq $script:LegacyExe -and
-      $runtimeProcess.StartTime -ge $bridge.StartTime -and $runtime.schema_version -eq 1 -and
-      $runtime.app_version -eq $script:M.bridge_version -and $runtime.account_environment -eq 'staging' -and
-      $runtime.update_endpoint -eq $script:M.endpoint -and $runtime.identity_sha256 -eq $script:IdentityHash -and
-      $runtime.token_present -eq $true -and $runtime.locale -eq $script:E.locale -and
-      $runtime.auto_report -eq $script:E.auto_report -and $runtime.proxy_all -eq $script:E.proxy_all -and
-      $runtime.auto_launch -eq $script:E.auto_launch) 'bridge_identity_mismatch'
-    $script:Result.bridge_runtime_verified = $true
+    if (-not $script:ProductionLane) {
+      Wait-Until { Test-Path -LiteralPath $runtimePath } 'bridge_runtime_timeout'
+      $runtime = Read-Json $runtimePath
+      $runtimeProcess = Get-Process -Id $runtime.pid -ErrorAction SilentlyContinue
+      Require ($runtimeProcess -and $runtimeProcess.Path -eq $script:LegacyExe -and
+        $runtimeProcess.StartTime -ge $bridge.StartTime -and $runtime.schema_version -eq 1 -and
+        $runtime.app_version -eq $script:M.bridge_version -and $runtime.account_environment -eq 'staging' -and
+        $runtime.update_endpoint -eq $script:M.endpoint -and $runtime.identity_sha256 -eq $script:IdentityHash -and
+        $runtime.token_present -eq $true -and $runtime.locale -eq $script:E.locale -and
+        $runtime.auto_report -eq $script:E.auto_report -and $runtime.proxy_all -eq $script:E.proxy_all -and
+        $runtime.auto_launch -eq $script:E.auto_launch) 'bridge_identity_mismatch'
+      $script:Result.bridge_runtime_verified = $true
+    }
     if ($script:M.scenario -ne 'success') {
       $attempts = Join-Path $script:Config 'bridge-migration\installer-attempts'
       Wait-Until {
@@ -374,7 +399,7 @@ try {
     } else {
       Wait-Until { (Test-Path -LiteralPath $journalPath) -and (Read-Json $journalPath).phase -eq 'complete' } 'migration_not_complete'
       Require ((Read-Json $startupPath).phase -eq 'complete') 'startup_not_committed'
-      Service-Staging
+      Service-Ready $script:M.account_environment
       Probe 'verify'
       Probe 'connect'
       Probe 'disconnect'
@@ -411,7 +436,7 @@ try {
       $service = Get-Service -Name LanternSvc -ErrorAction SilentlyContinue
       $service -and $service.Status -eq 'Running'
     } 'service_after_reboot' 90
-    Service-Staging
+    Service-Ready $script:M.account_environment
     Probe 'verify'
     Probe 'connect'
     Probe 'disconnect'
@@ -420,7 +445,7 @@ try {
     if ($script:E.auto_launch) { Wait-Until { @(Process-At $destinationUI).Count -eq 1 } 'ui_not_started_after_reboot' 90 }
     else { Require (@(Process-At $destinationUI).Count -eq 0) 'unexpected_ui_autolaunch' }
     $script:Result.reboot_verified = $true
-    $script:Result.code = 'rebuilt_staging_chain_passed'
+    $script:Result.code = $(if ($script:ProductionLane) {'production_beta_canary_passed'} else {'rebuilt_staging_chain_passed'})
   }
   if ($script:Result.code -ne 'awaiting_reboot') { $script:Result.ok = $true }
 } catch {
