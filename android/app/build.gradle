@@ -18,14 +18,8 @@ file("${rootProject.projectDir}/abi-targets.properties").withInputStream { abiCo
 def lanternAbis = abiConfig.getProperty("android.abis").split(',').toList()
 def flutterAbiNames = ['armeabi-v7a': 'android-arm', 'arm64-v8a': 'android-arm64']
 def lanternFlutterTargets = lanternAbis.collect { flutterAbiNames[it] }
-if (project.hasProperty("target-platform")) {
-    def requestedTargets = project.property("target-platform").toString().split(',').toList().toSet()
-    if (requestedTargets != lanternFlutterTargets.toSet()) {
-        throw new GradleException("Flutter target-platform must match android.abis: ${lanternFlutterTargets.join(',')}")
-    }
-} else {
-    project.ext.set("target-platform", lanternFlutterTargets.join(','))
-}
+// Flutter selects one ABI for device runs; include both to match the native libraries.
+project.ext.set("target-platform", lanternFlutterTargets.join(','))
 apply plugin: "dev.flutter.flutter-gradle-plugin"
 
 def sideloadSigningCertificateSha256 =

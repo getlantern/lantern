@@ -109,6 +109,13 @@ jobs:
       - name: Create placeholder app.env
         run: touch app.env
 
+      - name: Verify Flutter device target configuration
+        working-directory: android
+        run: |
+          for target in android-arm android-arm64; do
+            ./gradlew :app:assembleDebug --dry-run -Ptarget-platform="$target"
+          done
+
       - name: Build debug APK
         run: make android-debug-ci
         env:

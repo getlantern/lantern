@@ -192,7 +192,7 @@ jobs:
                       digest.update(chunk)
               # Retain certificate digests without signer subjects or embedded configuration.
               certificates = re.findall(
-                  r"^Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F]{64})$",
+                  r"^(?:Signer .+|V\d+(?:\.\d+)? Signer:) certificate SHA-256 digest: ([0-9a-fA-F]{64})$",
                   run(str(apksigner), "verify", "--print-certs", str(path)), re.MULTILINE)
               if not certificates:
                   raise SystemExit(f"No verified signing certificate found for {path.name}")
