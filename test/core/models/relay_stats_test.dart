@@ -59,14 +59,56 @@ void main() {
       expect(d.peers, isEmpty);
     });
 
-    test('a counter lower than last seen is a reset: delta is current', () {
+    test('either counter going backwards resets both: delta is current', () {
       final t = RelayCounterTracker();
       apply(t, down: 1000, up: 500, peers: {'a': (down: 1000, up: 500)});
       final d = apply(t, down: 40, up: 600, peers: {'a': (down: 40, up: 600)});
       expect(d.down, 40);
-      expect(d.up, 100);
+      expect(d.up, 600);
       expect(d.reset, isTrue);
-      expect(d.peers['a'], (down: 40, up: 100));
+      expect(d.peers['a'], (down: 40, up: 600));
+      final e = apply(t, down: 50, up: 10, peers: {'a': (down: 50, up: 10)});
+      expect((e.down, e.up), (50, 10));
+      expect(e.peers['a'], (down: 50, up: 10));
+    });
+
+    test('a restored watermark counts the same epoch from where it left', () {
+      final t = RelayCounterTracker()
+        ..restore(epoch: 'run-1', down: 100, up: 10);
+      final d = apply(
+        t,
+        down: 1000,
+        up: 40,
+        peers: {'a': (down: 900, up: 30)},
+        present: {'a'},
+      );
+      expect((d.down, d.up, d.reset), (900, 30, false));
+      // Peer counters were not persisted, so they only set a baseline.
+      expect(d.peers, isEmpty);
+      expect(d.arrivals, isEmpty);
+      expect(t.watermark, (epoch: 'run-1', down: 1000, up: 40));
+      final next = apply(
+        t,
+        down: 1100,
+        up: 40,
+        peers: {'a': (down: 1000, up: 30)},
+      );
+      expect(next.down, 100);
+      expect(next.peers['a'], (down: 100, up: 0));
+    });
+
+    test('a restored watermark from another epoch counts from zero', () {
+      final t = RelayCounterTracker()
+        ..restore(epoch: 'run-0', down: 100, up: 10);
+      final d = apply(t, down: 70, up: 7, peers: {'a': (down: 70, up: 7)});
+      expect((d.down, d.up, d.reset), (70, 7, true));
+      expect(d.peers['a'], (down: 70, up: 7));
+    });
+
+    test('an empty restored epoch keeps the first snapshot a baseline', () {
+      final t = RelayCounterTracker()..restore(epoch: '', down: 0, up: 0);
+      expect(t.watermark, isNull);
+      expect(apply(t, down: 500).down, 0);
     });
 
     test('a new epoch counts everything since it started', () {
@@ -206,7 +248,23 @@ void main() {
         '': RelayCountryStats(code: '', down: 234, up: 6, people: 1),
       },
     );
-    final restored = AppSetting.fromJson(setting.toJson());
+    final restored = AppSetting.fromJson(
+      setting
+          .copyWith(
+            unboundedRelayEpoch: 'run-1',
+            unboundedRelayMarkDown: 99,
+            unboundedRelayMarkUp: 9,
+          )
+          .toJson(),
+    );
+    expect(
+      (
+        restored.unboundedRelayEpoch,
+        restored.unboundedRelayMarkDown,
+        restored.unboundedRelayMarkUp,
+      ),
+      ('run-1', 99, 9),
+    );
     expect(restored.unboundedBytesDown, 1234);
     expect(restored.unboundedBytesUp, 56);
     final iran = restored.unboundedCountryStats['IR']!;
@@ -216,6 +274,7 @@ void main() {
     final legacy = AppSetting.fromJson({'unboundedTotalHelped': 4});
     expect(legacy.unboundedBytesDown, 0);
     expect(legacy.unboundedCountryStats, isEmpty);
+    expect(legacy.unboundedRelayEpoch, isEmpty);
   });
 
   test('siBytes uses SI units', () {

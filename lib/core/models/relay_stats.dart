@@ -165,17 +165,40 @@ class RelayDelta {
 /// Turns the cumulative per-epoch byte counters of successive Unbounded
 /// snapshots into deltas.
 ///
-/// The first snapshot only sets the baseline: its counters may already have
-/// been folded into persisted totals by an earlier app run. A new epoch means
-/// the backend restarted, so its counters count from zero. A counter that
-/// goes backwards within an epoch is treated the same way. Peers that drop
-/// out of `peerBytes` are forgotten, so a returning peer counts from zero.
+/// Without a [restore]d watermark the first snapshot only sets the baseline,
+/// since its counters may already have been folded into persisted totals. A
+/// new epoch means the backend restarted, so its counters count from zero. A
+/// down/up pair where either counter goes backwards within an epoch is
+/// treated the same way, as both restart together. Peers that drop out of
+/// `peerBytes` are forgotten, so a returning peer counts from zero.
 class RelayCounterTracker {
   String? _epoch;
   int _down = 0;
   int _up = 0;
   Map<String, ByteCounts> _peers = {};
   Set<String> _present = {};
+  bool _restored = false;
+
+  /// The epoch and total counters already folded into the returned deltas,
+  /// for persisting alongside the totals they were folded into.
+  ({String epoch, int down, int up})? get watermark =>
+      _epoch == null ? null : (epoch: _epoch!, down: _down, up: _up);
+
+  /// Resumes from a persisted [watermark] so the first snapshot of the same
+  /// epoch counts what was relayed while the app was not watching. Peer
+  /// counters are not persisted, so that snapshot only baselines them.
+  void restore({required String epoch, required int down, required int up}) {
+    if (_epoch != null || epoch.isEmpty) return;
+    _epoch = epoch;
+    _down = down;
+    _up = up;
+    _restored = true;
+  }
+
+  static ByteCounts _diff(ByteCounts? prev, ByteCounts cur) =>
+      (prev == null || cur.down < prev.down || cur.up < prev.up)
+      ? cur
+      : (down: cur.down - prev.down, up: cur.up - prev.up);
 
   RelayDelta apply({
     required String epoch,
@@ -185,6 +208,18 @@ class RelayCounterTracker {
     required Set<String> present,
   }) {
     final allPresent = {...present, ...peers.keys};
+    if (_restored) {
+      _restored = false;
+      if (_epoch == epoch) {
+        final reset = down < _down || up < _up;
+        final total = _diff((down: _down, up: _up), (down: down, up: up));
+        _down = down;
+        _up = up;
+        _peers = Map.of(peers);
+        _present = allPresent;
+        return RelayDelta(down: total.down, up: total.up, reset: reset);
+      }
+    }
     if (_epoch == null || _epoch != epoch) {
       final first = _epoch == null;
       _epoch = epoch;
@@ -197,17 +232,11 @@ class RelayCounterTracker {
     }
 
     final reset = down < _down || up < _up;
-    final deltaDown = down < _down ? down : down - _down;
-    final deltaUp = up < _up ? up : up - _up;
+    final total = _diff((down: _down, up: _up), (down: down, up: up));
     final peerDeltas = <String, ByteCounts>{};
     for (final entry in peers.entries) {
-      final prev = _peers[entry.key];
-      final cur = entry.value;
-      final d = (prev == null || cur.down < prev.down)
-          ? cur.down
-          : cur.down - prev.down;
-      final u = (prev == null || cur.up < prev.up) ? cur.up : cur.up - prev.up;
-      if (d > 0 || u > 0) peerDeltas[entry.key] = (down: d, up: u);
+      final d = _diff(_peers[entry.key], entry.value);
+      if (d.down > 0 || d.up > 0) peerDeltas[entry.key] = d;
     }
     final arrivals = allPresent.difference(_present);
     _down = down;
@@ -215,8 +244,8 @@ class RelayCounterTracker {
     _peers = Map.of(peers);
     _present = allPresent;
     return RelayDelta(
-      down: deltaDown,
-      up: deltaUp,
+      down: total.down,
+      up: total.up,
       peers: peerDeltas,
       arrivals: arrivals,
       reset: reset,

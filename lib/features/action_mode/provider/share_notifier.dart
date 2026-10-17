@@ -108,6 +108,11 @@ class ShareNotifier extends _$ShareNotifier {
             ref.read(appSettingProvider.notifier).setUnboundedAutoEnable(false),
       );
     }
+    _relayCounters.restore(
+      epoch: settings.unboundedRelayEpoch,
+      down: settings.unboundedRelayMarkDown,
+      up: settings.unboundedRelayMarkUp,
+    );
     return ShareState(
       totalCount: settings.unboundedTotalHelped,
       relay: RelayStats(
@@ -657,6 +662,7 @@ class ShareNotifier extends _$ShareNotifier {
           bytesDown: relay.lifetimeDown,
           bytesUp: relay.lifetimeUp,
           countries: relay.countries,
+          mark: _relayCounters.watermark,
         );
   }
 

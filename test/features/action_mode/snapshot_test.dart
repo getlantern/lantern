@@ -52,7 +52,9 @@ class FakeService implements LanternService {
 class FakeSettings extends AppSettingNotifier {
   int relayWrites = 0;
   @override
-  AppSetting build() => const AppSetting(
+  AppSetting build() => seed;
+
+  static const seed = AppSetting(
     unboundedTotalHelped: 10,
     unboundedBytesDown: 1000000,
     unboundedBytesUp: 2000,
@@ -75,14 +77,27 @@ class FakeSettings extends AppSettingNotifier {
     required int bytesDown,
     required int bytesUp,
     required Map<String, RelayCountryStats> countries,
+    ({String epoch, int down, int up})? mark,
   }) {
     relayWrites++;
     state = state.copyWith(
       unboundedBytesDown: bytesDown,
       unboundedBytesUp: bytesUp,
       unboundedCountryStats: countries,
+      unboundedRelayEpoch: mark?.epoch,
+      unboundedRelayMarkDown: mark?.down,
+      unboundedRelayMarkUp: mark?.up,
     );
   }
+}
+
+class ResumingSettings extends FakeSettings {
+  @override
+  AppSetting build() => FakeSettings.seed.copyWith(
+    unboundedRelayEpoch: 'run-1',
+    unboundedRelayMarkDown: 4000,
+    unboundedRelayMarkUp: 400,
+  );
 }
 
 class FakeRadianceSettings extends RadianceSettings {
@@ -332,12 +347,12 @@ void main() {
       await tick(5000, 500, {'192.0.2.1': (5000, 500)});
       await tick(100, 600, {'192.0.2.1': (100, 600)});
       expect(relay().sessionDown, 100);
-      expect(relay().sessionUp, 100);
+      expect(relay().sessionUp, 600);
       // A reset is not a rate over one interval, so speed does not spike.
       expect(relay().speedDown, 0);
       await tick(300, 30, {'192.0.2.2': (300, 30)}, epoch: 'run-2');
       expect(relay().sessionDown, 400);
-      expect(relay().sessionUp, 130);
+      expect(relay().sessionUp, 630);
       expect(relay().countries['US']!.down, 900 + 100 + 300);
     });
 
@@ -354,6 +369,8 @@ void main() {
       await tick(4000, 0, {'192.0.2.1': (4000, 0)});
       expect(settings.relayWrites, writes + 1);
       expect(container.read(appSettingProvider).unboundedBytesDown, 1004000);
+      expect(container.read(appSettingProvider).unboundedRelayMarkDown, 4000);
+      expect(container.read(appSettingProvider).unboundedRelayEpoch, 'run-1');
       await tick(5000, 0, {'192.0.2.1': (5000, 0)});
       service.events.add(
         AppEvent(eventType: 'unbounded-unavailable', message: '{}'),
@@ -362,6 +379,26 @@ void main() {
       expect(settings.relayWrites, writes + 2);
       expect(container.read(appSettingProvider).unboundedBytesDown, 1005000);
       expect(relay().speedDown, 0);
+    });
+
+    test('resumes from the persisted watermark after an app restart', () async {
+      final resumed = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(service),
+          appSettingProvider.overrideWith(ResumingSettings.new),
+          radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
+        ],
+      );
+      addTearDown(resumed.dispose);
+      resumed.read(shareProvider);
+      await snapshot(true, true, [
+        '192.0.2.1',
+      ], bytes: counters(6000, 500, {'192.0.2.1': (6000, 500)}));
+      final relay = resumed.read(shareProvider).relay;
+      expect(relay.lifetimeDown, 1000000 + 2000);
+      expect(relay.lifetimeUp, 2000 + 100);
+      // Peer counters only set a baseline, so per-country totals hold.
+      expect(relay.countries['US']!.down, 900);
     });
 
     test(

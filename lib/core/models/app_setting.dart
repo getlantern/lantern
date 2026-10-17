@@ -30,6 +30,11 @@ class AppSetting {
   final int unboundedBytesDown;
   final int unboundedBytesUp;
   final Map<String, RelayCountryStats> unboundedCountryStats;
+  // The backend epoch and byte counters already folded into the totals
+  // above, so a restarted app resumes counting where it left off.
+  final String unboundedRelayEpoch;
+  final int unboundedRelayMarkDown;
+  final int unboundedRelayMarkUp;
 
   const AppSetting({
     this.themeMode = 'system',
@@ -48,6 +53,9 @@ class AppSetting {
     this.unboundedBytesDown = 0,
     this.unboundedBytesUp = 0,
     this.unboundedCountryStats = const {},
+    this.unboundedRelayEpoch = '',
+    this.unboundedRelayMarkDown = 0,
+    this.unboundedRelayMarkUp = 0,
   });
 
   /// Whether the app points at the staging backend. The notifier writes
@@ -71,6 +79,9 @@ class AppSetting {
     int? unboundedBytesDown,
     int? unboundedBytesUp,
     Map<String, RelayCountryStats>? unboundedCountryStats,
+    String? unboundedRelayEpoch,
+    int? unboundedRelayMarkDown,
+    int? unboundedRelayMarkUp,
   }) {
     return AppSetting(
       locale: newLocale ?? locale,
@@ -91,6 +102,10 @@ class AppSetting {
       unboundedBytesUp: unboundedBytesUp ?? this.unboundedBytesUp,
       unboundedCountryStats:
           unboundedCountryStats ?? this.unboundedCountryStats,
+      unboundedRelayEpoch: unboundedRelayEpoch ?? this.unboundedRelayEpoch,
+      unboundedRelayMarkDown:
+          unboundedRelayMarkDown ?? this.unboundedRelayMarkDown,
+      unboundedRelayMarkUp: unboundedRelayMarkUp ?? this.unboundedRelayMarkUp,
     );
   }
 
@@ -112,6 +127,9 @@ class AppSetting {
         'unboundedBytesUp': unboundedBytesUp,
         'unboundedCountryStats':
             RelayCountryStats.mapToJson(unboundedCountryStats),
+        'unboundedRelayEpoch': unboundedRelayEpoch,
+        'unboundedRelayMarkDown': unboundedRelayMarkDown,
+        'unboundedRelayMarkUp': unboundedRelayMarkUp,
       };
 
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
@@ -137,5 +155,10 @@ class AppSetting {
         unboundedBytesUp: (json['unboundedBytesUp'] as num?)?.toInt() ?? 0,
         unboundedCountryStats:
             RelayCountryStats.mapFromJson(json['unboundedCountryStats']),
+        unboundedRelayEpoch: (json['unboundedRelayEpoch'] ?? '').toString(),
+        unboundedRelayMarkDown:
+            (json['unboundedRelayMarkDown'] as num?)?.toInt() ?? 0,
+        unboundedRelayMarkUp:
+            (json['unboundedRelayMarkUp'] as num?)?.toInt() ?? 0,
       );
 }
