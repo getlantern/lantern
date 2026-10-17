@@ -141,7 +141,8 @@ jobs:
             echo "::notice::Not refreshing: $UPDATE_URL is not on update.getlantern.org"
             exit 0
           fi
-          if ! curl -fsS -X POST --retry 3 --max-time 30 \
+          # curl's retries honor Retry-After, which --max-time does not bound.
+          if ! timeout 90 curl -fsS -X POST --retry 3 --max-time 30 \
               -H "Authorization: Bearer $REFRESH_TOKEN" "$refresh_url"; then
             echo "::warning::Update service refresh request failed; waiting for its own refresh"
           fi
