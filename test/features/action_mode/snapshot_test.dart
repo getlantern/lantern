@@ -357,8 +357,13 @@ void main() {
     });
 
     test('persists on a throttle and when sharing stops', () async {
+      // The baseline moves no bytes but saves its watermark.
       await tick(0, 0, {});
-      expect(settings.relayWrites, 0);
+      expect(settings.relayWrites, 1);
+      expect(container.read(appSettingProvider).unboundedRelayEpoch, 'run-1');
+      await tick(0, 0, {});
+      expect(settings.relayWrites, 1);
+      now = now.add(const Duration(seconds: 30));
       await tick(1000, 0, {'192.0.2.1': (1000, 0)});
       expect(settings.relayWrites, greaterThanOrEqualTo(1));
       final writes = settings.relayWrites;
@@ -379,6 +384,22 @@ void main() {
       expect(settings.relayWrites, writes + 2);
       expect(container.read(appSettingProvider).unboundedBytesDown, 1005000);
       expect(relay().speedDown, 0);
+    });
+
+    test('a stopped snapshot saves its final counters at once', () async {
+      await tick(0, 0, {});
+      await tick(1000, 0, {'192.0.2.1': (1000, 0)});
+      final writes = settings.relayWrites;
+      now = now.add(const Duration(seconds: 1));
+      await snapshot(
+        false,
+        false,
+        [],
+        bytes: counters(1500, 0, {'192.0.2.1': (1500, 0)}),
+      );
+      expect(settings.relayWrites, writes + 1);
+      expect(container.read(appSettingProvider).unboundedBytesDown, 1001500);
+      expect(container.read(appSettingProvider).unboundedRelayMarkDown, 1500);
     });
 
     test('a throttled save is deferred, not dropped', () async {

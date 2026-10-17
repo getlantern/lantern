@@ -542,7 +542,8 @@ class ShareNotifier extends _$ShareNotifier {
     if (total != ref.read(appSettingProvider).unboundedTotalHelped) {
       ref.read(appSettingProvider.notifier).setUnboundedTotalHelped(total);
     }
-    _persistRelay();
+    // A stopped backend's final counters may be the last this app sees.
+    _persistRelay(force: !(enabled && running));
   }
 
   // ─── Relay stats ───────────────────────────────────────────────────────────
@@ -569,6 +570,7 @@ class ShareNotifier extends _$ShareNotifier {
           ? counts
           : (down: prev.down + counts.down, up: prev.up + counts.up);
     });
+    final markBefore = _relayCounters.watermark;
     final delta = _relayCounters.apply(
       epoch: epoch,
       down: (snapshot['bytesDown'] as num?)?.toInt() ?? 0,
@@ -602,7 +604,13 @@ class ShareNotifier extends _$ShareNotifier {
       speedDown: speedDown,
       speedUp: speedUp,
     );
-    if (delta.down > 0 || delta.up > 0) _relayDirty = true;
+    // A moved watermark is saved even without bytes to add, so the next app
+    // run resumes from it instead of taking another baseline.
+    if (delta.down > 0 ||
+        delta.up > 0 ||
+        _relayCounters.watermark != markBefore) {
+      _relayDirty = true;
+    }
 
     for (final ip in {...delta.peers.keys, ...delta.arrivals}) {
       unawaited(
