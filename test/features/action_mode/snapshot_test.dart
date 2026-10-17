@@ -381,6 +381,20 @@ void main() {
       expect(relay().speedDown, 0);
     });
 
+    test('a throttled save is deferred, not dropped', () async {
+      container.read(shareProvider.notifier)
+        ..relayPersistInterval = const Duration(milliseconds: 50)
+        ..clock = DateTime.now;
+      await tick(0, 0, {});
+      await tick(1000, 0, {'192.0.2.1': (1000, 0)});
+      final writes = settings.relayWrites;
+      await tick(2000, 0, {'192.0.2.1': (2000, 0)});
+      expect(settings.relayWrites, writes);
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(settings.relayWrites, writes + 1);
+      expect(container.read(appSettingProvider).unboundedBytesDown, 1002000);
+    });
+
     test('resumes from the persisted watermark after an app restart', () async {
       final resumed = ProviderContainer(
         overrides: [

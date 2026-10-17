@@ -65,13 +65,15 @@ class ShareNotifier extends _$ShareNotifier {
 
   // ─── Relay stats ───────────────────────────────────────────────────────────
 
-  static const _relayPersistInterval = Duration(seconds: 30);
+  @visibleForTesting
+  Duration relayPersistInterval = const Duration(seconds: 30);
   // Weight of the newest sample in the smoothed speed.
   static const _speedSmoothing = 0.5;
 
   final _relayCounters = RelayCounterTracker();
   DateTime? _lastRelaySampleAt;
   DateTime? _lastRelayPersistAt;
+  Timer? _relayPersistTimer;
   bool _relayDirty = false;
 
   @visibleForTesting
@@ -96,6 +98,7 @@ class ShareNotifier extends _$ShareNotifier {
       _snapshotSub?.cancel();
       _stopEventSubscription();
       _eventController.close();
+      _relayPersistTimer?.cancel();
     });
 
     final settings = ref.read(appSettingProvider);
@@ -643,16 +646,25 @@ class ShareNotifier extends _$ShareNotifier {
   RelayStats _idleRelay() => state.relay.copyWith(speedDown: 0, speedUp: 0);
 
   /// AppSetting writes log and re-serialize every setting, so lifetime relay
-  /// stats are saved at most every [_relayPersistInterval] unless [force]d.
+  /// stats are saved at most every [relayPersistInterval] unless [force]d.
+  /// A throttled save is deferred, not dropped, so late country lookups are
+  /// saved even when no further snapshot arrives.
   void _persistRelay({bool force = false}) {
     if (!_relayDirty) return;
     final now = clock();
     final last = _lastRelayPersistAt;
-    if (!force &&
-        last != null &&
-        now.difference(last) < _relayPersistInterval) {
-      return;
+    if (!force && last != null) {
+      final wait = relayPersistInterval - now.difference(last);
+      if (wait > Duration.zero) {
+        _relayPersistTimer ??= Timer(wait, () {
+          _relayPersistTimer = null;
+          if (ref.mounted) _persistRelay(force: true);
+        });
+        return;
+      }
     }
+    _relayPersistTimer?.cancel();
+    _relayPersistTimer = null;
     _relayDirty = false;
     _lastRelayPersistAt = now;
     final relay = state.relay;
