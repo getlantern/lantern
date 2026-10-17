@@ -1,3 +1,5 @@
+import 'package:lantern/core/models/relay_stats.dart';
+
 class AppSetting {
   final String locale;
   final String themeMode;
@@ -22,6 +24,12 @@ class AppSetting {
   // Figma. ShareNotifier seeds totalCount from this on build, and
   // writes back each time the count increments.
   final int unboundedTotalHelped;
+  // Lifetime Unbounded bytes relayed (down: to the people helped, up: from
+  // them) and the per-country breakdown behind Advanced stats. Written by
+  // ShareNotifier on a throttle, not on every snapshot.
+  final int unboundedBytesDown;
+  final int unboundedBytesUp;
+  final Map<String, RelayCountryStats> unboundedCountryStats;
 
   const AppSetting({
     this.themeMode = 'system',
@@ -37,6 +45,9 @@ class AppSetting {
     this.unboundedHidden = false,
     this.unboundedWelcomeSeen = false,
     this.unboundedTotalHelped = 0,
+    this.unboundedBytesDown = 0,
+    this.unboundedBytesUp = 0,
+    this.unboundedCountryStats = const {},
   });
 
   /// Whether the app points at the staging backend. The notifier writes
@@ -57,6 +68,9 @@ class AppSetting {
     bool? unboundedHidden,
     bool? unboundedWelcomeSeen,
     int? unboundedTotalHelped,
+    int? unboundedBytesDown,
+    int? unboundedBytesUp,
+    Map<String, RelayCountryStats>? unboundedCountryStats,
   }) {
     return AppSetting(
       locale: newLocale ?? locale,
@@ -73,6 +87,10 @@ class AppSetting {
       unboundedWelcomeSeen: unboundedWelcomeSeen ?? this.unboundedWelcomeSeen,
       unboundedTotalHelped:
           unboundedTotalHelped ?? this.unboundedTotalHelped,
+      unboundedBytesDown: unboundedBytesDown ?? this.unboundedBytesDown,
+      unboundedBytesUp: unboundedBytesUp ?? this.unboundedBytesUp,
+      unboundedCountryStats:
+          unboundedCountryStats ?? this.unboundedCountryStats,
     );
   }
 
@@ -90,6 +108,10 @@ class AppSetting {
         'unboundedHidden': unboundedHidden,
         'unboundedWelcomeSeen': unboundedWelcomeSeen,
         'unboundedTotalHelped': unboundedTotalHelped,
+        'unboundedBytesDown': unboundedBytesDown,
+        'unboundedBytesUp': unboundedBytesUp,
+        'unboundedCountryStats':
+            RelayCountryStats.mapToJson(unboundedCountryStats),
       };
 
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
@@ -110,5 +132,10 @@ class AppSetting {
         unboundedWelcomeSeen: json['unboundedWelcomeSeen'] == true,
         unboundedTotalHelped:
             (json['unboundedTotalHelped'] as num?)?.toInt() ?? 0,
+        unboundedBytesDown:
+            (json['unboundedBytesDown'] as num?)?.toInt() ?? 0,
+        unboundedBytesUp: (json['unboundedBytesUp'] as num?)?.toInt() ?? 0,
+        unboundedCountryStats:
+            RelayCountryStats.mapFromJson(json['unboundedCountryStats']),
       );
 }

@@ -12,12 +12,14 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
+import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/auto_enable_mode.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
@@ -488,4 +490,135 @@ void main() {
       },
     );
   }
+
+  const relay = RelayStats(
+    available: true,
+    speedDown: 1260000,
+    speedUp: 48000,
+    sessionDown: 340000000,
+    sessionUp: 12000000,
+    lifetimeDown: 1200000000,
+    lifetimeUp: 30000000,
+    countries: {
+      'IR': RelayCountryStats(
+        code: 'IR',
+        name: 'Iran',
+        down: 900000000,
+        up: 20000000,
+        people: 4,
+      ),
+      'RU': RelayCountryStats(
+        code: 'RU',
+        name: 'Russia',
+        down: 200000000,
+        up: 5000000,
+        people: 1,
+      ),
+      '': RelayCountryStats(code: '', down: 1000, people: 2),
+    },
+  );
+
+  for (final brightness in Brightness.values) {
+    testWidgets('advanced stats link opens the sheet ($brightness)', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        brightness: brightness,
+        shareState: const ShareState(
+          active: true,
+          mode: ShareMode.unbounded,
+          unboundedRunning: true,
+          relay: relay,
+        ),
+        animated: true,
+      );
+      final link = find.byKey(const Key('action-mode.advanced-stats'));
+      await tester.ensureVisible(link);
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(link);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(AdvancedStatsView), findsOneWidget);
+      expect(find.text('↓ 1.3 MB/s  ↑ 48 kB/s'), findsOneWidget);
+      expect(find.text('352 MB'), findsOneWidget);
+      expect(find.text('1.2 GB'), findsOneWidget);
+      expect(find.text('920 MB · 4 people'), findsOneWidget);
+      expect(find.text('205 MB · 1 person'), findsOneWidget);
+      expect(find.text('Unknown'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  testWidgets('advanced stats orders countries by data', (tester) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.unbounded,
+        relay: relay,
+      ),
+    );
+    final iran = tester.getTopLeft(find.text('Iran')).dy;
+    final russia = tester.getTopLeft(find.text('Russia')).dy;
+    final unknown = tester.getTopLeft(find.text('Unknown')).dy;
+    expect(iran, lessThan(russia));
+    expect(russia, lessThan(unknown));
+    expect(find.byKey(const Key('advanced-stats.smc-note')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('advanced stats shows an empty state at large text', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      size: const Size(320, 568),
+      scale: 2,
+      shareState: const ShareState(
+        relay: RelayStats(available: true, speedDown: 1260000, speedUp: 48000),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.text('0 B'), findsWidgets);
+    final empty = find.text(
+      'No one helped yet. Countries will appear here once people connect '
+      'through you.',
+    );
+    await tester.dragUntilVisible(
+      empty,
+      find.byKey(const Key('advanced-stats.list')),
+      const Offset(0, -200),
+    );
+    expect(empty, findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('advanced stats in SmC shows a note instead of zeros', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.smc,
+        phase: SharePhase.serving,
+        relay: relay,
+      ),
+    );
+    expect(find.byKey(const Key('advanced-stats.smc-note')), findsOneWidget);
+    expect(
+      find.text('Data stats are available only when sharing via Unbounded.'),
+      findsOneWidget,
+    );
+    expect(find.text('Current speed'), findsNothing);
+    expect(find.text('Data relayed this session'), findsNothing);
+    expect(find.text('Data relayed all time'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

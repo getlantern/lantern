@@ -16,6 +16,7 @@ import 'package:lantern/features/home/provider/radiance_settings_providers.dart'
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
@@ -49,11 +50,38 @@ class FakeService implements LanternService {
 }
 
 class FakeSettings extends AppSettingNotifier {
+  int relayWrites = 0;
   @override
-  AppSetting build() => const AppSetting(unboundedTotalHelped: 10);
+  AppSetting build() => const AppSetting(
+    unboundedTotalHelped: 10,
+    unboundedBytesDown: 1000000,
+    unboundedBytesUp: 2000,
+    unboundedCountryStats: {
+      'US': RelayCountryStats(
+        code: 'US',
+        name: 'United States',
+        down: 900,
+        people: 2,
+      ),
+    },
+  );
   @override
   void setUnboundedTotalHelped(int value) {
     state = state.copyWith(unboundedTotalHelped: value);
+  }
+
+  @override
+  void setUnboundedRelayStats({
+    required int bytesDown,
+    required int bytesUp,
+    required Map<String, RelayCountryStats> countries,
+  }) {
+    relayWrites++;
+    state = state.copyWith(
+      unboundedBytesDown: bytesDown,
+      unboundedBytesUp: bytesUp,
+      unboundedCountryStats: countries,
+    );
   }
 }
 
@@ -66,6 +94,8 @@ class FakeRadianceSettings extends RadianceSettings {
   Future<Either<Failure, Unit>> setPeerProxy(bool value) =>
       onSetPeerProxy?.call(value) ?? startResult.future;
 }
+
+const unknownIp = '198.51.100.9';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -80,13 +110,14 @@ void main() {
           '192.0.2.1',
           '192.0.2.2',
           '192.0.2.251',
+          unknownIp,
         ].map(GeoLookupService.peerLookup),
       ),
       () => MockClient(
-        (_) async => http.Response(
+        (request) async => http.Response(
           jsonEncode({
             'Country': {
-              'IsoCode': 'US',
+              'IsoCode': request.url.path.endsWith(unknownIp) ? '' : 'US',
               'Names': {'en': 'United States'},
             },
           }),
@@ -116,6 +147,7 @@ void main() {
     List<String> peers, {
     int arrivals = 2,
     String epoch = "run-1",
+    Map<String, Object> bytes = const {},
   }) async {
     service.events.add(
       AppEvent(
@@ -126,6 +158,7 @@ void main() {
           'enabled': enabled,
           'running': running,
           'peers': peers,
+          ...bytes,
         }),
       ),
     );
@@ -213,6 +246,135 @@ void main() {
     expect(events.last.isReplay, true);
     expect(events.last.workerIdx, greaterThan(originalWorker));
     expect(container.read(shareProvider).totalCount, 11);
+  });
+
+  group('relay stats', () {
+    late DateTime now;
+    late FakeSettings settings;
+    setUp(() {
+      now = DateTime(2026, 10, 17);
+      container.read(shareProvider.notifier).clock = () => now;
+      settings = container.read(appSettingProvider.notifier) as FakeSettings;
+    });
+    Map<String, Object> counters(
+      int down,
+      int up,
+      Map<String, (int, int)> peers,
+    ) => {
+      'bytesDown': down,
+      'bytesUp': up,
+      'peerBytes': [
+        for (final e in peers.entries)
+          {'ip': e.key, 'down': e.value.$1, 'up': e.value.$2},
+      ],
+    };
+    Future<void> tick(
+      int down,
+      int up,
+      Map<String, (int, int)> peers, {
+      List<String> present = const ['192.0.2.1'],
+      String epoch = 'run-1',
+    }) async {
+      now = now.add(const Duration(seconds: 1));
+      await snapshot(
+        true,
+        true,
+        present,
+        epoch: epoch,
+        bytes: counters(down, up, peers),
+      );
+    }
+
+    RelayStats relay() => container.read(shareProvider).relay;
+
+    test('seeds lifetime totals from settings', () {
+      expect(relay().lifetimeDown, 1000000);
+      expect(relay().lifetimeUp, 2000);
+      expect(relay().countries['US']!.people, 2);
+      expect(relay().available, isFalse);
+    });
+
+    test('baseline, deltas, speed, and per-country attribution', () async {
+      // Counters already accumulated before this app run are not recounted.
+      await tick(5000, 500, {'192.0.2.1': (5000, 500)});
+      expect(relay().available, isTrue);
+      expect(relay().sessionBytes, 0);
+      expect(relay().lifetimeDown, 1000000);
+      expect(relay().speedDown, 0);
+
+      // 192.0.2.1 keeps going; the unknown peer came and went between
+      // snapshots and only shows up in peerBytes.
+      await tick(7000, 700, {'192.0.2.1': (6500, 650), unknownIp: (500, 50)});
+      expect(relay().sessionDown, 2000);
+      expect(relay().sessionUp, 200);
+      expect(relay().lifetimeDown, 1002000);
+      expect(relay().lifetimeUp, 2200);
+      expect(relay().speedDown, 1000);
+      expect(relay().speedUp, 100);
+      final us = relay().countries['US']!;
+      expect((us.down, us.up, us.people), (2400, 150, 2));
+      final unknown = relay().countries[RelayCountryStats.unknownCode]!;
+      expect((unknown.down, unknown.up, unknown.people), (500, 50, 1));
+      expect(unknown.isUnknown, isTrue);
+
+      // A new US arrival counts a person even before it moves bytes.
+      await tick(
+        7000,
+        700,
+        {'192.0.2.1': (6500, 650), unknownIp: (500, 50)},
+        present: ['192.0.2.1', '192.0.2.2'],
+      );
+      expect(relay().countries['US']!.people, 3);
+      expect(relay().speedDown, 500);
+    });
+
+    test('counter resets and new epochs count from zero', () async {
+      await tick(5000, 500, {'192.0.2.1': (5000, 500)});
+      await tick(100, 600, {'192.0.2.1': (100, 600)});
+      expect(relay().sessionDown, 100);
+      expect(relay().sessionUp, 100);
+      // A reset is not a rate over one interval, so speed does not spike.
+      expect(relay().speedDown, 0);
+      await tick(300, 30, {'192.0.2.2': (300, 30)}, epoch: 'run-2');
+      expect(relay().sessionDown, 400);
+      expect(relay().sessionUp, 130);
+      expect(relay().countries['US']!.down, 900 + 100 + 300);
+    });
+
+    test('persists on a throttle and when sharing stops', () async {
+      await tick(0, 0, {});
+      expect(settings.relayWrites, 0);
+      await tick(1000, 0, {'192.0.2.1': (1000, 0)});
+      expect(settings.relayWrites, greaterThanOrEqualTo(1));
+      final writes = settings.relayWrites;
+      await tick(2000, 0, {'192.0.2.1': (2000, 0)});
+      await tick(3000, 0, {'192.0.2.1': (3000, 0)});
+      expect(settings.relayWrites, writes);
+      now = now.add(const Duration(seconds: 30));
+      await tick(4000, 0, {'192.0.2.1': (4000, 0)});
+      expect(settings.relayWrites, writes + 1);
+      expect(container.read(appSettingProvider).unboundedBytesDown, 1004000);
+      await tick(5000, 0, {'192.0.2.1': (5000, 0)});
+      service.events.add(
+        AppEvent(eventType: 'unbounded-unavailable', message: '{}'),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(settings.relayWrites, writes + 2);
+      expect(container.read(appSettingProvider).unboundedBytesDown, 1005000);
+      expect(relay().speedDown, 0);
+    });
+
+    test(
+      'snapshots without byte counters (older radiance) are tolerated',
+      () async {
+        await snapshot(true, true, ['192.0.2.1']);
+        await snapshot(true, true, ['192.0.2.1', '192.0.2.2']);
+        expect(relay().available, isFalse);
+        expect(relay().sessionBytes, 0);
+        expect(relay().lifetimeDown, 1000000);
+        expect(relay().countries['US']!.people, 3);
+      },
+    );
   });
 
   testWidgets('pending auto-start ignores failure after disposal', (
