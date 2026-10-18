@@ -60,10 +60,11 @@ jobs:
 
       - name: Verify complete ARM32 and ARM64 artifacts
         run: |
-          check="python3 scripts/ci/verify_android_abis.py --expected-abis armeabi-v7a,arm64-v8a --release --aar bin/android/liblantern.aar"
-          $check --aab lantern-installer-abi-candidate.aab
-          $check --app-abis arm64-v8a --apk lantern-installer-abi-candidate.apk
-          $check --app-abis armeabi-v7a --apk lantern-installer-abi-candidate-armv7.apk
+          abis=$(sed -n 's/^android.abis=//p' android/abi-targets.properties)
+          check=(python3 scripts/ci/verify_android_abis.py --expected-abis "$abis" --release --aar bin/android/liblantern.aar)
+          "${check[@]}" --aab lantern-installer-abi-candidate.aab
+          "${check[@]}" --app-abis arm64-v8a --apk lantern-installer-abi-candidate.apk
+          "${check[@]}" --app-abis armeabi-v7a --apk lantern-installer-abi-candidate-armv7.apk
           sha256sum lantern-installer-abi-candidate.apk lantern-installer-abi-candidate-armv7.apk \
             lantern-installer-abi-candidate.aab > android-abi-candidate.sha256
 
