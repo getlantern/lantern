@@ -177,9 +177,11 @@ class _CountryRow extends StatelessWidget {
     final name = stats.isUnknown
         ? 'advanced_stats_unknown_country'.i18n
         : (stats.name.isEmpty ? stats.code : stats.name);
-    final people = stats.people == 1
-        ? 'advanced_stats_one_person'.i18n
-        : 'advanced_stats_people'.i18n.fill(['${stats.people}']);
+    final people = switch (stats.people) {
+      0 => null,
+      1 => 'advanced_stats_one_person'.i18n,
+      _ => 'advanced_stats_people'.i18n.fill(['${stats.people}']),
+    };
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 52),
       child: Padding(
@@ -199,7 +201,9 @@ class _CountryRow extends StatelessWidget {
                 children: [
                   Text(name, style: Theme.of(context).textTheme.bodyLarge),
                   Text(
-                    '${stats.bytes.siBytes} · $people',
+                    people == null
+                        ? stats.bytes.siBytes
+                        : '${stats.bytes.siBytes} · $people',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: context.textSecondary,
                     ),

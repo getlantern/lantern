@@ -514,7 +514,7 @@ void main() {
         up: 5000000,
         people: 1,
       ),
-      '': RelayCountryStats(code: '', down: 1000, people: 2),
+      '': RelayCountryStats(code: '', down: 1000),
     },
   );
 
@@ -547,6 +547,8 @@ void main() {
       expect(find.text('920 MB · 4 people'), findsOneWidget);
       expect(find.text('205 MB · 1 person'), findsOneWidget);
       expect(find.text('Unknown'), findsOneWidget);
+      expect(find.text('1.0 kB'), findsOneWidget);
+      expect(find.textContaining('0 people'), findsNothing);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
     });
