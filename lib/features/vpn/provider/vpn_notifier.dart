@@ -117,11 +117,19 @@ class VpnNotifier extends _$VpnNotifier {
         unawaited(_ratingPrompt?.onConnected());
 
         if (statusChanged && !suppressConnectionNotifications) {
-          sl<NotificationService>().showNotification(
-            id: NotificationEvent.vpnConnected.id,
-            title: 'app_name'.i18n,
-            body: 'vpn_connected'.i18n,
-          );
+          if (PlatformUtils.isAndroid) {
+            // The foreground service notification already shows the connected
+            // state with a Disconnect action; just clear any stale disconnect.
+            sl<NotificationService>().cancelNotification(
+              NotificationEvent.vpnConnected.id,
+            );
+          } else {
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnConnected.id,
+              title: 'app_name'.i18n,
+              body: 'vpn_connected'.i18n,
+            );
+          }
         }
       }
 
