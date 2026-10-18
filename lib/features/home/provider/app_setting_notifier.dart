@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/radiance_environment.dart';
@@ -117,6 +118,22 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setUnboundedTotalHelped(int value) =>
       update(state.copyWith(unboundedTotalHelped: value));
+
+  void setUnboundedRelayStats({
+    required int bytesDown,
+    required int bytesUp,
+    required Map<String, RelayCountryStats> countries,
+    ({String epoch, int down, int up})? mark,
+  }) => update(
+    state.copyWith(
+      unboundedBytesDown: bytesDown,
+      unboundedBytesUp: bytesUp,
+      unboundedCountryStats: countries,
+      unboundedRelayEpoch: mark?.epoch,
+      unboundedRelayMarkDown: mark?.down,
+      unboundedRelayMarkUp: mark?.up,
+    ),
+  );
 
   Future<void> _writeInitMarker() async {
     try {
