@@ -242,6 +242,15 @@ class _LanternAppState extends ConsumerState<LanternApp>
     return uri.toString();
   }
 
+  Color _tvBackground(BuildContext context, String themeMode) {
+    final mode = resolveThemeMode(themeMode);
+    final dark =
+        mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    return dark ? AppColors.gray9 : AppColors.gray1;
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(vpnProvider, (previous, next) {
@@ -260,6 +269,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       child: WindowWrapper(
         child: SystemTrayWrapper(
           child: TvFrame(
+            background: _tvBackground(context, appSetting.themeMode),
             child: Builder(
               builder: (context) => ScreenUtilInit(
                 ensureScreenSize: true,

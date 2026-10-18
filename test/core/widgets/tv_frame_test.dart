@@ -15,6 +15,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       TvFrame(
+        background: Colors.black,
         child: Builder(
           builder: (context) {
             size = MediaQuery.sizeOf(context);

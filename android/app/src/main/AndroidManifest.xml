@@ -17,6 +17,8 @@
     <!-- Installable and launchable on Android TV, which has no touchscreen. -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!-- CAMERA (QR scanning) otherwise implies a required autofocus camera. -->
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <!-- <uses-permission android:name="android.permission.USE_EXACT_ALARM" /> -->
 
     <application
