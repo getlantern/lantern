@@ -1,17 +1,6 @@
 name: Android Compile Check
 
-# Builds the debug APK and runs native unit tests on PRs that change Kotlin or
-# Gradle files, to catch regressions before they reach main. The full signed
-# release build (build-android.yml) is workflow_call-only and never runs on PRs,
-# so without this gate a Kotlin break (e.g. the bare success() call in #8754)
-# could merge undetected.
-#
-# Scope: the PR trigger covers Kotlin, Android Gradle, and shared CI setup changes. It
-# does NOT run on Go/gomobile-AAR or Flutter/dep changes — a Go change that
-# breaks the AAR<->Kotlin interface would surface in build-android.yml /
-# release, not here. workflow_dispatch exists only for benchmarking/debugging.
-#
-# Debug build only: no keystore/APP_ENV secrets, no AAB, no artifact upload.
+# Compile Android and run native regression tests on relevant PRs.
 
 on:
   workflow_dispatch:
@@ -19,7 +8,9 @@ on:
     paths:
       - "**/*.kt"
       - "android/**/*.gradle"
-      # keep the self-trigger so edits to this workflow re-run it
+      - "go.mod"
+      - "go.sum"
+      - "lantern-core/vpn_tunnel/**"
       - ".github/workflows/android-compile-check.yml"
       - ".github/actions/setup-android/**"
       - ".github/actions/setup-flutter/**"
@@ -43,6 +34,9 @@ jobs:
         with:
           cache-scope: android-check
           gomobile-cache: "true"
+
+      - name: Verify Android TUN reader shutdown
+        run: go test -tags with_gvisor ./lantern-core/vpn_tunnel -count=1
 
       - name: Set up Android
         uses: ./.github/actions/setup-android
@@ -79,16 +73,11 @@ jobs:
           make pubget
           make gen
 
-      # app.env is a declared pubspec asset, normally decoded from a secret by
-      # the release workflow. This compile-only gate doesn't run the app, so an
-      # empty placeholder is enough to satisfy asset bundling without the secret.
+      # Satisfy the pubspec asset declaration for this compile-only build.
       - name: Create placeholder app.env
         run: touch app.env
 
-      # Uses the cached gomobile AAR when possible, then compiles the debug APK
-      # (all app Kotlin). A Kotlin compile error fails this step — the whole
-      # point of the gate.
-      - name: Build debug APK (compiles Kotlin)
+      - name: Build debug APK
         run: make android-debug-ci
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
