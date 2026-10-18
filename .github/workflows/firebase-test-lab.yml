@@ -9,10 +9,10 @@ on:
         type: string
         default: ""
       test_target:
-        description: "Flutter integration entrypoint; architecture smoke: integration_test/android_architecture_smoke_test.dart"
+        description: "Flutter integration entrypoint (default: full e2e suite); architecture smoke: integration_test/android_architecture_smoke_test.dart"
         required: false
         type: string
-        default: "integration_test/android_architecture_smoke_test.dart"
+        default: ""
       instrumentation_args:
         description: "FTL environment variables, e.g. lanternExpectedAbi=armeabi-v7a,lanternExpectedSdk=28,lanternRequire32BitOnly=true"
         required: false
@@ -172,6 +172,8 @@ jobs:
           echo "Verified integration APK version: $actual_version"
 
       - name: Record tested artifact identity
+        # Evidence only; a toolchain-metadata hiccup must not cancel the test run.
+        continue-on-error: true
         shell: bash
         run: |
           python3 - <<'PY'

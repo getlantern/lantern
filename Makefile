@@ -1049,7 +1049,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 	$(if $(STEALTH_ENABLED),$(MAKE) ANDROID_LIBS_DIR="$(ANDROID_LIBS_DIR)" ANDROID_LIB="$(ANDROID_LIB)" verify-stealth-jni,)
 
 # verify-stealth-jni: hard gate on JNI symbol namespace in the stealth AAR.
-# Extracts arm64-v8a/libgojni.so and asserts:
+# Extracts each ABI's libgojni.so and asserts:
 #   - Java_lantern_io_* is ABSENT (GOMOBILE_JAVAPKG=foundation.engine applied)
 #   - Java_foundation_engine_* is PRESENT (gomobile binding succeeded)
 # Called automatically by build-android-obfuscated when STEALTH_ENABLED is set.
@@ -1064,21 +1064,24 @@ verify-stealth-jni:
 	  echo "FAIL: AAR not found at $$aar — build stealth AAR first"; \
 	  exit 1; \
 	fi; \
-	unzip -q "$$aar" "jni/arm64-v8a/libgojni.so" -d "$$tmpdir" 2>/dev/null || \
-	  { echo "FAIL: libgojni.so not found in $$aar (expected jni/arm64-v8a/libgojni.so)"; exit 1; }; \
-	so="$$tmpdir/jni/arm64-v8a/libgojni.so"; \
-	bad=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_lantern_io" || true); \
-	if [ "$$bad" -gt 0 ]; then \
-	  echo "FAIL: $$bad Java_lantern_io_* symbol(s) found — GOMOBILE_JAVAPKG=foundation.engine not applied:"; \
-	  nm -D "$$so" | grep "Java_lantern_io"; \
-	  exit 1; \
-	fi; \
-	good=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_foundation_engine" || true); \
-	if [ "$$good" -eq 0 ]; then \
-	  echo "FAIL: no Java_foundation_engine_* symbols found — gomobile javapkg binding is missing"; \
-	  exit 1; \
-	fi; \
-	echo "PASS: JNI namespace gate — Java_lantern_io=0, Java_foundation_engine=$$good"
+	for abi in $$(printf '%s' "$(ANDROID_ABIS)" | tr ',' ' '); do \
+	  unzip -q "$$aar" "jni/$$abi/libgojni.so" -d "$$tmpdir" 2>/dev/null || \
+	    { echo "FAIL: libgojni.so not found in $$aar (expected jni/$$abi/libgojni.so)"; exit 1; }; \
+	  so="$$tmpdir/jni/$$abi/libgojni.so"; \
+	  bad=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_lantern_io" || true); \
+	  if [ "$$bad" -gt 0 ]; then \
+	    echo "FAIL: $$abi: $$bad Java_lantern_io_* symbol(s) found — GOMOBILE_JAVAPKG=foundation.engine not applied:"; \
+	    nm -D "$$so" | grep "Java_lantern_io"; \
+	    exit 1; \
+	  fi; \
+	  good=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_foundation_engine" || true); \
+	  if [ "$$good" -eq 0 ]; then \
+	    echo "FAIL: $$abi: no Java_foundation_engine_* symbols found — gomobile javapkg binding is missing"; \
+	    exit 1; \
+	  fi; \
+	  echo "PASS: $$abi: Java_lantern_io=0, Java_foundation_engine=$$good"; \
+	done; \
+	echo "PASS: JNI namespace gate ($(ANDROID_ABIS))"
 
 .PHONY: android-debug android-debug-ci
 android-debug: $(ANDROID_DEBUG_BUILD)

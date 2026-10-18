@@ -91,7 +91,7 @@ jobs:
           test -s bin/android/.abis
           touch bin/android/.abis
           touch bin/android/liblantern.aar android/app/libs/liblantern.aar
-          python3 scripts/ci/verify_android_abis.py --expected-abis armeabi-v7a,arm64-v8a \
+          python3 scripts/ci/verify_android_abis.py --expected-abis "$(sed -n 's/^android.abis=//p' android/abi-targets.properties)" \
             --aar bin/android/liblantern.aar --aar android/app/libs/liblantern.aar
 
       - name: Install dependencies (gomobile)
@@ -117,8 +117,14 @@ jobs:
       - name: Verify Flutter device target configuration
         working-directory: android
         run: |
+          # Device runs pass one ABI; build.gradle must widen it to the shared list.
+          expected=$(sed -n 's/^android.abis=//p' abi-targets.properties | sed 's/armeabi-v7a/android-arm/;s/arm64-v8a/android-arm64/')
           for target in android-arm android-arm64; do
-            ./gradlew :app:assembleDebug --dry-run -Ptarget-platform="$target"
+            actual=$(./gradlew -q :app:properties -Ptarget-platform="$target" | sed -n 's/^target-platform: //p')
+            if [ "$actual" != "$expected" ]; then
+              echo "::error::-Ptarget-platform=$target resolved to '$actual', expected '$expected'"
+              exit 1
+            fi
           done
 
       - name: Run Android unit tests
@@ -130,7 +136,7 @@ jobs:
 
       - name: Verify both native architectures in AAR and APK
         run: |
-          python3 scripts/ci/verify_android_abis.py --expected-abis armeabi-v7a,arm64-v8a \
+          python3 scripts/ci/verify_android_abis.py --expected-abis "$(sed -n 's/^android.abis=//p' android/abi-targets.properties)" \
             --aar bin/android/liblantern.aar --aar android/app/libs/liblantern.aar \
             --apk build/app/outputs/flutter-apk/app-debug.apk \
             --apk build/app/outputs/apk/debug/app-debug.apk
