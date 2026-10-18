@@ -7,7 +7,9 @@ The Lantern client: Flutter UI in `lib/`, Go core in `lantern-core/` (FFI on des
 - Go: `CGO_ENABLED=1 go test -tags with_gvisor,with_quic,with_wireguard,with_utls,with_grpc ./...`
 - Flutter: `make pubget && make gen`, then `flutter analyze` and `flutter test`.
 - FFI bindings: `make ffigen` regenerates `lib/lantern/lantern_generated_bindings.dart`. Never hand-edit it.
-- Swift: `make macos-unit-tests`, `make ios-compile-check`. Android: `./gradlew :app:testDebugUnitTest`.
+- Native prerequisites: `make install-gomobile`, `make pubget && make gen`, and an `app.env` at the repo root (from 1Password; an empty placeholder is enough for compile checks and unit tests, as CI does).
+- Swift: `make macos-unit-tests`, `make ios-compile-check`.
+- Android: `make install-android-deps && make android-debug-ci`, then `cd android && ./gradlew :app:testDebugUnitTest`. Only `gradle-wrapper.properties` is tracked; the Flutter build generates `android/gradlew`.
 - Dependency bumps (radiance, lantern-box, sing-box-minimal): run `go mod tidy` and commit `go.mod` and `go.sum` together.
 
 ## Review focus
@@ -28,10 +30,10 @@ These bug classes have shipped here, most frequent and severe first. Check a dif
    - Check for unbounded allocation in the extension (archives, outbound lists).
    - Check that new periodic work in the extension is rate-bounded, because battery cost is a regression too.
 4. **Android VPN service lifecycle** (`android/.../service/LanternVpnService.kt`, `VpnStartGate.kt`, `PlatformInterfaceWrapper.kt`). Crash loops on Connect, JNI aborts, ANRs in `onDestroy`, and start/stop races that left the VPN latched (#8947, #8948, #9085).
-   - Check that Kotlin methods called from Go never throw (return null instead).
+   - Check that Kotlin implementations of Go callbacks without an `error` return never throw (return null or a default instead). Callbacks whose Go signature returns `error`, such as `RestartService`, should throw on failure so Go sees it.
    - Check that every `launch {}` has a `CoroutineExceptionHandler` and that nothing blocks the main thread.
    - Check that every start or stop entry point goes through `VpnStartGate`.
-   - Check that blocking JNI calls use `async` + `withTimeout`, because a plain `withTimeout` doesn't interrupt blocking JNI.
+   - Blocking JNI calls can't be cancelled: `withTimeout`, with or without `async`, only bounds the caller's wait. Check that they run off the main thread and that a timeout doesn't release `VpnStartGate` early. `VpnStartGate.Attempt.connect` reports the deadline but holds the gate until JNI returns, so a new start or a teardown can't overlap native work.
 5. **Dart parsing that throws on upstream JSON** (`lib/core/models/`). A lantern-box shape change threw out of `fromJson` and wiped the whole server list (#8929, #8412).
    - Check that radiance and lantern-box fields are parsed tolerantly, per entry.
    - A dependency bump that changes a JSON shape needs the Dart change in the same PR.
@@ -52,4 +54,4 @@ These bug classes have shipped here, most frequent and severe first. Check a dif
 - **FFI.** `//export` signatures in `lantern-core/ffi/` must match the generated bindings. Dart callers free returned C strings.
 - **Platform channels.** Method and event channel names (`org.getlantern.lantern/method`, `/status`, `/logs`, `/app_events`, …) are string literals duplicated across `lib/lantern/lantern_platform_service.dart`, the Android handlers, and the iOS/macOS Runners. Nothing checks that they match.
 - **radiance.** A radiance bump can change the IPC API and JSON shapes. On iOS the extension sends an empty device ID so radiance resolves the shared one (#8936). Smart-routing rule detours must match outbound tags (`ai-domains` vs `sr-ai-domains`).
-- **Purchases** (`lib/features/purchase*`). Store routing differs by region: Play Billing doesn't work for CN users (#9028).
+- **Purchases** (`lib/core/utils/store_utils.dart`, `lib/core/services/purchase/`, `lib/features/plans/`). Payment routing follows the build channel, not the region: `resolvePlayBillingAvailability` offers Play Billing on every Android store build in every country, and non-store builds never get it (#9028). `store_utils_test.dart` covers this.
