@@ -34,10 +34,14 @@ bool isNarrowScreen(BuildContext context) =>
 Size designSizeFor(BuildContext context) {
   final s = MediaQuery.sizeOf(context);
 
-  if (PlatformUtils.isDesktop) return desktopWindowSize;
+  // TVs: TvFrame narrows the layout, but ScreenUtil measures the full View,
+  // so design against the View's size to keep scaling at 1:1.
+  if (PlatformUtils.isTv) {
+    final view = View.of(context);
+    return view.physicalSize / view.devicePixelRatio;
+  }
 
-  // TVs: TvFrame already narrows the layout, so render it 1:1
-  if (PlatformUtils.isTv) return s;
+  if (PlatformUtils.isDesktop) return desktopWindowSize;
 
   // tablets: don't scale up (use 1:1)
   if (isTabletSize(s)) return s;
