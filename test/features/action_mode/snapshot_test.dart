@@ -666,4 +666,64 @@ void main() {
       },
     );
   }
+
+  testWidgets('counts final Unbounded bytes that arrive during SmC', (
+    tester,
+  ) async {
+    late WidgetRef widgetRef;
+    late BuildContext context;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (ctx, ref, child) {
+            widgetRef = ref;
+            context = ctx;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final radiance =
+        container.read(radianceSettingsProvider.notifier)
+            as FakeRadianceSettings;
+    service.onSetUnbounded = (_) async => right(unit);
+    radiance.onSetPeerProxy = (_) async => right(unit);
+    Future<void> emit(bool on, int down) async {
+      service.events.add(
+        AppEvent(
+          eventType: 'unbounded-snapshot',
+          message: jsonEncode({
+            'epoch': 'run-1',
+            'arrivals': 1,
+            'enabled': on,
+            'running': on,
+            'peers': on ? ['192.0.2.1'] : [],
+            'bytesDown': down,
+            'bytesUp': 0,
+            'peerBytes': [
+              {'ip': '192.0.2.1', 'down': down, 'up': 0},
+            ],
+          }),
+        ),
+      );
+      await tester.pump();
+    }
+
+    await emit(true, 0);
+    await emit(true, 1000);
+    final notifier = container.read(shareProvider.notifier);
+    // Stop Unbounded, then start SmC before the backend's final snapshot.
+    await notifier.toggle(context, widgetRef);
+    await notifier.toggle(context, widgetRef);
+    expect(container.read(shareProvider).mode, ShareMode.smc);
+    await emit(false, 1500);
+    final state = container.read(shareProvider);
+    expect(state.mode, ShareMode.smc);
+    expect(state.active, isTrue);
+    expect(state.relay.lifetimeDown, 1001500);
+    final saved = container.read(appSettingProvider);
+    expect(saved.unboundedBytesDown, 1001500);
+    expect(saved.unboundedRelayMarkDown, 1500);
+  });
 }

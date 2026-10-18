@@ -490,7 +490,21 @@ class ShareNotifier extends _$ShareNotifier {
   /// peers that vanished, adds arcs for new ones, and folds completed
   /// arrivals into the lifetime total.
   void _applyUnboundedSnapshot(Map<String, dynamic> snapshot) {
-    if (_changing || state.mode == ShareMode.smc) return;
+    if (_changing) return;
+    if (state.mode == ShareMode.smc) {
+      // Unbounded can still flush bytes from a session that stopped just
+      // before SmC started. Count them without touching SmC's state.
+      state = state.copyWith(
+        relay: _applyRelayCounters(
+          snapshot,
+          epoch: snapshot['epoch'] as String,
+          present: const {},
+          running: false,
+        ),
+      );
+      _persistRelay(force: true);
+      return;
+    }
     final enabled = snapshot['enabled'] as bool;
     final running = snapshot['running'] as bool;
     final peers = (snapshot['peers'] as List).cast<String>();
