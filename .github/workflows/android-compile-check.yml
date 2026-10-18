@@ -1,17 +1,36 @@
 name: Android Compile Check
 
-# Compile Android and run native regression tests on relevant PRs.
+# Build and verify both ARM ABIs and run native regression tests on relevant PRs.
 
 on:
   workflow_dispatch:
+    inputs:
+      build_candidate:
+        description: "Also build debug-signed release APK/AAB artifacts for testing"
+        required: false
+        type: boolean
+        default: false
   pull_request:
     paths:
       - "**/*.kt"
       - "android/**/*.gradle"
+      - "android/abi-targets.properties"
+      - "**/*.go"
       - "go.mod"
       - "go.sum"
+      - "Makefile"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "lib/**"
+      - "integration_test/**"
+      - "scripts/ci/verify_android_abis*"
+      - "scripts/android/test-runtime-seccomp.py"
+      - "scripts/android/runtime-seccomp/**"
       - "lantern-core/vpn_tunnel/**"
       - ".github/workflows/android-compile-check.yml"
+      - ".github/workflows/android-abi-candidate.yml"
+      - ".github/workflows/build-android.yml"
+      - ".github/workflows/firebase-test-lab.yml"
       - ".github/actions/setup-android/**"
       - ".github/actions/setup-flutter/**"
       - ".github/actions/setup-go/**"
@@ -21,10 +40,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  candidate:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_candidate }}
+    uses: ./.github/workflows/android-abi-candidate.yml
+    secrets: inherit
+
   compile-check:
     permissions:
       contents: "read"
     runs-on: ubuntu-24.04
+    timeout-minutes: 90
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,6 +62,9 @@ jobs:
 
       - name: Verify Android TUN reader shutdown
         run: go test -tags with_gvisor ./lantern-core/vpn_tunnel -count=1
+
+      - name: Verify 32-bit Go startup under seccomp
+        run: python3 scripts/android/test-runtime-seccomp.py
 
       - name: Set up Android
         uses: ./.github/actions/setup-android
@@ -52,15 +80,20 @@ jobs:
         with:
           path: |
             bin/android/liblantern.aar
+            bin/android/.abis
             android/app/libs/liblantern.aar
-          key: ${{ runner.os }}-android-aar-${{ hashFiles('go.mod', 'go.sum', 'Makefile', '**/*.go', '.github/actions/setup-android/**', '.github/actions/setup-flutter/**', '.github/actions/setup-go/**') }}
+          key: ${{ runner.os }}-android-aar-dual-v2-${{ hashFiles('go.mod', 'go.sum', 'Makefile', 'android/abi-targets.properties', '**/*.go', '.github/actions/setup-android/**', '.github/actions/setup-flutter/**', '.github/actions/setup-go/**') }}
 
       - name: Mark restored Android AAR fresh
         if: steps.android-aar-cache.outputs.cache-hit == 'true'
         run: |
           test -s bin/android/liblantern.aar
           test -s android/app/libs/liblantern.aar
+          test -s bin/android/.abis
+          touch bin/android/.abis
           touch bin/android/liblantern.aar android/app/libs/liblantern.aar
+          python3 scripts/ci/verify_android_abis.py --expected-abis "$(sed -n 's/^android.abis=//p' android/abi-targets.properties)" \
+            --aar bin/android/liblantern.aar --aar android/app/libs/liblantern.aar
 
       - name: Install dependencies (gomobile)
         if: steps.android-aar-cache.outputs.cache-hit != 'true'
@@ -82,6 +115,29 @@ jobs:
         env:
           GOMOBILECACHE: ${{ env.GOMOBILECACHE }}
 
+      - name: Verify Flutter device target configuration
+        working-directory: android
+        run: |
+          # Device runs pass one ABI; build.gradle must widen it to the shared list.
+          expected=$(sed -n 's/^android.abis=//p' abi-targets.properties | sed 's/armeabi-v7a/android-arm/;s/arm64-v8a/android-arm64/')
+          for target in android-arm android-arm64; do
+            actual=$(./gradlew -q :app:properties -Ptarget-platform="$target" | sed -n 's/^target-platform: //p')
+            if [ "$actual" != "$expected" ]; then
+              echo "::error::-Ptarget-platform=$target resolved to '$actual', expected '$expected'"
+              exit 1
+            fi
+          done
+
       - name: Run Android unit tests
         working-directory: android
         run: ./gradlew :app:testDebugUnitTest
+
+      - name: Compile architecture smoke instrumentation
+        run: make android-integration-apks ANDROID_INTEGRATION_TARGET=integration_test/android_architecture_smoke_test.dart
+
+      - name: Verify both native architectures in AAR and APK
+        run: |
+          python3 scripts/ci/verify_android_abis.py --expected-abis "$(sed -n 's/^android.abis=//p' android/abi-targets.properties)" \
+            --aar bin/android/liblantern.aar --aar android/app/libs/liblantern.aar \
+            --apk build/app/outputs/flutter-apk/app-debug.apk \
+            --apk build/app/outputs/apk/debug/app-debug.apk

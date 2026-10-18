@@ -41,7 +41,8 @@ class GenerateUpdateMetadataTest(TestCase):
         cases = {
             "lantern-installer-beta.dmg": ("macos", "darwin", "amd64"),
             "lantern-installer-beta.exe": ("windows", "windows", "amd64"),
-            "lantern-installer-beta.apk": ("android", "android", "arm"),
+            "lantern-installer-beta.apk": ("android", "android", "arm64"),
+            "lantern-installer-beta-armv7.apk": ("android", "android", "arm"),
             "lantern-installer-beta.deb": ("linux", "linux", "amd64"),
             "lantern-installer-beta-arm64.deb": ("linux", "linux", "arm64"),
             "lantern-installer-beta.ipa": None,
@@ -79,7 +80,7 @@ class GenerateUpdateMetadataTest(TestCase):
                 "build_type": "beta",
                 "platform": "android",
                 "os": "android",
-                "arch": "arm",
+                "arch": "arm64",
                 "filename": "lantern-installer-beta.apk",
                 "url": (
                     "https://s3.amazonaws.com/lantern.io/releases/"
