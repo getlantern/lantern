@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/action_mode_connection_event.dart';
 import 'package:lantern/core/models/app_event.dart';
+import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
@@ -62,6 +63,22 @@ class ShareNotifier extends _$ShareNotifier {
   // so each arc is ref-counted and stays until the peer's last stream closes.
   final Map<String, _PeerArc> _peerArcs = {};
 
+  // ─── Relay stats ───────────────────────────────────────────────────────────
+
+  @visibleForTesting
+  Duration relayPersistInterval = const Duration(seconds: 30);
+  // Weight of the newest sample in the smoothed speed.
+  static const _speedSmoothing = 0.5;
+
+  final _relayCounters = RelayCounterTracker();
+  DateTime? _lastRelaySampleAt;
+  DateTime? _lastRelayPersistAt;
+  Timer? _relayPersistTimer;
+  bool _relayDirty = false;
+
+  @visibleForTesting
+  DateTime Function() clock = DateTime.now;
+
   final _eventController =
       StreamController<ActionModeConnectionEvent>.broadcast();
 
@@ -81,6 +98,7 @@ class ShareNotifier extends _$ShareNotifier {
       _snapshotSub?.cancel();
       _stopEventSubscription();
       _eventController.close();
+      _relayPersistTimer?.cancel();
     });
 
     final settings = ref.read(appSettingProvider);
@@ -93,7 +111,19 @@ class ShareNotifier extends _$ShareNotifier {
             ref.read(appSettingProvider.notifier).setUnboundedAutoEnable(false),
       );
     }
-    return ShareState(totalCount: settings.unboundedTotalHelped);
+    _relayCounters.restore(
+      epoch: settings.unboundedRelayEpoch,
+      down: settings.unboundedRelayMarkDown,
+      up: settings.unboundedRelayMarkUp,
+    );
+    return ShareState(
+      totalCount: settings.unboundedTotalHelped,
+      relay: RelayStats(
+        lifetimeDown: settings.unboundedBytesDown,
+        lifetimeUp: settings.unboundedBytesUp,
+        countries: settings.unboundedCountryStats,
+      ),
+    );
   }
 
   /// Toggles sharing. Shows the consent dialog inline when needed, then
@@ -239,7 +269,12 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
-    state = ShareState(active: true, mode: mode, totalCount: state.totalCount);
+    state = ShareState(
+      active: true,
+      mode: mode,
+      totalCount: state.totalCount,
+      relay: state.relay.newSession(),
+    );
     _startEventSubscription(widgetRef);
     switch (mode) {
       case ShareMode.smc:
@@ -289,7 +324,8 @@ class ShareNotifier extends _$ShareNotifier {
       },
       (_) {
         _stopEventSubscription();
-        state = ShareState(totalCount: state.totalCount);
+        state = ShareState(totalCount: state.totalCount, relay: _idleRelay());
+        _persistRelay(force: true);
       },
     );
   }
@@ -305,6 +341,7 @@ class ShareNotifier extends _$ShareNotifier {
         active: true,
         mode: ShareMode.unbounded,
         totalCount: state.totalCount,
+        relay: state.relay.newSession(),
       );
       final result = await widgetRef
           .read(lanternServiceProvider)
@@ -327,7 +364,9 @@ class ShareNotifier extends _$ShareNotifier {
       totalCount: state.totalCount,
       phase: SharePhase.error,
       errorMessage: message,
+      relay: _idleRelay(),
     );
+    _persistRelay(force: true);
   }
 
   // ─── Backend events ────────────────────────────────────────────────────────
@@ -337,7 +376,12 @@ class ShareNotifier extends _$ShareNotifier {
     if (event.eventType == 'unbounded-unavailable') {
       if (!_changing && state.mode == ShareMode.unbounded) {
         _clearPeers();
-        state = state.copyWith(unboundedRunning: false, activeCount: 0);
+        state = state.copyWith(
+          unboundedRunning: false,
+          activeCount: 0,
+          relay: _idleRelay(),
+        );
+        _persistRelay(force: true);
       }
       return;
     }
@@ -391,7 +435,7 @@ class ShareNotifier extends _$ShareNotifier {
       }
       if (phase == SharePhase.idle) {
         _stopEventSubscription();
-        state = ShareState(totalCount: state.totalCount);
+        state = ShareState(totalCount: state.totalCount, relay: state.relay);
         return;
       }
       state = state.copyWith(
@@ -446,7 +490,21 @@ class ShareNotifier extends _$ShareNotifier {
   /// peers that vanished, adds arcs for new ones, and folds completed
   /// arrivals into the lifetime total.
   void _applyUnboundedSnapshot(Map<String, dynamic> snapshot) {
-    if (_changing || state.mode == ShareMode.smc) return;
+    if (_changing) return;
+    if (state.mode == ShareMode.smc) {
+      // Unbounded can still flush bytes from a session that stopped just
+      // before SmC started. Count them without touching SmC's state.
+      state = state.copyWith(
+        relay: _applyRelayCounters(
+          snapshot,
+          epoch: snapshot['epoch'] as String,
+          present: const {},
+          running: false,
+        ),
+      );
+      _persistRelay(force: true);
+      return;
+    }
     final enabled = snapshot['enabled'] as bool;
     final running = snapshot['running'] as bool;
     final peers = (snapshot['peers'] as List).cast<String>();
@@ -488,10 +546,158 @@ class ShareNotifier extends _$ShareNotifier {
       unboundedRunning: enabled && running,
       activeCount: counts.length,
       totalCount: total,
+      relay: _applyRelayCounters(
+        snapshot,
+        epoch: epoch,
+        present: counts.keys.toSet(),
+        running: enabled && running,
+      ),
     );
     if (total != ref.read(appSettingProvider).unboundedTotalHelped) {
       ref.read(appSettingProvider.notifier).setUnboundedTotalHelped(total);
     }
+    // A stopped backend's final counters may be the last this app sees.
+    _persistRelay(force: !(enabled && running));
+  }
+
+  // ─── Relay stats ───────────────────────────────────────────────────────────
+
+  /// Folds a snapshot's byte counters into session and lifetime totals and
+  /// the smoothed speed. Per-country totals follow asynchronously, once each
+  /// peer's country is resolved.
+  RelayStats _applyRelayCounters(
+    Map<String, dynamic> snapshot, {
+    required String epoch,
+    required Set<String> present,
+    required bool running,
+  }) {
+    final available = snapshot.containsKey('bytesDown');
+    final peerBytes = <String, ByteCounts>{};
+    RelayCounterTracker.parsePeerBytes(snapshot['peerBytes']).forEach((
+      source,
+      counts,
+    ) {
+      final ip = source.hostAddress;
+      if (ip.isEmpty) return;
+      final prev = peerBytes[ip];
+      peerBytes[ip] = prev == null
+          ? counts
+          : (down: prev.down + counts.down, up: prev.up + counts.up);
+    });
+    final markBefore = _relayCounters.watermark;
+    final delta = _relayCounters.apply(
+      epoch: epoch,
+      down: (snapshot['bytesDown'] as num?)?.toInt() ?? 0,
+      up: (snapshot['bytesUp'] as num?)?.toInt() ?? 0,
+      peers: peerBytes,
+      present: present,
+    );
+
+    final now = clock();
+    final previousSampleAt = _lastRelaySampleAt;
+    _lastRelaySampleAt = now;
+    var relay = state.relay;
+    var speedDown = relay.speedDown;
+    var speedUp = relay.speedUp;
+    if (!running || !available) {
+      speedDown = 0;
+      speedUp = 0;
+    } else if (!delta.reset && previousSampleAt != null) {
+      final seconds = now.difference(previousSampleAt).inMicroseconds / 1e6;
+      if (seconds > 0) {
+        speedDown += (delta.down / seconds - speedDown) * _speedSmoothing;
+        speedUp += (delta.up / seconds - speedUp) * _speedSmoothing;
+      }
+    }
+    relay = relay.copyWith(
+      available: available,
+      sessionDown: relay.sessionDown + delta.down,
+      sessionUp: relay.sessionUp + delta.up,
+      lifetimeDown: relay.lifetimeDown + delta.down,
+      lifetimeUp: relay.lifetimeUp + delta.up,
+      speedDown: speedDown,
+      speedUp: speedUp,
+    );
+    // A moved watermark is saved even without bytes to add, so the next app
+    // run resumes from it instead of taking another baseline.
+    if (delta.down > 0 ||
+        delta.up > 0 ||
+        _relayCounters.watermark != markBefore) {
+      _relayDirty = true;
+    }
+
+    for (final ip in {...delta.peers.keys, ...delta.arrivals}) {
+      unawaited(
+        _attributeToCountry(
+          ip,
+          delta.peers[ip] ?? (down: 0, up: 0),
+          arrived: delta.arrivals.contains(ip),
+        ),
+      );
+    }
+    return relay;
+  }
+
+  Future<void> _attributeToCountry(
+    String ip,
+    ByteCounts bytes, {
+    required bool arrived,
+  }) async {
+    PeerGeo geo;
+    try {
+      geo = await GeoLookupService.peerLookup(ip);
+    } catch (_) {
+      geo = PeerGeo.unknown;
+    }
+    if (!ref.mounted) return;
+    final code = geo.countryCode.isEmpty
+        ? RelayCountryStats.unknownCode
+        : geo.countryCode;
+    final countries = Map.of(state.relay.countries);
+    countries[code] = (countries[code] ?? RelayCountryStats(code: code)).add(
+      name: geo.countryName,
+      down: bytes.down,
+      up: bytes.up,
+      people: arrived ? 1 : 0,
+    );
+    state = state.copyWith(relay: state.relay.copyWith(countries: countries));
+    _relayDirty = true;
+    _persistRelay();
+  }
+
+  RelayStats _idleRelay() => state.relay.copyWith(speedDown: 0, speedUp: 0);
+
+  /// AppSetting writes log and re-serialize every setting, so lifetime relay
+  /// stats are saved at most every [relayPersistInterval] unless [force]d.
+  /// A throttled save is deferred, not dropped, so late country lookups are
+  /// saved even when no further snapshot arrives.
+  void _persistRelay({bool force = false}) {
+    if (!_relayDirty) return;
+    final now = clock();
+    final last = _lastRelayPersistAt;
+    if (!force && last != null) {
+      final wait = relayPersistInterval - now.difference(last);
+      if (wait > Duration.zero) {
+        _relayPersistTimer ??= Timer(wait, () {
+          _relayPersistTimer = null;
+          if (ref.mounted) _persistRelay(force: true);
+        });
+        return;
+      }
+    }
+    _relayPersistTimer?.cancel();
+    _relayPersistTimer = null;
+    _relayDirty = false;
+    _lastRelayPersistAt = now;
+    final relay = state.relay;
+    ref
+        .read(appSettingProvider.notifier)
+        .setUnboundedRelayStats(
+          bytesDown: relay.lifetimeDown,
+          bytesUp: relay.lifetimeUp,
+          countries: relay.countries,
+          mark: _relayCounters.watermark,
+        );
   }
 
   // ─── Peer arcs ─────────────────────────────────────────────────────────────

@@ -42,9 +42,14 @@ class GeoLookupService {
   // don't change on human timescales, and the alternative TTL
   // bookkeeping adds complexity without changing the result.
   static final Map<String, PeerGeo> _peerCache = {};
+  // Lookups still in flight, so concurrent callers for one IP share a request.
+  static final Map<String, Future<PeerGeo>> _peerPending = {};
 
   /// Test-only: drop the cache. Production code does not call this.
-  static void resetCacheForTest() => _peerCache.clear();
+  static void resetCacheForTest() {
+    _peerCache.clear();
+    _peerPending.clear();
+  }
 
   // ISO country code → approximate centre coordinates. Used as a fallback
   // when the geo service doesn't return city-level coords.
@@ -231,12 +236,18 @@ class GeoLookupService {
   /// same MaxMind-backed service used for the caller's own location) rather
   /// than a third party. It's an address the local host already observes as a
   /// connection source, and the service doesn't tie lookups to the caller.
-  static Future<PeerGeo> peerLookup(String ip) async {
+  static Future<PeerGeo> peerLookup(String ip) {
     // Cache hit: short-circuit before any network I/O. Also caches
     // PeerGeo.unknown so a previously-failed lookup doesn't retry on
     // every subsequent probe from the same IP.
     final cached = _peerCache[ip];
-    if (cached != null) return cached;
+    if (cached != null) return Future.value(cached);
+    return _peerPending[ip] ??= _fetchPeer(ip).whenComplete(() {
+      _peerPending.remove(ip);
+    });
+  }
+
+  static Future<PeerGeo> _fetchPeer(String ip) async {
     PeerGeo result = PeerGeo.unknown;
     try {
       final response = await http
