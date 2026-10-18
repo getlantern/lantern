@@ -46,7 +46,7 @@ These bug classes have shipped here, most frequent and severe first. Check a dif
    - Check that toolchain and framework bumps are checked against the declared minimum OS.
 8. **macOS system-extension upgrades** (`macos/Runner/VPN/SystemExtensionManager.swift`, `release.yml`). Check that `CFBundleVersion` only increases and that every `OSSystemExtension` result, including `willCompleteAfterReboot`, leads to activation (#8628, #8614).
 9. **Version stamping** (`Makefile`, workflows). An empty version caused config 400s, so check any change to `-X` ldflags paths or how the version is derived (#8677, #8539, #8865).
-10. **Windows installer and service lifecycle** (`windows/packaging/exe/inno_setup.iss`, `lantern-core/cmd`). Lost legacy installs, ARM64 VCRedist detection, and a service that never restarted (#8576, #9127, #9012).
+10. **Windows installer and service lifecycle** (`windows/packaging/exe/inno_setup.iss`; the service is radiance's `cmd/lanternd`, built through `LANTERND_SRC` in the `Makefile`). Lost legacy installs, ARM64 VCRedist detection, and service install, IPC startup, and child-recovery failures (#8576, #9127, #8623, #9015).
 
 ## Contracts a diff can silently break
 
