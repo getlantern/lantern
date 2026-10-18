@@ -55,16 +55,18 @@ jobs:
       - name: Install gomobile
         run: make install-android-deps
 
-      - name: Build dual-ABI release-mode APK and AAB
+      - name: Build per-ABI release-mode APKs and dual-ABI AAB
         run: make android-release-ci
 
       - name: Verify complete ARM32 and ARM64 artifacts
         run: |
-          python3 scripts/ci/verify_android_abis.py --expected-abis "$(sed -n 's/^android.abis=//p' android/abi-targets.properties)" --release \
-            --aar bin/android/liblantern.aar \
-            --apk lantern-installer-abi-candidate.apk \
-            --aab lantern-installer-abi-candidate.aab
-          sha256sum lantern-installer-abi-candidate.apk lantern-installer-abi-candidate.aab > android-abi-candidate.sha256
+          abis=$(sed -n 's/^android.abis=//p' android/abi-targets.properties)
+          check=(python3 scripts/ci/verify_android_abis.py --expected-abis "$abis" --release --aar bin/android/liblantern.aar)
+          "${check[@]}" --aab lantern-installer-abi-candidate.aab
+          "${check[@]}" --app-abis arm64-v8a --apk lantern-installer-abi-candidate.apk
+          "${check[@]}" --app-abis armeabi-v7a --apk lantern-installer-abi-candidate-armv7.apk
+          sha256sum lantern-installer-abi-candidate.apk lantern-installer-abi-candidate-armv7.apk \
+            lantern-installer-abi-candidate.aab > android-abi-candidate.sha256
 
       - name: Upload candidate
         uses: actions/upload-artifact@v4
@@ -72,6 +74,7 @@ jobs:
           name: android-abi-candidate-${{ github.sha }}
           path: |
             lantern-installer-abi-candidate.apk
+            lantern-installer-abi-candidate-armv7.apk
             lantern-installer-abi-candidate.aab
             android-abi-candidate.sha256
           if-no-files-found: error

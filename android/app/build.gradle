@@ -16,6 +16,15 @@ def hasReleaseKeystore =
 def abiConfig = new Properties()
 file("${rootProject.projectDir}/abi-targets.properties").withInputStream { abiConfig.load(it) }
 def lanternAbis = abiConfig.getProperty("android.abis").split(',').toList()
+// Sideload releases build one APK per ABI; the override may only narrow the shared list.
+def abiOverride = project.findProperty("lantern.abis")?.toString()?.trim()
+if (abiOverride) {
+    def selected = abiOverride.split(',').collect { it.trim() }.findAll { it }
+    if (selected.isEmpty() || !lanternAbis.containsAll(selected)) {
+        throw new GradleException("lantern.abis=${abiOverride} must be a subset of ${lanternAbis}")
+    }
+    lanternAbis = selected
+}
 def flutterAbiNames = ['armeabi-v7a': 'android-arm', 'arm64-v8a': 'android-arm64']
 def lanternFlutterTargets = lanternAbis.collect { flutterAbiNames[it] }
 // Flutter selects one ABI for device runs; include both to match the native libraries.

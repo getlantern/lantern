@@ -186,6 +186,9 @@ override ANDROID_AAB_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
 ANDROID_ABI_STAMP := $(BIN_DIR)/android/.abis
 ANDROID_ABI_CHECK = $(PYTHON) scripts/ci/verify_android_abis.py --expected-abis $(ANDROID_ABIS)
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
+# Sideload APKs are per-ABI so arm64 users don't download 32-bit libraries;
+# the autoupdate server maps "-armv7" to arch=arm.
+ANDROID_RELEASE_APK_ARMV7 := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-armv7.apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_STEALTH_NOVPN_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.apk
 ANDROID_STEALTH_NOVPN_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.aab
@@ -194,7 +197,7 @@ ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-deb
 PYTHON ?= python3
 STEALTH_LEAKAGE_MODE ?= stealth
 STEALTH_LEAKAGE_CONFIG ?= scripts/stealth/forbidden_tokens.json
-STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
+STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_APK_ARMV7) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
 STEALTH_LEAKAGE_MISSING_OK ?= 1
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.31.5
@@ -1138,19 +1141,27 @@ android-integration-apks: $(ANDROID_LIB_BUILD)
 android-ftl-test: android-integration-apks
 	scripts/android/ftl-run.sh
 
-# Flutter and Gradle use the same ABIs as the gomobile AAR.
+# Builds and checks one single-ABI sideload APK: $(1)=ABI, $(2)=Flutter
+# target platform, $(3)=output file. The AAR keeps every ABI; -Plantern.abis
+# narrows Gradle packaging to match Flutter's single target.
+define android_apk_for_abi
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(2) -Plantern.abis=$(1) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
+	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_APK_RELEASE_BUILD),true)
+	$(ANDROID_ABI_CHECK) --app-abis $(1) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_APK_RELEASE_BUILD) --release
+	cp $(ANDROID_APK_RELEASE_BUILD) $(3)
+endef
+
+# One sideload APK per ABI; the AAB below carries every ABI and Play splits it.
 # -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
 # direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
 android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 	# Package the selected native build as-is; an implicit rebuild could replace a garbled AAR.
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
-	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
-	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_APK_RELEASE_BUILD),true)
-	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_APK_RELEASE_BUILD) --release
-	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
+	$(call android_apk_for_abi,arm64-v8a,android-arm64,$(ANDROID_RELEASE_APK))
+	$(call android_apk_for_abi,armeabi-v7a,android-arm,$(ANDROID_RELEASE_APK_ARMV7))
 
-# AAB and APK have identical architecture coverage.
+# The AAB carries every ABI in android/abi-targets.properties.
 .PHONY: android-aab-release
 android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)

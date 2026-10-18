@@ -258,6 +258,42 @@ class AndroidAbiVerificationTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("omitted AAR libraries: libextra.so", result.stderr)
 
+    def cli(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(Path(__file__).with_name("verify_android_abis.py")), *args],
+            capture_output=True, text=True,
+        )
+
+    def test_cli_per_abi_apk_checked_against_both_abi_aar(self) -> None:
+        aar = self.artifact("aar")
+        for abi in sorted(ELF_ABIS):
+            with self.subTest(abi=abi):
+                apk = self.artifact("apk", abis={abi})
+                result = self.cli("--expected-abis", "armeabi-v7a,arm64-v8a", "--app-abis", abi,
+                                  "--release", "--aar", str(aar), "--apk", str(apk))
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_cli_per_abi_apk_rejects_the_other_abi(self) -> None:
+        aar, apk = self.artifact("aar"), self.artifact("apk")
+        result = self.cli("--expected-abis", "armeabi-v7a,arm64-v8a", "--app-abis", "arm64-v8a",
+                          "--release", "--aar", str(aar), "--apk", str(apk))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unexpected ABI armeabi-v7a", result.stderr)
+
+    def test_cli_per_abi_apk_still_requires_aar_libraries(self) -> None:
+        aar = self.artifact("aar", extra="libextra.so")
+        apk = self.artifact("apk", abis={"armeabi-v7a"})
+        result = self.cli("--expected-abis", "armeabi-v7a,arm64-v8a", "--app-abis", "armeabi-v7a",
+                          "--release", "--aar", str(aar), "--apk", str(apk))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("omitted AAR libraries: libextra.so", result.stderr)
+
+    def test_cli_app_abis_must_narrow_expected(self) -> None:
+        apk = self.artifact("apk", abis={"armeabi-v7a"})
+        result = self.cli("--expected-abis", "arm64-v8a", "--app-abis", "armeabi-v7a", "--apk", str(apk))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("subset", result.stderr)
+
     def test_bad_abi_selection_fails(self) -> None:
         for value in ("", "armeabi", "arm64-v8a,arm64-v8a", "armeabi-v7a,arm64-v8a,x86_64"):
             with self.subTest(value=value), self.assertRaises(VerificationError):

@@ -21,6 +21,8 @@ class AppUrls {
       'https://s3.amazonaws.com/lantern.io/releases/production/latest';
   static const directDownloadAndroid =
       '$_s3ReleasesLatest/lantern-installer.apk';
+  static const directDownloadAndroidArmv7 =
+      '$_s3ReleasesLatest/lantern-installer-armv7.apk';
   static const directDownloadWindows =
       '$_s3ReleasesLatest/lantern-installer.exe';
   static const directDownloadMac = '$_s3ReleasesLatest/lantern-installer.dmg';
