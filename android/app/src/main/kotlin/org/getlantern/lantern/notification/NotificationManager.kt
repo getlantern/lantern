@@ -24,6 +24,8 @@ class NotificationHelper {
     companion object {
         private const val DATA_USAGE = 36
         const val VPN_CONNECTED = 37
+        // Flutter-posted VPN status IDs (NotificationEvent); 1002 is pre-#9172 legacy.
+        private val VPN_STATUS_TOAST_IDS = intArrayOf(1001, 1002)
         private const val CHANNEL_VPN = "lantern_vpn"
         private const val CHANNEL_DATA_USAGE = "data_usage"
         const val OPEN_URL = "SERVICE_OPEN_URL"
@@ -150,6 +152,9 @@ class NotificationHelper {
 
     fun showVPNConnectedNotification(vpnService: LanternVpnService) {
         updateForegroundNotification()
+        // Clear Flutter's disconnect toast even when no engine is listening
+        // (e.g. Quick Settings reconnect).
+        VPN_STATUS_TOAST_IDS.forEach { notificationManager.cancel(it) }
     }
 
     fun stopVPNConnectedNotification(vpnService: LanternVpnService) {

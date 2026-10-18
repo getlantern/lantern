@@ -1,6 +1,6 @@
 name: Android Compile Check
 
-# Build and verify both ARM ABIs.
+# Build and verify both ARM ABIs and run native regression tests on relevant PRs.
 
 on:
   workflow_dispatch:
@@ -26,6 +26,7 @@ on:
       - "scripts/ci/verify_android_abis*"
       - "scripts/android/test-runtime-seccomp.py"
       - "scripts/android/runtime-seccomp/**"
+      - "lantern-core/vpn_tunnel/**"
       - ".github/workflows/android-compile-check.yml"
       - ".github/workflows/android-abi-candidate.yml"
       - ".github/workflows/build-android.yml"
