@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android TV home-screen banner; same artwork as the launch screen. -->
+<!-- Android TV home-screen banner (320x180dp); same artwork as the launch screen. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
@@ -7,7 +7,10 @@
             <size android:width="320dp" android:height="180dp" />
         </shape>
     </item>
-    <item android:gravity="center">
-        <bitmap android:gravity="center" android:src="@drawable/splash_logo" />
-    </item>
+    <!-- Sized explicitly: splash_logo is 250dp and would otherwise stretch the banner. -->
+    <item
+        android:width="120dp"
+        android:height="120dp"
+        android:drawable="@drawable/splash_logo"
+        android:gravity="center" />
 </layer-list>
