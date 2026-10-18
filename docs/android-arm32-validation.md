@@ -49,7 +49,7 @@ A10 passing. Firebase follow-up is deferred: project `lantern-android`, matrices
 ## Build and test
 
 ```sh
-gh workflow run android-compile-check.yml --ref atavism/android-32 -f build_candidate=true
+gh workflow run android-compile-check.yml --ref main -f build_candidate=true
 make android-debug-ci
 make android-release-ci
 ```
@@ -66,7 +66,7 @@ python3 scripts/android/test-runtime-seccomp.py
 Run the focused physical-device suite through CI:
 
 ```sh
-gh workflow run firebase-test-lab.yml --ref atavism/android-32 \
+gh workflow run firebase-test-lab.yml --ref main \
   -f test_target=integration_test/android_architecture_smoke_test.dart \
   -f devices='model=a10,version=29,locale=en,orientation=portrait' \
   -f instrumentation_args='lanternExpectedAbi=armeabi-v7a,lanternExpectedSdk=29,lanternRequire32BitOnly=true'
