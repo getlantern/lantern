@@ -83,6 +83,8 @@ def required_asset_names(
     for platform, extension in platform_extensions.items():
         if platform in platforms:
             assets.add(f"{base_name}.{extension}")
+    if "android" in platforms:
+        assets.add(f"{base_name}-armv7.apk")
 
     if "linux" in platforms:
         arches = ("amd64", "arm64") if linux_arch == "all" else (linux_arch,)

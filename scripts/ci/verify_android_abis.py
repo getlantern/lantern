@@ -90,6 +90,7 @@ def verify_artifact(path: Path, kind: str, expected: set[str], release: bool = F
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--expected-abis", required=True, help="Comma-separated ABIs, e.g. armeabi-v7a,arm64-v8a")
+    parser.add_argument("--app-abis", help="ABIs for APK/AAB artifacts when narrower than the AAR (per-ABI APKs)")
     parser.add_argument("--aar", action="append", type=Path, default=[])
     parser.add_argument("--apk", action="append", type=Path, default=[])
     parser.add_argument("--aab", action="append", type=Path, default=[])
@@ -99,11 +100,14 @@ def main() -> int:
         parser.error("provide at least one --aar, --apk or --aab")
     try:
         expected = parse_abis(args.expected_abis)
+        app_expected = parse_abis(args.app_abis) if args.app_abis else expected
+        if not app_expected <= expected:
+            raise VerificationError("--app-abis must be a subset of --expected-abis")
         aar_names = set()
         app_inventories = []
         for kind in ("aar", "apk", "aab"):
             for path in getattr(args, kind):
-                inventory = verify_artifact(path, kind, expected, args.release)
+                inventory = verify_artifact(path, kind, expected if kind == "aar" else app_expected, args.release)
                 if kind == "aar":
                     aar_names.update(*inventory.values())
                 else:

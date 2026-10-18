@@ -75,6 +75,7 @@ class VerifyReleaseAlignmentTest(TestCase):
             assets,
             {
                 "lantern-installer-beta.apk",
+                "lantern-installer-beta-armv7.apk",
                 "lantern-installer-beta.deb",
                 "lantern-installer-beta.dmg",
                 "lantern-installer-beta.exe",
@@ -159,6 +160,7 @@ class VerifyReleaseAlignmentTest(TestCase):
             "name": "Lantern 9.2.0",
             "assets": [
                 {"name": "lantern-installer.apk", "size": 42, "state": "uploaded"},
+                {"name": "lantern-installer-armv7.apk", "size": 42, "state": "uploaded"},
             ],
         }
 
@@ -186,6 +188,7 @@ class VerifyReleaseAlignmentTest(TestCase):
             "name": "Lantern 9.2.0",
             "assets": [
                 {"name": "lantern-installer.apk", "size": 42, "state": "uploaded"},
+                {"name": "lantern-installer-armv7.apk", "size": 42, "state": "uploaded"},
             ],
         }
 
@@ -285,7 +288,10 @@ class VerifyReleaseAlignmentTest(TestCase):
         request_json.return_value = [{
             "tag_name": "v9.2.0-beta", "name": "Beta 9.2.0-beta",
             "draft": True, "prerelease": True,
-            "assets": [{"name": "lantern-installer-beta.apk", "size": 42, "state": "uploaded"}],
+            "assets": [
+                {"name": "lantern-installer-beta.apk", "size": 42, "state": "uploaded"},
+                {"name": "lantern-installer-beta-armv7.apk", "size": 42, "state": "uploaded"},
+            ],
         }]
         with self.assertRaisesRegex(verify_release_alignment.VerificationError, "release tag points to"):
             verify_release_alignment.verify(self.config(platforms=frozenset({"android"})))

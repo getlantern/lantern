@@ -1,8 +1,11 @@
 # Android ARM32 validation
 
-Standard local and release builds package both ARM32 and ARM64, with matching
-targets across gomobile, Flutter and Gradle. Artifact checks require both
-architectures in the AAR, APK and AAB.
+The AAR, debug APKs and Play AAB package both ARM32 and ARM64, with matching
+targets across gomobile, Flutter and Gradle. The sideload release ships one APK
+per ABI (`lantern-installer[-<type>].apk` for ARM64, `...-armv7.apk` for ARM32)
+so ARM64 users don't download 32-bit libraries; `-Plantern.abis` narrows Gradle
+packaging for each build. Artifact checks require both architectures in the AAR
+and AAB, and exactly one in each sideload APK.
 
 ## Failure and fix
 
