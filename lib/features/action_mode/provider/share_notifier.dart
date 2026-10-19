@@ -288,7 +288,7 @@ class ShareNotifier extends _$ShareNotifier {
           appLogger.error(
             'SmC setPeerProxy failed, falling back to Unbounded: ${err.error}',
           );
-          unawaited(_fallbackToUnbounded(widgetRef));
+          unawaited(_fallbackToUnbounded(widgetRef, err.error));
         }, (_) => null);
       case ShareMode.unbounded:
         final res = await widgetRef
@@ -332,7 +332,7 @@ class ShareNotifier extends _$ShareNotifier {
 
   /// Switches a failed SmC session to Unbounded. radiance has already rolled
   /// its peer-share setting back, so only the local mode and broflake remain.
-  Future<void> _fallbackToUnbounded(WidgetRef widgetRef) async {
+  Future<void> _fallbackToUnbounded(WidgetRef widgetRef, String? reason) async {
     if (state.mode == ShareMode.unbounded) return;
     _changes++;
     try {
@@ -341,6 +341,7 @@ class ShareNotifier extends _$ShareNotifier {
         active: true,
         mode: ShareMode.unbounded,
         totalCount: state.totalCount,
+        fallbackReason: (reason?.isNotEmpty ?? false) ? reason : null,
         relay: state.relay.newSession(),
       );
       final result = await widgetRef
@@ -430,7 +431,7 @@ class ShareNotifier extends _$ShareNotifier {
         appLogger.info(
           'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
         );
-        unawaited(_fallbackToUnbounded(widgetRef));
+        unawaited(_fallbackToUnbounded(widgetRef, errMsg));
         return;
       }
       if (phase == SharePhase.idle) {
@@ -470,6 +471,8 @@ class ShareNotifier extends _$ShareNotifier {
         );
         ref.read(appSettingProvider.notifier).setUnboundedTotalHelped(newTotal);
         unawaited(_resolveAndEmit(ip, arc));
+        // SmC has no byte counters, so the country row gains a person only.
+        unawaited(_attributeToCountry(ip, (down: 0, up: 0), arrived: true));
       } else if (eventState == -1) {
         final entry = _peerArcs[ip];
         if (entry == null) return;

@@ -8,6 +8,13 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 
+/// The user-facing name of a sharing mode, or null when not sharing.
+String? shareModeLabel(ShareMode mode) => switch (mode) {
+  ShareMode.smc => 'share_mode_smc'.i18n,
+  ShareMode.unbounded => 'share_mode_unbounded'.i18n,
+  ShareMode.off => null,
+};
+
 void showAdvancedStatsSheet(BuildContext context) {
   showAppBottomSheet(
     context: context,
@@ -49,6 +56,19 @@ class AdvancedStatsView extends ConsumerWidget {
         AppCard(
           child: Column(
             children: [
+              _StatRow(
+                key: const Key('advanced-stats.mode'),
+                label: 'advanced_stats_mode'.i18n,
+                value: shareModeLabel(state.mode) ?? 'smc_status_off'.i18n,
+                detail:
+                    state.mode == ShareMode.unbounded &&
+                        state.fallbackReason != null
+                    ? 'advanced_stats_mode_fallback'.i18n.fill([
+                        state.fallbackReason!,
+                      ])
+                    : null,
+              ),
+              divider,
               if (!smc) ...[
                 _StatRow(
                   label: 'advanced_stats_current_speed'.i18n,
@@ -125,7 +145,12 @@ class AdvancedStatsView extends ConsumerWidget {
 String _directions(String down, String up) => '↓ $down  ↑ $up';
 
 class _StatRow extends StatelessWidget {
-  const _StatRow({required this.label, required this.value, this.detail});
+  const _StatRow({
+    super.key,
+    required this.label,
+    required this.value,
+    this.detail,
+  });
   final String label, value;
   final String? detail;
 
@@ -201,8 +226,12 @@ class _CountryRow extends StatelessWidget {
                 children: [
                   Text(name, style: Theme.of(context).textTheme.bodyLarge),
                   Text(
+                    // A row with people but no bytes has no byte count to
+                    // show, as with direct sharing, which reports none.
                     people == null
                         ? stats.bytes.siBytes
+                        : stats.bytes == 0
+                        ? people
                         : '${stats.bytes.siBytes} · $people',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: context.textSecondary,

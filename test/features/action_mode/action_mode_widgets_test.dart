@@ -398,12 +398,15 @@ void main() {
           await tester.tapAt(tester.getCenter(toggle) - const Offset(20, 0));
           await tester.pump(const Duration(milliseconds: 300));
           expect(_Share.toggles, 1);
-          final checkbox = find.byKey(const Key('action-mode.auto-enable'));
-          await tester.ensureVisible(checkbox);
+          final link = find.byKey(const Key('action-mode.advanced-stats'));
+          await tester.ensureVisible(link);
           await tester.pump(const Duration(milliseconds: 300));
-          await tester.tap(checkbox);
-          await tester.pump(const Duration(milliseconds: 300));
-          expect(tester.widget<Checkbox>(checkbox).value, isTrue);
+          await tester.tap(link);
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 500));
+          expect(find.byType(AdvancedStatsView), findsOneWidget);
+          // Auto-enable lives in Action Mode settings, not on the tab.
+          expect(find.byType(ActionModeAutoEnable), findsNothing);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
         },
@@ -573,6 +576,28 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a country with people but no bytes shows people only', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.smc,
+        phase: SharePhase.serving,
+        relay: RelayStats(
+          countries: {
+            'IR': RelayCountryStats(code: 'IR', name: 'Iran', people: 1),
+          },
+        ),
+      ),
+    );
+    expect(find.text('1 person'), findsOneWidget);
+    expect(find.text('0 B · 1 person'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('advanced stats shows an empty state at large text', (
     tester,
   ) async {
@@ -621,6 +646,62 @@ void main() {
     expect(find.text('Current speed'), findsNothing);
     expect(find.text('Data relayed this session'), findsNothing);
     expect(find.text('Data relayed all time'), findsOneWidget);
+    expect(find.text('Direct connection'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final (mode, label) in [
+    (ShareMode.unbounded, 'Enabled · WebRTC'),
+    (ShareMode.smc, 'Enabled · Direct connection'),
+  ]) {
+    testWidgets('status line names the $mode mode', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        shareState: ShareState(
+          active: true,
+          mode: mode,
+          phase: mode == ShareMode.smc ? SharePhase.serving : SharePhase.idle,
+          unboundedRunning: mode == ShareMode.unbounded,
+        ),
+        animated: true,
+      );
+      final card = tester.widget<ActionModeStatusCard>(
+        find.byType(ActionModeStatusCard),
+      );
+      expect(card.status, label);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  testWidgets('advanced stats explains a fallback to WebRTC', (tester) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.unbounded,
+        unboundedRunning: true,
+        fallbackReason: "Your router isn't forwarding traffic.",
+        relay: relay,
+      ),
+    );
+    final mode = find.byKey(const Key('advanced-stats.mode'));
+    expect(
+      find.descendant(of: mode, matching: find.text('WebRTC')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: mode,
+        matching: find.text(
+          "Direct connection unavailable: Your router isn't forwarding "
+          'traffic.',
+        ),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 }
