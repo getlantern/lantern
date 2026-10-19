@@ -470,10 +470,6 @@ try {
       if ([string]::IsNullOrWhiteSpace($configServerBaseName)) {
         $configServerBaseName = $generatedDefaultConfigServerName
       }
-      if ([string]::IsNullOrWhiteSpace($env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION)) {
-        $env:JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION = "true"
-      }
-
       $env:JOIN_SERVER_CONFIG_SERVER_NAME = "$configServerBaseName-api"
       Invoke-FlutterSmokeTest `
         -Path $ConfigUrlApiTestPath `
