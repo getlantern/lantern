@@ -95,12 +95,14 @@ start_daemon() {
   daemon_pid=$!
   for ((attempt = 0; attempt < 60; attempt++)); do
     kill -0 "$daemon_pid" || { cat "$LEGACY_EMAIL_FIXTURE_DIR/daemon.log"; exit 1; }
-    if curl --silent --fail --max-time 2 --unix-socket /run/lantern/lanternd.sock \
-      http://localhost/account/user > /dev/null; then
+    if curl --silent --show-error --fail --max-time 2 --http2-prior-knowledge \
+      --unix-socket /run/lantern/lanternd.sock http://localhost/account/user \
+      > /dev/null 2>"$LEGACY_EMAIL_FIXTURE_DIR/daemon-ready.log"; then
       return
     fi
     sleep 1
   done
+  cat "$LEGACY_EMAIL_FIXTURE_DIR/daemon-ready.log" "$LEGACY_EMAIL_FIXTURE_DIR/daemon.log" >&2
   echo 'Lantern daemon did not become ready.' >&2
   exit 1
 }
