@@ -873,5 +873,38 @@ void main() {
     await tester.pump();
     expect(container.read(shareProvider).relay.speedDown, speed);
     expect(container.read(shareProvider).mode, ShareMode.smc);
+
+    // SmC traffic marks the stats dirty every second; an idle Unbounded
+    // snapshot must not force a save for it each time.
+    final settings =
+        container.read(appSettingProvider.notifier) as FakeSettings;
+    await peerSnapshot(8000, 800);
+    final writes = settings.relayWrites;
+    service.events.add(
+      AppEvent(
+        eventType: 'unbounded-snapshot',
+        message: jsonEncode({
+          'epoch': 'run-1',
+          'arrivals': 0,
+          'enabled': false,
+          'running': false,
+          'peers': [],
+          'bytesDown': 0,
+          'bytesUp': 0,
+          'peerBytes': [],
+        }),
+      ),
+    );
+    await tester.pump();
+    expect(settings.relayWrites, writes);
+
+    // When the backend is unreachable, peer snapshots stop too, so the
+    // speed must not stay up.
+    service.events.add(
+      AppEvent(eventType: 'unbounded-unavailable', message: '{}'),
+    );
+    await tester.pump();
+    expect(container.read(shareProvider).relay.speedDown, 0);
+    expect(container.read(shareProvider).mode, ShareMode.smc);
   });
 }

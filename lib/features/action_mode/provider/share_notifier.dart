@@ -400,6 +400,9 @@ class ShareNotifier extends _$ShareNotifier {
           relay: _idleRelay(),
         );
         _persistRelay(force: true);
+      } else if (!_changing && state.mode == ShareMode.smc) {
+        // Peer snapshots stop too, so the last speed would otherwise stay up.
+        state = state.copyWith(relay: _idleRelay());
       }
       return;
     }
@@ -514,6 +517,7 @@ class ShareNotifier extends _$ShareNotifier {
     if (state.mode == ShareMode.smc) {
       // Unbounded can still flush bytes from a session that stopped just
       // before SmC started. Count them without touching SmC's state.
+      final markBefore = _unboundedFeed.counters.watermark;
       state = state.copyWith(
         relay: _applyRelayCounters(
           snapshot,
@@ -524,7 +528,10 @@ class ShareNotifier extends _$ShareNotifier {
           updateSpeed: false,
         ),
       );
-      _persistRelay(force: true);
+      // Saved at once only when Unbounded's own counters moved: SmC's
+      // snapshots mark the stats dirty every second, and forcing on every
+      // idle Unbounded snapshot would bypass the throttle for them.
+      _persistRelay(force: _unboundedFeed.counters.watermark != markBefore);
       return;
     }
     final enabled = snapshot['enabled'] as bool;
