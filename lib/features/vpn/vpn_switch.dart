@@ -108,7 +108,8 @@ class VPNSwitch extends HookConsumerWidget {
               borderRadius: BorderRadius.circular(50.r),
               border: showFocus.value
                   ? Border.all(
-                      color: Theme.of(context).colorScheme.primary,
+                      // onSurface: primary matches the connected track in dark mode.
+                      color: Theme.of(context).colorScheme.onSurface,
                       width: 3,
                     )
                   : null,
