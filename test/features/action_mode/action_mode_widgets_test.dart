@@ -625,7 +625,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('advanced stats in SmC shows a note instead of zeros', (
+  testWidgets('advanced stats in SmC shows the same figures as WebRTC', (
     tester,
   ) async {
     await mount(
@@ -638,15 +638,15 @@ void main() {
         relay: relay,
       ),
     );
-    expect(find.byKey(const Key('advanced-stats.smc-note')), findsOneWidget);
+    expect(find.text('Direct connection'), findsOneWidget);
+    expect(find.text('↓ 1.3 MB/s  ↑ 48 kB/s'), findsOneWidget);
+    expect(find.text('352 MB'), findsOneWidget);
+    expect(find.text('1.2 GB'), findsOneWidget);
+    expect(find.text('920 MB · 4 people'), findsOneWidget);
     expect(
       find.text('Data stats are available only when sharing via Unbounded.'),
-      findsOneWidget,
+      findsNothing,
     );
-    expect(find.text('Current speed'), findsNothing);
-    expect(find.text('Data relayed this session'), findsNothing);
-    expect(find.text('Data relayed all time'), findsOneWidget);
-    expect(find.text('Direct connection'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

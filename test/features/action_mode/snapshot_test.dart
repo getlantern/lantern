@@ -731,4 +731,98 @@ void main() {
     expect(saved.unboundedBytesDown, 1001500);
     expect(saved.unboundedRelayMarkDown, 1500);
   });
+
+  testWidgets('SmC relay snapshots drive speed, data, and countries', (
+    tester,
+  ) async {
+    late WidgetRef widgetRef;
+    late BuildContext context;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (ctx, ref, child) {
+            widgetRef = ref;
+            context = ctx;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final radiance =
+        container.read(radianceSettingsProvider.notifier)
+            as FakeRadianceSettings;
+    radiance.onSetPeerProxy = (_) async => right(unit);
+    final notifier = container.read(shareProvider.notifier);
+    var now = DateTime(2026, 10, 19);
+    notifier.clock = () => now;
+    Future<void> peerSnapshot(int down, int up) async {
+      now = now.add(const Duration(seconds: 1));
+      service.events.add(
+        AppEvent(
+          eventType: 'peer-snapshot',
+          message: jsonEncode({
+            'epoch': 'smc-1',
+            'running': true,
+            'peers': ['192.0.2.1:4000'],
+            'bytesDown': down,
+            'bytesUp': up,
+            'peerBytes': [
+              {'ip': '192.0.2.1', 'down': down, 'up': up},
+            ],
+          }),
+        ),
+      );
+      await tester.pump();
+    }
+
+    // Manual port (FakeService returns 1) routes the start to SmC.
+    await notifier.toggle(context, widgetRef);
+    expect(container.read(shareProvider).mode, ShareMode.smc);
+    service.events.add(
+      AppEvent(
+        eventType: 'peer-connection',
+        message: jsonEncode({'state': 1, 'source': '192.0.2.1:4000'}),
+      ),
+    );
+    await tester.pump();
+    expect(container.read(shareProvider).relay.countries['US']!.people, 3);
+
+    await peerSnapshot(0, 0); // baseline
+    await peerSnapshot(4000, 400);
+    var relay = container.read(shareProvider).relay;
+    expect(relay.available, isTrue);
+    expect(relay.sessionDown, 4000);
+    expect(relay.sessionUp, 400);
+    expect(relay.lifetimeDown, 1004000);
+    expect(relay.speedDown, greaterThan(0));
+    // Country attribution resolves the peer's location asynchronously.
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+    relay = container.read(shareProvider).relay;
+    final us = relay.countries['US']!;
+    expect(us.down, 900 + 4000);
+    expect(us.people, 3, reason: 'a snapshot does not count people again');
+
+    // Unbounded keeps reporting while idle; it must not reset SmC's speed.
+    final speed = relay.speedDown;
+    service.events.add(
+      AppEvent(
+        eventType: 'unbounded-snapshot',
+        message: jsonEncode({
+          'epoch': 'run-1',
+          'arrivals': 0,
+          'enabled': false,
+          'running': false,
+          'peers': [],
+          'bytesDown': 0,
+          'bytesUp': 0,
+          'peerBytes': [],
+        }),
+      ),
+    );
+    await tester.pump();
+    expect(container.read(shareProvider).relay.speedDown, speed);
+    expect(container.read(shareProvider).mode, ShareMode.smc);
+  });
 }
