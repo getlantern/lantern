@@ -226,8 +226,12 @@ class _CountryRow extends StatelessWidget {
                 children: [
                   Text(name, style: Theme.of(context).textTheme.bodyLarge),
                   Text(
+                    // A row with people but no bytes has no byte count to
+                    // show, as with direct sharing, which reports none.
                     people == null
                         ? stats.bytes.siBytes
+                        : stats.bytes == 0
+                        ? people
                         : '${stats.bytes.siBytes} · $people',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: context.textSecondary,

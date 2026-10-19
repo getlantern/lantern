@@ -576,6 +576,28 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a country with people but no bytes shows people only', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.smc,
+        phase: SharePhase.serving,
+        relay: RelayStats(
+          countries: {
+            'IR': RelayCountryStats(code: 'IR', name: 'Iran', people: 1),
+          },
+        ),
+      ),
+    );
+    expect(find.text('1 person'), findsOneWidget);
+    expect(find.text('0 B · 1 person'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('advanced stats shows an empty state at large text', (
     tester,
   ) async {

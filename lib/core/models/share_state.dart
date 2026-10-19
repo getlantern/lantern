@@ -44,7 +44,8 @@ class ShareState {
   final SharePhase phase;
   final String? errorMessage;
   /// Why SmC could not start, when this Unbounded session is its fallback.
-  /// Set only by the fallback itself; copyWith carries it unchanged.
+  /// Set only by the fallback itself; copyWith carries it while sharing and
+  /// drops it once the mode is off, so it never outlives its session.
   final String? fallbackReason;
   final RelayStats relay;
 
@@ -84,7 +85,9 @@ class ShareState {
         errorMessage: identical(errorMessage, _unsetErrorMessage)
             ? this.errorMessage
             : errorMessage as String?,
-        fallbackReason: fallbackReason,
+        fallbackReason: (mode ?? this.mode) == ShareMode.off
+            ? null
+            : fallbackReason,
         relay: relay ?? this.relay,
       );
 }
