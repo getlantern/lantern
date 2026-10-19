@@ -2,6 +2,22 @@ name: Firebase Test Lab (Android)
 
 on:
   workflow_dispatch:
+    inputs:
+      devices:
+        description: "Semicolon-separated FTL device specs; verify current catalog before selecting ARM32 models"
+        required: false
+        type: string
+        default: ""
+      test_target:
+        description: "Flutter integration entrypoint (default: full e2e suite); architecture smoke: integration_test/android_architecture_smoke_test.dart"
+        required: false
+        type: string
+        default: ""
+      instrumentation_args:
+        description: "FTL environment variables, e.g. lanternExpectedAbi=armeabi-v7a,lanternExpectedSdk=28,lanternRequire32BitOnly=true"
+        required: false
+        type: string
+        default: ""
   # The nightly schedule lives in app-smoke-tests.yml, which calls this
   # workflow alongside the desktop platforms.
   push:
@@ -26,6 +42,11 @@ on:
         required: false
         type: string
         default: ""
+      instrumentation_args:
+        description: "Comma-separated FTL environment variables passed to the instrumentation runner"
+        required: false
+        type: string
+        default: ""
     secrets:
       FIREBASE_SERVICE_ACCOUNT:
         required: true
@@ -43,7 +64,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ftl-android-${{ github.ref }}
+  group: ftl-android-${{ github.ref }}-${{ inputs.devices || 'default' }}
   cancel-in-progress: false
 
 jobs:
@@ -150,6 +171,58 @@ jobs:
           fi
           echo "Verified integration APK version: $actual_version"
 
+      - name: Record tested artifact identity
+        # Evidence only; a toolchain-metadata hiccup must not cancel the test run.
+        continue-on-error: true
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re, subprocess
+
+          def run(*args):
+              return subprocess.check_output(args, text=True).strip()
+
+          sdk = pathlib.Path(os.environ["ANDROID_HOME"])
+          apksigner = max(sdk.glob("build-tools/*/apksigner"), key=lambda p: tuple(
+              int(n) for n in re.findall(r"\d+", p.parent.name)))
+
+          def identity(filename):
+              path = pathlib.Path(filename)
+              digest = hashlib.sha256()
+              with path.open("rb") as stream:
+                  for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                      digest.update(chunk)
+              # Retain certificate digests without signer subjects or embedded configuration.
+              certificates = re.findall(
+                  r"^(?:Signer .+|V\d+(?:\.\d+)? Signer:) certificate SHA-256 digest: ([0-9a-fA-F]{64})$",
+                  run(str(apksigner), "verify", "--print-certs", str(path)), re.MULTILINE)
+              if not certificates:
+                  raise SystemExit(f"No verified signing certificate found for {path.name}")
+              return {
+                  "filename": path.name,
+                  "sha256": digest.hexdigest(),
+                  "package": run("apkanalyzer", "manifest", "application-id", str(path)),
+                  "version_code": run("apkanalyzer", "manifest", "version-code", str(path)),
+                  "version_name": run("apkanalyzer", "manifest", "version-name", str(path)),
+                  "signing_certificate_sha256": sorted({c.lower() for c in certificates}),
+              }
+
+          ndk_properties = pathlib.Path(os.environ["ANDROID_NDK_HOME"], "source.properties")
+          metadata = {
+              "source_sha": os.environ["GITHUB_SHA"],
+              "toolchain_versions": {
+                  "go": run("go", "env", "GOVERSION"),
+                  "flutter": json.loads(run("flutter", "--version", "--machine"))["frameworkVersion"],
+                  "ndk": re.search(r"(?m)^Pkg\.Revision\s*=\s*(\S+)", ndk_properties.read_text()).group(1),
+              },
+              "app_apk": identity("build/app/outputs/apk/debug/app-debug.apk"),
+              "android_test_apk": identity("build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk"),
+          }
+          output = pathlib.Path("ftl-results/tested-artifact-identity.json")
+          output.parent.mkdir(exist_ok=True)
+          output.write_text(json.dumps(metadata, indent=2) + "\n")
+          PY
+
       - name: Run tests on Firebase Test Lab
         id: ftl
         shell: bash
@@ -159,6 +232,7 @@ jobs:
           # treat empty and unset alike.
           FTL_DEVICES: ${{ inputs.devices }}
           FTL_FLAKY_ATTEMPTS: ${{ inputs.flaky_attempts }}
+          FTL_ENVIRONMENT_VARIABLES: ${{ inputs.instrumentation_args }}
         run: scripts/android/ftl-run.sh
 
       # Runs on success and on test failure, but not when an earlier step
@@ -217,15 +291,17 @@ jobs:
           EOF
 
       # Test Lab writes logcat, screen video, and JUnit XML per device; attach
-      # them to the run so failures can be debugged without GCS access. The
-      # summary step above is what downloads ftl-results/.
+      # them to the run on success and failure for review without GCS access.
+      # The summary step above is what downloads ftl-results/.
       - name: Upload Test Lab artifacts
-        if: always() && steps.ftl.outcome == 'failure'
+        if: always() && steps.ftl.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: ftl-results-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ftl-results/
             ftl-output.log
+            !ftl-results/**/*.apk
+            !ftl-results/**/*.aab
           if-no-files-found: warn
           retention-days: 14

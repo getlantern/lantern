@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
+import 'package:lantern/core/widgets/tv_frame.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/updater/updater.dart';
@@ -62,7 +63,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void initLifecycleListener() {
     _lifecycle = AppLifecycleListener(
-      onResume: _retryPendingUpdaterSetup,
+      onResume: _onResume,
       onExitRequested: () async {
         appLogger.info("Exit requested");
         await ref
@@ -74,8 +75,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
     );
   }
 
-  void _retryPendingUpdaterSetup() {
-    if (sl.isRegistered<Updater>()) sl<Updater>().retryPendingSetup();
+  void _onResume() {
+    _retryPendingUpdate();
+    unawaited(ref.read(lanternServiceProvider).syncTimeZone());
+  }
+
+  void _retryPendingUpdate() {
+    if (sl.isRegistered<Updater>()) sl<Updater>().retryPendingCheck();
   }
 
   @override
@@ -229,11 +235,20 @@ class _LanternAppState extends ConsumerState<LanternApp>
     return uri.toString();
   }
 
+  Color _tvBackground(BuildContext context, String themeMode) {
+    final mode = resolveThemeMode(themeMode);
+    final dark =
+        mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    return dark ? AppColors.gray9 : AppColors.gray1;
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(vpnProvider, (previous, next) {
       if (next == VPNStatus.connected && previous != next) {
-        _retryPendingUpdaterSetup();
+        _retryPendingUpdate();
       }
     });
     final appSetting = ref.watch(appSettingProvider);
@@ -246,63 +261,71 @@ class _LanternAppState extends ConsumerState<LanternApp>
       overlayWidgetBuilder: (_) => Center(child: LoadingIndicator()),
       child: WindowWrapper(
         child: SystemTrayWrapper(
-          child: ScreenUtilInit(
-            ensureScreenSize: true,
-            designSize: designSizeFor(context),
-            minTextAdapt: true,
-            child: I18n(
-              initialLocale: locale.toLocale,
-              localizationsDelegates: [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              child: MaterialApp.router(
-                locale: locale.toLocale,
-                debugShowCheckedModeBanner: false,
-                builder: (context, child) {
-                  final router = child ?? const SizedBox.shrink();
-                  final shell = isStaging
-                      ? Banner(
-                          message: 'STAGING',
-                          location: BannerLocation.topEnd,
-                          color: AppColors.red6,
-                          child: router,
-                        )
-                      : router;
-                  return UserMessageHost(
-                    routeObserver: userMessageRouteObserver,
-                    actionDispatcher: _userMessageActionDispatcher,
-                    enabled:
-                        appSetting.onboardingCompleted && !paymentSessionActive,
-                    child: shell,
-                  );
-                },
-                theme: AppTheme.appTheme(),
-                darkTheme: AppTheme.darkTheme(),
-                themeMode: resolveThemeMode(appSetting.themeMode),
-                supportedLocales: languages
-                    .map(
-                      (lang) =>
-                          Locale(lang.split('_').first, lang.split('_').last),
-                    )
-                    .toList(),
-                // List of supported languages
-                routerConfig: globalRouter.config(
-                  deepLinkBuilder: (deepLink) {
-                    return DeepLink
-                        .defaultPath; // We handle deep links manually, so return null to use the default route
-                  },
-                  navigatorObservers: () => [
-                    routeObserver,
-                    userMessageRouteObserver,
+          child: TvFrame(
+            background: _tvBackground(context, appSetting.themeMode),
+            child: Builder(
+              builder: (context) => ScreenUtilInit(
+                ensureScreenSize: true,
+                designSize: designSizeFor(context),
+                minTextAdapt: true,
+                child: I18n(
+                  initialLocale: locale.toLocale,
+                  localizationsDelegates: [
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
                   ],
+                  child: MaterialApp.router(
+                    locale: locale.toLocale,
+                    debugShowCheckedModeBanner: false,
+                    builder: (context, child) {
+                      final router = child ?? const SizedBox.shrink();
+                      final shell = isStaging
+                          ? Banner(
+                              message: 'STAGING',
+                              location: BannerLocation.topEnd,
+                              color: AppColors.red6,
+                              child: router,
+                            )
+                          : router;
+                      return UserMessageHost(
+                        routeObserver: userMessageRouteObserver,
+                        actionDispatcher: _userMessageActionDispatcher,
+                        enabled:
+                            appSetting.onboardingCompleted &&
+                            !paymentSessionActive,
+                        child: shell,
+                      );
+                    },
+                    theme: AppTheme.appTheme(),
+                    darkTheme: AppTheme.darkTheme(),
+                    themeMode: resolveThemeMode(appSetting.themeMode),
+                    supportedLocales: languages
+                        .map(
+                          (lang) => Locale(
+                            lang.split('_').first,
+                            lang.split('_').last,
+                          ),
+                        )
+                        .toList(),
+                    // List of supported languages
+                    routerConfig: globalRouter.config(
+                      deepLinkBuilder: (deepLink) {
+                        return DeepLink
+                            .defaultPath; // We handle deep links manually, so return null to use the default route
+                      },
+                      navigatorObservers: () => [
+                        routeObserver,
+                        userMessageRouteObserver,
+                      ],
+                    ),
+                    localizationsDelegates: const [
+                      GlobalMaterialLocalizations.delegate,
+                      GlobalWidgetsLocalizations.delegate,
+                      GlobalCupertinoLocalizations.delegate,
+                    ],
+                  ),
                 ),
-                localizationsDelegates: const [
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
               ),
             ),
           ),

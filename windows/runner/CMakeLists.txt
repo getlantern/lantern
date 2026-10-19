@@ -39,3 +39,8 @@ target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
+
+# Stage the selected MSVC toolchain's runtime for installer packaging.
+set_target_properties(${BINARY_NAME} PROPERTIES
+  VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/stage_vcredist.props"
+)

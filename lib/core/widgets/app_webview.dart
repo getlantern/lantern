@@ -122,6 +122,11 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
   bool _completionHandled = false;
 
   final setting = InAppWebViewSettings(
+    // Remote pages don't need access to local files or content providers.
+    allowFileAccess: false,
+    allowContentAccess: false,
+    allowFileAccessFromFileURLs: false,
+    allowUniversalAccessFromFileURLs: false,
     javaScriptEnabled: true,
     javaScriptCanOpenWindowsAutomatically: true,
     supportMultipleWindows: true,

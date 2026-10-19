@@ -1,18 +1,6 @@
 name: Flutter Test
 
-# Runs the Dart unit/widget suite (test/) on PRs that touch Dart source. Until
-# now nothing ran it: every other `flutter test` call in this repo targets
-# integration_test/, and all of them sit behind workflow_call (build-linux.yml,
-# build-windows.yml) or workflow_dispatch. So no PR-triggered workflow executed
-# a single Dart test, and a regression pinned by a unit test could still merge.
-#
-# That gap is not hypothetical — lantern-box v0.0.101 changed the JSON shape of
-# `user_failures` and broke Dart deserialization for every user with a recorded
-# failure (#8929). The fix ships with tests, but on `pull_request` nothing would
-# have run them.
-#
-# No Go toolchain, Android SDK, or Java here: `flutter test` runs on the Dart VM
-# and builds no platform artifact, which keeps this gate to a couple of minutes.
+# Analyze, compile, and test Dart changes without building native targets.
 
 on:
   workflow_dispatch:
@@ -20,10 +8,15 @@ on:
     paths:
       - "lib/**"
       - "test/**"
+      - "integration_test/**"
+      - "test_driver/**"
+      - "assets/**"
       - "pubspec.yaml"
       - "pubspec.lock"
+      - "analysis_options.yaml"
+      - "build.yaml"
+      - "Makefile"
       - ".github/flutter-version.yaml"
-      # keep the self-trigger so edits to this workflow re-run it
       - ".github/workflows/flutter-test.yml"
       - ".github/actions/setup-flutter/**"
 
@@ -43,23 +36,23 @@ jobs:
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
 
-      # Generated sources are committed, but regenerating means the suite tests
-      # the PR's own source rather than whatever .g.dart happened to be checked
-      # in — a model change with a forgotten `make gen` would otherwise pass
-      # against stale generated code.
+      # Regenerate committed sources so tests cannot pass against stale code.
       - name: Flutter pub get + codegen
         run: |
           make pubget
           make gen
 
-      # app.env is a declared pubspec asset, normally decoded from a secret by
-      # the release workflow. Asset bundling runs before the tests do and fails
-      # outright if the file is absent, so an empty placeholder is enough — the
-      # suite reads nothing from it. Same treatment as android-compile-check.yml.
+      # app.env is a required asset; these checks do not need its contents.
       - name: Create placeholder app.env
         run: touch app.env
 
-      # Reporter is left unset: the Dart test runner defaults to its `github`
-      # reporter under Actions, which annotates failures inline on the PR.
+      # Fail on errors while allowing existing warnings and infos.
+      - name: Analyze Dart sources
+        run: flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
+
+      # Compile code that tests may not import and validate the app's assets.
+      - name: Compile app and bundle assets
+        run: flutter build bundle --debug --no-pub --target=lib/main.dart --target-platform=linux-x64 --asset-dir=build/ci/flutter-assets
+
       - name: Run Flutter tests
         run: flutter test

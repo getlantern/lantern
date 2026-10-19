@@ -24,7 +24,7 @@ class PlansNotifier extends _$PlansNotifier {
 
   /// Plans are only published after this completes, so the first paint
   /// already shows store prices (Plan.displayPrice) instead of flickering.
-  Future<void> _storeProductsReady = Future.value();
+  Future<bool> _storeProductsReady = Future.value(true);
 
   @override
   Future<PlansData> build() async {
@@ -70,6 +70,8 @@ class PlansNotifier extends _$PlansNotifier {
     );
     if (!fromBackground && attempt == 0) {
       state = const AsyncLoading();
+      // Retry / code removal must publish with the base SKUs, not offers.
+      _storeProductsReady = _loadStoreProducts();
     }
     final result = await ref.read(lanternServiceProvider).plans();
     return result.fold(
@@ -111,7 +113,7 @@ class PlansNotifier extends _$PlansNotifier {
         // removing an affiliate code) leave the loading state. When invoked
         // from build() the framework also assigns the returned value — this
         // extra set is harmless and redundant there.
-        state = AsyncData(remote);
+        if (ref.mounted) state = AsyncData(remote);
         return remote;
       },
     );
@@ -122,21 +124,32 @@ class PlansNotifier extends _$PlansNotifier {
   /// Does not wait for the country-code event: an unknown country must not
   /// delay or skip the prefetch, and the timeout bounds the cost where Play
   /// is unreachable.
-  Future<void> _loadStoreProducts() async {
+  ///
+  /// Returns false only when the store rejected the request, i.e. the SKU set
+  /// is not the one asked for. A timeout still returns true: the fetch keeps
+  /// running and checkout waits for it, so the cards stay consistent.
+  Future<bool> _loadStoreProducts({bool includeOffers = false}) async {
     if (!isStoreVersion()) {
-      return;
+      return true;
     }
     if (PlatformUtils.isAndroid && !canUsePlayBilling()) {
-      return;
+      return true;
     }
     try {
-      await sl<AppPurchase>().fetchSubscriptions().timeout(
-        const Duration(seconds: 5),
+      await sl<AppPurchase>()
+          .fetchSubscriptions(includeOffers: includeOffers)
+          .timeout(const Duration(seconds: 5));
+      return true;
+    } on TimeoutException catch (e) {
+      appLogger.warning(
+        '[PlansNotifier] Store products slow, showing API prices for now: $e',
       );
+      return true;
     } catch (e) {
       appLogger.warning(
         '[PlansNotifier] Store products unavailable, showing API prices: $e',
       );
+      return false;
     }
   }
 
@@ -146,16 +159,25 @@ class PlansNotifier extends _$PlansNotifier {
     appLogger.info(
       '[PlansNotifier] Background refresh complete, updating state',
     );
-    state = AsyncData(remotePlans);
+    if (ref.mounted) state = AsyncData(remotePlans);
   }
 
-  /// Replaces the current plans with [plans] — e.g. the discounted plans
-  /// returned after applying a referral code. Kept in-memory only: the
-  /// discount is session-specific and must not overwrite the cached base
-  /// plans used by non-referral sessions.
-  void updatePlans(PlansData plans) {
+  /// Publishes the discounted [plans] from an applied affiliate code, after
+  /// loading the offer SKUs so the cards rebuild once with store prices.
+  /// In-memory only: the discount must not overwrite the cached base plans.
+  ///
+  /// Returns false and leaves the state untouched when the offer SKUs could
+  /// not be loaded: checkout would then charge the base SKU, so the discounted
+  /// cards must not be shown.
+  Future<bool> updatePlans(PlansData plans) async {
     appLogger.info('[PlansNotifier] updatePlans: ${plans.plans.length} plans');
+    _storeProductsReady = _loadStoreProducts(includeOffers: true);
+    final loaded = await _storeProductsReady;
+    if (!loaded) return false;
+    // The plans screen may have closed while the store was queried.
+    if (!ref.mounted) return false;
     state = AsyncData(plans);
+    return true;
   }
 
   void setSelectedPlan(Plan plan) {

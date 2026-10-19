@@ -188,6 +188,7 @@ class ExtensionProvider: NEPacketTunnelProvider {
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     opts.logLevel = "trace"
     opts.locale = Locale.current.identifier
+    opts.timeZone = TimeZone.current.identifier
     return opts
   }
 

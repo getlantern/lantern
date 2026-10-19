@@ -85,6 +85,10 @@ endif
 ## signal from logs.
 GIT_REVISION := $(or $(strip $(shell git rev-parse --short=7 HEAD)),unknown)
 EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_REVISION)'
+## The Soar DNS-tunnel server kindling falls back to. CI sets SOAR_ZONE (a secret, kept out of
+## this public repo and its logs) and SOAR_PUBLIC_KEY (a variable); without them it's left out.
+SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR_ZONE)' -X '$(RADIANCE_REPO)/kindling/soar.PublicKey=$(SOAR_PUBLIC_KEY)')
+EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
 # Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
@@ -173,18 +177,18 @@ ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
-# ABI targeting: arm64-only for both APK and AAB (2026-05-28).
-#
-# armeabi-v7a (32-bit) was dropped from the AAB too: Go >=1.23.2 trips
-# Android 8-10 seccomp on 32-bit, killing libgojni.so with SIGSYS at startup
-# (golang/go#70495 — ~54% of v9 crashes; those devices were crash-looping
-# anyway). Re-add android-arm here if/when that's fixed upstream.
-ANDROID_APK_TARGET_PLATFORMS := android-arm64
-ANDROID_AAB_TARGET_PLATFORMS := android-arm64
-# Back-compat alias for any external caller / debug target that references
-# ANDROID_TARGET_PLATFORMS. Now arm64-only, same as the APK/AAB targets.
-ANDROID_TARGET_PLATFORMS := $(ANDROID_AAB_TARGET_PLATFORMS)
+# Shared native targets for gomobile, Flutter and Gradle.
+include android/abi-targets.properties
+override ANDROID_ABIS := $(android.abis)
+override ANDROID_TARGET_PLATFORMS := $(subst armeabi-v7a,android-arm,$(subst arm64-v8a,android-arm64,$(ANDROID_ABIS)))
+override ANDROID_APK_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
+override ANDROID_AAB_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
+ANDROID_ABI_STAMP := $(BIN_DIR)/android/.abis
+ANDROID_ABI_CHECK = $(PYTHON) scripts/ci/verify_android_abis.py --expected-abis $(ANDROID_ABIS)
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
+# Sideload APKs are per-ABI so arm64 users don't download 32-bit libraries;
+# the autoupdate server maps "-armv7" to arch=arm.
+ANDROID_RELEASE_APK_ARMV7 := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-armv7.apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_STEALTH_NOVPN_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.apk
 ANDROID_STEALTH_NOVPN_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.aab
@@ -193,7 +197,7 @@ ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-deb
 PYTHON ?= python3
 STEALTH_LEAKAGE_MODE ?= stealth
 STEALTH_LEAKAGE_CONFIG ?= scripts/stealth/forbidden_tokens.json
-STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
+STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_APK_ARMV7) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
 STEALTH_LEAKAGE_MISSING_OK ?= 1
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.31.5
@@ -220,6 +224,7 @@ ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTIT
 ANDROID_AUTH_SCHEME = $(strip $(if $(ANDROID_IDENTITY_PROFILE),$(shell sed -n 's/^appAuthScheme=//p' "$(ANDROID_IDENTITY_PROFILE)" 2>/dev/null | tail -n 1),))
 ANDROID_IDENTITY_DART_DEFINES = $(if $(STEALTH_ENABLED),,$(if $(ANDROID_AUTH_SCHEME),--dart-define=APP_AUTH_SCHEME=$(ANDROID_AUTH_SCHEME)))
 PLAY_STORE_DART_DEFINE = $(if $(STEALTH_ACTIVE),,--dart-define=PLAY_STORE_BUILD=true)
+PLAY_STORE_GRADLE_FLAGS = $(if $(STEALTH_ACTIVE),,-Plantern.cleartextTraffic=false)
 
 IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
 IOS_DIR := ios/
@@ -239,20 +244,48 @@ GO_SOURCES := go.mod go.sum
 UNAME_S := Windows
 else
 GO_VERSION ?= $(shell grep '^go ' go.mod | awk '{print "go" $$2}')
-GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go')
+GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go' ! -name '*_test.go')
 UNAME_S := $(shell uname -s)
 endif
-GOMOBILECACHE ?= $(HOME)/.cache/gomobile
-# gomobile bind produces the AAR consumed by both the APK and the AAB.
-# arm64 only — armeabi-v7a (32-bit) is no longer shipped in any artifact
-# (golang/go#70495 SIGSYS on 32-bit Android 8-10).
-GOMOBILE_ANDROID_TARGET ?= android/arm64
+# gomobile stores initialization data under the first GOPATH entry.
+ifeq ($(OS),Windows_NT)
+GOMOBILE_INIT_DIR = $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command 'Write-Output (((go env GOPATH) -split ";")[0] + "/pkg/gomobile")')
+else
+GOMOBILE_INIT_DIR = $(shell go env GOPATH | cut -d: -f1)/pkg/gomobile
+endif
+GOMOBILECACHE ?= $(GOMOBILE_INIT_DIR)
+# gomobile bind produces the same ABI set consumed by Flutter and Gradle.
+override GOMOBILE_ANDROID_TARGET := $(subst armeabi-v7a,android/arm,$(subst arm64-v8a,android/arm64,$(ANDROID_ABIS)))
 # Pinned, not "latest". gomobile and gobind are the toolchain that builds the
 # mobile frameworks, so a release has to be reproducible in them -- with "latest"
 # a shipped binary is built by whatever resolved that morning, and nothing
 # records which. This is the version "latest" resolved to for the last green
 # release on all of android, macos and ios, so pinning it changes nothing today.
 GOMOBILE_VERSION ?= v0.0.0-20260908204917-8b95e45f8d3e
+GOMOBILE_INIT_STAMP = $(GOMOBILE_INIT_DIR)/.init-$(GO_VERSION)-$(GOMOBILE_VERSION)
+
+# CI builds only the runner's architecture and uses stable version metadata.
+GOMOBILE_MACOS_TARGET := macos
+GOMOBILE_IOS_TARGET := ios
+APPLE_FRAMEWORK_LDFLAGS = $(GO_EXTRA_LDFLAGS)
+SWIFT_CHECK_XCODE_ARGS :=
+SWIFT_CHECK_MACOS_DESTINATION := platform=macOS
+ifeq ($(SWIFT_CHECK),1)
+ifeq ($(SWIFT_CHECK_ARCH),arm64)
+SWIFT_CHECK_XCODE_ARCH := arm64
+else ifeq ($(SWIFT_CHECK_ARCH),amd64)
+SWIFT_CHECK_XCODE_ARCH := x86_64
+else
+$(error SWIFT_CHECK_ARCH must be arm64 or amd64 when SWIFT_CHECK=1)
+endif
+GOMOBILE_MACOS_TARGET := macos/$(SWIFT_CHECK_ARCH)
+GOMOBILE_IOS_TARGET := iossimulator/$(SWIFT_CHECK_ARCH)
+APPLE_FRAMEWORK_LDFLAGS = -X '$(RADIANCE_REPO)/common.Version=0.0.0-swift-ci' -X '$(RADIANCE_REPO)/common.BuildTime=1970-01-01T00:00:00Z' -X '$(RADIANCE_REPO)/common.Commit=swift-ci' $(STEALTH_GO_LDFLAGS)
+SWIFT_CHECK_XCODE_ARGS := ARCHS=$(SWIFT_CHECK_XCODE_ARCH) ONLY_ACTIVE_ARCH=YES
+SWIFT_CHECK_MACOS_DESTINATION := platform=macOS,arch=$(SWIFT_CHECK_XCODE_ARCH)
+SWIFT_CHECK_FRAMEWORK_STAMP := swift-check-v1-$(SWIFT_CHECK_ARCH)-$(GO_VERSION)-$(GOMOBILE_VERSION)
+endif
+
 GOMOBILE_REPOS = \
 	github.com/sagernet/sing-box/experimental/libbox \
 	./lantern-core/mobile \
@@ -269,7 +302,7 @@ GARBLE ?= garble
 GARBLE_VERSION ?= v0.16.0
 GARBLE_SEED ?= $(STEALTH_GARBLE_SEED)
 GARBLE_FLAGS ?= -literals
-STEALTH_GOGARBLE_PACKAGES := github.com/getlantern/lantern,github.com/getlantern/radiance,github.com/getlantern/common,github.com/getlantern/lantern-box,github.com/getlantern/kindling,github.com/getlantern/netx,github.com/getlantern/flashlight,github.com/getlantern/golog,github.com/getlantern/sing-box-minimal,github.com/getlantern/amp,github.com/getlantern/broflake,github.com/getlantern/samizdat,github.com/getlantern/domainfront,github.com/getlantern/semconv,github.com/getlantern/publicip,github.com/getlantern/dnstt,github.com/getlantern/keepcurrent,github.com/getlantern/algeneva,github.com/getlantern/lantern-water,github.com/getlantern/water,github.com/getlantern/wazero,github.com/getlantern/wireguard-go,github.com/getlantern/sing,github.com/getlantern/osversion,github.com/getlantern/timezone,github.com/getlantern/pluriconfig,github.com/getlantern/appdir,github.com/getlantern/context,github.com/getlantern/fronted,github.com/getlantern/lantern-server-provisioner,github.com/getlantern/ops
+STEALTH_GOGARBLE_PACKAGES := github.com/getlantern/lantern,github.com/getlantern/radiance,github.com/getlantern/common,github.com/getlantern/lantern-box,github.com/getlantern/kindling,github.com/getlantern/netx,github.com/getlantern/flashlight,github.com/getlantern/golog,github.com/getlantern/sing-box-minimal,github.com/getlantern/amp,github.com/getlantern/broflake,github.com/getlantern/samizdat,github.com/getlantern/domainfront,github.com/getlantern/semconv,github.com/getlantern/publicip,github.com/getlantern/soar,github.com/getlantern/keepcurrent,github.com/getlantern/algeneva,github.com/getlantern/lantern-water,github.com/getlantern/water,github.com/getlantern/wazero,github.com/getlantern/wireguard-go,github.com/getlantern/sing,github.com/getlantern/osversion,github.com/getlantern/timezone,github.com/getlantern/pluriconfig,github.com/getlantern/appdir,github.com/getlantern/context,github.com/getlantern/fronted,github.com/getlantern/lantern-server-provisioner,github.com/getlantern/ops
 GARBLE_GOGARBLE ?= $(if $(STEALTH_ENABLED),$(STEALTH_GOGARBLE_PACKAGES),github.com/getlantern/lantern)
 GARBLE_LDFLAGS ?= -w -s -buildid=
 
@@ -499,19 +532,41 @@ install-macos-deps: install-gomobile
 	brew install joshdk/tap/retry
 	brew install imagemagick || true
 
+# Rebuild when switching between CI and normal frameworks.
+.PHONY: force-apple-framework
+force-apple-framework:
+ifeq ($(SWIFT_CHECK),1)
+ifneq ($(shell cat $(MACOS_FRAMEWORK_OUTPUT)/.swift-check-build 2>/dev/null),$(SWIFT_CHECK_FRAMEWORK_STAMP))
+$(MACOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+ifneq ($(shell cat $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build 2>/dev/null),$(SWIFT_CHECK_FRAMEWORK_STAMP))
+$(IOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+else
+ifneq ($(wildcard $(MACOS_FRAMEWORK_OUTPUT)/.swift-check-build),)
+$(MACOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+ifneq ($(wildcard $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build),)
+$(IOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+endif
+
 .PHONY: macos
 macos: $(MACOS_FRAMEWORK_OUTPUT)
 
 $(MACOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building macOS Framework.."
 	rm -rf $(MACOS_FRAMEWORK_BUILD) $@ && mkdir -p $(MACOS_FRAMEWORK_DIR)
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-tags=$(TAGS),netgo$(STEALTH_GO_TAGS)  -trimpath \
-		-target=macos \
+		-target=$(GOMOBILE_MACOS_TARGET) \
 		-o $(MACOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
+		-ldflags="-w -s -checklinkname=0 $(APPLE_FRAMEWORK_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	mv $(MACOS_FRAMEWORK_BUILD) $@
+ifeq ($(SWIFT_CHECK),1)
+	printf '%s\n' '$(SWIFT_CHECK_FRAMEWORK_STAMP)' > $@/.swift-check-build
+endif
 	@echo "Built macOS Framework: $@"
 
 
@@ -535,8 +590,9 @@ macos-unit-tests: $(MACOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 		-workspace macos/Runner.xcworkspace \
 		-scheme Runner \
 		-configuration Debug \
-		-destination "platform=macOS" \
+		-destination "$(SWIFT_CHECK_MACOS_DESTINATION)" \
 		-only-testing:RunnerTests \
+		$(SWIFT_CHECK_XCODE_ARGS) \
 		CODE_SIGNING_ALLOWED=NO \
 		CODE_SIGNING_REQUIRED=NO \
 		CODE_SIGN_IDENTITY=""
@@ -564,6 +620,11 @@ stage-macos-profile: build-macos-profile
 	mkdir -p $(DARWIN_RELEASE_DIR)
 	ditto $(DARWIN_PROFILE_BUILD) $(DARWIN_RELEASE_BUILD)
 
+# stapler fetches the ticket from Apple's CloudKit, and one dropped connection
+# there failed v10.0.3-beta-3 after notarization had been accepted. Stapling is
+# idempotent, so every failure is retried.
+STAPLER_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" --
+
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
 	scripts/ci/sign_macos_dmg.sh "$(DARWIN_RELEASE_BUILD)" "$(MACOS_INSTALLER)"
@@ -585,9 +646,9 @@ notarize-darwin: require-ac-username require-ac-password
 		exit 1; \
 	fi
 	@echo "Stapling notarization ticket..."
-	xcrun stapler staple $(MACOS_INSTALLER)
+	$(STAPLER_RETRY) xcrun stapler staple $(MACOS_INSTALLER)
 	codesign --verify --strict --verbose=2 "$(MACOS_INSTALLER)"
-	xcrun stapler validate "$(MACOS_INSTALLER)"
+	$(STAPLER_RETRY) xcrun stapler validate "$(MACOS_INSTALLER)"
 	spctl --assess --type open --context context:primary-signature --verbose=4 "$(MACOS_INSTALLER)"
 	@echo "Notarization complete"
 
@@ -849,17 +910,25 @@ attempt=1; until GOTOOLCHAIN=$(GO_VERSION) go install -v $(1); do \
 done
 endef
 
+# gomobile bind runs `go mod tidy` in a scratch module with no go.sum, so every
+# build checks each module against sum.golang.org. A sum.golang.org outage
+# (stream INTERNAL_ERROR, 2026-10-14) failed iOS and macOS builds for 40
+# minutes. Only those network errors are retried; compile errors fail at once.
+GOMOBILE_BIND_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" \
+	-m 'reading https://(sum|proxy)\.golang\.org/|stream error|i/o timeout|TLS handshake timeout|connection reset by peer' --
+
 install-gomobile:
 	@$(call go_install_retry,golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION))
-	@$(call go_install_retry,golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION))
-	@mkdir -p "$(GOMOBILECACHE)"
-	@if [ ! -f "$(GOMOBILECACHE)/.init-$(GO_VERSION)" ]; then \
-		echo "Running gomobile init (first time for $(GO_VERSION))..."; \
-		GOMOBILECACHE="$(GOMOBILECACHE)" GOTOOLCHAIN=$(GO_VERSION) gomobile init; \
-		touch "$(GOMOBILECACHE)/.init-$(GO_VERSION)"; \
+	@mkdir -p "$(GOMOBILE_INIT_DIR)"
+	@set -e; if [ ! -f "$(GOMOBILE_INIT_STAMP)" ]; then \
+		echo "Running gomobile init for $(GO_VERSION)/$(GOMOBILE_VERSION)..."; \
+		GOTOOLCHAIN=$(GO_VERSION) gomobile init; \
 	else \
-		echo "Skipping gomobile init (cached for $(GO_VERSION))"; \
+		echo "Skipping gomobile init (cached for $(GO_VERSION)/$(GOMOBILE_VERSION))"; \
 	fi
+# gomobile init installs gobind@latest, so install the pinned version last.
+	@$(call go_install_retry,golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION))
+	@touch "$(GOMOBILE_INIT_STAMP)"
 
 .PHONY: install-garble
 install-garble:
@@ -917,16 +986,29 @@ android-identity-profile: $(MAYBE_STEALTH_PROFILE)
 .PHONY: android
 android: check-android-sdk check-gomobile $(ANDROID_LIB_BUILD)
 
-$(ANDROID_LIB_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+# ABI changes invalidate output even when Make rounds mtimes to seconds.
+ifneq ($(shell cat $(ANDROID_ABI_STAMP) 2>/dev/null),$(ANDROID_ABIS))
+$(ANDROID_LIB_BUILD) $(ANDROID_DEBUG_BUILD): FORCE
+endif
+
+$(ANDROID_ABI_STAMP): FORCE
+	@mkdir -p $(dir $@)
+	@if [ ! -f "$@" ] || [ "$$(cat "$@")" != "$(ANDROID_ABIS)" ]; then printf '%s\n' "$(ANDROID_ABIS)" > "$@"; fi
+
+.PHONY: android-abi-config
+android-abi-config:
+	@echo "abis=$(ANDROID_ABIS) flutter=$(ANDROID_TARGET_PLATFORMS) gomobile=$(GOMOBILE_ANDROID_TARGET)"
+
+$(ANDROID_LIB_BUILD): $(GO_SOURCES) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) build-android
 
-build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
+build-android: check-android-sdk check-gomobile $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Android libraries..."
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
 
 	GOMOBILECACHE="$(GOMOBILECACHE)" \
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
 		-javapkg=$(GOMOBILE_JAVAPKG) \
@@ -935,6 +1017,7 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
@@ -942,7 +1025,7 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 android-obfuscated: build-android-obfuscated
 
 .PHONY: build-android-obfuscated
-build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go $(MAYBE_STEALTH_PROFILE)
+build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building obfuscated Android libraries..."
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
@@ -954,7 +1037,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 	GARBLE_FLAGS="$(GARBLE_FLAGS)" \
 	GARBLE_GOGARBLE="$(GARBLE_GOGARBLE)" \
 	GOMOBILECACHE="$(GOMOBILECACHE)" \
-	GOTOOLCHAIN=$(GO_VERSION) GOOS=android gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
 		-javapkg=$(GOMOBILE_JAVAPKG) \
@@ -963,12 +1046,13 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built obfuscated Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 	$(if $(STEALTH_ENABLED),$(MAKE) ANDROID_LIBS_DIR="$(ANDROID_LIBS_DIR)" ANDROID_LIB="$(ANDROID_LIB)" verify-stealth-jni,)
 
 # verify-stealth-jni: hard gate on JNI symbol namespace in the stealth AAR.
-# Extracts arm64-v8a/libgojni.so and asserts:
+# Extracts each ABI's libgojni.so and asserts:
 #   - Java_lantern_io_* is ABSENT (GOMOBILE_JAVAPKG=foundation.engine applied)
 #   - Java_foundation_engine_* is PRESENT (gomobile binding succeeded)
 # Called automatically by build-android-obfuscated when STEALTH_ENABLED is set.
@@ -983,21 +1067,24 @@ verify-stealth-jni:
 	  echo "FAIL: AAR not found at $$aar — build stealth AAR first"; \
 	  exit 1; \
 	fi; \
-	unzip -q "$$aar" "jni/arm64-v8a/libgojni.so" -d "$$tmpdir" 2>/dev/null || \
-	  { echo "FAIL: libgojni.so not found in $$aar (expected jni/arm64-v8a/libgojni.so)"; exit 1; }; \
-	so="$$tmpdir/jni/arm64-v8a/libgojni.so"; \
-	bad=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_lantern_io" || true); \
-	if [ "$$bad" -gt 0 ]; then \
-	  echo "FAIL: $$bad Java_lantern_io_* symbol(s) found — GOMOBILE_JAVAPKG=foundation.engine not applied:"; \
-	  nm -D "$$so" | grep "Java_lantern_io"; \
-	  exit 1; \
-	fi; \
-	good=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_foundation_engine" || true); \
-	if [ "$$good" -eq 0 ]; then \
-	  echo "FAIL: no Java_foundation_engine_* symbols found — gomobile javapkg binding is missing"; \
-	  exit 1; \
-	fi; \
-	echo "PASS: JNI namespace gate — Java_lantern_io=0, Java_foundation_engine=$$good"
+	for abi in $$(printf '%s' "$(ANDROID_ABIS)" | tr ',' ' '); do \
+	  unzip -q "$$aar" "jni/$$abi/libgojni.so" -d "$$tmpdir" 2>/dev/null || \
+	    { echo "FAIL: libgojni.so not found in $$aar (expected jni/$$abi/libgojni.so)"; exit 1; }; \
+	  so="$$tmpdir/jni/$$abi/libgojni.so"; \
+	  bad=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_lantern_io" || true); \
+	  if [ "$$bad" -gt 0 ]; then \
+	    echo "FAIL: $$abi: $$bad Java_lantern_io_* symbol(s) found — GOMOBILE_JAVAPKG=foundation.engine not applied:"; \
+	    nm -D "$$so" | grep "Java_lantern_io"; \
+	    exit 1; \
+	  fi; \
+	  good=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_foundation_engine" || true); \
+	  if [ "$$good" -eq 0 ]; then \
+	    echo "FAIL: $$abi: no Java_foundation_engine_* symbols found — gomobile javapkg binding is missing"; \
+	    exit 1; \
+	  fi; \
+	  echo "PASS: $$abi: Java_lantern_io=0, Java_foundation_engine=$$good"; \
+	done; \
+	echo "PASS: JNI namespace gate ($(ANDROID_ABIS))"
 
 .PHONY: android-debug android-debug-ci
 android-debug: $(ANDROID_DEBUG_BUILD)
@@ -1005,9 +1092,10 @@ android-debug: $(ANDROID_DEBUG_BUILD)
 android-debug-ci: ANDROID_DEBUG_FLUTTER_FLAGS :=
 android-debug-ci: $(ANDROID_DEBUG_BUILD)
 
-$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) android-identity-profile
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --build-name=$(APP_VERSION_PUBSPEC) --debug $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_DEBUG_BUILD)
 
 # Runs the Android integration test on a connected device (the FTL
 # instrumentation path). Override the entrypoint with ANDROID_INTEGRATION_TARGET.
@@ -1031,7 +1119,7 @@ android-integration-test: $(ANDROID_LIB_BUILD)
 	  fi; \
 	fi
 	@echo "Running Android integration test on connected device(s): $(ANDROID_INTEGRATION_TARGET)"
-	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(APP_VERSION_PUBSPEC)" $(ANDROID_INTEGRATION_DART_DEFINES)
+	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget-platform=$(ANDROID_TARGET_PLATFORMS) -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(APP_VERSION_PUBSPEC)" $(ANDROID_INTEGRATION_DART_DEFINES)
 
 # Builds the two APKs Firebase Test Lab needs to run the integration test as an
 # instrumentation test — the app APK (with the Dart entrypoint baked in via
@@ -1043,7 +1131,8 @@ android-integration-test: $(ANDROID_LIB_BUILD)
 .PHONY: android-integration-apks
 android-integration-apks: $(ANDROID_LIB_BUILD)
 	@echo "Building integration test APKs (app + androidTest): $(ANDROID_INTEGRATION_TARGET)"
-	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(APP_VERSION_PUBSPEC)" $(ANDROID_INTEGRATION_DART_DEFINES)
+	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget-platform=$(ANDROID_TARGET_PLATFORMS) -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(APP_VERSION_PUBSPEC)" $(ANDROID_INTEGRATION_DART_DEFINES)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk build/app/outputs/apk/debug/app-debug.apk
 
 # Runs the integration test APKs on Firebase Test Lab. Needs an authenticated
 # gcloud CLI (`gcloud auth login`). Devices, project, bucket, etc. are
@@ -1052,23 +1141,33 @@ android-integration-apks: $(ANDROID_LIB_BUILD)
 android-ftl-test: android-integration-apks
 	scripts/android/ftl-run.sh
 
-# --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
-# abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
+# Builds and checks one single-ABI sideload APK: $(1)=ABI, $(2)=Flutter
+# target platform, $(3)=output file. The AAR keeps every ABI; -Plantern.abis
+# narrows Gradle packaging to match Flutter's single target.
+define android_apk_for_abi
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(2) -Plantern.abis=$(1) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
+	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_APK_RELEASE_BUILD),true)
+	$(ANDROID_ABI_CHECK) --app-abis $(1) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_APK_RELEASE_BUILD) --release
+	cp $(ANDROID_APK_RELEASE_BUILD) $(3)
+endef
+
+# One sideload APK per ABI; the AAB below carries every ABI and Play splits it.
 # -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
 # direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
 android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
-	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_APK_RELEASE_BUILD),true)
-	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
+	# Package the selected native build as-is; an implicit rebuild could replace a garbled AAR.
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
+	$(call android_apk_for_abi,arm64-v8a,android-arm64,$(ANDROID_RELEASE_APK))
+	$(call android_apk_for_abi,armeabi-v7a,android-arm,$(ANDROID_RELEASE_APK_ARMV7))
 
-# AAB is arm64-only too (armeabi-v7a dropped — golang/go#70495 SIGSYS on
-# 32-bit). 32-bit-only devices no longer get Play updates; they were
-# crash-looping on Android 8-10 regardless.
+# The AAB carries every ABI in android/abi-targets.properties.
 .PHONY: android-aab-release
 android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE) $(PLAY_STORE_GRADLE_FLAGS)
 	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_AAB_RELEASE_BUILD),true)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --aab $(ANDROID_AAB_RELEASE_BUILD) --release
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	$(MAKE) android-copy-play-artifacts
 
@@ -1160,14 +1259,17 @@ build-ios: $(MAYBE_STEALTH_PROFILE)
 	@echo "Building iOS Framework.."
 	rm -rf $(IOS_FRAMEWORK_BUILD)
 	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
-	GOOS=ios gomobile bind -v \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=ios $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-tags=$(TAGS),with_low_memory$(STEALTH_GO_TAGS) -trimpath \
-		-target=ios \
+		-target=$(GOMOBILE_IOS_TARGET) \
 		-o $(IOS_FRAMEWORK_BUILD) \
-		-ldflags="-w -s -checklinkname=0 $(GO_EXTRA_LDFLAGS)" \
+		-ldflags="-w -s -checklinkname=0 $(APPLE_FRAMEWORK_LDFLAGS)" \
 		$(GOMOBILE_REPOS)
 	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
 	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
+ifeq ($(SWIFT_CHECK),1)
+	printf '%s\n' '$(SWIFT_CHECK_FRAMEWORK_STAMP)' > $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build
+endif
 
 $(IOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) check-gomobile
@@ -1177,7 +1279,23 @@ $(IOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
 .PHONY: ios-compile-check
 ios-compile-check: $(IOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Flutter app (debug, simulator) for iOS..."
+ifeq ($(SWIFT_CHECK),1)
+# Generate Flutter configuration and install Pods before building with Xcode.
+	flutter build ios --debug --simulator --no-codesign --config-only $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	xcodebuild build \
+		-workspace ios/Runner.xcworkspace \
+		-scheme Runner \
+		-configuration Debug \
+		-sdk iphonesimulator \
+		-destination "generic/platform=iOS Simulator" \
+		BUILD_DIR="$(abspath $(BUILD_DIR))/ios" \
+		$(SWIFT_CHECK_XCODE_ARGS) \
+		CODE_SIGNING_ALLOWED=NO \
+		CODE_SIGNING_REQUIRED=NO \
+		CODE_SIGN_IDENTITY=""
+else
 	flutter build ios --debug --simulator --no-codesign $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+endif
 
 .PHONY: format swift-format
 swift-format:

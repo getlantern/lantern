@@ -3,17 +3,22 @@ import 'dart:async';
 import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/common/app_urls.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
+import 'package:lantern/core/updater/desktop_update_relay.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 
 class _FakeAutoUpdater implements AutoUpdater {
   final listeners = <UpdaterListener>[];
   final checks = <bool?>[];
+  final configurationCalls = <String>[];
   int configurations = 0;
   int? interval;
+  String? feedURL;
   Object? configurationError;
   Object? checkError;
   Object? intervalError;
@@ -28,6 +33,8 @@ class _FakeAutoUpdater implements AutoUpdater {
 
   @override
   Future<void> setFeedURL(String url) async {
+    configurationCalls.add('feed');
+    feedURL = url;
     configurations++;
     if (configurationError != null) throw configurationError!;
     await pendingFeed?.future;
@@ -35,7 +42,8 @@ class _FakeAutoUpdater implements AutoUpdater {
 
   @override
   Future<void> setScheduledCheckInterval(int value) async {
-    if (intervalError != null) throw intervalError!;
+    configurationCalls.add('interval:$value');
+    if (value > 0 && intervalError != null) throw intervalError!;
     interval = value;
   }
 
@@ -47,15 +55,43 @@ class _FakeAutoUpdater implements AutoUpdater {
   }
 
   void fail() {
+    final error = UpdaterError('Network unavailable');
     for (final listener in listeners) {
-      listener.onUpdaterError(null);
+      listener.onUpdaterError(error);
+      if (listener is UpdaterLifecycleListener) {
+        listener.onUpdaterUpdateCycleFinished(error);
+      }
     }
   }
 
   void succeed() {
     for (final listener in listeners) {
       listener.onUpdaterUpdateNotAvailable(null);
+      if (listener is UpdaterLifecycleListener) {
+        listener.onUpdaterUpdateCycleFinished(null);
+      }
     }
+  }
+}
+
+class _FakeUpdateRelay implements DesktopUpdateRelay {
+  int starts = 0;
+  int closes = 0;
+  String? feedURL;
+  Completer<String>? pending;
+  Object? error;
+
+  @override
+  Future<String> start(String feedUrl) async {
+    starts++;
+    feedURL = feedUrl;
+    if (error != null) throw error!;
+    return pending?.future ?? 'http://127.0.0.1:12345/token/appcast.xml';
+  }
+
+  @override
+  Future<void> close() async {
+    closes++;
   }
 }
 
@@ -89,13 +125,18 @@ class _FakeLanternService implements LanternService {
 
 Updater _desktopUpdater(
   _FakeAutoUpdater native, {
+  TargetPlatform platform = TargetPlatform.macOS,
+  _FakeUpdateRelay? relay,
   Future<Map<String, dynamic>> Function()? loadFeatureFlags,
+  Future<void> Function()? quitForUpdate,
 }) => Updater(
   autoUpdater: native,
-  platform: TargetPlatform.macOS,
+  updateRelay: relay ?? _FakeUpdateRelay(),
+  platform: platform,
   isDebugMode: false,
   now: TestWidgetsFlutterBinding.ensureInitialized().clock.now,
   loadFeatureFlags: loadFeatureFlags,
+  quitForUpdate: quitForUpdate,
 );
 
 void main() {
@@ -103,10 +144,253 @@ void main() {
 
   tearDown(() => sl.reset());
 
+  group('Windows update scheduling', () {
+    setUp(() {
+      const channel = MethodChannel('dev.fluttercommunity.plus/package_info');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      // Avoid caching PackageInfo or loading WinSparkle.dll in host-side tests.
+      messenger.setMockMethodCallHandler(channel, (_) async {
+        throw MissingPluginException('Package metadata is outside this test');
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    });
+
+    testWidgets('uses one hourly timer and waits while the prompt is open', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater();
+      final relay = _FakeUpdateRelay();
+      final updater = _desktopUpdater(
+        native,
+        platform: TargetPlatform.windows,
+        relay: relay,
+      );
+      addTearDown(updater.dispose);
+
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      expect(native.checks, [true]);
+      expect(native.configurationCalls, ['interval:0', 'feed']);
+      expect(native.interval, 0);
+      expect(native.feedURL, 'http://127.0.0.1:12345/token/appcast.xml');
+      expect(relay.feedURL, AppUrls.appcastFor(AppBuildInfo.buildType));
+
+      native.succeed();
+      await tester.pump(const Duration(minutes: 30));
+      native.succeed();
+      await tester.pump(const Duration(minutes: 30));
+      expect(native.checks, [true, true]);
+
+      updater.onUpdaterUpdateAvailable(null);
+      await tester.pump(const Duration(hours: 24));
+      await updater.checkNow();
+      updater.onUpdaterUpdateCancelled();
+      await updater.checkNow();
+      expect(native.checks, [true, true]);
+
+      updater.onUpdaterUpdateCycleFinished(null);
+      await tester.pump(const Duration(minutes: 59));
+      expect(native.checks, [true, true]);
+      await tester.pump(const Duration(minutes: 1));
+      expect(native.checks, [true, true, true]);
+      expect(native.configurationCalls, ['interval:0', 'feed']);
+      expect(relay.starts, 1);
+    });
+
+    testWidgets('backs off failures, ignores duplicate endings, and resets', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater();
+      final updater = _desktopUpdater(native, platform: TargetPlatform.windows);
+      addTearDown(updater.dispose);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+
+      var checks = 1;
+      for (final minutes in [1, 5, 15, 60, 60]) {
+        native.fail();
+        await tester.pump(const Duration(seconds: 30));
+        native.fail();
+        updater.onUpdaterUpdateCycleFinished(null);
+        await tester.pump(
+          Duration(minutes: minutes) - const Duration(seconds: 31),
+        );
+        expect(native.checks.length, checks);
+        await tester.pump(const Duration(seconds: 1));
+        expect(native.checks.length, ++checks);
+      }
+
+      native.succeed();
+      await updater.checkNow();
+      expect(native.checks.length, ++checks);
+      native.fail();
+      await tester.pump(const Duration(minutes: 1));
+      expect(native.checks.length, ++checks);
+      expect(native.configurations, 1);
+    });
+
+    testWidgets(
+      'reconnect expedites failed checks without postponing retries',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final updater = _desktopUpdater(
+          native,
+          platform: TargetPlatform.windows,
+        );
+        addTearDown(updater.dispose);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        native.fail();
+        await tester.pump(const Duration(seconds: 30));
+        updater.retryPendingCheck();
+        await tester.pump(const Duration(seconds: 30));
+        expect(native.checks.length, 2);
+
+        native.fail();
+        updater.retryPendingCheck();
+        await tester.pump(const Duration(seconds: 30));
+        updater.retryPendingCheck();
+        await tester.pump(const Duration(seconds: 30));
+        expect(native.checks.length, 3);
+
+        native.succeed();
+        updater.retryPendingCheck();
+        await tester.pump(const Duration(minutes: 59));
+        expect(native.checks.length, 3);
+        await tester.pump(const Duration(minutes: 1));
+        expect(native.checks.length, 4);
+      },
+    );
+
+    testWidgets('native promise completion does not end the update cycle', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater()..pendingCheck = Completer<void>();
+      final updater = _desktopUpdater(native, platform: TargetPlatform.windows);
+      addTearDown(updater.dispose);
+      await updater.init();
+      final check = updater.checkNow();
+      await tester.pump();
+      await tester.pump(const Duration(hours: 24));
+      await updater.checkNow();
+      updater.retryPendingCheck();
+      expect(native.checks, [false]);
+
+      native.pendingCheck!.complete();
+      await check;
+      await updater.checkNow();
+      await tester.pump(const Duration(hours: 24));
+      expect(native.checks, [false]);
+      native.succeed();
+      await updater.checkNow();
+      expect(native.checks, [false, false]);
+    });
+
+    testWidgets(
+      'rechecks a disabled feature flag hourly without native checks',
+      (tester) async {
+        var enabled = false;
+        var flagReads = 0;
+        final native = _FakeAutoUpdater();
+        final updater = _desktopUpdater(
+          native,
+          platform: TargetPlatform.windows,
+          loadFeatureFlags: () async {
+            flagReads++;
+            return {FeatureFlag.autoUpdateEnabled.key: enabled};
+          },
+        );
+        addTearDown(updater.dispose);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        await tester.pump(const Duration(hours: 1));
+        expect(flagReads, 2);
+        expect(native.configurationCalls, isEmpty);
+        expect(native.checks, isEmpty);
+
+        enabled = true;
+        await tester.pump(const Duration(hours: 1));
+        expect(native.checks, [true]);
+        native.succeed();
+        enabled = false;
+        await tester.pump(const Duration(hours: 1));
+        expect(flagReads, 4);
+        expect(native.checks, [true]);
+        expect(native.interval, 0);
+        updater.dispose();
+      },
+    );
+
+    testWidgets('retries a rejected manual dispatch and preserves its error', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater()
+        ..checkError = StateError('bridge unavailable');
+      final updater = _desktopUpdater(native, platform: TargetPlatform.windows);
+      addTearDown(updater.dispose);
+
+      await expectLater(updater.checkNow(), throwsStateError);
+      native.fail();
+      native.checkError = null;
+      await tester.pump(const Duration(minutes: 1));
+      expect(native.checks, [false, true]);
+      expect(native.configurations, 1);
+    });
+
+    testWidgets('disposal cancels both regular and failed-check timers', (
+      tester,
+    ) async {
+      for (final failed in [false, true]) {
+        final native = _FakeAutoUpdater();
+        final updater = _desktopUpdater(
+          native,
+          platform: TargetPlatform.windows,
+        );
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        if (failed) {
+          native.fail();
+        } else {
+          native.succeed();
+        }
+        updater.dispose();
+        updater.retryPendingCheck();
+        await tester.pump(const Duration(hours: 2));
+        expect(native.checks, [true]);
+        expect(native.listeners, isEmpty);
+      }
+    });
+
+    testWidgets('quitting cancels recovery and ignores late terminal events', (
+      tester,
+    ) async {
+      var quitCalls = 0;
+      final native = _FakeAutoUpdater();
+      final updater = _desktopUpdater(
+        native,
+        platform: TargetPlatform.windows,
+        quitForUpdate: () async => quitCalls++,
+      );
+      addTearDown(updater.dispose);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      native.fail();
+      updater.onUpdaterBeforeQuitForUpdate(null);
+      native.succeed();
+      updater.retryPendingCheck();
+      await tester.pump(const Duration(hours: 2));
+      await updater.checkNow();
+      expect(quitCalls, 1);
+      expect(native.checks, [true]);
+    });
+  });
+
   group('Desktop update recovery', () {
     testWidgets('checks at startup with no core service', (tester) async {
       final native = _FakeAutoUpdater();
-      final updater = _desktopUpdater(native);
+      final relay = _FakeUpdateRelay();
+      final updater = _desktopUpdater(native, relay: relay);
       addTearDown(updater.dispose);
 
       await updater.init();
@@ -116,6 +400,13 @@ void main() {
 
       expect(native.checks, [true]);
       expect(native.interval, 3600);
+      expect(native.configurationCalls, [
+        'interval:0',
+        'feed',
+        'interval:3600',
+      ]);
+      expect(native.feedURL, 'http://127.0.0.1:12345/token/appcast.xml');
+      expect(relay.feedURL, AppUrls.appcastFor(AppBuildInfo.buildType));
       expect(native.configurations, 1);
     });
 
@@ -157,6 +448,7 @@ void main() {
       await tester.pump(Updater.featureFlagTimeout);
       expect(native.checks, [true]);
 
+      native.succeed();
       final check = updater.checkNow();
       await tester.pump();
       await tester.pump(Updater.featureFlagTimeout);
@@ -165,6 +457,7 @@ void main() {
       expect(flagReads, 1);
       flags.complete({FeatureFlag.autoUpdateEnabled.key: false});
       await tester.pump();
+      native.succeed();
       await updater.checkNow();
       expect(native.checks, [true, false]);
     });
@@ -242,7 +535,7 @@ void main() {
       },
     );
 
-    testWidgets('retries setup if configuring the native interval fails', (
+    testWidgets('recovers after macOS starts but enabling its schedule fails', (
       tester,
     ) async {
       final native = _FakeAutoUpdater()
@@ -252,15 +545,33 @@ void main() {
       await updater.init();
       await tester.pump(Updater.startupDelay);
       expect(native.checks, isEmpty);
-      expect(native.interval, isNull);
+      expect(native.configurations, 1);
+      expect(native.interval, 0);
+
+      await tester.pump(const Duration(minutes: 1));
+      expect(native.configurations, 2);
+      expect(native.checks, isEmpty);
 
       native.intervalError = null;
-      await tester.pump(const Duration(minutes: 1));
+      await tester.pump(const Duration(minutes: 5));
       expect(native.interval, 3600);
       expect(native.checks, [true]);
       expect(native.listeners, [updater]);
+      expect(native.configurations, 3);
+      expect(native.configurationCalls, [
+        for (var attempt = 0; attempt < 3; attempt++) ...[
+          'interval:0',
+          'feed',
+          'interval:3600',
+        ],
+      ]);
+
+      native.succeed();
       await tester.pump(const Duration(hours: 2));
       expect(native.checks, [true]);
+      await updater.checkNow();
+      expect(native.checks, [true, false]);
+      expect(native.configurations, 3);
     });
 
     testWidgets('leaves check scheduling to the native updater after setup', (
@@ -277,12 +588,12 @@ void main() {
       await tester.pump(const Duration(hours: 2));
       expect(native.checks, [true]);
       native.fail();
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       await tester.pump(const Duration(hours: 2));
       expect(native.checks, [true]);
 
       native.succeed();
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       await tester.pump(const Duration(hours: 2));
       expect(native.checks, [true]);
     });
@@ -301,7 +612,7 @@ void main() {
       updater.onUpdaterUpdateAvailable(null);
       updater.onUpdaterUpdateDownloaded(null);
       native.fail();
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       await tester.pump(const Duration(hours: 2));
       expect(native.checks, [true]);
 
@@ -322,14 +633,14 @@ void main() {
       expect(native.configurations, 2);
 
       native.configurationError = null;
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       await tester.pump(const Duration(seconds: 30));
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       await tester.pump(const Duration(seconds: 30));
       expect(native.configurations, 3);
       expect(native.checks, [true]);
 
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       await tester.pump(const Duration(hours: 2));
       expect(native.configurations, 3);
       expect(native.checks, [true]);
@@ -345,13 +656,13 @@ void main() {
       await updater.init();
       await tester.pump(Updater.startupDelay);
       await tester.pump(const Duration(seconds: 30));
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       await tester.pump(const Duration(seconds: 30));
       expect(native.configurations, 2);
 
       await tester.pump(const Duration(minutes: 4, seconds: 30));
       native.configurationError = null;
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       await tester.pump(const Duration(seconds: 30));
       expect(native.configurations, 3);
       expect(native.checks, [true]);
@@ -366,7 +677,7 @@ void main() {
       addTearDown(updater.dispose);
       await updater.init();
       await tester.pump(Updater.startupDelay);
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       native.configurationError = null;
       await updater.checkNow();
       await tester.pump(const Duration(hours: 2));
@@ -389,6 +700,72 @@ void main() {
       expect(native.checks, [false]);
       native.pendingCheck!.complete();
       await check;
+      await updater.checkNow();
+      await tester.pump(const Duration(hours: 2));
+      expect(native.checks, [false]);
+      native.succeed();
+      await updater.checkNow();
+      expect(native.checks, [false, false]);
+    });
+
+    testWidgets('manual checks wait for a native scheduled cycle to finish', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater();
+      final updater = _desktopUpdater(native);
+      addTearDown(updater.dispose);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      native.succeed();
+
+      updater.onUpdaterCheckingForUpdate(null);
+      await updater.checkNow();
+      expect(native.checks, [true]);
+      native.succeed();
+      await updater.checkNow();
+      expect(native.checks, [true, false]);
+    });
+
+    testWidgets(
+      'manual checks wait for scheduled updates without a checking event',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final updater = _desktopUpdater(native);
+        addTearDown(updater.dispose);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        native.succeed();
+
+        // An update offer blocks checks even without an earlier checking event.
+        updater.onUpdaterUpdateAvailable(null);
+        await updater.checkNow();
+        expect(native.checks, [true]);
+
+        updater.onUpdaterUpdateCancelled();
+        await updater.checkNow();
+        expect(native.checks, [true]);
+
+        updater.onUpdaterUpdateCycleFinished(null);
+        await updater.checkNow();
+        expect(native.checks, [true, false]);
+      },
+    );
+
+    testWidgets('cancellation waits for completion and does not retry', (
+      tester,
+    ) async {
+      final native = _FakeAutoUpdater();
+      final updater = _desktopUpdater(native);
+      addTearDown(updater.dispose);
+      await updater.init();
+      await tester.pump(Updater.startupDelay);
+      updater.onUpdaterUpdateCancelled();
+      await updater.checkNow();
+      expect(native.checks, [true]);
+      updater.onUpdaterUpdateCycleFinished(null);
+      updater.retryPendingCheck();
+      await tester.pump(const Duration(minutes: 30));
+      expect(native.checks, [true]);
     });
 
     testWidgets(
@@ -410,6 +787,41 @@ void main() {
       },
     );
 
+    testWidgets(
+      'relay setup failures retry before configuring native updates',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final relay = _FakeUpdateRelay()
+          ..error = StateError('listener unavailable');
+        final updater = _desktopUpdater(native, relay: relay);
+        addTearDown(updater.dispose);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        expect(native.configurations, 0);
+        relay.error = null;
+        await tester.pump(const Duration(minutes: 1));
+        expect(relay.starts, 2);
+        expect(native.checks, [true]);
+      },
+    );
+
+    testWidgets(
+      'disposing during relay startup prevents native configuration',
+      (tester) async {
+        final native = _FakeAutoUpdater();
+        final relay = _FakeUpdateRelay()..pending = Completer<String>();
+        final updater = _desktopUpdater(native, relay: relay);
+        await updater.init();
+        await tester.pump(Updater.startupDelay);
+        updater.dispose();
+        relay.pending!.complete('http://127.0.0.1:12345/token/appcast.xml');
+        await tester.pump();
+        expect(relay.closes, 1);
+        expect(native.configurations, 0);
+        expect(native.checks, isEmpty);
+      },
+    );
+
     testWidgets('disposing cancels setup retries and removes the listener', (
       tester,
     ) async {
@@ -419,7 +831,7 @@ void main() {
       await updater.init();
       await tester.pump(Updater.startupDelay);
       native.fail();
-      updater.retryPendingSetup();
+      updater.retryPendingCheck();
       updater.dispose();
       await tester.pump(const Duration(hours: 1));
 
@@ -463,6 +875,7 @@ void main() {
       final native = _FakeAutoUpdater();
       final updater = Updater(
         autoUpdater: native,
+        updateRelay: _FakeUpdateRelay(),
         platform: TargetPlatform.windows,
         isDebugMode: false,
         loadFeatureFlags: () async => {},
@@ -503,7 +916,7 @@ void main() {
       await check;
 
       expect(native.listeners, isEmpty);
-      expect(native.interval, isNull);
+      expect(native.interval, 0);
       expect(native.checks, isEmpty);
     });
 
@@ -515,6 +928,7 @@ void main() {
           var flagReads = 0;
           final updater = Updater(
             autoUpdater: native,
+            updateRelay: _FakeUpdateRelay(),
             platform: platform,
             isDebugMode: false,
             enableDesktopUpdates: false,
@@ -528,7 +942,7 @@ void main() {
           await updater.init();
           expect(await updater.canCheckForUpdates(), isFalse);
           await updater.checkNow();
-          updater.retryPendingSetup();
+          updater.retryPendingCheck();
           await tester.pump(const Duration(hours: 1));
 
           expect(flagReads, 0);
@@ -572,6 +986,7 @@ void main() {
       ]) {
         final updater = Updater(
           autoUpdater: native,
+          updateRelay: _FakeUpdateRelay(),
           platform: platform,
           isDebugMode: platform == TargetPlatform.macOS,
         );

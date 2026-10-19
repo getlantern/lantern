@@ -54,11 +54,23 @@ runs:
           go-build-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-
 
     - name: Configure gomobile cache
+      id: gomobile
       if: inputs.gomobile-cache == 'true'
       shell: bash
       run: |
-        mkdir -p "$HOME/.cache/gomobile"
-        echo "GOMOBILECACHE=$HOME/.cache/gomobile" >> "$GITHUB_ENV"
+        set -euo pipefail
+        gopath=$(go env GOPATH)
+        if [[ "$RUNNER_OS" == Windows ]]; then
+          gopath="${gopath%%;*}"
+        else
+          gopath="${gopath%%:*}"
+        fi
+        gomobile_cache="$gopath/pkg/gomobile"
+        gomobile_version=$(awk '$1 == "GOMOBILE_VERSION" && $2 == "?=" { print $3; exit }' Makefile)
+        test -n "$gomobile_version"
+        mkdir -p "$gomobile_cache"
+        printf 'path=%s\nversion=%s\n' "$gomobile_cache" "$gomobile_version" >> "$GITHUB_OUTPUT"
+        printf 'GOMOBILECACHE=%s\n' "$gomobile_cache" >> "$GITHUB_ENV"
 
     - name: Cache gomobile initialization
       if: inputs.gomobile-cache == 'true'
@@ -67,7 +79,6 @@ runs:
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
       with:
-        path: ~/.cache/gomobile
-        key: gomobile-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum', 'Makefile') }}
-        restore-keys: |
-          gomobile-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-scope }}-${{ steps.go.outputs.go-version }}-
+        # All bind targets share initialization for the same Go/x-mobile versions.
+        path: ${{ steps.gomobile.outputs.path }}
+        key: gomobile-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ steps.gomobile.outputs.version }}

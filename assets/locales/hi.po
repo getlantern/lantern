@@ -648,6 +648,24 @@ msgstr "इस Apple ID से कोई सक्रिय सदस्यत�
 msgid "no_purchase_found_body_android"
 msgstr "इस Google खाते से कोई सक्रिय सदस्यता जुड़ी नहीं है।"
 
+msgid "authorize_device_for_pro"
+msgstr "Pro के लिए डिवाइस अधिकृत करें"
+
+msgid "device_linking_replaced_title"
+msgstr "डिवाइस लिंकिंग कोड बदल दिए गए हैं"
+
+msgid "device_linking_replaced_body"
+msgstr "Lantern संस्करण 10 और नए संस्करण डिवाइस लिंकिंग कोड का उपयोग नहीं करते हैं। अब आप अपने ईमेल और पासवर्ड से अपने Lantern Pro खाते में साइन इन करते हैं।"
+
+msgid "device_linking_replaced_body_two"
+msgstr "यदि आपके पास Lantern Pro खाता है और अभी तक पासवर्ड नहीं है, तो इस डिवाइस पर साइन इन करने के लिए अभी एक पासवर्ड जोड़ें।"
+
+msgid "add_an_account_password"
+msgstr "खाते का पासवर्ड जोड़ें"
+
+msgid "have_a_password_sign_in"
+msgstr "पासवर्ड है? साइन इन करें"
+
 msgid "plans_fetch_error"
 msgstr "प्लान लाने में त्रुटि। कृपया बाद में पुनः प्रयास करें।"
 

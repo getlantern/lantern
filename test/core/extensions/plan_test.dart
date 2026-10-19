@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/common/date_formatters.dart';
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/models/user.dart';
 
@@ -10,10 +11,7 @@ void main() {
       epochSeconds * 1000,
       isUtc: true,
     ).toLocal();
-    final mm = d.month.toString().padLeft(2, '0');
-    final dd = d.day.toString().padLeft(2, '0');
-    final yy = (d.year % 100).toString().padLeft(2, '0');
-    return '$mm/$dd/$yy';
+    return AppDateFormats.dayMonthYearOrdinal(d);
   }
 
   // Distinct dates so the assertion proves *which* branch ran: the expired

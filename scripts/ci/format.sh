@@ -87,6 +87,7 @@ release-notes)
 
   if should_include "android"; then
     echo "- [Android (.apk)](${LATEST_URL}/${FULL_INSTALLER_NAME}.apk) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.apk))"
+    echo "- [Android 32-bit ARMv7 (.apk)](${LATEST_URL}/${FULL_INSTALLER_NAME}-armv7.apk) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-armv7.apk))"
   fi
 
   if should_include "linux"; then
@@ -133,6 +134,7 @@ slack)
 
   if should_include "android"; then
     text="${text}\n• Android <${LATEST_URL}/${FULL_INSTALLER_NAME}.apk|${FULL_INSTALLER_NAME}.apk> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.apk|permalink>)"
+    text="${text}\n• Android 32-bit ARMv7 <${LATEST_URL}/${FULL_INSTALLER_NAME}-armv7.apk|${FULL_INSTALLER_NAME}-armv7.apk> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-armv7.apk|permalink>)"
   fi
 
   if should_include "linux"; then

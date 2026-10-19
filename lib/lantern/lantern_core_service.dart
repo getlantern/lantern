@@ -47,6 +47,9 @@ abstract class LanternCoreService {
   ///App Methods
   Future<Either<Failure, Unit>> updateLocal(String locale);
 
+  /// Sets the device's IANA time zone name, e.g. "Asia/Tehran".
+  Future<Either<Failure, Unit>> updateTimeZone(String timeZone);
+
   /// Pushes the resolved server location to the native home-screen widget.
   /// No-op on platforms without a widget.
   Future<void> updateWidgetLocation({

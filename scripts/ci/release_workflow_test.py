@@ -137,13 +137,16 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
         for build_type in ("production", "beta", "nightly"):
             with self.subTest(build_type=build_type):
                 suffix = "" if build_type == "production" else f"-{build_type}"
-                (directory / f"lantern-installer{suffix}.apk").write_bytes(b"installer")
+                for abi_suffix in ("", "-armv7"):
+                    (directory / f"lantern-installer{suffix}{abi_suffix}.apk").write_bytes(b"installer")
                 (self.work / "commands.jsonl").write_text("")
                 result = self.run_s3_upload(build_type, "android")
                 self.assertEqual(result.returncode, 0, result.stderr)
                 destinations = [command[4] for command in self.commands()]
-                self.assertEqual(len(destinations), 2 if build_type == "nightly" else 1)
+                # Both APKs, plus their nightly "latest" aliases.
+                self.assertEqual(len(destinations), 4 if build_type == "nightly" else 2)
                 self.assertIn(f"/{build_type}/9.2.0/", destinations[0])
+                self.assertTrue(any(d.endswith(f"/lantern-installer{suffix}-armv7.apk") for d in destinations))
                 checksum = hashlib.sha256(b"installer").hexdigest()
                 for command in self.commands():
                     self.assertEqual(command[-2:], ["--metadata", f"sha256={checksum}"])
@@ -213,7 +216,8 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
     def test_failed_upload_does_not_promote_nightly_alias(self) -> None:
         directory = self.work / "lantern-installer-apk"
         directory.mkdir()
-        (directory / "lantern-installer-nightly.apk").write_bytes(b"installer")
+        for name in ("lantern-installer-nightly.apk", "lantern-installer-nightly-armv7.apk"):
+            (directory / name).write_bytes(b"installer")
         result = self.run_s3_upload("nightly", "android", FAIL_COMMAND="aws")
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(len(self.commands()), 1)
@@ -222,7 +226,8 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
     def test_failed_checksum_blocks_upload(self) -> None:
         directory = self.work / "lantern-installer-apk"
         directory.mkdir()
-        (directory / "lantern-installer.apk").write_bytes(b"installer")
+        for name in ("lantern-installer.apk", "lantern-installer-armv7.apk"):
+            (directory / name).write_bytes(b"installer")
         checksum = self.bin / "sha256sum"
         checksum.write_text("#!/bin/sh\nexit 1\n")
         checksum.chmod(0o755)
