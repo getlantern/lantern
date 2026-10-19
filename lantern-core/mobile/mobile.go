@@ -846,7 +846,6 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 }
 
 func AddServerBasedOnURLs(urls string, skipCertVerification bool) (string, error) {
-	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		tags, err := c.AddServersByURL(urls, skipCertVerification)
 		if err != nil {

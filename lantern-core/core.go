@@ -1414,13 +1414,14 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	return nil
 }
 
-func (lc *LanternCore) AddServersByURL(urls string, skipCertVerification bool) ([]byte, error) {
+// AddServersByURL imports servers; the legacy certificate-bypass flag is ignored.
+func (lc *LanternCore) AddServersByURL(urls string, _ bool) ([]byte, error) {
 	urlList := strings.Split(urls, ",")
 	for i, u := range urlList {
 		urlList[i] = strings.TrimSpace(u)
 	}
 
-	tags, err := lc.client.AddServersByURL(lc.ctx, urlList, skipCertVerification)
+	tags, err := lc.client.AddServersByURL(lc.ctx, urlList, false)
 	if err != nil {
 		return nil, err
 	}
