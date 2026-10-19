@@ -4,6 +4,11 @@ name: Flutter Test
 
 on:
   workflow_dispatch:
+    inputs:
+      local_auth_smoke:
+        description: Run the Linux app against an isolated account API
+        type: boolean
+        default: false
   pull_request:
     paths:
       - "lib/**"
@@ -56,3 +61,78 @@ jobs:
 
       - name: Run Flutter tests
         run: flutter test
+
+  local-auth-smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.local_auth_smoke }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      GOPRIVATE: github.com/getlantern/*
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check out the account API fixture
+        uses: actions/checkout@v4
+        with:
+          repository: getlantern/lantern-cloud
+          ref: 4d71db48281c72dee8e2a1be45ea052fb24da994
+          path: build/cloud-fixture
+          token: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-go
+        with:
+          cache-scope: local-auth-smoke
+
+      - name: Configure private Go dependencies
+        env:
+          CI_TOKEN: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
+        run: git config --global url."https://${CI_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+
+      - uses: ./.github/actions/setup-flutter
+
+      - name: Install Linux test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev \
+            libgl1-mesa-dev libegl1-mesa-dev libayatana-appindicator3-dev libcurl4-openssl-dev \
+            libwebkit2gtk-4.1-dev xvfb
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 \
+            https://releases.hashicorp.com/vault/1.17.2/vault_1.17.2_linux_amd64.zip -o "$RUNNER_TEMP/vault.zip"
+          unzip "$RUNNER_TEMP/vault.zip" -d "$RUNNER_TEMP/vault-cli"
+          echo "$RUNNER_TEMP/vault-cli" >> "$GITHUB_PATH"
+
+      - name: Build the native test backend
+        run: |
+          touch app.env
+          make pubget gen
+          make linux lanternd-linux-amd64 LINUX_CC_AMD64=gcc \
+            TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_grpc,lantern_e2e
+
+      - name: Build the account API fixture
+        working-directory: build/cloud-fixture
+        run: |
+          go test -c -tags=test,lantern_e2e,with_gvisor,with_quic,with_dhcp,with_wireguard,with_utls,with_acme \
+            -o "$RUNNER_TEMP/legacy-email-api.test" ./cmd/api/users
+
+      - name: Verify legacy email binding through the Linux app
+        env:
+          LEGACY_EMAIL_FIXTURE_DIR: ${{ runner.temp }}/legacy-email-smoke
+        run: bash scripts/ci/legacy-email-smoke.sh build/cloud-fixture "$RUNNER_TEMP/legacy-email-api.test"
+
+      - name: Upload smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-email-local-smoke
+          path: |
+            ${{ runner.temp }}/legacy-email-smoke/*.log
+            ${{ runner.temp }}/legacy-email-smoke/result.json
+            ${{ runner.temp }}/legacy-email-smoke/logs/
+            ${{ runner.temp }}/legacy-email-smoke/app/**/logs/
+          if-no-files-found: ignore
+          retention-days: 7
