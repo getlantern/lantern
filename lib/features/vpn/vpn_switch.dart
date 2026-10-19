@@ -25,10 +25,23 @@ class VPNSwitch extends HookConsumerWidget {
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     final showFocus = useState(false);
+    final focusNode = useFocusNode(debugLabel: 'VPNSwitch');
+    // Home pushes routes (e.g. onboarding) over this switch; while covered it
+    // must not hold focus, or the remote would toggle it unseen.
+    final isCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+    useEffect(() {
+      if (PlatformUtils.isTv && isCurrent) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (focusNode.context != null) focusNode.requestFocus();
+        });
+      }
+      return null;
+    }, [isCurrent]);
     // The knob is a bare GestureDetector, so make the whole switch focusable
     // for D-pad and keyboard users (Android TV, desktop Tab).
     return FocusableActionDetector(
-      autofocus: PlatformUtils.isTv,
+      focusNode: focusNode,
+      enabled: isCurrent,
       onShowFocusHighlight: (value) => showFocus.value = value,
       actions: {
         ActivateIntent: CallbackAction<ActivateIntent>(

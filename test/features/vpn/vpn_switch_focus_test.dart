@@ -33,8 +33,7 @@ class _FakeVpnStatus extends VPNStatusNotifier {
 void main() {
   tearDown(() => PlatformUtils.isTv = false);
 
-  testWidgets('D-pad select toggles the VPN on TV', (tester) async {
-    PlatformUtils.isTv = true;
+  Future<_FakeVpnNotifier> pumpSwitch(WidgetTester tester) async {
     final vpn = _FakeVpnNotifier();
     await tester.pumpWidget(
       ProviderScope(
@@ -54,14 +53,42 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    return vpn;
+  }
 
-    expect(
-      FocusManager.instance.primaryFocus?.context,
-      isNotNull,
-      reason: 'the switch should autofocus on TV',
-    );
+  testWidgets('D-pad select toggles the VPN on TV', (tester) async {
+    PlatformUtils.isTv = true;
+    final vpn = await pumpSwitch(tester);
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pumpAndSettle();
     expect(vpn.toggles, 1);
+  });
+
+  testWidgets('a route pushed over the switch takes focus away from it', (
+    tester,
+  ) async {
+    PlatformUtils.isTv = true;
+    final vpn = await pumpSwitch(tester);
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(body: Text('onboarding')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pumpAndSettle();
+    expect(
+      vpn.toggles,
+      0,
+      reason: 'covered switch must not react to the remote',
+    );
+
+    navigator.pop();
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pumpAndSettle();
+    expect(vpn.toggles, 1, reason: 'focus returns to the switch on TV');
   });
 }
