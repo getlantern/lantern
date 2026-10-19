@@ -16,11 +16,13 @@ class ActionModeStatusCard extends StatelessWidget {
     required this.activeCount,
     required this.totalCount,
     required this.onToggle,
+    this.onAdvancedStats,
   });
   final String status;
   final bool enabled, ready, busy, hasError;
   final int activeCount, totalCount;
   final VoidCallback onToggle;
+  final VoidCallback? onAdvancedStats;
 
   @override
   Widget build(BuildContext context) {
@@ -97,10 +99,47 @@ class ActionModeStatusCard extends StatelessWidget {
             label: 'smc_stat_total_helped'.i18n,
             value: totalCount,
           ),
+          if (onAdvancedStats != null) ...[
+            Divider(height: 1, color: context.borderDefault),
+            _AdvancedStatsLink(onTap: onAdvancedStats!),
+          ],
         ],
       ),
     );
   }
+}
+
+class _AdvancedStatsLink extends StatelessWidget {
+  const _AdvancedStatsLink({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    child: InkWell(
+      key: const Key('action-mode.advanced-stats'),
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'advanced_stats'.i18n,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+              ),
+              Icon(Icons.chevron_right, size: 20, color: context.textTertiary),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _ImpactRow extends StatelessWidget {

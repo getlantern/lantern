@@ -2054,3 +2054,43 @@ msgstr "Tap Edit, then Add Widget."
 
 msgid "widget_step_3"
 msgstr "Search for Lantern, choose a size, and tap add widget."
+
+# Advanced stats: low-emphasis link at the bottom of the Unbounded status
+# card and the title of the bottom sheet it opens. "Data relayed" counts
+# bytes this device forwarded for the people it helps over Unbounded.
+msgid "advanced_stats"
+msgstr "Advanced stats"
+
+msgid "advanced_stats_current_speed"
+msgstr "Current speed"
+
+msgid "advanced_stats_session"
+msgstr "Data relayed this session"
+
+msgid "advanced_stats_all_time"
+msgstr "Data relayed all time"
+
+# Legend for the ↓ / ↑ arrows next to the figures above.
+msgid "advanced_stats_direction_legend"
+msgstr "↓ sent to the people you help · ↑ received from them"
+
+msgid "advanced_stats_countries"
+msgstr "Countries you've helped"
+
+msgid "advanced_stats_no_countries"
+msgstr "No one helped yet. Countries will appear here once people connect through you."
+
+# Country row for peers whose location could not be determined.
+msgid "advanced_stats_unknown_country"
+msgstr "Unknown"
+
+msgid "advanced_stats_one_person"
+msgstr "1 person"
+
+# %s is a number greater than one.
+msgid "advanced_stats_people"
+msgstr "%s people"
+
+# Shown instead of data figures while sharing via Share My Connection.
+msgid "advanced_stats_smc_note"
+msgstr "Data stats are available only when sharing via Unbounded."

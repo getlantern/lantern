@@ -8,6 +8,7 @@ import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
+import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
 import 'package:lantern/features/action_mode/auto_enable_mode.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
@@ -129,6 +130,7 @@ class _StatusCard extends StatelessWidget {
       activeCount: state.activeCount,
       totalCount: state.totalCount,
       onToggle: onToggle,
+      onAdvancedStats: () => showAdvancedStatsSheet(context),
     );
   }
 }

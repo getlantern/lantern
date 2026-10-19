@@ -28,7 +28,8 @@ Future<void> main() async {
   await configureDesktopWindow();
   await Flag.ensureFontLoaded();
 
-  if (PlatformUtils.isMobile) {
+  await PlatformUtils.initDeviceType();
+  if (PlatformUtils.isMobile && !PlatformUtils.isTv) {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
