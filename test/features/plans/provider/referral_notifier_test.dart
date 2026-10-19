@@ -69,6 +69,11 @@ void main() {
       '',
       'A' * 501,
       'ſAVE15',
+      'ßAVE15',
+      'SAVE\\15',
+      'SAVE%31%35',
+      'SAVE\u000015',
+      'SAVE\n15',
       'SAVE15&code=OTHER',
       'LSG_PROBE_1512_HTTPS_AFF_20260918T0608Z:JAVASCRIPT:ALERT(1)',
     ]) {
@@ -88,6 +93,16 @@ void main() {
       expect(container.read(referralProvider)?.code, code.trim().toUpperCase());
     }
     expect(service.submittedCodes, ['HALF', 'SAVE15', 'SUMMER-20', 'PYGFJ4']);
+  });
+
+  test('submits a code at the length limit without truncating it', () async {
+    final code = 'a' * 500;
+
+    final result = await notifier.applyReferralCodeV2(code);
+
+    expect(result.isRight(), isTrue);
+    expect(service.submittedCodes, ['A' * 500]);
+    expect(container.read(referralProvider)?.code, 'A' * 500);
   });
 
   test('invalid input leaves the previously applied code intact', () async {

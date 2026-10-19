@@ -20,6 +20,7 @@ void main() {
         'SAVE\n15',
         'SAVE\u000015',
         'ſAVE15',
+        'ßAVE15',
         'ＳＡＶＥ15',
         'SAVE_15',
         'SAVE/15',
@@ -56,6 +57,8 @@ void main() {
         'http://lantern.io/affiliate/HALF',
         'https://example.com/affiliate/HALF',
         'https://lantern.io.example.com/affiliate/HALF',
+        'https://lantern.io@example.com/affiliate/HALF',
+        'https://example.com/lantern.io/affiliate/HALF',
         'https://lantern.io:8443/affiliate/HALF',
         'https://user@lantern.io/affiliate/HALF',
         'https://lantern.io/affiliates/HALF',
@@ -90,13 +93,43 @@ void main() {
           '?code=HALF%0A',
           '?code=HALF%00',
           '/HALF%2FOTHER',
+          '/HALF%5COTHER',
+          '/HALF%26code%3DOTHER',
+          '/HALF%252FOTHER',
+          '/%2548ALF',
+          '?code=HALF%26code%3DOTHER',
+          '?code=HALF%3DOTHER',
+          '?code=HALF%5COTHER',
+          '?code=%2548ALF',
+          '?code=HALF%',
+          '?code=HALF%GG',
           '?code=%FF',
+          '?code=%C0%AF',
           '/%FF',
+          '/HALF?utm_source=%FF',
           '?code=${'A' * 501}',
           '?code=LSG_PROBE_1512_HTTPS_AFF_20260918T0608Z%3Ajavascript%3Aalert%281%29',
         ]) {
           final link = '$base$suffix';
           expect(affiliateCodeFromUri(Uri.parse(link)), isNull, reason: link);
+        }
+      }
+    });
+
+    test('applies the length limit to the decoded code in both link forms', () {
+      for (final base in [
+        'https://lantern.io/affiliate',
+        'lantern://affiliate',
+      ]) {
+        for (final separator in ['/', '?code=']) {
+          expect(
+            affiliateCodeFromUri(Uri.parse('$base$separator${'%41' * 500}')),
+            'A' * 500,
+          );
+          expect(
+            affiliateCodeFromUri(Uri.parse('$base$separator${'%41' * 501}')),
+            isNull,
+          );
         }
       }
     });
