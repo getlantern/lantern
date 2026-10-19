@@ -549,6 +549,10 @@ void main() {
     );
     await tester.pump();
     expect(container.read(shareProvider).activeCount, 1);
+    // SmC peers count toward their country too, with no bytes.
+    final us = container.read(shareProvider).relay.countries['US']!;
+    expect(us.people, 3);
+    expect(us.down, 900);
     service.events.add(
       AppEvent(
         eventType: 'peer-status',
@@ -558,6 +562,7 @@ void main() {
     await tester.pump();
     expect(container.read(shareProvider).mode, ShareMode.unbounded);
     expect(container.read(shareProvider).activeCount, 0);
+    expect(container.read(shareProvider).fallbackReason, 'port unreachable');
     service.events.add(
       AppEvent(
         eventType: 'unbounded-snapshot',

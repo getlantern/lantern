@@ -43,6 +43,9 @@ class ShareState {
   /// SmC only; Unbounded reports readiness via [unboundedRunning].
   final SharePhase phase;
   final String? errorMessage;
+  /// Why SmC could not start, when this Unbounded session is its fallback.
+  /// Set only by the fallback itself; copyWith carries it unchanged.
+  final String? fallbackReason;
   final RelayStats relay;
 
   const ShareState({
@@ -54,6 +57,7 @@ class ShareState {
     this.totalCount = 0,
     this.phase = SharePhase.idle,
     this.errorMessage,
+    this.fallbackReason,
     this.relay = const RelayStats(),
   });
 
@@ -80,6 +84,7 @@ class ShareState {
         errorMessage: identical(errorMessage, _unsetErrorMessage)
             ? this.errorMessage
             : errorMessage as String?,
+        fallbackReason: fallbackReason,
         relay: relay ?? this.relay,
       );
 }
