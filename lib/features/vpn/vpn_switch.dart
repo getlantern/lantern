@@ -26,8 +26,9 @@ class VPNSwitch extends HookConsumerWidget {
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     final showFocus = useState(false);
     final focusNode = useFocusNode(debugLabel: 'VPNSwitch');
-    // Home pushes routes (e.g. onboarding) over this switch; while covered it
-    // must not hold focus, or the remote would toggle it unseen.
+    // On TV the switch claims focus itself, and Home pushes routes (e.g.
+    // onboarding) over it; while covered it must not hold focus, or the remote
+    // would toggle it unseen. Elsewhere Flutter's route focus restore suffices.
     final isCurrent = ModalRoute.of(context)?.isCurrent ?? true;
     useEffect(() {
       if (PlatformUtils.isTv && isCurrent) {
@@ -41,7 +42,7 @@ class VPNSwitch extends HookConsumerWidget {
     // for D-pad and keyboard users (Android TV, desktop Tab).
     return FocusableActionDetector(
       focusNode: focusNode,
-      enabled: isCurrent,
+      enabled: !PlatformUtils.isTv || isCurrent,
       onShowFocusHighlight: (value) => showFocus.value = value,
       actions: {
         ActivateIntent: CallbackAction<ActivateIntent>(

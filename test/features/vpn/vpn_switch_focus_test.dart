@@ -91,4 +91,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(vpn.toggles, 1, reason: 'focus returns to the switch on TV');
   });
+
+  testWidgets('keyboard focus returns to the switch after a dialog off TV', (
+    tester,
+  ) async {
+    final vpn = await pumpSwitch(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.push(
+      DialogRoute<void>(
+        context: navigator.context,
+        builder: (_) => const Text('dialog'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    navigator.pop();
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pumpAndSettle();
+    expect(vpn.toggles, 1);
+  });
 }
