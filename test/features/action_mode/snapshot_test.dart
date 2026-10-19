@@ -78,6 +78,7 @@ class FakeSettings extends AppSettingNotifier {
     required int bytesUp,
     required Map<String, RelayCountryStats> countries,
     ({String epoch, int down, int up})? mark,
+    ({String epoch, int down, int up})? peerMark,
   }) {
     relayWrites++;
     state = state.copyWith(
@@ -87,6 +88,9 @@ class FakeSettings extends AppSettingNotifier {
       unboundedRelayEpoch: mark?.epoch,
       unboundedRelayMarkDown: mark?.down,
       unboundedRelayMarkUp: mark?.up,
+      peerRelayEpoch: peerMark?.epoch,
+      peerRelayMarkDown: peerMark?.down,
+      peerRelayMarkUp: peerMark?.up,
     );
   }
 }
@@ -97,6 +101,15 @@ class ResumingSettings extends FakeSettings {
     unboundedRelayEpoch: 'run-1',
     unboundedRelayMarkDown: 4000,
     unboundedRelayMarkUp: 400,
+  );
+}
+
+class PeerResumingSettings extends FakeSettings {
+  @override
+  AppSetting build() => FakeSettings.seed.copyWith(
+    peerRelayEpoch: 'smc-1',
+    peerRelayMarkDown: 4000,
+    peerRelayMarkUp: 400,
   );
 }
 
@@ -434,6 +447,42 @@ void main() {
       expect(relay.lifetimeUp, 2000 + 100);
       // Peer counters only set a baseline, so per-country totals hold.
       expect(relay.countries['US']!.down, 900);
+    });
+
+    test('resumes direct sharing from its persisted watermark', () async {
+      final resumed = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(service),
+          appSettingProvider.overrideWith(PeerResumingSettings.new),
+          radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
+        ],
+      );
+      addTearDown(resumed.dispose);
+      resumed.read(shareProvider);
+      // The backend kept sharing while the app was closed.
+      service.events.add(
+        AppEvent(
+          eventType: 'peer-snapshot',
+          message: jsonEncode({
+            'epoch': 'smc-1',
+            'running': true,
+            'peers': ['192.0.2.1:4000'],
+            'bytesDown': 6000,
+            'bytesUp': 500,
+            'peerBytes': [
+              {'ip': '192.0.2.1', 'down': 6000, 'up': 500},
+            ],
+          }),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      final relay = resumed.read(shareProvider).relay;
+      expect(relay.lifetimeDown, 1000000 + 2000);
+      expect(relay.lifetimeUp, 2000 + 100);
+      // The first save is immediate, and it carries the new peer watermark.
+      final saved = resumed.read(appSettingProvider);
+      expect(saved.peerRelayEpoch, 'smc-1');
+      expect(saved.peerRelayMarkDown, 6000);
     });
 
     test(

@@ -71,8 +71,8 @@ class ShareNotifier extends _$ShareNotifier {
   static const _speedSmoothing = 0.5;
 
   // Unbounded and SmC report counters in separate snapshots with their own
-  // epochs, so each needs its own tracker and sample clock. Only Unbounded's
-  // watermark is persisted.
+  // epochs, so each needs its own tracker, sample clock and persisted
+  // watermark.
   final _unboundedFeed = _RelayFeed();
   final _peerFeed = _RelayFeed();
   DateTime? _lastRelayPersistAt;
@@ -118,6 +118,11 @@ class ShareNotifier extends _$ShareNotifier {
       epoch: settings.unboundedRelayEpoch,
       down: settings.unboundedRelayMarkDown,
       up: settings.unboundedRelayMarkUp,
+    );
+    _peerFeed.counters.restore(
+      epoch: settings.peerRelayEpoch,
+      down: settings.peerRelayMarkDown,
+      up: settings.peerRelayMarkUp,
     );
     return ShareState(
       totalCount: settings.unboundedTotalHelped,
@@ -743,6 +748,7 @@ class ShareNotifier extends _$ShareNotifier {
           bytesUp: relay.lifetimeUp,
           countries: relay.countries,
           mark: _unboundedFeed.counters.watermark,
+          peerMark: _peerFeed.counters.watermark,
         );
   }
 
