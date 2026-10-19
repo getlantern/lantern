@@ -34,8 +34,10 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/common v1.2.1-0.20260910154003-08e030318f24
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261018040227-54f039df0074
+	github.com/getlantern/radiance v0.0.0-20261018235344-53e15cee8d5d
+	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
+	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.48.0
 	google.golang.org/protobuf v1.36.12
@@ -287,9 +289,7 @@ require (
 	github.com/sagernet/cronet-go/lib/tvos_arm64_simulator v0.0.0-20260807161529-8d42107dcdfc // indirect
 	github.com/sagernet/cronet-go/lib/windows_amd64 v0.0.0-20260807161529-8d42107dcdfc // indirect
 	github.com/sagernet/cronet-go/lib/windows_arm64 v0.0.0-20260807161529-8d42107dcdfc // indirect
-	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb // indirect
 	github.com/sagernet/sing v0.8.13 // indirect
-	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb // indirect
 	github.com/sagernet/tailscale v1.92.4-sing-box-1.13-mod.9 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5 // indirect
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
