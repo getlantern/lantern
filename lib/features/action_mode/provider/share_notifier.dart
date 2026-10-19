@@ -70,8 +70,11 @@ class ShareNotifier extends _$ShareNotifier {
   // Weight of the newest sample in the smoothed speed.
   static const _speedSmoothing = 0.5;
 
-  final _relayCounters = RelayCounterTracker();
-  DateTime? _lastRelaySampleAt;
+  // Unbounded and SmC report counters in separate snapshots with their own
+  // epochs, so each needs its own tracker, sample clock and persisted
+  // watermark.
+  final _unboundedFeed = _RelayFeed();
+  final _peerFeed = _RelayFeed();
   DateTime? _lastRelayPersistAt;
   Timer? _relayPersistTimer;
   bool _relayDirty = false;
@@ -111,10 +114,15 @@ class ShareNotifier extends _$ShareNotifier {
             ref.read(appSettingProvider.notifier).setUnboundedAutoEnable(false),
       );
     }
-    _relayCounters.restore(
+    _unboundedFeed.counters.restore(
       epoch: settings.unboundedRelayEpoch,
       down: settings.unboundedRelayMarkDown,
       up: settings.unboundedRelayMarkUp,
+    );
+    _peerFeed.counters.restore(
+      epoch: settings.peerRelayEpoch,
+      down: settings.peerRelayMarkDown,
+      up: settings.peerRelayMarkUp,
     );
     return ShareState(
       totalCount: settings.unboundedTotalHelped,
@@ -372,8 +380,17 @@ class ShareNotifier extends _$ShareNotifier {
 
   // ─── Backend events ────────────────────────────────────────────────────────
 
-  /// Unbounded snapshots arrive for the process lifetime, regardless of mode.
+  /// Unbounded and SmC snapshots arrive for the process lifetime, regardless
+  /// of mode.
   void _handleUnboundedEvent(AppEvent event) {
+    if (event.eventType == 'peer-snapshot') {
+      try {
+        _applyPeerSnapshot(jsonDecode(event.message) as Map<String, dynamic>);
+      } catch (e) {
+        debugPrint('share-my-connection: bad peer snapshot: $e');
+      }
+      return;
+    }
     if (event.eventType == 'unbounded-unavailable') {
       if (!_changing && state.mode == ShareMode.unbounded) {
         _clearPeers();
@@ -383,6 +400,9 @@ class ShareNotifier extends _$ShareNotifier {
           relay: _idleRelay(),
         );
         _persistRelay(force: true);
+      } else if (!_changing && state.mode == ShareMode.smc) {
+        // Peer snapshots stop too, so the last speed would otherwise stay up.
+        state = state.copyWith(relay: _idleRelay());
       }
       return;
     }
@@ -471,7 +491,7 @@ class ShareNotifier extends _$ShareNotifier {
         );
         ref.read(appSettingProvider.notifier).setUnboundedTotalHelped(newTotal);
         unawaited(_resolveAndEmit(ip, arc));
-        // SmC has no byte counters, so the country row gains a person only.
+        // Bytes follow from SmC relay snapshots; this adds the person.
         unawaited(_attributeToCountry(ip, (down: 0, up: 0), arrived: true));
       } else if (eventState == -1) {
         final entry = _peerArcs[ip];
@@ -497,15 +517,21 @@ class ShareNotifier extends _$ShareNotifier {
     if (state.mode == ShareMode.smc) {
       // Unbounded can still flush bytes from a session that stopped just
       // before SmC started. Count them without touching SmC's state.
+      final markBefore = _unboundedFeed.counters.watermark;
       state = state.copyWith(
         relay: _applyRelayCounters(
           snapshot,
+          feed: _unboundedFeed,
           epoch: snapshot['epoch'] as String,
           present: const {},
           running: false,
+          updateSpeed: false,
         ),
       );
-      _persistRelay(force: true);
+      // Saved at once only when Unbounded's own counters moved: SmC's
+      // snapshots mark the stats dirty every second, and forcing on every
+      // idle Unbounded snapshot would bypass the throttle for them.
+      _persistRelay(force: _unboundedFeed.counters.watermark != markBefore);
       return;
     }
     final enabled = snapshot['enabled'] as bool;
@@ -551,6 +577,7 @@ class ShareNotifier extends _$ShareNotifier {
       totalCount: total,
       relay: _applyRelayCounters(
         snapshot,
+        feed: _unboundedFeed,
         epoch: epoch,
         present: counts.keys.toSet(),
         running: enabled && running,
@@ -563,6 +590,28 @@ class ShareNotifier extends _$ShareNotifier {
     _persistRelay(force: !(enabled && running));
   }
 
+  /// Folds an SmC relay snapshot's byte counters into the relay stats. Applied
+  /// in every mode, so bytes a session relays just before it stops still
+  /// count, but only drives the speed while SmC is the active mode. People
+  /// come from peer-connection events, so the snapshot's arrivals are not
+  /// counted again.
+  void _applyPeerSnapshot(Map<String, dynamic> snapshot) {
+    if (_changing) return;
+    final smc = state.mode == ShareMode.smc;
+    state = state.copyWith(
+      relay: _applyRelayCounters(
+        snapshot,
+        feed: _peerFeed,
+        epoch: (snapshot['epoch'] as String?) ?? '',
+        present: const {},
+        running: smc && ((snapshot['running'] as bool?) ?? false),
+        updateSpeed: smc,
+        countArrivals: false,
+      ),
+    );
+    _persistRelay();
+  }
+
   // ─── Relay stats ───────────────────────────────────────────────────────────
 
   /// Folds a snapshot's byte counters into session and lifetime totals and
@@ -570,9 +619,12 @@ class ShareNotifier extends _$ShareNotifier {
   /// peer's country is resolved.
   RelayStats _applyRelayCounters(
     Map<String, dynamic> snapshot, {
+    required _RelayFeed feed,
     required String epoch,
     required Set<String> present,
     required bool running,
+    bool updateSpeed = true,
+    bool countArrivals = true,
   }) {
     final available = snapshot.containsKey('bytesDown');
     final peerBytes = <String, ByteCounts>{};
@@ -587,8 +639,8 @@ class ShareNotifier extends _$ShareNotifier {
           ? counts
           : (down: prev.down + counts.down, up: prev.up + counts.up);
     });
-    final markBefore = _relayCounters.watermark;
-    final delta = _relayCounters.apply(
+    final markBefore = feed.counters.watermark;
+    final delta = feed.counters.apply(
       epoch: epoch,
       down: (snapshot['bytesDown'] as num?)?.toInt() ?? 0,
       up: (snapshot['bytesUp'] as num?)?.toInt() ?? 0,
@@ -597,12 +649,14 @@ class ShareNotifier extends _$ShareNotifier {
     );
 
     final now = clock();
-    final previousSampleAt = _lastRelaySampleAt;
-    _lastRelaySampleAt = now;
+    final previousSampleAt = feed.lastSampleAt;
+    feed.lastSampleAt = now;
     var relay = state.relay;
     var speedDown = relay.speedDown;
     var speedUp = relay.speedUp;
-    if (!running || !available) {
+    if (!updateSpeed) {
+      // Another mode owns the speed.
+    } else if (!running || !available) {
       speedDown = 0;
       speedUp = 0;
     } else if (!delta.reset && previousSampleAt != null) {
@@ -613,7 +667,7 @@ class ShareNotifier extends _$ShareNotifier {
       }
     }
     relay = relay.copyWith(
-      available: available,
+      available: updateSpeed ? available : relay.available,
       sessionDown: relay.sessionDown + delta.down,
       sessionUp: relay.sessionUp + delta.up,
       lifetimeDown: relay.lifetimeDown + delta.down,
@@ -625,16 +679,17 @@ class ShareNotifier extends _$ShareNotifier {
     // run resumes from it instead of taking another baseline.
     if (delta.down > 0 ||
         delta.up > 0 ||
-        _relayCounters.watermark != markBefore) {
+        feed.counters.watermark != markBefore) {
       _relayDirty = true;
     }
 
-    for (final ip in {...delta.peers.keys, ...delta.arrivals}) {
+    final arrivals = countArrivals ? delta.arrivals : const <String>{};
+    for (final ip in {...delta.peers.keys, ...arrivals}) {
       unawaited(
         _attributeToCountry(
           ip,
           delta.peers[ip] ?? (down: 0, up: 0),
-          arrived: delta.arrivals.contains(ip),
+          arrived: arrivals.contains(ip),
         ),
       );
     }
@@ -699,7 +754,8 @@ class ShareNotifier extends _$ShareNotifier {
           bytesDown: relay.lifetimeDown,
           bytesUp: relay.lifetimeUp,
           countries: relay.countries,
-          mark: _relayCounters.watermark,
+          mark: _unboundedFeed.counters.watermark,
+          peerMark: _peerFeed.counters.watermark,
         );
   }
 
@@ -776,4 +832,11 @@ class _PeerArc {
   int streamCount;
   // Resolved async after the first +1; no arc is emitted until then.
   PeerGeo? geo;
+}
+
+/// A snapshot source's counter tracker and the time of its last sample, from
+/// which its speed is measured.
+class _RelayFeed {
+  final counters = RelayCounterTracker();
+  DateTime? lastSampleAt;
 }

@@ -4,7 +4,6 @@ import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
-import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 
@@ -24,8 +23,7 @@ void showAdvancedStatsSheet(BuildContext context) {
   );
 }
 
-/// Data-relay figures for Unbounded volunteers. Byte counters only exist for
-/// Unbounded, so SmC sessions get a note in place of live figures.
+/// Data-relay figures for volunteers, in either sharing mode.
 class AdvancedStatsView extends ConsumerWidget {
   const AdvancedStatsView({super.key, this.scrollController});
   final ScrollController? scrollController;
@@ -36,8 +34,7 @@ class AdvancedStatsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final relay = state.relay;
-    final smc = state.mode == ShareMode.smc;
-    final live = !smc && relay.available;
+    final live = relay.available;
     final countries = relay.topCountries(topCountryCount);
     final divider = Divider(height: 1, color: context.borderDefault);
 
@@ -46,13 +43,6 @@ class AdvancedStatsView extends ConsumerWidget {
       controller: scrollController,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
-        if (smc) ...[
-          InfoRow(
-            key: const Key('advanced-stats.smc-note'),
-            text: 'advanced_stats_smc_note'.i18n,
-          ),
-          const SizedBox(height: 16),
-        ],
         AppCard(
           child: Column(
             children: [
@@ -69,29 +59,27 @@ class AdvancedStatsView extends ConsumerWidget {
                     : null,
               ),
               divider,
-              if (!smc) ...[
-                _StatRow(
-                  label: 'advanced_stats_current_speed'.i18n,
-                  value: live
-                      ? _directions(
-                          '${relay.speedDown.round().siBytes}/s',
-                          '${relay.speedUp.round().siBytes}/s',
-                        )
-                      : '—',
-                ),
-                divider,
-                _StatRow(
-                  label: 'advanced_stats_session'.i18n,
-                  value: live ? relay.sessionBytes.siBytes : '—',
-                  detail: live
-                      ? _directions(
-                          relay.sessionDown.siBytes,
-                          relay.sessionUp.siBytes,
-                        )
-                      : null,
-                ),
-                divider,
-              ],
+              _StatRow(
+                label: 'advanced_stats_current_speed'.i18n,
+                value: live
+                    ? _directions(
+                        '${relay.speedDown.round().siBytes}/s',
+                        '${relay.speedUp.round().siBytes}/s',
+                      )
+                    : '—',
+              ),
+              divider,
+              _StatRow(
+                label: 'advanced_stats_session'.i18n,
+                value: live ? relay.sessionBytes.siBytes : '—',
+                detail: live
+                    ? _directions(
+                        relay.sessionDown.siBytes,
+                        relay.sessionUp.siBytes,
+                      )
+                    : null,
+              ),
+              divider,
               _StatRow(
                 label: 'advanced_stats_all_time'.i18n,
                 value: relay.lifetimeBytes.siBytes,

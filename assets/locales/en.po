@@ -2055,9 +2055,9 @@ msgstr "Tap Edit, then Add Widget."
 msgid "widget_step_3"
 msgstr "Search for Lantern, choose a size, and tap add widget."
 
-# Advanced stats: low-emphasis link at the bottom of the Unbounded status
+# Advanced stats: low-emphasis link at the bottom of the Action Mode status
 # card and the title of the bottom sheet it opens. "Data relayed" counts
-# bytes this device forwarded for the people it helps over Unbounded.
+# bytes this device forwarded for the people it helps, in either sharing mode.
 msgid "advanced_stats"
 msgstr "Advanced stats"
 
@@ -2090,10 +2090,6 @@ msgstr "1 person"
 # %s is a number greater than one.
 msgid "advanced_stats_people"
 msgstr "%s people"
-
-# Shown instead of data figures while sharing via Share My Connection.
-msgid "advanced_stats_smc_note"
-msgstr "Data stats are available only when sharing via Unbounded."
 
 # Sharing-mode names. "Direct connection" is Share My Connection, where people
 # connect straight to this device through a port on the user's router.
