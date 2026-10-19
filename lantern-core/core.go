@@ -147,6 +147,8 @@ type User interface {
 	VerifyPassword(email, password string) error
 	StartChangeEmail(newEmail, password string) error
 	CompleteChangeEmail(email, password, code string) error
+	StartBindLegacyEmail(email string) error
+	CompleteBindLegacyEmail(email, password, code string) error
 }
 
 type PrivateServer interface {
@@ -1172,6 +1174,14 @@ func (lc *LanternCore) StartChangeEmail(newEmail, password string) error {
 
 func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
 	return lc.client.CompleteChangeEmail(lc.ctx, email, password, code)
+}
+
+func (lc *LanternCore) StartBindLegacyEmail(email string) error {
+	return lc.client.StartBindLegacyEmail(lc.ctx, email)
+}
+
+func (lc *LanternCore) CompleteBindLegacyEmail(email, password, code string) error {
+	return lc.client.CompleteBindLegacyEmail(lc.ctx, email, password, code)
 }
 
 func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {

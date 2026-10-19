@@ -104,9 +104,12 @@ class CreatePassword extends HookConsumerWidget {
   ) async {
     hideKeyboard();
     context.showLoadingDialog();
-    final result = await ref
-        .read(authProvider.notifier)
-        .completeRecoveryByEmail(email, password, code);
+    final auth = ref.read(authProvider.notifier);
+    final isBindingEmail = authFlow == AuthFlow.bindLegacyEmail;
+    final result = isBindingEmail
+        ? await auth.startBindLegacyEmail(email)
+        : await auth.completeRecoveryByEmail(email, password, code);
+    if (!context.mounted) return;
 
     result.fold(
       (failure) {
@@ -116,6 +119,12 @@ class CreatePassword extends HookConsumerWidget {
       },
       (success) {
         context.hideLoadingDialog();
+        if (isBindingEmail) {
+          appRouter.push(
+            ConfirmEmail(email: email, password: password, authFlow: authFlow),
+          );
+          return;
+        }
         TextInput.finishAutofillContext(shouldSave: true);
         appLogger.info('Password created successfully');
         ref.read(appSettingProvider.notifier).setUserLoggedIn(true);

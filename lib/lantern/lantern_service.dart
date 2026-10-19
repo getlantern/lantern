@@ -830,6 +830,34 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> startBindLegacyEmail(String email) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.startBindLegacyEmail(email);
+    }
+    return _platformService.startBindLegacyEmail(email);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeBindLegacyEmail({
+    required String email,
+    required String password,
+    required String code,
+  }) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.completeBindLegacyEmail(
+        email: email,
+        password: password,
+        code: code,
+      );
+    }
+    return _platformService.completeBindLegacyEmail(
+      email: email,
+      password: password,
+      code: code,
+    );
+  }
+
+  @override
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,
     String password,

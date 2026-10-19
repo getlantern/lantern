@@ -1606,6 +1606,64 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> startBindLegacyEmail(String email) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final emailPtr = email.toCharPtr;
+        try {
+          final resultPtr = _ffiService.startBindLegacyEmail(emailPtr);
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(emailPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeBindLegacyEmail({
+    required String email,
+    required String password,
+    required String code,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final emailPtr = email.toCharPtr;
+        final passwordPtr = password.toCharPtr;
+        final codePtr = code.toCharPtr;
+        try {
+          final resultPtr = _ffiService.completeBindLegacyEmail(
+            emailPtr,
+            passwordPtr,
+            codePtr,
+          );
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(emailPtr);
+          malloc.free(passwordPtr);
+          malloc.free(codePtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,
     String password,

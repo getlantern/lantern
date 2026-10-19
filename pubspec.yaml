@@ -222,3 +222,5 @@ ffigen:
     entry-points:
       - "bin/**/liblantern.h"
       - "bin/windows-amd64/liblantern.h"
+    include-directives:
+      - "**/liblantern.h"

@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/core/keys/app_keys.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
@@ -29,6 +30,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   final _formKey = GlobalKey<FormState>();
   TextTheme? textTheme;
 
+  bool get _isBindLegacyEmailFlow =>
+      widget.authFlow == AuthFlow.bindLegacyEmail ||
+      (ref.read(homeProvider).value?.hasLegacyPlaceholderEmail ?? false);
+
   @override
   Widget build(BuildContext context) {
     final emailController = useTextEditingController();
@@ -37,13 +42,22 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
     final currentEmail = user?.legacyUserData.email ?? '';
     final isChangeEmailFlow = widget.authFlow == AuthFlow.changeEmail;
+    final isBindLegacyEmailFlow = _isBindLegacyEmailFlow;
 
-    useEffect(() {
-      if (isUserRegistered && !isChangeEmailFlow) {
-        emailController.text = currentEmail;
-      }
-      return null;
-    }, [isUserRegistered, isChangeEmailFlow, currentEmail]);
+    useEffect(
+      () {
+        if (isUserRegistered && !isChangeEmailFlow && !isBindLegacyEmailFlow) {
+          emailController.text = currentEmail;
+        }
+        return null;
+      },
+      [
+        isUserRegistered,
+        isChangeEmailFlow,
+        isBindLegacyEmailFlow,
+        currentEmail,
+      ],
+    );
 
     textTheme = Theme.of(context).textTheme;
     return EnterKeyShortcut(
@@ -70,7 +84,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
               children: [
                 AppTextField(
                   fieldKey: AuthKeys.signUpEmailField,
-                  enable: !isUserRegistered || isChangeEmailFlow,
+                  enable:
+                      !isUserRegistered ||
+                      isChangeEmailFlow ||
+                      isBindLegacyEmailFlow,
                   controller: emailController,
                   label: 'email'.i18n,
                   keyboardType: TextInputType.emailAddress,
@@ -86,7 +103,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     if (email.isEmpty) {
                       return null;
                     }
-                    if (!email.isValidEmail()) {
+                    if (!email.isValidEmail() ||
+                        isLegacyPlaceholderEmail(email)) {
                       return 'invalid_email'.i18n;
                     }
                     if (isChangeEmailFlow &&
@@ -144,7 +162,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     currentEmail,
                   ),
                 ),
-                if (!isUserRegistered) ...{
+                if (user != null &&
+                    !isUserRegistered &&
+                    !isBindLegacyEmailFlow) ...{
                   SizedBox(height: defaultSize),
                   DividerSpace(),
                   SizedBox(height: defaultSize),
@@ -189,8 +209,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   bool _canSubmitEmail(String email, String currentEmail) {
+    if (ref.read(homeProvider).value == null) return false;
     final trimmedEmail = email.trim();
-    if (!trimmedEmail.isValidEmail()) {
+    if (!trimmedEmail.isValidEmail() ||
+        isLegacyPlaceholderEmail(trimmedEmail)) {
       return false;
     }
     if (widget.authFlow == AuthFlow.changeEmail &&
@@ -236,7 +258,15 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       if (!_formKey.currentState!.validate()) {
         return;
       }
-      if (widget.authFlow == AuthFlow.changeEmail) {
+      if (_isBindLegacyEmailFlow) {
+        appRouter.push(
+          CreatePassword(
+            email: email,
+            authFlow: AuthFlow.bindLegacyEmail,
+            code: '',
+          ),
+        );
+      } else if (widget.authFlow == AuthFlow.changeEmail) {
         //Change email flow
         appLogger.debug('Starting change email flow');
         startChangeEmailFlow(email);

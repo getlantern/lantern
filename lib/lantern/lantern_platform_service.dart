@@ -1432,6 +1432,36 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, Unit>> startBindLegacyEmail(String email) async {
+    try {
+      await _methodChannel.invokeMethod<void>('startBindLegacyEmail', {
+        'email': email,
+      });
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeBindLegacyEmail({
+    required String email,
+    required String password,
+    required String code,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod<void>('completeBindLegacyEmail', {
+        'email': email,
+        'password': password,
+        'code': code,
+      });
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
   /// Private server methods
   @override
   Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {

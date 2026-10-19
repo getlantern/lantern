@@ -34,7 +34,8 @@ enum AuthFlow {
   signUp,
   lanternProLicense,
   changeEmail,
-  renewSubscription
+  bindLegacyEmail,
+  renewSubscription,
 }
 
 enum BillingType { subscription, one_time }

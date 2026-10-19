@@ -1,5 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,12 +10,13 @@ import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
   final String email;
 
-  /// Optional parameter for new password, used in change email flow
+  /// Password for changing or binding an email address.
   final String? password;
   final AuthFlow authFlow;
 
@@ -133,6 +135,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.oauth:
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
+      case AuthFlow.bindLegacyEmail:
         completeChangeEmail(context, ref, code);
       case AuthFlow.renewSubscription:
         throw UnimplementedError();
@@ -145,25 +148,45 @@ class ConfirmEmail extends HookConsumerWidget {
     String code,
   ) async {
     context.showLoadingDialog();
-    final result = await ref
-        .read(authProvider.notifier)
-        .completeChangeEmail(email, password!, code);
+    final auth = ref.read(authProvider.notifier);
+    final isBindingEmail = authFlow == AuthFlow.bindLegacyEmail;
+    final result = isBindingEmail
+        ? await auth.completeBindLegacyEmail(
+            email: email,
+            password: password!,
+            code: code,
+          )
+        : await auth.completeChangeEmail(email, password!, code);
+    if (!context.mounted) return;
     result.fold(
       (failure) {
         context.hideLoadingDialog();
         context.showSnackBar(failure.localizedErrorMessage);
       },
-      (_) {
+      (_) async {
         context.hideLoadingDialog();
-
-        /// fetch user data to update email in the app
-        ref.read(homeProvider.notifier).fetchUserData();
+        if (isBindingEmail) {
+          ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
+          TextInput.finishAutofillContext(shouldSave: true);
+        }
+        final home = ref.read(homeProvider.notifier);
+        if (isBindingEmail) {
+          await home.reloadUserData();
+        } else {
+          await home.fetchUserData();
+        }
+        if (!context.mounted) return;
         AppDialog.dialog(
           context: context,
-          title: 'change_email'.i18n,
+          title: isBindingEmail ? 'add_email'.i18n : 'change_email'.i18n,
           content: 'email_updated'.i18n,
           action: 'ok'.i18n,
           onPressed: () {
+            if (isBindingEmail) {
+              appRouter.popUntilRoot();
+              appRouter.push(Account());
+              return;
+            }
             appRouter.popUntil((route) => (route.settings.name == 'Account'));
           },
         );
@@ -227,6 +250,7 @@ class ConfirmEmail extends HookConsumerWidget {
         // TODO: Handle this case.
         throw UnimplementedError();
       case AuthFlow.changeEmail:
+      case AuthFlow.bindLegacyEmail:
         // TODO: Handle this case.
         throw UnimplementedError();
       case AuthFlow.renewSubscription:
@@ -246,6 +270,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.oauth:
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
+      case AuthFlow.bindLegacyEmail:
         resendChangeEmail(context, ref);
         break;
       case AuthFlow.renewSubscription:
@@ -256,9 +281,11 @@ class ConfirmEmail extends HookConsumerWidget {
 
   Future<void> resendChangeEmail(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
-    final result = await ref
-        .read(authProvider.notifier)
-        .startChangeEmail(email, password!);
+    final auth = ref.read(authProvider.notifier);
+    final result = authFlow == AuthFlow.bindLegacyEmail
+        ? await auth.startBindLegacyEmail(email)
+        : await auth.startChangeEmail(email, password!);
+    if (!context.mounted) return;
     result.fold(
       (failure) {
         context.hideLoadingDialog();

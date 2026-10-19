@@ -730,6 +730,14 @@ func CompleteChangeEmail(email, password, code string) error {
 	return withCore(func(c lanterncore.Core) error { return c.CompleteChangeEmail(email, password, code) })
 }
 
+func StartBindLegacyEmail(email string) error {
+	return withCore(func(c lanterncore.Core) error { return c.StartBindLegacyEmail(email) })
+}
+
+func CompleteBindLegacyEmail(email, password, code string) error {
+	return withCore(func(c lanterncore.Core) error { return c.CompleteBindLegacyEmail(email, password, code) })
+}
+
 func SignUp(email, password string) error {
 	return withCore(func(c lanterncore.Core) error { return c.SignUp(email, password) })
 }

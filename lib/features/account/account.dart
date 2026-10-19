@@ -46,6 +46,7 @@ class Account extends HookConsumerWidget {
     final isExpired = ref.watch(isUserExpiredProvider);
     final isPro = ref.watch(isUserProProvider);
     final email = ref.watch(userEmailProvider);
+    final needsEmail = user?.hasLegacyPlaceholderEmail ?? false;
     final isUserFree = !isExpired && !isPro;
     final theme = TextTheme.of(buildContext);
     final isOAuthLogin = ref.watch(isOAuthLoginProvider).value ?? false;
@@ -90,19 +91,27 @@ class Account extends HookConsumerWidget {
           AppCard(
             padding: EdgeInsets.zero,
             child: AppTile(
-              label: email.toLowerCase(),
+              label: needsEmail ? 'add_your_email'.i18n : email.toLowerCase(),
               icon: AppImagePaths.email,
               contentPadding: EdgeInsets.only(left: 16),
-              onPressed: kDebugMode
+              onPressed: kDebugMode && !needsEmail
                   ? () {
                       copyToClipboard(email);
                     }
                   : null,
-              trailing: isOAuthLogin
+              trailing: isOAuthLogin && !needsEmail
                   ? null
                   : AppTextButton(
-                      label: 'change_email'.i18n,
+                      label: needsEmail
+                          ? 'add_email'.i18n
+                          : 'change_email'.i18n,
                       onPressed: () {
+                        if (needsEmail) {
+                          appRouter.push(
+                            AddEmail(authFlow: AuthFlow.bindLegacyEmail),
+                          );
+                          return;
+                        }
                         appRouter.push(
                           SignInPassword(email: email, fromChangeEmail: true),
                         );
