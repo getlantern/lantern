@@ -124,6 +124,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     required int bytesUp,
     required Map<String, RelayCountryStats> countries,
     ({String epoch, int down, int up})? mark,
+    ({String epoch, int down, int up})? peerMark,
   }) => update(
     state.copyWith(
       unboundedBytesDown: bytesDown,
@@ -132,6 +133,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
       unboundedRelayEpoch: mark?.epoch,
       unboundedRelayMarkDown: mark?.down,
       unboundedRelayMarkUp: mark?.up,
+      peerRelayEpoch: peerMark?.epoch,
+      peerRelayMarkDown: peerMark?.down,
+      peerRelayMarkUp: peerMark?.up,
     ),
   );
 
