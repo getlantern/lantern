@@ -79,7 +79,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: getlantern/lantern-cloud
-          ref: 4d71db48281c72dee8e2a1be45ea052fb24da994
+          ref: 28e828b4b1969aad4386df0746a26feab806101d
           path: build/cloud-fixture
           token: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
           persist-credentials: false
