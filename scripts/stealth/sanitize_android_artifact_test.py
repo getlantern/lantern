@@ -87,6 +87,24 @@ def _make_elf_with_section(section_name: str, section_data: bytes) -> bytes:
     return bytes(buf)
 
 
+
+def _isolated_gradle_project(root: Path) -> Path:
+    app_dir = root / "android" / "app"
+    app_dir.mkdir(parents=True)
+    (root / "gradle-home").mkdir()
+    return app_dir
+
+
+def _signing_free_env(root: Path) -> dict[str, str]:
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key not in sanitize_android_artifact.SIGNING_PROPERTIES
+        and not key.startswith("ORG_GRADLE_PROJECT_")
+    }
+    env["GRADLE_USER_HOME"] = str(root / "gradle-home")
+    return env
+
 class SanitizeAndroidArtifactTest(unittest.TestCase):
     def test_strips_metadata_and_scrubs_native_text(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -139,6 +157,25 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
             self.assertEqual(result.scrubbed_native_strings, 0)
             with zipfile.ZipFile(artifact) as zf:
                 self.assertEqual(zf.read("classes.dex"), b"Lantern VPN")
+
+    def test_unchanged_artifact_keeps_original_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "app.apk"
+            with zipfile.ZipFile(artifact, "w") as zf:
+                zf.writestr("classes.dex", b"dex")
+            # Trailing bytes stand in for data a zipfile repack would drop.
+            with artifact.open("ab") as handle:
+                handle.write(b"signing-block")
+            original = artifact.read_bytes()
+
+            with unittest.mock.patch.object(
+                sanitize_android_artifact, "resign_android_artifact"
+            ) as resign:
+                result = sanitize_android_artifact.sanitize_zip(artifact, resign=True)
+
+            self.assertFalse(result.resigned)
+            resign.assert_not_called()
+            self.assertEqual(artifact.read_bytes(), original)
 
     def test_go_buildinfo_section_is_zeroed_not_token_replaced(self) -> None:
         # Real .go.buildinfo sections contain structured module-graph lines such as
@@ -257,28 +294,87 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
             self.assertEqual(sign_kwargs["input"], "store-secret\nkey-secret\n")
 
     def test_signing_config_requires_release_keystore_by_default(self) -> None:
-        env = {
-            key: value
-            for key, value in os.environ.items()
-            if key not in ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")
-        }
-        with unittest.mock.patch.dict("os.environ", env, clear=True):
-            with self.assertRaises(RuntimeError):
-                sanitize_android_artifact.signing_config()
+        with tempfile.TemporaryDirectory() as tmp:
+            app_dir = _isolated_gradle_project(Path(tmp))
+            with unittest.mock.patch.dict("os.environ", _signing_free_env(Path(tmp)), clear=True):
+                with self.assertRaises(RuntimeError):
+                    sanitize_android_artifact.signing_config(app_project_dir=app_dir)
 
     def test_signing_config_allows_debug_keystore_when_explicit(self) -> None:
-        env = {
-            key: value
-            for key, value in os.environ.items()
-            if key not in ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")
-        }
-        with unittest.mock.patch.dict("os.environ", env, clear=True):
-            signing = sanitize_android_artifact.signing_config(allow_debug_keystore=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            app_dir = _isolated_gradle_project(Path(tmp))
+            with unittest.mock.patch.dict("os.environ", _signing_free_env(Path(tmp)), clear=True):
+                signing = sanitize_android_artifact.signing_config(
+                    allow_debug_keystore=True, app_project_dir=app_dir
+                )
 
         self.assertEqual(signing.key_alias, "androiddebugkey")
         self.assertEqual(signing.store_password, "android")
         self.assertEqual(signing.key_password, "android")
         self.assertEqual(signing.keystore, Path.home() / ".android" / "debug.keystore")
+
+    def test_signing_config_reads_gradle_user_home_properties(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app_dir = _isolated_gradle_project(root)
+            (root / "gradle-home" / "gradle.properties").write_text(
+                "KEYSTORE_FILE=keys/release.jks\n"
+                "KEYSTORE_PWD=store-secret\n"
+                "KEY_ALIAS : release\n"
+                "KEY_PWD   key-secret\n",
+                encoding="utf-8",
+            )
+            with unittest.mock.patch.dict("os.environ", _signing_free_env(root), clear=True):
+                signing = sanitize_android_artifact.signing_config(app_project_dir=app_dir)
+
+        self.assertEqual(signing.keystore, app_dir / "keys" / "release.jks")
+        self.assertEqual(signing.store_password, "store-secret")
+        self.assertEqual(signing.key_alias, "release")
+        self.assertEqual(signing.key_password, "key-secret")
+
+    def test_signing_config_gradle_precedence_and_absolute_keystore(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app_dir = _isolated_gradle_project(root)
+            (app_dir.parent / "gradle.properties").write_text(
+                "KEYSTORE_FILE=/project/release.jks\nKEYSTORE_PWD=project\n"
+                "KEY_ALIAS=project\nKEY_PWD=project\n",
+                encoding="utf-8",
+            )
+            (root / "gradle-home" / "gradle.properties").write_text(
+                "KEYSTORE_PWD=user-home\n", encoding="utf-8"
+            )
+            env = _signing_free_env(root)
+            env["ORG_GRADLE_PROJECT_KEY_PWD"] = "from-env"
+            with unittest.mock.patch.dict("os.environ", env, clear=True):
+                signing = sanitize_android_artifact.signing_config(app_project_dir=app_dir)
+
+        self.assertEqual(signing.keystore, Path("/project/release.jks"))
+        self.assertEqual(signing.store_password, "user-home")
+        self.assertEqual(signing.key_alias, "project")
+        self.assertEqual(signing.key_password, "from-env")
+
+    def test_parse_java_properties_handles_escapes_and_continuations(self) -> None:
+        parsed = sanitize_android_artifact.parse_java_properties(
+            "# comment\n"
+            "! also a comment\n"
+            "\n"
+            "plain=value\n"
+            "spaced  =  padded value\n"
+            "colon:value\n"
+            "multi=first \\\n"
+            "    second\n"
+            "escaped\\=key=a\\tb\\u0041\n"
+            "path=C:\\\\keys\\\\release.jks\n"
+        )
+
+        self.assertEqual(parsed["plain"], "value")
+        self.assertEqual(parsed["spaced"], "padded value")
+        self.assertEqual(parsed["colon"], "value")
+        self.assertEqual(parsed["multi"], "first second")
+        self.assertEqual(parsed["escaped=key"], "a\tbA")
+        self.assertEqual(parsed["path"], "C:\\keys\\release.jks")
+        self.assertNotIn("# comment", parsed)
 
     def test_android_signing_tools_uses_semantic_build_tools_version(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

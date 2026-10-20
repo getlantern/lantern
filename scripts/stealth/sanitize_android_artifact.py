@@ -68,6 +68,9 @@ ELF_LINKAGE_SECTION_NAMES = {
 }
 SIGNING_STORE_PASSWORD_ENV = "STEALTH_ANDROID_STORE_PASSWORD"
 SIGNING_KEY_PASSWORD_ENV = "STEALTH_ANDROID_KEY_PASSWORD"
+SIGNING_PROPERTIES = ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")
+# Gradle resolves the release storeFile relative to the app module.
+ANDROID_APP_PROJECT_DIR = Path(__file__).resolve().parents[2] / "android" / "app"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -260,7 +263,10 @@ def sanitize_zip(path: Path, resign: bool = False, allow_debug_keystore: bool = 
                 out.internal_attr = info.internal_attr
                 out.external_attr = info.external_attr
                 target.writestr(out, data)
-        shutil.move(str(tmp), path)
+        # Repacking drops the APK v2/v3 signing block, so keep the original
+        # archive untouched when nothing changed.
+        if removed or scrubbed:
+            shutil.move(str(tmp), path)
     finally:
         tmp.unlink(missing_ok=True)
     resigned = False
@@ -338,18 +344,33 @@ def resign_android_artifact(path: Path, allow_debug_keystore: bool = False) -> N
             signed.unlink(missing_ok=True)
 
 
-def signing_config(allow_debug_keystore: bool = False) -> SigningConfig:
+def signing_config(
+    allow_debug_keystore: bool = False,
+    app_project_dir: Path = ANDROID_APP_PROJECT_DIR,
+) -> SigningConfig:
     env = os.environ
-    if all(env.get(name) for name in ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")):
+    if all(env.get(name) for name in SIGNING_PROPERTIES):
         return SigningConfig(
             keystore=Path(env["KEYSTORE_FILE"]),
             store_password=env["KEYSTORE_PWD"],
             key_alias=env["KEY_ALIAS"],
             key_password=env["KEY_PWD"],
         )
+    gradle = gradle_signing_properties(app_project_dir)
+    if all(gradle.get(name) for name in SIGNING_PROPERTIES):
+        keystore = Path(gradle["KEYSTORE_FILE"]).expanduser()
+        if not keystore.is_absolute():
+            keystore = app_project_dir / keystore
+        return SigningConfig(
+            keystore=keystore,
+            store_password=gradle["KEYSTORE_PWD"],
+            key_alias=gradle["KEY_ALIAS"],
+            key_password=gradle["KEY_PWD"],
+        )
     if not allow_debug_keystore:
         raise RuntimeError(
-            "KEYSTORE_FILE, KEYSTORE_PWD, KEY_ALIAS, and KEY_PWD are required for --resign "
+            "KEYSTORE_FILE, KEYSTORE_PWD, KEY_ALIAS, and KEY_PWD are required for --resign, "
+            "as environment variables or Gradle project properties "
             "(use --allow-debug-keystore only for local test builds)"
         )
     return SigningConfig(
@@ -358,6 +379,89 @@ def signing_config(allow_debug_keystore: bool = False) -> SigningConfig:
         key_alias="androiddebugkey",
         key_password="android",
     )
+
+
+def gradle_signing_properties(app_project_dir: Path) -> dict[str, str]:
+    """Resolve the release signing properties the way Gradle does for the app.
+
+    Later sources win: the root project's gradle.properties, then
+    $GRADLE_USER_HOME/gradle.properties, then ORG_GRADLE_PROJECT_* variables.
+    """
+    resolved: dict[str, str] = {}
+    gradle_user_home = Path(os.environ.get("GRADLE_USER_HOME") or Path.home() / ".gradle")
+    for properties_file in (
+        app_project_dir.parent / "gradle.properties",
+        gradle_user_home / "gradle.properties",
+    ):
+        if properties_file.is_file():
+            loaded = parse_java_properties(properties_file.read_text(encoding="latin-1"))
+            resolved.update({name: loaded[name] for name in SIGNING_PROPERTIES if name in loaded})
+    for name in SIGNING_PROPERTIES:
+        value = os.environ.get(f"ORG_GRADLE_PROJECT_{name}")
+        if value is not None:
+            resolved[name] = value
+    return resolved
+
+
+_PROPERTIES_ESCAPES = {"t": "\t", "n": "\n", "r": "\r", "f": "\f"}
+
+
+def parse_java_properties(text: str) -> dict[str, str]:
+    """Parse java.util.Properties text: comments, continuations and escapes."""
+    logical_lines: list[str] = []
+    pending = ""
+    for raw in text.splitlines():
+        line = raw.lstrip() if pending else raw
+        if not pending and line.lstrip()[:1] in ("#", "!", ""):
+            continue
+        trailing = len(line) - len(line.rstrip("\\"))
+        if trailing % 2 == 1:
+            pending += line[:-1]
+            continue
+        logical_lines.append(pending + line)
+        pending = ""
+    if pending:
+        logical_lines.append(pending)
+
+    properties: dict[str, str] = {}
+    for line in logical_lines:
+        line = line.lstrip()
+        key_end = len(line)
+        index = 0
+        while index < len(line):
+            char = line[index]
+            if char == "\\":
+                index += 2
+                continue
+            if char in "=: \t\f":
+                key_end = index
+                break
+            index += 1
+        key = line[:key_end]
+        rest = line[key_end:].lstrip(" \t\f")
+        if rest[:1] in ("=", ":"):
+            rest = rest[1:].lstrip(" \t\f")
+        properties[_unescape_property(key)] = _unescape_property(rest)
+    return properties
+
+
+def _unescape_property(value: str) -> str:
+    out: list[str] = []
+    index = 0
+    while index < len(value):
+        char = value[index]
+        if char != "\\" or index + 1 >= len(value):
+            out.append(char)
+            index += 1
+            continue
+        escaped = value[index + 1]
+        if escaped == "u" and index + 6 <= len(value):
+            out.append(chr(int(value[index + 2 : index + 6], 16)))
+            index += 6
+            continue
+        out.append(_PROPERTIES_ESCAPES.get(escaped, escaped))
+        index += 2
+    return "".join(out)
 
 
 def android_signing_tools() -> tuple[Path, Path]:
@@ -396,7 +500,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "--allow-debug-keystore",
         action="store_true",
-        help="Allow Android's debug keystore when release signing env vars are absent.",
+        help="Allow Android's debug keystore when no release signing configuration is found.",
     )
     parser.add_argument("artifacts", nargs="+", type=Path)
     args = parser.parse_args(argv)

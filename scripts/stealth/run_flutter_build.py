@@ -77,6 +77,22 @@ def neutralize_brand_urls(text: str) -> str:
     return _BRAND_URL_RE.sub(repl, text)
 
 
+# Transliterated/translated brand names used by the shipped translations.
+# Longer forms come first so a shorter alias never splits one.
+_LOCALIZED_BRAND_NAMES = (
+    "蓝灯",
+    "藍燈",
+    "燈籠",
+    "لانترن",
+    "لنترن",
+    "لینٹرن",
+    "ল্যান্টার্ন",
+    "लैम्पटर्न",
+    "लैम्प",
+    "လန်တန်",
+)
+
+
 def _replace_brand_word(text: str, neutral: str) -> str:
     """Case-aware replacement of the standalone brand word with ``neutral``.
 
@@ -97,6 +113,8 @@ def _replace_brand_word(text: str, neutral: str) -> str:
 
     text = re.sub(r"getlantern", make_repl(neutral), text, flags=re.IGNORECASE)
     text = re.sub(r"lantern", make_repl(neutral), text, flags=re.IGNORECASE)
+    for alias in _LOCALIZED_BRAND_NAMES:
+        text = text.replace(alias, neutral)
     return text
 
 
@@ -293,6 +311,10 @@ _ASSET_DIRS = ("assets/images",)
 # one (otherwise the brand logo still shows on screen). Keyed by ORIGINAL name.
 _WORDMARK_LOGOS = {"lantern_logo.svg", "lantern_pro.svg", "lantern_chinese.svg", "lantern_pro_chinese.svg"}
 _ROUND_LOGOS = {"lantern_logo_round.svg"}
+# Brand graphics whose file name carries no brand token, so they are never
+# renamed; their content is replaced in place. Value is the rendered size, as
+# the widgets show them at the SVG's intrinsic size.
+_UNNAMED_BRAND_LOGOS = {"app_icon.svg": 149}
 
 
 def _wordmark_svg(product_name: str) -> str:
@@ -307,10 +329,10 @@ def _wordmark_svg(product_name: str) -> str:
     )
 
 
-def _round_logo_svg() -> str:
+def _round_logo_svg(size: int = 24) -> str:
     # Neutral globe-style mark, same 24x24 viewBox as the round brand logo.
     return (
-        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" '
+        f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" '
         'xmlns="http://www.w3.org/2000/svg">'
         '<circle cx="12" cy="12" r="11" fill="#00838F"/>'
         '<circle cx="12" cy="12" r="6.5" fill="none" stroke="#ffffff" stroke-width="1.5"/>'
@@ -345,12 +367,17 @@ def rename_brand_assets(
             if not source.is_file():
                 continue
             new_name = debrand_tokens(source.name)
-            if new_name == source.name:
+            in_place_size = _UNNAMED_BRAND_LOGOS.get(source.name)
+            if new_name == source.name and in_place_size is None:
                 continue
             relative = source.relative_to(root)
             backup_target = backup_root / relative
             backup_target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, backup_target)
+            if new_name == source.name:
+                source.write_text(_round_logo_svg(in_place_size), encoding="utf-8")
+                backed_up.append(relative)
+                continue
             new_path = source.with_name(new_name)
             created.append(new_path.relative_to(root))
             neutral = _neutral_logo_content(source.name, product_name)
