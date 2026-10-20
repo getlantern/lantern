@@ -4,6 +4,8 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -70,6 +72,112 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
              build_type, "9.2.0", "lantern-installer", platforms],
             cwd=self.work, env={**self.env, **env}, text=True, capture_output=True, timeout=10,
         )
+
+    def run_metadata(self, tag: str, existing_tags: tuple[str, ...] = ()) -> tuple[subprocess.CompletedProcess, dict[str, str]]:
+        # The Linux runner uses Bash 4+; macOS's system Bash lacks associative arrays.
+        shell = None
+        for candidate in (shutil.which("bash"), "/opt/homebrew/bin/bash", "/usr/local/bin/bash"):
+            if candidate and Path(candidate).is_file():
+                version = subprocess.run(
+                    [candidate, "-c", "test ${BASH_VERSINFO[0]} -ge 4"],
+                    capture_output=True, timeout=10,
+                )
+                if version.returncode == 0:
+                    shell = candidate
+                    break
+        if shell is None:
+            self.skipTest("release metadata requires Bash 4 or newer")
+
+        step = next(step for step in self.jobs["set-metadata"]["steps"] if step.get("id") == "meta")
+        expressions = {
+            "github.event_name": "push",
+            "github.event.inputs.build_type": "",
+            "github.event.inputs.platforms": "",
+            "github.event.inputs.linux_arch": "",
+            "github.event.inputs.publish_mobile_stores": "",
+            "github.event.repository.default_branch": "main",
+            "github.ref_name": tag,
+        }
+        script = re.sub(r"\$\{\{\s*(.*?)\s*\}\}", lambda match: expressions[match[1].strip()], step["run"])
+        with tempfile.TemporaryDirectory(dir=self.work) as temporary:
+            repo = Path(temporary)
+            output = repo / "output"
+            env = {
+                **{key: value for key, value in self.env.items() if not key.startswith("GIT_")},
+                "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1",
+                "GITHUB_REF": f"refs/tags/{tag}", "GITHUB_RUN_NUMBER": "123",
+                "GITHUB_OUTPUT": str(output),
+            }
+            for args in (
+                ["init", "--quiet"],
+                ["-c", "user.name=Release test", "-c", "user.email=release@example.com",
+                 "commit", "--quiet", "--allow-empty", "-m", "Release fixture"],
+                *(["tag", value] for value in dict.fromkeys((*existing_tags, tag))),
+            ):
+                subprocess.run(
+                    ["git", *args], cwd=repo, env=env, check=True,
+                    text=True, capture_output=True, timeout=10,
+                )
+            (repo / "scripts").symlink_to(ROOT / "scripts", target_is_directory=True)
+            result = subprocess.run(
+                [shell, "-e", "-o", "pipefail", "-c", script],
+                cwd=repo, env=env, text=True, capture_output=True, timeout=10,
+            )
+            outputs = dict(line.split("=", 1) for line in output.read_text().splitlines()) if output.exists() else {}
+            return result, outputs
+
+    def test_numbered_beta_metadata_preserves_version_and_platform_storage(self) -> None:
+        for platform in ("all", "windows", "macos", "linux", "android", "ios"):
+            with self.subTest(platform=platform):
+                suffix = "" if platform == "all" else f"-{platform}"
+                tag = f"v10.0.4-beta.10{suffix}"
+                result, outputs = self.run_metadata(
+                    tag, ("v10.0.3", "v10.0.3-beta-10", "v10.0.4-beta.9"),
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(outputs["build_type"], "beta")
+                self.assertEqual(outputs["release_tag"], tag)
+                self.assertEqual(outputs["version"], "10.0.4-beta.10")
+                self.assertEqual(outputs["storage_version"], tag[1:])
+                self.assertEqual(outputs["platform"], platform)
+                self.assertEqual(outputs["linux_arch"], "all" if platform in ("all", "linux") else "amd64")
+
+    def test_stable_metadata_promotes_the_same_base_beta(self) -> None:
+        for platform in ("all", "android"):
+            with self.subTest(platform=platform):
+                suffix = "" if platform == "all" else f"-{platform}"
+                tag = f"v10.0.4{suffix}"
+                result, outputs = self.run_metadata(tag, ("v10.0.4-beta.10",))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(outputs["build_type"], "production")
+                self.assertEqual(outputs["version"], "10.0.4")
+                self.assertEqual(outputs["storage_version"], tag[1:])
+                self.assertEqual(outputs["platform"], platform)
+
+    def test_legacy_and_malformed_beta_tags_fail_before_metadata_output(self) -> None:
+        for tag in (
+            "v10.0.4-beta", "v10.0.4-beta-10", "v10.0.4-beta10",
+            "v10.0.4-beta.01", "v10.0.4-beta.ten", "v10.0.4-beta.10-plan9",
+        ):
+            with self.subTest(tag=tag):
+                result, outputs = self.run_metadata(tag, ("v10.0.3",))
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("not a valid release version", result.stderr)
+                self.assertEqual(outputs, {})
+
+    def test_same_base_beta_migration_fails_before_metadata_output(self) -> None:
+        for existing in ("v10.0.3-beta-10", "v10.0.3"):
+            with self.subTest(existing=existing):
+                result, outputs = self.run_metadata("v10.0.3-beta.11", (existing,))
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("needs a higher base", result.stderr)
+                self.assertEqual(outputs, {})
+
+    def test_backwards_beta_tag_fails_before_metadata_output(self) -> None:
+        result, outputs = self.run_metadata("v10.0.4-beta.9", ("v10.0.4-beta.10",))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("would go backwards", result.stderr)
+        self.assertEqual(outputs, {})
 
     def test_only_full_production_release_becomes_latest(self) -> None:
         for build_type, platform, latest in (
