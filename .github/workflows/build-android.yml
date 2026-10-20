@@ -156,6 +156,13 @@ jobs:
           "${check[@]}" --app-abis arm64-v8a --apk "${INSTALLER_PATH}.apk"
           "${check[@]}" --app-abis armeabi-v7a --apk "${INSTALLER_PATH}-armv7.apk"
 
+      - name: Verify APK version names
+        env:
+          INSTALLER_PATH: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+        run: |
+          bash scripts/ci/verify_android_version.sh "$VERSION" \
+            "${INSTALLER_PATH}.apk" "${INSTALLER_PATH}-armv7.apk"
+
       - name: Upload stealth leakage report
         if: ${{ always() && inputs.stealth_leakage_mode != '' && steps.stealth_leakage_check.outcome != 'skipped' }}
         uses: actions/upload-artifact@v4
