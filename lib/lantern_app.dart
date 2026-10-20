@@ -50,6 +50,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
   StreamSubscription<Uri>? _deepLinkSubscription;
   Uri? _lastHandledUri;
   DateTime? _lastHandledTime;
+  bool _invalidDeepLinkPending = false;
+  bool _invalidDeepLinkScheduled = false;
   late final UserMessageActionDispatcher _userMessageActionDispatcher;
 
   @override
@@ -57,6 +59,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
     super.initState();
     _userMessageActionDispatcher = UserMessageActionDispatcher.application();
     WidgetsBinding.instance.addObserver(this);
+    globalRouter.addListener(_scheduleInvalidDeepLinkMessage);
     initDeepLinks();
     initLifecycleListener();
   }
@@ -87,6 +90,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    globalRouter.removeListener(_scheduleInvalidDeepLinkMessage);
     _lifecycle.dispose();
     _deepLinkSubscription?.cancel();
     super.dispose();
@@ -129,7 +133,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       final code = affiliateCodeFromUri(uri);
       if (code == null) {
         appLogger.debug('DeepLink affiliate: invalid link or code');
-        context.showSnackBar('invalid_deep_link'.i18n);
+        _showInvalidDeepLink();
         return;
       }
       _pushWithHome(Plans(referralCode: code));
@@ -168,7 +172,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
         appLogger.debug(
           "DeepLink private-server: missing or invalid exp param",
         );
-        context.showSnackBar('invalid_deep_link'.i18n);
+        _showInvalidDeepLink();
         return;
       }
       final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
@@ -188,6 +192,33 @@ class _LanternAppState extends ConsumerState<LanternApp>
       );
       _pushWithHome(JoinPrivateServer(deepLinkData: data));
     }
+  }
+
+  void _showInvalidDeepLink() {
+    _invalidDeepLinkPending = true;
+    _scheduleInvalidDeepLinkMessage();
+  }
+
+  void _scheduleInvalidDeepLinkMessage() {
+    if (!mounted || !_invalidDeepLinkPending || _invalidDeepLinkScheduled) {
+      return;
+    }
+    _invalidDeepLinkScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _invalidDeepLinkScheduled = false;
+      if (!mounted || !_invalidDeepLinkPending) return;
+
+      // On cold start the router has no Scaffold until its first route builds.
+      final navigatorContext = globalRouter.navigatorKey.currentContext;
+      if (!globalRouter.hasEntries ||
+          navigatorContext == null ||
+          !navigatorContext.mounted) {
+        return;
+      }
+      _invalidDeepLinkPending = false;
+      navigatorContext.showSnackBar('invalid_deep_link'.i18n);
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   /// Pushes [route] on the current stack when the app is in the foreground
@@ -281,6 +312,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
                     locale: locale.toLocale,
                     debugShowCheckedModeBanner: false,
                     builder: (context, child) {
+                      _scheduleInvalidDeepLinkMessage();
                       final router = child ?? const SizedBox.shrink();
                       final shell = isStaging
                           ? Banner(
