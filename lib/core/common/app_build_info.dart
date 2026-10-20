@@ -84,6 +84,13 @@ class AppBuildInfo {
 
   static const bool enableAutoUpdate = !suppressIdentifyingFeatures;
 
+  /// Stealth artifacts strip the Stripe and Play Billing components from the
+  /// Android manifest, so in-app purchasing is unavailable there.
+  static const bool enablePayments = !suppressIdentifyingFeatures;
+
+  /// Stealth artifacts strip the camera permission and ML Kit components.
+  static const bool enableQrScanner = !suppressIdentifyingFeatures;
+
   static const String appAuthScheme = String.fromEnvironment(
     'APP_AUTH_SCHEME',
     defaultValue: 'lantern',
