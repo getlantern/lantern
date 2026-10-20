@@ -63,7 +63,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libdns/alidns v1.0.6 // indirect
 	github.com/libdns/cloudflare v0.2.2 // indirect
