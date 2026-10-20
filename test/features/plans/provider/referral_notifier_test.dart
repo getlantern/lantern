@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart' show Translations;
-import 'package:i18n_extension_importer/i18n_extension_importer.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/utils/failure.dart';
@@ -36,26 +35,28 @@ class _FakeLanternService implements LanternService {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  const invalidCodeMessage =
+      'The referral/promo code you entered is invalid. '
+      'Please check the code and try again.';
+  const invalidCodeMessageUrdu =
+      'آپ کا درج کردہ ریفرل/پرومو کوڈ غلط ہے۔ براہ کرم کوڈ چیک کر کے دوبارہ کوشش کریں۔';
   late _FakeLanternService service;
   late ProviderContainer container;
   late ReferralNotifier notifier;
 
   setUpAll(() async {
     final previousTranslations = Localization.translations;
-    final previousLocale = Localization.defaultLocale;
-    final translations = await GettextImporter().fromAssetFile(
-      'en',
-      'assets/locales/en.po',
-    );
-    Localization.translations = Translations.byLocale('en') + translations;
-    Localization.defaultLocale = 'en';
     addTearDown(() {
       Localization.translations = previousTranslations;
-      Localization.defaultLocale = previousLocale;
     });
+    Localization.translations = Translations.byLocale('en-US');
+    await Localization.loadTranslations();
   });
 
   setUp(() {
+    final previousLocale = Localization.defaultLocale;
+    Localization.defaultLocale = 'en_US';
+    addTearDown(() => Localization.defaultLocale = previousLocale);
     service = _FakeLanternService();
     container = ProviderContainer(
       overrides: [lanternServiceProvider.overrideWithValue(service)],
@@ -80,11 +81,33 @@ void main() {
       final result = await notifier.applyReferralCodeV2(code);
       final failure = result.getLeft().toNullable();
       expect(failure?.error, 'invalid-referral-code');
-      expect(failure?.localizedErrorMessage, 'referral_code_invalid'.i18n);
+      expect(failure?.localizedErrorMessage, invalidCodeMessage);
     }
     expect(service.submittedCodes, isEmpty);
     expect(container.read(referralProvider), isNull);
   });
+
+  for (final entry in const {
+    'en_US': invalidCodeMessage,
+    'fr_CA':
+        'Le code de parrainage/promo saisi est invalide. '
+        'Veuillez vérifier le code et réessayer.',
+    'ur': invalidCodeMessageUrdu,
+    'ur_IN': invalidCodeMessageUrdu,
+    'ur_PK': invalidCodeMessageUrdu,
+  }.entries) {
+    test('invalid referral message resolves for ${entry.key}', () async {
+      Localization.defaultLocale = entry.key;
+
+      final result = await notifier.applyReferralCodeV2('invalid code');
+
+      final failure = result.getLeft().toNullable();
+      expect(failure?.error, 'invalid-referral-code');
+      expect(failure?.localizedErrorMessage, entry.value);
+      expect(service.submittedCodes, isEmpty);
+      expect(container.read(referralProvider), isNull);
+    });
+  }
 
   test('normalizes valid manual input before submission', () async {
     for (final code in [' half ', 'save15', 'summer-20', 'pygfj4']) {
