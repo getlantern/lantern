@@ -14,6 +14,8 @@ class VPNManager: VPNBase {
   @Published private(set) var connectionStatus: NEVPNStatus = .disconnected {
     didSet {
       guard oldValue != connectionStatus else { return }
+      appLogger.info(
+        "VPN connection status changed: \(oldValue.rawValue) -> \(connectionStatus.rawValue)")
       didUpdateConnectionStatusCallback?(connectionStatus)
       if let status = connectionStatus.widgetStatus {
         VPNWidgetStore.setStatus(status)

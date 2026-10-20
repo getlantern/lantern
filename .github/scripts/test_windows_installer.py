@@ -151,9 +151,9 @@ def generate(output):
     for directive in ("ArchitecturesAllowed", "ArchitecturesInstallIn64BitMode"):
         if not re.search(rf"^{directive}=x64compatible\s*$", source, re.MULTILINE):
             raise AssertionError(f"{directive} must require x64 compatibility")
-    error_defaults = re.findall(r"mbError,\s*MB_ABORTRETRYIGNORE,\s*(ID\w+)\)", source)
-    if error_defaults != ["IDABORT", "IDABORT"]:
-        raise AssertionError("Unattended dependency download/install failures must abort")
+    error_defaults = re.findall(r"mbError,\s*MB_RETRYCANCEL,\s*(ID\w+)\)", source)
+    if error_defaults != ["IDCANCEL", "IDCANCEL"]:
+        raise AssertionError("Unattended dependency download/install failures must cancel")
 
     start = source.index("function Dependency_IsVCRuntimeInstalled:")
     end = source.index("procedure Dependency_AddWebView2;", start)

@@ -21,6 +21,7 @@ part 'system_tray_notifier.g.dart';
 class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   VPNStatus _currentStatus = VPNStatus.disconnected;
   bool _isUserPro = false;
+  bool _canSelectServer = false;
   List<Server> _locations = [];
   RoutingMode _currentRoutingMode = RoutingMode.full;
   ServerLocation? _serverLocation;
@@ -49,6 +50,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   void _initializeState() {
     _currentStatus = ref.read(vpnProvider);
     _isUserPro = ref.read(isUserProProvider);
+    _canSelectServer = ref.read(canSelectServerProvider);
     _currentRoutingMode = ref.read(radianceSettingsProvider).routingMode;
     _serverLocation = ref.read(serverLocationProvider);
   }
@@ -71,6 +73,10 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   void _listenToProStatus() {
     ref.listen<bool>(isUserProProvider, (previous, next) async {
       _isUserPro = next;
+      await updateTrayMenu();
+    });
+    ref.listen<bool>(canSelectServerProvider, (previous, next) async {
+      _canSelectServer = next;
       await updateTrayMenu();
     });
   }
@@ -236,7 +242,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         ),
         MenuItem.separator(),
 
-        if (_isUserPro && _locations.isNotEmpty)
+        if (_canSelectServer && _locations.isNotEmpty)
           MenuItem.submenu(
             key: 'select_location',
             label: 'select_location'.i18n,

@@ -169,6 +169,7 @@ class InviteFriends extends HookConsumerWidget {
 
 enum _DownloadPlatform {
   android('Android'),
+  androidArmv7('Android 32-bit'),
   windows('Windows'),
   macos('macOS');
 
@@ -176,10 +177,14 @@ enum _DownloadPlatform {
 
   final String label;
 
+  bool get isAndroid => this == android || this == androidArmv7;
+
   String get url {
     switch (this) {
       case _DownloadPlatform.android:
         return AppUrls.directDownloadAndroid;
+      case _DownloadPlatform.androidArmv7:
+        return AppUrls.directDownloadAndroidArmv7;
       case _DownloadPlatform.windows:
         return AppUrls.directDownloadWindows;
       case _DownloadPlatform.macos:
@@ -233,7 +238,7 @@ class _GetLanternSheet extends HookWidget {
         ),
         SizedBox(height: 8.0),
         _downloadLinkBox(context, isCopied, downloadUrl),
-        if (selectedPlatform.value == _DownloadPlatform.android) ...[
+        if (selectedPlatform.value.isAndroid) ...[
           SizedBox(height: size24),
           Center(
             child: QrImageView(

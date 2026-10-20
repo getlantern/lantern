@@ -9,6 +9,9 @@ on:
       - "scripts/ci/setup*.sh"
       - "scripts/ci/choco-retry.sh"
       - "scripts/ci/validate_composite_actions.rb"
+      - "scripts/ci/verify_android_abis*"
+      - "android/abi-targets.properties"
+      - "Makefile"
 
 permissions:
   contents: read
@@ -27,6 +30,8 @@ jobs:
           args: -color -shellcheck=
       - name: Validate composite actions
         run: ruby scripts/ci/validate_composite_actions.rb
+      - name: Test Android ABI artifact validation
+        run: python3 -m unittest discover -s scripts/ci -p 'verify_android_abis_test.py' -v
       - name: Check setup script syntax
         run: |
           bash -n .github/actions/setup-flutter/read-version.sh

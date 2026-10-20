@@ -363,11 +363,7 @@ function Install-FromInstaller {
     -PulseSeconds $HeartbeatSeconds `
     -Description "Running installer"
 
-  if (-not (Get-Service -Name $Name -ErrorAction SilentlyContinue)) {
-    Show-LanterndInstallDiagnostics
-    throw "Installer did not register Windows service $Name"
-  }
-
+  # The installer must provision its service; repairing it here masks regressions.
   Write-Step "Waiting for Windows service after installer"
   Wait-ServiceRunning -Name $Name -TimeoutSeconds $TimeoutSeconds
 }

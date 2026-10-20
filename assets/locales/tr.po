@@ -646,6 +646,24 @@ msgstr "Bu Apple ID ile ilişkili etkin bir abonelik yok."
 msgid "no_purchase_found_body_android"
 msgstr "Bu Google hesabıyla ilişkili etkin bir abonelik yok."
 
+msgid "authorize_device_for_pro"
+msgstr "Pro için Cihazı Yetkilendir"
+
+msgid "device_linking_replaced_title"
+msgstr "Cihaz bağlama kodları değiştirildi"
+
+msgid "device_linking_replaced_body"
+msgstr "Lantern 10 ve daha yeni sürümler cihaz bağlama kodlarını kullanmaz. Artık Lantern Pro hesabınıza e-posta adresiniz ve bir şifre ile giriş yapıyorsunuz."
+
+msgid "device_linking_replaced_body_two"
+msgstr "Bir Lantern Pro hesabınız varsa ve henüz bir şifreniz yoksa, bu cihazda giriş yapmak için şimdi bir şifre ekleyin."
+
+msgid "add_an_account_password"
+msgstr "Hesap Şifresi Ekle"
+
+msgid "have_a_password_sign_in"
+msgstr "Şifreniz Var mı? Giriş Yap"
+
 msgid "plans_fetch_error"
 msgstr "Planlar alınırken hata oluştu. Lütfen daha sonra tekrar deneyin."
 

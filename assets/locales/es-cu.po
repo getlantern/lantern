@@ -653,6 +653,24 @@ msgstr "No hay ninguna suscripción activa vinculada a este Apple ID."
 msgid "no_purchase_found_body_android"
 msgstr "No hay ninguna suscripción activa vinculada a esta cuenta de Google."
 
+msgid "authorize_device_for_pro"
+msgstr "Autorizar dispositivo para Pro"
+
+msgid "device_linking_replaced_title"
+msgstr "Los códigos de vinculación de dispositivos han sido reemplazados"
+
+msgid "device_linking_replaced_body"
+msgstr "Lantern versión 10 y posteriores no utilizan códigos de vinculación de dispositivos. Ahora inicias sesión en tu cuenta de Lantern Pro con tu correo electrónico y una contraseña."
+
+msgid "device_linking_replaced_body_two"
+msgstr "Si tienes una cuenta de Lantern Pro y aún no tienes contraseña, agrega una ahora para iniciar sesión en este dispositivo."
+
+msgid "add_an_account_password"
+msgstr "Agregar una contraseña de cuenta"
+
+msgid "have_a_password_sign_in"
+msgstr "¿Tienes contraseña? Iniciar sesión"
+
 msgid "plans_fetch_error"
 msgstr "Error al cargar los planes. Por favor intenta de nuevo más tarde."
 
