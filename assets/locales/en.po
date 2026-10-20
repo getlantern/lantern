@@ -2055,9 +2055,9 @@ msgstr "Tap Edit, then Add Widget."
 msgid "widget_step_3"
 msgstr "Search for Lantern, choose a size, and tap add widget."
 
-# Advanced stats: low-emphasis link at the bottom of the Unbounded status
+# Advanced stats: low-emphasis link at the bottom of the Action Mode status
 # card and the title of the bottom sheet it opens. "Data relayed" counts
-# bytes this device forwarded for the people it helps over Unbounded.
+# bytes this device forwarded for the people it helps, in either sharing mode.
 msgid "advanced_stats"
 msgstr "Advanced stats"
 
@@ -2091,6 +2091,26 @@ msgstr "1 person"
 msgid "advanced_stats_people"
 msgstr "%s people"
 
-# Shown instead of data figures while sharing via Share My Connection.
-msgid "advanced_stats_smc_note"
-msgstr "Data stats are available only when sharing via Unbounded."
+# Sharing-mode names. "Direct connection" is Share My Connection, where people
+# connect straight to this device through a port on the user's router.
+# "WebRTC" is the Unbounded relay used when that port can't be opened; keep
+# it as the technical name.
+msgid "share_mode_smc"
+msgstr "Direct connection"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+# Status line on the Action Mode card: the first %s is the status (e.g.
+# "Enabled"), the second is the sharing mode (e.g. "WebRTC").
+msgid "smc_status_with_mode"
+msgstr "%s · %s"
+
+msgid "advanced_stats_mode"
+msgstr "Sharing mode"
+
+# Under the mode when Lantern switched to Unbounded because a direct
+# connection failed. %s is the reason, e.g. "Your router accepted the port
+# mapping but isn't forwarding traffic to this computer."
+msgid "advanced_stats_mode_fallback"
+msgstr "Direct connection unavailable: %s"

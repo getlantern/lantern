@@ -4,9 +4,15 @@ import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
-import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+
+/// The user-facing name of a sharing mode, or null when not sharing.
+String? shareModeLabel(ShareMode mode) => switch (mode) {
+  ShareMode.smc => 'share_mode_smc'.i18n,
+  ShareMode.unbounded => 'share_mode_unbounded'.i18n,
+  ShareMode.off => null,
+};
 
 void showAdvancedStatsSheet(BuildContext context) {
   showAppBottomSheet(
@@ -17,8 +23,7 @@ void showAdvancedStatsSheet(BuildContext context) {
   );
 }
 
-/// Data-relay figures for Unbounded volunteers. Byte counters only exist for
-/// Unbounded, so SmC sessions get a note in place of live figures.
+/// Data-relay figures for volunteers, in either sharing mode.
 class AdvancedStatsView extends ConsumerWidget {
   const AdvancedStatsView({super.key, this.scrollController});
   final ScrollController? scrollController;
@@ -29,8 +34,7 @@ class AdvancedStatsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final relay = state.relay;
-    final smc = state.mode == ShareMode.smc;
-    final live = !smc && relay.available;
+    final live = relay.available;
     final countries = relay.topCountries(topCountryCount);
     final divider = Divider(height: 1, color: context.borderDefault);
 
@@ -39,39 +43,43 @@ class AdvancedStatsView extends ConsumerWidget {
       controller: scrollController,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
-        if (smc) ...[
-          InfoRow(
-            key: const Key('advanced-stats.smc-note'),
-            text: 'advanced_stats_smc_note'.i18n,
-          ),
-          const SizedBox(height: 16),
-        ],
         AppCard(
           child: Column(
             children: [
-              if (!smc) ...[
-                _StatRow(
-                  label: 'advanced_stats_current_speed'.i18n,
-                  value: live
-                      ? _directions(
-                          '${relay.speedDown.round().siBytes}/s',
-                          '${relay.speedUp.round().siBytes}/s',
-                        )
-                      : '—',
-                ),
-                divider,
-                _StatRow(
-                  label: 'advanced_stats_session'.i18n,
-                  value: live ? relay.sessionBytes.siBytes : '—',
-                  detail: live
-                      ? _directions(
-                          relay.sessionDown.siBytes,
-                          relay.sessionUp.siBytes,
-                        )
-                      : null,
-                ),
-                divider,
-              ],
+              _StatRow(
+                key: const Key('advanced-stats.mode'),
+                label: 'advanced_stats_mode'.i18n,
+                value: shareModeLabel(state.mode) ?? 'smc_status_off'.i18n,
+                detail:
+                    state.mode == ShareMode.unbounded &&
+                        state.fallbackReason != null
+                    ? 'advanced_stats_mode_fallback'.i18n.fill([
+                        state.fallbackReason!,
+                      ])
+                    : null,
+              ),
+              divider,
+              _StatRow(
+                label: 'advanced_stats_current_speed'.i18n,
+                value: live
+                    ? _directions(
+                        '${relay.speedDown.round().siBytes}/s',
+                        '${relay.speedUp.round().siBytes}/s',
+                      )
+                    : '—',
+              ),
+              divider,
+              _StatRow(
+                label: 'advanced_stats_session'.i18n,
+                value: live ? relay.sessionBytes.siBytes : '—',
+                detail: live
+                    ? _directions(
+                        relay.sessionDown.siBytes,
+                        relay.sessionUp.siBytes,
+                      )
+                    : null,
+              ),
+              divider,
               _StatRow(
                 label: 'advanced_stats_all_time'.i18n,
                 value: relay.lifetimeBytes.siBytes,
@@ -125,7 +133,12 @@ class AdvancedStatsView extends ConsumerWidget {
 String _directions(String down, String up) => '↓ $down  ↑ $up';
 
 class _StatRow extends StatelessWidget {
-  const _StatRow({required this.label, required this.value, this.detail});
+  const _StatRow({
+    super.key,
+    required this.label,
+    required this.value,
+    this.detail,
+  });
   final String label, value;
   final String? detail;
 
@@ -201,8 +214,12 @@ class _CountryRow extends StatelessWidget {
                 children: [
                   Text(name, style: Theme.of(context).textTheme.bodyLarge),
                   Text(
+                    // A row with people but no bytes has no byte count to
+                    // show, as with direct sharing, which reports none.
                     people == null
                         ? stats.bytes.siBytes
+                        : stats.bytes == 0
+                        ? people
                         : '${stats.bytes.siBytes} · $people',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: context.textSecondary,

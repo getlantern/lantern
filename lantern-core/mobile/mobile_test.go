@@ -49,6 +49,13 @@ func TestResetNetworkWithoutClientIsNoop(t *testing.T) {
 	}
 }
 
+func TestResetNetworkForMonitorWithoutBackendIsNoop(t *testing.T) {
+	withCleanIPCLifecycle(t)
+	if err := ResetNetworkForMonitor(nil); err != nil {
+		t.Fatalf("ResetNetworkForMonitor(nil) error = %v, want nil", err)
+	}
+}
+
 func TestStartIPCServerReportsLifecycleBusy(t *testing.T) {
 	ipcLifecycle.mu.Lock()
 	previousServer := ipcLifecycle.server
