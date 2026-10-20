@@ -14,6 +14,8 @@ class PacketTunnelProvider: ExtensionProvider {
   private var currentMemoryPressure: DispatchSource.MemoryPressureEvent = .normal
   private var memorySampleCount = 0
   private var lastMemoryLog: Date?
+  private var lastLoggedFootprint: UInt64?
+  private var lastLoggedPressure: DispatchSource.MemoryPressureEvent?
 
   // A tunnel torn down seconds after start used to leave a single sample, so a
   // footprint climbing toward the jetsam cap was indistinguishable from a flat
@@ -21,6 +23,10 @@ class PacketTunnelProvider: ExtensionProvider {
   private static let memorySampleInterval: TimeInterval = 1
   private static let memoryEagerSamples = 10
   private static let memoryLogInterval: TimeInterval = 10
+  // While elevated, a sample is only worth a line if it shows movement. Logging
+  // every second regardless kept a tunnel pinned near the cap writing ~3,600
+  // lines an hour for as long as it stayed connected.
+  private static let elevatedLogFootprintDelta: UInt64 = 1024 * 1024
 
   // The kernel's pressure source only fires on a transition, so a provider that
   // starts already tight would sit on the normal-pressure heartbeat until one
@@ -86,7 +92,7 @@ class PacketTunnelProvider: ExtensionProvider {
     stopMemoryLogger()
     startMemoryPressureMonitor()
     let timer = DispatchSource.makeTimerSource(queue: memoryQueue)
-    timer.schedule(deadline: .now(), repeating: interval)
+    timer.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(500))
     timer.setEventHandler { [weak self] in
       self?.sampleMemory()
     }
@@ -106,11 +112,14 @@ class PacketTunnelProvider: ExtensionProvider {
       currentMemoryPressure = .normal
       memorySampleCount = 0
       lastMemoryLog = nil
+      lastLoggedFootprint = nil
+      lastLoggedPressure = nil
     }
   }
 
-  // Logs every early sample so a fast pre-kill climb is visible, every sample
-  // once memory is tight, and a 10s heartbeat otherwise. Runs on memoryQueue.
+  // Logs every early sample so a fast pre-kill climb is visible, any sample
+  // that moved once memory is tight, and a 10s heartbeat otherwise. Runs on
+  // memoryQueue.
   private func sampleMemory() {
     let now = Date()
     memorySampleCount += 1
@@ -118,12 +127,38 @@ class PacketTunnelProvider: ExtensionProvider {
       || os_proc_available_memory() < Self.lowHeadroomBytes
     let heartbeatDue =
       lastMemoryLog.map { now.timeIntervalSince($0) >= Self.memoryLogInterval } ?? true
-    guard memorySampleCount <= Self.memoryEagerSamples || elevated || heartbeatDue else { return }
+    guard memorySampleCount <= Self.memoryEagerSamples || heartbeatDue
+      || (elevated && elevatedSampleMoved())
+    else { return }
     // Only a sample that actually read the counters may start the next heartbeat,
     // or a failed read would suppress logging for the following ten seconds.
     if logMemoryUsage() {
       lastMemoryLog = now
     }
+  }
+
+  private func elevatedSampleMoved() -> Bool {
+    guard currentMemoryPressure == lastLoggedPressure,
+      let last = lastLoggedFootprint, let info = readVMInfo()
+    else { return true }
+    let footprint = info.phys_footprint
+    let delta = footprint > last ? footprint - last : last - footprint
+    return delta >= Self.elevatedLogFootprintDelta
+  }
+
+  private func readVMInfo() -> task_vm_info_data_t? {
+    var info = task_vm_info_data_t()
+    var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size)
+    let kerr = withUnsafeMutablePointer(to: &info) {
+      $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+        task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+      }
+    }
+    guard kerr == KERN_SUCCESS else {
+      appLogger.error("PacketTunnelProvider failed to read memory info: \(kerr)")
+      return nil
+    }
+    return info
   }
 
   // Subscribes to kernel memory-pressure notifications. The OS publishes one
@@ -147,17 +182,7 @@ class PacketTunnelProvider: ExtensionProvider {
   // a heartbeat. Runs on memoryQueue.
   @discardableResult
   private func logMemoryUsage() -> Bool {
-    var info = task_vm_info_data_t()
-    var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size)
-    let kerr = withUnsafeMutablePointer(to: &info) {
-      $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-        task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
-      }
-    }
-    guard kerr == KERN_SUCCESS else {
-      appLogger.error("PacketTunnelProvider failed to read memory info: \(kerr)")
-      return false
-    }
+    guard let info = readVMInfo() else { return false }
     let mb = 1024.0 * 1024.0
     let footprintMB = Double(info.phys_footprint) / mb
     let residentMB = Double(info.resident_size) / mb
@@ -184,6 +209,8 @@ class PacketTunnelProvider: ExtensionProvider {
       pressureLabel, footprintMB, availableMB, residentMB, peakMB, dirtyMB, compressedMB, virtualMB
     )
     appLogger.info("\(message)")
+    lastLoggedFootprint = info.phys_footprint
+    lastLoggedPressure = currentMemoryPressure
     return true
   }
 

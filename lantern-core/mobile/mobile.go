@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/settings"
+	"github.com/sagernet/sing-box/experimental/libbox"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/logs"
@@ -408,6 +409,21 @@ func ResetNetwork() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		return struct{}{}, client.ResetNetwork(ctx)
+	})
+	return err
+}
+
+// ResetNetworkForMonitor only resets the tunnel that owns listener. It is called
+// from the extension, whose backend is in this process.
+func ResetNetworkForMonitor(listener libbox.InterfaceUpdateListener) error {
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		ipcLifecycle.mu.Lock()
+		localBackend := ipcLifecycle.backend
+		ipcLifecycle.mu.Unlock()
+		if localBackend != nil && listener != nil {
+			localBackend.ResetNetworkForMonitor(listener)
+		}
+		return struct{}{}, nil
 	})
 	return err
 }
