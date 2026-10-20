@@ -1,3 +1,5 @@
+import 'package:lantern/core/common/app_build_info.dart';
+
 // Stripe promotion codes allow letters, digits, and hyphens, up to 500 characters.
 const _maxReferralCodeLength = 500;
 final _invalidReferralCodeCharacters = RegExp(r'[^A-Za-z0-9-]');
@@ -20,7 +22,7 @@ String? affiliateCodeFromUri(Uri uri) {
       (uri.host == 'lantern.io' || uri.host == 'www.lantern.io') &&
       uri.port == 443;
   final isAppLink =
-      uri.scheme == 'lantern' && uri.host == 'affiliate' && !uri.hasPort;
+      AppBuildInfo.isAppAuthUri(uri) && uri.host == 'affiliate' && !uri.hasPort;
   if ((!isWebLink && !isAppLink) ||
       uri.userInfo.isNotEmpty ||
       uri.hasFragment) {

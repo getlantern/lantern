@@ -125,7 +125,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
     final path = uri.path;
 
     if (path.startsWith('/affiliate') ||
-        (uri.scheme == 'lantern' && uri.host == 'affiliate')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'affiliate')) {
       final code = affiliateCodeFromUri(uri);
       if (code == null) {
         appLogger.debug('DeepLink affiliate: invalid link or code');
@@ -134,7 +134,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
       _pushWithHome(Plans(referralCode: code));
     } else if (path.startsWith('/report-issue') ||
-        (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'report-issue')) {
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
       final fragment = uri.fragment;
@@ -154,12 +154,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
         _pushWithHome(ReportIssue());
       }
     } else if (path.startsWith('/auth') ||
-        (uri.scheme == 'lantern' && uri.host == 'auth')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'auth')) {
       if (isOAuthCallbackResult(uri)) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
     } else if (path.startsWith('/private-server') ||
-        (uri.scheme == 'lantern' && uri.host == 'private-server')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);
       appLogger.debug("DeepLink private-server params: ${data.keys.toList()}");
       data['accessKey'] = _buildPrivateServerAccessKey(uri);
@@ -224,8 +224,10 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
       return accessKey;
     }
-    if (uri.scheme == 'lantern') {
-      // lantern://private-server?key=value → lantern//private-server?key=value
+    if (uri.scheme == 'lantern' || AppBuildInfo.isAppAuthUri(uri)) {
+      // The downstream parser only accepts the canonical `lantern//` prefix, so
+      // a per-build custom scheme (APP_AUTH_SCHEME) is normalized here:
+      // <scheme>://private-server?key=value → lantern//private-server?key=value
       var accessKey = 'lantern//${uri.host}';
       if (uri.hasQuery) {
         accessKey += '?${uri.query}';

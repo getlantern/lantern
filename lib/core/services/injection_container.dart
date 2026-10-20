@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -92,7 +93,7 @@ Future<void> injectServices() async {
     return service;
   });
 
-  if (PlatformUtils.isAndroid) {
+  if (PlatformUtils.isAndroid && AppBuildInfo.enablePayments) {
     // The publishable key arrives with the plans response (synced by the
     // listenSelf listener in PlansNotifier.build), so no upfront
     // initialization.

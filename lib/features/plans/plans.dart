@@ -73,7 +73,8 @@ class _PlansState extends ConsumerState<Plans>
           },
         ),
         actions: [
-          IconButton(icon: Icon(Icons.more_vert), onPressed: onMenuTap),
+          if (AppBuildInfo.enablePayments)
+            IconButton(icon: Icon(Icons.more_vert), onPressed: onMenuTap),
         ],
       ),
       title: "",
@@ -82,6 +83,7 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   Widget _buildBody() {
+    if (!AppBuildInfo.enablePayments) return _buildLicenseOnlyBody();
     final plansState = ref.watch(plansProvider);
     return Column(
       children: [
@@ -211,6 +213,33 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
+  /// Builds without in-app payments activate Pro with a license only.
+  Widget _buildLicenseOnlyBody() {
+    return Column(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: defaultSize),
+            child: Center(child: FeatureList()),
+          ),
+        ),
+        SizedBox(height: defaultSize),
+        DividerSpace(padding: EdgeInsets.zero),
+        Container(
+          color: context.bgSurface,
+          padding: EdgeInsets.all(defaultSize),
+          child: PrimaryButton(
+            buttonKey: const Key('plans.license'),
+            label: 'lantern_pro_license'.i18n,
+            isTaller: true,
+            onPressed: _openProLicense,
+          ),
+        ),
+        SizedBox(height: size24),
+      ],
+    );
+  }
+
   /// Banner shown above the plans list when an affiliate code is applied:
   /// the discount percentage plus a removable chip with the applied code.
   /// Referral (non-affiliate) codes keep the existing per-plan bonus message.
@@ -298,21 +327,23 @@ class _PlansState extends ConsumerState<Plans>
               label: 'lantern_pro_license'.i18n,
               onPressed: () {
                 context.pop();
-                final appSetting = ref.read(appSettingProvider);
-                final email = ref.read(userEmailProvider);
-                if (appSetting.userLoggedIn && email.isNotEmpty) {
-                  appRouter.push(LanternProLicense(email: email, code: ''));
-                  return;
-                }
-                appRouter.popAndPush(
-                  AddEmail(authFlow: AuthFlow.lanternProLicense),
-                );
+                _openProLicense();
               },
             ),
           ],
         );
       },
     );
+  }
+
+  void _openProLicense() {
+    final appSetting = ref.read(appSettingProvider);
+    final email = ref.read(userEmailProvider);
+    if (appSetting.userLoggedIn && email.isNotEmpty) {
+      appRouter.push(LanternProLicense(email: email, code: ''));
+      return;
+    }
+    appRouter.popAndPush(AddEmail(authFlow: AuthFlow.lanternProLicense));
   }
 
   void showReferralCodeDialog() {

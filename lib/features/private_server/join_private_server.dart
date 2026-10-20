@@ -141,7 +141,8 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                       buttonValid.value =
                           (value.isNotEmpty && nameController.text.isNotEmpty);
                     },
-                    suffixIcon: PlatformUtils.isMobile
+                    suffixIcon:
+                        PlatformUtils.isMobile && AppBuildInfo.enableQrScanner
                         ? GestureDetector(
                             onTap: () {
                               appRouter.push(QrCodeScanner()).then((value) {

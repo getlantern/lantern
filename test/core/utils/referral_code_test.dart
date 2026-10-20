@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/utils/referral_code.dart';
 
 void main() {
+  const appScheme = AppBuildInfo.appAuthScheme;
   group('normalizeReferralCode', () {
     test('accepts referral codes and short or hyphenated promo codes', () {
       for (final code in ['PYGFJ4', 'HALF', 'SAVE15', 'SUMMER-20']) {
@@ -43,10 +45,10 @@ void main() {
         'https://lantern.io/affiliate?code=half',
         'https://lantern.io/affiliate/?code=HALF',
         'https://lantern.io/affiliate/%48ALF?utm_source=partner',
-        'lantern://affiliate/HALF',
-        'lantern://affiliate/HALF/',
-        'lantern://affiliate?code=HALF',
-        'lantern://affiliate/?code=HALF',
+        '$appScheme://affiliate/HALF',
+        '$appScheme://affiliate/HALF/',
+        '$appScheme://affiliate?code=HALF',
+        '$appScheme://affiliate/?code=HALF',
       ]) {
         expect(affiliateCodeFromUri(Uri.parse(link)), 'HALF', reason: link);
       }
@@ -66,19 +68,27 @@ void main() {
         'https://lantern.io/affiliate/HALF/extra',
         'https://lantern.io/affiliate//HALF',
         'https://lantern.io/affiliate/HALF#code=OTHER',
-        'lantern://other/affiliate/HALF',
-        'lantern://affiliate:443/HALF',
-        'lantern://user@affiliate/HALF',
-        'lantern://affiliate/HALF/extra',
+        '$appScheme://other/affiliate/HALF',
+        '$appScheme://affiliate:443/HALF',
+        '$appScheme://user@affiliate/HALF',
+        '$appScheme://affiliate/HALF/extra',
       ]) {
         expect(affiliateCodeFromUri(Uri.parse(link)), isNull, reason: link);
       }
     });
 
+    test('rejects an unconfigured app scheme', () {
+      final otherScheme = appScheme == 'lantern' ? 'other-app' : 'lantern';
+      expect(
+        affiliateCodeFromUri(Uri.parse('$otherScheme://affiliate/HALF')),
+        isNull,
+      );
+    });
+
     test('rejects missing, ambiguous, and malformed code values', () {
       for (final base in [
         'https://lantern.io/affiliate',
-        'lantern://affiliate',
+        '$appScheme://affiliate',
       ]) {
         for (final suffix in [
           '',
@@ -119,7 +129,7 @@ void main() {
     test('applies the length limit to the decoded code in both link forms', () {
       for (final base in [
         'https://lantern.io/affiliate',
-        'lantern://affiliate',
+        '$appScheme://affiliate',
       ]) {
         for (final separator in ['/', '?code=']) {
           expect(

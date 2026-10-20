@@ -10,7 +10,6 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
-import 'package:lantern/features/action_mode/auto_enable_mode.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
@@ -71,8 +70,6 @@ class ActionModeTab extends HookConsumerWidget {
                       onToggle: () =>
                           ref.read(shareProvider.notifier).toggle(context, ref),
                     ),
-                    const SizedBox(height: 8),
-                    const ActionModeAutoEnable(),
                   ],
                 ),
               ),
@@ -118,9 +115,12 @@ class _StatusCard extends StatelessWidget {
               _ => 'smc_status_configuring'.i18n,
             },
           };
+    final mode = shareModeLabel(state.mode);
 
     return ActionModeStatusCard(
-      status: status,
+      status: hasError || mode == null
+          ? status
+          : 'smc_status_with_mode'.i18n.fill([status, mode]),
       enabled: state.active || state.probing,
       ready:
           (state.mode == ShareMode.unbounded && state.unboundedRunning) ||
