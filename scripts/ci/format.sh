@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: format.sh <release-notes|job-summary|slack>
 #
 # Environment variables:
-#   RELEASE_TAG:          release tag with 'v' prefix (e.g., v9.0.11, v9.0.11-beta, v9.0.11-abc123-20260207T044512Z)
+#   RELEASE_TAG:          release tag with 'v' prefix (e.g., v9.0.11, v9.0.11-beta.1, v9.0.11-abc123-20260207T044512Z)
 #   INSTALLER_BASE_NAME:  installer base name WITHOUT build-type suffix (e.g., lantern-installer)
 #   PLATFORM:             platforms built (all, or comma-separated)
 #   BUCKET:               S3 bucket name
