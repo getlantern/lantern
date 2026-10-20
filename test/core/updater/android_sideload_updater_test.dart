@@ -171,5 +171,47 @@ void main() {
       expect(isAndroidUpdateVersionNewer('9.1.0-beta.1', '9.1.0'), isFalse);
       expect(isAndroidUpdateVersionNewer('9.1.0', '9.1.0-beta.1'), isTrue);
     });
+
+    test('orders numbered betas numerically across digit boundaries', () {
+      for (final (current, candidate) in [(9, 10), (99, 100)]) {
+        expect(
+          isAndroidUpdateVersionNewer(
+            '10.0.4-beta.$candidate',
+            '10.0.4-beta.$current',
+          ),
+          isTrue,
+        );
+        expect(
+          isAndroidUpdateVersionNewer(
+            '10.0.4-beta.$current',
+            '10.0.4-beta.$candidate',
+          ),
+          isFalse,
+        );
+        expect(
+          isAndroidUpdateVersionNewer(
+            '10.0.4-beta.$candidate',
+            '10.0.4-beta.$candidate',
+          ),
+          isFalse,
+        );
+      }
+    });
+
+    test('promotes numbered betas to stable without downgrading stable', () {
+      expect(isAndroidUpdateVersionNewer('10.0.4', '10.0.4-beta.100'), isTrue);
+      expect(isAndroidUpdateVersionNewer('10.0.4-beta.100', '10.0.4'), isFalse);
+    });
+
+    test('migrates legacy betas to a higher base version', () {
+      for (final current in ['10.0.3-beta-9', '10.0.3-beta-10']) {
+        expect(isAndroidUpdateVersionNewer('10.0.4-beta.1', current), isTrue);
+      }
+    });
+
+    test('migrates a beta stamped as stable to a higher base version', () {
+      expect(isAndroidUpdateVersionNewer('10.0.4-beta.1', '10.0.3'), isTrue);
+      expect(isAndroidUpdateVersionNewer('10.0.3-beta.11', '10.0.3'), isFalse);
+    });
   });
 }
