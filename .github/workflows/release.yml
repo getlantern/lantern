@@ -880,6 +880,8 @@ jobs:
             "lantern-installer-exe/${FULL_NAME}.exe"
           collect_required android "${FULL_NAME}.apk" \
             "lantern-installer-apk/${FULL_NAME}.apk"
+          collect_required android "${FULL_NAME}-armv7.apk" \
+            "lantern-installer-apk/${FULL_NAME}-armv7.apk"
           collect_required ios "${FULL_NAME}.ipa" \
             "lantern-installer-ipa/${FULL_NAME}.ipa"
 
@@ -1152,6 +1154,8 @@ jobs:
       needs.release-finalize.result == 'success' &&
       needs.release-finalize.outputs.published == 'true'
     uses: ./.github/workflows/verify-update-service.yml
+    secrets:
+      UPDATE_SERVICE_REFRESH_TOKEN: ${{ secrets.UPDATE_SERVICE_REFRESH_TOKEN }}
     with:
       version: ${{ needs.set-metadata.outputs.version }}
       sparkle_version: ${{ needs.set-metadata.outputs.sparkle_version }}

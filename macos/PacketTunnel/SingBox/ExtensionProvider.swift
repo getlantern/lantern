@@ -165,6 +165,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   private func closeTunnel() {
+    platformInterface?.cancelNetworkResetsAndWait()
     var error: NSError?
     MobileStopVPN(&error)
     if error != nil {
@@ -182,6 +183,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
   private func stopService() throws {
     appLogger.info("ExtensionProvider stopService")
+    platformInterface?.cancelNetworkResetsAndWait()
     var error: NSError?
     MobileStopVPN(&error)
     if let error {
