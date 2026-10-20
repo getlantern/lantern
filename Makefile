@@ -972,19 +972,14 @@ android-identity-profile: $(MAYBE_STEALTH_PROFILE)
 	    echo "ANDROID_IDENTITY_PROFILE is empty"; \
 	    exit 1; \
 	  fi; \
-		  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ] || [ -n "$(ANDROID_IDENTITY_SEED)" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "yes" ]; then \
-		    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
-		    $(PYTHON) scripts/stealth/generate_android_identity.py \
-		      --output "$(ANDROID_IDENTITY_PROFILE)" \
-		      $(if $(STEALTH_ENABLED),--profile "$(STEALTH_PROFILE_OUT)",) \
-		      $(if $(ANDROID_IDENTITY_SEED),--seed "$(ANDROID_IDENTITY_SEED)",); \
-		  elif [ -n "$(STEALTH_ENABLED)" ]; then \
-		    $(PYTHON) scripts/stealth/generate_android_identity.py \
-		      --output "$(ANDROID_IDENTITY_PROFILE)" \
-		      --profile "$(STEALTH_PROFILE_OUT)"; \
-		  else \
-		    echo "Using Android identity profile: $(ANDROID_IDENTITY_PROFILE)"; \
-		  fi; \
+	  if [ -z "$(STEALTH_ENABLED)" ]; then \
+	    echo "Generating an Android identity requires a stealth profile; set STEALTH_MODE or STEALTH_PROFILE (or use an android-stealth-* target)"; \
+	    exit 1; \
+	  fi; \
+	  mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
+	  $(PYTHON) scripts/stealth/generate_android_identity.py \
+	    --output "$(ANDROID_IDENTITY_PROFILE)" \
+	    --profile "$(STEALTH_PROFILE_OUT)"; \
 	fi
 
 .PHONY: android
