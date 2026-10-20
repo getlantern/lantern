@@ -2054,3 +2054,63 @@ msgstr "Tap Edit, then Add Widget."
 
 msgid "widget_step_3"
 msgstr "Search for Lantern, choose a size, and tap add widget."
+
+# Advanced stats: low-emphasis link at the bottom of the Action Mode status
+# card and the title of the bottom sheet it opens. "Data relayed" counts
+# bytes this device forwarded for the people it helps, in either sharing mode.
+msgid "advanced_stats"
+msgstr "Advanced stats"
+
+msgid "advanced_stats_current_speed"
+msgstr "Current speed"
+
+msgid "advanced_stats_session"
+msgstr "Data relayed this session"
+
+msgid "advanced_stats_all_time"
+msgstr "Data relayed all time"
+
+# Legend for the ↓ / ↑ arrows next to the figures above.
+msgid "advanced_stats_direction_legend"
+msgstr "↓ sent to the people you help · ↑ received from them"
+
+msgid "advanced_stats_countries"
+msgstr "Countries you've helped"
+
+msgid "advanced_stats_no_countries"
+msgstr "No one helped yet. Countries will appear here once people connect through you."
+
+# Country row for peers whose location could not be determined.
+msgid "advanced_stats_unknown_country"
+msgstr "Unknown"
+
+msgid "advanced_stats_one_person"
+msgstr "1 person"
+
+# %s is a number greater than one.
+msgid "advanced_stats_people"
+msgstr "%s people"
+
+# Sharing-mode names. "Direct connection" is Share My Connection, where people
+# connect straight to this device through a port on the user's router.
+# "WebRTC" is the Unbounded relay used when that port can't be opened; keep
+# it as the technical name.
+msgid "share_mode_smc"
+msgstr "Direct connection"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+# Status line on the Action Mode card: the first %s is the status (e.g.
+# "Enabled"), the second is the sharing mode (e.g. "WebRTC").
+msgid "smc_status_with_mode"
+msgstr "%s · %s"
+
+msgid "advanced_stats_mode"
+msgstr "Sharing mode"
+
+# Under the mode when Lantern switched to Unbounded because a direct
+# connection failed. %s is the reason, e.g. "Your router accepted the port
+# mapping but isn't forwarding traffic to this computer."
+msgid "advanced_stats_mode_fallback"
+msgstr "Direct connection unavailable: %s"

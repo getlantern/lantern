@@ -1,6 +1,21 @@
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
+
 class PlatformUtils {
+  /// Android TV / Google TV (leanback). Set once at startup by [initDeviceType].
+  static bool isTv = false;
+
+  static Future<void> initDeviceType() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final info = await DeviceInfoPlugin().androidInfo;
+      isTv = info.systemFeatures.contains('android.software.leanback');
+    } catch (_) {
+      isTv = false;
+    }
+  }
+
   static bool get isDesktop =>
       Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 

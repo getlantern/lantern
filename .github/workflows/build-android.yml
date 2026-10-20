@@ -65,6 +65,9 @@ jobs:
           cache-scope: android
           gomobile-cache: "true"
 
+      - name: Verify Android TUN reader shutdown
+        run: go test -tags with_gvisor ./lantern-core/vpn_tunnel -count=1
+
       - name: Set up Android
         uses: ./.github/actions/setup-android
 
@@ -140,7 +143,18 @@ jobs:
           STEALTH_LEAKAGE_MISSING_OK: "0"
           STEALTH_LEAKAGE_PATHS: >-
             ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.apk
+            ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}-armv7.apk
             ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.aab
+
+      - name: Verify release architectures
+        env:
+          INSTALLER_PATH: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+        run: |
+          abis=$(sed -n 's/^android.abis=//p' android/abi-targets.properties)
+          check=(python3 scripts/ci/verify_android_abis.py --expected-abis "$abis" --release --aar bin/android/liblantern.aar)
+          "${check[@]}" --aab "${INSTALLER_PATH}.aab"
+          "${check[@]}" --app-abis arm64-v8a --apk "${INSTALLER_PATH}.apk"
+          "${check[@]}" --app-abis armeabi-v7a --apk "${INSTALLER_PATH}-armv7.apk"
 
       - name: Upload stealth leakage report
         if: ${{ always() && inputs.stealth_leakage_mode != '' && steps.stealth_leakage_check.outcome != 'skipped' }}
@@ -155,7 +169,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-apk
-          path: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.apk
+          path: |
+            ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}.apk
+            ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}-armv7.apk
+          if-no-files-found: error
           retention-days: 2
 
       - name: Upload Android AAB

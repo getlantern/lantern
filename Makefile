@@ -177,18 +177,18 @@ ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
 ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
 ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
 ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
-# ABI targeting: arm64-only for both APK and AAB (2026-05-28).
-#
-# armeabi-v7a (32-bit) was dropped from the AAB too: Go >=1.23.2 trips
-# Android 8-10 seccomp on 32-bit, killing libgojni.so with SIGSYS at startup
-# (golang/go#70495 — ~54% of v9 crashes; those devices were crash-looping
-# anyway). Re-add android-arm here if/when that's fixed upstream.
-ANDROID_APK_TARGET_PLATFORMS := android-arm64
-ANDROID_AAB_TARGET_PLATFORMS := android-arm64
-# Back-compat alias for any external caller / debug target that references
-# ANDROID_TARGET_PLATFORMS. Now arm64-only, same as the APK/AAB targets.
-ANDROID_TARGET_PLATFORMS := $(ANDROID_AAB_TARGET_PLATFORMS)
+# Shared native targets for gomobile, Flutter and Gradle.
+include android/abi-targets.properties
+override ANDROID_ABIS := $(android.abis)
+override ANDROID_TARGET_PLATFORMS := $(subst armeabi-v7a,android-arm,$(subst arm64-v8a,android-arm64,$(ANDROID_ABIS)))
+override ANDROID_APK_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
+override ANDROID_AAB_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
+ANDROID_ABI_STAMP := $(BIN_DIR)/android/.abis
+ANDROID_ABI_CHECK = $(PYTHON) scripts/ci/verify_android_abis.py --expected-abis $(ANDROID_ABIS)
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
+# Sideload APKs are per-ABI so arm64 users don't download 32-bit libraries;
+# the autoupdate server maps "-armv7" to arch=arm.
+ANDROID_RELEASE_APK_ARMV7 := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-armv7.apk
 ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
 ANDROID_STEALTH_NOVPN_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.apk
 ANDROID_STEALTH_NOVPN_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.aab
@@ -197,7 +197,7 @@ ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-deb
 PYTHON ?= python3
 STEALTH_LEAKAGE_MODE ?= stealth
 STEALTH_LEAKAGE_CONFIG ?= scripts/stealth/forbidden_tokens.json
-STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
+STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_APK_ARMV7) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
 STEALTH_LEAKAGE_MISSING_OK ?= 1
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.31.5
@@ -254,10 +254,8 @@ else
 GOMOBILE_INIT_DIR = $(shell go env GOPATH | cut -d: -f1)/pkg/gomobile
 endif
 GOMOBILECACHE ?= $(GOMOBILE_INIT_DIR)
-# gomobile bind produces the AAR consumed by both the APK and the AAB.
-# arm64 only — armeabi-v7a (32-bit) is no longer shipped in any artifact
-# (golang/go#70495 SIGSYS on 32-bit Android 8-10).
-GOMOBILE_ANDROID_TARGET ?= android/arm64
+# gomobile bind produces the same ABI set consumed by Flutter and Gradle.
+override GOMOBILE_ANDROID_TARGET := $(subst armeabi-v7a,android/arm,$(subst arm64-v8a,android/arm64,$(ANDROID_ABIS)))
 # Pinned, not "latest". gomobile and gobind are the toolchain that builds the
 # mobile frameworks, so a release has to be reproducible in them -- with "latest"
 # a shipped binary is built by whatever resolved that morning, and nothing
@@ -970,28 +968,36 @@ android-identity-profile: $(MAYBE_STEALTH_PROFILE)
 	    echo "ANDROID_IDENTITY_PROFILE is empty"; \
 	    exit 1; \
 	  fi; \
-		  if [ ! -f "$(ANDROID_IDENTITY_PROFILE)" ] || [ -n "$(ANDROID_IDENTITY_SEED)" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_FORCE_IDENTITY_PROFILE)" = "yes" ]; then \
-		    mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
-		    $(PYTHON) scripts/stealth/generate_android_identity.py \
-		      --output "$(ANDROID_IDENTITY_PROFILE)" \
-		      $(if $(STEALTH_ENABLED),--profile "$(STEALTH_PROFILE_OUT)",) \
-		      $(if $(ANDROID_IDENTITY_SEED),--seed "$(ANDROID_IDENTITY_SEED)",); \
-		  elif [ -n "$(STEALTH_ENABLED)" ]; then \
-		    $(PYTHON) scripts/stealth/generate_android_identity.py \
-		      --output "$(ANDROID_IDENTITY_PROFILE)" \
-		      --profile "$(STEALTH_PROFILE_OUT)"; \
-		  else \
-		    echo "Using Android identity profile: $(ANDROID_IDENTITY_PROFILE)"; \
-		  fi; \
+	  if [ -z "$(STEALTH_ENABLED)" ]; then \
+	    echo "Generating an Android identity requires a stealth profile; set STEALTH_MODE or STEALTH_PROFILE (or use an android-stealth-* target)"; \
+	    exit 1; \
+	  fi; \
+	  mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
+	  $(PYTHON) scripts/stealth/generate_android_identity.py \
+	    --output "$(ANDROID_IDENTITY_PROFILE)" \
+	    --profile "$(STEALTH_PROFILE_OUT)"; \
 	fi
 
 .PHONY: android
 android: check-android-sdk check-gomobile $(ANDROID_LIB_BUILD)
 
-$(ANDROID_LIB_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+# ABI changes invalidate output even when Make rounds mtimes to seconds.
+ifneq ($(shell cat $(ANDROID_ABI_STAMP) 2>/dev/null),$(ANDROID_ABIS))
+$(ANDROID_LIB_BUILD) $(ANDROID_DEBUG_BUILD): FORCE
+endif
+
+$(ANDROID_ABI_STAMP): FORCE
+	@mkdir -p $(dir $@)
+	@if [ ! -f "$@" ] || [ "$$(cat "$@")" != "$(ANDROID_ABIS)" ]; then printf '%s\n' "$(ANDROID_ABIS)" > "$@"; fi
+
+.PHONY: android-abi-config
+android-abi-config:
+	@echo "abis=$(ANDROID_ABIS) flutter=$(ANDROID_TARGET_PLATFORMS) gomobile=$(GOMOBILE_ANDROID_TARGET)"
+
+$(ANDROID_LIB_BUILD): $(GO_SOURCES) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) build-android
 
-build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
+build-android: check-android-sdk check-gomobile $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building Android libraries..."
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
@@ -1006,6 +1012,7 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
@@ -1013,7 +1020,7 @@ build-android: check-android-sdk check-gomobile $(MAYBE_STEALTH_PROFILE)
 android-obfuscated: build-android-obfuscated
 
 .PHONY: build-android-obfuscated
-build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go $(MAYBE_STEALTH_PROFILE)
+build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	@echo "Building obfuscated Android libraries..."
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
@@ -1034,12 +1041,13 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built obfuscated Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 	$(if $(STEALTH_ENABLED),$(MAKE) ANDROID_LIBS_DIR="$(ANDROID_LIBS_DIR)" ANDROID_LIB="$(ANDROID_LIB)" verify-stealth-jni,)
 
 # verify-stealth-jni: hard gate on JNI symbol namespace in the stealth AAR.
-# Extracts arm64-v8a/libgojni.so and asserts:
+# Extracts each ABI's libgojni.so and asserts:
 #   - Java_lantern_io_* is ABSENT (GOMOBILE_JAVAPKG=foundation.engine applied)
 #   - Java_foundation_engine_* is PRESENT (gomobile binding succeeded)
 # Called automatically by build-android-obfuscated when STEALTH_ENABLED is set.
@@ -1054,21 +1062,24 @@ verify-stealth-jni:
 	  echo "FAIL: AAR not found at $$aar — build stealth AAR first"; \
 	  exit 1; \
 	fi; \
-	unzip -q "$$aar" "jni/arm64-v8a/libgojni.so" -d "$$tmpdir" 2>/dev/null || \
-	  { echo "FAIL: libgojni.so not found in $$aar (expected jni/arm64-v8a/libgojni.so)"; exit 1; }; \
-	so="$$tmpdir/jni/arm64-v8a/libgojni.so"; \
-	bad=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_lantern_io" || true); \
-	if [ "$$bad" -gt 0 ]; then \
-	  echo "FAIL: $$bad Java_lantern_io_* symbol(s) found — GOMOBILE_JAVAPKG=foundation.engine not applied:"; \
-	  nm -D "$$so" | grep "Java_lantern_io"; \
-	  exit 1; \
-	fi; \
-	good=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_foundation_engine" || true); \
-	if [ "$$good" -eq 0 ]; then \
-	  echo "FAIL: no Java_foundation_engine_* symbols found — gomobile javapkg binding is missing"; \
-	  exit 1; \
-	fi; \
-	echo "PASS: JNI namespace gate — Java_lantern_io=0, Java_foundation_engine=$$good"
+	for abi in $$(printf '%s' "$(ANDROID_ABIS)" | tr ',' ' '); do \
+	  unzip -q "$$aar" "jni/$$abi/libgojni.so" -d "$$tmpdir" 2>/dev/null || \
+	    { echo "FAIL: libgojni.so not found in $$aar (expected jni/$$abi/libgojni.so)"; exit 1; }; \
+	  so="$$tmpdir/jni/$$abi/libgojni.so"; \
+	  bad=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_lantern_io" || true); \
+	  if [ "$$bad" -gt 0 ]; then \
+	    echo "FAIL: $$abi: $$bad Java_lantern_io_* symbol(s) found — GOMOBILE_JAVAPKG=foundation.engine not applied:"; \
+	    nm -D "$$so" | grep "Java_lantern_io"; \
+	    exit 1; \
+	  fi; \
+	  good=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_foundation_engine" || true); \
+	  if [ "$$good" -eq 0 ]; then \
+	    echo "FAIL: $$abi: no Java_foundation_engine_* symbols found — gomobile javapkg binding is missing"; \
+	    exit 1; \
+	  fi; \
+	  echo "PASS: $$abi: Java_lantern_io=0, Java_foundation_engine=$$good"; \
+	done; \
+	echo "PASS: JNI namespace gate ($(ANDROID_ABIS))"
 
 .PHONY: android-debug android-debug-ci
 android-debug: $(ANDROID_DEBUG_BUILD)
@@ -1076,9 +1087,10 @@ android-debug: $(ANDROID_DEBUG_BUILD)
 android-debug-ci: ANDROID_DEBUG_FLUTTER_FLAGS :=
 android-debug-ci: $(ANDROID_DEBUG_BUILD)
 
-$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) android-identity-profile
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --build-name=$(APP_VERSION_PUBSPEC) --debug $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_DEBUG_BUILD)
 
 # Runs the Android integration test on a connected device (the FTL
 # instrumentation path). Override the entrypoint with ANDROID_INTEGRATION_TARGET.
@@ -1102,7 +1114,7 @@ android-integration-test: $(ANDROID_LIB_BUILD)
 	  fi; \
 	fi
 	@echo "Running Android integration test on connected device(s): $(ANDROID_INTEGRATION_TARGET)"
-	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(APP_VERSION_PUBSPEC)" $(ANDROID_INTEGRATION_DART_DEFINES)
+	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget-platform=$(ANDROID_TARGET_PLATFORMS) -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(APP_VERSION_PUBSPEC)" $(ANDROID_INTEGRATION_DART_DEFINES)
 
 # Builds the two APKs Firebase Test Lab needs to run the integration test as an
 # instrumentation test — the app APK (with the Dart entrypoint baked in via
@@ -1114,7 +1126,8 @@ android-integration-test: $(ANDROID_LIB_BUILD)
 .PHONY: android-integration-apks
 android-integration-apks: $(ANDROID_LIB_BUILD)
 	@echo "Building integration test APKs (app + androidTest): $(ANDROID_INTEGRATION_TARGET)"
-	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(APP_VERSION_PUBSPEC)" $(ANDROID_INTEGRATION_DART_DEFINES)
+	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget-platform=$(ANDROID_TARGET_PLATFORMS) -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(APP_VERSION_PUBSPEC)" $(ANDROID_INTEGRATION_DART_DEFINES)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk build/app/outputs/apk/debug/app-debug.apk
 
 # Runs the integration test APKs on Firebase Test Lab. Needs an authenticated
 # gcloud CLI (`gcloud auth login`). Devices, project, bucket, etc. are
@@ -1123,23 +1136,33 @@ android-integration-apks: $(ANDROID_LIB_BUILD)
 android-ftl-test: android-integration-apks
 	scripts/android/ftl-run.sh
 
-# --target-platform restricts Flutter's libapp.so / libflutter.so to arm64.
-# abiFilters is arm64-only for all artifacts now (no thinAbi flag needed).
+# Builds and checks one single-ABI sideload APK: $(1)=ABI, $(2)=Flutter
+# target platform, $(3)=output file. The AAR keeps every ABI; -Plantern.abis
+# narrows Gradle packaging to match Flutter's single target.
+define android_apk_for_abi
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(2) -Plantern.abis=$(1) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
+	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_APK_RELEASE_BUILD),true)
+	$(ANDROID_ABI_CHECK) --app-abis $(1) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_APK_RELEASE_BUILD) --release
+	cp $(ANDROID_APK_RELEASE_BUILD) $(3)
+endef
+
+# One sideload APK per ABI; the AAB below carries every ABI and Play splits it.
 # -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
 # direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
 android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
-	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
-	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_APK_RELEASE_BUILD),true)
-	cp $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_RELEASE_APK)
+	# Package the selected native build as-is; an implicit rebuild could replace a garbled AAR.
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
+	$(call android_apk_for_abi,arm64-v8a,android-arm64,$(ANDROID_RELEASE_APK))
+	$(call android_apk_for_abi,armeabi-v7a,android-arm,$(ANDROID_RELEASE_APK_ARMV7))
 
-# AAB is arm64-only too (armeabi-v7a dropped — golang/go#70495 SIGSYS on
-# 32-bit). 32-bit-only devices no longer get Play updates; they were
-# crash-looping on Android 8-10 regardless.
+# The AAB carries every ABI in android/abi-targets.properties.
 .PHONY: android-aab-release
 android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(APP_VERSION_PUBSPEC) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE) $(PLAY_STORE_GRADLE_FLAGS)
 	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_AAB_RELEASE_BUILD),true)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --aab $(ANDROID_AAB_RELEASE_BUILD) --release
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	$(MAKE) android-copy-play-artifacts
 
