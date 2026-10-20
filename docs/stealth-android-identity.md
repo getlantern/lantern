@@ -13,14 +13,14 @@ Normal builds keep the current identity:
 
 ## Generate a profile
 
-Generate a fresh random identity:
+Generate a fresh random identity (local experiments only):
 
 ```sh
 python3 scripts/stealth/generate_android_identity.py \
   --output build/stealth/android-identity.properties
 ```
 
-Generate a deterministic identity from a seed:
+Generate a deterministic identity from a seed (local experiments only):
 
 ```sh
 python3 scripts/stealth/generate_android_identity.py \
@@ -52,23 +52,21 @@ ANDROID_IDENTITY_PROFILE=build/stealth/android-identity.properties \
   make android-apk-release
 ```
 
-Or let `make` generate one automatically for a stealth build:
+Or let `make` generate one from the stealth build profile:
 
 ```sh
-BUILD_TYPE=stealth make android-release-ci
+make android-stealth-vpn-release \
+  STEALTH_APP_NAME=Client \
+  STEALTH_SESSION_NAME=ClientVpn
 ```
 
-Use `ANDROID_IDENTITY_SEED` when the CI run must be reproducible:
-
-```sh
-BUILD_TYPE=stealth ANDROID_IDENTITY_SEED="$GITHUB_RUN_ID" make android-release-ci
-```
-
-`BUILD_TYPE=stealth` defaults the generated profile path to
-`build/stealth/android-identity.properties`, so the APK and AAB from the same
-`make android-release-ci` invocation share one identity. Passing
-`ANDROID_IDENTITY_SEED` regenerates that profile for the requested seed. For an
-unseeded fresh random identity, pass `ANDROID_FORCE_IDENTITY_PROFILE=1`.
+Release builds derive the Android identity only from the stealth build profile
+(`build/stealth/profile.json`, see `docs/stealth-build-profile.md`). The
+fixed-vocabulary `--seed` and random generator modes above are for local
+experiments: their output format is classifiable, so `make` refuses to
+generate an identity unless `STEALTH_MODE` or `STEALTH_PROFILE` is set. The
+identity is regenerated on every build, so the APK and AAB from the same
+`make android-stealth-*-release` invocation share one identity.
 
 Gradle also accepts the profile as a project property for Android-side
 manifest/`BuildConfig` validation:

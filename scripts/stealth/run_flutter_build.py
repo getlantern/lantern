@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
 import re
 import shutil
@@ -193,8 +192,8 @@ def debrand_po_text(content: str, product_name: str, is_novpn: bool = False) -> 
 # code is not broken. Import URIs (package:/dart:) are skipped so package paths
 # stay intact (they are resolved at compile time and do not leak into libapp.so).
 _DART_STRING_RE = re.compile(
-    r"'''(?:\\.|(?!''').)*?'''"
-    r'|"""(?:\\.|(?!""").)*?"""'
+    r"'''(?:\\.|(?!''')[^\\])*?'''"
+    r'|"""(?:\\.|(?!""")[^\\])*?"""'
     r"|'(?:\\.|[^'\\\n])*'"
     r'|"(?:\\.|[^"\\\n])*"',
     re.DOTALL,
@@ -329,12 +328,15 @@ def _neutral_logo_content(original_name: str, product_name: str) -> str | None:
     return None
 
 
-def rename_brand_assets(root: Path, product_name: str, backup_root: Path) -> tuple[list[Path], list[Path]]:
+def rename_brand_assets(
+    root: Path, product_name: str, backup_root: Path, created: list[Path]
+) -> list[Path]:
     """Rename brand-named asset files; replace brand LOGO graphics with neutral ones.
 
-    Returns (backed_up_originals, created_paths)."""
+    Each new path is appended to ``created`` before it is written, so a caller
+    cleaning up after a partial failure still sees it. Returns the backed-up
+    originals."""
     backed_up: list[Path] = []
-    created: list[Path] = []
     for asset_dir in _ASSET_DIRS:
         directory = root / asset_dir
         if not directory.is_dir():
@@ -350,6 +352,7 @@ def rename_brand_assets(root: Path, product_name: str, backup_root: Path) -> tup
             backup_target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, backup_target)
             new_path = source.with_name(new_name)
+            created.append(new_path.relative_to(root))
             neutral = _neutral_logo_content(source.name, product_name)
             if neutral is not None:
                 # Replace the brand graphic with a neutral logo under the new name.
@@ -358,8 +361,7 @@ def rename_brand_assets(root: Path, product_name: str, backup_root: Path) -> tup
             else:
                 source.rename(new_path)
             backed_up.append(relative)
-            created.append(new_path.relative_to(root))
-    return backed_up, created
+    return backed_up
 
 
 def debrand_locales(root: Path, product_name: str, is_novpn: bool, backup_root: Path) -> list[Path]:
@@ -425,15 +427,19 @@ def main(argv: Iterable[str]) -> int:
         dart_modified = debrand_dart_sources(root, backup_root)
         modified += dart_modified
         print(f"De-branded string literals in {len(dart_modified)} Dart file(s).", flush=True)
-        asset_backed_up, asset_created = rename_brand_assets(root, product_name, backup_root)
-        modified += asset_backed_up
-        created += asset_created
-        print(f"Renamed {len(asset_created)} brand-named asset file(s).", flush=True)
+        modified += rename_brand_assets(root, product_name, backup_root, created)
+        print(f"Renamed {len(created)} brand-named asset file(s).", flush=True)
         return run(args.command, root)
     finally:
         for relative in created:
             (root / relative).unlink(missing_ok=True)
-        restore_files(root, backup_root, modified)
+        # Restore from the backup tree rather than ``modified``: a helper that
+        # raises midway has already rewritten files it never returned.
+        restore_files(
+            root,
+            backup_root,
+            [path.relative_to(backup_root) for path in backup_root.rglob("*") if path.is_file()],
+        )
         shutil.rmtree(backup_root, ignore_errors=True)
 
 

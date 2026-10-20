@@ -5,7 +5,7 @@ import struct
 import sys
 import tempfile
 import unittest
-from unittest import mock
+import unittest.mock
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -177,11 +177,11 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
 
     def test_elf_no_replacements_does_not_fallback_to_full_file_scrub(self) -> None:
         elf_bytes = b"\x7fELFfakebinary"
-        with mock.patch.object(
+        with unittest.mock.patch.object(
             sanitize_android_artifact,
             "scrub_elf_text_sections",
             return_value=(elf_bytes, 0),
-        ) as scrub_elf, mock.patch.object(
+        ) as scrub_elf, unittest.mock.patch.object(
             sanitize_android_artifact,
             "scrub_text_range",
         ) as scrub_range:
@@ -211,14 +211,14 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
                 key_password="key-secret",
             )
 
-            with mock.patch.object(sanitize_android_artifact, "signing_config", return_value=signing), \
-                    mock.patch.object(
+            with unittest.mock.patch.object(sanitize_android_artifact, "signing_config", return_value=signing), \
+                    unittest.mock.patch.object(
                         sanitize_android_artifact,
                         "android_signing_tools",
                         return_value=(root / "zipalign", root / "apksigner"),
                     ), \
-                    mock.patch.object(sanitize_android_artifact.subprocess, "run") as run, \
-                    mock.patch.object(sanitize_android_artifact.shutil, "move"):
+                    unittest.mock.patch.object(sanitize_android_artifact.subprocess, "run") as run, \
+                    unittest.mock.patch.object(sanitize_android_artifact.shutil, "move"):
                 sanitize_android_artifact.resign_android_artifact(artifact)
 
             self.assertEqual(run.call_count, 2)
@@ -243,9 +243,9 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
                 key_password="key-secret",
             )
 
-            with mock.patch.object(sanitize_android_artifact, "signing_config", return_value=signing), \
-                    mock.patch.object(sanitize_android_artifact.subprocess, "run") as run, \
-                    mock.patch.object(sanitize_android_artifact.shutil, "move"):
+            with unittest.mock.patch.object(sanitize_android_artifact, "signing_config", return_value=signing), \
+                    unittest.mock.patch.object(sanitize_android_artifact.subprocess, "run") as run, \
+                    unittest.mock.patch.object(sanitize_android_artifact.shutil, "move"):
                 sanitize_android_artifact.resign_android_artifact(artifact)
 
             sign_args = run.call_args.args[0]
@@ -262,7 +262,7 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
             for key, value in os.environ.items()
             if key not in ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")
         }
-        with mock.patch.dict("os.environ", env, clear=True):
+        with unittest.mock.patch.dict("os.environ", env, clear=True):
             with self.assertRaises(RuntimeError):
                 sanitize_android_artifact.signing_config()
 
@@ -272,7 +272,7 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
             for key, value in os.environ.items()
             if key not in ("KEYSTORE_FILE", "KEYSTORE_PWD", "KEY_ALIAS", "KEY_PWD")
         }
-        with mock.patch.dict("os.environ", env, clear=True):
+        with unittest.mock.patch.dict("os.environ", env, clear=True):
             signing = sanitize_android_artifact.signing_config(allow_debug_keystore=True)
 
         self.assertEqual(signing.key_alias, "androiddebugkey")
@@ -289,7 +289,7 @@ class SanitizeAndroidArtifactTest(unittest.TestCase):
                 (tools / "apksigner").write_text("", encoding="utf-8")
                 (tools / "zipalign").write_text("", encoding="utf-8")
 
-            with mock.patch.dict("os.environ", {"ANDROID_SDK_ROOT": str(sdk)}, clear=False):
+            with unittest.mock.patch.dict("os.environ", {"ANDROID_SDK_ROOT": str(sdk)}, clear=False):
                 zipalign, apksigner = sanitize_android_artifact.android_signing_tools()
 
             self.assertEqual(apksigner.parent.name, "34.0.0")

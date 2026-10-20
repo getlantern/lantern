@@ -264,9 +264,15 @@ def sanitize_zip(path: Path, resign: bool = False, allow_debug_keystore: bool = 
     finally:
         tmp.unlink(missing_ok=True)
     resigned = False
-    if resign and (removed or scrubbed):
-        resign_android_artifact(path, allow_debug_keystore=allow_debug_keystore)
-        resigned = True
+    if removed or scrubbed:
+        if resign:
+            resign_android_artifact(path, allow_debug_keystore=allow_debug_keystore)
+            resigned = True
+        elif path.suffix.lower() in (".apk", ".aab"):
+            print(
+                f"warning: {path} was modified and is no longer validly signed; pass --resign",
+                file=sys.stderr,
+            )
     return SanitizeResult(
         removed_metadata_entries=removed,
         scrubbed_native_strings=scrubbed,
