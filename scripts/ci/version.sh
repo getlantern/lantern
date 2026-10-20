@@ -4,7 +4,7 @@ set -euo pipefail
 # Version management script
 #
 # Usage:
-#   version.sh validate <version>    - Validate fails on semver violations
+#   version.sh validate <version>    - Validate release format and ordering
 #   version.sh generate <build-type> - Generate next version (nightly|beta)
 #   version.sh extract <version>     - Extract base semver (strips suffixes)
 #
@@ -12,12 +12,17 @@ set -euo pipefail
 #
 # Examples:
 #   version.sh validate v1.2.3          → 1.2.3
-#   version.sh validate v1.2.3-beta     → 1.2.3-beta
+#   version.sh validate v1.2.3-beta.1   → 1.2.3-beta.1
+#   version.sh generate beta            → 1.2.3-beta.2 (after beta.1)
 #   version.sh generate nightly         → 1.2.4-abc123-20260206T120000Z
-#   version.sh extract 1.2.3-beta       → 1.2.3
+#   version.sh extract 1.2.3-beta.1     → 1.2.3
 
 COMMAND="${1:?Command required: validate, generate, or extract}"
 shift
+
+NUMBER='(0|[1-9][0-9]*)'
+BASE_PATTERN="${NUMBER}\.${NUMBER}\.${NUMBER}"
+PLATFORM_PATTERN='(windows|macos|linux|android|ios)'
 
 # strip v prefix, keep suffix
 strip_v() {
@@ -31,31 +36,33 @@ extract_basever() {
 
 # format "X.Y.Z", no v or suffixes
 validate_semver() {
-  [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+  [[ "$1" =~ ^${BASE_PATTERN}$ ]]
 }
 
-get_latest_version() {
-  local type="$1"
-  local tag=""
+strip_platform() {
+  case "$1" in
+    *-windows|*-macos|*-linux|*-android|*-ios) echo "${1%-*}" ;;
+    *) echo "$1" ;;
+  esac
+}
 
+# Return application versions, without the tag prefix or platform selector.
+# Historical beta spellings remain discoverable but cannot be newly released.
+release_versions() {
+  local type="$1"
+  local pattern tag version
   case "$type" in
   production)
-    # Match v9.0.11, v9.0.11-macos, etc. (but not v9.0.11-beta)
-    tag=$(
-      git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*' 'v[0-9]*\.[0-9]*\.[0-9]*-*' \
-      | awk '!/-beta/ && !/T.*Z/' \
-      | sort -V \
-      | tail -1
-    )
+    pattern="^${BASE_PATTERN}(-${PLATFORM_PATTERN})?$"
     ;;
   beta)
-    # Match v9.0.11-beta, v9.0.11-beta-macos, etc. (but not nightly with timestamps)
-    tag=$(
-      git tag -l 'v[0-9]*\.[0-9]*\.[0-9]*-beta' 'v[0-9]*\.[0-9]*\.[0-9]*-beta-*' \
-      | awk '!/T.*Z/' \
-      | sort -V \
-      | tail -1
-    )
+    pattern="^${BASE_PATTERN}-beta(\.${NUMBER}|-?[0-9]+)?(-${PLATFORM_PATTERN})?$"
+    ;;
+  canonical-beta)
+    pattern="^${BASE_PATTERN}-beta\.${NUMBER}(-${PLATFORM_PATTERN})?$"
+    ;;
+  legacy-beta)
+    pattern="^${BASE_PATTERN}-beta(-?[0-9]+)?(-${PLATFORM_PATTERN})?$"
     ;;
   *)
     echo "Error: Unknown type '$type'" >&2
@@ -63,11 +70,27 @@ get_latest_version() {
     ;;
   esac
 
-  if [[ -n "$tag" ]]; then
-    extract_basever "$tag"
-  fi
+  git tag -l 'v[0-9]*' | while IFS= read -r tag; do
+    version="${tag#v}"
+    if [[ "$version" =~ $pattern ]]; then
+      strip_platform "$version"
+    fi
+  done
+}
 
-  return 0
+get_latest_version() {
+  release_versions "$1" \
+    | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' \
+    | sort -V | tail -1
+}
+
+get_latest_beta_number() {
+  local base="$1" version
+  release_versions canonical-beta | while IFS= read -r version; do
+    if [[ "${version%-beta.*}" == "$base" ]]; then
+      echo "${version##*.}"
+    fi
+  done | sort -V | tail -1
 }
 
 increment_patch() {
@@ -84,16 +107,38 @@ validate)
   VERSION=$(strip_v "$INPUT")
   BASE=$(extract_basever "$VERSION")
 
-  if ! validate_semver "$BASE"; then
-    echo "Error: Version '$INPUT' is not valid semver" >&2
-    echo "Error: Expected format: X.Y.Z (e.g., 1.2.3, v1.2.3-beta)" >&2
+  RELEASE_PATTERN="^${BASE_PATTERN}(-beta\.${NUMBER})?(-${PLATFORM_PATTERN})?$"
+  if [[ ! "$VERSION" =~ $RELEASE_PATTERN ]]; then
+    echo "Error: Version '$INPUT' is not a valid release version" >&2
+    echo "Error: Use X.Y.Z or X.Y.Z-beta.N, optionally followed by -<platform>" >&2
+    echo "Error: Beta numbers must be dot-separated with no leading zeros (e.g., v1.2.3-beta.1)" >&2
     exit 1
   fi
 
-  # Get highest base version across all types
   PROD=$(get_latest_version production)
   BETA=$(get_latest_version beta)
 
+  RELEASE_VERSION=$(strip_platform "$VERSION")
+  if [[ "$RELEASE_VERSION" == *-beta.* ]]; then
+    LEGACY=$(get_latest_version legacy-beta)
+    # Existing clients see stable X.Y.Z and legacy beta-N/betaN as newer
+    # than X.Y.Z-beta.N. Migration must therefore use a higher base.
+    if [[ "$BASE" == "$PROD" || "$BASE" == "$LEGACY" ]]; then
+      echo "Error: Beta '$INPUT' needs a higher base than the existing stable or legacy beta release '$BASE'" >&2
+      exit 1
+    fi
+    BETA_NUMBER="${RELEASE_VERSION##*.}"
+    LATEST_NUMBER=$(get_latest_beta_number "$BASE")
+    # Equality is intentional: CI validates the current tag after fetching it,
+    # and multiple platform tags can share the same application version.
+    if [[ -n "$LATEST_NUMBER" && "$BETA_NUMBER" != "$LATEST_NUMBER" ]] \
+      && [[ "$(max_semver "$BETA_NUMBER" "$LATEST_NUMBER")" == "$LATEST_NUMBER" ]]; then
+      echo "Error: Beta '$INPUT' would go backwards from '$BASE-beta.$LATEST_NUMBER'" >&2
+      exit 1
+    fi
+  fi
+
+  # Get highest base version across all types
   HIGHEST="0.0.0"
   [[ -n "$PROD" ]] && HIGHEST=$(max_semver "$HIGHEST" "$PROD")
   [[ -n "$BETA" ]] && HIGHEST=$(max_semver "$HIGHEST" "$BETA")
@@ -144,8 +189,15 @@ generate)
     fi
 
     BASELINE=$(max_semver "${BETA:-0.0.0}" "${PROD:-0.0.0}")
-    NEXT=$(increment_patch "$BASELINE")
-    echo "${NEXT}-beta"
+    LEGACY=$(get_latest_version legacy-beta)
+    LATEST_NUMBER=$(get_latest_beta_number "$BASELINE")
+    if [[ -n "$LATEST_NUMBER" && "$BASELINE" != "$PROD" && "$BASELINE" != "$LEGACY" ]]; then
+      NEXT_NUMBER=$(increment_patch "$LATEST_NUMBER")
+      echo "${BASELINE}-beta.${NEXT_NUMBER}"
+    else
+      NEXT=$(increment_patch "$BASELINE")
+      echo "${NEXT}-beta.1"
+    fi
     ;;
 
   *)
