@@ -488,8 +488,9 @@ if (sideloadUpdates) {
 
 if (stealthMode) {
     afterEvaluate {
+        // Exclude rather than setSource(): replacing the source set also drops
+        // AGP's generated sources (BuildConfig, R) from the Kotlin compile.
         tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
-            task.setSource(files(stealthAndroidSourceDirs))
             task.exclude("org/getlantern/**")
         }
     }
