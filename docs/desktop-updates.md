@@ -61,6 +61,9 @@ The [macOS](../.github/workflows/macos-auto-update-smoke.yml) and
 [Windows](../.github/workflows/windows-auto-update-smoke.yml) auto-update
 workflows build a signed beta fixture from the selected branch, with a build
 number below the target in the selected appcast.
+The macOS fixture builds on a GitHub-hosted runner; its stateful smoke checks
+require an enabled dedicated runner. See [macOS CI runners](macos-ci.md) for the
+`MACOS_STATEFUL_SMOKE_ENABLED` gate and temporary coverage gap.
 Sparkle or WinSparkle downloads and installs the target. The smoke checks its
 signature and version, waits for the original process to exit, and verifies that
 the updated app relaunches with a visible window.
