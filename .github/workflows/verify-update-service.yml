@@ -113,6 +113,7 @@ jobs:
       - name: Test release tooling
         run: |
           python3 -m unittest \
+            scripts/ci/version_test.py \
             scripts/ci/generate_update_metadata_test.py \
             scripts/ci/verify_release_alignment_test.py \
             scripts/ci/verify_update_service_test.py \
