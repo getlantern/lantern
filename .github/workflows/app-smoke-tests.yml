@@ -51,6 +51,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  macos-smoke-disabled:
+    name: macOS smoke unavailable
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED != 'true' && (inputs.platforms == 'macos' || (inputs.platforms == 'all' && inputs.tests == 'auto-update')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report unavailable smoke runner
+        run: |
+          echo '::error title=macOS smoke unavailable::Stateful macOS smoke tests are disabled. Configure the replacement runner and set MACOS_STATEFUL_SMOKE_ENABLED=true; see docs/macos-ci.md.'
+          echo '### macOS smoke tests were not run' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The requested macOS smoke coverage is unavailable while the dedicated runner is disabled. Other selected platforms can still run. See docs/macos-ci.md before enabling MACOS_STATEFUL_SMOKE_ENABLED.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
   validate-inputs:
     runs-on: ubuntu-latest
     steps:
@@ -144,10 +156,10 @@ jobs:
 
   # Not part of platforms=all (and so not the nightly): the connect smoke
   # needs the self-hosted runner with the approved system extension, so macOS
-  # runs only when asked for explicitly.
+  # runs only when asked for explicitly and the replacement runner is enabled.
   macos:
     needs: prepare
-    if: ${{ inputs.platforms == 'macos' && inputs.tests != 'auto-update' }}
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' && inputs.platforms == 'macos' && inputs.tests != 'auto-update' }}
     uses: ./.github/workflows/build-macos.yml
     secrets: inherit
     with:
@@ -166,7 +178,7 @@ jobs:
   # selected explicitly, and never runs in the nightly sweep.
   macos-auto-update:
     needs: validate-inputs
-    if: ${{ contains(fromJSON('["all", "macos"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' && contains(fromJSON('["all", "macos"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
     uses: ./.github/workflows/macos-auto-update-smoke.yml
     secrets: inherit
 
