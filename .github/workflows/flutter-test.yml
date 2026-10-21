@@ -79,7 +79,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: getlantern/lantern-cloud
-          ref: 28e828b4b1969aad4386df0746a26feab806101d
+          ref: 9c6324bbf5b0f2bfd721cdcf00354047fdc38ada
           path: build/cloud-fixture
           token: ${{ secrets.CI_PRIVATE_REPOS_GH_TOKEN }}
           persist-credentials: false
@@ -103,6 +103,7 @@ jobs:
             libwebkit2gtk-4.1-dev xvfb
           curl --fail --silent --show-error --location --retry 3 --max-time 120 \
             https://releases.hashicorp.com/vault/1.17.2/vault_1.17.2_linux_amd64.zip -o "$RUNNER_TEMP/vault.zip"
+          echo "a0c0449e640c8be5dcf7b7b093d5884f6a85406dbb86bbad0ea06becad5aaab8  $RUNNER_TEMP/vault.zip" | sha256sum --check --strict
           unzip "$RUNNER_TEMP/vault.zip" -d "$RUNNER_TEMP/vault-cli"
           echo "$RUNNER_TEMP/vault-cli" >> "$GITHUB_PATH"
 
