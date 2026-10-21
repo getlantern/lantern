@@ -283,6 +283,10 @@ class ShareNotifier extends _$ShareNotifier {
       totalCount: state.totalCount,
       relay: state.relay.newSession(),
     );
+    final settings = ref.read(appSettingProvider.notifier);
+    settings.setUnboundedSessionCount(
+      ref.read(appSettingProvider).unboundedSessionCount + 1,
+    );
     _startEventSubscription(widgetRef);
     switch (mode) {
       case ShareMode.smc:

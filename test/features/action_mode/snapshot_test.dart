@@ -73,6 +73,11 @@ class FakeSettings extends AppSettingNotifier {
   }
 
   @override
+  void setUnboundedSessionCount(int value) {
+    state = state.copyWith(unboundedSessionCount: value);
+  }
+
+  @override
   void setUnboundedRelayStats({
     required int bytesDown,
     required int bytesUp,
