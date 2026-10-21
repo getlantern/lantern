@@ -91,9 +91,12 @@ SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR
 EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
-# Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
-# (which leave BUILD_TYPE=production), so gate stealth flags on all three signals.
-STEALTH_ACTIVE := $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE))
+# A stealth-vpn/stealth-novpn BUILD_TYPE implies the matching STEALTH_MODE, so the
+# profile, de-branding, garble scope, identity, and Go flags all switch on from
+# the same STEALTH_MODE/STEALTH_PROFILE inputs (which may also leave
+# BUILD_TYPE=production).
+STEALTH_MODE ?= $(filter stealth-vpn stealth-novpn,$(BUILD_TYPE))
+STEALTH_ACTIVE := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_GO_LDFLAGS := $(if $(STEALTH_ACTIVE),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
 GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS))
 LANTERND_EXTRA_LDFLAGS := $(EXTRA_LDFLAGS)
@@ -216,7 +219,7 @@ ANDROID_DEBUG_FLUTTER_FLAGS  ?= --verbose
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
-ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE)),1,0)
+ANDROID_STEALTH_IDENTITY ?= $(if $(STEALTH_ACTIVE),1,0)
 ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
 ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)

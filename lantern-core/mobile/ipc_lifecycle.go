@@ -147,6 +147,8 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	if err != nil {
 		return err
 	}
+	// The backend ran common.Init; on Apple this is the extension's only init path.
+	lanterncore.EnforceStealthLogLevel()
 	return publishIPCResources(generation, resources)
 }
 
