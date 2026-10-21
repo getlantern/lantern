@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: format.sh <release-notes|job-summary|slack>
 #
 # Environment variables:
-#   RELEASE_TAG:          release tag with 'v' prefix (e.g., v9.0.11, v9.0.11-beta, v9.0.11-abc123-20260207T044512Z)
+#   RELEASE_TAG:          release tag with 'v' prefix (e.g., v9.0.11, v9.0.11-beta.1, v9.0.11-abc123-20260207T044512Z)
 #   INSTALLER_BASE_NAME:  installer base name WITHOUT build-type suffix (e.g., lantern-installer)
 #   PLATFORM:             platforms built (all, or comma-separated)
 #   BUCKET:               S3 bucket name
@@ -87,6 +87,7 @@ release-notes)
 
   if should_include "android"; then
     echo "- [Android (.apk)](${LATEST_URL}/${FULL_INSTALLER_NAME}.apk) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.apk))"
+    echo "- [Android 32-bit ARMv7 (.apk)](${LATEST_URL}/${FULL_INSTALLER_NAME}-armv7.apk) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-armv7.apk))"
   fi
 
   if should_include "linux"; then
@@ -133,6 +134,7 @@ slack)
 
   if should_include "android"; then
     text="${text}\n• Android <${LATEST_URL}/${FULL_INSTALLER_NAME}.apk|${FULL_INSTALLER_NAME}.apk> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.apk|permalink>)"
+    text="${text}\n• Android 32-bit ARMv7 <${LATEST_URL}/${FULL_INSTALLER_NAME}-armv7.apk|${FULL_INSTALLER_NAME}-armv7.apk> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-armv7.apk|permalink>)"
   fi
 
   if should_include "linux"; then

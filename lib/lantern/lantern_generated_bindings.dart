@@ -6130,6 +6130,30 @@ class LanternBindings {
   late final _setUserMessageActivity = _setUserMessageActivityPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
 
+  ffi.Pointer<ffi.Char> startUpdateRelay(
+    ffi.Pointer<ffi.Char> cacheDir,
+    ffi.Pointer<ffi.Char> feedURL,
+  ) {
+    return _startUpdateRelay(cacheDir, feedURL);
+  }
+
+  late final _startUpdateRelayPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('startUpdateRelay');
+  late final _startUpdateRelay = _startUpdateRelayPtr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
   ffi.Pointer<ffi.Char> startVPN() {
     return _startVPN();
   }
@@ -6138,6 +6162,15 @@ class LanternBindings {
       _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('startVPN');
   late final _startVPN = _startVPNPtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  void stopUpdateRelay() {
+    return _stopUpdateRelay();
+  }
+
+  late final _stopUpdateRelayPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('stopUpdateRelay');
+  late final _stopUpdateRelay = _stopUpdateRelayPtr
+      .asFunction<void Function()>();
 
   ffi.Pointer<ffi.Char> stopVPN() {
     return _stopVPN();
@@ -6440,6 +6473,19 @@ class LanternBindings {
         >
       >('updateLocale');
   late final _updateLocale = _updateLocalePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
+
+  ffi.Pointer<ffi.Char> updateTimeZone(ffi.Pointer<ffi.Char> _timeZone) {
+    return _updateTimeZone(_timeZone);
+  }
+
+  late final _updateTimeZonePtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)
+        >
+      >('updateTimeZone');
+  late final _updateTimeZone = _updateTimeZonePtr
       .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>)>();
 
   ffi.Pointer<ffi.Char> updatePrivateServerName(

@@ -116,7 +116,13 @@ class VpnNotifier extends _$VpnNotifier {
         ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
         unawaited(_ratingPrompt?.onConnected());
 
-        if (statusChanged && !suppressConnectionNotifications) {
+        if (PlatformUtils.isAndroid) {
+          // The foreground service notification already shows the connected
+          // state with a Disconnect action; just clear any stale disconnect.
+          sl<NotificationService>().cancelNotification(
+            NotificationEvent.vpnConnected.id,
+          );
+        } else if (statusChanged && !suppressConnectionNotifications) {
           sl<NotificationService>().showNotification(
             id: NotificationEvent.vpnConnected.id,
             title: 'app_name'.i18n,
@@ -248,7 +254,11 @@ class VpnNotifier extends _$VpnNotifier {
     final hasConflict = await ref
         .read(lanternServiceProvider)
         .checkVpnConflict();
-    return hasConflict ? Left(VpnConflictFailure()) : null;
+    if (!hasConflict) return null;
+    appLogger.warning(
+      'Another VPN is active, blocking connect until user confirms',
+    );
+    return Left(VpnConflictFailure());
   }
 
   Future<Either<Failure, String>> stopVPN({bool userInitiated = false}) {

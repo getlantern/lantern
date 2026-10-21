@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -13,6 +16,10 @@ part 'home_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class HomeNotifier extends _$HomeNotifier {
+  // Tracked separately from state, which refreshUser() clears to loading
+  // before new user data arrives.
+  bool _isPro = false;
+
   @override
   Future<UserResponseModel> build() async {
     /// Check if user data is stored locally
@@ -92,13 +99,34 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   void _applyUserData(UserResponseModel userData) {
+    final wasPro = _isPro;
     state = AsyncValue.data(userData);
 
     final isPro = userData.legacyUserData.isPro;
+    _isPro = isPro;
+    if (wasPro && !isPro) {
+      // Data cap info cached while Pro reports the cap as off; refetch it.
+      ref.invalidate(dataCapInfoProvider);
+    }
     if (!isPro) {
-      resetServerLocation();
+      unawaited(_resetServerLocationIfDataCapped());
     }
     checkIfUserProAndDeviceIsAdded();
+  }
+
+  /// Free users without a data cap may keep a manually selected location
+  /// (see canSelectServerProvider); everyone else falls back to smart location.
+  Future<void> _resetServerLocationIfDataCapped() async {
+    try {
+      final dataCap = await ref.read(dataCapInfoProvider.future);
+      if (!dataCap.enabled) return;
+    } catch (e) {
+      appLogger.error('Data cap info unavailable, resetting location: $e');
+    }
+    if (!ref.mounted) return;
+    // The user may have upgraded while the data cap info was loading.
+    if (_isPro) return;
+    resetServerLocation();
   }
 
   Future<Either<Failure, Unit>> updateLocale(String locale) {

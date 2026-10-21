@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -19,6 +21,11 @@ import '../router/router.dart';
 import 'logger_service.dart';
 
 final GetIt sl = GetIt.instance;
+
+// The smoke test replaces this to hold core startup while updates still run.
+@visibleForTesting
+Future<void> Function(LanternService) initializeLanternService = (service) =>
+    service.init();
 
 Future<void> injectServices() async {
   sl.registerSingleton<Updater>(
@@ -78,7 +85,7 @@ Future<void> injectServices() async {
       appPurchase: sl<AppPurchase>(),
     );
     try {
-      await service.init();
+      await initializeLanternService(service);
       appLogger.debug('LanternService initialized');
     } catch (e, st) {
       appLogger.error('LanternService init failed', e, st);
@@ -86,7 +93,7 @@ Future<void> injectServices() async {
     return service;
   });
 
-  if (PlatformUtils.isAndroid) {
+  if (PlatformUtils.isAndroid && AppBuildInfo.enablePayments) {
     // The publishable key arrives with the plans response (synced by the
     // listenSelf listener in PlansNotifier.build), so no upfront
     // initialization.

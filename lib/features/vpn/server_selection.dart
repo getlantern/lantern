@@ -363,7 +363,7 @@ class _ServerLocationListViewState
                         children: sections,
                       ),
                     ),
-                    if (!widget.userPro)
+                    if (!ref.watch(canSelectServerProvider))
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(

@@ -95,6 +95,10 @@ artifact_path() {
   if [[ "$arch" == "arm64" ]]; then
     filename="${base_name}-arm64.${extension}"
     candidate_dirs=("lantern-installer-${dir_ext}-arm64")
+  elif [[ "$arch" == "armv7" ]]; then
+    # The 32-bit Android APK ships beside the arm64 one in the same artifact.
+    filename="${base_name}-armv7.${extension}"
+    candidate_dirs=("lantern-installer-${dir_ext}")
   elif [[ "$arch" == "amd64" ]]; then
     filename="${base_name}.${extension}"
     candidate_dirs=("lantern-installer-${dir_ext}-amd64" "lantern-installer-${dir_ext}")
@@ -121,6 +125,7 @@ declare -a artifacts=(
   "macos:dmg:"
   "windows:exe:"
   "android:apk:"
+  "android:apk:armv7"
   "ios:ipa:"
 )
 

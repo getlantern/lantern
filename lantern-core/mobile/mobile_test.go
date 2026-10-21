@@ -35,6 +35,27 @@ func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
 	}
 }
 
+func TestResetNetworkWithoutClientIsNoop(t *testing.T) {
+	previousClient := ipcClient.Swap(nil)
+	t.Cleanup(func() {
+		ipcClient.Store(previousClient)
+	})
+	if lanternCore.Load() != nil {
+		t.Skip("lanternCore is initialized")
+	}
+
+	if err := ResetNetwork(); err != nil {
+		t.Fatalf("ResetNetwork() error = %v, want nil", err)
+	}
+}
+
+func TestResetNetworkForMonitorWithoutBackendIsNoop(t *testing.T) {
+	withCleanIPCLifecycle(t)
+	if err := ResetNetworkForMonitor(nil); err != nil {
+		t.Fatalf("ResetNetworkForMonitor(nil) error = %v, want nil", err)
+	}
+}
+
 func TestStartIPCServerReportsLifecycleBusy(t *testing.T) {
 	ipcLifecycle.mu.Lock()
 	previousServer := ipcLifecycle.server

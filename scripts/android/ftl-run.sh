@@ -12,6 +12,8 @@
 # via environment variables, e.g.:
 #
 #   FTL_DEVICES="model=husky,version=35" scripts/android/ftl-run.sh
+# FTL_ENVIRONMENT_VARIABLES passes comma-separated instrumentation arguments,
+# e.g. lanternExpectedAbi=armeabi-v7a,lanternRequire32BitOnly=true.
 
 set -euo pipefail
 
@@ -24,6 +26,7 @@ FTL_RESULTS_HISTORY="${FTL_RESULTS_HISTORY:-lantern-android-integration}"
 FTL_TIMEOUT="${FTL_TIMEOUT:-20m}"
 FTL_FLAKY_ATTEMPTS="${FTL_FLAKY_ATTEMPTS:-0}"
 FTL_OUTPUT_LOG="${FTL_OUTPUT_LOG:-ftl-output.log}"
+FTL_ENVIRONMENT_VARIABLES="${FTL_ENVIRONMENT_VARIABLES:-}"
 # Semicolon-separated device specs. Default: a physical Pixel 8 (shiba) plus
 # an Arm virtual device — FTL runs all devices in a matrix in parallel, so a
 # second device barely affects wall-clock time. Virtual models must be Arm
@@ -44,11 +47,15 @@ for apk in "$FTL_APP_APK" "$FTL_TEST_APK"; do
   }
 done
 
-device_flags=()
+test_flags=()
 IFS=';' read -ra devices <<<"$FTL_DEVICES"
 for d in "${devices[@]}"; do
-  device_flags+=(--device "$d")
+  test_flags+=(--device "$d")
 done
+
+if [[ -n "$FTL_ENVIRONMENT_VARIABLES" ]]; then
+  test_flags+=(--environment-variables "$FTL_ENVIRONMENT_VARIABLES")
+fi
 
 echo "Running Firebase Test Lab (project=$FTL_PROJECT, results=gs://$FTL_RESULTS_BUCKET/$FTL_RESULTS_DIR)"
 set -x
@@ -57,7 +64,7 @@ gcloud firebase test android run \
   --type instrumentation \
   --app "$FTL_APP_APK" \
   --test "$FTL_TEST_APK" \
-  "${device_flags[@]}" \
+  "${test_flags[@]}" \
   --num-flaky-test-attempts="$FTL_FLAKY_ATTEMPTS" \
   --timeout "$FTL_TIMEOUT" \
   --results-bucket "$FTL_RESULTS_BUCKET" \

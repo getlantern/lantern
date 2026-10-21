@@ -8,29 +8,35 @@
     <!-- Switch to systemExempted (remove SPECIAL_USE) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+    <!-- Installable and launchable on Android TV, which has no touchscreen. -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!-- CAMERA (QR scanning) otherwise implies a required autofocus camera. -->
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <!-- <uses-permission android:name="android.permission.USE_EXACT_ALARM" /> -->
 
     <application
         android:name=".LanternApp"
-        android:icon="@mipmap/ic_launcher"
-        android:label="Lantern"
-        android:usesCleartextTraffic="true"
-        android:roundIcon="@mipmap/ic_launcher_round">
+        android:icon="${appIcon}"
+        android:banner="${appBanner}"
+        android:label="${appLabel}"
+        android:usesCleartextTraffic="${usesCleartextTraffic}"
+        android:roundIcon="${appRoundIcon}">
 
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"
+            android:label="${launcherLabel}"
             android:launchMode="singleTask"
             android:taskAffinity=""
-            android:screenOrientation="portrait"
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
@@ -43,6 +49,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
             <meta-data
                 android:name="flutter_deeplinking_enabled"
@@ -77,25 +84,25 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="lantern" android:host="auth" />
+                <data android:scheme="${appAuthScheme}" android:host="auth" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="lantern" android:host="report-issue" />
+                <data android:scheme="${appAuthScheme}" android:host="report-issue" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="lantern" android:host="private-server" />
+                <data android:scheme="${appAuthScheme}" android:host="private-server" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="lantern" android:host="affiliate" />
+                <data android:scheme="${appAuthScheme}" android:host="affiliate" />
             </intent-filter>
 
         </activity>
@@ -131,7 +138,7 @@
             android:name=".service.QuickTileService"
             android:directBootAware="true"
             android:exported="true"
-            android:icon="@drawable/lantern_notification_icon"
+            android:icon="${quickTileIcon}"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             tools:targetApi="n">
             <intent-filter>

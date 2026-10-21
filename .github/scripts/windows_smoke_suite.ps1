@@ -363,15 +363,7 @@ function Install-FromInstaller {
     -PulseSeconds $HeartbeatSeconds `
     -Description "Running installer"
 
-  $lanterndPath = "C:\Program Files\Lantern\lanternd.exe"
-  $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
-  if (-not $svc -and (Test-Path $lanterndPath)) {
-    Invoke-LanterndCommand `
-      -FilePath $lanterndPath `
-      -ArgumentList @("install") `
-      -Description "Service not found after installer; running lanternd install manually for diagnostics"
-  }
-
+  # The installer must provision its service; repairing it here masks regressions.
   Write-Step "Waiting for Windows service after installer"
   Wait-ServiceRunning -Name $Name -TimeoutSeconds $TimeoutSeconds
 }

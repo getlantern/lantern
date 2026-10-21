@@ -394,7 +394,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
       },
       (newEmail) {
         context.hideLoadingDialog();
-        appLogger.debug('Change email started successfully: $newEmail');
+        appLogger.debug('Change email started successfully');
         navigateRoute(SignUpMethodType.email, email);
       },
     );

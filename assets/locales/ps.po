@@ -645,6 +645,24 @@ msgstr "له دې Apple ID سره هیڅ فعال ګډون تړلی نه دی."
 msgid "no_purchase_found_body_android"
 msgstr "له دې Google حساب سره هیڅ فعال ګډون تړلی نه دی."
 
+msgid "authorize_device_for_pro"
+msgstr "د Pro لپاره وسیلې ته اجازه ورکړئ"
+
+msgid "device_linking_replaced_title"
+msgstr "د وسیلې د نښلولو کوډونه بدل شوي دي"
+
+msgid "device_linking_replaced_body"
+msgstr "د Lantern 10 او نوې نسخې د وسیلې د نښلولو کوډونه نه کاروي. اوس تاسو خپل Lantern Pro حساب ته د خپل بریښنالیک او پټنوم په واسطه ننوځئ."
+
+msgid "device_linking_replaced_body_two"
+msgstr "که تاسو د Lantern Pro حساب لرئ او تر اوسه پټنوم نه لرئ، اوس یو اضافه کړئ ترڅو پدې وسیله کې ننوځئ."
+
+msgid "add_an_account_password"
+msgstr "د حساب پټنوم اضافه کړئ"
+
+msgid "have_a_password_sign_in"
+msgstr "پټنوم لرئ؟ ننوتل"
+
 msgid "plans_fetch_error"
 msgstr "د پلانونو په راوړلو کې تېروتنه. مهرباني وکړئ وروسته بیا هڅه وکړئ."
 

@@ -9,6 +9,8 @@ on:
         required: false
       APP_ENV:
         required: false
+      SOAR_ZONE:
+        required: false
       MACOS_BNS_CERT:
         required: false
       MACOS_BNS_CERT_PASS:
@@ -109,7 +111,20 @@ on:
         type: number
         default: 120
 jobs:
+  stateful-smoke-disabled:
+    name: macOS smoke unavailable
+    if: ${{ inputs.runner_label == 'lantern-macos-smoke' && vars.MACOS_STATEFUL_SMOKE_ENABLED != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report unavailable smoke runner
+        run: |
+          echo '::error title=macOS smoke unavailable::Stateful macOS smoke tests are disabled. Configure the replacement runner and set MACOS_STATEFUL_SMOKE_ENABLED=true; see docs/macos-ci.md.'
+          echo '### macOS smoke tests were not run' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The dedicated runner is disabled. Hosted macOS builds and compile/unit checks remain available. See docs/macos-ci.md before enabling MACOS_STATEFUL_SMOKE_ENABLED.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
   build-macos:
+    if: ${{ inputs.runner_label != 'lantern-macos-smoke' || vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
     permissions:
       contents: "read"
     env:
@@ -119,6 +134,8 @@ jobs:
       RADIANCE_ENV: ${{ inputs.backend_environment }}
       BUILD_TYPE: ${{ inputs.build_type }}
       VERSION: ${{ inputs.version }}
+      SOAR_ZONE: ${{ secrets.SOAR_ZONE }}
+      SOAR_PUBLIC_KEY: ${{ vars.SOAR_PUBLIC_KEY }}
     runs-on: ${{ inputs.runner_label }}
     steps:
       - name: Checkout code

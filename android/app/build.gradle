@@ -1,8 +1,8 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id "dev.flutter.flutter-gradle-plugin"
+    // Apply after resolving target-platform below: Flutter captures it at apply time.
+    id "dev.flutter.flutter-gradle-plugin" apply false
 }
 
 def hasRelProp = { name -> project.hasProperty(name) && project.property(name)?.toString()?.trim() }
@@ -11,12 +11,34 @@ def hasReleaseKeystore =
         hasRelProp('KEYSTORE_PWD') &&
         hasRelProp('KEY_ALIAS') &&
         hasRelProp('KEY_PWD')
+
+// Keep native, Flutter and packaging targets identical, including direct Gradle builds.
+def abiConfig = new Properties()
+file("${rootProject.projectDir}/abi-targets.properties").withInputStream { abiConfig.load(it) }
+def lanternAbis = abiConfig.getProperty("android.abis").split(',').toList()
+// Sideload releases build one APK per ABI; the override may only narrow the shared list.
+def abiOverride = project.findProperty("lantern.abis")?.toString()?.trim()
+if (abiOverride) {
+    def selected = abiOverride.split(',').collect { it.trim() }.findAll { it }
+    if (selected.isEmpty() || !lanternAbis.containsAll(selected)) {
+        throw new GradleException("lantern.abis=${abiOverride} must be a subset of ${lanternAbis}")
+    }
+    lanternAbis = selected
+}
+def flutterAbiNames = ['armeabi-v7a': 'android-arm', 'arm64-v8a': 'android-arm64']
+def lanternFlutterTargets = lanternAbis.collect { flutterAbiNames[it] }
+// Flutter selects one ABI for device runs; include both to match the native libraries.
+project.ext.set("target-platform", lanternFlutterTargets.join(','))
+apply plugin: "dev.flutter.flutter-gradle-plugin"
+
 def sideloadSigningCertificateSha256 =
         hasRelProp('SIDELOAD_SIGNING_CERTIFICATE_SHA256')
                 ? project.property('SIDELOAD_SIGNING_CERTIFICATE_SHA256').toString().trim()
                 : "108f612ae55354078ec12b10bb705362840d48fa78b9262c11b6d0adeff6f289"
 def sideloadUpdates = project.findProperty("lantern.sideloadUpdates") == "true"
 def sideloadManifestPath = "$buildDir/generated/lantern/sideload/AndroidManifest.xml"
+// Play AAB passes false; sideload builds keep cleartext for the Alipay gateway.
+def cleartextTraffic = (project.findProperty("lantern.cleartextTraffic") ?: "true").toString()
 def generateSideloadManifest = tasks.register("generateSideloadManifest") {
     def sourceManifest = file("src/main/AndroidManifest.xml")
     def permissionAnchor = '    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />'
@@ -250,6 +272,7 @@ def androidIdentityDefaults = [
         quickTileInactiveLabel: stealthMode ? "${stealthProfile.appName} off" : "VPN Disconnected",
         appIcon: stealthMode ? "@drawable/neutral_app_icon" : "@mipmap/ic_launcher",
         appRoundIcon: stealthMode ? "@drawable/neutral_app_icon" : "@mipmap/ic_launcher_round",
+        appBanner: stealthMode ? "@drawable/neutral_tv_banner" : "@drawable/tv_banner",
         notificationSmallIcon: stealthMode ? "@drawable/neutral_notification_icon" : "@drawable/lantern_notification_icon",
         quickTileIcon: stealthMode ? "@drawable/neutral_notification_icon" : "@drawable/lantern_notification_icon",
         appAuthScheme: stealthMode ? "mobileapp" : "lantern",
@@ -336,13 +359,6 @@ android {
         jvmTarget = "17"
     }
 
-    // arm64-only for every artifact (APK + AAB). armeabi-v7a (32-bit) was
-    // dropped: Go >=1.23.2 trips Android 8-10 seccomp on 32-bit, killing
-    // libgojni.so with SIGSYS at startup (golang/go#70495 — ~54% of v9
-    // crashes). Constraint: abiFilters must match the ABIs Flutter built
-    // (Makefile --target-platform), or installs crash with "Could not find
-    // 'libflutter.so'".
-
     buildFeatures {
         buildConfig true
     }
@@ -352,23 +368,11 @@ android {
         exclude "DebugProbesKt.bin"
         jniLibs {
             useLegacyPackaging true
-            // abiFilters is supposed to keep only the ABIs we ship to in
-            // the APK, but some transitive AAR dependencies (notably ML
-            // Kit's barcode-scanning AAR pre-unbundling) ship x86 / x86_64
-            // .so files that slip past the filter — observed 5.9 MB
-            // libbarhopper_v3.so + 1.2 MB libc++_shared.so + 0.7 MB
-            // libnative-imagetranscoder.so under lib/x86_64/ in
-            // v9.1.9-beta. Explicit excludes here strip them at packaging
-            // time. armeabi-v7a is stripped too — we ship arm64 only.
-            def abiExcludes = [
-                "lib/x86/**",
-                "lib/x86_64/**",
-                "lib/armeabi/**",
-                "lib/armeabi-v7a/**",
-                "lib/mips/**",
-                "lib/mips64/**",
-            ]
-            excludes += abiExcludes
+            // Transitive AAR libraries have bypassed abiFilters before.
+            // Explicitly exclude every architecture outside the shared ABI list.
+            excludes += ["armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64", "mips", "mips64"]
+                    .findAll { !lanternAbis.contains(it) }
+                    .collect { "lib/" + it + "/**" }
         }
     }
 
@@ -391,18 +395,18 @@ android {
                 appRoundIcon: androidIdentity.appRoundIcon,
                 launcherIcon: androidIdentity.appIcon,
                 roundLauncherIcon: androidIdentity.appRoundIcon,
+                appBanner: androidIdentity.appBanner,
                 identityLabel: androidIdentity.identityLabel,
                 identityProfileId: androidIdentity.identityProfileId,
                 identityMetadata: androidIdentity.identityMetadata,
                 quickTileIcon: androidIdentity.quickTileIcon,
                 appAuthScheme: androidIdentity.appAuthScheme,
+                usesCleartextTraffic: cleartextTraffic,
         ]
         resValue "string", "app_name", androidIdentity.appLabel
 
         ndk {
-            // arm64 only (APK + AAB) — armeabi-v7a dropped, see the comment
-            // above defaultConfig (golang/go#70495 SIGSYS on 32-bit).
-            abiFilters = ["arm64-v8a"]
+            abiFilters = lanternAbis
             debugSymbolLevel 'FULL'
         }
 
@@ -484,8 +488,9 @@ if (sideloadUpdates) {
 
 if (stealthMode) {
     afterEvaluate {
+        // Exclude rather than setSource(): replacing the source set also drops
+        // AGP's generated sources (BuildConfig, R) from the Kotlin compile.
         tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
-            task.setSource(files(stealthAndroidSourceDirs))
             task.exclude("org/getlantern/**")
         }
     }
@@ -508,6 +513,60 @@ if (stealthMode) {
 
     tasks.matching { it.name == "preBuild" }.configureEach {
         dependsOn(tasks.named("generateStealthManifest"))
+    }
+
+    // The source-manifest pass above renames the app's own components, but
+    // library manifests (Stripe, Play Billing, ML Kit, ...) are merged after
+    // it. Filter the merged manifest too so their entries are removed.
+    androidComponents {
+        onVariants(selector().all()) { variant ->
+            def filterTask = project.tasks.register(
+                    "filterStealth${variant.name.capitalize()}MergedManifest",
+                    StealthMergedManifestTask,
+            ) {
+                filterScript.set(stealthManifestFilter)
+                python.set(stealthPython)
+                mode.set(stealthMode)
+            }
+            variant.artifacts.use(filterTask)
+                    .wiredWithFiles({ it.mergedManifest }, { it.filteredManifest })
+                    .toTransform(com.android.build.api.artifact.SingleArtifact.MERGED_MANIFEST.INSTANCE)
+        }
+    }
+}
+
+abstract class StealthMergedManifestTask extends DefaultTask {
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getMergedManifest()
+
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getFilterScript()
+
+    @Input
+    abstract Property<String> getPython()
+
+    @Input
+    abstract Property<String> getMode()
+
+    @OutputFile
+    abstract RegularFileProperty getFilteredManifest()
+
+    @javax.inject.Inject
+    abstract org.gradle.process.ExecOperations getExecOperations()
+
+    @TaskAction
+    void filter() {
+        execOperations.exec {
+            commandLine(
+                    python.get(),
+                    filterScript.get().asFile.absolutePath,
+                    "--mode", mode.get(),
+                    "--input", mergedManifest.get().asFile.absolutePath,
+                    "--output", filteredManifest.get().asFile.absolutePath,
+            )
+        }
     }
 }
 

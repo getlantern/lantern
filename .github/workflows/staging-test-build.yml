@@ -117,6 +117,8 @@ jobs:
       secretless_test_build: true
       run_connect_smoke: false
       run_payment_smoke: false
+    secrets:
+      SOAR_ZONE: ${{ secrets.SOAR_ZONE }}
 
   notify:
     name: Notify staging test build

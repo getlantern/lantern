@@ -18,6 +18,9 @@ const desktopWindowMinSize = Size(390, 750);
 const desktopWindowSize = Size(390, 800);
 const mobileSize = Size(360, 690);
 
+/// Width of the centered phone-style column on TVs (landscape, ~960x540dp).
+const double tvContentMaxWidth = 480;
+
 /// Short screens get the compact layout from engineering#3046 (tighter
 /// padding, pill upsell, combined rows). Desktop min height is 750.
 bool isSmallScreen(BuildContext context) =>
@@ -30,6 +33,13 @@ bool isNarrowScreen(BuildContext context) =>
 
 Size designSizeFor(BuildContext context) {
   final s = MediaQuery.sizeOf(context);
+
+  // TVs: TvFrame narrows the layout, but ScreenUtil measures the full View,
+  // so design against the View's size to keep scaling at 1:1.
+  if (PlatformUtils.isTv) {
+    final view = View.of(context);
+    return view.physicalSize / view.devicePixelRatio;
+  }
 
   if (PlatformUtils.isDesktop) return desktopWindowSize;
 

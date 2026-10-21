@@ -1,8 +1,20 @@
 name: macOS auto-update smoke
+run-name: "macOS auto-update: ${{ inputs.scenario || 'baseline' }}"
 
 on:
   workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Update conditions to exercise"
+        type: choice
+        options: [baseline, core-unavailable, core-unavailable-direct-blocked]
+        default: baseline
   workflow_call:
+    inputs:
+      scenario:
+        description: "baseline, core-unavailable, or core-unavailable-direct-blocked"
+        type: string
+        default: baseline
 
 permissions:
   contents: read
@@ -12,18 +24,65 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  resolve-target:
-    name: Resolve staging fixture target
+  stateful-smoke-disabled:
+    name: macOS smoke unavailable
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED != 'true' }}
     runs-on: ubuntu-latest
-    outputs:
-      display_version: ${{ steps.target.outputs.display_version }}
-      fixture_build: ${{ steps.target.outputs.fixture_build }}
-      target_build: ${{ steps.target.outputs.target_build }}
+    steps:
+      - name: Report unavailable smoke runner
+        run: |
+          echo '::error title=macOS smoke unavailable::Stateful macOS smoke tests are disabled. Configure the replacement runner and set MACOS_STATEFUL_SMOKE_ENABLED=true; see docs/macos-ci.md.'
+          echo '### macOS auto-update smoke was not run' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The dedicated runner is disabled. Signed update installation and relaunch coverage is unavailable. See docs/macos-ci.md before enabling MACOS_STATEFUL_SMOKE_ENABLED.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+  check-runner:
+    name: Verify native UI driver
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
+    runs-on: [self-hosted, lantern-macos-smoke]
+    timeout-minutes: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - name: Test Accessibility and native controls
+        run: python3 -m unittest -v scripts/ci/macos_sparkle_handoff_test.py
+
+  resolve-target:
+    name: Resolve signed update target
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      display_version: ${{ steps.target.outputs.display_version }}
+      fixture_build: ${{ steps.target.outputs.fixture_build }}
+      target_build: ${{ steps.target.outputs.target_build }}
+      auto_update_e2e: ${{ steps.scenario.outputs.auto_update_e2e }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Select scenario feed
+        id: scenario
+        shell: bash
+        env:
+          SCENARIO: ${{ inputs.scenario }}
+        run: |
+          case "$SCENARIO" in
+            baseline|core-unavailable)
+              echo 'appcast_url=https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta' >> "$GITHUB_OUTPUT"
+              echo 'auto_update_e2e=true' >> "$GITHUB_OUTPUT"
+              ;;
+            core-unavailable-direct-blocked)
+              # Only the published update hostname has real fronting mappings.
+              echo 'appcast_url=https://update.getlantern.org/update/lantern/appcast.xml?channel=beta' >> "$GITHUB_OUTPUT"
+              echo 'auto_update_e2e=false' >> "$GITHUB_OUTPUT"
+              ;;
+            *) echo 'Unknown update smoke scenario' >&2; exit 2 ;;
+          esac
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,20 +94,21 @@ jobs:
       - name: Install appcast parser dependency
         run: python -m pip install -r scripts/requirements.txt
 
-      - name: Test target resolver
-        run: python -m unittest scripts/ci/resolve_desktop_update_target_test.py
+      - name: Test update smoke helpers
+        run: python -m unittest scripts/ci/resolve_desktop_update_target_test.py scripts/ci/desktop_update_scenario_test.py
 
-      - name: Resolve staging fixture target
+      - name: Resolve signed update target
         id: target
         shell: bash
         env:
           TARGET_DIR: ${{ runner.temp }}/macos-auto-update-target
+          APPCAST_URL: ${{ steps.scenario.outputs.appcast_url }}
         run: |
           set -o pipefail
           mkdir -p "$TARGET_DIR/pubspec"
           python scripts/ci/resolve_desktop_update_target.py \
             --platform macos \
-            --appcast-url "https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta" \
+            --appcast-url "$APPCAST_URL" \
             --appcast-output "$TARGET_DIR/appcast.xml" \
             --target-output "$TARGET_DIR/target.json" \
             --pubspec-input pubspec.yaml \
@@ -60,6 +120,8 @@ jobs:
         if: ${{ steps.target.outcome == 'success' }}
         shell: bash
         env:
+          SCENARIO: ${{ inputs.scenario }}
+          APPCAST_URL: ${{ steps.scenario.outputs.appcast_url }}
           DISPLAY_VERSION: ${{ steps.target.outputs.display_version }}
           FIXTURE_BUILD: ${{ steps.target.outputs.fixture_build }}
           TARGET_BUILD: ${{ steps.target.outputs.target_build }}
@@ -67,6 +129,8 @@ jobs:
           {
             echo "### macOS auto-update target"
             echo
+            echo "- Scenario: \`$SCENARIO\`"
+            echo "- Feed: $APPCAST_URL"
             echo "- Live beta: \`$DISPLAY_VERSION\` build \`$TARGET_BUILD\`"
             echo "- Unpublished fixture: \`$DISPLAY_VERSION\` build \`$FIXTURE_BUILD\`"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -94,7 +158,8 @@ jobs:
 
   build-fixture:
     name: Build signed lower fixture
-    needs: resolve-target
+    needs: [check-runner, resolve-target]
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
     permissions:
       contents: read
       id-token: write
@@ -104,18 +169,18 @@ jobs:
       version: ${{ needs.resolve-target.outputs.display_version }}
       build_type: beta
       installer_base_name: lantern-autoupdate-fixture
-      runner_label: lantern-macos-smoke
       flutter_target: integration_test/auto_update/desktop_auto_update_smoke_test.dart
       # flutter drive needs the VM service exposed by a profile fixture.
       flutter_build_mode: profile
       pubspec_artifact: macos-auto-update-pubspec
       sign_update_artifact: false
-      auto_update_e2e: true
+      auto_update_e2e: ${{ needs.resolve-target.outputs.auto_update_e2e == 'true' }}
       run_connect_smoke: false
       run_payment_smoke: false
 
   exercise-update:
     name: Install and update through Sparkle
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
     needs:
       - resolve-target
       - build-fixture
@@ -125,6 +190,7 @@ jobs:
     timeout-minutes: 30
     env:
       LANTERN_AUTO_UPDATE_SMOKE: "true"
+      UPDATE_SMOKE_SCENARIO: ${{ inputs.scenario }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -138,6 +204,12 @@ jobs:
 
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
+
+      # The smoke helper only needs the standard library from the runner's Python.
+      - name: Check runner Python
+        run: |
+          python3 --version
+          python3 -m unittest scripts/ci/desktop_update_scenario_test.py
 
       - name: Resolve Flutter dependencies
         run: flutter pub get
@@ -162,6 +234,13 @@ jobs:
           FIXTURE_DMG: ${{ runner.temp }}/macos-auto-update-fixture/lantern-autoupdate-fixture-beta.dmg
           TARGET_JSON: ${{ runner.temp }}/macos-auto-update-target/target.json
         run: bash ./.github/scripts/macos_auto_update_smoke.sh
+
+      - name: Restore update network access
+        if: ${{ always() && inputs.scenario == 'core-unavailable-direct-blocked' }}
+        shell: bash
+        run: |
+          sudo -n env CI=true GITHUB_ACTIONS=true LANTERN_AUTO_UPDATE_SMOKE=true RUNNER_ENVIRONMENT=self-hosted \
+            "$(command -v python3)" scripts/ci/desktop_update_scenario.py restore
 
       - name: Upload auto-update diagnostics
         if: ${{ always() }}

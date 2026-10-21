@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
+import 'package:lantern/core/widgets/tv_frame.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/updater/updater.dart';
@@ -22,6 +23,7 @@ import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
+import 'core/common/app_build_info.dart';
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
 import 'core/utils/deeplink_utils.dart'
@@ -61,7 +63,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void initLifecycleListener() {
     _lifecycle = AppLifecycleListener(
-      onResume: _retryPendingUpdaterSetup,
+      onResume: _onResume,
       onExitRequested: () async {
         appLogger.info("Exit requested");
         await ref
@@ -73,8 +75,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
     );
   }
 
-  void _retryPendingUpdaterSetup() {
-    if (sl.isRegistered<Updater>()) sl<Updater>().retryPendingSetup();
+  void _onResume() {
+    _retryPendingUpdate();
+    unawaited(ref.read(lanternServiceProvider).syncTimeZone());
+  }
+
+  void _retryPendingUpdate() {
+    if (sl.isRegistered<Updater>()) sl<Updater>().retryPendingCheck();
   }
 
   @override
@@ -118,7 +125,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
     final path = uri.path;
 
     if (path.startsWith('/report-issue') ||
-        (uri.scheme == 'lantern' && uri.host == 'report-issue')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'report-issue')) {
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
       final fragment = uri.fragment;
@@ -138,12 +145,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
         _pushWithHome(ReportIssue());
       }
     } else if (path.startsWith('/auth') ||
-        (uri.scheme == 'lantern' && uri.host == 'auth')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'auth')) {
       if (isOAuthCallbackResult(uri)) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
     } else if (path.startsWith('/affiliate') ||
-        (uri.scheme == 'lantern' && uri.host == 'affiliate')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'affiliate')) {
       // https://lantern.io/affiliate/<code> or lantern://affiliate/<code>;
       // ?code=<code> is accepted as a fallback.
       final segments = uri.pathSegments
@@ -160,7 +167,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       appLogger.debug("DeepLink affiliate: navigating to Plans with code");
       _pushWithHome(Plans(referralCode: code));
     } else if (path.startsWith('/private-server') ||
-        (uri.scheme == 'lantern' && uri.host == 'private-server')) {
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);
       appLogger.debug("DeepLink private-server params: ${data.keys.toList()}");
       data['accessKey'] = _buildPrivateServerAccessKey(uri);
@@ -225,8 +232,10 @@ class _LanternAppState extends ConsumerState<LanternApp>
       }
       return accessKey;
     }
-    if (uri.scheme == 'lantern') {
-      // lantern://private-server?key=value → lantern//private-server?key=value
+    if (uri.scheme == 'lantern' || AppBuildInfo.isAppAuthUri(uri)) {
+      // The downstream parser only accepts the canonical `lantern//` prefix, so
+      // a per-build custom scheme (APP_AUTH_SCHEME) is normalized here:
+      // <scheme>://private-server?key=value → lantern//private-server?key=value
       var accessKey = 'lantern//${uri.host}';
       if (uri.hasQuery) {
         accessKey += '?${uri.query}';
@@ -236,11 +245,20 @@ class _LanternAppState extends ConsumerState<LanternApp>
     return uri.toString();
   }
 
+  Color _tvBackground(BuildContext context, String themeMode) {
+    final mode = resolveThemeMode(themeMode);
+    final dark =
+        mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    return dark ? AppColors.gray9 : AppColors.gray1;
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(vpnProvider, (previous, next) {
       if (next == VPNStatus.connected && previous != next) {
-        _retryPendingUpdaterSetup();
+        _retryPendingUpdate();
       }
     });
     final appSetting = ref.watch(appSettingProvider);
@@ -253,63 +271,71 @@ class _LanternAppState extends ConsumerState<LanternApp>
       overlayWidgetBuilder: (_) => Center(child: LoadingIndicator()),
       child: WindowWrapper(
         child: SystemTrayWrapper(
-          child: ScreenUtilInit(
-            ensureScreenSize: true,
-            designSize: designSizeFor(context),
-            minTextAdapt: true,
-            child: I18n(
-              initialLocale: locale.toLocale,
-              localizationsDelegates: [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              child: MaterialApp.router(
-                locale: locale.toLocale,
-                debugShowCheckedModeBanner: false,
-                builder: (context, child) {
-                  final router = child ?? const SizedBox.shrink();
-                  final shell = isStaging
-                      ? Banner(
-                          message: 'STAGING',
-                          location: BannerLocation.topEnd,
-                          color: AppColors.red6,
-                          child: router,
-                        )
-                      : router;
-                  return UserMessageHost(
-                    routeObserver: userMessageRouteObserver,
-                    actionDispatcher: _userMessageActionDispatcher,
-                    enabled:
-                        appSetting.onboardingCompleted && !paymentSessionActive,
-                    child: shell,
-                  );
-                },
-                theme: AppTheme.appTheme(),
-                darkTheme: AppTheme.darkTheme(),
-                themeMode: resolveThemeMode(appSetting.themeMode),
-                supportedLocales: languages
-                    .map(
-                      (lang) =>
-                          Locale(lang.split('_').first, lang.split('_').last),
-                    )
-                    .toList(),
-                // List of supported languages
-                routerConfig: globalRouter.config(
-                  deepLinkBuilder: (deepLink) {
-                    return DeepLink
-                        .defaultPath; // We handle deep links manually, so return null to use the default route
-                  },
-                  navigatorObservers: () => [
-                    routeObserver,
-                    userMessageRouteObserver,
+          child: TvFrame(
+            background: _tvBackground(context, appSetting.themeMode),
+            child: Builder(
+              builder: (context) => ScreenUtilInit(
+                ensureScreenSize: true,
+                designSize: designSizeFor(context),
+                minTextAdapt: true,
+                child: I18n(
+                  initialLocale: locale.toLocale,
+                  localizationsDelegates: [
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
                   ],
+                  child: MaterialApp.router(
+                    locale: locale.toLocale,
+                    debugShowCheckedModeBanner: false,
+                    builder: (context, child) {
+                      final router = child ?? const SizedBox.shrink();
+                      final shell = isStaging
+                          ? Banner(
+                              message: 'STAGING',
+                              location: BannerLocation.topEnd,
+                              color: AppColors.red6,
+                              child: router,
+                            )
+                          : router;
+                      return UserMessageHost(
+                        routeObserver: userMessageRouteObserver,
+                        actionDispatcher: _userMessageActionDispatcher,
+                        enabled:
+                            appSetting.onboardingCompleted &&
+                            !paymentSessionActive,
+                        child: shell,
+                      );
+                    },
+                    theme: AppTheme.appTheme(),
+                    darkTheme: AppTheme.darkTheme(),
+                    themeMode: resolveThemeMode(appSetting.themeMode),
+                    supportedLocales: languages
+                        .map(
+                          (lang) => Locale(
+                            lang.split('_').first,
+                            lang.split('_').last,
+                          ),
+                        )
+                        .toList(),
+                    // List of supported languages
+                    routerConfig: globalRouter.config(
+                      deepLinkBuilder: (deepLink) {
+                        return DeepLink
+                            .defaultPath; // We handle deep links manually, so return null to use the default route
+                      },
+                      navigatorObservers: () => [
+                        routeObserver,
+                        userMessageRouteObserver,
+                      ],
+                    ),
+                    localizationsDelegates: const [
+                      GlobalMaterialLocalizations.delegate,
+                      GlobalWidgetsLocalizations.delegate,
+                      GlobalCupertinoLocalizations.delegate,
+                    ],
+                  ),
                 ),
-                localizationsDelegates: const [
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
               ),
             ),
           ),

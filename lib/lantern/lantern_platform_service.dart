@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -157,6 +158,30 @@ class LanternPlatformService implements LanternCoreService {
   Future<Either<Failure, Unit>> updateLocal(String locale) async {
     try {
       final _ = await _methodChannel.invokeMethod('updateLocale', locale);
+      return Right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  /// Android only: opens the system share sheet for [paths] with read-only
+  /// URI grants (share_plus grants read+write to every resolvable package).
+  Future<void> shareFiles(
+    List<String> paths, {
+    String? title,
+    String? text,
+  }) async {
+    await _methodChannel.invokeMethod<void>('shareFiles', {
+      'paths': paths,
+      'title': title,
+      'text': text,
+    });
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateTimeZone(String timeZone) async {
+    try {
+      await _methodChannel.invokeMethod('updateTimeZone', timeZone);
       return Right(unit);
     } catch (e) {
       return Left(e.toFailure());
@@ -335,10 +360,14 @@ class LanternPlatformService implements LanternCoreService {
   Future<bool> checkVpnConflict() async {
     if (!Platform.isAndroid && !Platform.isMacOS) return false;
     try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'checkVpnConflict',
-      );
+      final result = await _methodChannel
+          .invokeMethod<bool>('checkVpnConflict')
+          .timeout(const Duration(seconds: 5));
+      appLogger.info('checkVpnConflict returned $result');
       return result ?? false;
+    } on TimeoutException catch (e, stackTrace) {
+      appLogger.error('checkVpnConflict timed out', e, stackTrace);
+      return false;
     } catch (e, stackTrace) {
       appLogger.error('checkVpnConflict failed', e, stackTrace);
       return false;
@@ -1074,9 +1103,7 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
-    String token,
-  ) async {
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token) async {
     try {
       await _methodChannel.invokeMethod<String>(
         'oauthDeviceLimitCallback',
@@ -1634,10 +1661,10 @@ class LanternPlatformService implements LanternCoreService {
       final result = await _methodChannel.invokeMethod(
         'getLanternAvailableServers',
       );
-      appLogger.info("Servers JSON: $result");
       final servers = AvailableServers.fromJson(
         jsonDecode(result) as List<dynamic>,
       );
+      appLogger.info("Loaded ${servers.servers.length} available servers");
       return Right(servers);
     } catch (e, stackTrace) {
       appLogger.error(

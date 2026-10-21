@@ -130,6 +130,9 @@ class AndroidSideloadUpdater {
   bool get isSupportedSideloadBuild {
     if (kIsWeb || !Platform.isAndroid) return false;
     if (kDebugMode) return false;
+    // Stealth builds de-brand the update endpoint, so it no longer points at
+    // the update service.
+    if (!AppBuildInfo.enableAutoUpdate) return false;
     return _isSideLoaded();
   }
 

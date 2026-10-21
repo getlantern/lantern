@@ -12,6 +12,7 @@ type Opts struct {
 	AppVersion       string
 	LogLevel         string
 	Locale           string
+	TimeZone         string
 	Env              string
 	TelemetryConsent bool
 	Platform         PlatformInterface
@@ -59,4 +60,9 @@ type PlatformInterface interface {
 	libbox.PlatformInterface
 	RestartService() error
 	PostServiceClose()
+}
+
+// SameInterfaceUpdateListener compares the Go listener behind gomobile proxies.
+func SameInterfaceUpdateListener(a, b libbox.InterfaceUpdateListener) bool {
+	return a != nil && b != nil && a == b
 }

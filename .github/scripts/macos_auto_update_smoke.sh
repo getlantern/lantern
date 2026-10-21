@@ -6,14 +6,16 @@ readonly APP_EXECUTABLE="$APP_PATH/Contents/MacOS/Lantern"
 readonly DATA_PATH="/Users/Shared/Lantern"
 readonly HANDOFF_PATH="$DATA_PATH/E2E/auto-update-handoff.json"
 readonly DEFAULTS_DOMAIN="org.getlantern.lantern"
-readonly ROBOT_SOURCE=".github/scripts/macos_sparkle_handoff.applescript"
-readonly ROBOT_SCRIPT="${RUNNER_TEMP:?RUNNER_TEMP is required}/macos-sparkle-handoff.scpt"
+readonly ROBOT_SOURCE=".github/scripts/macos_sparkle_handoff.swift"
+readonly ROBOT="${RUNNER_TEMP:?RUNNER_TEMP is required}/macos-sparkle-handoff"
 readonly FIXTURE_DMG="${FIXTURE_DMG:?FIXTURE_DMG is required}"
 readonly TARGET_JSON="${TARGET_JSON:?TARGET_JSON is required}"
 readonly APPCAST_XML="${APPCAST_XML:?APPCAST_XML is required}"
 readonly ARTIFACT_DIR="${ARTIFACT_DIR:-smoke-artifacts/macos-auto-update}"
 readonly UI_TIMEOUT_SECONDS="${UI_TIMEOUT_SECONDS:-120}"
 readonly UPDATE_TIMEOUT_SECONDS="${UPDATE_TIMEOUT_SECONDS:-600}"
+readonly SCENARIO="${UPDATE_SMOKE_SCENARIO:-baseline}"
+readonly SCENARIO_HELPER="scripts/ci/desktop_update_scenario.py"
 
 [[ "$UI_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]] || {
   printf 'UI_TIMEOUT_SECONDS must be a positive integer.\n' >&2
@@ -28,6 +30,7 @@ MOUNT_PATH=""
 ORIGINAL_PID=""
 RELAUNCHED_PID=""
 RESULT="failure"
+NETWORK_BLOCKED=false
 
 log_e2e() {
   printf '[E2E] %s\n' "$*" >&2
@@ -57,7 +60,6 @@ lantern_pids() {
 }
 
 quit_lantern() {
-  osascript -e 'tell application id "org.getlantern.lantern" to quit' >/dev/null 2>&1 || true
   local pid
   while IFS= read -r pid; do
     [[ -n "$pid" ]] && kill -TERM "$pid" 2>/dev/null || true
@@ -158,14 +160,23 @@ cleanup() {
   done < <(lantern_pids)
   rm -rf -- "$APP_PATH"
   rm -rf -- "$DATA_PATH"
+  rm -rf -- "$HOME/Library/Caches/$DEFAULTS_DOMAIN"
   defaults delete "$DEFAULTS_DOMAIN" >/dev/null 2>&1 || true
+}
+
+restore_network() {
+  if [[ "$NETWORK_BLOCKED" == true ]]; then
+    sudo -n env CI=true GITHUB_ACTIONS=true LANTERN_AUTO_UPDATE_SMOKE=true RUNNER_ENVIRONMENT=self-hosted \
+      "$(command -v python3)" "$SCENARIO_HELPER" restore || return "$?"
+    NETWORK_BLOCKED=false
+  fi
 }
 
 capture_diagnostics() {
   mkdir -p "$ARTIFACT_DIR"
   {
-    printf 'result=%s\noriginal_pid=%s\nrelaunched_pid=%s\n' \
-      "$RESULT" "$ORIGINAL_PID" "$RELAUNCHED_PID"
+    printf 'result=%s\nscenario=%s\noriginal_pid=%s\nrelaunched_pid=%s\n' \
+      "$RESULT" "$SCENARIO" "$ORIGINAL_PID" "$RELAUNCHED_PID"
   } >"$ARTIFACT_DIR/result.txt"
   capture_processes final
   [[ -d "$APP_PATH" ]] && capture_versions final
@@ -177,6 +188,9 @@ capture_diagnostics() {
     mkdir -p "$ARTIFACT_DIR/sparkle-logs"
     cp -R "$HOME/Library/Logs/Sparkle/." "$ARTIFACT_DIR/sparkle-logs/" 2>/dev/null || true
   fi
+  log show --last 15m --style compact \
+    --predicate 'process == "tccd" AND (eventMessage CONTAINS "Runner.Listener" OR eventMessage CONTAINS "com.apple.systemevents")' \
+    >"$ARTIFACT_DIR/ui-permissions.log" 2>&1 || true
   log show --last 90m --style syslog \
     --predicate 'process == "Lantern" OR process == "Updater" OR process == "Installer" OR process == "Downloader" OR eventMessage CONTAINS[c] "Sparkle" OR subsystem == "org.getlantern.lantern"' \
     >"$ARTIFACT_DIR/unified-lantern-sparkle.log" 2>&1 || true
@@ -188,6 +202,7 @@ on_exit() {
   set +e
   capture_diagnostics
   capture_screenshot final
+  restore_network || status=1
   detach_dmg
   cleanup
   exit "$status"
@@ -210,7 +225,8 @@ guard_ci_paths
 mkdir -p "$ARTIFACT_DIR"
 cp "$APPCAST_XML" "$ARTIFACT_DIR/appcast.xml"
 cp "$TARGET_JSON" "$ARTIFACT_DIR/resolved-target.json"
-osacompile -o "$ROBOT_SCRIPT" "$ROBOT_SOURCE"
+xcrun swiftc "$ROBOT_SOURCE" -o "$ROBOT"
+"$ROBOT" check-access 2>&1 | tee "$ARTIFACT_DIR/ui-access.txt"
 
 TARGET_BUILD="$(jq -er '.target_build | tostring' "$TARGET_JSON")"
 FIXTURE_BUILD="$(jq -er '.fixture_build | tostring' "$TARGET_JSON")"
@@ -226,6 +242,22 @@ mkdir -p "$DATA_PATH/E2E"
 install_fixture
 verify_bundle fixture "$FIXTURE_BUILD" "$DISPLAY_VERSION"
 capture_versions fixture
+
+python3 "$SCENARIO_HELPER" prepare --scenario "$SCENARIO" --target "$TARGET_JSON" \
+  --output "$DATA_PATH/E2E/auto-update-scenario.json"
+if [[ "$SCENARIO" != baseline ]]; then
+  scutil --nc list >"$ARTIFACT_DIR/vpn-before.txt"
+  if grep -Ei '\((Connected|Connecting|Reasserting)\).*lantern' "$ARTIFACT_DIR/vpn-before.txt"; then
+    printf 'Stop the Lantern VPN before running this scenario.\n' >&2
+    exit 1
+  fi
+fi
+if [[ "$SCENARIO" == core-unavailable-direct-blocked ]]; then
+  NETWORK_BLOCKED=true
+  sudo -n env CI=true GITHUB_ACTIONS=true LANTERN_AUTO_UPDATE_SMOKE=true RUNNER_ENVIRONMENT=self-hosted \
+    "$(command -v python3)" "$SCENARIO_HELPER" block --scenario "$SCENARIO" --target "$TARGET_JSON" \
+    --output "$ARTIFACT_DIR/network-before.json"
+fi
 
 log_e2e "running the Flutter auto-update robot against the installed fixture"
 set +e
@@ -247,18 +279,12 @@ cat "$ARTIFACT_DIR/flutter-drive.log"
   exit 1
 }
 cp "$HANDOFF_PATH" "$ARTIFACT_DIR/auto-update-handoff.json"
+python3 "$SCENARIO_HELPER" verify --scenario "$SCENARIO" --target "$TARGET_JSON" \
+  --handoff "$HANDOFF_PATH" --output "$ARTIFACT_DIR/scenario-verified.json"
 if [[ -f "$DATA_PATH/Logs/screenshots/auto-update-before.png" ]]; then
   cp "$DATA_PATH/Logs/screenshots/auto-update-before.png" "$ARTIFACT_DIR/before.png"
 fi
 ORIGINAL_PID="$(jq -er '.pid | tostring' "$HANDOFF_PATH")"
-[[ "$(jq -er .build_number "$HANDOFF_PATH")" == "$FIXTURE_BUILD" ]] || {
-  printf 'Flutter test ran against the wrong fixture build.\n' >&2
-  exit 1
-}
-[[ "$(jq -er .display_version "$HANDOFF_PATH")" == "$DISPLAY_VERSION" ]] || {
-  printf 'Flutter test ran against the wrong fixture display version.\n' >&2
-  exit 1
-}
 kill -0 "$ORIGINAL_PID"
 original_command="$(ps -p "$ORIGINAL_PID" -o command=)"
 [[ "$original_command" == "$APP_EXECUTABLE"* ]] || {
@@ -269,10 +295,10 @@ original_command="$(ps -p "$ORIGINAL_PID" -o command=)"
 capture_processes prompt
 
 log_e2e "waiting for the native Sparkle prompt from process $ORIGINAL_PID"
-osascript "$ROBOT_SCRIPT" wait-prompt "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS" \
-  | tee "$ARTIFACT_DIR/sparkle-prompt.txt"
+"$ROBOT" wait-prompt "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS" \
+  2>&1 | tee "$ARTIFACT_DIR/sparkle-prompt.txt"
 capture_screenshot prompt
-osascript "$ROBOT_SCRIPT" install-until-exit "$ORIGINAL_PID" "$UPDATE_TIMEOUT_SECONDS" \
+"$ROBOT" install-until-exit "$ORIGINAL_PID" "$UPDATE_TIMEOUT_SECONDS" \
   2>&1 | tee "$ARTIFACT_DIR/sparkle-install.txt"
 
 log_e2e "waiting for Sparkle to replace and relaunch Lantern"
@@ -281,9 +307,11 @@ if kill -0 "$ORIGINAL_PID" 2>/dev/null; then
   exit 1
 fi
 RELAUNCHED_PID="$(wait_for_new_pid "$ORIGINAL_PID" "$UI_TIMEOUT_SECONDS")"
-osascript "$ROBOT_SCRIPT" wait-main "$RELAUNCHED_PID" "$UI_TIMEOUT_SECONDS" \
+"$ROBOT" wait-main "$RELAUNCHED_PID" "$UI_TIMEOUT_SECONDS" \
   | tee "$ARTIFACT_DIR/main-window-after.txt"
 verify_bundle updated "$TARGET_BUILD" "$DISPLAY_VERSION"
+python3 "$SCENARIO_HELPER" verify --scenario "$SCENARIO" --target "$TARGET_JSON" \
+  --handoff "$ARTIFACT_DIR/auto-update-handoff.json" --output "$ARTIFACT_DIR/scenario-after.json"
 capture_versions updated
 capture_processes after
 capture_screenshot after

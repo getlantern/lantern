@@ -116,6 +116,7 @@ type App interface {
 	ReferralAttachment(referralCode string) (bool, error)
 	ReferralAttachmentV2(referralCode, channel string) ([]byte, error)
 	UpdateLocale(locale string) error
+	UpdateTimeZone(timeZone string) error
 	CurrentUserMessage() (string, error)
 	RefreshUserMessages() error
 	AcknowledgeUserMessage(displayID, accountID string) error
@@ -323,6 +324,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenDataCapEvents()
 	go lc.listenPeerConnectionEvents()
 	go lc.listenUnboundedSnapshots()
+	go lc.listenPeerSnapshots()
 	go lc.listenPeerStatusEvents()
 	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
@@ -772,6 +774,11 @@ func (lc *LanternCore) MyDeviceId() string {
 
 func (lc *LanternCore) UpdateLocale(locale string) error {
 	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.LocaleKey: locale})
+	return err
+}
+
+func (lc *LanternCore) UpdateTimeZone(timeZone string) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.TimeZoneKey: timeZone})
 	return err
 }
 

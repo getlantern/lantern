@@ -195,6 +195,7 @@ import flutter_local_notifications
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
       opts.logLevel = "trace"
       opts.locale = Locale.current.identifier
+      opts.timeZone = TimeZone.current.identifier
       opts.telemetryConsent = FilePath.isTelemetryEnabled()
       opts.env = FilePath.isRadianceEnv()
       var error: NSError?

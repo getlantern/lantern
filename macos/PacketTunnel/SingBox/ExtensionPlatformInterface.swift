@@ -27,6 +27,8 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   init(_ tunnel: ExtensionProvider) {
     self.tunnel = tunnel
+    super.init()
+    pathQueue.setSpecific(key: pathQueueKey, value: true)
   }
 
   /// Applies tunnel network settings and waits for NetworkExtension's completion.
@@ -322,6 +324,23 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   private var nwMonitor: NWPathMonitor? = nil
+  private var monitorListener: LibboxInterfaceUpdateListenerProtocol?
+  private var monitorSession: NetworkResetScheduler.Session?
+  private let monitorLock = NSLock()
+  /// Serializes path updates, monitor replacement and lastDefaultInterface.
+  private let pathQueue = DispatchQueue(label: "org.getlantern.PacketTunnel.path")
+  private let pathQueueKey = DispatchSpecificKey<Bool>()
+  private var lastDefaultInterface: DefaultInterface?
+  private let networkResets = NetworkResetScheduler()
+  /// An address change can settle in several path updates; wait for them to stop so
+  /// the tunnel resets once.
+  private static let networkResetDelay: DispatchTimeInterval = .seconds(1)
+
+  private struct DefaultInterface {
+    let name: String
+    let index: Int
+    let ipv4: [String]
+  }
 
   public func startDefaultInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol?)
     throws
@@ -336,18 +355,29 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     // logs in getlantern/engineering#3781 show 72 monitors started against 59
     // closed. Replacing the reference without cancelling leaks the old
     // NWPathMonitor, which keeps pushing path updates into a dead sing-box.
-    nwMonitor?.cancel()
-    let monitor = NWPathMonitor()
-    nwMonitor = monitor
     let semaphore = DispatchSemaphore(value: 0)
-    monitor.pathUpdateHandler = { path in
-      self.onUpdateDefaultInterface(listener, path)
-      semaphore.signal()
+    withPathQueue {
+      monitorLock.lock()
+      defer { monitorLock.unlock() }
+      nwMonitor?.cancel()
+      let session = networkResets.startSession()
+      clearPathState(session)
+      let monitor = NWPathMonitor()
+      nwMonitor = monitor
+      monitorListener = listener
+      monitorSession = session
       monitor.pathUpdateHandler = { path in
-        self.onUpdateDefaultInterface(listener, path)
+        self.onUpdateDefaultInterface(listener, path, session)
+        semaphore.signal()
+        monitor.pathUpdateHandler = { path in
+          self.onUpdateDefaultInterface(listener, path, session)
+        }
       }
+      monitor.start(queue: pathQueue)
     }
-    monitor.start(queue: DispatchQueue.global())
+    // A listener callback may replace its monitor on this queue. Its first update
+    // cannot arrive until that callback returns.
+    guard DispatchQueue.getSpecific(key: pathQueueKey) == nil else { return }
     // Wait for the first path so libbox starts with an interface, but never
     // indefinitely: with no network at all the first update may not arrive, and this
     // runs on the libbox thread during tunnel bring-up. On timeout carry on — the
@@ -359,30 +389,145 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   }
 
   private func onUpdateDefaultInterface(
-    _ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath
+    _ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath,
+    _ session: NetworkResetScheduler.Session
   ) {
+    guard networkResets.isCurrent(session) else { return }
     if path.status == .unsatisfied {
+      appLogger.info("network path: \(describeNetworkPath(path))")
+      clearPathState(session)
       listener.updateDefaultInterface(
         "", interfaceIndex: -1, isExpensive: false, isConstrained: false)
-    } else {
-      let defaultInterface = path.availableInterfaces.first!
-      listener.updateDefaultInterface(
-        defaultInterface.name, interfaceIndex: Int32(defaultInterface.index),
-        isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+      return
+    }
+    let defaultInterface = path.availableInterfaces.first!
+    // libbox resets on its own when the default interface changes.
+    if let last = lastDefaultInterface,
+      last.name != defaultInterface.name || last.index != defaultInterface.index
+    {
+      clearPathState(session)
+    }
+    let ipv4 = ipv4Addresses(of: defaultInterface.name)
+    let ipv4Description = ipv4?.joined(separator: ",") ?? "unknown"
+    appLogger.info(
+      "network path: \(describeNetworkPath(path)) default=\(defaultInterface.name) ipv4=\(ipv4Description)"
+    )
+    listener.updateDefaultInterface(
+      defaultInterface.name, interfaceIndex: Int32(defaultInterface.index),
+      isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+    guard networkResets.isCurrent(session), let ipv4 else {
+      return
+    }
+    let previous = lastDefaultInterface
+    lastDefaultInterface = DefaultInterface(
+      name: defaultInterface.name, index: defaultInterface.index, ipv4: ipv4)
+    // libbox only resets when the default interface's name or index changes, so a new
+    // address on the same interface would leave connections bound to the old one.
+    if let previous, previous.name == defaultInterface.name,
+      previous.index == defaultInterface.index, previous.ipv4 != ipv4
+    {
+      appLogger.info(
+        "default interface \(defaultInterface.name) IPv4 changed from \(previous.ipv4) to \(ipv4); scheduling network reset"
+      )
+      scheduleNetworkReset(session, listener)
     }
   }
 
-  public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
+  private func scheduleNetworkReset(
+    _ session: NetworkResetScheduler.Session, _ listener: LibboxInterfaceUpdateListenerProtocol
+  ) {
+    networkResets.schedule(for: session, after: Self.networkResetDelay) {
+      var error: NSError?
+      MobileResetNetworkForMonitor(listener, &error)
+      if let error {
+        appLogger.error("network reset failed: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  private func clearPathState(_ session: NetworkResetScheduler.Session) {
+    guard networkResets.isCurrent(session) else { return }
+    networkResets.cancelPending(for: session)
+    lastDefaultInterface = nil
+  }
+
+  func cancelNetworkResetsAndWait() {
+    withPathQueue { networkResets.endSession() }
+    networkResets.endSessionAndWait()
+  }
+
+  private func withPathQueue<T>(_ body: () -> T) -> T {
+    if DispatchQueue.getSpecific(key: pathQueueKey) != nil { return body() }
+    return pathQueue.sync(execute: body)
+  }
+
+  /// Returns the interface's IPv4 addresses sorted, or nil if they cannot be read.
+  private func ipv4Addresses(of interfaceName: String) -> [String]? {
+    do {
+      let addresses = try TunnelFileDescriptor.interfaceAddresses()[interfaceName] ?? []
+      return addresses.filter { IPv4Address($0) != nil }.sorted()
+    } catch {
+      appLogger.error("read addresses of \(interfaceName): \(error.localizedDescription)")
+      return nil
+    }
+  }
+
+  private func describeNetworkPath(_ path: Network.NWPath) -> String {
+    var components = ["status=\(path.status)"]
+    if path.status == .unsatisfied {
+      components.append("reason=\(path.unsatisfiedReason)")
+    }
+    components.append(
+      "interfaces="
+        + path.availableInterfaces.map { "\($0.name)#\($0.index)/\($0.type)" }.joined(
+          separator: ","))
+    components.append("gateways=" + path.gateways.map { "\($0)" }.sorted().joined(separator: ","))
+    if path.supportsIPv4 {
+      components.append("ipv4")
+    }
+    if path.supportsIPv6 {
+      components.append("ipv6")
+    }
+    if path.supportsDNS {
+      components.append("dns")
+    }
+    if path.isExpensive {
+      components.append("expensive")
+    }
+    if path.isConstrained {
+      components.append("constrained")
+    }
+    return components.joined(separator: " ")
+  }
+
+  public func closeDefaultInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol?)
+    throws
+  {
     appLogger.info("Close default interface monitor")
-    nwMonitor?.cancel()
-    nwMonitor = nil
+    guard let listener else { return }
+    closeInterfaceMonitor(listener)
+  }
+
+  private func closeInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol? = nil) {
+    withPathQueue {
+      monitorLock.lock()
+      defer { monitorLock.unlock() }
+      // Gomobile can wrap the same Go listener in different Objective-C objects.
+      if let listener, !UtilsSameInterfaceUpdateListener(listener, monitorListener) { return }
+      networkResets.endSession(monitorSession)
+      nwMonitor?.cancel()
+      nwMonitor = nil
+      monitorListener = nil
+      monitorSession = nil
+    }
   }
 
   public func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
-    guard let nwMonitor else {
+    let monitor = monitorLock.withLock { nwMonitor }
+    guard let monitor else {
       throw NSError(domain: "NWMonitor not started", code: 0)
     }
-    let path = nwMonitor.currentPath
+    let path = monitor.currentPath
     if path.status == .unsatisfied {
       return networkInterfaceArray([])
     }
@@ -509,8 +654,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   func reset() {
     networkSettings = nil
-    nwMonitor?.cancel()
-    nwMonitor = nil
+    closeInterfaceMonitor()
   }
 
   public func restartService() throws {
