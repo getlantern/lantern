@@ -152,7 +152,9 @@ class LanternProLicense extends HookConsumerWidget {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
-        appLogger.error('Lantern Pro license activation failed: $failure');
+        appLogger.error(
+          'Lantern Pro license activation failed: ${failure.toString()}',
+        );
         context.showSnackBarError(failure.localizedErrorMessage);
       },
       (_) async {
