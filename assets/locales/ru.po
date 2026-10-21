@@ -1974,7 +1974,7 @@ msgid "create_account_error"
 msgstr "Ошибка создания аккаунта"
 
 msgid "appearance"
-msgstr "Появление"
+msgstr "Внешний вид"
 
 msgid "light"
 msgstr "Светлый"
