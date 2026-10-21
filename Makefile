@@ -95,9 +95,12 @@ SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR
 EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
-# Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
-# (which leave BUILD_TYPE=production), so gate stealth flags on all three signals.
-STEALTH_ACTIVE := $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE))
+# A stealth-vpn/stealth-novpn BUILD_TYPE implies the matching STEALTH_MODE, so the
+# profile, de-branding, garble scope, identity, and Go flags all switch on from
+# the same STEALTH_MODE/STEALTH_PROFILE inputs (which may also leave
+# BUILD_TYPE=production).
+STEALTH_MODE ?= $(filter stealth-vpn stealth-novpn,$(BUILD_TYPE))
+STEALTH_ACTIVE := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_GO_LDFLAGS := $(if $(STEALTH_ACTIVE),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
 # lantern-core keys its default log level off the build type (debug on
 # nightly). Stealth builds leave it out so their binaries don't name it.
@@ -230,7 +233,7 @@ ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-s
 ANDROID_CGO_CFLAGS ?= -O2 -g -fstack-protector-strong
 ANDROID_CGO_ENV = CGO_CFLAGS="$(ANDROID_CGO_CFLAGS)" CGO_CXXFLAGS="$(ANDROID_CGO_CFLAGS)" \
 	CGO_LDFLAGS="-O2 -g -static-libstdc++ -Wl,--exclude-libs,libc++_static.a:libc++abi.a"
-ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE)),1,0)
+ANDROID_STEALTH_IDENTITY ?= $(if $(STEALTH_ACTIVE),1,0)
 ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
 ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)

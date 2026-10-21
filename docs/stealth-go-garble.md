@@ -58,13 +58,15 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.set-metadata.outputs.version }}
-      build_type: stealth
+      build_type: stealth-vpn
       installer_base_name: lantern-installer
       obfuscate_go: true
 ```
 
-The workflow consumes `secrets.STEALTH_GARBLE_SEED` when `obfuscate_go` is true.
-This workflow does not generate Android app identities or stealth profiles.
+`build_type` must be `stealth-vpn` or `stealth-novpn`: the Makefile derives
+`STEALTH_MODE` from it, which turns on the stealth profile, identity, garble
+package scope, and Go flags together. The workflow consumes
+`secrets.STEALTH_GARBLE_SEED` when `obfuscate_go` is true.
 
 ## Other native targets
 
