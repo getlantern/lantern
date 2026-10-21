@@ -23,6 +23,7 @@ The committed sources are never modified; only the generated copy is.
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -148,6 +149,37 @@ def generate_res(res_source: Path, res_overlay: Path | None, res_output: Path) -
     return 0
 
 
+CHECKDISCARD_CLASS = re.compile(r"^\s*-checkdiscard\s+class\s+([\w.$]+)", re.MULTILINE)
+
+
+def generate_proguard_rules(rules_source: Path, rules_output: Path, kotlin_root: Path) -> int:
+    """De-brand an R8 rules file so its class names match the generated Kotlin.
+
+    R8 skips a ``-checkdiscard`` rule whose class does not exist, so a stale name
+    would turn the check into a silent pass. Every such class must therefore
+    resolve to a generated Kotlin source file under ``kotlin_root``.
+    """
+    if not rules_source.is_file():
+        print(f"error: proguard rules not found: {rules_source}", file=sys.stderr)
+        return 2
+    text = debrand_text(rules_source.read_text(encoding="utf-8"))
+    missing = [
+        name
+        for name in CHECKDISCARD_CLASS.findall(text)
+        if not (kotlin_root / (name.split("$", 1)[0].replace(".", "/") + ".kt")).is_file()
+    ]
+    if missing:
+        print(
+            "error: -checkdiscard classes have no generated source: " + ", ".join(missing),
+            file=sys.stderr,
+        )
+        return 2
+    rules_output.parent.mkdir(parents=True, exist_ok=True)
+    rules_output.write_text(text, encoding="utf-8")
+    print(f"de-branded proguard rules -> {rules_output}")
+    return 0
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -165,6 +197,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--res-source", type=Path, help="Real res tree to de-brand (e.g. android/app/src/main/res).")
     parser.add_argument("--res-overlay", type=Path, help="Stealth res overlay copied on top (e.g. android/app/src/stealth/res).")
     parser.add_argument("--res-output", type=Path, help="Output dir for the merged de-branded res tree.")
+    parser.add_argument("--proguard-rules", type=Path, help="R8 rules file to de-brand (e.g. android/app/proguard-stealth-novpn.pro).")
+    parser.add_argument("--proguard-rules-output", type=Path, help="Output path for the de-branded R8 rules file.")
     return parser.parse_args(argv)
 
 
@@ -178,6 +212,12 @@ def main(argv: list[str]) -> int:
             file=sys.stderr,
         )
         return 2
+    if bool(args.proguard_rules) != bool(args.proguard_rules_output):
+        print(
+            "error: --proguard-rules and --proguard-rules-output must be provided together",
+            file=sys.stderr,
+        )
+        return 2
     if args.res_overlay and not args.res_overlay.is_dir():
         print(f"error: res overlay not found: {args.res_overlay}", file=sys.stderr)
         return 2
@@ -187,6 +227,10 @@ def main(argv: list[str]) -> int:
         return rc
     if args.res_source and args.res_output:
         rc = generate_res(args.res_source, args.res_overlay, args.res_output)
+        if rc != 0:
+            return rc
+    if args.proguard_rules and args.proguard_rules_output:
+        rc = generate_proguard_rules(args.proguard_rules, args.proguard_rules_output, args.output)
     return rc
 
 

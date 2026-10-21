@@ -118,7 +118,9 @@ class _SettingCard extends ConsumerWidget {
     final splitTunnelingTile = SettingTile(
       // Tapped by the split-tunneling smoke harness.
       tileKey: const Key('home.split_tunneling_setting'),
-      label: 'split_tunneling'.i18n,
+      label:
+          (directConnectionAppsMode ? 'direct_connection_apps' : 'split_tunneling')
+              .i18n,
       icon: AppImagePaths.callSpilt,
       value: splitTunnelLabel(splitTunnel),
       actions: chevronActions,

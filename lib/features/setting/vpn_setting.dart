@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/annotations.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -78,7 +81,11 @@ class VPNSetting extends HookConsumerWidget {
               DividerSpace(),
               if (showSplitTunneling) ...[
                 SplitTunnelingTile(
-                  label: 'split_tunneling'.i18n,
+                  label:
+                      (directConnectionAppsMode
+                              ? 'direct_connection_apps'
+                              : 'split_tunneling')
+                          .i18n,
                   icon: AppImagePaths.callSpilt,
                   actionText: splitTunnelLabel(splitTunnel),
                   onPressed: () => appRouter.push(const SplitTunneling()),
@@ -317,15 +324,18 @@ class VPNSetting extends HookConsumerWidget {
 
 /// Proxy info card for stealth-novpn: shows the host, the editable listen port,
 /// and the derived SOCKS5/HTTP addresses. Editing the port persists it and
-/// applies it to radiance (takes effect on the next connect).
-class _ProxyInfoCard extends StatefulWidget {
+/// applies it to radiance; a running proxy is reconnected so the shown
+/// address is the one actually listening.
+class _ProxyInfoCard extends ConsumerStatefulWidget {
   const _ProxyInfoCard();
 
   @override
-  State<_ProxyInfoCard> createState() => _ProxyInfoCardState();
+  ConsumerState<_ProxyInfoCard> createState() => _ProxyInfoCardState();
 }
 
-class _ProxyInfoCardState extends State<_ProxyInfoCard> {
+class _ProxyInfoCardState extends ConsumerState<_ProxyInfoCard> {
+  static const _stopTimeout = Duration(seconds: 30);
+
   Future<void> _editPort() async {
     final controller = TextEditingController(
       text: StealthNoVpnProxy.port.toString(),
@@ -357,18 +367,53 @@ class _ProxyInfoCardState extends State<_ProxyInfoCard> {
         ],
       ),
     );
-    if (newPort == null) return;
+    if (newPort == null || newPort == StealthNoVpnProxy.port) return;
     await StealthNoVpnProxy.setPort(newPort);
+    var applied = false;
     if (sl.isRegistered<LanternService>()) {
       final result = await sl<LanternService>().setProxyListenPort(newPort);
-      result.fold(
-        (failure) => appLogger.error(
-          'Failed to apply proxy listen port: ${failure.error}',
-        ),
-        (_) {},
-      );
+      applied = result.fold((failure) {
+        appLogger.error('Failed to apply proxy listen port: ${failure.error}');
+        return false;
+      }, (_) => true);
     }
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    // The listener binds its port when it starts.
+    if (applied && ref.read(vpnProvider) == VPNStatus.connected) {
+      await _reconnect();
+    }
+  }
+
+  /// Stops and restarts the proxy with the current server selection, the
+  /// same way the connect toggle does.
+  Future<void> _reconnect() async {
+    final notifier = ref.read(vpnProvider.notifier);
+    final disconnected = Completer<void>();
+    final sub = ref.listenManual(vpnProvider, (_, next) {
+      if (next == VPNStatus.disconnected && !disconnected.isCompleted) {
+        disconnected.complete();
+      }
+    });
+    try {
+      final stopped = await notifier.stopVPN();
+      if (stopped.isLeft()) return;
+      // A start sent before the native stop finishes would be rejected.
+      await disconnected.future.timeout(_stopTimeout);
+    } on TimeoutException {
+      appLogger.error('Proxy did not stop after a port change');
+      return;
+    } finally {
+      sub.close();
+    }
+    if (!mounted) return;
+    final started = await notifier.startVPN(skipConflictCheck: true);
+    started.fold(
+      (failure) => appLogger.error(
+        'Failed to restart proxy after a port change: ${failure.error}',
+      ),
+      (_) {},
+    );
   }
 
   @override

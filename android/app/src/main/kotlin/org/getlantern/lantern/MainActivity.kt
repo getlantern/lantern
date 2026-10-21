@@ -298,11 +298,9 @@ open class MainActivity : FlutterFragmentActivity() {
                     action = NoVpnLanternService.ACTION_STOP_PROXY
                 })
             } else {
-                // Mobile.stopVPN() blocks on IPC; postVPNStatus is safe off the main thread.
+                // Blocks on IPC and on any native start still finishing, so run off the main thread.
                 CoroutineScope(Dispatchers.IO).launch {
-                    runCatching { Mobile.stopVPN() }
-                        .onFailure { e -> AppLogger.e(TAG, "Failed to stop local proxy", e) }
-                    VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                    NoVpnLanternService.stopWithoutService()
                 }
             }
             return
