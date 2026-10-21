@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getlantern/radiance/peer"
 	"github.com/getlantern/radiance/unbounded"
 )
 
@@ -37,6 +38,33 @@ func TestUnboundedUnavailableIsEmittedOncePerOutage(t *testing.T) {
 	}
 	if calls != 4 {
 		t.Fatalf("read calls = %d, want 4", calls)
+	}
+}
+
+// The peer poller has no unavailable event: failed reads are skipped, and
+// each success is sent under the peer event.
+func TestPeerSnapshotsSkipFailedReads(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ticks := make(chan time.Time, 2)
+	for range 2 {
+		ticks <- time.Now()
+	}
+	calls := 0
+	var events []string
+	pollSnapshots(ctx, ticks, func(context.Context) (peer.Snapshot, error) {
+		calls++
+		if calls == 2 {
+			return peer.Snapshot{Epoch: "run-1", BytesDown: 9}, nil
+		}
+		return peer.Snapshot{}, errors.New("offline")
+	}, func(name, data string) {
+		events = append(events, name+" "+data)
+		cancel()
+	}, "peer-snapshot", "")
+	want := []string{`peer-snapshot {"epoch":"run-1","running":false,"peers":null,"bytesDown":9,"bytesUp":0,"peerBytes":null}`}
+	if !reflect.DeepEqual(events, want) {
+		t.Fatalf("events = %v, want %v", events, want)
 	}
 }
 

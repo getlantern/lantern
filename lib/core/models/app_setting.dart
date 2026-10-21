@@ -1,3 +1,5 @@
+import 'package:lantern/core/models/relay_stats.dart';
+
 class AppSetting {
   final String locale;
   final String themeMode;
@@ -22,6 +24,21 @@ class AppSetting {
   // Figma. ShareNotifier seeds totalCount from this on build, and
   // writes back each time the count increments.
   final int unboundedTotalHelped;
+  // Lifetime Unbounded bytes relayed (down: to the people helped, up: from
+  // them) and the per-country breakdown behind Advanced stats. Written by
+  // ShareNotifier on a throttle, not on every snapshot.
+  final int unboundedBytesDown;
+  final int unboundedBytesUp;
+  final Map<String, RelayCountryStats> unboundedCountryStats;
+  // The backend epoch and byte counters already folded into the totals
+  // above, so a restarted app resumes counting where it left off.
+  final String unboundedRelayEpoch;
+  final int unboundedRelayMarkDown;
+  final int unboundedRelayMarkUp;
+  // The same for direct sharing (SmC), whose snapshots carry their own epoch.
+  final String peerRelayEpoch;
+  final int peerRelayMarkDown;
+  final int peerRelayMarkUp;
 
   const AppSetting({
     this.themeMode = 'system',
@@ -37,6 +54,15 @@ class AppSetting {
     this.unboundedHidden = false,
     this.unboundedWelcomeSeen = false,
     this.unboundedTotalHelped = 0,
+    this.unboundedBytesDown = 0,
+    this.unboundedBytesUp = 0,
+    this.unboundedCountryStats = const {},
+    this.unboundedRelayEpoch = '',
+    this.unboundedRelayMarkDown = 0,
+    this.unboundedRelayMarkUp = 0,
+    this.peerRelayEpoch = '',
+    this.peerRelayMarkDown = 0,
+    this.peerRelayMarkUp = 0,
   });
 
   /// Whether the app points at the staging backend. The notifier writes
@@ -57,6 +83,15 @@ class AppSetting {
     bool? unboundedHidden,
     bool? unboundedWelcomeSeen,
     int? unboundedTotalHelped,
+    int? unboundedBytesDown,
+    int? unboundedBytesUp,
+    Map<String, RelayCountryStats>? unboundedCountryStats,
+    String? unboundedRelayEpoch,
+    int? unboundedRelayMarkDown,
+    int? unboundedRelayMarkUp,
+    String? peerRelayEpoch,
+    int? peerRelayMarkDown,
+    int? peerRelayMarkUp,
   }) {
     return AppSetting(
       locale: newLocale ?? locale,
@@ -73,6 +108,17 @@ class AppSetting {
       unboundedWelcomeSeen: unboundedWelcomeSeen ?? this.unboundedWelcomeSeen,
       unboundedTotalHelped:
           unboundedTotalHelped ?? this.unboundedTotalHelped,
+      unboundedBytesDown: unboundedBytesDown ?? this.unboundedBytesDown,
+      unboundedBytesUp: unboundedBytesUp ?? this.unboundedBytesUp,
+      unboundedCountryStats:
+          unboundedCountryStats ?? this.unboundedCountryStats,
+      unboundedRelayEpoch: unboundedRelayEpoch ?? this.unboundedRelayEpoch,
+      unboundedRelayMarkDown:
+          unboundedRelayMarkDown ?? this.unboundedRelayMarkDown,
+      unboundedRelayMarkUp: unboundedRelayMarkUp ?? this.unboundedRelayMarkUp,
+      peerRelayEpoch: peerRelayEpoch ?? this.peerRelayEpoch,
+      peerRelayMarkDown: peerRelayMarkDown ?? this.peerRelayMarkDown,
+      peerRelayMarkUp: peerRelayMarkUp ?? this.peerRelayMarkUp,
     );
   }
 
@@ -90,6 +136,16 @@ class AppSetting {
         'unboundedHidden': unboundedHidden,
         'unboundedWelcomeSeen': unboundedWelcomeSeen,
         'unboundedTotalHelped': unboundedTotalHelped,
+        'unboundedBytesDown': unboundedBytesDown,
+        'unboundedBytesUp': unboundedBytesUp,
+        'unboundedCountryStats':
+            RelayCountryStats.mapToJson(unboundedCountryStats),
+        'unboundedRelayEpoch': unboundedRelayEpoch,
+        'unboundedRelayMarkDown': unboundedRelayMarkDown,
+        'unboundedRelayMarkUp': unboundedRelayMarkUp,
+        'peerRelayEpoch': peerRelayEpoch,
+        'peerRelayMarkDown': peerRelayMarkDown,
+        'peerRelayMarkUp': peerRelayMarkUp,
       };
 
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
@@ -110,5 +166,18 @@ class AppSetting {
         unboundedWelcomeSeen: json['unboundedWelcomeSeen'] == true,
         unboundedTotalHelped:
             (json['unboundedTotalHelped'] as num?)?.toInt() ?? 0,
+        unboundedBytesDown:
+            (json['unboundedBytesDown'] as num?)?.toInt() ?? 0,
+        unboundedBytesUp: (json['unboundedBytesUp'] as num?)?.toInt() ?? 0,
+        unboundedCountryStats:
+            RelayCountryStats.mapFromJson(json['unboundedCountryStats']),
+        unboundedRelayEpoch: (json['unboundedRelayEpoch'] ?? '').toString(),
+        unboundedRelayMarkDown:
+            (json['unboundedRelayMarkDown'] as num?)?.toInt() ?? 0,
+        unboundedRelayMarkUp:
+            (json['unboundedRelayMarkUp'] as num?)?.toInt() ?? 0,
+        peerRelayEpoch: (json['peerRelayEpoch'] ?? '').toString(),
+        peerRelayMarkDown: (json['peerRelayMarkDown'] as num?)?.toInt() ?? 0,
+        peerRelayMarkUp: (json['peerRelayMarkUp'] as num?)?.toInt() ?? 0,
       );
 }

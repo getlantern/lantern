@@ -12,12 +12,14 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
+import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/auto_enable_mode.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
@@ -396,12 +398,15 @@ void main() {
           await tester.tapAt(tester.getCenter(toggle) - const Offset(20, 0));
           await tester.pump(const Duration(milliseconds: 300));
           expect(_Share.toggles, 1);
-          final checkbox = find.byKey(const Key('action-mode.auto-enable'));
-          await tester.ensureVisible(checkbox);
+          final link = find.byKey(const Key('action-mode.advanced-stats'));
+          await tester.ensureVisible(link);
           await tester.pump(const Duration(milliseconds: 300));
-          await tester.tap(checkbox);
-          await tester.pump(const Duration(milliseconds: 300));
-          expect(tester.widget<Checkbox>(checkbox).value, isTrue);
+          await tester.tap(link);
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 500));
+          expect(find.byType(AdvancedStatsView), findsOneWidget);
+          // Auto-enable lives in Action Mode settings, not on the tab.
+          expect(find.byType(ActionModeAutoEnable), findsNothing);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
         },
@@ -488,4 +493,215 @@ void main() {
       },
     );
   }
+
+  const relay = RelayStats(
+    available: true,
+    speedDown: 1260000,
+    speedUp: 48000,
+    sessionDown: 340000000,
+    sessionUp: 12000000,
+    lifetimeDown: 1200000000,
+    lifetimeUp: 30000000,
+    countries: {
+      'IR': RelayCountryStats(
+        code: 'IR',
+        name: 'Iran',
+        down: 900000000,
+        up: 20000000,
+        people: 4,
+      ),
+      'RU': RelayCountryStats(
+        code: 'RU',
+        name: 'Russia',
+        down: 200000000,
+        up: 5000000,
+        people: 1,
+      ),
+      '': RelayCountryStats(code: '', down: 1000),
+    },
+  );
+
+  for (final brightness in Brightness.values) {
+    testWidgets('advanced stats link opens the sheet ($brightness)', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        brightness: brightness,
+        shareState: const ShareState(
+          active: true,
+          mode: ShareMode.unbounded,
+          unboundedRunning: true,
+          relay: relay,
+        ),
+        animated: true,
+      );
+      final link = find.byKey(const Key('action-mode.advanced-stats'));
+      await tester.ensureVisible(link);
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(link);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(AdvancedStatsView), findsOneWidget);
+      expect(find.text('↓ 1.3 MB/s  ↑ 48 kB/s'), findsOneWidget);
+      expect(find.text('352 MB'), findsOneWidget);
+      expect(find.text('1.2 GB'), findsOneWidget);
+      expect(find.text('920 MB · 4 people'), findsOneWidget);
+      expect(find.text('205 MB · 1 person'), findsOneWidget);
+      expect(find.text('Unknown'), findsOneWidget);
+      expect(find.text('1.0 kB'), findsOneWidget);
+      expect(find.textContaining('0 people'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  testWidgets('advanced stats orders countries by data', (tester) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.unbounded,
+        relay: relay,
+      ),
+    );
+    final iran = tester.getTopLeft(find.text('Iran')).dy;
+    final russia = tester.getTopLeft(find.text('Russia')).dy;
+    final unknown = tester.getTopLeft(find.text('Unknown')).dy;
+    expect(iran, lessThan(russia));
+    expect(russia, lessThan(unknown));
+    expect(find.byKey(const Key('advanced-stats.smc-note')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a country with people but no bytes shows people only', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.smc,
+        phase: SharePhase.serving,
+        relay: RelayStats(
+          countries: {
+            'IR': RelayCountryStats(code: 'IR', name: 'Iran', people: 1),
+          },
+        ),
+      ),
+    );
+    expect(find.text('1 person'), findsOneWidget);
+    expect(find.text('0 B · 1 person'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('advanced stats shows an empty state at large text', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      size: const Size(320, 568),
+      scale: 2,
+      shareState: const ShareState(
+        relay: RelayStats(available: true, speedDown: 1260000, speedUp: 48000),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.text('0 B'), findsWidgets);
+    final empty = find.text(
+      'No one helped yet. Countries will appear here once people connect '
+      'through you.',
+    );
+    await tester.dragUntilVisible(
+      empty,
+      find.byKey(const Key('advanced-stats.list')),
+      const Offset(0, -200),
+    );
+    expect(empty, findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('advanced stats in SmC shows the same figures as WebRTC', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.smc,
+        phase: SharePhase.serving,
+        relay: relay,
+      ),
+    );
+    expect(find.text('Direct connection'), findsOneWidget);
+    expect(find.text('↓ 1.3 MB/s  ↑ 48 kB/s'), findsOneWidget);
+    expect(find.text('352 MB'), findsOneWidget);
+    expect(find.text('1.2 GB'), findsOneWidget);
+    expect(find.text('920 MB · 4 people'), findsOneWidget);
+    expect(
+      find.text('Data stats are available only when sharing via Unbounded.'),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final (mode, label) in [
+    (ShareMode.unbounded, 'Enabled · WebRTC'),
+    (ShareMode.smc, 'Enabled · Direct connection'),
+  ]) {
+    testWidgets('status line names the $mode mode', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        shareState: ShareState(
+          active: true,
+          mode: mode,
+          phase: mode == ShareMode.smc ? SharePhase.serving : SharePhase.idle,
+          unboundedRunning: mode == ShareMode.unbounded,
+        ),
+        animated: true,
+      );
+      final card = tester.widget<ActionModeStatusCard>(
+        find.byType(ActionModeStatusCard),
+      );
+      expect(card.status, label);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  testWidgets('advanced stats explains a fallback to WebRTC', (tester) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.unbounded,
+        unboundedRunning: true,
+        fallbackReason: "Your router isn't forwarding traffic.",
+        relay: relay,
+      ),
+    );
+    final mode = find.byKey(const Key('advanced-stats.mode'));
+    expect(
+      find.descendant(of: mode, matching: find.text('WebRTC')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: mode,
+        matching: find.text(
+          "Direct connection unavailable: Your router isn't forwarding "
+          'traffic.',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

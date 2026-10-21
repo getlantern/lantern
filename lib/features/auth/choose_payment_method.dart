@@ -37,10 +37,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final storeVersion = isStoreVersion();
+    // Store builds pay through the store on Plans; stealth builds cannot pay
+    // in-app, and Plans offers license activation instead.
+    final redirectToPlans = isStoreVersion() || !AppBuildInfo.enablePayments;
     final paymentRedirectInFlight = useState(false);
     useEffect(() {
-      if (!storeVersion) return null;
+      if (!redirectToPlans) return null;
 
       var cancelled = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -49,9 +51,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         }
       });
       return () => cancelled = true;
-    }, [storeVersion]);
+    }, [redirectToPlans]);
 
-    if (storeVersion) {
+    if (redirectToPlans) {
       return const Center(child: CircularProgressIndicator());
     }
 
