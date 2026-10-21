@@ -1,8 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 
 class ActionModeStatusCard extends StatelessWidget {
@@ -16,167 +17,144 @@ class ActionModeStatusCard extends StatelessWidget {
     required this.activeCount,
     required this.totalCount,
     required this.onToggle,
-    this.onAdvancedStats,
+    this.onInfo,
+    this.onTotalTap,
   });
+
   final String status;
   final bool enabled, ready, busy, hasError;
   final int activeCount, totalCount;
   final VoidCallback onToggle;
-  final VoidCallback? onAdvancedStats;
+
+  /// Reopens the Action Mode explainer from the icon beside the status.
+  final VoidCallback? onInfo;
+
+  /// Makes the total row tappable, with a chevron.
+  final VoidCallback? onTotalTap;
 
   @override
   Widget build(BuildContext context) {
-    final body = Theme.of(context).textTheme.bodyLarge;
+    final textTheme = Theme.of(context).textTheme;
+    final statusColor = hasError
+        ? context.statusErrorText
+        : ready
+        ? (Theme.of(context).brightness == Brightness.dark
+              ? AppColors.green3
+              : AppColors.green6)
+        : context.textTertiary;
     return AppCard(
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 56),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  const AppImage(
-                    path: AppImagePaths.globGrid,
-                    width: 24,
-                    height: 24,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
+          // Label over value like SettingTile, with the switch centred on
+          // the whole block rather than on the value line.
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          TextSpan(text: '${'smc_status_label'.i18n}: '),
-                          TextSpan(
-                            text: status,
-                            // Same style the VPN tab uses for its status value.
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  color: hasError
-                                      ? context.statusErrorText
-                                      : ready
-                                      ? (Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? AppColors.green3
-                                            : AppColors.green6)
-                                      : context.textTertiary,
-                                ),
+                          const SizedBox(
+                            width: 24,
+                            child: AppImage(path: AppImagePaths.globGrid),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'smc_status_label'.i18n,
+                              style: textTheme.labelLarge!.copyWith(
+                                color: context.textSecondary,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      style: body,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Semantics(
-                    key: const Key('action-mode.toggle'),
-                    label: 'unbounded'.i18n,
-                    toggled: enabled,
-                    enabled: !busy,
-                    child: AbsorbPointer(
-                      absorbing: busy,
-                      child: SwitchButton(
-                        value: enabled,
-                        onChanged: (_) {
-                          if (!busy) onToggle();
-                        },
+                      Row(
+                        children: [
+                          const SizedBox(width: 32),
+                          Flexible(
+                            child: Text(
+                              status,
+                              style: textTheme.titleMedium?.copyWith(
+                                color: statusColor,
+                              ),
+                            ),
+                          ),
+                          if (onInfo != null)
+                            IconButton(
+                              key: const Key('action-mode.info'),
+                              tooltip: 'about_unbounded'.i18n,
+                              onPressed: onInfo,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                              icon: AppImage(
+                                path: AppImagePaths.info,
+                                width: 20,
+                                height: 20,
+                                color: context.textTertiary,
+                              ),
+                            ),
+                        ],
                       ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Semantics(
+                  key: const Key('action-mode.toggle'),
+                  label: 'unbounded'.i18n,
+                  toggled: enabled,
+                  enabled: !busy,
+                  child: AbsorbPointer(
+                    absorbing: busy,
+                    child: SwitchButton(
+                      value: enabled,
+                      onChanged: (_) {
+                        if (!busy) onToggle();
+                      },
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          Divider(height: 1, color: context.borderDefault),
-          _ImpactRow(
+          const DividerSpace(),
+          SettingTile(
+            label: 'action_mode_helping_now'.i18n,
+            value: peopleCountLabel(activeCount),
             icon: AppImagePaths.actionModePerson,
-            label: 'smc_stat_active_now'.i18n,
-            value: activeCount,
+            actions: const [],
           ),
-          Divider(height: 1, color: context.borderDefault),
-          _ImpactRow(
+          const DividerSpace(),
+          SettingTile(
+            tileKey: const Key('action-mode.total-helped'),
+            label: 'action_mode_total_helped'.i18n,
+            subtitle: "view_advanced_stats".i18n,
+            subtitleColor: context.textTertiary,
+            value: peopleCountLabel(totalCount),
             icon: AppImagePaths.actionModePeople,
-            label: 'smc_stat_total_helped'.i18n,
-            value: totalCount,
+            onTap: onTotalTap,
+            actions: [AppImage(path: AppImagePaths.arrowForward)],
           ),
-          if (onAdvancedStats != null) ...[
-            Divider(height: 1, color: context.borderDefault),
-            _AdvancedStatsLink(onTap: onAdvancedStats!),
-          ],
         ],
       ),
     );
   }
 }
 
-class _AdvancedStatsLink extends StatelessWidget {
-  const _AdvancedStatsLink({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    child: InkWell(
-      key: const Key('action-mode.advanced-stats'),
-      onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 44),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'advanced_stats'.i18n,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.textSecondary,
-                  ),
-                ),
-              ),
-              Icon(Icons.chevron_right, size: 20, color: context.textTertiary),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-class _ImpactRow extends StatelessWidget {
-  const _ImpactRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-  final String icon, label;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) => ConstrainedBox(
-    constraints: const BoxConstraints(minHeight: 56),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          AppImage(path: icon, width: 24, height: 24),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.bodyLarge),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '$value',
-            // GoogleFonts encodes the weight in the family name, so copyWith
-            // on bodyLarge would keep the regular face.
-            style: AppTextStyles.bodyLargeBold.copyWith(
-              color: context.textLink,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
+/// "1 person", "5 people", "11,238 people".
+String peopleCountLabel(int count) => count == 1
+    ? 'advanced_stats_one_person'.i18n
+    : 'advanced_stats_people'.i18n.fill([
+        NumberFormat.decimalPattern().format(count),
+      ]);
 
 /// Desktop uses a horizontal pill strip; mobile uses a bottom navigation pill.
 class ActionModeNavigation extends StatelessWidget {
@@ -188,6 +166,7 @@ class ActionModeNavigation extends StatelessWidget {
     required this.actionActive,
     required this.desktop,
   });
+
   final int selectedIndex;
   final ValueChanged<int> onSelected;
   final bool vpnActive, actionActive, desktop;
