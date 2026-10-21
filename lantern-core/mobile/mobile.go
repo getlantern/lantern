@@ -99,7 +99,11 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 // the early values silently override.
 func InitLogging(dataDir, logDir, logLevel string) error {
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		return struct{}{}, common.Init(dataDir, logDir, logLevel)
+		if err := common.Init(dataDir, logDir, logLevel); err != nil {
+			return struct{}{}, err
+		}
+		utils.MigrateStaleTraceLogLevel(dataDir, logLevel)
+		return struct{}{}, nil
 	})
 	return err
 }
