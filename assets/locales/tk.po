@@ -2186,16 +2186,16 @@ msgid "unbounded_status_waiting"
 msgstr "Başlamaga garaşylýar"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "Bu funksiýa bu wersiýada elýeterli däl"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "Göni birikme programmalary"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "Saýlanan programmalar goralan ugrukdyrmanyň daşynda göni birikýär"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "Göni birikmäni ulanýan programmalar (%d)"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "%d goşuldy"

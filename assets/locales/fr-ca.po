@@ -2121,16 +2121,16 @@ msgid "have_a_password_sign_in"
 msgstr "Vous avez un mot de passe? Connexion"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "Cette fonctionnalité n'est pas disponible dans cette version"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "Applications en connexion directe"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "Les applications sélectionnées se connectent directement, en dehors du routage protégé"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "Applications utilisant la connexion directe (%d)"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "%d ajoutés"

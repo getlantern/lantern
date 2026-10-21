@@ -1,8 +1,11 @@
 package lanterncore
 
 import (
+	"log/slog"
 	"os"
 	"strings"
+
+	"github.com/getlantern/radiance/common/settings"
 )
 
 const (
@@ -50,6 +53,22 @@ func EffectiveLogLevel(configured string) string {
 		return effectiveStealthLogLevel()
 	}
 	return configured
+}
+
+// EnforceStealthLogLevel rewrites a persisted trace level after common.Init.
+// Radiance keeps a stored log_level over the configured one and its leveler
+// rereads it per record, so EffectiveLogLevel alone cannot stop a level
+// persisted by an earlier build from logging at trace.
+func EnforceStealthLogLevel() {
+	if !IsStealthBuild() {
+		return
+	}
+	current := strings.ToLower(strings.TrimSpace(settings.GetString(settings.LogLevelKey)))
+	if effective := EffectiveLogLevel(current); effective != current {
+		if err := settings.Set(settings.LogLevelKey, effective); err != nil {
+			slog.Warn("Unable to enforce stealth log level", "error", err)
+		}
+	}
 }
 
 func EffectiveTelemetryConsent(configured bool) bool {

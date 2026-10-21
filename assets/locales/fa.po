@@ -2203,16 +2203,16 @@ msgid "unbounded_status_waiting"
 msgstr "در انتظار شروع"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "%d مورد اضافه شد"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "این ویژگی در این نسخه در دسترس نیست"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "برنامه‌های اتصال مستقیم"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "برنامه‌های انتخاب‌شده خارج از مسیریابی محافظت‌شده، مستقیماً متصل می‌شوند"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "برنامه‌هایی که از اتصال مستقیم استفاده می‌کنند (%d)"

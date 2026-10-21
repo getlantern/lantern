@@ -294,6 +294,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
 			return fmt.Errorf("common.Init: %w", err)
 		}
+		EnforceStealthLogLevel()
 	case "darwin", "ios":
 		setupAppLogging(opts.LogDir, opts.LogLevel)
 	}

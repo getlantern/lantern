@@ -2209,16 +2209,16 @@ msgid "unbounded_status_waiting"
 msgstr "Đang chờ khởi động"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "Tính năng này không khả dụng trong bản dựng này"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "Ứng dụng kết nối trực tiếp"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "Các ứng dụng đã chọn kết nối trực tiếp, bên ngoài định tuyến được bảo vệ"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "Ứng dụng dùng kết nối trực tiếp (%d)"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "Đã thêm %d"

@@ -53,10 +53,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
         ? 'direct_connection_apps'.i18n
         : 'apps_split_tunneling'.i18n;
     void showReconnectNoticeIfNeeded(bool changed) {
-      if (!changed ||
-          !directConnectionApps ||
-          ref.read(vpnProvider) != VPNStatus.connected ||
-          !context.mounted) {
+      // Runs after an await; the ref is unusable once the screen is gone.
+      if (!changed || !directConnectionApps || !context.mounted) {
+        return;
+      }
+      if (ref.read(vpnProvider) != VPNStatus.connected) {
         return;
       }
       context.showSnackBar('changes_applied_after_restart'.i18n);

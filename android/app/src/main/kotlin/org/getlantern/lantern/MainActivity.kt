@@ -119,26 +119,26 @@ open class MainActivity : FlutterFragmentActivity() {
         if (pendingServiceStart && retryCountResume < maxRetriesResume) {
             retryCountResume++
             AppLogger.d(TAG, "Retrying pending service start")
-            retryServiceStart()
+            startLanternService()
         }
     }
 
     private fun startLanternService() {
         AppLogger.d(TAG, "Starting LanternService")
-        if (BuildConfig.STEALTH_NO_VPN) {
-            AppLogger.d(TAG, "Stealth no-VPN build skips proxy autostart")
-            pendingServiceStart = false
-            retryCount = 0
-            retryCountResume = 0
-            return
-        }
-        if (isServiceRunning(this, vpnServiceClass)) {
+        // No-VPN builds bring up only the backend here; the proxy listener
+        // starts when the user connects.
+        val serviceClass = if (BuildConfig.STEALTH_NO_VPN) noVpnServiceClass else vpnServiceClass
+        if (isServiceRunning(this, serviceClass)) {
             AppLogger.d(TAG, "LanternService is already running")
             return
         }
         try {
-            val radianceIntent = Intent(this, vpnServiceClass).apply {
-                action = LanternVpnService.ACTION_START_RADIANCE
+            val radianceIntent = Intent(this, serviceClass).apply {
+                action = if (BuildConfig.STEALTH_NO_VPN) {
+                    NoVpnLanternService.ACTION_START_RADIANCE
+                } else {
+                    LanternVpnService.ACTION_START_RADIANCE
+                }
             }
             startService(radianceIntent)
             AppLogger.d(TAG, "LanternService started")
@@ -158,23 +158,14 @@ open class MainActivity : FlutterFragmentActivity() {
     }
 
     private fun startNoVpnProxyService() {
-        if (isServiceRunning(this, noVpnServiceClass)) {
-            AppLogger.d(TAG, "NoVpnLanternService is already running; sending start action")
-        }
         try {
             ContextCompat.startForegroundService(this, Intent(this, noVpnServiceClass).apply {
                 action = NoVpnLanternService.ACTION_START_PROXY
             })
             AppLogger.d(TAG, "NoVpnLanternService started")
-            pendingServiceStart = false
-            retryCount = 0
-            retryCountResume = 0
-        } catch (e: IllegalStateException) {
-            AppLogger.e(TAG, "Cannot start no-VPN proxy service in background: ${e.message}")
-            pendingServiceStart = true
         } catch (e: Exception) {
             AppLogger.e(TAG, "Error starting no-VPN proxy service", e)
-            handleImmediateRetry()
+            throw e
         }
     }
 
@@ -186,7 +177,7 @@ open class MainActivity : FlutterFragmentActivity() {
 
             AppLogger.d(TAG, "Scheduling immediate retry #$retryCount in ${delay}ms")
             serviceStartHandler.postDelayed({
-                retryServiceStart()
+                startLanternService()
             }, delay)
         } else {
             /*
@@ -198,14 +189,6 @@ open class MainActivity : FlutterFragmentActivity() {
             // Optionally notify user or handle failure
             // Wait for app to come to foreground
             pendingServiceStart = true
-        }
-    }
-
-    private fun retryServiceStart() {
-        if (BuildConfig.STEALTH_NO_VPN) {
-            startNoVpnProxyService()
-        } else {
-            startLanternService()
         }
     }
 
@@ -315,8 +298,10 @@ open class MainActivity : FlutterFragmentActivity() {
                     action = NoVpnLanternService.ACTION_STOP_PROXY
                 })
             } else {
-                CoroutineScope(Dispatchers.Main).launch {
+                // Mobile.stopVPN() blocks on IPC; postVPNStatus is safe off the main thread.
+                CoroutineScope(Dispatchers.IO).launch {
                     runCatching { Mobile.stopVPN() }
+                        .onFailure { e -> AppLogger.e(TAG, "Failed to stop local proxy", e) }
                     VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                 }
             }

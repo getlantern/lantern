@@ -18,9 +18,10 @@ The target passes both build-time switches:
   runs `scripts/stealth/android_manifest_filter.py --mode novpn` over the source
   and merged manifests, which removes the VPN service, quick tile, and deep-link
   entries.
-- Release builds also enable `proguard-stealth-novpn.pro`, which fails the
-  build if R8 cannot discard the Android `VpnService` and quick tile service
-  classes from the no-VPN artifact.
+- The `VpnService` and quick tile classes are removed from the manifest but
+  still compiled into the no-VPN dex: shared code (`VPNStatusReceiver`,
+  `NotificationManager`, `VpnStatusManager`) references them, so R8 keeps
+  them. `proguard-stealth-novpn.pro` is not applied to release builds yet.
 - `--dart-define=STEALTH_NO_VPN=true` hides VPN-only UI and shows proxy setup
   instructions.
 

@@ -2219,16 +2219,16 @@ msgid "unbounded_status_waiting"
 msgstr "Menunggu untuk bermula"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "Ciri ini tidak tersedia dalam binaan ini"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "Aplikasi Sambungan Terus"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "Aplikasi yang dipilih bersambung terus di luar penghalaan yang dilindungi"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "Aplikasi yang menggunakan sambungan terus (%d)"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "%d ditambah"

@@ -2018,16 +2018,16 @@ msgid "unbounded_status_waiting"
 msgstr "等待启动"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "此版本不提供该功能"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "直连应用"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "所选应用将在受保护路由之外直接连接"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "使用直连的应用 (%d)"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "已添加 %d 个"

@@ -2224,16 +2224,16 @@ msgid "unbounded_status_waiting"
 msgstr "Ожидание запуска"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "Эта функция недоступна в этой сборке"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "Приложения с прямым подключением"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "Выбранные приложения подключаются напрямую, вне защищённой маршрутизации"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "Приложения с прямым подключением (%d)"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "Добавлено: %d"

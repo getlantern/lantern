@@ -26,7 +26,7 @@ import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
-import org.getlantern.lantern.service.LanternVpnService
+import org.getlantern.lantern.service.RadianceSetup
 import org.getlantern.lantern.updater.AndroidSideloadInstaller
 import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
 import org.getlantern.lantern.stealth.DirectConnectionAppExclusionStore
@@ -697,7 +697,7 @@ class MethodHandler : FlutterPlugin,
 
             Methods.WaitForRadiance.method -> {
                 scope.handleValue<Any?>(result, "wait_for_radiance") {
-                    LanternVpnService.awaitRadianceReady()
+                    RadianceSetup.awaitReady()
                     null
                 }
             }

@@ -2201,16 +2201,16 @@ msgid "unbounded_status_waiting"
 msgstr "শুরুর জন্য অপেক্ষা করা হচ্ছে"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "%dটি যোগ করা হয়েছে"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "এই বিল্ডে এই ফিচারটি উপলব্ধ নয়"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "সরাসরি সংযোগের অ্যাপস"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "নির্বাচিত অ্যাপস সুরক্ষিত রাউটিংয়ের বাইরে সরাসরি সংযুক্ত হয়"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "সরাসরি সংযোগ ব্যবহার করছে এমন অ্যাপস (%d)"

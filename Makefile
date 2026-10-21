@@ -366,8 +366,7 @@ GOMOBILE_JAVAPKG = $(if $(STEALTH_ENABLED),foundation.engine,lantern.io)
 STEALTH_FLUTTER_PREFIX = $(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_FLUTTER_BUILD_SCRIPT) --profile "$(STEALTH_PROFILE_OUT)" --,)
 # Stealth builds compile the REAL app entrypoint (lib/main.dart, Flutter's
 # default target). De-branding is a pre-compile transform (run_flutter_build.py)
-# plus the AppBuildInfo dart-define guards; the legacy lib/main_stealth.dart stub
-# is no longer used.
+# plus the AppBuildInfo dart-define guards.
 STEALTH_FLUTTER_TARGET =
 # Dart symbol obfuscation removes brand *identifiers* (e.g. LanternService) from
 # the AOT-compiled libapp.so. Applied to stealth release builds only; requires
@@ -518,7 +517,7 @@ desktop-lib-obfuscated: check-garble-seed
 	$(call MKDIR_P,$(dir $(LIB_NAME)))
 	@$(SETENV) $(GARBLE_ENV) $(GARBLE_BUILD) -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
-		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(GARBLE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built obfuscated desktop library: $(LIB_NAME)"
 
@@ -1038,7 +1037,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		-javapkg=$(GOMOBILE_JAVAPKG) \
 		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)

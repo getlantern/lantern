@@ -2168,16 +2168,16 @@ msgid "unbounded_status_waiting"
 msgstr "กำลังรอเริ่มต้น"
 
 msgid "feature_disabled_for_build"
-msgstr "This feature is not available in this build"
+msgstr "ฟีเจอร์นี้ไม่พร้อมใช้งานในบิลด์นี้"
 
 msgid "direct_connection_apps"
-msgstr "Direct Connection Apps"
+msgstr "แอปที่เชื่อมต่อโดยตรง"
 
 msgid "direct_connection_apps_subtitle"
-msgstr "Selected apps connect directly outside protected routing"
+msgstr "แอปที่เลือกจะเชื่อมต่อโดยตรงนอกเส้นทางที่ได้รับการป้องกัน"
 
 msgid "apps_using_direct_connection"
-msgstr "Apps using direct connection (%d)"
+msgstr "แอปที่ใช้การเชื่อมต่อโดยตรง (%d)"
 
 msgid "items_added_count"
-msgstr "%d added"
+msgstr "เพิ่มแล้ว %d รายการ"
