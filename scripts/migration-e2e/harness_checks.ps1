@@ -136,6 +136,7 @@ try {
   $script:routeOrigin = 'https://update.staging.iantem.io'
   function Invoke-WebRequest {
     param($Uri, $Method, $ContentType, $Body, $Headers, $MaximumRedirection, $TimeoutSec, [switch]$SkipHttpErrorCheck)
+    if ($Uri -cne "$script:routeOrigin/update/lantern") { throw 'unexpected_route_endpoint' }
     $request = $Body | ConvertFrom-Json -AsHashtable
     $seed = $request.app_version -eq '7.9.5'
     if (-not $seed -and $request.tags.os_arch -ne 'amd64') { return @{StatusCode=204} }
