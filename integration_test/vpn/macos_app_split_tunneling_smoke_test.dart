@@ -19,43 +19,59 @@ const _filter = SplitTunnelFilterType.processPathRegex;
 T _value<T>(Either<Failure, T> result) =>
     result.fold((failure) => fail('$failure'), (value) => value);
 
-Future<String> _curlPublicIp() async {
-  final result = await Process.run('/usr/bin/curl', [
-    '--disable',
-    '--ipv4',
-    '--noproxy',
-    '*',
-    '--connect-timeout',
-    '5',
-    '--max-time',
-    '20',
-    '--fail',
-    '--silent',
-    '--show-error',
-    'https://api.ipify.org',
-  ]).timeout(const Duration(seconds: 25));
-  expect(result.exitCode, 0, reason: '${result.stderr}');
-  final ip = '${result.stdout}'.trim();
-  expect(InternetAddress.tryParse(ip)?.type, InternetAddressType.IPv4);
-  return ip;
+Future<String?> _curlPublicIp() async {
+  try {
+    final result = await Process.run('/usr/bin/curl', [
+      '--disable',
+      '--ipv4',
+      '--noproxy',
+      '*',
+      '--connect-timeout',
+      '5',
+      '--max-time',
+      '20',
+      '--fail',
+      '--silent',
+      '--show-error',
+      'https://api.ipify.org',
+    ]).timeout(const Duration(seconds: 25));
+    if (result.exitCode != 0) {
+      debugPrint('[E2E] curl IP check failed: ${result.stderr}');
+      return null;
+    }
+    final ip = '${result.stdout}'.trim();
+    return InternetAddress.tryParse(ip)?.type == InternetAddressType.IPv4
+        ? ip
+        : null;
+  } on Exception catch (error) {
+    debugPrint('[E2E] curl IP check failed: $error');
+    return null;
+  }
 }
 
-Future<String> _appPublicIp() async {
+Future<String?> _appPublicIp() async {
   final client = HttpClient()
     ..connectionTimeout = const Duration(seconds: 5)
     ..findProxy = (_) => 'DIRECT';
   try {
     final request = await client.getUrl(Uri.parse('https://api.ipify.org'));
     final response = await request.close().timeout(const Duration(seconds: 20));
-    expect(response.statusCode, HttpStatus.ok);
+    if (response.statusCode != HttpStatus.ok) {
+      debugPrint('[E2E] App IP check returned HTTP ${response.statusCode}');
+      return null;
+    }
     final ip =
         (await response
                 .transform(utf8.decoder)
                 .join()
                 .timeout(const Duration(seconds: 20)))
             .trim();
-    expect(InternetAddress.tryParse(ip)?.type, InternetAddressType.IPv4);
-    return ip;
+    return InternetAddress.tryParse(ip)?.type == InternetAddressType.IPv4
+        ? ip
+        : null;
+  } on Exception catch (error) {
+    debugPrint('[E2E] App IP check failed: $error');
+    return null;
   } finally {
     client.close(force: true);
   }
@@ -66,13 +82,14 @@ Future<void> _expectPublicIp(
   LanternService service,
   String baseline, {
   required bool direct,
-  Future<String> Function() fetchIp = _curlPublicIp,
+  Future<String?> Function() fetchIp = _curlPublicIp,
 }) async {
   final deadline = DateTime.now().add(const Duration(seconds: 45));
   var matches = 0;
   while (DateTime.now().isBefore(deadline)) {
     expect(_value(await service.isVPNConnected()), isTrue);
-    final matched = (await fetchIp() == baseline) == direct;
+    final ip = await fetchIp();
+    final matched = ip != null && (ip == baseline) == direct;
     expect(_value(await service.isVPNConnected()), isTrue);
     matches = matched ? matches + 1 : 0;
     if (matches == 2) return;
@@ -131,7 +148,8 @@ void main() {
 
       _value(await service.setSplitTunnelingEnabled(false));
       _value(await service.setRoutingMode(false));
-      final baseline = await _curlPublicIp();
+      final baseline =
+          await _curlPublicIp() ?? fail('Could not determine the direct IP');
       expect(await _appPublicIp(), baseline);
       _value(await service.startVPN());
       await states.waitFor(

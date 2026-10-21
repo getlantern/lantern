@@ -525,12 +525,13 @@ flutter test integration_test/vpn/linux_connect_smoke_test.dart \
 `make macos-unit-tests` includes cross-process connection-owner checks for TCP,
 UDP, and dual-stack UDP. These do not install or start a VPN.
 
-On macOS 27, unprivileged native probes can see only their own sockets, causing
-these checks to fail with `process not found`. They need permission to inspect
-other processes' sockets. The signed smoke below tests the installed extension's
-access separately.
+These probes need permission to inspect other processes' sockets. If they fail
+with `process not found`, check those permissions; this has been observed with
+unprivileged probes on macOS 27. The signed smoke below tests the installed
+extension's access separately.
 
-Run the signed extension test on the dedicated macOS smoke runner:
+The signed extension test requires the dedicated `lantern-macos-smoke` runner
+and the repository variable `MACOS_STATEFUL_SMOKE_ENABLED=true`:
 
 ```bash
 gh workflow run app-smoke-tests.yml --ref <branch> \

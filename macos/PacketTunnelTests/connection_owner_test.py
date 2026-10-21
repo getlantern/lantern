@@ -8,6 +8,8 @@ import ctypes
 import json
 import os
 from pathlib import Path
+import platform
+import plistlib
 import socket
 import subprocess
 import tempfile
@@ -15,10 +17,39 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
-FRAMEWORK = Path(os.environ.get(
-    "LANTERN_MACOS_FRAMEWORK_DIR",
-    ROOT / "macos/Frameworks/Liblantern.xcframework/macos-arm64_x86_64",
-))
+
+
+def framework_directory(xcframework, architecture):
+    """Select a macOS slice from either a universal or single-architecture build."""
+    with (xcframework / "Info.plist").open("rb") as metadata:
+        libraries = plistlib.load(metadata)["AvailableLibraries"]
+    for library in libraries:
+        if (library["SupportedPlatform"] == "macos"
+                and architecture in library["SupportedArchitectures"]):
+            return xcframework / library["LibraryIdentifier"]
+    raise ValueError(f"No macOS framework slice for {architecture} in {xcframework}")
+
+
+class FrameworkDirectoryTests(unittest.TestCase):
+    def test_matching_slice(self):
+        for architectures in (["arm64"], ["x86_64"], ["arm64", "x86_64"]):
+            with self.subTest(architectures=architectures), tempfile.TemporaryDirectory() as temporary:
+                framework = Path(temporary)
+                identifier = "macos-" + "_".join(architectures)
+                libraries = [
+                    {"LibraryIdentifier": "ios-arm64", "SupportedPlatform": "ios",
+                     "SupportedArchitectures": ["arm64"]},
+                    {"LibraryIdentifier": identifier, "SupportedPlatform": "macos",
+                     "SupportedArchitectures": architectures},
+                ]
+                (framework / "Info.plist").write_bytes(plistlib.dumps({
+                    "AvailableLibraries": libraries,
+                }))
+                for architecture in architectures:
+                    self.assertEqual(framework_directory(framework, architecture),
+                                     framework / identifier)
+                with self.assertRaisesRegex(ValueError, "No macOS framework slice"):
+                    framework_directory(framework, "unsupported")
 
 
 class ConnectionOwnerTests(unittest.TestCase):
@@ -28,11 +59,15 @@ class ConnectionOwnerTests(unittest.TestCase):
         cls.addClassCleanup(temporary.cleanup)
         directory = Path(temporary.name)
         cls.probe = directory / "connection-owner"
+        override = os.environ.get("LANTERN_MACOS_FRAMEWORK_DIR")
+        framework = Path(override) if override else framework_directory(
+            ROOT / "macos/Frameworks/Liblantern.xcframework", platform.machine())
         sources = [
             "macos/PacketTunnel/SingBox/ExtensionPlatformInterface.swift",
             "macos/PacketTunnel/SingBox/ExtensionProvider.swift",
             "macos/PacketTunnel/SingBox/Extension+RunBlocking.swift",
             "macos/PacketTunnel/SingBox/TunnelFileDescriptor.swift",
+            "macos/PacketTunnel/SingBox/NetworkResetScheduler.swift",
             "macos/Shared/Logger.swift",
             "macos/Shared/FilePath.swift",
             "macos/PacketTunnelTests/ConnectionOwnerProbe.swift",
@@ -40,7 +75,7 @@ class ConnectionOwnerTests(unittest.TestCase):
         subprocess.run([
             "xcrun", "swiftc", "-swift-version", "5",
             "-module-cache-path", str(directory / "modules"),
-            "-F", str(FRAMEWORK), "-framework", "Liblantern", "-lc++",
+            "-F", str(framework), "-framework", "Liblantern", "-lc++",
             *(str(ROOT / source) for source in sources), "-o", str(cls.probe),
         ], check=True, timeout=180)
 

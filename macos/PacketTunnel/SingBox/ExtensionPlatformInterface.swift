@@ -303,8 +303,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     _ ipProtocol: Int32, sourceAddress: String?, sourcePort: Int32, destinationAddress: String?,
     destinationPort: Int32
   ) throws -> LibboxConnectionOwner {
-    // The SDK routes owner lookups through this callback on macOS too.
-    // Reuse its Darwin lookup so app exclusions can match the executable path.
+    // Use the SDK's Darwin lookup so app rules can match the executable path.
     var error: NSError?
     let owner = LibboxFindConnectionOwner(
       ipProtocol, sourceAddress, sourcePort, destinationAddress, destinationPort, &error)
