@@ -167,7 +167,11 @@ func InitLogging(dataDir, logDir, logLevel string) error {
 		logLevel = lanterncore.DefaultLogLevel()
 	}
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		return struct{}{}, common.Init(dataDir, logDir, lanterncore.EffectiveLogLevel(logLevel))
+		if err := common.Init(dataDir, logDir, lanterncore.EffectiveLogLevel(logLevel)); err != nil {
+			return struct{}{}, err
+		}
+		lanterncore.EnforceStealthLogLevel()
+		return struct{}{}, nil
 	})
 	return err
 }

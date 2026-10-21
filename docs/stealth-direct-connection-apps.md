@@ -19,19 +19,20 @@ Normal builds keep the existing lantern-core split-tunnel storage and behavior.
 
 ## Build input
 
-Pass the same define to Flutter and Gradle:
+The stealth build profile's `directConnectionAppsEnabled` field drives both
+sides: `scripts/stealth/generate_profile.py` emits it as the
+`STEALTH_DIRECT_CONNECTION_APPS` dart-define, and Gradle sets
+`BuildConfig.STEALTH_DIRECT_CONNECTION_APPS` from the same profile. It defaults
+to `true` for `stealth-vpn` and `stealth-novpn`, so the stealth targets enable
+it without extra flags:
 
 ```sh
-flutter build apk \
-  --dart-define=STEALTH_DIRECT_CONNECTION_APPS=true
+make android-stealth-vpn-release
 ```
 
-The Android Gradle file reads Flutter `dart-defines`, environment variables,
-and project properties in that order. CI may also use:
-
-```sh
-STEALTH_DIRECT_CONNECTION_APPS=true make android-release-ci
-```
+Do not pass the dart-define on its own. Without a profile, Gradle keeps the
+native exclusion store disabled, so the UI would show the direct-connection
+list while Android ignores it.
 
 ## Updating defaults
 

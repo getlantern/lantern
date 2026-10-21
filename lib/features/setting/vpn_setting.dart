@@ -352,7 +352,7 @@ class _ProxyInfoCardState extends State<_ProxyInfoCard> {
                 Navigator.of(ctx).pop(p);
               }
             },
-            child: Text('save'.i18n),
+            child: Text('smc_manual_port_save'.i18n),
           ),
         ],
       ),
@@ -362,8 +362,9 @@ class _ProxyInfoCardState extends State<_ProxyInfoCard> {
     if (sl.isRegistered<LanternService>()) {
       final result = await sl<LanternService>().setProxyListenPort(newPort);
       result.fold(
-        (failure) =>
-            appLogger.error('Failed to apply proxy listen port: ${failure.error}'),
+        (failure) => appLogger.error(
+          'Failed to apply proxy listen port: ${failure.error}',
+        ),
         (_) {},
       );
     }

@@ -48,10 +48,12 @@ class DirectConnectionAppExclusionStore(
         updatePackages(rawPackageNames, adding = false)
     }
 
-    private fun updatePackages(rawPackageNames: Iterable<String>, adding: Boolean) {
+    // Callers create a store per request and edit concurrently, so the
+    // read-modify-write is serialized on the companion across instances.
+    private fun updatePackages(rawPackageNames: Iterable<String>, adding: Boolean) = synchronized(Companion) {
         val packageNames = rawPackageNames.map(::requirePackageName)
         if (packageNames.isEmpty()) {
-            return
+            return@synchronized
         }
         val defaults = defaultPackageNames()
         val added = stringSet(KEY_USER_ADDED).toMutableSet()

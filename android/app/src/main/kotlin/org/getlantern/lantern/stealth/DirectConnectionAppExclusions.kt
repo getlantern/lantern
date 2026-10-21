@@ -2,7 +2,6 @@ package org.getlantern.lantern.stealth
 
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.Locale
 
 data class DirectConnectionAppExclusion(
     val packageName: String,
@@ -18,11 +17,13 @@ object DirectConnectionAppExclusions {
 
     private const val SUPPORTED_SCHEMA_VERSION = 1
 
+    // Package names are case-sensitive (e.g. com.UCMobile.intl), so they are
+    // trimmed but never case-folded.
     private val packageNamePattern =
-        Regex("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$")
+        Regex("^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$")
 
     fun normalizePackageName(raw: String?): String {
-        return raw.orEmpty().trim().lowercase(Locale.US)
+        return raw.orEmpty().trim()
     }
 
     fun isValidPackageName(packageName: String): Boolean {

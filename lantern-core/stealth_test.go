@@ -1,6 +1,10 @@
 package lanterncore
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/getlantern/radiance/common/settings"
+)
 
 func clearStealthEnv(t *testing.T) {
 	t.Setenv("LANTERN_STEALTH_BUILD", "")
@@ -103,5 +107,45 @@ func TestEffectiveTelemetryConsent(t *testing.T) {
 	t.Setenv("STEALTH_TELEMETRY_DEFAULT_ENABLED", "true")
 	if got := EffectiveTelemetryConsent(false); got {
 		t.Fatal("stealth telemetry env defaults must not override explicit opt-out")
+	}
+}
+
+func initTestSettings(t *testing.T) {
+	t.Helper()
+	if err := settings.InitSettings(t.TempDir()); err != nil {
+		t.Fatalf("InitSettings: %v", err)
+	}
+	t.Cleanup(settings.Reset)
+}
+
+func TestEnforceStealthLogLevelReplacesPersistedTrace(t *testing.T) {
+	clearStealthEnv(t)
+	initTestSettings(t)
+	origStealthBuild := StealthBuild
+	StealthBuild = "true"
+	t.Cleanup(func() { StealthBuild = origStealthBuild })
+
+	if err := settings.Set(settings.LogLevelKey, "trace"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+	EnforceStealthLogLevel()
+	if got := settings.GetString(settings.LogLevelKey); got != safeStealthLogLevel {
+		t.Fatalf("persisted log level = %q, want %q", got, safeStealthLogLevel)
+	}
+}
+
+func TestEnforceStealthLogLevelKeepsNonStealthPreference(t *testing.T) {
+	clearStealthEnv(t)
+	initTestSettings(t)
+	origStealthBuild := StealthBuild
+	StealthBuild = "false"
+	t.Cleanup(func() { StealthBuild = origStealthBuild })
+
+	if err := settings.Set(settings.LogLevelKey, "trace"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+	EnforceStealthLogLevel()
+	if got := settings.GetString(settings.LogLevelKey); got != "trace" {
+		t.Fatalf("persisted log level = %q, want trace", got)
 	}
 }
