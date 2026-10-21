@@ -110,10 +110,16 @@ class AddEmail extends _i45.PageRouteInfo<AddEmailArgs> {
     _i46.Key? key,
     _i47.AuthFlow authFlow = _i47.AuthFlow.signUp,
     String? password,
+    String licenseKey = '',
     List<_i45.PageRouteInfo>? children,
   }) : super(
          AddEmail.name,
-         args: AddEmailArgs(key: key, authFlow: authFlow, password: password),
+         args: AddEmailArgs(
+           key: key,
+           authFlow: authFlow,
+           password: password,
+           licenseKey: licenseKey,
+         ),
          initialChildren: children,
        );
 
@@ -129,6 +135,7 @@ class AddEmail extends _i45.PageRouteInfo<AddEmailArgs> {
         key: args.key,
         authFlow: args.authFlow,
         password: args.password,
+        licenseKey: args.licenseKey,
       );
     },
   );
@@ -139,6 +146,7 @@ class AddEmailArgs {
     this.key,
     this.authFlow = _i47.AuthFlow.signUp,
     this.password,
+    this.licenseKey = '',
   });
 
   final _i46.Key? key;
@@ -147,9 +155,11 @@ class AddEmailArgs {
 
   final String? password;
 
+  final String licenseKey;
+
   @override
   String toString() {
-    return 'AddEmailArgs{key: $key, authFlow: $authFlow, password: $password}';
+    return 'AddEmailArgs{key: $key, authFlow: $authFlow, password: $password, licenseKey: $licenseKey}';
   }
 
   @override
@@ -158,11 +168,16 @@ class AddEmailArgs {
     if (other is! AddEmailArgs) return false;
     return key == other.key &&
         authFlow == other.authFlow &&
-        password == other.password;
+        password == other.password &&
+        licenseKey == other.licenseKey;
   }
 
   @override
-  int get hashCode => key.hashCode ^ authFlow.hashCode ^ password.hashCode;
+  int get hashCode =>
+      key.hashCode ^
+      authFlow.hashCode ^
+      password.hashCode ^
+      licenseKey.hashCode;
 }
 
 /// generated route for
@@ -360,6 +375,7 @@ class ConfirmEmail extends _i45.PageRouteInfo<ConfirmEmailArgs> {
     required String email,
     String? password,
     _i47.AuthFlow authFlow = _i47.AuthFlow.signUp,
+    String licenseKey = '',
     List<_i45.PageRouteInfo>? children,
   }) : super(
          ConfirmEmail.name,
@@ -368,6 +384,7 @@ class ConfirmEmail extends _i45.PageRouteInfo<ConfirmEmailArgs> {
            email: email,
            password: password,
            authFlow: authFlow,
+           licenseKey: licenseKey,
          ),
          initialChildren: children,
        );
@@ -383,6 +400,7 @@ class ConfirmEmail extends _i45.PageRouteInfo<ConfirmEmailArgs> {
         email: args.email,
         password: args.password,
         authFlow: args.authFlow,
+        licenseKey: args.licenseKey,
       );
     },
   );
@@ -394,6 +412,7 @@ class ConfirmEmailArgs {
     required this.email,
     this.password,
     this.authFlow = _i47.AuthFlow.signUp,
+    this.licenseKey = '',
   });
 
   final _i46.Key? key;
@@ -404,9 +423,11 @@ class ConfirmEmailArgs {
 
   final _i47.AuthFlow authFlow;
 
+  final String licenseKey;
+
   @override
   String toString() {
-    return 'ConfirmEmailArgs{key: $key, email: $email, password: $password, authFlow: $authFlow}';
+    return 'ConfirmEmailArgs{key: $key, email: $email, password: $password, authFlow: $authFlow, licenseKey: $licenseKey}';
   }
 
   @override
@@ -416,12 +437,17 @@ class ConfirmEmailArgs {
     return key == other.key &&
         email == other.email &&
         password == other.password &&
-        authFlow == other.authFlow;
+        authFlow == other.authFlow &&
+        licenseKey == other.licenseKey;
   }
 
   @override
   int get hashCode =>
-      key.hashCode ^ email.hashCode ^ password.hashCode ^ authFlow.hashCode;
+      key.hashCode ^
+      email.hashCode ^
+      password.hashCode ^
+      authFlow.hashCode ^
+      licenseKey.hashCode;
 }
 
 /// generated route for

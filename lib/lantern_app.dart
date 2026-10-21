@@ -174,6 +174,20 @@ class _LanternAppState extends ConsumerState<LanternApp>
         context.showSnackBar('invalid_deep_link'.i18n);
         return;
       }
+      // Same gate as the Plans entry point: signed-out users add an email
+      // first. The license screen re-reads the email on submit, since user
+      // data may still be loading on a cold start.
+      if (!ref.read(appSettingProvider).userLoggedIn) {
+        appLogger.debug("DeepLink web-licensing: navigating to AddEmail");
+        _pushWithHome(
+          AddEmail(
+            authFlow: AuthFlow.lanternProLicense,
+            licenseKey: licenseKey,
+          ),
+          replaceIfOnTop: true,
+        );
+        return;
+      }
       appLogger.debug(
         "DeepLink web-licensing: navigating to LanternProLicense",
       );
@@ -183,6 +197,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
           code: '',
           licenseKey: licenseKey,
         ),
+        replaceIfOnTop: true,
       );
     } else if (path.startsWith('/private-server') ||
         (uri.scheme == 'lantern' && uri.host == 'private-server')) {
@@ -219,10 +234,17 @@ class _LanternAppState extends ConsumerState<LanternApp>
   /// Pushes [route] on the current stack when the app is in the foreground
   /// (Home already loaded). On a cold start the router stack is empty, so we
   /// seed it with Home first to ensure the user always has a back button.
-  void _pushWithHome(PageRouteInfo route) {
+  /// With [replaceIfOnTop], a same-named route on top is replaced so the new
+  /// arguments take effect.
+  void _pushWithHome(PageRouteInfo route, {bool replaceIfOnTop = false}) {
     final stack = appRouter.stack;
     // Guard against double-push: if the same route is already on top, skip.
     if (stack.isNotEmpty && stack.last.name == route.routeName) {
+      if (replaceIfOnTop) {
+        appLogger.debug("Route ${route.routeName} already on top, replacing");
+        appRouter.replace(route);
+        return;
+      }
       appLogger.debug("Route ${route.routeName} already on top, skipping push");
       return;
     }

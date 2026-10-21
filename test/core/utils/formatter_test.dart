@@ -81,9 +81,37 @@ void main() {
     });
 
     test('truncates typing past 25 characters', () {
-      final value = format('${formatted}P');
+      final value = format('${formatted}X');
       expect(value.text, formatted);
       expect(value.selection.baseOffset, formatted.length);
+    });
+
+    test('lets the PRO suffix be typed one character at a time', () {
+      var value = format('${formatted}P');
+      expect(value.text, '$formatted-P');
+      expect(value.selection.baseOffset, value.text.length);
+
+      value = format('${value.text}R');
+      expect(value.text, '$formatted-PR');
+
+      value = format('${value.text}O');
+      expect(value.text, '$formatted-PRO');
+      expect(value.selection.baseOffset, value.text.length);
+    });
+  });
+
+  group('isCompleteLicenseKey', () {
+    test('accepts a full code with or without the marker', () {
+      expect(isCompleteLicenseKey(formatted), isTrue);
+      expect(isCompleteLicenseKey('PRO-$formatted'), isTrue);
+      expect(isCompleteLicenseKey('$formatted-PRO'), isTrue);
+    });
+
+    test('rejects short codes and partial suffixes', () {
+      expect(isCompleteLicenseKey('23467-89BCD'), isFalse);
+      expect(isCompleteLicenseKey('$formatted-P'), isFalse);
+      expect(isCompleteLicenseKey('$formatted-PR'), isFalse);
+      expect(isCompleteLicenseKey(''), isFalse);
     });
   });
 }

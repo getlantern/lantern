@@ -36,7 +36,7 @@ class LanternProLicense extends HookConsumerWidget {
       final cleanedLen = licenseKeyCode(text).length;
       normalizedLen.value = cleanedLen;
       validCode.value =
-          RegExp(r'^[A-Z0-9-]*$').hasMatch(text) && cleanedLen == 25;
+          RegExp(r'^[A-Z0-9-]*$').hasMatch(text) && isCompleteLicenseKey(text);
     }
 
     useEffect(() {
@@ -92,7 +92,7 @@ class LanternProLicense extends HookConsumerWidget {
                   return 'lantern_pro_license_invalid'.i18n;
                 }
 
-                if (licenseKeyCode(v).length != 25) {
+                if (!isCompleteLicenseKey(v)) {
                   return 'lantern_pro_license_invalid_length'.i18n;
                 }
 
@@ -144,10 +144,14 @@ class LanternProLicense extends HookConsumerWidget {
         : '***';
     appLogger.info('Lantern Pro license entered (masked): $maskedCode');
     final user = ref.read(homeProvider).value;
+    // A deep link can open this screen before the user data has loaded.
+    final activationEmail = email.isNotEmpty
+        ? email
+        : ref.read(userEmailProvider);
     context.showLoadingDialog();
     final result = await ref
         .read(lanternServiceProvider)
-        .activationCode(email: email, resellerCode: resellerCode);
+        .activationCode(email: activationEmail, resellerCode: resellerCode);
 
     result.fold(
       (failure) {
@@ -178,7 +182,7 @@ class LanternProLicense extends HookConsumerWidget {
         } else {
           appRouter.push(
             CreatePassword(
-              email: email,
+              email: activationEmail,
               authFlow: AuthFlow.lanternProLicense,
               code: code,
             ),

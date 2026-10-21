@@ -30,13 +30,32 @@ String licenseKeyCode(String key) {
       : cleaned;
 }
 
+/// Whether [key] holds a full 25-character code, with or without the marker.
+bool isCompleteLicenseKey(String key) {
+  final expected = isWebLicenseKey(key)
+      ? _licenseKeyLength + _licenseMarker.length
+      : _licenseKeyLength;
+  return _cleanKey(key).length == expected;
+}
+
+/// A "P" or "PR" typed after a full code: kept so the suffix can be typed.
+String _partialSuffix(String key) {
+  final cleaned = _cleanKey(key);
+  if (isWebLicenseKey(key) || cleaned.length <= _licenseKeyLength) return '';
+  final extra = cleaned.substring(_licenseKeyLength);
+  return _licenseMarker.startsWith(extra) ? extra : '';
+}
+
 /// Formats [key] as XXXXX-XXXXX-XXXXX-XXXXX-XXXXX, keeping a PRO prefix or
 /// suffix as its own group.
 String formatLicenseKey(String key) {
   final groups = RegExp(
     r'.{1,5}',
   ).allMatches(licenseKeyCode(key)).map((m) => m[0]).join('-');
-  if (!isWebLicenseKey(key)) return groups;
+  if (!isWebLicenseKey(key)) {
+    final partial = _partialSuffix(key);
+    return partial.isEmpty ? groups : '$groups-$partial';
+  }
   return _cleanKey(key).startsWith(_licenseMarker)
       ? '$_licenseMarker-$groups'
       : '$groups-$_licenseMarker';
