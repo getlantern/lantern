@@ -2203,3 +2203,18 @@ msgstr "Kapat"
 
 msgid "unbounded_status_waiting"
 msgstr "Başlamak için bekliyor"
+
+msgid "feature_disabled_for_build"
+msgstr "Bu özellik bu sürümde kullanılamıyor"
+
+msgid "direct_connection_apps"
+msgstr "Doğrudan Bağlantı Uygulamaları"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Seçilen uygulamalar korumalı yönlendirmenin dışında doğrudan bağlanır"
+
+msgid "apps_using_direct_connection"
+msgstr "Doğrudan bağlantı kullanan uygulamalar (%d)"
+
+msgid "items_added_count"
+msgstr "%d eklendi"

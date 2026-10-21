@@ -22,7 +22,7 @@ replace github.com/sagernet/sing-tun => github.com/getlantern/sing-tun v0.0.0-20
 // pluriconfig pulls in), so MVS can never select it on its own. Force it.
 replace github.com/sagernet/gvisor => github.com/sagernet/gvisor v0.0.0-20250811.0-sing-box-mod.1
 
-replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
+replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
 
 replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-water.1
 
@@ -313,7 +313,6 @@ require (
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/wlynxg/anet v0.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	github.com/zeebo/assert v1.3.0 // indirect
 	gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/v2 v2.11.0 // indirect
 	go.etcd.io/bbolt v1.3.11 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0 // indirect

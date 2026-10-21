@@ -16,12 +16,8 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import lantern.io.libbox.Notification
 import lantern.io.libbox.StringIterator
@@ -33,6 +29,7 @@ import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
+import org.getlantern.lantern.stealth.DirectConnectionAppExclusionStore
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
@@ -69,26 +66,6 @@ open class LanternVpnService :
         private const val VPN_START_TIMEOUT_MS = 60_000L
 
         private val vpnStartGate = VpnStartGate()
-
-        private sealed class RadianceState {
-            data object Initializing : RadianceState()
-            data object Ready : RadianceState()
-            data class Failed(val cause: Throwable) : RadianceState()
-        }
-
-        private val radianceState = MutableStateFlow<RadianceState>(RadianceState.Initializing)
-        private val radianceSetupMutex = Mutex()
-
-        suspend fun awaitRadianceReady() {
-            if (Mobile.isRadianceConnected()) return
-            when (val state = radianceState.first { it !is RadianceState.Initializing }) {
-                RadianceState.Ready -> check(Mobile.isRadianceConnected()) {
-                    "Radiance setup completed but the core is unavailable"
-                }
-                is RadianceState.Failed -> throw state.cause
-                RadianceState.Initializing -> error("Radiance is still initializing")
-            }
-        }
 
         lateinit var instance: LanternVpnService
 
@@ -308,22 +285,7 @@ open class LanternVpnService :
     }
 
     private suspend fun setupRadiance() {
-        radianceSetupMutex.withLock {
-            if (Mobile.isRadianceConnected()) {
-                radianceState.value = RadianceState.Ready
-                return@withLock
-            }
-
-            radianceState.value = RadianceState.Initializing
-            try {
-                Mobile.startIPCServer(this@LanternVpnService, opts())
-                Mobile.setupRadiance(opts(), flutterEventListener)
-                radianceState.value = RadianceState.Ready
-            } catch (e: Exception) {
-                radianceState.value = RadianceState.Failed(e)
-                throw e
-            }
-        }
+        RadianceSetup.setup(this@LanternVpnService, ::opts, flutterEventListener)
     }
 
     suspend fun startVPN() {
@@ -613,6 +575,7 @@ open class LanternVpnService :
 
         // Disallow traffic from our own app to the VPN.
         builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
+        DirectConnectionAppExclusionStore.applyToBuilder(builder, this)
 
         if (options.autoRoute) {
             builder.addDnsServer(options.dnsServerAddress.value)

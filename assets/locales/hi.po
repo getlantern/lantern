@@ -2205,3 +2205,18 @@ msgstr "खारिज करें"
 
 msgid "unbounded_status_waiting"
 msgstr "शुरू होने की प्रतीक्षा में"
+
+msgid "feature_disabled_for_build"
+msgstr "यह सुविधा इस बिल्ड में उपलब्ध नहीं है"
+
+msgid "direct_connection_apps"
+msgstr "डायरेक्ट कनेक्शन वाले ऐप"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "चुने गए ऐप सुरक्षित रूटिंग के बाहर सीधे कनेक्ट होते हैं"
+
+msgid "apps_using_direct_connection"
+msgstr "डायरेक्ट कनेक्शन इस्तेमाल करने वाले ऐप (%d)"
+
+msgid "items_added_count"
+msgstr "%d जोड़े गए"

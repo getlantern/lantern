@@ -3,17 +3,24 @@ import 'package:lantern/core/common/app_build_info.dart';
 class AppUrls {
   static String lanternOfficial = 'https://lantern.io';
   static String support = 'https://support.lantern.io';
-  static String lanternForums = 'https://lantern.io/forums';
-  static String faq = '$lanternOfficial/faq';
-  static String privacyPolicy = '$lanternOfficial/privacy';
-  static String termsOfService = '$lanternOfficial/terms';
+  static String get lanternForums =>
+      AppBuildInfo.enableSocialLinks ? 'https://lantern.io/forums' : '';
+  static String get faq =>
+      AppBuildInfo.enableSocialLinks ? '$lanternOfficial/faq' : '';
+  static String get privacyPolicy =>
+      AppBuildInfo.enableSocialLinks ? '$lanternOfficial/privacy' : '';
+  static String get termsOfService =>
+      AppBuildInfo.enableSocialLinks ? '$lanternOfficial/terms' : '';
   static String downloadAndroid = '$lanternOfficial/download?os=android';
   static String downloadWindows = '$lanternOfficial/download?os=windows';
   static String downloadIos = '$lanternOfficial/download?os=ios';
   static String downloadMac = '$lanternOfficial/download?os=mac';
   static String downloadLinux = '$lanternOfficial/download?os=linux';
-  static String lanternGithub = 'https://github.com/getlantern/lantern';
-  static String telegramBot = 'https://t.me/lantern_official_bot';
+  static String get lanternGithub => AppBuildInfo.enableSocialLinks
+      ? 'https://github.com/getlantern/lantern'
+      : '';
+  static String get telegramBot =>
+      AppBuildInfo.enableSocialLinks ? 'https://t.me/lantern_official_bot' : '';
   static String unbounded = 'https://unbounded.lantern.io';
   // Direct installer links published by the release workflow
   // (scripts/ci/publish-to-s3.sh uploads to releases/{build_type}/latest/).
@@ -52,4 +59,7 @@ class AppUrls {
         return appcastProd;
     }
   }
+
+  static bool isLanternHost(String host) =>
+      host == 'lantern.io' || host == 'www.lantern.io';
 }

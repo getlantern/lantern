@@ -249,26 +249,27 @@ class NotificationHelper {
         }
         notificationManager.notify(notification.typeID, builder.build())
     }
+}
 
-    private fun resolveNotificationSmallIcon(): Int {
-        val configured = BuildConfig.NOTIFICATION_SMALL_ICON.removePrefix("@")
-        val parts = configured.split("/", limit = 2)
-        if (parts.size == 2) {
-            val resolved = LanternApp.application.resources.getIdentifier(
-                parts[1],
-                parts[0],
-                LanternApp.application.packageName,
-            )
-            if (resolved != 0) {
-                return resolved
-            }
+/** Configured small icon; stealth builds never fall back to the branded one. */
+internal fun resolveNotificationSmallIcon(): Int {
+    val configured = BuildConfig.NOTIFICATION_SMALL_ICON.removePrefix("@")
+    val parts = configured.split("/", limit = 2)
+    if (parts.size == 2) {
+        val resolved = LanternApp.application.resources.getIdentifier(
+            parts[1],
+            parts[0],
+            LanternApp.application.packageName,
+        )
+        if (resolved != 0) {
+            return resolved
         }
-        // Stealth builds must never fall back to the branded icon, even when
-        // the configured resource fails to resolve.
-        return if (BuildConfig.STEALTH_ENABLED) {
-            R.drawable.neutral_notification_icon
-        } else {
-            R.drawable.lantern_notification_icon
-        }
+    }
+    // Stealth builds must never fall back to the branded icon, even when
+    // the configured resource fails to resolve.
+    return if (BuildConfig.STEALTH_ENABLED) {
+        R.drawable.neutral_notification_icon
+    } else {
+        R.drawable.lantern_notification_icon
     }
 }

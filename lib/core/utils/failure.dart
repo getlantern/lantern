@@ -6,6 +6,11 @@ class Failure {
 
   Failure({required this.error, required this.localizedErrorMessage});
 
+  factory Failure.featureDisabled(String feature) => Failure(
+        error: '$feature disabled for this build',
+        localizedErrorMessage: 'feature_disabled_for_build'.i18n,
+      );
+
   @override
   String toString() =>
       'Failure(error: $error, localizedErrorMessage: $localizedErrorMessage)';

@@ -2184,3 +2184,18 @@ msgstr "Ýap"
 
 msgid "unbounded_status_waiting"
 msgstr "Başlamaga garaşylýar"
+
+msgid "feature_disabled_for_build"
+msgstr "Bu funksiýa bu wersiýada elýeterli däl"
+
+msgid "direct_connection_apps"
+msgstr "Göni birikme programmalary"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Saýlanan programmalar goralan ugrukdyrmanyň daşynda göni birikýär"
+
+msgid "apps_using_direct_connection"
+msgstr "Göni birikmäni ulanýan programmalar (%d)"
+
+msgid "items_added_count"
+msgstr "%d goşuldy"

@@ -57,7 +57,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
     super.initState();
     _userMessageActionDispatcher = UserMessageActionDispatcher.application();
     WidgetsBinding.instance.addObserver(this);
-    initDeepLinks();
+    if (AppBuildInfo.enableAppLinks) {
+      initDeepLinks();
+    }
     initLifecycleListener();
   }
 
@@ -101,11 +103,13 @@ class _LanternAppState extends ConsumerState<LanternApp>
   }
 
   Future<void> initDeepLinks() async {
+    if (!AppBuildInfo.enableAppLinks) return;
     final appLinks = AppLinks();
     _deepLinkSubscription = appLinks.uriLinkStream.listen(_handleDeepLinkUri);
   }
 
   void _handleDeepLinkUri(Uri uri) {
+    if (!AppBuildInfo.enableAppLinks) return;
     if (!context.mounted) return;
     final safeLogUri = uri.replace(query: '').toString();
 
@@ -123,9 +127,10 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
     appLogger.debug("DeepLink received: $safeLogUri");
     final path = uri.path;
+    final appAuthUri = AppBuildInfo.isAppAuthUri(uri);
 
     if (path.startsWith('/report-issue') ||
-        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'report-issue')) {
+        (appAuthUri && uri.host == 'report-issue')) {
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
       final fragment = uri.fragment;
@@ -144,8 +149,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
       } else {
         _pushWithHome(ReportIssue());
       }
-    } else if (path.startsWith('/auth') ||
-        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'auth')) {
+    } else if (AppBuildInfo.enableOAuth &&
+        (path.startsWith('/auth') || (appAuthUri && uri.host == 'auth'))) {
       if (isOAuthCallbackResult(uri)) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
@@ -167,7 +172,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
       appLogger.debug("DeepLink affiliate: navigating to Plans with code");
       _pushWithHome(Plans(referralCode: code));
     } else if (path.startsWith('/private-server') ||
-        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'private-server')) {
+        (appAuthUri && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);
       appLogger.debug("DeepLink private-server params: ${data.keys.toList()}");
       data['accessKey'] = _buildPrivateServerAccessKey(uri);

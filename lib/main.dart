@@ -8,10 +8,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/stealth_no_vpn_proxy.dart';
 import 'package:lantern/core/desktop/desktop_window.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern_app.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -51,6 +53,20 @@ Future<void> main() async {
   // Mobile updates need the store and notification services.
   if (PlatformUtils.isMobile && sl.isRegistered<Updater>()) {
     unawaited(sl<Updater>().init());
+  }
+
+  // Apply the persisted stealth-novpn SOCKS listen port before the first
+  // connect so radiance binds it (no-op on other builds).
+  if (AppBuildInfo.stealthNoVpn) {
+    try {
+      if (sl.isRegistered<LanternService>()) {
+        unawaited(
+          sl<LanternService>().setProxyListenPort(StealthNoVpnProxy.port),
+        );
+      }
+    } catch (e, st) {
+      appLogger.error('Failed to apply novpn proxy listen port', e, st);
+    }
   }
 
   runApp(

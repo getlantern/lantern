@@ -2228,3 +2228,18 @@ msgstr "رد کړئ"
 
 msgid "unbounded_status_waiting"
 msgstr "پیل ته انتظار"
+
+msgid "feature_disabled_for_build"
+msgstr "دا ځانګړتیا په دې نسخه کې شتون نلري"
+
+msgid "direct_connection_apps"
+msgstr "د مستقیم اتصال اپلیکیشنونه"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "ټاکل شوي اپلیکیشنونه د خوندي لارښوونې څخه بهر مستقیم وصلېږي"
+
+msgid "apps_using_direct_connection"
+msgstr "اپلیکیشنونه چې مستقیم اتصال کاروي (%d)"
+
+msgid "items_added_count"
+msgstr "%d اضافه شول"

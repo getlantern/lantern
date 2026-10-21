@@ -28,7 +28,7 @@ func setupAppLogging(logDir, level string) {
 		return
 	}
 	if level == "" {
-		level = DefaultLogLevel
+		level = EffectiveLogLevel("")
 	}
 	logger := rlog.NewLogger(rlog.Config{
 		LogPath:          filepath.Join(logDir, AppLogFileName),

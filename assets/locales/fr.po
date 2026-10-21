@@ -1966,3 +1966,18 @@ msgstr "Plus rapide, données illimitées !"
 
 msgid "upsell_expired_suffix"
 msgstr "Votre temps Pro a expiré"
+
+msgid "feature_disabled_for_build"
+msgstr "Cette fonctionnalité n'est pas disponible dans cette version"
+
+msgid "direct_connection_apps"
+msgstr "Applications en connexion directe"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Les applications sélectionnées se connectent directement, en dehors du routage protégé"
+
+msgid "apps_using_direct_connection"
+msgstr "Applications utilisant la connexion directe (%d)"
+
+msgid "items_added_count"
+msgstr "%d ajoutés"

@@ -2217,3 +2217,18 @@ msgstr "Tutup"
 
 msgid "unbounded_status_waiting"
 msgstr "Menunggu untuk bermula"
+
+msgid "feature_disabled_for_build"
+msgstr "Ciri ini tidak tersedia dalam binaan ini"
+
+msgid "direct_connection_apps"
+msgstr "Aplikasi Sambungan Terus"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Aplikasi yang dipilih bersambung terus di luar penghalaan yang dilindungi"
+
+msgid "apps_using_direct_connection"
+msgstr "Aplikasi yang menggunakan sambungan terus (%d)"
+
+msgid "items_added_count"
+msgstr "%d ditambah"

@@ -95,9 +95,12 @@ SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR
 EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
-# Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
-# (which leave BUILD_TYPE=production), so gate stealth flags on all three signals.
-STEALTH_ACTIVE := $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE))
+# A stealth-vpn/stealth-novpn BUILD_TYPE implies the matching STEALTH_MODE, so the
+# profile, de-branding, garble scope, identity, and Go flags all switch on from
+# the same STEALTH_MODE/STEALTH_PROFILE inputs (which may also leave
+# BUILD_TYPE=production).
+STEALTH_MODE ?= $(filter stealth-vpn stealth-novpn,$(BUILD_TYPE))
+STEALTH_ACTIVE := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_GO_LDFLAGS := $(if $(STEALTH_ACTIVE),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
 GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS))
 LANTERND_EXTRA_LDFLAGS := $(EXTRA_LDFLAGS)
@@ -220,7 +223,7 @@ ANDROID_DEBUG_FLUTTER_FLAGS  ?= --verbose
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
-ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE)),1,0)
+ANDROID_STEALTH_IDENTITY ?= $(if $(STEALTH_ACTIVE),1,0)
 ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
 ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
@@ -344,6 +347,7 @@ STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS := $(if $(filter 1 true yes,$(STEALTH_ALL
 STEALTH_DEBRAND_KOTLIN_SCRIPT := scripts/stealth/debrand_kotlin.py
 STEALTH_ANDROID_GEN_DIR := $(BUILD_DIR)/stealth/android
 STEALTH_ANDROID_KOTLIN_OUT := $(STEALTH_ANDROID_GEN_DIR)/kotlin
+STEALTH_ANDROID_PROGUARD_NOVPN_OUT := $(STEALTH_ANDROID_GEN_DIR)/proguard-stealth-novpn.pro
 STEALTH_ANDROID_RES_OUT := $(STEALTH_ANDROID_GEN_DIR)/res
 STEALTH_PROFILE ?=
 STEALTH_MODE ?=
@@ -370,8 +374,7 @@ GOMOBILE_JAVAPKG = $(if $(STEALTH_ENABLED),foundation.engine,lantern.io)
 STEALTH_FLUTTER_PREFIX = $(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_FLUTTER_BUILD_SCRIPT) --profile "$(STEALTH_PROFILE_OUT)" --,)
 # Stealth builds compile the REAL app entrypoint (lib/main.dart, Flutter's
 # default target). De-branding is a pre-compile transform (run_flutter_build.py)
-# plus the AppBuildInfo dart-define guards; the legacy lib/main_stealth.dart stub
-# is no longer used.
+# plus the AppBuildInfo dart-define guards.
 STEALTH_FLUTTER_TARGET =
 # Dart symbol obfuscation removes brand *identifiers* (e.g. LanternService) from
 # the AOT-compiled libapp.so. Applied to stealth release builds only; requires
@@ -394,7 +397,9 @@ stealth-android-sources:
 	  --output $(STEALTH_ANDROID_KOTLIN_OUT) \
 	  --res-source android/app/src/main/res \
 	  --res-overlay android/app/src/stealth/res \
-	  --res-output $(STEALTH_ANDROID_RES_OUT)
+	  --res-output $(STEALTH_ANDROID_RES_OUT) \
+	  --proguard-rules android/app/proguard-stealth-novpn.pro \
+	  --proguard-rules-output $(STEALTH_ANDROID_PROGUARD_NOVPN_OUT)
 
 .PHONY: stealth-profile FORCE
 stealth-profile:
@@ -522,7 +527,7 @@ desktop-lib-obfuscated: check-garble-seed
 	$(call MKDIR_P,$(dir $(LIB_NAME)))
 	@$(SETENV) $(GARBLE_ENV) $(GARBLE_BUILD) -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
-		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(GARBLE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built obfuscated desktop library: $(LIB_NAME)"
 
@@ -1042,7 +1047,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		-javapkg=$(GOMOBILE_JAVAPKG) \
 		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)

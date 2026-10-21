@@ -2021,3 +2021,18 @@ msgstr "關閉"
 
 msgid "unbounded_status_waiting"
 msgstr "等待啟動"
+
+msgid "feature_disabled_for_build"
+msgstr "此版本不提供此功能"
+
+msgid "direct_connection_apps"
+msgstr "直連應用程式"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "所選應用程式將在受保護路由之外直接連線"
+
+msgid "apps_using_direct_connection"
+msgstr "使用直連的應用程式 (%d)"
+
+msgid "items_added_count"
+msgstr "已新增 %d 個"

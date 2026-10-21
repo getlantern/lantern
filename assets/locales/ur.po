@@ -2069,3 +2069,18 @@ msgstr "اکاؤنٹ کا پاس ورڈ شامل کریں"
 
 msgid "have_a_password_sign_in"
 msgstr "پاس ورڈ ہے؟ سائن ان کریں"
+
+msgid "feature_disabled_for_build"
+msgstr "یہ فیچر اس بلڈ میں دستیاب نہیں ہے"
+
+msgid "direct_connection_apps"
+msgstr "براہِ راست کنکشن والی ایپس"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "منتخب ایپس محفوظ روٹنگ سے باہر براہِ راست منسلک ہوتی ہیں"
+
+msgid "apps_using_direct_connection"
+msgstr "براہِ راست کنکشن استعمال کرنے والی ایپس (%d)"
+
+msgid "items_added_count"
+msgstr "%d شامل کی گئیں"

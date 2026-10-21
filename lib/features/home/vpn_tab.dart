@@ -87,9 +87,10 @@ class _SettingCard extends ConsumerWidget {
         serverType != ServerLocationType.privateServer;
     final showRoutingMode = !PlatformUtils.isIOS;
     final showSplitTunneling =
-        PlatformUtils.isAndroid ||
-        PlatformUtils.isMacOS ||
-        PlatformUtils.isWindows;
+        !AppBuildInfo.stealthNoVpn &&
+        (PlatformUtils.isAndroid ||
+            PlatformUtils.isMacOS ||
+            PlatformUtils.isWindows);
 
     // Small screens drop the > chevrons; rows stay tappable via onTap.
     final chevronActions = smallScreen
@@ -102,12 +103,20 @@ class _SettingCard extends ConsumerWidget {
       actions: chevronActions,
       onTap: () => appRouter.push(const SmartRouting()),
     );
+    // The native direct-connection list always applies; it does not follow
+    // Radiance's split-tunneling switch.
+    final directConnectionApps =
+        AppBuildInfo.stealthDirectConnectionApps && PlatformUtils.isAndroid;
     final splitTunnelingTile = SettingTile(
       // Tapped by the split-tunneling smoke harness.
       tileKey: const Key('home.split_tunneling_setting'),
-      label: 'split_tunneling'.i18n,
+      label: directConnectionApps
+          ? 'direct_connection_apps'.i18n
+          : 'split_tunneling'.i18n,
       icon: AppImagePaths.callSpilt,
-      value: isSplitTunnelingOn ? 'enabled'.i18n : 'disabled'.i18n,
+      value: directConnectionApps || isSplitTunnelingOn
+          ? 'enabled'.i18n
+          : 'disabled'.i18n,
       actions: chevronActions,
       onTap: () => appRouter.push(const SplitTunneling()),
     );

@@ -2250,3 +2250,18 @@ msgstr "ဖယ်ထုတ်မည်"
 
 msgid "unbounded_status_waiting"
 msgstr "စတင်ရန် စောင့်နေသည်"
+
+msgid "feature_disabled_for_build"
+msgstr "ဤဗားရှင်းတွင် ဤလုပ်ဆောင်ချက်ကို အသုံးပြု၍ မရပါ"
+
+msgid "direct_connection_apps"
+msgstr "တိုက်ရိုက်ချိတ်ဆက်သည့် အက်ပ်များ"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "ရွေးချယ်ထားသော အက်ပ်များသည် ကာကွယ်ထားသော လမ်းကြောင်းပြင်ပတွင် တိုက်ရိုက်ချိတ်ဆက်ပါသည်"
+
+msgid "apps_using_direct_connection"
+msgstr "တိုက်ရိုက်ချိတ်ဆက်မှုကို အသုံးပြုသည့် အက်ပ်များ (%d)"
+
+msgid "items_added_count"
+msgstr "%d ခု ထည့်ပြီး"
