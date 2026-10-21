@@ -340,6 +340,7 @@ STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS := $(if $(filter 1 true yes,$(STEALTH_ALL
 STEALTH_DEBRAND_KOTLIN_SCRIPT := scripts/stealth/debrand_kotlin.py
 STEALTH_ANDROID_GEN_DIR := $(BUILD_DIR)/stealth/android
 STEALTH_ANDROID_KOTLIN_OUT := $(STEALTH_ANDROID_GEN_DIR)/kotlin
+STEALTH_ANDROID_PROGUARD_NOVPN_OUT := $(STEALTH_ANDROID_GEN_DIR)/proguard-stealth-novpn.pro
 STEALTH_ANDROID_RES_OUT := $(STEALTH_ANDROID_GEN_DIR)/res
 STEALTH_PROFILE ?=
 STEALTH_MODE ?=
@@ -389,7 +390,9 @@ stealth-android-sources:
 	  --output $(STEALTH_ANDROID_KOTLIN_OUT) \
 	  --res-source android/app/src/main/res \
 	  --res-overlay android/app/src/stealth/res \
-	  --res-output $(STEALTH_ANDROID_RES_OUT)
+	  --res-output $(STEALTH_ANDROID_RES_OUT) \
+	  --proguard-rules android/app/proguard-stealth-novpn.pro \
+	  --proguard-rules-output $(STEALTH_ANDROID_PROGUARD_NOVPN_OUT)
 
 .PHONY: stealth-profile FORCE
 stealth-profile:

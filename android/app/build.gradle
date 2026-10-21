@@ -249,6 +249,9 @@ def stealthPython = (project.findProperty("stealthPython") ?: System.getenv("PYT
 // ships its real native bridge, not the legacy foundation.bridge stub.
 def stealthGeneratedKotlinDir = new File(rootProject.projectDir.parentFile, "build/stealth/android/kotlin")
 def stealthGeneratedResDir = new File(rootProject.projectDir.parentFile, "build/stealth/android/res")
+// Stealth compiles de-branded class names, so the no-VPN discard checks must use
+// the de-branded copy of the rules generated alongside the Kotlin.
+def stealthNoVpnRulesFile = new File(rootProject.projectDir.parentFile, "build/stealth/android/proguard-stealth-novpn.pro")
 // src/main/java holds Flutter's generated io.flutter.plugins.GeneratedPluginRegistrant
 // (brand-free) — required so plugins (path_provider, shared_preferences, ...) register;
 // without it storage init throws and the app hangs on a black screen.
@@ -476,6 +479,9 @@ android {
             }
             buildConfigField "boolean", "DEVELOPMENT_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (stealthNoVpn) {
+                proguardFiles stealthNoVpnRulesFile
+            }
         }
     }
 

@@ -109,14 +109,17 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 // inbound reads RADIANCE_PROXY_LISTEN_PORT when it is built). A port <= 0 clears
 // the override so radiance falls back to its default.
 func SetProxyListenPort(port int) error {
-	if port <= 0 || port > 65535 {
-		return os.Unsetenv("RADIANCE_PROXY_LISTEN_PORT")
-	}
-	if err := os.Setenv("RADIANCE_PROXY_LISTEN_PORT", fmt.Sprintf("%d", port)); err != nil {
-		return fmt.Errorf("set RADIANCE_PROXY_LISTEN_PORT: %w", err)
-	}
-	slog.Info("proxy listen port override set", "port", port)
-	return nil
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		if port <= 0 || port > 65535 {
+			return struct{}{}, os.Unsetenv("RADIANCE_PROXY_LISTEN_PORT")
+		}
+		if err := os.Setenv("RADIANCE_PROXY_LISTEN_PORT", fmt.Sprintf("%d", port)); err != nil {
+			return struct{}{}, fmt.Errorf("set RADIANCE_PROXY_LISTEN_PORT: %w", err)
+		}
+		slog.Info("proxy listen port override set", "port", port)
+		return struct{}{}, nil
+	})
+	return err
 }
 
 // SetLocalProxy enables the local SOCKS/HTTP proxy data path and sets the
@@ -130,19 +133,22 @@ func SetProxyListenPort(port int) error {
 // makes sing-box bind the default bypass inbound instead of the user-facing
 // SOCKS listener.
 func SetLocalProxy(enabled bool, address string) error {
-	if !enabled {
-		return os.Unsetenv("RADIANCE_USE_SOCKS_PROXY")
-	}
-	if err := os.Setenv("RADIANCE_USE_SOCKS_PROXY", "true"); err != nil {
-		return fmt.Errorf("set RADIANCE_USE_SOCKS_PROXY: %w", err)
-	}
-	if address != "" {
-		if err := os.Setenv("RADIANCE_SOCKS_ADDRESS", address); err != nil {
-			return fmt.Errorf("set RADIANCE_SOCKS_ADDRESS: %w", err)
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		if !enabled {
+			return struct{}{}, os.Unsetenv("RADIANCE_USE_SOCKS_PROXY")
 		}
-	}
-	slog.Info("local proxy env set", "enabled", enabled, "address", address)
-	return nil
+		if err := os.Setenv("RADIANCE_USE_SOCKS_PROXY", "true"); err != nil {
+			return struct{}{}, fmt.Errorf("set RADIANCE_USE_SOCKS_PROXY: %w", err)
+		}
+		if address != "" {
+			if err := os.Setenv("RADIANCE_SOCKS_ADDRESS", address); err != nil {
+				return struct{}{}, fmt.Errorf("set RADIANCE_SOCKS_ADDRESS: %w", err)
+			}
+		}
+		slog.Info("local proxy env set", "enabled", enabled, "address", address)
+		return struct{}{}, nil
+	})
+	return err
 }
 
 // InitLogging wires the global slog handler (file + stdout) before any other

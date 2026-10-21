@@ -28,6 +28,7 @@ import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.R
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.notification.resolveNotificationSmallIcon
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
@@ -55,6 +56,53 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         // Teardown outlives the service instance and must stay off the main
         // thread: Mobile.stopVPN() can block on IPC.
         private val teardownScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        /**
+         * Stops a listener when no service instance is running. Goes through
+         * the same gate so it cannot overlap native startup.
+         */
+        suspend fun stopWithoutService() {
+            proxyStartGate.stop(onStopping = { VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting) }) {
+                try {
+                    stopProxyListener()
+                    VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                } catch (e: Exception) {
+                    reportStopError(e)
+                }
+            }
+        }
+
+        /**
+         * Stops the listener and network monitor; keeps the backend up. Throws
+         * when the listener may still be running: without a TUN there is no
+         * descriptor to close as a fallback.
+         */
+        private suspend fun stopProxyListener() {
+            if (Mobile.isRadianceConnected()) {
+                Mobile.stopVPN()
+            }
+            runCatching {
+                DefaultNetworkMonitor.stop()
+            }.onFailure { e ->
+                AppLogger.e(TAG, "Failed to stop default network monitor", e)
+            }
+        }
+
+        private fun reportStopError(error: Exception) {
+            AppLogger.e(TAG, "Failed to stop local proxy", error)
+            VpnStatusManager.postVPNError(
+                errorCode = "stop_proxy",
+                errorMessage = "Failed to stop local proxy",
+                error = error,
+            )
+        }
+    }
+
+    /** Outcome of [launchProxy]. */
+    private sealed class LaunchResult {
+        data object Rejected : LaunchResult()
+        data object Started : LaunchResult()
+        data class Failed(val cause: Exception) : LaunchResult()
     }
 
     private val serviceScope =
@@ -108,8 +156,12 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         try {
             teardownScope.launch {
                 proxyStartGate.stop {
-                    stopProxyListener()
-                    VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                    try {
+                        stopProxyListener()
+                        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                    } catch (e: Exception) {
+                        reportStopError(e)
+                    }
                 }
             }
         } finally {
@@ -132,15 +184,13 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         RadianceSetup.setup(this@NoVpnLanternService, ::opts, flutterEventListener)
     }
 
-    /**
-     * Runs one start, server switch, or restart through [proxyStartGate].
-     * Returns false when the gate rejected the request.
-     */
+    /** Runs one start, server switch, or restart through [proxyStartGate]. */
     private suspend fun launchProxy(
         errorCode: String,
         restart: Boolean = false,
         connect: () -> Unit,
-    ): Boolean = withContext(Dispatchers.IO) {
+    ): LaunchResult = withContext(Dispatchers.IO) {
+        var result: LaunchResult = LaunchResult.Rejected
         proxyStartGate.run(
             waitForIdle = restart,
             onRejected = { rejection ->
@@ -170,8 +220,10 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
                     showProxyNotification("Local connection active")
                 }
                 AppLogger.i(TAG, "Local proxy running at ${proxyAddress()}")
+                result = LaunchResult.Started
             } catch (e: Exception) {
                 if (e !is CancellationException) {
+                    result = LaunchResult.Failed(e)
                     attempt.publish { reportProxyError(errorCode, e) }
                 }
                 // A failed server switch can leave the previous listener running.
@@ -190,30 +242,22 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
                 if (e is CancellationException) throw e
             }
         }
+        result
     }
 
     private suspend fun stopProxy() {
         proxyStartGate.stop(onStopping = { VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting) }) {
-            stopProxyListener()
+            try {
+                stopProxyListener()
+            } catch (e: Exception) {
+                // The listener may still be running, so keep the service and
+                // its notification; the user can retry the stop.
+                reportStopError(e)
+                return@stop
+            }
             VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
-        }
-    }
-
-    /** Stops the listener and network monitor; keeps the backend up. */
-    private suspend fun stopProxyListener() {
-        runCatching {
-            if (Mobile.isRadianceConnected()) {
-                Mobile.stopVPN()
-            }
-        }.onFailure { e ->
-            AppLogger.e(TAG, "Failed to stop local proxy", e)
-        }
-        runCatching {
-            DefaultNetworkMonitor.stop()
-        }.onFailure { e ->
-            AppLogger.e(TAG, "Failed to stop default network monitor", e)
         }
     }
 
@@ -278,8 +322,11 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         AppLogger.i(TAG, "restartService called")
         // Radiance treats a normal return as a completed restart.
         runBlocking(Dispatchers.IO) {
-            val accepted = launchProxy(errorCode = "restart_proxy", restart = true) { Mobile.startVPN() }
-            check(accepted) { "Local proxy restart was superseded by a stop request" }
+            when (val result = launchProxy(errorCode = "restart_proxy", restart = true) { Mobile.startVPN() }) {
+                LaunchResult.Rejected -> error("Local proxy restart was superseded by a stop request")
+                is LaunchResult.Failed -> throw IllegalStateException("Local proxy restart failed", result.cause)
+                LaunchResult.Started -> Unit
+            }
             if (!Mobile.isVPNConnected()) {
                 val msg = "restartService failed: local proxy not running after restart"
                 AppLogger.e(TAG, msg)
@@ -305,7 +352,7 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         return NotificationCompat.Builder(this, PROXY_CHANNEL_ID)
-            .setSmallIcon(R.drawable.lantern_notification_icon)
+            .setSmallIcon(resolveNotificationSmallIcon())
             .setContentTitle(getString(R.string.app_name))
             .setContentText(text)
             .setContentIntent(pendingIntent)
