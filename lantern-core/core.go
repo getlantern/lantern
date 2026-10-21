@@ -1177,10 +1177,12 @@ func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
 	return lc.client.CompleteChangeEmail(lc.ctx, email, password, code)
 }
 
+// StartBindLegacyEmail sends a verification code to the legacy account's new email.
 func (lc *LanternCore) StartBindLegacyEmail(email string) error {
 	return lc.client.StartBindLegacyEmail(lc.ctx, email)
 }
 
+// CompleteBindLegacyEmail verifies the code and sets the account's email and password.
 func (lc *LanternCore) CompleteBindLegacyEmail(email, password, code string) error {
 	return lc.client.CompleteBindLegacyEmail(lc.ctx, email, password, code)
 }

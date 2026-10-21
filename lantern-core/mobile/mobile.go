@@ -746,10 +746,12 @@ func CompleteChangeEmail(email, password, code string) error {
 	return withCore(func(c lanterncore.Core) error { return c.CompleteChangeEmail(email, password, code) })
 }
 
+// StartBindLegacyEmail sends a verification code to the legacy account's new email.
 func StartBindLegacyEmail(email string) error {
 	return withCore(func(c lanterncore.Core) error { return c.StartBindLegacyEmail(email) })
 }
 
+// CompleteBindLegacyEmail verifies the code and sets the account's email and password.
 func CompleteBindLegacyEmail(email, password, code string) error {
 	return withCore(func(c lanterncore.Core) error { return c.CompleteBindLegacyEmail(email, password, code) })
 }
