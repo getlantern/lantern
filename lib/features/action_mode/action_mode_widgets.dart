@@ -63,14 +63,27 @@ class ActionModeStatusCard extends StatelessWidget {
                             child: AppImage(path: AppImagePaths.globGrid),
                           ),
                           const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'smc_status_label'.i18n,
-                              style: textTheme.labelLarge!.copyWith(
-                                color: context.textSecondary,
-                              ),
+                          Text(
+                            'smc_status_label'.i18n,
+                            style: textTheme.labelLarge!.copyWith(
+                              color: context.textSecondary,
                             ),
                           ),
+                          if (onInfo != null)
+                            IconButton(
+                              key: const Key('action-mode.info'),
+                              tooltip: 'about_unbounded'.i18n,
+                              onPressed: onInfo,
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              iconSize: 20,
+                              icon: AppImage(
+                                path: AppImagePaths.info,
+                                width: 20,
+                                height: 20,
+                                color: context.textTertiary,
+                              ),
+                            ),
                         ],
                       ),
                       Row(
@@ -84,23 +97,6 @@ class ActionModeStatusCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          if (onInfo != null)
-                            IconButton(
-                              key: const Key('action-mode.info'),
-                              tooltip: 'about_unbounded'.i18n,
-                              onPressed: onInfo,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 32,
-                              ),
-                              icon: AppImage(
-                                path: AppImagePaths.info,
-                                width: 20,
-                                height: 20,
-                                color: context.textTertiary,
-                              ),
-                            ),
                         ],
                       ),
                     ],
