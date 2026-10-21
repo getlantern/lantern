@@ -299,7 +299,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
 			return fmt.Errorf("common.Init: %w", err)
 		}
-		utils.MigrateStaleTraceLogLevel(opts.DataDir, opts.LogLevel)
 	case "darwin", "ios":
 		setupAppLogging(opts.LogDir, opts.LogLevel)
 	}
@@ -316,6 +315,11 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		cancel()
 		return fmt.Errorf("failed to create IPC client: %w", err)
 	}
+
+	// After createClient: on darwin/ios the client construction is what runs
+	// common.Init (via the in-process backend fallback) and initializes the
+	// settings store this process holds in memory.
+	utils.MigrateStaleTraceLogLevel(opts.LogLevel)
 
 	lc.client = client
 	lc.userMessages = client

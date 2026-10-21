@@ -102,7 +102,7 @@ func InitLogging(dataDir, logDir, logLevel string) error {
 		if err := common.Init(dataDir, logDir, logLevel); err != nil {
 			return struct{}{}, err
 		}
-		utils.MigrateStaleTraceLogLevel(dataDir, logLevel)
+		utils.MigrateStaleTraceLogLevel(logLevel)
 		return struct{}{}, nil
 	})
 	return err
