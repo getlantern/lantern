@@ -68,7 +68,7 @@ void main() {
   test('malformed codes never reach the referral service', () async {
     for (final code in [
       '',
-      'A' * 501,
+      'A' * 201,
       'ſAVE15',
       'ßAVE15',
       'SAVE\\15',
@@ -109,23 +109,23 @@ void main() {
     });
   }
 
-  test('normalizes valid manual input before submission', () async {
-    for (final code in [' half ', 'save15', 'summer-20', 'pygfj4']) {
+  test('trims manual input without changing the submitted case', () async {
+    for (final code in [' half ', 'Save15', 'Summer-20', 'PYGFJ4']) {
       final result = await notifier.applyReferralCodeV2(code);
       expect(result.isRight(), isTrue);
-      expect(container.read(referralProvider)?.code, code.trim().toUpperCase());
+      expect(container.read(referralProvider)?.code, code.trim());
     }
-    expect(service.submittedCodes, ['HALF', 'SAVE15', 'SUMMER-20', 'PYGFJ4']);
+    expect(service.submittedCodes, ['half', 'Save15', 'Summer-20', 'PYGFJ4']);
   });
 
   test('submits a code at the length limit without truncating it', () async {
-    final code = 'a' * 500;
+    final code = 'a' * 200;
 
     final result = await notifier.applyReferralCodeV2(code);
 
     expect(result.isRight(), isTrue);
-    expect(service.submittedCodes, ['A' * 500]);
-    expect(container.read(referralProvider)?.code, 'A' * 500);
+    expect(service.submittedCodes, [code]);
+    expect(container.read(referralProvider)?.code, code);
   });
 
   test('invalid input leaves the previously applied code intact', () async {

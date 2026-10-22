@@ -59,7 +59,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
     super.initState();
     _userMessageActionDispatcher = UserMessageActionDispatcher.application();
     WidgetsBinding.instance.addObserver(this);
-    globalRouter.addListener(_scheduleInvalidDeepLinkMessage);
     initDeepLinks();
     initLifecycleListener();
   }
@@ -195,6 +194,9 @@ class _LanternAppState extends ConsumerState<LanternApp>
   }
 
   void _showInvalidDeepLink() {
+    if (!_invalidDeepLinkPending) {
+      globalRouter.addListener(_scheduleInvalidDeepLinkMessage);
+    }
     _invalidDeepLinkPending = true;
     _scheduleInvalidDeepLinkMessage();
   }
@@ -216,6 +218,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
         return;
       }
       _invalidDeepLinkPending = false;
+      globalRouter.removeListener(_scheduleInvalidDeepLinkMessage);
       navigatorContext.showSnackBar('invalid_deep_link'.i18n);
     });
     WidgetsBinding.instance.ensureVisualUpdate();
@@ -312,7 +315,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
                     locale: locale.toLocale,
                     debugShowCheckedModeBanner: false,
                     builder: (context, child) {
-                      _scheduleInvalidDeepLinkMessage();
                       final router = child ?? const SizedBox.shrink();
                       final shell = isStaging
                           ? Banner(

@@ -207,6 +207,7 @@ void main() {
     expect(find.byType(Scaffold), findsNothing);
 
     emitLink(_affiliateLink);
+    emitLink('https://lantern.io/private-server?exp=invalid');
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -219,6 +220,15 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text(_invalidLinkMessage), findsOneWidget);
     expect(router.stack.map((page) => page.name), [Home.name]);
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text(_invalidLinkMessage), findsNothing);
+
+    emitLink('https://lantern.io/affiliate/HALF/extra?retry=1');
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(_invalidLinkMessage), findsOneWidget);
   });
 
   testWidgets('disposing a pending rejection does not show a message', (
@@ -256,16 +266,16 @@ void main() {
     expect(router.stack.map((page) => page.name), [Home.name]);
   });
 
-  testWidgets('valid affiliate link still opens plans with a normalized code', (
+  testWidgets('valid affiliate link opens plans without changing code case', (
     tester,
   ) async {
     await mountApp(tester);
 
-    emitLink('https://lantern.io/affiliate/half');
+    emitLink('https://lantern.io/affiliate/Summer-20');
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.text('Plans: HALF'), findsOneWidget);
+    expect(find.text('Plans: Summer-20'), findsOneWidget);
     expect(find.text(_invalidLinkMessage), findsNothing);
     expect(router.stack.map((page) => page.name), [Home.name, Plans.name]);
   });

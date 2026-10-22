@@ -5,19 +5,19 @@ import 'package:lantern/core/utils/referral_code.dart';
 void main() {
   const appScheme = AppBuildInfo.appAuthScheme;
   group('normalizeReferralCode', () {
-    test('accepts referral codes and short or hyphenated promo codes', () {
-      for (final code in ['PYGFJ4', 'HALF', 'SAVE15', 'SUMMER-20']) {
-        expect(normalizeReferralCode(code.toLowerCase()), code);
+    test('trims codes without changing their case', () {
+      for (final code in ['PYGFJ4', 'half', 'Save15', 'Summer-20']) {
+        expect(normalizeReferralCode(code), code);
       }
-      expect(normalizeReferralCode('  save15  '), 'SAVE15');
-      expect(normalizeReferralCode('A' * 500), 'A' * 500);
+      expect(normalizeReferralCode('  Save15  '), 'Save15');
+      expect(normalizeReferralCode('A' * 200), 'A' * 200);
     });
 
     test('rejects invalid input instead of removing characters', () {
       for (final code in [
         '',
         '   ',
-        'A' * 501,
+        'A' * 201,
         'SAVE 15',
         'SAVE\n15',
         'SAVE\u000015',
@@ -38,11 +38,11 @@ void main() {
   group('affiliateCodeFromUri', () {
     test('accepts the supported web and app link forms', () {
       for (final link in [
-        'https://lantern.io/affiliate/half',
+        'https://lantern.io/affiliate/HALF',
         'https://www.lantern.io/affiliate/HALF',
         'https://lantern.io:443/affiliate/HALF',
         'https://lantern.io/affiliate/HALF/',
-        'https://lantern.io/affiliate?code=half',
+        'https://lantern.io/affiliate?code=HALF',
         'https://lantern.io/affiliate/?code=HALF',
         'https://lantern.io/affiliate/%48ALF?utm_source=partner',
         '$appScheme://affiliate/HALF',
@@ -51,6 +51,20 @@ void main() {
         '$appScheme://affiliate/?code=HALF',
       ]) {
         expect(affiliateCodeFromUri(Uri.parse(link)), 'HALF', reason: link);
+      }
+    });
+
+    test('preserves code case in web and app links', () {
+      for (final base in [
+        'https://lantern.io/affiliate',
+        '$appScheme://affiliate',
+      ]) {
+        for (final separator in ['/', '?code=']) {
+          expect(
+            affiliateCodeFromUri(Uri.parse('$base${separator}Summer-20')),
+            'Summer-20',
+          );
+        }
       }
     });
 
@@ -117,7 +131,7 @@ void main() {
           '?code=%C0%AF',
           '/%FF',
           '/HALF?utm_source=%FF',
-          '?code=${'A' * 501}',
+          '?code=${'A' * 201}',
           '?code=LSG_PROBE_1512_HTTPS_AFF_20260918T0608Z%3Ajavascript%3Aalert%281%29',
         ]) {
           final link = '$base$suffix';
@@ -133,11 +147,11 @@ void main() {
       ]) {
         for (final separator in ['/', '?code=']) {
           expect(
-            affiliateCodeFromUri(Uri.parse('$base$separator${'%41' * 500}')),
-            'A' * 500,
+            affiliateCodeFromUri(Uri.parse('$base$separator${'%41' * 200}')),
+            'A' * 200,
           );
           expect(
-            affiliateCodeFromUri(Uri.parse('$base$separator${'%41' * 501}')),
+            affiliateCodeFromUri(Uri.parse('$base$separator${'%41' * 201}')),
             isNull,
           );
         }

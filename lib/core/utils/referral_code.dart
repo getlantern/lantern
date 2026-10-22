@@ -1,10 +1,10 @@
 import 'package:lantern/core/common/app_build_info.dart';
 
-// Stripe promotion codes allow letters, digits, and hyphens, up to 500 characters.
-const _maxReferralCodeLength = 500;
+// Bound referral and affiliate input before passing it to native processing.
+const _maxReferralCodeLength = 200;
 final _invalidReferralCodeCharacters = RegExp(r'[^A-Za-z0-9-]');
 
-/// Normalizes a referral or promo code, or returns null for invalid input.
+/// Trims a referral or affiliate code without changing case; null if invalid.
 String? normalizeReferralCode(String value) {
   final code = value.trim();
   if (code.isEmpty ||
@@ -12,7 +12,7 @@ String? normalizeReferralCode(String value) {
       _invalidReferralCodeCharacters.hasMatch(code)) {
     return null;
   }
-  return code.toUpperCase();
+  return code;
 }
 
 /// Reads one code from a supported affiliate link's path or query.
