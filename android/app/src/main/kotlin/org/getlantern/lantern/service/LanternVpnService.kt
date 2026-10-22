@@ -203,9 +203,9 @@ open class LanternVpnService :
     }
 
     override fun onRevoke() {
-        // Default onRevoke only calls stopSelf(), so the UI never hears the tunnel is gone.
         AppLogger.w(TAG, "VPN revoked by the system, another VPN app took over the tunnel")
-        doStopVPN()
+        // stopSelf() leads to onDestroy, which tears down the tunnel and posts Disconnected.
+        super.onRevoke()
     }
 
     override fun onDestroy() {
