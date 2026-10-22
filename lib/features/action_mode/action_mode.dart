@@ -5,7 +5,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/share_state.dart';
-import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
@@ -44,14 +43,9 @@ class ActionModeTab extends HookConsumerWidget {
               sliver: SliverToBoxAdapter(
                 child: Column(
                   children: [
-                    InfoRow(
-                      text: 'smc_intro'.i18n,
-                      onPressed: () =>
-                          showActionModeWelcomeDialog(context, ref),
-                    ),
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        minHeight: math.max(180, constraints.maxHeight - 336),
+                        minHeight: math.max(180, constraints.maxHeight - 264),
                       ),
                       child: const Stack(
                         alignment: Alignment.bottomCenter,
@@ -69,6 +63,7 @@ class ActionModeTab extends HookConsumerWidget {
                       state: state,
                       onToggle: () =>
                           ref.read(shareProvider.notifier).toggle(context, ref),
+                      onInfo: () => showActionModeWelcomeDialog(context, ref),
                     ),
                   ],
                 ),
@@ -84,8 +79,13 @@ class ActionModeTab extends HookConsumerWidget {
 class _StatusCard extends StatelessWidget {
   final ShareState state;
   final VoidCallback onToggle;
+  final VoidCallback onInfo;
 
-  const _StatusCard({required this.state, required this.onToggle});
+  const _StatusCard({
+    required this.state,
+    required this.onToggle,
+    required this.onInfo,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -115,12 +115,9 @@ class _StatusCard extends StatelessWidget {
               _ => 'smc_status_configuring'.i18n,
             },
           };
-    final mode = shareModeLabel(state.mode);
 
     return ActionModeStatusCard(
-      status: hasError || mode == null
-          ? status
-          : 'smc_status_with_mode'.i18n.fill([status, mode]),
+      status: status,
       enabled: state.active || state.probing,
       ready:
           (state.mode == ShareMode.unbounded && state.unboundedRunning) ||
@@ -130,7 +127,8 @@ class _StatusCard extends StatelessWidget {
       activeCount: state.activeCount,
       totalCount: state.totalCount,
       onToggle: onToggle,
-      onAdvancedStats: () => showAdvancedStatsSheet(context),
+      onInfo: onInfo,
+      onTotalTap: () => showAdvancedStatsSheet(context),
     );
   }
 }
