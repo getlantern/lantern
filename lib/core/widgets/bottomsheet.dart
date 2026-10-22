@@ -9,6 +9,7 @@ void showAppBottomSheet(
     {required BuildContext context,
     required BottomSheetBuilder builder,
     required String title,
+    Widget? subtitle,
     double scrollControlDisabledMaxHeightRatio = .75}) {
   // backgroundColor and shape come from bottomSheetTheme in app_theme.dart
   showModalBottomSheet(
@@ -36,6 +37,11 @@ void showAppBottomSheet(
                       ),
                 ),
               ),
+              if (subtitle != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                  child: subtitle,
+                ),
               DividerSpace(padding: EdgeInsets.only(top: 16)),
               builder(context, scrollController),
             ],

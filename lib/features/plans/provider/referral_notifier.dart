@@ -1,6 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
+import 'package:lantern/core/utils/referral_code.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -22,9 +23,18 @@ class ReferralNotifier extends _$ReferralNotifier {
   Future<Either<Failure, ReferralAttachV2Response>> applyReferralCodeV2(
     String code,
   ) async {
+    final normalizedCode = normalizeReferralCode(code);
+    if (normalizedCode == null) {
+      return left(
+        Failure(
+          error: 'invalid-referral-code',
+          localizedErrorMessage: 'referral_code_invalid'.i18n,
+        ),
+      );
+    }
     final result = await ref
         .read(lanternServiceProvider)
-        .attachReferralCodeV2(code);
+        .attachReferralCodeV2(normalizedCode);
     if (result.isRight()) {
       final response = result.getRight().toNullable();
       // plansData is only present for the affiliate flow; the referral flow
