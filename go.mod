@@ -34,7 +34,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/common v1.2.1-0.20260910154003-08e030318f24
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261022162016-5bff2224d515
+	github.com/getlantern/radiance v0.0.0-20261022174223-e10660844b33
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb
@@ -179,7 +179,7 @@ require (
 	github.com/getlantern/broflake v0.0.0-20261018030031-c6268bfc1b56 // indirect
 	github.com/getlantern/domainfront v0.0.0-20260915172349-4984689a8667 // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20261009194109-22f33eaeac6e // indirect
-	github.com/getlantern/kindling v0.0.0-20261022160625-48c13b1454d3 // indirect
+	github.com/getlantern/kindling v0.0.0-20261022170147-217b175b5057 // indirect
 	github.com/getlantern/lantern-box v0.0.169 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
@@ -196,6 +196,7 @@ require (
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/goccy/go-yaml v1.19.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
+	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/nftables v0.2.1-0.20240414091927-5e242ec57806 // indirect
