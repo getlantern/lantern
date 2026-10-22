@@ -316,11 +316,6 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		return fmt.Errorf("failed to create IPC client: %w", err)
 	}
 
-	// After createClient: on darwin/ios the client construction is what runs
-	// common.Init (via the in-process backend fallback) and initializes the
-	// settings store this process holds in memory.
-	utils.MigrateStaleTraceLogLevel(opts.LogLevel)
-
 	lc.client = client
 	lc.userMessages = client
 	lc.ctx = ctx
