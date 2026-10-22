@@ -12,6 +12,7 @@ import 'package:lantern/core/widgets/tv_frame.dart';
 import 'package:lantern/core/localization/localization_constants.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/updater/updater.dart';
+import 'package:lantern/core/utils/referral_code.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
@@ -23,7 +24,6 @@ import 'package:lantern/features/window/window_wrapper.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
-import 'core/common/app_build_info.dart';
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
 import 'core/utils/deeplink_utils.dart'
@@ -50,6 +50,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
   StreamSubscription<Uri>? _deepLinkSubscription;
   Uri? _lastHandledUri;
   DateTime? _lastHandledTime;
+  bool _invalidDeepLinkPending = false;
+  bool _invalidDeepLinkScheduled = false;
   late final UserMessageActionDispatcher _userMessageActionDispatcher;
 
   @override
@@ -87,6 +89,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    globalRouter.removeListener(_scheduleInvalidDeepLinkMessage);
     _lifecycle.dispose();
     _deepLinkSubscription?.cancel();
     super.dispose();
@@ -107,7 +110,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
   void _handleDeepLinkUri(Uri uri) {
     if (!context.mounted) return;
-    final safeLogUri = uri.replace(query: '').toString();
+    final safeLogUri = '${uri.scheme}://${uri.host}';
 
     // Deduplicate: on cold start macOS may deliver the same URI via multiple
     // OS callbacks (URL scheme + NSAppleEventManager), causing a double push.
@@ -124,7 +127,16 @@ class _LanternAppState extends ConsumerState<LanternApp>
     appLogger.debug("DeepLink received: $safeLogUri");
     final path = uri.path;
 
-    if (path.startsWith('/report-issue') ||
+    if (path.startsWith('/affiliate') ||
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'affiliate')) {
+      final code = affiliateCodeFromUri(uri);
+      if (code == null) {
+        appLogger.debug('DeepLink affiliate: invalid link or code');
+        _showInvalidDeepLink();
+        return;
+      }
+      _pushWithHome(Plans(referralCode: code));
+    } else if (path.startsWith('/report-issue') ||
         (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'report-issue')) {
       final queryParams = uri.queryParameters;
       final foundType = queryParams.containsKey('type');
@@ -149,58 +161,6 @@ class _LanternAppState extends ConsumerState<LanternApp>
       if (isOAuthCallbackResult(uri)) {
         sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
       }
-    } else if (path.startsWith('/affiliate') ||
-        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'affiliate')) {
-      // https://lantern.io/affiliate/<code> or lantern://affiliate/<code>;
-      // ?code=<code> is accepted as a fallback.
-      final segments = uri.pathSegments
-          .where((s) => s.isNotEmpty && s != 'affiliate')
-          .toList();
-      final code = segments.isNotEmpty
-          ? segments.first
-          : (uri.queryParameters['code'] ?? '');
-      if (code.isEmpty) {
-        appLogger.debug("DeepLink affiliate: missing code");
-        context.showSnackBar('invalid_deep_link'.i18n);
-        return;
-      }
-      appLogger.debug("DeepLink affiliate: navigating to Plans with code");
-      _pushWithHome(Plans(referralCode: code));
-    } else if (path.startsWith('/web-licensing') ||
-        (uri.scheme == 'lantern' && uri.host == 'web-licensing')) {
-      // lantern://web-licensing?code=<license key>, sent by the website's
-      // post-purchase page.
-      final licenseKey = (uri.queryParameters['code'] ?? '').trim();
-      if (licenseKey.isEmpty) {
-        appLogger.debug("DeepLink web-licensing: missing code");
-        context.showSnackBar('invalid_deep_link'.i18n);
-        return;
-      }
-      // Same gate as the Plans entry point: signed-out users add an email
-      // first. The license screen re-reads the email on submit, since user
-      // data may still be loading on a cold start.
-      if (!ref.read(appSettingProvider).userLoggedIn) {
-        appLogger.debug("DeepLink web-licensing: navigating to AddEmail");
-        _pushWithHome(
-          AddEmail(
-            authFlow: AuthFlow.lanternProLicense,
-            licenseKey: licenseKey,
-          ),
-          replaceIfOnTop: true,
-        );
-        return;
-      }
-      appLogger.debug(
-        "DeepLink web-licensing: navigating to LanternProLicense",
-      );
-      _pushWithHome(
-        LanternProLicense(
-          email: ref.read(userEmailProvider),
-          code: '',
-          licenseKey: licenseKey,
-        ),
-        replaceIfOnTop: true,
-      );
     } else if (path.startsWith('/private-server') ||
         (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'private-server')) {
       final data = Map.of(uri.queryParameters);
@@ -211,7 +171,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
         appLogger.debug(
           "DeepLink private-server: missing or invalid exp param",
         );
-        context.showSnackBar('invalid_deep_link'.i18n);
+        _showInvalidDeepLink();
         return;
       }
       final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
@@ -231,6 +191,37 @@ class _LanternAppState extends ConsumerState<LanternApp>
       );
       _pushWithHome(JoinPrivateServer(deepLinkData: data));
     }
+  }
+
+  void _showInvalidDeepLink() {
+    if (!_invalidDeepLinkPending) {
+      globalRouter.addListener(_scheduleInvalidDeepLinkMessage);
+    }
+    _invalidDeepLinkPending = true;
+    _scheduleInvalidDeepLinkMessage();
+  }
+
+  void _scheduleInvalidDeepLinkMessage() {
+    if (!mounted || !_invalidDeepLinkPending || _invalidDeepLinkScheduled) {
+      return;
+    }
+    _invalidDeepLinkScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _invalidDeepLinkScheduled = false;
+      if (!mounted || !_invalidDeepLinkPending) return;
+
+      // On cold start the router has no Scaffold until its first route builds.
+      final navigatorContext = globalRouter.navigatorKey.currentContext;
+      if (!globalRouter.hasEntries ||
+          navigatorContext == null ||
+          !navigatorContext.mounted) {
+        return;
+      }
+      _invalidDeepLinkPending = false;
+      globalRouter.removeListener(_scheduleInvalidDeepLinkMessage);
+      navigatorContext.showSnackBar('invalid_deep_link'.i18n);
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   /// Pushes [route] on the current stack when the app is in the foreground

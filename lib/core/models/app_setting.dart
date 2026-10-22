@@ -24,6 +24,9 @@ class AppSetting {
   // Figma. ShareNotifier seeds totalCount from this on build, and
   // writes back each time the count increments.
   final int unboundedTotalHelped;
+  // How many times sharing has been started on this device. The stats sheet
+  // shows "this session" only once there has been more than one.
+  final int unboundedSessionCount;
   // Lifetime Unbounded bytes relayed (down: to the people helped, up: from
   // them) and the per-country breakdown behind Advanced stats. Written by
   // ShareNotifier on a throttle, not on every snapshot.
@@ -54,6 +57,7 @@ class AppSetting {
     this.unboundedHidden = false,
     this.unboundedWelcomeSeen = false,
     this.unboundedTotalHelped = 0,
+    this.unboundedSessionCount = 0,
     this.unboundedBytesDown = 0,
     this.unboundedBytesUp = 0,
     this.unboundedCountryStats = const {},
@@ -83,6 +87,7 @@ class AppSetting {
     bool? unboundedHidden,
     bool? unboundedWelcomeSeen,
     int? unboundedTotalHelped,
+    int? unboundedSessionCount,
     int? unboundedBytesDown,
     int? unboundedBytesUp,
     Map<String, RelayCountryStats>? unboundedCountryStats,
@@ -108,6 +113,8 @@ class AppSetting {
       unboundedWelcomeSeen: unboundedWelcomeSeen ?? this.unboundedWelcomeSeen,
       unboundedTotalHelped:
           unboundedTotalHelped ?? this.unboundedTotalHelped,
+      unboundedSessionCount:
+          unboundedSessionCount ?? this.unboundedSessionCount,
       unboundedBytesDown: unboundedBytesDown ?? this.unboundedBytesDown,
       unboundedBytesUp: unboundedBytesUp ?? this.unboundedBytesUp,
       unboundedCountryStats:
@@ -136,6 +143,7 @@ class AppSetting {
         'unboundedHidden': unboundedHidden,
         'unboundedWelcomeSeen': unboundedWelcomeSeen,
         'unboundedTotalHelped': unboundedTotalHelped,
+        'unboundedSessionCount': unboundedSessionCount,
         'unboundedBytesDown': unboundedBytesDown,
         'unboundedBytesUp': unboundedBytesUp,
         'unboundedCountryStats':
@@ -166,6 +174,8 @@ class AppSetting {
         unboundedWelcomeSeen: json['unboundedWelcomeSeen'] == true,
         unboundedTotalHelped:
             (json['unboundedTotalHelped'] as num?)?.toInt() ?? 0,
+        unboundedSessionCount:
+            (json['unboundedSessionCount'] as num?)?.toInt() ?? 0,
         unboundedBytesDown:
             (json['unboundedBytesDown'] as num?)?.toInt() ?? 0,
         unboundedBytesUp: (json['unboundedBytesUp'] as num?)?.toInt() ?? 0,
