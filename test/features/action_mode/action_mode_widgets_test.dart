@@ -14,7 +14,6 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
-import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -46,8 +45,13 @@ class _Share extends ShareNotifier {
 
 class _Settings extends AppSettingNotifier {
   @override
-  AppSetting build() =>
-      const AppSetting(unboundedAutoEnable: false, unboundedWelcomeSeen: true);
+  AppSetting build() => AppSetting(
+    unboundedAutoEnable: false,
+    unboundedWelcomeSeen: true,
+    unboundedSessionCount: sessionCount,
+  );
+
+  static int sessionCount = 2;
   @override
   void setUnboundedAutoEnable(bool value) {
     state = state.copyWith(unboundedAutoEnable: value);
@@ -65,6 +69,7 @@ void main() {
   setUp(() {
     _Share.consent = true;
     _Share.toggles = 0;
+    _Settings.sessionCount = 2;
   });
 
   Future<void> mount(
@@ -160,7 +165,7 @@ void main() {
   }
 
   for (final scale in [1.0, 2.0]) {
-    testWidgets('waiting pill stays below the intro at 320x568, scale $scale', (
+    testWidgets('waiting pill stays over the globe at 320x568, scale $scale', (
       tester,
     ) async {
       await mount(
@@ -173,9 +178,9 @@ void main() {
       );
       expect(tester.takeException(), isNull);
       final pill = tester.getRect(find.byType(PeerStatusPill));
-      final intro = tester.getRect(find.byType(InfoRow));
+      final globe = tester.getRect(find.byType(ActionModeGlobe));
       final status = tester.getRect(find.byType(ActionModeStatusCard));
-      expect(pill.top, greaterThanOrEqualTo(intro.bottom));
+      expect(pill.top, greaterThanOrEqualTo(globe.top));
       expect(pill.bottom, lessThanOrEqualTo(status.top));
       expect(
         tester.getSize(find.byType(ActionModeGlobe)).height,
@@ -204,7 +209,13 @@ void main() {
       expect(scroll.position.maxScrollExtent, greaterThan(0));
       final scrollBefore = scroll.position.pixels;
 
-      await tester.drag(find.byType(InfoRow), const Offset(0, -100));
+      // The card's centre is below the fold at this scale; drag from its
+      // visible top edge.
+      await tester.dragFrom(
+        tester.getTopLeft(find.byType(ActionModeStatusCard)) +
+            const Offset(24, 24),
+        const Offset(0, -100),
+      );
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(scroll.position.pixels, greaterThan(scrollBefore));
@@ -302,14 +313,43 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('long status wraps beside the info icon at large text', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      SingleChildScrollView(
+        child: ActionModeStatusCard(
+          status: 'Waiting to start · Direct connection',
+          enabled: true,
+          ready: false,
+          busy: false,
+          hasError: false,
+          activeCount: 0,
+          totalCount: 219,
+          onToggle: () {},
+          onInfo: () {},
+        ),
+      ),
+      size: const Size(320, 568),
+      scale: 2,
+    );
+    expect(find.byKey(const Key('action-mode.info')), findsOneWidget);
+    expect(find.byKey(const Key('action-mode.toggle')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('keeps lifetime impact visible while sharing is disabled', (
     tester,
   ) async {
     await mount(tester, status());
-    expect(find.text('219'), findsOneWidget);
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('Total people helped to date:'), findsOneWidget);
-    expect(find.text('People you are helping right now:'), findsOneWidget);
+    expect(find.text('219 people'), findsOneWidget);
+    expect(find.text('0 people'), findsOneWidget);
+    expect(find.text('Total people helped to date'), findsOneWidget);
+    expect(find.text('Helping right now'), findsOneWidget);
+    // No onTotalTap, so no tap affordance either.
+    expect(find.text('View advanced stats'), findsNothing);
+    expect(find.byKey(const Key('action-mode.info')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -323,13 +363,10 @@ void main() {
         scale: 2,
         animated: true,
       );
-      expect(find.text('9'), findsOneWidget);
-      expect(find.text('219'), findsOneWidget);
-      await tester.tap(
-        find.text(
-          'Help others bypass censorship by securely sharing your connection.',
-        ),
-      );
+      expect(find.text('9 people'), findsOneWidget);
+      expect(find.text('219 people'), findsOneWidget);
+      // The intro banner is gone; the info icon reopens the explainer.
+      await tester.tap(find.byKey(const Key('action-mode.info')));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Welcome to Action Mode'), findsOneWidget);
       await tester.ensureVisible(find.text('Got It'));
@@ -398,7 +435,7 @@ void main() {
           await tester.tapAt(tester.getCenter(toggle) - const Offset(20, 0));
           await tester.pump(const Duration(milliseconds: 300));
           expect(_Share.toggles, 1);
-          final link = find.byKey(const Key('action-mode.advanced-stats'));
+          final link = find.byKey(const Key('action-mode.total-helped'));
           await tester.ensureVisible(link);
           await tester.pump(const Duration(milliseconds: 300));
           await tester.tap(link);
@@ -522,7 +559,7 @@ void main() {
   );
 
   for (final brightness in Brightness.values) {
-    testWidgets('advanced stats link opens the sheet ($brightness)', (
+    testWidgets('total helped row opens the stats sheet ($brightness)', (
       tester,
     ) async {
       await mount(
@@ -533,24 +570,32 @@ void main() {
           active: true,
           mode: ShareMode.unbounded,
           unboundedRunning: true,
+          activeCount: 5,
+          totalCount: 12,
           relay: relay,
         ),
         animated: true,
       );
-      final link = find.byKey(const Key('action-mode.advanced-stats'));
+      final link = find.byKey(const Key('action-mode.total-helped'));
       await tester.ensureVisible(link);
       await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('View advanced stats'), findsOneWidget);
       await tester.tap(link);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.byType(AdvancedStatsView), findsOneWidget);
-      expect(find.text('↓ 1.3 MB/s  ↑ 48 kB/s'), findsOneWidget);
+      expect(find.text('People you have helped'), findsOneWidget);
+      expect(find.text('12 helped to date · 5 right now'), findsOneWidget);
+      expect(find.text('1.3 MB/s ↑ 48 kB/s ↓'), findsOneWidget);
       expect(find.text('352 MB'), findsOneWidget);
+      expect(find.text('Sent 340 MB · Received 12 MB'), findsOneWidget);
       expect(find.text('1.2 GB'), findsOneWidget);
-      expect(find.text('920 MB · 4 people'), findsOneWidget);
-      expect(find.text('205 MB · 1 person'), findsOneWidget);
+      expect(find.text('920 MB relayed'), findsOneWidget);
+      expect(find.text('4 people'), findsOneWidget);
+      expect(find.text('205 MB relayed'), findsOneWidget);
+      expect(find.text('1 person'), findsOneWidget);
       expect(find.text('Unknown'), findsOneWidget);
-      expect(find.text('1.0 kB'), findsOneWidget);
+      expect(find.text('1.0 kB relayed'), findsOneWidget);
       expect(find.textContaining('0 people'), findsNothing);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
@@ -594,7 +639,7 @@ void main() {
       ),
     );
     expect(find.text('1 person'), findsOneWidget);
-    expect(find.text('0 B · 1 person'), findsNothing);
+    expect(find.text('0 B relayed'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -611,17 +656,20 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-    expect(find.text('0 B'), findsWidgets);
-    final empty = find.text(
-      'No one helped yet. Countries will appear here once people connect '
-      'through you.',
+    expect(
+      find.text(
+        'No one helped yet. Countries will appear here once people connect '
+        'through you.',
+      ),
+      findsOneWidget,
     );
+    // The data card sits below the fold in the lazily built list.
     await tester.dragUntilVisible(
-      empty,
+      find.byKey(const Key('advanced-stats.session')),
       find.byKey(const Key('advanced-stats.list')),
       const Offset(0, -200),
     );
-    expect(empty, findsOneWidget);
+    expect(find.text('0 B'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -639,10 +687,11 @@ void main() {
       ),
     );
     expect(find.text('Direct connection'), findsOneWidget);
-    expect(find.text('↓ 1.3 MB/s  ↑ 48 kB/s'), findsOneWidget);
+    expect(find.text('1.3 MB/s ↑ 48 kB/s ↓'), findsOneWidget);
     expect(find.text('352 MB'), findsOneWidget);
     expect(find.text('1.2 GB'), findsOneWidget);
-    expect(find.text('920 MB · 4 people'), findsOneWidget);
+    expect(find.text('920 MB relayed'), findsOneWidget);
+    expect(find.text('4 people'), findsOneWidget);
     expect(
       find.text('Data stats are available only when sharing via Unbounded.'),
       findsNothing,
@@ -650,11 +699,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final (mode, label) in [
-    (ShareMode.unbounded, 'Enabled · WebRTC'),
-    (ShareMode.smc, 'Enabled · Direct connection'),
-  ]) {
-    testWidgets('status line names the $mode mode', (tester) async {
+  // The sharing mode is named in the stats sheet, not on the card.
+  for (final mode in [ShareMode.unbounded, ShareMode.smc]) {
+    testWidgets('status line reads Enabled in $mode mode', (tester) async {
       await mount(
         tester,
         const ActionModeTab(),
@@ -669,9 +716,43 @@ void main() {
       final card = tester.widget<ActionModeStatusCard>(
         find.byType(ActionModeStatusCard),
       );
-      expect(card.status, label);
+      expect(card.status, 'Enabled');
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  // The fixture's lifetime total exceeds its session total, which counts as
+  // an earlier session on installs that predate the counter.
+  for (final (sessions, priorData, shown) in [
+    (0, false, false),
+    (1, false, false),
+    (2, false, true),
+    (1, true, true),
+  ]) {
+    testWidgets('session row after $sessions sessions, prior data $priorData: '
+        'shown=$shown', (tester) async {
+      _Settings.sessionCount = sessions;
+      await mount(
+        tester,
+        const AdvancedStatsView(),
+        shareState: ShareState(
+          active: true,
+          mode: ShareMode.unbounded,
+          unboundedRunning: true,
+          relay: priorData
+              ? relay
+              : relay.copyWith(
+                  lifetimeDown: relay.sessionDown,
+                  lifetimeUp: relay.sessionUp,
+                ),
+        ),
+      );
+      expect(
+        find.byKey(const Key('advanced-stats.session')),
+        shown ? findsOneWidget : findsNothing,
+      );
+      expect(tester.takeException(), isNull);
     });
   }
 
