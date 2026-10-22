@@ -64,7 +64,10 @@ const (
 	// message from Radiance, which keeps copy out of event logs and makes a
 	// missed event harmless.
 	EventTypeUserMessageAvailable EventType = "user-message-available"
-	DefaultLogLevel                         = "trace"
+	// Release default. Trace in production kept always-on tunnels writing
+	// per-read log lines around the clock (battery + disk, FD #184449);
+	// debug builds and staging opt back into trace at the call sites.
+	DefaultLogLevel = "info"
 )
 
 // Backoff between startup user-data fetch retries; the first attempt is
@@ -312,6 +315,11 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		cancel()
 		return fmt.Errorf("failed to create IPC client: %w", err)
 	}
+
+	// After createClient: on darwin/ios the client construction is what runs
+	// common.Init (via the in-process backend fallback) and initializes the
+	// settings store this process holds in memory.
+	utils.MigrateStaleTraceLogLevel(opts.LogLevel)
 
 	lc.client = client
 	lc.userMessages = client

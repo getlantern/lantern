@@ -144,6 +144,11 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	if err != nil {
 		return err
 	}
+	// The backend's common.Init just initialized this process's settings
+	// store (on darwin/ios the tunnel extension's — the app runs its own via
+	// the ipc client's backend fallback); the settings-backed leveler applies
+	// the demotion without rebuilding the logger.
+	utils.MigrateStaleTraceLogLevel(opts.LogLevel)
 	return publishIPCResources(generation, resources)
 }
 
