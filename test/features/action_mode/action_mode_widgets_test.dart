@@ -671,11 +671,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final (mode, label) in [
-    (ShareMode.unbounded, 'Enabled · WebRTC'),
-    (ShareMode.smc, 'Enabled · Direct connection'),
-  ]) {
-    testWidgets('status line names the $mode mode', (tester) async {
+  // The sharing mode is named in the stats sheet, not on the card.
+  for (final mode in [ShareMode.unbounded, ShareMode.smc]) {
+    testWidgets('status line reads Enabled in $mode mode', (tester) async {
       await mount(
         tester,
         const ActionModeTab(),
@@ -690,7 +688,7 @@ void main() {
       final card = tester.widget<ActionModeStatusCard>(
         find.byType(ActionModeStatusCard),
       );
-      expect(card.status, label);
+      expect(card.status, 'Enabled');
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
     });

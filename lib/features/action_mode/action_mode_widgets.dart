@@ -46,59 +46,54 @@ class ActionModeStatusCard extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          // Label over value like SettingTile, with the switch centred on
-          // the whole block rather than on the value line.
+          // Status and switch on one line, like the VPN tab's header row.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
+                const SizedBox(
+                  width: 24,
+                  child: AppImage(path: AppImagePaths.globGrid),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          const SizedBox(
-                            width: 24,
-                            child: AppImage(path: AppImagePaths.globGrid),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'smc_status_label'.i18n,
-                            style: textTheme.labelLarge!.copyWith(
-                              color: context.textSecondary,
-                            ),
-                          ),
-                          if (onInfo != null)
-                            IconButton(
-                              key: const Key('action-mode.info'),
-                              tooltip: 'about_unbounded'.i18n,
-                              onPressed: onInfo,
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              iconSize: 20,
-                              icon: AppImage(
-                                path: AppImagePaths.info,
-                                width: 20,
-                                height: 20,
-                                color: context.textTertiary,
+                      Flexible(
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: '${'smc_status_label'.i18n}: '),
+                              TextSpan(
+                                text: status,
+                                style: textTheme.titleMedium?.copyWith(
+                                  color: statusColor,
+                                ),
                               ),
-                            ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const SizedBox(width: 32),
-                          Flexible(
-                            child: Text(
-                              status,
-                              style: textTheme.titleMedium?.copyWith(
-                                color: statusColor,
-                              ),
-                            ),
+                            ],
                           ),
-                        ],
+                          style: textTheme.labelLarge!.copyWith(
+                            color: context.textSecondary,
+                          ),
+                        ),
                       ),
+                      if (onInfo != null)
+                        IconButton(
+                          key: const Key('action-mode.info'),
+                          tooltip: 'about_unbounded'.i18n,
+                          onPressed: onInfo,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                          icon: AppImage(
+                            path: AppImagePaths.info,
+                            width: 20,
+                            height: 20,
+                            color: context.textTertiary,
+                          ),
+                        ),
                     ],
                   ),
                 ),

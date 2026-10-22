@@ -115,12 +115,9 @@ class _StatusCard extends StatelessWidget {
               _ => 'smc_status_configuring'.i18n,
             },
           };
-    final mode = shareModeLabel(state.mode);
 
     return ActionModeStatusCard(
-      status: hasError || mode == null
-          ? status
-          : 'smc_status_with_mode'.i18n.fill([status, mode]),
+      status: status,
       enabled: state.active || state.probing,
       ready:
           (state.mode == ShareMode.unbounded && state.unboundedRunning) ||

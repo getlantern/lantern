@@ -2113,11 +2113,6 @@ msgstr "Direct connection"
 msgid "share_mode_unbounded"
 msgstr "WebRTC"
 
-# Status line on the Action Mode card: the first %s is the status (e.g.
-# "Enabled"), the second is the sharing mode (e.g. "WebRTC").
-msgid "smc_status_with_mode"
-msgstr "%s · %s"
-
 msgid "advanced_stats_mode"
 msgstr "Sharing mode"
 
