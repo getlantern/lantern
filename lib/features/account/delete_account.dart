@@ -134,7 +134,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
     if (token.isEmpty) {
       appLogger.warning('Missing OAuth token during account deletion');
-      context.showSnackBarError('error_occurred'.i18n);
+      context.showSnackBarError('it_looks_like_something_went_wrong'.i18n);
       return;
     }
 
@@ -147,7 +147,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
         e,
         st,
       );
-      context.showSnackBarError('error_occurred'.i18n);
+      context.showSnackBarError('it_looks_like_something_went_wrong'.i18n);
       return;
     }
 
