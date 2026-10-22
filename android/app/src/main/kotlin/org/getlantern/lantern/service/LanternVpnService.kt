@@ -214,6 +214,8 @@ open class LanternVpnService :
             // Only the TUN fd close stays synchronous on the main thread — it's
             // cheap and the OS should release the interface promptly.
             closeTunInterface()
+            // The tunnel is down now; don't make the UI wait on blocking native teardown.
+            VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
 
             // Native teardown can block. Keep it off the main thread and let it
             // outlive serviceScope; the gate waits for any native start to finish.
@@ -235,7 +237,7 @@ open class LanternVpnService :
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
                     }
-                    // TUN fd is closed above, so the tunnel is down.
+                    // Re-post in case an in-flight start published Connected before the gate stopped it.
                     VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                     serviceCleanUp()
                 }
