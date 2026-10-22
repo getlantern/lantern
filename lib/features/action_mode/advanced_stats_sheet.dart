@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
@@ -24,10 +25,11 @@ void showAdvancedStatsSheet(BuildContext context) {
     subtitle: Consumer(
       builder: (context, ref, _) {
         final state = ref.watch(shareProvider);
+        final format = NumberFormat.decimalPattern();
         return Text(
           'people_helped_subtitle'.i18n.fill([
-            '${state.totalCount}',
-            '${state.activeCount}',
+            format.format(state.totalCount),
+            format.format(state.activeCount),
           ]),
           style: Theme.of(
             context,

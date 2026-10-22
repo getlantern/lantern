@@ -127,12 +127,15 @@ class ActionModeStatusCard extends StatelessWidget {
           SettingTile(
             tileKey: const Key('action-mode.total-helped'),
             label: 'action_mode_total_helped'.i18n,
-            subtitle: "view_advanced_stats".i18n,
+            subtitle: onTotalTap == null ? null : 'view_advanced_stats'.i18n,
             subtitleColor: context.textTertiary,
             value: peopleCountLabel(totalCount),
             icon: AppImagePaths.actionModePeople,
             onTap: onTotalTap,
-            actions: [AppImage(path: AppImagePaths.arrowForward)],
+            actions: [
+              if (onTotalTap != null)
+                const AppImage(path: AppImagePaths.arrowForward),
+            ],
           ),
         ],
       ),

@@ -283,10 +283,6 @@ class ShareNotifier extends _$ShareNotifier {
       totalCount: state.totalCount,
       relay: state.relay.newSession(),
     );
-    final settings = ref.read(appSettingProvider.notifier);
-    settings.setUnboundedSessionCount(
-      ref.read(appSettingProvider).unboundedSessionCount + 1,
-    );
     _startEventSubscription(widgetRef);
     switch (mode) {
       case ShareMode.smc:
@@ -301,7 +297,7 @@ class ShareNotifier extends _$ShareNotifier {
             'SmC setPeerProxy failed, falling back to Unbounded: ${err.error}',
           );
           unawaited(_fallbackToUnbounded(widgetRef, err.error));
-        }, (_) => null);
+        }, (_) => _recordSessionStart());
       case ShareMode.unbounded:
         final res = await widgetRef
             .read(lanternServiceProvider)
@@ -310,10 +306,19 @@ class ShareNotifier extends _$ShareNotifier {
         res.fold((err) {
           appLogger.error('setUnboundedEnabled failed: ${err.error}');
           _failOff(err.error);
-        }, (_) => null);
+        }, (_) => _recordSessionStart());
       case ShareMode.off:
         break;
     }
+  }
+
+  /// Counts only sessions that actually started, so a failed attempt does not
+  /// unlock the "this session" stats row.
+  void _recordSessionStart() {
+    final settings = ref.read(appSettingProvider.notifier);
+    settings.setUnboundedSessionCount(
+      ref.read(appSettingProvider).unboundedSessionCount + 1,
+    );
   }
 
   Future<void> _stop(WidgetRef widgetRef) async {
@@ -365,7 +370,7 @@ class ShareNotifier extends _$ShareNotifier {
           'SmC→Unbounded fallback: setUnboundedEnabled failed: ${err.error}',
         );
         _failOff(err.error);
-      }, (_) => {});
+      }, (_) => _recordSessionStart());
     } finally {
       _changes--;
     }

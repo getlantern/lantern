@@ -503,6 +503,29 @@ void main() {
     );
   });
 
+  testWidgets('session counter records only successful starts', (tester) async {
+    late WidgetRef widgetRef;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (ctx, ref, child) {
+            widgetRef = ref;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final notifier = container.read(shareProvider.notifier);
+    service.onSetUnbounded = (_) async =>
+        left(Failure(error: 'offline', localizedErrorMessage: 'offline'));
+    await notifier.autoStart(widgetRef);
+    expect(container.read(appSettingProvider).unboundedSessionCount, 0);
+    service.onSetUnbounded = (_) async => right(unit);
+    await notifier.autoStart(widgetRef);
+    expect(container.read(appSettingProvider).unboundedSessionCount, 1);
+  });
+
   testWidgets('pending auto-start ignores failure after disposal', (
     tester,
   ) async {

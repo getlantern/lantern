@@ -313,6 +313,32 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('long status wraps beside the info icon at large text', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      SingleChildScrollView(
+        child: ActionModeStatusCard(
+          status: 'Waiting to start · Direct connection',
+          enabled: true,
+          ready: false,
+          busy: false,
+          hasError: false,
+          activeCount: 0,
+          totalCount: 219,
+          onToggle: () {},
+          onInfo: () {},
+        ),
+      ),
+      size: const Size(320, 568),
+      scale: 2,
+    );
+    expect(find.byKey(const Key('action-mode.info')), findsOneWidget);
+    expect(find.byKey(const Key('action-mode.toggle')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('keeps lifetime impact visible while sharing is disabled', (
     tester,
   ) async {
@@ -321,7 +347,8 @@ void main() {
     expect(find.text('0 people'), findsOneWidget);
     expect(find.text('Total people helped to date'), findsOneWidget);
     expect(find.text('Helping right now'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    // No onTotalTap, so no tap affordance either.
+    expect(find.text('View advanced stats'), findsNothing);
     expect(find.byKey(const Key('action-mode.info')), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -552,6 +579,7 @@ void main() {
       final link = find.byKey(const Key('action-mode.total-helped'));
       await tester.ensureVisible(link);
       await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('View advanced stats'), findsOneWidget);
       await tester.tap(link);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
