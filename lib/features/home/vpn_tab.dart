@@ -44,8 +44,7 @@ class VpnTab extends ConsumerWidget {
                       if (!isUserPro) ...{
                         if (serverType == ServerLocationType.privateServer)
                           InfoRow(text: 'private_server_usage_message'.i18n)
-                        else if (!PlatformUtils.isIOS &&
-                            !isSmallScreen(context))
+                        else if (!isSmallScreen(context))
                           const DataUsage(),
                       },
                       const SizedBox(height: 8),
@@ -80,13 +79,12 @@ class _SettingCard extends ConsumerWidget {
 
     // Small screens only (engineering#3046); regular screens show the
     // standalone DataUsage card in VpnTab instead. Same visibility rules:
-    // free users, not iOS, not private servers.
+    // free users, not private servers.
     final smallScreen = isSmallScreen(context);
     final showDataUsage =
         smallScreen &&
         !isUserPro &&
-        serverType != ServerLocationType.privateServer &&
-        !PlatformUtils.isIOS;
+        serverType != ServerLocationType.privateServer;
     final showRoutingMode = !PlatformUtils.isIOS;
     final showSplitTunneling =
         PlatformUtils.isAndroid ||
