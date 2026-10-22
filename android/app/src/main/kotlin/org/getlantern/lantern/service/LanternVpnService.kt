@@ -202,6 +202,12 @@ open class LanternVpnService :
         }
     }
 
+    override fun onRevoke() {
+        // Default onRevoke only calls stopSelf(), so the UI never hears the tunnel is gone.
+        AppLogger.w(TAG, "VPN revoked by the system, another VPN app took over the tunnel")
+        doStopVPN()
+    }
+
     override fun onDestroy() {
         try {
             AppLogger.d(TAG, "destroying LanternVpnService")
@@ -229,6 +235,8 @@ open class LanternVpnService :
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         QuickTileService.triggerUpdateTileState(this@LanternVpnService, false)
                     }
+                    // TUN fd is closed above, so the tunnel is down.
+                    VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
                     serviceCleanUp()
                 }
             }
