@@ -1537,14 +1537,13 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   }) async {
     try {
       final result = await _methodChannel.invokeMethod<String>(
         'addServerBasedOnURLs',
         {
           'urls': urls,
-          'skipValidation': skipCertVerification,
+          'skipValidation': false,
           'serverName': '',
         },
       );

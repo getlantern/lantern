@@ -361,7 +361,6 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   });
 
   Future<Either<Failure, Unit>> cancelDeployment();
