@@ -202,6 +202,12 @@ open class LanternVpnService :
         }
     }
 
+    override fun onRevoke() {
+        AppLogger.w(TAG, "VPN revoked by the system, another VPN app took over the tunnel")
+        // stopSelf() leads to onDestroy, which tears down the tunnel and posts Disconnected.
+        super.onRevoke()
+    }
+
     override fun onDestroy() {
         try {
             AppLogger.d(TAG, "destroying LanternVpnService")
@@ -212,7 +218,9 @@ open class LanternVpnService :
             // Native teardown can block. Keep it off the main thread and let it
             // outlive serviceScope; the gate waits for any native start to finish.
             teardownScope.launch {
-                vpnStartGate.stop {
+                // onStopping runs after the gate cancels any in-flight start, so
+                // nothing can publish Connected after this Disconnected.
+                vpnStartGate.stop(onStopping = { VpnStatusManager.postVPNStatus(VPNStatus.Disconnected) }) {
                     runCatching {
                         if (Mobile.isRadianceConnected()) {
                             Mobile.stopVPN()
@@ -671,7 +679,7 @@ open class LanternVpnService :
             Opts().apply {
                 dataDir = initConfigDir()
                 logDir = logDir()
-                logLevel = "trace"
+                logLevel = if (BuildConfig.DEBUG) "trace" else "info"
                 deviceid = DeviceUtil.deviceId()
                 appVersion = BuildConfig.VERSION_NAME
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
