@@ -10,6 +10,7 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
 import '../../core/common/common.dart';
+import '../../core/utils/deeplink_utils.dart';
 import '../auth/provider/auth_notifier.dart';
 
 @RoutePage(name: 'DeleteAccount')
@@ -134,7 +135,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
 
     if (token.isEmpty) {
       appLogger.warning('Missing OAuth token during account deletion');
-      context.showSnackBarError('it_looks_like_something_went_wrong'.i18n);
+      context.showSnackBarError(oAuthSignInFailedKey.i18n);
       return;
     }
 
@@ -147,7 +148,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
         e,
         st,
       );
-      context.showSnackBarError('it_looks_like_something_went_wrong'.i18n);
+      context.showSnackBarError(oAuthSignInFailedKey.i18n);
       return;
     }
 
