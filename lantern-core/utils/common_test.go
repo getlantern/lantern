@@ -5,6 +5,7 @@ import "testing"
 type testInterfaceListener struct{ id int }
 
 func (*testInterfaceListener) UpdateDefaultInterface(string, int32, bool, bool) {}
+func (*testInterfaceListener) UpdateNetworkPath(string)                         {}
 
 func TestSameInterfaceUpdateListener(t *testing.T) {
 	first := &testInterfaceListener{id: 1}
