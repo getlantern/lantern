@@ -258,14 +258,19 @@ jobs:
             exit "$SMOKE_EXIT"
           fi
 
-          if ! grep -Eq 'IPC request.*path=/vpn/connect' /tmp/lanternd-journal-ui-smoke.log; then
-            echo "Missing /vpn/connect IPC request in lanternd journal"
+          # The daemon's per-request "IPC request" line is trace-level, and
+          # release/beta lanternd runs at info and demotes any persisted trace
+          # on launch, so that line can never appear in these journals. The UI
+          # is the only IPC client in this harness, so the daemon's info-level
+          # lifecycle lines prove the same connect/disconnect round trip.
+          if ! grep -Fq 'VPN connected successfully' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "lanternd journal never logged 'VPN connected successfully'"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi
 
-          if ! grep -Eq 'IPC request.*path=/vpn/disconnect' /tmp/lanternd-journal-ui-smoke.log; then
-            echo "Missing /vpn/disconnect IPC request in lanternd journal"
+          if ! grep -Fq 'VPN disconnected successfully' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "lanternd journal never logged 'VPN disconnected successfully'"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi

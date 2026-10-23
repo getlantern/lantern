@@ -655,13 +655,8 @@ msgstr "Share My Connection"
 msgid "share_my_connection_subtitle"
 msgstr "Let other Lantern users route through your connection to bypass censorship."
 
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr "Help others bypass censorship by securely sharing your connection."
-
-# Info-bubble tooltip on the Unbounded tab header
+# Tooltip of the info icon beside the status, which reopens the welcome
+# dialog (showActionModeWelcomeDialog).
 msgid "about_unbounded"
 msgstr "About Action Mode"
 
@@ -711,17 +706,16 @@ msgstr "Couldn't share: %s"
 msgid "smc_status_error_generic"
 msgstr "Couldn't share — try toggling again"
 
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "People you are helping right now:"
+# Status card — stat row labels, with the count ("5 people") underneath.
+# Counts the number of remote clients currently routing through THIS
+# device (people being helped, not helpers).
+msgid "action_mode_helping_now"
+msgstr "Helping right now"
 
 # Lifetime ("to date") rather than daily — backed by the persisted
 # unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "Total people helped to date:"
+msgid "action_mode_total_helped"
+msgstr "Total people helped to date"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -1178,6 +1172,12 @@ msgstr "Private Servers"
 
 msgid "fastest_server"
 msgstr "Fastest Server"
+
+msgid "latency_testing"
+msgstr "Testing…"
+
+msgid "latency_unreachable"
+msgstr "Unreachable"
 
 msgid "join_my_private_server"
 msgstr "Join My Lantern Private Server"
@@ -2055,27 +2055,45 @@ msgstr "Tap Edit, then Add Widget."
 msgid "widget_step_3"
 msgstr "Search for Lantern, choose a size, and tap add widget."
 
-# Advanced stats: low-emphasis link at the bottom of the Action Mode status
-# card and the title of the bottom sheet it opens. "Data relayed" counts
-# bytes this device forwarded for the people it helps, in either sharing mode.
-msgid "advanced_stats"
-msgstr "Advanced stats"
+# Stats sheet, opened from the "Total people helped to date" row of the
+# Action Mode status card. The subtitle's first %s is the lifetime count,
+# the second the current one.
+msgid "people_helped_title"
+msgstr "People you have helped"
+
+msgid "people_helped_subtitle"
+msgstr "%s helped to date · %s right now"
+
+msgid "advanced_stats_by_country"
+msgstr "By country, all time"
+
+# Under a country name; %s is a byte count such as "229 kB".
+msgid "advanced_stats_relayed"
+msgstr "%s relayed"
+
+# "Data relayed" counts bytes this device forwarded for the people it
+# helps, in either sharing mode.
+msgid "advanced_stats_data_relayed"
+msgstr "Data relayed"
+
+msgid "advanced_stats_this_session"
+msgstr "This session"
+
+msgid "advanced_stats_all_time_short"
+msgstr "All time"
 
 msgid "advanced_stats_current_speed"
 msgstr "Current speed"
 
-msgid "advanced_stats_session"
-msgstr "Data relayed this session"
+# Value of the speed row. The first %s is the rate sent to the people
+# helped, the second the rate received from them.
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
 
-msgid "advanced_stats_all_time"
-msgstr "Data relayed all time"
-
-# Legend for the ↓ / ↑ arrows next to the figures above.
-msgid "advanced_stats_direction_legend"
-msgstr "↓ sent to the people you help · ↑ received from them"
-
-msgid "advanced_stats_countries"
-msgstr "Countries you've helped"
+# Under a data figure. The first %s was sent to the people helped, the
+# second received from them.
+msgid "advanced_stats_directions"
+msgstr "Sent %s · Received %s"
 
 msgid "advanced_stats_no_countries"
 msgstr "No one helped yet. Countries will appear here once people connect through you."
@@ -2101,16 +2119,12 @@ msgstr "Direct connection"
 msgid "share_mode_unbounded"
 msgstr "WebRTC"
 
-# Status line on the Action Mode card: the first %s is the status (e.g.
-# "Enabled"), the second is the sharing mode (e.g. "WebRTC").
-msgid "smc_status_with_mode"
-msgstr "%s · %s"
-
 msgid "advanced_stats_mode"
 msgstr "Sharing mode"
 
-# Under the mode when Lantern switched to Unbounded because a direct
-# connection failed. %s is the reason, e.g. "Your router accepted the port
-# mapping but isn't forwarding traffic to this computer."
+
 msgid "advanced_stats_mode_fallback"
 msgstr "Direct connection unavailable: %s"
+
+msgid "view_advanced_stats"
+msgstr "View advanced stats"

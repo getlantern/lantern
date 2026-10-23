@@ -1278,6 +1278,12 @@ msgstr "निजी सर्वर"
 msgid "fastest_server"
 msgstr "सबसे तेज़ सर्वर"
 
+msgid "latency_testing"
+msgstr "परीक्षण हो रहा है…"
+
+msgid "latency_unreachable"
+msgstr "पहुँच से बाहर"
+
 msgid "join_my_private_server"
 msgstr "मेरे Lantern निजी सर्वर से जुड़ें"
 

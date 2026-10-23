@@ -1288,6 +1288,12 @@ msgstr "Servidores Privados"
 msgid "fastest_server"
 msgstr "Servidor Más Rápido"
 
+msgid "latency_testing"
+msgstr "Probando…"
+
+msgid "latency_unreachable"
+msgstr "Inaccesible"
+
 msgid "join_my_private_server"
 msgstr "Únete a mi Servidor Privado de Lantern"
 

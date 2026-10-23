@@ -1286,6 +1286,12 @@ msgstr "Частные серверы"
 msgid "fastest_server"
 msgstr "Самый быстрый сервер"
 
+msgid "latency_testing"
+msgstr "Проверка…"
+
+msgid "latency_unreachable"
+msgstr "Недоступен"
+
 msgid "join_my_private_server"
 msgstr "Присоединиться к моему частному серверу Lantern"
 
@@ -1974,7 +1980,7 @@ msgid "create_account_error"
 msgstr "Ошибка создания аккаунта"
 
 msgid "appearance"
-msgstr "Появление"
+msgstr "Внешний вид"
 
 msgid "light"
 msgstr "Светлый"

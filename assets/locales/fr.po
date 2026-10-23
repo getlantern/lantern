@@ -1107,6 +1107,12 @@ msgstr "Serveurs privés"
 msgid "fastest_server"
 msgstr "Serveur le plus rapide"
 
+msgid "latency_testing"
+msgstr "Test en cours…"
+
+msgid "latency_unreachable"
+msgstr "Injoignable"
+
 msgid "join_my_private_server"
 msgstr "Rejoindre mon serveur privé Lantern"
 

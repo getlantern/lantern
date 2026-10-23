@@ -1,0 +1,161 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/utils/referral_code.dart';
+
+void main() {
+  const appScheme = AppBuildInfo.appAuthScheme;
+  group('normalizeReferralCode', () {
+    test('trims codes without changing their case', () {
+      for (final code in ['PYGFJ4', 'half', 'Save15', 'Summer-20']) {
+        expect(normalizeReferralCode(code), code);
+      }
+      expect(normalizeReferralCode('  Save15  '), 'Save15');
+      expect(normalizeReferralCode('A' * 200), 'A' * 200);
+    });
+
+    test('rejects invalid input instead of removing characters', () {
+      for (final code in [
+        '',
+        '   ',
+        'A' * 201,
+        'SAVE 15',
+        'SAVE\n15',
+        'SAVE\u000015',
+        'ſAVE15',
+        'ßAVE15',
+        'ＳＡＶＥ15',
+        'SAVE_15',
+        'SAVE/15',
+        'SAVE%31%35',
+        'SAVE15&code=OTHER',
+        'LSG_PROBE_1512_HTTPS_AFF_20260918T0608Z:javascript:alert(1)',
+      ]) {
+        expect(normalizeReferralCode(code), isNull, reason: code);
+      }
+    });
+  });
+
+  group('affiliateCodeFromUri', () {
+    test('accepts the supported web and app link forms', () {
+      for (final link in [
+        'https://lantern.io/affiliate/HALF',
+        'https://www.lantern.io/affiliate/HALF',
+        'https://lantern.io:443/affiliate/HALF',
+        'https://lantern.io/affiliate/HALF/',
+        'https://lantern.io/affiliate?code=HALF',
+        'https://lantern.io/affiliate/?code=HALF',
+        'https://lantern.io/affiliate/%48ALF?utm_source=partner',
+        '$appScheme://affiliate/HALF',
+        '$appScheme://affiliate/HALF/',
+        '$appScheme://affiliate?code=HALF',
+        '$appScheme://affiliate/?code=HALF',
+      ]) {
+        expect(affiliateCodeFromUri(Uri.parse(link)), 'HALF', reason: link);
+      }
+    });
+
+    test('preserves code case in web and app links', () {
+      for (final base in [
+        'https://lantern.io/affiliate',
+        '$appScheme://affiliate',
+      ]) {
+        for (final separator in ['/', '?code=']) {
+          expect(
+            affiliateCodeFromUri(Uri.parse('$base${separator}Summer-20')),
+            'Summer-20',
+          );
+        }
+      }
+    });
+
+    test('rejects unsupported origins and routes', () {
+      for (final link in [
+        'http://lantern.io/affiliate/HALF',
+        'https://example.com/affiliate/HALF',
+        'https://lantern.io.example.com/affiliate/HALF',
+        'https://lantern.io@example.com/affiliate/HALF',
+        'https://example.com/lantern.io/affiliate/HALF',
+        'https://lantern.io:8443/affiliate/HALF',
+        'https://user@lantern.io/affiliate/HALF',
+        'https://lantern.io/affiliates/HALF',
+        'https://lantern.io/auth?code=HALF',
+        'https://lantern.io/affiliate/HALF/extra',
+        'https://lantern.io/affiliate//HALF',
+        'https://lantern.io/affiliate/HALF#code=OTHER',
+        '$appScheme://other/affiliate/HALF',
+        '$appScheme://affiliate:443/HALF',
+        '$appScheme://user@affiliate/HALF',
+        '$appScheme://affiliate/HALF/extra',
+      ]) {
+        expect(affiliateCodeFromUri(Uri.parse(link)), isNull, reason: link);
+      }
+    });
+
+    test('rejects an unconfigured app scheme', () {
+      final otherScheme = appScheme == 'lantern' ? 'other-app' : 'lantern';
+      expect(
+        affiliateCodeFromUri(Uri.parse('$otherScheme://affiliate/HALF')),
+        isNull,
+      );
+    });
+
+    test('rejects missing, ambiguous, and malformed code values', () {
+      for (final base in [
+        'https://lantern.io/affiliate',
+        '$appScheme://affiliate',
+      ]) {
+        for (final suffix in [
+          '',
+          '/',
+          '?code=',
+          '?code=HALF&code=OTHER',
+          '?code=HALF&code=HALF',
+          '?code=HALF&c%6fde=OTHER',
+          '/HALF?code=OTHER',
+          '/HALF?code=HALF',
+          '/%20HALF',
+          '?code=HALF%0A',
+          '?code=HALF%00',
+          '/HALF%2FOTHER',
+          '/HALF%5COTHER',
+          '/HALF%26code%3DOTHER',
+          '/HALF%252FOTHER',
+          '/%2548ALF',
+          '?code=HALF%26code%3DOTHER',
+          '?code=HALF%3DOTHER',
+          '?code=HALF%5COTHER',
+          '?code=%2548ALF',
+          '?code=HALF%',
+          '?code=HALF%GG',
+          '?code=%FF',
+          '?code=%C0%AF',
+          '/%FF',
+          '/HALF?utm_source=%FF',
+          '?code=${'A' * 201}',
+          '?code=LSG_PROBE_1512_HTTPS_AFF_20260918T0608Z%3Ajavascript%3Aalert%281%29',
+        ]) {
+          final link = '$base$suffix';
+          expect(affiliateCodeFromUri(Uri.parse(link)), isNull, reason: link);
+        }
+      }
+    });
+
+    test('applies the length limit to the decoded code in both link forms', () {
+      for (final base in [
+        'https://lantern.io/affiliate',
+        '$appScheme://affiliate',
+      ]) {
+        for (final separator in ['/', '?code=']) {
+          expect(
+            affiliateCodeFromUri(Uri.parse('$base$separator${'%41' * 200}')),
+            'A' * 200,
+          );
+          expect(
+            affiliateCodeFromUri(Uri.parse('$base$separator${'%41' * 201}')),
+            isNull,
+          );
+        }
+      }
+    });
+  });
+}
