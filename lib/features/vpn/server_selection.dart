@@ -12,6 +12,7 @@ import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
+import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -178,6 +179,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final displayName = autoLocation?.displayName ?? 'fastest_server'.i18n;
     final flag = autoLocation?.countryCode ?? '';
     final protocol = autoLocation?.protocol ?? '';
+    final autoTag = autoLocation?.tag;
+    final autoServer = autoTag == null
+        ? null
+        : ref.watch(availableServersProvider).value?.serverByTag(autoTag);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -206,9 +211,17 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                       color: context.textTertiary,
                     ),
                   ),
-            trailing: AppImage(
-              path: AppImagePaths.blot,
-              color: context.statusWarningBgDot,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                if (autoServer != null)
+                  LatencyIndicator(status: LatencyStatus.of(autoServer)),
+                AppImage(
+                  path: AppImagePaths.blot,
+                  color: context.statusWarningBgDot,
+                ),
+              ],
             ),
           ),
         ),
@@ -575,7 +588,14 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
           onExpansionChanged: (expanded) {
             setState(() => _isExpanded = expanded);
           },
-          trailing: ExpansionChevron(isExpanded: _isExpanded),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LatencyIndicator(status: LatencyStatus.best(widget.locations)),
+              const SizedBox(width: 8),
+              ExpansionChevron(isExpanded: _isExpanded),
+            ],
+          ),
           shape: const RoundedRectangleBorder(side: BorderSide.none),
           children: widget.locations.map((server) {
             return AppTile(
@@ -596,6 +616,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
+              trailing: LatencyIndicator(status: LatencyStatus.of(server)),
               onPressed: () => _onLocationSelected(context, server),
             );
           }).toList(),
@@ -606,10 +627,17 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
-      trailing: AppImage(
-        path: AppImagePaths.arrowForward,
-        height: 20.0,
-        color: context.textPrimary,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LatencyIndicator(status: LatencyStatus.best(widget.locations)),
+          const SizedBox(width: 8),
+          AppImage(
+            path: AppImagePaths.arrowForward,
+            height: 20.0,
+            color: context.textPrimary,
+          ),
+        ],
       ),
       onPressed: () => _showCountryBottomSheet(context),
     );
@@ -626,27 +654,67 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
       scrollControlDisabledMaxHeightRatio: 0.45,
       builder: (bottomSheetContext, scrollController) {
         return Flexible(
-          child: ListView.separated(
-            controller: scrollController,
-            padding: EdgeInsets.zero,
-            itemCount: widget.locations.length,
-            separatorBuilder: (_, _) =>
-                const DividerSpace(padding: EdgeInsets.zero),
-            itemBuilder: (_, index) {
-              final server = widget.locations[index];
-              final isSelected = widget.selectedServerTag == server.tag;
-
-              return SingleCityServerView(
-                nested: true,
-                onServerSelected: (selected) {
-                  Navigator.of(bottomSheetContext).pop();
-                  widget.onServerSelected(selected);
-                },
-                server: server,
-                isSelected: isSelected,
-              );
+          child: CountryCitySheetList(
+            country: widget.country,
+            initialLocations: widget.locations,
+            selectedServerTag: widget.selectedServerTag,
+            scrollController: scrollController,
+            onServerSelected: (selected) {
+              Navigator.of(bottomSheetContext).pop();
+              widget.onServerSelected(selected);
             },
           ),
+        );
+      },
+    );
+  }
+}
+
+/// The city rows inside a country's bottom sheet. The sheet is its own route,
+/// so it watches [availableServersProvider] itself; otherwise probe refreshes
+/// that land while it's open would leave its latency indicators stale.
+/// [initialLocations] is used only while there's no server data at all; a
+/// refresh that drops the country empties the list rather than resurrecting
+/// cities that are gone.
+class CountryCitySheetList extends ConsumerWidget {
+  final String country;
+  final List<Server> initialLocations;
+  final String selectedServerTag;
+  final ScrollController? scrollController;
+  final OnServerSelected onServerSelected;
+
+  const CountryCitySheetList({
+    super.key,
+    required this.country,
+    required this.initialLocations,
+    required this.selectedServerTag,
+    required this.onServerSelected,
+    this.scrollController,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref
+        .watch(availableServersProvider)
+        .value
+        ?.lanternServerLocations
+        .where((s) => s.location.country == country)
+        .toList();
+    final locations = current ?? initialLocations;
+
+    return ListView.separated(
+      controller: scrollController,
+      padding: EdgeInsets.zero,
+      itemCount: locations.length,
+      separatorBuilder: (_, _) => const DividerSpace(padding: EdgeInsets.zero),
+      itemBuilder: (_, index) {
+        final server = locations[index];
+        return SingleCityServerView(
+          key: ValueKey(server.tag),
+          nested: true,
+          onServerSelected: onServerSelected,
+          server: server,
+          isSelected: selectedServerTag == server.tag,
         );
       },
     );
