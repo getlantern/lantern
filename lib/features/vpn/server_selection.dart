@@ -12,6 +12,7 @@ import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
+import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -178,6 +179,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final displayName = autoLocation?.displayName ?? 'fastest_server'.i18n;
     final flag = autoLocation?.countryCode ?? '';
     final protocol = autoLocation?.protocol ?? '';
+    final autoTag = autoLocation?.tag;
+    final autoServer = autoTag == null
+        ? null
+        : ref.watch(availableServersProvider).value?.serverByTag(autoTag);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -206,9 +211,17 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                       color: context.textTertiary,
                     ),
                   ),
-            trailing: AppImage(
-              path: AppImagePaths.blot,
-              color: context.statusWarningBgDot,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                if (autoServer != null)
+                  LatencyIndicator(status: LatencyStatus.of(autoServer)),
+                AppImage(
+                  path: AppImagePaths.blot,
+                  color: context.statusWarningBgDot,
+                ),
+              ],
             ),
           ),
         ),
@@ -575,7 +588,14 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
           onExpansionChanged: (expanded) {
             setState(() => _isExpanded = expanded);
           },
-          trailing: ExpansionChevron(isExpanded: _isExpanded),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LatencyIndicator(status: LatencyStatus.best(widget.locations)),
+              const SizedBox(width: 8),
+              ExpansionChevron(isExpanded: _isExpanded),
+            ],
+          ),
           shape: const RoundedRectangleBorder(side: BorderSide.none),
           children: widget.locations.map((server) {
             return AppTile(
@@ -596,6 +616,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
+              trailing: LatencyIndicator(status: LatencyStatus.of(server)),
               onPressed: () => _onLocationSelected(context, server),
             );
           }).toList(),
@@ -606,10 +627,17 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
-      trailing: AppImage(
-        path: AppImagePaths.arrowForward,
-        height: 20.0,
-        color: context.textPrimary,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LatencyIndicator(status: LatencyStatus.best(widget.locations)),
+          const SizedBox(width: 8),
+          AppImage(
+            path: AppImagePaths.arrowForward,
+            height: 20.0,
+            color: context.textPrimary,
+          ),
+        ],
       ),
       onPressed: () => _showCountryBottomSheet(context),
     );
