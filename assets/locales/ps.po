@@ -1291,6 +1291,12 @@ msgstr "شخصي سرورونه"
 msgid "fastest_server"
 msgstr "ترټولو ګړندی سرور"
 
+msgid "latency_testing"
+msgstr "د ازموینې په حال کې…"
+
+msgid "latency_unreachable"
+msgstr "د لاسرسي وړ نه دی"
+
 msgid "join_my_private_server"
 msgstr "زما د Lantern شخصي سرور سره یوځای شئ"
 

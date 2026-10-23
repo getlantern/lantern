@@ -1281,6 +1281,12 @@ msgstr "Máy chủ riêng"
 msgid "fastest_server"
 msgstr "Máy chủ nhanh nhất"
 
+msgid "latency_testing"
+msgstr "Đang kiểm tra…"
+
+msgid "latency_unreachable"
+msgstr "Không thể kết nối"
+
 msgid "join_my_private_server"
 msgstr "Tham gia máy chủ riêng Lantern của tôi"
 
