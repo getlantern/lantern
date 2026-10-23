@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/getlantern/radiance/common/processpath"
+	"github.com/getlantern/lantern/lantern-core/internal/processpath"
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
 	"golang.org/x/sys/windows/registry"

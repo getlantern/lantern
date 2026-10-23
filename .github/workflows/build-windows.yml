@@ -176,11 +176,11 @@ jobs:
         shell: pwsh
         working-directory: lantern-core
         env:
-          RADIANCE_REQUIRE_SHORT_PATH_TEST: ${{ inputs.run_split_tunnel_apps_smoke && '1' || '' }}
+          LANTERN_REQUIRE_SHORT_PATH_TEST: ${{ inputs.run_split_tunnel_apps_smoke && '1' || '' }}
         run: |
-          go test -v -timeout 2m ./apps github.com/getlantern/radiance/common/processpath
+          go test -v -timeout 2m ./apps ./internal/processpath
           if ($LASTEXITCODE -ne 0) { throw 'Windows executable path tests failed' }
-          go test -v -timeout 2m -tags 'with_gvisor,with_quic,with_wireguard,with_utls,with_grpc' -run 'TestSplitTunnelWindows' github.com/getlantern/radiance/vpn
+          go test -v -timeout 2m -tags 'with_gvisor,with_quic,with_wireguard,with_utls,with_grpc' -run '^TestSplitTunnel' .
           if ($LASTEXITCODE -ne 0) { throw 'Windows split-tunnel rule tests failed' }
           go test ./cmd/split_tunnel_probe
           if ($LASTEXITCODE -ne 0) { throw 'Split-tunnel probe tests failed' }
@@ -558,6 +558,15 @@ jobs:
         timeout-minutes: 15
         run: |
           flutter test integration_test/auth/auth_smoke_test.dart -d windows --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
+
+      - name: Upload Windows split-tunnel screenshots
+        if: ${{ always() && inputs.run_split_tunnel_apps_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-split-tunnel-screenshots
+          path: build/windows-split-tunnel-smoke/*.png
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Upload Windows installer
         if: ${{ always() && inputs.package_installer }}

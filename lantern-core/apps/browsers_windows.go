@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/getlantern/radiance/common/processpath"
+	"github.com/getlantern/lantern/lantern-core/internal/processpath"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/features/split_tunneling/confirm_app_bypass.dart';
+import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
@@ -34,6 +36,8 @@ class WindowsExecutablePicker extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final busy = useState(false);
     final apps = ref.watch(splitTunnelingAppsProvider);
+    // Keep discovery active while the file dialog is open.
+    ref.watch(appsDataProvider);
 
     Future<void> pickExecutable() async {
       if (busy.value) return;
@@ -41,6 +45,10 @@ class WindowsExecutablePicker extends HookConsumerWidget {
       try {
         final path = await ref.read(windowsExecutablePickerProvider)();
         if (path == null || !context.mounted) return;
+        final installed = await ref.read(appsDataProvider.future);
+        if (!context.mounted) return;
+        final app = windowsEnabledApps(installed, [path]).single;
+        if (!await confirmAppBypass(context, app) || !context.mounted) return;
         final failure = await ref
             .read(splitTunnelingAppsProvider.notifier)
             .addExecutable(path);

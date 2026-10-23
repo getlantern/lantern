@@ -15,7 +15,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/getlantern/radiance/common/processpath"
+	"github.com/getlantern/lantern/lantern-core/internal/processpath"
 )
 
 const cacheFilename = "apps_cache.json"

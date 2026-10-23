@@ -464,10 +464,14 @@ try {
     $probePackage = Join-Path $PSScriptRoot "../../lantern-core/cmd/split_tunnel_probe"
     & go build -trimpath -o $probePath $probePackage
     if ($LASTEXITCODE -ne 0) { throw "Failed to build split-tunnel probe" }
+    $cliPath = Join-Path $splitTunnelFixtureDirectory "lantern-cli.exe"
+    & go build -mod=mod -trimpath -tags "with_gvisor,with_quic,with_wireguard,with_utls,with_grpc" -o $cliPath github.com/getlantern/radiance/cmd/lantern
+    if ($LASTEXITCODE -ne 0) { throw "Failed to build split-tunnel fixture CLI" }
+    $screenshotDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../build/windows-split-tunnel-smoke"))
     Invoke-FlutterSmokeTest `
       -Path $SplitTunnelAppsTestPath `
       -Description "App split tunneling smoke test" `
-      -DartDefines @("SPLIT_TUNNEL_PROBE=$probePath")
+      -DartDefines @("SPLIT_TUNNEL_PROBE=$probePath", "SPLIT_TUNNEL_CLI=$cliPath", "SPLIT_TUNNEL_SCREENSHOT_DIR=$screenshotDirectory")
   } else {
     Write-Step "Skipping app split tunneling smoke test."
   }
@@ -542,7 +546,11 @@ finally {
   } catch {
     Write-Warning ("Failed to clean up service {0}: {1}" -f $ServiceName, $_)
   }
-  if ($splitTunnelFixtureDirectory -and (Test-Path -LiteralPath $splitTunnelFixtureDirectory)) {
-    Remove-Item -LiteralPath $splitTunnelFixtureDirectory -Recurse -Force
+  try {
+    if ($splitTunnelFixtureDirectory -and (Test-Path -LiteralPath $splitTunnelFixtureDirectory)) {
+      Remove-Item -LiteralPath $splitTunnelFixtureDirectory -Recurse -Force
+    }
+  } catch {
+    Write-Warning ("Failed to clean up split-tunnel fixtures: {0}" -f $_)
   }
 }

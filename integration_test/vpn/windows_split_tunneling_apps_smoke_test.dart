@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:ffi/ffi.dart';
 import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,10 +14,12 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
+import 'package:lantern/features/split_tunneling/windows_executable_picker.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/main.dart' as app;
 import 'package:path/path.dart' as p;
 
+import '../utils/app_robot.dart';
 import '../utils/widget_wait_utils.dart';
 import 'split_tunneling_smoke_helpers.dart';
 import 'vpn_smoke_helpers.dart';
@@ -83,6 +87,20 @@ Future<String> _addExecutable(
   final deadline = DateTime.now().add(const Duration(seconds: 20));
   while (DateTime.now().isBefore(deadline)) {
     await tester.pump(const Duration(milliseconds: 200));
+    final confirmation = find.ancestor(
+      of: find.text('bypass_app_first_time_title'.i18n),
+      matching: find.byType(AlertDialog),
+    );
+    if (confirmation.evaluate().isNotEmpty) {
+      await _tap(
+        tester,
+        find.descendant(
+          of: confirmation,
+          matching: find.widgetWithText(PrimaryButton, 'add'.i18n),
+        ),
+      );
+      continue;
+    }
     final added = (await readPaths()).toSet().difference(before);
     if (added.isNotEmpty) {
       expect(added, hasLength(1));
@@ -175,6 +193,69 @@ Future<void> _expectPersistedRule(
   );
 }
 
+String _windowsPathName(String path, String function) {
+  final resolve = DynamicLibrary.open('kernel32.dll')
+      .lookupFunction<
+        Uint32 Function(Pointer<Utf16>, Pointer<Utf16>, Uint32),
+        int Function(Pointer<Utf16>, Pointer<Utf16>, int)
+      >(function);
+  const capacity = 32768;
+  final input = path.toNativeUtf16();
+  final output = calloc<Uint16>(capacity).cast<Utf16>();
+  try {
+    final length = resolve(input, output, capacity);
+    expect(length, allOf(greaterThan(0), lessThan(capacity)));
+    return output.toDartString(length: length);
+  } finally {
+    calloc.free(input);
+    calloc.free(output);
+  }
+}
+
+Future<void> _updateLegacyRule(
+  String cli,
+  String operation,
+  String path,
+) async {
+  final process = await Process.start(cli, [
+    'split-tunnel',
+    operation,
+    '--type',
+    'process-path',
+    '--value',
+    path,
+  ], runInShell: false);
+  try {
+    final result = await Future.wait<Object>([
+      process.exitCode,
+      process.stdout.transform(utf8.decoder).join(),
+      process.stderr.transform(utf8.decoder).join(),
+    ]).timeout(const Duration(seconds: 20));
+    expect(
+      result[0],
+      0,
+      reason: 'Legacy rule $operation failed: ${result[1]} ${result[2]}',
+    );
+  } finally {
+    process.kill();
+    await process.exitCode.timeout(const Duration(seconds: 5));
+  }
+}
+
+Future<void> _captureScreenshot(WidgetTester tester, String name) async {
+  const directory = String.fromEnvironment(
+    'SPLIT_TUNNEL_SCREENSHOT_DIR',
+    defaultValue: 'build/windows-split-tunnel-smoke',
+  );
+  await tester.pump(const Duration(milliseconds: 300));
+  await AppRobot(tester).captureScreenshot(name, outputDirectory: directory);
+  expect(
+    await File(p.join(directory, '$name.png')).exists(),
+    isTrue,
+    reason: 'Windows split-tunneling screenshot was not captured',
+  );
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -189,6 +270,13 @@ void main() {
         reason: 'Run through windows_smoke_suite.ps1',
       );
       expect(await File(probePath).exists(), isTrue);
+      const cliPath = String.fromEnvironment('SPLIT_TUNNEL_CLI');
+      expect(
+        cliPath,
+        isNotEmpty,
+        reason: 'Run through windows_smoke_suite.ps1',
+      );
+      expect(await File(cliPath).exists(), isTrue);
 
       final fixtures = await Directory(
         p.dirname(probePath),
@@ -204,6 +292,24 @@ void main() {
       final launcher = await copyProbe('Game Launcher', 'Launcher.exe');
       final child = await copyProbe('Game Files', 'Game.exe');
       final unrelated = await copyProbe('Other Game', 'Game.exe');
+      final legacy = await copyProbe(
+        'Legacy Game 遊戲',
+        'Legacy Game Client.exe',
+      );
+      final legacyShort = _windowsPathName(legacy, 'GetShortPathNameW');
+      final legacyRule = windowsAppPathId(
+        _windowsPathName(legacy, 'GetLongPathNameW'),
+      );
+      expect(
+        p.windows.basename(legacyShort).toLowerCase(),
+        isNot(p.windows.basename(legacy).toLowerCase()),
+        reason: 'This smoke requires real 8.3 aliases on the fixture volume',
+      );
+      addTearDown(() async {
+        for (final path in [legacyShort, legacyRule]) {
+          await _updateLegacyRule(cliPath, 'remove', path);
+        }
+      });
 
       await app.main();
       final finders = VpnSmokeFinders();
@@ -269,10 +375,23 @@ void main() {
         );
 
         unawaited(appRouter.push(const AppsSplitTunneling()));
+        await WidgetWaitUtils.waitForFinder(
+          tester,
+          find.byType(WindowsExecutablePicker),
+          timeout: const Duration(seconds: 20),
+        );
+        await container.read(splitTunnelingAppsProvider.future);
+        await tester.ensureVisible(find.byType(WindowsExecutablePicker));
+        await _captureScreenshot(tester, 'windows-executable-picker');
         final launcherRule = await _addExecutable(tester, picker, launcher);
         await _expectPersistedRule(launcherRule, present: true);
         appRouter.popUntilRoot();
         await tester.pump(const Duration(milliseconds: 400));
+
+        // Seed through the daemon so Lantern has not normalized this old rule.
+        await _updateLegacyRule(cliPath, 'add', legacyShort);
+        await _expectPersistedRule(legacyShort, present: true);
+        await _expectPersistedRule(legacyRule, present: false);
         await _tap(tester, finders.vpnToggle);
         await states.waitFor(
           tester,
@@ -280,6 +399,14 @@ void main() {
           timeout: const Duration(seconds: 60),
           reason: 'VPN did not connect',
           allowVpnConflict: true,
+        );
+        await _expectPersistedRule(legacyShort, present: false);
+        await _expectPersistedRule(legacyRule, present: true);
+        await _waitForIP(
+          tester,
+          legacy,
+          accepts: (ip) => ip == baseline,
+          reason: 'The migrated legacy executable did not bypass the VPN',
         );
 
         await _waitForIP(
@@ -299,6 +426,7 @@ void main() {
         unawaited(appRouter.push(const AppsSplitTunneling()));
         final childRule = await _addExecutable(tester, picker, child);
         await _expectPersistedRule(childRule, present: true);
+        await _captureScreenshot(tester, 'windows-selected-executable');
         await _waitForIP(
           tester,
           launcher,

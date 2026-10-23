@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -11,12 +10,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
-import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/alphabet_index_bar.dart';
+import 'package:lantern/features/split_tunneling/confirm_app_bypass.dart';
 import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
@@ -303,40 +301,13 @@ class AppsSplitTunneling extends HookConsumerWidget {
     );
   }
 
-  /// Show info dialog for first time user
   Future<void> onTapAddApp(
     BuildContext context,
     SplitTunnelingApps notifier,
     AppData app,
   ) async {
-    if (app.isBrowser) {
-      await AppDialog.browserBypassWarningDialog(
-        context: context,
-        browserName: app.name,
-        onAddAnyway: () => notifier.toggleApp(app),
-      );
-      return;
-    }
-    final storage = sl<LocalStorageService>();
-    if (!storage.hasSeenBypassAppDialog) {
-      await AppDialog.show(
-        context: context,
-        header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
-        centeredTitle: true,
-        title: 'bypass_app_first_time_title'.i18n,
-        body: 'bypass_app_first_time_body'.i18n.fill([app.name]),
-        primaryLabel: 'add'.i18n,
-        onPrimaryPressed: () {
-          // Mark seen only on confirm; cancelling should show the
-          // explainer again next time.
-          unawaited(storage.markBypassAppDialogSeen());
-          notifier.toggleApp(app);
-        },
-        secondaryLabel: 'cancel'.i18n,
-      );
-      return;
-    }
-    notifier.toggleApp(app);
+    if (!await confirmAppBypass(context, app) || !context.mounted) return;
+    await notifier.toggleApp(app);
   }
 
   /// Warn when Select All would put browsers on the bypass list
