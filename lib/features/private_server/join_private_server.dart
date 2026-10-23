@@ -237,6 +237,13 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
   }
 
   Future<void> onJoinServer(String urls, String serverName) async {
+    // The nickname becomes the server tag, so it replaces the name in the link.
+    final uri = Uri.tryParse(urls.trim());
+    if (uri != null) {
+      urls = uri
+          .replace(queryParameters: {...uri.queryParameters, 'name': serverName})
+          .toString();
+    }
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerProvider.notifier)

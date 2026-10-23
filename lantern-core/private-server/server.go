@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"regexp"
 
 	"strconv"
@@ -344,7 +345,7 @@ func CancelDeployment() error {
 
 // AddServerManually adds a server manually to the VPN client.
 // It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
-func AddServerManually(ip, port, accessToken, tag string, vpnClient *ipc.Client, events utils.PrivateServerEventListener) error {
+func AddServerManually(ip, port, accessToken, tag string, joined bool, vpnClient *ipc.Client, events utils.PrivateServerEventListener) error {
 	slog.Debug("Adding server manually", slog.String("ip", ip), slog.String("port", port), slog.String("tag", tag))
 	portInt, err := strconv.Atoi(port)
 	if err != nil {
@@ -364,12 +365,15 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *ipc.Client,
 	location := getGeoInfo(ip)
 	loc := geoLocation(location)
 	ctx := context.Background()
-	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, loc, false)
+	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, loc, joined)
 	if err != nil {
 		return err
 	}
 	slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
 	resp.Tag = tag
+	if events == nil {
+		return nil
+	}
 
 	resp.Location = location
 	server, jerr := json.Marshal(resp)
@@ -432,4 +436,31 @@ func geoLocation(s string) C.ServerLocation {
 		return C.ServerLocation{}
 	}
 	return C.ServerLocation{City: match[1], Country: match[2], CountryCode: match[3]}
+}
+
+// Invite is the connection info carried by a private server invite link.
+type Invite struct {
+	IP, Port, Token, Name string
+}
+
+// ParseInviteURL extracts an Invite from links such as
+// lantern//private-server?ip=..&port=..&token=..&name=.. (also the https://lantern.io
+// and lantern:// forms). ok is false for anything that is not an invite.
+func ParseInviteURL(raw string) (inv Invite, ok bool) {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || !strings.Contains(u.Host+u.Path, "private-server") {
+		return Invite{}, false
+	}
+	q := u.Query()
+	inv = Invite{IP: q.Get("ip"), Port: q.Get("port"), Token: q.Get("token"), Name: q.Get("name")}
+	if inv.IP == "" || inv.Port == "" || inv.Token == "" {
+		return Invite{}, false
+	}
+	if inv.Name == "" {
+		inv.Name = q.Get("alias")
+	}
+	if inv.Name == "" {
+		inv.Name = inv.IP
+	}
+	return inv, true
 }
