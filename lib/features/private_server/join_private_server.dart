@@ -265,7 +265,8 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
               .forceFetchAvailableServers(),
         );
         context.hideLoadingDialog();
-        appLogger.info("Successfully started joining private server.");
+        appLogger.info("Successfully joined private server.");
+        showSuccessDialog(serverName);
       },
     );
   }
