@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +8,7 @@ import 'package:lantern/core/utils/url_utils.dart';
 import 'package:lantern/core/widgets/custom_app_bar.dart' as lantern_widgets;
 
 import '../utils/widget_wait_utils.dart';
+import 'split_tunneling_smoke_helpers.dart';
 import 'vpn_smoke_helpers.dart';
 
 const _vpnStateLabels = <VPNStatus, String>{
@@ -23,52 +23,12 @@ const _vpnStateLabels = <VPNStatus, String>{
 const _splitTunnelDomainInput = 'api64.ipify.org';
 const _splitTunnelEndpoint = 'https://api64.ipify.org';
 const _regularEndpoint = 'https://icanhazip.com';
-const _splitTunnelWindowsPublicPath =
-    r'C:\Users\Public\Lantern\data\split-tunnel.json';
-
-List<String> _splitTunnelRuleFileCandidates() {
-  final candidates = <String>{_splitTunnelWindowsPublicPath};
-
-  final programData = Platform.environment['ProgramData'];
-  if (programData != null && programData.isNotEmpty) {
-    candidates.add('$programData\\Lantern\\data\\split-tunnel.json');
-  }
-
-  final localAppData = Platform.environment['LOCALAPPDATA'];
-  if (localAppData != null && localAppData.isNotEmpty) {
-    candidates.add('$localAppData\\Lantern\\data\\split-tunnel.json');
-  }
-
-  return candidates.toList(growable: false);
-}
-
-Future<MapEntry<String, String>?> _readSplitTunnelConfigFromDisk() async {
-  if (!Platform.isWindows) {
-    return null;
-  }
-
-  for (final path in _splitTunnelRuleFileCandidates()) {
-    final file = File(path);
-    if (!await file.exists()) {
-      continue;
-    }
-    try {
-      final content = await file.readAsString();
-      return MapEntry(path, content);
-    } catch (error) {
-      debugPrint('Split tunnel config read failed at "$path": $error');
-    }
-  }
-
-  return null;
-}
-
 Future<void> _printSplitTunnelConfigSnapshot(String stage) async {
-  final snapshot = await _readSplitTunnelConfigFromDisk();
+  final snapshot = await readSplitTunnelConfigFromDisk();
   if (snapshot == null) {
     debugPrint(
       'Split tunnel config snapshot [$stage]: file not found. '
-      'Checked: ${_splitTunnelRuleFileCandidates().join(', ')}',
+      'Checked: ${splitTunnelRuleFileCandidates().join(', ')}',
     );
     return;
   }
@@ -78,41 +38,6 @@ Future<void> _printSplitTunnelConfigSnapshot(String stage) async {
     'Split tunnel config snapshot [$stage] (${snapshot.key}): '
     '${content.isEmpty ? '(empty file)' : content}',
   );
-}
-
-bool _splitTunnelConfigContainsDomainSuffix(
-  String content, {
-  required String domain,
-}) {
-  try {
-    final decoded = jsonDecode(content);
-    if (decoded is! Map<String, dynamic>) {
-      return false;
-    }
-  } catch (_) {
-    return false;
-  }
-
-  final normalizedContent = content.toLowerCase();
-  final normalizedDomain = domain.toLowerCase();
-  return normalizedContent.contains('"domain_suffix"') &&
-      normalizedContent.contains('"$normalizedDomain"');
-}
-
-Future<bool> _waitForDomainPersistenceInSplitTunnelConfig({
-  required String domain,
-  required Duration timeout,
-}) async {
-  final end = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(end)) {
-    final snapshot = await _readSplitTunnelConfigFromDisk();
-    final content = snapshot?.value ?? '';
-    if (_splitTunnelConfigContainsDomainSuffix(content, domain: domain)) {
-      return true;
-    }
-    await Future<void>.delayed(const Duration(seconds: 1));
-  }
-  return false;
 }
 
 Future<String?> _fetchPublicIpOnce(String endpoint) async {
@@ -455,8 +380,9 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
   );
   await _printSplitTunnelConfigSnapshot('after-domain-add');
 
-  final persisted = await _waitForDomainPersistenceInSplitTunnelConfig(
-    domain: normalizedSplitTunnelDomain,
+  final persisted = await waitForSplitTunnelRule(
+    field: 'domain_suffix',
+    value: normalizedSplitTunnelDomain,
     timeout: const Duration(seconds: 20),
   );
   if (!persisted) {

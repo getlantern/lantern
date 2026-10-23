@@ -4,11 +4,14 @@ package apps
 
 import (
 	"log/slog"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
 
+	"github.com/getlantern/lantern/lantern-core/internal/processpath"
+	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -69,8 +72,69 @@ func (idx *browserExeIndex) addExe(exe string) {
 	if exe == "" {
 		return
 	}
-	idx.paths[normalizeKey(filepath.Clean(exe))] = true
+	idx.paths[processpath.Normalize(exe)] = true
 	idx.basenames[strings.ToLower(filepath.Base(exe))] = true
+}
+
+func collectAppsFromRegisteredBrowsers(idx browserExeIndex, seen map[string]bool, cb Callback) []*AppData {
+	known := make(map[string]bool, len(seen))
+	for path, exists := range seen {
+		if exists {
+			known[processpath.Normalize(path)] = true
+		}
+	}
+
+	var out []*AppData
+	for _, path := range sortedKeys(idx.paths) {
+		if !localBrowserExecutable(path) {
+			continue
+		}
+		path = processpath.Normalize(path)
+		if known[path] {
+			continue
+		}
+		name := humanizeName(filepathBaseNoExt(path))
+		if isWindowsSystemApp(path, name) || isLanternSelfApp(path, name) ||
+			isWindowsUtilityApp(path, name) || isExcludedName(filepathBaseNoExt(path)) {
+			continue
+		}
+		info, err := os.Stat(path)
+		if err != nil || !info.Mode().IsRegular() {
+			continue
+		}
+		app := &AppData{
+			Name:      name,
+			BundleID:  path,
+			AppPath:   path,
+			IconPath:  path,
+			IsBrowser: true,
+		}
+		known[path] = true
+		seen[path] = true
+		if cb != nil {
+			cb(app)
+		}
+		out = append(out, app)
+	}
+	return out
+}
+
+func localBrowserExecutable(path string) bool {
+	volume := filepath.VolumeName(path)
+	if len(volume) != 2 || volume[1] != ':' || !filepath.IsAbs(path) ||
+		!strings.EqualFold(filepath.Ext(path), ".exe") || strings.ContainsAny(path[2:], ":\x00") {
+		return false
+	}
+	root, err := windows.UTF16PtrFromString(volume + `\`)
+	if err != nil {
+		return false
+	}
+	switch windows.GetDriveType(root) {
+	case windows.DRIVE_FIXED, windows.DRIVE_REMOVABLE, windows.DRIVE_CDROM, windows.DRIVE_RAMDISK:
+		return true
+	default:
+		return false
+	}
 }
 
 // scanRegisteredApplicationBrowsers indexes browsers via the modern
@@ -182,8 +246,8 @@ func markBrowsers(list []*AppData) {
 		if p == "" {
 			continue
 		}
-		p = filepath.Clean(p)
-		if idx.paths[normalizeKey(p)] || idx.basenames[strings.ToLower(filepath.Base(p))] {
+		p = processpath.Normalize(p)
+		if idx.paths[p] || idx.basenames[strings.ToLower(filepath.Base(p))] {
 			app.IsBrowser = true
 		}
 	}
