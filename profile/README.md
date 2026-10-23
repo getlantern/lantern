@@ -48,7 +48,9 @@ Censorship circumvention tool available for free download on any operating syste
         <th>macOS</th>
         <td>
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 12&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 12&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">macOS 11 (legacy 8.3.5)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">macOS 10.15 (legacy 7.9.7)</a>
         </td>
         <td></td>
         <td>
@@ -100,6 +102,7 @@ Censorship circumvention tool available for free download on any operating syste
 
 - If the App Store is unavailable in your region, you may be able to follow [these steps](https://lantern.io/faq#use-2) to download Lantern.
 - For stable versions, multiple links exist for hosting redundancy and choice.
+- macOS 10.15 and 11 cannot run Lantern 9 or later. Use the legacy builds linked above: 8.3.5 for macOS 11 and 7.9.7 for macOS 10.15. They no longer receive updates.
 - Try the early release &#34;beta&#34; version. While this may be unstable, feedback helps us improve. Join our [forums](#links) to contribute.
 
 ## Links
