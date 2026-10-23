@@ -1274,6 +1274,12 @@ msgstr "نجی سرورز"
 msgid "fastest_server"
 msgstr "تیز ترین سرور"
 
+msgid "latency_testing"
+msgstr "جانچ ہو رہی ہے…"
+
+msgid "latency_unreachable"
+msgstr "ناقابلِ رسائی"
+
 msgid "join_my_private_server"
 msgstr "میرے Lantern نجی سرور میں شامل ہوں"
 
