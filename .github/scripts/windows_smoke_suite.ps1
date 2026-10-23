@@ -28,6 +28,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $splitTunnelFixtureDirectory = $null
+$splitTunnelRegistrations = @()
 
 function Write-Step {
   param([string]$Message)
@@ -458,7 +459,8 @@ try {
   }
 
   if ($RunSplitTunnelAppsSmoke) {
-    $splitTunnelFixtureDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("lantern-split-smoke-" + [guid]::NewGuid().ToString("N"))
+    $fixtureID = [guid]::NewGuid().ToString("N")
+    $splitTunnelFixtureDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "lantern-split-smoke-$fixtureID"
     New-Item -ItemType Directory -Path $splitTunnelFixtureDirectory | Out-Null
     $probePath = Join-Path $splitTunnelFixtureDirectory "probe.exe"
     $probePackage = Join-Path $PSScriptRoot "../../lantern-core/cmd/split_tunnel_probe"
@@ -467,11 +469,41 @@ try {
     $cliPath = Join-Path $splitTunnelFixtureDirectory "lantern-cli.exe"
     & go build -mod=mod -trimpath -tags "with_gvisor,with_quic,with_wireguard,with_utls,with_grpc" -o $cliPath github.com/getlantern/radiance/cmd/lantern
     if ($LASTEXITCODE -ne 0) { throw "Failed to build split-tunnel fixture CLI" }
+
+    $registeredLauncherPath = Join-Path $splitTunnelFixtureDirectory "Aster Smoke Launcher.exe"
+    $registeredGameName = "Aster Smoke Game $fixtureID.exe"
+    $registeredGamePath = Join-Path $splitTunnelFixtureDirectory $registeredGameName
+    Copy-Item -LiteralPath $probePath -Destination $registeredLauncherPath
+    Copy-Item -LiteralPath $probePath -Destination $registeredGamePath
+
+    $shortcutDirectory = Join-Path ([Environment]::GetFolderPath('Programs')) "Aster Smoke $fixtureID"
+    New-Item -ItemType Directory -Path $shortcutDirectory | Out-Null
+    $splitTunnelRegistrations += $shortcutDirectory
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut((Join-Path $shortcutDirectory "Aster Smoke Launcher.lnk"))
+    $shortcut.TargetPath = $registeredLauncherPath
+    $shortcut.Save()
+
+    $gameRegistryPath = Join-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\App Paths' $registeredGameName
+    if (Test-Path -LiteralPath $gameRegistryPath) {
+      throw "Split-tunnel fixture registration already exists: $gameRegistryPath"
+    }
+    New-Item -Path $gameRegistryPath | Out-Null
+    $splitTunnelRegistrations += $gameRegistryPath
+    Set-Item -LiteralPath $gameRegistryPath -Value $registeredGamePath
+
     $screenshotDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../build/windows-split-tunnel-smoke"))
+    $splitTunnelDefines = @(
+      "SPLIT_TUNNEL_PROBE=$probePath",
+      "SPLIT_TUNNEL_CLI=$cliPath",
+      "SPLIT_TUNNEL_SCREENSHOT_DIR=$screenshotDirectory",
+      "SPLIT_TUNNEL_REGISTERED_LAUNCHER=$registeredLauncherPath",
+      "SPLIT_TUNNEL_REGISTERED_GAME=$registeredGamePath"
+    )
     Invoke-FlutterSmokeTest `
       -Path $SplitTunnelAppsTestPath `
       -Description "App split tunneling smoke test" `
-      -DartDefines @("SPLIT_TUNNEL_PROBE=$probePath", "SPLIT_TUNNEL_CLI=$cliPath", "SPLIT_TUNNEL_SCREENSHOT_DIR=$screenshotDirectory")
+      -DartDefines $splitTunnelDefines
   } else {
     Write-Step "Skipping app split tunneling smoke test."
   }
@@ -545,6 +577,15 @@ finally {
     Write-Step "Cleanup finished"
   } catch {
     Write-Warning ("Failed to clean up service {0}: {1}" -f $ServiceName, $_)
+  }
+  foreach ($registration in $splitTunnelRegistrations) {
+    try {
+      if (Test-Path -LiteralPath $registration) {
+        Remove-Item -LiteralPath $registration -Recurse -Force
+      }
+    } catch {
+      Write-Warning ("Failed to clean up split-tunnel registration {0}: {1}" -f $registration, $_)
+    }
   }
   try {
     if ($splitTunnelFixtureDirectory -and (Test-Path -LiteralPath $splitTunnelFixtureDirectory)) {

@@ -1,12 +1,65 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_buttons.dart';
+import 'package:lantern/core/widgets/search_bar.dart';
+import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart';
 import 'package:path/path.dart' as p;
 
 import '../utils/widget_wait_utils.dart';
+
+Future<void> expectInstalledApp(
+  WidgetTester tester, {
+  required String query,
+  required Finder row,
+}) async {
+  final searchBar = find.byType(AppSearchBar);
+  final searchButton = find
+      .descendant(of: searchBar, matching: find.byType(IconButton))
+      .last;
+  final searchField = find.descendant(
+    of: searchBar,
+    matching: find.byType(TextField),
+  );
+  expect(searchField, findsNothing);
+  await tester.tap(searchButton);
+  try {
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.enterText(searchField, query);
+    await tester.pump(const Duration(milliseconds: 200));
+    final scrollable = find
+        .descendant(
+          of: find.byType(CustomScrollView),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    final position = tester.state<ScrollableState>(scrollable).position;
+    position.jumpTo(position.minScrollExtent);
+    await tester.pump();
+    await tester.scrollUntilVisible(
+      row,
+      250,
+      scrollable: scrollable,
+      maxScrolls: 20,
+    );
+    expect(
+      tester.widget<AppRow>(row).enabled,
+      isFalse,
+      reason: 'Expected an Installed Apps row, not a saved bypass',
+    );
+    expect(
+      find
+          .descendant(of: row, matching: find.byType(AppIconButton))
+          .hitTestable(),
+      findsOneWidget,
+    );
+  } finally {
+    await tester.tap(searchButton);
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+}
 
 Future<void> revealBypassedApp(WidgetTester tester, Finder row) async {
   final scrollable = find

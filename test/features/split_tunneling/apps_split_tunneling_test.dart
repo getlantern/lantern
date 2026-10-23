@@ -11,6 +11,7 @@ import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart';
 import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
+import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
 import '../../../integration_test/vpn/split_tunneling_smoke_helpers.dart';
@@ -109,6 +110,65 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(position.pixels, lessThan(offset));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('smoke finds an installed app without selecting it', (
+    tester,
+  ) async {
+    final enabled = {for (var i = 0; i < 30; i++) _app('Enabled $i')};
+    final game = _app('Registered Game');
+    await _pumpApps(
+      tester,
+      size: const Size(800, 400),
+      apps: [
+        ...enabled,
+        for (var i = 0; i < 60; i++) _app('Installed $i'),
+        game,
+      ],
+      enabled: enabled,
+    );
+
+    final row = find.byKey(
+      ValueKey('split-tunnel-app:${normalizedAppId(game)}'),
+    );
+    expect(row, findsNothing);
+    await expectInstalledApp(tester, query: game.name, row: row);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(AppsSplitTunneling)),
+    );
+    expect(container.read(searchQueryProvider), isEmpty);
+    expect(container.read(splitTunnelingAppsProvider).value, enabled);
+    expect(find.byType(TextField), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('smoke rejects a saved app that was not discovered', (
+    tester,
+  ) async {
+    final saved = _app('Manual Game');
+    await _pumpApps(
+      tester,
+      size: const Size(800, 400),
+      apps: [_app('Installed Game')],
+      enabled: {saved},
+    );
+
+    await expectLater(
+      () => expectInstalledApp(
+        tester,
+        query: saved.name,
+        row: find.byKey(ValueKey('split-tunnel-app:${normalizedAppId(saved)}')),
+      ),
+      throwsA(isA<TestFailure>()),
+    );
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(AppsSplitTunneling)),
+    );
+    expect(container.read(searchQueryProvider), isEmpty);
+    expect(find.byType(TextField), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

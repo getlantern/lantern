@@ -12,6 +12,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 import 'package:lantern/features/split_tunneling/windows_executable_picker.dart';
@@ -123,6 +124,46 @@ Future<String> _addExecutable(
     }
   }
   fail('Manually selected executable was not saved');
+}
+
+Future<void> _expectRegisteredApps(
+  WidgetTester tester,
+  ProviderContainer container,
+  Map<String, String> executables,
+) async {
+  final discovered = await container
+      .read(appsDataProvider.future)
+      .timeout(const Duration(seconds: 60));
+  final saved = _require(
+    await sl<LanternService>().getSplitTunnelItems(
+      SplitTunnelFilterType.processPath,
+    ),
+    'Read executable rules before discovery assertions',
+  ).map(windowsAppPathId).toSet();
+  for (final entry in executables.entries) {
+    final path = windowsAppPathId(
+      _windowsPathName(entry.value, 'GetLongPathNameW'),
+    );
+    final matches = discovered.where(
+      (app) => windowsAppPathId(app.appPath) == path,
+    );
+    expect(
+      matches,
+      isNotEmpty,
+      reason: '${entry.key} was not discovered without manual selection',
+    );
+    expect(
+      saved,
+      isNot(contains(path)),
+      reason: '${entry.key} must not come from a saved bypass rule',
+    );
+    await expectInstalledApp(
+      tester,
+      query: matches.first.name,
+      row: _appRow(path),
+    );
+    debugPrint('Discovered ${entry.key} in Installed Apps: $path');
+  }
 }
 
 Future<String?> _probeIP(String executable, {String? child}) async {
@@ -286,6 +327,23 @@ void main() {
       );
       expect(await File(cliPath).exists(), isTrue);
 
+      const registeredExecutables = {
+        'Start Menu launcher': String.fromEnvironment(
+          'SPLIT_TUNNEL_REGISTERED_LAUNCHER',
+        ),
+        'App Paths game': String.fromEnvironment(
+          'SPLIT_TUNNEL_REGISTERED_GAME',
+        ),
+      };
+      for (final entry in registeredExecutables.entries) {
+        expect(
+          entry.value,
+          isNotEmpty,
+          reason: '${entry.key} fixture is missing',
+        );
+        expect(await File(entry.value).exists(), isTrue);
+      }
+
       final fixtures = await Directory(
         p.dirname(probePath),
       ).createTemp('Lantern split smoke ');
@@ -408,6 +466,7 @@ void main() {
           timeout: const Duration(seconds: 20),
         );
         await container.read(splitTunnelingAppsProvider.future);
+        await _expectRegisteredApps(tester, container, registeredExecutables);
         await tester.ensureVisible(find.byType(WindowsExecutablePicker));
         await _captureScreenshot(tester, 'windows-executable-picker');
         final launcherRule = await _addExecutable(tester, picker, launcher);
