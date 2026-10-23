@@ -1262,6 +1262,12 @@ msgstr "Hususy serwerler"
 msgid "fastest_server"
 msgstr "Iň çalt serwer"
 
+msgid "latency_testing"
+msgstr "Barlanýar…"
+
+msgid "latency_unreachable"
+msgstr "Elýeterli däl"
+
 msgid "join_my_private_server"
 msgstr "Meniň Lantern hususy serwerime goşul"
 

@@ -1259,6 +1259,12 @@ msgstr "เซิร์ฟเวอร์ส่วนตัว"
 msgid "fastest_server"
 msgstr "เซิร์ฟเวอร์ที่เร็วที่สุด"
 
+msgid "latency_testing"
+msgstr "กำลังทดสอบ…"
+
+msgid "latency_unreachable"
+msgstr "เข้าถึงไม่ได้"
+
 msgid "join_my_private_server"
 msgstr "เข้าร่วมเซิร์ฟเวอร์ส่วนตัว Lantern ของฉัน"
 

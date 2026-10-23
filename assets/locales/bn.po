@@ -1271,6 +1271,12 @@ msgstr "প্রাইভেট সার্ভার"
 msgid "fastest_server"
 msgstr "দ্রুততম সার্ভার"
 
+msgid "latency_testing"
+msgstr "পরীক্ষা করা হচ্ছে…"
+
+msgid "latency_unreachable"
+msgstr "পৌঁছানো যাচ্ছে না"
+
 msgid "join_my_private_server"
 msgstr "আমার Lantern প্রাইভেট সার্ভারে যোগ দিন"
 
