@@ -673,6 +673,9 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
 /// The city rows inside a country's bottom sheet. The sheet is its own route,
 /// so it watches [availableServersProvider] itself; otherwise probe refreshes
 /// that land while it's open would leave its latency indicators stale.
+/// [initialLocations] is used only while there's no server data at all; a
+/// refresh that drops the country empties the list rather than resurrecting
+/// cities that are gone.
 class CountryCitySheetList extends ConsumerWidget {
   final String country;
   final List<Server> initialLocations;
@@ -697,9 +700,7 @@ class CountryCitySheetList extends ConsumerWidget {
         ?.lanternServerLocations
         .where((s) => s.location.country == country)
         .toList();
-    final locations = (current == null || current.isEmpty)
-        ? initialLocations
-        : current;
+    final locations = current ?? initialLocations;
 
     return ListView.separated(
       controller: scrollController,

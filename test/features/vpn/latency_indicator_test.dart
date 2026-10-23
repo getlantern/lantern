@@ -5,6 +5,7 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
+import 'package:lantern/features/vpn/single_city_server_view.dart';
 
 void main() {
   group('LatencyStatus.of', () {
@@ -86,7 +87,7 @@ void main() {
     expect(find.text('latency_unreachable'), findsOneWidget);
   });
 
-  testWidgets('country sheet picks up probe refreshes while open', (
+  testWidgets('country sheet tracks provider refreshes while open', (
     tester,
   ) async {
     final testing = _server(tag: 'us-sea', city: 'Seattle');
@@ -115,6 +116,10 @@ void main() {
     await tester.pump();
     expect(find.text('latency_testing'), findsNothing);
     expect(find.text('87 ms'), findsOneWidget);
+
+    notifier.set(AvailableServers([]));
+    await tester.pump();
+    expect(find.byType(SingleCityServerView), findsNothing);
   });
 }
 
