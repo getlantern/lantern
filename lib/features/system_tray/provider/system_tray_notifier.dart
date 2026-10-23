@@ -86,13 +86,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
       previous,
       next,
     ) async {
-      final data = next.value;
-      _locations = data?.lanternServers ?? [];
-      _locations.sort((a, b) {
-        final cmp = a.location.country.compareTo(b.location.country);
-        if (cmp != 0) return cmp;
-        return a.location.city.compareTo(b.location.city);
-      });
+      // One entry per country/city, matching the in-app server list; a city
+      // with several assigned routes would otherwise appear once per route.
+      _locations = next.value?.lanternServerLocations ?? [];
       await updateTrayMenu();
     });
   }
