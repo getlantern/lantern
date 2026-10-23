@@ -23,8 +23,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import lantern.io.libbox.Libbox
 import lantern.io.libbox.Notification
-import lantern.io.libbox.StringIterator
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import lantern.io.utils.Opts
@@ -291,17 +291,8 @@ open class LanternVpnService :
         notificationHelper.sendNotification(notification)
     }
 
-    override fun systemCertificates(): StringIterator {
-        //return empty iterator as we are not using system certificates
-        return object : StringIterator {
-            override fun hasNext(): Boolean = false
-            override fun len(): Int {
-                return 0
-            }
-
-            override fun next(): String = ""
-        }
-
+    override fun cancelNotification(identifier: String?, typeID: Int) {
+        notificationHelper.cancelNotification(typeID)
     }
 
     private suspend fun startRadiance() {
@@ -623,7 +614,12 @@ open class LanternVpnService :
         builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
 
         if (options.autoRoute) {
-            builder.addDnsServer(options.dnsServerAddress.value)
+            if (options.dnsMode.value != Libbox.DNSModeDisabled) {
+                val dnsServerAddress = options.dnsServerAddress
+                while (dnsServerAddress.hasNext()) {
+                    builder.addDnsServer(dnsServerAddress.next())
+                }
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 val inet4RouteAddress = options.inet4RouteAddress

@@ -8,11 +8,16 @@ import android.os.Process
 import android.system.Os
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
+import lantern.io.libbox.BridgeOptions
+import lantern.io.libbox.BridgeSession
 import lantern.io.libbox.ConnectionOwner
 import lantern.io.libbox.InterfaceUpdateListener
 import lantern.io.libbox.Libbox
 import lantern.io.libbox.LocalDNSTransport
+import lantern.io.libbox.NeighborUpdateListener
 import lantern.io.libbox.NetworkInterfaceIterator
+import lantern.io.libbox.PlatformUser
+import lantern.io.libbox.ShellSession
 import lantern.io.libbox.StringIterator
 import lantern.io.libbox.WIFIState
 import lantern.io.utils.PlatformInterface
@@ -195,6 +200,64 @@ interface PlatformInterfaceWrapper : PlatformInterface {
             AppLogger.e("PlatformInterface", "readWIFIState() failed", e)
             null
         }
+    }
+
+    // Called on every openTun, so it must not throw.
+    override fun registerMyInterface(name: String?) {
+    }
+
+    // sing-box calls the methods below only for features Lantern doesn't
+    // configure: the neighbor resolver, the platform shell and SSH used by
+    // Tailscale, and the bridge outbound.
+
+    override fun startNeighborMonitor(listener: NeighborUpdateListener?) {
+        throw UnsupportedOperationException("neighbor monitor is not supported")
+    }
+
+    override fun closeNeighborMonitor(listener: NeighborUpdateListener?) {
+    }
+
+    override fun usePlatformShell(): Boolean {
+        return false
+    }
+
+    override fun checkPlatformShell() {
+        throw UnsupportedOperationException("platform shell is not supported")
+    }
+
+    override fun openShellSession(
+        user: PlatformUser?,
+        command: String?,
+        environ: StringIterator?,
+        term: String?,
+        rows: Int,
+        cols: Int
+    ): ShellSession {
+        throw UnsupportedOperationException("platform shell is not supported")
+    }
+
+    override fun lookupUser(username: String?): PlatformUser {
+        throw UnsupportedOperationException("user lookup is not supported")
+    }
+
+    override fun lookupSFTPServer(): String {
+        throw UnsupportedOperationException("SFTP server is not supported")
+    }
+
+    override fun readSystemSSHHostKey(): String {
+        throw UnsupportedOperationException("system SSH host key is not supported")
+    }
+
+    override fun tailscaleHostname(): String {
+        return ""
+    }
+
+    override fun usePlatformBridge(): Boolean {
+        return false
+    }
+
+    override fun createBridge(options: BridgeOptions?): BridgeSession {
+        throw UnsupportedOperationException("platform bridge is not supported")
     }
 
     private class InterfaceArray(private val iterator: Iterator<lantern.io.libbox.NetworkInterface>) :
