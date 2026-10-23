@@ -22,6 +22,7 @@ import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dar
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
+import 'package:lantern/features/split_tunneling/windows_executable_picker.dart';
 
 /// Extra width taken from the cards, on the right, for the index bar.
 const _indexBarGutter = 12.0;
@@ -57,7 +58,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||
-        a.name.toLowerCase().contains(searchQuery.toLowerCase());
+        a.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+        (Platform.isWindows &&
+            a.appPath.toLowerCase().contains(searchQuery.toLowerCase()));
 
     final enabledIds = enabledApps.map(normalizedAppId).toSet();
     final filteredEnabled = dedupeAndSortApps(enabledApps.where(matchesSearch));
@@ -173,6 +176,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
                             }
                             final app = filteredEnabled[i - 1];
                             return AppRow(
+                              key: ValueKey(
+                                'split-tunnel-app:${normalizedAppId(app)}',
+                              ),
                               app: app,
                               enabled: true,
                               onToggle: () => notifier.toggleApp(app),
@@ -182,6 +188,10 @@ class AppsSplitTunneling extends HookConsumerWidget {
                       ),
                     ),
                   SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  if (Platform.isWindows) ...[
+                    const SliverToBoxAdapter(child: WindowsExecutablePicker()),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  ],
                   SliverToBoxAdapter(
                     child: Row(
                       key: installedHeaderKey,
@@ -240,6 +250,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
                             itemBuilder: (ctx, i) {
                               final app = entry.value[i];
                               return AppRow(
+                                key: ValueKey(
+                                  'split-tunnel-app:${normalizedAppId(app)}',
+                                ),
                                 app: app,
                                 enabled: false,
                                 onToggle: () => onTapAddApp(ctx, notifier, app),
@@ -466,8 +479,8 @@ class AppRow extends ConsumerWidget {
       );
     }
 
-    return SizedBox(
-      height: 44.h,
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 44.h),
       child: Row(
         children: [
           Expanded(
@@ -476,13 +489,33 @@ class AppRow extends ConsumerWidget {
                 iconWidget(),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    app.name.replaceAll(".app", ""),
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: context.textPrimary,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          app.name.replaceAll(".app", ""),
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: context.textPrimary,
+                          ),
+                        ),
+                        if (Platform.isWindows)
+                          Tooltip(
+                            message: app.appPath,
+                            child: Text(
+                              app.appPath,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: context.textSecondary),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -491,6 +524,7 @@ class AppRow extends ConsumerWidget {
           ),
           if (onToggle != null)
             AppIconButton(
+              key: ValueKey('toggle-split-tunnel-app:${normalizedAppId(app)}'),
               path: enabled ? AppImagePaths.minus : AppImagePaths.plus,
               onPressed: () {
                 HapticFeedback.lightImpact();

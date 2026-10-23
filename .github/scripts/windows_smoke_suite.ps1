@@ -5,6 +5,7 @@ param(
   [string]$TestPath = "integration_test/vpn/windows_connect_smoke_test.dart",
   [string]$PaymentSmokeTestPath = "integration_test/payment/desktop_payment_smoke_test.dart",
   [string]$SplitTunnelWebsiteTestPath = "integration_test/vpn/split_tunneling_website_smoke_test.dart",
+  [string]$SplitTunnelAppsTestPath = "integration_test/vpn/windows_split_tunneling_apps_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
   [string]$DefaultConfigServerName = "ci-config-url-smoke",
@@ -18,6 +19,7 @@ param(
   [switch]$EnableIpCheck,
   [switch]$ForceFullTunnel,
   [switch]$RunSplitTunnelWebsiteSmoke,
+  [switch]$RunSplitTunnelAppsSmoke,
   [switch]$RunConfigUrlSmoke,
   [switch]$RunPaymentSmoke,
   [string]$PaymentSmokeArtifactDirectory = "build/windows-payment-smoke",
@@ -25,6 +27,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$splitTunnelFixtureDirectory = $null
 
 function Write-Step {
   param([string]$Message)
@@ -454,6 +457,21 @@ try {
     Write-Step "Skipping website split tunneling smoke test."
   }
 
+  if ($RunSplitTunnelAppsSmoke) {
+    $splitTunnelFixtureDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("lantern-split-smoke-" + [guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $splitTunnelFixtureDirectory | Out-Null
+    $probePath = Join-Path $splitTunnelFixtureDirectory "probe.exe"
+    $probePackage = Join-Path $PSScriptRoot "../../lantern-core/cmd/split_tunnel_probe"
+    & go build -trimpath -o $probePath $probePackage
+    if ($LASTEXITCODE -ne 0) { throw "Failed to build split-tunnel probe" }
+    Invoke-FlutterSmokeTest `
+      -Path $SplitTunnelAppsTestPath `
+      -Description "App split tunneling smoke test" `
+      -DartDefines @("SPLIT_TUNNEL_PROBE=$probePath")
+  } else {
+    Write-Step "Skipping app split tunneling smoke test."
+  }
+
   if (-not $RunConfigUrlSmoke) {
     Write-Step "Skipping config URL smoke tests."
   } else {
@@ -523,5 +541,8 @@ finally {
     Write-Step "Cleanup finished"
   } catch {
     Write-Warning ("Failed to clean up service {0}: {1}" -f $ServiceName, $_)
+  }
+  if ($splitTunnelFixtureDirectory -and (Test-Path -LiteralPath $splitTunnelFixtureDirectory)) {
+    Remove-Item -LiteralPath $splitTunnelFixtureDirectory -Recurse -Force
   }
 }

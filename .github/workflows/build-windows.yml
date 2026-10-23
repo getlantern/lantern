@@ -97,6 +97,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_split_tunnel_apps_smoke:
+        description: "Verify exact executable split tunneling with a launcher and child process"
+        required: false
+        type: boolean
+        default: false
       run_config_url_smoke:
         description: "Run config URL smoke tests"
         required: false
@@ -166,6 +171,55 @@ jobs:
       - name: Set up MinGW
         shell: bash
         run: bash ./scripts/ci/setup-windows-toolchain.sh
+
+      - name: Windows split-tunnel regression tests
+        shell: pwsh
+        working-directory: lantern-core
+        env:
+          RADIANCE_REQUIRE_SHORT_PATH_TEST: ${{ inputs.run_split_tunnel_apps_smoke && '1' || '' }}
+        run: |
+          go test -v -timeout 2m ./apps github.com/getlantern/radiance/common/processpath
+          if ($LASTEXITCODE -ne 0) { throw 'Windows executable path tests failed' }
+          go test -v -timeout 2m -tags 'with_gvisor,with_quic,with_wireguard,with_utls,with_grpc' -run 'TestSplitTunnelWindows' github.com/getlantern/radiance/vpn
+          if ($LASTEXITCODE -ne 0) { throw 'Windows split-tunnel rule tests failed' }
+          go test ./cmd/split_tunnel_probe
+          if ($LASTEXITCODE -ne 0) { throw 'Split-tunnel probe tests failed' }
+
+      - name: Windows installed-browser discovery smoke
+        if: ${{ inputs.run_split_tunnel_apps_smoke }}
+        shell: pwsh
+        timeout-minutes: 10
+        working-directory: lantern-core
+        run: |
+          $browserCandidates = @(
+            (Join-Path $env:ProgramFiles 'Mozilla Firefox\firefox.exe'),
+            (Join-Path ${env:ProgramFiles(x86)} 'Mozilla Firefox\firefox.exe')
+          )
+          $browserExe = $browserCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+          if (-not $browserExe) {
+            $installer = Join-Path $env:RUNNER_TEMP 'firefox-discovery-fixture.exe'
+            try {
+              Invoke-WebRequest -Uri 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US' -OutFile $installer -TimeoutSec 120
+              $signature = Get-AuthenticodeSignature -LiteralPath $installer
+              if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.GetNameInfo('SimpleName', $false) -ne 'Mozilla Corporation') {
+                throw 'Firefox fixture installer did not have a valid Mozilla signature'
+              }
+              $install = Start-Process -FilePath $installer -ArgumentList '/S', '/MaintenanceService=false', '/RegisterDefaultAgent=false' -PassThru
+              if (-not $install.WaitForExit(180000)) {
+                Stop-Process -Id $install.Id -Force -ErrorAction SilentlyContinue
+                throw 'Firefox fixture installation timed out'
+              }
+              if ($install.ExitCode -ne 0) { throw "Firefox fixture installation failed: $($install.ExitCode)" }
+            } finally {
+              if (Test-Path -LiteralPath $installer) { Remove-Item -LiteralPath $installer -Force }
+            }
+            $browserExe = $browserCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+          }
+          if (-not $browserExe) { throw 'Firefox executable is missing; browser discovery cannot be tested' }
+          Write-Host "Installed browser fixture: $browserExe (version $((Get-Item -LiteralPath $browserExe).VersionInfo.ProductVersion))"
+          $env:LANTERN_SMOKE_BROWSER_EXE = $browserExe
+          go test -v -count=1 -timeout 2m -run '^TestWindowsInstalledBrowserDiscovery$' ./apps
+          if ($LASTEXITCODE -ne 0) { throw 'Installed Firefox was not discovered by the app picker' }
 
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
@@ -470,16 +524,18 @@ jobs:
         run: |
           $installerPath = "$env:FULL_INSTALLER_NAME.exe"
           $runSplitTunnelWebsiteSmoke = "${{ inputs.run_split_tunnel_website_smoke }}" -eq "true"
+          $runSplitTunnelAppsSmoke = "${{ inputs.run_split_tunnel_apps_smoke }}" -eq "true"
           $runConfigUrlSmoke = "${{ inputs.run_config_url_smoke }}" -eq "true"
           $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
           $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
           $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
-          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke splitTunnelApps=$runSplitTunnelAppsSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
+            -RunSplitTunnelAppsSmoke:$runSplitTunnelAppsSmoke `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
             -EnableIpCheck:$enableIpCheck `
             -ForceFullTunnel:$forceFullTunnelSmoke

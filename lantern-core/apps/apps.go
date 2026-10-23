@@ -14,6 +14,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/getlantern/radiance/common/processpath"
 )
 
 const cacheFilename = "apps_cache.json"
@@ -33,8 +35,22 @@ func loadCacheFromFile(dataDir string) ([]*AppData, error) {
 	if err := json.Unmarshal(data, &cached); err != nil {
 		return nil, err
 	}
+	normalizeAppPaths(cached...)
 
 	return cached, nil
+}
+
+func normalizeAppPaths(apps ...*AppData) {
+	for _, app := range apps {
+		if app == nil {
+			continue
+		}
+		path := processpath.Normalize(app.AppPath)
+		if app.BundleID == app.AppPath {
+			app.BundleID = path
+		}
+		app.AppPath = path
+	}
 }
 
 func saveCacheToFile(dataDir string, apps ...*AppData) error {
@@ -282,7 +298,13 @@ func LoadInstalledAppsWithDirs(dataDir string, appDirs []string, excludeDirs []s
 		}
 	}
 
-	found := loadInstalledAppsPlatform(appDirs, seen, excludeDirs, cb)
+	found := loadInstalledAppsPlatform(appDirs, seen, excludeDirs, func(apps ...*AppData) error {
+		normalizeAppPaths(apps...)
+		if cb != nil {
+			return cb(apps...)
+		}
+		return nil
+	})
 	// The callback has already streamed these pointers to the caller
 	// (LanternCore.LoadInstalledApps collects them and marshals after we
 	// return), so mutating them here is visible in the final JSON and in

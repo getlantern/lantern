@@ -374,6 +374,18 @@ msgstr "Enter URL or IP Address"
 msgid "installed_apps"
 msgstr "Installed Apps"
 
+msgid "add_executable"
+msgstr "Add executable"
+
+msgid "windows_executable_bypass_hint"
+msgstr "Choose the actual game or app .exe to bypass the VPN. Selecting a launcher does not include programs it starts."
+
+msgid "select_windows_executable"
+msgstr "Select an app's .exe file, other than Lantern, on this computer."
+
+msgid "unable_to_add_executable"
+msgstr "Couldn't add the executable. Choose an existing .exe file on this computer and try again."
+
 msgid "search_apps"
 msgstr "Search Apps"
 
