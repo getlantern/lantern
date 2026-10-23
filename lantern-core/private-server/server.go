@@ -15,6 +15,7 @@ import (
 
 	"github.com/getlantern/radiance/ipc"
 
+	C "github.com/getlantern/common"
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
 	"github.com/getlantern/lantern-server-provisioner/gcp"
@@ -25,6 +26,7 @@ var (
 	provisionerMutex sync.Mutex
 	sessions         = sync.Map{}
 	locationRegex    = regexp.MustCompile(`^([a-z0-9]+)\s*-\s*([a-z-]+)\s*\[([A-Z]+)\]`)
+	geoLocationRegex = regexp.MustCompile(`^(.*?)\s*-\s*(.*?)\s*\[([A-Z]+)\]$`)
 )
 
 type provisionSession struct {
@@ -225,7 +227,7 @@ func listenToServerEvents(ps provisionSession) {
 				region, city, country := ParseLocation(provisioner.serverLocation)
 				slog.Debug("Provisioner response", slog.Any("response", resp), slog.String("region", region), slog.String("country", country), slog.String("city", city))
 				ctx := context.Background()
-				mangerErr := provisioner.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
+				mangerErr := provisioner.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, C.ServerLocation{City: city, CountryCode: country}, false)
 				if mangerErr != nil {
 					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
@@ -360,9 +362,9 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *ipc.Client,
 	}
 	storeSession(provisionSession)
 	location := getGeoInfo(ip)
-	_, _, _ = ParseLocation(location)
+	loc := geoLocation(location)
 	ctx := context.Background()
-	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
+	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, loc, false)
 	if err != nil {
 		return err
 	}
@@ -421,4 +423,13 @@ func ParseLocation(s string) (region, city, country string) {
 	city = strings.Join(words, " ")
 
 	return
+}
+
+// geoLocation converts getGeoInfo's "<region> - <country> [<code>]" string.
+func geoLocation(s string) C.ServerLocation {
+	match := geoLocationRegex.FindStringSubmatch(s)
+	if len(match) != 4 {
+		return C.ServerLocation{}
+	}
+	return C.ServerLocation{City: match[1], Country: match[2], CountryCode: match[3]}
 }

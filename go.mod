@@ -33,7 +33,7 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/common v1.2.1-0.20260910154003-08e030318f24
-	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
+	github.com/getlantern/lantern-server-provisioner v0.0.0-20261023114014-4ec452c2a88a
 	github.com/getlantern/radiance v0.0.0-20261022174223-e10660844b33
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
