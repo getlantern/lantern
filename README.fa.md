@@ -49,8 +49,8 @@
         <td>
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 12&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">macOS 11 (legacy 8.3.5)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">macOS 10.15 (legacy 7.9.7)</a>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">macOS 11 Big Sur (legacy 8.3.5)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">macOS 10.15 Catalina (legacy 7.9.7)</a>
         </td>
         <td></td>
         <td>
@@ -103,6 +103,7 @@
 - اگر فروشگاه اپ در منطقه شما در دسترس نیست، شاید بتوانید با دنبال کردن [این مراحل](https://lantern.io/faq#use-2)، لنترن را دانلود کنید.
 - برای نسخه‌های پایدار، لینک‌های متعددی برای اطمینان از دسترسی و انتخاب وجود دارد.
 - نسخه آزمایشی &#34;بتا&#34; را امتحان کنید. اگرچه این نسخه ممکن است ناپایدار باشد، بازخوردها به بهبود آن کمک می‌کنند. برای مشارکت، به [forums](#links) ما بپیوندید.
+- لنترن نسخه ۹ و بالاتر روی macOS 10.15 و 11 اجرا نمی‌شود. از نسخه‌های قدیمی لینک‌شده در بالا استفاده کنید: 8.3.5 برای macOS 11 و 7.9.7 برای macOS 10.15. این نسخه‌ها دیگر به‌روزرسانی دریافت نمی‌کنند.
 
 ## لینک‌ها
 - [وب‌سایت](https://lantern.io)

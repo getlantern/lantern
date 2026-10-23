@@ -49,8 +49,8 @@
         <td>
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">苹果Mac系统 12&#43;</a> <br>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">苹果Mac系统 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">苹果Mac系统 11 (legacy 8.3.5)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">苹果Mac系统 10.15 (legacy 7.9.7)</a>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">苹果Mac系统 11 Big Sur (legacy 8.3.5)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">苹果Mac系统 10.15 Catalina (legacy 7.9.7)</a>
         </td>
         <td></td>
         <td>
@@ -103,6 +103,7 @@
 - 如果您所在的地区无法使用 Google/IOS App Store，您可以按照 [这些步骤](https://lantern.io/faq#use-2) 下载蓝灯。
 - 在于稳定版本，存在多个链接用于托管冗余和选择。
 - 请尝试早期发布的“测试版”。虽然这可能不太不稳定，但您的反馈有助于改进。欢迎加入我们的 [论坛] (#links) 做出尊贵用户贡献。
+- macOS 10.15 和 11 无法运行蓝灯 9 及更高版本。请使用上方链接的旧版本：macOS 11 使用 8.3.5，macOS 10.15 使用 7.9.7。这些旧版本不再接收更新。
 
 ## 链接
 - [网站](https://lantern.io)
