@@ -1820,6 +1820,21 @@ msgstr "To confirm deletion please verify with your %s account below:"
 msgid "oauth_different_account"
 msgstr "The account you are trying to sign in with does not match the account associated with this email. Please sign in with the correct account or choose a different email."
 
+msgid "oauth_error_sign_in_failed"
+msgstr "Sign in failed. Please try again."
+
+msgid "oauth_error_session_expired"
+msgstr "Your sign-in session expired. Please try again."
+
+msgid "oauth_error_provider_failed"
+msgstr "We couldn't sign you in with that account. Please try again."
+
+msgid "oauth_error_no_email"
+msgstr "That account did not share an email address. Please allow email access and try again."
+
+msgid "oauth_error_add_device"
+msgstr "This device could not be linked to your account. Please contact support."
+
 msgid "account_deleted"
 msgstr "Account Deleted"
 
