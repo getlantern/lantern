@@ -1276,6 +1276,12 @@ msgstr "Özel Sunucular"
 msgid "fastest_server"
 msgstr "En Hızlı Sunucu"
 
+msgid "latency_testing"
+msgstr "Test ediliyor…"
+
+msgid "latency_unreachable"
+msgstr "Ulaşılamıyor"
+
 msgid "join_my_private_server"
 msgstr "Lantern Özel Sunucuma Katıl"
 

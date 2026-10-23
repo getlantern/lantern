@@ -1183,6 +1183,12 @@ msgstr "私人伺服器"
 msgid "fastest_server"
 msgstr "最快伺服器"
 
+msgid "latency_testing"
+msgstr "測試中…"
+
+msgid "latency_unreachable"
+msgstr "無法連線"
+
 msgid "join_my_private_server"
 msgstr "加入我的 Lantern 私人伺服器"
 

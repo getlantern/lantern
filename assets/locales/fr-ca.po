@@ -2119,3 +2119,9 @@ msgstr "Ajouter un mot de passe au compte"
 
 msgid "have_a_password_sign_in"
 msgstr "Vous avez un mot de passe? Connexion"
+
+msgid "latency_testing"
+msgstr "Test en cours…"
+
+msgid "latency_unreachable"
+msgstr "Injoignable"
