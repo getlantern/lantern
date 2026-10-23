@@ -4,6 +4,7 @@ package lanterncore
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net"
 	"net/netip"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/getlantern/lantern/lantern-core/internal/processpath"
+	"github.com/getlantern/radiance/vpn"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/process"
 	"github.com/sagernet/sing-box/option"
@@ -24,6 +26,49 @@ import (
 
 func TestSplitTunnelWindowsProcessLookup(t *testing.T) {
 	path, short := splitTunnelProcessFixture(t)
+	unrelated, _ := splitTunnelProcessFixture(t)
+	type savedRule struct {
+		name     string
+		compiled adapter.HeadlessRule
+		invert   bool
+	}
+	var rules []savedRule
+	for _, configured := range []string{path, short, filepath.ToSlash(strings.ToUpper(short))} {
+		for _, policy := range []vpn.SplitTunnelPolicy{vpn.SplitTunnelPolicyExclude, vpn.SplitTunnelPolicyInclude} {
+			dir := t.TempDir()
+			client := newSplitTunnelTestClient(t, dir)
+			if err := client.handler.SetEnabled(true); err != nil {
+				t.Fatal(err)
+			}
+			if err := client.handler.SetPolicy(policy); err != nil {
+				t.Fatal(err)
+			}
+			paths := splitTunnelPaths{client: client}
+			if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{configured}}, false); err != nil {
+				t.Fatal(err)
+			}
+			saved := newSplitTunnelTestClient(t, dir).handler.Filters()
+			if len(saved.ProcessPath) != 1 || saved.ProcessPath[0] != path || len(saved.ProcessPathRegex) != 1 {
+				t.Fatalf("expected one canonical path and its alias rule, got %#v", saved)
+			}
+			data, err := os.ReadFile(filepath.Join(dir, "split-tunnel.json"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			var stored option.PlainRuleSetCompat
+			if err := json.Unmarshal(data, &stored); err != nil {
+				t.Fatal(err)
+			}
+			if len(stored.Options.Rules) != 1 {
+				t.Fatalf("expected one saved root rule, got %d", len(stored.Options.Rules))
+			}
+			compiled, err := rule.NewHeadlessRule(t.Context(), stored.Options.Rules[0])
+			if err != nil {
+				t.Fatal(err)
+			}
+			rules = append(rules, savedRule{configured, compiled, policy == vpn.SplitTunnelPolicyInclude})
+		}
+	}
 	searcher, err := process.NewSearcher(process.Config{})
 	if err != nil {
 		t.Fatal(err)
@@ -31,35 +76,29 @@ func TestSplitTunnelWindowsProcessLookup(t *testing.T) {
 	t.Cleanup(func() { _ = searcher.Close() })
 	for _, network := range []string{"tcp", "udp"} {
 		t.Run(network, func(t *testing.T) {
-			source, destination, pid := splitTunnelProcessSocket(t, short, network)
-			owner, err := searcher.FindProcessInfo(t.Context(), network, source, destination)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if owner.ProcessID != uint32(pid) {
-				t.Fatalf("process ID = %d, want child %d", owner.ProcessID, pid)
-			}
-			t.Logf("launched %q; Windows returned %q", short, owner.ProcessPath)
 			for _, tc := range []struct {
-				name, configured string
-				match            bool
+				name, launch string
+				match        bool
 			}{
 				{"long path", path, true},
 				{"short path", short, true},
-				{"mixed separators and case", filepath.ToSlash(strings.ToUpper(short)), true},
-				{"different executable", filepath.Join(filepath.Dir(path), "Other.exe"), false},
+				{"long directory short filename", filepath.Join(filepath.Dir(path), filepath.Base(short)), true},
+				{"short directory long filename", filepath.Join(filepath.Dir(short), filepath.Base(path)), true},
+				{"same filename different directory", unrelated, false},
 			} {
 				t.Run(tc.name, func(t *testing.T) {
-					for _, invert := range []bool{false, true} {
-						compiled, err := rule.NewDefaultHeadlessRule(t.Context(), option.DefaultHeadlessRule{
-							ProcessPath: []string{processpath.Normalize(tc.configured)},
-							Invert:      invert,
-						})
-						if err != nil {
-							t.Fatal(err)
-						}
-						if got := compiled.Match(&adapter.InboundContext{ProcessInfo: owner}); got != (tc.match != invert) {
-							t.Errorf("rule for %q matched runtime path %q = %v, invert=%v", tc.configured, owner.ProcessPath, got, invert)
+					source, destination, pid := splitTunnelProcessSocket(t, tc.launch, network)
+					owner, err := searcher.FindProcessInfo(t.Context(), network, source, destination)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if owner.ProcessID != uint32(pid) {
+						t.Fatalf("process ID = %d, want child %d", owner.ProcessID, pid)
+					}
+					t.Logf("launched %q; Windows returned %q", tc.launch, owner.ProcessPath)
+					for _, saved := range rules {
+						if got := saved.compiled.Match(&adapter.InboundContext{ProcessInfo: owner}); got != (tc.match != saved.invert) {
+							t.Errorf("rule for %q matched runtime path %q = %v, invert=%v", saved.name, owner.ProcessPath, got, saved.invert)
 						}
 					}
 				})
@@ -133,7 +172,7 @@ func splitTunnelProcessFixture(t *testing.T) (string, string) {
 		}
 		t.Skip("8.3 aliases are disabled on this volume")
 	}
-	return path, short
+	return processpath.Normalize(path), short
 }
 
 // splitTunnelProcessSocket launches the fixture and waits for its loopback traffic.

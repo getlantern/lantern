@@ -6,9 +6,11 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
+	"github.com/getlantern/lantern/lantern-core/internal/processpath"
 	"github.com/getlantern/radiance/vpn"
 	"golang.org/x/sys/windows"
 )
@@ -16,6 +18,10 @@ import (
 func TestSplitTunnelWindowsMigratesSavedPaths(t *testing.T) {
 	path, short := splitTunnelAliasFixture(t)
 	wantPath := strings.ToLower(path)
+	alias := processpath.AliasPattern(wantPath)
+	if alias == "" {
+		t.Fatal("fixture has no alias rule")
+	}
 	for _, policy := range []vpn.SplitTunnelPolicy{vpn.SplitTunnelPolicyExclude, vpn.SplitTunnelPolicyInclude} {
 		for _, tc := range []struct {
 			name  string
@@ -54,13 +60,11 @@ func TestSplitTunnelWindowsMigratesSavedPaths(t *testing.T) {
 				}
 				want := initial
 				want.ProcessPath = []string{wantPath}
+				want.ProcessPathRegex = append([]string{initial.ProcessPathRegex[0]}, alias)
 				if !reflect.DeepEqual(got, want) {
 					t.Fatalf("migrated filters = %#v, want %#v", got, want)
 				}
 				wantCalls := []string{"read", "add", "remove", "read"}
-				if tc.name == "existing replacement" {
-					wantCalls = []string{"read", "remove", "read"}
-				}
 				if !reflect.DeepEqual(client.calls, wantCalls) {
 					t.Fatalf("migration calls = %v, want %v", client.calls, wantCalls)
 				}
@@ -102,8 +106,117 @@ func TestSplitTunnelWindowsNormalizesUpdates(t *testing.T) {
 		t.Fatal(err)
 	}
 	saved := newSplitTunnelTestClient(t, dir).handler.Filters()
-	if len(saved.ProcessPath) != 0 || !reflect.DeepEqual(saved.Domain, filter.Domain) {
+	if len(saved.ProcessPath) != 0 || len(saved.ProcessPathRegex) != 0 || !reflect.DeepEqual(saved.Domain, filter.Domain) {
 		t.Fatalf("removing an alias changed other filters or left its path: %#v", saved)
+	}
+}
+
+func TestSplitTunnelWindowsRemovesMissingExecutable(t *testing.T) {
+	path, short := splitTunnelAliasFixture(t)
+	other, _ := splitTunnelAliasFixture(t)
+	dir := t.TempDir()
+	client := newSplitTunnelTestClient(t, dir)
+	paths := splitTunnelPaths{client: client}
+	userPattern := `(?i)^C:\\Games\\Other\.exe$`
+	if err := paths.update(t.Context(), vpn.SplitTunnelFilter{
+		ProcessPath:      []string{short, other},
+		ProcessPathRegex: []string{userPattern},
+	}, false); err != nil {
+		t.Fatal(err)
+	}
+	if len(client.handler.Filters().ProcessPathRegex) != 3 {
+		t.Fatal("expected a generated rule for each executable")
+	}
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	// Reload both sides so cleanup cannot depend on in-memory alias bookkeeping.
+	client = newSplitTunnelTestClient(t, dir)
+	paths = splitTunnelPaths{client: client}
+	if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{path}}, true); err != nil {
+		t.Fatal(err)
+	}
+	saved := newSplitTunnelTestClient(t, dir).handler.Filters()
+	if !reflect.DeepEqual(saved.ProcessPath, []string{strings.ToLower(other)}) ||
+		!reflect.DeepEqual(saved.ProcessPathRegex, []string{userPattern, processpath.AliasPattern(other)}) {
+		t.Fatalf("removing missing executable left aliases or changed other rules: %#v", saved)
+	}
+}
+
+func TestSplitTunnelWindowsRefreshesStaleAliases(t *testing.T) {
+	path, _ := splitTunnelAliasFixture(t)
+	canonical := strings.ToLower(path)
+	alias := processpath.AliasPattern(canonical)
+	if alias == "" {
+		t.Fatal("fixture has no alias rule")
+	}
+	stale := strings.TrimSuffix(alias, "$") + "obsolete$"
+	userPattern := `Other.*\.exe$`
+	dir := t.TempDir()
+	client := newSplitTunnelTestClient(t, dir)
+	if err := client.handler.AddItems(vpn.SplitTunnelFilter{
+		ProcessPath:      []string{canonical},
+		ProcessPathRegex: []string{stale, userPattern},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := client.handler.SetEnabled(true); err != nil {
+		t.Fatal(err)
+	}
+	paths := splitTunnelPaths{client: client}
+	if err := paths.prepareConnect(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	got := newSplitTunnelTestClient(t, dir).handler.Filters().ProcessPathRegex
+	if !reflect.DeepEqual(got, []string{userPattern, alias}) {
+		t.Fatalf("saved patterns = %v", got)
+	}
+}
+
+func TestSplitTunnelWindowsRetriesAliasUpdate(t *testing.T) {
+	path, short := splitTunnelAliasFixture(t)
+	for _, remove := range []bool{false, true} {
+		name := "add"
+		if remove {
+			name = "remove"
+		}
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			client := newSplitTunnelTestClient(t, dir)
+			paths := splitTunnelPaths{client: client}
+			if err := client.handler.AddItems(vpn.SplitTunnelFilter{Domain: []string{"example.com"}}); err != nil {
+				t.Fatal(err)
+			}
+			if remove {
+				if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{path}}, false); err != nil {
+					t.Fatal(err)
+				}
+			}
+			initial := client.handler.Filters()
+			unblock := blockSplitTunnelSave(t, dir)
+			if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{short}}, remove); err == nil {
+				t.Fatal("update succeeded while saving was blocked")
+			}
+			want := vpn.SplitTunnelFilter{Domain: initial.Domain}
+			if !remove {
+				want.ProcessPath = []string{strings.ToLower(path)}
+				want.ProcessPathRegex = []string{processpath.AliasPattern(path)}
+			}
+			got := client.handler.Filters()
+			if !slices.Equal(got.ProcessPath, want.ProcessPath) || !slices.Equal(got.ProcessPathRegex, want.ProcessPathRegex) {
+				t.Fatalf("path and alias were not updated together: %#v", got)
+			}
+			unblock()
+			if got := newSplitTunnelTestClient(t, dir).handler.Filters(); !reflect.DeepEqual(got, initial) {
+				t.Fatalf("failed save changed disk: %#v", got)
+			}
+			if _, err := paths.filters(t.Context()); err != nil {
+				t.Fatal(err)
+			}
+			if got := newSplitTunnelTestClient(t, dir).handler.Filters(); !reflect.DeepEqual(got, want) {
+				t.Fatalf("retried save = %#v, want %#v", got, want)
+			}
+		})
 	}
 }
 

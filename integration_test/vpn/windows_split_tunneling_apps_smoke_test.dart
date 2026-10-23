@@ -193,6 +193,14 @@ Future<void> _expectPersistedRule(
   );
 }
 
+Future<Set<String>> _persistedAliasRules() async {
+  final snapshot = await readSplitTunnelConfigFromDisk();
+  expect(snapshot, isNotNull);
+  final rules = splitTunnelRuleValues(snapshot!.value, 'process_path_regex');
+  expect(rules, isNotNull);
+  return rules!;
+}
+
 String _windowsPathName(String path, String function) {
   final resolve = DynamicLibrary.open('kernel32.dll')
       .lookupFunction<
@@ -290,8 +298,27 @@ void main() {
       }
 
       final launcher = await copyProbe('Game Launcher', 'Launcher.exe');
-      final child = await copyProbe('Game Files', 'Game.exe');
-      final unrelated = await copyProbe('Other Game', 'Game.exe');
+      final child = await copyProbe('Game Files 遊戲', 'Game Client.exe');
+      final unrelated = await copyProbe('Other Game', 'Game Client.exe');
+      final childLong = _windowsPathName(child, 'GetLongPathNameW');
+      final childShort = _windowsPathName(child, 'GetShortPathNameW');
+      expect(
+        p.windows.basename(childShort).toLowerCase(),
+        isNot(p.windows.basename(childLong).toLowerCase()),
+        reason: 'This smoke requires real 8.3 aliases on the fixture volume',
+      );
+      final childLaunches = {
+        'long path': childLong,
+        'short path': childShort,
+        'long directory and short filename': p.windows.join(
+          p.windows.dirname(childLong),
+          p.windows.basename(childShort),
+        ),
+        'short directory and long filename': p.windows.join(
+          p.windows.dirname(childShort),
+          p.windows.basename(childLong),
+        ),
+      };
       final legacy = await copyProbe(
         'Legacy Game 遊戲',
         'Legacy Game Client.exe',
@@ -344,7 +371,7 @@ void main() {
           'Restore split tunneling',
         );
       });
-      for (final path in [launcher, child]) {
+      for (final path in [launcher, childLong, legacyRule]) {
         addTearDown(() async {
           _require(
             await service.removeSplitTunnelItem(
@@ -404,9 +431,9 @@ void main() {
         await _expectPersistedRule(legacyRule, present: true);
         await _waitForIP(
           tester,
-          legacy,
+          legacyShort,
           accepts: (ip) => ip == baseline,
-          reason: 'The migrated legacy executable did not bypass the VPN',
+          reason: 'The migrated legacy short path did not bypass the VPN',
         );
 
         await _waitForIP(
@@ -424,16 +451,24 @@ void main() {
         );
 
         unawaited(appRouter.push(const AppsSplitTunneling()));
+        final aliasesBeforeChild = await _persistedAliasRules();
         final childRule = await _addExecutable(tester, picker, child);
         await _expectPersistedRule(childRule, present: true);
-        await _captureScreenshot(tester, 'windows-selected-executable');
-        await _waitForIP(
-          tester,
-          launcher,
-          child: child,
-          accepts: (ip) => ip == baseline,
-          reason: 'Explicit child executable did not bypass the VPN',
+        expect(
+          (await _persistedAliasRules()).difference(aliasesBeforeChild),
+          hasLength(1),
+          reason: 'Selecting an executable did not save its alias rule',
         );
+        await _captureScreenshot(tester, 'windows-selected-executable');
+        for (final launch in childLaunches.entries) {
+          await _waitForIP(
+            tester,
+            launcher,
+            child: launch.value,
+            accepts: (ip) => ip == baseline,
+            reason: 'Selected child launched by ${launch.key} did not bypass',
+          );
+        }
         await _waitForIP(
           tester,
           unrelated,
@@ -441,7 +476,11 @@ void main() {
           reason: 'A same-named executable in another folder bypassed the VPN',
         );
 
-        // Reload saved selections to check that manual entries survive discovery.
+        // A removed executable must remain visible and removable in the app.
+        final missingChild = await File(child).rename('$child.uninstalled');
+        addTearDown(() async {
+          if (await missingChild.exists()) await missingChild.rename(child);
+        });
         container.invalidate(splitTunnelingAppsProvider);
         await container.read(splitTunnelingAppsProvider.future);
         await tester.pump(const Duration(milliseconds: 300));
@@ -459,10 +498,16 @@ void main() {
           reason: 'Manual executable was not removable',
         );
         await _expectPersistedRule(childRule, present: false);
+        expect(
+          await _persistedAliasRules(),
+          aliasesBeforeChild,
+          reason: 'Removing a missing executable left a hidden alias bypass',
+        );
+        await missingChild.rename(child);
         await _waitForIP(
           tester,
           launcher,
-          child: child,
+          child: _windowsPathName(child, 'GetShortPathNameW'),
           accepts: (ip) => ip != baseline,
           reason: 'Removing the child rule did not restore tunneled traffic',
         );

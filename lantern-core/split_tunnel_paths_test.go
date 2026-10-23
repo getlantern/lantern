@@ -220,3 +220,22 @@ func TestSplitTunnelPathsSerializesUpdates(t *testing.T) {
 		t.Fatalf("concurrent updates saved duplicate paths: %v", got)
 	}
 }
+
+func TestSplitTunnelPathsRemovesOrphanAliases(t *testing.T) {
+	dir := t.TempDir()
+	client := newSplitTunnelTestClient(t, dir)
+	userPattern := `(?i)^C:\\Games\\Game\.exe$`
+	orphan := `(?i)^(?P<lantern_windows_executable>)C:\\Old\\Game\.exe$`
+	if err := client.handler.AddItems(vpn.SplitTunnelFilter{
+		ProcessPathRegex: []string{orphan, userPattern},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	paths := splitTunnelPaths{client: client}
+	if _, err := paths.filters(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	if got := newSplitTunnelTestClient(t, dir).handler.Filters().ProcessPathRegex; !reflect.DeepEqual(got, []string{userPattern}) {
+		t.Fatalf("orphan cleanup changed user rules or left a bypass: %v", got)
+	}
+}
