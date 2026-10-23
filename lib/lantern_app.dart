@@ -227,10 +227,17 @@ class _LanternAppState extends ConsumerState<LanternApp>
   /// Pushes [route] on the current stack when the app is in the foreground
   /// (Home already loaded). On a cold start the router stack is empty, so we
   /// seed it with Home first to ensure the user always has a back button.
-  void _pushWithHome(PageRouteInfo route) {
+  /// With [replaceIfOnTop], a same-named route on top is replaced so the new
+  /// arguments take effect.
+  void _pushWithHome(PageRouteInfo route, {bool replaceIfOnTop = false}) {
     final stack = appRouter.stack;
     // Guard against double-push: if the same route is already on top, skip.
     if (stack.isNotEmpty && stack.last.name == route.routeName) {
+      if (replaceIfOnTop) {
+        appLogger.debug("Route ${route.routeName} already on top, replacing");
+        appRouter.replace(route);
+        return;
+      }
       appLogger.debug("Route ${route.routeName} already on top, skipping push");
       return;
     }
