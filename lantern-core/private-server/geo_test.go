@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	C "github.com/getlantern/common"
 )
 
 const amsterdamLookupResponse = `{
@@ -116,5 +118,25 @@ func TestGetGeoInfoDoesNotFollowRedirects(t *testing.T) {
 func TestGeoLookupUsesHTTPS(t *testing.T) {
 	if want := "https://geo.getiantem.org/lookup/"; geoLookupURL != want {
 		t.Errorf("geoLookupURL = %q, want %q", geoLookupURL, want)
+	}
+}
+
+func TestGeoLocation(t *testing.T) {
+	tests := []struct {
+		name     string
+		in       string
+		expected C.ServerLocation
+	}{
+		{"region and country", "North Holland - The Netherlands [NL]", C.ServerLocation{City: "North Holland", Country: "The Netherlands", CountryCode: "NL"}},
+		{"country only", " - United States [US]", C.ServerLocation{Country: "United States", CountryCode: "US"}},
+		{"empty lookup", "", C.ServerLocation{}},
+		{"garbage", "not a location", C.ServerLocation{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := geoLocation(tt.in); got != tt.expected {
+				t.Errorf("geoLocation(%q) = %+v, want %+v", tt.in, got, tt.expected)
+			}
+		})
 	}
 }

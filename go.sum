@@ -250,8 +250,8 @@ github.com/getlantern/kindling v0.0.0-20261022170147-217b175b5057 h1:92dJUlWatnU
 github.com/getlantern/kindling v0.0.0-20261022170147-217b175b5057/go.mod h1:98jp1v8UyXJRGn8slpvzNz2tKnyzvSqtlVYkQ+kYapQ=
 github.com/getlantern/lantern-box v0.0.169 h1:FfZcAMd7DXny4TdSv7VEE1g2tQRzYbzjb29SroCNoDY=
 github.com/getlantern/lantern-box v0.0.169/go.mod h1:7FjUGTi8yVekVKOJH00nIkguBl1Uisa4aTwW1u7uqNo=
-github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9 h1:6seyD2f9tz2am0YQd/Qn+q7LFiiQgnmxgwWFnVceGZw=
-github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9/go.mod h1:s0VKrlJf/z+M0U8IKHFL2hfuflocRw3SINmMacrTlMA=
+github.com/getlantern/lantern-server-provisioner v0.0.0-20261023114014-4ec452c2a88a h1:5F0SXuw/zOCWXaeq1g/u9+yEjITbBCi/DvPjla7udI0=
+github.com/getlantern/lantern-server-provisioner v0.0.0-20261023114014-4ec452c2a88a/go.mod h1:s0VKrlJf/z+M0U8IKHFL2hfuflocRw3SINmMacrTlMA=
 github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 h1:grfGavAUp2E9w9ZoJuM3FyWyQ0sCJ64V4ZMKtZKRqTc=
 github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395/go.mod h1:3JpJgwi4KEI6rS9loOAvcBp+F2jP65d0tTg2GQcTPBU=
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNiMhCu4bf60nqcIuQpTYb00Ezm1ag=
@@ -262,8 +262,8 @@ github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 h1:rtDmW8YL
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535/go.mod h1:WKJEdjMOD4IuTRYwjQHjT4bmqDl5J82RShMLxPAvi0Q=
 github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b h1:gMYJzEhLrmIqQ+JnjiYNm+UyUDalK3WUmVyecFwmV5g=
 github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b/go.mod h1:NpfXdK4ldEKkjQ4P1R+DBF4ua5VFOlxmgHROTnYrApg=
-github.com/getlantern/radiance v0.0.0-20261022174223-e10660844b33 h1:CRJESoc2VuyM6LQ45n1hxBdTPAklWrGnw2Mwids4s7U=
-github.com/getlantern/radiance v0.0.0-20261022174223-e10660844b33/go.mod h1:9+Hul8JiRyebpnPNzWlCRRNE/qWz08vARF7lFGUKTks=
+github.com/getlantern/radiance v0.0.0-20261023142808-31433fef0024 h1:0zVl4krtMHvWMR5pj2N7pEj/7ed8eY116Nx+7bOjYlY=
+github.com/getlantern/radiance v0.0.0-20261023142808-31433fef0024/go.mod h1:9+Hul8JiRyebpnPNzWlCRRNE/qWz08vARF7lFGUKTks=
 github.com/getlantern/samizdat v0.0.3-0.20261021183544-34a7d2563eef h1:0B50zDG+CRQd8KflfNaKVF75SZfze3526AgaH7n6AUY=
 github.com/getlantern/samizdat v0.0.3-0.20261021183544-34a7d2563eef/go.mod h1:uEeykQSW2/6rTjfPlj3MTTo59poSHXfAHTGgzYDkbr0=
 github.com/getlantern/semconv v0.0.0-20261020020737-084d1daf4879 h1:ya+A5OI2FyVR+F140wxcH5KK5TfanvSdhBvu6ydJTlg=
