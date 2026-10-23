@@ -654,27 +654,66 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
       scrollControlDisabledMaxHeightRatio: 0.45,
       builder: (bottomSheetContext, scrollController) {
         return Flexible(
-          child: ListView.separated(
-            controller: scrollController,
-            padding: EdgeInsets.zero,
-            itemCount: widget.locations.length,
-            separatorBuilder: (_, _) =>
-                const DividerSpace(padding: EdgeInsets.zero),
-            itemBuilder: (_, index) {
-              final server = widget.locations[index];
-              final isSelected = widget.selectedServerTag == server.tag;
-
-              return SingleCityServerView(
-                nested: true,
-                onServerSelected: (selected) {
-                  Navigator.of(bottomSheetContext).pop();
-                  widget.onServerSelected(selected);
-                },
-                server: server,
-                isSelected: isSelected,
-              );
+          child: CountryCitySheetList(
+            country: widget.country,
+            initialLocations: widget.locations,
+            selectedServerTag: widget.selectedServerTag,
+            scrollController: scrollController,
+            onServerSelected: (selected) {
+              Navigator.of(bottomSheetContext).pop();
+              widget.onServerSelected(selected);
             },
           ),
+        );
+      },
+    );
+  }
+}
+
+/// The city rows inside a country's bottom sheet. The sheet is its own route,
+/// so it watches [availableServersProvider] itself; otherwise probe refreshes
+/// that land while it's open would leave its latency indicators stale.
+class CountryCitySheetList extends ConsumerWidget {
+  final String country;
+  final List<Server> initialLocations;
+  final String selectedServerTag;
+  final ScrollController? scrollController;
+  final OnServerSelected onServerSelected;
+
+  const CountryCitySheetList({
+    super.key,
+    required this.country,
+    required this.initialLocations,
+    required this.selectedServerTag,
+    required this.onServerSelected,
+    this.scrollController,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref
+        .watch(availableServersProvider)
+        .value
+        ?.lanternServerLocations
+        .where((s) => s.location.country == country)
+        .toList();
+    final locations = (current == null || current.isEmpty)
+        ? initialLocations
+        : current;
+
+    return ListView.separated(
+      controller: scrollController,
+      padding: EdgeInsets.zero,
+      itemCount: locations.length,
+      separatorBuilder: (_, _) => const DividerSpace(padding: EdgeInsets.zero),
+      itemBuilder: (_, index) {
+        final server = locations[index];
+        return SingleCityServerView(
+          key: ValueKey(server.tag),
+          nested: true,
+          onServerSelected: onServerSelected,
+          server: server,
+          isSelected: selectedServerTag == server.tag,
         );
       },
     );

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/features/vpn/latency_indicator.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
+import 'package:lantern/features/vpn/server_selection.dart';
 
 void main() {
   group('LatencyStatus.of', () {
@@ -82,18 +85,65 @@ void main() {
     await pump(const LatencyUnreachable());
     expect(find.text('latency_unreachable'), findsOneWidget);
   });
+
+  testWidgets('country sheet picks up probe refreshes while open', (
+    tester,
+  ) async {
+    final testing = _server(tag: 'us-sea', city: 'Seattle');
+    final notifier = _FakeAvailableServers(AvailableServers([testing]));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [availableServersProvider.overrideWith(() => notifier)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: CountryCitySheetList(
+              country: 'United States',
+              initialLocations: [testing],
+              selectedServerTag: '',
+              onServerSelected: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('latency_testing'), findsOneWidget);
+
+    notifier.set(
+      AvailableServers([_server(tag: 'us-sea', city: 'Seattle', delay: 87)]),
+    );
+    await tester.pump();
+    expect(find.text('latency_testing'), findsNothing);
+    expect(find.text('87 ms'), findsOneWidget);
+  });
 }
 
-Server _server({int? delay, int failures = 0}) {
+class _FakeAvailableServers extends AvailableServersNotifier {
+  _FakeAvailableServers(this._initial);
+
+  final AvailableServers _initial;
+
+  @override
+  Future<AvailableServers> build() async => _initial;
+
+  void set(AvailableServers servers) => state = AsyncData(servers);
+}
+
+Server _server({
+  int? delay,
+  int failures = 0,
+  String tag = 'tag',
+  String city = 'New York',
+}) {
   final hasHistory = delay != null || failures > 0;
   return Server(
-    tag: 'tag',
+    tag: tag,
     type: 'samizdat',
     isLantern: true,
     location: GeoLocation(
       country: 'United States',
       countryCode: 'US',
-      city: 'New York',
+      city: city,
       latitude: 0,
       longitude: 0,
     ),
