@@ -1286,6 +1286,12 @@ msgstr "Pelayan Peribadi"
 msgid "fastest_server"
 msgstr "Pelayan Terpantas"
 
+msgid "latency_testing"
+msgstr "Sedang diuji…"
+
+msgid "latency_unreachable"
+msgstr "Tidak dapat dicapai"
+
 msgid "join_my_private_server"
 msgstr "Sertai Pelayan Peribadi Lantern Saya"
 

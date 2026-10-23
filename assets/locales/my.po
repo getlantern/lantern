@@ -1297,6 +1297,12 @@ msgstr "ကိုယ်ပိုင်ဆာဗာများ"
 msgid "fastest_server"
 msgstr "အမြန်ဆုံး ဆာဗာ"
 
+msgid "latency_testing"
+msgstr "စမ်းသပ်နေသည်…"
+
+msgid "latency_unreachable"
+msgstr "ချိတ်ဆက်၍ မရပါ"
+
 msgid "join_my_private_server"
 msgstr "ကျွန်တော့် Lantern ကိုယ်ပိုင်ဆာဗာ ပူးပေါင်းပါ"
 

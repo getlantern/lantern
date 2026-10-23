@@ -2069,3 +2069,9 @@ msgstr "اکاؤنٹ کا پاس ورڈ شامل کریں"
 
 msgid "have_a_password_sign_in"
 msgstr "پاس ورڈ ہے؟ سائن ان کریں"
+
+msgid "latency_testing"
+msgstr "جانچ ہو رہی ہے…"
+
+msgid "latency_unreachable"
+msgstr "ناقابلِ رسائی"
