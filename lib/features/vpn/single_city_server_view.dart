@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/server_selection_callbacks.dart';
 
 import '../../core/common/common.dart';
@@ -44,6 +45,7 @@ class _SingleCityServerViewState extends State<SingleCityServerView> {
               ),
             ),
       icon: Flag(countryCode: widget.server.location.countryCode),
+      trailing: LatencyIndicator(status: LatencyStatus.of(widget.server)),
       onPressed: () {
         widget.onServerSelected(widget.server);
       },
