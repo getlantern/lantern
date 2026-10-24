@@ -176,6 +176,18 @@ Future<String> _addWithNativeDialog(WidgetTester tester, String path) async {
   const script = String.fromEnvironment('SPLIT_TUNNEL_FILE_DIALOG_SCRIPT');
   expect(script, isNotEmpty);
   final before = await _selectedPaths();
+  final button = find.byWidgetPredicate(
+    (widget) =>
+        widget is SecondaryButton &&
+        widget.key == const ValueKey('add-windows-executable') &&
+        widget.enabled,
+  );
+  await WidgetWaitUtils.waitForFinder(
+    tester,
+    button,
+    timeout: const Duration(seconds: 20),
+    reason: 'Add executable did not become enabled',
+  );
   final automation = await Process.start('powershell.exe', [
     '-NoProfile',
     '-NonInteractive',
@@ -194,7 +206,7 @@ Future<String> _addWithNativeDialog(WidgetTester tester, String path) async {
     automation.stderr.transform(utf8.decoder).join(),
   ]);
   try {
-    await _tap(tester, find.byKey(const ValueKey('add-windows-executable')));
+    await _tap(tester, button);
     final result = await completed.timeout(const Duration(seconds: 35));
     expect(
       result[0],

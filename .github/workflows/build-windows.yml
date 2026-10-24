@@ -135,6 +135,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Windows native executable picker regression
+        if: ${{ inputs.run_split_tunnel_apps_smoke }}
+        shell: powershell
+        timeout-minutes: 2
+        run: ./scripts/ci/windows-select-file-test.ps1
+
       - name: Validate backend environment isolation
         shell: pwsh
         env:

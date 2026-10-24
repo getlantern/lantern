@@ -30,18 +30,52 @@ $openCondition = [AndCondition]::new(
   [PropertyCondition]::new([AutomationElement]::ControlTypeProperty, [ControlType]::Button)
 )
 
+function Stop-Picker {
+  param([string]$Message)
+
+  try {
+    $controls = if ($lastDialog) {
+      @($lastDialog.FindAll([TreeScope]::Descendants, [OrCondition]::new([Condition[]]@(
+        $editCondition,
+        [PropertyCondition]::new([AutomationElement]::ControlTypeProperty, [ControlType]::ComboBox),
+        [PropertyCondition]::new([AutomationElement]::ControlTypeProperty, [ControlType]::Button)
+      ))) | Select-Object -First 30 | ForEach-Object {
+        @{ id = $_.Current.AutomationId; type = $_.Current.ControlType.ProgrammaticName; enabled = $_.Current.IsEnabled }
+      })
+    } else { @() }
+    $windows = @([AutomationElement]::RootElement.FindAll([TreeScope]::Children,
+      [PropertyCondition]::new([AutomationElement]::ProcessIdProperty, $AppProcessId)
+    ) | Select-Object -First 10 | ForEach-Object {
+      @{ handle = $_.Current.NativeWindowHandle; class = $_.Current.ClassName }
+    })
+    [Console]::Error.WriteLine((@{ stage = $stage; windows = $windows; controls = $controls } | ConvertTo-Json -Depth 4 -Compress))
+  } catch {
+    [Console]::Error.WriteLine("Picker diagnostics unavailable at ${stage}: $_")
+  } finally {
+    # Close only the target process's picker so Flutter can finish its cleanup.
+    if ($lastDialog) {
+      try { ([WindowPattern]$lastDialog.GetCurrentPattern([WindowPattern]::Pattern)).Close() } catch { }
+    }
+  }
+  throw $Message
+}
+
 # Match the common dialog's control IDs, not translated labels or screen positions.
 $timer = [Diagnostics.Stopwatch]::StartNew()
 $dialog = $null
+$lastDialog = $null
+$stage = 'waiting for the native dialog'
 $value = $null
 $open = $null
 while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
   Get-Process -Id $AppProcessId -ErrorAction Stop | Out-Null
   $dialogs = [AutomationElement]::RootElement.FindAll([TreeScope]::Children, $dialogCondition)
   foreach ($candidate in $dialogs) {
+    $lastDialog = $candidate
     $filename = $candidate.FindFirst([TreeScope]::Descendants, $filenameCondition)
     $open = $candidate.FindFirst([TreeScope]::Descendants, $openCondition)
-    if ($filename -and $open -and $filename.Current.IsEnabled -and $open.Current.IsEnabled) {
+    $stage = "dialog found; filename=$([bool]$filename), Open=$([bool]$open)"
+    if ($filename -and $open -and $filename.Current.IsEnabled) {
       $pattern = $null
       if (-not $filename.TryGetCurrentPattern([ValuePattern]::Pattern, [ref]$pattern) -or ([ValuePattern]$pattern).Current.IsReadOnly) {
         # Some dialog versions expose the editable field beneath a combo box.
@@ -57,24 +91,30 @@ while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
   if ($dialog) { break }
   Start-Sleep -Milliseconds 200
 }
-if (-not $dialog) { throw "No executable picker appeared for process $AppProcessId within $TimeoutSeconds seconds" }
+if (-not $dialog) { Stop-Picker "Executable picker was not ready for process $AppProcessId within $TimeoutSeconds seconds: $stage" }
 
 $windowHandle = $dialog.Current.NativeWindowHandle
 $value.SetValue($targetPath)
-if ($value.Current.Value -ne $targetPath) { throw 'The file picker did not accept the fixture path' }
+if ($value.Current.Value -ne $targetPath) { Stop-Picker 'The file picker did not accept the fixture path' }
+$stage = 'filename entered; waiting for Open to enable'
+while (-not $open.Current.IsEnabled -and $timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
+  Start-Sleep -Milliseconds 100
+}
+if (-not $open.Current.IsEnabled) { Stop-Picker 'Open did not enable after entering the fixture path' }
 $invoke = [InvokePattern]$open.GetCurrentPattern([InvokePattern]::Pattern)
 $invoke.Invoke()
+$stage = 'Open invoked; waiting for the dialog to close'
 
 $windowCondition = [AndCondition]::new(
   $dialogCondition,
   [PropertyCondition]::new([AutomationElement]::NativeWindowHandleProperty, $windowHandle)
 )
 while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
-  Get-Process -Id $AppProcessId -ErrorAction Stop | Out-Null
   if (-not [AutomationElement]::RootElement.FindFirst([TreeScope]::Children, $windowCondition)) {
     [pscustomobject]@{ processId = $AppProcessId; path = $targetPath; windowHandle = $windowHandle } | ConvertTo-Json -Compress
     exit 0
   }
+  Get-Process -Id $AppProcessId -ErrorAction Stop | Out-Null
   Start-Sleep -Milliseconds 200
 }
-throw 'The executable picker remained open after selecting the fixture'
+Stop-Picker 'The executable picker remained open after selecting the fixture'
