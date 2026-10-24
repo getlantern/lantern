@@ -24,9 +24,10 @@ import '../utils/app_robot.dart';
 import '../utils/widget_wait_utils.dart';
 import 'split_tunneling_smoke_helpers.dart';
 import 'vpn_smoke_helpers.dart';
+import 'windows_firefox_smoke.dart';
+import 'windows_routing_evidence.dart';
 
-// Only the OS file dialog is replaced. Validation, persistence and routing all
-// go through the same code and Windows service used by the installed app.
+// The native dialog is tested once; path edge cases use this deterministic picker.
 class _ExecutablePicker extends FileSelectorPlatform {
   String? nextPath;
 
@@ -85,45 +86,126 @@ Future<String> _addExecutable(
   await container.read(splitTunnelingAppsProvider.future);
   picker.nextPath = path;
   await _tap(tester, button);
+  return _finishAddingExecutable(tester, before);
+}
+
+Future<Set<String>> _selectedPaths() async => _require(
+  await sl<LanternService>().getSplitTunnelItems(
+    SplitTunnelFilterType.processPath,
+  ),
+  'Read executable rules',
+).toSet();
+
+Future<String> _finishAddingExecutable(
+  WidgetTester tester,
+  Set<String> before,
+) async {
   final deadline = DateTime.now().add(const Duration(seconds: 20));
   while (DateTime.now().isBefore(deadline)) {
     await tester.pump(const Duration(milliseconds: 200));
-    final confirmation = find.ancestor(
-      of: find.text('bypass_app_first_time_title'.i18n),
-      matching: find.byType(AlertDialog),
+    final confirmation = find.byType(AlertDialog);
+    final add = find.descendant(
+      of: confirmation,
+      matching: find.widgetWithText(PrimaryButton, 'add'.i18n),
     );
-    if (confirmation.evaluate().isNotEmpty) {
-      await _tap(
-        tester,
-        find.descendant(
-          of: confirmation,
-          matching: find.widgetWithText(PrimaryButton, 'add'.i18n),
-        ),
-      );
+    final addBrowser = find.descendant(
+      of: confirmation,
+      matching: find.widgetWithText(SecondaryButton, 'add_anyway'.i18n),
+    );
+    if (add.evaluate().isNotEmpty || addBrowser.evaluate().isNotEmpty) {
+      await _tap(tester, addBrowser.evaluate().isNotEmpty ? addBrowser : add);
       continue;
     }
-    final added = (await readPaths()).toSet().difference(before);
+    final added = (await _selectedPaths()).difference(before);
     if (added.isNotEmpty) {
       expect(added, hasLength(1));
       final canonicalPath = added.single;
-      try {
-        await revealBypassedApp(tester, _appRow(canonicalPath));
-      } on TestFailure {
-        final state = container.read(splitTunnelingAppsProvider);
-        final selected = state.value?.any(
-          (app) =>
-              windowsAppPathId(app.appPath) == windowsAppPathId(canonicalPath),
-        );
-        debugPrint(
-          'Missing executable row: selected=$selected, '
-          'loading=${state.isLoading}, error=${state.hasError}',
-        );
-        rethrow;
-      }
+      await closeInstalledAppSearch(tester);
+      await revealBypassedApp(tester, _appRow(canonicalPath));
       return canonicalPath;
     }
   }
-  fail('Manually selected executable was not saved');
+  fail('Selected executable was not saved');
+}
+
+Future<String> _selectInstalledExecutable(
+  WidgetTester tester,
+  ProviderContainer container,
+  String executable,
+) async {
+  await WidgetWaitUtils.waitForFinder(
+    tester,
+    find.byType(WindowsExecutablePicker),
+    timeout: const Duration(seconds: 20),
+  );
+  final path = _canonicalPath(executable);
+  final discovered = await container
+      .read(appsDataProvider.future)
+      .timeout(const Duration(seconds: 60));
+  final matches = discovered.where(
+    (app) => windowsAppPathId(app.appPath) == path,
+  );
+  expect(matches, isNotEmpty, reason: 'Executable was not discovered: $path');
+  final before = await _selectedPaths();
+  expect(before.map(windowsAppPathId), isNot(contains(path)));
+  await expectInstalledApp(
+    tester,
+    query: matches.first.name,
+    row: _appRow(path),
+    select: true,
+  );
+  final selected = await _finishAddingExecutable(tester, before);
+  expect(windowsAppPathId(selected), path);
+  await _expectPersistedRule(selected, present: true);
+  return selected;
+}
+
+Future<void> _removeExecutable(WidgetTester tester, String path) async {
+  await revealBypassedApp(tester, _appRow(path));
+  await _tap(
+    tester,
+    find.byKey(ValueKey('toggle-split-tunnel-app:${windowsAppPathId(path)}')),
+  );
+  await _expectPersistedRule(path, present: false);
+}
+
+String _canonicalPath(String path) =>
+    windowsAppPathId(_windowsPathName(path, 'GetLongPathNameW'));
+
+Future<String> _addWithNativeDialog(WidgetTester tester, String path) async {
+  const script = String.fromEnvironment('SPLIT_TUNNEL_FILE_DIALOG_SCRIPT');
+  expect(script, isNotEmpty);
+  final before = await _selectedPaths();
+  final automation = await Process.start('powershell.exe', [
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    script,
+    '-AppProcessId',
+    '$pid',
+    '-FilePath',
+    path,
+  ], runInShell: false);
+  final completed = Future.wait<Object>([
+    automation.exitCode,
+    automation.stdout.transform(utf8.decoder).join(),
+    automation.stderr.transform(utf8.decoder).join(),
+  ]);
+  try {
+    await _tap(tester, find.byKey(const ValueKey('add-windows-executable')));
+    final result = await completed.timeout(const Duration(seconds: 35));
+    expect(
+      result[0],
+      0,
+      reason: 'Native file dialog failed: ${result[1]} ${result[2]}',
+    );
+    return await _finishAddingExecutable(tester, before);
+  } finally {
+    automation.kill();
+    await automation.exitCode.timeout(const Duration(seconds: 5));
+  }
 }
 
 Future<void> _expectRegisteredApps(
@@ -218,6 +300,76 @@ Future<String> _waitForIP(
   fail(reason);
 }
 
+Future<void> _expectOwnedRoute(
+  WindowsRoutingEvidence evidence,
+  String executable, {
+  String? child,
+  bool udp = false,
+  required bool bypass,
+  required String baseline,
+  required String scenario,
+}) async {
+  await _expectLiveRoute(
+    evidence,
+    executable: child ?? executable,
+    bypass: bypass,
+    baseline: baseline,
+    scenario: '$scenario (${udp ? 'UDP' : 'TCP'})',
+    probe: () async {
+      final result = await probeWindowsConnection(
+        executable,
+        child: child,
+        udp: udp,
+      );
+      return (address: result['publicIP'] as String, connections: [result]);
+    },
+  );
+}
+
+Future<void> _expectLiveRoute(
+  WindowsRoutingEvidence evidence, {
+  required String executable,
+  required bool bypass,
+  required String baseline,
+  required String scenario,
+  required Future<({String address, List<Map<String, dynamic>> connections})>
+  Function()
+  probe,
+}) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 90));
+  Object? lastFailure;
+  // Rule-file reloads are asynchronous. Every attempt uses a new connection
+  // and a new log boundary so an earlier route cannot satisfy the assertion.
+  while (DateTime.now().isBefore(deadline)) {
+    final since = evidence.mark;
+    try {
+      final result = await probe();
+      if ((result.address == baseline) != bypass) {
+        lastFailure =
+            'Observed ${result.address}; direct baseline is $baseline';
+      } else {
+        await evidence.expectRoute(
+          since: since,
+          connections: result.connections,
+          executable: executable,
+          normalizePath: _canonicalPath,
+          bypass: bypass,
+          scenario: scenario,
+          publicIP: result.address,
+        );
+        debugPrint('Verified $scenario: owner, socket, rule and outbound');
+        return;
+      }
+    } on StateError catch (error) {
+      lastFailure = error;
+    } on TimeoutException catch (error) {
+      lastFailure = error;
+    }
+    await Future<void>.delayed(const Duration(seconds: 1));
+  }
+  fail('$scenario did not follow the selection: $lastFailure');
+}
+
 Future<void> _expectPersistedRule(
   String executable, {
   required bool present,
@@ -309,7 +461,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'Windows launcher children require an explicit executable rule',
+    'Windows installed apps and launcher children follow executable rules',
     (tester) async {
       expect(Platform.isWindows, isTrue);
       const probePath = String.fromEnvironment('SPLIT_TUNNEL_PROBE');
@@ -326,6 +478,16 @@ void main() {
         reason: 'Run through windows_smoke_suite.ps1',
       );
       expect(await File(cliPath).exists(), isTrue);
+      const firefox = String.fromEnvironment('SPLIT_TUNNEL_FIREFOX_EXE');
+      const geckodriver = String.fromEnvironment(
+        'SPLIT_TUNNEL_GECKODRIVER_EXE',
+      );
+      expect(await File(firefox).exists(), isTrue);
+      expect(await File(geckodriver).exists(), isTrue);
+      const artifactDirectory = String.fromEnvironment(
+        'SPLIT_TUNNEL_SCREENSHOT_DIR',
+        defaultValue: 'build/windows-split-tunnel-smoke',
+      );
 
       const registeredExecutables = {
         'Start Menu launcher': String.fromEnvironment(
@@ -358,6 +520,12 @@ void main() {
       final launcher = await copyProbe('Game Launcher', 'Launcher.exe');
       final child = await copyProbe('Game Files 遊戲', 'Game Client.exe');
       final unrelated = await copyProbe('Other Game', 'Game Client.exe');
+      final nativePicker = await copyProbe(
+        'Native File Picker',
+        'Native Picker Probe.exe',
+      );
+      final registeredLauncher = registeredExecutables['Start Menu launcher']!;
+      final registeredGame = registeredExecutables['App Paths game']!;
       final childLong = _windowsPathName(child, 'GetLongPathNameW');
       final childShort = _windowsPathName(child, 'GetShortPathNameW');
       expect(
@@ -429,7 +597,15 @@ void main() {
           'Restore split tunneling',
         );
       });
-      for (final path in [launcher, childLong, legacyRule]) {
+      for (final path in [
+        launcher,
+        childLong,
+        legacyRule,
+        nativePicker,
+        registeredLauncher,
+        registeredGame,
+        firefox,
+      ]) {
         addTearDown(() async {
           _require(
             await service.removeSplitTunnelItem(
@@ -447,9 +623,13 @@ void main() {
           'Enable split tunneling',
         );
 
+        final evidence = await WindowsRoutingEvidence.start(
+          cliPath,
+          artifactDirectory,
+        );
+        addTearDown(evidence.close);
         final picker = _ExecutablePicker();
         final originalPicker = FileSelectorPlatform.instance;
-        FileSelectorPlatform.instance = picker;
         addTearDown(() => FileSelectorPlatform.instance = originalPicker);
         final baseline = await _waitForIP(
           tester,
@@ -458,6 +638,12 @@ void main() {
           accepts: (_) => true,
           reason: 'Could not get the direct baseline IP',
         );
+        final udpBaseline =
+            (await probeWindowsConnection(
+                  registeredGame,
+                  udp: true,
+                ))['publicIP']
+                as String;
 
         unawaited(appRouter.push(const AppsSplitTunneling()));
         await WidgetWaitUtils.waitForFinder(
@@ -466,9 +652,19 @@ void main() {
           timeout: const Duration(seconds: 20),
         );
         await container.read(splitTunnelingAppsProvider.future);
-        await _expectRegisteredApps(tester, container, registeredExecutables);
+        await _expectRegisteredApps(tester, container, {
+          ...registeredExecutables,
+          'Installed Firefox': firefox,
+        });
         await tester.ensureVisible(find.byType(WindowsExecutablePicker));
         await _captureScreenshot(tester, 'windows-executable-picker');
+        final nativeRule = await _addWithNativeDialog(tester, nativePicker);
+        expect(windowsAppPathId(nativeRule), _canonicalPath(nativePicker));
+        await _expectPersistedRule(nativeRule, present: true);
+        await _removeExecutable(tester, nativeRule);
+
+        FileSelectorPlatform.instance = picker;
+        await _selectInstalledExecutable(tester, container, registeredLauncher);
         final launcherRule = await _addExecutable(tester, picker, launcher);
         await _expectPersistedRule(launcherRule, present: true);
         appRouter.popUntilRoot();
@@ -509,7 +705,85 @@ void main() {
           reason: 'Exempting the launcher also exempted its unlisted child',
         );
 
+        await _expectOwnedRoute(
+          evidence,
+          registeredLauncher,
+          bypass: true,
+          baseline: baseline,
+          scenario: 'Discovered launcher bypasses',
+        );
+        for (final udp in [false, true]) {
+          await _expectOwnedRoute(
+            evidence,
+            registeredLauncher,
+            child: registeredGame,
+            udp: udp,
+            bypass: false,
+            baseline: udp ? udpBaseline : baseline,
+            scenario: 'Unselected registered child stays tunneled',
+          );
+        }
         unawaited(appRouter.push(const AppsSplitTunneling()));
+        final registeredGameRule = await _selectInstalledExecutable(
+          tester,
+          container,
+          registeredGame,
+        );
+        await _captureScreenshot(tester, 'windows-installed-game-selected');
+        for (final udp in [false, true]) {
+          await _expectOwnedRoute(
+            evidence,
+            registeredLauncher,
+            child: registeredGame,
+            udp: udp,
+            bypass: true,
+            baseline: udp ? udpBaseline : baseline,
+            scenario: 'Installed Apps selection bypasses registered child',
+          );
+        }
+        await _removeExecutable(tester, registeredGameRule);
+        for (final udp in [false, true]) {
+          await _expectOwnedRoute(
+            evidence,
+            registeredLauncher,
+            child: registeredGame,
+            udp: udp,
+            bypass: false,
+            baseline: udp ? udpBaseline : baseline,
+            scenario: 'Removing registered child restores VPN',
+          );
+        }
+
+        final firefoxRule = await _selectInstalledExecutable(
+          tester,
+          container,
+          firefox,
+        );
+        await _captureScreenshot(tester, 'windows-firefox-selected');
+        for (final bypass in [true, false]) {
+          if (!bypass) await _removeExecutable(tester, firefoxRule);
+          await _expectLiveRoute(
+            evidence,
+            executable: firefox,
+            bypass: bypass,
+            baseline: baseline,
+            scenario: bypass
+                ? 'Selected Firefox bypasses'
+                : 'Removed Firefox returns to VPN',
+            probe: () async {
+              final browser = await probeFirefox(
+                firefoxPath: firefox,
+                geckodriverPath: geckodriver,
+                artifactDirectory: artifactDirectory,
+              );
+              return (
+                address: browser.address,
+                connections: browser.connections,
+              );
+            },
+          );
+        }
+
         final aliasesBeforeChild = await _persistedAliasRules();
         final childRule = await _addExecutable(tester, picker, child);
         await _expectPersistedRule(childRule, present: true);
@@ -585,6 +859,6 @@ void main() {
         );
       }
     },
-    timeout: const Timeout(Duration(minutes: 10)),
+    timeout: const Timeout(Duration(minutes: 15)),
   );
 }

@@ -14,6 +14,7 @@ Future<void> expectInstalledApp(
   WidgetTester tester, {
   required String query,
   required Finder row,
+  bool select = false,
 }) async {
   final searchBar = find.byType(AppSearchBar);
   final searchButton = find
@@ -55,10 +56,31 @@ Future<void> expectInstalledApp(
           .hitTestable(),
       findsOneWidget,
     );
+    if (select) {
+      await tester.tap(
+        find.descendant(of: row, matching: find.byType(AppIconButton)),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+    }
   } finally {
-    await tester.tap(searchButton);
+    // A confirmation dialog can cover the search bar after selecting a row.
+    if (!select) await tester.tap(searchButton);
     await tester.pump(const Duration(milliseconds: 200));
   }
+}
+
+Future<void> closeInstalledAppSearch(WidgetTester tester) async {
+  final searchBar = find.byType(AppSearchBar);
+  if (find
+      .descendant(of: searchBar, matching: find.byType(TextField))
+      .evaluate()
+      .isEmpty) {
+    return;
+  }
+  await tester.tap(
+    find.descendant(of: searchBar, matching: find.byType(IconButton)).last,
+  );
+  await tester.pump(const Duration(milliseconds: 200));
 }
 
 Future<void> revealBypassedApp(WidgetTester tester, Finder row) async {

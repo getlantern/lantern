@@ -459,6 +459,11 @@ try {
   }
 
   if ($RunSplitTunnelAppsSmoke) {
+    foreach ($fixture in @($env:LANTERN_SMOKE_BROWSER_EXE, $env:LANTERN_SMOKE_GECKODRIVER_EXE)) {
+      if ([string]::IsNullOrWhiteSpace($fixture) -or -not (Test-Path -LiteralPath $fixture -PathType Leaf)) {
+        throw 'Split-tunnel smoke requires LANTERN_SMOKE_BROWSER_EXE and LANTERN_SMOKE_GECKODRIVER_EXE to point to installed executables'
+      }
+    }
     $fixtureID = [guid]::NewGuid().ToString("N")
     $splitTunnelFixtureDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "lantern-split-smoke-$fixtureID"
     New-Item -ItemType Directory -Path $splitTunnelFixtureDirectory | Out-Null
@@ -493,12 +498,18 @@ try {
     Set-Item -LiteralPath $gameRegistryPath -Value $registeredGamePath
 
     $screenshotDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../build/windows-split-tunnel-smoke"))
+    $fileDialogScript = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../../scripts/ci/windows-select-file.ps1')).Path
+    $socketOwnerScript = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../../scripts/ci/windows-socket-owner.ps1')).Path
     $splitTunnelDefines = @(
       "SPLIT_TUNNEL_PROBE=$probePath",
       "SPLIT_TUNNEL_CLI=$cliPath",
       "SPLIT_TUNNEL_SCREENSHOT_DIR=$screenshotDirectory",
       "SPLIT_TUNNEL_REGISTERED_LAUNCHER=$registeredLauncherPath",
-      "SPLIT_TUNNEL_REGISTERED_GAME=$registeredGamePath"
+      "SPLIT_TUNNEL_REGISTERED_GAME=$registeredGamePath",
+      "SPLIT_TUNNEL_FIREFOX_EXE=$env:LANTERN_SMOKE_BROWSER_EXE",
+      "SPLIT_TUNNEL_GECKODRIVER_EXE=$env:LANTERN_SMOKE_GECKODRIVER_EXE",
+      "SPLIT_TUNNEL_FILE_DIALOG_SCRIPT=$fileDialogScript",
+      "SPLIT_TUNNEL_SOCKET_OWNER_SCRIPT=$socketOwnerScript"
     )
     Invoke-FlutterSmokeTest `
       -Path $SplitTunnelAppsTestPath `

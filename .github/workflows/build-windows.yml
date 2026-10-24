@@ -218,8 +218,32 @@ jobs:
           if (-not $browserExe) { throw 'Firefox executable is missing; browser discovery cannot be tested' }
           Write-Host "Installed browser fixture: $browserExe (version $((Get-Item -LiteralPath $browserExe).VersionInfo.ProductVersion))"
           $env:LANTERN_SMOKE_BROWSER_EXE = $browserExe
+          "LANTERN_SMOKE_BROWSER_EXE=$browserExe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           go test -v -count=1 -timeout 2m -run '^TestWindowsInstalledBrowserDiscovery$' ./apps
           if ($LASTEXITCODE -ne 0) { throw 'Installed Firefox was not discovered by the app picker' }
+
+      - name: Set up Firefox WebDriver
+        if: ${{ inputs.run_split_tunnel_apps_smoke }}
+        shell: pwsh
+        timeout-minutes: 5
+        run: |
+          $driverDirectory = Join-Path $env:RUNNER_TEMP "lantern-geckodriver-$([guid]::NewGuid().ToString('N'))"
+          New-Item -ItemType Directory -Path $driverDirectory | Out-Null
+          $archive = Join-Path $driverDirectory 'geckodriver.zip'
+          try {
+            Invoke-WebRequest -Uri 'https://github.com/mozilla/geckodriver/releases/download/v0.37.1/geckodriver-v0.37.1-win64.zip' -OutFile $archive -TimeoutSec 120
+            $expectedHash = 'dfed9315abe8d2fbc1b6161a2ee8002452e79cf05ee92fdc653a4e26bc35edd8'
+            if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $expectedHash) {
+              throw 'GeckoDriver archive failed SHA-256 verification'
+            }
+            Expand-Archive -LiteralPath $archive -DestinationPath $driverDirectory
+          } finally {
+            if (Test-Path -LiteralPath $archive) { Remove-Item -LiteralPath $archive -Force }
+          }
+          $driverPath = Join-Path $driverDirectory 'geckodriver.exe'
+          & $driverPath --version
+          if ($LASTEXITCODE -ne 0) { throw 'GeckoDriver could not start' }
+          "LANTERN_SMOKE_GECKODRIVER_EXE=$driverPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
@@ -559,12 +583,12 @@ jobs:
         run: |
           flutter test integration_test/auth/auth_smoke_test.dart -d windows --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
 
-      - name: Upload Windows split-tunnel screenshots
+      - name: Upload Windows split-tunnel diagnostics
         if: ${{ always() && inputs.run_split_tunnel_apps_smoke }}
         uses: actions/upload-artifact@v4
         with:
-          name: windows-split-tunnel-screenshots
-          path: build/windows-split-tunnel-smoke/*.png
+          name: windows-split-tunnel-diagnostics
+          path: build/windows-split-tunnel-smoke/
           if-no-files-found: warn
           retention-days: 7
 
