@@ -114,7 +114,6 @@ while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
     [pscustomobject]@{ processId = $AppProcessId; path = $targetPath; windowHandle = $windowHandle } | ConvertTo-Json -Compress
     exit 0
   }
-  Get-Process -Id $AppProcessId -ErrorAction Stop | Out-Null
   Start-Sleep -Milliseconds 200
 }
 Stop-Picker 'The executable picker remained open after selecting the fixture'
