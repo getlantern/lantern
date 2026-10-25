@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	C "github.com/getlantern/common"
 	"github.com/getlantern/radiance/ipc"
 
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
@@ -225,7 +226,7 @@ func listenToServerEvents(ps provisionSession) {
 				region, city, country := ParseLocation(provisioner.serverLocation)
 				slog.Debug("Provisioner response", slog.Any("response", resp), slog.String("region", region), slog.String("country", country), slog.String("city", city))
 				ctx := context.Background()
-				mangerErr := provisioner.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
+				mangerErr := provisioner.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, C.ServerLocation{}, false)
 				if mangerErr != nil {
 					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
@@ -362,7 +363,7 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *ipc.Client,
 	location := getGeoInfo(ip)
 	_, _, _ = ParseLocation(location)
 	ctx := context.Background()
-	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken)
+	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, C.ServerLocation{}, false)
 	if err != nil {
 		return err
 	}
