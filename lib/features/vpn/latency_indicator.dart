@@ -79,6 +79,31 @@ class LatencyIndicator extends StatelessWidget {
         context.statusErrorText,
       ),
     };
+    final style = Theme.of(context).textTheme.labelMedium!.copyWith(
+      color: textColor,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+    Widget labelWidget = Text(label, style: style);
+    if (status is LatencyMeasured) {
+      // Urbanist has no tabular figures (the fontFeatures request above is
+      // inert) and latencies vary from 2 to 4 digits, so a bare label would
+      // put each row's dot in a different column. An invisible widest-case
+      // template fixes the label block's width in the current style and
+      // scale; the Stack still grows if a real label ever exceeds it.
+      labelWidget = Stack(
+        alignment: AlignmentDirectional.centerEnd,
+        children: [
+          Visibility(
+            visible: false,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: Text('8888 ms', style: style),
+          ),
+          labelWidget,
+        ],
+      );
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       spacing: 2,
@@ -96,13 +121,7 @@ class LatencyIndicator extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelMedium!.copyWith(
-            color: textColor,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
+        labelWidget,
       ],
     );
   }
