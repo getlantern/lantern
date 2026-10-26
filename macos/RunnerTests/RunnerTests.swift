@@ -495,7 +495,7 @@ final class RunnerTests: XCTestCase {
       installed: [installed]
     )
 
-    XCTAssertEqual(reconciliation.change, .install)
+    XCTAssertEqual(reconciliation.change, .enable)
     assertUpdatePending(
       reconciliation.status,
       contains: "no enabled system extension matches the current app"
@@ -504,6 +504,53 @@ final class RunnerTests: XCTestCase {
       reconciliation.action,
       contains: "activate bundled system extension"
     )
+  }
+
+  func testReconcileRequiresEnableWhenActivationOverDisabledExtensionWasNoOp() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let disabled = makeDescriptor(build: "220", hash: "hash-a")
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [disabled],
+      activationAttemptedOver: [disabled]
+    )
+
+    XCTAssertEqual(reconciliation.status, .requiresEnable)
+    XCTAssertEqual(reconciliation.action, .none)
+    XCTAssertEqual(reconciliation.change, .enable)
+  }
+
+  func testReconcileRetriesActivationWhenDisabledInstalledSetChanged() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let previous = makeDescriptor(build: "219", hash: "hash-b")
+    let current = makeDescriptor(build: "220", hash: "hash-a")
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [current],
+      activationAttemptedOver: [previous]
+    )
+
+    XCTAssertEqual(reconciliation.change, .enable)
+    assertActivate(
+      reconciliation.action,
+      contains: "activate bundled system extension"
+    )
+  }
+
+  func testReconcileIgnoresDisabledSnapshotOnceAnExtensionIsEnabled() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let enabled = makeDescriptor(build: "220", hash: "hash-a", isEnabled: true)
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [enabled],
+      activationAttemptedOver: [makeDescriptor(build: "220", hash: "hash-a")]
+    )
+
+    XCTAssertEqual(reconciliation.status, .activated)
+    XCTAssertEqual(reconciliation.action, .none)
   }
 
   func testReconcileActivatesBundledExtensionWhenNothingIsInstalled() {

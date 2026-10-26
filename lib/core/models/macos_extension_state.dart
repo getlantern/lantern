@@ -2,6 +2,7 @@ enum SystemExtensionStatus {
   notInstalled,
   installed,
   requiresApproval,
+  requiresEnable,
   requiresReboot,
   updatePending,
   timedOut,
@@ -76,6 +77,8 @@ class MacOSExtensionState {
         return const MacOSExtensionState(
           SystemExtensionStatus.requiresApproval,
         );
+      case 'requiresEnable':
+        return const MacOSExtensionState(SystemExtensionStatus.requiresEnable);
       case 'requiresReboot':
       case 'needsRestart':
         return MacOSExtensionState(

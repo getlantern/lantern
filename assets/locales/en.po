@@ -1294,6 +1294,9 @@ msgstr "when prompted."
 msgid "activate_extension"
 msgstr "Install Now"
 
+msgid "network_extension_disabled_message"
+msgstr "Lantern's network extension is turned off in System Settings. Turn it on under Login Items & Extensions > Network Extensions, then return to Lantern."
+
 msgid "email_optional"
 msgstr "Email (optional)"
 
