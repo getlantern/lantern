@@ -40,7 +40,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final installedHeaderKey = useMemoized(GlobalKey.new);
     final scrollViewKey = useMemoized(GlobalKey.new);
     final indexBarTop = useState(0.0);
-    final searchQuery = ref.watch(searchQueryProvider);
+    final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
 
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
@@ -56,9 +56,8 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||
-        a.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-        (Platform.isWindows &&
-            a.appPath.toLowerCase().contains(searchQuery.toLowerCase()));
+        a.name.toLowerCase().contains(searchQuery) ||
+        (Platform.isWindows && a.appPath.toLowerCase().contains(searchQuery));
 
     final enabledIds = enabledApps.map(normalizedAppId).toSet();
     final filteredEnabled = dedupeAndSortApps(enabledApps.where(matchesSearch));
