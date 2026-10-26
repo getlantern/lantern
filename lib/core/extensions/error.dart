@@ -85,7 +85,7 @@ extension ErrorExetension on Object {
       final duplicate = RegExp(
         r'server "[^"]*" already exists',
       ).firstMatch(description);
-      
+
       if (duplicate != null) return duplicate.group(0)!;
 
       final serverMessage = _serverErrorMessage(description);
