@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	C "github.com/getlantern/common"
 	"github.com/getlantern/radiance/ipc"
 
 	C "github.com/getlantern/common"
