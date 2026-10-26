@@ -46,6 +46,24 @@ func normalize(path string) string {
 	}
 }
 
+// IsLocalFile reports whether path names a local file without traversing reparse points.
+func IsLocalFile(path string) bool {
+	path = filepath.Clean(path)
+	root, err := openLocalRoot(path)
+	if err != nil {
+		return false
+	}
+	defer windows.CloseHandle(root)
+	handle, err := openRelativePath(root, path[len(filepath.VolumeName(path))+1:])
+	if err != nil {
+		return false
+	}
+	defer windows.CloseHandle(handle)
+	var info windows.ByHandleFileInformation
+	return windows.GetFileInformationByHandle(handle, &info) == nil &&
+		info.FileAttributes&windows.FILE_ATTRIBUTE_DIRECTORY == 0
+}
+
 func openLocalRoot(path string) (windows.Handle, error) {
 	volume := filepath.VolumeName(path)
 	if len(volume) != 2 || volume[1] != ':' || !filepath.IsAbs(path) {

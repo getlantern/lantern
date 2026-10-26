@@ -113,8 +113,7 @@ List<AppData> dedupeAndSortApps(
     byId[id] = pickPreferredAppEntry(byId[id], app);
   }
 
-  final out = byId.values.toList()..sort(_compareAppsByDisplayName);
-  return out;
+  return byId.values.toList()..sort(_compareAppsByDisplayName);
 }
 
 int _compareAppsByDisplayName(AppData a, AppData b) {

@@ -4,14 +4,12 @@ package apps
 
 import (
 	"log/slog"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
 
 	"github.com/getlantern/lantern/lantern-core/internal/processpath"
-	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -98,10 +96,6 @@ func collectAppsFromRegisteredBrowsers(idx browserExeIndex, seen map[string]bool
 			isWindowsUtilityApp(path, name) || isExcludedName(filepathBaseNoExt(path)) {
 			continue
 		}
-		info, err := os.Stat(path)
-		if err != nil || !info.Mode().IsRegular() {
-			continue
-		}
 		app := &AppData{
 			Name:      name,
 			BundleID:  path,
@@ -125,16 +119,7 @@ func localBrowserExecutable(path string) bool {
 		!strings.EqualFold(filepath.Ext(path), ".exe") || strings.ContainsAny(path[2:], ":\x00") {
 		return false
 	}
-	root, err := windows.UTF16PtrFromString(volume + `\`)
-	if err != nil {
-		return false
-	}
-	switch windows.GetDriveType(root) {
-	case windows.DRIVE_FIXED, windows.DRIVE_REMOVABLE, windows.DRIVE_CDROM, windows.DRIVE_RAMDISK:
-		return true
-	default:
-		return false
-	}
+	return processpath.IsLocalFile(path)
 }
 
 // scanRegisteredApplicationBrowsers indexes browsers via the modern
