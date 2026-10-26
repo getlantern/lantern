@@ -601,7 +601,13 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
             return AppTile(
               dense: true,
               minHeight: 58,
-              contentPadding: const EdgeInsets.only(left: 53, right: 14),
+              // end matches the country tile's 16px tilePadding so the
+              // latency columns align exactly; directional so RTL keeps the
+              // city indent on the leading side.
+              contentPadding: const EdgeInsetsDirectional.only(
+                start: 53,
+                end: 16,
+              ),
               label: server.location.city,
               subtitle: server.type.isEmpty
                   ? null
@@ -616,7 +622,14 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
-              trailing: LatencyIndicator(status: LatencyStatus.of(server)),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LatencyIndicator(status: LatencyStatus.of(server)),
+                  const SizedBox(width: 8),
+                  const ChevronPlaceholder(),
+                ],
+              ),
               onPressed: () => _onLocationSelected(context, server),
             );
           }).toList(),
