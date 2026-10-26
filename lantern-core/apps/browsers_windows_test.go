@@ -3,12 +3,15 @@
 package apps
 
 import (
+	"context"
 	"crypto/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/getlantern/lantern/lantern-core/internal/processpath"
 	"github.com/go-ole/go-ole"
@@ -125,6 +128,24 @@ func TestWindowsRegisteredBrowserDiscoveryRejectsInvalidPaths(t *testing.T) {
 	}
 	if apps := collectAppsFromRegisteredBrowsers(index, make(map[string]bool), nil); len(apps) != 0 {
 		t.Fatalf("invalid browser executables were discovered: %+v", apps)
+	}
+}
+
+func TestWindowsRegisteredBrowserDiscoveryRejectsJunction(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "Browser")
+	writeFile(t, filepath.Join(target, "Firefox.exe"), "fixture", 0o600)
+	link := filepath.Join(root, "Browser Junction")
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(ctx, "cmd", "/c", "mklink", "/J", link, target).CombinedOutput()
+	if err != nil {
+		t.Fatalf("create junction: %v: %s", err, output)
+	}
+	index := browserExeIndex{paths: make(map[string]bool), basenames: make(map[string]bool)}
+	index.addExe(filepath.Join(link, "Firefox.exe"))
+	if apps := collectAppsFromRegisteredBrowsers(index, make(map[string]bool), nil); len(apps) != 0 {
+		t.Fatalf("registered browser discovery followed a junction: %+v", apps)
 	}
 }
 

@@ -33,6 +33,9 @@ func TestNormalizeWindowsPaths(t *testing.T) {
 		if got := AliasPattern(path); got != "" {
 			t.Errorf("AliasPattern(%q) = %q for an unsupported path", path, got)
 		}
+		if IsLocalFile(path) {
+			t.Errorf("IsLocalFile(%q) accepted an unsupported path", path)
+		}
 	}
 
 	path := filepath.Join(t.TempDir(), "Missing Game.exe")
@@ -42,6 +45,28 @@ func TestNormalizeWindowsPaths(t *testing.T) {
 	}
 	if got := AliasPattern(variant); got != "" {
 		t.Errorf("AliasPattern(%q) = %q for a missing file", variant, got)
+	}
+}
+
+func TestIsLocalFile(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "游戏.exe")
+	if err := os.WriteFile(file, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		path string
+		want bool
+	}{
+		{file, true},
+		{filepath.Join(dir, "missing.exe"), false},
+		{dir, false},
+		{file + ":stream", false},
+		{file + "\x00", false},
+	} {
+		if got := IsLocalFile(test.path); got != test.want {
+			t.Errorf("IsLocalFile(%q) = %v, want %v", test.path, got, test.want)
+		}
 	}
 }
 
@@ -66,6 +91,9 @@ func TestNormalizeWindowsShortPath(t *testing.T) {
 				t.Fatal(err)
 			}
 			short := windowsShortPath(t, path)
+			if !IsLocalFile(short) {
+				t.Fatalf("IsLocalFile(%q) rejected a local alias", short)
+			}
 			if got, want := Normalize(short), strings.ToLower(path); got != want {
 				t.Errorf("Normalize(%q) = %q, want %q", short, got, want)
 			}
@@ -219,6 +247,9 @@ func TestNormalizeWindowsReparsePoints(t *testing.T) {
 			}
 			if got := AliasPattern(path); got != "" {
 				t.Errorf("AliasPattern(%q) = %q through a reparse point", path, got)
+			}
+			if IsLocalFile(path) {
+				t.Errorf("IsLocalFile(%q) followed a reparse point", path)
 			}
 		})
 	}
