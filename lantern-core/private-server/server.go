@@ -15,13 +15,11 @@ import (
 	"time"
 
 	C "github.com/getlantern/common"
-	"github.com/getlantern/radiance/ipc"
-
-	C "github.com/getlantern/common"
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
 	"github.com/getlantern/lantern-server-provisioner/gcp"
 	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/radiance/ipc"
 )
 
 var (
