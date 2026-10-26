@@ -628,6 +628,7 @@ void main() {
           );
         });
       }
+      Future<void> Function()? diagnoseAfterDisconnect;
       try {
         _require(await service.setRoutingMode(false), 'Enable full tunnel');
         _require(
@@ -650,12 +651,61 @@ void main() {
           accepts: (_) => true,
           reason: 'Could not get the direct baseline IP',
         );
-        final udpBaseline =
-            (await probeWindowsConnection(
-                  registeredGame,
-                  udp: true,
-                ))['publicIP']
-                as String;
+        final udpConnection = await probeWindowsConnection(
+          registeredGame,
+          udp: true,
+        );
+        final udpBaseline = udpConnection['publicIP'] as String;
+        await File(
+          p.join(artifactDirectory, 'udp-diagnostics.jsonl'),
+        ).writeAsString(
+          '${jsonEncode({'phase': 'direct-before-connect', 'status': 'response', 'connection': udpConnection})}\n',
+        );
+
+        Future<void> diagnoseUDP(String phase) async {
+          try {
+            await evidence.diagnoseUDP(
+              executable: registeredLauncher,
+              child: registeredGame,
+              endpoints: [
+                'stun.cloudflare.com:3478',
+                udpConnection['remoteAddress'] as String,
+                'stun.l.google.com:19302',
+              ],
+              phase: phase,
+              normalizePath: _canonicalPath,
+            );
+          } catch (error) {
+            debugPrint('Could not collect $phase UDP diagnostics: $error');
+          }
+        }
+
+        Future<void> expectRegisteredChild({
+          required bool bypass,
+          required String scenario,
+        }) async {
+          for (final udp in [false, true]) {
+            try {
+              await _expectOwnedRoute(
+                evidence,
+                registeredLauncher,
+                child: registeredGame,
+                udp: udp,
+                bypass: bypass,
+                baseline: udp ? udpBaseline : baseline,
+                scenario: scenario,
+              );
+            } on TestFailure {
+              if (udp) {
+                // Compare DNS and literal-IP paths without changing the assertion.
+                diagnoseAfterDisconnect = () =>
+                    diagnoseUDP('direct-after-disconnect');
+                await diagnoseUDP(bypass ? 'bypassed' : 'tunneled');
+              }
+              rethrow;
+            }
+          }
+        }
 
         unawaited(appRouter.push(const AppsSplitTunneling()));
         await WidgetWaitUtils.waitForFinder(
@@ -724,17 +774,10 @@ void main() {
           baseline: baseline,
           scenario: 'Discovered launcher bypasses',
         );
-        for (final udp in [false, true]) {
-          await _expectOwnedRoute(
-            evidence,
-            registeredLauncher,
-            child: registeredGame,
-            udp: udp,
-            bypass: false,
-            baseline: udp ? udpBaseline : baseline,
-            scenario: 'Unselected registered child stays tunneled',
-          );
-        }
+        await expectRegisteredChild(
+          bypass: false,
+          scenario: 'Unselected registered child stays tunneled',
+        );
         unawaited(appRouter.push(const AppsSplitTunneling()));
         final registeredGameRule = await _selectInstalledExecutable(
           tester,
@@ -742,29 +785,15 @@ void main() {
           registeredGame,
         );
         await _captureScreenshot(tester, 'windows-installed-game-selected');
-        for (final udp in [false, true]) {
-          await _expectOwnedRoute(
-            evidence,
-            registeredLauncher,
-            child: registeredGame,
-            udp: udp,
-            bypass: true,
-            baseline: udp ? udpBaseline : baseline,
-            scenario: 'Installed Apps selection bypasses registered child',
-          );
-        }
+        await expectRegisteredChild(
+          bypass: true,
+          scenario: 'Installed Apps selection bypasses registered child',
+        );
         await _removeExecutable(tester, registeredGameRule);
-        for (final udp in [false, true]) {
-          await _expectOwnedRoute(
-            evidence,
-            registeredLauncher,
-            child: registeredGame,
-            udp: udp,
-            bypass: false,
-            baseline: udp ? udpBaseline : baseline,
-            scenario: 'Removing registered child restores VPN',
-          );
-        }
+        await expectRegisteredChild(
+          bypass: false,
+          scenario: 'Removing registered child restores VPN',
+        );
 
         final firefoxRule = await _selectInstalledExecutable(
           tester,
@@ -869,6 +898,7 @@ void main() {
           timeout: const Duration(seconds: 45),
           reason: 'VPN did not disconnect',
         );
+        await diagnoseAfterDisconnect?.call();
       }
     },
     timeout: const Timeout(Duration(minutes: 15)),

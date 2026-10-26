@@ -106,6 +106,33 @@ Map<String, Object?>? correlateWindowsRoute(
   return null;
 }
 
+class WindowsProbeFailure extends StateError {
+  WindowsProbeFailure(super.message, this.connection);
+
+  final Map<String, dynamic> connection;
+}
+
+/// Records diagnostics without treating a failed probe as a routing result.
+Future<Map<String, Object?>> captureWindowsProbe(
+  Future<Map<String, dynamic>> Function() probe,
+) async {
+  try {
+    return {'status': 'response', 'connection': await probe()};
+  } on WindowsProbeFailure catch (error) {
+    return {
+      'status': 'failed',
+      'connection': error.connection,
+      'error': error.message,
+    };
+  } on StateError catch (error) {
+    return {'status': 'failed', 'error': error.message};
+  } on TimeoutException catch (error) {
+    return {'status': 'failed', 'error': error.toString()};
+  } on ProcessException catch (error) {
+    return {'status': 'failed', 'error': error.toString()};
+  }
+}
+
 Future<ProcessResult> _run(String executable, List<String> arguments) async {
   final process = await Process.start(executable, arguments, runInShell: false);
   var exited = false;
@@ -252,6 +279,43 @@ class WindowsRoutingEvidence {
       await _run(_cli, ['set', '--log-level', _previousLevel]);
     }
   }
+
+  Future<void> diagnoseUDP({
+    required String executable,
+    required String child,
+    required Iterable<String> endpoints,
+    required String phase,
+    required String Function(String) normalizePath,
+  }) async {
+    for (final endpoint in endpoints) {
+      final since = mark;
+      final result = await captureWindowsProbe(
+        () => probeWindowsConnection(
+          executable,
+          child: child,
+          udp: true,
+          stunServer: endpoint,
+        ),
+      );
+      final connection = result['connection'] as Map<String, dynamic>?;
+      final routes = connection == null
+          ? const []
+          : [
+              for (final bypass in [false, true])
+                correlateWindowsRoute(
+                  _lines.skip(since),
+                  connection: connection,
+                  executable: child,
+                  normalizePath: normalizePath,
+                  bypass: bypass,
+                ),
+            ].whereType<Map<String, Object?>>().toList();
+      await File(p.join(_directory, 'udp-diagnostics.jsonl')).writeAsString(
+        '${jsonEncode({'phase': phase, 'endpoint': endpoint, ...result, 'routes': routes})}\n',
+        mode: FileMode.append,
+      );
+    }
+  }
 }
 
 /// Keeps the socket open while Windows independently identifies its owner.
@@ -259,6 +323,7 @@ Future<Map<String, dynamic>> probeWindowsConnection(
   String executable, {
   String? child,
   bool udp = false,
+  String? stunServer,
 }) async {
   const ownerScript = String.fromEnvironment(
     'SPLIT_TUNNEL_SOCKET_OWNER_SCRIPT',
@@ -271,6 +336,7 @@ Future<Map<String, dynamic>> probeWindowsConnection(
     '--json',
     '--wait-for-input',
     if (udp) '--udp',
+    if (stunServer != null) ...['--stun-server', stunServer],
   ], runInShell: false);
   var exited = false;
   final exitCode = process.exitCode.then((code) {
@@ -321,10 +387,24 @@ Future<Map<String, dynamic>> probeWindowsConnection(
         (!udp && owner['remoteAddress'] != connected['remoteAddress'])) {
       throw StateError('Windows endpoint owner did not match the probe');
     }
+    final connection = {
+      ...connected,
+      'executable': owner['executable'],
+      'windowsOwner': owner,
+    };
     process.stdin.writeln();
     await process.stdin.flush();
-    if (!await lines.moveNext().timeout(const Duration(seconds: 30))) {
-      throw StateError('Probe did not return a response: ${await errors}');
+    if (!await lines.moveNext().timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw WindowsProbeFailure(
+        'Timed out waiting for the probe response',
+        connection,
+      ),
+    )) {
+      throw WindowsProbeFailure(
+        'Probe did not return a response: ${await errors}',
+        connection,
+      );
     }
     final response = jsonDecode(lines.current) as Map<String, dynamic>;
     for (final field in ['pid', 'protocol', 'localAddress', 'remoteAddress']) {

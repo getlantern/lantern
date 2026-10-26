@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -169,4 +171,70 @@ void main() {
       expect(correlate(['msg="broken id=123']), isNull);
     },
   );
+
+  test('UDP diagnostics retain a successful response', () async {
+    final response = {
+      ...connection,
+      'protocol': 'udp',
+      'event': 'result',
+      'publicIP': '192.0.2.1',
+    };
+    expect(await captureWindowsProbe(() async => response), {
+      'status': 'response',
+      'connection': response,
+    });
+  });
+
+  test(
+    'UDP diagnostics retain socket ownership when no reply arrives',
+    () async {
+      final connected = {
+        ...connection,
+        'protocol': 'udp',
+        'event': 'connected',
+        'windowsOwner': {'pid': 42, 'executable': executable},
+      };
+      final diagnostic = await captureWindowsProbe(
+        () async => throw WindowsProbeFailure('STUN timed out', connected),
+      );
+      expect(diagnostic, {
+        'status': 'failed',
+        'connection': connected,
+        'error': 'STUN timed out',
+      });
+      expect(diagnostic['connection'], isNot(contains('publicIP')));
+      // Routing evidence still exists even though delivery failed.
+      expect(
+        correlate(
+          logs(udp: true, bypass: false),
+          owner: connected,
+          bypass: false,
+        ),
+        containsPair('routedOutbound', 'auto'),
+      );
+    },
+  );
+
+  test(
+    'UDP diagnostic failures do not prevent the remaining controls',
+    () async {
+      for (final error in [
+        StateError('Owner lookup failed'),
+        TimeoutException('Probe timed out'),
+        const ProcessException('probe.exe', [], 'Could not start'),
+      ]) {
+        final result = await captureWindowsProbe(() async => throw error);
+        expect(result['status'], 'failed');
+        expect(result['error'], isNotEmpty);
+        expect(result, isNot(contains('connection')));
+      }
+    },
+  );
+
+  test('UDP diagnostics do not suppress unexpected parsing bugs', () async {
+    await expectLater(
+      captureWindowsProbe(() async => throw const FormatException('bad JSON')),
+      throwsFormatException,
+    );
+  });
 }
