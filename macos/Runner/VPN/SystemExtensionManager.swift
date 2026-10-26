@@ -72,13 +72,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     submitPropertiesRequest(context: .inspectStatus)
   }
 
-  private var supportsSystemExtensionProperties: Bool {
-    if #available(macOS 12.0, *) {
-      return true
-    }
-    return false
-  }
-
   public func request(
     _ request: OSSystemExtensionRequest,
     actionForReplacingExtension existing: OSSystemExtensionProperties,
@@ -90,7 +83,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       SystemExtensionDescriptor.cachedBundled(bundleID: newExtension.bundleIdentifier)
       ?? SystemExtensionDescriptor(properties: newExtension)
 
-    if #available(macOS 12.0, *), existing.isAwaitingUserApproval {
+    if existing.isAwaitingUserApproval {
       appLogger.info(
         "Replacing system extension awaiting approval: existing=\(existingDescriptor.debugSummary) new=\(newDescriptor.debugSummary)"
       )
@@ -128,11 +121,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     case .completed:
       guard let context else {
         submitPropertiesRequest(context: .inspectStatus)
-        return
-      }
-
-      guard supportsSystemExtensionProperties else {
-        completeLegacyRequest(context)
         return
       }
 
@@ -306,11 +294,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     context: RequestContext,
     observer: ((ExtensionStatus) -> Void)? = nil
   ) {
-    guard #available(macOS 12.0, *) else {
-      handleLegacyPropertiesRequest(context: context, observer: observer)
-      return
-    }
-
     let request = OSSystemExtensionRequest.propertiesRequest(
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
@@ -356,46 +339,6 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     }
     appLogger.info("Submitting system extension request: \(context.logDescription)")
     OSSystemExtensionManager.shared.submitRequest(request)
-  }
-
-  private func handleLegacyPropertiesRequest(
-    context: RequestContext,
-    observer: ((ExtensionStatus) -> Void)? = nil
-  ) {
-    appLogger.info(
-      "System extension properties are unavailable before macOS 12.0; using legacy fallback for context=\(context.logDescription)"
-    )
-
-    switch context {
-    case .inspectStatus:
-      publishStatus(.notInstalled, observer: observer)
-    case .reconcile:
-      let reason = "activate bundled system extension on macOS 10.15/11"
-      publishStatus(.updatePending(details: reason), observer: observer)
-      submitActivationRequest(reason: reason, observer: observer)
-    case .activate, .deactivateThenActivate:
-      completeLegacyRequest(context, observer: observer)
-    }
-  }
-
-  private func completeLegacyRequest(
-    _ context: RequestContext,
-    observer: ((ExtensionStatus) -> Void)? = nil
-  ) {
-    switch context {
-    case .activate, .reconcile:
-      publishStatus(.activated, observer: observer)
-    case .deactivateThenActivate(_, let activateAfter):
-      if activateAfter {
-        submitActivationRequest(
-          reason: "activating bundled extension after legacy deactivation",
-          observer: observer)
-      } else {
-        publishStatus(.deactivated, observer: observer)
-      }
-    case .inspectStatus:
-      publishStatus(.notInstalled, observer: observer)
-    }
   }
 
   private func requestState(for request: OSSystemExtensionRequest) -> RequestState? {
@@ -626,26 +569,16 @@ internal struct SystemExtensionDescriptor: Equatable {
 
   init(properties: OSSystemExtensionProperties) {
     let contentHash = Self.resolveInstalledContentHash(for: properties)
-    if #available(macOS 12.0, *) {
-      self.init(
-        bundleIdentifier: properties.bundleIdentifier,
-        bundleShortVersion: properties.bundleShortVersion,
-        bundleVersion: properties.bundleVersion,
-        contentHash: contentHash,
-        isEnabled: properties.isEnabled,
-        isAwaitingUserApproval: properties.isAwaitingUserApproval,
-        isUninstalling: properties.isUninstalling,
-        url: properties.url
-      )
-    } else {
-      self.init(
-        bundleIdentifier: properties.bundleIdentifier,
-        bundleShortVersion: properties.bundleShortVersion,
-        bundleVersion: properties.bundleVersion,
-        contentHash: contentHash,
-        url: properties.url
-      )
-    }
+    self.init(
+      bundleIdentifier: properties.bundleIdentifier,
+      bundleShortVersion: properties.bundleShortVersion,
+      bundleVersion: properties.bundleVersion,
+      contentHash: contentHash,
+      isEnabled: properties.isEnabled,
+      isAwaitingUserApproval: properties.isAwaitingUserApproval,
+      isUninstalling: properties.isUninstalling,
+      url: properties.url
+    )
   }
 
   // Resolves the content hash for an installed system extension while avoiding
@@ -655,10 +588,7 @@ internal struct SystemExtensionDescriptor: Equatable {
   private static func resolveInstalledContentHash(
     for properties: OSSystemExtensionProperties
   ) -> String? {
-    if #available(macOS 12.0, *) {
-      return resolveInstalledContentHash(url: properties.url, isUninstalling: properties.isUninstalling)
-    }
-    return resolveInstalledContentHash(url: properties.url, isUninstalling: false)
+    resolveInstalledContentHash(url: properties.url, isUninstalling: properties.isUninstalling)
   }
 
   internal static func resolveInstalledContentHash(

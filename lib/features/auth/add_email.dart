@@ -20,7 +20,15 @@ class AddEmail extends StatefulHookConsumerWidget {
   /// all other times it will be null
   final String? password;
 
-  const AddEmail({super.key, this.authFlow = AuthFlow.signUp, this.password});
+  /// Web-licensing key to pre-fill once the email flow reaches the license screen.
+  final String licenseKey;
+
+  const AddEmail({
+    super.key,
+    this.authFlow = AuthFlow.signUp,
+    this.password,
+    this.licenseKey = '',
+  });
 
   @override
   ConsumerState<AddEmail> createState() => _AddEmailState();
@@ -420,7 +428,13 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           return;
         }
         if (widget.authFlow == AuthFlow.lanternProLicense) {
-          appRouter.push(LanternProLicense(email: email, code: ''));
+          appRouter.push(
+            LanternProLicense(
+              email: email,
+              code: '',
+              licenseKey: widget.licenseKey,
+            ),
+          );
           return;
         }
         appRouter.push(
@@ -433,6 +447,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             email: email,
             authFlow: widget.authFlow,
             password: widget.password ?? tempPassword,
+            licenseKey: widget.licenseKey,
           ),
         );
         break;
