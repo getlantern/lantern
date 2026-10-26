@@ -18,6 +18,7 @@ import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 @RoutePage(name: 'ServerSelection')
 class ServerSelection extends ConsumerStatefulWidget {
@@ -223,8 +224,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       attempt: (skipConflictCheck) => ref
           .read(vpnProvider.notifier)
           .startVPN(force: true, skipConflictCheck: skipConflictCheck),
-      onConnected: () =>
-          ref.read(serverLocationProvider.notifier).switchToAuto(),
+      save: () => ref.read(serverLocationProvider.notifier).switchToAuto(),
     );
   }
 
@@ -396,7 +396,7 @@ class _ServerLocationListViewState
             server.tag,
             skipConflictCheck: skipConflictCheck,
           ),
-      onConnected: () => ref
+      save: () => ref
           .read(serverLocationProvider.notifier)
           .updateServerLocation(ServerLocation.fromServer(server: server)),
     );
@@ -676,17 +676,15 @@ class _PrivateServerLocationListViewState
             server.tag,
             skipConflictCheck: skipConflictCheck,
           ),
-      onConnected: () {
-        context.showSnackBar('connected_to_private_server'.i18n);
-        ref
-            .read(serverLocationProvider.notifier)
-            .updateServerLocation(
-              ServerLocation.fromServer(
-                server: server,
-                type: ServerLocationType.privateServer,
-              ),
-            );
-      },
+      save: () => ref
+          .read(serverLocationProvider.notifier)
+          .updateServerLocation(
+            ServerLocation.fromServer(
+              server: server,
+              type: ServerLocationType.privateServer,
+            ),
+          ),
+      connectedMessage: 'connected_to_private_server'.i18n,
     );
   }
 }
@@ -702,20 +700,28 @@ bool _macOSExtensionReady(WidgetRef ref) {
 
 /// The connect flow shared by every row on this screen. Runs [attempt] behind
 /// the loading overlay, offers the conflict dialog and a retry when another
-/// VPN is active, then once the VPN reports connected runs [onConnected] and
-/// returns to the home screen.
+/// VPN is active, then hands [save] to the location notifier to run once the
+/// VPN reports connected, and returns to the home screen.
 Future<void> _connectAndReturnHome(
   BuildContext context,
   WidgetRef ref, {
   required Future<Either<Failure, String>> Function(bool skipConflictCheck)
   attempt,
-  required FutureOr<void> Function() onConnected,
+  required FutureOr<void> Function() save,
+  String? connectedMessage,
   bool skipConflictCheck = false,
 }) async {
-  context.showLoadingDialog();
-  final result = await attempt(skipConflictCheck);
+  // The overlay is app-wide, so hide it through its controller rather than
+  // this context, which may be gone by the time the attempt returns.
+  final overlay = context.loaderOverlay;
+  overlay.show();
+  final Either<Failure, String> result;
+  try {
+    result = await attempt(skipConflictCheck);
+  } finally {
+    overlay.hide();
+  }
   if (!context.mounted) return;
-  context.hideLoadingDialog();
 
   result.fold(
     (failure) {
@@ -729,7 +735,8 @@ Future<void> _connectAndReturnHome(
                 context,
                 ref,
                 attempt: attempt,
-                onConnected: onConnected,
+                save: save,
+                connectedMessage: connectedMessage,
                 skipConflictCheck: true,
               ),
             );
@@ -739,24 +746,24 @@ Future<void> _connectAndReturnHome(
       }
       context.showSnackBar(failure.localizedErrorMessage);
     },
-    (_) => _onceConnected(ref, () async {
-      await onConnected();
-      appRouter.popUntilRoot();
-    }),
+    (_) => unawaited(
+      _returnHomeOnceSaved(context, ref, save, connectedMessage),
+    ),
   );
 }
 
-/// Runs [action] once the VPN reports connected, so the stored location never
-/// gets ahead of the status the home screen shows.
-void _onceConnected(WidgetRef ref, VoidCallback action) {
-  if (ref.read(vpnProvider) == VPNStatus.connected) {
-    action();
-    return;
-  }
-  late final ProviderSubscription<VPNStatus> subscription;
-  subscription = ref.listenManual(vpnProvider, (_, next) {
-    if (next != VPNStatus.connected) return;
-    subscription.close();
-    action();
-  });
+/// Waits for the notifier to save the selection on connect, then returns home
+/// if this screen is still showing. A retired request leaves the screen alone.
+Future<void> _returnHomeOnceSaved(
+  BuildContext context,
+  WidgetRef ref,
+  FutureOr<void> Function() save,
+  String? connectedMessage,
+) async {
+  final saved = await ref
+      .read(serverLocationProvider.notifier)
+      .saveOnceConnected(save);
+  if (!saved || !context.mounted) return;
+  if (connectedMessage != null) context.showSnackBar(connectedMessage);
+  appRouter.popUntilRoot();
 }

@@ -18,6 +18,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // Every change to the selected/resolved location is mirrored into the
     // native widget so it can show where the tunnel exits.
     listenSelf((_, next) => _publishToWidget(next));
+    ref.listen(vpnProvider, (_, next) => _settlePendingSelection(next));
     final cached = _storage.getServerLocation();
     final initial = cached ?? _defaultLocation();
     appLogger.debug(
@@ -157,6 +158,50 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     await _storage.saveServerLocation(updated);
   }
 
+  _PendingSelection? _pending;
+
+  /// Runs [save] once the VPN reports connected, so the stored selection never
+  /// gets ahead of the status the home screen shows. Owned here rather than by
+  /// the selection screen so leaving that screen doesn't drop the save. A newer
+  /// request or a VPN error retires a pending one. Resolves true once the VPN
+  /// connected and [save] ran, false if the request was retired.
+  Future<bool> saveOnceConnected(FutureOr<void> Function() save) {
+    _retirePendingSelection();
+    if (ref.read(vpnProvider) == VPNStatus.connected) {
+      return _runSave(save).then((_) => true);
+    }
+    final pending = _PendingSelection(save);
+    _pending = pending;
+    return pending.completer.future;
+  }
+
+  void _settlePendingSelection(VPNStatus status) {
+    final pending = _pending;
+    if (pending == null) return;
+    if (status == VPNStatus.connected) {
+      _pending = null;
+      unawaited(
+        _runSave(pending.save).then((_) => pending.completer.complete(true)),
+      );
+    } else if (status == VPNStatus.error) {
+      _retirePendingSelection();
+    }
+  }
+
+  void _retirePendingSelection() {
+    _pending?.completer.complete(false);
+    _pending = null;
+  }
+
+  // A failed save must not strand the user on the selection screen.
+  Future<void> _runSave(FutureOr<void> Function() save) async {
+    try {
+      await save();
+    } catch (e, stack) {
+      appLogger.error('Failed to save server selection: $e', e, stack);
+    }
+  }
+
   void _publishToWidget(ServerLocation location) {
     final isAuto =
         location.serverType.toServerLocationType == ServerLocationType.auto;
@@ -184,4 +229,11 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     protocol: '',
     city: '',
   );
+}
+
+class _PendingSelection {
+  final FutureOr<void> Function() save;
+  final completer = Completer<bool>();
+
+  _PendingSelection(this.save);
 }
