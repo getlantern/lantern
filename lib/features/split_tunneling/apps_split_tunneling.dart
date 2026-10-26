@@ -10,11 +10,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/alphabet_index_bar.dart';
-import 'package:lantern/features/split_tunneling/confirm_app_bypass.dart';
 import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
@@ -186,7 +187,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     ),
                   SliverToBoxAdapter(child: SizedBox(height: 20)),
                   if (Platform.isWindows) ...[
-                    const SliverToBoxAdapter(child: WindowsExecutablePicker()),
+                    const SliverToBoxAdapter(
+                      child: WindowsExecutablePicker(
+                        confirmBypass: confirmAppBypass,
+                      ),
+                    ),
                     const SliverToBoxAdapter(child: SizedBox(height: 20)),
                   ],
                   SliverToBoxAdapter(
@@ -298,6 +303,53 @@ class AppsSplitTunneling extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  static Future<bool> confirmAppBypass(
+    BuildContext context,
+    AppData app,
+  ) async {
+    final storage = sl<LocalStorageService>();
+    if (!app.isBrowser && storage.hasSeenBypassAppDialog) return true;
+
+    var confirmed = false;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    void confirm() {
+      confirmed = context.mounted;
+      navigator.pop();
+    }
+
+    await AppDialog.show(
+      context: context,
+      header: Center(
+        child: AppImage(
+          path: app.isBrowser ? AppImagePaths.warning : AppImagePaths.info,
+          height: app.isBrowser ? 45 : 40,
+        ),
+      ),
+      centeredTitle: true,
+      title:
+          (app.isBrowser
+                  ? 'bypass_browser_warning_title'
+                  : 'bypass_app_first_time_title')
+              .i18n
+              .fill([app.name]),
+      body:
+          (app.isBrowser
+                  ? 'bypass_browser_warning_body'
+                  : 'bypass_app_first_time_body')
+              .i18n
+              .fill([app.name]),
+      primaryLabel: (app.isBrowser ? 'cancel' : 'add').i18n,
+      dismissOnPrimary: app.isBrowser,
+      onPrimaryPressed: app.isBrowser ? null : confirm,
+      secondaryLabel: (app.isBrowser ? 'add_anyway' : 'cancel').i18n,
+      dismissOnSecondary: !app.isBrowser,
+      onSecondaryPressed: app.isBrowser ? confirm : null,
+    );
+    if (!confirmed || !context.mounted) return false;
+    if (!app.isBrowser) await storage.markBypassAppDialogSeen();
+    return context.mounted;
   }
 
   Future<void> onTapAddApp(

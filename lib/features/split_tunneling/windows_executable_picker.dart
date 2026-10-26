@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/split_tunneling/confirm_app_bypass.dart';
+import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
@@ -30,7 +30,9 @@ Future<String?> _pickExecutable() async {
 }
 
 class WindowsExecutablePicker extends HookConsumerWidget {
-  const WindowsExecutablePicker({super.key});
+  const WindowsExecutablePicker({required this.confirmBypass, super.key});
+
+  final Future<bool> Function(BuildContext context, AppData app) confirmBypass;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,7 +50,7 @@ class WindowsExecutablePicker extends HookConsumerWidget {
         final installed = await ref.read(appsDataProvider.future);
         if (!context.mounted) return;
         final app = windowsEnabledApps(installed, [path]).single;
-        if (!await confirmAppBypass(context, app) || !context.mounted) return;
+        if (!await confirmBypass(context, app) || !context.mounted) return;
         final failure = await ref
             .read(splitTunnelingAppsProvider.notifier)
             .addExecutable(path);
