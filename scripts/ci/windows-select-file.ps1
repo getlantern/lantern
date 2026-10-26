@@ -33,7 +33,10 @@ public static class LanternPickerNative {
   [DllImport("user32.dll")] public static extern int GetDlgCtrlID(IntPtr window);
   [DllImport("user32.dll")] public static extern IntPtr GetParent(IntPtr window);
   [DllImport("user32.dll")] public static extern bool IsChild(IntPtr parent, IntPtr window);
+  [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr window);
   [DllImport("user32.dll")] public static extern bool IsWindowEnabled(IntPtr window);
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr window);
   [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
   [DllImport("user32.dll", EntryPoint = "SendMessageTimeoutW", CharSet = CharSet.Unicode)]
   private static extern IntPtr SendText(IntPtr window, uint message, IntPtr wParam, string text, uint flags, uint timeout, out IntPtr result);
@@ -52,7 +55,7 @@ public static class LanternPickerNative {
   public static IntPtr[] Dialogs(int processId) {
     var windows = new List<IntPtr>();
     EnumWindows(delegate(IntPtr window, IntPtr parameter) {
-      if (IsDialog(window, processId)) windows.Add(window);
+      if (IsDialog(window, processId) && IsWindowVisible(window)) windows.Add(window);
       return true;
     }, IntPtr.Zero);
     return windows.ToArray();
@@ -67,16 +70,16 @@ public static class LanternPickerNative {
   }
   public static IntPtr FindControl(IntPtr parent, int id, string className) {
     foreach (var window in Children(parent)) {
-      if (GetDlgCtrlID(window) == id && ClassName(window) == className) return window;
+      if (GetDlgCtrlID(window) == id && ClassName(window) == className && IsWindowVisible(window)) return window;
     }
     return IntPtr.Zero;
   }
   public static IntPtr FileNameControl(IntPtr dialog) {
     foreach (var window in Children(dialog)) {
-      if (GetDlgCtrlID(window) != 1148) continue;
+      if (GetDlgCtrlID(window) != 1148 || !IsWindowVisible(window)) continue;
       if (ClassName(window) == "Edit") return window;
       foreach (var child in Children(window)) {
-        if (ClassName(child) == "Edit") return child;
+        if (ClassName(child) == "Edit" && IsWindowVisible(child)) return child;
       }
     }
     // Legacy dialogs can expose edt1 instead of the cmb13 combo box.
@@ -93,11 +96,13 @@ public static class LanternPickerNative {
       throw new InvalidOperationException("The file picker did not retain the fixture path");
   }
   public static void Open(IntPtr dialog, IntPtr button, int processId) {
-    if (!IsDialog(dialog, processId) || !IsChild(dialog, button) || GetDlgCtrlID(button) != 1 || ClassName(button) != "Button" || !IsWindowEnabled(button))
+    if (!IsDialog(dialog, processId) || !IsChild(dialog, button) || GetDlgCtrlID(button) != 1 || ClassName(button) != "Button" || !IsWindowVisible(button) || !IsWindowEnabled(button))
       throw new InvalidOperationException("The Open button is no longer available");
-    // Deliver BN_CLICKED to the button's parent without relying on desktop focus.
-    if (!PostMessage(GetParent(button), 0x0111, (IntPtr)1, button))
-      throw new InvalidOperationException("Could not submit the native file picker");
+    // Windows may deny foreground focus, so the selection check remains authoritative.
+    if (GetForegroundWindow() != dialog) SetForegroundWindow(dialog);
+    // Let the button handle activation; posting only its notification skips that path.
+    if (!PostMessage(button, 0x00F5, IntPtr.Zero, IntPtr.Zero))
+      throw new InvalidOperationException("Could not click the native file picker's Open button");
   }
 }
 '@
@@ -109,10 +114,10 @@ function Stop-Picker {
   try {
     $controls = if ([LanternPickerNative]::IsDialog($lastDialog, $AppProcessId)) {
       @([LanternPickerNative]::Children($lastDialog) | Select-Object -First 40 | ForEach-Object {
-        @{ handle = $_.ToInt64(); id = [LanternPickerNative]::GetDlgCtrlID($_); class = [LanternPickerNative]::ClassName($_); enabled = [LanternPickerNative]::IsWindowEnabled($_) }
+        @{ handle = $_.ToInt64(); parent = [LanternPickerNative]::GetParent($_).ToInt64(); id = [LanternPickerNative]::GetDlgCtrlID($_); class = [LanternPickerNative]::ClassName($_); visible = [LanternPickerNative]::IsWindowVisible($_); enabled = [LanternPickerNative]::IsWindowEnabled($_) }
       })
     } else { @() }
-    [Console]::Error.WriteLine((@{ stage = $stage; dialog = $lastDialog.ToInt64(); controls = $controls } | ConvertTo-Json -Depth 4 -Compress))
+    [Console]::Error.WriteLine((@{ stage = $stage; dialog = $lastDialog.ToInt64(); foreground = [LanternPickerNative]::GetForegroundWindow().ToInt64(); controls = $controls } | ConvertTo-Json -Depth 4 -Compress))
   } finally {
     if ([LanternPickerNative]::IsDialog($lastDialog, $AppProcessId) -and [LanternPickerNative]::FileNameControl($lastDialog) -ne [IntPtr]::Zero) {
       $null = [LanternPickerNative]::PostMessage($lastDialog, 0x0010, [IntPtr]::Zero, [IntPtr]::Zero)
