@@ -35,10 +35,11 @@ try {
   if (-not $hostProcess.WaitForExit(5000)) { throw 'Native picker host did not exit' }
   if ($hostProcess.ExitCode -ne 0) { throw "Native picker failed: $(Get-Content -LiteralPath $stderr -Raw)" }
   $selectedPath = (Get-Content -LiteralPath $stdout -Raw -Encoding utf8).Trim()
-  if ($selectedPath -ne $fixture -or ($selection | ConvertFrom-Json).path -ne $fixture) {
+  $selection = $selection | ConvertFrom-Json
+  if ($selectedPath -ne $fixture -or $selection.path -ne $fixture) {
     throw "Native picker returned an unexpected path: $selectedPath"
   }
-  Write-Host 'Native executable picker passed (including a Unicode path)'
+  Write-Host "Native executable picker passed (Unicode path, $($selection.openControlType))"
 } finally {
   if ($hostProcess) {
     if (-not $hostProcess.HasExited) {

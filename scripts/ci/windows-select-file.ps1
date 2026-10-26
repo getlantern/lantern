@@ -25,9 +25,11 @@ $dialogCondition = [AndCondition]::new(
 )
 $filenameCondition = [PropertyCondition]::new([AutomationElement]::AutomationIdProperty, '1148')
 $editCondition = [PropertyCondition]::new([AutomationElement]::ControlTypeProperty, [ControlType]::Edit)
+$openIdCondition = [PropertyCondition]::new([AutomationElement]::AutomationIdProperty, '1')
+# Open can be a split button; match its action rather than its control type.
 $openCondition = [AndCondition]::new(
-  [PropertyCondition]::new([AutomationElement]::AutomationIdProperty, '1'),
-  [PropertyCondition]::new([AutomationElement]::ControlTypeProperty, [ControlType]::Button)
+  $openIdCondition,
+  [PropertyCondition]::new([AutomationElement]::IsInvokePatternAvailableProperty, $true)
 )
 
 function Stop-Picker {
@@ -36,11 +38,13 @@ function Stop-Picker {
   try {
     $controls = if ($lastDialog) {
       @($lastDialog.FindAll([TreeScope]::Descendants, [OrCondition]::new([Condition[]]@(
+        $filenameCondition,
+        $openIdCondition,
         $editCondition,
         [PropertyCondition]::new([AutomationElement]::ControlTypeProperty, [ControlType]::ComboBox),
-        [PropertyCondition]::new([AutomationElement]::ControlTypeProperty, [ControlType]::Button)
+        [PropertyCondition]::new([AutomationElement]::IsInvokePatternAvailableProperty, $true)
       ))) | Select-Object -First 30 | ForEach-Object {
-        @{ id = $_.Current.AutomationId; type = $_.Current.ControlType.ProgrammaticName; enabled = $_.Current.IsEnabled }
+        @{ id = $_.Current.AutomationId; type = $_.Current.ControlType.ProgrammaticName; enabled = $_.Current.IsEnabled; invoke = $_.GetCurrentPropertyValue([AutomationElement]::IsInvokePatternAvailableProperty) }
       })
     } else { @() }
     $windows = @([AutomationElement]::RootElement.FindAll([TreeScope]::Children,
@@ -102,6 +106,7 @@ while (-not $open.Current.IsEnabled -and $timer.Elapsed.TotalSeconds -lt $Timeou
 }
 if (-not $open.Current.IsEnabled) { Stop-Picker 'Open did not enable after entering the fixture path' }
 $invoke = [InvokePattern]$open.GetCurrentPattern([InvokePattern]::Pattern)
+$openControlType = $open.Current.ControlType.ProgrammaticName
 $invoke.Invoke()
 $stage = 'Open invoked; waiting for the dialog to close'
 
@@ -111,7 +116,7 @@ $windowCondition = [AndCondition]::new(
 )
 while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
   if (-not [AutomationElement]::RootElement.FindFirst([TreeScope]::Children, $windowCondition)) {
-    [pscustomobject]@{ processId = $AppProcessId; path = $targetPath; windowHandle = $windowHandle } | ConvertTo-Json -Compress
+    [pscustomobject]@{ processId = $AppProcessId; path = $targetPath; windowHandle = $windowHandle; openControlType = $openControlType } | ConvertTo-Json -Compress
     exit 0
   }
   Start-Sleep -Milliseconds 200
