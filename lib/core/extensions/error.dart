@@ -80,11 +80,12 @@ extension ErrorExetension on Object {
         return "referral_code_own_invalid".i18n;
       }
 
-      // Duplicate private-server tag, e.g. server "x" already exists. Already readable as is.
-      if (description.startsWith("server ") &&
-          description.endsWith("already exists")) {
-        return description;
-      }
+      // Duplicate private-server tag. Matched anywhere because the desktop FFI
+      // layer prefixes the message, so the IPC prefix strip above doesn't apply.
+      final duplicate = RegExp(
+        r'server "[^"]*" already exists',
+      ).firstMatch(description);
+      if (duplicate != null) return duplicate.group(0)!;
 
       final categoryKey = _classifyVpnError(description);
       if (categoryKey != null) return categoryKey.i18n;

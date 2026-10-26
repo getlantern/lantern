@@ -26,8 +26,10 @@ import (
 var (
 	provisionerMutex sync.Mutex
 	sessions         = sync.Map{}
-	locationRegex    = regexp.MustCompile(`^([a-z0-9]+)\s*-\s*([a-z-]+)\s*\[([A-Z]+)\]`)
-	geoLocationRegex = regexp.MustCompile(`^(.*?)\s*-\s*(.*?)\s*\[([A-Z]+)\]$`)
+	// Provisioner labels: "<zone> - <city-id> [<CC>]", e.g. "us-central1-a - iowa [US]" or "sgp1 - SG [SG]".
+	locationRegex = regexp.MustCompile(`^([a-z0-9-]+)\s*-\s*([A-Za-z-]+)\s*\[([A-Z]+)\]`)
+	// Separator must be " - " so hyphenated regions such as Baden-Württemberg stay intact.
+	geoLocationRegex = regexp.MustCompile(`^(.*?) - (.*?) \[([A-Z]+)\]$`)
 )
 
 type provisionSession struct {
@@ -448,7 +450,7 @@ type Invite struct {
 // and lantern:// forms). ok is false for anything that is not an invite.
 func ParseInviteURL(raw string) (inv Invite, ok bool) {
 	u, err := url.Parse(strings.TrimSpace(raw))
-	if err != nil || !strings.Contains(u.Host+u.Path, "private-server") {
+	if err != nil || !isInvitePath(u) {
 		return Invite{}, false
 	}
 	q := u.Query()
@@ -463,4 +465,13 @@ func ParseInviteURL(raw string) (inv Invite, ok bool) {
 		inv.Name = inv.IP
 	}
 	return inv, true
+}
+
+// isInvitePath matches "private-server" as the host or the last path segment only.
+func isInvitePath(u *url.URL) bool {
+	if u.Host == "private-server" {
+		return true
+	}
+	p := strings.TrimRight(u.Path, "/")
+	return p == "private-server" || strings.HasSuffix(p, "/private-server")
 }

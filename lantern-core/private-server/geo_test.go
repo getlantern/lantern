@@ -129,6 +129,8 @@ func TestGeoLocation(t *testing.T) {
 	}{
 		{"region and country", "North Holland - The Netherlands [NL]", C.ServerLocation{City: "North Holland", Country: "The Netherlands", CountryCode: "NL"}},
 		{"country only", " - United States [US]", C.ServerLocation{Country: "United States", CountryCode: "US"}},
+		{"hyphenated region", "Baden-Württemberg - Germany [DE]", C.ServerLocation{City: "Baden-Württemberg", Country: "Germany", CountryCode: "DE"}},
+		{"hyphenated country", "Bissau - Guinea-Bissau [GW]", C.ServerLocation{City: "Bissau", Country: "Guinea-Bissau", CountryCode: "GW"}},
 		{"empty lookup", "", C.ServerLocation{}},
 		{"garbage", "not a location", C.ServerLocation{}},
 	}
