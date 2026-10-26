@@ -84,6 +84,7 @@ var startupUserDataFetchDelays = []time.Duration{
 type LanternCore struct {
 	client       *ipc.Client
 	userMessages userMessageClient
+	splitTunnel  splitTunnelPaths
 	ctx          context.Context
 	cancel       context.CancelFunc
 	initOnce     sync.Once
@@ -318,6 +319,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 
 	lc.client = client
 	lc.userMessages = client
+	lc.splitTunnel.client = client
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
@@ -597,6 +599,9 @@ const (
 func (lc *LanternCore) ConnectVPN(tag string) error {
 	ctx, cancel := context.WithTimeout(lc.ctx, ipcConnectTimeout)
 	defer cancel()
+	if err := lc.prepareSplitTunnel(ctx); err != nil {
+		return fmt.Errorf("preparing split-tunnel paths: %w", err)
+	}
 	return vpn_tunnel.ConnectToServer(ctx, lc.client, tag)
 }
 
@@ -902,6 +907,11 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 }
 
 func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) error {
+	if enabled && runtime.GOOS == "windows" {
+		if _, err := lc.splitTunnelFilters(lc.ctx); err != nil {
+			return err
+		}
+	}
 	return lc.client.EnableSplitTunneling(lc.ctx, enabled)
 }
 
@@ -912,30 +922,30 @@ func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
 
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 	filter := filterFromTypeAndItems(filterType, []string{item})
-	return lc.client.AddSplitTunnelItems(lc.ctx, filter)
+	return lc.updateSplitTunnelItems(filter, false)
 }
 
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	split := splitCSVClean(items)
 	filter := platformFilter(split)
-	return lc.client.AddSplitTunnelItems(lc.ctx, filter)
+	return lc.updateSplitTunnelItems(filter, false)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
 	filter := filterFromTypeAndItems(filterType, []string{item})
-	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
+	return lc.updateSplitTunnelItems(filter, true)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	split := splitCSVClean(items)
 	filter := platformFilter(split)
-	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
+	return lc.updateSplitTunnelItems(filter, true)
 }
 
 func (lc *LanternCore) GetSplitTunnelItems() (string, error) {
-	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	filter, err := lc.splitTunnelFilters(lc.ctx)
 	if err != nil {
-		return "{}", nil
+		return "", err
 	}
 	b, err := json.Marshal(filter)
 	if err != nil {
@@ -945,7 +955,7 @@ func (lc *LanternCore) GetSplitTunnelItems() (string, error) {
 }
 
 func (lc *LanternCore) GetSplitTunnelItemsFor(filterType string) (string, error) {
-	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	filter, err := lc.splitTunnelFilters(lc.ctx)
 	if err != nil {
 		return "", err
 	}
@@ -958,7 +968,7 @@ func (lc *LanternCore) GetSplitTunnelItemsFor(filterType string) (string, error)
 }
 
 func (lc *LanternCore) GetEnabledApps() (string, error) {
-	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	filter, err := lc.splitTunnelFilters(lc.ctx)
 	if err != nil {
 		return "", err
 	}
