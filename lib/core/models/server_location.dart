@@ -41,11 +41,12 @@ class ServerLocation {
   /// Build from a radiance [Server] object.
   factory ServerLocation.fromServer({
     required Server server,
+    ServerLocationType type = ServerLocationType.lanternLocation,
     AutoLocation? autoLocation,
   }) {
     return ServerLocation(
       serverName: server.tag,
-      serverType: ServerLocationType.lanternLocation.name,
+      serverType: type.name,
       country: server.location.country,
       city: server.location.city,
       countryCode: server.location.countryCode,

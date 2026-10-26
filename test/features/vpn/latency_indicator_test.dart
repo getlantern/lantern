@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/latency_status.dart';
 import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
@@ -93,7 +94,9 @@ void main() {
     Future<double> widthOf(LatencyStatus status) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: Center(child: LatencyIndicator(status: status))),
+          home: Scaffold(
+            body: Center(child: LatencyIndicator(status: status)),
+          ),
         ),
       );
       return tester.getSize(find.byType(LatencyIndicator)).width;

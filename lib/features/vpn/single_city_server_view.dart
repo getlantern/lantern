@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/core/widgets/expansion_chevron.dart';
+import 'package:lantern/core/models/latency_status.dart';
 import 'package:lantern/features/vpn/latency_indicator.dart';
-import 'package:lantern/features/vpn/server_selection_callbacks.dart';
 
 import '../../core/common/common.dart';
 
-// single_city_server_view.dart
-
-class SingleCityServerView extends StatefulWidget {
+class SingleCityServerView extends StatelessWidget {
   final Server server;
-  final OnServerSelected onServerSelected;
+  final ValueChanged<Server> onServerSelected;
   final bool isSelected;
   final bool nested;
 
@@ -23,44 +20,25 @@ class SingleCityServerView extends StatefulWidget {
   });
 
   @override
-  State<SingleCityServerView> createState() => _SingleCityServerViewState();
-}
-
-class _SingleCityServerViewState extends State<SingleCityServerView> {
-  @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final location = server.location;
+    final status = LatencyStatus.of(server);
     return AppTile(
-      label: widget.nested
-          ? widget.server.location.city
-          : '${widget.server.location.country} - ${widget.server.location.city}',
-      selected: widget.isSelected,
-      subtitle: widget.server.type.isEmpty
+      label: nested ? location.city : '${location.country} - ${location.city}',
+      selected: isSelected,
+      subtitle: server.type.isEmpty
           ? null
           : Text(
-              widget.server.type.capitalize,
+              server.type.capitalize,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: textTheme.labelMedium!.copyWith(
-                color: context.textTertiary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium!.copyWith(color: context.textTertiary),
             ),
-      icon: Flag(countryCode: widget.server.location.countryCode),
-      // Nested rows live in the city bottom sheet, where no row has a
-      // chevron, so reserving the slot there would only inset every label.
-      trailing: widget.nested
-          ? LatencyIndicator(status: LatencyStatus.of(widget.server))
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LatencyIndicator(status: LatencyStatus.of(widget.server)),
-                const SizedBox(width: 8),
-                const ChevronPlaceholder(),
-              ],
-            ),
-      onPressed: () {
-        widget.onServerSelected(widget.server);
-      },
+      icon: Flag(countryCode: location.countryCode),
+      trailing: LatencyTrailing(status: status),
+      onPressed: () => onServerSelected(server),
     );
   }
 }
