@@ -33,3 +33,23 @@ class ExpansionChevron extends StatelessWidget {
     );
   }
 }
+
+/// Reserves exactly the space [ExpansionChevron] (and the forward arrow on
+/// mobile country tiles) occupies, without drawing it. Rows without a chevron
+/// use it so their trailing latency labels right-align with rows that have one.
+class ChevronPlaceholder extends StatelessWidget {
+  final double size;
+
+  const ChevronPlaceholder({super.key, this.size = 20});
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: false,
+      maintainSize: true,
+      maintainAnimation: true,
+      maintainState: true,
+      child: AppImage(path: AppImagePaths.arrowForward, height: size),
+    );
+  }
+}

@@ -87,6 +87,25 @@ void main() {
     expect(find.text('latency_unreachable'), findsOneWidget);
   });
 
+  testWidgets('measured labels occupy the same width regardless of digits', (
+    tester,
+  ) async {
+    Future<double> widthOf(LatencyStatus status) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: Center(child: LatencyIndicator(status: status))),
+        ),
+      );
+      return tester.getSize(find.byType(LatencyIndicator)).width;
+    }
+
+    // The app font has no tabular figures, so without a reserved block the
+    // dot column would shift with the digit count.
+    final twoDigits = await widthOf(const LatencyMeasured(61));
+    final fourDigits = await widthOf(const LatencyMeasured(1347));
+    expect(twoDigits, fourDigits);
+  });
+
   testWidgets('country sheet tracks provider refreshes while open', (
     tester,
   ) async {

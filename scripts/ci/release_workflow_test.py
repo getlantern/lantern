@@ -73,6 +73,16 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
             cwd=self.work, env={**self.env, **env}, text=True, capture_output=True, timeout=10,
         )
 
+    def resolve_test_run_setting(self, job: str, value: str, step_name: str | None = None) -> str:
+        environment = dict(self.jobs[job].get("env", {}))
+        if step_name:
+            step = next(step for step in self.jobs[job]["steps"] if step["name"] == step_name)
+            environment.update(step.get("env", {}))
+        return re.sub(
+            r"\$\{\{\s*needs\.set-metadata\.outputs\.is_test_run\s*\}\}", value,
+            environment.get("IS_TEST_RUN", "false"),
+        )
+
     def run_metadata(self, tag: str, existing_tags: tuple[str, ...] = ()) -> tuple[subprocess.CompletedProcess, dict[str, str]]:
         # The Linux runner uses Bash 4+; macOS's system Bash lacks associative arrays.
         shell = None
@@ -258,6 +268,87 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
                 checksum = hashlib.sha256(b"installer").hexdigest()
                 for command in self.commands():
                     self.assertEqual(command[-2:], ["--metadata", f"sha256={checksum}"])
+
+    def test_branch_nightly_uploads_without_replacing_shared_aliases(self) -> None:
+        directory = self.work / "lantern-installer-apk"
+        directory.mkdir()
+        filenames = ("lantern-installer-nightly.apk", "lantern-installer-nightly-armv7.apk")
+        for filename in filenames:
+            (directory / filename).write_bytes(b"branch installer")
+
+        result = self.run_s3_upload(
+            "nightly", "android", IS_TEST_RUN=self.resolve_test_run_setting("upload-s3", "true"),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            [command[4] for command in self.commands()],
+            [f"s3://release-test/releases/nightly/9.2.0/{filename}" for filename in filenames],
+        )
+        self.assertNotIn("https://s3.amazonaws.com/release-test/releases/nightly/latest/", result.stdout)
+
+    def test_nightly_download_messages_point_to_the_published_artifacts(self) -> None:
+        filenames = [
+            "lantern-installer-nightly.dmg", "lantern-installer-nightly.exe",
+            "lantern-installer-nightly.apk", "lantern-installer-nightly-armv7.apk",
+            *[f"lantern-installer-nightly{suffix}.{extension}"
+              for suffix in ("", "-arm64") for extension in ("deb", "rpm", "pkg.tar.zst")],
+        ]
+        for is_test_run in ("false", "true"):
+            for message_format in ("slack", "release-notes"):
+                with self.subTest(is_test_run=is_test_run, message_format=message_format):
+                    if message_format == "slack":
+                        setting = self.resolve_test_run_setting("release-success-notify", is_test_run, "Format Slack message")
+                    else:
+                        setting = self.resolve_test_run_setting("upload-release-artifacts", is_test_run)
+                    result = subprocess.run(
+                        ["bash", str(ROOT / "scripts/ci/format.sh"), message_format],
+                        cwd=self.work,
+                        env={
+                            **self.env, "BUILD_TYPE": "nightly", "IS_TEST_RUN": setting,
+                            "PLATFORM": "macos,windows,android,linux",
+                            "GITHUB_REF_NAME": "feature/test" if is_test_run == "true" else "main",
+                            "WORKFLOW_URL": "https://github.com/getlantern/lantern/actions/runs/123",
+                        },
+                        text=True, capture_output=True, timeout=10,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    for filename in filenames:
+                        versioned = f"https://s3.amazonaws.com/release-test/releases/nightly/9.2.0/{filename}"
+                        latest = f"https://s3.amazonaws.com/release-test/releases/nightly/latest/{filename}"
+                        self.assertIn(versioned, result.stdout)
+                        self.assertEqual(result.stdout.count(latest), 0 if is_test_run == "true" else 1)
+
+    def test_successful_branch_nightlies_can_upload_and_notify(self) -> None:
+        def eligible(job_name: str, is_test_run: str, *, cancelled: bool = False,
+                     failed_job: str | None = None) -> bool:
+            # Exercise the workflow's conditions with realistic nightly results.
+            values = {f"{name}.result": "success" for name in self.jobs}
+            for name in ("upload-google-play", "upload-testflight", "publish-update-metadata", "verify-update-service"):
+                values[f"{name}.result"] = "skipped"
+            values.update({
+                "set-metadata.outputs.is_test_run": is_test_run,
+                "set-metadata.outputs.build_type": "nightly",
+            })
+            if failed_job:
+                values[f"{failed_job}.result"] = "failure"
+            condition = re.sub(
+                r"needs\.([\w.-]+)", lambda match: repr(values[match[1]]),
+                self.jobs[job_name]["if"],
+            )
+            condition = condition.replace("always()", "True").replace("cancelled()", str(cancelled))
+            condition = re.sub(r"!(?!=)", " not ", condition).replace("&&", " and ").replace("||", " or ")
+            return eval(" ".join(condition.split()), {"__builtins__": {}}, {})
+
+        for is_test_run in ("false", "true"):
+            for job in ("upload-s3", "upload-release-artifacts", "release-success-notify"):
+                with self.subTest(is_test_run=is_test_run, job=job):
+                    self.assertTrue(eligible(job, is_test_run))
+                    self.assertFalse(eligible(job, is_test_run, cancelled=True))
+                    self.assertFalse(eligible(job, is_test_run, failed_job="nightly-gate"))
+            for failed_job in ("upload-s3", "upload-release-artifacts", "release-finalize"):
+                with self.subTest(is_test_run=is_test_run, failed_job=failed_job):
+                    self.assertFalse(eligible("release-success-notify", is_test_run, failed_job=failed_job))
 
     def test_incomplete_candidate_set_blocks_all_uploads(self) -> None:
         directory = self.work / "lantern-installer-dmg"

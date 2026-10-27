@@ -77,8 +77,8 @@ concurrency:
 jobs:
   set-metadata:
     # Allow tag-push releases, scheduled builds from default branch,
-    # and workflow_dispatch from any branch (non-main branches create
-    # draft releases that are immediately deleted for testing).
+    # and workflow_dispatch from any branch. Branch test runs publish versioned
+    # downloads and notify Slack; their temporary draft releases are deleted.
     if: ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name == 'schedule' && github.ref_name == github.event.repository.default_branch) || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
@@ -694,7 +694,6 @@ jobs:
       always() &&
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.set-metadata.outputs.is_test_run != 'true' &&
       needs.nightly-gate.result == 'success'
     runs-on: ubuntu-latest
     env:
@@ -705,6 +704,7 @@ jobs:
       LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
       BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
+      IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -751,7 +751,6 @@ jobs:
       always() &&
       !cancelled() &&
       needs.release-create.result == 'success' &&
-      needs.set-metadata.outputs.is_test_run != 'true' &&
       needs.nightly-gate.result == 'success'
     runs-on: ubuntu-latest
     env:
@@ -762,6 +761,7 @@ jobs:
       LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
       BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
+      IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -1318,7 +1318,6 @@ jobs:
       always() &&
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.set-metadata.outputs.is_test_run != 'true' &&
       needs.nightly-gate.result == 'success' &&
       needs.upload-s3.result == 'success' &&
       needs.upload-release-artifacts.result == 'success' &&
@@ -1348,6 +1347,7 @@ jobs:
           BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
           BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
+          IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
           LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash
