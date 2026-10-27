@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile the installer and execute its VC runtime checks with registry fixtures.
+"""Compile the installer and execute its VC runtime checks with registry/file/installer fixtures.
 
 Requires Inno Setup 6.7.1 on Windows. --generate-only writes the sources for
 inspection on other hosts. The full installer is compiled but never run; only
@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts/ci'))
-from windows_installer_template import render as render_template
+from render_windows_installer import render as render_installer
 TEMPLATE = ROOT / "windows/packaging/exe/inno_setup.iss"
 HARNESS = Path(__file__).with_name("windows_installer_test.iss")
 
@@ -133,17 +133,16 @@ def test_generated_project(output, msbuild):
 
 
 def render_compile_fixture(source, payload):
-    values = {
-        "SOURCE_DIR": str(payload),
-        "APP_ID": "LanternInstallerCompileFixture",
-        "APP_VERSION": "0.0.0",
-        "DISPLAY_NAME": "Lantern Installer Compile Fixture",
-        "PUBLISHER_NAME": "Lantern",
-        "PUBLISHER_URL": "https://getlantern.org",
-        "OUTPUT_BASE_FILENAME": "compile-fixture",
-        "EXECUTABLE_NAME": "lantern.exe",
+    config = {
+        "app_id": "LanternInstallerCompileFixture",
+        "display_name": "Lantern Installer Compile Fixture",
+        "publisher": "Lantern",
+        "publisher_url": "https://getlantern.org",
+        "executable_name": "lantern.exe",
+        "create_desktop_icon": True,
+        "locales": ["en"],
     }
-    return render_template(source, values, create_desktop_icon=True)
+    return render_installer(source, config, "0.0.0", payload, "compile-fixture", signed=False)
 
 
 def generate(output):
@@ -155,7 +154,7 @@ def generate(output):
     if error_defaults != ["IDCANCEL", "IDCANCEL"]:
         raise AssertionError("Unattended dependency download/install failures must cancel")
 
-    start = source.index("function Dependency_IsVCRuntimeInstalled:")
+    start = source.index("function Dependency_VCRuntimeArch:")
     end = source.index("procedure Dependency_AddWebView2;", start)
     dependency_code = source[start:end]
     # Keep the real Pascal parsing/version comparison/control flow. Substitute
@@ -163,7 +162,8 @@ def generate(output):
     # or download/execute a redistributable.
     for name in (
         "IsArm64", "RegQueryDWordValue", "RegQueryStringValue", "Log",
-        "ExpandConstant", "ExtractTemporaryFile", "Dependency_Add",
+        "ExpandConstant", "ExtractTemporaryFile", "EnableFsRedirection",
+        "GetVersionNumbersString", "ShellExec",
     ):
         dependency_code = re.sub(rf"\b{name}\b", "Fixture_" + name, dependency_code)
 

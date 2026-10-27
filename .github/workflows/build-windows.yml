@@ -122,6 +122,8 @@ jobs:
       SOAR_ZONE: ${{ secrets.SOAR_ZONE }}
       SOAR_PUBLIC_KEY: ${{ vars.SOAR_PUBLIC_KEY }}
       SIGNPATH_SIGNING_POLICY: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+      SIGNPATH_ORG_ID: ${{ vars.SIGNPATH_ORG_ID }}
+      SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
     permissions:
       contents: "read"
       id-token: "write"
@@ -129,6 +131,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate signed installer build mode
+        if: ${{ inputs.package_installer && !inputs.skip_signing }}
+        shell: pwsh
+        env:
+          FLUTTER_BUILD_MODE: ${{ inputs.flutter_build_mode }}
+        run: |
+          if ($env:FLUTTER_BUILD_MODE -ne 'release') {
+            throw 'Signed installers must package the Release build validated before publication'
+          }
 
       - name: Validate backend environment isolation
         shell: pwsh
@@ -157,7 +169,7 @@ jobs:
       - name: Install WebView2 Runtime
         # Compilation downloads the WebView2 SDK separately. The runtime is
         # needed only when this job actually launches the app.
-        if: ${{ (inputs.package_installer && inputs.run_installer_smoke) || inputs.run_auth_smoke || inputs.run_payment_smoke }}
+        if: ${{ (inputs.package_installer && (inputs.run_installer_smoke || !inputs.skip_signing)) || inputs.run_auth_smoke || inputs.run_payment_smoke }}
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "MicrosoftEdgeWebView2Setup.exe"
@@ -271,88 +283,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Sign embedded binaries
+      - name: Sign and inventory every Windows binary
         if: ${{ !inputs.skip_signing }}
         shell: pwsh
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
         run: |
-          $buildDir = Resolve-Path "build/windows/x64/runner/Release"
-
-          # Third-party binaries that are already signed by their vendors
-          $thirdParty = @(
-            'flutter_windows.dll',  # Google/Flutter
-            'WebView2Loader.dll',   # Microsoft
-            'VC_redist.x64.exe',    # Microsoft; bundled installer prerequisite
-            'WinSparkle.dll'        # WinSparkle
-          )
-
-          # Discover all EXEs and DLLs, excluding third-party signed binaries
-          $binaries = @(
-            Get-ChildItem -Path $buildDir -Include '*.exe','*.dll' -Recurse -File |
-              Where-Object { $thirdParty -notcontains $_.Name }
-          )
-
-          if ($binaries.Count -eq 0) {
-            Write-Error "No binaries found to sign"
-            exit 1
-          }
-
-          # Stage binaries into a zip preserving relative paths (single signing request)
-          $stage = "$env:GITHUB_WORKSPACE\sign-stage"
-          foreach ($bin in $binaries) {
-            $rel = $bin.FullName.Substring($buildDir.Path.Length).TrimStart('\', '/')
-            $dest = Join-Path $stage $rel
-            New-Item -ItemType Directory -Path (Split-Path $dest) -Force | Out-Null
-            Copy-Item $bin.FullName $dest
-            Write-Host "  staged: $rel"
-          }
-
-          $zipPath = "$env:GITHUB_WORKSPACE\binaries-to-sign.zip"
-          Compress-Archive -Path "$stage\*" -DestinationPath $zipPath -Force
-          Write-Host "Bundled $($binaries.Count) binaries into zip"
-
-          # Sign the zip as a single request
-          & ./scripts/ci/sign-windows.ps1 `
-            -FilePath $zipPath `
-            -SigningPolicy "${{ env.SIGNPATH_SIGNING_POLICY }}" `
-            -OrganizationId "${{ vars.SIGNPATH_ORG_ID }}" `
-            -ProjectSlug "${{ vars.SIGNPATH_PROJECT_SLUG }}" `
-            -ApiToken $env:SIGNPATH_API_TOKEN `
-            -ArtifactConfigurationSlug "zip-bundle" `
-            -Description "GitHub Actions build ${{ inputs.version }}"
-
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Failed to sign binaries bundle"
-            exit 1
-          }
-
-          # Extract signed binaries back over originals
-          Expand-Archive -Path $zipPath -DestinationPath $buildDir -Force
-
-          # Verify each target binary has a valid Authenticode signature
-          $failedSigs = @()
-          foreach ($bin in $binaries) {
-            if (-not (Test-Path $bin.FullName)) {
-              Write-Error ("Signed binary not found after extraction: {0}" -f $bin.FullName)
-              $failedSigs += $bin.FullName
-              continue
-            }
-
-            $sig = Get-AuthenticodeSignature -FilePath $bin.FullName
-            if ($sig.Status -ne 'Valid') {
-              Write-Error ("Signature verification failed for {0}: Status={1}" -f $bin.FullName, $sig.Status)
-              $failedSigs += $bin.FullName
-            }
-          }
-
-          if ($failedSigs.Count -gt 0) {
-            Write-Error ("One or more binaries failed Authenticode verification after signing:`n{0}" -f ($failedSigs -join "`n"))
-            exit 1
-          }
-
-          Remove-Item -Recurse -Force $stage, $zipPath
-          Write-Host "All binaries signed successfully"
+          ./scripts/ci/sign-windows-bundle.ps1 `
+            -Directory "build/windows/x64/runner/Release" `
+            -ManifestPath "$env:RUNNER_TEMP/windows-signing/signed-payload.json"
 
       - name: Signing disabled for this run
         if: ${{ inputs.skip_signing }}
@@ -396,56 +335,78 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Package installer
+      - name: Package the signed payload without rebuilding
         if: ${{ inputs.package_installer }}
         shell: pwsh
+        timeout-minutes: 35
         env:
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
-          BACKEND_ENVIRONMENT: ${{ inputs.backend_environment }}
-          AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}
+          SIGN_WINDOWS_PAYLOAD: ${{ !inputs.skip_signing }}
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
         run: |
-          dart pub global activate fastforge
-          $packageArgs = @(
-            'package', '--platform=windows', '--targets=exe', '--skip-clean',
-            "--build-dart-define=BUILD_TYPE=$env:BUILD_TYPE",
-            "--build-dart-define=VERSION=$env:VERSION", '--flutter-build-args=verbose'
+          python -m pip install -r scripts/requirements.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Installer renderer dependency installation failed' }
+          $script = "$env:RUNNER_TEMP/windows-package/lantern.iss"
+          $renderArgs = @(
+            'scripts/ci/render_windows_installer.py',
+            '--template', 'windows/packaging/exe/inno_setup.iss',
+            '--config', 'windows/packaging/exe/make_config.yaml',
+            '--source', 'build/windows/x64/runner/Release',
+            '--version', $env:APP_VERSION,
+            '--output-name', $env:FULL_INSTALLER_NAME,
+            '--output', $script
           )
-          # Fastforge may rebuild Flutter: preserve the original staging defines
-          # during packaging, not just during the preceding make invocation.
-          if ($env:BACKEND_ENVIRONMENT -eq 'staging') {
-            $packageArgs += '--build-dart-define=RADIANCE_ENV=staging'
+          $compilerArgs = @("/O$env:GITHUB_WORKSPACE")
+          if ($env:SIGN_WINDOWS_PAYLOAD -eq 'true') {
+            $renderArgs += '--signed'
+            # Inno expands $q/$f. The callback reads credentials only from its
+            # inherited environment and signs setup AND the generated uninstaller.
+            $callback = Join-Path $env:GITHUB_WORKSPACE 'scripts/ci/sign-windows-inno.ps1'
+            $signCommand = 'lantern=$q{0}$q -NoProfile -NonInteractive -File $q{1}$q -FilePath $f' -f (Get-Command pwsh).Source, $callback
+            $compilerArgs += "/S$signCommand"
           }
-          if ($env:AUTO_UPDATE_E2E -eq 'true') {
-            $packageArgs += '--build-dart-define=AUTO_UPDATE_E2E=true'
+          & python @renderArgs
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installer rendering failed' }
+          $compilerArgs += $script
+          & 'C:/Program Files (x86)/Inno Setup 6/ISCC.exe' @compilerArgs
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installer compilation/signing failed' }
+          if ($env:SIGN_WINDOWS_PAYLOAD -eq 'true') {
+            ./scripts/ci/verify-windows-payload.ps1 `
+              -Directory 'build/windows/x64/runner/Release' `
+              -ManifestPath "$env:RUNNER_TEMP/windows-signing/signed-payload.json"
+            $signature = Get-AuthenticodeSignature -LiteralPath "$env:FULL_INSTALLER_NAME.exe"
+            if ($signature.Status -ne 'Valid' -or $signature.SignatureType -ne 'Authenticode') {
+              throw "Installer signature is invalid: $($signature.Status)"
+            }
           }
-          & fastforge @packageArgs
-          if ($LASTEXITCODE -ne 0) { throw 'Windows installer packaging failed' }
 
-          Write-Host ""
-          Write-Host "=== Contents of dist/$env:APP_VERSION/ ==="
-          Get-ChildItem -Path "dist/$env:APP_VERSION/" -Recurse | Select-Object FullName
-          Write-Host ""
-
-          Move-Item "dist/$env:APP_VERSION/$env:APP_NAME-$env:APP_VERSION-windows-setup.exe" "$env:FULL_INSTALLER_NAME.exe"
-
-      - name: Sign installer
+      - name: Verify installed candidate signatures and updater startup
         if: ${{ inputs.package_installer && !inputs.skip_signing }}
         shell: pwsh
+        timeout-minutes: 15
         env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
-          SIGNPATH_SIGNING_POLICY: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
-          SIGNPATH_ORG_ID: ${{ vars.SIGNPATH_ORG_ID }}
-          SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
-          VERSION: ${{ inputs.version }}
           FULL_INSTALLER_NAME: ${{ inputs.installer_base_name }}${{ inputs.build_type != 'production' && format('-{0}', inputs.build_type) || '' }}
+          LANTERN_WINDOWS_CANDIDATE_SMOKE: 'true'
         run: |
-          ./scripts/ci/sign-windows.ps1 `
-            -FilePath "$env:FULL_INSTALLER_NAME.exe" `
-            -SigningPolicy $env:SIGNPATH_SIGNING_POLICY `
-            -OrganizationId $env:SIGNPATH_ORG_ID `
-            -ProjectSlug $env:SIGNPATH_PROJECT_SLUG `
-            -ApiToken $env:SIGNPATH_API_TOKEN `
-            -Description "Installer - GitHub Actions build $env:VERSION"
+          $versionParts = $env:APP_VERSION -split '\+', 2
+          if ($versionParts.Count -ne 2) { throw 'Candidate version is missing its build number' }
+          ./.github/scripts/windows_candidate_smoke.ps1 `
+            -InstallerPath "$env:FULL_INSTALLER_NAME.exe" `
+            -PayloadManifest "$env:RUNNER_TEMP/windows-signing/signed-payload.json" `
+            -ExpectedBuild $versionParts[1] -ExpectedDisplay $versionParts[0] `
+            -ArtifactDirectory "$env:RUNNER_TEMP/windows-candidate-smoke"
+
+      - name: Upload candidate signature and startup evidence
+        if: ${{ always() && inputs.package_installer && !inputs.skip_signing }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-candidate-validation
+          path: |
+            ${{ runner.temp }}/windows-signing
+            ${{ runner.temp }}/windows-candidate-smoke
+            ${{ runner.temp }}/windows-package/*.iss
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Sign Windows update
         if: ${{ inputs.package_installer && !inputs.skip_signing && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
@@ -504,7 +465,7 @@ jobs:
           flutter test integration_test/auth/auth_smoke_test.dart -d windows --reporter=expanded --dart-define=DISABLE_SYSTEM_TRAY=true
 
       - name: Upload Windows installer
-        if: ${{ always() && inputs.package_installer }}
+        if: ${{ inputs.package_installer }}
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-exe

@@ -511,7 +511,7 @@ jobs:
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       run_auth_smoke: false
-      skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && (needs.set-metadata.outputs.is_test_run == 'true' || github.event.inputs.sign_windows != 'true') }}
+      skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.event.inputs.sign_windows != 'true' }}
 
   build-linux:
     needs: [set-metadata, preflight, release-approval]
