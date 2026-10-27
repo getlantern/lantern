@@ -65,9 +65,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   /// after recovery.
   private var didAttemptStaleRegistryRecovery = false
 
-  /// Installed set seen when we last activated over an installed-but-disabled
-  /// extension. Seeing it unchanged afterwards means macOS completed that
-  /// activation as a no-op and the user has to re-enable the extension in
+  /// Installed set an activation over a disabled extension was submitted
+  /// over, promoted here only once that request ended as a no-op. Seeing it
+  /// unchanged afterwards means the user has to re-enable the extension in
   /// System Settings.
   private var disabledActivationSnapshot: [SystemExtensionDescriptor]?
 
@@ -125,6 +125,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
     switch result {
     case .completed:
+      settleDisabledActivation(state, outcome: .completed)
       guard let context else {
         submitPropertiesRequest(context: .inspectStatus)
         return
@@ -154,6 +155,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         submitPropertiesRequest(context: .inspectStatus, observer: observer)
       }
     case .willCompleteAfterReboot:
+      settleDisabledActivation(state, outcome: .willCompleteAfterReboot)
       // Even when the deactivation needs a reboot, still attempt activation
       // if we were in a deactivate-then-activate flow. macOS can queue the
       // new extension while the old one is pending removal. Without this,
@@ -170,6 +172,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       let details = context?.rebootDetails ?? "system extension change will finish after reboot"
       publishStatus(.requiresReboot(details: details), observer: observer)
     @unknown default:
+      settleDisabledActivation(state, outcome: .failed)
       publishStatus(.error("Unknown system extension result"), observer: observer)
     }
   }
@@ -182,19 +185,24 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     let context = state?.context
     let observer = state?.observer
     let nsError = error as NSError
-    // A failed activation is not a no-op; let the next reconcile retry it.
-    disabledActivationSnapshot = nil
 
     if nsError.domain == OSSystemExtensionErrorDomain
       && (nsError.code == OSSystemExtensionError.requestCanceled.rawValue
         || nsError.code == OSSystemExtensionError.requestSuperseded.rawValue)
     {
+      // Our own cancel in actionForReplacingExtension is the no-op this
+      // baseline exists to detect; a superseding request carries its own.
+      let canceled = nsError.code == OSSystemExtensionError.requestCanceled.rawValue
+      settleDisabledActivation(state, outcome: canceled ? .canceled : .superseded)
       appLogger.info(
         "System extension request ended without applying changes: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
       )
       submitPropertiesRequest(context: .inspectStatus, observer: observer)
       return
     }
+
+    // A failed activation is not a no-op; let the next reconcile retry it.
+    settleDisabledActivation(state, outcome: .failed)
 
     if StaleRegistryRecovery.shouldRecover(
       from: nsError,
@@ -276,11 +284,8 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
           return
         }
 
-        if reconciliation.change == .enable, case .activate = reconciliation.action {
-          self.disabledActivationSnapshot = installed
-        }
-
-        self.perform(reconciliation.action, observer: observer)
+        let activatedOver = reconciliation.change == .enable ? installed : nil
+        self.perform(reconciliation.action, activatedOver: activatedOver, observer: observer)
       }
     }
   }
@@ -321,13 +326,16 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   private func submitActivationRequest(
     reason: String,
+    activatedOver: [SystemExtensionDescriptor]? = nil,
     observer: ((ExtensionStatus) -> Void)? = nil
   ) {
     let request = OSSystemExtensionRequest.activationRequest(
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
     )
-    submit(request, context: .activate(reason: reason), observer: observer)
+    submit(
+      request, context: .activate(reason: reason), activatedOver: activatedOver,
+      observer: observer)
   }
 
   private func submitDeactivationRequest(
@@ -349,11 +357,13 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   private func submit(
     _ request: OSSystemExtensionRequest,
     context: RequestContext,
+    activatedOver: [SystemExtensionDescriptor]? = nil,
     observer: ((ExtensionStatus) -> Void)? = nil
   ) {
     request.delegate = self
     contextQueue.sync {
-      requestStates[ObjectIdentifier(request)] = RequestState(context: context, observer: observer)
+      requestStates[ObjectIdentifier(request)] = RequestState(
+        context: context, observer: observer, activatedOver: activatedOver)
     }
     appLogger.info("Submitting system extension request: \(context.logDescription)")
     OSSystemExtensionManager.shared.submitRequest(request)
@@ -370,6 +380,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   private func perform(
     _ action: SystemExtensionInstallAction,
+    activatedOver: [SystemExtensionDescriptor]? = nil,
     observer: ((ExtensionStatus) -> Void)? = nil
   ) {
     switch action {
@@ -377,11 +388,21 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       return
     case .activate(let reason):
       publishStatus(.updatePending(details: reason), observer: observer)
-      submitActivationRequest(reason: reason, observer: observer)
+      submitActivationRequest(reason: reason, activatedOver: activatedOver, observer: observer)
     case .deactivateThenActivate(let reason):
       publishStatus(.updatePending(details: reason), observer: observer)
       submitDeactivationRequest(reason: reason, activateAfter: true, observer: observer)
     }
+  }
+
+  private func settleDisabledActivation(
+    _ state: RequestState?,
+    outcome: SystemExtensionActivationOutcome
+  ) {
+    disabledActivationSnapshot = SystemExtensionDisabledBaseline.resolve(
+      current: disabledActivationSnapshot,
+      attemptedOver: state?.activatedOver,
+      outcome: outcome)
   }
 
   private func logSnapshot(
@@ -450,6 +471,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 private struct RequestState {
   let context: RequestContext
   let observer: ((ExtensionStatus) -> Void)?
+  /// Installed set this activation was submitted over when the bundled
+  /// extension was installed but disabled; nil for every other request.
+  let activatedOver: [SystemExtensionDescriptor]?
 }
 
 private enum RequestContext: Equatable {
@@ -902,6 +926,35 @@ internal enum SystemExtensionReconciler {
     _ rhs: [SystemExtensionDescriptor]
   ) -> Bool {
     lhs.count == rhs.count && rhs.allSatisfy(lhs.contains)
+  }
+}
+
+internal enum SystemExtensionActivationOutcome: Equatable {
+  case completed
+  case canceled
+  case superseded
+  case willCompleteAfterReboot
+  case failed
+}
+
+/// Decides which installed set, if any, later status queries compare against
+/// to detect that an activation over a disabled extension changed nothing.
+internal enum SystemExtensionDisabledBaseline {
+  static func resolve(
+    current: [SystemExtensionDescriptor]?,
+    attemptedOver: [SystemExtensionDescriptor]?,
+    outcome: SystemExtensionActivationOutcome
+  ) -> [SystemExtensionDescriptor]? {
+    switch outcome {
+    case .completed, .canceled:
+      // macOS either completed without enabling or declined to replace the
+      // matching extension; both leave the user to enable it in Settings.
+      return attemptedOver
+    case .superseded:
+      return current
+    case .willCompleteAfterReboot, .failed:
+      return nil
+    }
   }
 }
 

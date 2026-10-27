@@ -553,6 +553,52 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(reconciliation.action, .none)
   }
 
+  func testDisabledBaselineIsKeptWhenActivationCompletesAsNoOp() {
+    let disabled = [makeDescriptor(build: "220", hash: "hash-a")]
+
+    XCTAssertEqual(
+      SystemExtensionDisabledBaseline.resolve(
+        current: nil, attemptedOver: disabled, outcome: .completed),
+      disabled)
+  }
+
+  func testDisabledBaselineIsKeptWhenReplacementIsCanceled() {
+    let disabled = [makeDescriptor(build: "220", hash: "hash-a")]
+
+    XCTAssertEqual(
+      SystemExtensionDisabledBaseline.resolve(
+        current: nil, attemptedOver: disabled, outcome: .canceled),
+      disabled)
+  }
+
+  func testDisabledBaselineSurvivesASupersededRequest() {
+    let current = [makeDescriptor(build: "220", hash: "hash-a")]
+
+    XCTAssertEqual(
+      SystemExtensionDisabledBaseline.resolve(
+        current: current, attemptedOver: nil, outcome: .superseded),
+      current)
+  }
+
+  func testDisabledBaselineIsDroppedOnRebootOrFailure() {
+    let disabled = [makeDescriptor(build: "220", hash: "hash-a")]
+
+    XCTAssertNil(
+      SystemExtensionDisabledBaseline.resolve(
+        current: disabled, attemptedOver: disabled, outcome: .willCompleteAfterReboot))
+    XCTAssertNil(
+      SystemExtensionDisabledBaseline.resolve(
+        current: disabled, attemptedOver: disabled, outcome: .failed))
+  }
+
+  func testDisabledBaselineClearsAfterAnOrdinaryActivation() {
+    let stale = [makeDescriptor(build: "219", hash: "hash-b")]
+
+    XCTAssertNil(
+      SystemExtensionDisabledBaseline.resolve(
+        current: stale, attemptedOver: nil, outcome: .completed))
+  }
+
   func testReconcileActivatesBundledExtensionWhenNothingIsInstalled() {
     let bundled = makeDescriptor(build: "220", hash: "hash-a")
 
