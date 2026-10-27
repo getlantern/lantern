@@ -19,36 +19,36 @@ class CensoredDialog extends ConsumerStatefulWidget {
 class _CensoredDialogState extends ConsumerState<CensoredDialog> {
   @override
   Widget build(BuildContext context) {
-    ref.listen(vPNStatusProvider, (previous, next) {
-      if (next.value?.status == VPNStatus.connected) {
-        context.maybePop();
-      }
-    });
+    ref.listen(
+      vPNStatusProvider,
+      (previous, next) {
+        if (next.value?.status == VPNStatus.connected) {
+          context.maybePop();
+        }
+      },
+    );
 
     return AlertDialog(
       backgroundColor: AppColors.gray3,
       contentPadding: EdgeInsets.symmetric(horizontal: defaultSize),
       actionsPadding: EdgeInsets.only(
-        top: defaultSize,
-        bottom: defaultSize,
-        left: defaultSize,
-        right: defaultSize,
-      ),
+          top: defaultSize,
+          bottom: defaultSize,
+          left: defaultSize,
+          right: defaultSize),
       // contentPadding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(height: 24),
-          Text(
-            'vpn_may_be_needed'.i18n,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          Text('vpn_may_be_needed'.i18n,
+              style: Theme.of(context).textTheme.headlineSmall),
           SizedBox(height: 16),
-          Text(
-            'google_and_apple_sign_in_blocked'.i18n,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text('google_and_apple_sign_in_blocked'.i18n,
+              style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
       actions: [
@@ -68,10 +68,13 @@ class _CensoredDialogState extends ConsumerState<CensoredDialog> {
               if (!mounted || value != true) return;
             }
             final result = await ref.read(vpnProvider.notifier).startVPN();
-            result.fold((failure) {
-              context.maybePop();
-              context.showSnackBar(failure.localizedErrorMessage);
-            }, (_) {});
+            result.fold(
+              (failure) {
+                context.maybePop();
+                context.showSnackBar(failure.localizedErrorMessage);
+              },
+              (_) {},
+            );
           },
         ),
       ],

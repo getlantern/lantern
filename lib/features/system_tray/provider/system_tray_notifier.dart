@@ -130,11 +130,11 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         .read(vpnProvider.notifier)
         .connectToServer(ServerLocationType.lanternLocation, server.tag);
     result.fold(
-      (failure) => appLogger.error('Failed to connect: ${failure.error}'),
+      (failure) => appLogger.error(
+        'Failed to connect: ${failure.error}',
+      ),
       (success) {
-        appLogger.info(
-          'Connecting to ${server.location.country} - ${server.location.city}',
-        );
+        appLogger.info('Connecting to ${server.location.country} - ${server.location.city}');
         _saveServerLocation(server);
       },
     );
@@ -170,9 +170,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
   void _saveServerLocation(Server server) {
     final serverLocation = ServerLocation.fromServer(server: server);
-    ref
-        .read(serverLocationProvider.notifier)
-        .updateServerLocation(serverLocation);
+    ref.read(serverLocationProvider.notifier).updateServerLocation(serverLocation);
   }
 
   /// Build the current location display string (flag emoji + city)
@@ -266,9 +264,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
                   return MenuItem(
                     key: 'location_${server.tag}',
                     label: displayName,
-                    icon: AppImagePaths.safeFlagPath(
-                      server.location.countryCode,
-                    ),
+                    icon: AppImagePaths.safeFlagPath(server.location.countryCode),
                     onClick: (_) => _onLocationSelected(server),
                   );
                 }),
