@@ -804,6 +804,15 @@ internal enum SystemExtensionReconciler {
 
     if installed.contains(where: \.isUninstalling) {
       if enabled == nil {
+        // A matching copy that is neither enabled nor uninstalling was switched
+        // off in System Settings; the stale row must not hide that.
+        let disabledCopy = installed.contains { $0.matches(bundled) }
+        if disabledCopy, let attempted = activationAttemptedOver, sameSet(attempted, installed) {
+          return SystemExtensionReconciliation(
+            status: .requiresEnable,
+            action: .none,
+            change: .enable)
+        }
         // Old extension is uninstalling but nothing is enabled — don't just wait
         // for a reboot that may never clear the state. Submit an activation request
         // so macOS can install the bundled extension alongside the pending removal.
@@ -811,7 +820,7 @@ internal enum SystemExtensionReconciler {
           status: .updatePending(
             details: "old extension is uninstalling, replacement activation pending"),
           action: .activate(reason: "activate bundled extension while old version awaits removal"),
-          change: .install)
+          change: disabledCopy ? .enable : .install)
       }
       // An enabled extension exists, but it does not match the bundled extension.
       // Fall through to normal upgrade/content-change handling. A stale uninstalling
