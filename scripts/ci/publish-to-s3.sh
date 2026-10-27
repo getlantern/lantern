@@ -17,6 +17,7 @@ set -euo pipefail
 #   AWS_ACCESS_KEY_ID:       AWS credentials (required)
 #   AWS_SECRET_ACCESS_KEY:   AWS credentials (required)
 #   LINUX_ARCH:              amd64, arm64, or all (optional, defaults to all)
+#   IS_TEST_RUN:             true for branch builds; skips shared nightly aliases (default: false)
 
 BUILD_TYPE="${1:?Build type required}"
 VERSION="${2:?Version required}"
@@ -25,6 +26,7 @@ PLATFORMS="${4:?Platforms required}"
 
 BUCKET="${BUCKET:?BUCKET environment variable required}"
 LINUX_ARCH="${LINUX_ARCH:-all}"
+IS_TEST_RUN="${IS_TEST_RUN:-false}"
 
 case "$LINUX_ARCH" in
   amd64|arm64|all)
@@ -63,15 +65,16 @@ upload_file() {
   aws s3 cp "$filepath" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}" \
     --acl public-read --metadata "sha256=${checksum}"
 
+  # Branch builds publish versioned downloads without replacing the main nightly.
   # Stable and beta aliases move only after the GitHub release is verified.
-  if [[ "$BUILD_TYPE" == "nightly" ]]; then
+  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
     aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" \
       --acl public-read --metadata "sha256=${checksum}"
   fi
 
   echo "✓ Uploaded $filename"
   echo "  - https://s3.amazonaws.com/${BUCKET}/${VERSION_PREFIX}/${filename}"
-  if [[ "$BUILD_TYPE" == "nightly" ]]; then
+  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
     echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
   fi
 }
