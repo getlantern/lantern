@@ -55,8 +55,13 @@ class HelpFriend extends HookConsumerWidget {
 
     useEffect(() {
       // Opened without a link while a claim waits (the volunteer backed out
-      // of the code): show that code again, once.
-      final pending = helpers.view.claims.where((c) => c.code.isNotEmpty);
+      // of the code): show that code again, once. A provisional claim may
+      // never have reached the inviter, and is retried by claiming its link
+      // again; an expired one waits for nothing.
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final pending = helpers.view.claims.where(
+        (c) => c.code.isNotEmpty && !c.provisional && c.expiresUnix > now,
+      );
       if (link != null ||
           resumed.value ||
           code.value != null ||

@@ -133,7 +133,8 @@ func (e *Engine) view(newHelping bool) View {
 		v.Invites = append(v.Invites, iv)
 	}
 	for _, c := range e.st.Claims {
-		v.Claims = append(v.Claims, ClaimView{ID: c.ID, Code: c.Code, ExpiresUnix: c.Created.Add(InviteTTL).Unix()})
+		v.Claims = append(v.Claims, ClaimView{ID: c.ID, Code: c.Code, ExpiresUnix: c.Created.Add(InviteTTL).Unix(),
+			Provisional: c.Provisional})
 	}
 	for _, p := range e.st.Pairings {
 		pv := PairingView{PairingID: p.ID, Name: p.Name, SinceUnix: p.Since.Unix()}

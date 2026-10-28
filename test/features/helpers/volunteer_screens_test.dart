@@ -129,6 +129,9 @@ HelpersState _helping() => const HelpersState(
 
 const _reza = HelperPairingView(pairingId: 'p2', name: 'Reza');
 
+// 2100-01-01: a claim that has not expired.
+const _future = 4102444800;
+
 void main() {
   setUpAll(Localization.loadTranslations);
 
@@ -204,8 +207,8 @@ void main() {
         view: HelpersView(
           unlocked: true,
           claims: [
-            HelperClaimView(id: 'c1', code: '1111', expiresUnix: 100),
-            HelperClaimView(id: 'c2', code: '2562', expiresUnix: 200),
+            HelperClaimView(id: 'c1', code: '1111', expiresUnix: _future),
+            HelperClaimView(id: 'c2', code: '2562', expiresUnix: _future + 1),
           ],
         ),
       ),
@@ -221,7 +224,7 @@ void main() {
       const HelpersView(
         unlocked: true,
         helping: [_reza],
-        claims: [HelperClaimView(id: 'c1', code: '1111', expiresUnix: 100)],
+        claims: [HelperClaimView(id: 'c1', code: '1111', expiresUnix: _future)],
       ),
     );
     await tester.pump();
@@ -229,6 +232,64 @@ void main() {
       find.text('help_friend_approved'.i18n.fill(['Reza'])),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a provisional claim is not resumed; the retry stays', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      const HelpersState(),
+      claimAnswer: '{"error":"unavailable"}',
+    );
+    await _pump(tester, helpers, const HelpFriend());
+    await tester.enterText(find.byKey(const Key('help_friend.link')), _link);
+    await _claim(tester);
+    expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
+    // The engine kept the claim it could not confirm, for a retry.
+    helpers.approve(
+      const HelpersView(
+        unlocked: true,
+        claims: [
+          HelperClaimView(
+            id: 'c1',
+            code: '2562',
+            expiresUnix: _future,
+            provisional: true,
+          ),
+        ],
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.code')), findsNothing);
+    expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.accept')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+  });
+
+  testWidgets('a provisional or expired claim is not reopened', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          claims: [
+            HelperClaimView(
+              id: 'c1',
+              code: '1111',
+              expiresUnix: _future,
+              provisional: true,
+            ),
+            HelperClaimView(id: 'c2', code: '2562', expiresUnix: 100),
+          ],
+        ),
+      ),
+    );
+    await _pump(tester, helpers, const HelpFriend());
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.code')), findsNothing);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
   });
 
   testWidgets('a link that opened HelpFriend and is not an invite can be '

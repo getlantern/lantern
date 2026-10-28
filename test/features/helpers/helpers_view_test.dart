@@ -24,6 +24,12 @@ void main() {
       ],
       'claims': [
         {'id': 'c1', 'code': '9876', 'expires_unix': 1800000000},
+        {
+          'id': 'c2',
+          'code': '1111',
+          'expires_unix': 1800000000,
+          'provisional': true,
+        },
       ],
       'helpers': [
         {
@@ -48,7 +54,9 @@ void main() {
     expect(v.invites.last.link, 'https://lantern.io/help/#x');
     expect(v.invites.last.inviterName, 'S. from work');
     expect(v.invites.first.inviterName, '');
-    expect(v.claims.single.code, '9876');
+    expect(v.claims.first.code, '9876');
+    expect(v.claims.first.provisional, isFalse);
+    expect(v.claims.last.provisional, isTrue);
     expect(v.helpers.single.online, isTrue);
     expect(v.helping.single.name, 'Sara');
     expect(v.activity!.activeSeconds, 3600);

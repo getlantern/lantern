@@ -193,6 +193,9 @@ type ClaimView struct {
 	ID          string `json:"id"`
 	Code        string `json:"code"`
 	ExpiresUnix int64  `json:"expires_unix"`
+	// Provisional is a claim whose sending has not been confirmed, so the
+	// inviter may not have it. It is retried by claiming its link again.
+	Provisional bool `json:"provisional,omitempty"`
 }
 
 type PairingView struct {

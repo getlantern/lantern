@@ -677,3 +677,20 @@ func TestInviteViewCarriesItsOwnName(t *testing.T) {
 	assert.Equal(t, "Sara", iv[0]["inviter_name"])
 	assert.Equal(t, "S. from work", iv[1]["inviter_name"])
 }
+
+func TestViewMarksProvisionalClaims(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	cloud.down = true
+	assert.Equal(t, CodeUnavailable, callErr(t, ali, "claim", map[string]any{"link": link, "name": "Ali"}))
+	claims := list(call(t, ali, "view", nil), "claims")
+	require.Len(t, claims, 1)
+	assert.Equal(t, true, claims[0]["provisional"], "not yet known to have reached the inviter")
+	cloud.down = false
+	call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	claims = list(call(t, ali, "view", nil), "claims")
+	require.Len(t, claims, 1)
+	assert.Nil(t, claims[0]["provisional"], "a confirmed claim is not marked")
+}

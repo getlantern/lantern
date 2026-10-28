@@ -85,16 +85,22 @@ class HelperClaimView {
     required this.id,
     required this.code,
     this.expiresUnix = 0,
+    this.provisional = false,
   });
 
   final String id;
   final String code;
   final int expiresUnix;
 
+  /// Not yet known to have reached the inviter: claiming the link again
+  /// retries it.
+  final bool provisional;
+
   factory HelperClaimView.fromJson(Map<String, dynamic> j) => HelperClaimView(
     id: _str(j['id']),
     code: _str(j['code']),
     expiresUnix: _int(j['expires_unix']),
+    provisional: j['provisional'] == true,
   );
 }
 
