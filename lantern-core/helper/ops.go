@@ -630,13 +630,10 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) error {
 	var list struct {
 		Pairings []listedPairing `json:"pairings"`
 	}
-	err := e.post(ctx, "pairings", struct{}{}, &list)
-	if isCode(err, CodeDisabled) {
-		// lantern-cloud lets a device without the flag list and end only the
-		// pairings it volunteers in, so it is helped in none.
-		return nil
-	}
-	if err != nil {
+	// Any failure to list is reported, the gate's disabled too: a pairing
+	// only lantern-cloud knows of may still be in force, and the device
+	// cannot tell. The names are already erased.
+	if err := e.post(ctx, "pairings", struct{}{}, &list); err != nil {
 		return err
 	}
 	var firstErr error

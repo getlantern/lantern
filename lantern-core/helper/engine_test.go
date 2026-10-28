@@ -858,3 +858,25 @@ func TestABlankListedIDDropsNothing(t *testing.T) {
 	assert.Nil(t, e.pairing("p1"))
 }
 
+// TestEndAllHelpersReportsADisabledListing: after a lost approval the
+// pairing exists only in lantern-cloud. A remove all that dropped the invite
+// but could not list leaves nothing local to end; with the flag then off the
+// listing is the gate's 404, and remove all says so instead of succeeding.
+func TestEndAllHelpersReportsADisabledListing(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	call(t, newTestEngine(t, cloud, "bo", t.TempDir()), "claim", map[string]any{"link": link, "name": "Bo"})
+	id := list(call(t, sara, "refresh", nil), "invites")[0]["id"]
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "decide", map[string]any{"invite_id": id, "approve": true}))
+	cloud.fail["pairings"] = 503
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "end_all_helpers", nil))
+	delete(cloud.fail, "pairings")
+	require.Empty(t, sara.st.Invites)
+	require.Empty(t, sara.st.Pairings)
+
+	cloud.flagOff["sara"] = true
+	assert.Equal(t, CodeDisabled, callErr(t, sara, "end_all_helpers", nil))
+	assert.Len(t, cloud.pairings, 1, "the pairing is still in force")
+}
