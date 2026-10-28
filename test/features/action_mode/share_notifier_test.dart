@@ -81,6 +81,10 @@ class _Helpers extends HelpersNotifier {
 
   void helpNobody() =>
       state = state.copyWith(view: const HelpersView(unlocked: true));
+
+  void helpSomeone() => state = state.copyWith(
+    view: const HelpersView(helping: [HelperPairingView(pairingId: 'p2')]),
+  );
 }
 
 class _Settings extends AppSettingNotifier {
@@ -312,6 +316,25 @@ void main() {
       // An approval counted after a newer view already dropped the pairing.
       await notifier.startForHelper(ref);
       CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+    });
+
+    testWidgets('a late approval after the pairing ended never starts', (
+      tester,
+    ) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      (ref.read(helpersProvider.notifier) as _Helpers).helpNobody();
+      // An older view's new_helping, counted after a newer empty view.
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.probing, isFalse);
+      // Nothing was kept pending either: a later, unrelated pairing does not
+      // start it on a country change.
+      (ref.read(helpersProvider.notifier) as _Helpers).helpSomeone();
       await notifier.retryPendingHelperStart(ref);
       expect(service.calls, isEmpty);
     });

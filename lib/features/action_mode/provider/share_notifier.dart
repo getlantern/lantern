@@ -300,6 +300,12 @@ class ShareNotifier extends _$ShareNotifier {
   /// approval is then kept, and [retryPendingHelperStart] starts it once the
   /// country is known and allowed. The user can still turn sharing on.
   Future<void> startForHelper(WidgetRef widgetRef) async {
+    // An approval can be counted from a view older than the one applied,
+    // after the pairing already ended: start only for someone still helped.
+    if (ref.read(helpersProvider).view.helping.isEmpty) {
+      _helperStartPending = false;
+      return;
+    }
     if (!helperAutoStartAllowed(CountryCode.current)) {
       _helperStartPending = true;
       return;
@@ -311,12 +317,7 @@ class ShareNotifier extends _$ShareNotifier {
   /// Retries a helper start held back by [startForHelper]. Called when the
   /// country changes. Dropped if this device no longer helps anyone.
   Future<void> retryPendingHelperStart(WidgetRef widgetRef) async {
-    if (!_helperStartPending) return;
-    if (ref.read(helpersProvider).view.helping.isEmpty) {
-      _helperStartPending = false;
-      return;
-    }
-    await startForHelper(widgetRef);
+    if (_helperStartPending) await startForHelper(widgetRef);
   }
 
   /// The no-UI start shared by autoStart and startForHelper: skip while a
