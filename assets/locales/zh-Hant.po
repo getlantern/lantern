@@ -1682,3 +1682,147 @@ msgstr "關閉"
 
 msgid "unbounded_status_waiting"
 msgstr "等待啟動"
+
+msgid "affiliate_offer_unavailable"
+msgstr "無法從商店載入優惠方案。請再試一次。"
+
+msgid "action_mode_helping_now"
+msgstr "目前正在協助"
+
+msgid "action_mode_total_helped"
+msgstr "累計協助人數"
+
+msgid "show_license"
+msgstr "顯示授權條款"
+
+msgid "hide_license"
+msgstr "隱藏授權條款"
+
+msgid "share_logs_warning_title"
+msgstr "分享診斷記錄？"
+
+msgid "share_logs_warning_body"
+msgstr "這些記錄可能包含你的電子郵件、IP 位址、裝置識別碼，以及你連線過的 Lantern 伺服器。記錄離開應用程式後就不受保護，任何收到的人都能讀取。只能傳送給 Lantern 支援團隊 support@lantern.io。"
+
+msgid "share_logs_anyway"
+msgstr "分享記錄"
+
+msgid "widget"
+msgstr "小工具"
+
+msgid "add_lantern_widget"
+msgstr "新增 Lantern 小工具"
+
+msgid "add_lantern_widget_description"
+msgstr "不必開啟應用程式，就能從手機主畫面連線。"
+
+msgid "widget_step_1"
+msgstr "長按手機主畫面上的空白處。"
+
+msgid "widget_step_2"
+msgstr "點一下「編輯」，然後點一下「加入小工具」。"
+
+msgid "widget_step_3"
+msgstr "搜尋 Lantern，選擇大小，然後點一下「加入小工具」。"
+
+msgid "people_helped_title"
+msgstr "你幫助過的人"
+
+msgid "people_helped_subtitle"
+msgstr "累計幫助 %s · 目前 %s"
+
+msgid "advanced_stats_by_country"
+msgstr "依國家，累計"
+
+msgid "advanced_stats_relayed"
+msgstr "已轉送 %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "已轉送資料"
+
+msgid "advanced_stats_this_session"
+msgstr "本次連線"
+
+msgid "advanced_stats_all_time_short"
+msgstr "累計"
+
+msgid "advanced_stats_current_speed"
+msgstr "目前速度"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "已傳送 %s · 已接收 %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "還沒有幫助到任何人。有人透過你連線後，國家會顯示在這裡。"
+
+msgid "advanced_stats_unknown_country"
+msgstr "未知"
+
+msgid "advanced_stats_one_person"
+msgstr "1 人"
+
+msgid "advanced_stats_people"
+msgstr "%s 人"
+
+msgid "share_mode_smc"
+msgstr "直接連線"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "分享模式"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "直接連線無法使用：%s"
+
+msgid "view_advanced_stats"
+msgstr "檢視進階統計資料"
+
+msgid "error_occurred"
+msgstr "發生錯誤。請再試一次。"
+
+msgid "unknown_error_occurred"
+msgstr "發生不明錯誤。"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "我們遇到技術問題。請稍後再試。"
+
+msgid "proxy_error"
+msgstr "無法透過代理伺服器連線。請檢查你的網路連線後再試一次。"
+
+msgid "err_while_sending_code"
+msgstr "無法傳送驗證碼。請再試一次。"
+
+msgid "recovery_not_found"
+msgstr "找不到符合這些資訊的可復原帳號。"
+
+msgid "wrong_link_code"
+msgstr "裝置連結碼不正確。請檢查後再試一次。"
+
+msgid "wrong_seller_code"
+msgstr "經銷商代碼不正確。請檢查後再試一次。"
+
+msgid "purchase_not_found"
+msgstr "找不到此帳戶的購買紀錄。"
+
+msgid "purchase_restored_error"
+msgstr "無法還原你的購買項目。請再試一次。"
+
+msgid "empty_url"
+msgstr "無法開啟付款頁面。請再試一次。"
+
+msgid "please_enter_referral_code"
+msgstr "請輸入推薦碼。"
+
+msgid "access_token_missing"
+msgstr "缺少存取權杖。請重新登入你的雲端服務供應商。"
+
+msgid "private_server_setup_error"
+msgstr "無法設定你的私人伺服器。請再試一次。"
+
+msgid "logs"
+msgstr "記錄檔"

@@ -269,5 +269,26 @@ class Grouping(unittest.TestCase):
         self.assertIn("蓝灯", system)  # locale alias carried into the glossary line
 
 
+class Apply(unittest.TestCase):
+    def test_apply_writes_saved_translations_and_skips_changed_english(self):
+        d = Path(tempfile.mkdtemp())
+        try:
+            (d / "en.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "a"\nmsgstr "A"\n\nmsgid "b"\nmsgstr "B changed"\n', encoding="utf-8")
+            (d / "xx.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "old"\nmsgstr "gone"\n', encoding="utf-8")
+            en, xx = t.PoFile(d / "en.po"), t.PoFile(d / "xx.po")
+            data = {"locales": [{"code": "xx", "removed": ["old"], "items": [
+                {"key": "a", "source": "A", "final": "AA", "status": "passed"},
+                {"key": "b", "source": "B", "final": "BB", "status": "fixed"},        # English changed since
+                {"key": "c", "source": "C", "final": "CC", "status": "rejected"},     # never written
+            ]}]}
+            rows = t.apply_results(data, en, {"xx": xx})
+            self.assertEqual(rows, [["xx", 1, 1, 1]])
+            again = t.PoFile(d / "xx.po")
+            self.assertEqual(again.get("a"), "AA")
+            self.assertFalse(again.has("b")); self.assertFalse(again.has("c")); self.assertFalse(again.has("old"))
+        finally:
+            shutil.rmtree(d)
+
+
 if __name__ == "__main__":
     unittest.main()

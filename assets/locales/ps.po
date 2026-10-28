@@ -1852,3 +1852,147 @@ msgstr "رد کړئ"
 
 msgid "unbounded_status_waiting"
 msgstr "پیل ته انتظار"
+
+msgid "affiliate_offer_unavailable"
+msgstr "له پلورنځي څخه تخفیف لرونکي پلانونه بار نه شول. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "action_mode_helping_now"
+msgstr "اوس مهال مرسته"
+
+msgid "action_mode_total_helped"
+msgstr "تر اوسه د مرسته شویو خلکو ټول شمېر"
+
+msgid "show_license"
+msgstr "جواز ښکاره کړئ"
+
+msgid "hide_license"
+msgstr "جواز پټ کړئ"
+
+msgid "share_logs_warning_title"
+msgstr "تشخیصي لاګونه شریک کړئ؟"
+
+msgid "share_logs_warning_body"
+msgstr "دا لاګونه ممکن ستاسو بریښنالیک، IP پته، د وسیلې پېژندونکي او هغه Lantern سرورونه ولري چې تاسو ورسره وصل شوي یاست. کله چې له اپ څخه ووځي، نور خوندي نه وي. نو هر څوک چې یې ترلاسه کړي لوستلای یې شي. دوی یوازې د Lantern ملاتړ ته په support@lantern.io پته ولېږئ."
+
+msgid "share_logs_anyway"
+msgstr "لاګونه شریک کړئ"
+
+msgid "widget"
+msgstr "ویجټ"
+
+msgid "add_lantern_widget"
+msgstr "د Lantern ویجټ اضافه کړئ"
+
+msgid "add_lantern_widget_description"
+msgstr "اپلیکیشن پرانیستلو پرته د خپل تلیفون له کور سکرین څخه وصل شئ."
+
+msgid "widget_step_1"
+msgstr "د خپل تلیفون د کور سکرین پر یوه خالي ځای ګوته کېږدئ او ونیسئ."
+
+msgid "widget_step_2"
+msgstr "پر Edit ټک وکړئ، بیا پر Add Widget ټک وکړئ."
+
+msgid "widget_step_3"
+msgstr "Lantern ولټوئ، یوه اندازه وټاکئ او پر Add Widget ټک وکړئ."
+
+msgid "people_helped_title"
+msgstr "هغه خلک چې تاسو ورسره مرسته کړې"
+
+msgid "people_helped_subtitle"
+msgstr "تر اوسه %s ته مرسته شوې · اوس %s"
+
+msgid "advanced_stats_by_country"
+msgstr "د هېواد له مخې، له پیله"
+
+msgid "advanced_stats_relayed"
+msgstr "%s ولېږدول شول"
+
+msgid "advanced_stats_data_relayed"
+msgstr "لېږدول شوې ډاټا"
+
+msgid "advanced_stats_this_session"
+msgstr "دا ناسته"
+
+msgid "advanced_stats_all_time_short"
+msgstr "ټول وخت"
+
+msgid "advanced_stats_current_speed"
+msgstr "اوسنی سرعت"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "لېږل شوي %s · ترلاسه شوي %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "تر اوسه له هیچا سره مرسته نه ده شوې. کله چې خلک ستاسو له لارې وصل شي، هیوادونه به دلته ښکاره شي."
+
+msgid "advanced_stats_unknown_country"
+msgstr "نامعلوم"
+
+msgid "advanced_stats_one_person"
+msgstr "1 تن"
+
+msgid "advanced_stats_people"
+msgstr "%s تنه"
+
+msgid "share_mode_smc"
+msgstr "مستقیم اتصال"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "د شریکولو حالت"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "مستقیم اتصال شتون نه لري: %s"
+
+msgid "view_advanced_stats"
+msgstr "پرمختللي احصایې وګورئ"
+
+msgid "error_occurred"
+msgstr "یوه تېروتنه وشوه. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "unknown_error_occurred"
+msgstr "یوه نامعلومه تېروتنه وشوه."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "موږ له تخنیکي ستونزو سره مخ یو. مهرباني وکړئ وروسته بیا هڅه وکړئ."
+
+msgid "proxy_error"
+msgstr "د پراکسي له لارې وصل نه شو. مهرباني وکړئ خپل اتصال وګورئ او بیا هڅه وکړئ."
+
+msgid "err_while_sending_code"
+msgstr "د تایید کوډ ونه لېږل شو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "recovery_not_found"
+msgstr "په دې معلوماتو د بیرته راګرځولو لپاره هیڅ حساب ونه موندل شو."
+
+msgid "wrong_link_code"
+msgstr "د وسیلې د نښلولو کوډ سم نه دی. مهرباني وکړئ کوډ وګورئ او بیا هڅه وکړئ."
+
+msgid "wrong_seller_code"
+msgstr "د بیا پلورونکي کوډ سم نه دی. مهرباني وکړئ کوډ وګورئ او بیا هڅه وکړئ."
+
+msgid "purchase_not_found"
+msgstr "موږ د دې حساب لپاره هېڅ پیرود ونه موند."
+
+msgid "purchase_restored_error"
+msgstr "موږ ونه شو کولی ستاسو پیرود بیرته راوګرځوو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "empty_url"
+msgstr "موږ ونه شو کولی د تادیې پاڼه پرانیزو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "please_enter_referral_code"
+msgstr "مهرباني وکړئ د معرفي کوډ ولیکئ."
+
+msgid "access_token_missing"
+msgstr "د لاسرسي ټوکن نشته. مهرباني وکړئ بیا خپل کلاوډ چمتو کوونکي ته ننوځئ."
+
+msgid "private_server_setup_error"
+msgstr "موږ ونه شو کولی ستاسو خصوصي سرور جوړ کړو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "logs"
+msgstr "لاګونه"

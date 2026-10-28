@@ -1834,3 +1834,147 @@ msgstr "برخاست کریں"
 
 msgid "unbounded_status_waiting"
 msgstr "شروع ہونے کا انتظار"
+
+msgid "affiliate_offer_unavailable"
+msgstr "اسٹور سے رعایتی پلان لوڈ نہیں ہو سکے۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "action_mode_helping_now"
+msgstr "ابھی مدد کر رہے ہیں"
+
+msgid "action_mode_total_helped"
+msgstr "اب تک کل مدد پانے والے لوگ"
+
+msgid "show_license"
+msgstr "لائسنس دکھائیں"
+
+msgid "hide_license"
+msgstr "لائسنس چھپائیں"
+
+msgid "share_logs_warning_title"
+msgstr "تشخیصی لاگز شیئر کریں؟"
+
+msgid "share_logs_warning_body"
+msgstr "ان لاگز میں آپ کا ای میل، IP ایڈریس، ڈیوائس شناخت کنندگان اور وہ Lantern سرور شامل ہو سکتے ہیں جن سے آپ منسلک ہوئے تھے۔ ایپ سے باہر جانے کے بعد یہ محفوظ نہیں رہتے، اس لیے جسے بھی یہ ملیں وہ انہیں پڑھ سکتا ہے۔ انہیں صرف support@lantern.io پر Lantern سپورٹ کو بھیجیں۔"
+
+msgid "share_logs_anyway"
+msgstr "لاگز شیئر کریں"
+
+msgid "widget"
+msgstr "ویجیٹ"
+
+msgid "add_lantern_widget"
+msgstr "Lantern ویجیٹ شامل کریں"
+
+msgid "add_lantern_widget_description"
+msgstr "ایپ کھولے بغیر اپنے فون کی ہوم اسکرین سے منسلک ہوں۔"
+
+msgid "widget_step_1"
+msgstr "اپنے فون کی ہوم اسکرین پر کسی خالی جگہ کو چھو کر دبائے رکھیں۔"
+
+msgid "widget_step_2"
+msgstr "ترمیم کریں پر ٹیپ کریں، پھر ویجٹ شامل کریں پر ٹیپ کریں۔"
+
+msgid "widget_step_3"
+msgstr "Lantern تلاش کریں، ایک سائز منتخب کریں اور ویجٹ شامل کریں پر ٹیپ کریں۔"
+
+msgid "people_helped_title"
+msgstr "وہ لوگ جن کی آپ نے مدد کی ہے"
+
+msgid "people_helped_subtitle"
+msgstr "اب تک %s کی مدد · ابھی %s"
+
+msgid "advanced_stats_by_country"
+msgstr "ملک کے لحاظ سے، اب تک"
+
+msgid "advanced_stats_relayed"
+msgstr "%s ریلے کیا گیا"
+
+msgid "advanced_stats_data_relayed"
+msgstr "ریلے کیا گیا ڈیٹا"
+
+msgid "advanced_stats_this_session"
+msgstr "یہ سیشن"
+
+msgid "advanced_stats_all_time_short"
+msgstr "اب تک"
+
+msgid "advanced_stats_current_speed"
+msgstr "موجودہ رفتار"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "بھیجا گیا %s · موصول %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "ابھی تک کسی کی مدد نہیں ہوئی۔ جب لوگ آپ کے ذریعے منسلک ہوں گے تو ممالک یہاں نظر آئیں گے۔"
+
+msgid "advanced_stats_unknown_country"
+msgstr "نامعلوم"
+
+msgid "advanced_stats_one_person"
+msgstr "1 شخص"
+
+msgid "advanced_stats_people"
+msgstr "%s لوگ"
+
+msgid "share_mode_smc"
+msgstr "براہ راست کنکشن"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "شیئرنگ موڈ"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "براہ راست کنکشن دستیاب نہیں: %s"
+
+msgid "view_advanced_stats"
+msgstr "ایڈوانسڈ اعداد و شمار دیکھیں"
+
+msgid "error_occurred"
+msgstr "ایک خرابی پیش آئی۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "unknown_error_occurred"
+msgstr "ایک نامعلوم خرابی پیش آئی۔"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "ہمیں تکنیکی مسائل کا سامنا ہے۔ براہ کرم بعد میں دوبارہ کوشش کریں۔"
+
+msgid "proxy_error"
+msgstr "پراکسی کے ذریعے منسلک نہیں ہو سکا۔ براہ کرم اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔"
+
+msgid "err_while_sending_code"
+msgstr "تصدیقی کوڈ نہیں بھیجا جا سکا۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "recovery_not_found"
+msgstr "ان تفصیلات کے ساتھ بازیافت کے لیے کوئی اکاؤنٹ نہیں ملا۔"
+
+msgid "wrong_link_code"
+msgstr "ڈیوائس لنک کرنے کا کوڈ غلط ہے۔ براہ کرم اسے چیک کریں اور دوبارہ کوشش کریں۔"
+
+msgid "wrong_seller_code"
+msgstr "ری سیلر کوڈ غلط ہے۔ براہ کرم اسے چیک کریں اور دوبارہ کوشش کریں۔"
+
+msgid "purchase_not_found"
+msgstr "ہمیں اس اکاؤنٹ کے لیے کوئی خریداری نہیں ملی۔"
+
+msgid "purchase_restored_error"
+msgstr "ہم آپ کی خریداری بحال نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "empty_url"
+msgstr "ہم ادائیگی کا صفحہ نہیں کھول سکے۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "please_enter_referral_code"
+msgstr "براہ کرم ریفرل کوڈ درج کریں۔"
+
+msgid "access_token_missing"
+msgstr "رسائی ٹوکن موجود نہیں ہے۔ براہ کرم اپنے کلاؤڈ فراہم کنندہ میں دوبارہ سائن ان کریں۔"
+
+msgid "private_server_setup_error"
+msgstr "ہم آپ کا پرائیویٹ سرور سیٹ اپ نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "logs"
+msgstr "لاگز"

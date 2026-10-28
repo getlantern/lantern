@@ -1813,3 +1813,147 @@ msgstr "Ýap"
 
 msgid "unbounded_status_waiting"
 msgstr "Başlamaga garaşylýar"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Arzanladylan meýilnamalary dükandan ýükläp bolmady. Haýyş, täzeden synanyşyň."
+
+msgid "action_mode_helping_now"
+msgstr "Häzir kömek edilýär"
+
+msgid "action_mode_total_helped"
+msgstr "Şu wagta çenli kömek edilen adamlaryň jemi"
+
+msgid "show_license"
+msgstr "Ygtyýarnamany görkez"
+
+msgid "hide_license"
+msgstr "Ygtyýarnamany gizle"
+
+msgid "share_logs_warning_title"
+msgstr "Diagnostika ýazgylaryny paýlaşmalymy?"
+
+msgid "share_logs_warning_body"
+msgstr "Bu žurnallarda e-poçtaňyz, IP salgyňyz, enjamyň identifikatorlary we birigen Lantern serwerleriňiz bolup biler. Programmadan çykandan soň olar goralmaýar, şonuň üçin olary alan islendik adam okap biler. Olary diňe Lantern goldaw toparyna support@lantern.io salgysyna iberiň."
+
+msgid "share_logs_anyway"
+msgstr "Žurnallary paýlaş"
+
+msgid "widget"
+msgstr "Widjet"
+
+msgid "add_lantern_widget"
+msgstr "Lantern widjetini goş"
+
+msgid "add_lantern_widget_description"
+msgstr "Programmany açmazdan telefonyňyzyň baş ekranyndan birikiň."
+
+msgid "widget_step_1"
+msgstr "Telefonyňyzyň baş ekranyndaky boş ýere basyp saklaň."
+
+msgid "widget_step_2"
+msgstr "«Üýtget», soňra «Widjet goş» düwmesine basyň."
+
+msgid "widget_step_3"
+msgstr "Gözlegde Lantern ýazyň, ölçeg saýlaň we «Widjet goş» düwmesine basyň."
+
+msgid "people_helped_title"
+msgstr "Siziň kömek eden adamlaryňyz"
+
+msgid "people_helped_subtitle"
+msgstr "Şu güne çenli kömek edilen: %s · häzir: %s"
+
+msgid "advanced_stats_by_country"
+msgstr "Ýurtlar boýunça, ähli wagt"
+
+msgid "advanced_stats_relayed"
+msgstr "Geçirildi: %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Geçirilen maglumatlar"
+
+msgid "advanced_stats_this_session"
+msgstr "Bu sessiýa"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Ähli wagt"
+
+msgid "advanced_stats_current_speed"
+msgstr "Häzirki tizlik"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Iberildi %s · Alyndy %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Entek hiç kime kömek edilmedi. Adamlar siziň üstüňiz bilen birikende, ýurtlar şu ýerde görüner."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Näbelli"
+
+msgid "advanced_stats_one_person"
+msgstr "1 adam"
+
+msgid "advanced_stats_people"
+msgstr "%s adam"
+
+msgid "share_mode_smc"
+msgstr "Göni baglanyşyk"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Paýlaşma tertibi"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Göni baglanyşyk elýeterli däl: %s"
+
+msgid "view_advanced_stats"
+msgstr "Giňişleýin statistikany gör"
+
+msgid "error_occurred"
+msgstr "Ýalňyşlyk ýüze çykdy. Haýyş, täzeden synanyşyň."
+
+msgid "unknown_error_occurred"
+msgstr "Näbelli ýalňyşlyk ýüze çykdy."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Bizde tehniki kynçylyklar ýüze çykdy. Haýyş, soňrak täzeden synanyşyň."
+
+msgid "proxy_error"
+msgstr "Proksi arkaly birikip bolmady. Baglanyşygyňyzy barlaň we täzeden synanyşyň."
+
+msgid "err_while_sending_code"
+msgstr "Tassyklaýyş kodyny iberip bolmady. Täzeden synanyşyň."
+
+msgid "recovery_not_found"
+msgstr "Bu maglumatlar bilen dikeltmek üçin hasap tapylmady."
+
+msgid "wrong_link_code"
+msgstr "Enjamy baglamak üçin kod nädogry. Haýyş edýäris, ony barlaň we täzeden synanyşyň."
+
+msgid "wrong_seller_code"
+msgstr "Gaýtadan satyjy kody nädogry. Haýyş edýäris, ony barlaň we täzeden synanyşyň."
+
+msgid "purchase_not_found"
+msgstr "Bu hasap üçin satyn alma tapyp bilmedik."
+
+msgid "purchase_restored_error"
+msgstr "Satyn almaňyzy dikeldip bilmedik. Gaýtadan synanyşyň."
+
+msgid "empty_url"
+msgstr "Töleg sahypasyny açyp bilmedik. Gaýtadan synanyşyň."
+
+msgid "please_enter_referral_code"
+msgstr "Çagyryş koduny giriziň."
+
+msgid "access_token_missing"
+msgstr "Giriş tokeni tapylmady. Bulut üpjünçiňize gaýtadan giriň."
+
+msgid "private_server_setup_error"
+msgstr "Şahsy serweriňizi sazlap bilmedik. Gaýtadan synanyşyň."
+
+msgid "logs"
+msgstr "Loglar"

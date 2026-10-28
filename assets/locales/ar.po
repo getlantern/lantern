@@ -1797,3 +1797,147 @@ msgstr "إغلاق"
 
 msgid "unbounded_status_waiting"
 msgstr "في انتظار البدء"
+
+msgid "affiliate_offer_unavailable"
+msgstr "تعذر تحميل الخطط المخفضة من المتجر. يرجى المحاولة مرة أخرى."
+
+msgid "action_mode_helping_now"
+msgstr "قيد المساعدة الآن"
+
+msgid "action_mode_total_helped"
+msgstr "إجمالي الأشخاص الذين تمت مساعدتهم حتى الآن"
+
+msgid "show_license"
+msgstr "إظهار الترخيص"
+
+msgid "hide_license"
+msgstr "إخفاء الترخيص"
+
+msgid "share_logs_warning_title"
+msgstr "مشاركة سجلات التشخيص؟"
+
+msgid "share_logs_warning_body"
+msgstr "قد تتضمن هذه السجلات بريدك الإلكتروني وعنوان IP ومعرّفات جهازك وخوادم Lantern التي اتصلت بها. لا تكون محمية بعد خروجها من التطبيق، لذا يمكن لأي شخص يتلقاها قراءتها. أرسلها فقط إلى دعم Lantern على support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "مشاركة السجلات"
+
+msgid "widget"
+msgstr "الأداة"
+
+msgid "add_lantern_widget"
+msgstr "إضافة أداة Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "الاتصال من الشاشة الرئيسية لهاتفك دون فتح التطبيق."
+
+msgid "widget_step_1"
+msgstr "المس مع الاستمرار مكانًا فارغًا في الشاشة الرئيسية لهاتفك."
+
+msgid "widget_step_2"
+msgstr "اضغط على «تعديل»، ثم على «إضافة أداة»."
+
+msgid "widget_step_3"
+msgstr "ابحث عن Lantern، واختر حجمًا، ثم اضغط على «إضافة أداة»."
+
+msgid "people_helped_title"
+msgstr "الأشخاص الذين ساعدتهم"
+
+msgid "people_helped_subtitle"
+msgstr "تمت مساعدة %s حتى الآن · %s حاليًا"
+
+msgid "advanced_stats_by_country"
+msgstr "حسب البلد، منذ البداية"
+
+msgid "advanced_stats_relayed"
+msgstr "تم تمرير %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "البيانات المنقولة"
+
+msgid "advanced_stats_this_session"
+msgstr "هذه الجلسة"
+
+msgid "advanced_stats_all_time_short"
+msgstr "منذ البداية"
+
+msgid "advanced_stats_current_speed"
+msgstr "السرعة الحالية"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "الإرسال %s · الاستقبال %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "لم تتم مساعدة أي شخص بعد. ستظهر الدول هنا عندما يتصل الأشخاص عبرك."
+
+msgid "advanced_stats_unknown_country"
+msgstr "غير معروف"
+
+msgid "advanced_stats_one_person"
+msgstr "شخص واحد"
+
+msgid "advanced_stats_people"
+msgstr "الأشخاص: %s"
+
+msgid "share_mode_smc"
+msgstr "اتصال مباشر"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "وضع المشاركة"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "الاتصال المباشر غير متاح: %s"
+
+msgid "view_advanced_stats"
+msgstr "عرض الإحصاءات المتقدمة"
+
+msgid "error_occurred"
+msgstr "حدث خطأ. يرجى المحاولة مرة أخرى."
+
+msgid "unknown_error_occurred"
+msgstr "حدث خطأ غير معروف."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "نواجه صعوبات تقنية. يرجى المحاولة مرة أخرى لاحقًا."
+
+msgid "proxy_error"
+msgstr "تعذر الاتصال عبر الخادم الوكيل. يرجى التحقق من اتصالك والمحاولة مرة أخرى."
+
+msgid "err_while_sending_code"
+msgstr "تعذر إرسال رمز التحقق. يرجى المحاولة مرة أخرى."
+
+msgid "recovery_not_found"
+msgstr "تعذر العثور على حساب لاستعادته بهذه البيانات."
+
+msgid "wrong_link_code"
+msgstr "رمز ربط الجهاز غير صحيح. يرجى التحقق منه والمحاولة مرة أخرى."
+
+msgid "wrong_seller_code"
+msgstr "رمز الموزع غير صحيح. يرجى التحقق منه والمحاولة مرة أخرى."
+
+msgid "purchase_not_found"
+msgstr "لم نتمكن من العثور على عملية شراء لهذا الحساب."
+
+msgid "purchase_restored_error"
+msgstr "تعذرت استعادة عملية الشراء. يرجى المحاولة مرة أخرى."
+
+msgid "empty_url"
+msgstr "تعذر فتح صفحة الدفع. يرجى المحاولة مرة أخرى."
+
+msgid "please_enter_referral_code"
+msgstr "يرجى إدخال رمز الإحالة."
+
+msgid "access_token_missing"
+msgstr "رمز الوصول مفقود. يرجى تسجيل الدخول إلى مزود الخدمة السحابية مرة أخرى."
+
+msgid "private_server_setup_error"
+msgstr "تعذر إعداد خادمك الخاص. يرجى المحاولة مرة أخرى."
+
+msgid "logs"
+msgstr "السجلات"

@@ -1829,3 +1829,147 @@ msgstr "مرخص کن"
 
 msgid "unbounded_status_waiting"
 msgstr "در انتظار شروع"
+
+msgid "affiliate_offer_unavailable"
+msgstr "بارگیری طرح‌های تخفیف‌دار از فروشگاه ممکن نشد. لطفاً دوباره تلاش کنید."
+
+msgid "action_mode_helping_now"
+msgstr "هم‌اکنون در حال کمک"
+
+msgid "action_mode_total_helped"
+msgstr "مجموع افراد کمک‌شده تاکنون"
+
+msgid "show_license"
+msgstr "نمایش مجوز"
+
+msgid "hide_license"
+msgstr "پنهان کردن مجوز"
+
+msgid "share_logs_warning_title"
+msgstr "اشتراک‌گذاری گزارش‌های عیب‌یابی؟"
+
+msgid "share_logs_warning_body"
+msgstr "این لاگ‌ها ممکن است شامل ایمیل شما، نشانی IP، شناسه‌های دستگاه و سرورهای Lantern که به آن‌ها متصل شده‌اید باشند. پس از خروج از برنامه محافظت نمی‌شوند، بنابراین هر کسی که آن‌ها را دریافت کند می‌تواند آن‌ها را بخواند. آن‌ها را فقط برای پشتیبانی Lantern به نشانی support@lantern.io بفرستید."
+
+msgid "share_logs_anyway"
+msgstr "اشتراک‌گذاری لاگ‌ها"
+
+msgid "widget"
+msgstr "ویجت"
+
+msgid "add_lantern_widget"
+msgstr "افزودن ویجت Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "بدون باز کردن برنامه، از صفحه اصلی گوشی خود وصل شوید."
+
+msgid "widget_step_1"
+msgstr "روی یک جای خالی در صفحه اصلی گوشی خود لمس کنید و نگه دارید."
+
+msgid "widget_step_2"
+msgstr "روی «ویرایش» و سپس روی «افزودن ابزارک» ضربه بزنید."
+
+msgid "widget_step_3"
+msgstr "Lantern را جستجو کنید، یک اندازه انتخاب کنید و روی «افزودن ابزارک» ضربه بزنید."
+
+msgid "people_helped_title"
+msgstr "افرادی که به آن‌ها کمک کرده‌اید"
+
+msgid "people_helped_subtitle"
+msgstr "تا امروز به %s کمک شده · %s همین حالا"
+
+msgid "advanced_stats_by_country"
+msgstr "بر اساس کشور، از ابتدا"
+
+msgid "advanced_stats_relayed"
+msgstr "%s رله شد"
+
+msgid "advanced_stats_data_relayed"
+msgstr "داده‌های منتقل‌شده"
+
+msgid "advanced_stats_this_session"
+msgstr "این نشست"
+
+msgid "advanced_stats_all_time_short"
+msgstr "از ابتدا"
+
+msgid "advanced_stats_current_speed"
+msgstr "سرعت فعلی"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "ارسال‌شده %s · دریافت‌شده %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "هنوز به کسی کمک نکرده‌اید. وقتی افراد از طریق شما متصل شوند، کشورها اینجا نمایش داده می‌شوند."
+
+msgid "advanced_stats_unknown_country"
+msgstr "نامشخص"
+
+msgid "advanced_stats_one_person"
+msgstr "۱ نفر"
+
+msgid "advanced_stats_people"
+msgstr "%s نفر"
+
+msgid "share_mode_smc"
+msgstr "اتصال مستقیم"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "حالت اشتراک‌گذاری"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "اتصال مستقیم در دسترس نیست: %s"
+
+msgid "view_advanced_stats"
+msgstr "مشاهده آمار پیشرفته"
+
+msgid "error_occurred"
+msgstr "خطایی رخ داد. لطفاً دوباره تلاش کنید."
+
+msgid "unknown_error_occurred"
+msgstr "خطای ناشناخته‌ای رخ داد."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "با مشکلات فنی روبه‌رو هستیم. لطفاً بعداً دوباره تلاش کنید."
+
+msgid "proxy_error"
+msgstr "اتصال از طریق پروکسی برقرار نشد. لطفاً اتصال خود را بررسی کنید و دوباره تلاش کنید."
+
+msgid "err_while_sending_code"
+msgstr "ارسال کد تأیید انجام نشد. لطفاً دوباره تلاش کنید."
+
+msgid "recovery_not_found"
+msgstr "هیچ حساب کاربری با این مشخصات برای بازیابی پیدا نشد."
+
+msgid "wrong_link_code"
+msgstr "کد پیوند دستگاه نادرست است. لطفاً آن را بررسی کنید و دوباره تلاش کنید."
+
+msgid "wrong_seller_code"
+msgstr "کد نماینده فروش نادرست است. لطفاً آن را بررسی کنید و دوباره تلاش کنید."
+
+msgid "purchase_not_found"
+msgstr "خریدی برای این حساب کاربری پیدا نکردیم."
+
+msgid "purchase_restored_error"
+msgstr "نتوانستیم خرید شما را بازیابی کنیم. لطفاً دوباره تلاش کنید."
+
+msgid "empty_url"
+msgstr "نتوانستیم صفحه پرداخت را باز کنیم. لطفاً دوباره تلاش کنید."
+
+msgid "please_enter_referral_code"
+msgstr "لطفاً کد معرف را وارد کنید."
+
+msgid "access_token_missing"
+msgstr "توکن دسترسی وجود ندارد. لطفاً دوباره وارد حساب ارائه‌دهنده ابری خود شوید."
+
+msgid "private_server_setup_error"
+msgstr "نتوانستیم سرور خصوصی شما را راه‌اندازی کنیم. لطفاً دوباره تلاش کنید."
+
+msgid "logs"
+msgstr "گزارش‌ها"

@@ -1847,3 +1847,147 @@ msgstr "Закрыть"
 
 msgid "unbounded_status_waiting"
 msgstr "Ожидание запуска"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Не удалось загрузить тарифы со скидкой из магазина. Пожалуйста, попробуйте ещё раз."
+
+msgid "action_mode_helping_now"
+msgstr "Сейчас помогаете"
+
+msgid "action_mode_total_helped"
+msgstr "Всего людей, которым вы помогли"
+
+msgid "show_license"
+msgstr "Показать лицензию"
+
+msgid "hide_license"
+msgstr "Скрыть лицензию"
+
+msgid "share_logs_warning_title"
+msgstr "Поделиться диагностическими журналами?"
+
+msgid "share_logs_warning_body"
+msgstr "Эти логи могут содержать вашу электронную почту, IP-адрес, идентификаторы устройства и серверы Lantern, к которым выполнялось подключение. После передачи из приложения они не защищены, поэтому их может прочитать любой, кто их получит. Отправляйте их только в поддержку Lantern по адресу support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "Поделиться логами"
+
+msgid "widget"
+msgstr "Виджет"
+
+msgid "add_lantern_widget"
+msgstr "Добавить виджет Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "Подключайтесь с главного экрана телефона, не открывая приложение."
+
+msgid "widget_step_1"
+msgstr "Нажмите и удерживайте пустое место на главном экране телефона."
+
+msgid "widget_step_2"
+msgstr "Нажмите «Править», затем «Добавить виджет»."
+
+msgid "widget_step_3"
+msgstr "Найдите Lantern, выберите размер и нажмите «Добавить виджет»."
+
+msgid "people_helped_title"
+msgstr "Люди, которым вы помогли"
+
+msgid "people_helped_subtitle"
+msgstr "Всего получили помощь: %s · сейчас: %s"
+
+msgid "advanced_stats_by_country"
+msgstr "По странам, за всё время"
+
+msgid "advanced_stats_relayed"
+msgstr "Передано: %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Ретранслированные данные"
+
+msgid "advanced_stats_this_session"
+msgstr "Этот сеанс"
+
+msgid "advanced_stats_all_time_short"
+msgstr "За всё время"
+
+msgid "advanced_stats_current_speed"
+msgstr "Текущая скорость"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Отправлено %s · Получено %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Вы пока никому не помогли. Страны появятся здесь, когда люди начнут подключаться через вас."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Неизвестно"
+
+msgid "advanced_stats_one_person"
+msgstr "1 человек"
+
+msgid "advanced_stats_people"
+msgstr "%s чел."
+
+msgid "share_mode_smc"
+msgstr "Прямое подключение"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Режим обмена"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Прямое подключение недоступно: %s"
+
+msgid "view_advanced_stats"
+msgstr "Показать расширенную статистику"
+
+msgid "error_occurred"
+msgstr "Произошла ошибка. Попробуйте ещё раз."
+
+msgid "unknown_error_occurred"
+msgstr "Произошла неизвестная ошибка."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "У нас технические неполадки. Попробуйте ещё раз позже."
+
+msgid "proxy_error"
+msgstr "Не удалось подключиться через прокси. Проверьте подключение и попробуйте ещё раз."
+
+msgid "err_while_sending_code"
+msgstr "Не удалось отправить код подтверждения. Попробуйте ещё раз."
+
+msgid "recovery_not_found"
+msgstr "Не удалось найти аккаунт для восстановления по этим данным."
+
+msgid "wrong_link_code"
+msgstr "Неверный код привязки устройства. Пожалуйста, проверьте его и попробуйте ещё раз."
+
+msgid "wrong_seller_code"
+msgstr "Неверный код реселлера. Пожалуйста, проверьте его и попробуйте ещё раз."
+
+msgid "purchase_not_found"
+msgstr "Не удалось найти покупку для этого аккаунта."
+
+msgid "purchase_restored_error"
+msgstr "Не удалось восстановить покупку. Попробуйте ещё раз."
+
+msgid "empty_url"
+msgstr "Не удалось открыть страницу оплаты. Попробуйте ещё раз."
+
+msgid "please_enter_referral_code"
+msgstr "Введите реферальный код."
+
+msgid "access_token_missing"
+msgstr "Отсутствует токен доступа. Войдите в аккаунт облачного провайдера ещё раз."
+
+msgid "private_server_setup_error"
+msgstr "Не удалось настроить ваш частный сервер. Попробуйте ещё раз."
+
+msgid "logs"
+msgstr "Логи"

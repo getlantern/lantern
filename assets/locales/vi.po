@@ -1831,3 +1831,147 @@ msgstr "Đóng"
 
 msgid "unbounded_status_waiting"
 msgstr "Đang chờ khởi động"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Không thể tải các gói giảm giá từ cửa hàng. Vui lòng thử lại."
+
+msgid "action_mode_helping_now"
+msgstr "Đang giúp đỡ"
+
+msgid "action_mode_total_helped"
+msgstr "Tổng số người đã được giúp đỡ"
+
+msgid "show_license"
+msgstr "Hiển thị giấy phép"
+
+msgid "hide_license"
+msgstr "Ẩn giấy phép"
+
+msgid "share_logs_warning_title"
+msgstr "Chia sẻ nhật ký chẩn đoán?"
+
+msgid "share_logs_warning_body"
+msgstr "Nhật ký này có thể chứa email, địa chỉ IP, mã định danh thiết bị của bạn và các máy chủ Lantern bạn đã kết nối. Chúng không còn được bảo vệ khi rời khỏi ứng dụng, nên bất kỳ ai nhận được đều có thể đọc. Chỉ gửi chúng cho bộ phận hỗ trợ của Lantern tại support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "Chia sẻ nhật ký"
+
+msgid "widget"
+msgstr "Tiện ích"
+
+msgid "add_lantern_widget"
+msgstr "Thêm tiện ích Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "Kết nối từ màn hình chính của điện thoại mà không cần mở ứng dụng."
+
+msgid "widget_step_1"
+msgstr "Chạm và giữ vào một chỗ trống trên màn hình chính của điện thoại."
+
+msgid "widget_step_2"
+msgstr "Chạm vào Sửa, sau đó chạm vào Thêm tiện ích."
+
+msgid "widget_step_3"
+msgstr "Tìm Lantern, chọn kích cỡ và chạm vào Thêm tiện ích."
+
+msgid "people_helped_title"
+msgstr "Những người bạn đã giúp"
+
+msgid "people_helped_subtitle"
+msgstr "Đã giúp %s đến nay · %s ngay lúc này"
+
+msgid "advanced_stats_by_country"
+msgstr "Theo quốc gia, mọi thời gian"
+
+msgid "advanced_stats_relayed"
+msgstr "Đã chuyển tiếp %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Dữ liệu đã chuyển tiếp"
+
+msgid "advanced_stats_this_session"
+msgstr "Phiên này"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Từ trước đến nay"
+
+msgid "advanced_stats_current_speed"
+msgstr "Tốc độ hiện tại"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Đã gửi %s · Đã nhận %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Chưa có ai được giúp. Các quốc gia sẽ hiện ở đây khi có người kết nối qua bạn."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Không xác định"
+
+msgid "advanced_stats_one_person"
+msgstr "1 người"
+
+msgid "advanced_stats_people"
+msgstr "%s người"
+
+msgid "share_mode_smc"
+msgstr "Kết nối trực tiếp"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Chế độ chia sẻ"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Không có kết nối trực tiếp: %s"
+
+msgid "view_advanced_stats"
+msgstr "Xem thống kê nâng cao"
+
+msgid "error_occurred"
+msgstr "Đã xảy ra lỗi. Vui lòng thử lại."
+
+msgid "unknown_error_occurred"
+msgstr "Đã xảy ra lỗi không xác định."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Chúng tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau."
+
+msgid "proxy_error"
+msgstr "Không thể kết nối qua proxy. Vui lòng kiểm tra kết nối của bạn và thử lại."
+
+msgid "err_while_sending_code"
+msgstr "Không thể gửi mã xác minh. Vui lòng thử lại."
+
+msgid "recovery_not_found"
+msgstr "Không tìm thấy tài khoản nào để khôi phục với thông tin này."
+
+msgid "wrong_link_code"
+msgstr "Mã liên kết thiết bị không đúng. Vui lòng kiểm tra và thử lại."
+
+msgid "wrong_seller_code"
+msgstr "Mã đại lý không đúng. Vui lòng kiểm tra và thử lại."
+
+msgid "purchase_not_found"
+msgstr "Chúng tôi không tìm thấy giao dịch mua nào cho tài khoản này."
+
+msgid "purchase_restored_error"
+msgstr "Không thể khôi phục giao dịch mua của bạn. Vui lòng thử lại."
+
+msgid "empty_url"
+msgstr "Không thể mở trang thanh toán. Vui lòng thử lại."
+
+msgid "please_enter_referral_code"
+msgstr "Vui lòng nhập mã giới thiệu."
+
+msgid "access_token_missing"
+msgstr "Thiếu mã truy cập. Vui lòng đăng nhập lại vào nhà cung cấp đám mây của bạn."
+
+msgid "private_server_setup_error"
+msgstr "Chúng tôi không thể thiết lập máy chủ riêng của bạn. Vui lòng thử lại."
+
+msgid "logs"
+msgstr "Nhật ký"

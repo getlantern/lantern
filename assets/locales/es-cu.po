@@ -1850,3 +1850,147 @@ msgstr "Descartar"
 
 msgid "unbounded_status_waiting"
 msgstr "Esperando para iniciar"
+
+msgid "affiliate_offer_unavailable"
+msgstr "No se pudieron cargar los planes con descuento desde la tienda. Por favor, inténtalo de nuevo."
+
+msgid "action_mode_helping_now"
+msgstr "Ayudando ahora"
+
+msgid "action_mode_total_helped"
+msgstr "Total de personas ayudadas hasta ahora"
+
+msgid "show_license"
+msgstr "Mostrar licencia"
+
+msgid "hide_license"
+msgstr "Ocultar licencia"
+
+msgid "share_logs_warning_title"
+msgstr "¿Compartir registros de diagnóstico?"
+
+msgid "share_logs_warning_body"
+msgstr "Estos registros pueden incluir tu correo, dirección IP, identificadores del dispositivo y los servidores de Lantern a los que te conectaste. Dejan de estar protegidos cuando salen de la app, así que cualquiera que los reciba puede leerlos. Envíalos solo al soporte de Lantern en support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "Compartir registros"
+
+msgid "widget"
+msgstr "Widget"
+
+msgid "add_lantern_widget"
+msgstr "Agregar el widget de Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "Conéctate desde la pantalla de inicio de tu celular sin abrir la app."
+
+msgid "widget_step_1"
+msgstr "Mantén presionado un espacio vacío en la pantalla de inicio de tu celular."
+
+msgid "widget_step_2"
+msgstr "Toca Editar y después Agregar widget."
+
+msgid "widget_step_3"
+msgstr "Busca Lantern, elige un tamaño y toca Agregar widget."
+
+msgid "people_helped_title"
+msgstr "Personas a las que has ayudado"
+
+msgid "people_helped_subtitle"
+msgstr "Ayuda brindada a %s hasta hoy · %s ahora mismo"
+
+msgid "advanced_stats_by_country"
+msgstr "Por país, desde el inicio"
+
+msgid "advanced_stats_relayed"
+msgstr "%s retransmitidos"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Datos retransmitidos"
+
+msgid "advanced_stats_this_session"
+msgstr "Esta sesión"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Desde el inicio"
+
+msgid "advanced_stats_current_speed"
+msgstr "Velocidad actual"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Enviados %s · Recibidos %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Todavía no has ayudado a nadie. Los países aparecerán aquí cuando alguien se conecte a través de ti."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Desconocido"
+
+msgid "advanced_stats_one_person"
+msgstr "1 persona"
+
+msgid "advanced_stats_people"
+msgstr "%s personas"
+
+msgid "share_mode_smc"
+msgstr "Conexión directa"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Modo de compartir"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Conexión directa no disponible: %s"
+
+msgid "view_advanced_stats"
+msgstr "Ver estadísticas avanzadas"
+
+msgid "error_occurred"
+msgstr "Ocurrió un error. Inténtalo de nuevo."
+
+msgid "unknown_error_occurred"
+msgstr "Ocurrió un error desconocido."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Estamos teniendo problemas técnicos. Inténtalo de nuevo más tarde."
+
+msgid "proxy_error"
+msgstr "No pudimos conectarnos a través del proxy. Revisa tu conexión e intenta de nuevo."
+
+msgid "err_while_sending_code"
+msgstr "No pudimos enviar el código de verificación. Intenta de nuevo."
+
+msgid "recovery_not_found"
+msgstr "No encontramos ninguna cuenta para recuperar con esos datos."
+
+msgid "wrong_link_code"
+msgstr "El código para vincular el dispositivo es incorrecto. Por favor, revísalo e inténtalo de nuevo."
+
+msgid "wrong_seller_code"
+msgstr "El código de revendedor es incorrecto. Por favor, revísalo e inténtalo de nuevo."
+
+msgid "purchase_not_found"
+msgstr "No encontramos ninguna compra para esta cuenta."
+
+msgid "purchase_restored_error"
+msgstr "No pudimos restaurar tu compra. Por favor, inténtalo de nuevo."
+
+msgid "empty_url"
+msgstr "No pudimos abrir la página de pago. Por favor, inténtalo de nuevo."
+
+msgid "please_enter_referral_code"
+msgstr "Por favor, escribe un código de referido."
+
+msgid "access_token_missing"
+msgstr "Falta el token de acceso. Por favor, vuelve a iniciar sesión en tu proveedor de la nube."
+
+msgid "private_server_setup_error"
+msgstr "No pudimos configurar tu servidor privado. Por favor, vuelve a intentarlo."
+
+msgid "logs"
+msgstr "Registros"

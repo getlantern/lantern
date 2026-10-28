@@ -1833,3 +1833,147 @@ msgstr "Kapat"
 
 msgid "unbounded_status_waiting"
 msgstr "Başlamak için bekliyor"
+
+msgid "affiliate_offer_unavailable"
+msgstr "İndirimli planlar mağazadan yüklenemedi. Lütfen tekrar deneyin."
+
+msgid "action_mode_helping_now"
+msgstr "Şu anda yardım ediliyor"
+
+msgid "action_mode_total_helped"
+msgstr "Bugüne kadar yardım edilen toplam kişi"
+
+msgid "show_license"
+msgstr "Lisansı göster"
+
+msgid "hide_license"
+msgstr "Lisansı gizle"
+
+msgid "share_logs_warning_title"
+msgstr "Tanılama günlükleri paylaşılsın mı?"
+
+msgid "share_logs_warning_body"
+msgstr "Bu günlükler e-posta adresinizi, IP adresinizi, cihaz tanımlayıcılarınızı ve bağlandığınız Lantern sunucularını içerebilir. Uygulamadan çıktıktan sonra korunmazlar, bu nedenle onları alan herkes okuyabilir. Bunları yalnızca support@lantern.io adresindeki Lantern desteğine gönderin."
+
+msgid "share_logs_anyway"
+msgstr "Günlükleri Paylaş"
+
+msgid "widget"
+msgstr "Widget"
+
+msgid "add_lantern_widget"
+msgstr "Lantern widget'ını ekle"
+
+msgid "add_lantern_widget_description"
+msgstr "Uygulamayı açmadan telefonunuzun ana ekranından bağlanın."
+
+msgid "widget_step_1"
+msgstr "Telefonunuzun ana ekranında boş bir alana dokunup basılı tutun."
+
+msgid "widget_step_2"
+msgstr "Düzenle'ye, ardından Widget Ekle'ye dokunun."
+
+msgid "widget_step_3"
+msgstr "Lantern'ı arayın, bir boyut seçin ve Widget Ekle'ye dokunun."
+
+msgid "people_helped_title"
+msgstr "Yardım ettiğiniz kişiler"
+
+msgid "people_helped_subtitle"
+msgstr "Bugüne kadar yardım edilen: %s · şu anda: %s"
+
+msgid "advanced_stats_by_country"
+msgstr "Ülkeye göre, tüm zamanlar"
+
+msgid "advanced_stats_relayed"
+msgstr "Aktarılan: %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Aktarılan veri"
+
+msgid "advanced_stats_this_session"
+msgstr "Bu oturum"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Tüm zamanlar"
+
+msgid "advanced_stats_current_speed"
+msgstr "Mevcut hız"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Gönderilen %s · Alınan %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Henüz kimseye yardım edilmedi. İnsanlar sizin üzerinizden bağlandığında ülkeler burada görünecek."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Bilinmiyor"
+
+msgid "advanced_stats_one_person"
+msgstr "1 kişi"
+
+msgid "advanced_stats_people"
+msgstr "%s kişi"
+
+msgid "share_mode_smc"
+msgstr "Doğrudan bağlantı"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Paylaşım modu"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Doğrudan bağlantı kullanılamıyor: %s"
+
+msgid "view_advanced_stats"
+msgstr "Gelişmiş istatistikleri görüntüle"
+
+msgid "error_occurred"
+msgstr "Bir hata oluştu. Lütfen tekrar deneyin."
+
+msgid "unknown_error_occurred"
+msgstr "Bilinmeyen bir hata oluştu."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Teknik sorunlar yaşıyoruz. Lütfen daha sonra tekrar deneyin."
+
+msgid "proxy_error"
+msgstr "Proxy üzerinden bağlanılamadı. Lütfen bağlantınızı kontrol edip tekrar deneyin."
+
+msgid "err_while_sending_code"
+msgstr "Doğrulama kodu gönderilemedi. Lütfen tekrar deneyin."
+
+msgid "recovery_not_found"
+msgstr "Bu bilgilerle kurtarılacak bir hesap bulunamadı."
+
+msgid "wrong_link_code"
+msgstr "Cihaz bağlama kodu yanlış. Lütfen kontrol edip tekrar deneyin."
+
+msgid "wrong_seller_code"
+msgstr "Bayi kodu yanlış. Lütfen kontrol edip tekrar deneyin."
+
+msgid "purchase_not_found"
+msgstr "Bu hesap için bir satın alma bulamadık."
+
+msgid "purchase_restored_error"
+msgstr "Satın alma işleminiz geri yüklenemedi. Lütfen tekrar deneyin."
+
+msgid "empty_url"
+msgstr "Ödeme sayfası açılamadı. Lütfen tekrar deneyin."
+
+msgid "please_enter_referral_code"
+msgstr "Lütfen bir referans kodu girin."
+
+msgid "access_token_missing"
+msgstr "Erişim belirteci eksik. Lütfen bulut sağlayıcınızda tekrar oturum açın."
+
+msgid "private_server_setup_error"
+msgstr "Özel sunucunuz kurulamadı. Lütfen tekrar deneyin."
+
+msgid "logs"
+msgstr "Günlükler"

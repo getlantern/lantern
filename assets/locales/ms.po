@@ -1840,3 +1840,147 @@ msgstr "Tutup"
 
 msgid "unbounded_status_waiting"
 msgstr "Menunggu untuk bermula"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Tidak dapat memuatkan pelan diskaun dari kedai. Sila cuba lagi."
+
+msgid "action_mode_helping_now"
+msgstr "Sedang membantu"
+
+msgid "action_mode_total_helped"
+msgstr "Jumlah orang dibantu setakat ini"
+
+msgid "show_license"
+msgstr "Tunjuk lesen"
+
+msgid "hide_license"
+msgstr "Sembunyikan lesen"
+
+msgid "share_logs_warning_title"
+msgstr "Kongsi log diagnostik?"
+
+msgid "share_logs_warning_body"
+msgstr "Log ini mungkin mengandungi e-mel anda, alamat IP, pengecam peranti dan pelayan Lantern yang pernah anda sambungi. Log ini tidak lagi dilindungi sebaik sahaja keluar dari aplikasi, jadi sesiapa yang menerimanya boleh membacanya. Hantar log ini hanya kepada sokongan Lantern di support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "Kongsi Log"
+
+msgid "widget"
+msgstr "Widget"
+
+msgid "add_lantern_widget"
+msgstr "Tambah widget Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "Sambung dari skrin utama telefon anda tanpa membuka aplikasi."
+
+msgid "widget_step_1"
+msgstr "Sentuh dan tahan ruang kosong pada skrin utama telefon anda."
+
+msgid "widget_step_2"
+msgstr "Ketik Edit, kemudian Tambah Widget."
+
+msgid "widget_step_3"
+msgstr "Cari Lantern, pilih saiz dan ketik Tambah Widget."
+
+msgid "people_helped_title"
+msgstr "Orang yang telah anda bantu"
+
+msgid "people_helped_subtitle"
+msgstr "%s dibantu setakat ini · %s sekarang"
+
+msgid "advanced_stats_by_country"
+msgstr "Mengikut negara, sepanjang masa"
+
+msgid "advanced_stats_relayed"
+msgstr "%s disalurkan"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Data disalurkan"
+
+msgid "advanced_stats_this_session"
+msgstr "Sesi ini"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Sepanjang masa"
+
+msgid "advanced_stats_current_speed"
+msgstr "Kelajuan semasa"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Dihantar %s · Diterima %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Belum ada sesiapa yang dibantu. Negara akan dipaparkan di sini sebaik sahaja orang menyambung melalui anda."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Tidak Diketahui"
+
+msgid "advanced_stats_one_person"
+msgstr "1 orang"
+
+msgid "advanced_stats_people"
+msgstr "%s orang"
+
+msgid "share_mode_smc"
+msgstr "Sambungan terus"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Mod perkongsian"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Sambungan terus tidak tersedia: %s"
+
+msgid "view_advanced_stats"
+msgstr "Lihat statistik lanjutan"
+
+msgid "error_occurred"
+msgstr "Ralat telah berlaku. Sila cuba lagi."
+
+msgid "unknown_error_occurred"
+msgstr "Ralat yang tidak diketahui telah berlaku."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Kami sedang mengalami masalah teknikal. Sila cuba lagi kemudian."
+
+msgid "proxy_error"
+msgstr "Kami tidak dapat menyambung melalui proksi. Sila semak sambungan anda dan cuba lagi."
+
+msgid "err_while_sending_code"
+msgstr "Kami tidak dapat menghantar kod pengesahan. Sila cuba lagi."
+
+msgid "recovery_not_found"
+msgstr "Kami tidak dapat menemui akaun untuk dipulihkan dengan butiran tersebut."
+
+msgid "wrong_link_code"
+msgstr "Kod pemautan peranti itu tidak betul. Sila semak dan cuba lagi."
+
+msgid "wrong_seller_code"
+msgstr "Kod penjual semula itu tidak betul. Sila semak dan cuba lagi."
+
+msgid "purchase_not_found"
+msgstr "Kami tidak dapat menemui pembelian untuk akaun ini."
+
+msgid "purchase_restored_error"
+msgstr "Kami tidak dapat memulihkan pembelian anda. Sila cuba lagi."
+
+msgid "empty_url"
+msgstr "Kami tidak dapat membuka halaman pembayaran. Sila cuba lagi."
+
+msgid "please_enter_referral_code"
+msgstr "Sila masukkan kod rujukan."
+
+msgid "access_token_missing"
+msgstr "Token akses tiada. Sila log masuk semula ke penyedia awan anda."
+
+msgid "private_server_setup_error"
+msgstr "Kami tidak dapat menyediakan pelayan peribadi anda. Sila cuba lagi."
+
+msgid "logs"
+msgstr "Log"

@@ -1677,3 +1677,147 @@ msgstr "关闭"
 
 msgid "unbounded_status_waiting"
 msgstr "等待启动"
+
+msgid "affiliate_offer_unavailable"
+msgstr "无法从商店加载优惠套餐。请重试。"
+
+msgid "action_mode_helping_now"
+msgstr "当前正在帮助"
+
+msgid "action_mode_total_helped"
+msgstr "累计帮助人数"
+
+msgid "show_license"
+msgstr "显示许可证"
+
+msgid "hide_license"
+msgstr "隐藏许可证"
+
+msgid "share_logs_warning_title"
+msgstr "分享诊断日志？"
+
+msgid "share_logs_warning_body"
+msgstr "这些日志可能包含您的电子邮件、IP 地址、设备标识符以及您连接过的蓝灯服务器。日志离开软件后将不受保护，任何收到的人都能读取。仅可发送给蓝灯支持团队 support@lantern.io。"
+
+msgid "share_logs_anyway"
+msgstr "共享日志"
+
+msgid "widget"
+msgstr "小组件"
+
+msgid "add_lantern_widget"
+msgstr "添加蓝灯小组件"
+
+msgid "add_lantern_widget_description"
+msgstr "无需打开软件，即可在手机主屏幕上连接。"
+
+msgid "widget_step_1"
+msgstr "长按手机主屏幕上的空白处。"
+
+msgid "widget_step_2"
+msgstr "轻点“编辑”，然后轻点“添加小组件”。"
+
+msgid "widget_step_3"
+msgstr "搜索蓝灯，选择尺寸，然后轻点“添加小组件”。"
+
+msgid "people_helped_title"
+msgstr "您帮助过的人"
+
+msgid "people_helped_subtitle"
+msgstr "累计帮助 %s · 当前 %s"
+
+msgid "advanced_stats_by_country"
+msgstr "按国家，累计"
+
+msgid "advanced_stats_relayed"
+msgstr "已中继 %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "已中转数据"
+
+msgid "advanced_stats_this_session"
+msgstr "本次会话"
+
+msgid "advanced_stats_all_time_short"
+msgstr "累计"
+
+msgid "advanced_stats_current_speed"
+msgstr "当前速度"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "已发送 %s · 已接收 %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "尚未帮助任何人。有人通过您连接后，国家将显示在这里。"
+
+msgid "advanced_stats_unknown_country"
+msgstr "未知"
+
+msgid "advanced_stats_one_person"
+msgstr "1 人"
+
+msgid "advanced_stats_people"
+msgstr "%s 人"
+
+msgid "share_mode_smc"
+msgstr "直接连接"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "共享模式"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "直接连接不可用：%s"
+
+msgid "view_advanced_stats"
+msgstr "查看高级统计"
+
+msgid "error_occurred"
+msgstr "发生错误。请重试。"
+
+msgid "unknown_error_occurred"
+msgstr "发生未知错误。"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "我们遇到了技术问题。请稍后重试。"
+
+msgid "proxy_error"
+msgstr "无法通过代理连接。请检查您的网络连接后重试。"
+
+msgid "err_while_sending_code"
+msgstr "无法发送验证码。请重试。"
+
+msgid "recovery_not_found"
+msgstr "未找到与这些信息匹配的可恢复账户。"
+
+msgid "wrong_link_code"
+msgstr "设备关联码不正确。请检查后重试。"
+
+msgid "wrong_seller_code"
+msgstr "经销商代码不正确。请检查后重试。"
+
+msgid "purchase_not_found"
+msgstr "未找到此账户的购买记录。"
+
+msgid "purchase_restored_error"
+msgstr "无法恢复您的购买。请重试。"
+
+msgid "empty_url"
+msgstr "无法打开付款页面。请重试。"
+
+msgid "please_enter_referral_code"
+msgstr "请输入推荐码。"
+
+msgid "access_token_missing"
+msgstr "缺少访问令牌。请重新登录您的云服务提供商。"
+
+msgid "private_server_setup_error"
+msgstr "无法设置您的私人服务器。请重试。"
+
+msgid "logs"
+msgstr "日志"

@@ -1382,7 +1382,7 @@ TRANSLATE_FLAGS = --out $(TRANSLATE_OUT) \
 	$(if $(TRANSLATE_BASE),--base $(TRANSLATE_BASE)) \
 	$(TRANSLATE_ARGS)
 
-.PHONY: translate translate-plan translate-dry-run translate-report translate-audit translate-cleanup translate-test
+.PHONY: translate translate-plan translate-dry-run translate-apply translate-report translate-audit translate-cleanup translate-test
 translate: $(TRANSLATE_VENV)/bin/python
 	$(TRANSLATE_VENV)/bin/python tools/localization/translate.py $(TRANSLATE_FLAGS)
 
@@ -1391,6 +1391,9 @@ translate-dry-run: $(TRANSLATE_VENV)/bin/python
 
 translate-plan:
 	$(PYTHON) tools/localization/translate.py --plan $(TRANSLATE_FLAGS)
+
+translate-apply:
+	$(PYTHON) tools/localization/translate.py --apply $(or $(TRANSLATE_RESULTS),$(TRANSLATE_OUT)/results.json) $(if $(TRANSLATE_LOCALES),--locales $(TRANSLATE_LOCALES))
 
 translate-report:
 	@test -f $(TRANSLATE_OUT)/report.html || { echo "no report yet; run make translate-dry-run first"; exit 1; }

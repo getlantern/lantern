@@ -1869,3 +1869,147 @@ msgstr "ဖယ်ထုတ်မည်"
 
 msgid "unbounded_status_waiting"
 msgstr "စတင်ရန် စောင့်နေသည်"
+
+msgid "affiliate_offer_unavailable"
+msgstr "စတိုးမှ လျှော့စျေးအစီအစဉ်များကို ဖွင့်၍မရပါ။ ကျေးဇူးပြု၍ ထပ်ကြိုးစားပါ။"
+
+msgid "action_mode_helping_now"
+msgstr "ယခု ကူညီနေသည်"
+
+msgid "action_mode_total_helped"
+msgstr "ယခုအထိ ကူညီခံရသူ စုစုပေါင်း"
+
+msgid "show_license"
+msgstr "လိုင်စင်ကို ပြပါ"
+
+msgid "hide_license"
+msgstr "လိုင်စင်ကို ဖျောက်ပါ"
+
+msgid "share_logs_warning_title"
+msgstr "စစ်ဆေးရေး မှတ်တမ်းများကို မျှဝေမလား။"
+
+msgid "share_logs_warning_body"
+msgstr "ဤမှတ်တမ်းများတွင် သင့်အီးမေးလ်၊ IP လိပ်စာ၊ စက်ပစ္စည်း သတ်မှတ်ချက်များနှင့် သင်ချိတ်ဆက်ခဲ့သော Lantern ဆာဗာများ ပါဝင်နိုင်ပါသည်။ အက်ပ်မှ ထွက်သွားပြီးနောက် ၎င်းတို့ကို ကာကွယ်ထားခြင်း မရှိတော့ပါ။ ထို့ကြောင့် လက်ခံရရှိသူ မည်သူမဆို ဖတ်နိုင်ပါသည်။ ၎င်းတို့ကို support@lantern.io ရှိ Lantern အကူအညီဌာနသို့သာ ပို့ပါ။"
+
+msgid "share_logs_anyway"
+msgstr "မှတ်တမ်းများ မျှဝေပါ"
+
+msgid "widget"
+msgstr "ဝစ်ဂျက်"
+
+msgid "add_lantern_widget"
+msgstr "Lantern ဝစ်ဂျက် ထည့်ပါ"
+
+msgid "add_lantern_widget_description"
+msgstr "အက်ပ်ကို မဖွင့်ဘဲ သင့်ဖုန်း၏ ပင်မမျက်နှာပြင်မှ ချိတ်ဆက်ပါ။"
+
+msgid "widget_step_1"
+msgstr "သင့်ဖုန်း၏ ပင်မမျက်နှာပြင်ရှိ နေရာလွတ်တစ်ခုကို ထိ၍ ဖိထားပါ။"
+
+msgid "widget_step_2"
+msgstr "Edit ကို နှိပ်ပြီး Add Widget ကို နှိပ်ပါ။"
+
+msgid "widget_step_3"
+msgstr "Lantern ကို ရှာပါ။ အရွယ်အစား ရွေးပြီး Add Widget ကို နှိပ်ပါ။"
+
+msgid "people_helped_title"
+msgstr "သင် ကူညီခဲ့သော လူများ"
+
+msgid "people_helped_subtitle"
+msgstr "ယနေ့အထိ %s ကို ကူညီပြီး · ယခု %s"
+
+msgid "advanced_stats_by_country"
+msgstr "နိုင်ငံအလိုက်၊ စတင်ချိန်မှစ၍"
+
+msgid "advanced_stats_relayed"
+msgstr "%s လွှဲပြောင်းပေးပြီး"
+
+msgid "advanced_stats_data_relayed"
+msgstr "လွှဲပြောင်းပေးခဲ့သော ဒေတာ"
+
+msgid "advanced_stats_this_session"
+msgstr "ဤဆက်ရှင်"
+
+msgid "advanced_stats_all_time_short"
+msgstr "စုစုပေါင်း"
+
+msgid "advanced_stats_current_speed"
+msgstr "လက်ရှိ အမြန်နှုန်း"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "ပို့ပြီး %s · ရရှိပြီး %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "မည်သူ့ကိုမျှ မကူညီရသေးပါ။ သင့်မှတစ်ဆင့် လူများ ချိတ်ဆက်သည်နှင့် နိုင်ငံများကို ဤနေရာတွင် ပြပါမည်။"
+
+msgid "advanced_stats_unknown_country"
+msgstr "မသိရ"
+
+msgid "advanced_stats_one_person"
+msgstr "လူ 1 ဦး"
+
+msgid "advanced_stats_people"
+msgstr "လူ %s ဦး"
+
+msgid "share_mode_smc"
+msgstr "တိုက်ရိုက်ချိတ်ဆက်မှု"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "မျှဝေမှုမုဒ်"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "တိုက်ရိုက်ချိတ်ဆက်မှု မရနိုင်ပါ: %s"
+
+msgid "view_advanced_stats"
+msgstr "အဆင့်မြင့်စာရင်းအင်းများ ကြည့်ပါ"
+
+msgid "error_occurred"
+msgstr "အမှားအယွင်း ဖြစ်ပေါ်ခဲ့သည်။ ထပ်မံကြိုးစားပါ။"
+
+msgid "unknown_error_occurred"
+msgstr "မသိသော အမှားအယွင်း ဖြစ်ပေါ်ခဲ့သည်။"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "ကျွန်ုပ်တို့တွင် နည်းပညာဆိုင်ရာ အခက်အခဲများ ရှိနေပါသည်။ နောက်မှ ထပ်မံကြိုးစားပါ။"
+
+msgid "proxy_error"
+msgstr "ပရောက်စီမှတစ်ဆင့် ချိတ်ဆက်၍ မရပါ။ သင့်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။"
+
+msgid "err_while_sending_code"
+msgstr "အတည်ပြုကုဒ်ကို ပို့၍ မရပါ။ ထပ်စမ်းကြည့်ပါ။"
+
+msgid "recovery_not_found"
+msgstr "ထိုအချက်အလက်များဖြင့် ပြန်လည်ရယူရန် အကောင့် ရှာမတွေ့ပါ။"
+
+msgid "wrong_link_code"
+msgstr "စက်ပစ္စည်းချိတ်ဆက်ရန် ကုဒ် မှားနေပါသည်။ ကျေးဇူးပြု၍ စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။"
+
+msgid "wrong_seller_code"
+msgstr "ပြန်လည်ရောင်းချသူ ကုဒ် မှားနေပါသည်။ ကျေးဇူးပြု၍ စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။"
+
+msgid "purchase_not_found"
+msgstr "ဤအကောင့်အတွက် ဝယ်ယူမှုကို ရှာမတွေ့ပါ။"
+
+msgid "purchase_restored_error"
+msgstr "သင်၏ ဝယ်ယူမှုကို ပြန်လည်ရယူ၍ မရပါ။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ။"
+
+msgid "empty_url"
+msgstr "ငွေပေးချေမှု စာမျက်နှာကို ဖွင့်၍ မရပါ။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ။"
+
+msgid "please_enter_referral_code"
+msgstr "ကျေးဇူးပြု၍ ရည်ညွှန်းကုဒ် ထည့်ပါ။"
+
+msgid "access_token_missing"
+msgstr "ဝင်ရောက်ခွင့် တိုကင် မရှိပါ။ ကျေးဇူးပြု၍ သင်၏ cloud ဝန်ဆောင်မှုပေးသူထံ ပြန်လည်ဝင်ရောက်ပါ။"
+
+msgid "private_server_setup_error"
+msgstr "သင်၏ ကိုယ်ပိုင်ဆာဗာကို စနစ်ထည့်သွင်း၍ မရပါ။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ။"
+
+msgid "logs"
+msgstr "မှတ်တမ်းများ"

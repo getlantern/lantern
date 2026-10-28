@@ -1041,6 +1041,38 @@ def cleanup(en: PoFile, targets: dict[str, PoFile], dry_run: bool) -> str:
     return "\n".join(out) + "\n"
 
 
+def apply_results(data: dict, en: PoFile, targets: dict[str, PoFile]) -> list[list]:
+    """Write a saved run's translations into the locale files without any model call.
+    A string is skipped when its English text has changed since the run."""
+    rows = []
+    for L in data.get("locales", []):
+        po = targets.get(L["code"])
+        if po is None:
+            continue
+        written = skipped = 0
+        changed = ensure_charset(po)
+        for k in L.get("removed", []):
+            if po.has(k) and not en.has(k):
+                po.remove(k)
+                changed = True
+        for it in L.get("items", []):
+            text = it.get("final") or ""
+            if it.get("status") not in ("passed", "fixed", "flagged") or not text:
+                continue
+            if en.get(it["key"]) != it.get("source"):
+                skipped += 1
+                continue
+            if po.get(it["key"]) != text:
+                po.set(it["key"], text)
+                changed = True
+            written += 1
+        if changed:
+            po.write()
+            validate_po(po.path, len(po.keys()))
+        rows.append([L["code"], written, skipped, len(L.get("removed", []))])
+    return rows
+
+
 # --------------------------------------------------------------------------- main
 
 
@@ -1052,6 +1084,7 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="write reports only, leave .po files untouched")
     ap.add_argument("--skip-review", action="store_true", help="skip back-translation and review (cheap test)")
     ap.add_argument("--out", default=str(ROOT / "build" / "translate"), help="report directory")
+    ap.add_argument("--apply", default="", help="write the translations saved in this results.json into the locale files; no API calls")
     ap.add_argument("--render", default="", help="rebuild report.html in --out from this results.json and exit; no API calls")
     ap.add_argument("--resume", default="", help="results.json from an earlier run; reuse its translations and only run the missing stages")
     ap.add_argument("--config", default=str(CONFIG_PATH), help="settings file (models, thresholds, glossary, locales)")
@@ -1081,6 +1114,11 @@ def main() -> int:
     if unknown:
         log(f"error: no .po file for {', '.join(sorted(unknown))}")
         return 1
+    if args.apply:
+        rows = apply_results(json.loads(Path(args.apply).read_text(encoding="utf-8")), en, targets)
+        rows.append(["total", sum(r[1] for r in rows), sum(r[2] for r in rows), sum(r[3] for r in rows)])
+        print(text_table(["Locale", "Written", "Skipped (English changed)", "Removed"], rows))
+        return 0
 
     if args.audit:
         report = audit_report(en, targets)

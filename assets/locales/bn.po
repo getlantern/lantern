@@ -1827,3 +1827,147 @@ msgstr "খারিজ করুন"
 
 msgid "unbounded_status_waiting"
 msgstr "শুরুর জন্য অপেক্ষা করা হচ্ছে"
+
+msgid "affiliate_offer_unavailable"
+msgstr "স্টোর থেকে ছাড়ের প্ল্যানগুলো লোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "action_mode_helping_now"
+msgstr "এখন সাহায্য করছেন"
+
+msgid "action_mode_total_helped"
+msgstr "এ পর্যন্ত মোট সাহায্যপ্রাপ্ত মানুষ"
+
+msgid "show_license"
+msgstr "লাইসেন্স দেখান"
+
+msgid "hide_license"
+msgstr "লাইসেন্স লুকান"
+
+msgid "share_logs_warning_title"
+msgstr "ডায়াগনস্টিক লগ শেয়ার করবেন?"
+
+msgid "share_logs_warning_body"
+msgstr "এই লগগুলোতে আপনার ইমেইল, IP ঠিকানা, ডিভাইস শনাক্তকারী এবং আপনি যে Lantern সার্ভারগুলোতে সংযোগ করেছিলেন সেগুলো থাকতে পারে। অ্যাপ থেকে বের হওয়ার পর এগুলো সুরক্ষিত থাকে না, তাই যে কেউ এগুলো পেলে পড়তে পারবে। এগুলো শুধু support@lantern.io ঠিকানায় Lantern সাপোর্টকে পাঠান।"
+
+msgid "share_logs_anyway"
+msgstr "লগ শেয়ার করুন"
+
+msgid "widget"
+msgstr "উইজেট"
+
+msgid "add_lantern_widget"
+msgstr "Lantern উইজেট যোগ করুন"
+
+msgid "add_lantern_widget_description"
+msgstr "অ্যাপ না খুলেই আপনার ফোনের হোম স্ক্রিন থেকে সংযোগ করুন।"
+
+msgid "widget_step_1"
+msgstr "আপনার ফোনের হোম স্ক্রিনের একটি ফাঁকা জায়গায় স্পর্শ করে ধরে রাখুন।"
+
+msgid "widget_step_2"
+msgstr "এডিট-এ ট্যাপ করুন, তারপর অ্যাড উইজেট-এ ট্যাপ করুন।"
+
+msgid "widget_step_3"
+msgstr "Lantern খুঁজুন, একটি সাইজ বেছে নিন, তারপর অ্যাড উইজেট-এ ট্যাপ করুন।"
+
+msgid "people_helped_title"
+msgstr "আপনি যাদের সাহায্য করেছেন"
+
+msgid "people_helped_subtitle"
+msgstr "এ পর্যন্ত সাহায্য পেয়েছেন: %s · এখন: %s"
+
+msgid "advanced_stats_by_country"
+msgstr "দেশ অনুযায়ী, শুরু থেকে"
+
+msgid "advanced_stats_relayed"
+msgstr "%s রিলে করা হয়েছে"
+
+msgid "advanced_stats_data_relayed"
+msgstr "রিলে করা ডেটা"
+
+msgid "advanced_stats_this_session"
+msgstr "এই সেশন"
+
+msgid "advanced_stats_all_time_short"
+msgstr "শুরু থেকে"
+
+msgid "advanced_stats_current_speed"
+msgstr "বর্তমান গতি"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "পাঠানো %s · প্রাপ্ত %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "এখনও কেউ সাহায্য পায়নি। মানুষ আপনার মাধ্যমে সংযোগ করলে দেশগুলো এখানে দেখা যাবে।"
+
+msgid "advanced_stats_unknown_country"
+msgstr "অজানা"
+
+msgid "advanced_stats_one_person"
+msgstr "১ জন"
+
+msgid "advanced_stats_people"
+msgstr "%s জন"
+
+msgid "share_mode_smc"
+msgstr "সরাসরি সংযোগ"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "শেয়ারিং মোড"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "সরাসরি সংযোগ উপলব্ধ নেই: %s"
+
+msgid "view_advanced_stats"
+msgstr "উন্নত পরিসংখ্যান দেখুন"
+
+msgid "error_occurred"
+msgstr "একটি ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "unknown_error_occurred"
+msgstr "একটি অজানা ত্রুটি ঘটেছে।"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "আমরা প্রযুক্তিগত সমস্যার সম্মুখীন হচ্ছি। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
+
+msgid "proxy_error"
+msgstr "প্রক্সির মাধ্যমে সংযোগ করা যায়নি। অনুগ্রহ করে আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।"
+
+msgid "err_while_sending_code"
+msgstr "যাচাইকরণ কোড পাঠানো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "recovery_not_found"
+msgstr "এই তথ্য দিয়ে পুনরুদ্ধার করার মতো কোনো অ্যাকাউন্ট পাওয়া যায়নি।"
+
+msgid "wrong_link_code"
+msgstr "ডিভাইস লিংক করার কোডটি সঠিক নয়। অনুগ্রহ করে এটি যাচাই করে আবার চেষ্টা করুন।"
+
+msgid "wrong_seller_code"
+msgstr "রিসেলার কোডটি সঠিক নয়। অনুগ্রহ করে এটি যাচাই করে আবার চেষ্টা করুন।"
+
+msgid "purchase_not_found"
+msgstr "আমরা এই অ্যাকাউন্টের জন্য কোনো ক্রয় খুঁজে পাইনি।"
+
+msgid "purchase_restored_error"
+msgstr "আমরা আপনার ক্রয় পুনরুদ্ধার করতে পারিনি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "empty_url"
+msgstr "আমরা পেমেন্ট পেজ খুলতে পারিনি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "please_enter_referral_code"
+msgstr "অনুগ্রহ করে একটি রেফারেল কোড লিখুন।"
+
+msgid "access_token_missing"
+msgstr "অ্যাক্সেস টোকেন পাওয়া যায়নি। অনুগ্রহ করে আপনার ক্লাউড প্রোভাইডারে আবার সাইন ইন করুন।"
+
+msgid "private_server_setup_error"
+msgstr "আমরা আপনার প্রাইভেট সার্ভার সেট আপ করতে পারিনি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "logs"
+msgstr "লগ"

@@ -1843,3 +1843,147 @@ msgstr "Ignore"
 
 msgid "unbounded_status_waiting"
 msgstr "Aguardando para iniciar"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Não foi possível carregar os planos com desconto da loja. Por favor, tente novamente."
+
+msgid "action_mode_helping_now"
+msgstr "Ajudando agora"
+
+msgid "action_mode_total_helped"
+msgstr "Total de pessoas ajudadas até hoje"
+
+msgid "show_license"
+msgstr "Mostrar licença"
+
+msgid "hide_license"
+msgstr "Ocultar licença"
+
+msgid "share_logs_warning_title"
+msgstr "Compartilhar logs de diagnóstico?"
+
+msgid "share_logs_warning_body"
+msgstr "Estes logs podem incluir seu e-mail, endereço IP, identificadores do dispositivo e os servidores do Lantern aos quais você se conectou. Eles deixam de estar protegidos quando saem do app, então qualquer pessoa que os receber pode lê-los. Envie-os apenas para o suporte do Lantern em support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "Compartilhar logs"
+
+msgid "widget"
+msgstr "Widget"
+
+msgid "add_lantern_widget"
+msgstr "Adicionar o widget do Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "Conecte-se pela tela inicial do celular sem abrir o app."
+
+msgid "widget_step_1"
+msgstr "Toque e mantenha pressionado um espaço vazio na tela inicial do celular."
+
+msgid "widget_step_2"
+msgstr "Toque em Editar e depois em Adicionar widget."
+
+msgid "widget_step_3"
+msgstr "Pesquise Lantern, escolha um tamanho e toque em Adicionar widget."
+
+msgid "people_helped_title"
+msgstr "Pessoas que você ajudou"
+
+msgid "people_helped_subtitle"
+msgstr "Total até hoje: %s · agora: %s"
+
+msgid "advanced_stats_by_country"
+msgstr "Por país, desde o início"
+
+msgid "advanced_stats_relayed"
+msgstr "%s retransmitidos"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Dados retransmitidos"
+
+msgid "advanced_stats_this_session"
+msgstr "Esta sessão"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Desde o início"
+
+msgid "advanced_stats_current_speed"
+msgstr "Velocidade atual"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Enviados %s · Recebidos %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Ninguém foi ajudado ainda. Os países aparecerão aqui quando as pessoas se conectarem por meio de você."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Desconhecido"
+
+msgid "advanced_stats_one_person"
+msgstr "1 pessoa"
+
+msgid "advanced_stats_people"
+msgstr "%s pessoas"
+
+msgid "share_mode_smc"
+msgstr "Conexão direta"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Modo de compartilhamento"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Conexão direta indisponível: %s"
+
+msgid "view_advanced_stats"
+msgstr "Ver estatísticas avançadas"
+
+msgid "error_occurred"
+msgstr "Ocorreu um erro. Tente novamente."
+
+msgid "unknown_error_occurred"
+msgstr "Ocorreu um erro desconhecido."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Estamos com dificuldades técnicas. Tente novamente mais tarde."
+
+msgid "proxy_error"
+msgstr "Não foi possível conectar pelo proxy. Verifique sua conexão e tente novamente."
+
+msgid "err_while_sending_code"
+msgstr "Não foi possível enviar o código de verificação. Tente novamente."
+
+msgid "recovery_not_found"
+msgstr "Não encontramos uma conta para recuperar com esses dados."
+
+msgid "wrong_link_code"
+msgstr "O código de vinculação do dispositivo está incorreto. Por favor, verifique e tente novamente."
+
+msgid "wrong_seller_code"
+msgstr "O código de revendedor está incorreto. Por favor, verifique e tente novamente."
+
+msgid "purchase_not_found"
+msgstr "Não encontramos nenhuma compra para esta conta."
+
+msgid "purchase_restored_error"
+msgstr "Não foi possível restaurar sua compra. Tente novamente."
+
+msgid "empty_url"
+msgstr "Não foi possível abrir a página de pagamento. Tente novamente."
+
+msgid "please_enter_referral_code"
+msgstr "Insira um código de indicação."
+
+msgid "access_token_missing"
+msgstr "Token de acesso ausente. Entre novamente no seu provedor de nuvem."
+
+msgid "private_server_setup_error"
+msgstr "Não foi possível configurar seu servidor privado. Tente novamente."
+
+msgid "logs"
+msgstr "Registros"

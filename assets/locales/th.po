@@ -1801,3 +1801,147 @@ msgstr "ปิด"
 
 msgid "unbounded_status_waiting"
 msgstr "กำลังรอเริ่มต้น"
+
+msgid "affiliate_offer_unavailable"
+msgstr "ไม่สามารถโหลดแพ็กเกจราคาพิเศษจากสโตร์ได้ โปรดลองอีกครั้ง"
+
+msgid "action_mode_helping_now"
+msgstr "กำลังช่วยเหลืออยู่ตอนนี้"
+
+msgid "action_mode_total_helped"
+msgstr "จำนวนคนที่ได้รับความช่วยเหลือทั้งหมดจนถึงตอนนี้"
+
+msgid "show_license"
+msgstr "แสดงสัญญาอนุญาต"
+
+msgid "hide_license"
+msgstr "ซ่อนสัญญาอนุญาต"
+
+msgid "share_logs_warning_title"
+msgstr "แชร์บันทึกการวินิจฉัย?"
+
+msgid "share_logs_warning_body"
+msgstr "บันทึกเหล่านี้อาจมีอีเมล ที่อยู่ IP ตัวระบุอุปกรณ์ของคุณ และเซิร์ฟเวอร์ Lantern ที่คุณเคยเชื่อมต่อ เมื่อส่งออกจากแอปแล้วบันทึกจะไม่ได้รับการปกป้อง ทุกคนที่ได้รับจึงสามารถอ่านได้ ส่งให้ฝ่ายสนับสนุนของ Lantern ที่ support@lantern.io เท่านั้น"
+
+msgid "share_logs_anyway"
+msgstr "แชร์บันทึก"
+
+msgid "widget"
+msgstr "วิดเจ็ต"
+
+msgid "add_lantern_widget"
+msgstr "เพิ่มวิดเจ็ต Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "เชื่อมต่อจากหน้าจอหลักของโทรศัพท์โดยไม่ต้องเปิดแอป"
+
+msgid "widget_step_1"
+msgstr "แตะพื้นที่ว่างบนหน้าจอหลักของโทรศัพท์ค้างไว้"
+
+msgid "widget_step_2"
+msgstr "แตะ “แก้ไข” แล้วแตะ “เพิ่มวิดเจ็ต”"
+
+msgid "widget_step_3"
+msgstr "ค้นหา Lantern เลือกขนาด แล้วแตะ “เพิ่มวิดเจ็ต”"
+
+msgid "people_helped_title"
+msgstr "ผู้ที่คุณได้ช่วยเหลือ"
+
+msgid "people_helped_subtitle"
+msgstr "ช่วยเหลือไปแล้ว %s · ขณะนี้ %s"
+
+msgid "advanced_stats_by_country"
+msgstr "แยกตามประเทศ ทั้งหมด"
+
+msgid "advanced_stats_relayed"
+msgstr "ส่งต่อแล้ว %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "ข้อมูลที่ส่งต่อ"
+
+msgid "advanced_stats_this_session"
+msgstr "เซสชันนี้"
+
+msgid "advanced_stats_all_time_short"
+msgstr "ทั้งหมด"
+
+msgid "advanced_stats_current_speed"
+msgstr "ความเร็วปัจจุบัน"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "ส่ง %s · รับ %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "ยังไม่มีใครได้รับความช่วยเหลือ ประเทศต่างๆ จะแสดงที่นี่เมื่อมีผู้คนเชื่อมต่อผ่านคุณ"
+
+msgid "advanced_stats_unknown_country"
+msgstr "ไม่ทราบ"
+
+msgid "advanced_stats_one_person"
+msgstr "1 คน"
+
+msgid "advanced_stats_people"
+msgstr "%s คน"
+
+msgid "share_mode_smc"
+msgstr "การเชื่อมต่อโดยตรง"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "โหมดการแชร์"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "การเชื่อมต่อโดยตรงไม่พร้อมใช้งาน: %s"
+
+msgid "view_advanced_stats"
+msgstr "ดูสถิติขั้นสูง"
+
+msgid "error_occurred"
+msgstr "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"
+
+msgid "unknown_error_occurred"
+msgstr "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "เรากำลังประสบปัญหาทางเทคนิค กรุณาลองอีกครั้งในภายหลัง"
+
+msgid "proxy_error"
+msgstr "ไม่สามารถเชื่อมต่อผ่านพร็อกซีได้ โปรดตรวจสอบการเชื่อมต่อของคุณแล้วลองอีกครั้ง"
+
+msgid "err_while_sending_code"
+msgstr "ไม่สามารถส่งรหัสยืนยันได้ โปรดลองอีกครั้ง"
+
+msgid "recovery_not_found"
+msgstr "ไม่พบบัญชีที่จะกู้คืนด้วยข้อมูลดังกล่าว"
+
+msgid "wrong_link_code"
+msgstr "รหัสเชื่อมโยงอุปกรณ์ไม่ถูกต้อง โปรดตรวจสอบแล้วลองอีกครั้ง"
+
+msgid "wrong_seller_code"
+msgstr "รหัสตัวแทนจำหน่ายไม่ถูกต้อง โปรดตรวจสอบแล้วลองอีกครั้ง"
+
+msgid "purchase_not_found"
+msgstr "เราไม่พบการซื้อสำหรับบัญชีนี้"
+
+msgid "purchase_restored_error"
+msgstr "ไม่สามารถกู้คืนการซื้อของคุณได้ โปรดลองอีกครั้ง"
+
+msgid "empty_url"
+msgstr "ไม่สามารถเปิดหน้าชำระเงินได้ โปรดลองอีกครั้ง"
+
+msgid "please_enter_referral_code"
+msgstr "โปรดป้อนรหัสแนะนำ"
+
+msgid "access_token_missing"
+msgstr "ไม่พบโทเค็นการเข้าถึง โปรดลงชื่อเข้าใช้ผู้ให้บริการคลาวด์ของคุณอีกครั้ง"
+
+msgid "private_server_setup_error"
+msgstr "ไม่สามารถตั้งค่าเซิร์ฟเวอร์ส่วนตัวของคุณได้ โปรดลองอีกครั้ง"
+
+msgid "logs"
+msgstr "บันทึก"
