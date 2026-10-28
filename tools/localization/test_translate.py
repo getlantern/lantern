@@ -239,5 +239,35 @@ class Cleanup(unittest.TestCase):
             shutil.rmtree(d)
 
 
+class Grouping(unittest.TestCase):
+    def test_one_string_for_every_locale_is_one_batch(self):
+        work = {c: t.Work(translate={"k": None}, reasons={"k": "gap"}) for c in t.LOCALES}
+        batches = t.plan_batches(work)
+        self.assertEqual(len(batches), 1)
+        self.assertEqual(len(batches[0].locales), len(t.LOCALES))
+        self.assertFalse(batches[0].cached)
+
+    def test_groups_by_locale_set_and_caps_outputs(self):
+        common = {f"k{i}": None for i in range(48)}
+        work = {c: t.Work(translate=dict(common), reasons={k: "gap" for k in common}) for c in ("ar", "fa", "ru")}
+        extra = {f"x{i}": None for i in range(500)}
+        work["ur"] = t.Work(translate={**common, **extra}, reasons={k: "gap" for k in {**common, **extra}})
+        batches = t.plan_batches(work)
+        sets = {b.locales for b in batches}
+        self.assertEqual(sets, {("ar", "fa", "ru", "ur"), ("ur",)})
+        for b in batches:
+            self.assertLessEqual(len(b.keys) * len(b.locales), t.BATCH_OUTPUTS)
+        self.assertEqual(sum(len(b.keys) for b in batches if b.locales == ("ur",)), 500)
+        self.assertTrue(all(b.cached for b in batches if b.locales == ("ur",)))
+
+    def test_system_prompt_covers_every_locale_once(self):
+        codes = tuple(sorted(t.LOCALES))
+        system = t.translator_system(codes)
+        for c in codes:
+            self.assertIn(f"({c})", system)
+        self.assertEqual(system.count("Placeholders and formatting"), 1)  # common guide included once
+        self.assertIn("蓝灯", system)  # locale alias carried into the glossary line
+
+
 if __name__ == "__main__":
     unittest.main()

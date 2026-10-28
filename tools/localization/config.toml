@@ -4,14 +4,21 @@
 
 [models]
 translate = "claude-opus-5-5"
-review = "claude-fable-5-1"
+review = "claude-opus-5-5"          # claude-fable-5-1 for a stricter, pricier spot check
 backtranslate = "claude-sonnet-5-5"
 
+# Thinking depth per role: low | medium | high | xhigh | max. Thinking tokens
+# bill as output, so this is the main cost knob after the model choice.
+[effort]
+translate = "medium"
+review = "high"
+backtranslate = "low"
+
 [run]
-batch_size = 40                  # strings per model call; halves automatically on overflow
-workers = 6                      # locales translated concurrently
+batch_outputs = 120              # max translations one call returns (keys x locales); halves on overflow
+workers = 6                      # model call groups run concurrently
 max_tokens = 8192
-examples = 10                    # existing translations shown to the translator for style
+examples = 3                     # existing translations per locale shown to the translator for style
 apply_fix_min_confidence = 0.8   # reviewer fixes below this are reported, not applied
 low_confidence = 0.7             # a pass below this is written but flagged in the report
 
