@@ -49,14 +49,12 @@
     <tr>
         <th>macOS</th>
         <td>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">macOS 11 Big Sur (legacy 8.3.5)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">macOS 10.15 Catalina (legacy 7.9.7)</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 10.15&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 10.15&#43;</a>
         </td>
         <td></td>
         <td>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 12&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 10.15&#43;</a>
         </td>
     </tr>
     <tr>
@@ -105,7 +103,6 @@
 - Если App Store недоступен в вашем регионе, воспользуйтесь [этой инструкцией] (https://lantern.io/faq#use-2) для загрузки Lantern.
 - Для стабильной версии доступны сразу несколько ссылок для скачивания
 - Попробуйте раннюю бета-версию. Хотя она может быть нестабильной, обратная связь поможет улучшить ее. Присоединяйтесь к нашим [форумам] (#ссылки), чтобы внести свой вклад.
-- На macOS 10.15 и 11 Lantern версии 9 и новее не запускается. Используйте устаревшие сборки по ссылкам выше: 8.3.5 для macOS 11 и 7.9.7 для macOS 10.15. Они больше не получают обновлений.
 
 ## Ссылки
 - [Сайт](https://lantern.io)

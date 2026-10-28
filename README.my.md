@@ -49,14 +49,12 @@
     <tr>
         <th>macOS</th>
         <td>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">macOS 11 Big Sur (legacy 8.3.5)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">macOS 10.15 Catalina (legacy 7.9.7)</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 10.15&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 10.15&#43;</a>
         </td>
         <td></td>
         <td>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 12&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 10.15&#43;</a>
         </td>
     </tr>
     <tr>
@@ -105,7 +103,6 @@
 - App Store ကို သင့်ဒေသတွင် သုံး၍မရနိုင်ပါက Lantern ကို ဒေါင်းလုဒ်လုပ်ရန်အောက်ဖော်ပြပါ [ယင်းအဆင့်များ] (https://lantern.io/faq#use-2) ကို လိုက်လုပ်ကြည့်နိုင်ပါသည်။
 - တည်ငြိမ်သော ဗားရှင်းများအတွက် အပိုဆောင်း လက်ခံဆောင်ရွက်ပေးခြင်းနှင့် ရွေးချယ်မှုတို့ပါသည့် လင့်ခ်များစွာ ရှိသည်။
 - အစောပိုင်းတွင် ထုတ်သည့် &#34;အစမ်းသုံး&#34; ဗားရှင်းကို စမ်းသုံးကြည့်ပါ။ ဤဗားရှင်းသည် တည်ငြိမ်မှုမရှိသေးသည်မှာ ဖြစ်ကောင်းဖြစ်နိုင်ပြီး တုံ့ပြန်ချက်ပေးခြင်းက ပိုကောင်းအောင် အထောက်အကူဖြစ်စေပါသည်။ ပါဝင်ဆောင်ရွက်ရန် ကျွန်ုပ်တို့၏ [ဖိုရမ်များ](#လင့်ခ်များ) တွင် ဝင်ပါလိုက်ပါ။
-- macOS 10.15 နှင့် 11 တွင် Lantern ဗားရှင်း 9 နှင့်အထက်ကို အသုံးပြု၍မရပါ။ အထက်တွင် လင့်ခ်ပေးထားသော ဗားရှင်းဟောင်းများကို အသုံးပြုပါ — macOS 11 အတွက် 8.3.5၊ macOS 10.15 အတွက် 7.9.7။ ဤဗားရှင်းဟောင်းများသည် အပ်ဒိတ်များ မရရှိတော့ပါ။
 
 ## လင့်ခ်များ
 - [ဝဘ်ဆိုက်](https://lantern.io)

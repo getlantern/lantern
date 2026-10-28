@@ -29,6 +29,7 @@ Censorship circumvention tool available for free download on any operating syste
         <td>
             <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.exe">Windows 10&#43;</a>
         </td>
+    </tr>
     <tr>
         <th>Android</th>
         <td>
@@ -45,16 +46,15 @@ Censorship circumvention tool available for free download on any operating syste
             <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta-armv7.apk">Android 7&#43; (32-bit / ARMv7)</a>
         </td>
     </tr>
+    <tr>
         <th>macOS</th>
         <td>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">macOS 11 Big Sur (legacy 8.3.5)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">macOS 10.15 Catalina (legacy 7.9.7)</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 10.15&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 10.15&#43;</a>
         </td>
         <td></td>
         <td>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 12&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 10.15&#43;</a>
         </td>
     </tr>
     <tr>
@@ -102,7 +102,6 @@ Censorship circumvention tool available for free download on any operating syste
 
 - If the App Store is unavailable in your region, you may be able to follow [these steps](https://lantern.io/faq#use-2) to download Lantern.
 - For stable versions, multiple links exist for hosting redundancy and choice.
-- macOS 10.15 and 11 cannot run Lantern 9 or later. Use the legacy builds linked above: 8.3.5 for macOS 11 and 7.9.7 for macOS 10.15. They no longer receive updates.
 - Try the early release &#34;beta&#34; version. While this may be unstable, feedback helps us improve. Join our [forums](#links) to contribute.
 
 ## Links
