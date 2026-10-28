@@ -72,6 +72,33 @@ void main() {
     expect(messages, containsAll(['ordinary-debug', 'event-error']));
   });
 
+  test('every printer gets records with helper tags redacted', () async {
+    final previousPrinter = Loggy.currentPrinter!;
+    final console = _RecordingPrinter();
+    initLogger(null, console);
+    addTearDown(() => Loggy('').printer = previousPrinter);
+
+    final err = Exception(
+      'outbound/samizdat[helper-0123456789ab]: dial tcp 203.0.113.7:443',
+    );
+    final st = StackTrace.fromString(
+      '#0 helper-0123456789ab (203.0.113.7:443)',
+    );
+    appLogger.error(
+      'location {"tag":"helper-0123456789ab","addr":"203.0.113.7:443"}',
+      err,
+      st,
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    final r = console.records.last;
+    expect(r.message, 'location {"tag":"helper","addr":"<redacted>"}');
+    expect('${r.error}', isNot(contains('helper-0123456789ab')));
+    expect('${r.error}', isNot(contains('203.0.113.7')));
+    expect('${r.stackTrace}', '#0 helper (<redacted>)');
+    expect('$r', isNot(contains('helper-0123456789ab')));
+  });
+
   test('keeps the live log under the size limit', () async {
     final path = '${dir.path}/flutter.log';
     final printer = FileLogPrinter(

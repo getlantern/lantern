@@ -35,19 +35,20 @@ LoggyPrinter _defaultConsolePrinter() {
   }
 }
 
-void initLogger([String? path]) {
+void initLogger([
+  String? path,
+  @visibleForTesting LoggyPrinter? consolePrinter,
+]) {
+  final console = consolePrinter ?? _defaultConsolePrinter();
   LoggyPrinter logPrinter;
   if (path != null) {
-    logPrinter = MultiLogPrinter([
-      _defaultConsolePrinter(),
-      FileLogPrinter(path),
-    ]);
+    logPrinter = MultiLogPrinter([console, FileLogPrinter(path)]);
   } else {
-    logPrinter = _defaultConsolePrinter();
+    logPrinter = console;
   }
 
   Loggy.initLoggy(
-    logPrinter: logPrinter,
+    logPrinter: RedactingPrinter(logPrinter),
     logOptions: const LogOptions(
       traceLogsEnabled ? traceLogLevel : LogLevel.debug,
     ),
@@ -74,6 +75,58 @@ class DebugPrintLoggyPrinter extends LoggyPrinter {
       debugPrint('Error:\n${redactHelperTags('${record.error}')}');
     }
   }
+}
+
+/// Redacts helper tags and helper-line addresses from every record before
+/// [inner] sees it, so no printer, including third-party ones such as
+/// PrettyDeveloperPrinter, ever gets an unredacted record.
+class RedactingPrinter extends LoggyPrinter {
+  final LoggyPrinter inner;
+
+  const RedactingPrinter(this.inner);
+
+  @override
+  void onLog(LogRecord record) => inner.onLog(_RedactedRecord(record));
+}
+
+class _RedactedRecord implements LogRecord {
+  _RedactedRecord(LogRecord r)
+    : _r = r,
+      message = redactHelperTags(r.message),
+      error = r.error == null ? null : redactHelperTags('${r.error}'),
+      stackTrace = r.stackTrace == null
+          ? null
+          : StackTrace.fromString(redactHelperTags('${r.stackTrace}'));
+
+  final LogRecord _r;
+
+  @override
+  final String message;
+  @override
+  final Object? error;
+  @override
+  final StackTrace? stackTrace;
+
+  @override
+  LogLevel get level => _r.level;
+  @override
+  String get loggerName => _r.loggerName;
+  @override
+  DateTime get time => _r.time;
+  @override
+  int get sequenceNumber => _r.sequenceNumber;
+  @override
+  Zone? get zone => _r.zone;
+  // The object is dropped: printers render it through toString, which
+  // could carry anything.
+  @override
+  Object? get object => null;
+  @override
+  get callerFrame => _r.callerFrame;
+
+  @override
+  String toString() =>
+      '[${level.toString().substring(0, 1)}] $loggerName: $message';
 }
 
 /// A printer that forwards logs to multiple printers
