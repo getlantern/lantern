@@ -52,9 +52,14 @@ class _Service implements LanternService {
     return raw ?? right(answer ?? '{"error":"internal"}');
   }
 
+  /// When set, getSettings waits for it.
+  Future<void>? settingsGate;
+
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getSettings() async =>
-      right({'peer_serve_pool': false});
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async {
+    if (settingsGate != null) await settingsGate;
+    return right({'peer_serve_pool': false});
+  }
 
   @override
   Future<Either<Failure, Unit>> patchSettings(
@@ -371,6 +376,18 @@ void main() {
     expect(c.read(helpersProvider).helpOthers, isFalse);
     await c.read(helpersProvider.notifier).setHelpOthers(true);
     expect(svc.patches.single, {'peer_serve_pool': true});
+    expect(c.read(helpersProvider).helpOthers, isTrue);
+  });
+
+  test('a read that resolves after a write does not overwrite it', () async {
+    final gate = Completer<void>();
+    svc.settingsGate = gate.future;
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    final load = n.loadHelpOthers();
+    await n.setHelpOthers(true);
+    gate.complete();
+    await load;
     expect(c.read(helpersProvider).helpOthers, isTrue);
   });
 

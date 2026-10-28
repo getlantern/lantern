@@ -401,9 +401,14 @@ class HelpersNotifier extends _$HelpersNotifier {
     return r;
   }
 
+  /// Counts completed writes of "help others too", so a read that started
+  /// before one cannot overwrite it.
+  int _helpOthersWrites = 0;
+
   Future<void> loadHelpOthers() async {
+    final writes = _helpOthersWrites;
     final res = await _svc.getSettings();
-    if (!ref.mounted) return;
+    if (!ref.mounted || writes != _helpOthersWrites) return;
     res.fold((_) {}, (s) {
       final v = s['peer_serve_pool'];
       state = state.copyWith(helpOthers: v is bool ? v : true);
@@ -416,7 +421,10 @@ class HelpersNotifier extends _$HelpersNotifier {
     res.fold(
       (f) =>
           appLogger.error('helper: setting help-others-too failed: ${f.error}'),
-      (_) => state = state.copyWith(helpOthers: value),
+      (_) {
+        _helpOthersWrites++;
+        state = state.copyWith(helpOthers: value);
+      },
     );
   }
 
