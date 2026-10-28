@@ -153,7 +153,7 @@ final class HelpersNotifierProvider
   }
 }
 
-String _$helpersNotifierHash() => r'a26a8138f5daaecd122e80c3400aeb2336cd22db';
+String _$helpersNotifierHash() => r'ce363f65e27ca9aa0c9ce788e5ee35c869e4daff';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are

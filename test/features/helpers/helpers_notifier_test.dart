@@ -679,6 +679,46 @@ void main() {
     expect(c.read(helpersProvider).helpingApprovals, 1);
   });
 
+  group('one-shot flags act from any op', () {
+    Future<void> settle() => Future<void>.delayed(Duration.zero);
+
+    test('a failed remove all whose recovery view says new_helping', () async {
+      svc.answers = {
+        'unlock': _view(),
+        'end_all_helpers': '{"error":"unavailable"}',
+        'view': _view(newHelping: true),
+      };
+      final c = container();
+      final n = c.read(helpersProvider.notifier);
+      await n.refresh();
+      svc.answers['refresh'] = _view();
+      await settle();
+      svc.configRequests = 0;
+      await n.endAllHelpers();
+      await settle();
+      expect(c.read(helpersProvider).helpingApprovals, 1);
+      expect(svc.configRequests, 1);
+    });
+
+    test('an approval whose view says new_helping refetches once', () async {
+      svc.answers = {'decide': _view(newHelping: true)};
+      final c = container();
+      await c.read(helpersProvider.notifier).decide('i1', approve: true);
+      await settle();
+      expect(c.read(helpersProvider).helpingApprovals, 1);
+      expect(svc.configRequests, 1);
+    });
+
+    test('a plain view says new_helping', () async {
+      svc.answers = {'view': _view(newHelping: true)};
+      final c = container();
+      await c.read(helpersProvider.notifier).refreshView();
+      await settle();
+      expect(c.read(helpersProvider).helpingApprovals, 1);
+      expect(svc.configRequests, 1);
+    });
+  });
+
   test('a failed config fetch does not reread the stale flags', () async {
     svc.answers = {'unlock': _view(), 'refresh': _view(newHelping: true)};
     svc.configFails = true;

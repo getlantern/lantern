@@ -200,35 +200,50 @@ class HelpersNotifier extends _$HelpersNotifier {
   }
 
   /// Applies an answer. A view replaces the view unless a later-requested
-  /// view was already applied; an error is kept. A view's new_helping is
-  /// counted even when the view itself is too old: the engine reports it
-  /// once, so dropping it would lose the approval.
-  HelperResult _apply(_Answer a, {bool isView = true}) {
+  /// view was already applied; an error is kept. A view's one-shot flags are
+  /// handled either way, by [_oneShots]: the engine reports each once, so
+  /// dropping one with a stale view would lose it. [refetch] asks for the
+  /// config after a successful op that changed who helps this device.
+  HelperResult _apply(_Answer a, {bool isView = true, bool refetch = false}) {
     final (r, seq) = a;
     if (!ref.mounted) return r;
     if (!r.ok) {
       state = state.copyWith(error: r.error);
       return r;
     }
-    if (isView) {
-      if (seq < _applied) {
-        if (r.data['new_helping'] == true) {
-          state = state.copyWith(helpingApprovals: state.helpingApprovals + 1);
-        }
-        return r;
-      }
+    if (!isView) {
+      state = state.copyWith(clearError: true);
+      if (refetch) unawaited(_refetchConfig());
+      return r;
+    }
+    if (seq >= _applied) {
       _applied = seq;
       final view = HelpersView.fromJson(r.data);
-      state = state.copyWith(
-        view: view,
-        clearError: true,
-        helpingApprovals: view.newHelping ? state.helpingApprovals + 1 : null,
-      );
+      state = state.copyWith(view: view, clearError: true);
       _schedulePoll(view);
-    } else {
-      state = state.copyWith(clearError: true);
     }
+    _oneShots(r.data, refetch: refetch);
     return r;
+  }
+
+  /// Acts on a successful view's one-shot flags, from any op, whether the
+  /// view was applied or too old. new_helping counts an approval (Home
+  /// starts sharing) and, with helpers_changed or [refetch], fetches the
+  /// config at most once: the one that turns the widget on for a new
+  /// volunteer, or carries or drops a helper's route.
+  void _oneShots(Map<String, dynamic> data, {bool refetch = false}) {
+    final newHelping = data['new_helping'] == true;
+    if (newHelping) {
+      state = state.copyWith(helpingApprovals: state.helpingApprovals + 1);
+    }
+    if (data['keystore_reset'] == true) {
+      // The keystore returned a new key: the old names could not be read and
+      // were set aside. Tell the user once they look.
+      state = state.copyWith(keystoreReset: true);
+    }
+    if (refetch || newHelping || data['helpers_changed'] == true) {
+      unawaited(_refetchConfig());
+    }
   }
 
   /// Unlocks the engine with the keystore key, once.
@@ -255,11 +270,6 @@ class HelpersNotifier extends _$HelpersNotifier {
     }
     final r = _apply(await _call('unlock', {'key': key}));
     _engineUnlocked = r.ok && r.data['unlocked'] == true;
-    if (r.ok && r.data['keystore_reset'] == true && ref.mounted) {
-      // The keystore returned a new key: the old names could not be read and
-      // were set aside. Tell the user once they look.
-      state = state.copyWith(keystoreReset: true);
-    }
   }
 
   Future<HelperResult?> _guard() async {
@@ -271,16 +281,7 @@ class HelpersNotifier extends _$HelpersNotifier {
   Future<HelperResult> refresh() async {
     final locked = await _guard();
     if (locked != null) return locked;
-    final r = _apply(await _call('refresh'));
-    if (r.ok &&
-        (r.data['new_helping'] == true || r.data['helpers_changed'] == true)) {
-      // A new person to help: fetch the config that turns the widget on for
-      // paired volunteers, then the features that show its tab. A helper
-      // added or ended elsewhere: fetch the config that carries (or drops)
-      // that helper's route.
-      unawaited(_refetchConfig());
-    }
-    return r;
+    return _apply(await _call('refresh'));
   }
 
   Future<void> _refetchConfig() async {
@@ -332,13 +333,12 @@ class HelpersNotifier extends _$HelpersNotifier {
   }
 
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
-    final r = _apply(
-      await _call('decide', {'invite_id': inviteId, 'approve': approve}),
-    );
     // The new helper's route comes with the config: fetch it now rather
     // than at the next poll.
-    if (r.ok && approve) unawaited(_refetchConfig());
-    return r;
+    return _apply(
+      await _call('decide', {'invite_id': inviteId, 'approve': approve}),
+      refetch: approve,
+    );
   }
 
   Future<HelperResult> forgetInvite(String inviteId) async =>
@@ -359,8 +359,10 @@ class HelpersNotifier extends _$HelpersNotifier {
     return r;
   }
 
-  Future<HelperResult> endPairing(String pairingId) async => _refetchIfOk(
-    _apply(await _call('end_pairing', {'pairing_id': pairingId})),
+  /// After an ended pairing, the config is fetched so its route goes now.
+  Future<HelperResult> endPairing(String pairingId) async => _apply(
+    await _call('end_pairing', {'pairing_id': pairingId}),
+    refetch: true,
   );
 
   /// The engine erases the names before it contacts lantern-cloud, so when
@@ -368,7 +370,7 @@ class HelpersNotifier extends _$HelpersNotifier {
   /// with the original error kept. When that view fails too, the names are
   /// erased from the one on screen.
   Future<HelperResult> endAllHelpers() async {
-    final r = _refetchIfOk(_apply(await _call('end_all_helpers')));
+    final r = _apply(await _call('end_all_helpers'), refetch: true);
     if (r.ok || !ref.mounted) return r;
     final v = await refreshView();
     if (!ref.mounted) return r;
@@ -412,12 +414,6 @@ class HelpersNotifier extends _$HelpersNotifier {
     helping: view.helping,
     activity: view.activity,
   );
-
-  /// After an ended pairing, fetch the config so its route goes now.
-  HelperResult _refetchIfOk(HelperResult r) {
-    if (r.ok) unawaited(_refetchConfig());
-    return r;
-  }
 
   /// Counts completed writes of "help others too", so a read that started
   /// before one cannot overwrite it.
