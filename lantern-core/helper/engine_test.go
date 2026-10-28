@@ -880,3 +880,29 @@ func TestEndAllHelpersReportsADisabledListing(t *testing.T) {
 	assert.Equal(t, CodeDisabled, callErr(t, sara, "end_all_helpers", nil))
 	assert.Len(t, cloud.pairings, 1, "the pairing is still in force")
 }
+
+// TestEndAllHelpersReportsABlankListedHelper: a pairing only lantern-cloud
+// knows of, listed without its id, cannot be ended, so remove all reports it
+// rather than succeeding; the names are still erased.
+func TestEndAllHelpersReportsABlankListedHelper(t *testing.T) {
+	cloud := newFakeCloud()
+	dir := t.TempDir()
+	sara := newTestEngine(t, cloud, "sara", dir)
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	call(t, newTestEngine(t, cloud, "bo", t.TempDir()), "claim", map[string]any{"link": link, "name": "Bo"})
+	inv := list(call(t, sara, "refresh", nil), "invites")[0]
+	require.Equal(t, "Bo", inv["volunteer_name"])
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "decide", map[string]any{"invite_id": inv["id"], "approve": true}))
+	cloud.blankInviterIDs = true
+
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "end_all_helpers", nil))
+	assert.Len(t, cloud.pairings, 1, "the pairing is still in force")
+	for _, e := range []*Engine{sara, newTestEngine(t, cloud, "sara", dir)} {
+		v := call(t, e, "view", nil)
+		for _, h := range list(v, "helpers") {
+			assert.Equal(t, "", h["name"])
+		}
+		assert.Empty(t, list(v, "invites"))
+	}
+}

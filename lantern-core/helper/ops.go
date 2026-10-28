@@ -639,7 +639,16 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) error {
 	var firstErr error
 	kept := make([]listedPairing, 0, len(list.Pairings))
 	for _, lp := range list.Pairings {
-		if lp.Role != RoleInviter || lp.PairingID == "" {
+		if lp.Role == RoleInviter && lp.PairingID == "" {
+			// A pairing in which this device is helped that cannot be named,
+			// so cannot be ended: remove all did not finish.
+			kept = append(kept, lp)
+			if firstErr == nil {
+				firstErr = errCode(CodeUnavailable)
+			}
+			continue
+		}
+		if lp.Role != RoleInviter {
 			kept = append(kept, lp)
 			continue
 		}

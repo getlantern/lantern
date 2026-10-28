@@ -42,6 +42,9 @@ type fakeCloud struct {
 	loseAnswer map[string]bool
 	// noPairingID drops pairing_id from invites/get and invites/decide answers.
 	noPairingID bool
+	// blankInviterIDs drops pairing_id from the inviter entries of a
+	// pairings answer.
+	blankInviterIDs bool
 	// fail answers each listed op with that status, doing nothing.
 	fail map[string]int
 	// bodies records each request body by op.
@@ -170,7 +173,11 @@ func (f *fakeCloud) handle(device, op string, body []byte) (int, []byte, string,
 		for _, p := range f.pairings {
 			switch device {
 			case p.inviter:
-				out = append(out, map[string]any{"pairing_id": p.id, "role": "inviter",
+				id := p.id
+				if f.blankInviterIDs {
+					id = ""
+				}
+				out = append(out, map[string]any{"pairing_id": id, "role": "inviter",
 					"online": f.online[p.volunteer], "created_unix": strconv.Itoa(1800000000)})
 			case p.volunteer:
 				m := map[string]any{"pairing_id": p.id, "role": "volunteer", "created_unix": "1800000000"}
