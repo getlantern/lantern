@@ -2,7 +2,10 @@ package helper
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -55,6 +58,11 @@ type claim struct {
 	Code    string    `json:"code"`
 	// Name is the name this user gave the inviter with this claim.
 	Name string `json:"name,omitempty"`
+	// Provisional marks a claim saved before it was sent, whose answer has
+	// not come back. Blob is the sealed name it sent, so a retry sends the
+	// identical request with the device seed.
+	Provisional bool   `json:"provisional,omitempty"`
+	Blob        []byte `json:"blob,omitempty"`
 }
 
 // pairing is one this device is in. Role is this device's side.
@@ -70,25 +78,55 @@ const (
 	RoleVolunteer = "volunteer"
 )
 
-// load reads the sealed state. A missing file is an empty state. A file
-// that does not open under the key means the keystore now returns another
-// key (an OS reset, a restored backup): the file is kept as state.bin.bak,
-// never silently replaced, the state starts empty, and the next view says
-// keystore_reset so the UI can tell the user.
-func (e *Engine) load() {
+// load reads the sealed state. A missing file is an empty state; any other
+// read error fails, so the file is never overwritten. A file that does not
+// open under the key means the keystore now returns another key (an OS
+// reset, a restored backup): the file is moved to an unused state.bin.bak
+// name, never replaced, the state starts empty, and unlock's answer says
+// keystore_reset so the UI can tell the user. If it cannot be moved, load
+// fails.
+func (e *Engine) load() error {
 	e.st = state{V: 1}
 	path := filepath.Join(e.dir, stateFile)
 	data, err := os.ReadFile(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
 	if err != nil {
-		return
+		return errCode(CodeInternal)
 	}
 	if st, ok := e.open(data); ok {
 		e.st = st
-		return
+		return nil
 	}
-	if err := os.Rename(path, path+".bak"); err == nil {
-		e.reset = true
+	bak, err := unusedName(path + ".bak")
+	if err != nil {
+		return err
 	}
+	if err := os.Rename(path, bak); err != nil {
+		return errCode(CodeInternal)
+	}
+	e.reset = true
+	return nil
+}
+
+// unusedName returns base, or base.1, base.2 and so on, whichever is first
+// free, so that an earlier backup is never overwritten.
+func unusedName(base string) (string, error) {
+	for n := 0; n < 1000; n++ {
+		name := base
+		if n > 0 {
+			name = fmt.Sprintf("%s.%d", base, n)
+		}
+		_, err := os.Lstat(name)
+		if errors.Is(err, fs.ErrNotExist) {
+			return name, nil
+		}
+		if err != nil {
+			return "", errCode(CodeInternal)
+		}
+	}
+	return "", errCode(CodeInternal)
 }
 
 func (e *Engine) open(data []byte) (state, bool) {
@@ -125,14 +163,40 @@ func (e *Engine) save() error {
 	if err := os.MkdirAll(e.dir, 0o700); err != nil {
 		return errCode(CodeInternal)
 	}
+	if err := os.Chmod(e.dir, 0o700); err != nil {
+		return errCode(CodeInternal)
+	}
 	tmp := filepath.Join(e.dir, stateFile+".tmp")
-	if err := os.WriteFile(tmp, sealed, 0o600); err != nil {
+	if err := writeSynced(tmp, sealed); err != nil {
+		_ = os.Remove(tmp)
 		return errCode(CodeInternal)
 	}
 	if err := os.Rename(tmp, filepath.Join(e.dir, stateFile)); err != nil {
 		return errCode(CodeInternal)
 	}
 	return nil
+}
+
+// writeSynced writes data to path, owner-only even if path already existed
+// with wider permissions, and flushes it to disk before it is renamed.
+func writeSynced(path string, data []byte) error {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
+	if err != nil {
+		return err
+	}
+	if err := f.Chmod(0o600); err != nil {
+		f.Close()
+		return err
+	}
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		f.Close()
+		return err
+	}
+	return f.Close()
 }
 
 // int64JSON reads an int64 written as a JSON number or, as protojson writes

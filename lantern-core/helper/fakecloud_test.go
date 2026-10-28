@@ -37,10 +37,20 @@ type fakeCloud struct {
 	// lantern-cloud's gate (Task 1): claims always; pairings, ending and
 	// tickets only while they hold a live claim or a pairing; nothing else.
 	flagOff map[string]bool
+	// loseAnswer makes the next request to each listed op take effect but
+	// return a transport error, as a lost answer does.
+	loseAnswer map[string]bool
+	// noPairingID drops pairing_id from invites/get and invites/decide answers.
+	noPairingID bool
+	// fail answers each listed op with that status, doing nothing.
+	fail map[string]int
+	// bodies records each request body by op.
+	bodies map[string][][]byte
 }
 
 func newFakeCloud() *fakeCloud {
-	return &fakeCloud{invites: map[string]*fakeInvite{}, online: map[string]bool{}, flagOff: map[string]bool{}}
+	return &fakeCloud{invites: map[string]*fakeInvite{}, online: map[string]bool{}, flagOff: map[string]bool{},
+		loseAnswer: map[string]bool{}, fail: map[string]int{}, bodies: map[string][][]byte{}}
 }
 
 func mustJSON(v any) []byte {
@@ -76,91 +86,112 @@ func (f *fakeCloud) relay(device string) Relay {
 	return func(_ context.Context, op string, body []byte) (int, []byte, string, error) {
 		f.mu.Lock()
 		defer f.mu.Unlock()
-		if f.down {
-			return 0, nil, "", fmt.Errorf("connection refused")
+		f.bodies[op] = append(f.bodies[op], slices.Clone(body))
+		if st := f.fail[op]; st != 0 {
+			return st, nil, "failed", nil
 		}
-		if f.disabled || (f.flagOff[device] && !f.flagFreeAllowed(device, op)) {
-			return 404, nil, "404 page not found", nil
+		status, resp, errText, err := f.handle(device, op, body)
+		if err == nil && f.loseAnswer[op] {
+			delete(f.loseAnswer, op)
+			return 0, nil, "", fmt.Errorf("answer lost")
 		}
-		var req struct {
-			InviteHash      []byte `json:"invite_hash"`
-			ApprovalPubkey  []byte `json:"approval_pubkey"`
-			VolunteerPubkey []byte `json:"volunteer_pubkey"`
-			VolunteerBlob   []byte `json:"volunteer_blob"`
-			Approve         bool   `json:"approve"`
-			ApprovalSig     []byte `json:"approval_sig"`
-			InviterBlob     []byte `json:"inviter_blob"`
-			PairingID       string `json:"pairing_id"`
+		if err == nil && status == 200 && f.noPairingID && (op == "invites/get" || op == "invites/decide") {
+			var m map[string]any
+			if json.Unmarshal(resp, &m) == nil {
+				delete(m, "pairing_id")
+				resp = mustJSON(m)
+			}
 		}
-		if err := json.Unmarshal(body, &req); err != nil {
-			return 400, nil, "bad body", nil
+		return status, resp, errText, err
+	}
+}
+
+// handle answers one request. The caller holds f.mu.
+func (f *fakeCloud) handle(device, op string, body []byte) (int, []byte, string, error) {
+	if f.down {
+		return 0, nil, "", fmt.Errorf("connection refused")
+	}
+	if f.disabled || (f.flagOff[device] && !f.flagFreeAllowed(device, op)) {
+		return 404, nil, "404 page not found", nil
+	}
+	var req struct {
+		InviteHash      []byte `json:"invite_hash"`
+		ApprovalPubkey  []byte `json:"approval_pubkey"`
+		VolunteerPubkey []byte `json:"volunteer_pubkey"`
+		VolunteerBlob   []byte `json:"volunteer_blob"`
+		Approve         bool   `json:"approve"`
+		ApprovalSig     []byte `json:"approval_sig"`
+		InviterBlob     []byte `json:"inviter_blob"`
+		PairingID       string `json:"pairing_id"`
+	}
+	if err := json.Unmarshal(body, &req); err != nil {
+		return 400, nil, "bad body", nil
+	}
+	key := hex.EncodeToString(req.InviteHash)
+	switch op {
+	case "invites":
+		f.invites[key] = &fakeInvite{inviter: device, approvalPub: req.ApprovalPubkey, state: "pending"}
+		return 200, []byte("{}"), "", nil
+	case "invites/claim":
+		inv := f.invites[key]
+		if inv == nil || inv.state != "pending" || inv.inviter == device {
+			return 409, nil, "invite already claimed or expired", nil
 		}
-		key := hex.EncodeToString(req.InviteHash)
-		switch op {
-		case "invites":
-			f.invites[key] = &fakeInvite{inviter: device, approvalPub: req.ApprovalPubkey, state: "pending"}
+		inv.state, inv.volunteer, inv.volunteerPub, inv.volunteerBlob = "claimed", device, req.VolunteerPubkey, req.VolunteerBlob
+		return 200, []byte("{}"), "", nil
+	case "invites/get":
+		inv := f.invites[key]
+		if inv == nil || inv.inviter != device {
+			return 404, nil, "no such invite", nil
+		}
+		return 200, mustJSON(map[string]any{"state": inv.state, "volunteer_pubkey": inv.volunteerPub,
+			"volunteer_blob": inv.volunteerBlob, "pairing_id": inv.pairingID}), "", nil
+	case "invites/decide":
+		inv := f.invites[key]
+		if inv == nil || inv.inviter != device {
+			return 404, nil, "no such invite", nil
+		}
+		if inv.state != "claimed" {
+			return 409, nil, "invite has no pending claim", nil
+		}
+		if !req.Approve {
+			inv.state = "rejected"
 			return 200, []byte("{}"), "", nil
-		case "invites/claim":
-			inv := f.invites[key]
-			if inv == nil || inv.state != "pending" || inv.inviter == device {
-				return 409, nil, "invite already claimed or expired", nil
+		}
+		if !ed25519.Verify(inv.approvalPub, helperinvite.ApprovalMessage(req.InviteHash, inv.volunteerPub), req.ApprovalSig) {
+			return 403, nil, "approval signature does not match", nil
+		}
+		id := fmt.Sprintf("00000000-0000-4000-8000-%012d", len(f.pairings)+1)
+		inv.state, inv.pairingID = "approved", id
+		f.pairings = append(f.pairings, &fakePairing{id: id, inviter: device, volunteer: inv.volunteer, inviterBlob: req.InviterBlob})
+		return 200, mustJSON(map[string]any{"pairing_id": id}), "", nil
+	case "pairings":
+		out := []map[string]any{}
+		for _, p := range f.pairings {
+			switch device {
+			case p.inviter:
+				out = append(out, map[string]any{"pairing_id": p.id, "role": "inviter",
+					"online": f.online[p.volunteer], "created_unix": strconv.Itoa(1800000000)})
+			case p.volunteer:
+				m := map[string]any{"pairing_id": p.id, "role": "volunteer", "created_unix": "1800000000"}
+				if len(p.inviterBlob) > 0 {
+					m["inviter_blob"] = p.inviterBlob
+					p.inviterBlob = nil // delivered once, as lantern-cloud does
+				}
+				out = append(out, m)
 			}
-			inv.state, inv.volunteer, inv.volunteerPub, inv.volunteerBlob = "claimed", device, req.VolunteerPubkey, req.VolunteerBlob
-			return 200, []byte("{}"), "", nil
-		case "invites/get":
-			inv := f.invites[key]
-			if inv == nil || inv.inviter != device {
-				return 404, nil, "no such invite", nil
-			}
-			return 200, mustJSON(map[string]any{"state": inv.state, "volunteer_pubkey": inv.volunteerPub,
-				"volunteer_blob": inv.volunteerBlob, "pairing_id": inv.pairingID}), "", nil
-		case "invites/decide":
-			inv := f.invites[key]
-			if inv == nil || inv.inviter != device {
-				return 404, nil, "no such invite", nil
-			}
-			if inv.state != "claimed" {
-				return 409, nil, "invite has no pending claim", nil
-			}
-			if !req.Approve {
-				inv.state = "rejected"
+		}
+		return 200, mustJSON(map[string]any{"pairings": out}), "", nil
+	case "pairings/end":
+		for i, p := range f.pairings {
+			if p.id == req.PairingID && (p.inviter == device || p.volunteer == device) {
+				f.pairings = slices.Delete(f.pairings, i, i+1)
 				return 200, []byte("{}"), "", nil
 			}
-			if !ed25519.Verify(inv.approvalPub, helperinvite.ApprovalMessage(req.InviteHash, inv.volunteerPub), req.ApprovalSig) {
-				return 403, nil, "approval signature does not match", nil
-			}
-			id := fmt.Sprintf("00000000-0000-4000-8000-%012d", len(f.pairings)+1)
-			inv.state, inv.pairingID = "approved", id
-			f.pairings = append(f.pairings, &fakePairing{id: id, inviter: device, volunteer: inv.volunteer, inviterBlob: req.InviterBlob})
-			return 200, mustJSON(map[string]any{"pairing_id": id}), "", nil
-		case "pairings":
-			out := []map[string]any{}
-			for _, p := range f.pairings {
-				switch device {
-				case p.inviter:
-					out = append(out, map[string]any{"pairing_id": p.id, "role": "inviter",
-						"online": f.online[p.volunteer], "created_unix": strconv.Itoa(1800000000)})
-				case p.volunteer:
-					m := map[string]any{"pairing_id": p.id, "role": "volunteer", "created_unix": "1800000000"}
-					if len(p.inviterBlob) > 0 {
-						m["inviter_blob"] = p.inviterBlob
-						p.inviterBlob = nil // delivered once, as lantern-cloud does
-					}
-					out = append(out, m)
-				}
-			}
-			return 200, mustJSON(map[string]any{"pairings": out}), "", nil
-		case "pairings/end":
-			for i, p := range f.pairings {
-				if p.id == req.PairingID && (p.inviter == device || p.volunteer == device) {
-					f.pairings = slices.Delete(f.pairings, i, i+1)
-					return 200, []byte("{}"), "", nil
-				}
-			}
-			return 404, nil, "no such pairing", nil
-		case "tickets/refresh":
-			return 200, []byte("{}"), "", nil
 		}
-		return 400, nil, "unknown op", nil
+		return 404, nil, "no such pairing", nil
+	case "tickets/refresh":
+		return 200, []byte("{}"), "", nil
 	}
+	return 400, nil, "unknown op", nil
 }

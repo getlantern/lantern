@@ -171,7 +171,7 @@ func (e *Engine) createInvite(ctx context.Context, args []byte) (any, error) {
 }
 
 func (e *Engine) refresh(ctx context.Context) (any, error) {
-	changed := e.prune()
+	changed := false
 	for _, inv := range slices.Clone(e.st.Invites) {
 		var st inviteStatus
 		err := e.post(ctx, "invites/get", inviteRef{InviteHash: helperinvite.InviteHash(inv.Secret)}, &st)
@@ -194,8 +194,8 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 				if err := e.post(ctx, "invites/decide", decideReq{InviteHash: helperinvite.InviteHash(inv.Secret)}, nil); err == nil ||
 					isCode(err, CodeNoPendingClaim) {
 					e.dropInvite(inv.ID)
+					changed = true
 				}
-				changed = true
 			case "approved", "rejected":
 				e.dropInvite(inv.ID)
 				changed = true
@@ -221,6 +221,13 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 			}
 		case "approved":
 			// Approved here or by an approve whose answer was lost.
+			if st.PairingID == "" {
+				// A malformed answer: keep the invite, which holds the name.
+				if changed {
+					_ = e.save()
+				}
+				return nil, errCode(CodeUnavailable)
+			}
 			e.addPairing(st.PairingID, RoleInviter, inv.VolunteerName, e.now())
 			e.dropInvite(inv.ID)
 			changed = true
@@ -233,19 +240,18 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 		Pairings []listedPairing `json:"pairings"`
 	}
 	err := e.post(ctx, "pairings", struct{}{}, &list)
+	disabled := false
 	if isCode(err, CodeDisabled) && len(e.st.Invites) == 0 {
 		// A volunteer abroad has no helper_invites flag. lantern-cloud lets it
 		// list pairings only while it holds a live claim or a pairing (Task 1),
 		// so once its claim is rejected or expires, or its last pairing ends,
 		// the answer is the gate's 404. A device with no invites of its own is
 		// no inviter, so that answer means it holds nothing: an empty list.
-		// (An inviter whose flag is turned off also sees an empty list.)
+		// Only the volunteer side is dropped: an inviter whose flag is turned
+		// off, or any other such 404, must never wipe its helpers and their
+		// names.
 		err = nil
-		list.Pairings = nil
-		if len(e.st.Claims) > 0 {
-			e.st.Claims = nil
-			changed = true
-		}
+		disabled = true
 	}
 	if err != nil {
 		if changed {
@@ -253,7 +259,12 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 		}
 		return nil, err
 	}
-	merged, newHelping := e.mergePairings(list.Pairings)
+	var merged, newHelping bool
+	if disabled {
+		merged = e.dropVolunteerSide()
+	} else {
+		merged, newHelping = e.mergePairings(list.Pairings)
+	}
 	changed = changed || merged
 	if merged {
 		// New or ended pairings: ticket sources fetch at their next read,
@@ -265,12 +276,27 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 			e.activity = &a
 		}
 	}
+	// Prune last, so an invite or claim approved just before it expired
+	// still yields its pairing's name.
+	if e.prune() {
+		changed = true
+	}
 	if changed {
 		if err := e.save(); err != nil {
 			return nil, err
 		}
 	}
 	return e.view(newHelping), nil
+}
+
+// dropVolunteerSide forgets every claim and every pairing this device
+// volunteers in, leaving the pairings where it is helped.
+func (e *Engine) dropVolunteerSide() bool {
+	n, c := len(e.st.Pairings), len(e.st.Claims)
+	e.online = map[string]bool{}
+	e.st.Claims = nil
+	e.st.Pairings = slices.DeleteFunc(e.st.Pairings, func(p *pairing) bool { return p.Role == RoleVolunteer })
+	return n != len(e.st.Pairings) || c > 0
 }
 
 // mergePairings makes the local pairings match lantern-cloud's list. A new
@@ -353,6 +379,11 @@ func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
 			ApprovalSig: appr.Signature, InviterBlob: appr.InviterBlob}, &resp); err != nil {
 			return nil, err
 		}
+		if resp.PairingID == "" {
+			// A malformed answer: keep the claimed invite and its name. The
+			// next refresh reads the approval with its pairing.
+			return nil, errCode(CodeUnavailable)
+		}
 		e.addPairing(resp.PairingID, RoleInviter, inv.VolunteerName, e.now())
 		e.dropInvite(inv.ID)
 	}
@@ -416,34 +447,65 @@ func (e *Engine) claim(ctx context.Context, args []byte) (any, error) {
 			return nil, errCode(CodeOwnInvite)
 		}
 	}
+	var cl *claim
 	for _, c := range e.st.Claims {
 		if bytes.Equal(c.Secret, s) {
-			return map[string]string{"claim_id": c.ID, "code": c.Code}, nil
+			cl = c
 		}
 	}
-	if len(e.st.DeviceSeed) == 0 {
-		seed := make([]byte, ed25519.SeedSize)
-		if _, err := io.ReadFull(e.rand, seed); err != nil {
+	if cl != nil && !cl.Provisional {
+		return map[string]string{"claim_id": cl.ID, "code": cl.Code}, nil
+	}
+	// lantern-cloud's claim is not idempotent: a second one, even identical,
+	// is a 409. So the claim is saved before it is sent, and a claim whose
+	// answer was lost is retried with the same request; a 409 to that retry
+	// means the first one landed. Were it someone else's claim, the
+	// inviter's code would not match this one.
+	retry := cl != nil
+	if !retry {
+		if len(e.st.DeviceSeed) == 0 {
+			seed := make([]byte, ed25519.SeedSize)
+			if _, err := io.ReadFull(e.rand, seed); err != nil {
+				return nil, errCode(CodeInternal)
+			}
+			e.st.DeviceSeed = seed
+		}
+		c, err := helperinvite.NewClaim(s, e.st.DeviceSeed, a.Name, e.rand)
+		if errors.Is(err, helperinvite.ErrName) {
+			return nil, errCode(CodeBadName)
+		}
+		if err != nil || c.Code == "" {
+			// ErrKey here is our own device seed: internal.
 			return nil, errCode(CodeInternal)
 		}
-		e.st.DeviceSeed = seed
+		name, _ := helperinvite.CleanName(a.Name)
+		cl = &claim{ID: e.newID(), Secret: s, Created: e.now(), Code: c.Code, Name: name,
+			Provisional: true, Blob: c.VolunteerBlob}
+		e.st.Claims = append(e.st.Claims, cl)
+		if err := e.save(); err != nil {
+			e.dropClaim(cl.ID)
+			return nil, err
+		}
 	}
-	c, err := helperinvite.NewClaim(s, e.st.DeviceSeed, a.Name, e.rand)
-	if errors.Is(err, helperinvite.ErrName) {
-		return nil, errCode(CodeBadName)
-	}
-	if err != nil || c.Code == "" {
-		// ErrKey here is our own device seed: internal.
+	priv, err := helperinvite.DeviceKey(e.st.DeviceSeed)
+	if err != nil {
 		return nil, errCode(CodeInternal)
 	}
-	if err := e.post(ctx, "invites/claim", claimReq{InviteHash: c.InviteHash, VolunteerPubkey: c.VolunteerPubkey,
-		VolunteerBlob: c.VolunteerBlob}, nil); err != nil {
+	err = e.post(ctx, "invites/claim", claimReq{InviteHash: helperinvite.InviteHash(s),
+		VolunteerPubkey: priv.Public().(ed25519.PublicKey), VolunteerBlob: cl.Blob}, nil)
+	switch {
+	case err == nil, retry && isCode(err, CodeAlreadyClaimed):
+	case isCode(err, CodeUnavailable):
+		return nil, err // kept, for a retry
+	default:
+		e.dropClaim(cl.ID)
+		_ = e.save()
 		return nil, err
 	}
-	name, _ := helperinvite.CleanName(a.Name)
-	cl := &claim{ID: e.newID(), Secret: s, Created: e.now(), Code: c.Code, Name: name}
-	e.st.Claims = append(e.st.Claims, cl)
-	e.st.MyName = name
+	cl.Provisional, cl.Blob = false, nil
+	if cl.Name != "" {
+		e.st.MyName = cl.Name
+	}
 	if err := e.save(); err != nil {
 		return nil, err
 	}
@@ -473,9 +535,26 @@ func (e *Engine) endPairing(ctx context.Context, args []byte) (any, error) {
 
 // endAllHelpers is "remove all helpers": it ends every pairing in which this
 // device is helped, rejects claimed invites, and turns unclaimed ones into
-// tombstones without names, so a seized phone holds no helper names. It saves after each step, so a failure
-// part way keeps what was done.
+// tombstones without names, so a seized phone holds no helper names. It
+// blanks the names before any request, and saves after each step, so a
+// failure part way keeps what was done.
 func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
+	// Names go first, and are saved before any request, so they are gone
+	// even when lantern-cloud cannot be reached.
+	for _, p := range e.st.Pairings {
+		if p.Role == RoleInviter {
+			p.Name = ""
+		}
+	}
+	for _, c := range e.st.Claims {
+		c.Name = ""
+	}
+	for _, inv := range e.st.Invites {
+		inv.VolunteerName = ""
+	}
+	if err := e.save(); err != nil {
+		return nil, err
+	}
 	for _, p := range slices.Clone(e.st.Pairings) {
 		if p.Role != RoleInviter {
 			continue

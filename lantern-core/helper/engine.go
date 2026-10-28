@@ -123,7 +123,13 @@ func (e *Engine) unlock(args []byte) ([]byte, error) {
 	}
 	e.key = key
 	e.reset = false
-	e.load()
+	if err := e.load(); err != nil {
+		// Stay locked, so nothing saves over a file that could not be read
+		// or moved aside.
+		e.key = nil
+		e.st = state{}
+		return nil, err
+	}
 	v := e.view(false)
 	v.KeystoreReset = e.reset
 	return json.Marshal(v)
