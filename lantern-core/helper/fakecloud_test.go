@@ -42,6 +42,9 @@ type fakeCloud struct {
 	loseAnswer map[string]bool
 	// noPairingID drops pairing_id from invites/get and invites/decide answers.
 	noPairingID bool
+	// omitPairingsKey answers pairings with an empty object, without the
+	// pairings key lantern-cloud always sends.
+	omitPairingsKey bool
 	// blankInviterIDs drops pairing_id from the inviter entries of a
 	// pairings answer.
 	blankInviterIDs bool
@@ -187,6 +190,9 @@ func (f *fakeCloud) handle(device, op string, body []byte) (int, []byte, string,
 				}
 				out = append(out, m)
 			}
+		}
+		if f.omitPairingsKey {
+			return 200, []byte("{}"), "", nil
 		}
 		return 200, mustJSON(map[string]any{"pairings": out}), "", nil
 	case "pairings/end":

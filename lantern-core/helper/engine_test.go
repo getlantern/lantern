@@ -906,3 +906,55 @@ func TestEndAllHelpersReportsABlankListedHelper(t *testing.T) {
 		assert.Empty(t, list(v, "invites"))
 	}
 }
+
+// TestAListingWithoutPairingsIsUnavailable: lantern-cloud always sends the
+// pairings key, so an answer without it is malformed. Refresh merges
+// nothing and drops nothing; remove all does not report success.
+func TestAListingWithoutPairingsIsUnavailable(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := pair(t, cloud, sara, t.TempDir())
+	require.Len(t, list(call(t, ali, "refresh", nil), "helping"), 1)
+
+	cloud.omitPairingsKey = true
+	assert.Equal(t, CodeUnavailable, callErr(t, ali, "refresh", nil))
+	helping := list(call(t, ali, "view", nil), "helping")
+	require.Len(t, helping, 1, "the volunteer's pairing is kept")
+	assert.Equal(t, "Sara", helping[0]["name"])
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "refresh", nil))
+	require.Len(t, list(call(t, sara, "view", nil), "helpers"), 1)
+
+	// A pairing only lantern-cloud knows of: remove all cannot see it.
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	call(t, newTestEngine(t, cloud, "bo", t.TempDir()), "claim", map[string]any{"link": link, "name": "Bo"})
+	cloud.omitPairingsKey = false
+	inv := list(call(t, sara, "refresh", nil), "invites")[0]
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "decide", map[string]any{"invite_id": inv["id"], "approve": true}))
+	cloud.omitPairingsKey = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "end_all_helpers", nil))
+	require.Len(t, cloud.pairings, 1, "ali's is ended; bo's, known only remotely, is still in force")
+	assert.Equal(t, "bo", cloud.pairings[0].volunteer)
+
+	cloud.omitPairingsKey = false
+	assert.Empty(t, list(call(t, sara, "end_all_helpers", nil), "helpers"))
+	assert.Empty(t, cloud.pairings)
+}
+
+// TestANullOrEmptyListingIsEmpty: null and [] are an empty list.
+func TestANullOrEmptyListingIsEmpty(t *testing.T) {
+	for _, body := range []string{`{"pairings":null}`, `{"pairings":[]}`} {
+		relay := func(_ context.Context, op string, _ []byte) (int, []byte, string, error) {
+			if op == "pairings" {
+				return 200, []byte(body), "", nil
+			}
+			return 200, []byte("{}"), "", nil
+		}
+		e := NewEngine(t.TempDir(), relay, nil)
+		call(t, e, "unlock", map[string]any{"key": testKey})
+		e.addPairing("p1", RoleVolunteer, "Sara", time.Unix(1, 0), nil)
+		call(t, e, "refresh", nil)
+		assert.Empty(t, e.st.Pairings, body)
+		call(t, e, "end_all_helpers", nil)
+	}
+}

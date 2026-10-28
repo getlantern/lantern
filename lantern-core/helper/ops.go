@@ -253,10 +253,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 			changed = true
 		}
 	}
-	var list struct {
-		Pairings []listedPairing `json:"pairings"`
-	}
-	err := e.post(ctx, "pairings", struct{}{}, &list)
+	listed, err := e.listPairings(ctx)
 	disabled := false
 	if isCode(err, CodeDisabled) && len(e.st.Invites) == 0 {
 		// A volunteer abroad has no helper_invites flag. lantern-cloud lets it
@@ -280,7 +277,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 	if disabled {
 		merged = e.dropVolunteerSide()
 	} else {
-		merged = e.mergePairings(list.Pairings)
+		merged = e.mergePairings(listed)
 	}
 	changed = changed || merged
 	if merged {
@@ -304,6 +301,26 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 		}
 	}
 	return e.view(), nil
+}
+
+// listPairings asks lantern-cloud for this device's pairings. Its answer
+// always carries the pairings key (protojson with EmitUnpopulated), so an
+// answer without it is malformed, not an empty list: merging it would drop
+// every local pairing, and remove all would miss the remote ones.
+func (e *Engine) listPairings(ctx context.Context) ([]listedPairing, error) {
+	var raw map[string]json.RawMessage
+	if err := e.post(ctx, "pairings", struct{}{}, &raw); err != nil {
+		return nil, err
+	}
+	field, ok := raw["pairings"]
+	if !ok {
+		return nil, errCode(CodeUnavailable)
+	}
+	var listed []listedPairing
+	if json.Unmarshal(field, &listed) != nil {
+		return nil, errCode(CodeUnavailable)
+	}
+	return listed, nil
 }
 
 // dropVolunteerSide forgets every claim and every pairing this device
@@ -627,18 +644,16 @@ func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
 // first failure is reported. The listing also carries the volunteer side, and
 // an inviter's blob is delivered only once, so it is merged as refresh does.
 func (e *Engine) endRemoteHelpers(ctx context.Context) error {
-	var list struct {
-		Pairings []listedPairing `json:"pairings"`
-	}
 	// Any failure to list is reported, the gate's disabled too: a pairing
 	// only lantern-cloud knows of may still be in force, and the device
 	// cannot tell. The names are already erased.
-	if err := e.post(ctx, "pairings", struct{}{}, &list); err != nil {
+	listed, err := e.listPairings(ctx)
+	if err != nil {
 		return err
 	}
 	var firstErr error
-	kept := make([]listedPairing, 0, len(list.Pairings))
-	for _, lp := range list.Pairings {
+	kept := make([]listedPairing, 0, len(listed))
+	for _, lp := range listed {
 		if lp.Role == RoleInviter && lp.PairingID == "" {
 			// A pairing in which this device is helped that cannot be named,
 			// so cannot be ended: remove all did not finish.
