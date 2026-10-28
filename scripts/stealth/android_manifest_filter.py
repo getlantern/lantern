@@ -303,6 +303,14 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
                 lambda el: el.tag == "intent-filter" and is_deeplink_intent_filter(el),
             )
 
+        # An alias left with no filters only adds its component name (e.g.
+        # HelperInviteLinks), which would fingerprint the build. Nothing
+        # references an alias by name, so drop it.
+        remove_matching(
+            application,
+            lambda el: el.tag == "activity-alias" and not el.findall("intent-filter"),
+        )
+
         remove_matching(
             application,
             lambda el: el.tag == "meta-data"

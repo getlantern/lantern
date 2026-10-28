@@ -9,6 +9,7 @@ import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/help_friend.dart';
+import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_section.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
@@ -16,10 +17,13 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 class _Helpers extends HelpersNotifier {
   _Helpers(
     this.initial, {
-    this.claimAnswer = '{"claim_id":"c1","code":"2562"}',
-  });
+    String claimAnswer = '{"claim_id":"c1","code":"2562"}',
+    List<String>? claimAnswers,
+  }) : claimAnswers = claimAnswers ?? [claimAnswer];
   final HelpersState initial;
-  final String claimAnswer;
+
+  /// Answers in turn; the last one repeats.
+  final List<String> claimAnswers;
   final claims = <(String, String)>[];
   final helpOthers = <bool>[];
   final ended = <String>[];
@@ -37,7 +41,10 @@ class _Helpers extends HelpersNotifier {
   @override
   Future<HelperResult> claim(String link, String name) async {
     claims.add((link, name));
-    return HelperResult.parse(claimAnswer);
+    final i = claims.length - 1;
+    return HelperResult.parse(
+      claimAnswers[i < claimAnswers.length ? i : claimAnswers.length - 1],
+    );
   }
 
   @override
@@ -120,7 +127,11 @@ HelpersState _helping() => const HelpersState(
   ),
 );
 
+const _reza = HelperPairingView(pairingId: 'p2', name: 'Reza');
+
 void main() {
+  setUpAll(Localization.loadTranslations);
+
   testWidgets('claiming shows the code', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);
@@ -180,6 +191,103 @@ void main() {
     await tester.pump();
     expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
     expect(find.byKey(const Key('help_friend.code')), findsNothing);
+  });
+
+  testWidgets('the code is spoken digit by digit', (tester) async {
+    final handle = tester.ensureSemantics();
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    expect(find.bySemanticsLabel('2 5 6 2'), findsOneWidget);
+    expect(find.bySemanticsLabel('2562'), findsNothing);
+    handle.dispose();
+  });
+
+  testWidgets('a claim answer without a code is an error, not silence', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      const HelpersState(),
+      claimAnswer: '{"claim_id":"c1"}',
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    expect(find.byKey(const Key('help_friend.code')), findsNothing);
+    expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
+    expect(find.text(helperErrorText('unavailable')), findsOneWidget);
+  });
+
+  testWidgets('a retry after an error reuses the held link', (tester) async {
+    final helpers = _Helpers(
+      const HelpersState(),
+      claimAnswers: [
+        '{"error":"unavailable"}',
+        '{"claim_id":"c1","code":"2562"}',
+      ],
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await tester.pump();
+    await tester.pump(); // pumpAndSettle would never settle: the waiting view spins
+    expect(helpers.claims, [(_link, 'Ali'), (_link, 'Ali')]);
+    expect(find.text('2562'), findsOneWidget);
+  });
+
+  testWidgets('approval names the pairing from this claim, not the last one', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      const HelpersState(
+        view: HelpersView(unlocked: true, helping: [_sara]),
+      ),
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    // The engine dropped claim c1 when its key opened Reza's name.
+    helpers.approve(const HelpersView(unlocked: true, helping: [_reza, _sara]));
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
+    expect(find.text('help_friend_approved'.i18n.fill(['Reza'])), findsOneWidget);
+  });
+
+  testWidgets('approval uses the generic name when the pairing is ambiguous', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    helpers.approve(const HelpersView(unlocked: true, helping: [_sara, _reza]));
+    await tester.pump();
+    expect(
+      find.text('help_friend_approved'.i18n.fill(['helping_unnamed'.i18n])),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('approval uses the generic name while this claim is pending', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    // Another claim's pairing arrived; c1 is still waiting.
+    helpers.approve(
+      const HelpersView(
+        unlocked: true,
+        helping: [_reza],
+        claims: [HelperClaimView(id: 'c1', code: '2562')],
+      ),
+    );
+    await tester.pump();
+    expect(find.textContaining('Reza'), findsNothing);
   });
 
   testWidgets('HelpFriend shows the keystore-reset notice and acknowledges it', (

@@ -53,10 +53,14 @@ class _FakeService implements LanternService {
     return right(false);
   }
 
-  // Fails, so the start ends without touching app settings.
+  /// By default Unbounded fails to start, so a start ends without touching
+  /// app settings.
+  bool unboundedOk = false;
+
   @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
     calls.add('unbounded:$enabled');
+    if (unboundedOk) return right(unit);
     return left(Failure(error: 'test', localizedErrorMessage: 'test'));
   }
 
@@ -66,12 +70,19 @@ class _FakeService implements LanternService {
 
 ShareNotifier _notifier() => _setUp().$1;
 
+class _Settings extends AppSettingNotifier {
+  @override
+  AppSetting build() => const AppSetting();
+  @override
+  void setUnboundedSessionCount(int value) {}
+}
+
 (ShareNotifier, ProviderContainer, _FakeService) _setUp() {
   final service = _FakeService();
   final container = ProviderContainer(
     overrides: [
       lanternServiceProvider.overrideWithValue(service),
-      appSettingProvider.overrideWithValue(const AppSetting()),
+      appSettingProvider.overrideWith(_Settings.new),
     ],
   );
   addTearDown(container.dispose);
@@ -80,14 +91,17 @@ ShareNotifier _notifier() => _setUp().$1;
 
 /// A real WidgetRef over [container]: WidgetRef is sealed, so tests take one
 /// from a Consumer.
+BuildContext? _context;
+
 Future<WidgetRef> _refFor(WidgetTester tester, ProviderContainer container) async {
   late WidgetRef captured;
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
       child: Consumer(
-        builder: (_, ref, _) {
+        builder: (context, ref, _) {
           captured = ref;
+          _context = context;
           return const SizedBox();
         },
       ),
@@ -242,6 +256,23 @@ void main() {
       final (notifier, ref, service) = await _start(tester);
       await notifier.retryPendingHelperStart(ref);
       expect(service.calls, isEmpty);
+    });
+
+    testWidgets('a manual toggle cancels a held-back start', (tester) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isTrue);
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isFalse);
+      service.calls.clear();
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isFalse);
     });
 
     testWidgets('a held-back start stays held in a censored country', (

@@ -294,17 +294,39 @@ class VpnModeTest(unittest.TestCase):
                 return
         self.fail(f"{f.STEALTH_ACTIVITY_NAME} not found")
 
-    def test_alias_deeplink_filters_stripped(self) -> None:
-        # An alias's filters would otherwise ship lantern.io links (and an
-        # autoVerify fetch of lantern.io) in a stealth build.
-        aliases = self.app.findall("activity-alias")
-        self.assertTrue(aliases)
-        for alias in aliases:
-            self.assertEqual(alias.findall("intent-filter"), [])
-            self.assertEqual(
-                alias.attrib.get(f"{ANDROID}targetActivity"),
-                f.STEALTH_ACTIVITY_NAME,
-            )
+    def test_alias_left_without_filters_removed(self) -> None:
+        # A disabled, filter-less alias would still carry a Lantern-unique
+        # component name (HelperInviteLinks) that fingerprints the build.
+        self.assertEqual(self.app.findall("activity-alias"), [])
+        self.assertNotIn(b"HelperInviteLinks", self.out.read_bytes())
+        self.assertNotIn(b"lantern.io", self.out.read_bytes())
+
+    def test_alias_with_other_filters_kept_and_retargeted(self) -> None:
+        tmp = Path(self._tmp.name)
+        src = tmp / "alias.xml"
+        src.write_text(
+            BASE_MANIFEST.replace(
+                "<activity-alias",
+                """<activity-alias
+            android:name=".Shortcut"
+            android:targetActivity="org.getlantern.lantern.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias""",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        out = tmp / "alias_out.xml"
+        f.filter_manifest(src, out, "vpn")
+        aliases = _app(_parse(out)).findall("activity-alias")
+        self.assertEqual(_names(aliases), {".Shortcut"})
+        self.assertEqual(
+            aliases[0].attrib.get(f"{ANDROID}targetActivity"),
+            f.STEALTH_ACTIVITY_NAME,
+        )
 
     # ── Class-name rewrite applied ─────────────────────────────────────────
 

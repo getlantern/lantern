@@ -36,6 +36,9 @@ class HelpFriend extends HookConsumerWidget {
     final nameCtl = useTextEditingController(text: helpers.view.myName);
     final code = useState<String?>(null);
     final approvalsAtClaim = useState<int?>(null);
+    // To tell which new pairing came from this claim.
+    final claimId = useRef<String?>(null);
+    final helpingAtClaim = useRef<Set<String>>(const {});
     final error = useState<String?>(null);
     final busy = useState(false);
 
@@ -69,8 +72,16 @@ class HelpFriend extends HookConsumerWidget {
         error.value = r.error;
         return;
       }
-      approvalsAtClaim.value = ref.read(helpersProvider).helpingApprovals;
-      code.value = r.data['code'] as String?;
+      final claimed = r.data['code'];
+      if (claimed is! String || claimed.isEmpty) {
+        error.value = 'unavailable';
+        return;
+      }
+      final now = ref.read(helpersProvider);
+      claimId.value = r.data['claim_id'] as String?;
+      helpingAtClaim.value = {for (final p in now.view.helping) p.pairingId};
+      approvalsAtClaim.value = now.helpingApprovals;
+      code.value = claimed;
     }
 
     final approved =
@@ -79,10 +90,11 @@ class HelpFriend extends HookConsumerWidget {
 
     final Widget body;
     if (approved) {
-      final helping = helpers.view.helping;
-      final name = helping.isEmpty || helping.last.name.isEmpty
-          ? 'helping_unnamed'.i18n
-          : helping.last.name;
+      final name = _approvedName(
+        helpers,
+        claimId.value,
+        helpingAtClaim.value,
+      );
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -215,4 +227,24 @@ class HelpFriend extends HookConsumerWidget {
     }
     return BaseScreen(title: 'help_friend_title'.i18n, body: body);
   }
+}
+
+/// The name of the pairing this claim became, or the generic wording when it
+/// cannot be told apart. The engine drops a claim when its key opens the new
+/// pairing's name, so the claim must be gone and exactly one pairing new.
+String _approvedName(
+  HelpersState helpers,
+  String? claimId,
+  Set<String> helpingAtClaim,
+) {
+  final view = helpers.view;
+  final stillPending =
+      claimId == null || view.claims.any((c) => c.id == claimId);
+  final added = view.helping
+      .where((p) => !helpingAtClaim.contains(p.pairingId))
+      .toList();
+  if (stillPending || added.length != 1 || added.single.name.isEmpty) {
+    return 'helping_unnamed'.i18n;
+  }
+  return added.single.name;
 }

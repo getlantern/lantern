@@ -139,6 +139,9 @@ class ShareNotifier extends _$ShareNotifier {
   /// picks the mode from the network.
   Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
     if (_changing) return;
+    // The user has chosen, on or off: a held-back helper start must not
+    // override that later.
+    _helperStartPending = false;
     _changes++;
     try {
       await _toggle(context, widgetRef);
