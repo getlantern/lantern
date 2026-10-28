@@ -34,7 +34,9 @@
         <th>Android</th>
         <td>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.apk">Android 7&#43; (ARM64)</a> <br>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 7&#43; (ARM64)</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 7&#43; (ARM64)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer-armv7.apk">Android 7&#43; (32-bit / ARMv7)</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer-armv7.apk">Android 7&#43; (32-bit / ARMv7)</a>
         </td>
         <td>
             <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">Android 7&#43;</a>
