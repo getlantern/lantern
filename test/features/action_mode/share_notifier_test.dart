@@ -13,6 +13,8 @@ import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 // Reconciliation of ShareState against the peer client's real state. The
 // peer-status stream is edge-triggered, so a UI that only listens opens at
@@ -70,6 +72,17 @@ class _FakeService implements LanternService {
 
 ShareNotifier _notifier() => _setUp().$1;
 
+/// The people this device helps, as an approval leaves them: one friend.
+class _Helpers extends HelpersNotifier {
+  @override
+  HelpersState build() => const HelpersState(
+    view: HelpersView(helping: [HelperPairingView(pairingId: 'p1')]),
+  );
+
+  void helpNobody() =>
+      state = state.copyWith(view: const HelpersView(unlocked: true));
+}
+
 class _Settings extends AppSettingNotifier {
   @override
   AppSetting build() => const AppSetting();
@@ -83,6 +96,7 @@ class _Settings extends AppSettingNotifier {
     overrides: [
       lanternServiceProvider.overrideWithValue(service),
       appSettingProvider.overrideWith(_Settings.new),
+      helpersProvider.overrideWith(_Helpers.new),
     ],
   );
   addTearDown(container.dispose);
@@ -273,6 +287,33 @@ void main() {
       await notifier.retryPendingHelperStart(ref);
       expect(service.calls, isEmpty);
       expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('a held-back start is dropped once this device helps nobody', (
+      tester,
+    ) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      (ref.read(helpersProvider.notifier) as _Helpers).helpNobody();
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.probing, isFalse);
+    });
+
+    testWidgets('a held-back start is not run for a pairing already gone', (
+      tester,
+    ) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      (ref.read(helpersProvider.notifier) as _Helpers).helpNobody();
+      // An approval counted after a newer view already dropped the pairing.
+      await notifier.startForHelper(ref);
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
     });
 
     testWidgets('a held-back start stays held in a censored country', (

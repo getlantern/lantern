@@ -15,6 +15,7 @@ import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/action_mode/share_consent_dialog.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -103,6 +104,14 @@ class ShareNotifier extends _$ShareNotifier {
       _stopEventSubscription();
       _eventController.close();
       _relayPersistTimer?.cancel();
+    });
+    // A held-back helper start is for the people this device helps: once it
+    // helps nobody, there is nothing left to start for.
+    ref.listen<bool>(helpersProvider.select((s) => s.view.helping.isEmpty), (
+      _,
+      helpsNobody,
+    ) {
+      if (helpsNobody) _helperStartPending = false;
     });
 
     final settings = ref.read(appSettingProvider);
@@ -300,9 +309,14 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   /// Retries a helper start held back by [startForHelper]. Called when the
-  /// country changes.
+  /// country changes. Dropped if this device no longer helps anyone.
   Future<void> retryPendingHelperStart(WidgetRef widgetRef) async {
-    if (_helperStartPending) await startForHelper(widgetRef);
+    if (!_helperStartPending) return;
+    if (ref.read(helpersProvider).view.helping.isEmpty) {
+      _helperStartPending = false;
+      return;
+    }
+    await startForHelper(widgetRef);
   }
 
   /// The no-UI start shared by autoStart and startForHelper: skip while a
