@@ -22,6 +22,18 @@ bool helperInvitesAvailable(Ref ref) =>
     AppBuildInfo.enableHelperInvites &&
     ref.watch(featureFlagProvider).getBool(FeatureFlag.helperInvites);
 
+/// Whether settings offer "Get help from a friend": while helper invites are
+/// available, and after the flag goes off while this device still has
+/// helpers or invites to manage. Reads only the notifier's state, which stays
+/// empty, without the keystore, on a device that never used them.
+@riverpod
+bool helperEntryVisible(Ref ref) {
+  if (!HelpersNotifier._buildEnabled) return false;
+  if (ref.watch(helperInvitesAvailableProvider)) return true;
+  final view = ref.watch(helpersProvider).view;
+  return view.helpers.isNotEmpty || view.invites.any((i) => !i.expired);
+}
+
 /// One engine call's result: its JSON, or an error code.
 class HelperResult {
   const HelperResult._(this.data, this.error);

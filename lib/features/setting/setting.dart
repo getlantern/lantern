@@ -76,7 +76,7 @@ class _SettingState extends ConsumerState<Setting>
     final unboundedAvailable = ref
         .watch(featureFlagProvider)
         .getBool(FeatureFlag.unbounded);
-    final helperInvites = ref.watch(helperInvitesAvailableProvider);
+    final helperInvites = ref.watch(helperEntryVisibleProvider);
 
     final hasProSession = hasRegisteredProAccount(user);
 

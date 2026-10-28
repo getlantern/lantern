@@ -682,6 +682,48 @@ void main() {
     }
   });
 
+  group('helperEntryVisibleProvider with the flag off', () {
+    test('shows the entry while this device has helpers to manage', () async {
+      svc.answers = {
+        'unlock': _view(),
+        'refresh': _view(helpers: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final c = container();
+      await c.read(helpersProvider.notifier).refresh();
+      expect(c.read(helperInvitesAvailableProvider), isFalse);
+      expect(c.read(helperEntryVisibleProvider), isTrue);
+    });
+
+    test('shows the entry while this device has an invite out', () async {
+      svc.answers = {
+        'unlock': _view(),
+        'refresh': _view(invites: '[{"id":"i1","state":"claimed"}]'),
+      };
+      final c = container();
+      await c.read(helpersProvider.notifier).refresh();
+      expect(c.read(helperEntryVisibleProvider), isTrue);
+    });
+
+    test('hides it, without the keystore, when there is nothing', () async {
+      final c = container();
+      expect(c.read(helperEntryVisibleProvider), isFalse);
+      expect(keys.reads, 0);
+      expect(svc.calls, isEmpty);
+      expect(storage.values.containsKey(HelpersNotifier.usedKey), isFalse);
+    });
+
+    test('hides it in a stealth build', () async {
+      svc.answers = {
+        'unlock': _view(),
+        'refresh': _view(helpers: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final c = container();
+      await c.read(helpersProvider.notifier).refresh();
+      HelpersNotifier.debugBuildEnabled = false;
+      expect(c.read(helperEntryVisibleProvider), isFalse);
+    });
+  });
+
   test('polling starts and stops with needsPolling', () async {
     HelpersNotifier.pollInterval = const Duration(milliseconds: 10);
     WidgetsBinding.instance.handleAppLifecycleStateChanged(
