@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_loggy/flutter_loggy.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:loggy/loggy.dart';
 import 'package:path/path.dart' as p;
@@ -64,13 +65,13 @@ class DebugPrintLoggyPrinter extends LoggyPrinter {
   @override
   void onLog(LogRecord record) {
     debugPrint(
-      '[${record.level.name}] ${record.loggerName}: ${record.message}',
+      '[${record.level.name}] ${record.loggerName}: ${redactHelperTags(record.message)}',
     );
     if (record.stackTrace != null) {
-      debugPrint('StackTrace:\n${record.stackTrace}');
+      debugPrint('StackTrace:\n${redactHelperTags('${record.stackTrace}')}');
     }
     if (record.error != null) {
-      debugPrint('Error:\n${record.error}');
+      debugPrint('Error:\n${redactHelperTags('${record.error}')}');
     }
   }
 }
@@ -234,7 +235,7 @@ class FileLogPrinter extends LoggyPrinter {
       buffer.write("Stack: ${record.stackTrace}");
     }
 
-    final line = buffer.toString();
+    final line = redactHelperTags(buffer.toString());
     try {
       _controller.add('$line\n');
     } catch (_) {
