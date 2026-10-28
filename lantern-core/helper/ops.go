@@ -183,7 +183,8 @@ func (e *Engine) createInvite(ctx context.Context, args []byte) (any, error) {
 }
 
 func (e *Engine) refresh(ctx context.Context) (any, error) {
-	changed := false
+	// Still dirty after Call's retry: save at the end as if changed.
+	changed := e.dirty
 	cutoff := e.now().Add(-InviteTTL)
 	for _, inv := range slices.Clone(e.st.Invites) {
 		var st inviteStatus

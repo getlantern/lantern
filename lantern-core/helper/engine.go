@@ -69,6 +69,10 @@ type Engine struct {
 	// consuming the claim that found it, and only this flag still says so.
 	// Memory only, like helpersPending.
 	newHelpingPending bool
+	// dirty is set when a save failed, so the state in memory holds changes
+	// (a merged pairing, a consumed claim) the file does not. Every op
+	// retries the save first.
+	dirty bool
 }
 
 // NewEngine returns an engine that keeps its state in dir.
@@ -90,6 +94,9 @@ func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, erro
 	}
 	if e.key == nil {
 		return nil, errCode(CodeLocked)
+	}
+	if e.dirty {
+		_ = e.save()
 	}
 	var out any
 	var err error
@@ -147,6 +154,7 @@ func (e *Engine) unlock(args []byte) ([]byte, error) {
 	}
 	e.key = key
 	e.reset = false
+	e.dirty = false
 	if err := e.load(); err != nil {
 		// Stay locked, so nothing saves over a file that could not be read
 		// or moved aside.

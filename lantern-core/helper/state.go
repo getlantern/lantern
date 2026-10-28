@@ -151,8 +151,16 @@ func (e *Engine) open(data []byte) (state, bool) {
 	return st, true
 }
 
-// save seals the state and replaces the file atomically, owner-only.
+// save seals the state and replaces the file atomically, owner-only. A
+// failure marks the state dirty, so the next op saves it again even when it
+// changes nothing itself.
 func (e *Engine) save() error {
+	err := e.write()
+	e.dirty = err != nil
+	return err
+}
+
+func (e *Engine) write() error {
 	pt, err := json.Marshal(e.st)
 	if err != nil {
 		return errCode(CodeInternal)

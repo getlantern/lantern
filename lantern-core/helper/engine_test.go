@@ -817,3 +817,28 @@ func TestNewHelpingSurvivesAFailedEndAll(t *testing.T) {
 	assert.Equal(t, "Bo", list(v, "helping")[0]["name"])
 	assert.Equal(t, false, call(t, ali, "view", nil)["new_helping"], "once only")
 }
+
+// TestAFailedSaveIsRetriedByTheNextOp: a refresh merges a new pairing to
+// help in, consuming its claim and the one-time inviter blob, then cannot
+// save. The next op, a read-only view, saves it, so a restart keeps it.
+func TestAFailedSaveIsRetriedByTheNextOp(t *testing.T) {
+	cloud := newFakeCloud()
+	dir := t.TempDir()
+	ali := newTestEngine(t, cloud, "ali", dir)
+	approvedClaim(t, cloud, ali)
+	stateFilePath := filepath.Join(dir, stateFile)
+	require.NoError(t, os.Remove(stateFilePath))
+	require.NoError(t, os.MkdirAll(filepath.Join(stateFilePath, "x"), 0o700))
+	assert.Equal(t, CodeInternal, callErr(t, ali, "refresh", nil))
+	assert.Equal(t, CodeInternal, callErr(t, ali, "refresh", nil), "a refresh while still dirty saves too")
+	require.NoError(t, os.RemoveAll(stateFilePath))
+
+	call(t, ali, "view", nil)
+	again := newTestEngine(t, cloud, "ali", dir)
+	require.Len(t, again.st.Pairings, 1)
+	p := again.st.Pairings[0]
+	assert.Equal(t, RoleVolunteer, p.Role)
+	assert.Equal(t, "Bo", p.Name)
+	assert.NotEmpty(t, p.InviteHash)
+	assert.Empty(t, again.st.Claims)
+}
