@@ -259,11 +259,25 @@ class ShareNotifier extends _$ShareNotifier {
   /// Picks the sharing mode from the network and starts it: direct (SmC)
   /// where a manual port or UPnP gateway allows, Unbounded otherwise. The
   /// spec's "Mode": direct whenever it works, with no picker.
-  Future<void> _startAuto(WidgetRef widgetRef) async {
+  ///
+  /// [mayStart], when given, is asked again right before the backend is
+  /// enabled, after the port and UPnP checks; false abandons the start.
+  Future<void> _startAuto(
+    WidgetRef widgetRef, {
+    bool Function()? mayStart,
+  }) async {
+    Future<void> start(ShareMode mode) async {
+      if (mayStart != null && !mayStart()) {
+        state = state.copyWith(probing: false);
+        return;
+      }
+      await _start(widgetRef, mode);
+    }
+
     // The iOS network extension cannot carry the peer proxy's second sing-box
     // instance, so the backend refuses SmC there.
     if (PlatformUtils.isIOS) {
-      await _start(widgetRef, ShareMode.unbounded);
+      await start(ShareMode.unbounded);
       return;
     }
 
@@ -273,7 +287,7 @@ class ShareNotifier extends _$ShareNotifier {
         .getPeerManualPort();
     if (!ref.mounted) return;
     if (manualPortRes.fold((_) => 0, (p) => p) > 0) {
-      await _start(widgetRef, ShareMode.smc);
+      await start(ShareMode.smc);
       return;
     }
 
@@ -281,10 +295,7 @@ class ShareNotifier extends _$ShareNotifier {
     final probeRes = await widgetRef.read(lanternServiceProvider).probeUPnP();
     if (!ref.mounted) return;
     final upnpAvailable = probeRes.fold((_) => false, (v) => v);
-    await _start(
-      widgetRef,
-      upnpAvailable ? ShareMode.smc : ShareMode.unbounded,
-    );
+    await start(upnpAvailable ? ShareMode.smc : ShareMode.unbounded);
   }
 
   /// A helper approval whose start was held back because this device's
@@ -300,23 +311,30 @@ class ShareNotifier extends _$ShareNotifier {
   /// approval is then kept, and [retryPendingHelperStart] starts it once the
   /// country is known and allowed. The user can still turn sharing on.
   Future<void> startForHelper(WidgetRef widgetRef) async {
-    // An approval can be counted from a view older than the one applied,
-    // after the pairing already ended: start only for someone still helped.
-    if (ref.read(helpersProvider).view.helping.isEmpty) {
-      _helperStartPending = false;
-      return;
-    }
-    if (!helperAutoStartAllowed(CountryCode.current)) {
-      _helperStartPending = true;
-      return;
-    }
+    if (!_helperStartAllowed()) return;
     // Held until a start actually proceeds: one skipped because another
     // change is in flight or sharing is already up is retried later.
     _helperStartPending = true;
     await _autoStartWith(() {
       _helperStartPending = false;
-      return _startAuto(widgetRef);
+      return _startAuto(widgetRef, mayStart: _helperStartAllowed);
     });
+  }
+
+  /// Whether a helper start may run now. Asked again after the port and UPnP
+  /// checks, since the country or the pairing can change while they run.
+  bool _helperStartAllowed() {
+    // An approval can be counted from a view older than the one applied,
+    // after the pairing already ended: start only for someone still helped.
+    if (ref.read(helpersProvider).view.helping.isEmpty) {
+      _helperStartPending = false;
+      return false;
+    }
+    if (!helperAutoStartAllowed(CountryCode.current)) {
+      _helperStartPending = true;
+      return false;
+    }
+    return true;
   }
 
   /// Retries a helper start held back by [startForHelper]. Called when the

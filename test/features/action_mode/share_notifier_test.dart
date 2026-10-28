@@ -51,9 +51,13 @@ class _FakeService implements LanternService {
     return right(0);
   }
 
+  /// Runs during the UPnP probe, as a country change can.
+  void Function()? onProbe;
+
   @override
   Future<Either<Failure, bool>> probeUPnP() async {
     calls.add('upnp');
+    onProbe?.call();
     return right(false);
   }
 
@@ -363,6 +367,35 @@ void main() {
       service.calls.clear();
       await notifier.retryPendingHelperStart(ref);
       expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+    });
+
+    testWidgets('a country that becomes unknown during the network checks '
+        'stops the start before the backend', (tester) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      service.onProbe = () => CountryCode.update('');
+      await notifier.startForHelper(ref);
+      expect(service.calls, ['manual_port', 'upnp']);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.probing, isFalse);
+      service.onProbe = null;
+      service.calls.clear();
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+      expect(notifier.state.active, isTrue);
+    });
+
+    testWidgets('a pairing that ends during the network checks stops the '
+        'start before the backend', (tester) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester);
+      service.onProbe = () =>
+          (ref.read(helpersProvider.notifier) as _Helpers).helpNobody();
+      await notifier.startForHelper(ref);
+      expect(service.calls, ['manual_port', 'upnp']);
+      expect(notifier.state.probing, isFalse);
     });
 
     testWidgets('a held-back start stays held in a censored country', (
