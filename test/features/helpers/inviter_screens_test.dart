@@ -24,6 +24,7 @@ import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/setting.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:share_plus/share_plus.dart';
 
 class _Helpers extends HelpersNotifier {
   _Helpers(this.initial);
@@ -327,6 +328,38 @@ void main() {
         'Sara',
         'https://lantern.io/help/#BBBB',
       ]),
+    );
+  });
+
+  testWidgets('Share anchors the share sheet on the button', (tester) async {
+    final shared = <ShareParams>[];
+    debugShareInvite = (p) async => shared.add(p);
+    addTearDown(() => debugShareInvite = null);
+    final fake = _Helpers(
+      HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          invites: [
+            HelperInviteView(
+              id: 'i2',
+              state: 'pending',
+              link: 'https://lantern.io/help/#SECRET',
+              expiresUnix: _now() + 3600,
+            ),
+          ],
+        ),
+      ),
+    );
+    await _pump(tester, fake, const InviteShare(inviteId: 'i2'));
+    await tester.tap(find.byKey(const Key('invite.share')));
+    await tester.pump();
+    final origin = shared.single.sharePositionOrigin;
+    expect(origin, isNotNull);
+    expect(origin!.isEmpty, isFalse);
+    expect(origin, tester.getRect(find.byKey(const Key('invite.share'))));
+    expect(
+      shared.single.text,
+      inviteShareMessage(fake.state.view, fake.state.view.invites.single),
     );
   });
 

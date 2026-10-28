@@ -35,6 +35,23 @@ String inviteShareMessage(HelpersView view, HelperInviteView invite) =>
 @visibleForTesting
 bool? debugCopyAsAndroid;
 
+/// Lets a test see what [shareInvite] would hand the share sheet.
+@visibleForTesting
+Future<void> Function(ShareParams params)? debugShareInvite;
+
+/// Opens the share sheet anchored on [anchor]'s widget. iPad presents it as
+/// a popover and throws without a non-empty origin.
+Future<void> shareInvite(BuildContext anchor, String message) async {
+  final box = anchor.findRenderObject() as RenderBox?;
+  final origin = box != null && box.hasSize && !box.size.isEmpty
+      ? box.localToGlobal(Offset.zero) & box.size
+      : const Rect.fromLTWH(0, 0, 1, 1);
+  final params = ShareParams(text: message, sharePositionOrigin: origin);
+  final share = debugShareInvite;
+  if (share != null) return share(params);
+  await SharePlus.instance.share(params);
+}
+
 /// One invite: share it as a link or a QR code, then compare codes once a
 /// friend opens it. It reads the invite from the engine's view by ID, so the
 /// link never travels in route arguments.
@@ -99,10 +116,11 @@ class InviteShare extends ConsumerWidget {
           const SizedBox(height: 24),
           KeyedSubtree(
             key: const Key('invite.share'),
-            child: PrimaryButton(
-              label: 'invite_share_button'.i18n,
-              onPressed: () =>
-                  SharePlus.instance.share(ShareParams(text: message)),
+            child: Builder(
+              builder: (buttonContext) => PrimaryButton(
+                label: 'invite_share_button'.i18n,
+                onPressed: () => shareInvite(buttonContext, message),
+              ),
             ),
           ),
           const SizedBox(height: 8),
