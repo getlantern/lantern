@@ -1,0 +1,81 @@
+name: Translate strings
+
+# Runs when en.po changes on main: translates the new or changed strings into
+# every locale under assets/locales and commits the result straight to main.
+# The push uses GITHUB_TOKEN, so it triggers no further workflows.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/locales/en.po'
+  workflow_dispatch:
+    inputs:
+      base:
+        description: 'Commit to diff en.po against for changed strings (empty = fill gaps only)'
+        default: ''
+      locales:
+        description: 'Comma-separated locale codes (empty = all)'
+        default: ''
+      dry_run:
+        description: 'Produce the report only, commit nothing'
+        type: boolean
+        default: false
+
+concurrency:
+  group: translate-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE: ${{ github.event_name == 'push' && github.event.before || inputs.base }}
+      LOCALES: ${{ inputs.locales }}
+      DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the base commit for change detection
+        if: env.BASE != '' && env.BASE != '0000000000000000000000000000000000000000'
+        run: git fetch --depth=1 origin "$BASE" || echo "base $BASE not reachable; filling gaps only"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -q anthropic
+
+      - name: Translate
+        id: translate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          args=(--out build/translate)
+          [ -n "$BASE" ] && args+=(--base "$BASE")
+          [ -n "$LOCALES" ] && args+=(--locales "$LOCALES")
+          [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
+          python tools/localization/translate.py "${args[@]}"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: translation-report
+          path: build/translate/
+          if-no-files-found: ignore
+
+      - name: Commit translations
+        if: steps.translate.outputs.changed == 'true' && env.DRY_RUN != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/locales/*.po
+          git commit -F build/translate/commit_message.txt
+          # main may have moved while the models ran; rebase once and push
+          git pull --rebase origin main
+          git push origin HEAD:main

@@ -1373,6 +1373,39 @@ pubget:
 find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
+# Translate en.po changes into every locale with Claude (tools/localization). Needs ANTHROPIC_API_KEY.
+TRANSLATE_VENV := $(BUILD_DIR)/translate-venv
+TRANSLATE_OUT  := $(BUILD_DIR)/translate
+TRANSLATE_FLAGS = --out $(TRANSLATE_OUT) \
+	$(if $(TRANSLATE_LOCALES),--locales $(TRANSLATE_LOCALES)) \
+	$(if $(TRANSLATE_LIMIT),--limit $(TRANSLATE_LIMIT)) \
+	$(if $(TRANSLATE_BASE),--base $(TRANSLATE_BASE)) \
+	$(TRANSLATE_ARGS)
+
+.PHONY: translate translate-plan translate-dry-run translate-report translate-audit translate-test
+translate: $(TRANSLATE_VENV)/bin/python
+	$(TRANSLATE_VENV)/bin/python tools/localization/translate.py $(TRANSLATE_FLAGS)
+
+translate-dry-run: $(TRANSLATE_VENV)/bin/python
+	$(TRANSLATE_VENV)/bin/python tools/localization/translate.py --dry-run $(TRANSLATE_FLAGS)
+
+translate-plan:
+	$(PYTHON) tools/localization/translate.py --plan $(TRANSLATE_FLAGS)
+
+translate-report:
+	@test -f $(TRANSLATE_OUT)/report.html || { echo "no report yet; run make translate-dry-run first"; exit 1; }
+	open $(TRANSLATE_OUT)/report.html 2>/dev/null || xdg-open $(TRANSLATE_OUT)/report.html
+
+translate-audit:
+	$(PYTHON) tools/localization/translate.py --audit --out $(TRANSLATE_OUT)
+
+translate-test:
+	cd tools/localization && $(PYTHON) -m unittest test_translate -v
+
+$(TRANSLATE_VENV)/bin/python:
+	$(PYTHON) -m venv $(TRANSLATE_VENV)
+	$(TRANSLATE_VENV)/bin/pip install -q anthropic
+
 # flutter clean is what drops .dart_tool, where Flutter keeps its build stamps.
 # Removing the outputs under $(BUILD_DIR) without it leaves Flutter believing
 # those targets are still satisfied, so it skips regenerating them: the

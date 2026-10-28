@@ -1,0 +1,65 @@
+# Settings for tools/localization/translate.py. Edit and commit; the next run
+# picks it up. The set of locales is whatever .po files exist in assets/locales;
+# this file only describes them.
+
+[models]
+translate = "claude-opus-5-5"
+review = "claude-fable-5-1"
+backtranslate = "claude-sonnet-5-5"
+
+[run]
+batch_size = 40                  # strings per model call; halves automatically on overflow
+workers = 6                      # locales translated concurrently
+max_tokens = 8192
+examples = 10                    # existing translations shown to the translator for style
+apply_fix_min_confidence = 0.8   # reviewer fixes below this are reported, not applied
+low_confidence = 0.7             # a pass below this is written but flagged in the report
+
+[glossary]
+# Kept verbatim in every locale unless [glossary.aliases] names the accepted local form.
+keep = ["Lantern", "Action Mode", "VPN", "WebRTC", "Wi-Fi", "Android", "iOS", "macOS",
+        "Windows", "Linux", "Google Play", "App Store", "Telegram", "WhatsApp", "Signal", "Tor"]
+# A translation identical to its English source is fine for these (plus everything in keep).
+allow_identical = ["Lantern Pro", "Pro", "OK", "Email", "E-mail", "PIN"]
+
+[glossary.aliases]
+zh-Hans = { Lantern = "蓝灯" }
+bn = { VPN = "ভিপিএন" }
+
+# Allowed target/source length ratio by script class, from the existing files'
+# 5th and 95th percentiles with headroom.
+[length]
+default = [0.4, 3.0]
+cjk = [0.15, 1.6]
+compact = [0.3, 2.5]      # Thai, Burmese: no inter-word spaces
+indic = [0.5, 3.5]        # Devanagari, Bengali: run long
+
+# name, rtl, script class per locale code (the .po file stem).
+[locales]
+ar = { name = "Arabic", rtl = true }
+bn = { name = "Bengali (Bangladesh)", script = "indic" }
+es = { name = "Spanish (Latin America)" }
+es-cu = { name = "Spanish (Cuba)" }
+fa = { name = "Persian (Iran)", rtl = true }
+fr = { name = "French (France)" }
+fr-ca = { name = "French (Canada)" }
+hi = { name = "Hindi", script = "indic" }
+ms = { name = "Malay (Malaysia)" }
+my = { name = "Burmese", script = "compact" }
+ps = { name = "Pashto", rtl = true }
+pt_BR = { name = "Portuguese (Brazil)" }
+ru = { name = "Russian" }
+th = { name = "Thai", script = "compact" }
+tk = { name = "Turkmen" }
+tr = { name = "Turkish" }
+ur = { name = "Urdu (Pakistan)", rtl = true }
+ur-in = { name = "Urdu (India)", rtl = true }
+vi = { name = "Vietnamese" }
+zh-Hans = { name = "Chinese (Simplified)", script = "cjk" }
+zh-Hant = { name = "Chinese (Traditional, Taiwan)", script = "cjk" }
+
+# --audit: where to look for key references, and key prefixes that are built
+# dynamically in code (so the audit does not report them as unused).
+[audit]
+source_dirs = ["lib"]
+dynamic_prefixes = []
