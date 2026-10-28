@@ -3,6 +3,7 @@ package helper
 import (
 	"errors"
 	"io/fs"
+	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,4 +45,24 @@ func TestWriteAndCloseReportsCloseErrors(t *testing.T) {
 	writeFails := &fakeSyncFile{writeErr: writeErr}
 	assert.ErrorIs(t, writeAndClose(writeFails, []byte("x")), writeErr)
 	assert.Equal(t, 1, writeFails.closed)
+}
+
+type fakeDir struct {
+	syncErr error
+	closed  int
+}
+
+func (d *fakeDir) Sync() error  { return d.syncErr }
+func (d *fakeDir) Close() error { d.closed++; return nil }
+
+func TestSyncDirIgnoresOnlyUnsupported(t *testing.T) {
+	assert.NoError(t, syncDir(t.TempDir()))
+	for _, err := range []error{nil, syscall.EINVAL, syscall.ENOTSUP, errors.ErrUnsupported} {
+		d := &fakeDir{syncErr: err}
+		assert.NoError(t, syncAndCloseDir(d), "%v", err)
+		assert.Equal(t, 1, d.closed)
+	}
+	d := &fakeDir{syncErr: syscall.EIO}
+	assert.ErrorIs(t, syncAndCloseDir(d), syscall.EIO)
+	assert.Equal(t, 1, d.closed)
 }

@@ -8,8 +8,10 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"golang.org/x/crypto/chacha20poly1305"
@@ -178,7 +180,39 @@ func (e *Engine) save() error {
 	if err := os.Rename(tmp, filepath.Join(e.dir, stateFile)); err != nil {
 		return errCode(CodeInternal)
 	}
+	if err := syncDir(e.dir); err != nil {
+		return errCode(CodeInternal)
+	}
 	return nil
+}
+
+// syncDir flushes dir, so a rename into it survives a crash. Platforms that
+// cannot sync a directory (Windows, and some filesystems elsewhere) skip it.
+func syncDir(dir string) error {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	return syncAndCloseDir(d)
+}
+
+type syncCloser interface {
+	Sync() error
+	Close() error
+}
+
+func syncAndCloseDir(d syncCloser) error {
+	err := d.Sync()
+	if cerr := d.Close(); err == nil {
+		err = cerr
+	}
+	if errors.Is(err, syscall.EINVAL) || errors.Is(err, syscall.ENOTSUP) || errors.Is(err, errors.ErrUnsupported) {
+		return nil
+	}
+	return err
 }
 
 // writeSynced writes data to path, owner-only even if path already existed
