@@ -10,6 +10,7 @@ import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import 'package:lantern/features/setting/appearance.dart'
@@ -24,6 +25,7 @@ enum _SettingType {
   authorizeDevice,
   vpnSetting,
   actionModeSetting,
+  getHelp,
   language,
   widget,
   appearance,
@@ -74,6 +76,7 @@ class _SettingState extends ConsumerState<Setting>
     final unboundedAvailable = ref
         .watch(featureFlagProvider)
         .getBool(FeatureFlag.unbounded);
+    final helperInvites = ref.watch(helperInvitesAvailableProvider);
 
     final hasProSession = hasRegisteredProAccount(user);
 
@@ -177,6 +180,15 @@ class _SettingState extends ConsumerState<Setting>
                     icon: AppImagePaths.handshake,
                     onPressed: () =>
                         settingMenuTap(_SettingType.actionModeSetting),
+                  ),
+                ],
+                if (helperInvites) ...[
+                  DividerSpace(),
+                  AppTile(
+                    tileKey: const Key('setting.get_help_tile'),
+                    label: 'helpers_title'.i18n,
+                    icon: AppImagePaths.handshake,
+                    onPressed: () => settingMenuTap(_SettingType.getHelp),
                   ),
                 ],
                 DividerSpace(),
@@ -344,6 +356,9 @@ class _SettingState extends ConsumerState<Setting>
         break;
       case _SettingType.actionModeSetting:
         appRouter.push(ActionModeSetting());
+        break;
+      case _SettingType.getHelp:
+        appRouter.push(GetHelp());
         break;
       case _SettingType.browserUnbounded:
         // TODO: Handle this case.

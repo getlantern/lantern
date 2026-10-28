@@ -164,6 +164,10 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  /// Android only: copies [text] with ClipDescription's IS_SENSITIVE extra.
+  Future<void> copySensitiveText(String text) =>
+      _methodChannel.invokeMethod('copySensitiveText', {'text': text});
+
   /// Android only: opens the system share sheet for [paths] with read-only
   /// URI grants (share_plus grants read+write to every resolvable package).
   Future<void> shareFiles(

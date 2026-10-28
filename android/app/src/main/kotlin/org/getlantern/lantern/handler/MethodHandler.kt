@@ -1,6 +1,8 @@
 package org.getlantern.lantern.handler
 
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -11,6 +13,7 @@ import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.PersistableBundle
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -154,6 +157,7 @@ enum class Methods(val method: String) {
     IsUnboundedEnabled("isUnboundedEnabled"),
     ProbeUPnP("probeUPnP"),
     HelperCall("helperCall"),
+    CopySensitiveText("copySensitiveText"),
 
     // Telemetry
     IsTelemetryEnabled("isTelemetryEnabled"),
@@ -1477,6 +1481,25 @@ class MethodHandler : FlutterPlugin,
                     val op = call.argument<String>("op") ?: error("Missing op")
                     val args = call.argument<String>("args") ?: "{}"
                     Mobile.helperCall(op, args)
+                }
+            }
+
+            // Copies text marked sensitive, so Android 13+ keeps it out of the
+            // clipboard preview and keyboards' clipboard history. Used for
+            // helper invite links, which are secrets. setExtras needs API 24,
+            // the app's minSdk; older releases ignore the flag.
+            Methods.CopySensitiveText.method -> {
+                try {
+                    val text = call.argument<String>("text") ?: error("Missing text")
+                    val clip = ClipData.newPlainText("", text)
+                    clip.description.extras = PersistableBundle().apply {
+                        putBoolean("android.content.extra.IS_SENSITIVE", true)
+                    }
+                    val cm = appContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    cm.setPrimaryClip(clip)
+                    result.success(null)
+                } catch (e: Exception) {
+                    result.error("copy_sensitive_text", e.localizedMessage, null)
                 }
             }
 

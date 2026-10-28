@@ -2171,3 +2171,112 @@ msgstr "This device can't store names securely, so helping friends is off. On Li
 
 msgid "helper_error_keystore_reset"
 msgstr "This device's secure storage was reset, so the names of your helpers and invites could not be read. Your helpers still work; invite them again to see their names."
+
+msgid "helper_error_copy"
+msgstr "Couldn't copy the link. Use Share link instead."
+
+# Helper invites: the inviter's side. A "helper" is a friend abroad whose
+# internet connection this user borrows through Lantern.
+msgid "helpers_title"
+msgstr "Get help from a friend"
+
+msgid "helpers_intro"
+msgstr "Invite someone you trust who lives somewhere without censorship. Lantern can connect you through their internet."
+
+msgid "invite_someone"
+msgstr "Invite someone to help me"
+
+msgid "helpers_your_name_label"
+msgstr "Your name, as your friend knows you"
+
+msgid "helpers_your_name_hint"
+msgstr "For example, Sara"
+
+msgid "helpers_list_title"
+msgstr "Your helpers"
+
+msgid "helpers_empty"
+msgstr "No one is helping you yet."
+
+msgid "helpers_nudge_second"
+msgstr "If your helper's computer goes offline, so does your connection through it. Invite a second friend to stay connected."
+
+msgid "helper_online"
+msgstr "Online"
+
+msgid "helper_offline"
+msgstr "Offline"
+
+msgid "helper_unnamed"
+msgstr "Your helper"
+
+# %s is the helper's name.
+msgid "helper_remove_confirm_title"
+msgstr "Remove %s?"
+
+# %s is the helper's name.
+msgid "helper_remove_confirm_body"
+msgstr "%s will stop helping you. You can invite them again later."
+
+msgid "helpers_remove_all"
+msgstr "Remove all helpers"
+
+msgid "helpers_remove_all_body"
+msgstr "Every helper stops helping you, and their names are erased from this device."
+
+msgid "invite_share_title"
+msgstr "Send your invite"
+
+msgid "invite_share_body"
+msgstr "Send this link to one person you trust. It works once and expires in 48 hours."
+
+# The text shared with the link. The first %s is the user's name; the second is the link.
+msgid "invite_share_message"
+msgstr "%s wants your help staying online. %s"
+
+msgid "invite_share_button"
+msgstr "Share link"
+
+msgid "invite_copy_link"
+msgstr "Copy link"
+
+msgid "invite_link_copied"
+msgstr "Link copied"
+
+msgid "invite_qr_hint"
+msgstr "Your friend can scan this with Lantern."
+
+msgid "invite_waiting"
+msgstr "Waiting for your friend to open the link"
+
+# %s is a number of hours.
+msgid "invite_expires"
+msgstr "Expires in %s hours"
+
+msgid "invite_forget"
+msgstr "Cancel invite"
+
+msgid "invite_gone"
+msgstr "This invite has been used or has expired."
+
+msgid "invite_claimed_title"
+msgstr "Someone opened your invite"
+
+msgid "invite_compare_codes"
+msgstr "Compare codes"
+
+# %s is the name the person typed.
+msgid "approve_code_intro"
+msgstr "Ask %s which code their Lantern shows. Compare it on a call or in a different app, not in the chat you sent the link in."
+
+msgid "approve_code_label"
+msgstr "Code on this device"
+
+msgid "approve_button"
+msgstr "Codes match: approve"
+
+msgid "reject_button"
+msgstr "Codes don't match: reject"
+
+msgid "reject_explainer"
+msgstr "If the codes are different, someone else opened your link. Reject them and send a new invite."
