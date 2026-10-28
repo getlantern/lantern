@@ -24,14 +24,17 @@ bool helperInvitesAvailable(Ref ref) =>
 
 /// Whether settings offer "Get help from a friend": while helper invites are
 /// available, and after the flag goes off while this device still has
-/// helpers or invites to manage. Reads only the notifier's state, which stays
-/// empty, without the keystore, on a device that never used them.
+/// helpers or invites to manage, or may have them: it used helper invites
+/// and no view has loaded yet. Reads only the notifier's state and the used
+/// mark in local storage, never the keystore, so a device that never used
+/// them stays hidden.
 @riverpod
 bool helperEntryVisible(Ref ref) {
   if (!HelpersNotifier._buildEnabled) return false;
   if (ref.watch(helperInvitesAvailableProvider)) return true;
-  final view = ref.watch(helpersProvider).view;
-  return view.helpers.isNotEmpty || view.invites.any((i) => !i.expired);
+  final s = ref.watch(helpersProvider);
+  if (!s.viewLoaded && ref.read(helpersProvider.notifier).used) return true;
+  return s.view.helpers.isNotEmpty || s.view.invites.any((i) => !i.expired);
 }
 
 /// One engine call's result: its JSON, or an error code.
@@ -73,6 +76,7 @@ class HelpersState {
     this.helpOthers = true,
     this.helpingApprovals = 0,
     this.keystoreReset = false,
+    this.viewLoaded = false,
   });
 
   final HelpersView view;
@@ -91,6 +95,10 @@ class HelpersState {
   /// stays set until the UI calls [HelpersNotifier.acknowledgeKeystoreReset].
   final bool keystoreReset;
 
+  /// Whether a view from the engine has been applied: until then [view] is
+  /// the empty initial one, not what this device holds.
+  final bool viewLoaded;
+
   HelpersState copyWith({
     HelpersView? view,
     String? error,
@@ -98,12 +106,14 @@ class HelpersState {
     bool? helpOthers,
     int? helpingApprovals,
     bool? keystoreReset,
+    bool? viewLoaded,
   }) => HelpersState(
     view: view ?? this.view,
     error: clearError ? null : (error ?? this.error),
     helpOthers: helpOthers ?? this.helpOthers,
     helpingApprovals: helpingApprovals ?? this.helpingApprovals,
     keystoreReset: keystoreReset ?? this.keystoreReset,
+    viewLoaded: viewLoaded ?? this.viewLoaded,
   );
 }
 
@@ -219,7 +229,7 @@ class HelpersNotifier extends _$HelpersNotifier {
     if (seq >= _applied) {
       _applied = seq;
       final view = HelpersView.fromJson(r.data);
-      state = state.copyWith(view: view, clearError: true);
+      state = state.copyWith(view: view, clearError: true, viewLoaded: true);
       _schedulePoll(view);
     }
     _oneShots(r.data, refetch: refetch);

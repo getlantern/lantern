@@ -13,6 +13,7 @@ import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/helpers/approve_helper_sheet.dart';
 import 'package:lantern/features/helpers/get_help.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
@@ -67,6 +68,15 @@ class _Helpers extends HelpersNotifier {
       '{"invite_id":"i9","link":"https://lantern.io/help/#SECRET"}',
     );
   }
+}
+
+class _Storage implements LocalStorageService {
+  _Storage({this.used = false});
+  final bool used;
+  @override
+  bool? getBool(String key) => key == HelpersNotifier.usedKey ? used : null;
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _Router extends AppRouter {
@@ -473,9 +483,16 @@ void main() {
         await tester.pump();
       }
 
+      sl.registerSingleton<LocalStorageService>(_Storage());
       await pumpSetting(false);
       expect(find.byKey(const Key('setting.get_help_tile')), findsNothing);
       await pumpSetting(true);
+      expect(find.byKey(const Key('setting.get_help_tile')), findsOneWidget);
+      // Flag off on a device that used helper invites, before any view has
+      // loaded: still offered, so its helpers can be managed.
+      sl.unregister<LocalStorageService>();
+      sl.registerSingleton<LocalStorageService>(_Storage(used: true));
+      await pumpSetting(false);
       expect(find.byKey(const Key('setting.get_help_tile')), findsOneWidget);
     });
   });

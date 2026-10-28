@@ -57,24 +57,30 @@ String _$helperInvitesAvailableHash() =>
 
 /// Whether settings offer "Get help from a friend": while helper invites are
 /// available, and after the flag goes off while this device still has
-/// helpers or invites to manage. Reads only the notifier's state, which stays
-/// empty, without the keystore, on a device that never used them.
+/// helpers or invites to manage, or may have them: it used helper invites
+/// and no view has loaded yet. Reads only the notifier's state and the used
+/// mark in local storage, never the keystore, so a device that never used
+/// them stays hidden.
 
 @ProviderFor(helperEntryVisible)
 final helperEntryVisibleProvider = HelperEntryVisibleProvider._();
 
 /// Whether settings offer "Get help from a friend": while helper invites are
 /// available, and after the flag goes off while this device still has
-/// helpers or invites to manage. Reads only the notifier's state, which stays
-/// empty, without the keystore, on a device that never used them.
+/// helpers or invites to manage, or may have them: it used helper invites
+/// and no view has loaded yet. Reads only the notifier's state and the used
+/// mark in local storage, never the keystore, so a device that never used
+/// them stays hidden.
 
 final class HelperEntryVisibleProvider
     extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
   /// Whether settings offer "Get help from a friend": while helper invites are
   /// available, and after the flag goes off while this device still has
-  /// helpers or invites to manage. Reads only the notifier's state, which stays
-  /// empty, without the keystore, on a device that never used them.
+  /// helpers or invites to manage, or may have them: it used helper invites
+  /// and no view has loaded yet. Reads only the notifier's state and the used
+  /// mark in local storage, never the keystore, so a device that never used
+  /// them stays hidden.
   HelperEntryVisibleProvider._()
     : super(
         from: null,
@@ -109,7 +115,7 @@ final class HelperEntryVisibleProvider
 }
 
 String _$helperEntryVisibleHash() =>
-    r'fe8059600dcad3a23c34d90eac24d707110f4a26';
+    r'583159a4d2587bc65da4bdac79291d1494bbdca4';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
@@ -153,7 +159,7 @@ final class HelpersNotifierProvider
   }
 }
 
-String _$helpersNotifierHash() => r'ce363f65e27ca9aa0c9ce788e5ee35c869e4daff';
+String _$helpersNotifierHash() => r'0c5eb5ff0396001b200e7f5a0878fb16e8b616e4';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are

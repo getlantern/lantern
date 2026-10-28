@@ -777,6 +777,29 @@ void main() {
       expect(storage.values.containsKey(HelpersNotifier.usedKey), isFalse);
     });
 
+    test(
+      'shows the entry for a used device whose view failed to load',
+      () async {
+        storage.values[HelpersNotifier.usedKey] = true;
+        sl.unregister<HelperKeyStore>();
+        sl.registerSingleton<HelperKeyStore>(_Keys(fail: true));
+        final c = container();
+        expect(c.read(helperEntryVisibleProvider), isTrue, reason: 'before');
+        await c.read(helpersProvider.notifier).refresh();
+        expect(c.read(helpersProvider).viewLoaded, isFalse);
+        expect(c.read(helperEntryVisibleProvider), isTrue);
+      },
+    );
+
+    test('hides it for a used device whose view loaded empty', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {'unlock': _view(), 'refresh': _view()};
+      final c = container();
+      await c.read(helpersProvider.notifier).refresh();
+      expect(c.read(helpersProvider).viewLoaded, isTrue);
+      expect(c.read(helperEntryVisibleProvider), isFalse);
+    });
+
     test('hides it in a stealth build', () async {
       svc.answers = {
         'unlock': _view(),
