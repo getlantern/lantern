@@ -147,9 +147,15 @@ jobs:
         shell: bash
         env:
           ANDROID_INTEGRATION_TARGET: ${{ inputs.test_target || 'integration_test/android_all_e2e_test.dart' }}
+          INSTRUMENTATION_ARGS: ${{ inputs.instrumentation_args }}
         run: |
           set -euo pipefail
-          if [[ ! "$ANDROID_INTEGRATION_TARGET" =~ ^integration_test/[A-Za-z0-9_./-]+_test\.dart$ ]] ||
+          # The native capture test controls the VPN itself; a Dart test entry
+          # point would start a second test concurrently in the target app.
+          if [[ "$ANDROID_INTEGRATION_TARGET" == 'lib/main.dart' &&
+                "$INSTRUMENTATION_ARGS" == 'class=org.getlantern.lantern.SplitTunnelCaptureTest' ]]; then
+            :
+          elif [[ ! "$ANDROID_INTEGRATION_TARGET" =~ ^integration_test/[A-Za-z0-9_./-]+_test\.dart$ ]] ||
              [[ "$ANDROID_INTEGRATION_TARGET" == *".."* ]] ||
              [[ ! -f "$ANDROID_INTEGRATION_TARGET" ]]; then
             echo "::error::Invalid Android integration-test target: $ANDROID_INTEGRATION_TARGET"

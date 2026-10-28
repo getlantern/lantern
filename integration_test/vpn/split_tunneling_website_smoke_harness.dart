@@ -1,14 +1,20 @@
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/common/common.dart' show appRouter;
-import 'package:lantern/core/utils/url_utils.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/common/app_buttons.dart';
+import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/core/widgets/custom_app_bar.dart' as lantern_widgets;
 
 import '../utils/widget_wait_utils.dart';
+import 'split_tunneling_smoke_helpers.dart';
 import 'vpn_smoke_helpers.dart';
 
 const _vpnStateLabels = <VPNStatus, String>{
@@ -23,98 +29,6 @@ const _vpnStateLabels = <VPNStatus, String>{
 const _splitTunnelDomainInput = 'api64.ipify.org';
 const _splitTunnelEndpoint = 'https://api64.ipify.org';
 const _regularEndpoint = 'https://icanhazip.com';
-const _splitTunnelWindowsPublicPath =
-    r'C:\Users\Public\Lantern\data\split-tunnel.json';
-
-List<String> _splitTunnelRuleFileCandidates() {
-  final candidates = <String>{_splitTunnelWindowsPublicPath};
-
-  final programData = Platform.environment['ProgramData'];
-  if (programData != null && programData.isNotEmpty) {
-    candidates.add('$programData\\Lantern\\data\\split-tunnel.json');
-  }
-
-  final localAppData = Platform.environment['LOCALAPPDATA'];
-  if (localAppData != null && localAppData.isNotEmpty) {
-    candidates.add('$localAppData\\Lantern\\data\\split-tunnel.json');
-  }
-
-  return candidates.toList(growable: false);
-}
-
-Future<MapEntry<String, String>?> _readSplitTunnelConfigFromDisk() async {
-  if (!Platform.isWindows) {
-    return null;
-  }
-
-  for (final path in _splitTunnelRuleFileCandidates()) {
-    final file = File(path);
-    if (!await file.exists()) {
-      continue;
-    }
-    try {
-      final content = await file.readAsString();
-      return MapEntry(path, content);
-    } catch (error) {
-      debugPrint('Split tunnel config read failed at "$path": $error');
-    }
-  }
-
-  return null;
-}
-
-Future<void> _printSplitTunnelConfigSnapshot(String stage) async {
-  final snapshot = await _readSplitTunnelConfigFromDisk();
-  if (snapshot == null) {
-    debugPrint(
-      'Split tunnel config snapshot [$stage]: file not found. '
-      'Checked: ${_splitTunnelRuleFileCandidates().join(', ')}',
-    );
-    return;
-  }
-
-  final content = snapshot.value.trim();
-  debugPrint(
-    'Split tunnel config snapshot [$stage] (${snapshot.key}): '
-    '${content.isEmpty ? '(empty file)' : content}',
-  );
-}
-
-bool _splitTunnelConfigContainsDomainSuffix(
-  String content, {
-  required String domain,
-}) {
-  try {
-    final decoded = jsonDecode(content);
-    if (decoded is! Map<String, dynamic>) {
-      return false;
-    }
-  } catch (_) {
-    return false;
-  }
-
-  final normalizedContent = content.toLowerCase();
-  final normalizedDomain = domain.toLowerCase();
-  return normalizedContent.contains('"domain_suffix"') &&
-      normalizedContent.contains('"$normalizedDomain"');
-}
-
-Future<bool> _waitForDomainPersistenceInSplitTunnelConfig({
-  required String domain,
-  required Duration timeout,
-}) async {
-  final end = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(end)) {
-    final snapshot = await _readSplitTunnelConfigFromDisk();
-    final content = snapshot?.value ?? '';
-    if (_splitTunnelConfigContainsDomainSuffix(content, domain: domain)) {
-      return true;
-    }
-    await Future<void>.delayed(const Duration(seconds: 1));
-  }
-  return false;
-}
-
 Future<String?> _fetchPublicIpOnce(String endpoint) async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
   try {
@@ -332,196 +246,320 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
   bool enableIpCheck = false,
 }) async {
   final finders = VpnSmokeFinders();
-  final vpnStateFinders = VpnStateFinders(textLabels: _vpnStateLabels);
-
-  const splitSettingTileKey = Key('home.split_tunneling_setting');
-  const splitScreenKey = Key('split_tunneling.screen');
-  const splitToggleKey = Key('split_tunneling.enable_toggle');
-  const websitesTileKey = Key('split_tunneling.websites_tile');
-  const websiteScreenKey = Key('split_tunneling.website.screen');
-  const websiteInputKey = Key('split_tunneling.website.input');
-  const websiteAddButtonKey = Key('split_tunneling.website.add_button');
-
-  Finder websiteRow(String domain) =>
-      find.byKey(Key('split_tunneling.website.row.${domain.toLowerCase()}'));
-  Finder removeWebsiteButton(String domain) =>
-      find.byKey(Key('split_tunneling.website.remove.${domain.toLowerCase()}'));
-  final normalizedSplitTunnelDomain = UrlUtils.extractDomain(
-    _splitTunnelDomainInput,
-  );
-
+  final states = VpnStateFinders(textLabels: _vpnStateLabels);
+  final service = sl<LanternService>();
   await prepareVpnStartsDisconnectedForSmoke(
     tester,
     finders: finders,
-    vpnStateFinders: vpnStateFinders,
-    scenario: 'website split tunneling smoke',
+    vpnStateFinders: states,
+    scenario: 'split tunneling modes and websites',
   );
-
-  String? baselineSplitDomainIp;
-  String? baselineRegularDomainIp;
-  if (enableIpCheck) {
-    baselineSplitDomainIp = await _fetchPublicIpWithRetry(
-      endpoint: _splitTunnelEndpoint,
-      timeout: const Duration(seconds: 45),
-      reason: 'split-domain baseline before connect',
+  final container = ProviderScope.containerOf(
+    tester.element(finders.homeScreen),
+  );
+  Future<SplitTunnelState> readState() async => requireSplitTunnelResult(
+    await service.getSplitTunnelState(),
+    'Read authoritative split-tunnel state',
+  );
+  final original = await readState();
+  expect(
+    original.supported,
+    isTrue,
+    reason: 'The smoke requires the new daemon state API',
+  );
+  final wasSmart = requireSplitTunnelResult(
+    await service.isSmartRoutingEnabled(),
+    'Read routing mode',
+  );
+  addTearDown(() async {
+    requireSplitTunnelResult(
+      await service.stopVPN(),
+      'Disconnect after split-tunnel smoke',
     );
-    baselineRegularDomainIp = await _fetchPublicIpWithRetry(
-      endpoint: _regularEndpoint,
-      timeout: const Duration(seconds: 45),
-      reason: 'regular-domain baseline before connect',
+    await restoreSplitTunnelSnapshot(service, original);
+    requireSplitTunnelResult(
+      await service.setRoutingMode(wasSmart),
+      'Restore routing mode',
     );
-  }
+  });
 
-  await _tapFinder(
-    tester,
-    find.byKey(splitSettingTileKey),
-    timeout: const Duration(seconds: 20),
-    reason: 'Split tunneling setting tile was not found on home screen',
-  );
-
-  await WidgetWaitUtils.waitForFinder(
-    tester,
-    find.byKey(splitScreenKey),
-    timeout: const Duration(seconds: 20),
-    reason: 'Split tunneling screen did not open',
-  );
-
-  final websitesTileFinder = find.byKey(websitesTileKey);
-  if (websitesTileFinder.evaluate().isEmpty) {
+  Future<void> openSplit() async {
+    await _returnToHome(
+      tester,
+      homeScreen: finders.homeScreen,
+      vpnToggle: finders.vpnToggle,
+    );
     await _tapFinder(
       tester,
-      find.byKey(splitToggleKey),
+      find.byKey(const Key('home.split_tunneling_setting')),
       timeout: const Duration(seconds: 20),
-      reason: 'Split tunneling toggle was not found',
+      reason: 'Open split tunneling',
     );
-
     await WidgetWaitUtils.waitForFinder(
       tester,
-      websitesTileFinder,
+      find.byKey(const Key('split_tunneling.screen')),
       timeout: const Duration(seconds: 20),
-      reason: 'Websites split tunneling tile did not appear after enabling',
+      reason: 'Split tunneling screen did not open',
     );
   }
 
-  await _tapFinder(
-    tester,
-    websitesTileFinder,
-    timeout: const Duration(seconds: 20),
-    reason: 'Websites split tunneling tile was not tappable',
-  );
-
-  await WidgetWaitUtils.waitForFinder(
-    tester,
-    find.byKey(websiteScreenKey),
-    timeout: const Duration(seconds: 20),
-    reason: 'Website split tunneling screen did not open',
-  );
-  await _printSplitTunnelConfigSnapshot('before-domain-update');
-
-  final existingRow = websiteRow(normalizedSplitTunnelDomain);
-  if (existingRow.evaluate().isNotEmpty) {
+  Future<void> openWebsites() async {
+    await openSplit();
     await _tapFinder(
       tester,
-      removeWebsiteButton(normalizedSplitTunnelDomain),
-      timeout: const Duration(seconds: 10),
-      reason: 'Remove website button was not tappable',
-    );
-    await WidgetWaitUtils.waitForFinderToDisappear(
-      tester,
-      existingRow,
+      find.byKey(const Key('split_tunneling.websites_tile')),
       timeout: const Duration(seconds: 20),
-      reason: 'Existing website rule was not removed before re-adding',
+      reason: 'Open website selections',
     );
-    await _printSplitTunnelConfigSnapshot('after-domain-remove');
+    await WidgetWaitUtils.waitForFinder(
+      tester,
+      find.byKey(const Key('split_tunneling.website.screen')),
+      timeout: const Duration(seconds: 20),
+      reason: 'Website screen did not open',
+    );
   }
 
-  await _enterTextField(
-    tester,
-    field: find.byKey(websiteInputKey),
-    value: _splitTunnelDomainInput,
-    reason: 'Website input field was not available',
+  Future<void> switchMode(
+    SplitTunnelPolicy policy, {
+    bool cancel = false,
+  }) async {
+    await openSplit();
+    final before = await readState();
+    expect(before.policy, isNot(policy));
+    await _tapFinder(
+      tester,
+      find.byKey(Key('split_tunneling.mode.${policy.wireValue}')),
+      timeout: const Duration(seconds: 20),
+      reason: 'Choose split-tunnel mode',
+    );
+    await _tapFinder(
+      tester,
+      find.byKey(Key('split_tunneling.mode.${cancel ? 'cancel' : 'confirm'}')),
+      timeout: const Duration(seconds: 20),
+      reason: 'Confirm or cancel mode switch',
+    );
+    final deadline = DateTime.now().add(const Duration(seconds: 30));
+    while (true) {
+      await tester.pump(const Duration(milliseconds: 200));
+      final snapshot = await readState();
+      if (cancel) {
+        expect(snapshot.policy, before.policy);
+        expect(snapshot.filters, before.filters);
+        return;
+      }
+      if (snapshot.policy == policy) {
+        expect(snapshot.appCount, 0);
+        expect(snapshot.websiteCount, 0);
+        return;
+      }
+      if (DateTime.now().isAfter(deadline)) {
+        fail('Mode switch did not reach the daemon');
+      }
+    }
+  }
+
+  Future<void> addWebsite(
+    String input,
+    String display,
+    String canonical,
+  ) async {
+    await _enterTextField(
+      tester,
+      field: find.byKey(const Key('split_tunneling.website.input')),
+      value: input,
+      reason: 'Website input was not available',
+    );
+    await _tapFinder(
+      tester,
+      find.byKey(const Key('split_tunneling.website.add_button')),
+      timeout: const Duration(seconds: 20),
+      reason: 'Website Add was not available',
+    );
+    final row = find.byKey(Key('split_tunneling.website.row.$display'));
+    final deadline = DateTime.now().add(const Duration(seconds: 20));
+    while (row.evaluate().isEmpty) {
+      await tester.pump(const Duration(milliseconds: 200));
+      final dialog = find.ancestor(
+        of: find.text('bypass_website_first_time_title'.i18n),
+        matching: find.byType(AlertDialog),
+      );
+      if (dialog.evaluate().isNotEmpty) {
+        await _tapFinder(
+          tester,
+          find.descendant(
+            of: dialog,
+            matching: find.widgetWithText(PrimaryButton, 'add'.i18n),
+          ),
+          timeout: const Duration(seconds: 10),
+          reason: 'Confirm first website bypass',
+        );
+      }
+      if (DateTime.now().isAfter(deadline)) {
+        fail('Website $display was not shown after adding it');
+      }
+    }
+    expect(
+      (await readState()).selectors(SplitTunnelFilterType.domainSuffix),
+      contains(canonical),
+    );
+    if (Platform.isWindows) {
+      expect(
+        await waitForSplitTunnelRule(
+          field: 'domain_suffix',
+          value: canonical,
+          present: true,
+          timeout: const Duration(seconds: 20),
+        ),
+        isTrue,
+        reason: 'Website was not durably saved',
+      );
+    }
+  }
+
+  Future<void> expectRouting({
+    required bool selectedUsesVPN,
+    required bool otherUsesVPN,
+    required String selectedBaseline,
+    required String otherBaseline,
+  }) async {
+    for (final check in [
+      (_splitTunnelEndpoint, selectedBaseline, selectedUsesVPN),
+      (_regularEndpoint, otherBaseline, otherUsesVPN),
+    ]) {
+      final matches = check.$3
+          ? await _waitForPublicIpChangeFromBaseline(
+              endpoint: check.$1,
+              baselineIp: check.$2,
+              timeout: const Duration(seconds: 75),
+            )
+          : await _waitForPublicIpEquals(
+              endpoint: check.$1,
+              expectedIp: check.$2,
+              timeout: const Duration(seconds: 75),
+            );
+      expect(
+        matches,
+        isTrue,
+        reason:
+            '${check.$1} did not ${check.$3 ? 'use the VPN' : 'remain direct'}',
+      );
+    }
+  }
+
+  requireSplitTunnelResult(
+    await service.setRoutingMode(false),
+    'Use full tunnel for routing assertions',
   );
+  requireSplitTunnelResult(
+    await service.switchSplitTunnelPolicy('include'),
+    'Reset fixture selections',
+  );
+  requireSplitTunnelResult(
+    await service.switchSplitTunnelPolicy('exclude'),
+    'Start in Bypass',
+  );
+  requireSplitTunnelResult(
+    await service.setSplitTunnelingEnabled(false),
+    'Start split tunneling disabled',
+  );
+  expect(await container.read(splitTunnelProvider.notifier).refresh(), isNull);
+  await openSplit();
   await _tapFinder(
     tester,
-    find.byKey(websiteAddButtonKey),
+    find.byKey(const Key('split_tunneling.enable_toggle')),
     timeout: const Duration(seconds: 20),
-    reason: 'Website add button was not available',
+    reason: 'Enable split tunneling',
   );
-  await WidgetWaitUtils.waitForFinder(
-    tester,
-    websiteRow(normalizedSplitTunnelDomain),
-    timeout: const Duration(seconds: 20),
-    reason: 'New website split-tunnel rule was not visible after add',
+  await openWebsites();
+  await addWebsite(
+    'https://API64.IPIFY.ORG./test?query=1',
+    _splitTunnelDomainInput,
+    _splitTunnelDomainInput,
   );
-  await _printSplitTunnelConfigSnapshot('after-domain-add');
+  await switchMode(SplitTunnelPolicy.includeOnly, cancel: true);
 
-  final persisted = await _waitForDomainPersistenceInSplitTunnelConfig(
-    domain: normalizedSplitTunnelDomain,
-    timeout: const Duration(seconds: 20),
-  );
-  if (!persisted) {
-    await _printSplitTunnelConfigSnapshot('persistence-timeout');
-    fail(
-      'Domain "$normalizedSplitTunnelDomain" was visible in UI but was not '
-      'persisted to split-tunnel.json as domain_suffix within timeout.',
-    );
-  }
-  await _printSplitTunnelConfigSnapshot('after-domain-persistence-check');
-
+  final selectedBaseline = enableIpCheck
+      ? await _fetchPublicIpWithRetry(
+          endpoint: _splitTunnelEndpoint,
+          timeout: const Duration(seconds: 45),
+          reason: 'selected host direct baseline',
+        )
+      : '';
+  final otherBaseline = enableIpCheck
+      ? await _fetchPublicIpWithRetry(
+          endpoint: _regularEndpoint,
+          timeout: const Duration(seconds: 45),
+          reason: 'other host direct baseline',
+        )
+      : '';
   await _returnToHome(
     tester,
     homeScreen: finders.homeScreen,
     vpnToggle: finders.vpnToggle,
   );
-  await _printSplitTunnelConfigSnapshot('after-return-home');
-
-  try {
-    await _tapFinder(
-      tester,
-      finders.vpnToggle,
-      timeout: const Duration(seconds: 20),
-      reason: 'VPN toggle was not available for connect',
-    );
-
-    await vpnStateFinders.waitFor(
-      tester,
-      expected: const [VPNStatus.connected],
-      timeout: const Duration(seconds: 45),
-      reason: 'VPN did not reach connected state for split tunnel smoke',
-    );
-
-    if (enableIpCheck &&
-        baselineSplitDomainIp != null &&
-        baselineRegularDomainIp != null) {
-      final regularDomainChanged = await _waitForPublicIpChangeFromBaseline(
-        endpoint: _regularEndpoint,
-        baselineIp: baselineRegularDomainIp,
-        timeout: const Duration(seconds: 75),
-      );
-      if (!regularDomainChanged) {
-        fail(
-          'Public IP for regular endpoint did not change after VPN connect '
-          '(baseline: $baselineRegularDomainIp)',
-        );
-      }
-
-      final splitDomainBypassed = await _waitForPublicIpEquals(
-        endpoint: _splitTunnelEndpoint,
-        expectedIp: baselineSplitDomainIp,
-        timeout: const Duration(seconds: 75),
-      );
-      if (!splitDomainBypassed) {
-        fail(
-          'Split-tunnel endpoint did not stay on baseline IP after VPN connect '
-          '(expected: $baselineSplitDomainIp)',
-        );
-      }
-    }
-  } finally {
-    await _disconnectVpnIfNeeded(
-      tester,
-      vpnToggle: finders.vpnToggle,
-      vpnStateFinders: vpnStateFinders,
+  await _tapFinder(
+    tester,
+    finders.vpnToggle,
+    timeout: const Duration(seconds: 20),
+    reason: 'Connect VPN',
+  );
+  await states.waitFor(
+    tester,
+    expected: const [VPNStatus.connected],
+    timeout: const Duration(seconds: 60),
+    reason: 'VPN did not connect',
+  );
+  if (enableIpCheck) {
+    await expectRouting(
+      selectedUsesVPN: false,
+      otherUsesVPN: true,
+      selectedBaseline: selectedBaseline,
+      otherBaseline: otherBaseline,
     );
   }
+
+  await switchMode(SplitTunnelPolicy.includeOnly);
+  if (enableIpCheck) {
+    await expectRouting(
+      selectedUsesVPN: false,
+      otherUsesVPN: false,
+      selectedBaseline: selectedBaseline,
+      otherBaseline: otherBaseline,
+    );
+  }
+  await openWebsites();
+  await addWebsite('*.IPIFY.ORG.', '*.ipify.org', '.ipify.org');
+  await openWebsites();
+  expect(
+    find.byKey(const Key('split_tunneling.website.row.*.ipify.org')),
+    findsOneWidget,
+  );
+  if (enableIpCheck) {
+    await expectRouting(
+      selectedUsesVPN: true,
+      otherUsesVPN: false,
+      selectedBaseline: selectedBaseline,
+      otherBaseline: otherBaseline,
+    );
+  }
+  await switchMode(SplitTunnelPolicy.bypass, cancel: true);
+  await switchMode(SplitTunnelPolicy.bypass);
+  if (enableIpCheck) {
+    await expectRouting(
+      selectedUsesVPN: true,
+      otherUsesVPN: true,
+      selectedBaseline: selectedBaseline,
+      otherBaseline: otherBaseline,
+    );
+  }
+  await _returnToHome(
+    tester,
+    homeScreen: finders.homeScreen,
+    vpnToggle: finders.vpnToggle,
+  );
+  await _disconnectVpnIfNeeded(
+    tester,
+    vpnToggle: finders.vpnToggle,
+    vpnStateFinders: states,
+  );
 }

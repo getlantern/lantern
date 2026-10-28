@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/server_location.dart';
@@ -224,6 +225,16 @@ abstract class LanternCoreService {
     List<String> value,
   );
 
+  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState();
+
+  Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(
+    String policy,
+  );
+
+  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps();
+
+  Future<Either<Failure, String>> normalizeSplitTunnelWebsite(String input);
+
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled);
 
   Future<Either<Failure, bool>> isSplitTunnelingEnabled();
@@ -285,10 +296,7 @@ abstract class LanternCoreService {
   //Change email
   /// Verifies the account password without mutating anything. Used to gate
   /// the change-email flow before the user enters a new email.
-  Future<Either<Failure, String>> verifyPassword(
-    String email,
-    String password,
-  );
+  Future<Either<Failure, String>> verifyPassword(String email, String password);
 
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,

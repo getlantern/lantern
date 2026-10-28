@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
@@ -333,6 +334,36 @@ class LanternService implements LanternCoreService {
       return _ffiService.removeSplitTunnelItem(type, value);
     }
     return _platformService.removeSplitTunnelItem(type, value);
+  }
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() {
+    return PlatformUtils.isFFISupported
+        ? _ffiService.getSplitTunnelState()
+        : _platformService.getSplitTunnelState();
+  }
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(
+    String policy,
+  ) {
+    return PlatformUtils.isFFISupported
+        ? _ffiService.switchSplitTunnelPolicy(policy)
+        : _platformService.switchSplitTunnelPolicy(policy);
+  }
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps() {
+    return PlatformUtils.isFFISupported
+        ? _ffiService.clearSplitTunnelApps()
+        : _platformService.clearSplitTunnelApps();
+  }
+
+  @override
+  Future<Either<Failure, String>> normalizeSplitTunnelWebsite(String input) {
+    return PlatformUtils.isFFISupported
+        ? _ffiService.normalizeSplitTunnelWebsite(input)
+        : _platformService.normalizeSplitTunnelWebsite(input);
   }
 
   @override

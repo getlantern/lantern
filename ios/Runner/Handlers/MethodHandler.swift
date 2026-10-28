@@ -396,6 +396,26 @@ class MethodHandler {
         }
         self.patchSettings(payload: payload, result: result)
 
+      case "getSplitTunnelState":
+        self.getSplitTunnelState(result: result)
+
+      case "switchSplitTunnelPolicy":
+        guard let arguments = call.arguments as? [String: Any], let policy = arguments["policy"] as? String else {
+          result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing policy", details: nil))
+          return
+        }
+        self.switchSplitTunnelPolicy(result: result, policy: policy)
+
+      case "clearSplitTunnelApps":
+        self.clearSplitTunnelApps(result: result)
+
+      case "normalizeSplitTunnelWebsite":
+        guard let arguments = call.arguments as? [String: Any], let input = arguments["input"] as? String else {
+          result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing website", details: nil))
+          return
+        }
+        self.normalizeSplitTunnelWebsite(result: result, input: input)
+
       case "getSettings":
         self.getSettings(result: result)
 
@@ -1473,6 +1493,54 @@ class MethodHandler {
         return
       }
       await MainActor.run { result("ok") }
+    }
+  }
+
+  func getSplitTunnelState(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let response = MobileGetSplitTunnelStateJSON(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SPLIT_TUNNEL_ERROR")
+        return
+      }
+      await MainActor.run { result(response) }
+    }
+  }
+
+  func switchSplitTunnelPolicy(result: @escaping FlutterResult, policy: String) {
+    Task {
+      var error: NSError?
+      let response = MobileSwitchSplitTunnelPolicy(policy, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SPLIT_TUNNEL_ERROR")
+        return
+      }
+      await MainActor.run { result(response) }
+    }
+  }
+
+  func clearSplitTunnelApps(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let response = MobileClearSplitTunnelApps(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SPLIT_TUNNEL_ERROR")
+        return
+      }
+      await MainActor.run { result(response) }
+    }
+  }
+
+  func normalizeSplitTunnelWebsite(result: @escaping FlutterResult, input: String) {
+    Task {
+      var error: NSError?
+      let response = MobileNormalizeSplitTunnelWebsite(input, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SPLIT_TUNNEL_ERROR")
+        return
+      }
+      await MainActor.run { result(response) }
     }
   }
 

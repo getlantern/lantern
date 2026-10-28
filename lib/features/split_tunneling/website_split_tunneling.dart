@@ -7,6 +7,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/website.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
@@ -29,11 +31,12 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final searchQuery = ref.watch(searchQueryProvider);
 
-    final enabledWebsites =
-        ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{};
+    final snapshot = ref.watch(splitTunnelProvider).value;
+    final websites = ref.watch(splitTunnelingWebsitesProvider);
+    final enabledWebsites = websites.value ?? const <Website>{};
     matchesSearch(website) =>
         searchQuery.isEmpty ||
-        website.domain.toLowerCase().contains(searchQuery.toLowerCase());
+        website.displayDomain.toLowerCase().contains(searchQuery.toLowerCase());
     final enabledList = enabledWebsites.where(matchesSearch).toList()
       ..sort(
         (a, b) => a.domain.toLowerCase().compareTo(b.domain.toLowerCase()),
@@ -57,13 +60,24 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
           SliverToBoxAdapter(child: SizedBox(height: defaultSize)),
           SliverToBoxAdapter(
             child: SectionLabel(
-              'websites_bypassing_vpn'.i18n.fill([enabledWebsites.length]),
+              (snapshot?.policy == SplitTunnelPolicy.includeOnly
+                      ? 'websites_using_vpn'
+                      : 'websites_bypassing_vpn')
+                  .i18n
+                  .fill([snapshot?.websiteCount ?? enabledWebsites.length]),
             ),
           ),
           SliverToBoxAdapter(
             child: AppCard(
               padding: EdgeInsets.zero,
-              child: enabledList.isEmpty
+              child: websites.hasError
+                  ? Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('split_tunnel_load_failed'.i18n),
+                    )
+                  : websites.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : enabledList.isEmpty
                   ? Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
@@ -110,12 +124,12 @@ class WebsiteRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final normalizedDomain = website.domain.toLowerCase();
+    final normalizedDomain = website.displayDomain.toLowerCase();
     return AppTile(
       tileKey: Key('split_tunneling.website.row.$normalizedDomain'),
       minHeight: 45,
       contentPadding: EdgeInsets.only(left: 16),
-      label: website.domain,
+      label: website.displayDomain,
       tileTextStyle: AppTextStyles.labelLarge.copyWith(
         color: context.textSecondary,
         fontSize: 14,

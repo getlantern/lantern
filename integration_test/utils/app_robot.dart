@@ -46,7 +46,7 @@ class AppRobot {
 
   /// Captures the current Flutter surface without failing the smoke when the
   /// platform does not expose a capturable root layer.
-  Future<void> captureScreenshot(String name) async {
+  Future<void> captureScreenshot(String name, {String? outputDirectory}) async {
     try {
       final renderView = tester.binding.renderViews.first;
       final layer = renderView.debugLayer;
@@ -62,7 +62,8 @@ class AppRobot {
           return;
         }
         final directory = Directory(
-          '${await AppStorageUtils.getAppLogDirectory()}/screenshots',
+          outputDirectory ??
+              '${await AppStorageUtils.getAppLogDirectory()}/screenshots',
         );
         await directory.create(recursive: true);
         final file = File('${directory.path}/$name.png');

@@ -2,19 +2,12 @@ class Website {
   final int id;
   final String domain;
 
-  const Website({
-    this.id = 0,
-    required this.domain,
-  });
+  String get displayDomain => domain.startsWith('.') ? '*$domain' : domain;
 
-  Website copyWith({
-    int? id,
-    String? domain,
-  }) {
-    return Website(
-      id: id ?? this.id,
-      domain: domain ?? this.domain,
-    );
+  const Website({this.id = 0, required this.domain});
+
+  Website copyWith({int? id, String? domain}) {
+    return Website(id: id ?? this.id, domain: domain ?? this.domain);
   }
 
   factory Website.fromJson(Map<String, dynamic> json) {
@@ -24,10 +17,7 @@ class Website {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'domain': domain,
-      };
+  Map<String, dynamic> toJson() => {'id': id, 'domain': domain};
 
   @override
   bool operator ==(Object other) =>

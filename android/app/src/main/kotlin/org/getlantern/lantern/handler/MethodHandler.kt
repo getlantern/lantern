@@ -11,11 +11,14 @@ import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -125,6 +128,9 @@ enum class Methods(val method: String) {
     RemoveAllItems("removeAllItems"),
     GetSplitTunnelItems("getSplitTunnelItems"),
     GetSplitTunnelState("getSplitTunnelState"),
+    SwitchSplitTunnelPolicy("switchSplitTunnelPolicy"),
+    ClearSplitTunnelApps("clearSplitTunnelApps"),
+    NormalizeSplitTunnelWebsite("normalizeSplitTunnelWebsite"),
     InstalledApps("installedApps"),
     GetAppIcon("getAppIcon"),
 
@@ -203,6 +209,18 @@ class MethodHandler : FlutterPlugin,
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel?.setMethodCallHandler(null)
         channel = null
+    }
+
+    private fun splitTunnelResult(result: MethodChannel.Result, action: () -> String) {
+        val handler = CoroutineExceptionHandler { _, error ->
+            Handler(Looper.getMainLooper()).post {
+                result.error("SPLIT_TUNNEL_ERROR", error.localizedMessage, null)
+            }
+        }
+        scope.launch(handler) {
+            val response = action()
+            withContext(Dispatchers.Main) { result.success(response) }
+        }
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -1216,19 +1234,20 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.GetSplitTunnelState.method -> {
-                scope.launch {
-                    result.runCatching {
-                        val json = Mobile.getSplitTunnelStateJSON()
-                        withContext(Dispatchers.Main) { success(json) }
-                    }.onFailure { e ->
-                        result.error(
-                            "GET_SPLIT_TUNNEL_STATE_ERROR",
-                            e.localizedMessage ?: "Failed to get split tunnel state",
-                            e
-                        )
-                    }
-                }
+            Methods.GetSplitTunnelState.method -> splitTunnelResult(result) {
+                Mobile.getSplitTunnelStateJSON()
+            }
+
+            Methods.SwitchSplitTunnelPolicy.method -> splitTunnelResult(result) {
+                Mobile.switchSplitTunnelPolicy(requireNotNull(call.argument<String>("policy")))
+            }
+
+            Methods.ClearSplitTunnelApps.method -> splitTunnelResult(result) {
+                Mobile.clearSplitTunnelApps()
+            }
+
+            Methods.NormalizeSplitTunnelWebsite.method -> splitTunnelResult(result) {
+                Mobile.normalizeSplitTunnelWebsite(requireNotNull(call.argument<String>("input")))
             }
 
             Methods.FeatureFlag.method -> {

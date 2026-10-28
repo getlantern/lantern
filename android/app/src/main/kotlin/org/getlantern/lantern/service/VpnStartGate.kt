@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Gives one VPN start ownership of shared setup and cleanup.
@@ -80,6 +81,17 @@ internal class VpnStartGate(
             }
         }
     }
+
+    /** Waits without owning a start; returns false on timeout or an intervening stop. */
+    suspend fun awaitIdle(timeoutMillis: Long): Boolean = withTimeoutOrNull(timeoutMillis) {
+        val generation = synchronized(stateLock) {
+            if (pendingStops != 0) return@withTimeoutOrNull false
+            stopGeneration
+        }
+        operationMutex.withLock {
+            synchronized(stateLock) { pendingStops == 0 && generation == stopGeneration }
+        }
+    } ?: false
 
     private fun reject(rejection: Rejection, onRejected: (Rejection) -> Unit): Boolean {
         onRejected(rejection)

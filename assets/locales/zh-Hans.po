@@ -2022,3 +2022,87 @@ msgstr "关闭"
 
 msgid "unbounded_status_waiting"
 msgstr "等待启动"
+
+msgid "split_tunnel_off"
+msgstr "关闭"
+
+msgid "split_tunnel_bypass"
+msgstr "绕过"
+
+msgid "split_tunnel_include_only"
+msgstr "仅包含"
+
+msgid "split_tunnel_description"
+msgstr "Choose how apps and websites connect"
+
+msgid "split_tunnel_mode"
+msgstr "分流模式"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Selected apps and sites skip Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "Only selected apps and sites use Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "Switch to Include only?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Switch to Bypass?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Your lists will be cleared. Only the apps and sites you add will use Lantern. Everything else, including your browser, will connect directly without protection."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Your lists will be cleared. Everything will use Lantern until you add apps or sites to bypass."
+
+msgid "split_tunnel_switch"
+msgstr "切换"
+
+msgid "split_tunnel_clear"
+msgstr "清空"
+
+msgid "split_tunnel_added"
+msgstr "%d Added"
+
+msgid "apps_using_vpn"
+msgstr "Apps using the VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "Websites using the VPN (%d)"
+
+msgid "split_tunnel_update_required"
+msgstr "Update Lantern and its VPN service to use Include only."
+
+msgid "split_tunnel_android_mixed_note"
+msgstr "For banking apps to stay outside Android’s VPN, select apps only. Adding websites requires other apps to enter the VPN so matching websites can use Lantern."
+
+msgid "split_tunnel_load_failed"
+msgstr "Could not load split tunneling. Please try again."
+
+msgid "split_tunnel_update_failed"
+msgstr "Could not update split tunneling. Please try again."
+
+msgid "split_tunnel_unavailable"
+msgstr "不可用"
+
+msgid "split_tunnel_enter_website"
+msgstr "Enter a website or URL"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Use commas to separate websites. Use *.example.com for subdomains only, or *.ir for all .ir sites. IP addresses are not supported."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Enter a valid website or URL. Wildcards must start with *. and IP addresses are not supported."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s is already added."
+
+msgid "add_executable"
+msgstr "Add .exe"
+
+msgid "select_windows_executable"
+msgstr "Select an app’s .exe file, other than Lantern, on this computer."
+
+msgid "unable_to_add_executable"
+msgstr "Could not add the executable. Choose an existing .exe file on this computer and try again."

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -11,6 +10,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
@@ -22,6 +23,7 @@ import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dar
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
+import 'package:lantern/features/split_tunneling/windows_executable_picker.dart';
 
 /// Extra width taken from the cards, on the right, for the index bar.
 const _indexBarGutter = 12.0;
@@ -41,14 +43,17 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final installedHeaderKey = useMemoized(GlobalKey.new);
     final scrollViewKey = useMemoized(GlobalKey.new);
     final indexBarTop = useState(0.0);
-    final searchQuery = ref.watch(searchQueryProvider);
+    final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
 
+    final snapshot = ref.watch(splitTunnelProvider).value;
+    final bypass = snapshot?.policy != SplitTunnelPolicy.includeOnly;
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
     final enabledApps = enabledAppsAsync.value ?? const <AppData>{};
 
+    final installedApps = ref.watch(appsDataProvider);
     final allApps = dedupeAndSortApps(
-      (ref.watch(appsDataProvider).value ?? const <AppData>[]).where(
+      (installedApps.value ?? const <AppData>[]).where(
         (a) => Platform.isAndroid || Platform.isIOS
             ? (a.iconPath.isNotEmpty || a.iconBytes != null)
             : true,
@@ -57,10 +62,12 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||
-        a.name.toLowerCase().contains(searchQuery.toLowerCase());
+        a.name.toLowerCase().contains(searchQuery) ||
+        (Platform.isWindows && a.appPath.toLowerCase().contains(searchQuery));
 
     final enabledIds = enabledApps.map(normalizedAppId).toSet();
-    final filteredEnabled = dedupeAndSortApps(enabledApps.where(matchesSearch));
+    final filteredEnabled = enabledApps.where(matchesSearch).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     final filteredDisabled = allApps
         .where((a) => !enabledIds.contains(normalizedAppId(a)))
@@ -131,13 +138,33 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     child: Row(
                       children: [
                         SectionLabel(
-                          'apps_bypassing_vpn'.i18n.fill([enabledApps.length]),
+                          (bypass ? 'apps_bypassing_vpn' : 'apps_using_vpn')
+                              .i18n
+                              .fill([snapshot?.appCount ?? enabledApps.length]),
                         ),
                         const Spacer(),
                       ],
                     ),
                   ),
-                  if (enabledApps.isEmpty)
+                  if (enabledAppsAsync.hasError)
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          Text('split_tunnel_load_failed'.i18n),
+                          AppTextButton(
+                            label: 'retry'.i18n,
+                            onPressed: () => ref
+                                .read(splitTunnelProvider.notifier)
+                                .refresh(),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (enabledAppsAsync.isLoading)
+                    const SliverToBoxAdapter(
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else if (enabledApps.isEmpty)
                     SliverToBoxAdapter(
                       child: AppCard(
                         padding: EdgeInsets.all(0),
@@ -161,21 +188,36 @@ class AppsSplitTunneling extends HookConsumerWidget {
                                 contentPadding: EdgeInsets.zero,
                                 label: '',
                                 trailing: AppTextButton(
-                                  label: 'deselect_all'.i18n,
+                                  key: const Key('split_tunneling.apps.clear'),
+                                  label: 'split_tunnel_clear'.i18n,
                                   fontSize: 14,
                                   onPressed: () async {
-                                    await notifier.deselectApps(
-                                      filteredEnabled,
-                                    );
+                                    final failure = await notifier
+                                        .deselectAllApps();
+                                    if (context.mounted && failure != null) {
+                                      context.showSnackBarError(
+                                        failure.localizedErrorMessage,
+                                      );
+                                    }
                                   },
                                 ),
                               );
                             }
                             final app = filteredEnabled[i - 1];
                             return AppRow(
+                              key: ValueKey(
+                                'split-tunnel-app:${splitTunnelAppRowId(app)}',
+                              ),
                               app: app,
                               enabled: true,
-                              onToggle: () => notifier.toggleApp(app),
+                              onToggle: () async {
+                                final failure = await notifier.toggleApp(app);
+                                if (context.mounted && failure != null) {
+                                  context.showSnackBarError(
+                                    failure.localizedErrorMessage,
+                                  );
+                                }
+                              },
                             );
                           },
                         ),
@@ -188,20 +230,27 @@ class AppsSplitTunneling extends HookConsumerWidget {
                       children: [
                         SectionLabel('installed_apps'.i18n),
                         const Spacer(),
-                        if (filteredDisabled.isNotEmpty)
-                          AppTextButton(
-                            label: 'select_all'.i18n,
-                            fontSize: 14,
-                            onPressed: () => onTapSelectAll(
-                              context,
-                              notifier,
-                              filteredDisabled,
-                            ),
+                        if (Platform.isWindows)
+                          WindowsExecutablePicker(
+                            confirmBypass: (context, app) async =>
+                                !bypass || await confirmAppBypass(context, app),
                           ),
                       ],
                     ),
                   ),
-                  if (allApps.isEmpty)
+                  if (installedApps.hasError)
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          Text('split_tunnel_load_failed'.i18n),
+                          AppTextButton(
+                            label: 'retry'.i18n,
+                            onPressed: () => ref.invalidate(appsDataProvider),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (installedApps.isLoading && !installedApps.hasValue)
                     SliverToBoxAdapter(
                       child: AppCard(
                         padding: EdgeInsets.symmetric(
@@ -240,9 +289,17 @@ class AppsSplitTunneling extends HookConsumerWidget {
                             itemBuilder: (ctx, i) {
                               final app = entry.value[i];
                               return AppRow(
+                                key: ValueKey(
+                                  'split-tunnel-app:${splitTunnelAppRowId(app)}',
+                                ),
                                 app: app,
                                 enabled: false,
-                                onToggle: () => onTapAddApp(ctx, notifier, app),
+                                onToggle: () => onTapAddApp(
+                                  ctx,
+                                  notifier,
+                                  app,
+                                  bypass: bypass,
+                                ),
                               );
                             },
                           ),
@@ -290,119 +347,66 @@ class AppsSplitTunneling extends HookConsumerWidget {
     );
   }
 
-  /// Show info dialog for first time user
+  static Future<bool> confirmAppBypass(
+    BuildContext context,
+    AppData app,
+  ) async {
+    final storage = sl<LocalStorageService>();
+    if (!app.isBrowser && storage.hasSeenBypassAppDialog) return true;
+
+    var confirmed = false;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    void confirm() {
+      confirmed = context.mounted;
+      navigator.pop();
+    }
+
+    await AppDialog.show(
+      context: context,
+      header: Center(
+        child: AppImage(
+          path: app.isBrowser ? AppImagePaths.warning : AppImagePaths.info,
+          height: app.isBrowser ? 45 : 40,
+        ),
+      ),
+      centeredTitle: true,
+      title:
+          (app.isBrowser
+                  ? 'bypass_browser_warning_title'
+                  : 'bypass_app_first_time_title')
+              .i18n
+              .fill([app.name]),
+      body:
+          (app.isBrowser
+                  ? 'bypass_browser_warning_body'
+                  : 'bypass_app_first_time_body')
+              .i18n
+              .fill([app.name]),
+      primaryLabel: (app.isBrowser ? 'cancel' : 'add').i18n,
+      dismissOnPrimary: app.isBrowser,
+      onPrimaryPressed: app.isBrowser ? null : confirm,
+      secondaryLabel: (app.isBrowser ? 'add_anyway' : 'cancel').i18n,
+      dismissOnSecondary: !app.isBrowser,
+      onSecondaryPressed: app.isBrowser ? confirm : null,
+    );
+    if (!confirmed || !context.mounted) return false;
+    if (!app.isBrowser) await storage.markBypassAppDialogSeen();
+    return context.mounted;
+  }
+
   Future<void> onTapAddApp(
     BuildContext context,
     SplitTunnelingApps notifier,
-    AppData app,
-  ) async {
-    if (app.isBrowser) {
-      await AppDialog.browserBypassWarningDialog(
-        context: context,
-        browserName: app.name,
-        onAddAnyway: () => notifier.toggleApp(app),
-      );
-      return;
+    AppData app, {
+    bool bypass = true,
+  }) async {
+    if (bypass && !await confirmAppBypass(context, app)) return;
+    if (!context.mounted) return;
+    final failure = await notifier.toggleApp(app);
+    if (context.mounted && failure != null) {
+      context.showSnackBarError(failure.localizedErrorMessage);
     }
-    final storage = sl<LocalStorageService>();
-    if (!storage.hasSeenBypassAppDialog) {
-      await AppDialog.show(
-        context: context,
-        header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
-        centeredTitle: true,
-        title: 'bypass_app_first_time_title'.i18n,
-        body: 'bypass_app_first_time_body'.i18n.fill([app.name]),
-        primaryLabel: 'add'.i18n,
-        onPrimaryPressed: () {
-          // Mark seen only on confirm; cancelling should show the
-          // explainer again next time.
-          unawaited(storage.markBypassAppDialogSeen());
-          notifier.toggleApp(app);
-        },
-        secondaryLabel: 'cancel'.i18n,
-      );
-      return;
-    }
-    notifier.toggleApp(app);
   }
-
-  /// Warn when Select All would put browsers on the bypass list
-  Future<void> onTapSelectAll(
-    BuildContext context,
-    SplitTunnelingApps notifier,
-    List<AppData> apps,
-  ) async {
-    final browsers = apps.where((a) => a.isBrowser).toList();
-    if (browsers.isEmpty) {
-      await notifier.selectApps(apps);
-      return;
-    }
-    await _showSelectAllBypassWarning(
-      context: context,
-      browserName: browsers.first.name,
-      onAddAllExceptBrowsers: () =>
-          notifier.selectApps(apps.where((a) => !a.isBrowser).toList()),
-      onAddAllAnyway: () => notifier.selectApps(apps),
-    );
-  }
-}
-
-/// Warning shown when "Select All" would add browsers to the bypass list
-Future<void> _showSelectAllBypassWarning({
-  required BuildContext context,
-  required String browserName,
-  required Future<void> Function() onAddAllExceptBrowsers,
-  required Future<void> Function() onAddAllAnyway,
-}) {
-  final textTheme = Theme.of(context).textTheme;
-  return AppDialog.customDialog(
-    context: context,
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        SizedBox(height: size24),
-        Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
-        SizedBox(height: size24),
-        Text(
-          'bypass_all_warning_title'.i18n,
-          style: textTheme.headlineMedium,
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 8),
-        Text(
-          'bypass_all_warning_body'.i18n.fill([browserName]),
-          style: textTheme.bodyMedium?.copyWith(
-            color: context.textSecondary,
-            height: 23 / 16,
-          ),
-        ),
-      ],
-    ),
-    action: [
-      PrimaryButton(
-        label: 'add_all_except_browsers'.i18n,
-        onPressed: () async {
-          appRouter.pop();
-          await onAddAllExceptBrowsers();
-        },
-      ),
-      SecondaryButton(
-        label: 'add_all_anyway'.i18n,
-        onPressed: () async {
-          appRouter.pop();
-          await onAddAllAnyway();
-        },
-      ),
-      Center(
-        child: AppTextButton(
-          label: 'cancel'.i18n,
-          textColor: context.textPrimary,
-          onPressed: () => appRouter.pop(),
-        ),
-      ),
-    ],
-  );
 }
 
 class AppRow extends ConsumerWidget {
@@ -466,8 +470,8 @@ class AppRow extends ConsumerWidget {
       );
     }
 
-    return SizedBox(
-      height: 44.h,
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 44.h),
       child: Row(
         children: [
           Expanded(
@@ -476,13 +480,37 @@ class AppRow extends ConsumerWidget {
                 iconWidget(),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    app.name.replaceAll(".app", ""),
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: context.textPrimary,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          app.name.replaceAll(".app", ""),
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: context.textPrimary,
+                          ),
+                        ),
+                        if (Platform.isWindows || app is StoredSplitTunnelApp)
+                          Tooltip(
+                            message: app is StoredSplitTunnelApp
+                                ? (app as StoredSplitTunnelApp).selector
+                                : app.appPath,
+                            child: Text(
+                              app is StoredSplitTunnelApp
+                                  ? (app as StoredSplitTunnelApp).selector
+                                  : app.appPath,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: context.textSecondary),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -491,6 +519,9 @@ class AppRow extends ConsumerWidget {
           ),
           if (onToggle != null)
             AppIconButton(
+              key: ValueKey(
+                'toggle-split-tunnel-app:${splitTunnelAppRowId(app)}',
+              ),
               path: enabled ? AppImagePaths.minus : AppImagePaths.plus,
               onPressed: () {
                 HapticFeedback.lightImpact();

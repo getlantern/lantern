@@ -1,3 +1,4 @@
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:auto_route/annotations.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -23,9 +24,7 @@ class VPNSetting extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
     final isPrivateServerFound = ref.watch(isPrivateServerFoundProvider);
-    final splitTunnelingEnabled = ref.watch(
-      radianceSettingsProvider.select((s) => s.splitTunneling),
-    );
+    final splitTunnel = ref.watch(splitTunnelProvider);
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
@@ -73,7 +72,9 @@ class VPNSetting extends HookConsumerWidget {
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
                   actionText:
-                      splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+                      (splitTunnel.value?.statusLabelKey ??
+                              'split_tunnel_unavailable')
+                          .i18n,
                   onPressed: () => appRouter.push(const SplitTunneling()),
                 ),
                 DividerSpace(),
@@ -182,9 +183,7 @@ class VPNSetting extends HookConsumerWidget {
               value: telemetryConsent,
               onChanged: (value) {
                 appLogger.info('Anonymous usage data consent changed: $value');
-                ref
-                    .read(radianceSettingsProvider.notifier)
-                    .setTelemetry(value);
+                ref.read(radianceSettingsProvider.notifier).setTelemetry(value);
               },
             ),
           ),

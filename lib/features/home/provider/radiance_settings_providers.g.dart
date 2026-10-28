@@ -59,7 +59,7 @@ final class RadianceSettingsProvider
   }
 }
 
-String _$radianceSettingsHash() => r'6202ae7f9c7f7192d690d789a7a750824ea55e13';
+String _$radianceSettingsHash() => r'e0dce1dc1876cbd7279b92f0c72c300133088cbf';
 
 /// Holds radiance-backed VPN preferences in memory.
 ///

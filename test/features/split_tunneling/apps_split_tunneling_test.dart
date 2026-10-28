@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,16 +7,37 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart' show AppTheme;
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
+import 'package:lantern/core/utils/failure.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
+import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/alphabet_index_bar.dart';
 import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart';
 import 'package:lantern/features/split_tunneling/provider/app_icon_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 
+class _Snapshot extends SplitTunnel {
+  @override
+  Future<SplitTunnelState> build() async => const SplitTunnelState(
+    enabled: true,
+    policy: SplitTunnelPolicy.bypass,
+    supported: true,
+  );
+}
+
 class _EnabledApps extends SplitTunnelingApps {
   _EnabledApps(this.apps);
 
   final Set<AppData> apps;
+  int clearCalls = 0;
+
+  @override
+  Future<Failure?> deselectAllApps() async {
+    clearCalls++;
+    state = const AsyncData({});
+    return null;
+  }
 
   @override
   FutureOr<Set<AppData>> build() => apps;
@@ -33,6 +55,7 @@ Future<void> _pumpApps(
   required Size size,
   required List<AppData> apps,
   Set<AppData> enabled = const {},
+  _EnabledApps? notifier,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
@@ -42,8 +65,11 @@ Future<void> _pumpApps(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        splitTunnelProvider.overrideWith(_Snapshot.new),
         appsDataProvider.overrideWith((ref) => Stream.value(apps)),
-        splitTunnelingAppsProvider.overrideWith(() => _EnabledApps(enabled)),
+        splitTunnelingAppsProvider.overrideWith(
+          () => notifier ?? _EnabledApps(enabled),
+        ),
         appIconBytesProvider.overrideWith((ref, key) => null),
       ],
       child: ScreenUtilInit(
@@ -59,6 +85,41 @@ Future<void> _pumpApps(
 }
 
 void main() {
+  testWidgets(
+    'Clear remains available when search hides all stored selections',
+    (tester) async {
+      final apps = _EnabledApps({_app('Removed'), _app('Hidden')});
+      await _pumpApps(
+        tester,
+        size: const Size(800, 600),
+        apps: [],
+        notifier: apps,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(AppsSplitTunneling)),
+      );
+      container.read(searchQueryProvider.notifier).setQuery('nothing matches');
+      await tester.pumpAndSettle();
+      expect(find.text('Removed'), findsNothing);
+      await tester.tap(find.byKey(const Key('split_tunneling.apps.clear')));
+      await tester.pumpAndSettle();
+      expect(apps.clearCalls, 1);
+      expect(container.read(splitTunnelingAppsProvider).requireValue, isEmpty);
+    },
+  );
+
+  testWidgets(
+    'Windows executable action is absent on other platforms',
+    (tester) async {
+      await _pumpApps(tester, size: const Size(800, 600), apps: []);
+      expect(
+        find.byKey(const ValueKey('add-windows-executable')),
+        findsNothing,
+      );
+    },
+    skip: Platform.isWindows,
+  );
+
   testWidgets('short viewports do not break index layout', (tester) async {
     await _pumpApps(
       tester,

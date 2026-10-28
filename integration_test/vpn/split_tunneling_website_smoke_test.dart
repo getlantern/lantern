@@ -12,11 +12,15 @@ const _enableIpCheck = bool.fromEnvironment(
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Website split tunneling smoke', (tester) async {
-    await app.main();
-    await runSplitTunnelingWebsiteSmokeHarness(
-      tester,
-      enableIpCheck: _enableIpCheck,
-    );
-  });
+  testWidgets(
+    'Website split tunneling modes, cancellation and wildcards',
+    (tester) async {
+      await app.main();
+      await runSplitTunnelingWebsiteSmokeHarness(
+        tester,
+        enableIpCheck: _enableIpCheck,
+      );
+    },
+    timeout: const Timeout(Duration(minutes: 12)),
+  );
 }

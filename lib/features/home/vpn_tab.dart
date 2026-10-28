@@ -1,3 +1,4 @@
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -68,9 +69,7 @@ class _SettingCard extends ConsumerWidget {
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
-    final isSplitTunnelingOn = ref.watch(
-      radianceSettingsProvider.select((s) => s.splitTunneling),
-    );
+    final splitTunnel = ref.watch(splitTunnelProvider);
     final isUserPro = ref.watch(isUserProProvider);
     final serverType = ref
         .watch(serverLocationProvider)
@@ -107,7 +106,8 @@ class _SettingCard extends ConsumerWidget {
       tileKey: const Key('home.split_tunneling_setting'),
       label: 'split_tunneling'.i18n,
       icon: AppImagePaths.callSpilt,
-      value: isSplitTunnelingOn ? 'enabled'.i18n : 'disabled'.i18n,
+      value: (splitTunnel.value?.statusLabelKey ?? 'split_tunnel_unavailable')
+          .i18n,
       actions: chevronActions,
       onTap: () => appRouter.push(const SplitTunneling()),
     );

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart' hide Uint8List;
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
@@ -776,6 +777,78 @@ class LanternPlatformService implements LanternCoreService {
       return right(unit);
     } catch (e) {
       return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() async {
+    try {
+      final payload = await _methodChannel.invokeMethod<String>(
+        'getSplitTunnelState',
+      );
+      if (payload == null) {
+        throw const FormatException('Missing split-tunnel state');
+      }
+      return right(
+        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(
+    String policy,
+  ) async {
+    try {
+      final payload = await _methodChannel.invokeMethod<String>(
+        'switchSplitTunnelPolicy',
+        {'policy': policy},
+      );
+      if (payload == null) {
+        throw const FormatException('Missing split-tunnel state');
+      }
+      return right(
+        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps() async {
+    try {
+      final payload = await _methodChannel.invokeMethod<String>(
+        'clearSplitTunnelApps',
+      );
+      if (payload == null) {
+        throw const FormatException('Missing split-tunnel state');
+      }
+      return right(
+        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> normalizeSplitTunnelWebsite(
+    String input,
+  ) async {
+    try {
+      final value = await _methodChannel.invokeMethod<String>(
+        'normalizeSplitTunnelWebsite',
+        {'input': input},
+      );
+      if (value == null || value.isEmpty) {
+        throw const FormatException('Missing website selector');
+      }
+      return right(value);
+    } catch (e) {
+      return left(e.toFailure());
     }
   }
 
@@ -1827,12 +1900,12 @@ class LanternPlatformService implements LanternCoreService {
       );
 
       if (itemsJson == null || itemsJson.trim().isEmpty) {
-        return right(<String>[]);
+        throw const FormatException('Missing split-tunnel items');
       }
 
       final decoded = jsonDecode(itemsJson);
       if (decoded is! List) {
-        return right(<String>[]);
+        throw const FormatException('Invalid split-tunnel items');
       }
 
       final list = decoded

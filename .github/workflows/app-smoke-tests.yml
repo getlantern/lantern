@@ -23,6 +23,8 @@ on:
         options:
           - vpn-smoke # connect/disconnect smoke only (validates the public IP changes) — the fast confidence check
           - vpn-lifecycle # macOS: reconnects, forced descriptor fallback, and failed-start recovery
+          - split-tunnel # Windows: app/website routing; Android: native per-app VPN capture
+          - split-tunnel-apps # Windows: exact executable rules for launcher-spawned programs
           - auth-smoke # auth flows only (sign-in/up, recovery, deletion) against the smoke roster
           - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
           - payment-smoke # Stripe Checkout rendering and payment-to-Pro conversion
@@ -77,6 +79,16 @@ jobs:
         run: |
           echo '::error title=Invalid smoke selection::auto-update requires platforms=all, macos, or windows'
           exit 2
+      - name: Validate app split-tunnel selection
+        if: ${{ inputs.tests == 'split-tunnel-apps' && inputs.platforms != 'windows' }}
+        run: |
+          echo '::error title=Invalid smoke selection::split-tunnel-apps requires platforms=windows'
+          exit 2
+      - name: Validate split-tunnel selection
+        if: ${{ inputs.tests == 'split-tunnel' && !contains(fromJSON('["all", "windows", "android"]'), inputs.platforms) }}
+        run: |
+          echo '::error title=Invalid smoke selection::split-tunnel requires platforms=all, windows, or android'
+          exit 2
 
   # Android builds its own versioned APKs and runs on Firebase Test Lab, so it
   # doesn't need the desktop version stamping from `prepare`. The vpn-smoke
@@ -90,16 +102,19 @@ jobs:
     secrets: inherit
     with:
       test_target: >-
-        ${{ (inputs.tests || 'all') == 'vpn-smoke'
+        ${{ inputs.tests == 'split-tunnel'
+            && 'lib/main.dart'
+            || (inputs.tests || 'all') == 'vpn-smoke'
             && 'integration_test/vpn/android_vpn_smoke_test.dart'
             || (inputs.tests || 'all') == 'auth-smoke'
             && 'integration_test/auth/auth_smoke_test.dart'
             || 'integration_test/android_all_e2e_test.dart' }}
       devices: >-
-        ${{ contains(fromJSON('["vpn-smoke", "auth-smoke"]'), inputs.tests || 'all')
+        ${{ contains(fromJSON('["vpn-smoke", "auth-smoke", "split-tunnel"]'), inputs.tests || 'all')
             && 'model=MediumPhone.arm,version=33,locale=en,orientation=portrait'
             || '' }}
       flaky_attempts: ${{ (inputs.tests || 'all') == 'all' && '2' || '' }}
+      instrumentation_args: ${{ inputs.tests == 'split-tunnel' && 'class=org.getlantern.lantern.SplitTunnelCaptureTest' || '' }}
 
   prepare:
     needs: validate-inputs
@@ -143,7 +158,7 @@ jobs:
   # to the optional suites: vpn-smoke leaves them off, `all` turns them on.
   linux:
     needs: prepare
-    if: ${{ contains(fromJSON('["all", "linux", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke"]'), inputs.tests || 'all') }}
+    if: ${{ contains(fromJSON('["all", "linux", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke", "split-tunnel"]'), inputs.tests || 'all') }}
     uses: ./.github/workflows/build-linux.yml
     secrets: inherit
     with:
@@ -193,9 +208,11 @@ jobs:
       installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
       skip_signing: true
       force_full_tunnel_smoke: true
-      run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke"]'), inputs.tests || 'all') }}
+      enable_ip_check: ${{ inputs.tests == 'split-tunnel' }}
+      run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke", "split-tunnel-apps", "split-tunnel"]'), inputs.tests || 'all') }}
       run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
-      run_split_tunnel_website_smoke: ${{ (inputs.tests || 'all') == 'all' }}
+      run_split_tunnel_website_smoke: ${{ contains(fromJSON('["all", "split-tunnel"]'), inputs.tests || 'all') }}
+      run_split_tunnel_apps_smoke: ${{ contains(fromJSON('["all", "split-tunnel-apps", "split-tunnel"]'), inputs.tests || 'all') }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
 
   windows-auto-update:

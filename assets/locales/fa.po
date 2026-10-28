@@ -2207,3 +2207,87 @@ msgstr "مرخص کن"
 
 msgid "unbounded_status_waiting"
 msgstr "در انتظار شروع"
+
+msgid "split_tunnel_off"
+msgstr "خاموش"
+
+msgid "split_tunnel_bypass"
+msgstr "عبور مستقیم"
+
+msgid "split_tunnel_include_only"
+msgstr "فقط موارد انتخاب‌شده"
+
+msgid "split_tunnel_description"
+msgstr "نحوه اتصال برنامه‌ها و وب‌سایت‌ها را انتخاب کنید"
+
+msgid "split_tunnel_mode"
+msgstr "حالت تونل‌زنی تفکیکی"
+
+msgid "split_tunnel_bypass_description"
+msgstr "برنامه‌ها و سایت‌های انتخاب‌شده از لنترن عبور نمی‌کنند"
+
+msgid "split_tunnel_include_description"
+msgstr "فقط برنامه‌ها و سایت‌های انتخاب‌شده از لنترن استفاده می‌کنند"
+
+msgid "split_tunnel_switch_include"
+msgstr "تغییر به «فقط موارد انتخاب‌شده»؟"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "تغییر به «عبور مستقیم»؟"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "فهرست‌های شما پاک خواهند شد. فقط برنامه‌ها و سایت‌هایی که اضافه می‌کنید از لنترن استفاده خواهند کرد. همه موارد دیگر، از جمله مرورگر شما، مستقیماً و بدون محافظت متصل خواهند شد."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "فهرست‌های شما پاک خواهند شد. تا زمانی که برنامه یا سایتی را برای عبور مستقیم اضافه نکنید، همه موارد از لنترن استفاده خواهند کرد."
+
+msgid "split_tunnel_switch"
+msgstr "تغییر"
+
+msgid "split_tunnel_clear"
+msgstr "پاک کردن"
+
+msgid "split_tunnel_added"
+msgstr "%d مورد اضافه‌شده"
+
+msgid "apps_using_vpn"
+msgstr "برنامه‌های استفاده‌کننده از وی‌پی‌ان (%d)"
+
+msgid "websites_using_vpn"
+msgstr "وب‌سایت‌های استفاده‌کننده از وی‌پی‌ان (%d)"
+
+msgid "split_tunnel_update_required"
+msgstr "برای استفاده از «فقط موارد انتخاب‌شده»، لنترن و سرویس وی‌پی‌ان آن را به‌روز کنید."
+
+msgid "split_tunnel_android_mixed_note"
+msgstr "برای اینکه برنامه‌های بانکی خارج از وی‌پی‌ان اندروید بمانند، فقط برنامه‌ها را انتخاب کنید. افزودن وب‌سایت‌ها مستلزم ورود برنامه‌های دیگر به وی‌پی‌ان است تا وب‌سایت‌های انتخاب‌شده بتوانند از لنترن استفاده کنند."
+
+msgid "split_tunnel_load_failed"
+msgstr "بارگیری تونل‌زنی تفکیکی انجام نشد. دوباره تلاش کنید."
+
+msgid "split_tunnel_update_failed"
+msgstr "به‌روزرسانی تونل‌زنی تفکیکی انجام نشد. دوباره تلاش کنید."
+
+msgid "split_tunnel_unavailable"
+msgstr "در دسترس نیست"
+
+msgid "split_tunnel_enter_website"
+msgstr "یک وب‌سایت یا نشانی وارد کنید"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "وب‌سایت‌ها را با ویرگول جدا کنید. برای فقط زیردامنه‌ها از *.example.com و برای همه سایت‌های .ir از *.ir استفاده کنید. نشانی‌های IP پشتیبانی نمی‌شوند."
+
+msgid "split_tunnel_invalid_website"
+msgstr "یک وب‌سایت یا نشانی معتبر وارد کنید. الگوی دامنه باید با *. شروع شود و نشانی‌های IP پشتیبانی نمی‌شوند."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s قبلاً اضافه شده است."
+
+msgid "add_executable"
+msgstr "افزودن ‎.exe"
+
+msgid "select_windows_executable"
+msgstr "فایل ‎.exe یک برنامه، به‌جز لنترن، را از این رایانه انتخاب کنید."
+
+msgid "unable_to_add_executable"
+msgstr "افزودن فایل اجرایی انجام نشد. یک فایل ‎.exe موجود در این رایانه را انتخاب کرده و دوباره تلاش کنید."

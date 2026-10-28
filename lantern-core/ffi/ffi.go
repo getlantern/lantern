@@ -1643,11 +1643,58 @@ func getSplitTunnelState() *C.char {
 		if errStr != nil {
 			return errStr
 		}
-		s, err := c.GetSplitTunnelItems()
+		s, err := c.GetSplitTunnelState()
 		if err != nil {
 			return SendError(err)
 		}
 		return C.CString(s)
+	})
+}
+
+//export switchSplitTunnelPolicy
+func switchSplitTunnelPolicy(policyC *C.char) *C.char {
+	policy := C.GoString(policyC)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		state, err := c.SwitchSplitTunnelPolicy(policy)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(state)
+	})
+}
+
+//export clearSplitTunnelApps
+func clearSplitTunnelApps() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		state, err := c.ClearSplitTunnelApps()
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(state)
+	})
+}
+
+//export normalizeSplitTunnelWebsite
+func normalizeSplitTunnelWebsite(inputC *C.char) *C.char {
+	input := C.GoString(inputC)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		value, err := c.NormalizeSplitTunnelWebsite(input)
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(value)
 	})
 }
 
