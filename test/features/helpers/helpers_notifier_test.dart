@@ -611,6 +611,32 @@ void main() {
     expect(n.polling, isTrue);
   });
 
+  test('remove all erases the names on screen when the engine cannot be '
+      'read', () async {
+    svc.answers = {
+      'unlock': _view(),
+      'refresh': _view(
+        helpers: '[{"pairing_id":"p1","name":"Ali","since_unix":1}]',
+        invites:
+            '[{"id":"i1","state":"claimed","code":"1234","volunteer_name":"Bo"}]',
+      ),
+      'end_all_helpers': '{"error":"unavailable"}',
+      'view': '{"error":"unavailable"}',
+    };
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    await n.refresh();
+    expect(c.read(helpersProvider).view.helpers.single.name, 'Ali');
+    final r = await n.endAllHelpers();
+    expect(r.error, 'unavailable');
+    final view = c.read(helpersProvider).view;
+    expect(view.helpers.single.pairingId, 'p1');
+    expect(view.helpers.single.name, isEmpty);
+    expect(view.invites.single.volunteerName, isEmpty);
+    expect(view.invites.single.code, '1234');
+    expect(c.read(helpersProvider).error, 'unavailable');
+  });
+
   test('a failed config fetch does not reread the stale flags', () async {
     svc.answers = {'unlock': _view(), 'refresh': _view(newHelping: true)};
     svc.configFails = true;

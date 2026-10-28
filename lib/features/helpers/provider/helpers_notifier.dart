@@ -353,14 +353,47 @@ class HelpersNotifier extends _$HelpersNotifier {
 
   /// The engine erases the names before it contacts lantern-cloud, so when
   /// the network step fails the local view (already without them) is shown,
-  /// with the original error kept.
+  /// with the original error kept. When that view fails too, the names are
+  /// erased from the one on screen.
   Future<HelperResult> endAllHelpers() async {
     final r = _refetchIfOk(_apply(await _call('end_all_helpers')));
     if (r.ok || !ref.mounted) return r;
-    await refreshView();
-    if (ref.mounted) state = state.copyWith(error: r.error);
+    final v = await refreshView();
+    if (!ref.mounted) return r;
+    state = state.copyWith(
+      view: v.ok ? null : _withoutHelperNames(state.view),
+      error: r.error,
+    );
     return r;
   }
+
+  /// [view] without the names the engine erases in "remove all helpers".
+  static HelpersView _withoutHelperNames(HelpersView view) => HelpersView(
+    unlocked: view.unlocked,
+    myName: view.myName,
+    invites: [
+      for (final i in view.invites)
+        HelperInviteView(
+          id: i.id,
+          state: i.state,
+          link: i.link,
+          expiresUnix: i.expiresUnix,
+          code: i.code,
+          inviterName: i.inviterName,
+        ),
+    ],
+    claims: view.claims,
+    helpers: [
+      for (final h in view.helpers)
+        HelperPairingView(
+          pairingId: h.pairingId,
+          online: h.online,
+          sinceUnix: h.sinceUnix,
+        ),
+    ],
+    helping: view.helping,
+    activity: view.activity,
+  );
 
   /// After an ended pairing, fetch the config so its route goes now.
   HelperResult _refetchIfOk(HelperResult r) {
