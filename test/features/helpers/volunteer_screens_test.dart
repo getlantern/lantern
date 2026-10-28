@@ -63,6 +63,8 @@ class _Helpers extends HelpersNotifier {
     view: view,
     helpingApprovals: state.helpingApprovals + 1,
   );
+
+  void setView(HelpersView view) => state = state.copyWith(view: view);
 }
 
 class _Share extends ShareNotifier {
@@ -102,7 +104,8 @@ Future<void> _claim(WidgetTester tester) async {
   await tester.enterText(find.byKey(const Key('help_friend.name')), 'Ali');
   await tester.tap(find.byKey(const Key('help_friend.accept')));
   await tester.pump();
-  await tester.pump(); // pumpAndSettle would never settle: the waiting view spins
+  await tester
+      .pump(); // pumpAndSettle would never settle: the waiting view spins
 }
 
 const _link =
@@ -144,9 +147,7 @@ void main() {
     expect(find.text('2562'), findsOneWidget);
   });
 
-  testWidgets('an already claimed invite says so prominently', (
-    tester,
-  ) async {
+  testWidgets('an already claimed invite says so prominently', (tester) async {
     final helpers = _Helpers(
       const HelpersState(),
       claimAnswer: '{"error":"already_claimed"}',
@@ -267,9 +268,7 @@ void main() {
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
   });
 
-  testWidgets('a provisional or expired claim is not reopened', (
-    tester,
-  ) async {
+  testWidgets('a provisional or expired claim is not reopened', (tester) async {
     final helpers = _Helpers(
       const HelpersState(
         view: HelpersView(
@@ -347,6 +346,79 @@ void main() {
     expect(find.byKey(const Key('help_friend.code')), findsNothing);
   });
 
+  // The claim answer is c1; the real notifier's refresh puts it in the view.
+  HelpersState waitingOnC1() => const HelpersState(
+    view: HelpersView(
+      unlocked: true,
+      claims: [HelperClaimView(id: 'c1', code: '2562', expiresUnix: _future)],
+    ),
+  );
+
+  testWidgets('another claim\'s approval does not end this wait', (
+    tester,
+  ) async {
+    final helpers = _Helpers(waitingOnC1());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    helpers.approve(
+      const HelpersView(
+        unlocked: true,
+        helping: [_reza],
+        claims: [HelperClaimView(id: 'c1', code: '2562', expiresUnix: _future)],
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
+    expect(find.byKey(const Key('help_friend.gone')), findsNothing);
+    expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
+  });
+
+  testWidgets('this claim becoming a pairing is approved, by name', (
+    tester,
+  ) async {
+    final helpers = _Helpers(waitingOnC1());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
+    await tester.pump();
+    expect(
+      find.text('help_friend_approved'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('this claim leaving without a pairing ends the wait', (
+    tester,
+  ) async {
+    final helpers = _Helpers(waitingOnC1());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
+    // Rejected, expired or pruned: gone from the view, and no new pairing.
+    helpers.setView(const HelpersView(unlocked: true));
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.gone')), findsOneWidget);
+    expect(find.text('help_friend_no_longer_pending'.i18n), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.code')), findsNothing);
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
+  });
+
+  testWidgets('a claim whose refresh failed keeps waiting', (tester) async {
+    // The claim answer came back but the view still predates it.
+    final helpers = _Helpers(
+      const HelpersState(view: HelpersView(unlocked: true)),
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.gone')), findsNothing);
+  });
+
   testWidgets('the code is spoken digit by digit', (tester) async {
     final handle = tester.ensureSemantics();
     final helpers = _Helpers(const HelpersState());
@@ -387,7 +459,8 @@ void main() {
     expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
     await tester.pump();
-    await tester.pump(); // pumpAndSettle would never settle: the waiting view spins
+    await tester
+        .pump(); // pumpAndSettle would never settle: the waiting view spins
     expect(helpers.claims, [(_link, 'Ali'), (_link, 'Ali')]);
     expect(find.text('2562'), findsOneWidget);
   });
@@ -396,9 +469,7 @@ void main() {
     tester,
   ) async {
     final helpers = _Helpers(
-      const HelpersState(
-        view: HelpersView(unlocked: true, helping: [_sara]),
-      ),
+      const HelpersState(view: HelpersView(unlocked: true, helping: [_sara])),
     );
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
@@ -407,7 +478,10 @@ void main() {
     helpers.approve(const HelpersView(unlocked: true, helping: [_reza, _sara]));
     await tester.pump();
     expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
-    expect(find.text('help_friend_approved'.i18n.fill(['Reza'])), findsOneWidget);
+    expect(
+      find.text('help_friend_approved'.i18n.fill(['Reza'])),
+      findsOneWidget,
+    );
   });
 
   testWidgets('approval uses the generic name when the pairing is ambiguous', (
@@ -444,17 +518,18 @@ void main() {
     expect(find.textContaining('Reza'), findsNothing);
   });
 
-  testWidgets('HelpFriend shows the keystore-reset notice and acknowledges it', (
-    tester,
-  ) async {
-    final helpers = _Helpers(const HelpersState(keystoreReset: true));
-    await _pump(tester, helpers, const HelpFriend());
-    expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
-    await tester.pump();
-    expect(helpers.acknowledged, 1);
-    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
-  });
+  testWidgets(
+    'HelpFriend shows the keystore-reset notice and acknowledges it',
+    (tester) async {
+      final helpers = _Helpers(const HelpersState(keystoreReset: true));
+      await _pump(tester, helpers, const HelpFriend());
+      expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
+      await tester.pump();
+      expect(helpers.acknowledged, 1);
+      expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
+    },
+  );
 
   testWidgets("you're helping: rows, totals, and help others too", (
     tester,

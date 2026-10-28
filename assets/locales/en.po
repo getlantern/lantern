@@ -2319,6 +2319,9 @@ msgstr "Waiting for your friend to approve"
 msgid "help_friend_approved"
 msgstr "You're now helping %s."
 
+msgid "help_friend_no_longer_pending"
+msgstr "This request is no longer pending. Ask your friend for a new invite."
+
 msgid "help_friend_done"
 msgstr "Done"
 

@@ -11,6 +11,7 @@ import 'package:lantern/features/helpers/approve_helper_sheet.dart'
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_section.dart'
     show HelperKeystoreResetNotice;
+import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 /// A volunteer accepts an invite: from a link that opened the app, a scanned
@@ -35,10 +36,17 @@ class HelpFriend extends HookConsumerWidget {
     final linkCtl = useTextEditingController(text: link ?? '');
     final nameCtl = useTextEditingController(text: helpers.view.myName);
     final code = useState<String?>(null);
-    final approvalsAtClaim = useState<int?>(null);
-    // To tell which new pairing came from this claim.
+    // This screen's own claim: its outcome, not anyone else's, ends the wait.
     final claimId = useRef<String?>(null);
+    // To tell which new pairing came from this claim.
     final helpingAtClaim = useRef<Set<String>>(const {});
+    // The view when the claim was answered. A claim missing from that same
+    // view (its refresh failed) has not left yet; it may not have arrived.
+    final viewAtClaim = useRef<HelpersView?>(null);
+    final claimSeen = useRef(false);
+    // Once settled, the outcome stays: a pairing ended later does not turn
+    // "approved" into "no longer pending".
+    final settled = useRef<_ClaimOutcome?>(null);
     final error = useState<String?>(null);
     final busy = useState(false);
     // A link that opened this screen and is not an invite: show the field so
@@ -77,7 +85,7 @@ class HelpFriend extends HookConsumerWidget {
       helpingAtClaim.value = {
         for (final p in helpers.view.helping) p.pairingId,
       };
-      approvalsAtClaim.value = helpers.helpingApprovals;
+      viewAtClaim.value = helpers.view;
       code.value = latest.code;
       return null;
     }, [helpers.view.claims]);
@@ -114,21 +122,31 @@ class HelpFriend extends HookConsumerWidget {
       final now = ref.read(helpersProvider);
       claimId.value = r.data['claim_id'] as String?;
       helpingAtClaim.value = {for (final p in now.view.helping) p.pairingId};
-      approvalsAtClaim.value = now.helpingApprovals;
+      viewAtClaim.value = now.view;
       code.value = claimed;
     }
 
-    final approved =
-        approvalsAtClaim.value != null &&
-        helpers.helpingApprovals > approvalsAtClaim.value!;
+    final outcome = code.value == null
+        ? _ClaimOutcome.waiting
+        : settled.value ??
+              _claimOutcome(
+                helpers.view,
+                claimId.value,
+                helpingAtClaim.value,
+                seen:
+                    claimSeen.value ||
+                    !identical(helpers.view, viewAtClaim.value),
+              );
+    if (claimId.value != null &&
+        helpers.view.claims.any((c) => c.id == claimId.value)) {
+      claimSeen.value = true;
+    }
+    if (outcome != _ClaimOutcome.waiting) settled.value = outcome;
+    final approved = outcome == _ClaimOutcome.approved;
 
     final Widget body;
     if (approved) {
-      final name = _approvedName(
-        helpers,
-        claimId.value,
-        helpingAtClaim.value,
-      );
+      final name = _approvedName(helpers, claimId.value, helpingAtClaim.value);
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -136,6 +154,23 @@ class HelpFriend extends HookConsumerWidget {
           Text(
             'help_friend_approved'.i18n.fill([name]),
             key: const Key('help_friend.approved'),
+            style: textTheme.titleLarge,
+          ),
+          const SizedBox(height: defaultSize),
+          PrimaryButton(
+            label: 'help_friend_done'.i18n,
+            onPressed: () => appRouter.maybePop(),
+          ),
+        ],
+      );
+    } else if (outcome == _ClaimOutcome.gone) {
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: defaultSize),
+          Text(
+            'help_friend_no_longer_pending'.i18n,
+            key: const Key('help_friend.gone'),
             style: textTheme.titleLarge,
           ),
           const SizedBox(height: defaultSize),
@@ -290,6 +325,29 @@ class HelpFriend extends HookConsumerWidget {
     }
     return BaseScreen(title: 'help_friend_title'.i18n, body: body);
   }
+}
+
+enum _ClaimOutcome { waiting, approved, gone }
+
+/// What became of this screen's claim. While it is in the view it waits,
+/// whatever other claims do. Once it has left, a new pairing means it was
+/// approved; none means it was rejected, expired or pruned. [seen] says the
+/// view reflects the claim at all: a claim whose refresh failed is missing
+/// from the view it was answered with, and has not left.
+_ClaimOutcome _claimOutcome(
+  HelpersView view,
+  String? claimId,
+  Set<String> helpingAtClaim, {
+  required bool seen,
+}) {
+  if (claimId != null && view.claims.any((c) => c.id == claimId)) {
+    return _ClaimOutcome.waiting;
+  }
+  if (view.helping.any((p) => !helpingAtClaim.contains(p.pairingId))) {
+    return _ClaimOutcome.approved;
+  }
+  // Without its ID, nothing says the claim is gone.
+  return claimId != null && seen ? _ClaimOutcome.gone : _ClaimOutcome.waiting;
 }
 
 /// The name of the pairing this claim became, or the generic wording when it
