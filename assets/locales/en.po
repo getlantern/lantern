@@ -2148,6 +2148,9 @@ msgstr "View advanced stats"
 msgid "helper_error_disabled"
 msgstr "Helping friends isn't available on this device yet."
 
+msgid "helper_error_not_found"
+msgstr "This invite or helper no longer exists."
+
 msgid "helper_error_unavailable"
 msgstr "Couldn't reach Lantern. Check your connection and try again."
 

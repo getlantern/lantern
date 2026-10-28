@@ -9,7 +9,7 @@ void main() {
     const expected = {
       'locked': 'helper_error_unavailable',
       'disabled': 'helper_error_disabled',
-      'not_found': 'helper_error_unavailable',
+      'not_found': 'helper_error_not_found',
       'already_claimed': 'help_friend_already_claimed_body',
       'no_pending_claim': 'helper_error_no_pending_claim',
       'too_many_invites': 'helper_error_too_many_invites',
@@ -32,6 +32,7 @@ void main() {
     for (final id in [
       'helper_error_disabled',
       'helper_error_unavailable',
+      'helper_error_not_found',
       'helper_error_too_many_invites',
       'helper_error_too_many_pairings',
       'helper_error_no_pending_claim',
