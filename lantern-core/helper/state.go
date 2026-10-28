@@ -188,19 +188,31 @@ func writeSynced(path string, data []byte) error {
 	if err != nil {
 		return err
 	}
+	return writeAndClose(f, data)
+}
+
+type syncFile interface {
+	Chmod(fs.FileMode) error
+	Write([]byte) (int, error)
+	Sync() error
+	Close() error
+}
+
+// writeAndClose reports a failed Close too: on some filesystems that is
+// where a failed write surfaces.
+func writeAndClose(f syncFile, data []byte) (err error) {
+	defer func() {
+		if cerr := f.Close(); cerr != nil {
+			err = errors.Join(err, cerr)
+		}
+	}()
 	if err := f.Chmod(0o600); err != nil {
-		f.Close()
 		return err
 	}
 	if _, err := f.Write(data); err != nil {
-		f.Close()
 		return err
 	}
-	if err := f.Sync(); err != nil {
-		f.Close()
-		return err
-	}
-	return f.Close()
+	return f.Sync()
 }
 
 // int64JSON reads an int64 written as a JSON number or, as protojson writes
