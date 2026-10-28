@@ -117,8 +117,8 @@ func (e *Engine) prune() bool {
 	return ni != len(e.st.Invites) || nc != len(e.st.Claims)
 }
 
-func (e *Engine) view(newHelping bool) View {
-	v := View{Unlocked: true, MyName: e.st.MyName, NewHelping: newHelping, Activity: e.activity,
+func (e *Engine) view() View {
+	v := View{Unlocked: true, MyName: e.st.MyName, Activity: e.activity,
 		Invites: []InviteView{}, Claims: []ClaimView{}, Helpers: []PairingView{}, Helping: []PairingView{}}
 	for _, i := range e.st.Invites {
 		if i.State == "cancelled" {
@@ -275,11 +275,11 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 		}
 		return nil, err
 	}
-	var merged, newHelping bool
+	var merged bool
 	if disabled {
 		merged = e.dropVolunteerSide()
 	} else {
-		merged, newHelping = e.mergePairings(list.Pairings)
+		merged = e.mergePairings(list.Pairings)
 	}
 	changed = changed || merged
 	if merged {
@@ -302,7 +302,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 			return nil, err
 		}
 	}
-	return e.view(newHelping), nil
+	return e.view(), nil
 }
 
 // dropVolunteerSide forgets every claim and every pairing this device
@@ -317,8 +317,9 @@ func (e *Engine) dropVolunteerSide() bool {
 
 // mergePairings makes the local pairings match lantern-cloud's list. A new
 // pairing this device volunteers for takes its inviter's name from the
-// pending claim whose key opens the blob, and that claim is done.
-func (e *Engine) mergePairings(listed []listedPairing) (changed, newHelping bool) {
+// pending claim whose key opens the blob, and that claim is done; it sets
+// newHelpingPending, which the next view an op returns reports.
+func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 	seen := map[string]bool{}
 	e.online = map[string]bool{}
 	for _, lp := range listed {
@@ -336,7 +337,7 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed, newHelping bool
 		name := ""
 		var hash []byte
 		if lp.Role == RoleVolunteer {
-			newHelping = true
+			e.newHelpingPending = true
 			name, hash = e.claimName(lp.InviterBlob)
 		}
 		e.addPairing(lp.PairingID, lp.Role, name, time.Unix(int64(lp.CreatedUnix), 0), hash)
@@ -344,7 +345,7 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed, newHelping bool
 	}
 	n := len(e.st.Pairings)
 	e.st.Pairings = slices.DeleteFunc(e.st.Pairings, func(p *pairing) bool { return !seen[p.ID] })
-	return changed || n != len(e.st.Pairings), newHelping
+	return changed || n != len(e.st.Pairings)
 }
 
 // claimName returns the inviter's name and the invite hash of the pending
@@ -413,7 +414,7 @@ func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
 	if err := e.save(); err != nil {
 		return nil, err
 	}
-	return e.view(false), nil
+	return e.view(), nil
 }
 
 func (e *Engine) forgetInvite(ctx context.Context, args []byte) (any, error) {
@@ -425,7 +426,7 @@ func (e *Engine) forgetInvite(ctx context.Context, args []byte) (any, error) {
 	}
 	inv := e.invite(a.InviteID)
 	if inv == nil {
-		return e.view(false), nil
+		return e.view(), nil
 	}
 	if err := e.cancelInvite(ctx, inv); err != nil {
 		return nil, err
@@ -433,7 +434,7 @@ func (e *Engine) forgetInvite(ctx context.Context, args []byte) (any, error) {
 	if err := e.save(); err != nil {
 		return nil, err
 	}
-	return e.view(false), nil
+	return e.view(), nil
 }
 
 // cancelInvite rejects a claimed invite and forgets it. An unclaimed one
@@ -563,7 +564,7 @@ func (e *Engine) endPairing(ctx context.Context, args []byte) (any, error) {
 	if err := e.save(); err != nil {
 		return nil, err
 	}
-	return e.view(false), nil
+	return e.view(), nil
 }
 
 // endAllHelpers is "remove all helpers": it ends every pairing in which this
@@ -607,11 +608,10 @@ func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
 	if err := e.save(); err != nil {
 		return nil, err
 	}
-	newHelping, err := e.endRemoteHelpers(ctx)
-	if err != nil {
+	if err := e.endRemoteHelpers(ctx); err != nil {
 		return nil, err
 	}
-	return e.view(newHelping), nil
+	return e.view(), nil
 }
 
 // endRemoteHelpers ends the pairings in which lantern-cloud says this device
@@ -619,7 +619,7 @@ func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
 // answer was lost, whose invite cancelInvite then dropped). Each is tried; the
 // first failure is reported. The listing also carries the volunteer side, and
 // an inviter's blob is delivered only once, so it is merged as refresh does.
-func (e *Engine) endRemoteHelpers(ctx context.Context) (bool, error) {
+func (e *Engine) endRemoteHelpers(ctx context.Context) error {
 	var list struct {
 		Pairings []listedPairing `json:"pairings"`
 	}
@@ -627,10 +627,10 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) (bool, error) {
 	if isCode(err, CodeDisabled) {
 		// lantern-cloud lets a device without the flag list and end only the
 		// pairings it volunteers in, so it is helped in none.
-		return false, nil
+		return nil
 	}
 	if err != nil {
-		return false, err
+		return err
 	}
 	var firstErr error
 	kept := make([]listedPairing, 0, len(list.Pairings))
@@ -653,12 +653,12 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) (bool, error) {
 			e.helpersPending = true
 		}
 	}
-	merged, newHelping := e.mergePairings(kept)
+	merged := e.mergePairings(kept)
 	if merged {
 		_ = e.post(ctx, opRefreshTickets, struct{}{}, nil)
 	}
 	if err := e.save(); err != nil {
-		return false, err
+		return err
 	}
-	return newHelping, firstErr
+	return firstErr
 }

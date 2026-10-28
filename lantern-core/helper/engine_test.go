@@ -723,9 +723,9 @@ func TestHelpersChangedSurvivesAFailedRefresh(t *testing.T) {
 // malformed; it is neither added nor reported as a new pairing to help in.
 func TestMergeSkipsEntriesWithoutPairingID(t *testing.T) {
 	e := newTestEngine(t, newFakeCloud(), "ali", t.TempDir())
-	changed, newHelping := e.mergePairings([]listedPairing{{Role: RoleVolunteer}, {Role: RoleInviter}})
+	changed := e.mergePairings([]listedPairing{{Role: RoleVolunteer}, {Role: RoleInviter}})
 	assert.False(t, changed)
-	assert.False(t, newHelping)
+	assert.False(t, e.newHelpingPending)
 	assert.Empty(t, e.st.Pairings)
 }
 
@@ -757,4 +757,63 @@ func TestEndAllHelpersEndsAPairingKnownOnlyRemotely(t *testing.T) {
 	assert.Empty(t, list(sv, "helpers"))
 	assert.Empty(t, list(sv, "invites"))
 	assert.Equal(t, true, call(t, sara, "refresh", nil)["helpers_changed"], "the config drops its route")
+}
+
+// approvedClaim has ali claim bo's invite and bo approve it, so ali's next
+// pairings list carries a new pairing to help in.
+func approvedClaim(t *testing.T, cloud *fakeCloud, ali *Engine) {
+	t.Helper()
+	bo := newTestEngine(t, cloud, "bo", t.TempDir())
+	link := call(t, bo, "create_invite", map[string]any{"name": "Bo"})["link"]
+	call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	id := list(call(t, bo, "refresh", nil), "invites")[0]["id"]
+	call(t, bo, "decide", map[string]any{"invite_id": id, "approve": true})
+}
+
+// TestNewHelpingSurvivesAFailedRefresh: a refresh that merges a new pairing
+// to help in, consuming its claim, and then fails still reports it, once, in
+// the next view.
+func TestNewHelpingSurvivesAFailedRefresh(t *testing.T) {
+	cloud := newFakeCloud()
+	dir := t.TempDir()
+	ali := newTestEngine(t, cloud, "ali", dir)
+	approvedClaim(t, cloud, ali)
+	// A directory where the state file goes makes the save fail.
+	stateFilePath := filepath.Join(dir, stateFile)
+	require.NoError(t, os.Remove(stateFilePath))
+	require.NoError(t, os.MkdirAll(filepath.Join(stateFilePath, "x"), 0o700))
+	assert.Equal(t, CodeInternal, callErr(t, ali, "refresh", nil))
+	assert.Empty(t, ali.st.Claims, "the claim was consumed")
+	require.NoError(t, os.RemoveAll(stateFilePath))
+
+	v := call(t, ali, "view", nil)
+	assert.Equal(t, true, v["new_helping"])
+	assert.Equal(t, "Bo", list(v, "helping")[0]["name"])
+	assert.Equal(t, false, call(t, ali, "view", nil)["new_helping"], "once only")
+	assert.Equal(t, false, call(t, ali, "refresh", nil)["new_helping"])
+}
+
+// TestNewHelpingSurvivesAFailedEndAll: remove all merges the volunteer side
+// of the pairings it lists; when it then fails, the new pairing to help in is
+// still reported, once, by the next view.
+func TestNewHelpingSurvivesAFailedEndAll(t *testing.T) {
+	cloud := newFakeCloud()
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+	// A pairing in which ali is helped that only lantern-cloud knows of.
+	link := call(t, ali, "create_invite", map[string]any{"name": "Ali"})["link"]
+	call(t, newTestEngine(t, cloud, "eve", t.TempDir()), "claim", map[string]any{"link": link, "name": "Eve"})
+	id := list(call(t, ali, "refresh", nil), "invites")[0]["id"]
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, ali, "decide", map[string]any{"invite_id": id, "approve": true}))
+	approvedClaim(t, cloud, ali)
+
+	cloud.fail["pairings/end"] = 503
+	assert.Equal(t, CodeUnavailable, callErr(t, ali, "end_all_helpers", nil))
+	assert.Empty(t, ali.st.Claims, "the claim was consumed")
+	delete(cloud.fail, "pairings/end")
+
+	v := call(t, ali, "view", nil)
+	assert.Equal(t, true, v["new_helping"])
+	assert.Equal(t, "Bo", list(v, "helping")[0]["name"])
+	assert.Equal(t, false, call(t, ali, "view", nil)["new_helping"], "once only")
 }

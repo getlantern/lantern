@@ -63,6 +63,12 @@ type Engine struct {
 	// compare against the changed set and never say so. It is kept in
 	// memory only: after a restart the app fetches its config anyway.
 	helpersPending bool
+	// newHelpingPending is set when an op found a new pairing this device
+	// volunteers in, and cleared by the first view an op returns, which
+	// reports it as new_helping. The op that found it can fail after
+	// consuming the claim that found it, and only this flag still says so.
+	// Memory only, like helpersPending.
+	newHelpingPending bool
 }
 
 // NewEngine returns an engine that keeps its state in dir.
@@ -90,7 +96,7 @@ func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, erro
 	helpersBefore := e.inviterPairings()
 	switch op {
 	case "view":
-		out = e.view(false)
+		out = e.view()
 	case "refresh":
 		out, err = e.refresh(ctx)
 	case "create_invite":
@@ -114,10 +120,12 @@ func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	if v, ok := out.(View); ok && op == "refresh" && e.helpersPending {
-		v.HelpersChanged = true
-		e.helpersPending = false
-		out = v
+	if v, ok := out.(View); ok {
+		if op == "refresh" && e.helpersPending {
+			v.HelpersChanged = true
+			e.helpersPending = false
+		}
+		out = e.withNewHelping(v)
 	}
 	b, err := json.Marshal(out)
 	if err != nil {
@@ -146,9 +154,18 @@ func (e *Engine) unlock(args []byte) ([]byte, error) {
 		e.st = state{}
 		return nil, err
 	}
-	v := e.view(false)
+	v := e.withNewHelping(e.view())
 	v.KeystoreReset = e.reset
 	return json.Marshal(v)
+}
+
+// withNewHelping reports a pending new pairing to help in v, once.
+func (e *Engine) withNewHelping(v View) View {
+	if e.newHelpingPending {
+		v.NewHelping = true
+		e.newHelpingPending = false
+	}
+	return v
 }
 
 func (e *Engine) newID() string {
