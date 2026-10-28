@@ -1796,3 +1796,48 @@ msgstr "Direct connection unavailable: %s"
 
 msgid "view_advanced_stats"
 msgstr "View advanced stats"
+
+msgid "error_occurred"
+msgstr "An error occurred. Please try again."
+
+msgid "unknown_error_occurred"
+msgstr "An unknown error occurred."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "We're experiencing technical difficulties. Please try again later."
+
+msgid "proxy_error"
+msgstr "We couldn't connect through the proxy. Please check your connection and try again."
+
+msgid "err_while_sending_code"
+msgstr "We couldn't send the verification code. Please try again."
+
+msgid "recovery_not_found"
+msgstr "We couldn't find an account to recover with those details."
+
+msgid "wrong_link_code"
+msgstr "That device linking code is incorrect. Please check it and try again."
+
+msgid "wrong_seller_code"
+msgstr "That reseller code is incorrect. Please check it and try again."
+
+msgid "purchase_not_found"
+msgstr "We couldn't find a purchase for this account."
+
+msgid "purchase_restored_error"
+msgstr "We couldn't restore your purchase. Please try again."
+
+msgid "empty_url"
+msgstr "We couldn't open the payment page. Please try again."
+
+msgid "please_enter_referral_code"
+msgstr "Please enter a referral code."
+
+msgid "access_token_missing"
+msgstr "Access token is missing. Please sign in to your cloud provider again."
+
+msgid "private_server_setup_error"
+msgstr "We couldn't set up your private server. Please try again."
+
+msgid "logs"
+msgstr "Logs"
