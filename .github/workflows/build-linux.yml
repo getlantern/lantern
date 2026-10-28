@@ -105,6 +105,7 @@ jobs:
             libayatana-appindicator3-dev
             libcurl4-openssl-dev
             libwebkit2gtk-4.1-dev
+            libsecret-1-dev
             patchelf
             xvfb
           )
