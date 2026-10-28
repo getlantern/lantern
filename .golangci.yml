@@ -1,0 +1,30 @@
+version: "2"
+
+run:
+  build-tags: [with_gvisor, with_quic, with_wireguard, with_utls, with_grpc]
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - durationcheck
+    - errorlint
+    - gosec
+    - nilerr
+    - noctx
+  settings:
+    gosec:
+      # G104 duplicates errcheck. G115 flags every integer conversion, and G304
+      # every file read from a computed path.
+      excludes: [G104, G115, G304]
+    staticcheck:
+      checks: ["all", "-ST1000", "-ST1003", "-ST1016", "-ST1020", "-ST1021", "-ST1022", "-QF*"]
+  exclusions:
+    presets: [std-error-handling]
+    rules:
+      - path: _test\.go
+        linters: [bodyclose, errcheck, gosec, noctx]
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
