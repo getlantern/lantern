@@ -513,6 +513,43 @@ void main() {
     expect(c.read(helpersProvider).view.helpers.single.pairingId, 'new');
   });
 
+  test('an older view still counts its new pairing to help', () async {
+    svc.answers = {'unlock': _view()};
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    await n.ensureUnlocked();
+    final gate = Completer<void>();
+    svc.gates['refresh'] = gate.future;
+    svc.queued['refresh'] = [_view(newHelping: true), _view()];
+    final slow = n.refresh();
+    await Future<void>.delayed(Duration.zero);
+    await n.refresh();
+    expect(c.read(helpersProvider).helpingApprovals, 0);
+    gate.complete();
+    await slow;
+    expect(c.read(helpersProvider).helpingApprovals, 1);
+    await Future<void>.delayed(Duration.zero);
+    expect(svc.configRequests, 1);
+  });
+
+  test('an older view still refetches config for helpers_changed', () async {
+    svc.answers = {'unlock': _view()};
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    await n.ensureUnlocked();
+    final gate = Completer<void>();
+    svc.gates['refresh'] = gate.future;
+    svc.queued['refresh'] = [_view(helpersChanged: true), _view()];
+    final slow = n.refresh();
+    await Future<void>.delayed(Duration.zero);
+    await n.refresh();
+    gate.complete();
+    await slow;
+    await Future<void>.delayed(Duration.zero);
+    expect(svc.configRequests, 1);
+    expect(c.read(helpersProvider).helpingApprovals, 0);
+  });
+
   test('a failing config refetch is contained', () async {
     svc.answers = {'unlock': _view(), 'refresh': _view(newHelping: true)};
     svc.configThrows = true;

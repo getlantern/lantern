@@ -188,7 +188,9 @@ class HelpersNotifier extends _$HelpersNotifier {
   }
 
   /// Applies an answer. A view replaces the view unless a later-requested
-  /// view was already applied; an error is kept.
+  /// view was already applied; an error is kept. A view's new_helping is
+  /// counted even when the view itself is too old: the engine reports it
+  /// once, so dropping it would lose the approval.
   HelperResult _apply(_Answer a, {bool isView = true}) {
     final (r, seq) = a;
     if (!ref.mounted) return r;
@@ -197,7 +199,12 @@ class HelpersNotifier extends _$HelpersNotifier {
       return r;
     }
     if (isView) {
-      if (seq < _applied) return r;
+      if (seq < _applied) {
+        if (r.data['new_helping'] == true) {
+          state = state.copyWith(helpingApprovals: state.helpingApprovals + 1);
+        }
+        return r;
+      }
       _applied = seq;
       final view = HelpersView.fromJson(r.data);
       state = state.copyWith(
