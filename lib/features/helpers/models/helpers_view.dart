@@ -58,6 +58,13 @@ class HelperInviteView {
 
   bool get claimed => state == 'claimed';
 
+  /// An unclaimed invite past its expiry. Its link no longer works, so it is
+  /// not shown. A claimed invite stays, so the inviter can still decide it.
+  bool get expired =>
+      !claimed &&
+      expiresUnix > 0 &&
+      expiresUnix <= DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
   factory HelperInviteView.fromJson(Map<String, dynamic> j) => HelperInviteView(
     id: _str(j['id']),
     state: _str(j['state']),

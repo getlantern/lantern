@@ -14,12 +14,16 @@ import 'package:share_plus/share_plus.dart';
 /// hides it from the clipboard preview and keyboard clipboard history; the
 /// link is a secret.
 Future<void> copySensitiveText(String text) async {
-  if (PlatformUtils.isAndroid) {
+  if (debugCopyAsAndroid ?? PlatformUtils.isAndroid) {
     await sl<LanternPlatformService>().copySensitiveText(text);
     return;
   }
   await Clipboard.setData(ClipboardData(text: text));
 }
+
+/// Lets a test take the Android path of [copySensitiveText].
+@visibleForTesting
+bool? debugCopyAsAndroid;
 
 /// One invite: share it as a link or a QR code, then compare codes once a
 /// friend opens it. It reads the invite from the engine's view by ID, so the
@@ -36,7 +40,7 @@ class InviteShare extends ConsumerWidget {
     final invite = view.invites.where((i) => i.id == inviteId).firstOrNull;
     final textTheme = Theme.of(context).textTheme;
 
-    if (invite == null) {
+    if (invite == null || invite.expired) {
       return BaseScreen(
         title: 'invite_share_title'.i18n,
         body: Center(
@@ -53,9 +57,19 @@ class InviteShare extends ConsumerWidget {
             const SizedBox(height: defaultSize),
             Text('invite_claimed_title'.i18n, style: textTheme.titleLarge),
             const SizedBox(height: defaultSize),
-            PrimaryButton(
-              label: 'invite_compare_codes'.i18n,
-              onPressed: () => showApproveHelperSheet(context, invite),
+            KeyedSubtree(
+              key: const Key('invite.compare'),
+              child: PrimaryButton(
+                label: 'invite_compare_codes'.i18n,
+                onPressed: () async {
+                  final decided = await showApproveHelperSheet(context, invite);
+                  // The invite is used now; go back to the helpers list
+                  // rather than staying on "used or expired".
+                  if (decided && context.mounted) {
+                    await Navigator.of(context).maybePop();
+                  }
+                },
+              ),
             ),
           ],
         ),
@@ -86,6 +100,7 @@ class InviteShare extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           SecondaryButton(
+            key: const Key('invite.copy'),
             label: 'invite_copy_link'.i18n,
             onPressed: () async {
               try {

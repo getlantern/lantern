@@ -36,7 +36,9 @@ class GetHelp extends HookConsumerWidget {
     }, const []);
 
     final claimed = view.invites.where((i) => i.claimed).toList();
-    final pending = view.invites.where((i) => !i.claimed).toList();
+    final pending = view.invites
+        .where((i) => !i.claimed && !i.expired)
+        .toList();
 
     return BaseScreen(
       title: 'helpers_title'.i18n,
@@ -99,7 +101,7 @@ class GetHelp extends HookConsumerWidget {
                 children: [
                   for (final (i, h) in view.helpers.indexed) ...[
                     if (i > 0) DividerSpace(),
-                    _HelperRow(index: i, helper: h),
+                    _HelperRow(index: i, helper: h, notifier: notifier),
                   ],
                 ],
               ),
@@ -137,14 +139,14 @@ class GetHelp extends HookConsumerWidget {
             key: const Key('helpers.invite'),
             child: PrimaryButton(
               label: 'invite_someone'.i18n,
-              onPressed: () => _invite(context, ref),
+              onPressed: () => _invite(context, ref, notifier),
             ),
           ),
           if (view.helpers.isNotEmpty || view.invites.isNotEmpty) ...[
             const SizedBox(height: 8),
             AppTextButton(
               label: 'helpers_remove_all'.i18n,
-              onPressed: () => _removeAll(context, ref),
+              onPressed: () => _removeAll(context, notifier),
             ),
           ],
           if (state.error != null) ...[
@@ -162,14 +164,18 @@ class GetHelp extends HookConsumerWidget {
     );
   }
 
-  Future<void> _invite(BuildContext context, WidgetRef ref) async {
+  Future<void> _invite(
+    BuildContext context,
+    WidgetRef ref,
+    HelpersNotifier notifier,
+  ) async {
     final name = await askHelperName(
       context,
       initial: ref.read(helpersProvider).view.myName,
       title: 'invite_someone'.i18n,
     );
     if (name == null || !context.mounted) return;
-    final r = await ref.read(helpersProvider.notifier).createInvite(name);
+    final r = await notifier.createInvite(name);
     if (!context.mounted) return;
     final id = r.data['invite_id'];
     if (!r.ok || id is! String) {
@@ -179,14 +185,16 @@ class GetHelp extends HookConsumerWidget {
     appRouter.push(InviteShare(inviteId: id));
   }
 
-  Future<void> _removeAll(BuildContext context, WidgetRef ref) =>
+  // AppDialog runs onPrimaryPressed 400 ms after the dialog closes, when this
+  // screen may be gone and its ref unusable. The notifier is keepAlive, so
+  // the removal still happens.
+  Future<void> _removeAll(BuildContext context, HelpersNotifier notifier) =>
       AppDialog.show(
         context: context,
         title: 'helpers_remove_all'.i18n,
         body: 'helpers_remove_all_body'.i18n,
         primaryLabel: 'remove'.i18n,
-        onPrimaryPressed: () =>
-            ref.read(helpersProvider.notifier).endAllHelpers(),
+        onPrimaryPressed: notifier.endAllHelpers,
         secondaryLabel: 'cancel'.i18n,
       );
 }
@@ -196,14 +204,21 @@ String _hoursLeft(int expiresUnix) {
   return '${left <= 0 ? 0 : (left + 3599) ~/ 3600}';
 }
 
-class _HelperRow extends ConsumerWidget {
-  const _HelperRow({required this.index, required this.helper});
+class _HelperRow extends StatelessWidget {
+  const _HelperRow({
+    required this.index,
+    required this.helper,
+    required this.notifier,
+  });
 
   final int index;
   final HelperPairingView helper;
 
+  /// Held rather than read from a ref: see [GetHelp._removeAll].
+  final HelpersNotifier notifier;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final name = helper.name.isEmpty ? 'helper_unnamed'.i18n : helper.name;
     return AppTile(
       label: name,
@@ -231,8 +246,7 @@ class _HelperRow extends ConsumerWidget {
           title: 'helper_remove_confirm_title'.i18n.fill([name]),
           body: 'helper_remove_confirm_body'.i18n.fill([name]),
           primaryLabel: 'remove'.i18n,
-          onPrimaryPressed: () =>
-              ref.read(helpersProvider.notifier).endPairing(helper.pairingId),
+          onPrimaryPressed: () => notifier.endPairing(helper.pairingId),
           secondaryLabel: 'cancel'.i18n,
         ),
       ),

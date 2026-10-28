@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -7,17 +8,23 @@ import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 /// Shows the matching code of a claimed invite and lets the inviter approve
-/// or reject the person who claimed it.
-Future<void> showApproveHelperSheet(
+/// or reject the person who claimed it. Completes with true once the engine
+/// accepted a decision.
+Future<bool> showApproveHelperSheet(
   BuildContext context,
   HelperInviteView invite,
-) {
-  return showModalBottomSheet<void>(
+) async {
+  final decided = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     builder: (_) => ApproveHelperSheet(invite: invite),
   );
+  return decided ?? false;
 }
+
+/// Spells a matching code digit by digit, so a screen reader does not read
+/// "2562" as a number.
+String spokenCode(String code) => code.split('').join(' ');
 
 class ApproveHelperSheet extends HookConsumerWidget {
   const ApproveHelperSheet({super.key, required this.invite});
@@ -33,20 +40,20 @@ class ApproveHelperSheet extends HookConsumerWidget {
         : invite.volunteerName;
 
     Future<void> decide(bool approve) async {
+      // Read once: the notifier outlives this sheet; its ref may not.
+      final notifier = ref.read(helpersProvider.notifier);
       busy.value = true;
-      final r = await ref
-          .read(helpersProvider.notifier)
-          .decide(invite.id, approve: approve);
+      final r = await notifier.decide(invite.id, approve: approve);
       if (!context.mounted) return;
       busy.value = false;
       if (r.ok) {
-        await Navigator.of(context).maybePop();
+        await Navigator.of(context).maybePop(true);
         return;
       }
       context.showSnackBarError(helperErrorText(r.error!));
       if (r.error == 'no_pending_claim') {
         // Decided elsewhere, or an approval whose answer was lost: re-read.
-        await ref.read(helpersProvider.notifier).refresh();
+        await notifier.refresh();
       }
     }
 
@@ -69,11 +76,15 @@ class ApproveHelperSheet extends HookConsumerWidget {
               style: textTheme.labelMedium,
               textAlign: TextAlign.center,
             ),
-            Text(
-              invite.code,
-              key: const Key('approve.code'),
-              textAlign: TextAlign.center,
-              style: textTheme.displayMedium?.copyWith(letterSpacing: 8),
+            Semantics(
+              label: spokenCode(invite.code),
+              excludeSemantics: true,
+              child: Text(
+                invite.code,
+                key: const Key('approve.code'),
+                textAlign: TextAlign.center,
+                style: textTheme.displayMedium?.copyWith(letterSpacing: 8),
+              ),
             ),
             const SizedBox(height: 16),
             KeyedSubtree(
@@ -111,17 +122,31 @@ Future<String?> askHelperName(
 }) async {
   var current = initial;
   String? result;
+  final invalid = ValueNotifier(false);
   final navigator = Navigator.of(context, rootNavigator: true);
   await AppDialog.show(
     context: context,
     title: title,
-    content: _HelperNameField(initial: initial, onChanged: (v) => current = v),
+    content: _HelperNameField(
+      initial: initial,
+      invalid: invalid,
+      onChanged: (v) {
+        current = v;
+        invalid.value = false;
+      },
+    ),
     primaryLabel: 'continue'.i18n,
     // AppDialog runs a dismissing primary callback 400 ms after the pop, too
     // late for show()'s future. Record the name first, then dismiss.
     dismissOnPrimary: false,
     onPrimaryPressed: () {
-      result = current.trim();
+      final name = current.trim();
+      if (name.isEmpty) {
+        // Keep the dialog open and say why, rather than closing silently.
+        invalid.value = true;
+        return;
+      }
+      result = name;
       navigator.pop();
     },
     secondaryLabel: 'cancel'.i18n,
@@ -134,21 +159,41 @@ Future<String?> askHelperName(
 /// which the hook disposes when the dialog's route is gone, after its exit
 /// animation, not when show() returns.
 class _HelperNameField extends HookWidget {
-  const _HelperNameField({required this.initial, required this.onChanged});
+  const _HelperNameField({
+    required this.initial,
+    required this.invalid,
+    required this.onChanged,
+  });
 
   final String initial;
+  final ValueListenable<bool> invalid;
   final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final controller = useTextEditingController(text: initial);
-    return AppTextField(
-      controller: controller,
-      label: 'helpers_your_name_label'.i18n,
-      hintText: 'helpers_your_name_hint'.i18n,
-      maxLength: 60,
-      autofocus: true,
-      onChanged: onChanged,
+    final showError = useValueListenable(invalid);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppTextField(
+          controller: controller,
+          label: 'helpers_your_name_label'.i18n,
+          hintText: 'helpers_your_name_hint'.i18n,
+          maxLength: 60,
+          autofocus: true,
+          onChanged: onChanged,
+        ),
+        if (showError)
+          Text(
+            helperErrorText('bad_name'),
+            key: const Key('helpers.name.error'),
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+      ],
     );
   }
 }
