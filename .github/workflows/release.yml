@@ -20,11 +20,6 @@ on:
         required: false
         type: string
         default: "linux"
-      use_self_hosted_macos:
-        description: "Build macOS on the persistent EC2 runner"
-        required: false
-        type: boolean
-        default: false
       sign_windows:
         description: "Sign Windows binaries (nightly skips signing by default)"
         required: false
@@ -82,8 +77,8 @@ concurrency:
 jobs:
   set-metadata:
     # Allow tag-push releases, scheduled builds from default branch,
-    # and workflow_dispatch from any branch (non-main branches create
-    # draft releases that are immediately deleted for testing).
+    # and workflow_dispatch from any branch. Branch test runs publish versioned
+    # downloads and notify Slack; their temporary draft releases are deleted.
     if: ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name == 'schedule' && github.ref_name == github.event.repository.default_branch) || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
@@ -183,7 +178,7 @@ jobs:
                   ;;
                 beta|production)
                   echo "Error: $BUILD_TYPE builds must use git tags, not manual dispatch" >&2
-                  echo "  Push a tag like 'v1.2.3-beta' (beta) or 'v1.2.3' (production) instead." >&2
+                  echo "  Push a tag like 'v1.2.3-beta.1' (beta) or 'v1.2.3' (production) instead." >&2
                   exit 1
                   ;;
                 *)
@@ -202,7 +197,7 @@ jobs:
               VERSION="${RELEASE_TAG#v}"
 
               case "$RELEASE_TAG" in
-                *-beta*)
+                *-beta.*)
                   BUILD_TYPE="beta"
                   ;;
                 *)
@@ -214,7 +209,7 @@ jobs:
                     echo "Error: Invalid tag format for build" >&2
                     echo "  Use 'v1.0.0' for production (all platforms)" >&2
                     echo "  Use 'v1.0.0-<platform>' for production (single platform)" >&2
-                    echo "  Use 'v1.0.0-beta' for beta" >&2
+                    echo "  Use 'v1.0.0-beta.1' for beta" >&2
                     echo "Got: $RELEASE_TAG" >&2
                     exit 1
                   fi
@@ -354,7 +349,7 @@ jobs:
           # Strip 'v' prefix if present
           VERSION="${RELEASE_TAG#v}"
 
-          # Extract base semver (strip suffixes like -beta, -nightly-...)
+          # Extract base semver (strip suffixes like -beta.1, -nightly-...)
           BASE_VERSION=$(./scripts/ci/version.sh extract "$VERSION")
 
           FULL_VERSION="${BASE_VERSION}+${BUILD_NUMBER}"
@@ -422,6 +417,7 @@ jobs:
         run: |
           python3 -m pip install -r scripts/requirements.txt PyYAML
           python3 -m unittest \
+            scripts/ci/version_test.py \
             scripts/ci/generate_update_metadata_test.py \
             scripts/ci/verify_release_alignment_test.py \
             scripts/ci/verify_update_service_test.py \
@@ -493,7 +489,6 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
-      runner_label: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.use_self_hosted_macos == 'true' && 'lantern-macos-smoke' || 'macos-15' }}
 
   build-windows:
     needs: [set-metadata, preflight, release-approval]
@@ -699,7 +694,6 @@ jobs:
       always() &&
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.set-metadata.outputs.is_test_run != 'true' &&
       needs.nightly-gate.result == 'success'
     runs-on: ubuntu-latest
     env:
@@ -710,6 +704,7 @@ jobs:
       LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
       BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
+      IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -756,7 +751,6 @@ jobs:
       always() &&
       !cancelled() &&
       needs.release-create.result == 'success' &&
-      needs.set-metadata.outputs.is_test_run != 'true' &&
       needs.nightly-gate.result == 'success'
     runs-on: ubuntu-latest
     env:
@@ -767,6 +761,7 @@ jobs:
       LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
       BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
+      IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -1323,7 +1318,6 @@ jobs:
       always() &&
       !cancelled() &&
       needs.set-metadata.result == 'success' &&
-      needs.set-metadata.outputs.is_test_run != 'true' &&
       needs.nightly-gate.result == 'success' &&
       needs.upload-s3.result == 'success' &&
       needs.upload-release-artifacts.result == 'success' &&
@@ -1353,6 +1347,7 @@ jobs:
           BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
           BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
+          IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
           LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash

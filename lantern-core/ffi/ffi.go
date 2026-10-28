@@ -118,7 +118,7 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 		privateserverPort.Store(int64(privateServerP))
 		appEventPort.Store(int64(appEventP))
 
-		core, err := lanterncore.New(&utils.Opts{
+		opts := &utils.Opts{
 			LogDir:           logDir,
 			DataDir:          dataDir,
 			Locale:           locale,
@@ -126,7 +126,12 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 			Deviceid:         "",
 			LogLevel:         lanterncore.DefaultLogLevel,
 			TelemetryConsent: consent == 1,
-		}, &ffiFlutterEventEmitter{})
+		}
+		// Desktop has no debug-build signal here, so staging stands in for it.
+		if opts.IsStaging() {
+			opts.LogLevel = "trace"
+		}
+		core, err := lanterncore.New(opts, &ffiFlutterEventEmitter{})
 
 		if err != nil {
 			return C.CString(fmt.Sprintf("unable to create LanternCore: %v", err))

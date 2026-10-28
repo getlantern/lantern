@@ -556,7 +556,11 @@ class MethodHandler {
     opts.deviceid = ""
     opts.appVersion =
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
-    opts.logLevel = "trace"
+    #if DEBUG
+      opts.logLevel = "trace"
+    #else
+      opts.logLevel = "info"
+    #endif
     opts.telemetryConsent = FilePath.isTelemetryEnabled()
     opts.env = environment
     opts.locale = Locale.current.identifier

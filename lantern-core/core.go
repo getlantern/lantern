@@ -64,7 +64,10 @@ const (
 	// message from Radiance, which keeps copy out of event logs and makes a
 	// missed event harmless.
 	EventTypeUserMessageAvailable EventType = "user-message-available"
-	DefaultLogLevel                         = "trace"
+	// Release default. Trace in production kept always-on tunnels writing
+	// per-read log lines around the clock (battery + disk, FD #184449);
+	// debug builds and staging opt back into trace at the call sites.
+	DefaultLogLevel = "info"
 )
 
 // Backoff between startup user-data fetch retries; the first attempt is

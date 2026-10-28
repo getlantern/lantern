@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: format.sh <release-notes|job-summary|slack>
 #
 # Environment variables:
-#   RELEASE_TAG:          release tag with 'v' prefix (e.g., v9.0.11, v9.0.11-beta, v9.0.11-abc123-20260207T044512Z)
+#   RELEASE_TAG:          release tag with 'v' prefix (e.g., v9.0.11, v9.0.11-beta.1, v9.0.11-abc123-20260207T044512Z)
 #   INSTALLER_BASE_NAME:  installer base name WITHOUT build-type suffix (e.g., lantern-installer)
 #   PLATFORM:             platforms built (all, or comma-separated)
 #   BUCKET:               S3 bucket name
@@ -14,6 +14,7 @@ set -euo pipefail
 #   GITHUB_SHA:           commit SHA (required for release-notes)
 #   WORKFLOW_URL:         workflow run URL (required for slack, used for nightly builds)
 #   LINUX_ARCH:           amd64, arm64, or all (optional, defaults to amd64)
+#   IS_TEST_RUN:          true for branch builds; uses versioned downloads (default: false)
 
 FORMAT="${1:?Format required: release-notes, job-summary, or slack}"
 RELEASE_TAG="${RELEASE_TAG:?RELEASE_TAG required}"
@@ -23,6 +24,7 @@ BUCKET="${BUCKET:?BUCKET required}"
 BUILD_TYPE="${BUILD_TYPE:?BUILD_TYPE required}"
 GITHUB_REF_NAME="${GITHUB_REF_NAME:?GITHUB_REF_NAME required}"
 LINUX_ARCH="${LINUX_ARCH:-amd64}"
+IS_TEST_RUN="${IS_TEST_RUN:-false}"
 
 case "$LINUX_ARCH" in
 amd64 | arm64 | all) ;;
@@ -41,6 +43,10 @@ FULL_INSTALLER_NAME="${INSTALLER_BASE_NAME}"
 
 VERSION_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/${VERSION}"
 LATEST_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/latest"
+# Branch builds never update the shared nightly aliases.
+if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" == "true" ]]; then
+  LATEST_URL="$VERSION_URL"
+fi
 
 # Check if a platform should be included
 should_include() {

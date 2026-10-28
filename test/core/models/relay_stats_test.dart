@@ -235,6 +235,7 @@ void main() {
 
   test('AppSetting round-trips relay totals and tolerates their absence', () {
     const setting = AppSetting(
+      unboundedSessionCount: 7,
       unboundedBytesDown: 1234,
       unboundedBytesUp: 56,
       unboundedCountryStats: {
@@ -265,6 +266,7 @@ void main() {
       ),
       ('run-1', 99, 9),
     );
+    expect(restored.unboundedSessionCount, 7);
     expect(restored.unboundedBytesDown, 1234);
     expect(restored.unboundedBytesUp, 56);
     final iran = restored.unboundedCountryStats['IR']!;
@@ -272,6 +274,7 @@ void main() {
     expect(restored.unboundedCountryStats['']!.isUnknown, isTrue);
 
     final legacy = AppSetting.fromJson({'unboundedTotalHelped': 4});
+    expect(legacy.unboundedSessionCount, 0);
     expect(legacy.unboundedBytesDown, 0);
     expect(legacy.unboundedCountryStats, isEmpty);
     expect(legacy.unboundedRelayEpoch, isEmpty);

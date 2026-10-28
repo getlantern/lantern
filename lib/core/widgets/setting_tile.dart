@@ -15,6 +15,7 @@ class SettingTile extends StatelessWidget {
   final dynamic icon;
   final List<Widget> actions;
   final VoidCallback? onTap;
+  final Color? subtitleColor;
 
   const SettingTile({
     super.key,
@@ -26,6 +27,7 @@ class SettingTile extends StatelessWidget {
     this.onTap,
     this.child,
     this.subtitle,
+    this.subtitleColor,
   });
 
   @override
@@ -93,7 +95,7 @@ class SettingTile extends StatelessWidget {
                 child: Text(
                   subtitle!.capitalize,
                   style: textTheme.labelLarge!.copyWith(
-                    color: context.textSecondary,
+                    color: subtitleColor ?? context.textSecondary,
                   ),
                 ),
               ),

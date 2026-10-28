@@ -20,11 +20,15 @@ class ConfirmEmail extends HookConsumerWidget {
   final String? password;
   final AuthFlow authFlow;
 
+  /// Web-licensing key to pre-fill on the license screen.
+  final String licenseKey;
+
   const ConfirmEmail({
     super.key,
     required this.email,
     this.password,
     this.authFlow = AuthFlow.signUp,
+    this.licenseKey = '',
   });
 
   @override
@@ -259,7 +263,9 @@ class ConfirmEmail extends HookConsumerWidget {
         );
         break;
       case AuthFlow.lanternProLicense:
-        appRouter.push(LanternProLicense(email: email, code: code));
+        appRouter.push(
+          LanternProLicense(email: email, code: code, licenseKey: licenseKey),
+        );
         break;
       case AuthFlow.oauth:
         // TODO: Handle this case.

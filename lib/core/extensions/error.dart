@@ -80,6 +80,9 @@ extension ErrorExetension on Object {
         return "referral_code_own_invalid".i18n;
       }
 
+      final serverMessage = _serverErrorMessage(description);
+      if (serverMessage != null) return serverMessage;
+
       final categoryKey = _classifyVpnError(description);
       if (categoryKey != null) return categoryKey.i18n;
 
@@ -142,6 +145,16 @@ String? _classifyVpnError(String description) {
 /// `Exception(...)` just to route through `localizedDescription`.
 String localizeRawError(String rawError) {
   return (_classifyVpnError(rawError) ?? 'an_error_occurred').i18n;
+}
+
+/// Returns the pro-server's user-facing error text, which radiance forwards
+/// as "received bad response: ...", or null when the error is not one.
+String? _serverErrorMessage(String description) {
+  const marker = 'received bad response: ';
+  final index = description.indexOf(marker);
+  if (index == -1) return null;
+  final text = description.substring(index + marker.length).trim();
+  return text.isEmpty ? null : text;
 }
 
 /// Strips the radiance IPC prefix from error messages.

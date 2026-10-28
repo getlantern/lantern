@@ -1278,6 +1278,12 @@ msgstr "سرورهای خصوصی"
 msgid "fastest_server"
 msgstr "سریع‌ترین سرور"
 
+msgid "latency_testing"
+msgstr "در حال آزمایش…"
+
+msgid "latency_unreachable"
+msgstr "در دسترس نیست"
+
 msgid "join_my_private_server"
 msgstr "به سرور خصوصی Lantern من بپیوندید"
 

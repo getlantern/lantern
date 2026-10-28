@@ -49,12 +49,12 @@ import org.getlantern.lantern.utils.toIpPrefix
  * it should not include any logic that needs to be connected with any activity.
  * everything should be done in independent
  */
-class LanternVpnService :
+open class LanternVpnService :
     VpnService(),
     PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "LanternVpnService"
-        private const val sessionName = "LanternVpn"
+        private val sessionName = BuildConfig.VPN_SESSION_NAME
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_CONNECT_TO_SERVER = "org.getlantern.CONNECT_TO_SERVER"
@@ -202,6 +202,12 @@ class LanternVpnService :
         }
     }
 
+    override fun onRevoke() {
+        AppLogger.w(TAG, "VPN revoked by the system, another VPN app took over the tunnel")
+        // stopSelf() leads to onDestroy, which tears down the tunnel and posts Disconnected.
+        super.onRevoke()
+    }
+
     override fun onDestroy() {
         try {
             AppLogger.d(TAG, "destroying LanternVpnService")
@@ -212,7 +218,9 @@ class LanternVpnService :
             // Native teardown can block. Keep it off the main thread and let it
             // outlive serviceScope; the gate waits for any native start to finish.
             teardownScope.launch {
-                vpnStartGate.stop {
+                // onStopping runs after the gate cancels any in-flight start, so
+                // nothing can publish Connected after this Disconnected.
+                vpnStartGate.stop(onStopping = { VpnStatusManager.postVPNStatus(VPNStatus.Disconnected) }) {
                     runCatching {
                         if (Mobile.isRadianceConnected()) {
                             Mobile.stopVPN()
@@ -671,7 +679,7 @@ class LanternVpnService :
             Opts().apply {
                 dataDir = initConfigDir()
                 logDir = logDir()
-                logLevel = "trace"
+                logLevel = if (BuildConfig.DEBUG) "trace" else "info"
                 deviceid = DeviceUtil.deviceId()
                 appVersion = BuildConfig.VERSION_NAME
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)
