@@ -107,6 +107,10 @@ class HelpersNotifier extends _$HelpersNotifier {
   @visibleForTesting
   static Duration pollInterval = const Duration(seconds: 30);
 
+  /// How long a launch refresh waits for the core before trying anyway.
+  @visibleForTesting
+  static Duration radianceWait = const Duration(seconds: 30);
+
   /// Lets a test play a stealth build. Production reads the const.
   @visibleForTesting
   static bool? debugBuildEnabled;
@@ -272,9 +276,17 @@ class HelpersNotifier extends _$HelpersNotifier {
   }
 
   /// Refreshes only on a device that has used helper invites, in a build
-  /// that has them.
+  /// that has them. At launch the core may still be starting (Android), so
+  /// it waits for it first; anyone else never waits.
   Future<void> refreshIfUsed() async {
-    if (_buildEnabled && used) await refresh();
+    if (!_buildEnabled || !used) return;
+    try {
+      await _svc.waitForRadiance().timeout(radianceWait);
+    } catch (_) {
+      appLogger.warning('helper: the core is not ready; refreshing anyway');
+    }
+    if (!ref.mounted) return;
+    await refresh();
   }
 
   Future<HelperResult> refreshView() async => _apply(await _call('view'));
@@ -318,8 +330,16 @@ class HelpersNotifier extends _$HelpersNotifier {
     _apply(await _call('end_pairing', {'pairing_id': pairingId})),
   );
 
-  Future<HelperResult> endAllHelpers() async =>
-      _refetchIfOk(_apply(await _call('end_all_helpers')));
+  /// The engine erases the names before it contacts lantern-cloud, so when
+  /// the network step fails the local view (already without them) is shown,
+  /// with the original error kept.
+  Future<HelperResult> endAllHelpers() async {
+    final r = _refetchIfOk(_apply(await _call('end_all_helpers')));
+    if (r.ok || !ref.mounted) return r;
+    await refreshView();
+    if (ref.mounted) state = state.copyWith(error: r.error);
+    return r;
+  }
 
   /// After an ended pairing, fetch the config so its route goes now.
   HelperResult _refetchIfOk(HelperResult r) {

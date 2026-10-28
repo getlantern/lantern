@@ -30,6 +30,15 @@ class _Service implements LanternService {
   String flags = '{}';
   bool configThrows = false;
 
+  /// When set, waitForRadiance waits for it.
+  Future<void>? radiance;
+
+  @override
+  Future<void> waitForRadiance() async {
+    calls.add('waitForRadiance');
+    if (radiance != null) await radiance;
+  }
+
   @override
   Future<Either<Failure, String>> helperCall(
     String op,
@@ -126,6 +135,7 @@ void main() {
   tearDown(() {
     HelpersNotifier.debugBuildEnabled = null;
     HelpersNotifier.pollInterval = const Duration(seconds: 30);
+    HelpersNotifier.radianceWait = const Duration(seconds: 30);
     return sl.reset();
   });
 
@@ -156,9 +166,74 @@ void main() {
     () async {
       final c = container();
       await c.read(helpersProvider.notifier).refreshIfUsed();
-      expect(svc.calls, isEmpty);
+      expect(svc.calls, isEmpty, reason: 'nor waits for the core');
       expect(storage.values.containsKey(HelpersNotifier.usedKey), isFalse);
       expect(keys.reads, 0);
+    },
+  );
+
+  group('refreshIfUsed at launch', () {
+    test('waits for the core before the first engine call', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {'unlock': _view(), 'refresh': _view()};
+      final ready = Completer<void>();
+      svc.radiance = ready.future;
+      final c = container();
+      final done = c.read(helpersProvider.notifier).refreshIfUsed();
+      await Future<void>.delayed(Duration.zero);
+      expect(svc.calls, ['waitForRadiance']);
+      ready.complete();
+      await done;
+      expect(svc.calls, ['waitForRadiance', 'unlock', 'refresh']);
+    });
+
+    test('refreshes anyway when the core never reports ready', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      HelpersNotifier.radianceWait = const Duration(milliseconds: 10);
+      svc.answers = {'unlock': _view(), 'refresh': _view()};
+      svc.radiance = Completer<void>().future;
+      final c = container();
+      await c.read(helpersProvider.notifier).refreshIfUsed();
+      expect(svc.calls, ['waitForRadiance', 'unlock', 'refresh']);
+    });
+
+    test('a failed core setup still refreshes', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {'unlock': _view(), 'refresh': _view()};
+      svc.radiance = Future<void>.error(StateError('setup'));
+      final c = container();
+      await c.read(helpersProvider.notifier).refreshIfUsed();
+      expect(svc.calls, ['waitForRadiance', 'unlock', 'refresh']);
+    });
+  });
+
+  test(
+    'a failed Remove all shows the erased names and keeps the error',
+    () async {
+      svc.answers = {
+        'unlock': _view(),
+        'refresh': _view(
+          helpers:
+              '[{"pairing_id":"p1","name":"Ali","online":true,"since_unix":1}]',
+        ),
+        'end_all_helpers': '{"error":"unavailable"}',
+        'view': _view(
+          helpers:
+              '[{"pairing_id":"p1","name":"","online":true,"since_unix":1}]',
+        ),
+      };
+      final c = container();
+      final n = c.read(helpersProvider.notifier);
+      await n.refresh();
+      expect(c.read(helpersProvider).view.helpers.single.name, 'Ali');
+      final r = await n.endAllHelpers();
+      expect(r.error, 'unavailable');
+      final s = c.read(helpersProvider);
+      expect(s.error, 'unavailable');
+      expect(s.view.helpers.single.name, isEmpty);
+      expect(svc.calls.last, 'view');
+      await Future<void>.delayed(Duration.zero);
+      expect(svc.configRequests, 0);
     },
   );
 
