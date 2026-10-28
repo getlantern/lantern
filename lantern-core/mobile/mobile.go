@@ -243,6 +243,14 @@ func GetPeerStatus() string {
 	return v
 }
 
+// HelperCall runs one helper-invite operation and returns its JSON result or
+// {"error": code}. The error return is only "radiance not initialized".
+func HelperCall(op, argsJSON string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.HelperCall(op, argsJSON), nil
+	})
+}
+
 // SetUnboundedEnabled is the local opt-in for the broflake / Unbounded
 // widget proxy ("Basic mode" in the SmC UI). Surfaced through the
 // MethodChannel so platforms running radiance inside a network

@@ -967,6 +967,17 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.helperCall(op, args);
+    }
+    return _platformService.helperCall(op, args);
+  }
+
+  @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.setUnboundedEnabled(enabled);

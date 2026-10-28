@@ -458,6 +458,23 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>('helperCall', {
+        'op': op,
+        'args': jsonEncode(args),
+      });
+      return right(result ?? '');
+    } catch (e, st) {
+      appLogger.error('helperCall failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
   // Unbounded toggle wired through MethodChannel to the platform-specific
   // handler. macOS / iOS Swift and Android Kotlin each delegate to
   // Mobile.SetUnboundedEnabled via the gomobile binding.

@@ -153,6 +153,7 @@ enum class Methods(val method: String) {
     SetUnboundedEnabled("setUnboundedEnabled"),
     IsUnboundedEnabled("isUnboundedEnabled"),
     ProbeUPnP("probeUPnP"),
+    HelperCall("helperCall"),
 
     // Telemetry
     IsTelemetryEnabled("isTelemetryEnabled"),
@@ -1465,6 +1466,17 @@ class MethodHandler : FlutterPlugin,
                 // doesn't block the Flutter UI isolate.
                 scope.handleValue(result, "probe_upnp") {
                     Mobile.probeUPnP()
+                }
+            }
+
+            // One helper-invite operation (lantern-core/helper). The result is
+            // JSON, including {"error": code} on failure. Never log the
+            // arguments: they carry invite links and names.
+            Methods.HelperCall.method -> {
+                scope.handleValue(result, "helper_call") {
+                    val op = call.argument<String>("op") ?: error("Missing op")
+                    val args = call.argument<String>("args") ?: "{}"
+                    Mobile.helperCall(op, args)
                 }
             }
 

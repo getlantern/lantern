@@ -28,6 +28,7 @@ import (
 	"github.com/getlantern/radiance/vpn"
 
 	"github.com/getlantern/lantern/lantern-core/apps"
+	"github.com/getlantern/lantern/lantern-core/helper"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/utils/reportissue"
@@ -88,6 +89,7 @@ type LanternCore struct {
 	cancel       context.CancelFunc
 	initOnce     sync.Once
 	eventEmitter utils.FlutterEventEmitter
+	helpers      *helper.Engine
 }
 
 var (
@@ -244,6 +246,13 @@ type VPN interface {
 	VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error
 }
 
+type Helper interface {
+	// HelperCall runs one helper-invite operation (see lantern-core/helper)
+	// and returns its JSON result, or {"error": code}. It never returns a raw
+	// error, so nothing about a failure but its code crosses into Dart.
+	HelperCall(op, argsJSON string) string
+}
+
 type Core interface {
 	App
 	User
@@ -253,6 +262,7 @@ type Core interface {
 	Ads
 	SmartRouting
 	PeerShare
+	Helper
 	VPN
 	Client() *ipc.Client
 }
@@ -321,6 +331,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
+	lc.helpers = helper.NewEngine(filepath.Join(opts.DataDir, "helper"), lc.relayHelper, lc.helperActivity)
 
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
@@ -1526,4 +1537,39 @@ func itemsForType(filter vpn.SplitTunnelFilter, filterType string) []string {
 	default:
 		return nil
 	}
+}
+
+// helperCallTimeout bounds one helper operation. A refresh makes one request
+// per pending invite, up to 20, plus one, each relayed through kindling.
+const helperCallTimeout = 90 * time.Second
+
+func (lc *LanternCore) HelperCall(op, argsJSON string) string {
+	if lc.helpers == nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+	}
+	ctx, cancel := context.WithTimeout(lc.ctx, helperCallTimeout)
+	defer cancel()
+	out, err := lc.helpers.Call(ctx, op, []byte(argsJSON))
+	if err != nil {
+		return helper.ErrorJSON(err)
+	}
+	return string(out)
+}
+
+// relayHelper sends one HelperService request through radiance.
+func (lc *LanternCore) relayHelper(ctx context.Context, op string, body []byte) (int, []byte, string, error) {
+	res, err := lc.client.HelperRelay(ctx, op, body)
+	if err != nil {
+		return 0, nil, "", err
+	}
+	return res.Status, res.Body, res.Error, nil
+}
+
+// helperActivity reads today's sharing totals from radiance.
+func (lc *LanternCore) helperActivity(ctx context.Context) (helper.Activity, error) {
+	a, err := lc.client.HelperActivity(ctx)
+	if err != nil {
+		return helper.Activity{}, err
+	}
+	return helper.Activity{Day: a.Day, ActiveSeconds: a.ActiveSeconds, RelayedBytes: a.RelayedBytes}, nil
 }
