@@ -598,6 +598,19 @@ void main() {
     });
   });
 
+  test('a claim polls for the answer even when its view fails', () async {
+    svc.answers = {
+      'unlock': _view(),
+      'claim': '{"claim_id":"c1","code":"1234"}',
+      'view': '{"error":"unavailable"}',
+    };
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    final r = await n.claim('link', 'Ali');
+    expect(r.ok, isTrue);
+    expect(n.polling, isTrue);
+  });
+
   test('a failed config fetch does not reread the stale flags', () async {
     svc.answers = {'unlock': _view(), 'refresh': _view(newHelping: true)};
     svc.configFails = true;

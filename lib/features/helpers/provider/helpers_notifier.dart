@@ -339,7 +339,11 @@ class HelpersNotifier extends _$HelpersNotifier {
       await _call('claim', {'link': link, 'name': name}),
       isView: false,
     );
-    if (r.ok) await refreshView();
+    if (!r.ok) return r;
+    // The claim waits on the inviter, so poll for the answer even when the
+    // view that would have started polling fails.
+    final v = await refreshView();
+    if (!v.ok && ref.mounted) _startPoll();
     return r;
   }
 
@@ -389,6 +393,10 @@ class HelpersNotifier extends _$HelpersNotifier {
       _poll = null;
       return;
     }
+    _startPoll();
+  }
+
+  void _startPoll() {
     _poll ??= Timer.periodic(pollInterval, (_) {
       if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
         return;
