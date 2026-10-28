@@ -24,7 +24,9 @@ func TestHelperCallAnswersJSONAndNeverARawError(t *testing.T) {
 	var v map[string]any
 	require.NoError(t, json.Unmarshal([]byte(lc.HelperCall("unlock", `{"key":"`+key+`"}`)), &v))
 	assert.Equal(t, true, v["unlocked"])
-	require.NoError(t, json.Unmarshal([]byte(lc.HelperCall("refresh", "")), &v))
-	assert.Equal(t, true, v["unlocked"])
+	var r map[string]any
+	require.NoError(t, json.Unmarshal([]byte(lc.HelperCall("refresh", "")), &r))
+	assert.NotContains(t, r, "error")
+	assert.Equal(t, true, r["unlocked"])
 	assert.JSONEq(t, `{"error":"internal"}`, lc.HelperCall("no-such-op", "{}"))
 }
