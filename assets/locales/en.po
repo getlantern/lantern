@@ -2280,3 +2280,97 @@ msgstr "Codes don't match: reject"
 
 msgid "reject_explainer"
 msgstr "If the codes are different, someone else opened your link. Reject them and send a new invite."
+
+# Helper invites: the volunteer's side.
+msgid "help_friend_title"
+msgstr "Help a friend stay online"
+
+msgid "help_friend_entry"
+msgstr "Help a friend"
+
+msgid "help_friend_intro"
+msgstr "A friend asked for your help. While Lantern runs, they can reach the open internet through your connection."
+
+msgid "help_friend_link_label"
+msgstr "Invite link"
+
+msgid "help_friend_paste"
+msgstr "Paste the link your friend sent"
+
+msgid "help_friend_scan"
+msgstr "Scan your friend's QR code"
+
+msgid "help_friend_sharing_note"
+msgstr "Lantern helps automatically while it's running. It uses a direct connection when your router allows one, and a browser-style connection otherwise."
+
+msgid "help_friend_accept"
+msgstr "Help my friend"
+
+msgid "help_friend_code_title"
+msgstr "Tell your friend this code"
+
+msgid "help_friend_code_body"
+msgstr "Your friend will check that it matches the code on their phone, then approve you. A call or a different app is safest."
+
+msgid "help_friend_waiting"
+msgstr "Waiting for your friend to approve"
+
+# %s is the friend's name.
+msgid "help_friend_approved"
+msgstr "You're now helping %s."
+
+msgid "help_friend_done"
+msgstr "Done"
+
+msgid "help_friend_already_claimed_title"
+msgstr "This invite was already claimed"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Someone else opened this link first, or it expired. Ask your friend for a new invite, and tell them this one may have been seen by someone else."
+
+msgid "help_friend_bad_link"
+msgstr "This isn't a helper invite link."
+
+msgid "help_friend_own_invite"
+msgstr "This is your own invite. Send it to the friend you'd like help from."
+
+msgid "helping_title"
+msgstr "You're helping"
+
+# First %s is a duration such as "3h 20m"; second is an amount of data such as "1.2 GB".
+msgid "helping_today"
+msgstr "Today: active %s, %s shared"
+
+# %s is a date.
+msgid "helping_since"
+msgstr "Since %s"
+
+msgid "helping_unnamed"
+msgstr "Someone you help"
+
+msgid "helping_sharing_off_warning"
+msgstr "Sharing is off, so the people you help can't connect through you."
+
+msgid "helping_remove"
+msgstr "Stop helping"
+
+# %s is the person's name.
+msgid "helping_remove_confirm"
+msgstr "Stop helping %s? They'll need a new invite to connect through you again."
+
+msgid "help_others_too"
+msgstr "Help others too"
+
+msgid "help_others_too_body"
+msgstr "Lend spare capacity to other people facing censorship; Lantern only lets them reach allowed sites, which protects your connection from misuse."
+
+msgid "help_others_too_note"
+msgstr "Changing this briefly reconnects the people you help."
+
+# %s %s are hours and minutes, as numbers.
+msgid "helping_duration_hm"
+msgstr "%sh %sm"
+
+# %s is minutes, as a number.
+msgid "helping_duration_m"
+msgstr "%sm"

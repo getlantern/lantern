@@ -1,0 +1,312 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+// common.dart re-exports the generated route classes, which share the
+// screens' names.
+import 'package:lantern/core/common/common.dart' hide HelpFriend;
+import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart';
+import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+import 'package:lantern/features/helpers/help_friend.dart';
+import 'package:lantern/features/helpers/helping_section.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+
+class _Helpers extends HelpersNotifier {
+  _Helpers(
+    this.initial, {
+    this.claimAnswer = '{"claim_id":"c1","code":"2562"}',
+  });
+  final HelpersState initial;
+  final String claimAnswer;
+  final claims = <(String, String)>[];
+  final helpOthers = <bool>[];
+  final ended = <String>[];
+  int refreshes = 0;
+  int acknowledged = 0;
+
+  @override
+  HelpersState build() => initial;
+  @override
+  Future<void> refreshIfUsed() async => refreshes++;
+  @override
+  Future<void> loadHelpOthers() async {}
+  @override
+  Future<void> setHelpOthers(bool value) async => helpOthers.add(value);
+  @override
+  Future<HelperResult> claim(String link, String name) async {
+    claims.add((link, name));
+    return HelperResult.parse(claimAnswer);
+  }
+
+  @override
+  Future<HelperResult> endPairing(String pairingId) async {
+    ended.add(pairingId);
+    return HelperResult.parse('{}');
+  }
+
+  @override
+  void acknowledgeKeystoreReset() {
+    acknowledged++;
+    super.acknowledgeKeystoreReset();
+  }
+
+  void approve(HelpersView view) => state = state.copyWith(
+    view: view,
+    helpingApprovals: state.helpingApprovals + 1,
+  );
+}
+
+class _Share extends ShareNotifier {
+  _Share({this.active = false});
+  final bool active;
+  @override
+  ShareState build() => ShareState(active: active);
+  @override
+  Future<bool> ensureConsent(BuildContext context) async => true;
+}
+
+Future<void> _pump(
+  WidgetTester tester,
+  _Helpers helpers,
+  Widget child, {
+  bool sharing = false,
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        helpersProvider.overrideWith(() => helpers),
+        shareProvider.overrideWith(() => _Share(active: sharing)),
+      ],
+      child: ScreenUtilInit(
+        designSize: const Size(393, 852),
+        child: MaterialApp(
+          theme: AppTheme.appTheme(),
+          home: Scaffold(body: child),
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
+}
+
+Future<void> _claim(WidgetTester tester) async {
+  await tester.enterText(find.byKey(const Key('help_friend.name')), 'Ali');
+  await tester.tap(find.byKey(const Key('help_friend.accept')));
+  await tester.pump();
+  await tester.pump(); // pumpAndSettle would never settle: the waiting view spins
+}
+
+const _link =
+    'https://lantern.io/help/#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
+const _sara = HelperPairingView(
+  pairingId: 'p1',
+  name: 'Sara',
+  sinceUnix: 1700000000,
+);
+
+HelpersState _helping() => const HelpersState(
+  helpOthers: true,
+  view: HelpersView(
+    unlocked: true,
+    helping: [_sara],
+    activity: HelperActivity(
+      day: '2026-10-23',
+      activeSeconds: 3 * 3600 + 20 * 60,
+      relayedBytes: 1200000000,
+    ),
+  ),
+);
+
+void main() {
+  testWidgets('claiming shows the code', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    expect(helpers.claims, [(_link, 'Ali')]);
+    expect(find.text('2562'), findsOneWidget);
+  });
+
+  testWidgets('an already claimed invite says so prominently', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      const HelpersState(),
+      claimAnswer: '{"error":"already_claimed"}',
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    expect(
+      find.byKey(const Key('help_friend.already_claimed')),
+      findsOneWidget,
+    );
+    expect(find.text('help_friend_already_claimed_title'.i18n), findsOneWidget);
+  });
+
+  testWidgets('opening HelpFriend refreshes only if used, never shows the '
+      'held link, and caps the name at 60', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(helpers.refreshes, 1);
+    // The link was taken once, and is not on screen.
+    expect(helpers.takeLink(), isNull);
+    expect(find.textContaining('AAAAAAAA'), findsNothing);
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('help_friend.name')),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(field.maxLength, 60);
+  });
+
+  testWidgets('without a held link, the link field is shown', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+  });
+
+  testWidgets('approval after the claim says so', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.code')), findsNothing);
+  });
+
+  testWidgets('HelpFriend shows the keystore-reset notice and acknowledges it', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState(keystoreReset: true));
+    await _pump(tester, helpers, const HelpFriend());
+    expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
+    await tester.pump();
+    expect(helpers.acknowledged, 1);
+    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
+  });
+
+  testWidgets("you're helping: rows, totals, and help others too", (
+    tester,
+  ) async {
+    final helpers = _Helpers(_helping());
+    await _pump(
+      tester,
+      helpers,
+      const SingleChildScrollView(child: HelpingSection()),
+      sharing: true,
+    );
+    expect(find.text('Sara'), findsOneWidget);
+    expect(find.byKey(const Key('helping.today')), findsOneWidget);
+    expect(find.byKey(const Key('helping.sharing_off')), findsNothing);
+    await tester.tap(find.byKey(const Key('helping.help_others_switch')));
+    await tester.pump();
+    expect(helpers.helpOthers, [false]);
+  });
+
+  testWidgets('warns when sharing is off', (tester) async {
+    await _pump(
+      tester,
+      _Helpers(_helping()),
+      const SingleChildScrollView(child: HelpingSection()),
+    );
+    expect(find.byKey(const Key('helping.sharing_off')), findsOneWidget);
+  });
+
+  testWidgets('hidden for someone helping nobody', (tester) async {
+    await _pump(tester, _Helpers(const HelpersState()), const HelpingSection());
+    expect(find.byKey(const Key('helping.today')), findsNothing);
+    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
+  });
+
+  testWidgets('the keystore-reset notice shows to a volunteer, even helping '
+      'nobody, and is acknowledged on dismiss', (tester) async {
+    final helpers = _Helpers(const HelpersState(keystoreReset: true));
+    await _pump(
+      tester,
+      helpers,
+      const SingleChildScrollView(child: HelpingSection()),
+    );
+    expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
+    await tester.pump();
+    expect(helpers.acknowledged, 1);
+    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
+  });
+
+  testWidgets('stop helping still ends the pairing when the section is gone '
+      'before the dialog callback runs', (tester) async {
+    final helpers = _Helpers(_helping());
+    final show = ValueNotifier(true);
+    await _pump(
+      tester,
+      helpers,
+      ValueListenableBuilder<bool>(
+        valueListenable: show,
+        builder: (_, visible, _) => visible
+            ? const SingleChildScrollView(child: HelpingSection())
+            : const SizedBox.shrink(),
+      ),
+      sharing: true,
+    );
+    await tester.tap(find.byKey(const Key('helping.remove.p1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(PrimaryButton, 'helping_remove'.i18n));
+    await tester.pump();
+    show.value = false;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(helpers.ended, ['p1']);
+  });
+
+  test('helpingHoursMinutes', () {
+    expect(helpingHoursMinutes(3 * 3600 + 20 * 60), (3, 20));
+    expect(helpingHoursMinutes(3600), (1, 0));
+    expect(helpingHoursMinutes(59), (0, 0));
+    expect(helpingHoursMinutes(0), (0, 0));
+  });
+
+  group('helper invite deep links', () {
+    test('are recognized', () {
+      for (final u in [
+        'https://lantern.io/help#abc',
+        'https://lantern.io/help/#abc',
+        'https://www.lantern.io/help#abc',
+        '${AppBuildInfo.appAuthScheme}://help#abc',
+      ]) {
+        expect(isHelperInviteUri(Uri.parse(u)), isTrue, reason: u);
+      }
+      for (final u in [
+        'https://lantern.io/helpx#abc',
+        'https://evil.io/help#abc',
+        'http://lantern.io/help#abc',
+        'https://lantern.io/affiliate/x',
+        '${AppBuildInfo.appAuthScheme}://affiliate',
+      ]) {
+        expect(isHelperInviteUri(Uri.parse(u)), isFalse, reason: u);
+      }
+    });
+
+    test('normalize to the canonical link', () {
+      expect(
+        helperInviteLink(
+          Uri.parse('${AppBuildInfo.appAuthScheme}://help#SECRET'),
+        ),
+        'https://lantern.io/help/#SECRET',
+      );
+      expect(
+        helperInviteLink(Uri.parse('https://www.lantern.io/help#SECRET')),
+        'https://lantern.io/help/#SECRET',
+      );
+    });
+  });
+}

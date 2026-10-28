@@ -14,6 +14,7 @@ import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/referral_code.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/user_message/user_message_action_dispatcher.dart';
@@ -27,7 +28,11 @@ import 'package:loader_overlay/loader_overlay.dart';
 import 'core/common/common.dart';
 import 'core/services/injection_container.dart';
 import 'core/utils/deeplink_utils.dart'
-    show DeepLinkCallbackManager, isOAuthCallbackResult;
+    show
+        DeepLinkCallbackManager,
+        helperInviteLink,
+        isHelperInviteUri,
+        isOAuthCallbackResult;
 import 'features/system_tray/system_tray_wrapper.dart';
 
 final globalRouter = sl<AppRouter>();
@@ -80,6 +85,7 @@ class _LanternAppState extends ConsumerState<LanternApp>
   void _onResume() {
     _retryPendingUpdate();
     unawaited(ref.read(lanternServiceProvider).syncTimeZone());
+    unawaited(ref.read(helpersProvider.notifier).refreshIfUsed());
   }
 
   void _retryPendingUpdate() {
@@ -127,7 +133,14 @@ class _LanternAppState extends ConsumerState<LanternApp>
     appLogger.debug("DeepLink received: $safeLogUri");
     final path = uri.path;
 
-    if (path.startsWith('/affiliate') ||
+    if (isHelperInviteUri(uri)) {
+      // The invite secret is the fragment: never log it.
+      appLogger.debug('DeepLink helper invite');
+      // Held by the notifier, not put in route arguments.
+      ref.read(helpersProvider.notifier).holdLink(helperInviteLink(uri));
+      // A second link replaces the screen, so it takes the new link.
+      _pushWithHome(HelpFriend(fromLink: true), replaceIfOnTop: true);
+    } else if (path.startsWith('/affiliate') ||
         (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'affiliate')) {
       final code = affiliateCodeFromUri(uri);
       if (code == null) {
