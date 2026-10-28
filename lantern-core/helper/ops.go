@@ -322,6 +322,10 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed, newHelping bool
 	seen := map[string]bool{}
 	e.online = map[string]bool{}
 	for _, lp := range listed {
+		if lp.PairingID == "" {
+			// A malformed entry: nothing to add, and not a new pairing.
+			continue
+		}
 		seen[lp.PairingID] = true
 		if lp.Role == RoleInviter {
 			e.online[lp.PairingID] = lp.Online

@@ -718,3 +718,13 @@ func TestHelpersChangedSurvivesAFailedRefresh(t *testing.T) {
 	assert.Equal(t, true, sv["helpers_changed"], "the helper the failed refresh added")
 	assert.Nil(t, call(t, sara, "refresh", nil)["helpers_changed"], "reported once")
 }
+
+// TestMergeSkipsEntriesWithoutPairingID: a listed pairing without an id is
+// malformed; it is neither added nor reported as a new pairing to help in.
+func TestMergeSkipsEntriesWithoutPairingID(t *testing.T) {
+	e := newTestEngine(t, newFakeCloud(), "ali", t.TempDir())
+	changed, newHelping := e.mergePairings([]listedPairing{{Role: RoleVolunteer}, {Role: RoleInviter}})
+	assert.False(t, changed)
+	assert.False(t, newHelping)
+	assert.Empty(t, e.st.Pairings)
+}
