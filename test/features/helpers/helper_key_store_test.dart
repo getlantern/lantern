@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/features/helpers/helper_key_store.dart';
@@ -68,10 +70,21 @@ void main() {
     expect(storage.value, 'k' * 44);
   });
 
-  test('a malformed stored value throws and is never overwritten', () async {
-    final storage = _Storage(value: 'short');
-    await expectLater(HelperKeyStore(storage).stateKey(), throwsStateError);
+  test('a malformed stored value is replaced with a new key', () async {
+    for (final bad in ['short', '!' * 44]) {
+      final storage = _Storage(value: bad);
+      final key = await HelperKeyStore(storage).stateKey();
+      expect(key, hasLength(44));
+      expect(key, isNot(bad));
+      expect(storage.writes, 1);
+      expect(storage.value, key);
+    }
+  });
+
+  test('a valid stored key is reused without a write', () async {
+    final good = base64.encode(List.filled(32, 7));
+    final storage = _Storage(value: good);
+    expect(await HelperKeyStore(storage).stateKey(), good);
     expect(storage.writes, 0);
-    expect(storage.value, 'short');
   });
 }

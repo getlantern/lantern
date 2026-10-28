@@ -28,22 +28,27 @@ class HelperKeyStore {
   static const _name = 'lantern_helper_state_key_v1';
 
   /// Returns the key, creating it on first use. Throws when the keystore is
-  /// unavailable, as on Linux without a running keyring, or holds something
-  /// that is not a key. A new key is made only when the read succeeds and
-  /// finds nothing, so a failed read can never replace a real key.
+  /// unavailable, as on Linux without a running keyring. A new key is made
+  /// only when the read succeeds, so a failed read can never replace a real
+  /// key. A stored value that is not a key could never open the state, so it
+  /// is replaced; the engine then sets the old state aside (keystore_reset).
   Future<String> stateKey() async {
     final existing = await _storage.read(key: _name);
-    if (existing != null) {
-      if (existing.length != 44) {
-        throw StateError('helper: the stored state key is malformed');
-      }
-      return existing;
-    }
+    if (existing != null && _isKey(existing)) return existing;
     final rnd = Random.secure();
     final key = base64.encode(
       Uint8List.fromList(List<int>.generate(32, (_) => rnd.nextInt(256))),
     );
     await _storage.write(key: _name, value: key);
     return key;
+  }
+
+  static bool _isKey(String v) {
+    if (v.length != 44) return false;
+    try {
+      return base64.decode(v).length == 32;
+    } on FormatException {
+      return false;
+    }
   }
 }

@@ -53,7 +53,7 @@ final class HelperInvitesAvailableProvider
 }
 
 String _$helperInvitesAvailableHash() =>
-    r'813e740030ebd987937a2530944aacd5edb7ea2e';
+    r'28b6defb614c556b2fadebc03865e801586b6872';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
@@ -97,7 +97,7 @@ final class HelpersNotifierProvider
   }
 }
 
-String _$helpersNotifierHash() => r'823fd623cbb04b96b18df47bcd16de7f527ee3b6';
+String _$helpersNotifierHash() => r'a51c4ad7bb442a10cfee7046632aa3bc7bcc71a3';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are

@@ -16,15 +16,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'helpers_notifier.g.dart';
 
-/// Whether this build has helper invites at all. A variable only so tests can
-/// play a stealth build.
-@visibleForTesting
-bool helperInvitesBuildEnabled = AppBuildInfo.enableHelperInvites;
-
 /// Whether this build and the server let this device use helper invites.
 @riverpod
 bool helperInvitesAvailable(Ref ref) =>
-    helperInvitesBuildEnabled &&
+    AppBuildInfo.enableHelperInvites &&
     ref.watch(featureFlagProvider).getBool(FeatureFlag.helperInvites);
 
 /// One engine call's result: its JSON, or an error code.
@@ -112,6 +107,13 @@ class HelpersNotifier extends _$HelpersNotifier {
   @visibleForTesting
   static Duration pollInterval = const Duration(seconds: 30);
 
+  /// Lets a test play a stealth build. Production reads the const.
+  @visibleForTesting
+  static bool? debugBuildEnabled;
+
+  static bool get _buildEnabled =>
+      debugBuildEnabled ?? AppBuildInfo.enableHelperInvites;
+
   Timer? _poll;
   Future<void>? _unlocking;
 
@@ -167,7 +169,7 @@ class HelpersNotifier extends _$HelpersNotifier {
     String op, [
     Map<String, dynamic> args = const {},
   ]) async {
-    if (!helperInvitesBuildEnabled) {
+    if (!_buildEnabled) {
       return (HelperResult.failure('unavailable'), 0);
     }
     var a = await _send(op, args);
@@ -208,7 +210,7 @@ class HelpersNotifier extends _$HelpersNotifier {
 
   /// Unlocks the engine with the keystore key, once.
   Future<bool> ensureUnlocked() async {
-    if (!helperInvitesBuildEnabled) return false;
+    if (!_buildEnabled) return false;
     if (_engineUnlocked) return true;
     await (_unlocking ??= _unlock().whenComplete(() => _unlocking = null));
     return _engineUnlocked;
@@ -238,7 +240,7 @@ class HelpersNotifier extends _$HelpersNotifier {
   }
 
   Future<HelperResult?> _guard() async {
-    if (!helperInvitesBuildEnabled) return HelperResult.failure('unavailable');
+    if (!_buildEnabled) return HelperResult.failure('unavailable');
     if (await ensureUnlocked()) return null;
     return HelperResult.failure(state.error ?? 'keystore');
   }
@@ -269,7 +271,7 @@ class HelpersNotifier extends _$HelpersNotifier {
   /// Refreshes only on a device that has used helper invites, in a build
   /// that has them.
   Future<void> refreshIfUsed() async {
-    if (helperInvitesBuildEnabled && used) await refresh();
+    if (_buildEnabled && used) await refresh();
   }
 
   Future<HelperResult> refreshView() async => _apply(await _call('view'));

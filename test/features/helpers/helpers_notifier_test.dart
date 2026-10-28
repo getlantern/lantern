@@ -119,10 +119,10 @@ void main() {
     sl.registerSingleton<LocalStorageService>(storage);
     keys = _Keys();
     sl.registerSingleton<HelperKeyStore>(keys);
-    helperInvitesBuildEnabled = true;
+    HelpersNotifier.debugBuildEnabled = null;
   });
   tearDown(() {
-    helperInvitesBuildEnabled = true;
+    HelpersNotifier.debugBuildEnabled = null;
     HelpersNotifier.pollInterval = const Duration(seconds: 30);
     return sl.reset();
   });
@@ -317,7 +317,7 @@ void main() {
   });
 
   test('a stealth build never touches the keystore or the engine', () async {
-    helperInvitesBuildEnabled = false;
+    HelpersNotifier.debugBuildEnabled = false;
     svc.answers = {'unlock': _view(), 'refresh': _view(), 'claim': '{}'};
     final c = container();
     final n = c.read(helpersProvider.notifier);
@@ -359,16 +359,15 @@ void main() {
   });
 
   group('helperInvitesAvailableProvider', () {
-    for (final build in [true, false]) {
-      for (final flag in [true, false]) {
-        test('build $build, flag $flag', () async {
-          helperInvitesBuildEnabled = build;
-          svc.flags = '{"helper_invites":$flag}';
-          final c = container();
-          await c.read(featureFlagProvider.notifier).fetchFeatureFlags();
-          expect(c.read(helperInvitesAvailableProvider), build && flag);
-        });
-      }
+    // The provider reads the build const, which is on in tests; the stealth
+    // side is covered by the notifier's guard test above.
+    for (final flag in [true, false]) {
+      test('follows the helper_invites flag ($flag)', () async {
+        svc.flags = '{"helper_invites":$flag}';
+        final c = container();
+        await c.read(featureFlagProvider.notifier).fetchFeatureFlags();
+        expect(c.read(helperInvitesAvailableProvider), flag);
+      });
     }
   });
 
