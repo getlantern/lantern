@@ -10,7 +10,7 @@ backtranslate = "claude-sonnet-5-5"
 # Thinking depth per role: low | medium | high | xhigh | max. Thinking tokens
 # bill as output, so this is the main cost knob after the model choice.
 [effort]
-translate = "medium"
+translate = "low"       # the reviewer at high effort is the safety net
 review = "high"
 backtranslate = "low"
 

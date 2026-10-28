@@ -397,24 +397,24 @@ class Claude:
             u["cache_write"] += getattr(usage, "cache_creation_input_tokens", 0) or 0
             u["output"] += getattr(usage, "output_tokens", 0) or 0
 
-    def tool_call(self, role: str, system: str, user: str, tool: dict, cached: bool = True) -> dict:
-        """One structured-output request; `tool` supplies the JSON schema the reply must match.
-        Caching the system prompt costs 25% extra on the write, so it is only on when the
-        same prompt is reused by another call in this run."""
-        model = MODELS[role]
+    @staticmethod
+    def params(role: str, system: str, user: str, tool: dict, cached: bool) -> dict:
+        """Messages API parameters for one structured-output request; `tool` supplies the
+        JSON schema the reply must match. Caching the system prompt costs 25% extra on the
+        write, so it is only on when the same prompt is reused by another call."""
         block = {"type": "text", "text": system}
         if cached:
             block["cache_control"] = {"type": "ephemeral"}
-        resp = self.client.messages.create(
-            model=model,
-            max_tokens=MAX_TOKENS,
-            system=[block],
-            output_config={
-                "effort": EFFORT.get(role, "medium"),
-                "format": {"type": "json_schema", "schema": tool["input_schema"]},
-            },
-            messages=[{"role": "user", "content": user}],
-        )
+        return {
+            "model": MODELS[role],
+            "max_tokens": MAX_TOKENS,
+            "system": [block],
+            "output_config": {"effort": EFFORT.get(role, "medium"),
+                              "format": {"type": "json_schema", "schema": tool["input_schema"]}},
+            "messages": [{"role": "user", "content": user}],
+        }
+
+    def parse(self, model: str, resp) -> dict:
         self._account(model, resp.usage)
         if resp.stop_reason == "max_tokens":
             raise TruncatedResponse(model)
@@ -427,8 +427,12 @@ class Claude:
         except json.JSONDecodeError as e:
             raise RuntimeError(f"{model} returned invalid JSON: {e}") from e
 
+    def call(self, role: str, system: str, user: str, tool: dict, cached: bool = True) -> dict:
+        p = self.params(role, system, user, tool, cached)
+        return self.parse(p["model"], self.client.messages.create(**p))
+
     def batched(self, items: list, fn) -> list:
-        """Run fn on chunks of items, halving a chunk that overflows max_tokens."""
+        """Run fn on the items, halving a chunk that overflows max_tokens."""
         results = []
         queue = [list(items)]
         while queue:
@@ -469,19 +473,14 @@ BACK_TOOL = _tool(
     {"locale": {"type": "string"}, "key": {"type": "string"}, "english": {"type": "string"}},
     ["locale", "key", "english"], "items")
 
-SCORE = {"type": "integer", "description": "1 to 5"}
 REVIEW_TOOL = _tool(
     "submit_review", "Submit the review verdict for every string.",
     {"locale": {"type": "string"}, "key": {"type": "string"},
      "verdict": {"type": "string", "enum": ["pass", "fix", "flag"]},
      "confidence": {"type": "number", "description": "0 to 1"},
      "fix": {"type": "string", "description": "Corrected UI string when verdict is fix, else empty."},
-     "note": {"type": "string", "description": "One sentence, empty on a clean pass."},
-     "scores": {"type": "object",
-                "properties": {k: SCORE for k in ("accuracy", "naturalness", "register", "terminology", "ui_fit")},
-                "required": ["accuracy", "naturalness", "register", "terminology", "ui_fit"],
-                "additionalProperties": False}},
-    ["locale", "key", "verdict", "confidence", "fix", "note", "scores"], "reviews")
+     "note": {"type": "string", "description": "One sentence explaining a fix or flag; empty on a pass."}},
+    ["locale", "key", "verdict", "confidence", "fix", "note"], "reviews")
 
 
 # --------------------------------------------------------------------------- pipeline
@@ -499,7 +498,6 @@ class Item:
     back_translation: str = ""
     verdict: str = ""
     confidence: float | None = None
-    scores: dict = field(default_factory=dict)
     reviewer_note: str = ""
     hard_issues: list[str] = field(default_factory=list)
     soft_issues: list[str] = field(default_factory=list)
@@ -601,8 +599,7 @@ Verdicts:
 - fix: there is a real problem and you supply the corrected UI string in "fix". Keep placeholders identical in count and order.
 - flag: a problem you cannot fix confidently, or a judgment call that should be visible in the report.
 
-"confidence" (0 to 1) is how sure you are that the final string (your fix when verdict is fix, otherwise the translation) is correct, natural, and right for the UI.
-Score accuracy, naturalness, register, terminology, and ui_fit from 1 to 5.
+"confidence" (0 to 1) is how sure you are that the final string (your fix when verdict is fix, otherwise the translation) is correct, natural, and right for the UI. Judge accuracy, naturalness, register, terminology, and fit for a phone screen.
 Be strict about meaning, placeholders, register, and script. Do not rewrite acceptable translations for taste alone.
 Reply with one JSON object matching the schema: a "reviews" array with one entry per (locale, key) pair."""
 
@@ -620,95 +617,130 @@ def pick_examples(en: PoFile, po: PoFile, pending: list[str], n: int) -> list[di
     return [{"key": k, "english": en.get(k), "translation": po.get(k)} for k in chosen]
 
 
-def run_batch(batch: Batch, en: PoFile, targets: dict[str, PoFile], items: dict[tuple[str, str], Item],
-              claude: Claude, args) -> None:
-    """Translate, back-translate and review one batch; results land on the shared Item objects."""
-    codes = batch.locales
-    mine = {(c, k): items[(c, k)] for c in codes for k in batch.keys}
-    strings = [{"key": k, "source": en.get(k) or "", "context": en.comment(k)} for k in batch.keys]
-    locales = [{"code": c, "name": meta_for(c).name,
-                "existing_translations_for_style": pick_examples(en, targets[c], batch.keys, EXAMPLES)} for c in codes]
+class Group:
+    """One batch of keys for one locale set, with everything its three model calls need."""
 
-    def translate(keys: list[str]) -> list[dict]:
+    def __init__(self, batch: Batch, en: PoFile, targets: dict[str, PoFile], items: dict[tuple[str, str], Item]):
+        self.batch = batch
+        self.codes = batch.locales
+        self.mine = {(c, k): items[(c, k)] for c in self.codes for k in batch.keys}
+        self.strings = {k: {"key": k, "source": en.get(k) or "", "context": en.comment(k)} for k in batch.keys}
+        self.locales = [{"code": c, "name": meta_for(c).name,
+                         "existing_translations_for_style": pick_examples(en, targets[c], batch.keys, EXAMPLES)}
+                        for c in self.codes]
+
+    def translate_units(self) -> list[str]:
+        return sorted({k for (c, k), it in self.mine.items() if not it.translation})
+
+    def translate_request(self, keys: list[str]) -> tuple:
         user = json.dumps({
-            "instructions": f"Translate each string into every locale listed, {len(codes)} translations per key. "
+            "instructions": f"Translate each string into every locale listed, {len(self.codes)} translations per key. "
                             "'context' is the developer's note about where the string appears; the key hints at the screen and role.",
-            "locales": locales,
-            "strings": [s for s in strings if s["key"] in keys],
+            "locales": self.locales,
+            "strings": [self.strings[k] for k in keys],
         }, ensure_ascii=False, indent=1)
-        return claude.tool_call("translate", translator_system(codes), user, TRANSLATE_TOOL, batch.cached).get("translations", [])
+        return "translate", translator_system(self.codes), user, TRANSLATE_TOOL, self.batch.cached
 
-    def absorb(rows: list[dict]) -> None:
+    def absorb_translations(self, rows: list[dict]) -> None:
         for t in rows:
-            it = mine.get((t.get("locale"), t.get("key")))
+            it = self.mine.get((t.get("locale"), t.get("key")))
             if it is not None and not it.translation:
                 it.translation = str(t.get("text", "")).strip()
                 it.translator_note = str(t.get("note", "")).strip()
 
-    need = sorted({k for (c, k), it in mine.items() if not it.translation})
-    if need:
-        absorb(claude.batched(need, translate))
-    missing_keys = sorted({k for (c, k), it in mine.items() if not it.translation})
-    if missing_keys:
-        log(f"retrying {len(missing_keys)} keys the translator skipped for {len(codes)} locales")
-        absorb(claude.batched(missing_keys, translate))
-    for it in mine.values():
-        if not it.translation:
-            it.status, it.reviewer_note = "failed", "translator returned nothing for this key"
-    live = [(c, k) for (c, k), it in mine.items() if it.status == "pending"]
-    for c, k in live:
-        it = mine[(c, k)]
-        it.hard_issues, it.soft_issues = check(it.source, it.translation, meta_for(c))
-    if not live or args.skip_review:
-        return
+    def live(self) -> list[tuple[str, str]]:
+        return [(c, k) for (c, k), it in self.mine.items() if it.status == "pending"]
 
-    def back(pairs: list[tuple[str, str]]) -> list[dict]:
-        user = json.dumps({"strings": [{"locale": c, "key": k, "text": mine[(c, k)].translation} for c, k in pairs]},
+    def back_units(self) -> list[tuple[str, str]]:
+        return [(c, k) for c, k in self.live() if not self.mine[(c, k)].back_translation]
+
+    def back_request(self, pairs: list[tuple[str, str]]) -> tuple:
+        user = json.dumps({"strings": [{"locale": c, "key": k, "text": self.mine[(c, k)].translation} for c, k in pairs]},
                           ensure_ascii=False, indent=1)
-        return claude.tool_call("backtranslate", back_system(codes), user, BACK_TOOL, False).get("items", [])
+        return "backtranslate", back_system(self.codes), user, BACK_TOOL, False
 
-    need_back = [(c, k) for c, k in live if not mine[(c, k)].back_translation]
-    for b in (claude.batched(need_back, back) if need_back else []):
-        it = mine.get((b.get("locale"), b.get("key")))
-        if it is not None:
-            it.back_translation = str(b.get("english", "")).strip()
+    def absorb_back(self, rows: list[dict]) -> None:
+        for b in rows:
+            it = self.mine.get((b.get("locale"), b.get("key")))
+            if it is not None:
+                it.back_translation = str(b.get("english", "")).strip()
 
-    def review(pairs: list[tuple[str, str]]) -> list[dict]:
+    def review_request(self, pairs: list[tuple[str, str]]) -> tuple:
         user = json.dumps({"strings": [{
-            "locale": c, "key": k, "source": mine[(c, k)].source, "context": mine[(c, k)].context,
-            "translation": mine[(c, k)].translation, "back_translation": mine[(c, k)].back_translation,
-            "check_notes": mine[(c, k)].hard_issues + mine[(c, k)].soft_issues,
+            "locale": c, "key": k, "source": self.mine[(c, k)].source, "context": self.mine[(c, k)].context,
+            "translation": self.mine[(c, k)].translation, "back_translation": self.mine[(c, k)].back_translation,
+            "check_notes": self.mine[(c, k)].hard_issues + self.mine[(c, k)].soft_issues,
         } for c, k in pairs]}, ensure_ascii=False, indent=1)
-        return claude.tool_call("review", reviewer_system(codes), user, REVIEW_TOOL, batch.cached).get("reviews", [])
+        return "review", reviewer_system(self.codes), user, REVIEW_TOOL, self.batch.cached
 
-    for r in claude.batched(live, review):
-        it = mine.get((r.get("locale"), r.get("key")))
-        if it is None:
-            continue
-        it.verdict = str(r.get("verdict", "")).strip()
+    def absorb_review(self, rows: list[dict]) -> None:
+        for r in rows:
+            it = self.mine.get((r.get("locale"), r.get("key")))
+            if it is None:
+                continue
+            it.verdict = str(r.get("verdict", "")).strip()
+            try:
+                it.confidence = max(0.0, min(1.0, float(r.get("confidence"))))
+            except (TypeError, ValueError):
+                it.confidence = None
+            it.reviewer_note = str(r.get("note", "")).strip()
+            fix = str(r.get("fix", "")).strip()
+            if it.verdict == "fix" and fix:
+                if (it.confidence or 0) >= FIX_MIN_CONFIDENCE:
+                    fh, fs = check(it.source, fix, meta_for(r.get("locale")))
+                    if not fh:
+                        it.final, it.hard_issues, it.soft_issues, it.status = fix, fh, fs, "fixed"
+                        continue
+                    it.reviewer_note = (it.reviewer_note + " Fix rejected by checks: " + "; ".join(fh)).strip()
+                else:
+                    it.reviewer_note = (it.reviewer_note + f" Suggested: {fix}").strip()
+
+    def fail(self, reason: str) -> None:
+        for it in self.mine.values():
+            if it.status == "pending":
+                it.status, it.reviewer_note = "failed", reason
+
+
+LIST_KEY = {"translate": "translations", "backtranslate": "items", "review": "reviews"}
+
+
+def run_stage(name: str, stage: dict, claude: Claude) -> dict:
+    """Run one stage for every group in parallel. `stage` maps a Group to
+    (units, request(subset), absorb(rows)). Returns per-group error text."""
+    errors: dict = {}
+    pending = {g: v for g, v in stage.items() if v[0]}
+    if not pending:
+        return errors
+
+    def one(g) -> None:
+        units, request, absorb = pending[g]
+        role = request(units)[0]
         try:
-            it.confidence = max(0.0, min(1.0, float(r.get("confidence"))))
-        except (TypeError, ValueError):
-            it.confidence = None
-        it.scores = {k: max(1, min(5, int(v))) for k, v in (r.get("scores") or {}).items() if isinstance(v, (int, float))}
-        it.reviewer_note = str(r.get("note", "")).strip()
-        fix = str(r.get("fix", "")).strip()
-        if it.verdict == "fix" and fix:
-            if (it.confidence or 0) >= FIX_MIN_CONFIDENCE:
-                fh, fs = check(it.source, fix, meta_for(r.get("locale")))
-                if not fh:
-                    it.final, it.hard_issues, it.soft_issues, it.status = fix, fh, fs, "fixed"
-                    continue
-                it.reviewer_note = (it.reviewer_note + " Fix rejected by checks: " + "; ".join(fh)).strip()
-            else:
-                it.reviewer_note = (it.reviewer_note + f" Suggested: {fix}").strip()
+            absorb(claude.batched(units, lambda sub: claude.call(*request(sub)).get(LIST_KEY[role], [])))
+        except Exception as e:
+            log(f"{name}: group {len(g.batch.keys)}x{len(g.codes)} failed: {e}")
+            errors[g] = f"{type(e).__name__}: {e}"
+
+    # cache warm-up: the first group of each multi-call locale set runs before the rest fan out,
+    # so the shared system prompt is written to the cache once instead of by every worker
+    seen: set = set()
+    first, rest = [], []
+    for g in pending:
+        (first if g.batch.cached and g.codes not in seen else rest).append(g)
+        seen.add(g.codes)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        list(pool.map(one, first))
+        list(pool.map(one, rest))
+    return errors
 
 
 def decide(it: Item, skip_review: bool) -> None:
     if it.status != "pending":
         return
     it.final = it.translation
-    if it.hard_issues:
+    if not it.translation:
+        it.status, it.reviewer_note = "failed", "no translation produced"
+    elif it.hard_issues:
         it.status = "rejected"
     elif skip_review:
         it.status = "flagged" if it.soft_issues else "passed"
@@ -746,26 +778,36 @@ def run_all(work: dict[str, Work], en: PoFile, targets: dict[str, PoFile], claud
         log(f"resumed {load_previous(Path(args.resume), items)} translations from {args.resume}")
     errors: dict[str, str] = {}
     if claude is not None and items:
-        batches = plan_batches(work)
-        log(f"{len(batches)} model call groups ({', '.join(f'{len(b.keys)} keys x {len(b.locales)} locales' for b in batches[:6])}"
-            + (", ..." if len(batches) > 6 else ")"))
+        groups = [Group(b, en, targets, items) for b in plan_batches(work)]
+        log(f"{len(groups)} model call groups ({', '.join(f'{len(g.batch.keys)} keys x {len(g.codes)} locales' for g in groups[:6])}"
+            + (", ..." if len(groups) > 6 else ")"))
 
-        def one(b: Batch) -> None:
-            try:
-                run_batch(b, en, targets, items, claude, args)
-            except Exception as e:  # keep the other batches going, surface this one in the report
-                log(f"batch {len(b.keys)}x{len(b.locales)} failed: {e}")
-                for c in b.locales:
-                    errors[c] = f"{type(e).__name__}: {e}"
-                    for k in b.keys:
-                        it = items[(c, k)]
-                        if it.status == "pending":
-                            it.status, it.reviewer_note = "failed", f"model call failed: {e}"
+        def record(errs: dict) -> None:
+            for g, e in errs.items():
+                g.fail(f"model call failed: {e}")
+                for c in g.codes:
+                    errors.setdefault(c, e)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as pool:
-            list(pool.map(one, batches))
+        # 1. translate, with one retry for anything the model skipped
+        for _ in range(2):
+            stage = {g: (g.translate_units(), g.translate_request, g.absorb_translations) for g in groups}
+            if not any(v[0] for v in stage.values()):
+                break
+            record(run_stage("translate", stage, claude))
+        for g in groups:
+            for (c, k), it in g.mine.items():
+                if it.status != "pending":
+                    continue
+                if not it.translation:
+                    it.status, it.reviewer_note = "failed", "translator returned nothing for this key"
+                else:
+                    it.hard_issues, it.soft_issues = check(it.source, it.translation, meta_for(c))
+        if not getattr(args, "skip_review", False):
+            # 2. back-translate, 3. review
+            record(run_stage("backtranslate", {g: (g.back_units(), g.back_request, g.absorb_back) for g in groups}, claude))
+            record(run_stage("review", {g: (g.live(), g.review_request, g.absorb_review) for g in groups}, claude))
     for it in items.values():
-        decide(it, args.skip_review)
+        decide(it, getattr(args, "skip_review", False))
     results = []
     for code, w in work.items():
         m = meta_for(code)
@@ -1190,7 +1232,11 @@ def main() -> int:
                     if os.environ.get("GITHUB_RUN_ID") else ""),
     }
     data = results_dict(results, run)
-    (out / "results.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+    blob = json.dumps(data, ensure_ascii=False, indent=1)
+    (out / "results.json").write_text(blob, encoding="utf-8")
+    if any(r.items for r in results):  # keep every run that did work, so a later --apply or --render can find it
+        (out / "runs").mkdir(exist_ok=True)
+        (out / "runs" / f"{dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d-%H%M')}-results.json").write_text(blob, encoding="utf-8")
     summary = summary_markdown(results, run)
     (out / "summary.md").write_text(summary, encoding="utf-8")
     (out / "commit_message.txt").write_text(commit_message(results, run), encoding="utf-8")
@@ -1275,7 +1321,7 @@ HTML_TEMPLATE = r"""<!doctype html>
 <table>
   <thead><tr>
     <th data-k="locale">Locale</th><th data-k="key">Key</th><th data-k="source">English</th><th data-k="final">Translation</th>
-    <th data-k="back_translation">Back-translation</th><th data-k="status">Status</th><th data-k="confidence">Conf</th><th data-k="scores">Scores</th><th data-k="notes">Notes</th>
+    <th data-k="back_translation">Back-translation</th><th data-k="status">Status</th><th data-k="confidence">Conf</th><th data-k="notes">Notes</th>
   </tr></thead>
   <tbody id="rows"></tbody>
 </table>
@@ -1287,8 +1333,7 @@ const $ = id => document.getElementById(id);
 const rows = [];
 for (const L of data.locales) for (const it of L.items) rows.push({
   locale: L.code, rtl: L.rtl, ...it, final: it.final || it.translation,
-  notes: [it.reviewer_note, it.translator_note, ...(it.hard_issues||[]), ...(it.soft_issues||[])].filter(Boolean).join(' · '),
-  scoreText: it.scores && Object.keys(it.scores).length ? Object.entries(it.scores).map(([k,v]) => k.slice(0,3)+' '+v).join(' ') : ''
+  notes: [it.reviewer_note, it.translator_note, ...(it.hard_issues||[]), ...(it.soft_issues||[])].filter(Boolean).join(' · ')
 });
 const LANG = {"es-cu": "es-CU", "fr-ca": "fr-CA", "ur-in": "ur-IN", "pt_BR": "pt-BR", "zh-Hans": "zh-Hans", "zh-Hant": "zh-Hant"};
 const langOf = code => LANG[code] || code;
@@ -1351,7 +1396,6 @@ function render() {
     && (!q || [x.key, x.source, x.final, x.back_translation, x.notes].join(' ').toLowerCase().includes(q)));
   out.sort((a, b) => {
     let va = a[sortKey], vb = b[sortKey];
-    if (sortKey === 'scores') { va = a.scoreText; vb = b.scoreText; }
     if (va == null) return 1; if (vb == null) return -1;
     return (va > vb ? 1 : va < vb ? -1 : 0) * sortDir;
   });
@@ -1362,7 +1406,7 @@ function render() {
     <td class="t"><div class="clamp" lang="${langOf(x.locale)}" ${x.rtl ? 'dir="rtl"' : ''}>${x.reason === 'changed' && x.old ? `<span class="old">${esc(x.old)}</span>` : ''}${x.status === 'fixed' && x.translation !== x.final ? `<span class="old">${esc(x.translation)}</span>` : ''}${esc(x.final)}</div></td>
     <td class="t"><div class="clamp" lang="en">${esc(x.back_translation)}</div></td>
     <td class="s ${x.status}">${esc(x.status)}</td><td>${x.confidence == null ? '' : x.confidence.toFixed(2)}</td>
-    <td class="n">${esc(x.scoreText)}</td><td class="n"><div class="clamp" lang="en">${esc(x.notes)}</div></td></tr>`).join('');
+    <td class="n"><div class="clamp" lang="en">${esc(x.notes)}</div></td></tr>`).join('');
 }
 for (const id of ['locale', 'status', 'conf', 'q']) $(id).addEventListener('input', () => { selected = $('locale').value; render(); });
 // long cells show two lines; click to expand or collapse

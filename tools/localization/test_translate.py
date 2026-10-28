@@ -1,5 +1,6 @@
 """Tests for translate.py. Run: cd tools/localization && python3 -m unittest test_translate -v"""
 
+import json
 import shutil
 import subprocess
 import tempfile
@@ -289,6 +290,61 @@ class Apply(unittest.TestCase):
         finally:
             shutil.rmtree(d)
 
+
+class FakeClaude:
+    """Answers every request from the payload itself and counts the calls."""
+
+    def __init__(self):
+        self.usage = {}
+        self.calls = 0
+
+    def call(self, role, system, user, tool, cached=True):
+        self.calls += 1
+        params = t.Claude.params(role, system, user, tool, cached)
+        payload = json.loads(params["messages"][0]["content"])
+        list_key = next(iter(params["output_config"]["format"]["schema"]["properties"]))
+        if list_key == "translations":
+            return {"translations": [{"locale": L["code"], "key": st["key"], "text": f"{L['code']}:{st['source']}", "note": ""}
+                                     for L in payload["locales"] for st in payload["strings"]]}
+        if list_key == "items":
+            return {"items": [{"locale": x["locale"], "key": x["key"], "english": x["text"].split(":", 1)[1]} for x in payload["strings"]]}
+        return {"reviews": [{"locale": x["locale"], "key": x["key"], "verdict": "pass", "confidence": 0.95, "fix": "", "note": ""}
+                            for x in payload["strings"]]}
+
+    def batched(self, items, fn):
+        return fn(list(items))
+
+
+class Stages(unittest.TestCase):
+    def _work(self):
+        en = t.PoFile(t.LOCALES_DIR / "en.po")
+        keys = en.keys()[1:4]
+        targets = {c: t.PoFile(t.LOCALES_DIR / f"{c}.po") for c in ("ar", "fr")}
+        work = {c: t.Work(translate={k: None for k in keys}, reasons={k: "gap" for k in keys}) for c in targets}
+        return en, targets, work
+
+    def test_three_stages_one_call_each_for_one_group(self):
+        en, targets, work = self._work()
+        fake = FakeClaude()
+        class A: skip_review = False; resume = ""
+        results = t.run_all(work, en, targets, fake, A())
+        self.assertEqual(fake.calls, 3)  # translate, back-translate, review
+        for r in results:
+            self.assertEqual(r.stats()["passed"], 3, r.code)
+            self.assertTrue(all(i.final.startswith(f"{r.code}:") for i in r.items))
+
+    def test_skip_review_is_one_call(self):
+        en, targets, work = self._work()
+        fake = FakeClaude()
+        class A: skip_review = True; resume = ""
+        t.run_all(work, en, targets, fake, A())
+        self.assertEqual(fake.calls, 1)
+
+    def test_no_client_marks_items_failed(self):
+        en, targets, work = self._work()
+        class A: skip_review = False; resume = ""
+        results = t.run_all(work, en, targets, None, A())
+        self.assertTrue(all(r.stats()["failed"] == 3 and r.stats()["translated"] == 0 for r in results))
 
 if __name__ == "__main__":
     unittest.main()
