@@ -104,7 +104,8 @@ Future<void> _claim(WidgetTester tester) async {
   await tester.enterText(find.byKey(const Key('help_friend.name')), 'Ali');
   await tester.tap(find.byKey(const Key('help_friend.accept')));
   await tester.pump();
-  await tester.pump(); // pumpAndSettle would never settle: the waiting view spins
+  await tester
+      .pump(); // pumpAndSettle would never settle: the waiting view spins
 }
 
 const _link =
@@ -146,9 +147,7 @@ void main() {
     expect(find.text('2562'), findsOneWidget);
   });
 
-  testWidgets('an already claimed invite says so prominently', (
-    tester,
-  ) async {
+  testWidgets('an already claimed invite says so prominently', (tester) async {
     final helpers = _Helpers(
       const HelpersState(),
       claimAnswer: '{"error":"already_claimed"}',
@@ -269,9 +268,7 @@ void main() {
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
   });
 
-  testWidgets('a provisional or expired claim is not reopened', (
-    tester,
-  ) async {
+  testWidgets('a provisional or expired claim is not reopened', (tester) async {
     final helpers = _Helpers(
       const HelpersState(
         view: HelpersView(
@@ -462,7 +459,8 @@ void main() {
     expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
     await tester.pump();
-    await tester.pump(); // pumpAndSettle would never settle: the waiting view spins
+    await tester
+        .pump(); // pumpAndSettle would never settle: the waiting view spins
     expect(helpers.claims, [(_link, 'Ali'), (_link, 'Ali')]);
     expect(find.text('2562'), findsOneWidget);
   });
@@ -471,9 +469,7 @@ void main() {
     tester,
   ) async {
     final helpers = _Helpers(
-      const HelpersState(
-        view: HelpersView(unlocked: true, helping: [_sara]),
-      ),
+      const HelpersState(view: HelpersView(unlocked: true, helping: [_sara])),
     );
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
@@ -482,7 +478,10 @@ void main() {
     helpers.approve(const HelpersView(unlocked: true, helping: [_reza, _sara]));
     await tester.pump();
     expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
-    expect(find.text('help_friend_approved'.i18n.fill(['Reza'])), findsOneWidget);
+    expect(
+      find.text('help_friend_approved'.i18n.fill(['Reza'])),
+      findsOneWidget,
+    );
   });
 
   testWidgets('approval uses the generic name when the pairing is ambiguous', (
@@ -519,17 +518,18 @@ void main() {
     expect(find.textContaining('Reza'), findsNothing);
   });
 
-  testWidgets('HelpFriend shows the keystore-reset notice and acknowledges it', (
-    tester,
-  ) async {
-    final helpers = _Helpers(const HelpersState(keystoreReset: true));
-    await _pump(tester, helpers, const HelpFriend());
-    expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
-    await tester.pump();
-    expect(helpers.acknowledged, 1);
-    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
-  });
+  testWidgets(
+    'HelpFriend shows the keystore-reset notice and acknowledges it',
+    (tester) async {
+      final helpers = _Helpers(const HelpersState(keystoreReset: true));
+      await _pump(tester, helpers, const HelpFriend());
+      expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
+      await tester.pump();
+      expect(helpers.acknowledged, 1);
+      expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
+    },
+  );
 
   testWidgets("you're helping: rows, totals, and help others too", (
     tester,
@@ -547,6 +547,50 @@ void main() {
     await tester.tap(find.byKey(const Key('helping.help_others_switch')));
     await tester.pump();
     expect(helpers.helpOthers, [false]);
+  });
+
+  testWidgets('refreshes every minute while shown, and stops when gone', (
+    tester,
+  ) async {
+    final helpers = _Helpers(_helping());
+    final show = ValueNotifier(true);
+    await _pump(
+      tester,
+      helpers,
+      ValueListenableBuilder<bool>(
+        valueListenable: show,
+        builder: (_, visible, _) => visible
+            ? const SingleChildScrollView(child: HelpingSection())
+            : const SizedBox.shrink(),
+      ),
+      sharing: true,
+    );
+    expect(helpers.refreshes, 0);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(HelpingSection.refreshInterval);
+    expect(helpers.refreshes, 1);
+    await tester.pump(HelpingSection.refreshInterval);
+    expect(helpers.refreshes, 2);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(HelpingSection.refreshInterval);
+    expect(helpers.refreshes, 2, reason: 'not while the app is in the back');
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(HelpingSection.refreshInterval);
+    expect(helpers.refreshes, 3);
+
+    show.value = false;
+    await tester.pump();
+    await tester.pump(HelpingSection.refreshInterval * 3);
+    expect(helpers.refreshes, 3, reason: 'the timer goes with the section');
+  });
+
+  testWidgets('does not refresh while helping nobody', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpingSection());
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(HelpingSection.refreshInterval * 2);
+    expect(helpers.refreshes, 0);
   });
 
   testWidgets('warns when sharing is off', (tester) async {

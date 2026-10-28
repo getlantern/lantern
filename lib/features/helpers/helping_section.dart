@@ -18,6 +18,10 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 class HelpingSection extends HookConsumerWidget {
   const HelpingSection({super.key});
 
+  /// How often the section refreshes while it shows someone helped.
+  @visibleForTesting
+  static Duration refreshInterval = const Duration(seconds: 60);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final helpers = ref.watch(helpersProvider);
@@ -33,6 +37,23 @@ class HelpingSection extends HookConsumerWidget {
     }, const []);
 
     final helping = helpers.view.helping;
+    final helpsSomeone = helping.isNotEmpty;
+
+    // Today's totals move, and the inviter can end a pairing, without
+    // anything pending to poll for. Refresh while this shows someone helped
+    // and the app is in front; each refresh reaches lantern-cloud.
+    useEffect(() {
+      if (!helpsSomeone) return null;
+      final timer = Timer.periodic(refreshInterval, (_) {
+        if (WidgetsBinding.instance.lifecycleState !=
+            AppLifecycleState.resumed) {
+          return;
+        }
+        unawaited(notifier.refreshIfUsed());
+      });
+      return timer.cancel;
+    }, [helpsSomeone]);
+
     // A volunteer who never opens GetHelp must still learn that the
     // keystore lost the old names.
     final notice = helpers.keystoreReset
@@ -41,7 +62,7 @@ class HelpingSection extends HookConsumerWidget {
             child: HelperKeystoreResetNotice(notifier: notifier),
           )
         : null;
-    if (helping.isEmpty) return notice ?? const SizedBox.shrink();
+    if (!helpsSomeone) return notice ?? const SizedBox.shrink();
     final activity = helpers.view.activity;
 
     return Column(
@@ -199,6 +220,5 @@ String helpingDuration(int seconds) {
       : 'helping_duration_m'.i18n.fill([m]);
 }
 
-String _date(int unix) => DateFormat.yMMMd().format(
-  DateTime.fromMillisecondsSinceEpoch(unix * 1000),
-);
+String _date(int unix) =>
+    DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(unix * 1000));
