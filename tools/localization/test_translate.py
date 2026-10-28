@@ -208,5 +208,36 @@ class AllLocalesAreTargets(unittest.TestCase):
             self.assertEqual(set(w.translate), gaps, code)
 
 
+class Cleanup(unittest.TestCase):
+    def test_code_references_is_a_word_search_over_the_source_dirs(self):
+        d = Path(tempfile.mkdtemp())
+        try:
+            (d / "lib").mkdir(); (d / "docs").mkdir()
+            (d / "lib" / "a.dart").write_text("final k = Key('auth.confirm_password');\n", encoding="utf-8")
+            (d / "lib" / "b.dart").write_text("const x = 'prefix_only_sub_suffix';\n", encoding="utf-8")
+            (d / "docs" / "n.md").write_text("mentions only_in_docs", encoding="utf-8")
+            hits = t.code_references(["confirm_password", "only_sub", "only_in_docs", "truly_dead"], [d / "lib"])
+            self.assertTrue(hits["confirm_password"].endswith("a.dart"))  # inside a longer literal
+            self.assertNotIn("only_sub", hits)        # joined by underscores is a different identifier
+            self.assertNotIn("only_in_docs", hits)    # docs are not scanned
+            self.assertNotIn("truly_dead", hits)
+        finally:
+            shutil.rmtree(d)
+
+    def test_ensure_charset_adds_header_once(self):
+        d = Path(tempfile.mkdtemp())
+        try:
+            p = d / "x.po"
+            p.write_text('msgid ""\nmsgstr ""\n"Language: xx\\n"\n\nmsgid "a"\nmsgstr "A"\n', encoding="utf-8")
+            po = t.PoFile(p)
+            self.assertTrue(t.ensure_charset(po))
+            self.assertFalse(t.ensure_charset(po))
+            po.write()
+            t.validate_po(p, 1)
+            self.assertIn("charset=UTF-8", t.PoFile(p).get(""))
+        finally:
+            shutil.rmtree(d)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -64,17 +64,11 @@ msgstr "你沒有填寫電子郵件地址，因此我們將無法回覆或跟進
 msgid "send_without_email"
 msgstr "不填電子郵件傳送"
 
-msgid "lantern_projects"
-msgstr "Lantern 專案:"
-
 msgid "invite_friends"
 msgstr "邀請朋友"
 
 msgid "your_referral_code"
 msgstr "你的推薦碼"
-
-msgid "invite_friends_message"
-msgstr "將你的推薦碼分享給朋友。當他們購買 Lantern Pro 時，你們都可以獲得額外的使用時間： "
 
 msgid "share_referral_code"
 msgstr "分享推薦碼"
@@ -135,9 +129,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "協助對抗全球網路審查"
-
 msgid "vpn_settings"
 msgstr "VPN 設定"
 
@@ -162,9 +153,6 @@ msgstr "Lantern 專業版裝置"
 msgid "remove"
 msgstr "移除"
 
-msgid "add_device"
-msgstr "新增裝置"
-
 msgid "danger_zone"
 msgstr "危險區域"
 
@@ -185,9 +173,6 @@ msgstr "帳號刪除後將無法復原。你將失去所有裝置的存取權限
 
 msgid "delete_account_message_two"
 msgstr "請在下方輸入你的密碼以確認刪除"
-
-msgid "Submit Issue Report"
-msgstr "輸入密碼以確認"
 
 msgid "confirm_deletion"
 msgstr "確認刪除"
@@ -222,23 +207,14 @@ msgstr "伺服器選擇"
 msgid "smart_location"
 msgstr "智慧位置"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "自動選擇最快的位置"
-
 msgid "pro_locations"
 msgstr "專業版位置:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "使用 Lantern 專業版選擇你的位置:"
 
 msgid "language"
 msgstr "語言"
 
 msgid "sign_in"
 msgstr "登入"
-
-msgid "sign_out"
-msgstr "登出"
 
 msgid "check_for_updates"
 msgstr "檢查更新"
@@ -248,9 +224,6 @@ msgstr "有可用更新"
 
 msgid "android_sideload_update_available_message"
 msgstr "Lantern %s 已推出。Lantern 會在開啟 Android 安裝程式前下載並驗證 APK。"
-
-msgid "download_and_install_update"
-msgstr "下載並安裝"
 
 msgid "allow_unknown_app_installs"
 msgstr "允許安裝應用程式"
@@ -263,9 +236,6 @@ msgstr "無法安裝更新"
 
 msgid "android_sideload_install_failed_message"
 msgstr "Lantern 無法驗證或安裝此更新。請稍後再試。"
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern 已是最新版本。"
 
 msgid "support"
 msgstr "支援"
@@ -291,9 +261,6 @@ msgstr "無法存取被封鎖的網站"
 msgid "cannot_complete_purchase"
 msgstr "無法完成購買"
 
-msgid "discover_not_working"
-msgstr "探索功能無法使用"
-
 msgid "cannot_sign_in"
 msgstr "無法登入"
 
@@ -318,12 +285,6 @@ msgstr "伺服器選擇無法使用"
 msgid "upgrade_fail"
 msgstr "升級 Lantern Pro 失敗"
 
-msgid "wrong_device_linking_code"
-msgstr "裝置連結碼錯誤或無效"
-
-msgid "cannot_remove_device"
-msgstr "無法移除裝置"
-
 msgid "application_crashes"
 msgstr "應用程式崩潰"
 
@@ -336,32 +297,11 @@ msgstr "描述你的問題"
 msgid "enter_password_to_confirm"
 msgstr "輸入密碼確認"
 
-msgid "cannot_view_logs"
-msgstr "除非你傳送診斷記錄給我們,否則 Lantern 無法檢視你的診斷記錄。"
-
-msgid "split_tunneling_mode"
-msgstr "分流模式"
-
 msgid "apps_split_tunneling"
 msgstr "應用程式分流"
 
 msgid "website_split_tunneling"
 msgstr "網站分流"
-
-msgid "iran_optimized"
-msgstr "伊朗最佳化分流"
-
-msgid "china_optimized"
-msgstr "中國最佳化分流"
-
-msgid "russia_optimized"
-msgstr "俄羅斯最佳化分流"
-
-msgid "global_optimized"
-msgstr "全球最佳化分流"
-
-msgid "enter_url"
-msgstr "輸入網址"
 
 msgid "add"
 msgstr "新增"
@@ -404,45 +344,6 @@ msgstr "此連結已過期，請重新取得。"
 
 msgid "invalid_deep_link"
 msgstr "此連結無效，請重新取得。"
-
-msgid "default_bypass"
-msgstr "預設繞過清單"
-
-msgid "global_bypass_list"
-msgstr "全球繞過清單"
-
-msgid "global_bypass_desc"
-msgstr "可信任的網站(HTTPS)且內容非敏感資訊。"
-
-msgid "china_bypass_list"
-msgstr "中國繞過清單"
-
-msgid "china_bypass_desc"
-msgstr "在中國可自由存取的網站。定期更新。"
-
-msgid "iran_bypass_list"
-msgstr "伊朗繞過清單"
-
-msgid "iran_bypass_desc"
-msgstr "在伊朗可自由存取的網站。定期更新。"
-
-msgid "russia_bypass_list"
-msgstr "俄羅斯繞過清單"
-
-msgid "russia_bypass_desc"
-msgstr "在俄羅斯可自由存取的網站。定期更新。"
-
-msgid "see_sites_included"
-msgstr "查看包含在"
-
-msgid "default_lists_here"
-msgstr "預設清單中的網站"
-
-msgid "when_connected"
-msgstr "連線時,你選擇的網站將繞過 VPN。"
-
-msgid "lantern_automatic"
-msgstr "Lantern 會根據你的位置自動選擇哪些應用程式和網站繞過 VPN,以獲得最佳效能。"
 
 msgid "apps_bypassing_vpn"
 msgstr "繞過 VPN 的應用程式 (%d)"
@@ -534,9 +435,6 @@ msgstr "需要確認密碼"
 msgid "passwords_do_not_match"
 msgstr "密碼不符"
 
-msgid "activation_code"
-msgstr "啟用碼"
-
 msgid "activate_lantern_pro"
 msgstr "啟用 Lantern 專業版"
 
@@ -581,9 +479,6 @@ msgstr "這些規則因國家而異,並會定期更新。"
 
 msgid "view_the_full_list"
 msgstr "查看完整的路由規則清單。"
-
-msgid "turn_on_split_tunneling"
-msgstr "開啟分流以自訂哪些網站使用 VPN。"
 
 msgid "welcome_to_lantern_pro"
 msgstr "歡迎使用 Lantern 專業版"
@@ -636,9 +531,6 @@ msgstr "最超值"
 msgid "choose_payment_method"
 msgstr "選擇付款方式"
 
-msgid "payment_information_encrypted"
-msgstr "你的付款資訊已完全加密。"
-
 msgid "purchase_not_completed"
 msgstr "購買未完成。你可以隨時重試,或如需協助請聯絡支援"
 
@@ -657,18 +549,6 @@ msgstr "封鎖廣告"
 msgid "only_active"
 msgstr "僅在 VPN 連線時啟用"
 
-msgid "share_my_connection"
-msgstr "分享我的連線"
-
-msgid "share_my_connection_subtitle"
-msgstr "讓其他 Lantern 使用者透過你的連線繞過審查。"
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr "透過安全地分享你的連線，幫助他人繞過審查。"
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "關於 Action Mode"
@@ -683,53 +563,11 @@ msgstr "已停用"
 msgid "smc_status_configuring"
 msgstr "正在設定網路"
 
-msgid "smc_status_probing"
-msgstr "正在探測你的網路…"
-
-msgid "smc_status_active_unbounded"
-msgstr "已啟用"
-
-msgid "smc_status_active_smc"
-msgstr "正在啟動…"
-
-msgid "smc_status_mapping_port"
-msgstr "正在你的路由器上開啟連接埠…"
-
-msgid "smc_status_detecting_ip"
-msgstr "正在偵測你的公用 IP…"
-
-msgid "smc_status_registering"
-msgstr "正在向 Lantern 註冊…"
-
-msgid "smc_status_starting_proxy"
-msgstr "正在啟動本機代理…"
-
-msgid "smc_status_verifying"
-msgstr "正在驗證連線能力…"
-
-msgid "smc_status_serving"
-msgstr "已啟用"
-
-msgid "smc_status_stopping"
-msgstr "正在停止…"
-
 msgid "smc_status_error_with_message"
 msgstr "無法分享：%s"
 
 msgid "smc_status_error_generic"
 msgstr "無法分享 — 請嘗試重新開關"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "你此刻正在幫助的人數："
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "迄今幫助的總人數："
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -844,9 +682,6 @@ msgstr "訂閱"
 msgid "checkout"
 msgstr "結帳"
 
-msgid "next_billing_date"
-msgstr "下次計費日期"
-
 msgid "vpn_may_be_needed"
 msgstr "可能需要 VPN"
 
@@ -871,35 +706,17 @@ msgstr "使用 Google Cloud Platform 設定"
 msgid "continue_with_do"
 msgstr "使用 DigitalOcean 繼續"
 
-msgid "do_allows"
-msgstr "DigitalOcean 讓你從以下 %d 個選項中選擇一個伺服器位置"
-
 msgid "server_setup_gcp_price"
 msgstr "透過 GCP 每月只需 %s"
 
 msgid "continue_with_gcp"
 msgstr "使用 Google 繼續"
 
-msgid "gcp_allows"
-msgstr "Google Cloud Platform 讓你從以下 %d 個選項中選擇一個伺服器位置:"
-
-msgid "server_setup_aws"
-msgstr "在 DigitalOcean 上設定私人伺服器"
-
-msgid "server_setup_aws_price"
-msgstr "透過 AWS 每月只需 %s"
-
 msgid "server_setup_manual"
 msgstr "手動設定"
 
 msgid "seamless_integration"
 msgstr "與 Lantern 無縫整合"
-
-msgid "easiest_setup"
-msgstr "最簡單的設定流程"
-
-msgid "multiple_location_options"
-msgstr "多個伺服器位置選項"
 
 msgid "one_month_included"
 msgstr "包含每月 %d TB 數據"
@@ -970,29 +787,11 @@ msgstr "選擇你的帳號"
 msgid "choose_your_project"
 msgstr "選擇你的專案"
 
-msgid "name_your_google_cloud_project"
-msgstr "為你的 Google Cloud 專案命名"
-
 msgid "billing_account"
 msgstr "帳單帳號"
 
-msgid "billing_account_placeholder"
-msgstr "%s 的帳單帳號"
-
 msgid "server_name"
 msgstr "伺服器名稱"
-
-msgid "google_project"
-msgstr "Google 專案"
-
-msgid "field_name_required"
-msgstr "需要名稱"
-
-msgid "choose_google_account"
-msgstr "選擇 Google 帳單帳號"
-
-msgid "server_name_placeholder"
-msgstr "Derek 的伺服器"
 
 msgid "change"
 msgstr "變更"
@@ -1006,50 +805,11 @@ msgstr "選擇你的位置"
 msgid "start_deployment"
 msgstr "開始部署"
 
-msgid "server_name_description"
-msgstr "伺服器在伺服器選擇清單中顯示的名稱。"
-
-msgid "select_private_server_region"
-msgstr "選擇私人伺服器的區域。較近的位置可能會提升速度並降低延遲。"
-
-msgid "gcp_location_options"
-msgstr "Google Cloud Platform 位置選項 (%d):"
-
-msgid "australia_sydney"
-msgstr "澳洲 - 雪梨"
-
-msgid "belgium_stghislain"
-msgstr "比利時 - 聖吉斯蘭"
-
-msgid "brazil_saopaulo"
-msgstr "巴西 - 聖保羅"
-
-msgid "us_los_angeles"
-msgstr "美國 - 洛杉磯"
-
-msgid "japan_tokyo"
-msgstr "日本 - 東京"
-
-msgid "deploying_private_server"
-msgstr "正在部署私人伺服器"
-
-msgid "deploying_server_status"
-msgstr "稍等片刻!你的私人伺服器正在設定中。這可能需要幾分鐘。"
-
 msgid "private_server_setup_in_progress"
 msgstr "稍等片刻!你的私人伺服器正在設定中。這可能需要幾分鐘,請保持此畫面開啟。"
 
 msgid "cancel_server_deployment"
 msgstr "取消伺服器部署"
-
-msgid "server_ready_title"
-msgstr "私人伺服器已就緒"
-
-msgid "server_ready_message"
-msgstr "你的私人伺服器已設定完成並新增至你的伺服器清單。你已準備好連線!"
-
-msgid "server_failed_message"
-msgstr "設定私人伺服器時發生問題。你可以重試或稍後再試。"
 
 msgid "close"
 msgstr "關閉"
@@ -1060,9 +820,6 @@ msgstr "立即連線"
 msgid "server_setup_failed"
 msgstr "伺服器設定失敗"
 
-msgid "cancel_deployment"
-msgstr "取消部署"
-
 msgid "server_setup_failed_message"
 msgstr "設定私人伺服器時發生問題。你可以重試或稍後再試。"
 
@@ -1071,9 +828,6 @@ msgstr "離開"
 
 msgid "retry"
 msgstr "重試"
-
-msgid "all_required_fields"
-msgstr "請填寫所有必填欄位。"
 
 msgid "private_server_ready"
 msgstr "私人伺服器已就緒"
@@ -1107,9 +861,6 @@ msgstr "驗證伺服器"
 
 msgid "vpn_client_not_setup"
 msgstr "請開啟 VPN 用戶端。"
-
-msgid "continue_with"
-msgstr "使用以下方式繼續"
 
 msgid "join_a_private_server"
 msgstr "加入私人伺服器"
@@ -1156,9 +907,6 @@ msgstr "移除 %s?這只會將其從你的應用程式中移除,不會從雲端�
 msgid "generate_access_key"
 msgstr "產生存取金鑰"
 
-msgid "invite_name"
-msgstr "邀請名稱"
-
 msgid "trust_server_operator"
 msgstr "信任伺服器營運者"
 
@@ -1170,9 +918,6 @@ msgstr "Lantern 不管理或監控私人伺服器。在加入之前,請確保你
 
 msgid "trust_server_operator_message_three"
 msgstr "如果您不確定誰在運營伺服器或伺服器如何設定，我們建議您使用伺服器清單中的預設 Lantern 伺服器。"
-
-msgid "invalid_server_details"
-msgstr "無效的伺服器資訊。請檢查存取金鑰後重試。"
 
 msgid "lantern_servers"
 msgstr "Lantern 伺服器"
@@ -1227,9 +972,6 @@ msgstr "高級伺服器,較少壅塞"
 
 msgid "advanced_anti_censorship"
 msgstr "進階反審查技術"
-
-msgid "exclusive_access_new_features"
-msgstr "獨家存取新功能"
 
 msgid "connect_up_to_five_devices"
 msgstr "最多連接 5 台裝置"
@@ -1312,9 +1054,6 @@ msgstr "請輸入有效的電子郵件"
 msgid "please_select_an_issue"
 msgstr "請選擇一個問題"
 
-msgid "please_enter_issue_description"
-msgstr "請輸入問題描述"
-
 msgid "thanks_for_feedback"
 msgstr "感謝你的回饋!"
 
@@ -1330,20 +1069,11 @@ msgstr "全選"
 msgid "no_websites_selected"
 msgstr "未選擇網站"
 
-msgid "enter_activation_code"
-msgstr "輸入啟用碼"
-
 msgid "restore_purchase"
 msgstr "恢復購買"
 
 msgid "already_purchased"
 msgstr "已經購買過？"
-
-msgid "restore_purchase_success"
-msgstr "已成功恢復購買。"
-
-msgid "restore_purchase_no_purchases"
-msgstr "找不到可恢復的購買紀錄。"
 
 msgid "do_private_server_setup"
 msgstr "DO 私人伺服器設定"
@@ -1393,9 +1123,6 @@ msgstr "訂閱續訂日期"
 msgid "pro_access_until"
 msgstr "專業版有效期至 %s"
 
-msgid "enabled_bypass_lists"
-msgstr "已啟用的繞過清單 (%d):"
-
 msgid "diagnostic_logs"
 msgstr "診斷記錄"
 
@@ -1441,9 +1168,6 @@ msgstr "新增推薦碼"
 msgid "referral_code"
 msgstr "推薦碼"
 
-msgid "update_fails"
-msgstr "更新失敗"
-
 msgid "scan_qr_code"
 msgstr "掃描 QR 碼"
 
@@ -1456,21 +1180,6 @@ msgstr "我們處理配置,只需註冊即可。"
 msgid "90_day_free_trial"
 msgstr "90 天免費試用"
 
-msgid "identity_changed"
-msgstr "%s 的身份已變更"
-
-msgid "identity_changed_message"
-msgstr "%s 的安全指紋已變更。這可能表示被竄改或配置錯誤。"
-
-msgid "recommendation"
-msgstr "建議:"
-
-msgid "recommendation_message"
-msgstr "我們建議從 Lantern 中移除 %s 並從你的雲端供應商帳號中刪除它,然後設定新伺服器以確保你的連線保持安全。"
-
-msgid "remove_server"
-msgstr "移除伺服器"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "伺服器別名不能為空"
 
@@ -1480,14 +1189,8 @@ msgstr "您的推薦代碼已成功套用！"
 msgid "discount_applied"
 msgstr "已套用 %s 折扣"
 
-msgid "referral_message_1m"
-msgstr "+ 15 天免費"
-
 msgid "referral_message_1y"
 msgstr "+ 1 個月免費"
-
-msgid "referral_message_2y"
-msgstr "+ 額外贈送 2 個月"
 
 msgid "referral_code_invalid"
 msgstr "你輸入的推薦碼/優惠碼無效。請檢查後再試一次。"
@@ -1497,27 +1200,6 @@ msgstr "你不能使用自己的推薦碼。請輸入其他代碼。"
 
 msgid "free"
 msgstr "免费"
-
-msgid "monthly_plan"
-msgstr "月度計劃："
-
-msgid "15_days_each"
-msgstr "每次+15天"
-
-msgid "annual_plan"
-msgstr "年度計劃："
-
-msgid "1_month_each"
-msgstr "每个 +1 个月"
-
-msgid "two_year_plan"
-msgstr "兩年計劃："
-
-msgid "2_month_each"
-msgstr "每个 +2 个月"
-
-msgid "referral_code_info"
-msgstr "尚未成為 Lantern Pro 用戶？當您的第一位推薦人訂閱時，您將成為用戶。"
 
 msgid "lantern_pro_license"
 msgstr "燈籠專業版許可證"
@@ -1530,12 +1212,6 @@ msgstr "蓝灯 Pro 许可证无效"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "蓝灯 Pro 许可证必须为 25 个字符"
-
-msgid "select_account"
-msgstr "選擇帳戶"
-
-msgid "new_to_lantern"
-msgstr "初次使用藍燈嗎？"
 
 msgid "create_an_account"
 msgstr "建立帳戶"
@@ -1576,9 +1252,6 @@ msgstr "返回蓝灯并点击\"继续\"以继续设置"
 msgid "how_to_add_billing_details"
 msgstr "如何添加账单详情:"
 
-msgid "add_payment_method_message"
-msgstr "请在您的 DigitalOcean 账户中添加付款方式。如果已添加,请等待几分钟后重试。"
-
 msgid "ok"
 msgstr "好的"
 
@@ -1596,12 +1269,6 @@ msgstr "开发者模式"
 
 msgid "developer_mode_note"
 msgstr "开发者模式专供蓝灯开发人员在开发过程中测试功能使用。"
-
-msgid "invalid_activation_code"
-msgstr "激活码无效。请检查代码后重试。"
-
-msgid "invalid_activation_code_length"
-msgstr "激活码必须为 25 个字符。"
 
 msgid "error_while_vpn_connection"
 msgstr "建立 VPN 连接时发生错误。请重试。"
@@ -1629,9 +1296,6 @@ msgstr "匿名使用数据"
 
 msgid "helps_improve_lantern_performance"
 msgstr "帮助提升蓝灯性能"
-
-msgid "changes_applied_after_restart"
-msgstr "更改将在重启蓝灯后生效。"
 
 msgid "email_deliverability_notice"
 msgstr "邮件送达提醒"
@@ -1668,9 +1332,6 @@ msgstr "新增應用程式和網站以繞過 VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "您的 Lantern Pro 授權將套用於您的現有帳戶"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "您的購買將套用於您的現有帳戶"
 
 msgid "daily_data_cap_reached"
 msgstr "已達到每日資料上限"
@@ -1716,12 +1377,6 @@ msgstr "訂閱已過期"
 
 msgid "pro"
 msgstr "專業版"
-
-msgid "pro_subscription_expired_message"
-msgstr "Lantern Pro 訂閱已過期。續訂以恢復無限流量和 Pro 功能。"
-
-msgid "last_subscription_renewal_date"
-msgstr "上次訂閱續訂日期"
 
 msgid "set_account_password"
 msgstr "設定帳戶密碼"

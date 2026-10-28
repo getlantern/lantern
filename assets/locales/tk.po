@@ -58,19 +58,11 @@ msgstr ""
 msgid "send_without_email"
 msgstr "E-poçtasyz iber"
 
-msgid "lantern_projects"
-msgstr "Lantern taslamalary:"
-
 msgid "invite_friends"
 msgstr "Dostlary çagyryň"
 
 msgid "your_referral_code"
 msgstr "Siziň taýşdyryş koduňyz"
-
-msgid "invite_friends_message"
-msgstr ""
-"Rekomendasiýa koduňyzy dostuňyz bilen paýlaşyň. Olar Lantern Pro satyn "
-"alanda, ikä siziň hem goşmaça wagt alarsyňyz:"
 
 msgid "share_referral_code"
 msgstr "Taýşdyryş kodyny paýlaş"
@@ -135,9 +127,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "Global internet senzurasy bilen göreşmäge kömek ediň"
-
 msgid "vpn_settings"
 msgstr "VPN sazlamalary"
 
@@ -162,9 +151,6 @@ msgstr "Lantern Pro enjamlary"
 msgid "remove"
 msgstr "Aýyr"
 
-msgid "add_device"
-msgstr "Enjam goş"
-
 msgid "danger_zone"
 msgstr "Howply zona:"
 
@@ -187,9 +173,6 @@ msgstr ""
 
 msgid "delete_account_message_two"
 msgstr "Pozulmagyny tassyklamak üçin parolyňyzy giriziň"
-
-msgid "Submit Issue Report"
-msgstr "Tassyklamak üçin paroly giriziň"
 
 msgid "confirm_deletion"
 msgstr "Pozulmagyny tassykla"
@@ -224,23 +207,14 @@ msgstr "Serwer saýlamak"
 msgid "smart_location"
 msgstr "Akylly ýerleşiş"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "Iň çalt ýerleşişi awtomatik saýlaýar"
-
 msgid "pro_locations"
 msgstr "Pro ýerleşişler:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "Lantern Pro bilen ýerleşişiňizi saýlaň:"
 
 msgid "language"
 msgstr "Dil"
 
 msgid "sign_in"
 msgstr "Içeri gir"
-
-msgid "sign_out"
-msgstr "Çyk"
 
 msgid "check_for_updates"
 msgstr "Täzelenmeler barla"
@@ -252,9 +226,6 @@ msgid "android_sideload_update_available_message"
 msgstr ""
 "Lantern %s elýeterli. Lantern Android gurnaýjysyny açmazdan öň APK-ny "
 "ýükläp, barlar."
-
-msgid "download_and_install_update"
-msgstr "Ýükläp gurnaň"
 
 msgid "allow_unknown_app_installs"
 msgstr "Programma gurnamaga rugsat beriň"
@@ -270,9 +241,6 @@ msgstr "Täzelenmäni gurnap bolmady"
 msgid "android_sideload_install_failed_message"
 msgstr ""
 "Lantern bu täzelenmäni barlap ýa-da gurnap bilmedi. Soňrak ýene synanyşyň."
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern iň soňky wersiýada."
 
 msgid "support"
 msgstr "Goldaw"
@@ -300,9 +268,6 @@ msgstr "Bloklanan saýtlara girip bilemok"
 msgid "cannot_complete_purchase"
 msgstr "Satyn almagy tamamlap bilemok"
 
-msgid "discover_not_working"
-msgstr "Açyş işlemeýär"
-
 msgid "cannot_sign_in"
 msgstr "Içeri girip bilemok"
 
@@ -327,12 +292,6 @@ msgstr "Serwer saýlamak işlemeýär"
 msgid "upgrade_fail"
 msgstr "Lantern Pro-a geçmek şowsuz boldy"
 
-msgid "wrong_device_linking_code"
-msgstr "Enjam baglaýyş kody nädogry ýa-da nädogry"
-
-msgid "cannot_remove_device"
-msgstr "Enjamy aýryp bilemok"
-
 msgid "application_crashes"
 msgstr "Programma çökýär"
 
@@ -345,33 +304,11 @@ msgstr "Meseläňizi düşündiriň"
 msgid "enter_password_to_confirm"
 msgstr "Tassyklamak üçin parol giriziň"
 
-msgid "cannot_view_logs"
-msgstr ""
-"Lantern diagnostika žurnallaryňyza seredip bilmeýär, eger bize ibermeseňiz."
-
-msgid "split_tunneling_mode"
-msgstr "Bölünişikli tunnelirleme tertibi"
-
 msgid "apps_split_tunneling"
 msgstr "Programmalar üçin bölünişikli tunnelirleme"
 
 msgid "website_split_tunneling"
 msgstr "Web saýtlar üçin bölünişikli tunnelirleme"
-
-msgid "iran_optimized"
-msgstr "Eýrana laýyk optimizasiýalanan bölünişikli tunnelirleme"
-
-msgid "china_optimized"
-msgstr "Hytaýa laýyk optimizasiýalanan bölünişikli tunnelirleme"
-
-msgid "russia_optimized"
-msgstr "Russiýa laýyk optimizasiýalanan bölünişikli tunnelirleme"
-
-msgid "global_optimized"
-msgstr "Global optimizasiýalanan bölünişikli tunnelirleme"
-
-msgid "enter_url"
-msgstr "URL giriziň"
 
 msgid "add"
 msgstr "Goş"
@@ -414,47 +351,6 @@ msgstr "Bu baglanyşygyň möhleti gutardy. Täzesini haýyş ediň."
 
 msgid "invalid_deep_link"
 msgstr "Bu baglanyşyk nädogry. Täzesini haýyş ediň."
-
-msgid "default_bypass"
-msgstr "Deslapky geçme sanawlary"
-
-msgid "global_bypass_list"
-msgstr "Global geçme sanawy"
-
-msgid "global_bypass_desc"
-msgstr "Ygtybarly saýtlar (HTTPS) duýgur däl mazmun bilen."
-
-msgid "china_bypass_list"
-msgstr "Hytaý geçme sanawy"
-
-msgid "china_bypass_desc"
-msgstr "Hytaýda erkin elýeterli saýtlar. Yzygiderli täzelenýär."
-
-msgid "iran_bypass_list"
-msgstr "Eýran geçme sanawy"
-
-msgid "iran_bypass_desc"
-msgstr "Eýranda erkin elýeterli saýtlar. Yzygiderli täzelenýär."
-
-msgid "russia_bypass_list"
-msgstr "Russiýa geçme sanawy"
-
-msgid "russia_bypass_desc"
-msgstr "Russiýada erkin elýeterli saýtlar. Yzygiderli täzelenýär."
-
-msgid "see_sites_included"
-msgstr "Goşulan saýtlara göz aýlaň: "
-
-msgid "default_lists_here"
-msgstr "deslapky sanawlary şu ýerde"
-
-msgid "when_connected"
-msgstr "Birikdirilende, saýlan web saýtlaryňyz VPN-den geçer."
-
-msgid "lantern_automatic"
-msgstr ""
-"Lantern iň oňat öndürijilik üçin ýagdaýyňyza esaslanyp, haýsy programmalaryň"
-" we web saýtlaryň VPN-den geçmeli bolmalydygyny awtomatik saýlaýar. "
 
 msgid "apps_bypassing_vpn"
 msgstr "VPN arkaly ulanmaýan programmalar (%d)"
@@ -548,9 +444,6 @@ msgstr "Parol tassyklanmasy zerur"
 msgid "passwords_do_not_match"
 msgstr "Parollar gabat gelenok"
 
-msgid "activation_code"
-msgstr "Işjeňleşdiriş kody"
-
 msgid "activate_lantern_pro"
 msgstr "Lantern Pro işjeňleşdir"
 
@@ -603,11 +496,6 @@ msgstr "Bu düzgünler ýurt boýunça üýtgeýär we yzygiderli täzelenýär.
 
 msgid "view_the_full_list"
 msgstr "Ugratma düzgünleriniň doly sanawyna göz aýlaň."
-
-msgid "turn_on_split_tunneling"
-msgstr ""
-"Haýsy web saýtlaryň VPN ulanmalydygyny düzmek üçin bölünişikli tunnelirleme "
-"açyň."
 
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro hoş geldiňiz!"
@@ -662,9 +550,6 @@ msgstr "Iň gowy bahasy!"
 msgid "choose_payment_method"
 msgstr "Töleg usulyny saýlaň"
 
-msgid "payment_information_encrypted"
-msgstr "Töleg maglumatlaryňyz doly şifrlenendir."
-
 msgid "purchase_not_completed"
 msgstr ""
 "Satyn alma tamamlanmady. Islendik wagta täzeden synanyp bilersiňiz ýa-da "
@@ -686,22 +571,6 @@ msgstr "Reklamalary blokla"
 msgid "only_active"
 msgstr "Diňe VPN birikdirilende işjeň"
 
-msgid "share_my_connection"
-msgstr "Birikmämi paýlaş"
-
-msgid "share_my_connection_subtitle"
-msgstr ""
-"Beýleki Lantern ulanyjylaryna senzurany aýlanyp geçmek üçin siziň "
-"birikmäňizden geçmäge rugsat beriň."
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr ""
-"Birikmäňizi howpsuz paýlaşyp, başgalara senzurany aýlanyp geçmäge kömek "
-"ediň."
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "Action Mode barada"
@@ -716,53 +585,11 @@ msgstr "Ýapyk"
 msgid "smc_status_configuring"
 msgstr "Tor sazlanýar"
 
-msgid "smc_status_probing"
-msgstr "Toruňyz barlanýar…"
-
-msgid "smc_status_active_unbounded"
-msgstr "Açyk"
-
-msgid "smc_status_active_smc"
-msgstr "Başlanýar…"
-
-msgid "smc_status_mapping_port"
-msgstr "Routeriňizde port açylýar…"
-
-msgid "smc_status_detecting_ip"
-msgstr "Umumy IP-iňiz kesgitlenýär…"
-
-msgid "smc_status_registering"
-msgstr "Lantern-de bellige alynýar…"
-
-msgid "smc_status_starting_proxy"
-msgstr "Ýerli proksi başladylýar…"
-
-msgid "smc_status_verifying"
-msgstr "Birikme barlanýar…"
-
-msgid "smc_status_serving"
-msgstr "Açyk"
-
-msgid "smc_status_stopping"
-msgstr "Duruzylýar…"
-
 msgid "smc_status_error_with_message"
 msgstr "Paýlaşyp bolmady: %s"
 
 msgid "smc_status_error_generic"
 msgstr "Paýlaşyp bolmady — ýene öçürip-açyp görüň"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "Häzir kömek edýän adamlaryňyz:"
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "Şu güne çenli kömek edilen adamlaryň jemi:"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -887,9 +714,6 @@ msgstr "Abuna bol"
 msgid "checkout"
 msgstr "Hasap"
 
-msgid "next_billing_date"
-msgstr "Indiki hasap senesi"
-
 msgid "vpn_may_be_needed"
 msgstr "VPN gerek bolup biler"
 
@@ -916,39 +740,17 @@ msgstr "Google Cloud Platform arkaly guruň"
 msgid "continue_with_do"
 msgstr "Digital Ocean bilen dowam et"
 
-msgid "do_allows"
-msgstr ""
-"Digital Ocean aşakdaky %d wariantdan bir serwer ýerleşişini saýlamaga "
-"mümkinçilik berýär"
-
 msgid "server_setup_gcp_price"
 msgstr "GCP arkaly diňe %s aýda"
 
 msgid "continue_with_gcp"
 msgstr "Google bilen dowam et"
 
-msgid "gcp_allows"
-msgstr ""
-"Google Cloud Platform aşakdaky %d wariantdan bir serwer ýerleşişini "
-"saýlamaga mümkinçilik berýär:"
-
-msgid "server_setup_aws"
-msgstr "Digital Ocean-da hususy serwer guruň"
-
-msgid "server_setup_aws_price"
-msgstr "AWS arkaly diňe %s aýda"
-
 msgid "server_setup_manual"
 msgstr "El bilen gur"
 
 msgid "seamless_integration"
 msgstr "Lantern bilen üznüksiz integrasiýa"
-
-msgid "easiest_setup"
-msgstr "Iň aňsat gurnama prosesi"
-
-msgid "multiple_location_options"
-msgstr "Köp serwer ýerleşiş wariantlary"
 
 msgid "one_month_included"
 msgstr "%d TB/aý maglumat goşuldy"
@@ -1025,29 +827,11 @@ msgstr "Hasabyňyzy saýlaň"
 msgid "choose_your_project"
 msgstr "Taslamaňyzy saýlaň"
 
-msgid "name_your_google_cloud_project"
-msgstr "Google Cloud taslamaňyza at beriň"
-
 msgid "billing_account"
 msgstr "Hasap hesaby"
 
-msgid "billing_account_placeholder"
-msgstr "%s üçin hasap hesaby"
-
 msgid "server_name"
 msgstr "Serwer ady"
-
-msgid "google_project"
-msgstr "Google taslama"
-
-msgid "field_name_required"
-msgstr "At zerur"
-
-msgid "choose_google_account"
-msgstr "Google hasap hesabyny saýlaň"
-
-msgid "server_name_placeholder"
-msgstr "Deregiň serweri"
 
 msgid "change"
 msgstr "Üýtget"
@@ -1061,38 +845,6 @@ msgstr "Ýerleşişiňizi saýlaň"
 msgid "start_deployment"
 msgstr "Ýerleşdirişi başla"
 
-msgid "server_name_description"
-msgstr "Serwer saýlama sanawynda serwer nähili görner."
-
-msgid "select_private_server_region"
-msgstr ""
-"Hususy serweriňiz üçin sebiti saýlaň. Ýakyn ýerleşişler tizlik we gijikdirme"
-" gowulaşdyryp biler."
-
-msgid "gcp_location_options"
-msgstr "Google Cloud Platform ýerleşiş wariantlary (%d):"
-
-msgid "australia_sydney"
-msgstr "Awstraliýa - Sidneý"
-
-msgid "belgium_stghislain"
-msgstr "Belgiýa - St. Ghislain"
-
-msgid "brazil_saopaulo"
-msgstr "San-Paulu"
-
-msgid "us_los_angeles"
-msgstr "ABŞ - Los Anjeles"
-
-msgid "japan_tokyo"
-msgstr "Ýaponiýa - Tokio"
-
-msgid "deploying_private_server"
-msgstr "Hususy serwer ýerleşdirilýär"
-
-msgid "deploying_server_status"
-msgstr "Sabyr ediň! Hususy serweriňiz gurulýar. Bu birnäçe minut alyp biler."
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Sabyr ediň! Hususy serweriňiz gurulýar. Bu birnäçe minut alyp biler, şu "
@@ -1100,19 +852,6 @@ msgstr ""
 
 msgid "cancel_server_deployment"
 msgstr "Serwer ýerleşdirmesini ýatyr"
-
-msgid "server_ready_title"
-msgstr "Hususy serwer taýýar"
-
-msgid "server_ready_message"
-msgstr ""
-"Hususy serweriňiz guruldy we serwer sanawyňyza goşuldy. Birikdirmäge "
-"taýýarsiňyz!"
-
-msgid "server_failed_message"
-msgstr ""
-"Hususy serweriňizi gurmakda bir zat nädogry boldy. Täzeden synanyp ýa-da "
-"soňra täzeden synanyp bilersiňiz."
 
 msgid "close"
 msgstr "Ýap"
@@ -1122,9 +861,6 @@ msgstr "Häzir birikdir"
 
 msgid "server_setup_failed"
 msgstr "Serwer gurnama başartmady"
-
-msgid "cancel_deployment"
-msgstr "Ýerleşdirmäni ýatyr"
 
 msgid "server_setup_failed_message"
 msgstr ""
@@ -1136,9 +872,6 @@ msgstr "Çyk"
 
 msgid "retry"
 msgstr "Täzeden synanyş"
-
-msgid "all_required_fields"
-msgstr "Ähli zerur ýerleri dolduryň."
 
 msgid "private_server_ready"
 msgstr "Hususy serwer taýýar!"
@@ -1173,9 +906,6 @@ msgstr "Serweri barla"
 
 msgid "vpn_client_not_setup"
 msgstr "VPN klient açyň."
-
-msgid "continue_with"
-msgstr "Bilen dowam et"
 
 msgid "join_a_private_server"
 msgstr "Hususy serwere goşul"
@@ -1226,9 +956,6 @@ msgstr ""
 msgid "generate_access_key"
 msgstr "Giriş açar döret"
 
-msgid "invite_name"
-msgstr "Çagyryş ady"
-
 msgid "trust_server_operator"
 msgstr "Serwer operatoryna ynan"
 
@@ -1249,9 +976,6 @@ msgstr ""
 "Serweri kimiň dolandyrýandygyny ýa-da onuň nähili sazlanandygyny bilmeseňiz,"
 " serwer sanawyňyzda elýeterli deslapky Lantern serwerleriniň birini ulanmagy"
 " maslahat berýäris."
-
-msgid "invalid_server_details"
-msgstr "Nädogry serwer maglumatlary. Giriş açary barlaň we täzeden synanyň."
 
 msgid "lantern_servers"
 msgstr "Lantern serwerleri"
@@ -1306,9 +1030,6 @@ msgstr "Az dykyz premium serwerler"
 
 msgid "advanced_anti_censorship"
 msgstr "Öňdebaryjy anti-senzura tehnologiýasy"
-
-msgid "exclusive_access_new_features"
-msgstr "Täze aýratynlyklara aýratyn giriş"
 
 msgid "connect_up_to_five_devices"
 msgstr "5 enjama çenli birikdiriň"
@@ -1393,9 +1114,6 @@ msgstr "Dogry e-poçta giriziň"
 msgid "please_select_an_issue"
 msgstr "Mesele saýlaň"
 
-msgid "please_enter_issue_description"
-msgstr "Mesele düşündirişini giriziň"
-
 msgid "thanks_for_feedback"
 msgstr "Pikirleriňiz üçin sag boluň!"
 
@@ -1411,20 +1129,11 @@ msgstr "Hemmesini saýla"
 msgid "no_websites_selected"
 msgstr "Hiç bir web saýt saýlanmady"
 
-msgid "enter_activation_code"
-msgstr "Işjeňleşdiriş kody giriziň"
-
 msgid "restore_purchase"
 msgstr "Satyn almagy dikelt"
 
 msgid "already_purchased"
 msgstr "Eýýäm satyn aldyňyzmy?"
-
-msgid "restore_purchase_success"
-msgstr "Satyn alma üstünlikli dikeldildi."
-
-msgid "restore_purchase_no_purchases"
-msgstr "Dikeltmek üçin satyn alma tapylmady."
 
 msgid "do_private_server_setup"
 msgstr "DO hususy serwer gurnama"
@@ -1478,9 +1187,6 @@ msgstr "Abunalyk täzeleme senesi"
 msgid "pro_access_until"
 msgstr "%s çenli Pro elýeterliligi"
 
-msgid "enabled_bypass_lists"
-msgstr "Açyk geçme sanawlary (%d):"
-
 msgid "diagnostic_logs"
 msgstr "Diagnostika žurnallary"
 
@@ -1528,9 +1234,6 @@ msgstr "Taýşdyryş kody goş"
 msgid "referral_code"
 msgstr "Taýşdyryş kody"
 
-msgid "update_fails"
-msgstr "Täzeleme başartmady"
-
 msgid "scan_qr_code"
 msgstr "QR kod skaner et"
 
@@ -1543,26 +1246,6 @@ msgstr "Biz konfigurasiýany dolandyrýarys, diňe ýazylýaň."
 msgid "90_day_free_trial"
 msgstr "90 günlük mugt synag"
 
-msgid "identity_changed"
-msgstr "%s üçin şahsyýet üýtgedi"
-
-msgid "identity_changed_message"
-msgstr ""
-"%s howpsuzlyk barmak yzy üýtgedi. Bu näsazlyk ýa-da nädogry konfigurasiýany "
-"görkezýän bolmagy mümkin."
-
-msgid "recommendation"
-msgstr "Maslahat:"
-
-msgid "recommendation_message"
-msgstr ""
-"Lantern-dan %s aýyrmagy we bulut üpjün ediji hasabyňyzdan pozmagy maslahat "
-"berýäris, soňra baglanyşygyňyzyň howpsuz bolmagyny üpjün etmek üçin täze "
-"serwer guruň."
-
-msgid "remove_server"
-msgstr "Serwer aýyr"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "Serwer lakamy boş bolup bilmez"
 
@@ -1572,14 +1255,8 @@ msgstr " Rekomendasiýa koduňyz ulanyldy!"
 msgid "discount_applied"
 msgstr "%s arzanladyş ulanyldy"
 
-msgid "referral_message_1m"
-msgstr "+ 15 goşmaça gün mugt"
-
 msgid "referral_message_1y"
 msgstr " + 1 goşmaça aý mugt"
-
-msgid "referral_message_2y"
-msgstr "+ goşmaça 2 aý mugt"
 
 msgid "referral_code_invalid"
 msgstr "Giren salgylanma/promo koduňyz nädogry. Kody barlap, ýene synanyşyň."
@@ -1589,29 +1266,6 @@ msgstr "Öz rekomendasiýa koduňyzy ulanyp bilmersiňiz. Başga kod giriziň."
 
 msgid "free"
 msgstr " Mugt"
-
-msgid "monthly_plan"
-msgstr "Aýlyk plan:"
-
-msgid "15_days_each"
-msgstr " +15 gün hersine"
-
-msgid "annual_plan"
-msgstr " Ýyllyk plan:"
-
-msgid "1_month_each"
-msgstr "Her birine +1 aý"
-
-msgid "two_year_plan"
-msgstr " Iki ýyllyk plan:"
-
-msgid "2_month_each"
-msgstr "Her birine +2 aý"
-
-msgid "referral_code_info"
-msgstr ""
-"Entek Lantern Pro ulanyjysy dälmi? Ilkinji rekomendaşiýaňyz ýazylandan soň "
-"bolarsyňyz"
 
 msgid "lantern_pro_license"
 msgstr " Lantern Pro Ygtyýarnamasy"
@@ -1624,12 +1278,6 @@ msgstr "Nädogry Lantern Pro ygtyýarnamasy"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro ygtyýarnamasy 25 simwoldan ybarat bolmaly"
-
-msgid "select_account"
-msgstr "Hasaby saýlaň"
-
-msgid "new_to_lantern"
-msgstr "Lantern-da täzemi?"
 
 msgid "create_an_account"
 msgstr " Hasap döretmek"
@@ -1675,11 +1323,6 @@ msgstr ""
 msgid "how_to_add_billing_details"
 msgstr "Hasap-faktura maglumatlaryny nädip goşmaly:"
 
-msgid "add_payment_method_message"
-msgstr ""
-"DigitalOcean hasabyňyza töleg usulyny goşuň. Eýýäm goşan bolsaňyz, birnäçe "
-"minut garaşyň we täzeden synanyşyň."
-
 msgid "ok"
 msgstr "OK"
 
@@ -1699,12 +1342,6 @@ msgid "developer_mode_note"
 msgstr ""
 "Dörediji tertibi diňe Lantern döredijileri üçin ösüş döwründe aýratynlyklary"
 " barlamak üçin niýetlenendir."
-
-msgid "invalid_activation_code"
-msgstr "Nädogry işjeňleşdiriş kody. Kody barlap görüň we täzeden synanyşyň."
-
-msgid "invalid_activation_code_length"
-msgstr "Işjeňleşdiriş kody 25 simwoldan ybarat bolmaly."
 
 msgid "error_while_vpn_connection"
 msgstr "VPN birikdirilende säwlik ýüze çykdy. Täzeden synanyşyň."
@@ -1736,9 +1373,6 @@ msgstr "Anonim ulanma maglumatlary"
 
 msgid "helps_improve_lantern_performance"
 msgstr "Lantern-iň öndürijiligini ýokarlandyrmaga kömek edýär"
-
-msgid "changes_applied_after_restart"
-msgstr "Üýtgeşmeler Lantern täzeden başlandan soň ulanylýar."
 
 msgid "email_deliverability_notice"
 msgstr "E-poçta ýetirilişi barada habar"
@@ -1782,9 +1416,6 @@ msgstr "VPN-dan aýlanyp geçmek üçin programmalar we web sahypalar goşuň"
 
 msgid "lantern_pro_license_applied"
 msgstr "Lantern Pro ygtyýarnamaňyz bar bolan hasabyňyza ulanylar"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "Satyn alyşyňyz bar bolan hasabyňyza ulanylar"
 
 msgid "daily_data_cap_reached"
 msgstr "Gündelik maglumat çägine ýetildi"
@@ -1836,14 +1467,6 @@ msgstr "Abunaňyň möhleti gutardy"
 
 msgid "pro"
 msgstr "Pro"
-
-msgid "pro_subscription_expired_message"
-msgstr ""
-"Lantern Pro abunaňyzyň möhleti gutardy. Çäksiz maglumat we Pro "
-"aýratynlyklaryny dikeltmek üçin täzeleň."
-
-msgid "last_subscription_renewal_date"
-msgstr "Soňky abuna täzelenen senesi"
 
 msgid "set_account_password"
 msgstr "Hasap parolyny sazla"

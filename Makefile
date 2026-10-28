@@ -1382,7 +1382,7 @@ TRANSLATE_FLAGS = --out $(TRANSLATE_OUT) \
 	$(if $(TRANSLATE_BASE),--base $(TRANSLATE_BASE)) \
 	$(TRANSLATE_ARGS)
 
-.PHONY: translate translate-plan translate-dry-run translate-report translate-audit translate-test
+.PHONY: translate translate-plan translate-dry-run translate-report translate-audit translate-cleanup translate-test
 translate: $(TRANSLATE_VENV)/bin/python
 	$(TRANSLATE_VENV)/bin/python tools/localization/translate.py $(TRANSLATE_FLAGS)
 
@@ -1398,6 +1398,9 @@ translate-report:
 
 translate-audit:
 	$(PYTHON) tools/localization/translate.py --audit --out $(TRANSLATE_OUT)
+
+translate-cleanup:
+	$(PYTHON) tools/localization/translate.py --cleanup $(TRANSLATE_ARGS) --out $(TRANSLATE_OUT)
 
 translate-test:
 	cd tools/localization && $(PYTHON) -m unittest test_translate -v

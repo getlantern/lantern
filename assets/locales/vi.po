@@ -64,19 +64,11 @@ msgstr ""
 msgid "send_without_email"
 msgstr "Gửi không cần email"
 
-msgid "lantern_projects"
-msgstr "Dự án Lantern:"
-
 msgid "invite_friends"
 msgstr "Mời bạn bè"
 
 msgid "your_referral_code"
 msgstr "Mã giới thiệu của bạn"
-
-msgid "invite_friends_message"
-msgstr ""
-"Chia sẻ mã giới thiệu của bạn với bạn bè. Khi họ mua Lantern Pro, cả hai sẽ "
-"nhận được thời gian thưởng:"
 
 msgid "share_referral_code"
 msgstr "Chia sẻ mã giới thiệu"
@@ -141,9 +133,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "Chung tay chống kiểm duyệt Internet toàn cầu"
-
 msgid "vpn_settings"
 msgstr "Cài đặt VPN"
 
@@ -168,9 +157,6 @@ msgstr "Thiết bị Lantern Pro"
 msgid "remove"
 msgstr "Xóa"
 
-msgid "add_device"
-msgstr "Thêm thiết bị"
-
 msgid "danger_zone"
 msgstr "Vùng nguy hiểm:"
 
@@ -194,9 +180,6 @@ msgstr ""
 
 msgid "delete_account_message_two"
 msgstr "Để xác nhận xóa, vui lòng nhập mật khẩu của bạn bên dưới"
-
-msgid "Submit Issue Report"
-msgstr "Nhập mật khẩu để xác nhận"
 
 msgid "confirm_deletion"
 msgstr "Xác nhận xóa"
@@ -231,23 +214,14 @@ msgstr "Chọn máy chủ"
 msgid "smart_location"
 msgstr "Vị trí thông minh"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "Tự động chọn vị trí nhanh nhất"
-
 msgid "pro_locations"
 msgstr "Vị trí Pro:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "Chọn vị trí của bạn với Lantern Pro:"
 
 msgid "language"
 msgstr "Ngôn ngữ"
 
 msgid "sign_in"
 msgstr "Đăng nhập"
-
-msgid "sign_out"
-msgstr "Đăng xuất"
 
 msgid "check_for_updates"
 msgstr "Kiểm tra cập nhật"
@@ -259,9 +233,6 @@ msgid "android_sideload_update_available_message"
 msgstr ""
 "Lantern %s đã có sẵn. Lantern sẽ tải xuống và xác minh tệp APK trước khi mở "
 "trình cài đặt của Android."
-
-msgid "download_and_install_update"
-msgstr "Tải xuống và cài đặt"
 
 msgid "allow_unknown_app_installs"
 msgstr "Cho phép cài đặt ứng dụng"
@@ -278,9 +249,6 @@ msgid "android_sideload_install_failed_message"
 msgstr ""
 "Lantern không thể xác minh hoặc cài đặt bản cập nhật này. Vui lòng thử lại "
 "sau."
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern đã là phiên bản mới nhất."
 
 msgid "support"
 msgstr "Hỗ trợ"
@@ -308,9 +276,6 @@ msgstr "Không thể truy cập các trang web bị chặn"
 msgid "cannot_complete_purchase"
 msgstr "Không thể hoàn tất thanh toán"
 
-msgid "discover_not_working"
-msgstr "Discover không hoạt động"
-
 msgid "cannot_sign_in"
 msgstr "Không thể đăng nhập"
 
@@ -335,12 +300,6 @@ msgstr "Chọn máy chủ không hoạt động"
 msgid "upgrade_fail"
 msgstr "Nâng cấp Lantern Pro không thành công"
 
-msgid "wrong_device_linking_code"
-msgstr "Mã liên kết thiết bị sai hoặc không hợp lệ"
-
-msgid "cannot_remove_device"
-msgstr "Không thể xóa thiết bị"
-
 msgid "application_crashes"
 msgstr "Ứng dụng bị lỗi"
 
@@ -353,34 +312,11 @@ msgstr "Mô tả sự cố của bạn"
 msgid "enter_password_to_confirm"
 msgstr "Nhập mật khẩu để xác nhận"
 
-msgid "cannot_view_logs"
-msgstr ""
-"Lantern không thể xem nhật ký chẩn đoán của bạn trừ khi bạn gửi cho chúng "
-"tôi."
-
-msgid "split_tunneling_mode"
-msgstr "Chế độ định tuyến phân tách"
-
 msgid "apps_split_tunneling"
 msgstr "Định tuyến phân tách ứng dụng"
 
 msgid "website_split_tunneling"
 msgstr "Định tuyến phân tách trang web"
-
-msgid "iran_optimized"
-msgstr "Định tuyến phân tách tối ưu cho Iran"
-
-msgid "china_optimized"
-msgstr "Định tuyến phân tách tối ưu cho Trung Quốc"
-
-msgid "russia_optimized"
-msgstr "Định tuyến phân tách tối ưu cho Nga"
-
-msgid "global_optimized"
-msgstr "Định tuyến phân tách tối ưu toàn cầu"
-
-msgid "enter_url"
-msgstr "Nhập URL"
 
 msgid "add"
 msgstr "Thêm"
@@ -423,51 +359,6 @@ msgstr "Liên kết này đã hết hạn. Vui lòng yêu cầu liên kết mớ
 
 msgid "invalid_deep_link"
 msgstr "Liên kết này không hợp lệ. Vui lòng yêu cầu liên kết mới."
-
-msgid "default_bypass"
-msgstr "Danh sách bỏ qua mặc định"
-
-msgid "global_bypass_list"
-msgstr "Danh sách bỏ qua toàn cầu"
-
-msgid "global_bypass_desc"
-msgstr "Các trang web đáng tin cậy (HTTPS) với nội dung không nhạy cảm."
-
-msgid "china_bypass_list"
-msgstr "Danh sách bỏ qua Trung Quốc"
-
-msgid "china_bypass_desc"
-msgstr ""
-"Các trang web có thể truy cập tự do ở Trung Quốc. Được cập nhật thường "
-"xuyên."
-
-msgid "iran_bypass_list"
-msgstr "Danh sách bỏ qua Iran"
-
-msgid "iran_bypass_desc"
-msgstr ""
-"Các trang web có thể truy cập tự do ở Iran. Được cập nhật thường xuyên."
-
-msgid "russia_bypass_list"
-msgstr "Danh sách bỏ qua Nga"
-
-msgid "russia_bypass_desc"
-msgstr ""
-"Các trang web có thể truy cập tự do ở Nga. Được cập nhật thường xuyên."
-
-msgid "see_sites_included"
-msgstr "Xem các trang web trong "
-
-msgid "default_lists_here"
-msgstr "danh sách mặc định tại đây"
-
-msgid "when_connected"
-msgstr "Khi được kết nối, các trang web bạn chọn sẽ bỏ qua VPN."
-
-msgid "lantern_automatic"
-msgstr ""
-"Lantern tự động chọn ứng dụng và trang web nào bỏ qua VPN dựa trên vị trí "
-"của bạn để có hiệu suất tốt nhất. "
 
 msgid "apps_bypassing_vpn"
 msgstr "Ứng dụng bỏ qua VPN (%d)"
@@ -561,9 +452,6 @@ msgstr "Yêu cầu xác nhận mật khẩu"
 msgid "passwords_do_not_match"
 msgstr "Mật khẩu không khớp"
 
-msgid "activation_code"
-msgstr "Mã kích hoạt"
-
 msgid "activate_lantern_pro"
 msgstr "Kích hoạt Lantern Pro"
 
@@ -620,9 +508,6 @@ msgstr ""
 msgid "view_the_full_list"
 msgstr "Xem danh sách đầy đủ các quy tắc định tuyến."
 
-msgid "turn_on_split_tunneling"
-msgstr "Bật định tuyến phân tách để tùy chỉnh các trang web sử dụng VPN."
-
 msgid "welcome_to_lantern_pro"
 msgstr "Chào mừng đến với Lantern Pro!"
 
@@ -676,9 +561,6 @@ msgstr "Giá trị tốt nhất!"
 msgid "choose_payment_method"
 msgstr "Chọn phương thức thanh toán"
 
-msgid "payment_information_encrypted"
-msgstr "Thông tin thanh toán của bạn được mã hóa hoàn toàn."
-
 msgid "purchase_not_completed"
 msgstr ""
 "Giao dịch mua chưa hoàn tất. Bạn có thể thử lại bất kỳ lúc nào hoặc liên hệ "
@@ -701,21 +583,6 @@ msgstr "Chặn quảng cáo"
 msgid "only_active"
 msgstr "Chỉ hoạt động khi VPN được kết nối"
 
-msgid "share_my_connection"
-msgstr "Chia sẻ kết nối của tôi"
-
-msgid "share_my_connection_subtitle"
-msgstr ""
-"Cho phép người dùng Lantern khác đi qua kết nối của bạn để vượt kiểm duyệt."
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr ""
-"Giúp người khác vượt kiểm duyệt bằng cách chia sẻ kết nối của bạn một cách "
-"an toàn."
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "Giới thiệu về Action Mode"
@@ -730,53 +597,11 @@ msgstr "Đã tắt"
 msgid "smc_status_configuring"
 msgstr "Đang cấu hình mạng"
 
-msgid "smc_status_probing"
-msgstr "Đang kiểm tra mạng của bạn…"
-
-msgid "smc_status_active_unbounded"
-msgstr "Đã bật"
-
-msgid "smc_status_active_smc"
-msgstr "Đang khởi động…"
-
-msgid "smc_status_mapping_port"
-msgstr "Đang mở cổng trên router của bạn…"
-
-msgid "smc_status_detecting_ip"
-msgstr "Đang phát hiện IP công khai của bạn…"
-
-msgid "smc_status_registering"
-msgstr "Đang đăng ký với Lantern…"
-
-msgid "smc_status_starting_proxy"
-msgstr "Đang khởi động proxy cục bộ…"
-
-msgid "smc_status_verifying"
-msgstr "Đang xác minh kết nối…"
-
-msgid "smc_status_serving"
-msgstr "Đã bật"
-
-msgid "smc_status_stopping"
-msgstr "Đang dừng…"
-
 msgid "smc_status_error_with_message"
 msgstr "Không thể chia sẻ: %s"
 
 msgid "smc_status_error_generic"
 msgstr "Không thể chia sẻ — hãy thử tắt rồi bật lại"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "Những người bạn đang giúp ngay lúc này:"
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "Tổng số người đã được giúp đến nay:"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -901,9 +726,6 @@ msgstr "Đăng ký"
 msgid "checkout"
 msgstr "Thanh toán"
 
-msgid "next_billing_date"
-msgstr "Ngày thanh toán tiếp theo"
-
 msgid "vpn_may_be_needed"
 msgstr "Có thể cần VPN"
 
@@ -930,38 +752,17 @@ msgstr "Thiết lập sử dụng Google Cloud Platform"
 msgid "continue_with_do"
 msgstr "Tiếp tục với DigitalOcean"
 
-msgid "do_allows"
-msgstr ""
-"DigitalOcean cho phép bạn chọn một vị trí máy chủ từ %d tùy chọn dưới đây."
-
 msgid "server_setup_gcp_price"
 msgstr "Chỉ %s/tháng thông qua GCP"
 
 msgid "continue_with_gcp"
 msgstr "Tiếp tục với Google"
 
-msgid "gcp_allows"
-msgstr ""
-"Google Cloud Platform cho phép bạn chọn một vị trí máy chủ từ %d tùy chọn "
-"dưới đây:"
-
-msgid "server_setup_aws"
-msgstr "Thiết lập máy chủ riêng trên AWS"
-
-msgid "server_setup_aws_price"
-msgstr "Chỉ %s/tháng thông qua AWS"
-
 msgid "server_setup_manual"
 msgstr "Thiết lập thủ công"
 
 msgid "seamless_integration"
 msgstr "Tích hợp liền mạch với Lantern"
-
-msgid "easiest_setup"
-msgstr "Quy trình thiết lập dễ nhất"
-
-msgid "multiple_location_options"
-msgstr "Nhiều tùy chọn vị trí máy chủ"
 
 msgid "one_month_included"
 msgstr "%d TB/tháng dữ liệu đi kèm"
@@ -1039,29 +840,11 @@ msgstr "Chọn tài khoản của bạn"
 msgid "choose_your_project"
 msgstr "Chọn dự án của bạn"
 
-msgid "name_your_google_cloud_project"
-msgstr "Đặt tên cho dự án Google Cloud của bạn"
-
 msgid "billing_account"
 msgstr "Tài khoản thanh toán"
 
-msgid "billing_account_placeholder"
-msgstr "Tài khoản thanh toán cho %s"
-
 msgid "server_name"
 msgstr "Tên máy chủ"
-
-msgid "google_project"
-msgstr "Dự án Google"
-
-msgid "field_name_required"
-msgstr "Yêu cầu nhập tên"
-
-msgid "choose_google_account"
-msgstr "Chọn tài khoản thanh toán Google"
-
-msgid "server_name_placeholder"
-msgstr "Máy chủ của Derek"
 
 msgid "change"
 msgstr "Thay đổi"
@@ -1075,40 +858,6 @@ msgstr "Chọn vị trí của bạn"
 msgid "start_deployment"
 msgstr "Bắt đầu triển khai"
 
-msgid "server_name_description"
-msgstr "Cách máy chủ sẽ xuất hiện trong danh sách chọn máy chủ."
-
-msgid "select_private_server_region"
-msgstr ""
-"Chọn khu vực cho máy chủ riêng của bạn. Vị trí gần hơn có thể cải thiện tốc "
-"độ và độ trễ."
-
-msgid "gcp_location_options"
-msgstr "Tùy chọn vị trí Google Cloud Platform (%d):"
-
-msgid "australia_sydney"
-msgstr "Úc - Sydney"
-
-msgid "belgium_stghislain"
-msgstr "Bỉ - St. Ghislain"
-
-msgid "brazil_saopaulo"
-msgstr "São Paulo"
-
-msgid "us_los_angeles"
-msgstr "Mỹ - Los Angeles"
-
-msgid "japan_tokyo"
-msgstr "Nhật Bản - Tokyo"
-
-msgid "deploying_private_server"
-msgstr "Đang triển khai máy chủ riêng"
-
-msgid "deploying_server_status"
-msgstr ""
-"Vui lòng đợi! Máy chủ riêng của bạn đang được thiết lập. Quá trình này có "
-"thể mất vài phút."
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Vui lòng đợi! Máy chủ riêng của bạn đang được thiết lập. Quá trình này có "
@@ -1116,19 +865,6 @@ msgstr ""
 
 msgid "cancel_server_deployment"
 msgstr "Hủy triển khai máy chủ"
-
-msgid "server_ready_title"
-msgstr "Máy chủ riêng đã sẵn sàng"
-
-msgid "server_ready_message"
-msgstr ""
-"Máy chủ riêng của bạn đã được thiết lập và thêm vào danh sách máy chủ. Bạn "
-"đã sẵn sàng để kết nối!"
-
-msgid "server_failed_message"
-msgstr ""
-"Đã xảy ra lỗi khi thiết lập máy chủ riêng của bạn. Bạn có thể thử lại hoặc "
-"thử lại sau."
 
 msgid "close"
 msgstr "Đóng"
@@ -1138,9 +874,6 @@ msgstr "Kết nối ngay"
 
 msgid "server_setup_failed"
 msgstr "Thiết lập máy chủ thất bại"
-
-msgid "cancel_deployment"
-msgstr "Hủy triển khai"
 
 msgid "server_setup_failed_message"
 msgstr ""
@@ -1152,9 +885,6 @@ msgstr "Thoát"
 
 msgid "retry"
 msgstr "Thử lại"
-
-msgid "all_required_fields"
-msgstr "Vui lòng điền đầy đủ tất cả các trường bắt buộc."
 
 msgid "private_server_ready"
 msgstr "Máy chủ riêng đã sẵn sàng!"
@@ -1190,9 +920,6 @@ msgstr "Xác minh máy chủ"
 
 msgid "vpn_client_not_setup"
 msgstr "Vui lòng bật ứng dụng VPN."
-
-msgid "continue_with"
-msgstr "Tiếp tục với"
 
 msgid "join_a_private_server"
 msgstr "Tham gia máy chủ riêng"
@@ -1245,9 +972,6 @@ msgstr ""
 msgid "generate_access_key"
 msgstr "Tạo khóa truy cập"
 
-msgid "invite_name"
-msgstr "Tên lời mời"
-
 msgid "trust_server_operator"
 msgstr "Tin tưởng người vận hành máy chủ"
 
@@ -1267,10 +991,6 @@ msgstr ""
 "Nếu bạn không chắc ai đang vận hành máy chủ hoặc nó được cấu hình như thế "
 "nào, chúng tôi khuyên bạn nên sử dụng một trong các máy chủ Lantern mặc định"
 " có sẵn trong danh sách máy chủ của bạn."
-
-msgid "invalid_server_details"
-msgstr ""
-"Thông tin máy chủ không hợp lệ. Vui lòng kiểm tra khóa truy cập và thử lại."
 
 msgid "lantern_servers"
 msgstr "Máy chủ Lantern"
@@ -1325,9 +1045,6 @@ msgstr "Máy chủ cao cấp ít tắc nghẽn hơn"
 
 msgid "advanced_anti_censorship"
 msgstr "Công nghệ chống kiểm duyệt tiên tiến"
-
-msgid "exclusive_access_new_features"
-msgstr "Truy cập độc quyền các tính năng mới"
 
 msgid "connect_up_to_five_devices"
 msgstr "Kết nối tối đa 5 thiết bị"
@@ -1415,9 +1132,6 @@ msgstr "Vui lòng nhập email hợp lệ"
 msgid "please_select_an_issue"
 msgstr "Vui lòng chọn một sự cố"
 
-msgid "please_enter_issue_description"
-msgstr "Vui lòng nhập mô tả sự cố"
-
 msgid "thanks_for_feedback"
 msgstr "Cảm ơn phản hồi của bạn!"
 
@@ -1433,20 +1147,11 @@ msgstr "Chọn tất cả"
 msgid "no_websites_selected"
 msgstr "Chưa chọn trang web nào"
 
-msgid "enter_activation_code"
-msgstr "Nhập mã kích hoạt"
-
 msgid "restore_purchase"
 msgstr "Khôi phục gói mua"
 
 msgid "already_purchased"
 msgstr "Đã mua trước đó?"
-
-msgid "restore_purchase_success"
-msgstr "Khôi phục giao dịch mua thành công."
-
-msgid "restore_purchase_no_purchases"
-msgstr "Không tìm thấy giao dịch mua nào để khôi phục."
 
 msgid "do_private_server_setup"
 msgstr "Thiết lập máy chủ riêng DO"
@@ -1500,9 +1205,6 @@ msgstr "Ngày gia hạn gói đăng ký"
 msgid "pro_access_until"
 msgstr "Quyền truy cập Pro đến %s"
 
-msgid "enabled_bypass_lists"
-msgstr "Danh sách bỏ qua đã bật (%d):"
-
 msgid "diagnostic_logs"
 msgstr "Nhật ký chẩn đoán"
 
@@ -1550,9 +1252,6 @@ msgstr "Thêm mã giới thiệu"
 msgid "referral_code"
 msgstr "Mã giới thiệu"
 
-msgid "update_fails"
-msgstr "Cập nhật thất bại"
-
 msgid "scan_qr_code"
 msgstr "Quét mã QR"
 
@@ -1565,26 +1264,6 @@ msgstr "Chúng tôi xử lý cấu hình, bạn chỉ cần đăng ký."
 msgid "90_day_free_trial"
 msgstr "Dùng thử miễn phí 90 ngày"
 
-msgid "identity_changed"
-msgstr "Danh tính đã thay đổi cho %s"
-
-msgid "identity_changed_message"
-msgstr ""
-"Dấu vân tay bảo mật của %s đã thay đổi. Điều này có thể cho thấy sự can "
-"thiệp hoặc cấu hình sai."
-
-msgid "recommendation"
-msgstr "Khuyến nghị:"
-
-msgid "recommendation_message"
-msgstr ""
-"Chúng tôi khuyên bạn nên xóa %s khỏi Lantern và xóa nó khỏi tài khoản nhà "
-"cung cấp dịch vụ đám mây của bạn, sau đó thiết lập máy chủ mới để đảm bảo "
-"kết nối của bạn vẫn an toàn."
-
-msgid "remove_server"
-msgstr "Xóa máy chủ"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "Biệt danh máy chủ không được để trống"
 
@@ -1594,14 +1273,8 @@ msgstr "Mã giới thiệu của bạn đã được áp dụng!"
 msgid "discount_applied"
 msgstr "Đã áp dụng giảm giá %s"
 
-msgid "referral_message_1m"
-msgstr "+ 15 ngày bổ sung miễn phí"
-
 msgid "referral_message_1y"
 msgstr "+ 15 ngày bổ sung miễn phí"
-
-msgid "referral_message_2y"
-msgstr "+ 2 tháng miễn phí bổ sung"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1615,29 +1288,6 @@ msgstr ""
 msgid "free"
 msgstr "Miễn phí"
 
-msgid "monthly_plan"
-msgstr " Gói tháng:"
-
-msgid "15_days_each"
-msgstr " +15 ngày cho mỗi người"
-
-msgid "annual_plan"
-msgstr "Gói năm:"
-
-msgid "1_month_each"
-msgstr "+1 tháng cho mỗi người"
-
-msgid "two_year_plan"
-msgstr " Gói hai năm:"
-
-msgid "2_month_each"
-msgstr "+2 tháng cho mỗi người"
-
-msgid "referral_code_info"
-msgstr ""
-"Chưa phải người dùng Lantern Pro? Bạn sẽ trở thành một khi người giới thiệu "
-"đầu tiên của bạn đăng ký"
-
 msgid "lantern_pro_license"
 msgstr " Giấy phép Lantern Pro"
 
@@ -1649,12 +1299,6 @@ msgstr "Giấy phép Lantern Pro không hợp lệ"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "Giấy phép Lantern Pro phải có 25 ký tự"
-
-msgid "select_account"
-msgstr " Chọn tài khoản"
-
-msgid "new_to_lantern"
-msgstr "Mới với Lantern?"
 
 msgid "create_an_account"
 msgstr "Tạo tài khoản"
@@ -1697,11 +1341,6 @@ msgstr "Quay lại Lantern và nhấn \"Tiếp tục\" để tiếp tục thiế
 msgid "how_to_add_billing_details"
 msgstr "Cách thêm thông tin thanh toán:"
 
-msgid "add_payment_method_message"
-msgstr ""
-"Vui lòng thêm phương thức thanh toán vào tài khoản DigitalOcean của bạn. Nếu"
-" bạn đã thêm, hãy đợi vài phút và thử lại."
-
 msgid "ok"
 msgstr "OK"
 
@@ -1721,12 +1360,6 @@ msgid "developer_mode_note"
 msgstr ""
 "Chế độ nhà phát triển chỉ dành cho các nhà phát triển Lantern để kiểm tra "
 "tính năng trong quá trình phát triển."
-
-msgid "invalid_activation_code"
-msgstr "Mã kích hoạt không hợp lệ. Vui lòng kiểm tra mã và thử lại."
-
-msgid "invalid_activation_code_length"
-msgstr "Mã kích hoạt phải có độ dài 25 ký tự."
 
 msgid "error_while_vpn_connection"
 msgstr "Đã xảy ra lỗi khi thiết lập kết nối VPN. Vui lòng thử lại."
@@ -1757,9 +1390,6 @@ msgstr "Dữ liệu sử dụng ẩn danh"
 
 msgid "helps_improve_lantern_performance"
 msgstr "Giúp cải thiện hiệu suất của Lantern"
-
-msgid "changes_applied_after_restart"
-msgstr "Các thay đổi sẽ được áp dụng sau khi khởi động lại Lantern."
 
 msgid "email_deliverability_notice"
 msgstr "Thông báo về khả năng gửi email"
@@ -1804,10 +1434,6 @@ msgstr "Thêm ứng dụng và trang web để bỏ qua VPN"
 msgid "lantern_pro_license_applied"
 msgstr ""
 "Giấy phép Lantern Pro của bạn sẽ được áp dụng cho tài khoản hiện có của bạn"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr ""
-"Giao dịch mua hàng của bạn sẽ được áp dụng cho tài khoản hiện có của bạn"
 
 msgid "daily_data_cap_reached"
 msgstr "Đã đạt giới hạn dữ liệu hàng ngày"
@@ -1859,14 +1485,6 @@ msgstr "Gói đăng ký Đã hết hạn"
 
 msgid "pro"
 msgstr "Pro"
-
-msgid "pro_subscription_expired_message"
-msgstr ""
-"Gói đăng ký Lantern Pro đã hết hạn. Gia hạn để khôi phục dữ liệu không giới "
-"hạn và các tính năng Pro."
-
-msgid "last_subscription_renewal_date"
-msgstr "Ngày Gia hạn Gói đăng ký Gần nhất"
 
 msgid "set_account_password"
 msgstr "Đặt Mật khẩu Tài khoản"

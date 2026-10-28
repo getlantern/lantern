@@ -58,21 +58,11 @@ msgstr ""
 msgid "send_without_email"
 msgstr "پرته له بریښنالیک ولېږئ"
 
-msgid "lantern_projects"
-msgstr "د Lantern پروژې:"
-
 msgid "invite_friends"
 msgstr "ملګري راوبلئ"
 
 msgid "your_referral_code"
 msgstr "ستاسو د راجع کولو کوډ"
-
-msgid "invite_friends_message"
-msgstr ""
-"خپل حواله کوډ د یو ملګري سره شریک کړئ. کله چې دوی یې د Lantern Pro اخیستلو "
-"لپاره کاروي، تاسو دواړه به د وړیا ۳۰ ورځې Lantern Pro ترلاسه کړئ!خپل د راجع "
-"کولو کوډ د یوه ملګري سره شریک کړئ. کله چې دوی Lantern Pro واخلي، تاسو دواړه "
-"اضافي وخت ترلاسه کوئ:"
 
 msgid "share_referral_code"
 msgstr "د راجع کولو کوډ شریک کړئ"
@@ -137,9 +127,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "د نړیوال انټرنیټ سانسورشپ په مقابله کې مرسته وکړئ"
-
 msgid "vpn_settings"
 msgstr "د VPN تنظیمات"
 
@@ -163,9 +150,6 @@ msgstr "د Lantern Pro وسایل"
 
 msgid "remove"
 msgstr "لرې کړئ"
-
-msgid "add_device"
-msgstr "وسیله اضافه کړئ"
 
 msgid "danger_zone"
 msgstr "خطر ساحه:"
@@ -191,9 +175,6 @@ msgstr ""
 
 msgid "delete_account_message_two"
 msgstr "د حساب د ړنګولو د تایید لپاره مهرباني وکړئ خپل پټنوم دننه کړئ"
-
-msgid "Submit Issue Report"
-msgstr "د تایید لپاره پاسورډ ولیکئ"
 
 msgid "confirm_deletion"
 msgstr "ړنګول تایید کړئ"
@@ -228,23 +209,14 @@ msgstr "د سرور انتخاب"
 msgid "smart_location"
 msgstr "هوښیار موقعیت"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "په اتوماتیک ډول تر ټولو ګړندی موقعیت غوره کوي"
-
 msgid "pro_locations"
 msgstr "پرو موقعیتونه:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "د Lantern Pro سره خپل موقعیت غوره کړئ:"
 
 msgid "language"
 msgstr "ژبه"
 
 msgid "sign_in"
 msgstr "ننوتل"
-
-msgid "sign_out"
-msgstr "وتل"
 
 msgid "check_for_updates"
 msgstr "د تازه کولو لپاره وګورئ"
@@ -256,9 +228,6 @@ msgid "android_sideload_update_available_message"
 msgstr ""
 "Lantern %s شتون لري. Lantern به د اندروید انسټالر پرانیستلو دمخه APK ډاونلوډ"
 " او تایید کړي."
-
-msgid "download_and_install_update"
-msgstr "ډاونلوډ او انسټال کړئ"
 
 msgid "allow_unknown_app_installs"
 msgstr "د اپ انسټال اجازه ورکړئ"
@@ -275,9 +244,6 @@ msgid "android_sideload_install_failed_message"
 msgstr ""
 "Lantern دا اپډیټ تایید یا انسټال نه شو کولی. مهرباني وکړئ وروسته بیا هڅه "
 "وکړئ."
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern تازه دی."
 
 msgid "support"
 msgstr "ملاتړ"
@@ -305,9 +271,6 @@ msgstr "بند شوي سایټونو ته لاسرسی نشم کولی"
 msgid "cannot_complete_purchase"
 msgstr "پیرود بشپړ نشم کولی"
 
-msgid "discover_not_working"
-msgstr "کشف کار نه کوي"
-
 msgid "cannot_sign_in"
 msgstr "ننوتل نشم کولی"
 
@@ -332,12 +295,6 @@ msgstr "د سرور انتخاب کار نه کوي"
 msgid "upgrade_fail"
 msgstr "د Lantern Pro لوړول بریالي نه شول"
 
-msgid "wrong_device_linking_code"
-msgstr "غلط یا ناسم د وسیلې نښلولو کوډ"
-
-msgid "cannot_remove_device"
-msgstr "وسیله لرې کولی نشم"
-
 msgid "application_crashes"
 msgstr "اپلیکیشن ماتیږي"
 
@@ -350,34 +307,11 @@ msgstr "خپله ستونزه بیان کړئ"
 msgid "enter_password_to_confirm"
 msgstr "د تایید لپاره پټنوم دننه کړئ"
 
-msgid "cannot_view_logs"
-msgstr ""
-"Lantern ستاسو تشخیصي لاګونه نشي لیدلی، مګر کله چې تاسو زموږ ته ولیږئ.Lantern"
-" ستاسو تشخیصي لاګونه نشي کتلی پرته له دې چې تاسو موږ ته یې واستوئ."
-
-msgid "split_tunneling_mode"
-msgstr "د وېشل شوی ټنل حالت"
-
 msgid "apps_split_tunneling"
 msgstr "د اپلیکیشنونو وېشل شوی ټنل"
 
 msgid "website_split_tunneling"
 msgstr "د ویب سایټ وېشل شوی ټنل"
-
-msgid "iran_optimized"
-msgstr "د ایران لپاره مناسب شوی ټنل ویشل"
-
-msgid "china_optimized"
-msgstr "د چین لپاره مناسب شوی ټنل ویشل"
-
-msgid "russia_optimized"
-msgstr "د روسیې لپاره مناسب شوی ټنل ویشل"
-
-msgid "global_optimized"
-msgstr "نړیوال مناسب شوی ټنل ویشل"
-
-msgid "enter_url"
-msgstr "URL دننه کړئ"
 
 msgid "add"
 msgstr "اضافه کړئ"
@@ -420,49 +354,6 @@ msgstr "د دې لینک مهلت پای ته رسیدلې ده. مهرباني 
 
 msgid "invalid_deep_link"
 msgstr "دا لینک ناباوره دی. مهرباني وکړئ نوی یو غوښتنه وکړئ."
-
-msgid "default_bypass"
-msgstr "تلواله تیریدونکي لیستونه"
-
-msgid "global_bypass_list"
-msgstr "نړیوال تیریدونکی لیست"
-
-msgid "global_bypass_desc"
-msgstr "باوري سایټونه (HTTPS) د غیر حساس منځپانګې سره."
-
-msgid "china_bypass_list"
-msgstr "د چین تیریدونکی لیست"
-
-msgid "china_bypass_desc"
-msgstr "سایټونه په چین کې په آزاده توګه د لاسرسي وړ. په منظم ډول تازه کیږي."
-
-msgid "iran_bypass_list"
-msgstr "د ایران تیریدونکی لیست"
-
-msgid "iran_bypass_desc"
-msgstr "سایټونه په ایران کې په آزاده توګه د لاسرسي وړ. په منظم ډول تازه کیږي."
-
-msgid "russia_bypass_list"
-msgstr "د روسیې تیریدونکی لیست"
-
-msgid "russia_bypass_desc"
-msgstr "سایټونه په روسیه کې په آزاده توګه د لاسرسي وړ. په منظم ډول تازه کیږي."
-
-msgid "see_sites_included"
-msgstr "په کې شامل سایټونه وګورئ"
-
-msgid "default_lists_here"
-msgstr "دلته تلواله لیستونه"
-
-msgid "when_connected"
-msgstr "کله چې وصل یاست، هغه ویب سایټونه چې تاسو یې غوره کوئ به VPN تیر کړي."
-
-msgid "lantern_automatic"
-msgstr ""
-"Lantern په خپلکاره ډول ټاکي چې کوم اپلیکیشنونه او ویب سایټونه د ستاسو د "
-"موقعیت پر بنسټ د غوره فعالیت لپاره VPN تیروي. Lantern په اتوماتیک ډول غوره "
-"کوي کوم اپلیکیشنونه او ویب سایټونه د ستاسو د موقعیت پر بنسټ د غوره کړنې "
-"لپاره VPN تیروي."
 
 msgid "apps_bypassing_vpn"
 msgstr "اپلیکیشنونه چې VPN تیروي (%d)"
@@ -555,9 +446,6 @@ msgstr "د پټنوم تایید اړین دی"
 msgid "passwords_do_not_match"
 msgstr "پټنومونه سره سمون نلري"
 
-msgid "activation_code"
-msgstr "د فعالولو کوډ"
-
 msgid "activate_lantern_pro"
 msgstr "Lantern Pro فعال کړئ"
 
@@ -613,11 +501,6 @@ msgstr "دا قواعد د هیواد له مخې توپیر لري او په م
 msgid "view_the_full_list"
 msgstr "د لارې د قواعدو بشپړ لیست وګورئ."
 
-msgid "turn_on_split_tunneling"
-msgstr ""
-"د دې لپاره چې کوم ویب سایټونه VPN کاروي مخصوص کړئ، سپلیټ ټنلینګ فعال "
-"کړئ.وېشل شوی ټنل فعال کړئ ترڅو دا ځانګړي کړئ چې کوم ویب سایټونه VPN کاروي."
-
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro ته ښه راغلاست!"
 
@@ -672,9 +555,6 @@ msgstr "غوره ارزښت!"
 msgid "choose_payment_method"
 msgstr "د تادیې طریقه غوره کړئ"
 
-msgid "payment_information_encrypted"
-msgstr "ستاسو د تادیې معلومات په بشپړه توګه کوډ شوي دي."
-
 msgid "purchase_not_completed"
 msgstr ""
 "پیرود بشپړ نه شو. تاسو کولی شئ په هر وخت بیا هڅه وکړئ، یا که تاسو مرستې ته "
@@ -699,22 +579,6 @@ msgstr "اعلانونه بند کړئ"
 msgid "only_active"
 msgstr "یوازې هغه وخت فعال دی چې VPN وصل وي"
 
-msgid "share_my_connection"
-msgstr "زما اتصال شریک کړئ"
-
-msgid "share_my_connection_subtitle"
-msgstr ""
-"نورو Lantern کاروونکو ته اجازه ورکړئ چې د سانسور د تېرېدو لپاره ستاسو د "
-"اتصال له لارې تېر شي."
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr ""
-"په خوندي ډول د خپل اتصال شریکولو سره نورو سره د سانسور په تېرېدو کې مرسته "
-"وکړئ."
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "د Action Mode په اړه"
@@ -729,53 +593,11 @@ msgstr "غیر فعال شوی"
 msgid "smc_status_configuring"
 msgstr "شبکه تنظیمیږي"
 
-msgid "smc_status_probing"
-msgstr "ستاسو شبکه معاینه کیږي…"
-
-msgid "smc_status_active_unbounded"
-msgstr "فعال شوی"
-
-msgid "smc_status_active_smc"
-msgstr "پیلیږي…"
-
-msgid "smc_status_mapping_port"
-msgstr "ستاسو په روټر کې پورټ پرانیستل کیږي…"
-
-msgid "smc_status_detecting_ip"
-msgstr "ستاسو عمومي IP معلومیږي…"
-
-msgid "smc_status_registering"
-msgstr "له Lantern سره ثبتیږي…"
-
-msgid "smc_status_starting_proxy"
-msgstr "ځایی پراکسي پیلیږي…"
-
-msgid "smc_status_verifying"
-msgstr "اتصال تاییدیږي…"
-
-msgid "smc_status_serving"
-msgstr "فعال شوی"
-
-msgid "smc_status_stopping"
-msgstr "درېږي…"
-
 msgid "smc_status_error_with_message"
 msgstr "شریکول ونه شول: %s"
 
 msgid "smc_status_error_generic"
 msgstr "شریکول ونه شول — بیا یې بند او چالان کړئ"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "هغه خلک چې تاسو یې همدا اوس مرسته کوئ:"
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "تر اوسه د مرستې شویو خلکو ټولټال:"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -901,9 +723,6 @@ msgstr "ګډون واخلئ"
 msgid "checkout"
 msgstr "تادیه"
 
-msgid "next_billing_date"
-msgstr "د بل بیل نیټه"
-
 msgid "vpn_may_be_needed"
 msgstr "VPN ته اړتیا کیدای شي"
 
@@ -932,39 +751,17 @@ msgstr "د Google Cloud Platform په کارولو سره تنظیم کړئ"
 msgid "continue_with_do"
 msgstr "د DigitalOcean سره دوام ورکړئ"
 
-msgid "do_allows"
-msgstr ""
-"Digital Ocean تاسو ته اجازه درکوي چې د لاندې %d اختیارونو څخه د یوه سرور "
-"موقعیت غوره کړئ"
-
 msgid "server_setup_gcp_price"
 msgstr "یوازې د GCP له لارې میاشتې %s"
 
 msgid "continue_with_gcp"
 msgstr "د Google سره دوام ورکړئ"
 
-msgid "gcp_allows"
-msgstr ""
-"Google Cloud Platform تاسو ته اجازه درکوي چې د لاندې %d اختیارونو څخه د یوه "
-"سرور موقعیت غوره کړئ:"
-
-msgid "server_setup_aws"
-msgstr "په AWS کې یو شخصي سرور تنظیم کړئ"
-
-msgid "server_setup_aws_price"
-msgstr "یوازې د AWS له لارې میاشتې %s"
-
 msgid "server_setup_manual"
 msgstr "په لاسي ډول تنظیم کړئ"
 
 msgid "seamless_integration"
 msgstr "د Lantern سره بې له خنډه ادغام"
-
-msgid "easiest_setup"
-msgstr "ترټولو اسانه د تنظیم پروسه"
-
-msgid "multiple_location_options"
-msgstr "د ډیرو سرور موقعیتونو اختیارونه"
 
 msgid "one_month_included"
 msgstr "%d TB/میاشتې ډیټا شامله ده"
@@ -1045,29 +842,11 @@ msgstr "خپل حساب غوره کړئ"
 msgid "choose_your_project"
 msgstr "خپله پروژه غوره کړئ"
 
-msgid "name_your_google_cloud_project"
-msgstr "د خپل Google Cloud پروژې نوم ورکړئ"
-
 msgid "billing_account"
 msgstr "د بیل حساب"
 
-msgid "billing_account_placeholder"
-msgstr "د %s لپاره د بیل حساب"
-
 msgid "server_name"
 msgstr "د سرور نوم"
-
-msgid "google_project"
-msgstr "د Google پروژه"
-
-msgid "field_name_required"
-msgstr "نوم اړین دی"
-
-msgid "choose_google_account"
-msgstr "د Google د بیل حساب غوره کړئ"
-
-msgid "server_name_placeholder"
-msgstr "د ډیریک سرور"
 
 msgid "change"
 msgstr "بدل کړئ"
@@ -1081,39 +860,6 @@ msgstr "خپل موقعیت غوره کړئ"
 msgid "start_deployment"
 msgstr "ځای پرځای کول پیل کړئ"
 
-msgid "server_name_description"
-msgstr "څنګه به سرور د سرور د انتخاب په لیست کې څرګندیږي."
-
-msgid "select_private_server_region"
-msgstr ""
-"ستاسو د خصوصي سرور لپاره یوه سیمه غوره کړئ. نږدې موقعیتونه ممکن سرعت او ځنډ "
-"ښه کړي.د خپل شخصي سرور لپاره یوه سیمه غوره کړئ. نږدې موقعیتونه ممکن سرعت او "
-"وقفه ښه کړي."
-
-msgid "gcp_location_options"
-msgstr "د Google Cloud Platform د موقعیت اختیارونه (%d):"
-
-msgid "australia_sydney"
-msgstr "استرالیا - سیډني"
-
-msgid "belgium_stghislain"
-msgstr "بلجیم - سینټ ګیسلین"
-
-msgid "brazil_saopaulo"
-msgstr "ساو پاولو"
-
-msgid "us_los_angeles"
-msgstr "امریکا - لاس انجلس"
-
-msgid "japan_tokyo"
-msgstr "جاپان - توکیو"
-
-msgid "deploying_private_server"
-msgstr "شخصي سرور ځای پر ځای کیږي"
-
-msgid "deploying_server_status"
-msgstr "صبر وکړئ! ستاسو شخصي سرور تنظیمیږي. دا ممکن څو دقیقې ونیسي."
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "صبر وکړئ! ستاسو خصوصي سرور جوړېږي. دا ممکن څو دقیقې ونیسي، مهرباني وکړئ دا "
@@ -1123,20 +869,6 @@ msgstr ""
 msgid "cancel_server_deployment"
 msgstr "د سرور ځای پر ځای کول لغوه کړئ"
 
-msgid "server_ready_title"
-msgstr "شخصي سرور چمتو دی"
-
-msgid "server_ready_message"
-msgstr ""
-"ستاسو خصوصي سرور جوړ شوی او ستاسو د سرور لیست ته اضافه شوی. تاسو د اتصال "
-"لپاره تیار یاست!ستاسو شخصي سرور تنظیم او ستاسو د سرور لیست ته اضافه شوی دی. "
-"تاسو د وصل کولو لپاره چمتو یاست!"
-
-msgid "server_failed_message"
-msgstr ""
-"د سرور په جوړولو کې ستونزه رامنځته شوهستاسو د شخصي سرور د تنظیم په وخت کې یو"
-" څه تېروتنه شوې وي. تاسو کولی شئ بیا هڅه وکړئ یا وروسته بیا هڅه وکړئ."
-
 msgid "close"
 msgstr "تړل"
 
@@ -1145,9 +877,6 @@ msgstr "اوس وصل کړئ"
 
 msgid "server_setup_failed"
 msgstr "د سرور تنظیم ناکام شو"
-
-msgid "cancel_deployment"
-msgstr "ځای پر ځای کول لغوه کړئ"
 
 msgid "server_setup_failed_message"
 msgstr ""
@@ -1160,9 +889,6 @@ msgstr "وتل"
 
 msgid "retry"
 msgstr "بیا هڅه"
-
-msgid "all_required_fields"
-msgstr "مهرباني وکړئ ټول اړین ډګرونه ډک کړئ."
 
 msgid "private_server_ready"
 msgstr "شخصي سرور چمتو دی!"
@@ -1198,9 +924,6 @@ msgstr "سرور تایید کړئ"
 
 msgid "vpn_client_not_setup"
 msgstr "مهرباني وکړئ د VPN کلاینټ فعال کړئ."
-
-msgid "continue_with"
-msgstr "دوام ورکړئ د"
 
 msgid "join_a_private_server"
 msgstr "یو شخصي سرور سره یوځای شئ"
@@ -1252,9 +975,6 @@ msgstr ""
 msgid "generate_access_key"
 msgstr "د لاسرسي کلید جوړ کړئ"
 
-msgid "invite_name"
-msgstr "د بلنې نوم"
-
 msgid "trust_server_operator"
 msgstr "د سرور چلوونکي باور وکړئ"
 
@@ -1278,9 +998,6 @@ msgid "trust_server_operator_message_three"
 msgstr ""
 "که تاسو ډاډه نه یاست چې سرور څوک چلوي یا څنګه تنظیم شوی، موږ وړاندیز کوو چې "
 "ستاسو د سرور لیست کې شته یو له ډیفالټ Lantern سرورونو څخه وکاروئ."
-
-msgid "invalid_server_details"
-msgstr "ناسم د سرور جزئیات. مهرباني وکړئ د لاسرسي کلید وګورئ او بیا هڅه وکړئ."
 
 msgid "lantern_servers"
 msgstr "د Lantern سرورونه"
@@ -1338,9 +1055,6 @@ msgstr "پریمیم سرورونه د لږ ګڼې ګوڼې سره"
 
 msgid "advanced_anti_censorship"
 msgstr "پرمختللې د سانسور ضد ټیکنالوژي"
-
-msgid "exclusive_access_new_features"
-msgstr "نوو ځانګړتیاوو ته ځانګړې لاسرسی"
 
 msgid "connect_up_to_five_devices"
 msgstr "تر 5 وسایلو پورې وصل کړئ"
@@ -1432,9 +1146,6 @@ msgstr "مهرباني وکړئ معتبر بریښنالیک دننه کړئ"
 msgid "please_select_an_issue"
 msgstr "مهرباني وکړئ یوه ستونزه غوره کړئ"
 
-msgid "please_enter_issue_description"
-msgstr "مهرباني وکړئ د ستونزې بیان دننه کړئ"
-
 msgid "thanks_for_feedback"
 msgstr "ستاسو د نظر لپاره مننه!"
 
@@ -1450,20 +1161,11 @@ msgstr "ټول غوره کړئ"
 msgid "no_websites_selected"
 msgstr "هیڅ ویب سایټ غوره شوی نه دی"
 
-msgid "enter_activation_code"
-msgstr "د فعالولو کوډ دننه کړئ"
-
 msgid "restore_purchase"
 msgstr "پیرود بیرته راګرځوئ"
 
 msgid "already_purchased"
 msgstr "لا دمخه مو پیرودلی؟"
-
-msgid "restore_purchase_success"
-msgstr "پیرود په بریالیتوب سره بیرته راګرځول شو."
-
-msgid "restore_purchase_no_purchases"
-msgstr "د بیرته راګرځولو لپاره هیڅ پیرود ونه موندل شو."
 
 msgid "do_private_server_setup"
 msgstr "د DO شخصي سرور تنظیم"
@@ -1520,9 +1222,6 @@ msgstr "د ګډون نوي کولو نیټه"
 msgid "pro_access_until"
 msgstr "تر %s پورې د Pro لاسرسی"
 
-msgid "enabled_bypass_lists"
-msgstr "فعال شوي تیریدونکي لیستونه (%d):"
-
 msgid "diagnostic_logs"
 msgstr "تشخیصي لاګونه"
 
@@ -1572,9 +1271,6 @@ msgstr "د راجع کولو کوډ اضافه کړئ"
 msgid "referral_code"
 msgstr "د راجع کولو کوډ"
 
-msgid "update_fails"
-msgstr "تازه کول ناکام کیږي"
-
 msgid "scan_qr_code"
 msgstr "QR کوډ سکین کړئ"
 
@@ -1587,24 +1283,6 @@ msgstr "موږ تنظیمات اداره کوو، یوازې ګډون واخلئ
 msgid "90_day_free_trial"
 msgstr "90 ورځې وړیا ازموینه"
 
-msgid "identity_changed"
-msgstr "د %s لپاره پیژندنه بدله شوې"
-
-msgid "identity_changed_message"
-msgstr "د %s امنیتي ګوتې نښان بدل شوی. دا ممکن د لاسوهنې یا غلط تنظیم نښه وي."
-
-msgid "recommendation"
-msgstr "سپارښتنه:"
-
-msgid "recommendation_message"
-msgstr ""
-"موږ وړاندیز کوو چې %s له Lantern څخه لرې کړئ او له خپل کلاؤډ چمتو کوونکي "
-"حساب څخه یې ړنګ کړئ، بیا یو نوی سرور جوړ کړئ ترڅو ډاډ ترلاسه کړئ چې ستاسو "
-"اتصال خوندي پاتې کیږي."
-
-msgid "remove_server"
-msgstr "سرور لرې کړئ"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "د سرور عرفي نوم خالي نشي کیدی"
 
@@ -1614,14 +1292,8 @@ msgstr "ستاسو د راجع کولو کوډ پلي شوی!"
 msgid "discount_applied"
 msgstr "%s تخفیف پلی شو"
 
-msgid "referral_message_1m"
-msgstr "+ ۱۵ اضافي ورځې وړیا"
-
 msgid "referral_message_1y"
 msgstr "+ ۱ اضافي میاشت وړیا"
-
-msgid "referral_message_2y"
-msgstr "+ 2 اضافي میاشتې وړیا"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1635,29 +1307,6 @@ msgstr ""
 msgid "free"
 msgstr "وړیا"
 
-msgid "monthly_plan"
-msgstr "میاشتنۍ پلان:"
-
-msgid "15_days_each"
-msgstr "+۱۵ ورځې هر یو"
-
-msgid "annual_plan"
-msgstr "کلنۍ پلان:"
-
-msgid "1_month_each"
-msgstr "هر یو لپاره +۱ میاشت"
-
-msgid "two_year_plan"
-msgstr "دوه کلن پلان:"
-
-msgid "2_month_each"
-msgstr "هر یو لپاره +۲ میاشتې"
-
-msgid "referral_code_info"
-msgstr ""
-"تر اوسه د Lantern Pro کارونکی نه یاست؟ تاسو به یو شئ کله چې ستاسو لومړی راجع"
-" شوی کس ګډون وکړي"
-
 msgid "lantern_pro_license"
 msgstr "د Lantern Pro جواز"
 
@@ -1669,12 +1318,6 @@ msgstr "ناسم Lantern Pro جواز"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro جواز باید ۲۵ کرکټرونه وي"
-
-msgid "select_account"
-msgstr "حساب غوره کړئ"
-
-msgid "new_to_lantern"
-msgstr "Lantern ته نوی یاست؟"
 
 msgid "create_an_account"
 msgstr "حساب جوړ کړئ"
@@ -1719,11 +1362,6 @@ msgstr ""
 msgid "how_to_add_billing_details"
 msgstr "څنګه د بل کولو تفصیلات اضافه کړو:"
 
-msgid "add_payment_method_message"
-msgstr ""
-"مهرباني وکړئ خپل DigitalOcean حساب ته د تادیاتو طریقه اضافه کړئ. که تاسو "
-"دمخه اضافه کړې وي، څو دقیقې انتظار وکړئ او بیا هڅه وکړئ."
-
 msgid "ok"
 msgstr "سمه ده"
 
@@ -1743,12 +1381,6 @@ msgid "developer_mode_note"
 msgstr ""
 "د پراختیا کونکي حالت یوازې د Lantern پراختیا کونکو لپاره د پراختیا په جریان "
 "کې ځانګړتیاوې ازمویلو لپاره دی."
-
-msgid "invalid_activation_code"
-msgstr "ناسم فعال کولو کوډ. مهرباني وکړئ کوډ وګورئ او بیا هڅه وکړئ."
-
-msgid "invalid_activation_code_length"
-msgstr "د فعال کولو کوډ باید ۲۵ کرکټرونه اوږدوالی ولري."
 
 msgid "error_while_vpn_connection"
 msgstr ""
@@ -1781,9 +1413,6 @@ msgstr "بې نومه کارونې معلومات"
 
 msgid "helps_improve_lantern_performance"
 msgstr "د Lantern فعالیت ښه کولو کې مرسته کوي"
-
-msgid "changes_applied_after_restart"
-msgstr "بدلونونه به د Lantern له بیا پیل کیدو وروسته پلي شي."
 
 msgid "email_deliverability_notice"
 msgstr "د بریښنالیک رسیدو یادښت"
@@ -1827,9 +1456,6 @@ msgstr "د VPN څخه د تیریدو لپاره اپلیکیشنونه او و�
 
 msgid "lantern_pro_license_applied"
 msgstr "ستاسو د Lantern Pro جواز به ستاسو موجوده حساب ته تطبیق شي"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "ستاسو پیرود به ستاسو موجوده حساب ته تطبیق شي"
 
 msgid "daily_data_cap_reached"
 msgstr "ورځنی د ډیټا حد ته رسیدلی"
@@ -1882,14 +1508,6 @@ msgstr "د ګډون مهلت پای ته ورسیده"
 
 msgid "pro"
 msgstr "Pro"
-
-msgid "pro_subscription_expired_message"
-msgstr ""
-"د Lantern Pro ګډون مهلت پای ته رسیدلې، د بې حده ډیټا او Pro ځانګړتیاوو بیرته"
-" راګرځولو لپاره نوی یې کړئ."
-
-msgid "last_subscription_renewal_date"
-msgstr "د ګډون وروستی نوي کولو نیټه"
 
 msgid "set_account_password"
 msgstr "د حساب پاسورډ وټاکئ"

@@ -68,19 +68,11 @@ msgstr ""
 msgid "send_without_email"
 msgstr "E-posta Olmadan Gönder"
 
-msgid "lantern_projects"
-msgstr "Lantern Projeleri:"
-
 msgid "invite_friends"
 msgstr "Arkadaşlarını Davet Et"
 
 msgid "your_referral_code"
 msgstr "Tavsiye Kodun"
-
-msgid "invite_friends_message"
-msgstr ""
-"Referans kodunuzu bir arkadaşınızla paylaşın. Lantern Pro satın "
-"aldıklarında, ikiniz de bonus süre kazanırsınız:"
 
 msgid "share_referral_code"
 msgstr "Tavsiye Kodunu Paylaş"
@@ -145,9 +137,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "Küresel İnternet Sansürüne Karşı Mücadeleye Yardım Et"
-
 msgid "vpn_settings"
 msgstr "VPN Ayarları"
 
@@ -172,9 +161,6 @@ msgstr "Lantern Pro Cihazları"
 msgid "remove"
 msgstr "Kaldır"
 
-msgid "add_device"
-msgstr "Cihaz Ekle"
-
 msgid "danger_zone"
 msgstr "Tehlike Bölgesi:"
 
@@ -197,9 +183,6 @@ msgstr ""
 
 msgid "delete_account_message_two"
 msgstr "Silme işlemini onaylamak için lütfen aşağıya şifrenizi girin"
-
-msgid "Submit Issue Report"
-msgstr "Onaylamak için şifrenizi girin"
 
 msgid "confirm_deletion"
 msgstr "Silmeyi Onayla"
@@ -234,23 +217,14 @@ msgstr "Sunucu Seçimi"
 msgid "smart_location"
 msgstr "Akıllı Konum"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "En hızlı konumu otomatik seçer"
-
 msgid "pro_locations"
 msgstr "Pro konumları:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "Lantern Pro ile konumunu seç:"
 
 msgid "language"
 msgstr "Dil"
 
 msgid "sign_in"
 msgstr "Giriş Yap"
-
-msgid "sign_out"
-msgstr "Çıkış Yap"
 
 msgid "check_for_updates"
 msgstr "Güncellemeleri Kontrol Et"
@@ -262,9 +236,6 @@ msgid "android_sideload_update_available_message"
 msgstr ""
 "Lantern %s mevcut. Lantern, Android'in yükleyicisini açmadan önce APK'yı "
 "indirip doğrulayacak."
-
-msgid "download_and_install_update"
-msgstr "İndir ve yükle"
 
 msgid "allow_unknown_app_installs"
 msgstr "Uygulama yüklemeye izin ver"
@@ -282,9 +253,6 @@ msgid "android_sideload_install_failed_message"
 msgstr ""
 "Lantern bu güncellemeyi doğrulayamadı veya yükleyemedi. Lütfen daha sonra "
 "tekrar deneyin."
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern güncel."
 
 msgid "support"
 msgstr "Destek"
@@ -312,9 +280,6 @@ msgstr "Engelli sitelere erişilemiyor"
 msgid "cannot_complete_purchase"
 msgstr "Satın alma tamamlanamıyor"
 
-msgid "discover_not_working"
-msgstr "Keşfet çalışmıyor"
-
 msgid "cannot_sign_in"
 msgstr "Giriş yapılamıyor"
 
@@ -339,12 +304,6 @@ msgstr "Sunucu seçimi çalışmıyor"
 msgid "upgrade_fail"
 msgstr "Lantern Pro yükseltmesi başarısız oldu"
 
-msgid "wrong_device_linking_code"
-msgstr "Yanlış veya geçersiz cihaz bağlama kodu"
-
-msgid "cannot_remove_device"
-msgstr "Cihaz kaldırılamıyor"
-
 msgid "application_crashes"
 msgstr "Uygulama çöküyor"
 
@@ -357,32 +316,11 @@ msgstr "Sorununuzu açıklayın"
 msgid "enter_password_to_confirm"
 msgstr "Onaylamak için şifre girin"
 
-msgid "cannot_view_logs"
-msgstr "Lantern, siz bize göndermedikçe tanı günlüklerinizi görüntüleyemez."
-
-msgid "split_tunneling_mode"
-msgstr "Bölünmüş Tünelleme Modu"
-
 msgid "apps_split_tunneling"
 msgstr "Uygulamalar için Bölünmüş Tünelleme"
 
 msgid "website_split_tunneling"
 msgstr "Web Siteleri için Bölünmüş Tünelleme"
-
-msgid "iran_optimized"
-msgstr "İran için optimize edilmiş bölünmüş tünelleme"
-
-msgid "china_optimized"
-msgstr "Çin için optimize edilmiş bölünmüş tünelleme"
-
-msgid "russia_optimized"
-msgstr "Rusya için optimize edilmiş bölünmüş tünelleme"
-
-msgid "global_optimized"
-msgstr "Global optimize edilmiş bölünmüş tünelleme"
-
-msgid "enter_url"
-msgstr "URL Girin"
 
 msgid "add"
 msgstr "Ekle"
@@ -425,47 +363,6 @@ msgstr "Bu bağlantının süresi doldu. Lütfen yeni bir tane talep edin."
 
 msgid "invalid_deep_link"
 msgstr "Bu bağlantı geçersiz. Lütfen yeni bir tane talep edin."
-
-msgid "default_bypass"
-msgstr "Varsayılan Atlama Listeleri"
-
-msgid "global_bypass_list"
-msgstr "Global Atlama Listesi"
-
-msgid "global_bypass_desc"
-msgstr "Hassas olmayan içeriğe sahip güvenilir siteler (HTTPS)."
-
-msgid "china_bypass_list"
-msgstr "Çin Atlama Listesi"
-
-msgid "china_bypass_desc"
-msgstr "Çin'de serbestçe erişilebilen siteler. Düzenli güncellenir."
-
-msgid "iran_bypass_list"
-msgstr "İran Atlama Listesi"
-
-msgid "iran_bypass_desc"
-msgstr "İran'da serbestçe erişilebilen siteler. Düzenli güncellenir."
-
-msgid "russia_bypass_list"
-msgstr "Rusya Atlama Listesi"
-
-msgid "russia_bypass_desc"
-msgstr "Rusya'da serbestçe erişilebilen siteler. Düzenli güncellenir."
-
-msgid "see_sites_included"
-msgstr "Dahil edilen siteleri görün "
-
-msgid "default_lists_here"
-msgstr "varsayılan listeler burada"
-
-msgid "when_connected"
-msgstr "Bağlandığında, seçtiğiniz web siteleri VPN'i atlayacaktır."
-
-msgid "lantern_automatic"
-msgstr ""
-"Lantern, konumunuza göre en iyi performans için hangi uygulama ve web "
-"sitelerinin VPN'i atlayacağını otomatik olarak seçer. "
 
 msgid "apps_bypassing_vpn"
 msgstr "VPN'i atlayan uygulamalar (%d)"
@@ -558,9 +455,6 @@ msgstr "Şifre onayı gerekli"
 msgid "passwords_do_not_match"
 msgstr "Şifreler eşleşmiyor"
 
-msgid "activation_code"
-msgstr "Aktivasyon Kodu"
-
 msgid "activate_lantern_pro"
 msgstr "Lantern Pro'yu Etkinleştir"
 
@@ -615,11 +509,6 @@ msgstr "Bu kurallar ülkeye göre değişir ve düzenli olarak güncellenir."
 msgid "view_the_full_list"
 msgstr "Yönlendirme kurallarının tam listesini görüntüleyin."
 
-msgid "turn_on_split_tunneling"
-msgstr ""
-"Hangi web sitelerinin VPN kullanacağını özelleştirmek için bölünmüş "
-"tünellemeyi açın."
-
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro'ya Hoş Geldin!"
 
@@ -673,9 +562,6 @@ msgstr "En İyi Değer!"
 msgid "choose_payment_method"
 msgstr "Ödeme Yöntemi Seç"
 
-msgid "payment_information_encrypted"
-msgstr "Ödeme bilgileriniz tamamen şifrelenmiştir."
-
 msgid "purchase_not_completed"
 msgstr ""
 "Satın alma tamamlanmadı. İstediğiniz zaman tekrar deneyebilir veya yardıma "
@@ -698,21 +584,6 @@ msgstr "Reklamları Engelle"
 msgid "only_active"
 msgstr "Yalnızca VPN bağlıyken aktif"
 
-msgid "share_my_connection"
-msgstr "Bağlantımı Paylaş"
-
-msgid "share_my_connection_subtitle"
-msgstr ""
-"Diğer Lantern kullanıcılarının sansürü aşmak için bağlantınız üzerinden "
-"geçmesine izin verin."
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr ""
-"Bağlantınızı güvenle paylaşarak başkalarının sansürü aşmasına yardımcı olun."
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "Action Mode Hakkında"
@@ -727,53 +598,11 @@ msgstr "Devre Dışı"
 msgid "smc_status_configuring"
 msgstr "Ağ yapılandırılıyor"
 
-msgid "smc_status_probing"
-msgstr "Ağınız inceleniyor…"
-
-msgid "smc_status_active_unbounded"
-msgstr "Etkin"
-
-msgid "smc_status_active_smc"
-msgstr "Başlatılıyor…"
-
-msgid "smc_status_mapping_port"
-msgstr "Yönlendiricinizde bağlantı noktası açılıyor…"
-
-msgid "smc_status_detecting_ip"
-msgstr "Genel IP'niz tespit ediliyor…"
-
-msgid "smc_status_registering"
-msgstr "Lantern'e kaydolunuyor…"
-
-msgid "smc_status_starting_proxy"
-msgstr "Yerel proxy başlatılıyor…"
-
-msgid "smc_status_verifying"
-msgstr "Bağlantı doğrulanıyor…"
-
-msgid "smc_status_serving"
-msgstr "Etkin"
-
-msgid "smc_status_stopping"
-msgstr "Durduruluyor…"
-
 msgid "smc_status_error_with_message"
 msgstr "Paylaşılamadı: %s"
 
 msgid "smc_status_error_generic"
 msgstr "Paylaşılamadı — kapatıp yeniden açmayı deneyin"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "Şu anda yardım ettiğiniz kişiler:"
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "Bugüne kadar yardım edilen toplam kişi:"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -899,9 +728,6 @@ msgstr "Abone Ol"
 msgid "checkout"
 msgstr "Ödeme"
 
-msgid "next_billing_date"
-msgstr "Sonraki Fatura Tarihi"
-
 msgid "vpn_may_be_needed"
 msgstr "VPN gerekli olabilir"
 
@@ -928,39 +754,17 @@ msgstr "Google Cloud Platform kullanarak kur"
 msgid "continue_with_do"
 msgstr "Digital Ocean ile Devam Et"
 
-msgid "do_allows"
-msgstr ""
-"Digital Ocean, aşağıdaki %d seçenekten bir sunucu konumu seçmenize olanak "
-"tanır"
-
 msgid "server_setup_gcp_price"
 msgstr "GCP üzerinden ayda sadece %s"
 
 msgid "continue_with_gcp"
 msgstr "Google ile Devam Et"
 
-msgid "gcp_allows"
-msgstr ""
-"Google Cloud Platform, aşağıdaki %d seçenekten bir sunucu konumu seçmenize "
-"olanak tanır:"
-
-msgid "server_setup_aws"
-msgstr "AWS'de özel sunucu kur"
-
-msgid "server_setup_aws_price"
-msgstr "AWS üzerinden ayda sadece %s"
-
 msgid "server_setup_manual"
 msgstr "Manuel Olarak Kur"
 
 msgid "seamless_integration"
 msgstr "Lantern ile sorunsuz entegrasyon"
-
-msgid "easiest_setup"
-msgstr "En kolay kurulum süreci"
-
-msgid "multiple_location_options"
-msgstr "Birden fazla sunucu konumu seçeneği"
 
 msgid "one_month_included"
 msgstr "Ayda %d TB veri dahil"
@@ -1038,29 +842,11 @@ msgstr "Hesabını Seç"
 msgid "choose_your_project"
 msgstr "Projeni seç"
 
-msgid "name_your_google_cloud_project"
-msgstr "Google Cloud Projene isim ver"
-
 msgid "billing_account"
 msgstr "Fatura Hesabı"
 
-msgid "billing_account_placeholder"
-msgstr "%s için fatura hesabı"
-
 msgid "server_name"
 msgstr "Sunucu Adı"
-
-msgid "google_project"
-msgstr "Google Projesi"
-
-msgid "field_name_required"
-msgstr "İsim gerekli"
-
-msgid "choose_google_account"
-msgstr "Google fatura hesabı seç"
-
-msgid "server_name_placeholder"
-msgstr "Mehmet'in Sunucusu"
 
 msgid "change"
 msgstr "Değiştir"
@@ -1074,38 +860,6 @@ msgstr "Konumunu Seç"
 msgid "start_deployment"
 msgstr "Dağıtımı Başlat"
 
-msgid "server_name_description"
-msgstr "Sunucunun sunucu seçim listesinde nasıl görüneceği."
-
-msgid "select_private_server_region"
-msgstr ""
-"Özel Sunucunuz için bir bölge seçin. Daha yakın konumlar hız ve gecikmeyi "
-"iyileştirebilir."
-
-msgid "gcp_location_options"
-msgstr "Google Cloud Platform Konum Seçenekleri (%d):"
-
-msgid "australia_sydney"
-msgstr "Avustralya - Sidney"
-
-msgid "belgium_stghislain"
-msgstr "Belçika - St. Ghislain"
-
-msgid "brazil_saopaulo"
-msgstr "São Paulo"
-
-msgid "us_los_angeles"
-msgstr "ABD - Los Angeles"
-
-msgid "japan_tokyo"
-msgstr "Japonya - Tokyo"
-
-msgid "deploying_private_server"
-msgstr "Özel Sunucu Dağıtılıyor"
-
-msgid "deploying_server_status"
-msgstr "Sabırlı ol! Özel Sunucun kuruluyor. Bu birkaç dakika sürebilir."
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Sabırlı ol! Özel Sunucun kuruluyor. Bu birkaç dakika sürebilir, lütfen bu "
@@ -1113,18 +867,6 @@ msgstr ""
 
 msgid "cancel_server_deployment"
 msgstr "Sunucu Dağıtımını İptal Et"
-
-msgid "server_ready_title"
-msgstr "Özel Sunucu Hazır"
-
-msgid "server_ready_message"
-msgstr ""
-"Özel Sunucunuz kuruldu ve sunucu listenize eklendi. Bağlanmaya hazırsınız!"
-
-msgid "server_failed_message"
-msgstr ""
-"Özel Sunucunuzu kurarken bir sorun oluştu. Yeniden deneyebilir veya daha "
-"sonra tekrar deneyebilirsiniz."
 
 msgid "close"
 msgstr "Kapat"
@@ -1134,9 +876,6 @@ msgstr "Şimdi Bağlan"
 
 msgid "server_setup_failed"
 msgstr "Sunucu Kurulumu Başarısız"
-
-msgid "cancel_deployment"
-msgstr "Dağıtımı İptal Et"
 
 msgid "server_setup_failed_message"
 msgstr ""
@@ -1148,9 +887,6 @@ msgstr "Çıkış"
 
 msgid "retry"
 msgstr "Yeniden Dene"
-
-msgid "all_required_fields"
-msgstr "Lütfen tüm gerekli alanları doldurun."
 
 msgid "private_server_ready"
 msgstr "Özel Sunucu Hazır!"
@@ -1185,9 +921,6 @@ msgstr "Sunucuyu Doğrula"
 
 msgid "vpn_client_not_setup"
 msgstr "Lütfen VPN istemcisini açın."
-
-msgid "continue_with"
-msgstr "Şununla devam et"
 
 msgid "join_a_private_server"
 msgstr "Özel Bir Sunucuya Katıl"
@@ -1238,9 +971,6 @@ msgstr ""
 msgid "generate_access_key"
 msgstr "Erişim anahtarı oluştur"
 
-msgid "invite_name"
-msgstr "Davet Adı"
-
 msgid "trust_server_operator"
 msgstr "Sunucu Operatörüne Güvenin"
 
@@ -1261,11 +991,6 @@ msgstr ""
 "Sunucuyu kimin yönettiğinden veya nasıl yapılandırıldığından emin "
 "değilseniz, sunucu listenizde bulunan varsayılan Lantern sunucularından "
 "birini kullanmanızı öneririz."
-
-msgid "invalid_server_details"
-msgstr ""
-"Geçersiz sunucu detayları. Lütfen erişim anahtarını kontrol edip tekrar "
-"deneyin."
 
 msgid "lantern_servers"
 msgstr "Lantern Sunucuları"
@@ -1321,9 +1046,6 @@ msgstr "Daha az yoğunluğa sahip premium sunucular"
 
 msgid "advanced_anti_censorship"
 msgstr "Gelişmiş sansür önleme teknolojisi"
-
-msgid "exclusive_access_new_features"
-msgstr "Yeni özelliklere özel erişim"
 
 msgid "connect_up_to_five_devices"
 msgstr "5 cihaza kadar bağlayın"
@@ -1410,9 +1132,6 @@ msgstr "Lütfen geçerli bir e-posta girin"
 msgid "please_select_an_issue"
 msgstr "Lütfen bir sorun seçin"
 
-msgid "please_enter_issue_description"
-msgstr "Lütfen bir sorun açıklaması girin"
-
 msgid "thanks_for_feedback"
 msgstr "Geri bildiriminiz için teşekkürler!"
 
@@ -1428,20 +1147,11 @@ msgstr "Tümünü Seç"
 msgid "no_websites_selected"
 msgstr "Hiç web sitesi seçilmedi"
 
-msgid "enter_activation_code"
-msgstr "Aktivasyon Kodu Girin"
-
 msgid "restore_purchase"
 msgstr "Satın Almayı Geri Yükle"
 
 msgid "already_purchased"
 msgstr "Zaten satın aldınız mı?"
-
-msgid "restore_purchase_success"
-msgstr "Satın alma başarıyla geri yüklendi."
-
-msgid "restore_purchase_no_purchases"
-msgstr "Geri yüklenecek satın alma bulunamadı."
 
 msgid "do_private_server_setup"
 msgstr "DO Özel Sunucu Kurulumu"
@@ -1496,9 +1206,6 @@ msgstr "Abonelik Yenileme Tarihi"
 msgid "pro_access_until"
 msgstr "%s tarihine kadar Pro erişimi"
 
-msgid "enabled_bypass_lists"
-msgstr "Etkin atlama listeleri (%d):"
-
 msgid "diagnostic_logs"
 msgstr "Tanı Günlükleri"
 
@@ -1546,9 +1253,6 @@ msgstr "Tavsiye Kodu Ekle"
 msgid "referral_code"
 msgstr "Tavsiye Kodu"
 
-msgid "update_fails"
-msgstr "Güncelleme başarısız"
-
 msgid "scan_qr_code"
 msgstr "QR Kodu Tara"
 
@@ -1561,26 +1265,6 @@ msgstr "Yapılandırmayı biz hallederiz, sadece kaydolun."
 msgid "90_day_free_trial"
 msgstr "90 günlük ücretsiz deneme"
 
-msgid "identity_changed"
-msgstr "%s için Kimlik Değişti"
-
-msgid "identity_changed_message"
-msgstr ""
-"%s sunucusunun güvenlik parmak izi değişti. Bu, kurcalama veya yanlış "
-"yapılandırmayı gösterebilir."
-
-msgid "recommendation"
-msgstr "Öneri:"
-
-msgid "recommendation_message"
-msgstr ""
-"Bağlantınızın güvenli kalmasını sağlamak için %s'i Lantern'den kaldırmanızı "
-"ve bulut sağlayıcı hesabınızdan silmenizi, ardından yeni bir sunucu "
-"kurmanızı öneririz."
-
-msgid "remove_server"
-msgstr "Sunucuyu Kaldır"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "Sunucu takma adı boş olamaz"
 
@@ -1590,14 +1274,8 @@ msgstr "Referans kodunuz uygulandı!"
 msgid "discount_applied"
 msgstr "%s indirim uygulandı"
 
-msgid "referral_message_1m"
-msgstr "+ 15 ek gün ücretsiz"
-
 msgid "referral_message_1y"
 msgstr "+ 1 ek ay ücretsiz"
-
-msgid "referral_message_2y"
-msgstr "+ 2 ay daha ücretsiz"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1610,29 +1288,6 @@ msgstr "Kendi referans kodunuzu kullanamazsınız. Lütfen farklı bir kod girin
 msgid "free"
 msgstr "Ücretsiz"
 
-msgid "monthly_plan"
-msgstr "Aylık plan:"
-
-msgid "15_days_each"
-msgstr " Her birine +15 gün"
-
-msgid "annual_plan"
-msgstr " Yıllık plan:"
-
-msgid "1_month_each"
-msgstr "Her biri için +1 ay"
-
-msgid "two_year_plan"
-msgstr "İki yıllık plan:"
-
-msgid "2_month_each"
-msgstr "Her biri için +2 ay"
-
-msgid "referral_code_info"
-msgstr ""
-"Henüz Lantern Pro kullanıcısı değil misiniz? İlk referansınız abone "
-"olduğunda kullanıcı olacaksınız"
-
 msgid "lantern_pro_license"
 msgstr " Lantern Pro Lisansı"
 
@@ -1644,12 +1299,6 @@ msgstr "Geçersiz Lantern Pro lisansı"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro lisansı 25 karakter olmalıdır"
-
-msgid "select_account"
-msgstr "Hesap Seçin"
-
-msgid "new_to_lantern"
-msgstr " Lantern'de yeni misiniz?"
 
 msgid "create_an_account"
 msgstr " Hesap oluşturun"
@@ -1692,11 +1341,6 @@ msgstr "Lantern'e geri dönün ve kuruluma devam etmek için \"Devam Et\"e dokun
 msgid "how_to_add_billing_details"
 msgstr "Fatura bilgileri nasıl eklenir:"
 
-msgid "add_payment_method_message"
-msgstr ""
-"Lütfen DigitalOcean hesabınıza bir ödeme yöntemi ekleyin. Zaten "
-"eklediyseniz, birkaç dakika bekleyin ve tekrar deneyin."
-
 msgid "ok"
 msgstr "Tamam"
 
@@ -1716,12 +1360,6 @@ msgid "developer_mode_note"
 msgstr ""
 "Geliştirici Modu, yalnızca Lantern Geliştiricilerinin geliştirme sırasında "
 "özellikleri test etmesi içindir."
-
-msgid "invalid_activation_code"
-msgstr "Geçersiz aktivasyon kodu. Lütfen kodu kontrol edin ve tekrar deneyin."
-
-msgid "invalid_activation_code_length"
-msgstr "Aktivasyon kodu 25 karakter uzunluğunda olmalıdır."
 
 msgid "error_while_vpn_connection"
 msgstr "VPN bağlantısı kurulurken bir hata oluştu. Lütfen tekrar deneyin."
@@ -1753,9 +1391,6 @@ msgstr "Anonim Kullanım Verileri"
 
 msgid "helps_improve_lantern_performance"
 msgstr "Lantern performansını iyileştirmeye yardımcı olur"
-
-msgid "changes_applied_after_restart"
-msgstr "Değişiklikler Lantern yeniden başlatıldıktan sonra uygulanacaktır."
 
 msgid "email_deliverability_notice"
 msgstr "E-posta Teslimat Bildirimi"
@@ -1799,9 +1434,6 @@ msgstr "VPN'i atlamak için uygulama ve web siteleri ekle"
 
 msgid "lantern_pro_license_applied"
 msgstr "Lantern Pro Lisansınız mevcut hesabınıza uygulanacak"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "Satın alımınız mevcut hesabınıza uygulanacak"
 
 msgid "daily_data_cap_reached"
 msgstr "Günlük veri limitine ulaşıldı"
@@ -1854,14 +1486,6 @@ msgstr "Abonelik Süresi Doldu"
 
 msgid "pro"
 msgstr "Pro"
-
-msgid "pro_subscription_expired_message"
-msgstr ""
-"Lantern Pro aboneliğinizin süresi doldu. Sınırsız veri ve Pro özelliklerini "
-"geri yüklemek için yenileyin."
-
-msgid "last_subscription_renewal_date"
-msgstr "Son Abonelik Yenileme Tarihi"
 
 msgid "set_account_password"
 msgstr "Hesap Şifresi Belirle"

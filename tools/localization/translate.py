@@ -780,7 +780,8 @@ def source_literals(dirs: list[Path]) -> tuple[set[str], list[tuple[str, str]]]:
             if "generated" in p.name or p.name.endswith((".g.dart", ".freezed.dart")):
                 continue
             src = p.read_text(encoding="utf-8", errors="ignore")
-            literals.update(re.findall(r"""['"]([a-z][a-z0-9_]*)['"]""", src))
+            # quote-bounded tokens; lookarounds so a key nested in an interpolation still counts
+            literals.update(re.findall(r"""(?<=['"])([^'"\\\n]+)(?=['"])""", src))
             for pre, suf in re.findall(r"""['"]([a-z0-9_]*)\$\{[^}]*\}([a-z0-9_]*)['"]""", src):
                 if pre or suf:
                     dynamic.add((pre, suf))
@@ -799,7 +800,9 @@ def i18n_literals(dirs: list[Path]) -> set[str]:
     for d in dirs:
         for p in d.rglob("*.dart"):
             src = p.read_text(encoding="utf-8", errors="ignore")
-            out.update(re.findall(r"""['"]([a-z][a-z0-9_]*)['"]\s*\.i18n\b""", src))
+            for m in re.findall(r"""['"]([^'"\\\n]+)['"]\s*\.i18n\b""", src):
+                if "$" not in m:
+                    out.add(m)
     return out
 
 
@@ -808,13 +811,20 @@ def audit_report(en: PoFile, targets: dict[str, PoFile]) -> str:
     lines = ["# Localization audit", ""]
 
     literals, dynamic = source_literals(dirs)
-    unreferenced = [k for k in en.keys() if k not in literals
-                    and not dynamically_referenced(k, dynamic, AUDIT_DYNAMIC_PREFIXES)]
+    candidates = [k for k in en.keys() if k not in literals
+                  and not dynamically_referenced(k, dynamic, AUDIT_DYNAMIC_PREFIXES)]
+    hits = code_references(candidates, dirs)
+    unreferenced = [k for k in candidates if k not in hits]
     lines += [f"## Keys in en.po with no reference in {', '.join(AUDIT_SOURCE_DIRS)} ({len(unreferenced)})", ""]
-    lines += ["Each one is translated into every locale. Dynamic key families detected from string "
-              "interpolation are excluded: " + (", ".join(f"`{p}…{s}`" for p, s in dynamic) or "none")
+    lines += ["Two checks agree: no quoted literal and no word match in the raw text of "
+              + ", ".join(AUDIT_SOURCE_DIRS) + ". `--cleanup` removes exactly these. "
+              "Dynamic key families from string interpolation are excluded: "
+              + (", ".join(f"`{p}…{s}`" for p, s in dynamic) or "none")
               + (". Extra prefixes from config: " + ", ".join(f"`{p}`" for p in AUDIT_DYNAMIC_PREFIXES) if AUDIT_DYNAMIC_PREFIXES else "")
-              + ". Keys looked up through a variable will also appear here, so check a group before deleting it.", ""]
+              + ".", ""]
+    if hits:
+        lines += ["Kept because the word still appears in the code: "
+                  + ", ".join(f"`{k}` ({f})" for k, f in sorted(hits.items())), ""]
     groups: dict[str, list[str]] = {}
     for k in unreferenced:
         groups.setdefault(k.split("_")[0], []).append(k)
@@ -839,6 +849,83 @@ def audit_report(en: PoFile, targets: dict[str, PoFile]) -> str:
     return "\n".join(lines) + "\n"
 
 
+# --------------------------------------------------------------------------- cleanup
+
+SCAN_SUFFIXES = {".dart", ".yaml", ".json", ".arb"}
+
+
+def code_references(keys: list[str], dirs: list[Path]) -> dict[str, str]:
+    """Second layer: word-boundary search for each key in the raw text of the source
+    dirs, so a key inside a longer string or an identifier still counts.
+    Returns key -> first file that mentions it, relative to the repo root."""
+    if not keys:
+        return {}
+    pattern = re.compile(r"(?<![A-Za-z0-9_])(" + "|".join(re.escape(k) for k in keys) + r")(?![A-Za-z0-9_])")
+    found: dict[str, str] = {}
+    for d in dirs:
+        for p in d.rglob("*"):
+            if not p.is_file() or p.suffix not in SCAN_SUFFIXES:
+                continue
+            text = p.read_text(encoding="utf-8", errors="ignore")
+            for m in pattern.finditer(text):
+                found.setdefault(m.group(1), str(p.relative_to(ROOT) if p.is_relative_to(ROOT) else p))
+            if len(found) == len(keys):
+                return found
+    return found
+
+
+def ensure_charset(po: PoFile) -> bool:
+    """msgfmt refuses a file whose header has no charset; add the standard UTF-8 line."""
+    hdr = po.get("")
+    if hdr is None or "charset=" in hdr:
+        return False
+    po.set("", hdr + "Content-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n")
+    return True
+
+
+def cleanup(en: PoFile, targets: dict[str, PoFile], dry_run: bool) -> str:
+    """Remove en.po keys that nothing in the source dirs references (two independent
+    checks must agree), then prune every locale. Returns a plain-text report."""
+    dirs = [ROOT / d for d in AUDIT_SOURCE_DIRS]
+    literals, dynamic = source_literals(dirs)
+    candidates = [k for k in en.keys() if k not in literals
+                  and not dynamically_referenced(k, dynamic, AUDIT_DYNAMIC_PREFIXES)]
+    hits = code_references(candidates, dirs)
+    dead = [k for k in candidates if k not in hits]
+    kept = [(k, hits[k]) for k in candidates if k in hits]
+
+    out = [f"Layer 1 (literal scan of {', '.join(AUDIT_SOURCE_DIRS)}): {len(candidates)} keys with no reference",
+           f"Layer 2 (word search in the raw text of {', '.join(AUDIT_SOURCE_DIRS)}): {len(kept)} still appear and are kept",
+           f"Removing {len(dead)} keys from en.po" + (" (dry run)" if dry_run else ""), ""]
+    if kept:
+        out += [text_table(["Kept key", "Referenced in"], [[k, f] for k, f in kept]), ""]
+    if dead:
+        out += [text_table(["Removed key", "English"], [[k, (en.get(k) or "")[:60]] for k in dead]), ""]
+    if not dry_run:
+        for k in dead:
+            en.remove(k)
+        if dead:
+            en.write()
+            validate_po(en.path, len(en.keys()))
+    rows = []
+    for code, po in targets.items():
+        stale = [k for k in po.keys() if not en.has(k)]
+        if dry_run:
+            rows.append([code, len(stale)])
+            continue
+        changed = ensure_charset(po)
+        for k in stale:
+            po.remove(k)
+            changed = True
+        if changed:
+            po.write()
+            validate_po(po.path, len(po.keys()))
+        rows.append([code, len(stale)])
+    rows.append(["total", sum(r[1] for r in rows)])
+    out += ["Stale entries removed per locale" + (" (dry run)" if dry_run else ""), text_table(["Locale", "Removed"], rows)]
+    return "\n".join(out) + "\n"
+
+
 # --------------------------------------------------------------------------- main
 
 
@@ -853,6 +940,10 @@ def main() -> int:
     ap.add_argument("--config", default=str(CONFIG_PATH), help="settings file (models, thresholds, glossary, locales)")
     ap.add_argument("--plan", action="store_true",
                     help="show per-locale counts of what a run would translate and remove, then exit; no API calls")
+    ap.add_argument("--prune", action="store_true",
+                    help="only remove locale entries whose key left en.po, then exit; no API calls")
+    ap.add_argument("--cleanup", action="store_true",
+                    help="remove en.po keys nothing in lib references (two independent checks) and prune every locale; no API calls")
     ap.add_argument("--audit", action="store_true",
                     help="report unreferenced en.po keys, keys missing from en.po, and per-locale gaps; no API calls")
     args = ap.parse_args()
@@ -883,6 +974,24 @@ def main() -> int:
     if args.plan:
         print(plan_table(work, targets))
         return 0
+    if args.cleanup:
+        report = cleanup(en, targets, args.dry_run)
+        (out / "cleanup.txt").write_text(report, encoding="utf-8")
+        print(report)
+        return 0
+    if args.prune:
+        rows = []
+        for code, w in work.items():
+            if not w.remove:
+                continue
+            po = targets[code]
+            for k in w.remove:
+                po.remove(k)
+            po.write()
+            validate_po(po.path, len(po.keys()))
+            rows.append([code, len(w.remove)])
+        print(text_table(["Locale", "Removed"], rows) if rows else "Nothing stale to remove.")
+        return 0
     if pending and not os.environ.get("ANTHROPIC_API_KEY"):
         log("error: ANTHROPIC_API_KEY is not set")
         return 1
@@ -909,7 +1018,7 @@ def main() -> int:
     if not args.dry_run:
         for r in results:
             po = targets[r.code]
-            changed = False
+            changed = ensure_charset(po)
             for k in r.removed:
                 po.remove(k)
                 changed = True

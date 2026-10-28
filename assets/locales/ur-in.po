@@ -62,19 +62,11 @@ msgstr ""
 msgid "send_without_email"
 msgstr "ای میل کے بغیر بھیجیں"
 
-msgid "lantern_projects"
-msgstr "Lantern پروجیکٹس:"
-
 msgid "invite_friends"
 msgstr "دوستوں کو مدعو کریں"
 
 msgid "your_referral_code"
 msgstr "آپ کا ریفرل کوڈ"
-
-msgid "invite_friends_message"
-msgstr ""
-"اپنا ریفرل کوڈ کسی دوست کے ساتھ شیئر کریں۔ جب وہ Lantern Pro خریدیں گے، آپ "
-"دونوں کو بونس ٹائم ملے گا:"
 
 msgid "share_referral_code"
 msgstr "ریفرل کوڈ شیئر کریں"
@@ -139,9 +131,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "عالمی انٹرنیٹ سنسرشپ کے خلاف لڑنے میں مدد کریں"
-
 msgid "vpn_settings"
 msgstr "VPN کی ترتیبات"
 
@@ -166,9 +155,6 @@ msgstr "Lantern Pro ڈیوائسز"
 msgid "remove"
 msgstr "ہٹائیں"
 
-msgid "add_device"
-msgstr "ڈیوائس شامل کریں"
-
 msgid "danger_zone"
 msgstr "خطرہ زون:"
 
@@ -191,9 +177,6 @@ msgstr ""
 
 msgid "delete_account_message_two"
 msgstr "اکاؤنٹ حذف کرنے کی تصدیق کے لیے براہ کرم اپنا پاس ورڈ درج کریں"
-
-msgid "Submit Issue Report"
-msgstr "تصدیق کے لیے پاس ورڈ درج کریں"
 
 msgid "confirm_deletion"
 msgstr "حذف کرنے کی تصدیق کریں"
@@ -228,23 +211,14 @@ msgstr "سرور کا انتخاب"
 msgid "smart_location"
 msgstr "سمارٹ لوکیشن"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "خودکار طور پر تیز ترین مقام کا انتخاب کرتا ہے"
-
 msgid "pro_locations"
 msgstr "پرو مقامات:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "Lantern Pro کے ساتھ اپنا مقام منتخب کریں:"
 
 msgid "language"
 msgstr "زبان"
 
 msgid "sign_in"
 msgstr "سائن ان کریں"
-
-msgid "sign_out"
-msgstr "سائن آؤٹ کریں"
 
 msgid "check_for_updates"
 msgstr "اپ ڈیٹس چیک کریں"
@@ -256,9 +230,6 @@ msgid "android_sideload_update_available_message"
 msgstr ""
 "Lantern %s دستیاب ہے۔ Lantern اینڈرائیڈ کا انسٹالر کھولنے سے پہلے APK ڈاؤن "
 "لوڈ کر کے اس کی تصدیق کرے گا۔"
-
-msgid "download_and_install_update"
-msgstr "ڈاؤن لوڈ اور انسٹال کریں"
 
 msgid "allow_unknown_app_installs"
 msgstr "ایپ انسٹال کی اجازت دیں"
@@ -275,9 +246,6 @@ msgid "android_sideload_install_failed_message"
 msgstr ""
 "Lantern اس اپ ڈیٹ کی تصدیق یا تنصیب نہیں کر سکا۔ براہ کرم بعد میں دوبارہ "
 "کوشش کریں۔"
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern اپ ٹو ڈیٹ ہے۔"
 
 msgid "support"
 msgstr "سپورٹ"
@@ -305,9 +273,6 @@ msgstr "مسدود سائٹس تک رسائی نہیں ہو سکتی"
 msgid "cannot_complete_purchase"
 msgstr "خریداری مکمل نہیں ہو سکتی"
 
-msgid "discover_not_working"
-msgstr "دریافت کام نہیں کر رہا"
-
 msgid "cannot_sign_in"
 msgstr "سائن ان نہیں ہو سکتا"
 
@@ -332,12 +297,6 @@ msgstr "سرور کا انتخاب کام نہیں کر رہا"
 msgid "upgrade_fail"
 msgstr "Lantern Pro اپ گریڈ ناکام رہا"
 
-msgid "wrong_device_linking_code"
-msgstr "غلط یا غیر درست ڈیوائس لنکنگ کوڈ"
-
-msgid "cannot_remove_device"
-msgstr "ڈیوائس کو ہٹا نہیں سکتے"
-
 msgid "application_crashes"
 msgstr "ایپلیکیشن کریش ہو جاتی ہے"
 
@@ -350,33 +309,11 @@ msgstr "اپنے مسئلے کی تفصیل بیان کریں"
 msgid "enter_password_to_confirm"
 msgstr "تصدیق کے لیے پاس ورڈ درج کریں"
 
-msgid "cannot_view_logs"
-msgstr ""
-"Lantern آپ کے تشخیصی لاگز نہیں دیکھ سکتا جب تک آپ انہیں ہمیں نہ بھیجیں۔"
-
-msgid "split_tunneling_mode"
-msgstr "اسپلٹ ٹنلنگ موڈ"
-
 msgid "apps_split_tunneling"
 msgstr "ایپس اسپلٹ ٹنلنگ"
 
 msgid "website_split_tunneling"
 msgstr "ویب سائٹ اسپلٹ ٹنلنگ"
-
-msgid "iran_optimized"
-msgstr "ایران کے لیے بہتر بنایا گیا اسپلٹ ٹنلنگ"
-
-msgid "china_optimized"
-msgstr "چین کے لیے بہتر بنایا گیا اسپلٹ ٹنلنگ"
-
-msgid "russia_optimized"
-msgstr "روس کے لیے بہتر بنایا گیا اسپلٹ ٹنلنگ"
-
-msgid "global_optimized"
-msgstr "عالمی سطح پر بہتر بنایا گیا اسپلٹ ٹنلنگ"
-
-msgid "enter_url"
-msgstr "URL درج کریں"
 
 msgid "add"
 msgstr "شامل کریں"
@@ -419,47 +356,6 @@ msgstr "اس لنک کی میعاد ختم ہو گئی ہے۔ براہ کرم ن
 
 msgid "invalid_deep_link"
 msgstr "یہ لنک غلط ہے۔ براہ کرم نیا لنک کی درخواست کریں۔"
-
-msgid "default_bypass"
-msgstr "ڈیفالٹ بائی پاس لسٹس"
-
-msgid "global_bypass_list"
-msgstr "عالمی بائی پاس لسٹ"
-
-msgid "global_bypass_desc"
-msgstr "قابل اعتماد سائٹس (HTTPS) جن میں غیر حساس مواد ہے۔"
-
-msgid "china_bypass_list"
-msgstr "چین بائی پاس لسٹ"
-
-msgid "china_bypass_desc"
-msgstr "چین میں آزادانہ قابل رسائی سائٹس۔ باقاعدگی سے اپ ڈیٹ کی جاتی ہیں۔"
-
-msgid "iran_bypass_list"
-msgstr "ایران بائی پاس لسٹ"
-
-msgid "iran_bypass_desc"
-msgstr "ایران میں آزادانہ قابل رسائی سائٹس۔ باقاعدگی سے اپ ڈیٹ کی جاتی ہیں۔"
-
-msgid "russia_bypass_list"
-msgstr "روس بائی پاس لسٹ"
-
-msgid "russia_bypass_desc"
-msgstr "روس میں آزادانہ قابل رسائی سائٹس۔ باقاعدگی سے اپ ڈیٹ کی جاتی ہیں۔"
-
-msgid "see_sites_included"
-msgstr "شامل سائٹس دیکھیں "
-
-msgid "default_lists_here"
-msgstr "ڈیفالٹ لسٹس یہاں"
-
-msgid "when_connected"
-msgstr "جب منسلک ہو، تو آپ کی منتخب کردہ ویب سائٹس VPN کو بائی پاس کریں گی۔"
-
-msgid "lantern_automatic"
-msgstr ""
-"Lantern خودکار طور پر یہ منتخب کرتا ہے کہ کون سی ایپس اور ویب سائٹس بہترین "
-"کارکردگی کے لیے آپ کے مقام کی بنیاد پر VPN کو بائی پاس کریں۔ "
 
 msgid "apps_bypassing_vpn"
 msgstr "VPN کو بائی پاس کرنے والی ایپس (%d)"
@@ -554,9 +450,6 @@ msgstr "پاس ورڈ کی تصدیق ضروری ہے"
 msgid "passwords_do_not_match"
 msgstr "پاس ورڈز مماثل نہیں ہیں"
 
-msgid "activation_code"
-msgstr "ایکٹیویشن کوڈ"
-
 msgid "activate_lantern_pro"
 msgstr "Lantern Pro کو فعال کریں"
 
@@ -612,11 +505,6 @@ msgstr ""
 msgid "view_the_full_list"
 msgstr "روٹنگ قواعد کی مکمل فہرست دیکھیں۔"
 
-msgid "turn_on_split_tunneling"
-msgstr ""
-"اسپلٹ ٹنلنگ آن کریں تاکہ اپنی مرضی سے یہ طے کریں کہ کون سی ویب سائٹس VPN "
-"استعمال کریں۔"
-
 msgid "welcome_to_lantern_pro"
 msgstr "Lantern Pro میں خوش آمدید!"
 
@@ -670,9 +558,6 @@ msgstr "بہترین قیمت!"
 msgid "choose_payment_method"
 msgstr "ادائیگی کا طریقہ منتخب کریں"
 
-msgid "payment_information_encrypted"
-msgstr "آپ کی ادائیگی کی معلومات مکمل طور پر خفیہ کردہ ہیں۔"
-
 msgid "purchase_not_completed"
 msgstr ""
 "خریداری مکمل نہیں ہوئی۔ آپ کسی بھی وقت دوبارہ کوشش کر سکتے ہیں، یا اگر آپ کو"
@@ -695,21 +580,6 @@ msgstr "اشتہارات کو بلاک کریں"
 msgid "only_active"
 msgstr "صرف اس وقت فعال جب VPN منسلک ہو"
 
-msgid "share_my_connection"
-msgstr "میرا کنکشن شیئر کریں"
-
-msgid "share_my_connection_subtitle"
-msgstr ""
-"دوسرے Lantern صارفین کو سنسرشپ سے بچنے کے لیے آپ کے کنکشن کے ذریعے روٹ کرنے "
-"دیں۔"
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr ""
-"اپنا کنکشن محفوظ طریقے سے شیئر کر کے دوسروں کو سنسرشپ سے بچنے میں مدد کریں۔"
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "Action Mode کے بارے میں"
@@ -724,53 +594,11 @@ msgstr "غیر فعال"
 msgid "smc_status_configuring"
 msgstr "نیٹ ورک کنفیگر ہو رہا ہے"
 
-msgid "smc_status_probing"
-msgstr "آپ کا نیٹ ورک جانچا جا رہا ہے…"
-
-msgid "smc_status_active_unbounded"
-msgstr "فعال"
-
-msgid "smc_status_active_smc"
-msgstr "شروع ہو رہا ہے…"
-
-msgid "smc_status_mapping_port"
-msgstr "آپ کے راؤٹر پر پورٹ کھولا جا رہا ہے…"
-
-msgid "smc_status_detecting_ip"
-msgstr "آپ کا عوامی IP معلوم کیا جا رہا ہے…"
-
-msgid "smc_status_registering"
-msgstr "Lantern کے ساتھ رجسٹر ہو رہا ہے…"
-
-msgid "smc_status_starting_proxy"
-msgstr "لوکل پراکسی شروع ہو رہی ہے…"
-
-msgid "smc_status_verifying"
-msgstr "کنیکٹیویٹی کی تصدیق ہو رہی ہے…"
-
-msgid "smc_status_serving"
-msgstr "فعال"
-
-msgid "smc_status_stopping"
-msgstr "روکا جا رہا ہے…"
-
 msgid "smc_status_error_with_message"
 msgstr "شیئر نہیں ہو سکا: %s"
 
 msgid "smc_status_error_generic"
 msgstr "شیئر نہیں ہو سکا — دوبارہ ٹوگل کر کے دیکھیں"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "جن لوگوں کی آپ اس وقت مدد کر رہے ہیں:"
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "اب تک مدد پانے والے کل لوگ:"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -895,9 +723,6 @@ msgstr "سبسکرائب کریں"
 msgid "checkout"
 msgstr "چیک آؤٹ"
 
-msgid "next_billing_date"
-msgstr "اگلی بلنگ کی تاریخ"
-
 msgid "vpn_may_be_needed"
 msgstr "VPN کی ضرورت ہو سکتی ہے"
 
@@ -924,39 +749,17 @@ msgstr "Google Cloud Platform استعمال کرتے ہوئے سیٹ اپ کر�
 msgid "continue_with_do"
 msgstr "Digital Ocean کے ساتھ جاری رکھیں"
 
-msgid "do_allows"
-msgstr ""
-"Digital Ocean آپ کو نیچے دیے گئے %d اختیارات میں سے ایک سرور کا مقام منتخب "
-"کرنے کی اجازت دیتا ہے"
-
 msgid "server_setup_gcp_price"
 msgstr "GCP کے ذریعے صرف %s ماہانہ"
 
 msgid "continue_with_gcp"
 msgstr "Google کے ساتھ جاری رکھیں"
 
-msgid "gcp_allows"
-msgstr ""
-"Google Cloud Platform آپ کو نیچے دیے گئے %d اختیارات میں سے ایک سرور کا مقام"
-" منتخب کرنے کی اجازت دیتا ہے:"
-
-msgid "server_setup_aws"
-msgstr "AWS پر نجی سرور سیٹ اپ کریں"
-
-msgid "server_setup_aws_price"
-msgstr "AWS کے ذریعے صرف %s ماہانہ"
-
 msgid "server_setup_manual"
 msgstr "دستی طور پر سیٹ اپ کریں"
 
 msgid "seamless_integration"
 msgstr "Lantern کے ساتھ بغیر رکاوٹ انضمام"
-
-msgid "easiest_setup"
-msgstr "آسان ترین سیٹ اپ کا عمل"
-
-msgid "multiple_location_options"
-msgstr "متعدد سرور مقامات کے اختیارات"
 
 msgid "one_month_included"
 msgstr "%d TB/ماہ ڈیٹا شامل ہے"
@@ -1035,29 +838,11 @@ msgstr "اپنا اکاؤنٹ منتخب کریں"
 msgid "choose_your_project"
 msgstr "اپنا پروجیکٹ منتخب کریں"
 
-msgid "name_your_google_cloud_project"
-msgstr "اپنے Google Cloud پروجیکٹ کا نام رکھیں"
-
 msgid "billing_account"
 msgstr "بلنگ اکاؤنٹ"
 
-msgid "billing_account_placeholder"
-msgstr "%s کے لیے بلنگ اکاؤنٹ"
-
 msgid "server_name"
 msgstr "سرور کا نام"
-
-msgid "google_project"
-msgstr "Google پروجیکٹ"
-
-msgid "field_name_required"
-msgstr "نام ضروری ہے"
-
-msgid "choose_google_account"
-msgstr "Google بلنگ اکاؤنٹ منتخب کریں"
-
-msgid "server_name_placeholder"
-msgstr "ڈیرک کا سرور"
 
 msgid "change"
 msgstr "تبدیل کریں"
@@ -1071,38 +856,6 @@ msgstr "اپنا مقام منتخب کریں"
 msgid "start_deployment"
 msgstr "ڈیپلائمنٹ شروع کریں"
 
-msgid "server_name_description"
-msgstr "سرور انتخاب کی فہرست میں یہ کیسے ظاہر ہوگا۔"
-
-msgid "select_private_server_region"
-msgstr ""
-"اپنے نجی سرور کے لیے ایک خطہ منتخب کریں۔ قریبی مقامات رفتار اور تاخیر کو "
-"بہتر بنا سکتے ہیں۔"
-
-msgid "gcp_location_options"
-msgstr "Google Cloud Platform مقامات کے اختیارات (%d):"
-
-msgid "australia_sydney"
-msgstr "آسٹریلیا - سڈنی"
-
-msgid "belgium_stghislain"
-msgstr "بیلجیئم - سینٹ گیسلین"
-
-msgid "brazil_saopaulo"
-msgstr "ساؤ پالو"
-
-msgid "us_los_angeles"
-msgstr "امریکہ - لاس اینجلس"
-
-msgid "japan_tokyo"
-msgstr "جاپان - ٹوکیو"
-
-msgid "deploying_private_server"
-msgstr "نجی سرور ڈیپلائی ہو رہا ہے"
-
-msgid "deploying_server_status"
-msgstr "ٹھہریں! آپ کا نجی سرور سیٹ اپ ہو رہا ہے۔ اس میں کچھ منٹ لگ سکتے ہیں۔"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "ٹھہریں! آپ کا نجی سرور سیٹ اپ ہو رہا ہے۔ اس میں کچھ منٹ لگ سکتے ہیں، براہ "
@@ -1110,19 +863,6 @@ msgstr ""
 
 msgid "cancel_server_deployment"
 msgstr "سرور ڈیپلائمنٹ منسوخ کریں"
-
-msgid "server_ready_title"
-msgstr "نجی سرور تیار ہے"
-
-msgid "server_ready_message"
-msgstr ""
-"آپ کا نجی سرور سیٹ اپ ہو گیا ہے اور آپ کی سرور فہرست میں شامل ہو گیا ہے۔ آپ "
-"منسلک ہونے کے لیے تیار ہیں!"
-
-msgid "server_failed_message"
-msgstr ""
-"آپ کے نجی سرور کو سیٹ اپ کرتے وقت کچھ غلط ہو گیا۔ آپ دوبارہ کوشش کر سکتے ہیں"
-" یا بعد میں دوبارہ کوشش کر سکتے ہیں۔"
 
 msgid "close"
 msgstr "بند کریں"
@@ -1132,9 +872,6 @@ msgstr "ابھی منسلک کریں"
 
 msgid "server_setup_failed"
 msgstr "سرور سیٹ اپ ناکام ہو گیا"
-
-msgid "cancel_deployment"
-msgstr "ڈیپلائمنٹ منسوخ کریں"
 
 msgid "server_setup_failed_message"
 msgstr ""
@@ -1146,9 +883,6 @@ msgstr "باہر نکلیں"
 
 msgid "retry"
 msgstr "دوبارہ کوشش کریں"
-
-msgid "all_required_fields"
-msgstr "براہ کرم تمام ضروری فیلڈز بھریں۔"
 
 msgid "private_server_ready"
 msgstr "نجی سرور تیار ہے!"
@@ -1184,9 +918,6 @@ msgstr "سرور کی تصدیق کریں"
 
 msgid "vpn_client_not_setup"
 msgstr "براہ کرم VPN کلائنٹ آن کریں۔"
-
-msgid "continue_with"
-msgstr "جاری رکھیں"
 
 msgid "join_a_private_server"
 msgstr "نجی سرور میں شامل ہوں"
@@ -1238,9 +969,6 @@ msgstr ""
 msgid "generate_access_key"
 msgstr "ایکسیس کی بنائیں"
 
-msgid "invite_name"
-msgstr "دعوت نامہ کا نام"
-
 msgid "trust_server_operator"
 msgstr "سرور آپریٹر پر اعتماد کریں"
 
@@ -1260,10 +988,6 @@ msgstr ""
 "اگر آپ کو یقین نہیں کہ سرور کون چلاتا ہے یا یہ کیسے ترتیب دیا گیا ہے، تو ہم "
 "آپ کی سرور فہرست میں دستیاب ڈیفالٹ Lantern سرورز میں سے ایک استعمال کرنے کی "
 "تجویز دیتے ہیں۔"
-
-msgid "invalid_server_details"
-msgstr ""
-"غیر درست سرور کی تفصیلات۔ براہ کرم ایکسیس کی چیک کریں اور دوبارہ کوشش کریں۔"
 
 msgid "lantern_servers"
 msgstr "Lantern سرورز"
@@ -1320,9 +1044,6 @@ msgstr "کم بھیڑ والے پریمیم سرورز"
 
 msgid "advanced_anti_censorship"
 msgstr "جدید سنسرشپ مخالف ٹیکنالوجی"
-
-msgid "exclusive_access_new_features"
-msgstr "نئی خصوصیات تک خصوصی رسائی"
 
 msgid "connect_up_to_five_devices"
 msgstr "5 ڈیوائسز تک منسلک کریں"
@@ -1411,9 +1132,6 @@ msgstr "براہ کرم ایک درست ای میل درج کریں"
 msgid "please_select_an_issue"
 msgstr "براہ کرم ایک مسئلہ منتخب کریں"
 
-msgid "please_enter_issue_description"
-msgstr "براہ کرم مسئلے کی تفصیل درج کریں"
-
 msgid "thanks_for_feedback"
 msgstr "آپ کے فیڈ بیک کا شکریہ!"
 
@@ -1429,20 +1147,11 @@ msgstr "سب کو منتخب کریں"
 msgid "no_websites_selected"
 msgstr "کوئی ویب سائٹ منتخب نہیں"
 
-msgid "enter_activation_code"
-msgstr "ایکٹیویشن کوڈ درج کریں"
-
 msgid "restore_purchase"
 msgstr "خریداری بحال کریں"
 
 msgid "already_purchased"
 msgstr "پہلے ہی خرید چکے ہیں؟"
-
-msgid "restore_purchase_success"
-msgstr "خریداری کامیابی سے بحال ہو گئی۔"
-
-msgid "restore_purchase_no_purchases"
-msgstr "بحال کرنے کے لیے کوئی خریداری نہیں ملی۔"
 
 msgid "do_private_server_setup"
 msgstr "DO نجی سرور سیٹ اپ"
@@ -1497,9 +1206,6 @@ msgstr "سبسکرپشن کی تجدید کی تاریخ"
 msgid "pro_access_until"
 msgstr "%s تک Pro رسائی"
 
-msgid "enabled_bypass_lists"
-msgstr "فعال بائی پاس لسٹس (%d):"
-
 msgid "diagnostic_logs"
 msgstr "تشخیصی لاگز"
 
@@ -1547,9 +1253,6 @@ msgstr "ریفرل کوڈ شامل کریں"
 msgid "referral_code"
 msgstr "ریفرل کوڈ"
 
-msgid "update_fails"
-msgstr "اپ ڈیٹ ناکام"
-
 msgid "scan_qr_code"
 msgstr "QR کوڈ اسکین کریں"
 
@@ -1562,26 +1265,6 @@ msgstr "ہم کنفیگریشن کو سنبھالتے ہیں، بس سائن ا�
 msgid "90_day_free_trial"
 msgstr "90 دن کی مفت آزمائش"
 
-msgid "identity_changed"
-msgstr "%s کے لیے شناخت تبدیل ہو گئی"
-
-msgid "identity_changed_message"
-msgstr ""
-"%s کا سیکیورٹی فنگر پرنٹ تبدیل ہو گیا ہے۔ یہ چھیڑ چھاڑ یا غلط کنفیگریشن کی "
-"نشاندہی کر سکتا ہے۔"
-
-msgid "recommendation"
-msgstr "سفارش:"
-
-msgid "recommendation_message"
-msgstr ""
-"ہم تجویز کرتے ہیں کہ %s کو Lantern سے ہٹا دیں اور اپنے کلاؤڈ فراہم کنندہ کے "
-"اکاؤنٹ سے حذف کریں، پھر اپنے کنکشن کو محفوظ رکھنے کے لیے ایک نیا سرور سیٹ اپ"
-" کریں۔"
-
-msgid "remove_server"
-msgstr "سرور ہٹائیں"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "سرور کا عرفی نام خالی نہیں ہو سکتا"
 
@@ -1591,14 +1274,8 @@ msgstr "آپ کا ریفرل کوڈ لاگو ہو گیا ہے!"
 msgid "discount_applied"
 msgstr "%s رعایت لاگو ہو گئی"
 
-msgid "referral_message_1m"
-msgstr "+ 15 اضافی دن مفت"
-
 msgid "referral_message_1y"
 msgstr "+ 1 اضافی مہینہ مفت"
-
-msgid "referral_message_2y"
-msgstr "+ مزید 2 مہینے مفت"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1612,29 +1289,6 @@ msgstr ""
 msgid "free"
 msgstr "مفت"
 
-msgid "monthly_plan"
-msgstr "ماہانہ پلان:"
-
-msgid "15_days_each"
-msgstr "+15 دن ہر ایک کو"
-
-msgid "annual_plan"
-msgstr "سالانہ پلان:"
-
-msgid "1_month_each"
-msgstr "ہر ایک کے لیے +1 مہینہ"
-
-msgid "two_year_plan"
-msgstr "دو سالہ پلان:"
-
-msgid "2_month_each"
-msgstr "ہر ایک کے لیے +2 مہینے"
-
-msgid "referral_code_info"
-msgstr ""
-"ابھی تک Lantern Pro صارف نہیں ہیں؟ آپ اس وقت بن جائیں گے جب آپ کا پہلا ریفرل"
-" سبسکرائب کرے گا"
-
 msgid "lantern_pro_license"
 msgstr "Lantern Pro لائسنس"
 
@@ -1646,12 +1300,6 @@ msgstr "غلط Lantern Pro لائسنس"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro لائسنس 25 حروف کا ہونا چاہیے"
-
-msgid "select_account"
-msgstr "اکاؤنٹ منتخب کریں"
-
-msgid "new_to_lantern"
-msgstr "Lantern پر نئے ہیں؟"
 
 msgid "create_an_account"
 msgstr "اکاؤنٹ بنائیں"
@@ -1696,11 +1344,6 @@ msgstr ""
 msgid "how_to_add_billing_details"
 msgstr "بلنگ کی تفصیلات کیسے شامل کریں:"
 
-msgid "add_payment_method_message"
-msgstr ""
-"براہ کرم اپنے DigitalOcean اکاؤنٹ میں ادائیگی کا طریقہ شامل کریں۔ اگر آپ "
-"پہلے ہی شامل کر چکے ہیں، تو چند منٹ انتظار کریں اور دوبارہ کوشش کریں۔"
-
 msgid "ok"
 msgstr "ٹھیک ہے"
 
@@ -1720,12 +1363,6 @@ msgid "developer_mode_note"
 msgstr ""
 "ڈویلپر موڈ صرف Lantern ڈویلپرز کے لیے ترقی کے دوران خصوصیات کی جانچ کے لیے "
 "ہے۔"
-
-msgid "invalid_activation_code"
-msgstr "غلط ایکٹیویشن کوڈ۔ براہ کرم کوڈ چیک کریں اور دوبارہ کوشش کریں۔"
-
-msgid "invalid_activation_code_length"
-msgstr "ایکٹیویشن کوڈ 25 حروف لمبا ہونا چاہیے۔"
 
 msgid "error_while_vpn_connection"
 msgstr "VPN کنکشن قائم کرتے وقت ایک خرابی پیش آئی۔ براہ کرم دوبارہ کوشش کریں۔"
@@ -1757,9 +1394,6 @@ msgstr "گمنام استعمال کا ڈیٹا"
 
 msgid "helps_improve_lantern_performance"
 msgstr "Lantern کی کارکردگی کو بہتر بنانے میں مدد کرتا ہے"
-
-msgid "changes_applied_after_restart"
-msgstr "تبدیلیاں Lantern دوبارہ شروع کرنے کے بعد لاگو ہوں گی۔"
 
 msgid "email_deliverability_notice"
 msgstr "ای میل ترسیل کا نوٹس"
@@ -1803,9 +1437,6 @@ msgstr "VPN کو نظرانداز کرنے کے لیے ایپس اور ویب س
 
 msgid "lantern_pro_license_applied"
 msgstr "آپ کا Lantern Pro لائسنس آپ کے موجودہ اکاؤنٹ پر لاگو ہوگا"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "آپ کی خریداری آپ کے موجودہ اکاؤنٹ پر لاگو ہوگی"
 
 msgid "daily_data_cap_reached"
 msgstr "روزانہ ڈیٹا کی حد پوری ہو گئی"
@@ -1858,14 +1489,6 @@ msgstr "سبسکرپشن کی میعاد ختم ہو گئی"
 
 msgid "pro"
 msgstr "پرو"
-
-msgid "pro_subscription_expired_message"
-msgstr ""
-"Lantern Pro سبسکرپشن کی میعاد ختم ہو گئی۔ لامحدود ڈیٹا اور Pro خصوصیات بحال "
-"کرنے کے لیے تجدید کریں۔"
-
-msgid "last_subscription_renewal_date"
-msgstr "سبسکرپشن کی آخری تجدید کی تاریخ"
 
 msgid "set_account_password"
 msgstr "اکاؤنٹ پاس ورڈ سیٹ کریں"

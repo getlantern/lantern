@@ -67,19 +67,11 @@ msgstr ""
 msgid "send_without_email"
 msgstr "Enviar Sem E-mail"
 
-msgid "lantern_projects"
-msgstr "Projetos Lantern:"
-
 msgid "invite_friends"
 msgstr "Convide Amigos"
 
 msgid "your_referral_code"
 msgstr "Seu Código de Indicação"
-
-msgid "invite_friends_message"
-msgstr ""
-"Compartilhe seu código de indicação com um amigo. Quando ele comprar o "
-"Lantern Pro, vocês dois ganham tempo extra:"
 
 msgid "share_referral_code"
 msgstr "Compartilhar Código de Indicação"
@@ -144,9 +136,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "Ajude a combater a censura global na Internet"
-
 msgid "vpn_settings"
 msgstr "Configurações de VPN"
 
@@ -171,9 +160,6 @@ msgstr "Dispositivos Lantern Pro"
 msgid "remove"
 msgstr "Remover"
 
-msgid "add_device"
-msgstr "Adicionar Dispositivo"
-
 msgid "danger_zone"
 msgstr "Zona de Perigo:"
 
@@ -197,9 +183,6 @@ msgstr ""
 
 msgid "delete_account_message_two"
 msgstr "Para confirmar a exclusão, digite sua senha abaixo"
-
-msgid "Submit Issue Report"
-msgstr "Digite a senha para confirmar"
 
 msgid "confirm_deletion"
 msgstr "Confirmar Exclusão"
@@ -234,23 +217,14 @@ msgstr "Seleção de Servidor"
 msgid "smart_location"
 msgstr "Localização Inteligente"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "Escolhe automaticamente a localização mais rápida"
-
 msgid "pro_locations"
 msgstr "Localizações Pro:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "Escolha sua localização com o Lantern Pro:"
 
 msgid "language"
 msgstr "Idioma"
 
 msgid "sign_in"
 msgstr "Entrar"
-
-msgid "sign_out"
-msgstr "Sair"
 
 msgid "check_for_updates"
 msgstr "Verificar Atualizações"
@@ -262,9 +236,6 @@ msgid "android_sideload_update_available_message"
 msgstr ""
 "O Lantern %s está disponível. O Lantern vai baixar e verificar o APK antes "
 "de abrir o instalador do Android."
-
-msgid "download_and_install_update"
-msgstr "Baixar e instalar"
 
 msgid "allow_unknown_app_installs"
 msgstr "Permitir instalação de apps"
@@ -281,9 +252,6 @@ msgid "android_sideload_install_failed_message"
 msgstr ""
 "O Lantern não conseguiu verificar ou instalar esta atualização. Tente "
 "novamente mais tarde."
-
-msgid "lantern_is_up_to_date"
-msgstr "O Lantern está atualizado."
 
 msgid "support"
 msgstr "Suporte"
@@ -311,9 +279,6 @@ msgstr "Não consigo acessar sites bloqueados"
 msgid "cannot_complete_purchase"
 msgstr "Não consigo concluir a compra"
 
-msgid "discover_not_working"
-msgstr "Discover não está funcionando"
-
 msgid "cannot_sign_in"
 msgstr "Não consigo entrar"
 
@@ -338,12 +303,6 @@ msgstr "A seleção de servidor não funciona"
 msgid "upgrade_fail"
 msgstr "Falha no upgrade para o Lantern Pro"
 
-msgid "wrong_device_linking_code"
-msgstr "Código de vinculação de dispositivo incorreto ou inválido"
-
-msgid "cannot_remove_device"
-msgstr "Não consigo remover dispositivo"
-
 msgid "application_crashes"
 msgstr "O aplicativo trava"
 
@@ -356,34 +315,11 @@ msgstr "Descreva seu problema"
 msgid "enter_password_to_confirm"
 msgstr "Digite a senha para confirmar"
 
-msgid "cannot_view_logs"
-msgstr ""
-"O Lantern não pode visualizar seus logs de diagnóstico a menos que você os "
-"envie para nós."
-
-msgid "split_tunneling_mode"
-msgstr "Modo de Tunelamento Dividido"
-
 msgid "apps_split_tunneling"
 msgstr "Tunelamento Dividido de Apps"
 
 msgid "website_split_tunneling"
 msgstr "Tunelamento Dividido de Sites"
-
-msgid "iran_optimized"
-msgstr "Tunelamento dividido otimizado para Irã"
-
-msgid "china_optimized"
-msgstr "Tunelamento dividido otimizado para China"
-
-msgid "russia_optimized"
-msgstr "Tunelamento dividido otimizado para Rússia"
-
-msgid "global_optimized"
-msgstr "Tunelamento dividido otimizado para Global"
-
-msgid "enter_url"
-msgstr "Digite a URL"
 
 msgid "add"
 msgstr "Adicionar"
@@ -426,47 +362,6 @@ msgstr "Este link expirou. Por favor, solicite um novo."
 
 msgid "invalid_deep_link"
 msgstr "Este link é inválido. Por favor, solicite um novo."
-
-msgid "default_bypass"
-msgstr "Listas Padrão de Desvio"
-
-msgid "global_bypass_list"
-msgstr "Lista Global de Desvio"
-
-msgid "global_bypass_desc"
-msgstr "Sites confiáveis (HTTPS) com conteúdo não sensível."
-
-msgid "china_bypass_list"
-msgstr "Lista de Desvio da China"
-
-msgid "china_bypass_desc"
-msgstr "Sites livremente acessíveis na China. Atualizado regularmente."
-
-msgid "iran_bypass_list"
-msgstr "Lista de Desvio do Irã"
-
-msgid "iran_bypass_desc"
-msgstr "Sites livremente acessíveis no Irã. Atualizado regularmente."
-
-msgid "russia_bypass_list"
-msgstr "Lista de Desvio da Rússia"
-
-msgid "russia_bypass_desc"
-msgstr "Sites livremente acessíveis na Rússia. Atualizado regularmente."
-
-msgid "see_sites_included"
-msgstr "Veja os sites incluídos nas "
-
-msgid "default_lists_here"
-msgstr "listas padrão aqui"
-
-msgid "when_connected"
-msgstr "Quando conectado, os sites que você selecionar irão desviar da VPN."
-
-msgid "lantern_automatic"
-msgstr ""
-"O Lantern escolhe automaticamente quais apps e sites desviam da VPN com base"
-" na sua localização para melhor desempenho. "
 
 msgid "apps_bypassing_vpn"
 msgstr "Apps desviando da VPN (%d)"
@@ -561,9 +456,6 @@ msgstr "É necessário confirmar a senha"
 msgid "passwords_do_not_match"
 msgstr "As senhas não coincidem"
 
-msgid "activation_code"
-msgstr "Código de Ativação"
-
 msgid "activate_lantern_pro"
 msgstr "Ativar Lantern Pro"
 
@@ -618,10 +510,6 @@ msgstr "Essas regras variam por país e são atualizadas regularmente."
 msgid "view_the_full_list"
 msgstr "Veja a lista completa de regras de roteamento."
 
-msgid "turn_on_split_tunneling"
-msgstr ""
-"Ative o tunelamento dividido para personalizar quais sites usam a VPN."
-
 msgid "welcome_to_lantern_pro"
 msgstr "Bem-vindo ao Lantern Pro!"
 
@@ -675,9 +563,6 @@ msgstr "Melhor Custo-Benefício!"
 msgid "choose_payment_method"
 msgstr "Escolha o Método de Pagamento"
 
-msgid "payment_information_encrypted"
-msgstr "Suas informações de pagamento são totalmente criptografadas."
-
 msgid "purchase_not_completed"
 msgstr ""
 "A compra não foi concluída. Você pode tentar novamente a qualquer momento ou"
@@ -700,22 +585,6 @@ msgstr "Bloquear Anúncios"
 msgid "only_active"
 msgstr "Ativo apenas quando a VPN está conectada"
 
-msgid "share_my_connection"
-msgstr "Compartilhar Minha Conexão"
-
-msgid "share_my_connection_subtitle"
-msgstr ""
-"Permita que outros usuários do Lantern roteiem pela sua conexão para "
-"contornar a censura."
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr ""
-"Ajude outras pessoas a contornar a censura compartilhando sua conexão com "
-"segurança."
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "Sobre o Action Mode"
@@ -730,53 +599,11 @@ msgstr "Desativado"
 msgid "smc_status_configuring"
 msgstr "Configurando a rede"
 
-msgid "smc_status_probing"
-msgstr "Analisando sua rede…"
-
-msgid "smc_status_active_unbounded"
-msgstr "Ativado"
-
-msgid "smc_status_active_smc"
-msgstr "Iniciando…"
-
-msgid "smc_status_mapping_port"
-msgstr "Abrindo porta no seu roteador…"
-
-msgid "smc_status_detecting_ip"
-msgstr "Detectando seu IP público…"
-
-msgid "smc_status_registering"
-msgstr "Registrando no Lantern…"
-
-msgid "smc_status_starting_proxy"
-msgstr "Iniciando o proxy local…"
-
-msgid "smc_status_verifying"
-msgstr "Verificando a conectividade…"
-
-msgid "smc_status_serving"
-msgstr "Ativado"
-
-msgid "smc_status_stopping"
-msgstr "Parando…"
-
 msgid "smc_status_error_with_message"
 msgstr "Não foi possível compartilhar: %s"
 
 msgid "smc_status_error_generic"
 msgstr "Não foi possível compartilhar — tente desligar e ligar novamente"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "Pessoas que você está ajudando agora:"
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "Total de pessoas ajudadas até hoje:"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -902,9 +729,6 @@ msgstr "Assinar"
 msgid "checkout"
 msgstr "Finalizar Compra"
 
-msgid "next_billing_date"
-msgstr "Próxima Data de Cobrança"
-
 msgid "vpn_may_be_needed"
 msgstr "VPN pode ser necessária"
 
@@ -931,39 +755,17 @@ msgstr "Configurar usando Google Cloud Platform"
 msgid "continue_with_do"
 msgstr "Continuar com DigitalOcean"
 
-msgid "do_allows"
-msgstr ""
-"A DigitalOcean permite que você escolha uma localização de servidor entre as"
-" %d opções abaixo"
-
 msgid "server_setup_gcp_price"
 msgstr "Apenas %s por mês através do GCP"
 
 msgid "continue_with_gcp"
 msgstr "Continuar com Google"
 
-msgid "gcp_allows"
-msgstr ""
-"O Google Cloud Platform permite que você escolha uma localização de servidor"
-" entre as %d opções abaixo:"
-
-msgid "server_setup_aws"
-msgstr "Configurar um servidor privado na AWS"
-
-msgid "server_setup_aws_price"
-msgstr "Apenas %s por mês através do AWS"
-
 msgid "server_setup_manual"
 msgstr "Configurar Manualmente"
 
 msgid "seamless_integration"
 msgstr "Integração perfeita com o Lantern"
-
-msgid "easiest_setup"
-msgstr "Processo de configuração mais fácil"
-
-msgid "multiple_location_options"
-msgstr "Múltiplas opções de localização de servidor"
 
 msgid "one_month_included"
 msgstr "%d TB/mês de dados incluídos"
@@ -1042,29 +844,11 @@ msgstr "Escolha Sua Conta"
 msgid "choose_your_project"
 msgstr "Escolha seu projeto"
 
-msgid "name_your_google_cloud_project"
-msgstr "Nomeie seu Projeto Google Cloud"
-
 msgid "billing_account"
 msgstr "Conta de Cobrança"
 
-msgid "billing_account_placeholder"
-msgstr "Conta de cobrança para %s"
-
 msgid "server_name"
 msgstr "Nome do Servidor"
-
-msgid "google_project"
-msgstr "Projeto Google"
-
-msgid "field_name_required"
-msgstr "Nome obrigatório"
-
-msgid "choose_google_account"
-msgstr "Escolha a conta de cobrança do Google"
-
-msgid "server_name_placeholder"
-msgstr "Servidor do Derek"
 
 msgid "change"
 msgstr "Alterar"
@@ -1078,40 +862,6 @@ msgstr "Escolha Sua Localização"
 msgid "start_deployment"
 msgstr "Iniciar Implantação"
 
-msgid "server_name_description"
-msgstr "Como o servidor aparecerá na lista de seleção de servidores."
-
-msgid "select_private_server_region"
-msgstr ""
-"Selecione uma região para seu Servidor Privado. Localizações mais próximas "
-"podem melhorar a velocidade e latência."
-
-msgid "gcp_location_options"
-msgstr "Opções de Localização do Google Cloud Platform (%d):"
-
-msgid "australia_sydney"
-msgstr "Austrália - Sydney"
-
-msgid "belgium_stghislain"
-msgstr "Bélgica - St. Ghislain"
-
-msgid "brazil_saopaulo"
-msgstr "São Paulo"
-
-msgid "us_los_angeles"
-msgstr "EUA - Los Angeles"
-
-msgid "japan_tokyo"
-msgstr "Japão - Tóquio"
-
-msgid "deploying_private_server"
-msgstr "Implantando Servidor Privado"
-
-msgid "deploying_server_status"
-msgstr ""
-"Aguarde! Seu Servidor Privado está sendo configurado. Isso pode levar alguns"
-" minutos."
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "Aguarde! Seu Servidor Privado está sendo configurado. Isso pode levar alguns"
@@ -1119,19 +869,6 @@ msgstr ""
 
 msgid "cancel_server_deployment"
 msgstr "Cancelar Implantação do Servidor"
-
-msgid "server_ready_title"
-msgstr "Servidor Privado Está Pronto"
-
-msgid "server_ready_message"
-msgstr ""
-"Seu Servidor Privado foi configurado e adicionado à sua lista de servidores."
-" Você está pronto para conectar!"
-
-msgid "server_failed_message"
-msgstr ""
-"Algo deu errado ao configurar seu Servidor Privado. Você pode tentar "
-"novamente ou tentar mais tarde."
 
 msgid "close"
 msgstr "Fechar"
@@ -1141,9 +878,6 @@ msgstr "Conectar Agora"
 
 msgid "server_setup_failed"
 msgstr "Falha na Configuração do Servidor"
-
-msgid "cancel_deployment"
-msgstr "Cancelar Implantação"
 
 msgid "server_setup_failed_message"
 msgstr ""
@@ -1155,9 +889,6 @@ msgstr "Sair"
 
 msgid "retry"
 msgstr "Tentar Novamente"
-
-msgid "all_required_fields"
-msgstr "Por favor, preencha todos os campos obrigatórios."
 
 msgid "private_server_ready"
 msgstr "Servidor Privado Está Pronto!"
@@ -1193,9 +924,6 @@ msgstr "Verificar Servidor"
 
 msgid "vpn_client_not_setup"
 msgstr "Por favor, ative o cliente VPN."
-
-msgid "continue_with"
-msgstr "Continuar com"
 
 msgid "join_a_private_server"
 msgstr "Entrar em um Servidor Privado"
@@ -1248,9 +976,6 @@ msgstr ""
 msgid "generate_access_key"
 msgstr "Gerar Chave de Acesso"
 
-msgid "invite_name"
-msgstr "Nome do Convite"
-
 msgid "trust_server_operator"
 msgstr "Confie no Operador do Servidor"
 
@@ -1270,11 +995,6 @@ msgstr ""
 "Se você não tem certeza de quem opera o servidor ou como ele está "
 "configurado, recomendamos usar um dos servidores Lantern padrão disponíveis "
 "na sua lista de servidores."
-
-msgid "invalid_server_details"
-msgstr ""
-"Detalhes do servidor inválidos. Por favor, verifique a chave de acesso e "
-"tente novamente."
 
 msgid "lantern_servers"
 msgstr "Servidores Lantern"
@@ -1331,9 +1051,6 @@ msgstr "Servidores premium com menos congestionamento"
 
 msgid "advanced_anti_censorship"
 msgstr "Tecnologia avançada anti-censura"
-
-msgid "exclusive_access_new_features"
-msgstr "Acesso exclusivo a novos recursos"
 
 msgid "connect_up_to_five_devices"
 msgstr "Conecte até 5 dispositivos"
@@ -1421,9 +1138,6 @@ msgstr "Por favor, digite um email válido"
 msgid "please_select_an_issue"
 msgstr "Por favor, selecione um problema"
 
-msgid "please_enter_issue_description"
-msgstr "Por favor, digite uma descrição do problema"
-
 msgid "thanks_for_feedback"
 msgstr "Obrigado pelo seu feedback!"
 
@@ -1439,20 +1153,11 @@ msgstr "Selecionar Todos"
 msgid "no_websites_selected"
 msgstr "Nenhum site selecionado"
 
-msgid "enter_activation_code"
-msgstr "Digite um Código de Ativação"
-
 msgid "restore_purchase"
 msgstr "Restaurar Compra"
 
 msgid "already_purchased"
 msgstr "Já comprou?"
-
-msgid "restore_purchase_success"
-msgstr "Compra restaurada com sucesso."
-
-msgid "restore_purchase_no_purchases"
-msgstr "Nenhuma compra foi encontrada para restaurar."
 
 msgid "do_private_server_setup"
 msgstr "Configuração de Servidor Privado DO"
@@ -1506,9 +1211,6 @@ msgstr "Data de Renovação da Assinatura"
 msgid "pro_access_until"
 msgstr "Acesso Pro até %s"
 
-msgid "enabled_bypass_lists"
-msgstr "Listas de desvio ativadas (%d):"
-
 msgid "diagnostic_logs"
 msgstr "Logs de Diagnóstico"
 
@@ -1556,9 +1258,6 @@ msgstr "Adicionar um Código de Indicação"
 msgid "referral_code"
 msgstr "Código de Indicação"
 
-msgid "update_fails"
-msgstr "A atualização falhou"
-
 msgid "scan_qr_code"
 msgstr "Escanear Código QR"
 
@@ -1571,26 +1270,6 @@ msgstr "Nós cuidamos da configuração, apenas cadastre-se."
 msgid "90_day_free_trial"
 msgstr "Teste grátis de 90 dias"
 
-msgid "identity_changed"
-msgstr "Identidade Alterada para %s"
-
-msgid "identity_changed_message"
-msgstr ""
-"A impressão digital de segurança de %s mudou. Isso pode indicar adulteração "
-"ou configuração incorreta."
-
-msgid "recommendation"
-msgstr "Recomendação:"
-
-msgid "recommendation_message"
-msgstr ""
-"Recomendamos remover %s do Lantern e excluí-lo da sua conta do provedor de "
-"nuvem, depois configurar um novo servidor para garantir que sua conexão "
-"permaneça segura."
-
-msgid "remove_server"
-msgstr "Remover Servidor"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "O apelido do servidor não pode estar vazio"
 
@@ -1600,14 +1279,8 @@ msgstr "Seu código de indicação foi aplicado!"
 msgid "discount_applied"
 msgstr "Desconto de %s aplicado"
 
-msgid "referral_message_1m"
-msgstr "+ 15 dias extras grátis"
-
 msgid "referral_message_1y"
 msgstr "+ 1 mês extra grátis"
-
-msgid "referral_message_2y"
-msgstr "+ 2 meses adicionais grátis"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1622,29 +1295,6 @@ msgstr ""
 msgid "free"
 msgstr "Grátis"
 
-msgid "monthly_plan"
-msgstr "Plano mensal:"
-
-msgid "15_days_each"
-msgstr "+15 dias cada"
-
-msgid "annual_plan"
-msgstr "Plano anual:"
-
-msgid "1_month_each"
-msgstr "+1 mês cada"
-
-msgid "two_year_plan"
-msgstr "Plano de dois anos:"
-
-msgid "2_month_each"
-msgstr "+2 meses cada"
-
-msgid "referral_code_info"
-msgstr ""
-"Ainda não é usuário do Lantern Pro? Você se tornará um quando sua primeira "
-"indicação assinar"
-
 msgid "lantern_pro_license"
 msgstr "Licença Lantern Pro"
 
@@ -1656,12 +1306,6 @@ msgstr "Licença do Lantern Pro inválida"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "A licença do Lantern Pro deve ter 25 caracteres"
-
-msgid "select_account"
-msgstr "Selecionar Conta"
-
-msgid "new_to_lantern"
-msgstr "Novo no Lantern?"
 
 msgid "create_an_account"
 msgstr "Criar uma conta"
@@ -1705,11 +1349,6 @@ msgstr ""
 msgid "how_to_add_billing_details"
 msgstr "Como adicionar detalhes de cobrança:"
 
-msgid "add_payment_method_message"
-msgstr ""
-"Por favor, adicione um método de pagamento à sua conta DigitalOcean. Se já "
-"adicionou, aguarde alguns minutos e tente novamente."
-
 msgid "ok"
 msgstr "Ok"
 
@@ -1729,14 +1368,6 @@ msgid "developer_mode_note"
 msgstr ""
 "O Modo de Desenvolvedor é estritamente para Desenvolvedores do Lantern "
 "testarem recursos durante o desenvolvimento."
-
-msgid "invalid_activation_code"
-msgstr ""
-"Código de ativação inválido. Por favor, verifique o código e tente "
-"novamente."
-
-msgid "invalid_activation_code_length"
-msgstr "O código de ativação deve ter 25 caracteres."
 
 msgid "error_while_vpn_connection"
 msgstr ""
@@ -1769,9 +1400,6 @@ msgstr "Dados de Uso Anônimos"
 
 msgid "helps_improve_lantern_performance"
 msgstr "Ajuda a melhorar o desempenho do Lantern"
-
-msgid "changes_applied_after_restart"
-msgstr "As alterações serão aplicadas após reiniciar o Lantern."
 
 msgid "email_deliverability_notice"
 msgstr "Aviso de Entregabilidade de E-mail"
@@ -1815,9 +1443,6 @@ msgstr "Adicione aplicativos e sites para ignorar a VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "Sua licença do Lantern Pro será aplicada à sua conta existente"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "Sua compra será aplicada à sua conta existente"
 
 msgid "daily_data_cap_reached"
 msgstr "Limite diário de dados atingido"
@@ -1870,14 +1495,6 @@ msgstr "Assinatura Expirada"
 
 msgid "pro"
 msgstr "Pro"
-
-msgid "pro_subscription_expired_message"
-msgstr ""
-"A assinatura do Lantern Pro expirou. Renove para restaurar dados ilimitados "
-"e recursos Pro."
-
-msgid "last_subscription_renewal_date"
-msgstr "Data da Última Renovação da Assinatura"
 
 msgid "set_account_password"
 msgstr "Definir Senha da Conta"
