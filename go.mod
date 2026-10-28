@@ -34,7 +34,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/common v1.2.1-0.20261025061526-9182c99db6fa
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261025062735-8c9bd6e53983
+	github.com/getlantern/radiance v0.0.0-20261027222415-a9b4d3364a4a
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb
@@ -176,11 +176,11 @@ require (
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20260731172949-952f13725b7b // indirect
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
-	github.com/getlantern/broflake v0.0.0-20261025054750-ae5d221dcc21 // indirect
-	github.com/getlantern/domainfront v0.0.0-20260915172349-4984689a8667 // indirect
+	github.com/getlantern/broflake v0.0.0-20261027185621-f3e54408e4f0 // indirect
+	github.com/getlantern/domainfront v0.0.0-20261026202828-9727b2f2a34a // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20261009194109-22f33eaeac6e // indirect
-	github.com/getlantern/kindling v0.0.0-20261022170147-217b175b5057 // indirect
-	github.com/getlantern/lantern-box v0.0.174 // indirect
+	github.com/getlantern/kindling v0.0.0-20261026211804-dac6d561f52e // indirect
+	github.com/getlantern/lantern-box v0.0.176 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
