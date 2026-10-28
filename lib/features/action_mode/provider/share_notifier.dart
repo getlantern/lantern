@@ -310,8 +310,13 @@ class ShareNotifier extends _$ShareNotifier {
       _helperStartPending = true;
       return;
     }
-    _helperStartPending = false;
-    await _autoStartWith(() => _startAuto(widgetRef));
+    // Held until a start actually proceeds: one skipped because another
+    // change is in flight or sharing is already up is retried later.
+    _helperStartPending = true;
+    await _autoStartWith(() {
+      _helperStartPending = false;
+      return _startAuto(widgetRef);
+    });
   }
 
   /// Retries a helper start held back by [startForHelper]. Called when the

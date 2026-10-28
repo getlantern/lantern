@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -55,6 +57,9 @@ class _FakeService implements LanternService {
     return right(false);
   }
 
+  /// When set, setUnboundedEnabled waits for it, holding a start in flight.
+  Completer<void>? unboundedGate;
+
   /// By default Unbounded fails to start, so a start ends without touching
   /// app settings.
   bool unboundedOk = false;
@@ -62,6 +67,7 @@ class _FakeService implements LanternService {
   @override
   Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
     calls.add('unbounded:$enabled');
+    await unboundedGate?.future;
     if (unboundedOk) return right(unit);
     return left(Failure(error: 'test', localizedErrorMessage: 'test'));
   }
@@ -337,6 +343,26 @@ void main() {
       (ref.read(helpersProvider.notifier) as _Helpers).helpSomeone();
       await notifier.retryPendingHelperStart(ref);
       expect(service.calls, isEmpty);
+    });
+
+    testWidgets('a retry skipped while another start is in flight keeps the '
+        'held-back start', (tester) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      service.unboundedGate = Completer<void>();
+      final other = notifier.autoStart(ref);
+      await tester.pump();
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['unbounded:true'], reason: 'the retry is skipped');
+      service.unboundedGate!.complete();
+      await other;
+      expect(notifier.state.active, isFalse);
+      service.calls.clear();
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
     });
 
     testWidgets('a held-back start stays held in a censored country', (
