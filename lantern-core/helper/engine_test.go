@@ -842,3 +842,19 @@ func TestAFailedSaveIsRetriedByTheNextOp(t *testing.T) {
 	assert.NotEmpty(t, p.InviteHash)
 	assert.Empty(t, again.st.Claims)
 }
+
+// TestABlankListedIDDropsNothing: a listing with an entry that lacks its id
+// may be missing a pairing this device holds, so no pairing (or its name)
+// is dropped; the valid entries still merge.
+func TestABlankListedIDDropsNothing(t *testing.T) {
+	e := newTestEngine(t, newFakeCloud(), "ali", t.TempDir())
+	e.addPairing("p1", RoleVolunteer, "Sara", time.Unix(1, 0), nil)
+	changed := e.mergePairings([]listedPairing{{Role: RoleVolunteer}, {PairingID: "p2", Role: RoleInviter}})
+	assert.True(t, changed)
+	require.Len(t, e.st.Pairings, 2)
+	assert.Equal(t, "Sara", e.pairing("p1").Name)
+	assert.NotNil(t, e.pairing("p2"))
+	assert.True(t, e.mergePairings([]listedPairing{{PairingID: "p2", Role: RoleInviter}}), "a complete listing drops")
+	assert.Nil(t, e.pairing("p1"))
+}
+

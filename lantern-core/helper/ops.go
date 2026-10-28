@@ -323,9 +323,12 @@ func (e *Engine) dropVolunteerSide() bool {
 func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 	seen := map[string]bool{}
 	e.online = map[string]bool{}
+	complete := true
 	for _, lp := range listed {
 		if lp.PairingID == "" {
-			// A malformed entry: nothing to add, and not a new pairing.
+			// A malformed entry: nothing to add, and not a new pairing. It
+			// may be a pairing this device holds, so nothing is dropped.
+			complete = false
 			continue
 		}
 		seen[lp.PairingID] = true
@@ -343,6 +346,9 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 		}
 		e.addPairing(lp.PairingID, lp.Role, name, time.Unix(int64(lp.CreatedUnix), 0), hash)
 		changed = true
+	}
+	if !complete {
+		return changed
 	}
 	n := len(e.st.Pairings)
 	e.st.Pairings = slices.DeleteFunc(e.st.Pairings, func(p *pairing) bool { return !seen[p.ID] })
