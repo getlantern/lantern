@@ -728,3 +728,33 @@ func TestMergeSkipsEntriesWithoutPairingID(t *testing.T) {
 	assert.False(t, newHelping)
 	assert.Empty(t, e.st.Pairings)
 }
+
+// TestEndAllHelpersEndsAPairingKnownOnlyRemotely: an approval whose answer
+// was lost leaves a pairing this device never recorded. Remove all drops the
+// invite (its claim is no longer pending) and still ends that pairing.
+func TestEndAllHelpersEndsAPairingKnownOnlyRemotely(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	id := list(call(t, sara, "refresh", nil), "invites")[0]["id"]
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "decide", map[string]any{"invite_id": id, "approve": true}))
+	require.Len(t, cloud.pairings, 1)
+	assert.Empty(t, list(call(t, sara, "view", nil), "helpers"))
+
+	cloud.fail["pairings/end"] = 503
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "end_all_helpers", nil), "a failed end is reported")
+	require.Len(t, cloud.pairings, 1)
+	helpers := list(call(t, sara, "view", nil), "helpers")
+	require.Len(t, helpers, 1, "the pairing still in force is shown")
+	assert.Equal(t, "", helpers[0]["name"])
+
+	delete(cloud.fail, "pairings/end")
+	sv := call(t, sara, "end_all_helpers", nil)
+	assert.Empty(t, cloud.pairings)
+	assert.Empty(t, list(sv, "helpers"))
+	assert.Empty(t, list(sv, "invites"))
+	assert.Equal(t, true, call(t, sara, "refresh", nil)["helpers_changed"], "the config drops its route")
+}

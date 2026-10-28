@@ -607,5 +607,58 @@ func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
 	if err := e.save(); err != nil {
 		return nil, err
 	}
-	return e.view(false), nil
+	newHelping, err := e.endRemoteHelpers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return e.view(newHelping), nil
+}
+
+// endRemoteHelpers ends the pairings in which lantern-cloud says this device
+// is helped, including any this device never learned of (an approval whose
+// answer was lost, whose invite cancelInvite then dropped). Each is tried; the
+// first failure is reported. The listing also carries the volunteer side, and
+// an inviter's blob is delivered only once, so it is merged as refresh does.
+func (e *Engine) endRemoteHelpers(ctx context.Context) (bool, error) {
+	var list struct {
+		Pairings []listedPairing `json:"pairings"`
+	}
+	err := e.post(ctx, "pairings", struct{}{}, &list)
+	if isCode(err, CodeDisabled) {
+		// lantern-cloud lets a device without the flag list and end only the
+		// pairings it volunteers in, so it is helped in none.
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	var firstErr error
+	kept := make([]listedPairing, 0, len(list.Pairings))
+	for _, lp := range list.Pairings {
+		if lp.Role != RoleInviter || lp.PairingID == "" {
+			kept = append(kept, lp)
+			continue
+		}
+		err := e.post(ctx, "pairings/end", pairingRef{PairingID: lp.PairingID}, nil)
+		if err != nil && !isCode(err, CodeNotFound) {
+			// Still there: shown, without a name, until it is ended.
+			kept = append(kept, lp)
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		if err == nil {
+			// lantern-cloud's config carried this pairing's route.
+			e.helpersPending = true
+		}
+	}
+	merged, newHelping := e.mergePairings(kept)
+	if merged {
+		_ = e.post(ctx, opRefreshTickets, struct{}{}, nil)
+	}
+	if err := e.save(); err != nil {
+		return false, err
+	}
+	return newHelping, firstErr
 }
