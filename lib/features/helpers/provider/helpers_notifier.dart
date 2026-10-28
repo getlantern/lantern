@@ -273,7 +273,13 @@ class HelpersNotifier extends _$HelpersNotifier {
 
   Future<void> _refetchConfig() async {
     try {
-      await _svc.sendConfigRequest();
+      final res = await _svc.sendConfigRequest();
+      if (res.isLeft()) {
+        // The feature flags cached now are the stale ones; radiance's own
+        // config poll fetches both later.
+        appLogger.error('helper: refetching config failed');
+        return;
+      }
       if (ref.mounted) {
         await ref.read(featureFlagProvider.notifier).fetchFeatureFlags();
       }

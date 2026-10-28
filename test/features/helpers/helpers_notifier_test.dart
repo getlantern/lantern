@@ -64,15 +64,24 @@ class _Service implements LanternService {
     return right(unit);
   }
 
+  bool configFails = false;
+  int flagReads = 0;
+
   @override
   Future<Either<Failure, Unit>> sendConfigRequest() async {
     configRequests++;
     if (configThrows) throw StateError('config');
+    if (configFails) {
+      return left(Failure(error: 'config', localizedErrorMessage: 'config'));
+    }
     return right(unit);
   }
 
   @override
-  Future<Either<Failure, String>> featureFlag() async => right(flags);
+  Future<Either<Failure, String>> featureFlag() async {
+    flagReads++;
+    return right(flags);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -557,6 +566,21 @@ void main() {
     await c.read(helpersProvider.notifier).refresh();
     await Future<void>.delayed(Duration.zero);
     expect(svc.configRequests, 1);
+  });
+
+  test('a failed config fetch does not reread the stale flags', () async {
+    svc.answers = {'unlock': _view(), 'refresh': _view(newHelping: true)};
+    svc.configFails = true;
+    final c = container();
+    await c.read(helpersProvider.notifier).refresh();
+    await Future<void>.delayed(Duration.zero);
+    expect(svc.configRequests, 1);
+    expect(svc.flagReads, 0);
+    svc.configFails = false;
+    await c.read(helpersProvider.notifier).refresh();
+    await Future<void>.delayed(Duration.zero);
+    expect(svc.configRequests, 2);
+    expect(svc.flagReads, greaterThan(0));
   });
 
   group('helperInvitesAvailableProvider', () {
