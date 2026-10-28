@@ -72,6 +72,20 @@ BASE_MANIFEST = """\
                 <data android:scheme="https" android:host="www.lantern.io" />
             </intent-filter>
         </activity>
+        <activity-alias
+            android:name=".HelperInviteLinks"
+            android:targetActivity=".MainActivity"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <data android:scheme="https" android:host="lantern.io" android:path="/help" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <data android:scheme="lantern" android:host="help" />
+            </intent-filter>
+        </activity-alias>
         <service
             android:name=".service.LanternVpnService"
             android:permission="android.permission.BIND_VPN_SERVICE">
@@ -279,6 +293,18 @@ class VpnModeTest(unittest.TestCase):
                             msg=f"deep-link intent-filter with scheme={scheme!r} survived")
                 return
         self.fail(f"{f.STEALTH_ACTIVITY_NAME} not found")
+
+    def test_alias_deeplink_filters_stripped(self) -> None:
+        # An alias's filters would otherwise ship lantern.io links (and an
+        # autoVerify fetch of lantern.io) in a stealth build.
+        aliases = self.app.findall("activity-alias")
+        self.assertTrue(aliases)
+        for alias in aliases:
+            self.assertEqual(alias.findall("intent-filter"), [])
+            self.assertEqual(
+                alias.attrib.get(f"{ANDROID}targetActivity"),
+                f.STEALTH_ACTIVITY_NAME,
+            )
 
     # ── Class-name rewrite applied ─────────────────────────────────────────
 

@@ -29,6 +29,7 @@ ANDROID_PERMISSION = f"{{{ANDROID_URI}}}permission"
 ANDROID_EXPORTED = f"{{{ANDROID_URI}}}exported"
 ANDROID_FOREGROUND_SERVICE_TYPE = f"{{{ANDROID_URI}}}foregroundServiceType"
 ANDROID_VALUE = f"{{{ANDROID_URI}}}value"
+ANDROID_TARGET_ACTIVITY = f"{{{ANDROID_URI}}}targetActivity"
 
 STEALTH_MODES = {"vpn", "novpn"}
 
@@ -210,6 +211,10 @@ def rewrite_stealth_components(application: ET.Element) -> None:
         if android_attr(activity, ANDROID_NAME) in BASE_ACTIVITY_NAMES:
             activity.set(ANDROID_NAME, STEALTH_ACTIVITY_NAME)
 
+    for alias in application.findall("activity-alias"):
+        if android_attr(alias, ANDROID_TARGET_ACTIVITY) in BASE_ACTIVITY_NAMES:
+            alias.set(ANDROID_TARGET_ACTIVITY, STEALTH_ACTIVITY_NAME)
+
     for service in application.findall("service"):
         service_name = android_attr(service, ANDROID_NAME)
         if service_name in BASE_VPN_SERVICE_NAMES:
@@ -288,7 +293,11 @@ def filter_manifest(input_path: Path, output_path: Path, mode: str) -> None:
         application.set(ANDROID_CLEAR_TEXT, "false")
         rewrite_stealth_components(application)
 
-        for activity in application.findall("activity"):
+        # Aliases too: their filters would ship lantern.io links, and an
+        # autoVerify filter makes Android fetch lantern.io at install.
+        for activity in application.findall("activity") + application.findall(
+            "activity-alias"
+        ):
             remove_matching(
                 activity,
                 lambda el: el.tag == "intent-filter" and is_deeplink_intent_filter(el),
