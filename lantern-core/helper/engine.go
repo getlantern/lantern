@@ -170,6 +170,10 @@ type View struct {
 	Helping    []PairingView `json:"helping"`
 	Activity   *Activity     `json:"activity,omitempty"`
 	NewHelping bool          `json:"new_helping"`
+	// HelpersChanged is set in refresh's answer when it added or dropped a
+	// pairing in which this device is helped, so the app fetches the config
+	// that carries those helpers' routes.
+	HelpersChanged bool `json:"helpers_changed,omitempty"`
 	// KeystoreReset is set only in unlock's answer, when the old state could
 	// not be opened and was kept as state.bin.bak.
 	KeystoreReset bool `json:"keystore_reset,omitempty"`
@@ -182,6 +186,7 @@ type InviteView struct {
 	ExpiresUnix   int64  `json:"expires_unix"`
 	Code          string `json:"code,omitempty"`
 	VolunteerName string `json:"volunteer_name,omitempty"`
+	InviterName   string `json:"inviter_name,omitempty"`
 }
 
 type ClaimView struct {

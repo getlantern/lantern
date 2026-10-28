@@ -18,6 +18,7 @@ const (
 	CodeDisabled        = "disabled"
 	CodeNotFound        = "not_found"
 	CodeAlreadyClaimed  = "already_claimed"
+	CodeAlreadyHelping  = "already_helping"
 	CodeNoPendingClaim  = "no_pending_claim"
 	CodeTooManyInvites  = "too_many_invites"
 	CodeTooManyPairings = "too_many_pairings"

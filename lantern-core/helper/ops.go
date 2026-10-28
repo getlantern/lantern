@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"maps"
 	"slices"
 	"time"
 
@@ -91,11 +92,22 @@ func (e *Engine) dropPairing(id string) {
 	e.st.Pairings = slices.DeleteFunc(e.st.Pairings, func(p *pairing) bool { return p.ID == id })
 }
 
-func (e *Engine) addPairing(id, role, name string, since time.Time) {
+func (e *Engine) addPairing(id, role, name string, since time.Time, inviteHash []byte) {
 	if id == "" || e.pairing(id) != nil {
 		return
 	}
-	e.st.Pairings = append(e.st.Pairings, &pairing{ID: id, Role: role, Name: name, Since: since})
+	e.st.Pairings = append(e.st.Pairings, &pairing{ID: id, Role: role, Name: name, Since: since, InviteHash: inviteHash})
+}
+
+// inviterPairings is the set of pairings in which this device is helped.
+func (e *Engine) inviterPairings() map[string]bool {
+	ids := map[string]bool{}
+	for _, p := range e.st.Pairings {
+		if p.Role == RoleInviter {
+			ids[p.ID] = true
+		}
+	}
+	return ids
 }
 
 func (e *Engine) prune() bool {
@@ -114,7 +126,7 @@ func (e *Engine) view(newHelping bool) View {
 			continue
 		}
 		iv := InviteView{ID: i.ID, State: i.State, ExpiresUnix: i.Created.Add(InviteTTL).Unix(),
-			Code: i.Code, VolunteerName: i.VolunteerName}
+			Code: i.Code, VolunteerName: i.VolunteerName, InviterName: i.InviterName}
 		if i.State == "pending" {
 			iv.Link = helperinvite.Link(i.Secret)
 		}
@@ -172,11 +184,16 @@ func (e *Engine) createInvite(ctx context.Context, args []byte) (any, error) {
 
 func (e *Engine) refresh(ctx context.Context) (any, error) {
 	changed := false
+	helpersBefore := e.inviterPairings()
+	cutoff := e.now().Add(-InviteTTL)
 	for _, inv := range slices.Clone(e.st.Invites) {
 		var st inviteStatus
 		err := e.post(ctx, "invites/get", inviteRef{InviteHash: helperinvite.InviteHash(inv.Secret)}, &st)
-		if isCode(err, CodeNotFound) {
-			e.dropInvite(inv.ID) // expired and swept
+		if isCode(err, CodeNotFound) || (isCode(err, CodeDisabled) && inv.Created.Before(cutoff)) {
+			// Expired and swept; or past its expiry on a device whose flag
+			// is off, which can no longer ask about it: forget it rather
+			// than fail every refresh.
+			e.dropInvite(inv.ID)
 			changed = true
 			continue
 		}
@@ -228,7 +245,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 				}
 				return nil, errCode(CodeUnavailable)
 			}
-			e.addPairing(st.PairingID, RoleInviter, inv.VolunteerName, e.now())
+			e.addPairing(st.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil)
 			e.dropInvite(inv.ID)
 			changed = true
 		case "rejected":
@@ -286,7 +303,9 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 			return nil, err
 		}
 	}
-	return e.view(newHelping), nil
+	v := e.view(newHelping)
+	v.HelpersChanged = !maps.Equal(helpersBefore, e.inviterPairings())
+	return v, nil
 }
 
 // dropVolunteerSide forgets every claim and every pairing this device
@@ -314,11 +333,12 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed, newHelping bool
 			continue
 		}
 		name := ""
+		var hash []byte
 		if lp.Role == RoleVolunteer {
 			newHelping = true
-			name = e.claimName(lp.InviterBlob)
+			name, hash = e.claimName(lp.InviterBlob)
 		}
-		e.addPairing(lp.PairingID, lp.Role, name, time.Unix(int64(lp.CreatedUnix), 0))
+		e.addPairing(lp.PairingID, lp.Role, name, time.Unix(int64(lp.CreatedUnix), 0), hash)
 		changed = true
 	}
 	n := len(e.st.Pairings)
@@ -326,17 +346,19 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed, newHelping bool
 	return changed || n != len(e.st.Pairings), newHelping
 }
 
-func (e *Engine) claimName(blob []byte) string {
+// claimName returns the inviter's name and the invite hash of the pending
+// claim whose key opens blob, and drops that claim.
+func (e *Engine) claimName(blob []byte) (string, []byte) {
 	if len(blob) == 0 {
-		return ""
+		return "", nil
 	}
 	for _, c := range e.st.Claims {
 		if name, err := helperinvite.OpenName(helperinvite.InviterNameKey(c.Secret), blob); err == nil {
 			e.dropClaim(c.ID)
-			return name
+			return name, helperinvite.InviteHash(c.Secret)
 		}
 	}
-	return ""
+	return "", nil
 }
 
 func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
@@ -384,7 +406,7 @@ func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
 			// next refresh reads the approval with its pairing.
 			return nil, errCode(CodeUnavailable)
 		}
-		e.addPairing(resp.PairingID, RoleInviter, inv.VolunteerName, e.now())
+		e.addPairing(resp.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil)
 		e.dropInvite(inv.ID)
 	}
 	if err := e.save(); err != nil {
@@ -447,6 +469,16 @@ func (e *Engine) claim(ctx context.Context, args []byte) (any, error) {
 			return nil, errCode(CodeOwnInvite)
 		}
 	}
+	hash := helperinvite.InviteHash(s)
+	for _, p := range e.st.Pairings {
+		if p.Role == RoleVolunteer && len(p.InviteHash) > 0 && bytes.Equal(p.InviteHash, hash) {
+			// Re-opened after approval: a new claim would be lantern-cloud's
+			// 409, which reads as a link someone else used.
+			return nil, errCode(CodeAlreadyHelping)
+		}
+	}
+	// A claim already made for this link, confirmed or not, is answered with
+	// its own code. A confirmed one is not sent again.
 	var cl *claim
 	for _, c := range e.st.Claims {
 		if bytes.Equal(c.Secret, s) {
@@ -491,7 +523,7 @@ func (e *Engine) claim(ctx context.Context, args []byte) (any, error) {
 	if err != nil {
 		return nil, errCode(CodeInternal)
 	}
-	err = e.post(ctx, "invites/claim", claimReq{InviteHash: helperinvite.InviteHash(s),
+	err = e.post(ctx, "invites/claim", claimReq{InviteHash: hash,
 		VolunteerPubkey: priv.Public().(ed25519.PublicKey), VolunteerBlob: cl.Blob}, nil)
 	switch {
 	case err == nil, retry && isCode(err, CodeAlreadyClaimed):

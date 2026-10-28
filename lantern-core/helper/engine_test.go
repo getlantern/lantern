@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/chacha20poly1305"
 
 	"github.com/getlantern/broflake/common/helperinvite"
 )
@@ -538,4 +539,141 @@ func TestFailedTombstoneRejectChangesNothing(t *testing.T) {
 	delete(cloud.fail, "invites/decide")
 	call(t, sara, "refresh", nil)
 	assert.Empty(t, sara.st.Invites, "the next refresh rejects it")
+}
+
+func relayCalls(cloud *fakeCloud) int {
+	cloud.mu.Lock()
+	defer cloud.mu.Unlock()
+	n := 0
+	for _, b := range cloud.bodies {
+		n += len(b)
+	}
+	return n
+}
+
+// TestRefreshReportsHelpersChanged: a refresh that adds or drops a pairing in
+// which this device is helped says so, so the app fetches the config that
+// carries (or no longer carries) that helper's route. Other refreshes do not.
+func TestRefreshReportsHelpersChanged(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	sv := call(t, sara, "refresh", nil)
+	assert.Nil(t, sv["helpers_changed"], "a claim is not a helper yet")
+	id := list(sv, "invites")[0]["id"]
+
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "decide", map[string]any{"invite_id": id, "approve": true}))
+	sv = call(t, sara, "refresh", nil)
+	require.Len(t, list(sv, "helpers"), 1)
+	assert.Equal(t, true, sv["helpers_changed"], "the approval whose answer was lost adds a helper")
+	assert.Nil(t, call(t, sara, "refresh", nil)["helpers_changed"], "only the refresh that saw it")
+
+	av := call(t, ali, "refresh", nil)
+	assert.Equal(t, true, av["new_helping"])
+	assert.Nil(t, av["helpers_changed"], "a pairing this device volunteers in is not a helper")
+
+	pid := list(av, "helping")[0]["pairing_id"]
+	call(t, ali, "end_pairing", map[string]any{"pairing_id": pid})
+	sv = call(t, sara, "refresh", nil)
+	assert.Empty(t, list(sv, "helpers"))
+	assert.Equal(t, true, sv["helpers_changed"], "a helper the other side ended is dropped")
+	assert.Nil(t, call(t, sara, "refresh", nil)["helpers_changed"])
+}
+
+// TestReclaimWhilePairedIsAlreadyHelping: re-opening the link of an invite
+// this device already helps for (a re-tap in chat, or Android relaunching
+// with the original intent) must not post a second claim, whose 409 would
+// read as a link someone else used.
+func TestReclaimWhilePairedIsAlreadyHelping(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	aliDir := t.TempDir()
+	ali := newTestEngine(t, cloud, "ali", aliDir)
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	id := list(call(t, sara, "refresh", nil), "invites")[0]["id"]
+	call(t, sara, "decide", map[string]any{"invite_id": id, "approve": true})
+	av := call(t, ali, "refresh", nil)
+	require.Len(t, list(av, "helping"), 1)
+	assert.Empty(t, list(av, "claims"))
+	assert.Nil(t, list(av, "helping")[0]["invite_hash"], "the hash stays in the sealed state")
+
+	before := relayCalls(cloud)
+	assert.Equal(t, CodeAlreadyHelping, callErr(t, ali, "claim", map[string]any{"link": link, "name": "Ali"}))
+	again := newTestEngine(t, cloud, "ali", aliDir)
+	assert.Equal(t, CodeAlreadyHelping, callErr(t, again, "claim", map[string]any{"link": link, "name": "Ali"}),
+		"the hash survives a restart")
+	assert.Equal(t, before, relayCalls(cloud), "nothing is sent")
+}
+
+// TestReclaimPendingClaimReturnsItsCode: re-opening the link of a claim that
+// is waiting for approval shows the same code and sends nothing.
+func TestReclaimPendingClaimReturnsItsCode(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	aliDir := t.TempDir()
+	ali := newTestEngine(t, cloud, "ali", aliDir)
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	first := call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	before := relayCalls(cloud)
+	assert.Equal(t, first, call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"}))
+	assert.Equal(t, first, call(t, newTestEngine(t, cloud, "ali", aliDir), "claim",
+		map[string]any{"link": link, "name": "someone else"}))
+	assert.Equal(t, before, relayCalls(cloud), "nothing is sent")
+}
+
+// TestStateWithoutInviteHashesLoads: a state file written before pairings
+// kept their invite hash opens, and its pairings match no link.
+func TestStateWithoutInviteHashesLoads(t *testing.T) {
+	cloud := newFakeCloud()
+	dir := t.TempDir()
+	key := bytes.Repeat([]byte{1}, 32)
+	aead, err := chacha20poly1305.New(key)
+	require.NoError(t, err)
+	old := `{"v":1,"my_name":"Ali","pairings":[{"id":"p1","role":"volunteer","name":"Sara","since":"2026-10-01T00:00:00Z"}]}`
+	nonce := make([]byte, chacha20poly1305.NonceSize)
+	require.NoError(t, os.WriteFile(filepath.Join(dir, stateFile),
+		aead.Seal(nonce, nonce, []byte(old), []byte(stateAD)), 0o600))
+
+	ali := NewEngine(dir, cloud.relay("ali"), nil)
+	out := call(t, ali, "unlock", map[string]any{"key": testKey})
+	assert.Nil(t, out["keystore_reset"])
+	helping := list(out, "helping")
+	require.Len(t, helping, 1)
+	assert.Equal(t, "Sara", helping[0]["name"])
+
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	assert.Regexp(t, `^[0-9]{4}$`, call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})["code"])
+}
+
+// TestExpiredInviteOfFlagOffInviterIsPruned: once the inviter's flag is off,
+// invites/get answers the gate's 404. An invite past its expiry is forgotten
+// rather than failing every refresh; one still within it keeps failing, so
+// nothing is dropped that could still be decided.
+func TestExpiredInviteOfFlagOffInviterIsPruned(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	call(t, sara, "create_invite", map[string]any{"name": "Sara"})
+	cloud.flagOff["sara"] = true
+	assert.Equal(t, CodeDisabled, callErr(t, sara, "refresh", nil))
+	require.Len(t, sara.st.Invites, 1)
+	later := time.Now().Add(InviteTTL + time.Hour)
+	sara.now = func() time.Time { return later }
+	assert.Empty(t, list(call(t, sara, "refresh", nil), "invites"))
+	assert.Empty(t, sara.st.Invites)
+}
+
+func TestInviteViewCarriesItsOwnName(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	call(t, sara, "create_invite", map[string]any{"name": "Sara"})
+	call(t, sara, "create_invite", map[string]any{"name": "S. from work"})
+	iv := list(call(t, sara, "view", nil), "invites")
+	require.Len(t, iv, 2)
+	assert.Equal(t, "Sara", iv[0]["inviter_name"])
+	assert.Equal(t, "S. from work", iv[1]["inviter_name"])
 }

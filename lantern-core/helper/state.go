@@ -71,6 +71,10 @@ type pairing struct {
 	Role  string    `json:"role"`
 	Name  string    `json:"name,omitempty"`
 	Since time.Time `json:"since"`
+	// InviteHash is the hash of the invite a volunteer pairing came from, so
+	// re-opening that link is told apart from a link someone else used.
+	// State only; empty for pairings saved before it was kept.
+	InviteHash []byte `json:"invite_hash,omitempty"`
 }
 
 const (
