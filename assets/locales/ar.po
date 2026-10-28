@@ -1256,6 +1256,12 @@ msgstr "الخوادم الخاصة"
 msgid "fastest_server"
 msgstr "أسرع خادم"
 
+msgid "latency_testing"
+msgstr "جارٍ الاختبار…"
+
+msgid "latency_unreachable"
+msgstr "يتعذّر الوصول"
+
 msgid "join_my_private_server"
 msgstr "انضم إلى خادم Lantern الخاص بي"
 

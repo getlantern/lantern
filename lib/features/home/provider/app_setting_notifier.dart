@@ -119,6 +119,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   void setUnboundedTotalHelped(int value) =>
       update(state.copyWith(unboundedTotalHelped: value));
 
+  void setUnboundedSessionCount(int value) =>
+      update(state.copyWith(unboundedSessionCount: value));
+
   void setUnboundedRelayStats({
     required int bytesDown,
     required int bytesUp,

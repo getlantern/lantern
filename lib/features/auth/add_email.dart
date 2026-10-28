@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
@@ -19,7 +20,15 @@ class AddEmail extends StatefulHookConsumerWidget {
   /// all other times it will be null
   final String? password;
 
-  const AddEmail({super.key, this.authFlow = AuthFlow.signUp, this.password});
+  /// Web-licensing key to pre-fill once the email flow reaches the license screen.
+  final String licenseKey;
+
+  const AddEmail({
+    super.key,
+    this.authFlow = AuthFlow.signUp,
+    this.password,
+    this.licenseKey = '',
+  });
 
   @override
   ConsumerState<AddEmail> createState() => _AddEmailState();
@@ -372,7 +381,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         },
       );
     } else {
-      context.showSnackBar('Failed to retrieve token');
+      context.showSnackBar(oAuthSignInFailedKey.i18n);
     }
   }
 
@@ -419,7 +428,13 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           return;
         }
         if (widget.authFlow == AuthFlow.lanternProLicense) {
-          appRouter.push(LanternProLicense(email: email, code: ''));
+          appRouter.push(
+            LanternProLicense(
+              email: email,
+              code: '',
+              licenseKey: widget.licenseKey,
+            ),
+          );
           return;
         }
         appRouter.push(
@@ -432,6 +447,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             email: email,
             authFlow: widget.authFlow,
             password: widget.password ?? tempPassword,
+            licenseKey: widget.licenseKey,
           ),
         );
         break;

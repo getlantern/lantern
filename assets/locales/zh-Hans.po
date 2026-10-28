@@ -1180,6 +1180,12 @@ msgstr "私有服务器"
 msgid "fastest_server"
 msgstr "最快服务器"
 
+msgid "latency_testing"
+msgstr "测试中…"
+
+msgid "latency_unreachable"
+msgstr "无法连接"
+
 msgid "join_my_private_server"
 msgstr "加入我的蓝灯私有服务器"
 
