@@ -228,8 +228,8 @@ github.com/getlantern/algeneva v0.0.0-20260731172949-952f13725b7b h1:3wQsYZSl/Uv
 github.com/getlantern/algeneva v0.0.0-20260731172949-952f13725b7b/go.mod h1:PrNR8tMXO26YNs8K9653XCUH7u2Kv4OdfFC3Ke1GsX0=
 github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c h1:ZzxuhIWO295y4eE6wPYUq8Smntlgg+y39L5OOyMJY+k=
 github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c/go.mod h1:b5teAOFT+vpBqc2CHoz74QTEM15iOv1PLdQogwXcfrM=
-github.com/getlantern/broflake v0.0.0-20261027185621-f3e54408e4f0 h1:VJ/8hMiMLn4umw9vswQWe3MraR37vG8jlPv/nD1K/mE=
-github.com/getlantern/broflake v0.0.0-20261027185621-f3e54408e4f0/go.mod h1:bg92IeUtbQuhHzIt7qMCvu0eMfhbckRwjnoEssG4j2k=
+github.com/getlantern/broflake v0.0.0-20261028172929-48604a05bdc8 h1:uCXslv1jU1zYSpME5J37g/tP9bFNaswPoLZ00oGaHhc=
+github.com/getlantern/broflake v0.0.0-20261028172929-48604a05bdc8/go.mod h1:PYLYmwEU15Ymr7fzmYYvr2p0iPwYIUh7NDG3DlcJW5c=
 github.com/getlantern/common v1.2.1-0.20261025061526-9182c99db6fa h1:ugOTq3L06K1mn9SDFvjXkiKG54hc9EL8NZ2OIpKpc1k=
 github.com/getlantern/common v1.2.1-0.20261025061526-9182c99db6fa/go.mod h1:9iL78jR5kZqr0E7oPxi38o6gPMhVa5dJBC5ngUgHzdg=
 github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 h1:oEZYEpZo28Wdx+5FZo4aU7JFXu0WG/4wJWese5reQSA=
