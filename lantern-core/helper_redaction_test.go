@@ -23,7 +23,7 @@ func TestAppLogsRedactHelperTags(t *testing.T) {
 	t.Setenv("RADIANCE_DISABLE_STDOUT_LOG", "true")
 	path := filepath.Join(t.TempDir(), AppLogFileName)
 	logger := rlog.NewLogger(rlog.Config{LogPath: path, Level: "info", Prod: true, DisablePublisher: true})
-	logger.Info("Auto location server:", "server", `{"tag":"helper-0123456789ab"}`)
+	logger.Info("Auto location server:", "tag", "helper-0123456789ab")
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 	assert.NotContains(t, string(data), "helper-0123456789ab")

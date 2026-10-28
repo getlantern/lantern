@@ -433,7 +433,7 @@ func (lc *LanternCore) listenAutoSelectedEvents() {
 			slog.Error("Error marshalling server location", "error", err)
 			return
 		}
-		slog.Debug("Auto location server:", "server", string(jsonBytes))
+		slog.Debug("Auto location server:", "tag", tag)
 		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
 	})
 	if err != nil && lc.ctx.Err() == nil {
