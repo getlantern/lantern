@@ -48,6 +48,10 @@ UserResponseModel _user(String email, {bool registered = true}) =>
 
 class _Router extends routes.AppRouter {
   final pushed = <PageRouteInfo>[];
+  int rootPops = 0;
+
+  @override
+  void popUntilRoot() => rootPops++;
 
   @override
   Future<T?> push<T extends Object?>(
@@ -90,6 +94,7 @@ class _Service implements LanternService {
   final recoveries = <String>[];
   final changes = <({String email, String password})>[];
   bool rejectCode = false;
+  bool loginRequired = false;
 
   @override
   Future<Either<Failure, Unit>> startBindLegacyEmail(String email) async {
@@ -104,6 +109,14 @@ class _Service implements LanternService {
     required String code,
   }) async {
     completions.add((email: email, password: password, code: code));
+    if (loginRequired) {
+      return left(
+        Failure(
+          error: 'legacy_email_bound_login_required: connection refused',
+          localizedErrorMessage: 'Could not connect',
+        ),
+      );
+    }
     return rejectCode
         ? left(
             Failure(
@@ -322,6 +335,48 @@ void main() {
       expect(find.text('Invalid code'), findsOneWidget);
     },
   );
+
+  for (final loggedIn in [false, true]) {
+    testWidgets(
+      'completed binding offers sign-in without replacing the account when loggedIn=$loggedIn',
+      (tester) async {
+        service.loginRequired = true;
+        container.read(appSettingProvider.notifier).setUserLoggedIn(loggedIn);
+        await mount(
+          tester,
+          const ConfirmEmail(
+            email: _email,
+            password: _password,
+            authFlow: AuthFlow.bindLegacyEmail,
+          ),
+        );
+        final originalUser = container.read(homeProvider).value;
+        await tester.enterText(find.byType(EditableText), '123456');
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(find.textContaining('email_updated'.i18n), findsOneWidget);
+        expect(find.text('Could not connect'), findsNothing);
+        expect(home.refreshes, 0);
+        expect(container.read(homeProvider).value, same(originalUser));
+        expect(container.read(appSettingProvider).userLoggedIn, loggedIn);
+
+        await tester.tap(find.text('sign_in'.i18n));
+        await tester.pumpAndSettle();
+        final args = router.pushed.single.args as pages.SignInPasswordArgs;
+        expect(args.email, _email);
+        expect(args.fromChangeEmail, isFalse);
+        expect(router.rootPops, 1);
+        expect(service.completions, [
+          (email: _email, password: _password, code: '123456'),
+        ]);
+        expect(service.starts, isEmpty);
+        expect(service.recoveries, isEmpty);
+        expect(container.read(homeProvider).value, same(originalUser));
+        expect(container.read(appSettingProvider).userLoggedIn, loggedIn);
+      },
+    );
+  }
 
   testWidgets('real email keeps the existing password-verified change flow', (
     tester,

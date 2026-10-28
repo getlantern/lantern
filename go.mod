@@ -31,13 +31,15 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 // replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 
 require (
+	github.com/1Password/srp v0.2.0
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/common v1.2.1-0.20260910154003-08e030318f24
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261021100936-abf33eae83d1
+	github.com/getlantern/radiance v0.0.0-20261028081117-dbcfe6b2c6c4
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb
+	golang.org/x/crypto v0.57.0
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.48.0
 	google.golang.org/protobuf v1.36.12
@@ -117,7 +119,6 @@ require (
 require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/1Password/srp v0.2.0 // indirect
 	github.com/Jigsaw-Code/outline-sdk v0.0.19 // indirect
 	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
@@ -328,7 +329,6 @@ require (
 	go4.org/mem v0.0.0-20240501181205-ae6ca9944745 // indirect
 	golang.getoutline.org/sdk v0.0.21 // indirect
 	golang.getoutline.org/sdk/x v0.1.0 // indirect
-	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10 // indirect

@@ -161,6 +161,21 @@ class ConfirmEmail extends HookConsumerWidget {
     result.fold(
       (failure) {
         context.hideLoadingDialog();
+        if (isBindingEmail &&
+            failure.error.contains('legacy_email_bound_login_required')) {
+          AppDialog.dialog(
+            context: context,
+            title: 'add_email'.i18n,
+            content:
+                '${'email_updated'.i18n}\n\n${'confirm_password_to_continue'.i18n}',
+            action: 'sign_in'.i18n,
+            onPressed: () {
+              appRouter.popUntilRoot();
+              appRouter.push(SignInPassword(email: email));
+            },
+          );
+          return;
+        }
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (_) async {
