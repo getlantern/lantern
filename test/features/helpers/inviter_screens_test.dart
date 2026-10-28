@@ -301,6 +301,35 @@ void main() {
     expect(find.byKey(const Key('invite.share')), findsOneWidget);
   });
 
+  test('the share text names this invite\'s inviter, else the last name', () {
+    const view = HelpersView(unlocked: true, myName: 'Sara');
+    const named = HelperInviteView(
+      id: 'i1',
+      state: 'pending',
+      link: 'https://lantern.io/help/#AAAA',
+      inviterName: 'S. from work',
+    );
+    const unnamed = HelperInviteView(
+      id: 'i2',
+      state: 'pending',
+      link: 'https://lantern.io/help/#BBBB',
+    );
+    expect(
+      inviteShareMessage(view, named),
+      'invite_share_message'.i18n.fill([
+        'S. from work',
+        'https://lantern.io/help/#AAAA',
+      ]),
+    );
+    expect(
+      inviteShareMessage(view, unnamed),
+      'invite_share_message'.i18n.fill([
+        'Sara',
+        'https://lantern.io/help/#BBBB',
+      ]),
+    );
+  });
+
   testWidgets('the invite screen says when the invite is gone', (tester) async {
     final fake = _Helpers(const HelpersState());
     await _pump(tester, fake, const InviteShare(inviteId: 'nope'));

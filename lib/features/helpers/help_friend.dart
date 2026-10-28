@@ -41,6 +41,10 @@ class HelpFriend extends HookConsumerWidget {
     final helpingAtClaim = useRef<Set<String>>(const {});
     final error = useState<String?>(null);
     final busy = useState(false);
+    // A link that opened this screen and is not an invite: show the field so
+    // a corrected one can be pasted.
+    final editLink = useState(false);
+    final resumed = useRef(false);
 
     useEffect(() {
       // refreshIfUsed, not refresh: opening this screen must not touch the
@@ -48,6 +52,30 @@ class HelpFriend extends HookConsumerWidget {
       unawaited(notifier.refreshIfUsed());
       return null;
     }, const []);
+
+    useEffect(() {
+      // Opened without a link while a claim waits (the volunteer backed out
+      // of the code): show that code again, once.
+      final pending = helpers.view.claims.where((c) => c.code.isNotEmpty);
+      if (link != null ||
+          resumed.value ||
+          code.value != null ||
+          busy.value ||
+          pending.isEmpty) {
+        return null;
+      }
+      resumed.value = true;
+      final latest = pending.reduce(
+        (a, b) => b.expiresUnix >= a.expiresUnix ? b : a,
+      );
+      claimId.value = latest.id;
+      helpingAtClaim.value = {
+        for (final p in helpers.view.helping) p.pairingId,
+      };
+      approvalsAtClaim.value = helpers.helpingApprovals;
+      code.value = latest.code;
+      return null;
+    }, [helpers.view.claims]);
 
     if (!AppBuildInfo.enableHelperInvites) {
       return BaseScreen(
@@ -70,6 +98,7 @@ class HelpFriend extends HookConsumerWidget {
       busy.value = false;
       if (!r.ok) {
         error.value = r.error;
+        if (r.error == 'bad_link') editLink.value = true;
         return;
       }
       final claimed = r.data['code'];
@@ -144,6 +173,35 @@ class HelpFriend extends HookConsumerWidget {
           ),
         ],
       );
+    } else if (error.value == 'already_helping') {
+      final helping = helpers.view.helping;
+      // The engine says only that this link is one this device helps for;
+      // with a single pairing, that is the one.
+      final text = helping.length == 1 && helping.single.name.isNotEmpty
+          ? 'help_friend_already_helping_named'.i18n.fill([helping.single.name])
+          : 'help_friend_already_helping'.i18n;
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: defaultSize),
+          Icon(
+            Icons.check_circle_outline,
+            size: 48,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            text,
+            key: const Key('help_friend.already_helping'),
+            style: textTheme.titleLarge,
+          ),
+          const SizedBox(height: defaultSize),
+          PrimaryButton(
+            label: 'help_friend_done'.i18n,
+            onPressed: () => appRouter.maybePop(),
+          ),
+        ],
+      );
     } else if (error.value == 'already_claimed') {
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -177,7 +235,7 @@ class HelpFriend extends HookConsumerWidget {
           ],
           Text('help_friend_intro'.i18n, style: textTheme.bodyMedium),
           const SizedBox(height: defaultSize),
-          if (link == null) ...[
+          if (link == null || editLink.value) ...[
             AppTextField(
               fieldKey: const Key('help_friend.link'),
               controller: linkCtl,

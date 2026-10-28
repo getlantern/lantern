@@ -2328,6 +2328,12 @@ msgstr "This invite was already claimed"
 msgid "help_friend_already_claimed_body"
 msgstr "Someone else opened this link first, or it expired. Ask your friend for a new invite, and tell them this one may have been seen by someone else."
 
+msgid "help_friend_already_helping"
+msgstr "You're already helping this friend."
+
+msgid "help_friend_already_helping_named"
+msgstr "You're already helping %s."
+
 msgid "help_friend_bad_link"
 msgstr "This isn't a helper invite link."
 

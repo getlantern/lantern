@@ -158,6 +158,99 @@ void main() {
     expect(find.text('help_friend_already_claimed_title'.i18n), findsOneWidget);
   });
 
+  testWidgets('a link this device already helps for says so, without the '
+      'compromised-link warning', (tester) async {
+    final helpers = _Helpers(
+      const HelpersState(view: HelpersView(unlocked: true, helping: [_sara])),
+      claimAnswer: '{"error":"already_helping"}',
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    expect(
+      find.byKey(const Key('help_friend.already_helping')),
+      findsOneWidget,
+    );
+    expect(
+      find.text('help_friend_already_helping_named'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('help_friend.already_claimed')), findsNothing);
+    expect(find.text('help_friend_already_claimed_body'.i18n), findsNothing);
+    expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
+  });
+
+  testWidgets('already helping is generic when the pairing is ambiguous', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      const HelpersState(
+        view: HelpersView(unlocked: true, helping: [_sara, _reza]),
+      ),
+      claimAnswer: '{"error":"already_helping"}',
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    expect(find.text(helperErrorText('already_helping')), findsOneWidget);
+    expect(find.textContaining('Sara'), findsNothing);
+  });
+
+  testWidgets('without a link, HelpFriend reopens the latest pending code', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          claims: [
+            HelperClaimView(id: 'c1', code: '1111', expiresUnix: 100),
+            HelperClaimView(id: 'c2', code: '2562', expiresUnix: 200),
+          ],
+        ),
+      ),
+    );
+    await _pump(tester, helpers, const HelpFriend());
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
+    expect(find.text('2562'), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    expect(helpers.claims, isEmpty, reason: 'nothing is claimed again');
+    // c2 became Reza's pairing; c1 still waits.
+    helpers.approve(
+      const HelpersView(
+        unlocked: true,
+        helping: [_reza],
+        claims: [HelperClaimView(id: 'c1', code: '1111', expiresUnix: 100)],
+      ),
+    );
+    await tester.pump();
+    expect(
+      find.text('help_friend_approved'.i18n.fill(['Reza'])),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a link that opened HelpFriend and is not an invite can be '
+      'corrected', (tester) async {
+    final helpers = _Helpers(
+      const HelpersState(),
+      claimAnswers: ['{"error":"bad_link"}', '{"claim_id":"c1","code":"2562"}'],
+    );
+    helpers.holdLink('https://lantern.io/help/#broken');
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    await _claim(tester);
+    expect(find.text(helperErrorText('bad_link')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('help_friend.link')), _link);
+    await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await tester.pump();
+    await tester.pump();
+    expect(helpers.claims.last, (_link, 'Ali'));
+    expect(find.text('2562'), findsOneWidget);
+  });
+
   testWidgets('opening HelpFriend refreshes only if used, never shows the '
       'held link, and caps the name at 60', (tester) async {
     final helpers = _Helpers(const HelpersState());

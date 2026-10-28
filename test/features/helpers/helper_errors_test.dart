@@ -11,6 +11,7 @@ void main() {
       'disabled': 'helper_error_disabled',
       'not_found': 'helper_error_not_found',
       'already_claimed': 'help_friend_already_claimed_body',
+      'already_helping': 'help_friend_already_helping',
       'no_pending_claim': 'helper_error_no_pending_claim',
       'too_many_invites': 'helper_error_too_many_invites',
       'too_many_pairings': 'helper_error_too_many_pairings',
@@ -39,6 +40,8 @@ void main() {
       'helper_error_bad_name',
       'helper_error_keystore',
       'helper_error_keystore_reset',
+      'help_friend_already_helping',
+      'help_friend_already_helping_named',
     ]) {
       expect(po, contains('msgid "$id"'), reason: id);
     }

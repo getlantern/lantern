@@ -93,11 +93,13 @@ class _Storage implements LocalStorageService {
 
 String _view({
   bool newHelping = false,
+  bool helpersChanged = false,
   String helpers = '[]',
   String invites = '[]',
 }) =>
     '{"unlocked":true,"my_name":"","invites":$invites,"claims":[],"helpers":$helpers,'
-    '"helping":[],"new_helping":$newHelping}';
+    '"helping":[],"new_helping":$newHelping'
+    '${helpersChanged ? ',"helpers_changed":true' : ''}}';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -182,6 +184,93 @@ void main() {
       expect(svc.configRequests, 1);
     },
   );
+
+  group('a change to who helps this device refetches config once', () {
+    Future<void> settle() => Future<void>.delayed(Duration.zero);
+
+    test('approving a helper', () async {
+      svc.answers = {'decide': _view()};
+      final c = container();
+      final r = await c
+          .read(helpersProvider.notifier)
+          .decide('i1', approve: true);
+      expect(r.ok, isTrue);
+      await settle();
+      expect(svc.configRequests, 1);
+    });
+
+    test('rejecting a claim does not', () async {
+      svc.answers = {'decide': _view()};
+      final c = container();
+      await c.read(helpersProvider.notifier).decide('i1', approve: false);
+      await settle();
+      expect(svc.configRequests, 0);
+    });
+
+    test('a failed approve does not', () async {
+      svc.answers = {'decide': '{"error":"no_pending_claim"}'};
+      final c = container();
+      final r = await c
+          .read(helpersProvider.notifier)
+          .decide('i1', approve: true);
+      expect(r.ok, isFalse);
+      await settle();
+      expect(svc.configRequests, 0);
+    });
+
+    test('ending a pairing', () async {
+      svc.answers = {'end_pairing': _view()};
+      final c = container();
+      await c.read(helpersProvider.notifier).endPairing('p1');
+      await settle();
+      expect(svc.configRequests, 1);
+    });
+
+    test('a failed end does not', () async {
+      svc.answers = {'end_pairing': '{"error":"unavailable"}'};
+      final c = container();
+      await c.read(helpersProvider.notifier).endPairing('p1');
+      await settle();
+      expect(svc.configRequests, 0);
+    });
+
+    test('removing all helpers', () async {
+      svc.answers = {'end_all_helpers': _view()};
+      final c = container();
+      await c.read(helpersProvider.notifier).endAllHelpers();
+      await settle();
+      expect(svc.configRequests, 1);
+    });
+
+    test('a refresh whose view says helpers_changed', () async {
+      svc.answers = {'unlock': _view(), 'refresh': _view(helpersChanged: true)};
+      final c = container();
+      final n = c.read(helpersProvider.notifier);
+      await n.refresh();
+      await settle();
+      expect(svc.configRequests, 1);
+      expect(
+        c.read(helpersProvider).helpingApprovals,
+        0,
+        reason: 'not a new person to help',
+      );
+      svc.answers['refresh'] = _view();
+      await n.refresh();
+      await settle();
+      expect(svc.configRequests, 1, reason: 'only the view that says so');
+    });
+
+    test('a view with both flags refetches once', () async {
+      svc.answers = {
+        'unlock': _view(),
+        'refresh': _view(newHelping: true, helpersChanged: true),
+      };
+      final c = container();
+      await c.read(helpersProvider.notifier).refresh();
+      await settle();
+      expect(svc.configRequests, 1);
+    });
+  });
 
   test('a keystore failure never calls the engine', () async {
     sl.unregister<HelperKeyStore>();

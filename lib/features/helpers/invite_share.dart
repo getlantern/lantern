@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/features/helpers/approve_helper_sheet.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -20,6 +21,15 @@ Future<void> copySensitiveText(String text) async {
   }
   await Clipboard.setData(ClipboardData(text: text));
 }
+
+/// The text shared with an invite: it names the inviter as they named
+/// themselves for this invite, or by the last name used for one saved
+/// before names were kept per invite.
+String inviteShareMessage(HelpersView view, HelperInviteView invite) =>
+    'invite_share_message'.i18n.fill([
+      invite.inviterName.isNotEmpty ? invite.inviterName : view.myName,
+      invite.link,
+    ]);
 
 /// Lets a test take the Android path of [copySensitiveText].
 @visibleForTesting
@@ -76,10 +86,7 @@ class InviteShare extends ConsumerWidget {
       );
     }
 
-    final message = 'invite_share_message'.i18n.fill([
-      view.myName,
-      invite.link,
-    ]);
+    final message = inviteShareMessage(view, invite);
     return BaseScreen(
       title: 'invite_share_title'.i18n,
       body: ListView(

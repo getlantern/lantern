@@ -249,9 +249,12 @@ class HelpersNotifier extends _$HelpersNotifier {
     final locked = await _guard();
     if (locked != null) return locked;
     final r = _apply(await _call('refresh'));
-    if (r.ok && r.data['new_helping'] == true) {
+    if (r.ok &&
+        (r.data['new_helping'] == true || r.data['helpers_changed'] == true)) {
       // A new person to help: fetch the config that turns the widget on for
-      // paired volunteers, then the features that show its tab.
+      // paired volunteers, then the features that show its tab. A helper
+      // added or ended elsewhere: fetch the config that carries (or drops)
+      // that helper's route.
       unawaited(_refetchConfig());
     }
     return r;
@@ -287,10 +290,15 @@ class HelpersNotifier extends _$HelpersNotifier {
     return r;
   }
 
-  Future<HelperResult> decide(String inviteId, {required bool approve}) async =>
-      _apply(
-        await _call('decide', {'invite_id': inviteId, 'approve': approve}),
-      );
+  Future<HelperResult> decide(String inviteId, {required bool approve}) async {
+    final r = _apply(
+      await _call('decide', {'invite_id': inviteId, 'approve': approve}),
+    );
+    // The new helper's route comes with the config: fetch it now rather
+    // than at the next poll.
+    if (r.ok && approve) unawaited(_refetchConfig());
+    return r;
+  }
 
   Future<HelperResult> forgetInvite(String inviteId) async =>
       _apply(await _call('forget_invite', {'invite_id': inviteId}));
@@ -306,11 +314,18 @@ class HelpersNotifier extends _$HelpersNotifier {
     return r;
   }
 
-  Future<HelperResult> endPairing(String pairingId) async =>
-      _apply(await _call('end_pairing', {'pairing_id': pairingId}));
+  Future<HelperResult> endPairing(String pairingId) async => _refetchIfOk(
+    _apply(await _call('end_pairing', {'pairing_id': pairingId})),
+  );
 
   Future<HelperResult> endAllHelpers() async =>
-      _apply(await _call('end_all_helpers'));
+      _refetchIfOk(_apply(await _call('end_all_helpers')));
+
+  /// After an ended pairing, fetch the config so its route goes now.
+  HelperResult _refetchIfOk(HelperResult r) {
+    if (r.ok) unawaited(_refetchConfig());
+    return r;
+  }
 
   Future<void> loadHelpOthers() async {
     final res = await _svc.getSettings();

@@ -47,6 +47,7 @@ class HelperInviteView {
     this.expiresUnix = 0,
     this.code = '',
     this.volunteerName = '',
+    this.inviterName = '',
   });
 
   final String id;
@@ -55,6 +56,9 @@ class HelperInviteView {
   final int expiresUnix;
   final String code;
   final String volunteerName;
+
+  /// The name this user gave with this invite.
+  final String inviterName;
 
   bool get claimed => state == 'claimed';
 
@@ -72,6 +76,7 @@ class HelperInviteView {
     expiresUnix: _int(j['expires_unix']),
     code: _str(j['code']),
     volunteerName: _str(j['volunteer_name']),
+    inviterName: _str(j['inviter_name']),
   );
 }
 

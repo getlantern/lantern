@@ -19,6 +19,7 @@ void main() {
           'state': 'pending',
           'link': 'https://lantern.io/help/#x',
           'expires_unix': 1800000000,
+          'inviter_name': 'S. from work',
         },
       ],
       'claims': [
@@ -45,6 +46,8 @@ void main() {
     expect(v.unlocked, isTrue);
     expect(v.invites.first.claimed, isTrue);
     expect(v.invites.last.link, 'https://lantern.io/help/#x');
+    expect(v.invites.last.inviterName, 'S. from work');
+    expect(v.invites.first.inviterName, '');
     expect(v.claims.single.code, '9876');
     expect(v.helpers.single.online, isTrue);
     expect(v.helping.single.name, 'Sara');

@@ -5,6 +5,7 @@ String helperErrorText(String code) => switch (code) {
   'disabled' => 'helper_error_disabled'.i18n,
   'not_found' => 'helper_error_not_found'.i18n,
   'already_claimed' => 'help_friend_already_claimed_body'.i18n,
+  'already_helping' => 'help_friend_already_helping'.i18n,
   'no_pending_claim' => 'helper_error_no_pending_claim'.i18n,
   'too_many_invites' => 'helper_error_too_many_invites'.i18n,
   'too_many_pairings' => 'helper_error_too_many_pairings'.i18n,
