@@ -2,11 +2,16 @@ package org.getlantern.lantern
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
+import android.os.Message
+import android.os.Messenger
 import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.os.ResultReceiver
@@ -132,14 +137,33 @@ class SplitTunnelCaptureTest {
             }
         }
         // The test APK's service runs under its own UID, unlike instrumentation in the target process.
-        context.startService(Intent().setComponent(ComponentName(probePackage, SplitTunnelProbeService::class.java.name)).putExtra("reply", reply))
-        val result = received.poll(25, TimeUnit.SECONDS)
-        assertNotNull("Probe service did not reply", result)
-        requireNotNull(result)
-        assertNotEquals("Probe must run outside Lantern's UID", Process.myUid(), result.getInt("uid"))
-        assertFalse(result.getString("error"), result.containsKey("error"))
-        assertTrue("Invalid public IP: ${result.getString("ip")}", Patterns.IP_ADDRESS.matcher(result.getString("ip") ?: "").matches())
-        return result
+        val connected = ArrayBlockingQueue<Messenger>(1)
+        val connection = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName, binder: IBinder) {
+                connected.offer(Messenger(binder))
+            }
+
+            override fun onServiceDisconnected(name: ComponentName) = Unit
+        }
+        val intent = Intent().setComponent(ComponentName(probePackage, SplitTunnelProbeService::class.java.name))
+        val bound = context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        try {
+            assertTrue("Could not bind probe service", bound)
+            val messenger = connected.poll(10, TimeUnit.SECONDS)
+            assertNotNull("Probe service did not connect", messenger)
+            requireNotNull(messenger).send(Message.obtain().apply {
+                data = Bundle().apply { putParcelable("reply", reply) }
+            })
+            val result = received.poll(25, TimeUnit.SECONDS)
+            assertNotNull("Probe service did not reply", result)
+            requireNotNull(result)
+            assertNotEquals("Probe must run outside Lantern's UID", Process.myUid(), result.getInt("uid"))
+            assertFalse(result.getString("error"), result.containsKey("error"))
+            assertTrue("Invalid public IP: ${result.getString("ip")}", Patterns.IP_ADDRESS.matcher(result.getString("ip") ?: "").matches())
+            return result
+        } finally {
+            context.unbindService(connection)
+        }
     }
 
     private fun await(description: String, condition: () -> Boolean) {
