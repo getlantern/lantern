@@ -168,11 +168,19 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   void _checkIfUserProAndDeviceIsAdded(UserResponseModel user) {
+    final appSetting = ref.read(appSettingProvider);
     if (!user.legacyUserData.isPro) {
+      // The service's account can be reset (e.g. its data dir was removed on
+      // reinstall) while the app's settings still say logged in, which hides
+      // Sign In and leaves no way back to the account.
+      if (appSetting.userLoggedIn && user.legacyUserData.email.isEmpty) {
+        appLogger.info("Logged in without an account email. Logging out.");
+        clearLogoutData();
+        return;
+      }
       appLogger.info("User is not Pro. Skipping device check.");
       return;
     }
-    final appSetting = ref.read(appSettingProvider);
     if (appSetting.userLoggedIn) {
       appLogger.info("User is already logged in. Skipping device check.");
       return;
