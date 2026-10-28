@@ -654,6 +654,31 @@ void main() {
     expect(c.read(helpersProvider).error, 'unavailable');
   });
 
+  test('an older view never restores the names remove all erased', () async {
+    const named = '[{"pairing_id":"p1","name":"Ali","since_unix":1}]';
+    svc.answers = {
+      'unlock': _view(),
+      'refresh': _view(helpers: named),
+      'end_all_helpers': '{"error":"unavailable"}',
+      'view': '{"error":"unavailable"}',
+    };
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    await n.refresh();
+    final gate = Completer<void>();
+    svc.gates['refresh'] = gate.future;
+    svc.answers['refresh'] = _view(helpers: named, newHelping: true);
+    final older = n.refresh();
+    await Future<void>.delayed(Duration.zero);
+    expect(svc.calls.where((op) => op == 'refresh').length, 2);
+    await n.endAllHelpers();
+    expect(c.read(helpersProvider).view.helpers.single.name, isEmpty);
+    gate.complete();
+    await older;
+    expect(c.read(helpersProvider).view.helpers.single.name, isEmpty);
+    expect(c.read(helpersProvider).helpingApprovals, 1);
+  });
+
   test('a failed config fetch does not reread the stale flags', () async {
     svc.answers = {'unlock': _view(), 'refresh': _view(newHelping: true)};
     svc.configFails = true;

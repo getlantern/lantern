@@ -372,11 +372,17 @@ class HelpersNotifier extends _$HelpersNotifier {
     if (r.ok || !ref.mounted) return r;
     final v = await refreshView();
     if (!ref.mounted) return r;
-    state = state.copyWith(
-      view: v.ok ? null : _withoutHelperNames(state.view),
-      error: r.error,
-    );
+    if (!v.ok) _replaceView(_withoutHelperNames(state.view));
+    state = state.copyWith(error: r.error);
     return r;
+  }
+
+  /// Replaces the view on screen as a newly requested view would, so that no
+  /// view requested earlier overwrites it. Their new_helping still counts in
+  /// [_apply].
+  void _replaceView(HelpersView view) {
+    _applied = ++_sent;
+    state = state.copyWith(view: view);
   }
 
   /// [view] without the names the engine erases in "remove all helpers".
