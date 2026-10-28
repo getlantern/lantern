@@ -27,6 +27,9 @@
 		A91310012FAD000100000001 /* NetworkResetScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91310022FAD000100000001 /* NetworkResetScheduler.swift */; };
 		A91310032FAD000100000001 /* NetworkResetScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91310022FAD000100000001 /* NetworkResetScheduler.swift */; };
 		A91310042FAD000100000001 /* NetworkResetSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91310052FAD000100000001 /* NetworkResetSchedulerTests.swift */; };
+		A4E1B0012FAD000100000001 /* HelperTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1B0022FAD000100000001 /* HelperTags.swift */; };
+		A4E1B0032FAD000100000001 /* HelperTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1B0022FAD000100000001 /* HelperTags.swift */; };
+		A4E1B0042FAD000100000001 /* HelperTagsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1B0052FAD000100000001 /* HelperTagsTests.swift */; };
 		A38250062FAD000100000001 /* AppInstallation.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A38250072FAD000100000001 /* AppInstallation.xcstrings */; };
 		A38250012FAD000100000001 /* AppInstallation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38250022FAD000100000001 /* AppInstallation.swift */; };
 		A38250032FAD000100000001 /* AppInstallationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38250042FAD000100000001 /* AppInstallationTests.swift */; };
@@ -151,6 +154,8 @@
 		A37810052FAD000100000001 /* TunnelFileDescriptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelFileDescriptorTests.swift; sourceTree = "<group>"; };
 		A91310022FAD000100000001 /* NetworkResetScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkResetScheduler.swift; sourceTree = "<group>"; };
 		A91310052FAD000100000001 /* NetworkResetSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkResetSchedulerTests.swift; sourceTree = "<group>"; };
+		A4E1B0022FAD000100000001 /* HelperTags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperTags.swift; sourceTree = "<group>"; };
+		A4E1B0052FAD000100000001 /* HelperTagsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperTagsTests.swift; sourceTree = "<group>"; };
 		A38250072FAD000100000001 /* AppInstallation.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = AppInstallation.xcstrings; sourceTree = "<group>"; };
 		A38250022FAD000100000001 /* AppInstallation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInstallation.swift; sourceTree = "<group>"; };
 		A38250042FAD000100000001 /* AppInstallationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInstallationTests.swift; sourceTree = "<group>"; };
@@ -306,6 +311,7 @@
 			children = (
 				A37810052FAD000100000001 /* TunnelFileDescriptorTests.swift */,
 				A91310052FAD000100000001 /* NetworkResetSchedulerTests.swift */,
+				A4E1B0052FAD000100000001 /* HelperTagsTests.swift */,
 				331C80D7294CF71000263BE5 /* RunnerTests.swift */,
 				A38250042FAD000100000001 /* AppInstallationTests.swift */,
 			);
@@ -391,6 +397,7 @@
 			isa = PBXGroup;
 			children = (
 				030897E82F9F8A27001CBEBF /* FlutterEventListener.swift */,
+				A4E1B0022FAD000100000001 /* HelperTags.swift */,
 				030897E92F9F8A27001CBEBF /* ImageUtils.swift */,
 				030897EA2F9F8A27001CBEBF /* PrivateServerListener.swift */,
 				5F53D0122E42440F00740586 /* PrivateServerListener.swift */,
@@ -722,6 +729,8 @@
 				A37810042FAD000100000001 /* TunnelFileDescriptorTests.swift in Sources */,
 				A91310032FAD000100000001 /* NetworkResetScheduler.swift in Sources */,
 				A91310042FAD000100000001 /* NetworkResetSchedulerTests.swift in Sources */,
+				A4E1B0032FAD000100000001 /* HelperTags.swift in Sources */,
+				A4E1B0042FAD000100000001 /* HelperTagsTests.swift in Sources */,
 				331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */,
 				A38250032FAD000100000001 /* AppInstallationTests.swift in Sources */,
 			);
@@ -745,6 +754,7 @@
 				293C30612DEF68B300691115 /* Logger.swift in Sources */,
 				03CC8B862E9408BC00EC8D51 /* FlutterEventHandler.swift in Sources */,
 				030897EB2F9F8A27001CBEBF /* FlutterEventListener.swift in Sources */,
+				A4E1B0012FAD000100000001 /* HelperTags.swift in Sources */,
 				030897EC2F9F8A27001CBEBF /* PrivateServerListener.swift in Sources */,
 				5F7422212E7C1FB000FC72BE /* LogsEventHandler.swift in Sources */,
 				5F7B9A5A2F0C13AC0019E3E0 /* AppStreamHandler.swift in Sources */,
