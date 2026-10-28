@@ -29,12 +29,13 @@ Censorship circumvention tool available for free download on any operating syste
         <td>
             <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.exe">Windows 10&#43;</a>
         </td>
-    </tr>
     <tr>
         <th>Android</th>
         <td>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.apk">Android 7&#43; (ARM64)</a> <br>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 7&#43; (ARM64)</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 7&#43; (ARM64)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer-armv7.apk">Android 7&#43; (32-bit / ARMv7)</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer-armv7.apk">Android 7&#43; (32-bit / ARMv7)</a>
         </td>
         <td>
             <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">Android 7&#43;</a>
@@ -44,7 +45,6 @@ Censorship circumvention tool available for free download on any operating syste
             <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta-armv7.apk">Android 7&#43; (32-bit / ARMv7)</a>
         </td>
     </tr>
-    <tr>
         <th>macOS</th>
         <td>
             <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 12&#43;</a> <br>
