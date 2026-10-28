@@ -469,12 +469,12 @@ BACK_TOOL = _tool(
     {"locale": {"type": "string"}, "key": {"type": "string"}, "english": {"type": "string"}},
     ["locale", "key", "english"], "items")
 
-SCORE = {"type": "integer", "minimum": 1, "maximum": 5}
+SCORE = {"type": "integer", "description": "1 to 5"}
 REVIEW_TOOL = _tool(
     "submit_review", "Submit the review verdict for every string.",
     {"locale": {"type": "string"}, "key": {"type": "string"},
      "verdict": {"type": "string", "enum": ["pass", "fix", "flag"]},
-     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+     "confidence": {"type": "number", "description": "0 to 1"},
      "fix": {"type": "string", "description": "Corrected UI string when verdict is fix, else empty."},
      "note": {"type": "string", "description": "One sentence, empty on a clean pass."},
      "scores": {"type": "object",
@@ -645,7 +645,9 @@ def run_batch(batch: Batch, en: PoFile, targets: dict[str, PoFile], items: dict[
                 it.translation = str(t.get("text", "")).strip()
                 it.translator_note = str(t.get("note", "")).strip()
 
-    absorb(claude.batched(batch.keys, translate))
+    need = sorted({k for (c, k), it in mine.items() if not it.translation})
+    if need:
+        absorb(claude.batched(need, translate))
     missing_keys = sorted({k for (c, k), it in mine.items() if not it.translation})
     if missing_keys:
         log(f"retrying {len(missing_keys)} keys the translator skipped for {len(codes)} locales")
@@ -665,7 +667,8 @@ def run_batch(batch: Batch, en: PoFile, targets: dict[str, PoFile], items: dict[
                           ensure_ascii=False, indent=1)
         return claude.tool_call("backtranslate", back_system(codes), user, BACK_TOOL, False).get("items", [])
 
-    for b in claude.batched(live, back):
+    need_back = [(c, k) for c, k in live if not mine[(c, k)].back_translation]
+    for b in (claude.batched(need_back, back) if need_back else []):
         it = mine.get((b.get("locale"), b.get("key")))
         if it is not None:
             it.back_translation = str(b.get("english", "")).strip()
@@ -687,7 +690,7 @@ def run_batch(batch: Batch, en: PoFile, targets: dict[str, PoFile], items: dict[
             it.confidence = max(0.0, min(1.0, float(r.get("confidence"))))
         except (TypeError, ValueError):
             it.confidence = None
-        it.scores = r.get("scores") or {}
+        it.scores = {k: max(1, min(5, int(v))) for k, v in (r.get("scores") or {}).items() if isinstance(v, (int, float))}
         it.reviewer_note = str(r.get("note", "")).strip()
         fix = str(r.get("fix", "")).strip()
         if it.verdict == "fix" and fix:
@@ -717,11 +720,30 @@ def decide(it: Item, skip_review: bool) -> None:
             it.reviewer_note = (it.reviewer_note + " Reviewer returned no verdict.").strip()
 
 
+def load_previous(path: Path, items: dict[tuple[str, str], Item]) -> int:
+    """Carry translations and back-translations over from an earlier results.json so a
+    rerun only pays for the stages that did not finish."""
+    d = json.loads(path.read_text(encoding="utf-8"))
+    n = 0
+    for L in d.get("locales", []):
+        for prev in L.get("items", []):
+            it = items.get((L["code"], prev["key"]))
+            if it is None or it.source != prev.get("source") or not prev.get("translation"):
+                continue
+            it.translation = prev["translation"]
+            it.translator_note = prev.get("translator_note", "")
+            it.back_translation = prev.get("back_translation", "")
+            n += 1
+    return n
+
+
 def run_all(work: dict[str, Work], en: PoFile, targets: dict[str, PoFile], claude: Claude | None, args) -> list[LocaleResult]:
     items: dict[tuple[str, str], Item] = {
         (c, k): Item(k, en.get(k) or "", en.comment(k), w.reasons[k], old)
         for c, w in work.items() for k, old in w.translate.items()
     }
+    if getattr(args, "resume", ""):
+        log(f"resumed {load_previous(Path(args.resume), items)} translations from {args.resume}")
     errors: dict[str, str] = {}
     if claude is not None and items:
         batches = plan_batches(work)
@@ -849,10 +871,13 @@ def commit_message(results: list[LocaleResult], run: dict) -> str:
     return head + "\n\n" + "\n".join(body) + "\n"
 
 
-def html_report(results: list[LocaleResult], run: dict) -> str:
-    data = {"run": run, "models": MODELS, "locales": [
+def results_dict(results: list[LocaleResult], run: dict) -> dict:
+    return {"run": run, "models": MODELS, "locales": [
         {"code": r.code, "name": r.name, "rtl": r.rtl, "removed": r.removed, "error": r.error,
          "stats": r.stats(), "items": [asdict(i) for i in r.items]} for r in results]}
+
+
+def html_report(data: dict) -> str:
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     return HTML_TEMPLATE.replace("__DATA__", payload)
 
@@ -1027,6 +1052,8 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="write reports only, leave .po files untouched")
     ap.add_argument("--skip-review", action="store_true", help="skip back-translation and review (cheap test)")
     ap.add_argument("--out", default=str(ROOT / "build" / "translate"), help="report directory")
+    ap.add_argument("--render", default="", help="rebuild report.html in --out from this results.json and exit; no API calls")
+    ap.add_argument("--resume", default="", help="results.json from an earlier run; reuse its translations and only run the missing stages")
     ap.add_argument("--config", default=str(CONFIG_PATH), help="settings file (models, thresholds, glossary, locales)")
     ap.add_argument("--plan", action="store_true",
                     help="show per-locale counts of what a run would translate and remove, then exit; no API calls")
@@ -1042,6 +1069,10 @@ def main() -> int:
         load_config(Path(args.config))
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    if args.render:
+        (out / "report.html").write_text(html_report(json.loads(Path(args.render).read_text(encoding="utf-8"))), encoding="utf-8")
+        log(f"report rebuilt at {out / 'report.html'}")
+        return 0
     en = PoFile(LOCALES_DIR / f"{SOURCE}.po")
     wanted = {c.strip() for c in args.locales.split(",") if c.strip()}
     targets = {p.stem: PoFile(p) for p in sorted(LOCALES_DIR.glob("*.po"))
@@ -1120,13 +1151,12 @@ def main() -> int:
         "run_url": (f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
                     if os.environ.get("GITHUB_RUN_ID") else ""),
     }
-    (out / "results.json").write_text(json.dumps(
-        {"run": run, "models": MODELS, "locales": [{**asdict(r), "stats": r.stats()} for r in results]},
-        ensure_ascii=False, indent=1), encoding="utf-8")
+    data = results_dict(results, run)
+    (out / "results.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     summary = summary_markdown(results, run)
     (out / "summary.md").write_text(summary, encoding="utf-8")
     (out / "commit_message.txt").write_text(commit_message(results, run), encoding="utf-8")
-    (out / "report.html").write_text(html_report(results, run), encoding="utf-8")
+    (out / "report.html").write_text(html_report(data), encoding="utf-8")
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
             f.write(summary)
@@ -1153,34 +1183,53 @@ HTML_TEMPLATE = r"""<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Translation report</title>
 <style>
-  :root { --bg:#fff; --fg:#1f2328; --muted:#656d76; --line:#d0d7de; --row:#f6f8fa; --pass:#1a7f37; --fix:#0969da; --flag:#9a6700; --bad:#cf222e; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#8d96a0; --line:#30363d; --row:#161b22; --pass:#3fb950; --fix:#58a6ff; --flag:#d29922; --bad:#f85149; } }
-  body { margin:0; padding:16px; font:14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background:var(--bg); color:var(--fg); }
-  h1 { font-size:20px; margin:0 0 4px; } .meta { color:var(--muted); margin-bottom:12px; }
-  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:12px 0; }
-  .controls label { display:flex; gap:4px; align-items:center; }
+  :root { --bg:#fff; --fg:#1f2328; --muted:#656d76; --line:#d0d7de; --row:#f6f8fa; --card:#fff; --pass:#1a7f37; --fix:#0969da; --flag:#9a6700; --bad:#cf222e; --sel:#ddf4ff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --muted:#8d96a0; --line:#30363d; --row:#161b22; --card:#161b22; --pass:#3fb950; --fix:#58a6ff; --flag:#d29922; --bad:#f85149; --sel:#1f3a5a; } }
+  body { margin:0; padding:20px; font:14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background:var(--bg); color:var(--fg); }
+  h1 { font-size:22px; margin:0 0 2px; } h2 { font-size:16px; margin:26px 0 10px; }
+  .meta { color:var(--muted); font-size:13px; }
+  .headline { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:10px; margin:18px 0 6px; }
+  .big { border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:var(--card); }
+  .big b { display:block; font-size:28px; line-height:1.1; font-variant-numeric:tabular-nums; } .big span { color:var(--muted); font-size:12px; }
+  .big.pass b{color:var(--pass)} .big.fix b{color:var(--fix)} .big.flag b{color:var(--flag)} .big.bad b{color:var(--bad)}
+  .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(118px,1fr)); gap:6px; }
+  .card { border:1px solid var(--line); border-radius:6px; padding:5px 8px; background:var(--card); cursor:pointer; font-variant-numeric:tabular-nums; font-size:12px; line-height:1.3; }
+  .card:hover { border-color:var(--fix); } .card.on { background:var(--sel); border-color:var(--fix); }
+  .card .code { font-weight:700; font-size:13px; }
+  .card .row { display:flex; justify-content:space-between; gap:6px; color:var(--muted); }
+  .card .row b { color:var(--fg); font-weight:600; }
+  .card .warn { color:var(--flag); } .card .bad { color:var(--bad); } .card .fixn { color:var(--fix); }
+  .bar { height:3px; background:var(--line); border-radius:2px; margin-top:4px; overflow:hidden; } .bar i { display:block; height:100%; background:var(--pass); }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:10px 0; }
+  .controls label { display:flex; gap:4px; align-items:center; font-size:13px; }
   input[type=text], select { padding:4px 6px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
   table { border-collapse:collapse; width:100%; }
   th, td { border-bottom:1px solid var(--line); padding:6px 8px; vertical-align:top; text-align:left; }
-  th { position:sticky; top:0; background:var(--bg); cursor:pointer; white-space:nowrap; user-select:none; }
+  th { position:sticky; top:0; background:var(--bg); cursor:pointer; white-space:nowrap; user-select:none; font-size:12px; }
   tbody tr:nth-child(odd) { background:var(--row); }
   td.k { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; white-space:nowrap; }
-  td.t { max-width:320px; } td.n { color:var(--muted); font-size:12px; max-width:280px; }
+  td.t { max-width:320px; } td.n { color:var(--muted); font-size:12px; max-width:300px; }
   .old { text-decoration:line-through; color:var(--muted); display:block; }
   .s { font-weight:600; } .passed{color:var(--pass)} .fixed{color:var(--fix)} .flagged{color:var(--flag)} .rejected,.failed{color:var(--bad)}
-  .stats { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:8px; margin-bottom:8px; }
-  .card { border:1px solid var(--line); border-radius:8px; padding:8px 10px; } .card b { display:block; } .card small { color:var(--muted); display:block; }
-  .bar { height:4px; background:var(--line); border-radius:2px; margin-top:6px; overflow:hidden; } .bar i { display:block; height:100%; background:var(--pass); }
-  .err { color:var(--bad); }
+  .err { color:var(--bad); font-size:12px; }
+  .clamp { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; cursor:pointer; }
+  .clamp.open { display:block; -webkit-line-clamp:unset; overflow:visible; }
+  td.t { max-width:320px; }
 </style>
 </head>
 <body>
 <h1>Translation report</h1>
 <div class="meta" id="meta"></div>
-<div class="stats" id="stats"></div>
+<div class="headline" id="headline"></div>
+<div class="meta" id="tokens"></div>
+
+<h2>Per locale <span class="meta">(click a card to filter the table)</span></h2>
+<div class="cards" id="cards"></div>
+
+<h2 id="tableTitle">All strings</h2>
 <div class="controls">
   <label>Locale <select id="locale"><option value="">all</option></select></label>
-  <label>Status <select id="status"><option value="">all</option><option>passed</option><option>fixed</option><option>flagged</option><option>rejected</option><option>failed</option></select></label>
+  <label>Status <select id="status"><option value="">all</option><option value="attention">needs attention</option><option>passed</option><option>fixed</option><option>flagged</option><option>rejected</option><option>failed</option></select></label>
   <label>Max confidence <input type="range" id="conf" min="0" max="1" step="0.05" value="1"> <span id="confv">1.00</span></label>
   <label>Search <input type="text" id="q" placeholder="key, English, translation, note"></label>
   <span id="count" class="meta"></span>
@@ -1196,31 +1245,70 @@ HTML_TEMPLATE = r"""<!doctype html>
 <script>
 const data = JSON.parse(document.getElementById('data').textContent);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
 const rows = [];
 for (const L of data.locales) for (const it of L.items) rows.push({
   locale: L.code, rtl: L.rtl, ...it, final: it.final || it.translation,
   notes: [it.reviewer_note, it.translator_note, ...(it.hard_issues||[]), ...(it.soft_issues||[])].filter(Boolean).join(' · '),
   scoreText: it.scores && Object.keys(it.scores).length ? Object.entries(it.scores).map(([k,v]) => k.slice(0,3)+' '+v).join(' ') : ''
 });
+const LANG = {"es-cu": "es-CU", "fr-ca": "fr-CA", "ur-in": "ur-IN", "pt_BR": "pt-BR", "zh-Hans": "zh-Hans", "zh-Hant": "zh-Hant"};
+const langOf = code => LANG[code] || code;
 const r = data.run, m = data.models;
-document.getElementById('meta').textContent =
-  `${r.timestamp} · mode ${r.mode} · base ${r.base || 'none (gaps only)'} · translate ${m.translate} · review ${m.review} · back-translate ${m.backtranslate}`;
-const stats = document.getElementById('stats');
+$('meta').textContent = `${r.timestamp} · ${r.mode} · base ${r.base || 'none (filled gaps)'} · translate ${m.translate} · review ${m.review} · back-translate ${m.backtranslate}`;
+
+// headline numbers
+const sum = k => data.locales.reduce((a, L) => a + (L.stats[k] || 0), 0);
+const confs = rows.map(x => x.confidence).filter(c => c != null);
+const mean = confs.length ? (confs.reduce((a,b)=>a+b,0)/confs.length) : null;
+const low = confs.length ? Math.min(...confs) : null;
+const notWritten = sum('rejected') + sum('failed');
+const activeLocales = data.locales.filter(L => L.items.length || L.removed.length).length;
+$('headline').innerHTML = [
+  ['', sum('translated'), 'strings translated'],
+  ['', activeLocales, `locale${activeLocales === 1 ? '' : 's'}`],
+  ['pass', sum('passed'), 'passed review'],
+  ['fix', sum('fixed'), 'fixed by review'],
+  ['flag', sum('flagged'), 'flagged for a look'],
+  ['bad', notWritten, 'not written'],
+  ['', sum('removed'), 'stale entries removed'],
+  ['', mean == null ? '–' : mean.toFixed(2), 'mean confidence'],
+  ['', low == null ? '–' : low.toFixed(2), 'lowest confidence'],
+].map(([cls, n, label]) => `<div class="big ${cls}"><b>${n}</b><span>${label}</span></div>`).join('');
+if (r.usage && Object.keys(r.usage).length) {
+  $('tokens').textContent = 'Tokens: ' + Object.entries(r.usage).map(([mm, u]) =>
+    `${mm}: in ${u.input.toLocaleString()} (+${u.cache_read.toLocaleString()} cached), out ${u.output.toLocaleString()}`).join(' · ');
+}
+
+// per-locale cards
+let selected = '';
+const cards = $('cards');
 for (const L of data.locales) {
   const s = L.stats, n = L.items.length || 1;
-  stats.insertAdjacentHTML('beforeend', `<div class="card"><b>${esc(L.code)} <small>${esc(L.name)}</small></b>
-    <small>${s.translated} translated · ${s.passed} passed · ${s.fixed} fixed · ${s.flagged} flagged · ${s.rejected + s.failed} not written · ${s.removed} removed</small>
-    <small>${s.mean_confidence != null ? `confidence mean ${s.mean_confidence.toFixed(2)}, lowest ${s.min_confidence.toFixed(2)}` : ''}</small>
+  const conf = s.mean_confidence != null ? `<b>${s.mean_confidence.toFixed(2)}</b> / ${s.min_confidence.toFixed(2)}` : 'no review';
+  const marks = [s.fixed ? `<span class="fixn">${s.fixed} fixed</span>` : '', s.flagged ? `<span class="warn">${s.flagged} flagged</span>` : '',
+                 s.rejected + s.failed ? `<span class="bad">${s.rejected + s.failed} not written</span>` : ''].filter(Boolean).join(' · ');
+  cards.insertAdjacentHTML('beforeend', `<div class="card" data-code="${esc(L.code)}" title="${esc(L.name)}">
+    <div class="row"><span class="code">${esc(L.code)}</span><span><b>${s.translated}</b> strings</span></div>
+    <div class="row"><span>conf</span><span>${conf}</span></div>
+    ${marks ? `<div class="row"><span>${marks}</span></div>` : ''}
     ${L.error ? `<div class="err">${esc(L.error)}</div>` : ''}
     <div class="bar"><i style="width:${100*(s.passed+s.fixed)/n}%"></i></div></div>`);
-  document.getElementById('locale').insertAdjacentHTML('beforeend', `<option>${esc(L.code)}</option>`);
+  $('locale').insertAdjacentHTML('beforeend', `<option>${esc(L.code)}</option>`);
 }
+cards.addEventListener('click', e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  selected = selected === card.dataset.code ? '' : card.dataset.code;
+  $('locale').value = selected; render();
+});
+
+// table
 let sortKey = 'locale', sortDir = 1;
-const $ = id => document.getElementById(id);
 function render() {
   const loc = $('locale').value, st = $('status').value, maxc = parseFloat($('conf').value), q = $('q').value.toLowerCase();
+  document.querySelectorAll('.card').forEach(c => c.classList.toggle('on', c.dataset.code === loc));
   $('confv').textContent = maxc.toFixed(2);
-  let out = rows.filter(x => (!loc || x.locale === loc) && (!st || x.status === st)
+  let out = rows.filter(x => (!loc || x.locale === loc) && (!st || (st === 'attention' ? x.status !== 'passed' : x.status === st))
     && (x.confidence == null || x.confidence <= maxc)
     && (!q || [x.key, x.source, x.final, x.back_translation, x.notes].join(' ').toLowerCase().includes(q)));
   out.sort((a, b) => {
@@ -1229,15 +1317,18 @@ function render() {
     if (va == null) return 1; if (vb == null) return -1;
     return (va > vb ? 1 : va < vb ? -1 : 0) * sortDir;
   });
-  $('count').textContent = `${out.length} of ${rows.length} strings`;
+  $('tableTitle').textContent = loc ? `Strings for ${loc} (${out.length})` : `All strings (${out.length} of ${rows.length})`;
+  $('count').textContent = `${out.length} shown`;
   $('rows').innerHTML = out.map(x => `<tr>
-    <td>${esc(x.locale)}</td><td class="k">${esc(x.key)}</td><td class="t">${esc(x.source)}</td>
-    <td class="t" ${x.rtl ? 'dir="rtl"' : ''}>${x.reason === 'changed' && x.old ? `<span class="old">${esc(x.old)}</span>` : ''}${esc(x.final)}</td>
-    <td class="t">${esc(x.back_translation)}</td>
+    <td>${esc(x.locale)}</td><td class="k">${esc(x.key)}</td><td class="t"><div class="clamp" lang="en">${esc(x.source)}</div></td>
+    <td class="t"><div class="clamp" lang="${langOf(x.locale)}" ${x.rtl ? 'dir="rtl"' : ''}>${x.reason === 'changed' && x.old ? `<span class="old">${esc(x.old)}</span>` : ''}${x.status === 'fixed' && x.translation !== x.final ? `<span class="old">${esc(x.translation)}</span>` : ''}${esc(x.final)}</div></td>
+    <td class="t"><div class="clamp" lang="en">${esc(x.back_translation)}</div></td>
     <td class="s ${x.status}">${esc(x.status)}</td><td>${x.confidence == null ? '' : x.confidence.toFixed(2)}</td>
-    <td class="n">${esc(x.scoreText)}</td><td class="n">${esc(x.notes)}</td></tr>`).join('');
+    <td class="n">${esc(x.scoreText)}</td><td class="n"><div class="clamp" lang="en">${esc(x.notes)}</div></td></tr>`).join('');
 }
-for (const id of ['locale', 'status', 'conf', 'q']) $(id).addEventListener('input', render);
+for (const id of ['locale', 'status', 'conf', 'q']) $(id).addEventListener('input', () => { selected = $('locale').value; render(); });
+// long cells show two lines; click to expand or collapse
+$('rows').addEventListener('click', e => { const c = e.target.closest('.clamp'); if (c) c.classList.toggle('open'); });
 document.querySelectorAll('th').forEach(th => th.addEventListener('click', () => {
   const k = th.dataset.k; sortDir = sortKey === k ? -sortDir : 1; sortKey = k; render();
 }));
