@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -64,8 +65,17 @@ class _FakeLanternService implements LanternService {
   @override
   Future<bool> checkVpnConflict() async => false;
 
+  Completer<bool>? tagAvailableCompleter;
+
   @override
-  Future<bool> isTagAvailable(String tag) async => true;
+  Future<bool> isTagAvailable(String tag) async =>
+      tagAvailableCompleter?.future ?? true;
+
+  @override
+  Future<Either<Failure, String>> connectToServer(
+    String location,
+    String tag,
+  ) async => right('ok');
 
   Future<void> dispose() => statusController.close();
 
@@ -122,6 +132,74 @@ Future<void> _pumpProviderQueue() async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('VpnNotifier', () {
+    test(
+      'tracks a start as in progress from entry, including tag lookup',
+      () async {
+        final service = _FakeLanternService()
+          ..tagAvailableCompleter = Completer<bool>();
+        final container = ProviderContainer(
+          overrides: [
+            lanternServiceProvider.overrideWithValue(service),
+            serverLocationProvider.overrideWithValue(
+              ServerLocation(
+                serverName: 'manual-tag',
+                serverType: ServerLocationType.lanternLocation.name,
+              ),
+            ),
+            appSettingProvider.overrideWith(_FakeAppSettings.new),
+          ],
+        );
+        _disposeContainerAndService(container, service);
+        final statusSub = container.listen(
+          vPNStatusProvider,
+          (previous, next) {},
+          fireImmediately: true,
+        );
+        addTearDown(statusSub.close);
+        final notifier = container.read(vpnProvider.notifier);
+
+        final start = notifier.startVPN(skipConflictCheck: true);
+        await _pumpProviderQueue();
+        expect(notifier.switchInProgress, isTrue);
+
+        service.tagAvailableCompleter!.complete(true);
+        await start;
+        service.statusController.add(
+          LanternStatus(status: VPNStatus.connected),
+        );
+        await _pumpProviderQueue();
+        expect(notifier.switchInProgress, isFalse);
+      },
+    );
+
+    test(
+      'a start from disconnected stays in progress until status moves',
+      () async {
+        final service = _FakeLanternService();
+        final container = _container(service);
+        _disposeContainerAndService(container, service);
+        final statusSub = container.listen(
+          vPNStatusProvider,
+          (previous, next) {},
+          fireImmediately: true,
+        );
+        addTearDown(statusSub.close);
+        final notifier = container.read(vpnProvider.notifier);
+        await _pumpProviderQueue();
+        expect(container.read(vpnProvider), VPNStatus.disconnected);
+
+        // Android returns once the service intent is dispatched.
+        await notifier.startVPN(skipConflictCheck: true);
+        expect(notifier.switchInProgress, isTrue);
+
+        service.statusController.add(
+          LanternStatus(status: VPNStatus.connecting),
+        );
+        await _pumpProviderQueue();
+        expect(notifier.switchInProgress, isFalse);
+      },
+    );
+
     test('hydrates initial connected state from core', () async {
       final service = _FakeLanternService()..isConnectedResult = right(true);
       final container = _container(service);

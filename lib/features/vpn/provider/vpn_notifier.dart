@@ -22,6 +22,40 @@ class VpnNotifier extends _$VpnNotifier {
   bool _hasStatusStreamEmission = false;
   Future<Either<Failure, String>>? _stopRequest;
   bool _userDisconnectRequested = false;
+  int _switchesInFlight = 0;
+  DateTime? _dispatchedStartDeadline;
+
+  /// Whether a connect or server switch the app requested is still running,
+  /// from the start of [startVPN] or [connectToServer] (including their
+  /// conflict check and tag lookup) until the native call returns, and for
+  /// a start from disconnected, until the tunnel reports a new status.
+  bool get switchInProgress {
+    if (_switchesInFlight > 0) return true;
+    final deadline = _dispatchedStartDeadline;
+    return deadline != null &&
+        state == VPNStatus.disconnected &&
+        DateTime.now().isBefore(deadline);
+  }
+
+  // Android returns once the service intent is dispatched, before the service
+  // reports Connecting, so a start from disconnected stays pending until the
+  // status moves (or this long passes, if the service never starts).
+  static const _dispatchedStartGrace = Duration(seconds: 15);
+
+  Future<Either<Failure, String>> _trackSwitch(
+    Future<Either<Failure, String>> Function() request,
+  ) async {
+    _switchesInFlight += 1;
+    try {
+      final result = await request();
+      if (result.isRight() && state == VPNStatus.disconnected) {
+        _dispatchedStartDeadline = DateTime.now().add(_dispatchedStartGrace);
+      }
+      return result;
+    } finally {
+      _switchesInFlight -= 1;
+    }
+  }
 
   RatingPromptService? get _ratingPrompt =>
       sl.isRegistered<RatingPromptService>() ? sl<RatingPromptService>() : null;
@@ -131,6 +165,7 @@ class VpnNotifier extends _$VpnNotifier {
         }
       }
 
+      if (nextStatus != VPNStatus.disconnected) _dispatchedStartDeadline = null;
       state = nextStatus;
     });
     return VPNStatus.disconnected;
@@ -198,6 +233,13 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, String>> startVPN({
     bool force = false,
     bool skipConflictCheck = false,
+  }) => _trackSwitch(
+    () => _startVPN(force: force, skipConflictCheck: skipConflictCheck),
+  );
+
+  Future<Either<Failure, String>> _startVPN({
+    required bool force,
+    required bool skipConflictCheck,
   }) async {
     final lantern = ref.read(lanternServiceProvider);
 
@@ -224,7 +266,7 @@ class VpnNotifier extends _$VpnNotifier {
       );
       return lantern.startVPN();
     }
-    return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
+    return _connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
   }
 
   /// Connects to a specific server location.
@@ -233,6 +275,14 @@ class VpnNotifier extends _$VpnNotifier {
     ServerLocationType location,
     String tag, {
     bool skipConflictCheck = false,
+  }) => _trackSwitch(
+    () => _connectToServer(location, tag, skipConflictCheck: skipConflictCheck),
+  );
+
+  Future<Either<Failure, String>> _connectToServer(
+    ServerLocationType location,
+    String tag, {
+    required bool skipConflictCheck,
   }) async {
     // Check for a conflicting VPN before initiating a new connection.
     // The native side guards against false positives by returning false when
@@ -243,10 +293,7 @@ class VpnNotifier extends _$VpnNotifier {
     }
 
     appLogger.debug("Connecting to server: $location with tag: $tag");
-    final result = await ref
-        .read(lanternServiceProvider)
-        .connectToServer(location.name, tag);
-    return result;
+    return ref.read(lanternServiceProvider).connectToServer(location.name, tag);
   }
 
   Future<Left<Failure, String>?> _checkVpnConflict() async {
