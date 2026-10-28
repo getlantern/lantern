@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"maps"
 	"slices"
 	"time"
 
@@ -185,7 +184,6 @@ func (e *Engine) createInvite(ctx context.Context, args []byte) (any, error) {
 
 func (e *Engine) refresh(ctx context.Context) (any, error) {
 	changed := false
-	helpersBefore := e.inviterPairings()
 	cutoff := e.now().Add(-InviteTTL)
 	for _, inv := range slices.Clone(e.st.Invites) {
 		var st inviteStatus
@@ -304,9 +302,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 			return nil, err
 		}
 	}
-	v := e.view(newHelping)
-	v.HelpersChanged = !maps.Equal(helpersBefore, e.inviterPairings())
-	return v, nil
+	return e.view(newHelping), nil
 }
 
 // dropVolunteerSide forgets every claim and every pairing this device

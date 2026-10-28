@@ -16,6 +16,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"maps"
 	"sync"
 	"time"
 
@@ -56,6 +57,12 @@ type Engine struct {
 	activity *Activity
 	// reset is set when unlock found a state file the key could not open.
 	reset bool
+	// helpersPending is set when an op changed the pairings in which this
+	// device is helped, and cleared by the refresh that reports it. An op
+	// can change them and then fail, and the next refresh would otherwise
+	// compare against the changed set and never say so. It is kept in
+	// memory only: after a restart the app fetches its config anyway.
+	helpersPending bool
 }
 
 // NewEngine returns an engine that keeps its state in dir.
@@ -80,6 +87,7 @@ func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, erro
 	}
 	var out any
 	var err error
+	helpersBefore := e.inviterPairings()
 	switch op {
 	case "view":
 		out = e.view(false)
@@ -100,8 +108,16 @@ func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, erro
 	default:
 		return nil, errCode(CodeInternal)
 	}
+	if !maps.Equal(helpersBefore, e.inviterPairings()) {
+		e.helpersPending = true
+	}
 	if err != nil {
 		return nil, err
+	}
+	if v, ok := out.(View); ok && op == "refresh" && e.helpersPending {
+		v.HelpersChanged = true
+		e.helpersPending = false
+		out = v
 	}
 	b, err := json.Marshal(out)
 	if err != nil {
@@ -170,9 +186,10 @@ type View struct {
 	Helping    []PairingView `json:"helping"`
 	Activity   *Activity     `json:"activity,omitempty"`
 	NewHelping bool          `json:"new_helping"`
-	// HelpersChanged is set in refresh's answer when it added or dropped a
-	// pairing in which this device is helped, so the app fetches the config
-	// that carries those helpers' routes.
+	// HelpersChanged is set in refresh's answer when the pairings in which
+	// this device is helped changed since the last refresh that said so
+	// (in this refresh, or in an op that changed them and then failed), so
+	// the app fetches the config that carries those helpers' routes.
 	HelpersChanged bool `json:"helpers_changed,omitempty"`
 	// KeystoreReset is set only in unlock's answer, when the old state could
 	// not be opened and was kept as state.bin.bak.

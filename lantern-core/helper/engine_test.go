@@ -694,3 +694,27 @@ func TestViewMarksProvisionalClaims(t *testing.T) {
 	require.Len(t, claims, 1)
 	assert.Nil(t, claims[0]["provisional"], "a confirmed claim is not marked")
 }
+
+// TestHelpersChangedSurvivesAFailedRefresh: a refresh that adds a helper and
+// then fails must not lose the news. The next successful refresh reports it,
+// once.
+func TestHelpersChangedSurvivesAFailedRefresh(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	id := list(call(t, sara, "refresh", nil), "invites")[0]["id"]
+
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "decide", map[string]any{"invite_id": id, "approve": true}))
+	cloud.fail["pairings"] = 500
+	callErr(t, sara, "refresh", nil)
+	require.Len(t, list(call(t, sara, "view", nil), "helpers"), 1, "the failed refresh saved the approval")
+
+	delete(cloud.fail, "pairings")
+	sv := call(t, sara, "refresh", nil)
+	require.Len(t, list(sv, "helpers"), 1)
+	assert.Equal(t, true, sv["helpers_changed"], "the helper the failed refresh added")
+	assert.Nil(t, call(t, sara, "refresh", nil)["helpers_changed"], "reported once")
+}
