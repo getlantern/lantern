@@ -311,8 +311,12 @@ class HelpersNotifier extends _$HelpersNotifier {
       await _call('create_invite', {'name': name}),
       isView: false,
     );
-    if (r.ok) await refreshView();
-    return r;
+    if (!r.ok) return r;
+    // The share screen reads the new invite from the view: without it, the
+    // invite (kept by the engine) shows at the next view instead.
+    var v = await refreshView();
+    if (!v.ok && ref.mounted) v = await refreshView();
+    return v.ok ? r : v;
   }
 
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {

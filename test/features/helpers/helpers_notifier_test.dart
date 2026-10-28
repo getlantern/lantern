@@ -568,6 +568,36 @@ void main() {
     expect(svc.configRequests, 1);
   });
 
+  group('createInvite', () {
+    const created = '{"invite_id":"i1","link":"x"}';
+    final withInvite = _view(invites: '[{"id":"i1","state":"pending"}]');
+
+    test('retries a failed view once', () async {
+      svc.answers = {'unlock': _view(), 'create_invite': created};
+      svc.queued['view'] = ['{"error":"unavailable"}', withInvite];
+      final c = container();
+      final r = await c.read(helpersProvider.notifier).createInvite('Sara');
+      expect(r.ok, isTrue);
+      expect(r.data['invite_id'], 'i1');
+      expect(svc.calls.where((op) => op == 'view').length, 2);
+      expect(c.read(helpersProvider).view.invites.single.id, 'i1');
+      expect(c.read(helpersProvider).error, isNull);
+    });
+
+    test('reports a view that fails twice', () async {
+      svc.answers = {
+        'unlock': _view(),
+        'create_invite': created,
+        'view': '{"error":"unavailable"}',
+      };
+      final c = container();
+      final r = await c.read(helpersProvider.notifier).createInvite('Sara');
+      expect(r.ok, isFalse);
+      expect(r.error, 'unavailable');
+      expect(svc.calls.where((op) => op == 'view').length, 2);
+    });
+  });
+
   test('a failed config fetch does not reread the stale flags', () async {
     svc.answers = {'unlock': _view(), 'refresh': _view(newHelping: true)};
     svc.configFails = true;
