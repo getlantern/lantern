@@ -226,7 +226,6 @@ Future<void> runConfigUrlConnectSmokeHarness(
   WidgetTester tester, {
   required String configUrl,
   required String configServerName,
-  required bool skipCertVerification,
 }) async {
   final urls = splitConfigUrls(configUrl);
   if (urls.length != 1) {
@@ -244,13 +243,6 @@ Future<void> runConfigUrlConnectSmokeHarness(
       'JOIN_SERVER_CONFIG_SERVER_NAME must not be empty for config URL smoke test',
     );
   }
-  if (!skipCertVerification) {
-    fail(
-      'JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION=false is not supported in '
-      'UI smoke because Join Server currently forces skip verification.',
-    );
-  }
-
   final finders = VpnSmokeFinders();
   final vpnStateFinders = VpnStateFinders();
 
