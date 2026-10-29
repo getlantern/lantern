@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -18,6 +19,16 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // Every change to the selected/resolved location is mirrored into the
     // native widget so it can show where the tunnel exits.
     listenSelf((_, next) => _publishToWidget(next));
+    // radiance drops the personal proxies group with the last pairing and
+    // connects through auto, but sends no server-location event for it.
+    ref.listen(helpersProvider, (_, next) {
+      if (!next.viewLoaded || next.view.helpers.isNotEmpty) return;
+      if (state.serverType.toServerLocationType !=
+          ServerLocationType.personalProxy) {
+        return;
+      }
+      unawaited(switchToAuto().then((_) => refreshAutoLocationIfNeeded()));
+    });
     final cached = _storage.getServerLocation();
     final initial = cached ?? _defaultLocation();
     appLogger.debug(
