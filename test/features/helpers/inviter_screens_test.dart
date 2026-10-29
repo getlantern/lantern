@@ -18,6 +18,7 @@ import 'package:lantern/features/helpers/approve_helper_sheet.dart';
 import 'package:lantern/features/helpers/get_help.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
@@ -309,6 +310,7 @@ void main() {
     );
     await _pump(tester, fake, const InviteShare(inviteId: 'i2'));
     expect(find.byKey(const Key('invite.qr')), findsOneWidget);
+    expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
     expect(find.byKey(const Key('invite.share')), findsOneWidget);
   });
 
@@ -427,6 +429,32 @@ void main() {
       await _pump(tester, fake, const GetHelp());
       await tester.tap(find.byKey(const Key('helpers.invite')));
       await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), 'Sara');
+      await tester.tap(find.text('continue'.i18n));
+      await tester.pumpAndSettle();
+      expect(fake.created, ['Sara']);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
+    });
+
+    testWidgets('startPersonalProxyInvite names the invite, then opens it', (
+      tester,
+    ) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(const HelpersState());
+      await _pump(
+        tester,
+        fake,
+        Consumer(
+          builder: (context, ref, _) => TextButton(
+            onPressed: () => startPersonalProxyInvite(context, ref),
+            child: const Text('go'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
       await tester.enterText(find.byType(TextFormField), 'Sara');
       await tester.tap(find.text('continue'.i18n));
       await tester.pumpAndSettle();

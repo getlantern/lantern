@@ -11,6 +11,8 @@ import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
+import 'package:lantern/features/helpers/personal_proxy_invite.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -288,37 +290,55 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       context: context,
       title: 'private_server_options'.i18n,
       scrollControlDisabledMaxHeightRatio: .4,
-      builder: (context, scrollController) {
-        return ListView(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          children: [
-            AppTile(
-              tileKey: const Key('server_selection.setup_private_server'),
-              label: 'setup_private_server'.i18n,
-              onPressed: () {
-                context.pushRoute(PrivateServerSetup());
-              },
-            ),
-            const DividerSpace(padding: EdgeInsets.zero),
-            AppTile(
-              tileKey: const Key('server_selection.join_private_server'),
-              label: 'join_a_private_server'.i18n,
-              onPressed: () {
-                context.pushRoute(JoinPrivateServer());
-              },
-            ),
-            const DividerSpace(padding: EdgeInsets.zero),
-            AppTile(
-              tileKey: const Key('server_selection.manage_private_servers'),
-              label: 'manage_private_servers'.i18n,
-              onPressed: () {
-                context.pushRoute(ManagePrivateServer());
-              },
-            ),
-          ],
-        );
-      },
+      builder: (sheetContext, scrollController) => PrivateLocationsMenu(
+        onInvitePersonalProxy: () {
+          Navigator.of(sheetContext).pop();
+          startPersonalProxyInvite(context, ref);
+        },
+      ),
+    );
+  }
+}
+
+/// The server list's menu: set up, join, invite a personal proxy, manage.
+class PrivateLocationsMenu extends ConsumerWidget {
+  const PrivateLocationsMenu({super.key, required this.onInvitePersonalProxy});
+
+  final VoidCallback onInvitePersonalProxy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final invites = ref.watch(helperInvitesAvailableProvider);
+    return ListView(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      children: [
+        AppTile(
+          tileKey: const Key('server_selection.setup_private_server'),
+          label: 'setup_private_server'.i18n,
+          onPressed: () => context.pushRoute(PrivateServerSetup()),
+        ),
+        const DividerSpace(padding: EdgeInsets.zero),
+        AppTile(
+          tileKey: const Key('server_selection.join_private_server'),
+          label: 'join_a_private_server'.i18n,
+          onPressed: () => context.pushRoute(JoinPrivateServer()),
+        ),
+        if (invites) ...[
+          const DividerSpace(padding: EdgeInsets.zero),
+          AppTile(
+            tileKey: const Key('server_selection.invite_personal_proxy'),
+            label: 'invite_personal_proxy'.i18n,
+            onPressed: onInvitePersonalProxy,
+          ),
+        ],
+        const DividerSpace(padding: EdgeInsets.zero),
+        AppTile(
+          tileKey: const Key('server_selection.manage_private_servers'),
+          label: 'manage_private_locations'.i18n,
+          onPressed: () => context.pushRoute(ManagePrivateServer()),
+        ),
+      ],
     );
   }
 }

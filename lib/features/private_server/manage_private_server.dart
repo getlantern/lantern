@@ -34,11 +34,11 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
 
     return serversAsync.when(
       loading: () => BaseScreen(
-        title: 'manage_private_servers'.i18n,
+        title: 'manage_private_locations'.i18n,
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (err, st) => BaseScreen(
-        title: 'manage_private_servers'.i18n,
+        title: 'manage_private_locations'.i18n,
         body: Center(child: Text(err.toString())),
       ),
       data: (servers) {
@@ -51,7 +51,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
             .toList();
 
         return BaseScreen(
-          title: 'manage_private_servers'.i18n,
+          title: 'manage_private_locations'.i18n,
           body: DefaultTabController(
             length: 2,
             child: Column(

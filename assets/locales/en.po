@@ -1111,9 +1111,6 @@ msgstr "Join Server"
 msgid "private_server_usage_message"
 msgstr "Private server usage is not counted towards your Lantern daily data cap."
 
-msgid "manage_private_servers"
-msgstr "Manage Private Servers"
-
 msgid "my_servers"
 msgstr "My Servers"
 
@@ -2224,8 +2221,13 @@ msgstr "Remove all helpers"
 msgid "helpers_remove_all_body"
 msgstr "Every helper stops helping you, and their names are erased from this device."
 
-msgid "invite_share_title"
-msgstr "Send your invite"
+# The screen and menu entry for the user's private servers and personal proxies.
+msgid "manage_private_locations"
+msgstr "Manage Private Locations"
+
+# Starts an invite to a friend abroad who will become the user's personal proxy.
+msgid "invite_personal_proxy"
+msgstr "Invite a Personal Proxy"
 
 msgid "invite_share_body"
 msgstr "Send this link to one person you trust. It works once and expires in 48 hours."

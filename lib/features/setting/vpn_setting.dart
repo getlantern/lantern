@@ -149,7 +149,7 @@ class VPNSetting extends HookConsumerWidget {
               DividerSpace(),
               if (isPrivateServerFound)
                 AppTile(
-                  label: 'manage_private_servers'.i18n,
+                  label: 'manage_private_locations'.i18n,
                   icon: AppImagePaths.settingServer,
                   trailing: AppImage(
                     path: AppImagePaths.arrowForward,
