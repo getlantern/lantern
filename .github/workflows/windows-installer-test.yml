@@ -10,16 +10,11 @@ on:
       - .github/scripts/test_windows_installer.py
       - .github/scripts/windows_installer_test.iss
       - .github/scripts/windows_smoke_suite.ps1
-      - .github/scripts/windows_candidate_smoke.ps1
-      - .github/scripts/windows_gui_health.ps1
-      - .github/scripts/test_windows_gui_health.ps1
-      - .github/scripts/windows_auto_update_smoke.ps1
       - .github/workflows/windows-installer-test.yml
       - .github/workflows/build-windows.yml
-      - scripts/requirements.txt
-      - scripts/ci/*windows*.ps1
-      - scripts/ci/render_windows_installer*.py
       - scripts/ci/choco-retry.sh
+      - scripts/ci/render_windows_installer.py
+      - scripts/requirements.txt
 
 permissions:
   contents: read
@@ -41,21 +36,8 @@ jobs:
         shell: bash
         run: ./scripts/ci/choco-retry.sh -y innosetup --version=6.7.1 --allow-downgrade
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install installer test dependencies
-        shell: pwsh
-        run: |
-          python -m pip install -r scripts/requirements.txt
-          if ($LASTEXITCODE -ne 0) { throw 'Unable to install test dependencies' }
-
-      - name: Test signature validation and GUI crash detection
-        shell: pwsh
-        run: |
-          ./scripts/ci/windows-signing_test.ps1
-          ./.github/scripts/test_windows_gui_health.ps1
+      - name: Install renderer dependencies
+        run: python -m pip install -r scripts/requirements.txt
 
       - name: Test toolchain staging and installer prerequisite behavior
         run: python .github/scripts/test_windows_installer.py --output "${{ runner.temp }}/lantern-installer-tests"

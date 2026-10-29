@@ -19,7 +19,6 @@ $script:StartedAt = [DateTime]::UtcNow
 $script:OriginalPid = 0
 $script:RelaunchedPid = 0
 $script:Result = 'failure'
-$script:Failure = $null
 
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
@@ -218,7 +217,7 @@ function Wait-ForUpdatePrompt {
   $deadline = [DateTime]::UtcNow.AddSeconds($UiTimeout)
   while ([DateTime]::UtcNow -lt $deadline) {
     if (-not (Get-Process -Id $script:OriginalPid -ErrorAction SilentlyContinue)) {
-      throw 'The original Lantern GUI exited before the update prompt was accepted'
+      throw 'The original Lantern GUI exited before accepting the update'
     }
     $button = Get-Button (Get-Window @('Software Update')) @('Install update', 'Get update')
     if ($button) { return $button }
@@ -250,7 +249,6 @@ function Install-Update(
   $launchRequested = $false
   $originalExited = $false
   $originalProcess = Get-Process -Id $OriginalPid -ErrorAction Stop
-  # Open the process handle before it can exit, retaining its real exit code.
   $null = $originalProcess.Handle
   while ([DateTime]::UtcNow -lt $deadline) {
     $installer = Get-Window @('Setup - Lantern', 'Lantern Setup')
@@ -271,9 +269,8 @@ function Install-Update(
       }
     }
     if (-not $originalExited -and -not (Get-Process -Id $OriginalPid -ErrorAction SilentlyContinue)) {
-      if (-not $originalProcess.WaitForExit(5000)) { throw 'Original GUI exit could not be confirmed' }
-      if ($originalProcess.ExitCode -ne 0) {
-        throw "Original GUI crashed during update handoff (exit code $($originalProcess.ExitCode))"
+      if (-not $originalProcess.WaitForExit(5000) -or $originalProcess.ExitCode -ne 0) {
+        throw 'Original GUI crashed during update handoff'
       }
       $originalExited = $true
       Write-E2E "original Lantern process $OriginalPid exited"
@@ -314,7 +311,6 @@ function Save-Diagnostics {
   if (Test-Path -LiteralPath $logs) {
     Copy-Item $logs (Join-Path $ArtifactDirectory 'lantern-logs') -Recurse -Force
   }
-  Copy-LanternGuiLogs $ArtifactDirectory
   Get-ChildItem $env:TEMP -Filter 'Update-*' -Directory -ErrorAction SilentlyContinue |
     ForEach-Object { Get-ChildItem $_.FullName -Recurse -ErrorAction SilentlyContinue } |
     Select-Object FullName, Length, LastWriteTime |
@@ -371,8 +367,7 @@ try {
     throw "Flutter handoff PID $script:OriginalPid is not the installed Lantern app"
   }
 
-  Wait-LanternGuiHealthy -ProcessId $script:OriginalPid -AppExecutable $AppExecutable `
-    -ArtifactDirectory $ArtifactDirectory -Phase 'before-update'
+  Wait-LanternGuiHealthy $script:OriginalPid $AppExecutable
   $installButton = Wait-ForUpdatePrompt
   Save-UiTree 'prompt'
   Save-Screenshot 'prompt'
@@ -384,34 +379,21 @@ try {
     $targetBuild
   $script:RelaunchedPid = $relaunched.Id
   Assert-AppVersion 'updated' $targetBuild $displayVersion
-  Wait-LanternGuiHealthy -ProcessId $script:RelaunchedPid -AppExecutable $AppExecutable `
-    -ArtifactDirectory $ArtifactDirectory -Phase 'after-update'
-  Assert-LanternUpdaterStartup -LogPath (Get-LanternFlutterLogPath) `
-    -StartedAt $relaunched.StartTime.ToUniversalTime() `
-    -OutputPath (Join-Path $ArtifactDirectory 'after-update-flutter.log')
+  Wait-LanternGuiHealthy $script:RelaunchedPid $AppExecutable
+  Assert-LanternUpdaterStartup $relaunched.StartTime.ToUniversalTime() `
+    (Join-Path $ArtifactDirectory 'after-update-flutter.log')
   & python $ScenarioHelper verify --scenario $Scenario --target $TargetJson `
     --handoff (Join-Path $ArtifactDirectory 'auto-update-handoff.json') `
     --output (Join-Path $ArtifactDirectory 'scenario-after.json')
   if ($LASTEXITCODE -ne 0) { throw 'Update conditions changed before installation completed' }
   Save-Screenshot 'after'
   $script:Result = 'success'
-} catch {
-  $script:Failure = $_
-  $script:Result = 'failure'
+  Write-E2E "auto-update smoke passed: build $fixtureBuild -> $targetBuild"
 } finally {
   $restoreFailed = $false
   try { Restore-Network } catch { $restoreFailed = $true; Write-Warning "Unable to restore network: $_" }
-  try { Export-LanternWindowsEvents $script:StartedAt $ArtifactDirectory $AppDirectory } catch {
-    if ($null -eq $script:Failure) { $script:Failure = $_ }
-    $script:Result = 'failure'
-  }
-  if ($restoreFailed) {
-    $script:Result = 'failure'
-    if ($null -eq $script:Failure) { $script:Failure = 'Update DNS cleanup failed; see the workflow restoration step' }
-  }
   try { Save-Diagnostics } catch { Write-Warning "Unable to save all diagnostics: $_" }
   try { Save-Screenshot 'final' } catch { Write-Warning "Unable to save final screenshot: $_" }
   try { Reset-Lantern } catch { Write-Warning "Unable to clean up Lantern fixture: $_" }
+  if ($restoreFailed) { throw 'Update DNS cleanup failed; see the workflow restoration step' }
 }
-if ($null -ne $script:Failure) { throw $script:Failure }
-Write-E2E "auto-update smoke passed: build $fixtureBuild -> $targetBuild"

@@ -66,11 +66,9 @@ require an enabled dedicated runner. See [macOS CI runners](macos-ci.md) for the
 `MACOS_STATEFUL_SMOKE_ENABLED` gate and temporary coverage gap.
 Sparkle or WinSparkle downloads and installs the target. The smoke checks its
 signature and version, waits for the original process to exit, and verifies that
-the updated app relaunches. On Windows the original GUI must remain responsive
-for 120 seconds before installation, and the replacement must remain responsive
-for another 120 seconds. The replacement's fresh logs must show native updater
-configuration and the normal startup check. A surviving daemon does not satisfy
-these checks.
+the updated app relaunches with a visible window. Windows additionally checks
+120 seconds of responsive GUI startup before and after the update, and verifies
+the replacement app starts its native updater.
 
 Both workflows accept a `scenario` input:
 
@@ -99,32 +97,10 @@ after relaunch. Script cleanup and an `always()` workflow step remove only the
 hosts-file entries added by the test. A passing build alone does not validate
 fronted delivery; the signed installation and relaunch checks must pass too.
 
-### Windows release validation
-
-Every signed, packaged Windows build installs and launches its exact Release
-installer on a disposable runner before publishing it. This gate runs regardless
-of `run_installer_smoke`. CI signs unsigned binaries, preserves valid vendor
-signatures, and packages with Inno directly to prevent a rebuild after signing.
-Installed executables and DLLs must match the signed hash manifest. The generated
-uninstaller must also have a valid signature.
-
-The gate checks the installed version, 120 seconds of responsive GUI startup,
-updater initialization, and Windows crash and CodeIntegrity events. The
-`windows-candidate-validation` artifact retains installer and payload hashes,
-workflow provenance, loaded runtime DLL versions, logs, and events on failure
-as well as success.
-
-Setup checks native `msvcp140.dll`, `vcruntime140.dll`, and `vcruntime140_1.dll`
-alongside the architecture-specific registry entry. It installs or repairs the
-bundled runtime and verifies the files afterward, including after exit code 1638.
-A required reboot stops setup before app installation. If a newer registered
-runtime has stale files, setup requests repair of that newer version. The
-Windows Installer Tests workflow covers these decisions with isolated fixtures.
-
-Hosted CI does not reproduce Smart App Control or a damaged runtime installation.
-Before closing those incidents, also test the signed candidate on disposable
-Windows 11 24H2 SAC and runtime-mismatch images, including repeated launches,
-a five-minute observation, and an upgrade from the affected build. Record loaded
-DLL versions and CodeIntegrity results; do not alter system DLLs on shared hosts.
-The auto-update workflow upgrades its branch-built fixture to a published feed
-target, so its result alone does not validate a new branch's candidate installer.
+Signed Windows builds also install and launch the exact candidate before
+publishing. Packaging uses Inno directly to avoid rebuilding signed binaries;
+installed EXE/DLL signatures and hashes must match the signed payload. Setup
+checks native runtime DLL versions as well as registry metadata, repairs the
+bundled version when possible, and requests repair of newer damaged runtimes.
+Windows 11 Smart App Control and damaged-runtime validation still require a
+disposable Windows test machine.

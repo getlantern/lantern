@@ -289,7 +289,7 @@ jobs:
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
         run: |
-          ./scripts/ci/sign-windows-bundle.ps1 `
+          ./scripts/ci/windows-signing.ps1 -Action Sign `
             -Directory "build/windows/x64/runner/Release" `
             -ManifestPath "$env:RUNNER_TEMP/windows-signing/signed-payload.json"
 
@@ -361,8 +361,8 @@ jobs:
             $renderArgs += '--signed'
             # Inno expands $q/$f. The callback reads credentials only from its
             # inherited environment and signs setup AND the generated uninstaller.
-            $callback = Join-Path $env:GITHUB_WORKSPACE 'scripts/ci/sign-windows-inno.ps1'
-            $signCommand = 'lantern=$q{0}$q -NoProfile -NonInteractive -File $q{1}$q -FilePath $f' -f (Get-Command pwsh).Source, $callback
+            $callback = Join-Path $env:GITHUB_WORKSPACE 'scripts/ci/windows-signing.ps1'
+            $signCommand = 'lantern=$q{0}$q -NoProfile -NonInteractive -File $q{1}$q -Action SignInstaller -FilePath $f' -f (Get-Command pwsh).Source, $callback
             $compilerArgs += "/S$signCommand"
           }
           & python @renderArgs
@@ -371,7 +371,7 @@ jobs:
           & 'C:/Program Files (x86)/Inno Setup 6/ISCC.exe' @compilerArgs
           if ($LASTEXITCODE -ne 0) { throw 'Windows installer compilation/signing failed' }
           if ($env:SIGN_WINDOWS_PAYLOAD -eq 'true') {
-            ./scripts/ci/verify-windows-payload.ps1 `
+            ./scripts/ci/windows-signing.ps1 -Action Verify `
               -Directory 'build/windows/x64/runner/Release' `
               -ManifestPath "$env:RUNNER_TEMP/windows-signing/signed-payload.json"
             $signature = Get-AuthenticodeSignature -LiteralPath "$env:FULL_INSTALLER_NAME.exe"
