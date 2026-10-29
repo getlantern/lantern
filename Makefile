@@ -1410,7 +1410,7 @@ translate-test:
 
 $(TRANSLATE_VENV)/bin/python:
 	$(PYTHON) -m venv $(TRANSLATE_VENV)
-	$(TRANSLATE_VENV)/bin/pip install -q anthropic
+	$(TRANSLATE_VENV)/bin/pip install -q anthropic || { rm -rf $(TRANSLATE_VENV); exit 1; }
 
 # flutter clean is what drops .dart_tool, where Flutter keeps its build stamps.
 # Removing the outputs under $(BUILD_DIR) without it leaves Flutter believing

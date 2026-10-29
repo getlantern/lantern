@@ -1212,9 +1212,11 @@ msgstr "Free"
 msgid "lantern_pro_license"
 msgstr "Lantern Pro License"
 
+#. Tooltip on the eye button that reveals the typed activation code
 msgid "show_license"
 msgstr "Show license"
 
+#. Tooltip on the eye button that masks the typed activation code
 msgid "hide_license"
 msgstr "Hide license"
 
@@ -1717,6 +1719,7 @@ msgstr "Touch and hold an empty spot on your phone's home screen."
 msgid "widget_step_2"
 msgstr "Tap Edit, then Add Widget."
 
+#. The widget gallery lists the app under its store name 'Lantern'; keep that name as typed
 msgid "widget_step_3"
 msgstr "Search for Lantern, choose a size, and tap add widget."
 

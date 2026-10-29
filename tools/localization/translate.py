@@ -223,8 +223,10 @@ class PoFile:
 
         key, _ = collect(msgid_i, msgstr_i)
         value, msgstr_end = collect(msgstr_i, len(stripped))
-        comment = "\n".join(l[1:].strip() for l in stripped[:msgid_i]
-                            if l.startswith("#") and l[1:].strip())
+        # "#." is a developer note and "# " a translator note; flags, references and
+        # previous-msgid lines ("#,", "#:", "#|", "#~") are not context for the model.
+        comment = "\n".join(l[2:].strip() for l in stripped[:msgid_i]
+                            if (l.startswith("#.") or l.startswith("# ")) and l[2:].strip())
         return Entry(key, value, comment, raw, msgstr_i, msgstr_end)
 
     def keys(self) -> list[str]:
@@ -701,6 +703,7 @@ class Group:
                     fh, fs = check(it.source, fix, meta_for(r.get("locale")))
                     if not fh:
                         it.final, it.hard_issues, it.soft_issues, it.status = fix, fh, fs, "fixed"
+                        it.back_translation = ""  # described the text the fix replaced
                         continue
                     it.reviewer_note = (it.reviewer_note + " Fix rejected by checks: " + "; ".join(fh)).strip()
                 else:
@@ -826,6 +829,10 @@ def run_all(work: dict[str, Work], en: PoFile, targets: dict[str, PoFile], claud
                     for it in g.mine.values():
                         if it.status == "pending" and not it.verdict:
                             it.reviewer_note = (it.reviewer_note + f" {name} failed: {e}").strip()
+                if name == "backtranslate":
+                    for it in items.values():
+                        if it.status == "pending" and not it.back_translation:
+                            it.soft_issues.append("no back-translation")
     for it in items.values():
         decide(it, getattr(args, "skip_review", False))
     results = []
@@ -1223,12 +1230,13 @@ def main() -> int:
             if not w.remove:
                 continue
             po = targets[code]
-            for k in w.remove:
-                po.remove(k)
-            po.write()
-            validate_po(po.path, len(po.keys()))
+            if not args.dry_run:
+                for k in w.remove:
+                    po.remove(k)
+                po.write()
+                validate_po(po.path, len(po.keys()))
             rows.append([code, len(w.remove)])
-        print(text_table(["Locale", "Removed"], rows) if rows else "Nothing stale to remove.")
+        print(text_table(["Locale", "Would remove" if args.dry_run else "Removed"], rows) if rows else "Nothing stale to remove.")
         return 0
     if pending and not os.environ.get("ANTHROPIC_API_KEY"):
         log("error: ANTHROPIC_API_KEY is not set")
@@ -1251,7 +1259,7 @@ def main() -> int:
                 po.remove(k)
                 changed = True
             for i in r.items:
-                if i.status in ("passed", "fixed", "flagged") and i.final:
+                if i.status in ("passed", "fixed", "flagged") and i.final and po.get(i.key) != i.final:
                     po.set(i.key, i.final)
                     changed = True
             if changed:

@@ -34,15 +34,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      BASE: ${{ github.event_name == 'push' && github.event.before || inputs.base }}
       LOCALES: ${{ inputs.locales }}
       DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch the base commit for change detection
-        if: env.BASE != '' && env.BASE != '0000000000000000000000000000000000000000'
-        run: git fetch --depth=1 origin "$BASE" || echo "base $BASE not reachable; filling gaps only"
+      # Changed English strings are found by diffing en.po against the last commit the bot
+      # made, so a push whose queued run was replaced is still covered by the next run.
+      # A manual base wins; with no bot commit yet, the push's previous head is used.
+      - name: Pick the base commit for change detection
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANUAL: ${{ inputs.base }}
+          BEFORE: ${{ github.event_name == 'push' && github.event.before || '' }}
+        run: |
+          last=$(gh api "repos/$GITHUB_REPOSITORY/commits?path=assets/locales&author=github-actions%5Bbot%5D&per_page=1" --jq '.[0].sha // empty' || true)
+          base="${MANUAL:-${last:-$BEFORE}}"
+          [ "$base" = "0000000000000000000000000000000000000000" ] && base=""
+          if [ -n "$base" ] && ! git fetch --depth=1 origin "$base"; then
+            echo "base $base not reachable; filling gaps only"; base=""
+          fi
+          echo "BASE=$base" >> "$GITHUB_ENV"
+          echo "base: ${base:-none (gaps only)}"
 
       - uses: actions/setup-python@v5
         with:
@@ -69,12 +82,14 @@ jobs:
           path: build/translate/
           if-no-files-found: ignore
 
+      # Only a run on main itself may push; a dispatch from another branch gets the report only.
       - name: Commit translations
-        if: steps.translate.outputs.changed == 'true' && env.DRY_RUN != 'true'
+        if: github.ref_name == 'main' && steps.translate.outputs.changed == 'true' && env.DRY_RUN != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/locales/*.po
+          if git diff --cached --quiet; then echo "no file content changed"; exit 0; fi
           git commit -F build/translate/commit_message.txt
           # main may have moved while the models ran; rebase once and push
           git pull --rebase origin main

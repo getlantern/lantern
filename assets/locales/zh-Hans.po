@@ -1712,7 +1712,7 @@ msgid "widget_step_2"
 msgstr "轻点“编辑”，然后轻点“添加小组件”。"
 
 msgid "widget_step_3"
-msgstr "搜索蓝灯，选择尺寸，然后轻点“添加小组件”。"
+msgstr "搜索 Lantern，选择尺寸，然后轻点“添加小组件”。"
 
 msgid "people_helped_title"
 msgstr "您帮助过的人"

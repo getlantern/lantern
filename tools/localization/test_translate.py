@@ -150,6 +150,14 @@ class Checks(unittest.TestCase):
         t.decide(it, skip_review=False)
         self.assertEqual(it.status, "flagged")
 
+    def test_developer_comment_is_context_without_markers(self):
+        d = Path(tempfile.mkdtemp())
+        try:
+            (d / "x.po").write_text('msgid ""\nmsgstr ""\n\n#. Eye button tooltip\n#, fuzzy\n#: lib/a.dart:1\nmsgid "k"\nmsgstr "v"\n', encoding="utf-8")
+            self.assertEqual(t.PoFile(d / "x.po").comment("k"), "Eye button tooltip")
+        finally:
+            shutil.rmtree(d)
+
     def test_edge_whitespace_follows_english(self):
         self.assertEqual(t.match_edges("We sent a code to ", "Nous avons envoyé un code à"), "Nous avons envoyé un code à ")
         self.assertEqual(t.match_edges(" Enter it below.", "  Saisissez-le. "), " Saisissez-le.")
@@ -362,6 +370,23 @@ class Stages(unittest.TestCase):
         class A: skip_review = True; resume = ""
         t.run_all(work, en, targets, fake, A())
         self.assertEqual(fake.calls, 1)
+
+    def test_missing_back_translation_is_flagged_not_passed(self):
+        en, targets, work = self._work()
+        fake = FakeClaude()
+        orig = fake.call
+        def call(role, system, user, tool, cached=True):
+            out = orig(role, system, user, tool, cached)
+            if "items" in out:
+                out["items"] = out["items"][1:]  # back-translator skips one row
+            return out
+        fake.call = call
+        class A: skip_review = False; resume = ""
+        results = t.run_all(work, en, targets, fake, A())
+        flagged = [i for r in results for i in r.items if i.status == "flagged"]
+        self.assertEqual(len(flagged), 1)
+        self.assertIn("no back-translation", flagged[0].soft_issues)
+        self.assertTrue(flagged[0].final)  # still written, just not silently
 
     def test_no_client_marks_items_failed(self):
         en, targets, work = self._work()

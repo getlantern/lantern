@@ -143,6 +143,7 @@ Chinese (Simplified)
 - Simplified characters with mainland China vocabulary: 软件, 服务器, 网络, 登录, 账户, 设置, 隐私, 订阅, 更新, 连接, 断开连接, 密码, 电子邮件.
 - Address the user with the formal "您", matching the existing strings (147 uses of 您 against 3 of 你).
 - "Lantern" is written "蓝灯", the product's established Chinese name, matching almost every existing string ("蓝灯项目", "购买蓝灯 Pro"). "Lantern Pro" is "蓝灯 Pro". A standalone "Pro" is "专业版" ("升级至专业版").
+- Keep the Latin "Lantern" when the user must find or type the name: app store, widget gallery or search box instructions. The installed app and widget are listed as "Lantern", not 蓝灯.
 - Full-width punctuation: ，。！？：；（）and “” for quotes. The existing file is mostly full-width; do not add new half-width punctuation.
 - One space between Chinese characters and any Latin word, digit, or placeholder, matching the existing strings: "蓝灯 Pro", "仅支持 PNG、JPG 和 GIF 图片", "不超过 15 MB", "连接到 %s".
 - Concise: Chinese UI text is short. Drop filler such as 请 unless the English says "please".
