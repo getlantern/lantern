@@ -18,16 +18,19 @@ class _Helpers extends HelpersNotifier {
   int refreshes = 0;
 
   @override
-  HelpersState build() => const HelpersState(
-    viewLoaded: true,
-    view: HelpersView(
-      unlocked: true,
-      helpers: [HelperPairingView(pairingId: 'p1', name: 'Ali', online: true)],
-    ),
-  );
+  HelpersState build() => _withAli;
+
   @override
   Future<void> refreshIfUsed() async => refreshes++;
 }
+
+const _withAli = HelpersState(
+  viewLoaded: true,
+  view: HelpersView(
+    unlocked: true,
+    helpers: [HelperPairingView(pairingId: 'p1', name: 'Ali', online: true)],
+  ),
+);
 
 Future<void> _pump(
   WidgetTester tester, {
@@ -75,6 +78,46 @@ void main() {
     await tester.tap(find.byKey(const Key('manage.personal_proxies_tab')));
     await tester.pumpAndSettle();
     expect(helpers.refreshes, 1);
+  });
+
+  testWidgets('the tab going away while shown selects Joined Servers', (
+    tester,
+  ) async {
+    final helpers = _Helpers();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          availableServersProvider.overrideWith(_Servers.new),
+          helpersProvider.overrideWith(() => helpers),
+          helperInvitesAvailableProvider.overrideWithValue(false),
+        ],
+        child: ScreenUtilInit(
+          designSize: const Size(393, 852),
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: const ManagePrivateServer(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('manage.personal_proxies_tab')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ali'), findsOneWidget);
+
+    // Flag off and the last proxy gone: the tab goes with it.
+    helpers.state = const HelpersState(
+      viewLoaded: true,
+      view: HelpersView(unlocked: true),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('manage.personal_proxies_tab')), findsNothing);
+    final controller = DefaultTabController.of(
+      tester.element(find.byType(TabBar)),
+    );
+    expect(controller.length, 2);
+    expect(controller.index, 1);
   });
 
   testWidgets('two tabs otherwise', (tester) async {

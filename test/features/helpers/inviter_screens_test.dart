@@ -667,6 +667,20 @@ void main() {
     expect(fake.renamed, [('p1', 'Cousin')]);
   });
 
+  testWidgets('a blank nickname is sent, restoring the friend\'s own name', (
+    tester,
+  ) async {
+    final fake = _Helpers(_oneHelper);
+    await _pump(tester, fake, const PersonalProxiesTab());
+    await tester.tap(find.byKey(const Key('personal_proxies.rename.p1')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), '   ');
+    await tester.tap(find.text('continue'.i18n));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('helpers.name.error')), findsNothing);
+    expect(fake.renamed, [('p1', '')]);
+  });
+
   testWidgets('a pending invite can be cancelled', (tester) async {
     final fake = _Helpers(
       HelpersState(

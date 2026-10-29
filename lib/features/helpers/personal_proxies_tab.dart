@@ -212,6 +212,8 @@ class _ProxyRow extends StatelessWidget {
       initial: helper.name,
       title: 'rename'.i18n,
       label: 'personal_proxy_nickname_label'.i18n,
+      // A blank nickname restores the friend's own name.
+      allowEmpty: true,
     );
     if (name == null) return;
     final r = await notifier.renameHelper(helper.pairingId, name);
