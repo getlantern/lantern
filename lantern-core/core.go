@@ -1362,7 +1362,7 @@ func (lc *LanternCore) CancelDeployment() error {
 }
 
 func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
-	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.client, events)
+	return privateserver.AddServerManually(ip, port, accessToken, tag, false, lc.client, events)
 }
 
 func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, inviteName string) (string, error) {
@@ -1426,12 +1426,15 @@ type serverURLImporter interface {
 
 // AddServersByURL imports servers; the legacy certificate-bypass flag is ignored.
 func (lc *LanternCore) AddServersByURL(urls string, _ bool) ([]byte, error) {
-	urlList := strings.Split(urls, ",")
-	for i, u := range urlList {
-		urlList[i] = strings.TrimSpace(u)
+	urls = strings.TrimSpace(urls)
+	if inv, ok := privateserver.ParseInviteURL(urls); ok {
+		if err := privateserver.AddServerManually(inv.IP, inv.Port, inv.Token, inv.Name, true, lc.client, nil); err != nil {
+			return nil, err
+		}
+		return json.Marshal([]string{inv.Name})
 	}
 
-	tags, err := lc.serverImporter.AddServersByURL(lc.ctx, urlList, false)
+	tags, err := lc.serverImporter.AddServersByURL(lc.ctx, []string{urls}, false)
 	if err != nil {
 		return nil, err
 	}

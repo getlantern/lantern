@@ -237,6 +237,18 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
   }
 
   Future<void> onJoinServer(String urls, String serverName) async {
+    // For invite links the nickname becomes the server tag, so it replaces the
+    // name in the link. Other access keys (ss://, vmess://, ...) must pass
+    // through untouched: Uri normalisation lowercases the host and corrupts them.
+    urls = urls.trim();
+    final uri = Uri.tryParse(urls);
+    if (uri != null && _isInviteLink(uri)) {
+      urls = uri
+          .replace(
+            queryParameters: {...uri.queryParameters, 'name': serverName},
+          )
+          .toString();
+    }
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerProvider.notifier)
@@ -258,9 +270,23 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
               .forceFetchAvailableServers(),
         );
         context.hideLoadingDialog();
-        appLogger.info("Successfully started joining private server.");
+        appLogger.info("Successfully joined private server.");
+        showSuccessDialog(serverName);
       },
     );
+  }
+
+  static bool _isInviteLink(Uri uri) {
+    final path = uri.path.replaceAll(RegExp(r'/+$'), '');
+    final isInvitePath =
+        uri.host == 'private-server' ||
+        path == 'private-server' ||
+        path.endsWith('/private-server');
+    final q = uri.queryParameters;
+    return isInvitePath &&
+        q.containsKey('ip') &&
+        q.containsKey('port') &&
+        q.containsKey('token');
   }
 
   void showSuccessDialog(String name) {

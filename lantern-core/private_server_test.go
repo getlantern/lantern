@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -24,10 +25,8 @@ func TestAddServersByURLIgnoresCertificateBypass(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := t.Context()
-			wantURLs := []string{
-				"vless://test@example.com:443?security=tls",
-				"hysteria2://test@example.org:443",
-			}
+			payload := "vless://test@example.com:443?security=tls, \thysteria2://test@example.org:443"
+			wantURLs := []string{payload}
 			wantTags := []string{"server-one", "server-two"}
 			calls := 0
 			lc := &LanternCore{
@@ -47,7 +46,7 @@ func TestAddServersByURLIgnoresCertificateBypass(t *testing.T) {
 				}),
 			}
 
-			data, err := lc.AddServersByURL("  "+wantURLs[0]+", \t"+wantURLs[1]+"\n", tt.skipValidation)
+			data, err := lc.AddServersByURL("  "+payload+"\n", tt.skipValidation)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -80,5 +79,38 @@ func TestAddServersByURLPropagatesError(t *testing.T) {
 	}
 	if data != nil {
 		t.Errorf("result = %q, want nil on failure", data)
+	}
+}
+
+func TestAddServersByURLPreservesInviteHandling(t *testing.T) {
+	lc := &LanternCore{
+		ctx: t.Context(),
+		serverImporter: serverURLImporterFunc(func(context.Context, []string, bool) ([]string, error) {
+			t.Fatal("invite link was forwarded as a proxy URL")
+			return nil, nil
+		}),
+	}
+	data, err := lc.AddServersByURL(" lantern://private-server?ip=127.0.0.1&port=invalid&token=test&name=private ", true)
+	if err == nil || !strings.Contains(err.Error(), `invalid port "invalid"`) {
+		t.Fatalf("error = %v, want invite port validation", err)
+	}
+	if data != nil {
+		t.Errorf("result = %q, want nil on failure", data)
+	}
+}
+
+func TestAddServersByURLPreservesAccessKey(t *testing.T) {
+	payload := "vless://test@example.com:443?security=tls&alpn=h2,http/1.1#private"
+	lc := &LanternCore{
+		ctx: t.Context(),
+		serverImporter: serverURLImporterFunc(func(_ context.Context, urls []string, skip bool) ([]string, error) {
+			if !slices.Equal(urls, []string{payload}) || skip {
+				t.Errorf("import = %q, skip = %v", urls, skip)
+			}
+			return []string{"private"}, nil
+		}),
+	}
+	if _, err := lc.AddServersByURL(payload, true); err != nil {
+		t.Fatal(err)
 	}
 }

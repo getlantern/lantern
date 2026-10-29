@@ -863,15 +863,12 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 
 func AddServerBasedOnURLs(urls string, skipCertVerification bool) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
+		// Already a JSON array of tags; marshalling again would base64 it.
 		tags, err := c.AddServersByURL(urls, skipCertVerification)
 		if err != nil {
 			return "", err
 		}
-		b, err := json.Marshal(tags)
-		if err != nil {
-			return "", fmt.Errorf("marshal tags: %w", err)
-		}
-		return string(b), nil
+		return string(tags), nil
 	})
 }
 
