@@ -77,7 +77,9 @@ Future<void> _pumpPicker(
           home: const Scaffold(
             body: Padding(
               padding: EdgeInsets.all(16),
-              child: WindowsExecutablePicker(),
+              child: WindowsExecutablePicker(
+                confirmBypass: AppsSplitTunneling.confirmAppBypass,
+              ),
             ),
           ),
         ),
@@ -259,6 +261,54 @@ void main() {
       );
     }
   }
+
+  testWidgets('browser warning is shown again after confirming a bypass', (
+    tester,
+  ) async {
+    final apps = _Apps();
+    const path = r'C:\Browsers\Browser.exe';
+    await _pumpPicker(
+      tester,
+      apps,
+      () async => path,
+      installed: const [
+        AppData(name: 'Browser', bundleId: '', appPath: path, isBrowser: true),
+      ],
+    );
+    for (final confirm in [true, false]) {
+      await tester.tap(find.byKey(button));
+      await tester.pumpAndSettle();
+      expect(find.text('bypass_browser_warning_title'), findsOneWidget);
+      await tester.tap(dialogAction(confirm ? 'add_anyway' : 'cancel'));
+      await tester.pumpAndSettle();
+      expect(apps.added, [path]);
+    }
+    expect(storage.confirmations, 0);
+  });
+
+  testWidgets('first-use confirmation is shared with manual selection', (
+    tester,
+  ) async {
+    storage.seen = false;
+    final apps = _Apps();
+    const path = r'C:\Games\Game.exe';
+    const app = AppData(name: 'Installed game', bundleId: '', appPath: path);
+    await _pumpPicker(tester, apps, () async => path);
+    final context = tester.element(find.byType(WindowsExecutablePicker));
+    final pending = const AppsSplitTunneling().onTapAddApp(context, apps, app);
+    await tester.pumpAndSettle();
+    expect(find.text('bypass_app_first_time_title'), findsOneWidget);
+    await tester.tap(dialogAction('add'));
+    await tester.pumpAndSettle();
+    await pending;
+    expect(apps.toggled, [app]);
+
+    await tester.tap(find.byKey(button));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(apps.added, [path]);
+    expect(storage.confirmations, 1);
+  });
 
   testWidgets('browser metadata is matched by full path, not executable name', (
     tester,
