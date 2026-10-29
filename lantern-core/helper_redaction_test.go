@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	rlog "github.com/getlantern/radiance/log"
+	"github.com/getlantern/radiance/vpn"
 )
 
 // lantern-core logs through radiance's logger on every platform (common.Init,
@@ -27,5 +28,22 @@ func TestAppLogsRedactHelperTags(t *testing.T) {
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 	assert.NotContains(t, string(data), "helper-0123456789ab")
+	assert.Contains(t, string(data), "helper")
+}
+
+// The app selects radiance's group by its tag (Dart personalProxiesTag), and
+// the tag must be redacted like a helper tag.
+func TestPersonalProxiesTagMatchesTheAppAndIsRedacted(t *testing.T) {
+	assert.Equal(t, "personal-proxies", vpn.PersonalProxiesTag, "keep lib/core/utils/helper_tags.dart in step")
+
+	t.Setenv("RADIANCE_TESTING", "false")
+	t.Setenv("RADIANCE_LOG_LEVEL", "info")
+	t.Setenv("RADIANCE_DISABLE_STDOUT_LOG", "true")
+	path := filepath.Join(t.TempDir(), AppLogFileName)
+	logger := rlog.NewLogger(rlog.Config{LogPath: path, Level: "info", Prod: true, DisablePublisher: true})
+	logger.Info("Connecting to server", "tag", vpn.PersonalProxiesTag)
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	assert.NotContains(t, string(data), "personal-proxies")
 	assert.Contains(t, string(data), "helper")
 }
