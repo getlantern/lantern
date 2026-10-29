@@ -1343,12 +1343,11 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   }) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService
-            .addServerBasedOnURLs(urls.toCharPtr, skipCertVerification ? 1 : 0)
+            .addServerBasedOnURLs(urls.toCharPtr, 0)
             .toDartString();
       });
       checkAPIError(result);

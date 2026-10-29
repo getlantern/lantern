@@ -83,13 +83,14 @@ var startupUserDataFetchDelays = []time.Duration{
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
 type LanternCore struct {
-	client       *ipc.Client
-	userMessages userMessageClient
-	ctx          context.Context
-	cancel       context.CancelFunc
-	initOnce     sync.Once
-	eventEmitter utils.FlutterEventEmitter
-	helpers      *helper.Engine
+	client         *ipc.Client
+	userMessages   userMessageClient
+	serverImporter serverURLImporter
+	ctx            context.Context
+	cancel         context.CancelFunc
+	initOnce       sync.Once
+	eventEmitter   utils.FlutterEventEmitter
+	helpers        *helper.Engine
 }
 
 var (
@@ -328,6 +329,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 
 	lc.client = client
 	lc.userMessages = client
+	lc.serverImporter = client
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
@@ -1429,16 +1431,21 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	return nil
 }
 
-func (lc *LanternCore) AddServersByURL(urls string, skipCertVerification bool) ([]byte, error) {
+type serverURLImporter interface {
+	AddServersByURL(context.Context, []string, bool) ([]string, error)
+}
+
+// AddServersByURL imports servers; the legacy certificate-bypass flag is ignored.
+func (lc *LanternCore) AddServersByURL(urls string, _ bool) ([]byte, error) {
 	urls = strings.TrimSpace(urls)
-	// Invite links join a private server; anything else goes to radiance, which splits URL lists itself.
 	if inv, ok := privateserver.ParseInviteURL(urls); ok {
 		if err := privateserver.AddServerManually(inv.IP, inv.Port, inv.Token, inv.Name, true, lc.client, nil); err != nil {
 			return nil, err
 		}
 		return json.Marshal([]string{inv.Name})
 	}
-	tags, err := lc.client.AddServersByURL(lc.ctx, []string{urls}, skipCertVerification)
+
+	tags, err := lc.serverImporter.AddServersByURL(lc.ctx, []string{urls}, false)
 	if err != nil {
 		return nil, err
 	}

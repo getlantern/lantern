@@ -285,7 +285,6 @@ jobs:
           LC_ALL: en_US.UTF-8
           JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
           JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
-          JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: bash .github/scripts/linux_config_url_smoke.sh
 
       # Overwrites the committed fromEnvironment shim with real credentials.

@@ -1452,7 +1452,6 @@ func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int) *C.char {
 		if errStr != nil {
 			return errStr
 		}
-		slog.Debug("Adding server based on URLs:", "urls", urls, "skipCertVerification", skipCertVerification)
 		bytes, err := c.AddServersByURL(urls, skipCertVerification)
 		if err != nil {
 			return SendError(fmt.Errorf("Error adding server based on URLs: %v", err))
