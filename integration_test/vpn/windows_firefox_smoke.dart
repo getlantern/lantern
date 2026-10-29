@@ -2,81 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-class FirefoxProbeResult {
-  FirefoxProbeResult({
-    required this.address,
-    required this.browserPid,
-    required this.connections,
-  });
-
-  final String address;
-  final int browserPid;
-  final List<Map<String, dynamic>> connections;
-
-  Map<String, dynamic> toJson() => {
-    'address': address,
-    'browserPid': browserPid,
-    'connections': connections,
-  };
-}
-
-/// The small WebDriver subset used by the installed-Firefox smoke test.
-class FirefoxWebDriver {
-  FirefoxWebDriver(this.endpoint) {
-    if (endpoint.scheme != 'http' || endpoint.host != '127.0.0.1') {
-      throw ArgumentError('WebDriver must listen on IPv4 loopback');
-    }
-  }
-
-  final Uri endpoint;
-  final _client = HttpClient()
-    ..connectionTimeout = const Duration(seconds: 5)
-    ..findProxy = (_) => 'DIRECT';
-
-  Future<dynamic> command(
-    String method,
-    String path, [
-    Map<String, dynamic>? body,
-  ]) async {
-    final uri = endpoint.resolve(path);
-    if (uri.origin != endpoint.origin) {
-      throw ArgumentError('WebDriver commands must stay on loopback');
-    }
-    final request = await _client.openUrl(method, uri);
-    request.followRedirects = false;
-    request.headers.contentType = ContentType.json;
-    if (body != null) request.write(jsonEncode(body));
-    final response = await request.close().timeout(const Duration(seconds: 45));
-    final bytes = <int>[];
-    await for (final chunk in response.timeout(const Duration(seconds: 5))) {
-      bytes.addAll(chunk);
-      if (bytes.length > 1024 * 1024) {
-        throw const FormatException('Unexpectedly large WebDriver response');
-      }
-    }
-    final decoded = jsonDecode(utf8.decode(bytes));
-    if (decoded is! Map<String, dynamic> || !decoded.containsKey('value')) {
-      throw const FormatException('Invalid WebDriver response');
-    }
-    if (response.statusCode != HttpStatus.ok) {
-      throw StateError('WebDriver $method $path failed: ${decoded['value']}');
-    }
-    return decoded['value'];
-  }
-
-  void close() => _client.close(force: true);
-}
-
-String firefoxProbeAddress(dynamic value) {
-  if (value is! String) {
-    throw const FormatException('Firefox did not return an address');
-  }
-  final address = InternetAddress.tryParse(value.trim());
-  if (address == null || address.type != InternetAddressType.IPv4) {
-    throw FormatException('Firefox returned an invalid IPv4 address: $value');
-  }
-  return address.address;
-}
+typedef FirefoxProbeResult = ({
+  String address,
+  int browserPid,
+  List<Map<String, dynamic>> connections,
+});
 
 /// Uses a fresh browser process so a rule change cannot reuse an old connection.
 Future<FirefoxProbeResult> probeFirefox({
@@ -85,11 +15,6 @@ Future<FirefoxProbeResult> probeFirefox({
   String? artifactDirectory,
 }) async {
   if (!Platform.isWindows) throw UnsupportedError('Windows Firefox smoke');
-  for (final path in [firefoxPath, geckodriverPath]) {
-    if (!File(path).existsSync()) {
-      throw ArgumentError('Missing executable: $path');
-    }
-  }
   final targets =
       (await InternetAddress.lookup(
             'api4.ipify.org',
@@ -101,14 +26,48 @@ Future<FirefoxProbeResult> probeFirefox({
 
   final directory = await Directory.systemTemp.createTemp('lantern-firefox-');
   final log = StringBuffer('IPify targets: ${targets.join(', ')}\n');
-  Process? driverProcess;
+  final client = HttpClient()
+    ..connectionTimeout = const Duration(seconds: 5)
+    ..findProxy = (_) => 'DIRECT';
+  final subscriptions = <StreamSubscription<String>>[];
+  Process? driver;
   Process? observer;
-  FirefoxWebDriver? driver;
   String? session;
   var driverExited = false;
-  final subscriptions = <StreamSubscription<String>>[];
+  var port = 0;
+
+  Stream<String> lines(Stream<List<int>> stream) =>
+      stream.transform(utf8.decoder).transform(const LineSplitter());
+
+  Future<dynamic> command(
+    String method,
+    String path, [
+    Map<String, dynamic>? body,
+  ]) async {
+    final request = await client.openUrl(
+      method,
+      Uri.http('127.0.0.1:$port', path),
+    );
+    request.followRedirects = false;
+    request.headers.contentType = ContentType.json;
+    if (body != null) request.write(jsonEncode(body));
+    final response = await request.close().timeout(const Duration(seconds: 45));
+    final decoded =
+        jsonDecode(
+              await utf8.decoder
+                  .bind(response)
+                  .join()
+                  .timeout(const Duration(seconds: 5)),
+            )
+            as Map<String, dynamic>;
+    if (response.statusCode != HttpStatus.ok) {
+      throw StateError('WebDriver $method $path failed: ${decoded['value']}');
+    }
+    return decoded['value'];
+  }
+
   try {
-    driverProcess = await Process.start(geckodriverPath, [
+    driver = await Process.start(geckodriverPath, [
       '--host',
       '127.0.0.1',
       '--port',
@@ -119,40 +78,34 @@ Future<FirefoxProbeResult> probeFirefox({
       'info',
     ]);
     final listening = Completer<int>();
-    void driverLine(String line) {
-      log.writeln(line);
-      final match = RegExp(r'Listening on 127\.0\.0\.1:(\d+)').firstMatch(line);
-      if (match != null && !listening.isCompleted) {
-        listening.complete(int.parse(match[1]!));
-      }
-    }
-
-    for (final stream in [driverProcess.stdout, driverProcess.stderr]) {
+    for (final stream in [driver.stdout, driver.stderr]) {
       subscriptions.add(
-        stream
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .listen(
-              driverLine,
-              onError: (Object error, StackTrace stack) {
-                if (!listening.isCompleted) {
-                  listening.completeError(error, stack);
-                }
-              },
-            ),
+        lines(stream).listen(
+          (line) {
+            log.writeln(line);
+            final match = RegExp(
+              r'Listening on 127\.0\.0\.1:(\d+)',
+            ).firstMatch(line);
+            if (match != null && !listening.isCompleted) {
+              listening.complete(int.parse(match[1]!));
+            }
+          },
+          onError: (Object error, StackTrace stack) {
+            if (!listening.isCompleted) listening.completeError(error, stack);
+          },
+        ),
       );
     }
     unawaited(
-      driverProcess.exitCode.then((code) {
+      driver.exitCode.then((code) {
         driverExited = true;
         if (!listening.isCompleted) {
           listening.completeError(StateError('GeckoDriver exited with $code'));
         }
       }),
     );
-    final port = await listening.future.timeout(const Duration(seconds: 15));
-    driver = FirefoxWebDriver(Uri.parse('http://127.0.0.1:$port/'));
-    final created = await driver.command('POST', 'session', {
+    port = await listening.future.timeout(const Duration(seconds: 15));
+    final created = await command('POST', '/session', {
       'capabilities': {
         'alwaysMatch': {
           'browserName': 'firefox',
@@ -180,8 +133,8 @@ Future<FirefoxProbeResult> probeFirefox({
     session = created['sessionId'] as String;
     final browserPid = created['capabilities']['moz:processID'] as int;
     final observed = <String, Map<String, dynamic>>{};
+    final errors = <String>[];
     final ready = Completer<void>();
-    final observationError = <String>[];
     observer = await Process.start(
       'powershell.exe',
       ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', _observeFirefox],
@@ -192,81 +145,77 @@ Future<FirefoxProbeResult> probeFirefox({
       },
     );
     subscriptions.add(
-      observer.stdout
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen((line) {
-            try {
-              final value = jsonDecode(line) as Map<String, dynamic>;
-              if (value['ready'] == true) {
-                if (!ready.isCompleted) ready.complete();
-              } else {
-                observed[jsonEncode(value)] = value;
-                log.writeln('Windows socket owner: $line');
-              }
-            } catch (error) {
-              observationError.add('Invalid socket observation: $error');
-            }
-          }),
+      lines(observer.stdout).listen((line) {
+        try {
+          final value = jsonDecode(line) as Map<String, dynamic>;
+          if (value['ready'] == true) {
+            if (!ready.isCompleted) ready.complete();
+          } else {
+            observed[line] = value;
+            log.writeln('Windows socket owner: $line');
+          }
+        } catch (error) {
+          errors.add('Invalid socket observation: $error');
+        }
+      }, onError: (Object error) => errors.add('$error')),
     );
-    subscriptions.add(
-      observer.stderr
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(observationError.add),
-    );
+    subscriptions.add(lines(observer.stderr).listen(errors.add));
     await ready.future.timeout(const Duration(seconds: 15));
-    await driver.command('POST', 'session/$session/url', {
+    await command('POST', '/session/$session/url', {
       'url':
           'https://api4.ipify.org/?lantern-smoke=${DateTime.now().microsecondsSinceEpoch}',
     });
-    final address = firefoxProbeAddress(
-      await driver.command('POST', 'session/$session/execute/sync', {
-        'script': 'return document.body.innerText;',
-        'args': [],
-      }),
-    );
+    final value = await command('POST', '/session/$session/execute/sync', {
+      'script': 'return document.body.innerText;',
+      'args': [],
+    });
+    final address = value is String
+        ? InternetAddress.tryParse(value.trim())
+        : null;
+    if (address?.type != InternetAddressType.IPv4) {
+      throw FormatException('Firefox returned an invalid IPv4 address: $value');
+    }
     final deadline = DateTime.now().add(const Duration(seconds: 8));
     while (observed.isEmpty &&
-        observationError.isEmpty &&
+        errors.isEmpty &&
         DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(const Duration(milliseconds: 200));
     }
-    if (observationError.isNotEmpty || observed.isEmpty) {
+    if (errors.isNotEmpty || observed.isEmpty) {
       throw StateError(
-        'No independently owned Firefox HTTPS connection: '
-        '${observationError.join('\n')}',
+        'No independently owned Firefox HTTPS connection: ${errors.join('\n')}',
       );
     }
-    return FirefoxProbeResult(
-      address: address,
+    return (
+      address: address!.address,
       browserPid: browserPid,
       connections: observed.values.toList(),
     );
   } finally {
     observer?.kill();
-    if (session != null && driver != null && !driverExited) {
+    if (session != null && !driverExited) {
       try {
-        await driver
-            .command('DELETE', 'session/$session')
-            .timeout(const Duration(seconds: 10));
+        await command(
+          'DELETE',
+          '/session/$session',
+        ).timeout(const Duration(seconds: 10));
       } catch (error) {
         log.writeln('Firefox session cleanup: $error');
       }
     }
-    driver?.close();
-    if (driverProcess != null && !driverExited) {
+    client.close(force: true);
+    if (driver != null && !driverExited) {
       try {
         await Process.run('taskkill.exe', [
           '/PID',
-          '${driverProcess.pid}',
+          '${driver.pid}',
           '/T',
           '/F',
         ]).timeout(const Duration(seconds: 10));
       } catch (error) {
         log.writeln('GeckoDriver process cleanup: $error');
       } finally {
-        driverProcess.kill();
+        driver.kill();
       }
     }
     for (final subscription in subscriptions) {

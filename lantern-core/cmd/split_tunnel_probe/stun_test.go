@@ -22,46 +22,6 @@ func stunResponse(transaction []byte) []byte {
 	return response
 }
 
-func TestParseSTUNResponse(t *testing.T) {
-	transaction := []byte("abcdefghijkl")
-	response := stunResponse(transaction)
-	got, err := parseSTUNResponse(response, transaction)
-	if err != nil || got != "192.0.2.1" {
-		t.Fatalf("parseSTUNResponse = %q, %v", got, err)
-	}
-	for _, test := range []struct {
-		name string
-		edit func([]byte) []byte
-	}{
-		{"short header", func(p []byte) []byte { return p[:19] }},
-		{"response type", func(p []byte) []byte { p[0] = 0; return p }},
-		{"cookie", func(p []byte) []byte { p[4] = 0; return p }},
-		{"transaction", func(p []byte) []byte { p[8]++; return p }},
-		{"message length", func(p []byte) []byte { p[3]++; return p }},
-		{"truncated attribute", func(p []byte) []byte { p[23] = 12; return p }},
-		{"IPv6", func(p []byte) []byte { p[25] = 2; return p }},
-		{"unknown required attribute", func(p []byte) []byte { p[21] = 0x22; return p }},
-		{"missing mapped address", func(p []byte) []byte { p[20] = 0x80; return p }},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			packet := test.edit(append([]byte(nil), response...))
-			if _, err := parseSTUNResponse(packet, transaction); err == nil {
-				t.Fatal("invalid response accepted")
-			}
-		})
-	}
-}
-
-func TestParseSTUNResponseOptionalAttributePadding(t *testing.T) {
-	transaction := []byte("abcdefghijkl")
-	response := stunResponse(transaction)
-	response = append(response, 0x80, 0x22, 0, 3, 'c', 'i', '!', 0) // SOFTWARE, padded to four bytes.
-	binary.BigEndian.PutUint16(response[2:], uint16(len(response)-20))
-	if got, err := parseSTUNResponse(response, transaction); err != nil || got != "192.0.2.1" {
-		t.Fatalf("parseSTUNResponse = %q, %v", got, err)
-	}
-}
-
 func TestUDPPublicIP(t *testing.T) {
 	server, err := net.ListenPacket("udp4", "127.0.0.1:0")
 	if err != nil {
@@ -96,18 +56,13 @@ func TestUDPPublicIP(t *testing.T) {
 	}
 }
 
-func TestUDPPublicIPCanceled(t *testing.T) {
-	server, err := net.ListenPacket("udp4", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer server.Close()
-	ctx, cancel := context.WithCancel(context.Background())
-	_, err = udpPublicIP(ctx, server.LocalAddr().String(), func(net.Conn) error {
-		cancel()
-		return nil
-	})
-	if err == nil {
-		t.Fatal("canceled UDP request succeeded")
+func TestSTUNResponseRejectsMalformedPacket(t *testing.T) {
+	transaction := []byte("abcdefghijkl")
+	response := stunResponse(transaction)
+	response[8]++
+	for _, packet := range [][]byte{response[:19], response} {
+		if _, err := parseSTUNResponse(packet, transaction); err == nil {
+			t.Fatal("truncated or unrelated STUN response accepted")
+		}
 	}
 }

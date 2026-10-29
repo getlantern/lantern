@@ -260,42 +260,6 @@ Future<void> _expectRegisteredApps(
   }
 }
 
-Future<String?> _probeIP(String executable, {String? child}) async {
-  final process = await Process.start(
-    executable,
-    child == null ? const [] : ['--child', child],
-    runInShell: false,
-  );
-  final output = process.stdout.transform(utf8.decoder).join();
-  final errors = process.stderr.drain<void>();
-  final completed = Future.wait<Object?>([
-    process.exitCode,
-    output,
-    errors.then((_) => null),
-  ]);
-  try {
-    final result = await completed.timeout(const Duration(seconds: 20));
-    final exitCode = result[0] as int;
-    final ip = (result[1] as String).trim();
-    return exitCode == 0 &&
-            InternetAddress.tryParse(ip)?.type == InternetAddressType.IPv4
-        ? ip
-        : null;
-  } on TimeoutException {
-    // Kill this fixture's entire process tree, never processes found by name.
-    await Process.run('taskkill.exe', [
-      '/PID',
-      '${process.pid}',
-      '/T',
-      '/F',
-    ]).timeout(const Duration(seconds: 5));
-    await completed.timeout(const Duration(seconds: 5));
-    return null;
-  } finally {
-    process.kill();
-  }
-}
-
 Future<String> _waitForIP(
   WidgetTester tester,
   String executable, {
@@ -305,8 +269,15 @@ Future<String> _waitForIP(
 }) async {
   final deadline = DateTime.now().add(const Duration(seconds: 75));
   while (DateTime.now().isBefore(deadline)) {
-    final ip = await _probeIP(executable, child: child);
-    if (ip != null && accepts(ip)) return ip;
+    try {
+      final connection = await probeWindowsConnection(executable, child: child);
+      final ip = connection['publicIP'] as String;
+      if (accepts(ip)) return ip;
+    } on StateError catch (error) {
+      debugPrint('IP probe failed: $error');
+    } on TimeoutException catch (error) {
+      debugPrint('IP probe timed out: $error');
+    }
     await tester.pump(const Duration(seconds: 2));
   }
   fail(reason);
@@ -430,29 +401,14 @@ Future<void> _updateLegacyRule(
   String operation,
   String path,
 ) async {
-  final process = await Process.start(cli, [
+  await runWindowsSmokeCommand(cli, [
     'split-tunnel',
     operation,
     '--type',
     'process-path',
     '--value',
     path,
-  ], runInShell: false);
-  try {
-    final result = await Future.wait<Object>([
-      process.exitCode,
-      process.stdout.transform(utf8.decoder).join(),
-      process.stderr.transform(utf8.decoder).join(),
-    ]).timeout(const Duration(seconds: 20));
-    expect(
-      result[0],
-      0,
-      reason: 'Legacy rule $operation failed: ${result[1]} ${result[2]}',
-    );
-  } finally {
-    process.kill();
-    await process.exitCode.timeout(const Duration(seconds: 5));
-  }
+  ]);
 }
 
 Future<void> _captureScreenshot(WidgetTester tester, String name) async {
@@ -628,7 +584,6 @@ void main() {
           );
         });
       }
-      Future<void> Function()? diagnoseAfterDisconnect;
       try {
         _require(await service.setRoutingMode(false), 'Enable full tunnel');
         _require(
@@ -656,54 +611,20 @@ void main() {
           udp: true,
         );
         final udpBaseline = udpConnection['publicIP'] as String;
-        await File(
-          p.join(artifactDirectory, 'udp-diagnostics.jsonl'),
-        ).writeAsString(
-          '${jsonEncode({'phase': 'direct-before-connect', 'status': 'response', 'connection': udpConnection})}\n',
-        );
-
-        Future<void> diagnoseUDP(String phase) async {
-          try {
-            await evidence.diagnoseUDP(
-              executable: registeredLauncher,
-              child: registeredGame,
-              endpoints: [
-                'stun.cloudflare.com:3478',
-                udpConnection['remoteAddress'] as String,
-                'stun.l.google.com:19302',
-              ],
-              phase: phase,
-              normalizePath: _canonicalPath,
-            );
-          } catch (error) {
-            debugPrint('Could not collect $phase UDP diagnostics: $error');
-          }
-        }
-
         Future<void> expectRegisteredChild({
           required bool bypass,
           required String scenario,
         }) async {
           for (final udp in [false, true]) {
-            try {
-              await _expectOwnedRoute(
-                evidence,
-                registeredLauncher,
-                child: registeredGame,
-                udp: udp,
-                bypass: bypass,
-                baseline: udp ? udpBaseline : baseline,
-                scenario: scenario,
-              );
-            } on TestFailure {
-              if (udp) {
-                // Compare DNS and literal-IP paths without changing the assertion.
-                diagnoseAfterDisconnect = () =>
-                    diagnoseUDP('direct-after-disconnect');
-                await diagnoseUDP(bypass ? 'bypassed' : 'tunneled');
-              }
-              rethrow;
-            }
+            await _expectOwnedRoute(
+              evidence,
+              registeredLauncher,
+              child: registeredGame,
+              udp: udp,
+              bypass: bypass,
+              baseline: udp ? udpBaseline : baseline,
+              scenario: scenario,
+            );
           }
         }
 
@@ -898,7 +819,6 @@ void main() {
           timeout: const Duration(seconds: 45),
           reason: 'VPN did not disconnect',
         );
-        await diagnoseAfterDisconnect?.call();
       }
     },
     timeout: const Timeout(Duration(minutes: 15)),

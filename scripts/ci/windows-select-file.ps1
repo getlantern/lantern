@@ -31,7 +31,6 @@ public static class LanternPickerNative {
   [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
   [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(IntPtr window, StringBuilder name, int length);
   [DllImport("user32.dll")] public static extern int GetDlgCtrlID(IntPtr window);
-  [DllImport("user32.dll")] public static extern IntPtr GetParent(IntPtr window);
   [DllImport("user32.dll")] public static extern bool IsChild(IntPtr parent, IntPtr window);
   [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr window);
   [DllImport("user32.dll")] public static extern bool IsWindowEnabled(IntPtr window);
@@ -108,22 +107,12 @@ public static class LanternPickerNative {
 '@
 }
 
-function Stop-Picker {
-  param([string]$Message)
-
-  try {
-    $controls = if ([LanternPickerNative]::IsDialog($lastDialog, $AppProcessId)) {
-      @([LanternPickerNative]::Children($lastDialog) | Select-Object -First 40 | ForEach-Object {
-        @{ handle = $_.ToInt64(); parent = [LanternPickerNative]::GetParent($_).ToInt64(); id = [LanternPickerNative]::GetDlgCtrlID($_); class = [LanternPickerNative]::ClassName($_); visible = [LanternPickerNative]::IsWindowVisible($_); enabled = [LanternPickerNative]::IsWindowEnabled($_) }
-      })
-    } else { @() }
-    [Console]::Error.WriteLine((@{ stage = $stage; dialog = $lastDialog.ToInt64(); foreground = [LanternPickerNative]::GetForegroundWindow().ToInt64(); controls = $controls } | ConvertTo-Json -Depth 4 -Compress))
-  } finally {
-    if ([LanternPickerNative]::IsDialog($lastDialog, $AppProcessId) -and [LanternPickerNative]::FileNameControl($lastDialog) -ne [IntPtr]::Zero) {
-      $null = [LanternPickerNative]::PostMessage($lastDialog, 0x0010, [IntPtr]::Zero, [IntPtr]::Zero)
-    }
+function Stop-Picker([string]$Message) {
+  if ([LanternPickerNative]::IsDialog($lastDialog, $AppProcessId) -and
+      [LanternPickerNative]::FileNameControl($lastDialog) -ne [IntPtr]::Zero) {
+    $null = [LanternPickerNative]::PostMessage($lastDialog, 0x0010, [IntPtr]::Zero, [IntPtr]::Zero)
   }
-  throw $Message
+  throw "$Message ($stage)"
 }
 
 $timer = [Diagnostics.Stopwatch]::StartNew()
