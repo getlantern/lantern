@@ -11,6 +11,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/features/helpers/personal_proxy_banner.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
@@ -179,9 +180,16 @@ void main() {
     }
   }
 
-  for (final (name, pro, banner) in [
-    ('a Pro user sees the personal proxy banner', true, true),
-    ('the Pro upsell wins for a free user', false, false),
+  const withinWeek = ProRenewalInfo(ProRenewalState.withinWeek, null, 3);
+  for (final (name, pro, renewal, banner) in [
+    (
+      'a Pro user sees the personal proxy banner',
+      true,
+      ProRenewalInfo.none,
+      true,
+    ),
+    ('the Pro upsell wins for a free user', false, ProRenewalInfo.none, false),
+    ('the renewal card wins for a Pro user', true, withinWeek, false),
   ]) {
     testWidgets(name, (tester) async {
       tester.view.devicePixelRatio = 1;
@@ -194,7 +202,7 @@ void main() {
             lanternServiceProvider.overrideWithValue(_FakeLanternService()),
             isUserProProvider.overrideWithValue(pro),
             isUserExpiredProvider.overrideWithValue(false),
-            proRenewalProvider.overrideWithValue(ProRenewalInfo.none),
+            proRenewalProvider.overrideWithValue(renewal),
             personalProxyBannerVisibleProvider.overrideWithValue(true),
             serverLocationProvider.overrideWithValue(initialServerLocation()),
             radianceSettingsProvider.overrideWithValue(
@@ -222,6 +230,57 @@ void main() {
       if (banner) {
         expect(find.text('personal_proxy_banner_title'.i18n), findsOneWidget);
         expect(find.text('personal_proxy_banner_body'.i18n), findsOneWidget);
+      }
+    });
+  }
+
+  for (final (size, compact) in [
+    (desktopWindowSize, false),
+    (const Size(393, 560), true),
+  ]) {
+    testWidgets('the personal proxy banner at ${size.height.toInt()}dp tall '
+        'is ${compact ? 'a compact pill' : 'the full card'}', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = size;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            personalProxyBannerVisibleProvider.overrideWithValue(true),
+          ],
+          child: ScreenUtilInit(
+            designSize: size,
+            child: MaterialApp(
+              theme: AppTheme.appTheme(),
+              home: const Scaffold(body: PersonalProxyBanner()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.byKey(const Key('vpn.personal_proxy_banner')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('vpn.personal_proxy_banner.compact')),
+        compact ? findsOneWidget : findsNothing,
+      );
+      expect(find.text('personal_proxy_banner_title'.i18n), findsOneWidget);
+      expect(
+        find.text('personal_proxy_banner_body'.i18n),
+        compact ? findsNothing : findsOneWidget,
+      );
+      if (compact) {
+        expect(
+          tester
+              .getSize(
+                find.byKey(const Key('vpn.personal_proxy_banner.compact')),
+              )
+              .height,
+          40,
+        );
       }
     });
   }
