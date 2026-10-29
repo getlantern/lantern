@@ -966,7 +966,7 @@ def cost_markdown(results: list[LocaleResult], run: dict) -> list[str]:
     n = sum(r.stats()["translated"] for r in results)
     if total:
         lines.append(f"| **total** | | | | | | **${total:.4f}** |")
-        lines += ["", f"**${total:.2f} for this run**" + (f", ${total / n:.4f} per translated string ({n} strings)" if n else "")
+        lines += ["", f"**${total:.2f} for this run**" + (f", ${total / n:.4f} per translation ({n} translations)" if n else "")
                   + "; tokens are the model's own count and thinking bills as output."]
     else:
         lines += ["", "Billed amount not reported by this API; use the token counts with the model's list price."]
@@ -974,20 +974,26 @@ def cost_markdown(results: list[LocaleResult], run: dict) -> list[str]:
 
 
 def commit_message(results: list[LocaleResult], run: dict) -> str:
-    total = sum(r.stats()["translated"] for r in results)
+    """Subject counts English strings and locales; the body only lists what needs a look."""
+    keys = {i.key for r in results for i in r.items if i.status in ("passed", "fixed", "flagged")}
+    locales = [r for r in results if r.stats()["translated"] or r.removed]
     removed = sum(len(r.removed) for r in results)
-    locales = [r for r in results if r.items or r.removed]
-    head = f"Translate {total} strings into {len(locales)} locales"
+    parts = []
+    if keys:
+        parts.append(f"{len(keys)} English string{'s' if len(keys) != 1 else ''} into {len(locales)} locale{'s' if len(locales) != 1 else ''}")
     if removed:
-        head += f", remove {removed} stale entries"
-    body = [f"{r.code}: {r.stats()['translated']} translated"
-            + (f", {r.stats()['flagged']} flagged" if r.stats()['flagged'] else "")
-            + (f", {r.stats()['rejected'] + r.stats()['failed']} not written" if r.stats()['rejected'] + r.stats()['failed'] else "")
-            + (f", {len(r.removed)} removed" if r.removed else "")
-            for r in locales]
+        parts.append(f"{removed} stale entr{'ies' if removed != 1 else 'y'} removed")
+    head = "Update translations" + (": " + ", ".join(parts) if parts else "")
+    body = []
+    flagged = [r.code for r in results if r.stats()["flagged"]]
+    missing = [r.code for r in results if r.stats()["rejected"] + r.stats()["failed"]]
+    if flagged:
+        body.append("Flagged for a look: " + ", ".join(flagged))
+    if missing:
+        body.append("Not written (retried next run): " + ", ".join(missing))
     if run.get("run_url"):
-        body += ["", f"Report: {run['run_url']}"]
-    return head + "\n\n" + "\n".join(body) + "\n"
+        body.append(f"Report: {run['run_url']}")
+    return head + ("\n\n" + "\n".join(body) if body else "") + "\n"
 
 
 def results_dict(results: list[LocaleResult], run: dict) -> dict:
@@ -1452,7 +1458,7 @@ const low = confs.length ? Math.min(...confs) : null;
 const notWritten = sum('rejected') + sum('failed');
 const activeLocales = data.locales.filter(L => L.items.length || L.removed.length).length;
 $('headline').innerHTML = [
-  ['', sum('translated'), 'strings translated'],
+  ['', sum('translated'), 'translations written'],
   ['', activeLocales, `locale${activeLocales === 1 ? '' : 's'}`],
   ['pass', sum('passed'), 'passed review'],
   ['fix', sum('fixed'), 'fixed by review'],
@@ -1471,7 +1477,7 @@ if (r.usage && Object.keys(r.usage).length) {
   $('cost').innerHTML = `<h2>Cost</h2>
     <div class="headline">
       <div class="big"><b>${billed ? '$' + billed.toFixed(2) : '–'}</b><span>billed for this run</span></div>
-      <div class="big"><b>${billed && n ? '$' + (billed / n).toFixed(4) : '–'}</b><span>per translated string</span></div>
+      <div class="big"><b>${billed && n ? '$' + (billed / n).toFixed(4) : '–'}</b><span>per translation</span></div>
       <div class="big"><b>${Object.values(r.usage).reduce((a, u) => a + (u.thinking || 0), 0).toLocaleString()}</b><span>thinking tokens, billed as output</span></div>
     </div>
     <table class="cost"><thead><tr><th>Model</th><th>Input</th><th>Cached</th><th>Cache written</th><th>Output</th><th>of which thinking</th><th>Billed</th></tr></thead>
