@@ -71,7 +71,9 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       },
       (autoServer) {
         final location = ServerLocation.autoSelected(autoServer);
-        appLogger.debug('Fetched auto server location: ${location.toJson()}');
+        appLogger.debug(
+          'Fetched auto server location: ${location.toLogJson()}',
+        );
         state = location;
         _storage.saveServerLocation(location);
       },
@@ -93,7 +95,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       },
       (location) {
         appLogger.debug(
-          'Fetched selected server location: ${location.toJson()}',
+          'Fetched selected server location: ${location.toLogJson()}',
         );
         state = location;
         _storage.saveServerLocation(location);

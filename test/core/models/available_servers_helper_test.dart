@@ -113,13 +113,28 @@ void main() {
       redactHelperTags(
         'Connecting to server: personalProxy with tag: personal-proxies',
       ),
-      'Connecting to server: personalProxy with tag: helper',
+      'Connecting to server: helper with tag: helper',
     );
     expect(
       redactHelperTags(
         'outbound/mutableurltest[personal-proxies]: dial tcp 203.0.113.7:443',
       ),
       'outbound/mutableurltest[helper]: dial tcp <redacted>',
+    );
+  });
+
+  test('redactHelperTags redacts the personalProxy location type', () {
+    expect(
+      redactHelperTags('updateServerLocation: type=personalProxy name=x'),
+      'updateServerLocation: type=helper name=x',
+    );
+    expect(
+      redactHelperTags('{serverType: personalProxy, via 203.0.113.7:443}'),
+      '{serverType: helper, via <redacted>}',
+    );
+    expect(
+      redactHelperTags('personalProxyBanner shown'),
+      'personalProxyBanner shown',
     );
   });
 }

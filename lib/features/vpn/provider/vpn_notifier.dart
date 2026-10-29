@@ -193,7 +193,7 @@ class VpnNotifier extends _$VpnNotifier {
   /// force parameter, if true it will always connect to auto tag
   /// If the server location is set to auto, it will connect to the best available server.
   /// If a specific server location is set, it will connect to that server
-  /// valid server location types are: auto,lanternLocation,privateServer
+  /// valid server location types are: auto,lanternLocation,privateServer,personalProxy
 
   Future<Either<Failure, String>> startVPN({
     bool force = false,

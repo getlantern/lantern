@@ -29,8 +29,13 @@ bool isHelperTag(String tag) => tag.startsWith('helper-');
 /// device as having them, so it is redacted like a helper tag.
 const personalProxiesTag = 'personal-proxies';
 
+// The app's ServerLocationType.personalProxy as it appears in log lines
+// ("type=personalProxy"). It reveals the same thing as the group tag.
+final _personalProxyType = RegExp(r'\bpersonalProxy\b');
+
 bool _namesHelper(String s) =>
     s.contains(personalProxiesTag) ||
+    (s.contains('personalProxy') && _personalProxyType.hasMatch(s)) ||
     (s.contains('helper') && _helperNamed.hasMatch(s));
 
 /// Replaces each helper tag with "helper" and, on every line that names a
@@ -48,7 +53,8 @@ String redactHelperTags(String text) {
       .join('\n');
   return redacted
       .replaceAll(_helperTag, 'helper')
-      .replaceAll(personalProxiesTag, 'helper');
+      .replaceAll(personalProxiesTag, 'helper')
+      .replaceAll(_personalProxyType, 'helper');
 }
 
 // The candidate can take in dots and colons from the surrounding text on
