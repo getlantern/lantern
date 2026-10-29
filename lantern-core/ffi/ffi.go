@@ -1581,6 +1581,21 @@ func getPeerStatusJSON() *C.char {
 	})
 }
 
+// helperCall runs one helper-invite operation and returns its JSON result or
+// {"error": code}. Its arguments carry invite links and names: never log them.
+//
+//export helperCall
+func helperCall(_op, _args *C.char) *C.char {
+	op, args := C.GoString(_op), C.GoString(_args)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		return C.CString(c.HelperCall(op, args))
+	})
+}
+
 // probeUPnP runs the UPnP / IGD discovery scan against the local
 // gateway and returns 1 when discovery succeeds, 0 when it doesn't
 // (no gateway, scan timeout, ctx cancellation). The Share My

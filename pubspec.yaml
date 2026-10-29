@@ -158,6 +158,7 @@ dependencies:
   image_picker: ^1.2.2
   http: ^1.2.0
   pub_semver: ^2.1.4
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:
