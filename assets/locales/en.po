@@ -2287,6 +2287,18 @@ msgstr "If the codes are different, someone else opened your link. Reject them a
 msgid "personal_proxy"
 msgstr "Personal proxy"
 
+# The server list's tab for private servers and personal proxies.
+msgid "private_locations"
+msgstr "Private Locations"
+
+# Section header in Private Locations: friends abroad who route this user's traffic.
+msgid "personal_proxies"
+msgstr "Personal proxies"
+
+# The selectable row that connects through all of the user's personal proxies.
+msgid "your_personal_proxies"
+msgstr "Your personal proxies"
+
 # Helper invites: the volunteer's side.
 msgid "help_friend_title"
 msgstr "Help a friend stay online"
