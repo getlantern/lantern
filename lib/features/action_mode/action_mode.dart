@@ -28,10 +28,19 @@ class ActionModeTab extends HookConsumerWidget {
     final state = ref.watch(shareProvider);
     final visible = ref.watch(actionModeTabVisibleProvider);
     // A volunteer is someone abroad: the row stays hidden where sharing may
-    // not start on its own (unknown or censored country), and in stealth.
+    // not start on its own (unknown or censored country), and in stealth. A
+    // volunteer waiting on a claim gets back to its code from here wherever
+    // it is, even before the country is known.
+    final waiting = ref.watch(
+      helpersProvider.select(
+        (s) => s.view
+            .waitingClaims(DateTime.now().millisecondsSinceEpoch ~/ 1000)
+            .isNotEmpty,
+      ),
+    );
     final inviteRow =
         AppBuildInfo.enableHelperInvites &&
-        helperAutoStartAllowed(ref.watch(countryCodeProvider));
+        (waiting || helperAutoStartAllowed(ref.watch(countryCodeProvider)));
 
     useEffect(() {
       // refreshIfUsed, never refresh: showing the tab must not touch the

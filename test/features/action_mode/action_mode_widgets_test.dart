@@ -180,6 +180,32 @@ void main() {
       });
     }
 
+    testWidgets('a volunteer waiting on a claim sees the invite row before '
+        'the country is known', (tester) async {
+      final expires = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600;
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        country: '',
+        helpers: HelpersState(
+          view: HelpersView(
+            unlocked: true,
+            claims: [
+              HelperClaimView(id: 'c1', code: '2562', expiresUnix: expires),
+            ],
+          ),
+        ),
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('action_mode.invite_link')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const Key('action_mode.invite_link')), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
     testWidgets("a volunteer sees You're helping", (tester) async {
       await mount(
         tester,
