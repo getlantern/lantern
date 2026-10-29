@@ -484,7 +484,7 @@ msgid "submit_issue_report"
 msgstr "مسئلے کی رپورٹ جمع کریں"
 
 msgid "split_tunnel"
-msgstr "منقسم ٹنلنگ کام نہیں کر رہی"
+msgstr "اسپلٹ ٹنلنگ کام نہیں کر رہی"
 
 msgid "smart_routing_not_working"
 msgstr "اسمارٹ روٹنگ کام نہیں کر رہی"
@@ -1275,12 +1275,6 @@ msgstr "بلنگ کی تفصیلات شامل کریں"
 msgid "do_billing_details_message"
 msgstr "سرور بنانے کے لیے DigitalOcean کو ادائیگی کی معلومات درکار ہیں۔"
 
-msgid "tap"
-msgstr "ٹیپ کریں"
-
-msgid "below_to_go_to_do"
-msgstr "نیچے DigitalOcean پر جانے کے لیے"
-
 msgid "1"
 msgstr "1"
 
@@ -1805,3 +1799,6 @@ msgstr "ہم آپ کا نجی سرور سیٹ اپ نہیں کر سکے۔ برا
 
 msgid "logs"
 msgstr "لاگز"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean پر جانے کے لیے نیچے %s پر ٹیپ کریں"

@@ -1296,12 +1296,6 @@ msgstr "เพิ่มรายละเอียดการเรียกเ
 msgid "do_billing_details_message"
 msgstr "DigitalOcean ต้องการข้อมูลการชำระเงินเพื่อสร้างเซิร์ฟเวอร์"
 
-msgid "tap"
-msgstr "แตะ"
-
-msgid "below_to_go_to_do"
-msgstr "ด้านล่างเพื่อไปยัง DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1945,3 +1939,6 @@ msgstr "ไม่สามารถตั้งค่าเซิร์ฟเว
 
 msgid "logs"
 msgstr "บันทึก"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "แตะ %s ด้านล่างเพื่อไปที่ DigitalOcean"

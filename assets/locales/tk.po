@@ -1297,12 +1297,6 @@ msgid "do_billing_details_message"
 msgstr ""
 "DigitalOcean serwerleri döretmek üçin töleg maglumatlaryny talap edýär."
 
-msgid "tap"
-msgstr "Basyň"
-
-msgid "below_to_go_to_do"
-msgstr "DigitalOcean-a gitmek üçin aşakda"
-
 msgid "1"
 msgstr "1"
 
@@ -1957,3 +1951,6 @@ msgstr "Şahsy serweriňizi sazlap bilmedik. Gaýtadan synanyşyň."
 
 msgid "logs"
 msgstr "Loglar"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean sahypasyna geçmek üçin aşakdaky %s düwmesine basyň"

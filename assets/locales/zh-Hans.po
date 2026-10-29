@@ -1225,12 +1225,6 @@ msgstr "添加账单详情"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean 需要付款信息才能创建服务器。"
 
-msgid "tap"
-msgstr "点击"
-
-msgid "below_to_go_to_do"
-msgstr "下方前往 DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1821,3 +1815,6 @@ msgstr "无法设置您的私人服务器。请重试。"
 
 msgid "logs"
 msgstr "日志"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "点按下方的 %s 前往 DigitalOcean"

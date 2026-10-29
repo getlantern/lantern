@@ -1202,12 +1202,6 @@ msgid "do_billing_details_message"
 msgstr ""
 "DigitalOcean nécessite des informations de paiement pour créer des serveurs."
 
-msgid "tap"
-msgstr "Appuyez"
-
-msgid "below_to_go_to_do"
-msgstr "ci-dessous pour accéder à DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1954,3 +1948,6 @@ msgstr "Impossible de configurer votre serveur privé. Veuillez réessayer."
 
 msgid "logs"
 msgstr "Journaux"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Appuyez sur %s ci-dessous pour accéder à DigitalOcean"

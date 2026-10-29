@@ -1316,12 +1316,6 @@ msgstr "افزودن جزئیات صورتحساب"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean برای ایجاد سرورها به اطلاعات پرداخت نیاز دارد."
 
-msgid "tap"
-msgstr "ضربه بزنید"
-
-msgid "below_to_go_to_do"
-msgstr "زیر برای رفتن به DigitalOcean"
-
 msgid "1"
 msgstr "۱"
 
@@ -1973,3 +1967,6 @@ msgstr "نتوانستیم سرور خصوصی شما را راه‌اندازی
 
 msgid "logs"
 msgstr "گزارش‌ها"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "برای رفتن به DigitalOcean، روی %s در پایین ضربه بزنید"

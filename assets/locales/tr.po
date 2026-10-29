@@ -1317,12 +1317,6 @@ msgstr "Fatura Bilgilerini Ekle"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean sunucu oluşturmak için ödeme bilgilerine ihtiyaç duyar."
 
-msgid "tap"
-msgstr "Dokun"
-
-msgid "below_to_go_to_do"
-msgstr "DigitalOcean'a gitmek için aşağıya"
-
 msgid "1"
 msgstr "1"
 
@@ -1977,3 +1971,6 @@ msgstr "Özel sunucunuz kurulamadı. Lütfen tekrar deneyin."
 
 msgid "logs"
 msgstr "Günlükler"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean'a gitmek için aşağıdaki %s düğmesine dokunun"

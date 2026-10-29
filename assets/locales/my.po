@@ -1331,12 +1331,6 @@ msgid "do_billing_details_message"
 msgstr ""
 "DigitalOcean သည် ဆာဗာများ ဖန်တီးရန် ငွေပေးချေမှု အချက်အလက် လိုအပ်ပါသည်။"
 
-msgid "tap"
-msgstr "နှိပ်ပါ"
-
-msgid "below_to_go_to_do"
-msgstr "DigitalOcean သို့ သွားရန် အောက်တွင်"
-
 msgid "1"
 msgstr "၁"
 
@@ -2013,3 +2007,6 @@ msgstr "သင်၏ ကိုယ်ပိုင်ဆာဗာကို စန�
 
 msgid "logs"
 msgstr "မှတ်တမ်းများ"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean သို့ သွားရန် အောက်ပါ %s ကို နှိပ်ပါ"

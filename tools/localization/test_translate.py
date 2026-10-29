@@ -134,6 +134,16 @@ class Checks(unittest.TestCase):
     def test_clean_translation_passes(self):
         self.assertEqual(t.check("Connect to %s now", "Conéctate a %s ahora", self.es), ([], []))
 
+    def test_reviewer_pass_clears_identical_flag_only(self):
+        it = t.Item(key="x", source="X", context="", reason="gap", old=None, translation="X",
+                    verdict="pass", confidence=0.95, soft_issues=["identical to English"])
+        t.decide(it, skip_review=False)
+        self.assertEqual((it.status, it.soft_issues), ("passed", []))
+        it = t.Item(key="y", source="Settings", context="", reason="gap", old=None, translation="Settings",
+                    verdict="pass", confidence=0.95, soft_issues=["identical to English", "length ratio 2.5 outside [0.5, 2.0]"])
+        t.decide(it, skip_review=False)
+        self.assertEqual(it.status, "flagged")
+
     def test_edge_whitespace_follows_english(self):
         self.assertEqual(t.match_edges("We sent a code to ", "Nous avons envoyé un code à"), "Nous avons envoyé un code à ")
         self.assertEqual(t.match_edges(" Enter it below.", "  Saisissez-le. "), " Saisissez-le.")

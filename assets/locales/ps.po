@@ -1336,12 +1336,6 @@ msgstr "د بل کولو تفصیلات اضافه کړئ"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean سرورونه جوړولو لپاره د تادیاتو معلوماتو ته اړتیا لري."
 
-msgid "tap"
-msgstr "ټپ وکړئ"
-
-msgid "below_to_go_to_do"
-msgstr "DigitalOcean ته د تلو لپاره لاندې"
-
 msgid "1"
 msgstr "۱"
 
@@ -1996,3 +1990,6 @@ msgstr "موږ ونه شو کولی ستاسو خصوصي سرور جوړ کړو
 
 msgid "logs"
 msgstr "لاګونه"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean ته د تللو لپاره لاندې %s کېکاږئ"

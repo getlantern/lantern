@@ -1330,12 +1330,6 @@ msgstr "Agregar detalles de facturación"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean requiere información de pago para crear servidores."
 
-msgid "tap"
-msgstr "Toca"
-
-msgid "below_to_go_to_do"
-msgstr "abajo para ir a DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1994,3 +1988,6 @@ msgstr "No pudimos configurar tu servidor privado. Por favor, vuelve a intentarl
 
 msgid "logs"
 msgstr "Registros"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Toca %s abajo para ir a DigitalOcean"

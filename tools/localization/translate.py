@@ -741,6 +741,11 @@ def run_stage(name: str, stage: dict, claude: Claude) -> dict:
     return errors
 
 
+def real_soft(issues: list[str]) -> list[str]:
+    """Soft issues other than "identical to English", which a reviewer pass settles."""
+    return [i for i in issues if i != "identical to English"]
+
+
 def decide(it: Item, skip_review: bool) -> None:
     if it.status != "pending":
         return
@@ -751,7 +756,8 @@ def decide(it: Item, skip_review: bool) -> None:
         it.status = "rejected"
     elif skip_review:
         it.status = "flagged" if it.soft_issues else "passed"
-    elif it.verdict == "pass" and not it.soft_issues and (it.confidence or 0) >= LOW_CONFIDENCE:
+    elif it.verdict == "pass" and (it.confidence or 0) >= LOW_CONFIDENCE and not real_soft(it.soft_issues):
+        it.soft_issues = real_soft(it.soft_issues)  # the reviewer accepted the untranslated term
         it.status = "passed"
     else:
         it.status = "flagged"

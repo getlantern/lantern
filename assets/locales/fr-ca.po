@@ -456,7 +456,7 @@ msgid "daily_data_usage"
 msgstr "Utilisation quotidienne des données"
 
 msgid "mb"
-msgstr "Mo"
+msgstr "MB"
 
 msgid "vpn_status"
 msgstr "État du VPN"
@@ -1280,12 +1280,6 @@ msgstr "Ajouter les informations de facturation"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean exige des informations de paiement pour créer des serveurs."
 
-msgid "tap"
-msgstr "Touchez"
-
-msgid "below_to_go_to_do"
-msgstr "ci-dessous pour accéder à DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1810,3 +1804,6 @@ msgstr "Impossible de configurer votre serveur privé. Veuillez réessayer."
 
 msgid "logs"
 msgstr "Journaux"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Touchez %s ci-dessous pour accéder à DigitalOcean"

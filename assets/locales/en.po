@@ -1242,11 +1242,8 @@ msgstr "Add Billing Details"
 msgid "do_billing_details_message"
 msgstr "Digital Ocean requires payment information to create servers."
 
-msgid "tap"
-msgstr "Tap"
-
-msgid "below_to_go_to_do"
-msgstr "below to go to DigitalOcean"
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Tap %s below to go to DigitalOcean"
 
 msgid "1"
 msgstr "1"

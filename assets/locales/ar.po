@@ -1302,12 +1302,6 @@ msgstr "إضافة تفاصيل الدفع"
 msgid "do_billing_details_message"
 msgstr "يتطلب DigitalOcean معلومات الدفع لإنشاء الخوادم."
 
-msgid "tap"
-msgstr "اضغط على"
-
-msgid "below_to_go_to_do"
-msgstr "أدناه للانتقال إلى DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1941,3 +1935,6 @@ msgstr "تعذر إعداد خادمك الخاص. يرجى المحاولة م�
 
 msgid "logs"
 msgstr "السجلات"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "اضغط على %s أدناه للانتقال إلى DigitalOcean"

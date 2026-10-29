@@ -1312,12 +1312,6 @@ msgstr "বিলিং বিবরণ যোগ করুন"
 msgid "do_billing_details_message"
 msgstr "সার্ভার তৈরি করতে DigitalOcean পেমেন্ট তথ্য প্রয়োজন।"
 
-msgid "tap"
-msgstr "ট্যাপ "
-
-msgid "below_to_go_to_do"
-msgstr "DigitalOcean-এ যেতে নিচে"
-
 msgid "1"
 msgstr "১"
 
@@ -1971,3 +1965,6 @@ msgstr "আমরা আপনার প্রাইভেট সার্ভা
 
 msgid "logs"
 msgstr "লগ"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean-এ যেতে নিচের %s এ ট্যাপ করুন"

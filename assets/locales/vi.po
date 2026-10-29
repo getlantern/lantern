@@ -1317,12 +1317,6 @@ msgstr "Thêm thông tin thanh toán"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean yêu cầu thông tin thanh toán để tạo máy chủ."
 
-msgid "tap"
-msgstr "Nhấn"
-
-msgid "below_to_go_to_do"
-msgstr "bên dưới để đi đến DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1975,3 +1969,6 @@ msgstr "Chúng tôi không thể thiết lập máy chủ riêng của bạn. Vu
 
 msgid "logs"
 msgstr "Nhật ký"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Nhấn %s bên dưới để đi đến DigitalOcean"

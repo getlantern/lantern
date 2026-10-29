@@ -1323,12 +1323,6 @@ msgstr "Tambah Butiran Pengebilan"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean memerlukan maklumat pembayaran untuk mencipta pelayan."
 
-msgid "tap"
-msgstr "Ketik"
-
-msgid "below_to_go_to_do"
-msgstr "di bawah untuk pergi ke DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1984,3 +1978,6 @@ msgstr "Kami tidak dapat menyediakan pelayan peribadi anda. Sila cuba lagi."
 
 msgid "logs"
 msgstr "Log"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Ketik %s di bawah untuk pergi ke DigitalOcean"

@@ -1328,12 +1328,6 @@ msgstr "Добавить платежные данные"
 msgid "do_billing_details_message"
 msgstr "Для создания серверов, Digital Ocean требует платежную информацию."
 
-msgid "tap"
-msgstr "Нажмите"
-
-msgid "below_to_go_to_do"
-msgstr "ниже, чтобы перейти к DigitalOcean"
-
 msgid "1"
 msgstr "1"
 
@@ -1991,3 +1985,6 @@ msgstr "Не удалось настроить ваш частный серве�
 
 msgid "logs"
 msgstr "Логи"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Нажмите %s ниже, чтобы перейти в DigitalOcean"

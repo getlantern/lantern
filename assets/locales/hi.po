@@ -1318,12 +1318,6 @@ msgstr "बिलिंग विवरण जोड़ें"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean को सर्वर बनाने के लिए भुगतान जानकारी की आवश्यकता है।"
 
-msgid "tap"
-msgstr "टैप करें"
-
-msgid "below_to_go_to_do"
-msgstr "DigitalOcean पर जाने के लिए नीचे"
-
 msgid "1"
 msgstr "१"
 
@@ -1975,3 +1969,6 @@ msgstr "हम आपका प्राइवेट सर्वर सेट �
 
 msgid "logs"
 msgstr "लॉग"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean पर जाने के लिए नीचे %s पर टैप करें"

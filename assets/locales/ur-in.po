@@ -1318,12 +1318,6 @@ msgstr "بلنگ کی تفصیلات شامل کریں"
 msgid "do_billing_details_message"
 msgstr "DigitalOcean کو سرورز بنانے کے لیے ادائیگی کی معلومات کی ضرورت ہے۔"
 
-msgid "tap"
-msgstr "تھپتھپائیں"
-
-msgid "below_to_go_to_do"
-msgstr "DigitalOcean پر جانے کے لیے نیچے"
-
 msgid "1"
 msgstr "1"
 
@@ -1978,3 +1972,6 @@ msgstr "ہم آپ کا پرائیویٹ سرور سیٹ اپ نہیں کر سک�
 
 msgid "logs"
 msgstr "لاگز"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean پر جانے کے لیے نیچے %s پر ٹیپ کریں"
