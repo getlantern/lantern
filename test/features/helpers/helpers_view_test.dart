@@ -85,4 +85,21 @@ void main() {
     expect(v.invites, isEmpty);
     expect(v.needsPolling, isFalse);
   });
+
+  test('waiting claims are sent, unexpired and have a code', () {
+    const v = HelpersView(
+      claims: [
+        HelperClaimView(id: 'live', code: '1234', expiresUnix: 200),
+        HelperClaimView(id: 'expired', code: '1234', expiresUnix: 100),
+        HelperClaimView(
+          id: 'unsent',
+          code: '1234',
+          expiresUnix: 200,
+          provisional: true,
+        ),
+        HelperClaimView(id: 'nocode', code: '', expiresUnix: 200),
+      ],
+    );
+    expect(v.waitingClaims(100).map((c) => c.id), ['live']);
+  });
 }

@@ -28,10 +28,13 @@ class GetHelp extends HookConsumerWidget {
       // the keystore (Plan rules). The first invite unlocks it.
       unawaited(notifier.refreshIfUsed());
       // Online status changes while the screen is open.
-      final timer = Timer.periodic(
-        const Duration(seconds: 60),
-        (_) => notifier.refreshIfUsed(),
-      );
+      final timer = Timer.periodic(const Duration(seconds: 60), (_) {
+        if (WidgetsBinding.instance.lifecycleState !=
+            AppLifecycleState.resumed) {
+          return;
+        }
+        unawaited(notifier.refreshIfUsed());
+      });
       return timer.cancel;
     }, const []);
 

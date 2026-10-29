@@ -29,6 +29,14 @@ class ActionModeTab extends HookConsumerWidget {
     final helping = ref.watch(
       helpersProvider.select((s) => s.view.helping.isNotEmpty),
     );
+    // A volunteer waiting on a claim gets back to its code from here.
+    final waiting = ref.watch(
+      helpersProvider.select(
+        (s) => s.view
+            .waitingClaims(DateTime.now().millisecondsSinceEpoch ~/ 1000)
+            .isNotEmpty,
+      ),
+    );
 
     useEffect(() {
       // refreshIfUsed, never refresh: showing the tab must not touch the
@@ -86,9 +94,10 @@ class ActionModeTab extends HookConsumerWidget {
                     ),
                     // Needs no flag: a volunteer abroad is never flagged, so
                     // that nobody in their country sees the inviter UI.
-                    if (AppBuildInfo.enableHelperInvites) const HelpingSection(),
+                    if (AppBuildInfo.enableHelperInvites)
+                      const HelpingSection(),
                     if (AppBuildInfo.enableHelperInvites &&
-                        (helperInvites || helping)) ...[
+                        (helperInvites || helping || waiting)) ...[
                       const SizedBox(height: defaultSize),
                       AppTextButton(
                         label: 'help_friend_entry'.i18n,

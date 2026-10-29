@@ -25,6 +25,12 @@ class HelpersView {
   /// Something is waiting on the other person: poll for it.
   bool get needsPolling => invites.isNotEmpty || claims.isNotEmpty;
 
+  /// Claims whose code the volunteer can still show the inviter: sent (not
+  /// provisional) and unexpired at [nowUnix].
+  Iterable<HelperClaimView> waitingClaims(int nowUnix) => claims.where(
+    (c) => c.code.isNotEmpty && !c.provisional && c.expiresUnix > nowUnix,
+  );
+
   factory HelpersView.fromJson(Map<String, dynamic> j) => HelpersView(
     unlocked: j['unlocked'] == true,
     myName: _str(j['my_name']),

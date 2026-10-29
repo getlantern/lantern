@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
@@ -28,6 +29,7 @@ class HelpingSection extends HookConsumerWidget {
     final sharing = ref.watch(
       shareProvider.select((s) => s.active || s.probing),
     );
+    final tabVisible = ref.watch(actionModeTabVisibleProvider);
     final notifier = ref.read(helpersProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
 
@@ -41,9 +43,10 @@ class HelpingSection extends HookConsumerWidget {
 
     // Today's totals move, and the inviter can end a pairing, without
     // anything pending to poll for. Refresh while this shows someone helped
-    // and the app is in front; each refresh reaches lantern-cloud.
+    // and the app and this tab are in front; each refresh reaches
+    // lantern-cloud.
     useEffect(() {
-      if (!helpsSomeone) return null;
+      if (!helpsSomeone || !tabVisible) return null;
       final timer = Timer.periodic(refreshInterval, (_) {
         if (WidgetsBinding.instance.lifecycleState !=
             AppLifecycleState.resumed) {
@@ -52,7 +55,7 @@ class HelpingSection extends HookConsumerWidget {
         unawaited(notifier.refreshIfUsed());
       });
       return timer.cancel;
-    }, [helpsSomeone]);
+    }, [helpsSomeone, tabVisible]);
 
     // A volunteer who never opens GetHelp must still learn that the
     // keystore lost the old names.

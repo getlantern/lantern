@@ -67,9 +67,7 @@ class HelpFriend extends HookConsumerWidget {
       // never have reached the inviter, and is retried by claiming its link
       // again; an expired one waits for nothing.
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      final pending = helpers.view.claims.where(
-        (c) => c.code.isNotEmpty && !c.provisional && c.expiresUnix > now,
-      );
+      final pending = helpers.view.waitingClaims(now);
       if (link != null ||
           resumed.value ||
           code.value != null ||

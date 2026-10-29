@@ -271,6 +271,7 @@ class ShareNotifier extends _$ShareNotifier {
         state = state.copyWith(probing: false);
         return;
       }
+      _startGuard = mayStart;
       await _start(widgetRef, mode);
     }
 
@@ -297,6 +298,10 @@ class ShareNotifier extends _$ShareNotifier {
     final upnpAvailable = probeRes.fold((_) => false, (v) => v);
     await start(upnpAvailable ? ShareMode.smc : ShareMode.unbounded);
   }
+
+  /// The [_startAuto] guard of the running session, asked again before an
+  /// SmC failure falls back to Unbounded. Null for a start the user made.
+  bool Function()? _startGuard;
 
   /// A helper approval whose start was held back because this device's
   /// country was unknown or censored. Memory only.
@@ -433,6 +438,14 @@ class ShareNotifier extends _$ShareNotifier {
   /// its peer-share setting back, so only the local mode and broflake remain.
   Future<void> _fallbackToUnbounded(WidgetRef widgetRef, String? reason) async {
     if (state.mode == ShareMode.unbounded) return;
+    // A helper start may have lost its eligibility while SmC registered.
+    final guard = _startGuard;
+    if (guard != null && !guard()) {
+      _stopEventSubscription();
+      state = ShareState(totalCount: state.totalCount, relay: _idleRelay());
+      _persistRelay(force: true);
+      return;
+    }
     _changes++;
     try {
       _stopEventSubscription();

@@ -52,6 +52,9 @@ class _Service implements LanternService {
     return raw ?? right(answer ?? '{"error":"internal"}');
   }
 
+  /// A patch of peer_serve_pool to the key's value waits for its gate.
+  final patchGates = <Object?, Future<void>>{};
+
   /// When set, getSettings waits for it.
   Future<void>? settingsGate;
 
@@ -66,6 +69,8 @@ class _Service implements LanternService {
     Map<String, dynamic> updates,
   ) async {
     patches.add(updates);
+    final gate = patchGates.remove(updates['peer_serve_pool']);
+    if (gate != null) await gate;
     return right(unit);
   }
 
@@ -388,6 +393,24 @@ void main() {
     await n.setHelpOthers(true);
     gate.complete();
     await load;
+    expect(c.read(helpersProvider).helpOthers, isTrue);
+  });
+
+  test('help others too writes in order, so the last one wins', () async {
+    final slowOff = Completer<void>();
+    svc.patchGates[false] = slowOff.future;
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    final off = n.setHelpOthers(false);
+    final on = n.setHelpOthers(true);
+    await Future<void>.delayed(Duration.zero);
+    // The second write waits for the first to answer.
+    expect(svc.patches, [
+      {'peer_serve_pool': false},
+    ]);
+    slowOff.complete();
+    await Future.wait([off, on]);
+    expect(svc.patches.last, {'peer_serve_pool': true});
     expect(c.read(helpersProvider).helpOthers, isTrue);
   });
 

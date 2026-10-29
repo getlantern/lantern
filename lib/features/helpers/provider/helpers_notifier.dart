@@ -439,7 +439,17 @@ class HelpersNotifier extends _$HelpersNotifier {
     });
   }
 
-  Future<void> setHelpOthers(bool value) async {
+  /// Writes of "help others too" run one at a time, in order, so an older
+  /// response can never land after a newer one.
+  Future<void> _helpOthersChain = Future.value();
+
+  Future<void> setHelpOthers(bool value) {
+    final next = _helpOthersChain.then((_) => _writeHelpOthers(value));
+    _helpOthersChain = next.catchError((Object _) {});
+    return next;
+  }
+
+  Future<void> _writeHelpOthers(bool value) async {
     final res = await _svc.patchSettings({'peer_serve_pool': value});
     if (!ref.mounted) return;
     res.fold(
