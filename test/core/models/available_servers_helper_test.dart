@@ -10,6 +10,17 @@ Map<String, dynamic> _server(String tag) => {
 };
 
 void main() {
+  test('the personal proxies group is never listed as a server', () {
+    final servers = AvailableServers.fromJson([
+      _server('lantern-1'),
+      _server(personalProxiesTag),
+      {..._server(personalProxiesTag), 'isLantern': false},
+    ]);
+    expect(servers.lanternServers.map((s) => s.tag), ['lantern-1']);
+    expect(servers.userServers, isEmpty);
+    expect(servers.hasUserServers, isFalse);
+  });
+
   test('helper outbounds are never listed as Lantern servers', () {
     final servers = AvailableServers.fromJson([
       _server('lantern-1'),

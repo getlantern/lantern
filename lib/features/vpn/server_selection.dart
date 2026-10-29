@@ -912,6 +912,7 @@ class _PrivateServerLocationListViewState
     final result = await ref
         .read(vpnProvider.notifier)
         .connectToServer(type, tag);
+    if (!mounted) return;
     result.fold((failure) {
       context.hideLoadingDialog();
       if (failure is! VpnConflictFailure) {
@@ -925,6 +926,7 @@ class _PrivateServerLocationListViewState
           final retry = await ref
               .read(vpnProvider.notifier)
               .connectToServer(type, tag, skipConflictCheck: true);
+          if (!mounted) return;
           retry.fold((failure) {
             context.hideLoadingDialog();
             context.showSnackBar(failure.localizedErrorMessage);
