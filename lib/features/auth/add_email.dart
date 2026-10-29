@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
@@ -380,7 +381,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         },
       );
     } else {
-      context.showSnackBar('Failed to retrieve token');
+      context.showSnackBar(oAuthSignInFailedKey.i18n);
     }
   }
 
