@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
@@ -27,6 +29,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
       },
       (servers) {
         _pushFastestToSmartLocation(servers);
+        _reconcilePersonalProxy();
         return servers;
       },
     );
@@ -58,6 +61,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
       (servers) {
         state = AsyncValue.data(servers);
         _pushFastestToSmartLocation(servers);
+        _reconcilePersonalProxy();
       },
     );
   }
@@ -96,6 +100,16 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
         _settleReload = null;
       }
     }
+  }
+
+  /// A config that drops the personal proxies group refreshes this list;
+  /// the selection may be waiting on exactly that. A selection not built
+  /// yet reconciles from its own build.
+  void _reconcilePersonalProxy() {
+    if (!ref.exists(serverLocationProvider)) return;
+    unawaited(
+      ref.read(serverLocationProvider.notifier).reconcilePersonalProxy(),
+    );
   }
 
   /// Pushes the fastest Lantern server to the Smart Location if the current selection is auto

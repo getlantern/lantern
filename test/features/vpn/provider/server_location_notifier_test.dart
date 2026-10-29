@@ -1,11 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -49,6 +52,12 @@ class _Helpers extends HelpersNotifier {
   void set(HelpersState s) => state = s;
 }
 
+class _Servers extends AvailableServersNotifier {
+  @override
+  Future<Either<Failure, AvailableServers>> fetchAvailableServers() async =>
+      Right(AvailableServers([]));
+}
+
 const _oneHelper = HelpersState(
   viewLoaded: true,
   view: HelpersView(
@@ -75,6 +84,7 @@ void main() {
         lanternServiceProvider.overrideWithValue(service),
         helpersProvider.overrideWith(() => helpers),
         vpnProvider.overrideWithValue(VPNStatus.disconnected),
+        availableServersProvider.overrideWith(_Servers.new),
       ],
     );
     addTearDown(c.dispose);
@@ -209,4 +219,48 @@ void main() {
     );
     expect(storage.location!.serverType, ServerLocationType.auto.name);
   });
+
+  test('a server list refresh after the group goes switches to auto', () async {
+    service.tagAvailable = true;
+    storage.location = ServerLocation.personalProxy();
+    final c = container();
+    c.read(serverLocationProvider);
+    helpers.set(_oneHelper);
+    await pumpEventQueue();
+    helpers.set(_noHelpers);
+    await pumpEventQueue();
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.personalProxy.name,
+    );
+
+    service.tagAvailable = false;
+    await c
+        .read(availableServersProvider.notifier)
+        .forceFetchAvailableServers();
+    await pumpEventQueue();
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.auto.name,
+    );
+    expect(storage.location!.serverType, ServerLocationType.auto.name);
+  });
+
+  test(
+    'a server list refresh keeps the selection while helpers remain',
+    () async {
+      storage.location = ServerLocation.personalProxy();
+      final c = container();
+      c.read(serverLocationProvider);
+      helpers.set(_oneHelper);
+      await c
+          .read(availableServersProvider.notifier)
+          .forceFetchAvailableServers();
+      await pumpEventQueue();
+      expect(
+        c.read(serverLocationProvider).serverType,
+        ServerLocationType.personalProxy.name,
+      );
+    },
+  );
 }

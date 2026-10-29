@@ -26,10 +26,12 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // was built; the check is deferred because state is unset during build.
     // An empty local view is not proof: after a keystore reset unlock
     // returns no pairings until a refresh recovers the remote ones, so the
-    // switch waits for radiance to confirm the group is gone.
+    // switch waits for radiance to confirm the group is gone. The config
+    // that drops it can land after the view, so the server list calls
+    // [reconcilePersonalProxy] again when it changes.
     ref.listen(helpersProvider, (_, next) {
       if (!_helpersGone(next)) return;
-      unawaited(Future.microtask(_dropPersonalProxyIfGone));
+      unawaited(Future.microtask(reconcilePersonalProxy));
     }, fireImmediately: true);
     final cached = _storage.getServerLocation();
     final initial = cached ?? _defaultLocation();
@@ -51,8 +53,11 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   bool get _personalProxySelected =>
       state.serverType.toServerLocationType == ServerLocationType.personalProxy;
 
-  Future<void> _dropPersonalProxyIfGone() async {
+  /// Switches a personal proxy selection to auto once the helpers view is
+  /// loaded empty and radiance no longer has the personal proxies group.
+  Future<void> reconcilePersonalProxy() async {
     if (!ref.mounted || !_personalProxySelected) return;
+    if (!_helpersGone(ref.read(helpersProvider))) return;
     final bool available;
     try {
       available = await ref
