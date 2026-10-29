@@ -234,6 +234,8 @@ void main() {
     await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.text('Ali'), findsOneWidget);
     expect(find.byKey(const Key('helpers.online.0')), findsOneWidget);
+    expect(find.byKey(const Key('helpers.nudge')), findsOneWidget);
+    expect(find.text('helpers_nudge_second'.i18n), findsOneWidget);
     expect(
       fake.refreshes,
       1,
@@ -255,6 +257,7 @@ void main() {
     );
     await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.byKey(const Key('helpers.offline.1')), findsOneWidget);
+    expect(find.byKey(const Key('helpers.nudge')), findsNothing);
   });
 
   testWidgets('a claimed invite is surfaced above the helpers', (tester) async {

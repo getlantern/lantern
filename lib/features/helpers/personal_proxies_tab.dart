@@ -83,6 +83,16 @@ class PersonalProxiesTab extends HookConsumerWidget {
               ],
             ),
           ),
+          if (view.helpers.length == 1) ...[
+            const SizedBox(height: defaultSize),
+            Text(
+              'helpers_nudge_second'.i18n,
+              key: const Key('helpers.nudge'),
+              style: textTheme.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ],
           const SizedBox(height: defaultSize),
         ],
         for (final inv in pending)

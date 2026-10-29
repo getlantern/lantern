@@ -2218,6 +2218,10 @@ msgstr "Personal Proxies"
 msgid "invite_another"
 msgstr "Invite another"
 
+# Shown in the Personal Proxies tab while the user has exactly one personal proxy.
+msgid "helpers_nudge_second"
+msgstr "If your personal proxy goes offline, so does your connection through it. Invite a second friend to stay connected."
+
 # VPN tab banner offering to invite a friend abroad as a personal proxy.
 msgid "personal_proxy_banner_title"
 msgstr "Get a personal proxy"
