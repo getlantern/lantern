@@ -93,7 +93,6 @@ void main() {
     double scale = 1,
     Brightness brightness = Brightness.light,
     bool animated = false,
-    bool helperInvites = false,
     String country = 'US',
     HelpersState helpers = const HelpersState(),
     ShareState shareState = const ShareState(
@@ -115,7 +114,7 @@ void main() {
           overrides: [
             appSettingProvider.overrideWith(_Settings.new),
             shareProvider.overrideWith(() => _Share(shareState)),
-            helperInvitesAvailableProvider.overrideWithValue(helperInvites),
+            helperInvitesAvailableProvider.overrideWithValue(false),
             helpersProvider.overrideWith(() => _Helpers(helpers)),
             countryCodeProvider.overrideWithValue(country),
           ],
@@ -199,6 +198,12 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.byKey(const Key('helping.today')), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('action_mode.invite_link')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const Key('action_mode.invite_link')), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
   });

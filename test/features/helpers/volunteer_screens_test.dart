@@ -717,6 +717,20 @@ void main() {
         );
       }
       expect(normalizeHelperInviteInput(' not a link '), 'not a link');
+      for (final u in [
+        'Sara wants your help staying online. https://lantern.io/help/#SECRET',
+        'HTTPS://LANTERN.IO/help#SECRET',
+      ]) {
+        expect(
+          normalizeHelperInviteInput(u),
+          'https://lantern.io/help/#SECRET',
+          reason: u,
+        );
+      }
+      expect(
+        normalizeHelperInviteInput('https://evil.example/help#SECRET'),
+        'https://evil.example/help#SECRET',
+      );
     });
   });
 }
