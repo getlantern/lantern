@@ -1,9 +1,9 @@
 name: Translate strings
 
 # Runs when en.po changes on main: translates the new or changed strings into
-# every locale under assets/locales and commits the result back to the branch it
-# ran on (main for pushes; a dispatched run commits to the branch it was started
-# from, which is how it is tested). GITHUB_TOKEN pushes trigger no further workflows.
+# every locale under assets/locales and commits the result straight to main.
+# A run dispatched from any other branch only produces the report artifact.
+# The push uses GITHUB_TOKEN, so it triggers no further workflows.
 
 on:
   push:
@@ -26,7 +26,7 @@ on:
         default: false
 
 concurrency:
-  group: translate-${{ github.ref_name }}
+  group: translate-main
   cancel-in-progress: false
 
 permissions:
@@ -52,7 +52,7 @@ jobs:
           MANUAL: ${{ inputs.base }}
           BEFORE: ${{ github.event_name == 'push' && github.event.before || '' }}
         run: |
-          last=$(gh api "repos/$GITHUB_REPOSITORY/commits?sha=$GITHUB_REF_NAME&path=assets/locales&author=github-actions%5Bbot%5D&per_page=30" \
+          last=$(gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&path=assets/locales&author=github-actions%5Bbot%5D&per_page=30" \
                    --jq '[.[] | (.commit.message | capture("Translated-From: (?<sha>[0-9a-f]{40})") | .sha) // empty] | first // empty' || true)
           # the trailer's commit must be at or behind the one being processed, or changes between
           # the two would be missed; anything else (odd manual base, other branch) falls back
@@ -93,9 +93,9 @@ jobs:
           path: build/translate/
           if-no-files-found: ignore
 
-      # Commits go back to the branch the run checked out, never across branches.
+      # Only a run on main itself may push; a dispatch from another branch gets the report only.
       - name: Commit translations
-        if: steps.translate.outputs.changed == 'true' && env.DRY_RUN != 'true'
+        if: github.ref_name == 'main' && steps.translate.outputs.changed == 'true' && env.DRY_RUN != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -105,6 +105,6 @@ jobs:
           # a locale-filtered run does not, so it can never hide other locales' stale strings
           if [ -z "$LOCALES" ]; then printf '\nTranslated-From: %s\n' "$GITHUB_SHA" >> build/translate/commit_message.txt; fi
           git commit -F build/translate/commit_message.txt
-          # the branch may have moved while the models ran; rebase once and push
-          git pull --rebase origin "$GITHUB_REF_NAME"
-          git push origin "HEAD:$GITHUB_REF_NAME"
+          # main may have moved while the models ran; rebase once and push
+          git pull --rebase origin main
+          git push origin HEAD:main
