@@ -1373,7 +1373,7 @@ pubget:
 find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
 
-# Translate en.po changes into every locale with Claude (tools/localization). Needs ANTHROPIC_API_KEY.
+# Translate en.po changes into every locale with Claude via OpenRouter (tools/localization). Needs OPENROUTER_API_KEY.
 TRANSLATE_VENV := $(BUILD_DIR)/translate-venv
 TRANSLATE_OUT  := $(BUILD_DIR)/translate
 TRANSLATE_FLAGS = --out $(TRANSLATE_OUT) \

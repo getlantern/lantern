@@ -1,6 +1,7 @@
 """Tests for translate.py. Run: cd tools/localization && python3 -m unittest test_translate -v"""
 
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -299,24 +300,45 @@ class Grouping(unittest.TestCase):
         self.assertIn("蓝灯", system)  # locale alias carried into the glossary line
 
 
+class Gateway(unittest.TestCase):
+    def test_openrouter_client_and_provider_pin(self):
+        saved = (t.API_BASE_URL, t.API_KEY_ENV, t.API_PROVIDERS)
+        try:
+            t.API_BASE_URL, t.API_KEY_ENV, t.API_PROVIDERS = "https://openrouter.ai/api", "OPENROUTER_API_KEY", ["anthropic", "google-vertex"]
+            os.environ["OPENROUTER_API_KEY"] = "sk-or-test"
+            kw = t.client_kwargs()
+            self.assertEqual((kw["base_url"], kw["auth_token"], kw["max_retries"]), ("https://openrouter.ai/api", "sk-or-test", 5))
+            self.assertNotIn("api_key", kw)
+            p = t.Claude.params("translate", "sys", "{}", t.TRANSLATE_TOOL, True)
+            self.assertEqual(p["extra_body"], {"provider": {"order": ["anthropic", "google-vertex"], "allow_fallbacks": False}})
+            t.API_BASE_URL, t.API_PROVIDERS = "", []
+            self.assertEqual(t.client_kwargs(), {"max_retries": 5})
+            self.assertNotIn("extra_body", t.Claude.params("translate", "sys", "{}", t.TRANSLATE_TOOL, True))
+        finally:
+            t.API_BASE_URL, t.API_KEY_ENV, t.API_PROVIDERS = saved
+            os.environ.pop("OPENROUTER_API_KEY", None)
+
+
 class Apply(unittest.TestCase):
     def test_apply_writes_saved_translations_and_skips_changed_english(self):
         d = Path(tempfile.mkdtemp())
         try:
-            (d / "en.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "a"\nmsgstr "A"\n\nmsgid "b"\nmsgstr "B changed"\n\nmsgid "sp"\nmsgstr "Code to "\n', encoding="utf-8")
-            (d / "xx.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "old"\nmsgstr "gone"\n', encoding="utf-8")
+            (d / "en.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "a"\nmsgstr "A"\n\nmsgid "b"\nmsgstr "B changed"\n\nmsgid "sp"\nmsgstr "Code to "\n\nmsgid "r"\nmsgstr "R"\n', encoding="utf-8")
+            (d / "xx.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "old"\nmsgstr "gone"\n\nmsgid "r"\nmsgstr "stale R"\n', encoding="utf-8")
             en, xx = t.PoFile(d / "en.po"), t.PoFile(d / "xx.po")
             data = {"locales": [{"code": "xx", "removed": ["old"], "items": [
                 {"key": "a", "source": "A", "final": "AA", "status": "passed"},
                 {"key": "b", "source": "B", "final": "BB", "status": "fixed"},        # English changed since
                 {"key": "c", "source": "C", "final": "CC", "status": "rejected"},     # never written
                 {"key": "sp", "source": "Code to ", "final": "Code à", "status": "passed"},  # edge space restored
+                {"key": "r", "source": "R", "final": "", "status": "rejected", "reason": "changed"},  # stale text blanked
             ]}]}
             rows = t.apply_results(data, en, {"xx": xx})
             self.assertEqual(rows, [["xx", 2, 1, 1]])
             again = t.PoFile(d / "xx.po")
             self.assertEqual(again.get("a"), "AA")
             self.assertEqual(again.get("sp"), "Code à ")
+            self.assertEqual(again.get("r"), "")
             self.assertFalse(again.has("b")); self.assertFalse(again.has("c")); self.assertFalse(again.has("old"))
         finally:
             shutil.rmtree(d)

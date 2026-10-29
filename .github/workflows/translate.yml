@@ -9,6 +9,8 @@ on:
     branches: [main]
     paths:
       - 'assets/locales/en.po'
+  schedule:
+    - cron: '0 6 * * 1'   # weekly gap fill: retries anything a failed or partial run left empty
   workflow_dispatch:
     inputs:
       base:
@@ -39,16 +41,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Changed English strings are found by diffing en.po against the last commit the bot
-      # made, so a push whose queued run was replaced is still covered by the next run.
-      # A manual base wins; with no bot commit yet, the push's previous head is used.
+      # Changed English strings are found by diffing en.po against the source commit the bot's
+      # last all-locale run processed, recorded as a "Translated-From:" trailer on its commit.
+      # That survives replaced queued runs, filtered runs and main moving while the models ran.
+      # A manual base wins; with no such commit yet, the push's previous head is used.
       - name: Pick the base commit for change detection
         env:
           GH_TOKEN: ${{ github.token }}
           MANUAL: ${{ inputs.base }}
           BEFORE: ${{ github.event_name == 'push' && github.event.before || '' }}
         run: |
-          last=$(gh api "repos/$GITHUB_REPOSITORY/commits?path=assets/locales&author=github-actions%5Bbot%5D&per_page=1" --jq '.[0].sha // empty' || true)
+          last=$(gh api "repos/$GITHUB_REPOSITORY/commits?path=assets/locales&author=github-actions%5Bbot%5D&per_page=30" \
+                   --jq '[.[] | (.commit.message | capture("Translated-From: (?<sha>[0-9a-f]{40})") | .sha) // empty] | first // empty' || true)
           base="${MANUAL:-${last:-$BEFORE}}"
           [ "$base" = "0000000000000000000000000000000000000000" ] && base=""
           if [ -n "$base" ] && ! git fetch --depth=1 origin "$base"; then
@@ -66,7 +70,7 @@ jobs:
       - name: Translate
         id: translate
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           args=(--out build/translate)
           [ -n "$BASE" ] && args+=(--base "$BASE")
@@ -90,6 +94,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/locales/*.po
           if git diff --cached --quiet; then echo "no file content changed"; exit 0; fi
+          # an all-locale run records the en.po revision it processed as the next baseline;
+          # a locale-filtered run does not, so it can never hide other locales' stale strings
+          if [ -z "$LOCALES" ]; then printf '\nTranslated-From: %s\n' "$GITHUB_SHA" >> build/translate/commit_message.txt; fi
           git commit -F build/translate/commit_message.txt
           # main may have moved while the models ran; rebase once and push
           git pull --rebase origin main

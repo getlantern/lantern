@@ -48,6 +48,9 @@ ALIASES: dict[str, dict[str, str]] = {}
 ALLOW_IDENTICAL: set[str] = set()
 LENGTH: dict[str, tuple[float, float]] = {}
 LOCALES: dict[str, tuple[str, bool, str]] = {}
+API_BASE_URL = ""       # "" = Anthropic directly; otherwise an Anthropic-compatible gateway such as OpenRouter
+API_KEY_ENV = "ANTHROPIC_API_KEY"
+API_PROVIDERS: list[str] = []   # OpenRouter upstreams allowed, tried in order; others are never used
 
 
 def load_config(path: Path = CONFIG_PATH) -> None:
@@ -77,6 +80,11 @@ def load_config(path: Path = CONFIG_PATH) -> None:
     a = d.get("audit", {})
     g["AUDIT_SOURCE_DIRS"] = list(a.get("source_dirs", ["lib"]))
     g["AUDIT_DYNAMIC_PREFIXES"] = list(a.get("dynamic_prefixes", []))
+    api = d.get("api", {})
+    g["API_BASE_URL"] = str(api.get("base_url", "")).rstrip("/")
+    g["API_KEY_ENV"] = str(api.get("key_env", "ANTHROPIC_API_KEY"))
+    prov = api.get("providers", [])
+    g["API_PROVIDERS"] = [prov] if isinstance(prov, str) else list(prov)
 
 
 AUDIT_SOURCE_DIRS: list[str] = []
@@ -393,21 +401,36 @@ class TruncatedResponse(RuntimeError):
     pass
 
 
+def client_kwargs() -> dict:
+    """Anthropic SDK client arguments. A gateway (OpenRouter) takes the key as a bearer
+    token on its own host; Anthropic itself takes it as x-api-key, which the SDK does by default."""
+    kw: dict = {"max_retries": 5}  # 429/5xx are common when six workers fan out
+    if API_BASE_URL:
+        kw["base_url"] = API_BASE_URL
+        kw["auth_token"] = os.environ.get(API_KEY_ENV, "")
+    return kw
+
+
 class Claude:
     def __init__(self):
         import anthropic  # imported lazily so tests run without the SDK
 
-        self.client = anthropic.Anthropic(max_retries=5)  # 429/5xx are common when six workers fan out
-        self.usage: dict[str, dict[str, int]] = {}
+        self.client = anthropic.Anthropic(**client_kwargs())
+        self.usage: dict[str, dict] = {}
         self._lock = threading.Lock()
 
-    def _account(self, model: str, usage) -> None:
+    def _account(self, model: str, usage, extra: dict) -> None:
+        """`extra` holds the gateway-only fields (billed cost, thinking tokens) that arrive on
+        the stream's message_delta event and that the SDK drops from the final message."""
         with self._lock:
-            u = self.usage.setdefault(model, {"input": 0, "cache_read": 0, "cache_write": 0, "output": 0})
+            u = self.usage.setdefault(model, {"input": 0, "cache_read": 0, "cache_write": 0, "output": 0,
+                                              "thinking": 0, "cost": 0.0})
             u["input"] += getattr(usage, "input_tokens", 0) or 0
             u["cache_read"] += getattr(usage, "cache_read_input_tokens", 0) or 0
             u["cache_write"] += getattr(usage, "cache_creation_input_tokens", 0) or 0
             u["output"] += getattr(usage, "output_tokens", 0) or 0
+            u["thinking"] += int((extra.get("output_tokens_details") or {}).get("thinking_tokens") or 0)
+            u["cost"] += float(extra.get("cost") or 0)
 
     @staticmethod
     def params(role: str, system: str, user: str, tool: dict, cached: bool) -> dict:
@@ -417,7 +440,7 @@ class Claude:
         block = {"type": "text", "text": system}
         if cached:
             block["cache_control"] = {"type": "ephemeral"}
-        return {
+        p = {
             "model": MODELS[role],
             "max_tokens": MAX_TOKENS,
             "system": [block],
@@ -425,9 +448,12 @@ class Claude:
                               "format": {"type": "json_schema", "schema": tool["input_schema"]}},
             "messages": [{"role": "user", "content": user}],
         }
+        if API_PROVIDERS:  # only upstreams known to honour effort, structured output and the cache
+            p["extra_body"] = {"provider": {"order": list(API_PROVIDERS), "allow_fallbacks": False}}
+        return p
 
-    def parse(self, model: str, resp) -> dict:
-        self._account(model, resp.usage)
+    def parse(self, model: str, resp, extra: dict | None = None) -> dict:
+        self._account(model, resp.usage, extra or {})
         if resp.stop_reason == "max_tokens":
             raise TruncatedResponse(model)
         if resp.stop_reason == "refusal":
@@ -441,8 +467,13 @@ class Claude:
 
     def call(self, role: str, system: str, user: str, tool: dict, cached: bool = True) -> dict:
         p = self.params(role, system, user, tool, cached)
+        extra: dict = {}
         with self.client.messages.stream(**p) as stream:  # streaming keeps long thinking under the HTTP timeout
-            return self.parse(p["model"], stream.get_final_message())
+            for ev in stream:
+                if ev.type == "message_delta" and getattr(ev, "usage", None) is not None:
+                    extra = dict(getattr(ev.usage, "model_extra", None) or {})
+                    extra.setdefault("output_tokens_details", getattr(ev.usage, "output_tokens_details", None) and ev.usage.output_tokens_details.model_dump())
+            return self.parse(p["model"], stream.get_final_message(), extra)
 
     def batched(self, items: list, fn) -> list:
         """Run fn on the items, halving a chunk that overflows max_tokens."""
@@ -900,10 +931,7 @@ def summary_markdown(results: list[LocaleResult], run: dict) -> str:
         lines.append(f"| {r.code} ({r.name}) | {s['translated']} | {s['passed']} | {s['fixed']} | {s['flagged']} | "
                      f"{s['rejected']} | {s['failed']} | {s['removed']} | {fmt_conf(s['mean_confidence'])} | {fmt_conf(s['min_confidence'])} |")
     lines.append("")
-    if run.get("usage"):
-        lines.append("Tokens: " + "; ".join(f"{m}: in {u['input']:,} (+{u['cache_read']:,} cached), out {u['output']:,}"
-                                            for m, u in run["usage"].items()))
-        lines.append("")
+    lines += cost_markdown(results, run)
     for r in results:
         if r.error:
             lines += [f"> **{r.code}: run failed** — {esc_md(r.error)}", ""]
@@ -921,6 +949,28 @@ def summary_markdown(results: list[LocaleResult], run: dict) -> str:
                          f"{i.status} | {fmt_conf(i.confidence)} | {esc_md(notes)} |")
         lines += ["", "</details>", ""]
     return "\n".join(lines) + "\n"
+
+
+def cost_markdown(results: list[LocaleResult], run: dict) -> list[str]:
+    """Per-model tokens and what the gateway billed; the cost column is blank when the
+    API does not report it (Anthropic directly), and every number is for this run only."""
+    usage = run.get("usage") or {}
+    if not usage:
+        return []
+    lines = ["### Cost", "", "| Model | Input | Cached | Cache written | Output | of which thinking | Billed |", "|---|---:|---:|---:|---:|---:|---:|"]
+    total = 0.0
+    for m, u in usage.items():
+        total += u.get("cost", 0) or 0
+        lines.append(f"| `{m}` | {u['input']:,} | {u['cache_read']:,} | {u['cache_write']:,} | {u['output']:,} | "
+                     f"{u.get('thinking', 0):,} | {('$%.4f' % u['cost']) if u.get('cost') else '–'} |")
+    n = sum(r.stats()["translated"] for r in results)
+    if total:
+        lines.append(f"| **total** | | | | | | **${total:.4f}** |")
+        lines += ["", f"**${total:.2f} for this run**" + (f", ${total / n:.4f} per translated string ({n} strings)" if n else "")
+                  + "; tokens are the model's own count and thinking bills as output."]
+    else:
+        lines += ["", "Billed amount not reported by this API; use the token counts with the model's list price."]
+    return lines + [""]
 
 
 def commit_message(results: list[LocaleResult], run: dict) -> str:
@@ -1142,6 +1192,10 @@ def apply_results(data: dict, en: PoFile, targets: dict[str, PoFile]) -> list[li
                 changed = True
         for it in L.get("items", []):
             text = it.get("final") or ""
+            if it.get("status") in ("rejected", "failed") and it.get("reason") == "changed" and po.get(it["key"]):
+                po.set(it["key"], "")  # same rule as a live run: a failed retranslation becomes a gap
+                changed = True
+                continue
             if it.get("status") not in ("passed", "fixed", "flagged") or not text:
                 continue
             text = match_edges(it.get("source", ""), text)
@@ -1238,8 +1292,8 @@ def main() -> int:
             rows.append([code, len(w.remove)])
         print(text_table(["Locale", "Would remove" if args.dry_run else "Removed"], rows) if rows else "Nothing stale to remove.")
         return 0
-    if pending and not os.environ.get("ANTHROPIC_API_KEY"):
-        log("error: ANTHROPIC_API_KEY is not set")
+    if pending and not os.environ.get(API_KEY_ENV):
+        log(f"error: {API_KEY_ENV} is not set")
         return 1
     claude = Claude() if pending else None
 
@@ -1261,6 +1315,9 @@ def main() -> int:
             for i in r.items:
                 if i.status in ("passed", "fixed", "flagged") and i.final and po.get(i.key) != i.final:
                     po.set(i.key, i.final)
+                    changed = True
+                elif i.status in ("rejected", "failed") and i.reason == "changed" and po.get(i.key):
+                    po.set(i.key, "")  # the old text no longer matches the English; empty = retried as a gap
                     changed = True
             if changed:
                 po.write()
@@ -1320,6 +1377,8 @@ HTML_TEMPLATE = r"""<!doctype html>
   .headline { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:10px; margin:18px 0 6px; }
   .big { border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:var(--card); }
   .big b { display:block; font-size:28px; line-height:1.1; font-variant-numeric:tabular-nums; } .big span { color:var(--muted); font-size:12px; }
+  table.cost { border-collapse:collapse; margin:8px 0 4px; font-size:13px; } table.cost th, table.cost td { padding:4px 10px; text-align:right; border-bottom:1px solid var(--line); }
+  table.cost th:first-child, table.cost td:first-child { text-align:left; }
   .big.pass b{color:var(--pass)} .big.fix b{color:var(--fix)} .big.flag b{color:var(--flag)} .big.bad b{color:var(--bad)}
   .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(118px,1fr)); gap:6px; }
   .card { border:1px solid var(--line); border-radius:6px; padding:5px 8px; background:var(--card); cursor:pointer; font-variant-numeric:tabular-nums; font-size:12px; line-height:1.3; }
@@ -1350,7 +1409,7 @@ HTML_TEMPLATE = r"""<!doctype html>
 <h1>Translation report</h1>
 <div class="meta" id="meta"></div>
 <div class="headline" id="headline"></div>
-<div class="meta" id="tokens"></div>
+<div id="cost"></div>
 
 <h2>Per locale <span class="meta">(click a card to filter the table)</span></h2>
 <div class="cards" id="cards"></div>
@@ -1404,8 +1463,20 @@ $('headline').innerHTML = [
   ['', low == null ? '–' : low.toFixed(2), 'lowest confidence'],
 ].map(([cls, n, label]) => `<div class="big ${cls}"><b>${n}</b><span>${label}</span></div>`).join('');
 if (r.usage && Object.keys(r.usage).length) {
-  $('tokens').textContent = 'Tokens: ' + Object.entries(r.usage).map(([mm, u]) =>
-    `${mm}: in ${u.input.toLocaleString()} (+${u.cache_read.toLocaleString()} cached), out ${u.output.toLocaleString()}`).join(' · ');
+  const billed = Object.values(r.usage).reduce((a, u) => a + (u.cost || 0), 0);
+  const n = sum('translated');
+  const rows = Object.entries(r.usage).map(([mm, u]) => `<tr><td>${mm}</td><td>${u.input.toLocaleString()}</td>
+    <td>${u.cache_read.toLocaleString()}</td><td>${u.cache_write.toLocaleString()}</td><td>${u.output.toLocaleString()}</td>
+    <td>${(u.thinking || 0).toLocaleString()}</td><td>${u.cost ? '$' + u.cost.toFixed(4) : '–'}</td></tr>`).join('');
+  $('cost').innerHTML = `<h2>Cost</h2>
+    <div class="headline">
+      <div class="big"><b>${billed ? '$' + billed.toFixed(2) : '–'}</b><span>billed for this run</span></div>
+      <div class="big"><b>${billed && n ? '$' + (billed / n).toFixed(4) : '–'}</b><span>per translated string</span></div>
+      <div class="big"><b>${Object.values(r.usage).reduce((a, u) => a + (u.thinking || 0), 0).toLocaleString()}</b><span>thinking tokens, billed as output</span></div>
+    </div>
+    <table class="cost"><thead><tr><th>Model</th><th>Input</th><th>Cached</th><th>Cache written</th><th>Output</th><th>of which thinking</th><th>Billed</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="meta">${billed ? 'Amounts are what the gateway billed for this run only.' : 'This API does not report billed amounts; multiply the tokens by the list price.'}</div>`;
 }
 
 // per-locale cards

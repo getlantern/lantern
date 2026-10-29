@@ -2,10 +2,21 @@
 # picks it up. The set of locales is whatever .po files exist in assets/locales;
 # this file only describes them.
 
+# Where the calls go. OpenRouter speaks the Anthropic Messages format on its own host and
+# bills the models at Anthropic's list prices; leave base_url empty to call Anthropic directly
+# (then key_env = "ANTHROPIC_API_KEY" and model ids lose the "anthropic/" prefix).
+[api]
+base_url = "https://openrouter.ai/api"
+key_env = "OPENROUTER_API_KEY"
+# Upstreams OpenRouter may use, in order. Anthropic is skipped while the account requires zero data
+# retention; Vertex (global) is next, same prices and supports effort, structured output and the cache.
+# Bedrock is never allowed: it lacks structured output.
+providers = ["anthropic", "google-vertex"]
+
 [models]
-translate = "claude-opus-5-5"
-review = "claude-opus-5-5"          # claude-fable-5-1 for a stricter, pricier spot check
-backtranslate = "claude-sonnet-5-5"
+translate = "anthropic/claude-opus-5.5"
+review = "anthropic/claude-opus-5.5"          # anthropic/claude-fable-5.1 for a stricter, pricier spot check
+backtranslate = "anthropic/claude-sonnet-5.5"
 
 # Thinking depth per role: low | medium | high | xhigh | max. Thinking tokens
 # bill as output, so this is the main cost knob after the model choice.
