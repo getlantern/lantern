@@ -1972,6 +1972,3 @@ msgstr "लॉग"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean पर जाने के लिए नीचे %s पर टैप करें"
-
-msgid "faq_questions"
-msgstr "अक्सर पूछे जाने वाले सवाल"

@@ -1984,6 +1984,3 @@ msgstr "Логи"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Нажмите %s ниже, чтобы перейти в DigitalOcean"
-
-msgid "faq_questions"
-msgstr "Частые вопросы и ответы"

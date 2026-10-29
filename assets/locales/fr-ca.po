@@ -1787,6 +1787,3 @@ msgstr "Journaux"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Touchez %s ci-dessous pour accéder à DigitalOcean"
-
-msgid "faq_questions"
-msgstr "FAQ et questions"

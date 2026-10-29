@@ -7,9 +7,7 @@ name: Translate strings
 
 on:
   push:
-    branches:
-      - main
-      - jigar/translation-ci
+    branches: [main]
     paths:
       - 'assets/locales/en.po'
   schedule:

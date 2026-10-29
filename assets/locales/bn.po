@@ -1968,6 +1968,3 @@ msgstr "লগ"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean-এ যেতে নিচের %s এ ট্যাপ করুন"
-
-msgid "faq_questions"
-msgstr "সাধারণ প্রশ্ন ও জিজ্ঞাসা"

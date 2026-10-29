@@ -1988,6 +1988,3 @@ msgstr "Registros"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Toca %s abajo para ir a DigitalOcean"
-
-msgid "faq_questions"
-msgstr "Preguntas frecuentes y consultas"

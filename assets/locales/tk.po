@@ -1954,6 +1954,3 @@ msgstr "Loglar"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean sahypasyna geçmek üçin aşakdaky %s düwmesine basyň"
-
-msgid "faq_questions"
-msgstr "Köp soralýan soraglar"

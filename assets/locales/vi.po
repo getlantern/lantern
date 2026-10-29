@@ -1972,6 +1972,3 @@ msgstr "Nhật ký"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Nhấn %s bên dưới để đi đến DigitalOcean"
-
-msgid "faq_questions"
-msgstr "Câu hỏi thường gặp và thắc mắc"

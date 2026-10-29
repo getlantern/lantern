@@ -1970,6 +1970,3 @@ msgstr "گزارش‌ها"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "برای رفتن به DigitalOcean، روی %s در پایین ضربه بزنید"
-
-msgid "faq_questions"
-msgstr "سؤالات متداول و پرسش‌ها"

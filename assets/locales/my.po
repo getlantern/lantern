@@ -2010,6 +2010,3 @@ msgstr "မှတ်တမ်းများ"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean သို့ သွားရန် အောက်ပါ %s ကို နှိပ်ပါ"
-
-msgid "faq_questions"
-msgstr "အမေးများသောမေးခွန်းများနှင့် မေးခွန်းများ"
