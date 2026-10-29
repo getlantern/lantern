@@ -21,14 +21,22 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     listenSelf((_, next) => _publishToWidget(next));
     // radiance drops the personal proxies group with the last pairing and
     // connects through auto, but sends no server-location event for it.
+    // fireImmediately covers a view that loaded empty before this notifier
+    // was built; the check is deferred because state is unset during build.
     ref.listen(helpersProvider, (_, next) {
       if (!next.viewLoaded || next.view.helpers.isNotEmpty) return;
-      if (state.serverType.toServerLocationType !=
-          ServerLocationType.personalProxy) {
-        return;
-      }
-      unawaited(switchToAuto().then((_) => refreshAutoLocationIfNeeded()));
-    });
+      unawaited(
+        Future.microtask(() async {
+          if (!ref.mounted) return;
+          if (state.serverType.toServerLocationType !=
+              ServerLocationType.personalProxy) {
+            return;
+          }
+          await switchToAuto();
+          await refreshAutoLocationIfNeeded();
+        }),
+      );
+    }, fireImmediately: true);
     final cached = _storage.getServerLocation();
     final initial = cached ?? _defaultLocation();
     appLogger.debug(

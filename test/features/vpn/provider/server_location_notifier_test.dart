@@ -107,6 +107,25 @@ void main() {
     },
   );
 
+  test(
+    'a view already loaded empty drops the personal proxy selection',
+    () async {
+      storage.location = ServerLocation.personalProxy();
+      final c = container();
+      helpers.set(_noHelpers);
+      expect(
+        c.read(serverLocationProvider).serverType,
+        ServerLocationType.personalProxy.name,
+      );
+      await pumpEventQueue();
+      expect(
+        c.read(serverLocationProvider).serverType,
+        ServerLocationType.auto.name,
+      );
+      expect(storage.location!.serverType, ServerLocationType.auto.name);
+    },
+  );
+
   test('an unloaded view does not drop the selection', () async {
     storage.location = ServerLocation.personalProxy();
     final c = container();

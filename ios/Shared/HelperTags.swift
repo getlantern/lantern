@@ -8,6 +8,10 @@ import Foundation
 // personalProxy location type mark the device as having helpers, so they are
 // redacted the same way, as the Dart port (lib/core/utils/helper_tags.dart)
 // does.
+//
+// This redacts tags only: helper-…, personal-proxies and personalProxy.
+// Addresses on lines naming helpers are not touched here; the Dart and
+// radiance redaction remove those.
 private let helperTagPattern = try! NSRegularExpression(
   pattern: "(?<![A-Za-z0-9_])helper-[0-9a-f]{12}")
 private let personalProxiesTag = "personal-proxies"
