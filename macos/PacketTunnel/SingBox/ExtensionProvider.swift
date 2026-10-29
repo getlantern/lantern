@@ -139,7 +139,8 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileConnectToServer(serverName, &error)
     if let error {
-      appLogger.error("error while connecting to server \(error.localizedDescription)")
+      appLogger.error(
+        "error while connecting to server \(redactHelperTags(error.localizedDescription))")
       cancelTunnel(error)
       completion?(false, error.localizedDescription)
 

@@ -16,6 +16,16 @@ class HelperTagsTest {
     }
 
     @Test
+    fun redactsThePersonalProxiesGroupAndType() {
+        assertEquals(
+            "selected helper (type=helper)",
+            HelperTags.redact("selected personal-proxies (type=personalProxy)"),
+        )
+        assertEquals("""{"tag":"helper"}""", HelperTags.redact("""{"tag":"personal-proxies"}"""))
+        assertEquals("personalProxyX stays", HelperTags.redact("personalProxyX stays"))
+    }
+
+    @Test
     fun leavesOtherTextAlone() {
         assertEquals("helper-short stays", HelperTags.redact("helper-short stays"))
         assertEquals("x$tag", HelperTags.redact("x$tag"))
