@@ -36,6 +36,18 @@ bool personalProxiesTabVisible(Ref ref) {
   return s.view.helpers.isNotEmpty || s.view.invites.any((i) => !i.expired);
 }
 
+/// Whether the VPN tab offers "Get a personal proxy": while helper invites
+/// are available and this device has no personal proxy. A device that never
+/// used helper invites has none, so the keystore is never touched to decide;
+/// one that did waits for a loaded view.
+@riverpod
+bool personalProxyBannerVisible(Ref ref) {
+  if (!ref.watch(helperInvitesAvailableProvider)) return false;
+  final s = ref.watch(helpersProvider);
+  if (!s.viewLoaded) return !ref.read(helpersProvider.notifier).used;
+  return s.view.helpers.isEmpty;
+}
+
 /// One engine call's result: its JSON, or an error code.
 class HelperResult {
   const HelperResult._(this.data, this.error);

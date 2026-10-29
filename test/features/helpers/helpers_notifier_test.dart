@@ -856,6 +856,53 @@ void main() {
     });
   });
 
+  group('personalProxyBannerVisibleProvider', () {
+    ProviderContainer withFlag(bool on) {
+      final c = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(svc),
+          helperInvitesAvailableProvider.overrideWithValue(on),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test(
+      'shows for a device that never used invites, without the keystore',
+      () {
+        final c = withFlag(true);
+        expect(c.read(personalProxyBannerVisibleProvider), isTrue);
+        expect(keys.reads, 0);
+        expect(svc.calls, isEmpty);
+      },
+    );
+
+    test('waits for the view on a device that used invites', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {'unlock': _view(), 'refresh': _view()};
+      final c = withFlag(true);
+      expect(c.read(personalProxyBannerVisibleProvider), isFalse);
+      await c.read(helpersProvider.notifier).refresh();
+      expect(c.read(personalProxyBannerVisibleProvider), isTrue);
+    });
+
+    test('hides once the device has a personal proxy', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {
+        'unlock': _view(),
+        'refresh': _view(helpers: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final c = withFlag(true);
+      await c.read(helpersProvider.notifier).refresh();
+      expect(c.read(personalProxyBannerVisibleProvider), isFalse);
+    });
+
+    test('hides without helper invites', () {
+      expect(withFlag(false).read(personalProxyBannerVisibleProvider), isFalse);
+    });
+  });
+
   test('polling starts and stops with needsPolling', () async {
     HelpersNotifier.pollInterval = const Duration(milliseconds: 10);
     WidgetsBinding.instance.handleAppLifecycleStateChanged(

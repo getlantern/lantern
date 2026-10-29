@@ -114,6 +114,63 @@ final class PersonalProxiesTabVisibleProvider
 String _$personalProxiesTabVisibleHash() =>
     r'c25872760ac30e76edd3a739ed8d9f686f03f70f';
 
+/// Whether the VPN tab offers "Get a personal proxy": while helper invites
+/// are available and this device has no personal proxy. A device that never
+/// used helper invites has none, so the keystore is never touched to decide;
+/// one that did waits for a loaded view.
+
+@ProviderFor(personalProxyBannerVisible)
+final personalProxyBannerVisibleProvider =
+    PersonalProxyBannerVisibleProvider._();
+
+/// Whether the VPN tab offers "Get a personal proxy": while helper invites
+/// are available and this device has no personal proxy. A device that never
+/// used helper invites has none, so the keystore is never touched to decide;
+/// one that did waits for a loaded view.
+
+final class PersonalProxyBannerVisibleProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// Whether the VPN tab offers "Get a personal proxy": while helper invites
+  /// are available and this device has no personal proxy. A device that never
+  /// used helper invites has none, so the keystore is never touched to decide;
+  /// one that did waits for a loaded view.
+  PersonalProxyBannerVisibleProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'personalProxyBannerVisibleProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$personalProxyBannerVisibleHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return personalProxyBannerVisible(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$personalProxyBannerVisibleHash() =>
+    r'd1a6a288dcfef7277eed8cb4fbd8d43a0b437474';
+
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
 /// never logged.

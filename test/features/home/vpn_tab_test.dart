@@ -11,6 +11,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
@@ -176,5 +177,52 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  }
+
+  for (final (name, pro, banner) in [
+    ('a Pro user sees the personal proxy banner', true, true),
+    ('the Pro upsell wins for a free user', false, false),
+  ]) {
+    testWidgets(name, (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = desktopWindowSize;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            lanternServiceProvider.overrideWithValue(_FakeLanternService()),
+            isUserProProvider.overrideWithValue(pro),
+            isUserExpiredProvider.overrideWithValue(false),
+            proRenewalProvider.overrideWithValue(ProRenewalInfo.none),
+            personalProxyBannerVisibleProvider.overrideWithValue(true),
+            serverLocationProvider.overrideWithValue(initialServerLocation()),
+            radianceSettingsProvider.overrideWithValue(
+              const RadianceSettingsState(),
+            ),
+            vpnProvider.overrideWithValue(VPNStatus.disconnected),
+            macosExtensionProvider.overrideWithValue(
+              const MacOSExtensionState(SystemExtensionStatus.activated),
+            ),
+          ],
+          child: ScreenUtilInit(
+            designSize: desktopWindowSize,
+            child: MaterialApp(
+              theme: AppTheme.appTheme(),
+              home: const Scaffold(body: VpnTab()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.byKey(const Key('vpn.personal_proxy_banner')),
+        banner ? findsOneWidget : findsNothing,
+      );
+      if (banner) {
+        expect(find.text('personal_proxy_banner_title'.i18n), findsOneWidget);
+        expect(find.text('personal_proxy_banner_body'.i18n), findsOneWidget);
+      }
+    });
   }
 }
