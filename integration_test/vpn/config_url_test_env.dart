@@ -128,13 +128,3 @@ String configServerName() {
       Platform.environment['JOIN_SERVER_CONFIG_SERVER_NAME']?.trim() ?? '';
   return value.isEmpty ? defaultConfigServerName : value;
 }
-
-bool skipCertVerification() {
-  final raw = Platform.environment['JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION']
-      ?.trim()
-      .toLowerCase();
-  if (raw == null || raw.isEmpty) {
-    return true;
-  }
-  return raw == '1' || raw == 'true' || raw == 'yes';
-}
