@@ -1662,13 +1662,7 @@ class LanternPlatformService implements LanternCoreService {
         );
       }
       final server = Server.fromJson(serverJson);
-      return Right(
-        ServerLocation.fromServer(server: server).copyWith(
-          serverType: server.isLantern
-              ? ServerLocationType.lanternLocation.name
-              : ServerLocationType.privateServer.name,
-        ),
-      );
+      return Right(ServerLocation.selected(server));
     } catch (e, stackTrace) {
       appLogger.error('Error fetching selected server', e, stackTrace);
       return Left(e.toFailure());

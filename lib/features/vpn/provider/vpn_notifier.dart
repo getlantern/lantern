@@ -222,6 +222,11 @@ class VpnNotifier extends _$VpnNotifier {
       appLogger.debug(
         'Server tag "$tag" not available, falling back to auto VPN',
       );
+      if (type == ServerLocationType.personalProxy) {
+        // The group is gone with the last pairing: show Smart Location, which
+        // is what connects.
+        await ref.read(serverLocationProvider.notifier).switchToAuto();
+      }
       return lantern.startVPN();
     }
     return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);

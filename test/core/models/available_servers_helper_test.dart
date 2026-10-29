@@ -107,4 +107,19 @@ void main() {
       'nothing to see 198.51.100.9',
     );
   });
+
+  test('redactHelperTags redacts the personal proxies group tag', () {
+    expect(
+      redactHelperTags(
+        'Connecting to server: personalProxy with tag: personal-proxies',
+      ),
+      'Connecting to server: personalProxy with tag: helper',
+    );
+    expect(
+      redactHelperTags(
+        'outbound/mutableurltest[personal-proxies]: dial tcp 203.0.113.7:443',
+      ),
+      'outbound/mutableurltest[helper]: dial tcp <redacted>',
+    );
+  });
 }

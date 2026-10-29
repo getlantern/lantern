@@ -89,6 +89,24 @@ class ServerLocation {
     );
   }
 
+  /// The user's personal proxies, selected as one location. Where the friends
+  /// are is never shown.
+  factory ServerLocation.personalProxy() => ServerLocation(
+    serverName: personalProxiesTag,
+    serverType: ServerLocationType.personalProxy.name,
+    displayName: 'personal_proxy'.i18n,
+  );
+
+  /// The location of the server radiance reports as selected.
+  factory ServerLocation.selected(Server server) {
+    if (server.tag == personalProxiesTag) return ServerLocation.personalProxy();
+    return ServerLocation.fromServer(server: server).copyWith(
+      serverType: server.isLantern
+          ? ServerLocationType.lanternLocation.name
+          : ServerLocationType.privateServer.name,
+    );
+  }
+
   /// Build from a user private server (formerly `privateServer(...)`)
   factory ServerLocation.fromPrivateServer({
     required PrivateServer privateServer,

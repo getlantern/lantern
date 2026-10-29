@@ -24,7 +24,14 @@ final _ipCandidate = RegExp(
 
 bool isHelperTag(String tag) => tag.startsWith('helper-');
 
-bool _namesHelper(String s) => s.contains('helper') && _helperNamed.hasMatch(s);
+/// radiance's url-test group over every helper outbound (vpn.PersonalProxiesTag).
+/// Selecting it connects through the user's personal proxies. It marks the
+/// device as having them, so it is redacted like a helper tag.
+const personalProxiesTag = 'personal-proxies';
+
+bool _namesHelper(String s) =>
+    s.contains(personalProxiesTag) ||
+    (s.contains('helper') && _helperNamed.hasMatch(s));
 
 /// Replaces each helper tag with "helper" and, on every line that names a
 /// helper outbound, every IP address (with any port) with [redactedAddress].
@@ -39,7 +46,9 @@ String redactHelperTags(String text) {
             : line,
       )
       .join('\n');
-  return redacted.replaceAll(_helperTag, 'helper');
+  return redacted
+      .replaceAll(_helperTag, 'helper')
+      .replaceAll(personalProxiesTag, 'helper');
 }
 
 // The candidate can take in dots and colons from the surrounding text on

@@ -2281,6 +2281,10 @@ msgstr "Codes don't match: reject"
 msgid "reject_explainer"
 msgstr "If the codes are different, someone else opened your link. Reject them and send a new invite."
 
+# The VPN tab's selected location while connected through the user's personal proxies.
+msgid "personal_proxy"
+msgstr "Personal proxy"
+
 # Helper invites: the volunteer's side.
 msgid "help_friend_title"
 msgstr "Help a friend stay online"
