@@ -8,6 +8,12 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
+if ($Action -eq 'SignInstaller') {
+  if ([string]::IsNullOrWhiteSpace($FilePath)) { throw '-Action SignInstaller requires -FilePath' }
+} elseif ([string]::IsNullOrWhiteSpace($Directory) -or [string]::IsNullOrWhiteSpace($ManifestPath)) {
+  throw "-Action $Action requires -Directory and -ManifestPath"
+}
+
 function Invoke-Signing([string]$Path, [string]$Configuration = '') {
   & "$PSScriptRoot/sign-windows.ps1" -FilePath $Path `
     -SigningPolicy $env:SIGNPATH_SIGNING_POLICY `

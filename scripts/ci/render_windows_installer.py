@@ -63,6 +63,12 @@ def main() -> None:
     parser.add_argument("--signed", action="store_true")
     args = parser.parse_args()
     config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    if not isinstance(config, dict):
+        raise ValueError(f"Invalid installer config {args.config}: expected a YAML mapping")
+    required = {"app_id", "display_name", "publisher", "publisher_url", "executable_name"}
+    missing = sorted(required - config.keys())
+    if missing:
+        raise ValueError(f"Invalid installer config {args.config}: missing keys: {', '.join(missing)}")
     if not args.source.is_dir():
         raise ValueError(f"Missing built Windows payload: {args.source}")
     result = render(args.template.read_text(encoding="utf-8"), config,

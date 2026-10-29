@@ -328,7 +328,8 @@ begin
   Result := '';
   if not Dependency_VCRuntimeEnabled then exit;
   if Dependency_IsVCRuntimeInstalled then exit;
-  StrToVersion('{#VCRedistVersion}', RequiredVersion);
+  if not StrToVersion('{#VCRedistVersion}', RequiredVersion) then
+    RaiseException('Invalid bundled Visual C++ runtime version: {#VCRedistVersion}');
   HasVersion := Dependency_ReadVCRuntimeVersion(Version, PackedVersion);
   if HasVersion and (ComparePackedVersion(PackedVersion, RequiredVersion) > 0) then begin
     Result := Dependency_VCRuntimeRepairMessage('Windows reports version ' + Version +
