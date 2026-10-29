@@ -134,6 +134,11 @@ class Checks(unittest.TestCase):
     def test_clean_translation_passes(self):
         self.assertEqual(t.check("Connect to %s now", "Conéctate a %s ahora", self.es), ([], []))
 
+    def test_edge_whitespace_follows_english(self):
+        self.assertEqual(t.match_edges("We sent a code to ", "Nous avons envoyé un code à"), "Nous avons envoyé un code à ")
+        self.assertEqual(t.match_edges(" Enter it below.", "  Saisissez-le. "), " Saisissez-le.")
+        self.assertEqual(t.match_edges("Done", " Terminé "), "Terminé")
+
 
 class Detection(unittest.TestCase):
     def test_gaps_and_stale_keys(self):
@@ -274,18 +279,20 @@ class Apply(unittest.TestCase):
     def test_apply_writes_saved_translations_and_skips_changed_english(self):
         d = Path(tempfile.mkdtemp())
         try:
-            (d / "en.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "a"\nmsgstr "A"\n\nmsgid "b"\nmsgstr "B changed"\n', encoding="utf-8")
+            (d / "en.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "a"\nmsgstr "A"\n\nmsgid "b"\nmsgstr "B changed"\n\nmsgid "sp"\nmsgstr "Code to "\n', encoding="utf-8")
             (d / "xx.po").write_text('msgid ""\nmsgstr ""\n\nmsgid "old"\nmsgstr "gone"\n', encoding="utf-8")
             en, xx = t.PoFile(d / "en.po"), t.PoFile(d / "xx.po")
             data = {"locales": [{"code": "xx", "removed": ["old"], "items": [
                 {"key": "a", "source": "A", "final": "AA", "status": "passed"},
                 {"key": "b", "source": "B", "final": "BB", "status": "fixed"},        # English changed since
                 {"key": "c", "source": "C", "final": "CC", "status": "rejected"},     # never written
+                {"key": "sp", "source": "Code to ", "final": "Code à", "status": "passed"},  # edge space restored
             ]}]}
             rows = t.apply_results(data, en, {"xx": xx})
-            self.assertEqual(rows, [["xx", 1, 1, 1]])
+            self.assertEqual(rows, [["xx", 2, 1, 1]])
             again = t.PoFile(d / "xx.po")
             self.assertEqual(again.get("a"), "AA")
+            self.assertEqual(again.get("sp"), "Code à ")
             self.assertFalse(again.has("b")); self.assertFalse(again.has("c")); self.assertFalse(again.has("old"))
         finally:
             shutil.rmtree(d)

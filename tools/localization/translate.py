@@ -348,6 +348,13 @@ def has_letters(s: str) -> bool:
     return any(c.isalpha() for c in s)
 
 
+def match_edges(source: str, target: str) -> str:
+    """Give the translation the same leading/trailing whitespace as the English; the app concatenates some fragments."""
+    lead = source[:len(source) - len(source.lstrip())]
+    trail = source[len(source.rstrip()):]
+    return lead + target.strip() + trail
+
+
 def check(source: str, target: str, meta: LocaleMeta) -> tuple[list[str], list[str]]:
     """Return (hard, soft) issues. Hard issues reject the string outright."""
     hard, soft = [], []
@@ -645,7 +652,7 @@ class Group:
         for t in rows:
             it = self.mine.get((t.get("locale"), t.get("key")))
             if it is not None and not it.translation:
-                it.translation = str(t.get("text", "")).strip()
+                it.translation = match_edges(it.source, str(t.get("text", "")))
                 it.translator_note = str(t.get("note", "")).strip()
 
     def live(self) -> list[tuple[str, str]]:
@@ -684,8 +691,8 @@ class Group:
             except (TypeError, ValueError):
                 it.confidence = None
             it.reviewer_note = str(r.get("note", "")).strip()
-            fix = str(r.get("fix", "")).strip()
-            if it.verdict == "fix" and fix:
+            fix = match_edges(it.source, str(r.get("fix", "")))
+            if it.verdict == "fix" and fix.strip():
                 if (it.confidence or 0) >= FIX_MIN_CONFIDENCE:
                     fh, fs = check(it.source, fix, meta_for(r.get("locale")))
                     if not fh:
@@ -1101,6 +1108,7 @@ def apply_results(data: dict, en: PoFile, targets: dict[str, PoFile]) -> list[li
             text = it.get("final") or ""
             if it.get("status") not in ("passed", "fixed", "flagged") or not text:
                 continue
+            text = match_edges(it.get("source", ""), text)
             if en.get(it["key"]) != it.get("source"):
                 skipped += 1
                 continue

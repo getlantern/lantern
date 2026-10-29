@@ -1645,3 +1645,312 @@ msgstr "Plus rapide, données illimitées !"
 
 msgid "upsell_expired_suffix"
 msgstr "Votre temps Pro a expiré"
+
+msgid "vpn"
+msgstr "VPN"
+
+msgid "split_tunnel"
+msgstr "Le tunneling fractionné ne fonctionne pas"
+
+msgid "smart_routing_not_working"
+msgstr "Le routage intelligent ne fonctionne pas"
+
+msgid "server_selection_not_working"
+msgstr "La sélection du serveur ne fonctionne pas"
+
+msgid "upgrade_fail"
+msgstr "Échec du passage à Lantern Pro"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Impossible de charger les abonnements à prix réduit depuis la boutique. Veuillez réessayer."
+
+msgid "about_unbounded"
+msgstr "À propos d'Action Mode"
+
+msgid "smc_status_label"
+msgstr "Statut"
+
+msgid "smc_status_off"
+msgstr "Désactivé"
+
+msgid "smc_status_configuring"
+msgstr "Configuration du réseau"
+
+msgid "smc_status_error_with_message"
+msgstr "Partage impossible : %s"
+
+msgid "smc_status_error_generic"
+msgstr "Partage impossible — réessayez d'activer"
+
+msgid "action_mode_helping_now"
+msgstr "Aidées en ce moment"
+
+msgid "action_mode_total_helped"
+msgstr "Total des personnes aidées à ce jour"
+
+msgid "smc_arrival_toast"
+msgstr "Aide apportée à une nouvelle personne : %s"
+
+msgid "unbounded_waiting_for_connections"
+msgstr "En attente de connexions..."
+
+msgid "unbounded_welcome_title"
+msgstr "Bienvenue dans Action Mode"
+
+msgid "unbounded_welcome_body_1"
+msgstr "Lorsque vous activez Action Mode, votre appareil rejoint un réseau de « ponts numériques » vers l'internet libre. Les personnes soumises à la censure se connectent à ces ponts, ce qui leur permet de contourner les restrictions imposées par les gouvernements et d'accéder aux informations dont elles ont besoin."
+
+msgid "unbounded_welcome_body_2"
+msgstr "Cet effort collectif rend la censure plus difficile à appliquer et élargit l'accès à l'internet libre."
+
+msgid "unbounded_welcome_body_3"
+msgstr "Vous pouvez retirer Action Mode de l'interface à tout moment dans les paramètres."
+
+msgid "smc_advanced"
+msgstr "Avancé"
+
+msgid "smc_advanced_subtitle"
+msgstr "Si votre routeur ne prend pas en charge l'UPnP"
+
+msgid "smc_manual_port"
+msgstr "Redirection de port manuelle"
+
+msgid "smc_manual_port_description"
+msgstr "Si votre routeur ne prend pas en charge l'UPnP, configurez une redirection de port sur votre routeur et saisissez le numéro de port ici. Lantern l'utilisera comme port externe au lieu d'interroger l'UPnP. Laissez vide pour utiliser l'UPnP (par défaut)."
+
+msgid "smc_manual_port_label"
+msgstr "Port"
+
+msgid "smc_manual_port_hint"
+msgstr "ex. 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Enregistrer"
+
+msgid "smc_manual_port_currently_set"
+msgstr "Port actuellement défini : %d. Désactivez puis réactivez Action Mode pour appliquer la modification."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Le port doit être compris entre 1 et 65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "Port manuel effacé — utilisation de l'UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "Port manuel défini : %d"
+
+msgid "unbounded_settings_title"
+msgstr "Paramètres d'Action Mode"
+
+msgid "auto_enable_unbounded"
+msgstr "Activer Action Mode automatiquement"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "S'active à l'ouverture de Lantern"
+
+msgid "hide_unbounded"
+msgstr "Masquer Action Mode"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Retire Action Mode de l'interface"
+
+msgid "show_license"
+msgstr "Afficher la licence"
+
+msgid "hide_license"
+msgstr "Masquer la licence"
+
+msgid "share_consent_title"
+msgstr "Partager votre connexion ?"
+
+msgid "share_consent_body_what"
+msgstr "Lorsque le partage est activé, des personnes dans des pays censurés font passer leur trafic par votre connexion pour accéder à l'internet libre."
+
+msgid "share_consent_body_ip"
+msgstr "Si votre routeur prend en charge la redirection de port, votre connexion domestique sert de sortie et votre adresse IP apparaîtra dans les journaux de la destination pendant le partage. Sinon, ce trafic est relayé par les serveurs de Lantern et votre IP n'est pas exposée de cette façon."
+
+msgid "share_consent_body_safety"
+msgstr "Dans les deux cas, Lantern bloque les destinations abusives connues, les plages de réseaux privés et les ports propices aux abus, renouvelle régulièrement les identifiants et agit en tant que « simple intermédiaire » au sens de la DMCA § 512(a)."
+
+msgid "share_consent_decline"
+msgstr "Plus tard"
+
+msgid "share_consent_accept"
+msgstr "Activer le partage"
+
+msgid "share_logs_warning_title"
+msgstr "Partager les journaux de diagnostic ?"
+
+msgid "share_logs_warning_body"
+msgstr "Ces journaux peuvent contenir votre e-mail, votre adresse IP, les identifiants de votre appareil et les serveurs Lantern utilisés pour vos connexions. Ils ne sont plus protégés une fois sortis de l'application : toute personne qui les reçoit peut les lire. Envoyez-les uniquement à l'assistance Lantern à support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "Partager les journaux"
+
+msgid "pro_expires_days_left"
+msgstr "Pro expire le %s, jours restants : %s"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro expire le %s, 1 jour restant"
+
+msgid "renewing_adds_time"
+msgstr "Le renouvellement prolonge votre date de fin actuelle"
+
+msgid "pro_ends_today"
+msgstr "Votre période Pro se termine aujourd'hui, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Renouvelez maintenant pour conserver les données illimitées et les fonctionnalités Pro"
+
+msgid "pro_expired_on"
+msgstr "Votre période Pro a expiré le %s"
+
+msgid "renew_now_get_back_data"
+msgstr "Renouvelez maintenant pour retrouver les données illimitées"
+
+msgid "days_left"
+msgstr "Jours restants : %s"
+
+msgid "one_day_left"
+msgstr "1 jour restant"
+
+msgid "expires_today"
+msgstr "Expire aujourd'hui"
+
+msgid "pro_time_expired_message"
+msgstr "Votre période Lantern Pro a expiré. Renouvelez pour retrouver les données illimitées et les fonctionnalités Pro."
+
+msgid "pro_expires_today_title"
+msgstr "Pro expire aujourd'hui"
+
+msgid "pro_expires_today_popup_message"
+msgstr "Votre compte Pro se termine aujourd'hui. Renouvelez maintenant pour conserver l'accès à Lantern Pro."
+
+msgid "renew_now"
+msgstr "Renouveler maintenant"
+
+msgid "dismiss"
+msgstr "Ignorer"
+
+msgid "unbounded_status_waiting"
+msgstr "En attente de démarrage"
+
+msgid "widget"
+msgstr "Widget"
+
+msgid "add_lantern_widget"
+msgstr "Ajouter le widget Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "Connectez-vous depuis l'écran d'accueil de votre téléphone sans ouvrir l'application."
+
+msgid "widget_step_1"
+msgstr "Appuyez de manière prolongée sur un espace vide de l'écran d'accueil de votre téléphone."
+
+msgid "widget_step_2"
+msgstr "Touchez Modifier, puis Ajouter un widget."
+
+msgid "widget_step_3"
+msgstr "Recherchez Lantern, choisissez une taille, puis touchez Ajouter le widget."
+
+msgid "people_helped_title"
+msgstr "Personnes que vous avez aidées"
+
+msgid "people_helped_subtitle"
+msgstr "Aidées à ce jour : %s · En ce moment : %s"
+
+msgid "advanced_stats_by_country"
+msgstr "Par pays, depuis le début"
+
+msgid "advanced_stats_relayed"
+msgstr "Relayé : %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Données relayées"
+
+msgid "advanced_stats_this_session"
+msgstr "Cette session"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Depuis le début"
+
+msgid "advanced_stats_current_speed"
+msgstr "Vitesse actuelle"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Envoyé : %s · Reçu : %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Personne n'a encore été aidé. Les pays apparaîtront ici dès que des personnes se connecteront par votre intermédiaire."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Inconnu"
+
+msgid "advanced_stats_one_person"
+msgstr "1 personne"
+
+msgid "advanced_stats_people"
+msgstr "%s personnes"
+
+msgid "share_mode_smc"
+msgstr "Connexion directe"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Mode de partage"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Connexion directe indisponible : %s"
+
+msgid "view_advanced_stats"
+msgstr "Voir les statistiques avancées"
+
+msgid "error_occurred"
+msgstr "Une erreur s’est produite. Veuillez réessayer."
+
+msgid "unknown_error_occurred"
+msgstr "Une erreur inconnue s’est produite."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard."
+
+msgid "proxy_error"
+msgstr "Impossible de se connecter via le proxy. Veuillez vérifier votre connexion et réessayer."
+
+msgid "err_while_sending_code"
+msgstr "Impossible d’envoyer le code de vérification. Veuillez réessayer."
+
+msgid "recovery_not_found"
+msgstr "Aucun compte à récupérer ne correspond à ces informations."
+
+msgid "wrong_link_code"
+msgstr "Ce code d’association d’appareil est incorrect. Veuillez le vérifier et réessayer."
+
+msgid "wrong_seller_code"
+msgstr "Ce code revendeur est incorrect. Veuillez le vérifier et réessayer."
+
+msgid "purchase_not_found"
+msgstr "Aucun achat trouvé pour ce compte."
+
+msgid "purchase_restored_error"
+msgstr "Impossible de restaurer votre achat. Veuillez réessayer."
+
+msgid "empty_url"
+msgstr "Impossible d’ouvrir la page de paiement. Veuillez réessayer."
+
+msgid "please_enter_referral_code"
+msgstr "Veuillez saisir un code de parrainage."
+
+msgid "access_token_missing"
+msgstr "Jeton d’accès manquant. Veuillez vous reconnecter à votre fournisseur cloud."
+
+msgid "private_server_setup_error"
+msgstr "Impossible de configurer votre serveur privé. Veuillez réessayer."
+
+msgid "logs"
+msgstr "Journaux"
