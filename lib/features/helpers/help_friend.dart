@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/approve_helper_sheet.dart'
     show spokenCode;
@@ -104,7 +105,10 @@ class HelpFriend extends HookConsumerWidget {
         busy.value = false;
         return;
       }
-      final r = await notifier.claim(linkCtl.text, nameCtl.text);
+      final r = await notifier.claim(
+        normalizeHelperInviteInput(linkCtl.text),
+        nameCtl.text,
+      );
       if (!context.mounted) return;
       busy.value = false;
       if (!r.ok) {

@@ -2300,8 +2300,9 @@ msgstr "Your personal proxies"
 msgid "help_friend_title"
 msgstr "Help a friend stay online"
 
-msgid "help_friend_entry"
-msgstr "Help a friend"
+# Action Mode row that opens the screen for pasting a friend's invite link.
+msgid "have_invite_link"
+msgstr "Have an invite link?"
 
 msgid "help_friend_intro"
 msgstr "A friend asked for your help. While Lantern runs, they can reach the open internet through your connection."

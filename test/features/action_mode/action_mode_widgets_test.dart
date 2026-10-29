@@ -24,6 +24,7 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 
 class _Helpers extends HelpersNotifier {
   _Helpers(this.initial);
@@ -93,6 +94,7 @@ void main() {
     Brightness brightness = Brightness.light,
     bool animated = false,
     bool helperInvites = false,
+    String country = 'US',
     HelpersState helpers = const HelpersState(),
     ShareState shareState = const ShareState(
       active: true,
@@ -115,6 +117,7 @@ void main() {
             shareProvider.overrideWith(() => _Share(shareState)),
             helperInvitesAvailableProvider.overrideWithValue(helperInvites),
             helpersProvider.overrideWith(() => _Helpers(helpers)),
+            countryCodeProvider.overrideWithValue(country),
           ],
           child: ScreenUtilInit(
             designSize: const Size(393, 852),
@@ -150,28 +153,35 @@ void main() {
   }
 
   group('helper invites on the tab', () {
-    testWidgets('no "Help a friend" entry without the flag or a pairing', (
+    testWidgets('"Have an invite link?" shows in an uncensored country', (
       tester,
     ) async {
       await mount(tester, const ActionModeTab(), animated: true);
-      expect(find.text('help_friend_entry'.i18n), findsNothing);
-      expect(find.byKey(const Key('helping.today')), findsNothing);
-      await tester.pumpWidget(const SizedBox());
-    });
-
-    testWidgets('the flag shows the "Help a friend" entry', (tester) async {
-      await mount(
-        tester,
-        const ActionModeTab(),
-        helperInvites: true,
-        animated: true,
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('action_mode.invite_link')),
+        200,
+        scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('help_friend_entry'.i18n), findsOneWidget);
+      expect(find.text('have_invite_link'.i18n), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
 
-    testWidgets("a volunteer without the flag sees You're helping and the "
-        'entry', (tester) async {
+    for (final country in ['', 'IR', 'CN']) {
+      testWidgets('no invite row where sharing may not start ("$country")', (
+        tester,
+      ) async {
+        await mount(
+          tester,
+          const ActionModeTab(),
+          animated: true,
+          country: country,
+        );
+        expect(find.byKey(const Key('action_mode.invite_link')), findsNothing);
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+
+    testWidgets("a volunteer sees You're helping", (tester) async {
       await mount(
         tester,
         const ActionModeTab(),
@@ -184,12 +194,11 @@ void main() {
         ),
       );
       await tester.scrollUntilVisible(
-        find.text('help_friend_entry'.i18n),
+        find.byKey(const Key('helping.today')),
         200,
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.byKey(const Key('helping.today')), findsOneWidget);
-      expect(find.text('help_friend_entry'.i18n), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
   });

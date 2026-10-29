@@ -52,3 +52,13 @@ bool isHelperInviteUri(Uri uri) {
 
 /// The canonical link for a helper invite URI, for the engine to parse.
 String helperInviteLink(Uri uri) => 'https://lantern.io/help/#${uri.fragment}';
+
+/// A pasted invite link in the canonical form the engine parses, accepting
+/// every form a deep link may take. Anything else is passed on trimmed, for
+/// the engine to refuse as bad_link.
+String normalizeHelperInviteInput(String input) {
+  final trimmed = input.trim();
+  final uri = Uri.tryParse(trimmed);
+  if (uri == null || !isHelperInviteUri(uri)) return trimmed;
+  return helperInviteLink(uri);
+}
