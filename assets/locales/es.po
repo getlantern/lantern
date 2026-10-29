@@ -1283,7 +1283,7 @@ msgid "discount_applied"
 msgstr "Descuento de %s aplicado"
 
 msgid "referral_message_1y"
-msgstr " + 1 mes adicional gratis"
+msgstr "+ 1 mes adicional gratis"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1314,7 +1314,7 @@ msgid "create_an_account"
 msgstr "Crear una cuenta"
 
 msgid "no_projects_found"
-msgstr " No se encontraron proyectos"
+msgstr "No se encontraron proyectos"
 
 msgid "no_projects_found_desc"
 msgstr ""
@@ -1618,10 +1618,10 @@ msgstr ""
 "correcta o elige un correo electrónico diferente."
 
 msgid "account_deleted"
-msgstr "Cuenta Eliminada "
+msgstr "Cuenta Eliminada"
 
 msgid "account_deleted_message"
-msgstr "Tu cuenta ha sido eliminada permanentemente. "
+msgstr "Tu cuenta ha sido eliminada permanentemente."
 
 msgid "verify_with"
 msgstr "Verificar con %s"

@@ -17,7 +17,7 @@ backtranslate = "low"
 [run]
 batch_outputs = 120              # max translations one call returns (keys x locales); halves on overflow
 workers = 6                      # model call groups run concurrently
-max_tokens = 8192
+max_tokens = 32768               # thinking counts against this; a truncated call is retried in halves
 examples = 3                     # existing translations per locale shown to the translator for style
 apply_fix_min_confidence = 0.8   # reviewer fixes below this are reported, not applied
 low_confidence = 0.7             # a pass below this is written but flagged in the report

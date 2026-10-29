@@ -1341,7 +1341,7 @@ msgid "3"
 msgstr "၃"
 
 msgid "add_payment_method"
-msgstr "ငွေပေးချေမှု နည်းလမ်း တစ်ခု ထည့်ပါ (ခရက်ဒစ်ကတ် သို့မဟုတ် PayPal) "
+msgstr "ငွေပေးချေမှု နည်းလမ်း တစ်ခု ထည့်ပါ (ခရက်ဒစ်ကတ် သို့မဟုတ် PayPal)"
 
 msgid "return_to_lantern"
 msgstr ""

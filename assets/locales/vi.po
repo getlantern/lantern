@@ -1289,7 +1289,7 @@ msgid "free"
 msgstr "Miễn phí"
 
 msgid "lantern_pro_license"
-msgstr " Giấy phép Lantern Pro"
+msgstr "Giấy phép Lantern Pro"
 
 msgid "lantern_pro_license_required"
 msgstr "Cần có giấy phép Lantern Pro"
@@ -1304,7 +1304,7 @@ msgid "create_an_account"
 msgstr "Tạo tài khoản"
 
 msgid "no_projects_found"
-msgstr " Không tìm thấy dự án"
+msgstr "Không tìm thấy dự án"
 
 msgid "no_projects_found_desc"
 msgstr ""
@@ -1601,10 +1601,10 @@ msgstr ""
 "này. Vui lòng đăng nhập bằng tài khoản đúng hoặc chọn email khác."
 
 msgid "account_deleted"
-msgstr "Tài khoản đã Xóa "
+msgstr "Tài khoản đã Xóa"
 
 msgid "account_deleted_message"
-msgstr "Tài khoản của bạn đã bị xóa vĩnh viễn. "
+msgstr "Tài khoản của bạn đã bị xóa vĩnh viễn."
 
 msgid "verify_with"
 msgstr "Xác minh với %s"

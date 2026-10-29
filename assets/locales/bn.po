@@ -1168,7 +1168,7 @@ msgid "confirm"
 msgstr "নিশ্চিত করুন"
 
 msgid "private_server_warning"
-msgstr "শুধুমাত্র যাদের আপনি বিশ্বাস করেন, তাদের পরিচালিত সার্ভার যোগ করুন"
+msgstr "শুধুমাত্র যাদের আপনি বিশ্বাস করেন, তাদের পরিচালিত সার্ভার যোগ করুন "
 
 msgid "go_to_server_locations"
 msgstr "সার্ভার লোকেশনে যান"
@@ -1599,10 +1599,10 @@ msgstr ""
 "অথবা ভিন্ন ইমেল নির্বাচন করুন।"
 
 msgid "account_deleted"
-msgstr "অ্যাকাউন্ট মুছে ফেলা হয়েছে "
+msgstr "অ্যাকাউন্ট মুছে ফেলা হয়েছে"
 
 msgid "account_deleted_message"
-msgstr "আপনার অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলা হয়েছে। "
+msgstr "আপনার অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলা হয়েছে।"
 
 msgid "verify_with"
 msgstr "%s দিয়ে যাচাই করুন"

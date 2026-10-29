@@ -1289,7 +1289,7 @@ msgid "free"
 msgstr "Ücretsiz"
 
 msgid "lantern_pro_license"
-msgstr " Lantern Pro Lisansı"
+msgstr "Lantern Pro Lisansı"
 
 msgid "lantern_pro_license_required"
 msgstr "Lantern Pro lisansı gerekli"
@@ -1301,7 +1301,7 @@ msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro lisansı 25 karakter olmalıdır"
 
 msgid "create_an_account"
-msgstr " Hesap oluşturun"
+msgstr "Hesap oluşturun"
 
 msgid "no_projects_found"
 msgstr "Proje Bulunamadı"
@@ -1342,7 +1342,7 @@ msgid "could_not_open_url"
 msgstr "URL açılamadı"
 
 msgid "new_to_lantern_pro"
-msgstr " Lantern'de yeni misiniz?"
+msgstr "Lantern'de yeni misiniz?"
 
 msgid "an_error_occurred"
 msgstr "Bir hata oluştu. Lütfen daha sonra tekrar deneyin."

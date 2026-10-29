@@ -1189,7 +1189,7 @@ msgid "confirm"
 msgstr "تایید کړئ"
 
 msgid "private_server_warning"
-msgstr "یوازې هغه سرورونه اضافه کړئ چې د باوري کسانو لخوا چلول کیږي"
+msgstr "یوازې هغه سرورونه اضافه کړئ چې د باوري کسانو لخوا چلول کیږي "
 
 msgid "go_to_server_locations"
 msgstr "د سرور موقعیتونو ته لاړ شئ"

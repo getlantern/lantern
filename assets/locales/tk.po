@@ -1250,13 +1250,13 @@ msgid "server_alias_cannot_be_empty"
 msgstr "Serwer lakamy boş bolup bilmez"
 
 msgid "referral_code_applied"
-msgstr " Rekomendasiýa koduňyz ulanyldy!"
+msgstr "Rekomendasiýa koduňyz ulanyldy!"
 
 msgid "discount_applied"
 msgstr "%s arzanladyş ulanyldy"
 
 msgid "referral_message_1y"
-msgstr " + 1 goşmaça aý mugt"
+msgstr "+ 1 goşmaça aý mugt"
 
 msgid "referral_code_invalid"
 msgstr "Giren salgylanma/promo koduňyz nädogry. Kody barlap, ýene synanyşyň."
@@ -1265,10 +1265,10 @@ msgid "referral_code_own_invalid"
 msgstr "Öz rekomendasiýa koduňyzy ulanyp bilmersiňiz. Başga kod giriziň."
 
 msgid "free"
-msgstr " Mugt"
+msgstr "Mugt"
 
 msgid "lantern_pro_license"
-msgstr " Lantern Pro Ygtyýarnamasy"
+msgstr "Lantern Pro Ygtyýarnamasy"
 
 msgid "lantern_pro_license_required"
 msgstr "Lantern Pro ygtyýarnamasy zerur"
@@ -1280,10 +1280,10 @@ msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro ygtyýarnamasy 25 simwoldan ybarat bolmaly"
 
 msgid "create_an_account"
-msgstr " Hasap döretmek"
+msgstr "Hasap döretmek"
 
 msgid "no_projects_found"
-msgstr " Hiç hili taslama tapylmady"
+msgstr "Hiç hili taslama tapylmady"
 
 msgid "no_projects_found_desc"
 msgstr ""

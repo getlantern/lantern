@@ -48,7 +48,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -q anthropic
+      - run: pip install -q anthropic && sudo apt-get install -y -q gettext  # msgfmt validates every file the run writes
 
       - name: Translate
         id: translate

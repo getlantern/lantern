@@ -1158,7 +1158,7 @@ msgid "confirm"
 msgstr "ยืนยัน"
 
 msgid "private_server_warning"
-msgstr "เพิ่มเฉพาะเซิร์ฟเวอร์ที่ดูแลโดยคนที่คุณไว้วางใจเท่านั้น"
+msgstr "เพิ่มเฉพาะเซิร์ฟเวอร์ที่ดูแลโดยคนที่คุณไว้วางใจเท่านั้น "
 
 msgid "go_to_server_locations"
 msgstr "ไปที่ตำแหน่งเซิร์ฟเวอร์"
@@ -1252,13 +1252,13 @@ msgid "server_alias_cannot_be_empty"
 msgstr "ชื่อเล่นเซิร์ฟเวอร์ต้องไม่ว่างเปล่า"
 
 msgid "referral_code_applied"
-msgstr " โค้ดแนะนำของคุณถูกใช้แล้ว!"
+msgstr "โค้ดแนะนำของคุณถูกใช้แล้ว!"
 
 msgid "discount_applied"
 msgstr "ใช้ส่วนลด %s แล้ว"
 
 msgid "referral_message_1y"
-msgstr " + 1 เดือนเพิ่มเติมฟรี"
+msgstr "+ 1 เดือนเพิ่มเติมฟรี"
 
 msgid "referral_code_invalid"
 msgstr "รหัสแนะนำ/โปรโมชันที่คุณกรอกไม่ถูกต้อง โปรดตรวจสอบรหัสแล้วลองอีกครั้ง"
@@ -1285,7 +1285,7 @@ msgid "create_an_account"
 msgstr "สร้างบัญชี"
 
 msgid "no_projects_found"
-msgstr " ไม่พบโครงการ"
+msgstr "ไม่พบโครงการ"
 
 msgid "no_projects_found_desc"
 msgstr "ไม่พบโครงการ โปรดสร้างโครงการในบัญชีผู้ให้บริการคลาวด์ของคุณก่อน"

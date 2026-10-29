@@ -22,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
 msgid "app_name"
-msgstr "Lantern  "
+msgstr "Lantern"
 
 msgid "upgrade_to_pro"
 msgstr "Actualice a PRO"
@@ -165,7 +165,7 @@ msgid "danger_zone"
 msgstr "Zona de Riesgo:"
 
 msgid "delete_account"
-msgstr "Eliminar Cuenta "
+msgstr "Eliminar Cuenta"
 
 msgid "delete"
 msgstr "Borrar"
@@ -188,7 +188,7 @@ msgstr ""
 "continuación"
 
 msgid "confirm_deletion"
-msgstr "Confirmar Eliminación "
+msgstr "Confirmar Eliminación"
 
 msgid "cancel"
 msgstr "Cancelar"
@@ -266,9 +266,7 @@ msgid "get_30_days_of_pro_free"
 msgstr "Obtén 30 días de Pro gratis"
 
 msgid "share_message_referral_code"
-msgstr ""
-"Para conseguir un mes gratis de Lantern Pro, usa este código de referencia: "
-"%1$s ; Puedes descargarlo aquí: https://bit.ly/1M8x04u"
+msgstr "Para obtener un mes gratis de Lantern Pro, usa este código de referido: %s ; Puedes descargarlo aquí: https://lantern.io/download"
 
 msgid "submit_issue_report"
 msgstr "Enviar Reporte de Problema"
@@ -711,9 +709,7 @@ msgid "logout"
 msgstr "Cerrar Sesión"
 
 msgid "logout_message"
-msgstr ""
-"Cerrar sesión cambiará Lantern a la versión gratuita. Para acceder a tu "
-"cuenta nuevamente, deberás iniciar sesión de nuevo. "
+msgstr "Cerrar sesión cambiará Lantern a la versión gratuita. Para acceder a tu cuenta nuevamente, deberás iniciar sesión de nuevo."
 
 msgid "logout_message_expired"
 msgstr "¿Estás seguro de que quieres cerrar sesión de tu cuenta?"
@@ -798,27 +794,22 @@ msgstr ""
 "inicia sesión si ya tienes una cuenta"
 
 msgid "user_not_found"
-msgstr ""
-"Usuario no reconocido. Por favor, revisa tus credenciales e inténtalo de "
-"nuevo. Si continúas experimentando problemas, comunícate con nuestro equipo "
-"de soporte para obtener ayuda. "
+msgstr "Usuario no reconocido. Por favor, revisa tus credenciales e inténtalo de nuevo. Si continúas experimentando problemas, comunícate con nuestro equipo de soporte para obtener ayuda."
 
 msgid "invalid_code"
-msgstr ""
-"Código incorrecto o puede haber expirado. Por favor, intenta reenviar "
-"nuevamente "
+msgstr "Código incorrecto o puede haber expirado. Por favor, intenta reenviar nuevamente"
 
 msgid "email_resend_message"
-msgstr "Tu nuevo código de confirmación ha sido enviado "
+msgstr "Tu nuevo código de confirmación ha sido enviado"
 
 msgid "password_has_been_updated"
-msgstr "La contraseña ha sido actualizada "
+msgstr "La contraseña ha sido actualizada"
 
 msgid "password_has_been_updated_message"
-msgstr "Tu contraseña ha sido restablecida exitosamente "
+msgstr "Tu contraseña ha sido restablecida exitosamente"
 
 msgid "update_pro_account"
-msgstr "Actualizar Cuenta Pro "
+msgstr "Actualizar Cuenta Pro"
 
 msgid "update_pro_account_message"
 msgstr ""
@@ -1074,7 +1065,7 @@ msgid "server_already_selected"
 msgstr "Ya estás conectado a este servidor."
 
 msgid "device_limit_reached"
-msgstr "Límite de Dispositivos Alcanzado "
+msgstr "Límite de Dispositivos Alcanzado"
 
 msgid "device_limit_reached_message"
 msgstr ""
@@ -1088,7 +1079,7 @@ msgid "cancel_sign_in"
 msgstr "Cancelar Inicio de Sesión"
 
 msgid "change_email"
-msgstr "Cambiar Correo Electrónico "
+msgstr "Cambiar Correo Electrónico"
 
 msgid "change_email_message"
 msgstr ""
@@ -1286,7 +1277,7 @@ msgid "discount_applied"
 msgstr "Descuento de %s aplicado"
 
 msgid "referral_message_1y"
-msgstr " + 1 mes adicional gratis"
+msgstr "+ 1 mes adicional gratis"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1317,7 +1308,7 @@ msgid "create_an_account"
 msgstr "Crear una cuenta"
 
 msgid "no_projects_found"
-msgstr " No se encontraron proyectos"
+msgstr "No se encontraron proyectos"
 
 msgid "no_projects_found_desc"
 msgstr ""
@@ -1621,10 +1612,10 @@ msgstr ""
 "correcta o elige un correo electrónico diferente."
 
 msgid "account_deleted"
-msgstr "Cuenta Eliminada "
+msgstr "Cuenta Eliminada"
 
 msgid "account_deleted_message"
-msgstr "Tu cuenta ha sido eliminada permanentemente. "
+msgstr "Tu cuenta ha sido eliminada permanentemente."
 
 msgid "verify_with"
 msgstr "Verificar con %s"

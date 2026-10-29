@@ -19,19 +19,19 @@ msgid "sign_in"
 msgstr "Connexion"
 
 msgid "enter_password"
-msgstr "Entrez le mot de passe "
+msgstr "Entrez le mot de passe"
 
 msgid "forgot_password"
-msgstr "Mot de passe oublié "
+msgstr "Mot de passe oublié"
 
 msgid "reset_password"
 msgstr "Réinitialiser le mot de passe"
 
 msgid "lantern_pro_email"
-msgstr "Email Lantern Pro "
+msgstr "Email Lantern Pro"
 
 msgid "change_email"
-msgstr "Changer l'email "
+msgstr "Changer l'email"
 
 msgid "confirm_new_password"
 msgstr "Confirmer le nouveau mot de passe"
@@ -43,14 +43,10 @@ msgid "confirm_email"
 msgstr "Confirmer l’adresse courriel"
 
 msgid "update_pro_account"
-msgstr "Mettre à jour le compte Pro "
+msgstr "Mettre à jour le compte Pro"
 
 msgid "update_pro_account_message"
-msgstr ""
-"Des changements arrivent à Lantern Pro ! Désormais, vous aurez besoin d'un "
-"email et d'un mot de passe pour vous connecter sur tous les appareils et "
-"accéder à la gestion de compte. Veuillez prendre quelques instants pour "
-"ajouter ces identifiants à votre compte. "
+msgstr "Des changements arrivent à Lantern Pro ! Désormais, vous aurez besoin d'un email et d'un mot de passe pour vous connecter sur tous les appareils et accéder à la gestion de compte. Veuillez prendre quelques instants pour ajouter ces identifiants à votre compte."
 
 msgid "not_now"
 msgstr "Pas maintenant"
@@ -95,7 +91,7 @@ msgid "other"
 msgstr "Autre"
 
 msgid "issue_description"
-msgstr "Décrivez votre problème "
+msgstr "Décrivez votre problème"
 
 msgid "check_for_updates"
 msgstr "Rechercher des mises à jour"
@@ -113,12 +109,10 @@ msgid "referral_code"
 msgstr "Code de parrainage"
 
 msgid "share_referral_code"
-msgstr "Partager le code de parrainage "
+msgstr "Partager le code de parrainage"
 
 msgid "share_message_referral_code"
-msgstr ""
-"Pour un mois gratuit de Lantern Pro, utilisez ce code de parrainage :%s; "
-"Vous pouvez le télécharger ici : https://lantern.io/download "
+msgstr "Pour un mois gratuit de Lantern Pro, utilisez ce code de parrainage :%s; Vous pouvez le télécharger ici : https://lantern.io/download"
 
 msgid "add_referral_code"
 msgstr "Ajouter un code de parrainage"
@@ -130,13 +124,13 @@ msgid "exit"
 msgstr "Quitter"
 
 msgid "show"
-msgstr "Afficher "
+msgstr "Afficher"
 
 msgid "status_on"
-msgstr "Statut : Activé "
+msgstr "Statut : Activé"
 
 msgid "status_off"
-msgstr "Statut : Désactivé "
+msgstr "Statut : Désactivé"
 
 msgid "checkout"
 msgstr "Caisse"
@@ -175,78 +169,64 @@ msgid "lantern_user_forum"
 msgstr "Forum des utilisateurs de Lantern"
 
 msgid "search_apps"
-msgstr "Rechercher des applications "
+msgstr "Rechercher des applications"
 
 msgid "user_not_found"
-msgstr ""
-"Utilisateur non reconnu. Veuillez vérifier vos identifiants et réessayer. Si"
-" vous continuez à rencontrer des problèmes, veuillez contacter notre équipe "
-"de support pour obtenir de l'aide. "
+msgstr "Utilisateur non reconnu. Veuillez vérifier vos identifiants et réessayer. Si vous continuez à rencontrer des problèmes, veuillez contacter notre équipe de support pour obtenir de l'aide."
 
 msgid "email_resend_message"
-msgstr "Votre nouveau code de confirmation a été envoyé "
+msgstr "Votre nouveau code de confirmation a été envoyé"
 
 msgid "signup_error_user_exists"
-msgstr ""
-"Il semble qu'il y ait eu un problème avec l'inscription. Veuillez essayer de"
-" réinitialiser votre mot de passe, et si le problème persiste, contactez "
-"notre équipe de support. "
+msgstr "Il semble qu'il y ait eu un problème avec l'inscription. Veuillez essayer de réinitialiser votre mot de passe, et si le problème persiste, contactez notre équipe de support."
 
 msgid "danger_zone"
-msgstr "Zone dangereuse "
+msgstr "Zone dangereuse"
 
 msgid "delete_account"
-msgstr "Supprimer le compte "
+msgstr "Supprimer le compte"
 
 msgid "delete"
 msgstr "Supprimer"
 
 msgid "delete_account_message"
-msgstr ""
-"La suppression de votre compte ne peut pas être annulée. Vous perdrez "
-"l'accès à tous les appareils et renoncerez à tout temps de compte Pro sans "
-"remboursement. "
+msgstr "La suppression de votre compte ne peut pas être annulée. Vous perdrez l'accès à tous les appareils et renoncerez à tout temps de compte Pro sans remboursement."
 
 msgid "confirm_deletion"
-msgstr "Confirmer la suppression "
+msgstr "Confirmer la suppression"
 
 msgid "account_deleted"
-msgstr "Compte supprimé "
+msgstr "Compte supprimé"
 
 msgid "account_deleted_message"
-msgstr "Votre compte a été supprimé de façon permanente. "
+msgstr "Votre compte a été supprimé de façon permanente."
 
 msgid "password_has_been_updated"
-msgstr "Le mot de passe a été mis à jour "
+msgstr "Le mot de passe a été mis à jour"
 
 msgid "password_has_been_updated_message"
-msgstr "Votre mot de passe a été réinitialisé avec succès "
+msgstr "Votre mot de passe a été réinitialisé avec succès"
 
 msgid "invalid_code"
-msgstr ""
-"Code incorrect ou il a peut-être expiré. Veuillez essayer de renvoyer à "
-"nouveau "
+msgstr "Code incorrect ou il a peut-être expiré. Veuillez essayer de renvoyer à nouveau"
 
 msgid "get_lantern_pro"
 msgstr "Obtenir Lantern Pro"
 
 msgid "device_limit_reached"
-msgstr "Limite d'appareils atteinte "
+msgstr "Limite d'appareils atteinte"
 
 msgid "device_limit_reached_message"
-msgstr ""
-"Vous êtes actuellement connecté au nombre maximum d'appareils (3). Pour vous"
-" connecter sur cet appareil, veuillez sélectionner et supprimer un de vos "
-"autres appareils ci-dessous. "
+msgstr "Vous êtes actuellement connecté au nombre maximum d'appareils (3). Pour vous connecter sur cet appareil, veuillez sélectionner et supprimer un de vos autres appareils ci-dessous."
 
 msgid "privacy_policy"
-msgstr "Politique de confidentialité "
+msgstr "Politique de confidentialité"
 
 msgid "terms_of_service"
 msgstr "Conditions générales d’utilisation"
 
 msgid "follow_us"
-msgstr "Suivez-nous "
+msgstr "Suivez-nous"
 
 msgid "got_it"
 msgstr "D’accord"

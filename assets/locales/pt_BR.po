@@ -1311,7 +1311,7 @@ msgid "create_an_account"
 msgstr "Criar uma conta"
 
 msgid "no_projects_found"
-msgstr " Nenhum Projeto Encontrado"
+msgstr "Nenhum Projeto Encontrado"
 
 msgid "no_projects_found_desc"
 msgstr ""

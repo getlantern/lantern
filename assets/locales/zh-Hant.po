@@ -1094,7 +1094,7 @@ msgid "confirm"
 msgstr "確認"
 
 msgid "private_server_warning"
-msgstr "僅新增你信任的人營運的伺服器"
+msgstr "僅新增你信任的人營運的伺服器 "
 
 msgid "go_to_server_locations"
 msgstr "前往伺服器位置"

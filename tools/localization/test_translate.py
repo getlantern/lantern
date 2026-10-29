@@ -131,6 +131,12 @@ class Checks(unittest.TestCase):
         _, soft = t.check("VPN Settings", "ভিপিএন সেটিংস", t.meta_for("bn"))
         self.assertFalse([s for s in soft if "VPN" in s])
 
+    def test_markup_tags_must_survive(self):
+        _, soft = t.check("Tap <b>Connect</b> to start", "Toca Conectar para empezar", self.es)
+        self.assertTrue(any("markup" in x for x in soft))
+        _, soft = t.check("Tap <b>Connect</b> to start", "Toca <b>Conectar</b> para empezar", self.es)
+        self.assertFalse(soft)
+
     def test_clean_translation_passes(self):
         self.assertEqual(t.check("Connect to %s now", "Conéctate a %s ahora", self.es), ([], []))
 

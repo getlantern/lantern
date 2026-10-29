@@ -60,7 +60,7 @@ def load_config(path: Path = CONFIG_PATH) -> None:
     run = d.get("run", {})
     g["BATCH_OUTPUTS"] = int(run.get("batch_outputs", 120))
     g["WORKERS"] = int(run.get("workers", 6))
-    g["MAX_TOKENS"] = int(run.get("max_tokens", 8192))
+    g["MAX_TOKENS"] = int(run.get("max_tokens", 32768))
     g["EXAMPLES"] = int(run.get("examples", 10))
     g["FIX_MIN_CONFIDENCE"] = float(run.get("apply_fix_min_confidence", 0.8))
     g["LOW_CONFIDENCE"] = float(run.get("low_confidence", 0.7))
@@ -85,6 +85,7 @@ load_config()
 
 PLACEHOLDER_RE = re.compile(r"%(?:\d+\$)?[sd]")
 LEAK_RE = re.compile(r"^\s*(translation|translated|traducci[oó]n)\s*:", re.I)
+TAG_RE = re.compile(r"</?[a-zA-Z][^<>]*>")
 
 
 def log(msg: str) -> None:
@@ -366,6 +367,8 @@ def check(source: str, target: str, meta: LocaleMeta) -> tuple[list[str], list[s
         hard.append("line break count differs")
     if LEAK_RE.search(target):
         soft.append("starts with a 'Translation:' style prefix")
+    if sorted(TAG_RE.findall(source)) != sorted(TAG_RE.findall(target)):
+        soft.append(f"markup tags {TAG_RE.findall(source)} -> {TAG_RE.findall(target)}")
     if target.strip() == source.strip() and has_letters(source) and source.strip() not in ALLOW_IDENTICAL:
         soft.append("identical to English")
     if len(source) >= 6 and has_letters(source):
@@ -392,7 +395,7 @@ class Claude:
     def __init__(self):
         import anthropic  # imported lazily so tests run without the SDK
 
-        self.client = anthropic.Anthropic()
+        self.client = anthropic.Anthropic(max_retries=5)  # 429/5xx are common when six workers fan out
         self.usage: dict[str, dict[str, int]] = {}
         self._lock = threading.Lock()
 
@@ -436,7 +439,8 @@ class Claude:
 
     def call(self, role: str, system: str, user: str, tool: dict, cached: bool = True) -> dict:
         p = self.params(role, system, user, tool, cached)
-        return self.parse(p["model"], self.client.messages.create(**p))
+        with self.client.messages.stream(**p) as stream:  # streaming keeps long thinking under the HTTP timeout
+            return self.parse(p["model"], stream.get_final_message())
 
     def batched(self, items: list, fn) -> list:
         """Run fn on the items, halving a chunk that overflows max_tokens."""
@@ -702,11 +706,6 @@ class Group:
                 else:
                     it.reviewer_note = (it.reviewer_note + f" Suggested: {fix}").strip()
 
-    def fail(self, reason: str) -> None:
-        for it in self.mine.values():
-            if it.status == "pending":
-                it.status, it.reviewer_note = "failed", reason
-
 
 LIST_KEY = {"translate": "translations", "backtranslate": "items", "review": "reviews"}
 
@@ -797,28 +796,36 @@ def run_all(work: dict[str, Work], en: PoFile, targets: dict[str, PoFile], claud
 
         def record(errs: dict) -> None:
             for g, e in errs.items():
-                g.fail(f"model call failed: {e}")
                 for c in g.codes:
                     errors.setdefault(c, e)
 
-        # 1. translate, with one retry for anything the model skipped
+        # 1. translate, with one retry for anything the model skipped or a call that failed
+        last: dict = {}
         for _ in range(2):
             stage = {g: (g.translate_units(), g.translate_request, g.absorb_translations) for g in groups}
             if not any(v[0] for v in stage.values()):
                 break
-            record(run_stage("translate", stage, claude))
+            last = run_stage("translate", stage, claude)
+        record(last)
         for g in groups:
             for (c, k), it in g.mine.items():
                 if it.status != "pending":
                     continue
                 if not it.translation:
-                    it.status, it.reviewer_note = "failed", "translator returned nothing for this key"
+                    it.status = "failed"
+                    it.reviewer_note = f"model call failed: {last[g]}" if g in last else "translator returned nothing for this key"
                 else:
                     it.hard_issues, it.soft_issues = check(it.source, it.translation, meta_for(c))
         if not getattr(args, "skip_review", False):
-            # 2. back-translate, 3. review
-            record(run_stage("backtranslate", {g: (g.back_units(), g.back_request, g.absorb_back) for g in groups}, claude))
-            record(run_stage("review", {g: (g.live(), g.review_request, g.absorb_review) for g in groups}, claude))
+            # 2. back-translate, 3. review; a failure here keeps the translation but leaves it unreviewed (flagged)
+            for name, stage in (("backtranslate", {g: (g.back_units(), g.back_request, g.absorb_back) for g in groups}),
+                                ("review", {g: (g.live(), g.review_request, g.absorb_review) for g in groups})):
+                errs = run_stage(name, stage, claude)
+                record(errs)
+                for g, e in errs.items():
+                    for it in g.mine.values():
+                        if it.status == "pending" and not it.verdict:
+                            it.reviewer_note = (it.reviewer_note + f" {name} failed: {e}").strip()
     for it in items.values():
         decide(it, getattr(args, "skip_review", False))
     results = []
@@ -1015,6 +1022,22 @@ def audit_report(en: PoFile, targets: dict[str, PoFile]) -> str:
         gaps = sum(1 for k in en.keys() if en.get(k) and not po.get(k))
         stale = sum(1 for k in po.keys() if not en.has(k))
         lines.append(f"| {code} | {len(po.keys())} | {gaps} | {stale} |")
+    lines.append("")
+
+    bad = []
+    for code, po in targets.items():
+        for k in po.keys():
+            src, cur = en.get(k), po.get(k)
+            if src is None or not cur:
+                continue
+            issues = check(src, cur, meta_for(code))[0]
+            if match_edges(src, cur) != cur:
+                issues.append("leading/trailing space differs from English")
+            bad += [f"- `{code}` `{k}`: {i}" for i in issues]
+    lines += [f"## Existing translations failing the hard checks ({len(bad)})", "",
+              "Placeholders, line breaks or edge spaces differ from English; the app may crash or mis-render these. "
+              "Blank the entry and the next run retranslates it.", ""]
+    lines += bad or ["- none"]
     lines.append("")
     return "\n".join(lines) + "\n"
 

@@ -25,7 +25,7 @@ msgid "reset_password"
 msgstr "پاس ورڈ ری سیٹ کریں"
 
 msgid "lantern_pro_email"
-msgstr "Lantern Pro ای میل "
+msgstr "Lantern Pro ای میل"
 
 msgid "change_email"
 msgstr "ای میل تبدیل کریں"
@@ -43,10 +43,7 @@ msgid "update_pro_account"
 msgstr "Pro اکاؤنٹ اپ ڈیٹ کریں"
 
 msgid "update_pro_account_message"
-msgstr ""
-"Lantern Pro میں تبدیلیاں آ رہی ہیں! اب، آپ کو تمام ڈیوائسز میں لاگ ان کرنے، "
-"اور اکاؤنٹ مینیجمنٹ تک رسائی حاصل کرنے کے لیے ای میل اور پاس ورڈ درکار ہو "
-"گا۔  براہ کرم اپنے اکاؤنٹ میں ان اسناد کو شامل کرنے کے لیے چند لمحے دیں۔ "
+msgstr "Lantern Pro میں تبدیلیاں آ رہی ہیں! اب، آپ کو تمام ڈیوائسز میں لاگ ان کرنے، اور اکاؤنٹ مینیجمنٹ تک رسائی حاصل کرنے کے لیے ای میل اور پاس ورڈ درکار ہو گا۔  براہ کرم اپنے اکاؤنٹ میں ان اسناد کو شامل کرنے کے لیے چند لمحے دیں۔"
 
 msgid "not_now"
 msgstr "ابھی نہیں"
@@ -67,7 +64,7 @@ msgid "select_an_issue"
 msgstr "برائے مہربانی ایک مسئلے کا انتخاب کیجئے"
 
 msgid "cannot_access_blocked_sites"
-msgstr "بلاک سائٹس تک رسائی ممکن نہیں "
+msgstr "بلاک سائٹس تک رسائی ممکن نہیں"
 
 msgid "cannot_complete_purchase"
 msgstr "خریداری مکمل نہیں کر سکتے"
@@ -91,7 +88,7 @@ msgid "other"
 msgstr "دوسرے"
 
 msgid "issue_description"
-msgstr "اپنی مسئلہ کی وضاحت کریں "
+msgstr "اپنی مسئلہ کی وضاحت کریں"
 
 msgid "check_for_updates"
 msgstr "اپ ڈیٹس کے لیے پڑتال کریں"
@@ -109,12 +106,10 @@ msgid "referral_code"
 msgstr "حوالہ کوڈ"
 
 msgid "share_referral_code"
-msgstr "ریفرل کوڈ شیئر کریں "
+msgstr "ریفرل کوڈ شیئر کریں"
 
 msgid "share_message_referral_code"
-msgstr ""
-"ایک مہینے کے مفت Lantern Pro کے لیے، یہ ریفرل کوڈ استعمال کریں: %s ; آپ اسے "
-"یہاں سے ڈاؤن لوڈ کر سکتے ہیں: https://lantern.io/download "
+msgstr "ایک مہینے کے مفت Lantern Pro کے لیے، یہ ریفرل کوڈ استعمال کریں: %s ; آپ اسے یہاں سے ڈاؤن لوڈ کر سکتے ہیں: https://lantern.io/download"
 
 msgid "add_referral_code"
 msgstr "ریفرل کوڈ شامل کریں"
@@ -123,16 +118,16 @@ msgid "invalid_email"
 msgstr "غلط ای میل ایڈریس"
 
 msgid "exit"
-msgstr "خروج "
+msgstr "خروج"
 
 msgid "show"
-msgstr "دکھائیں "
+msgstr "دکھائیں"
 
 msgid "status_on"
-msgstr "حالت: چل رہا ہے "
+msgstr "حالت: چل رہا ہے"
 
 msgid "status_off"
-msgstr "حالت: بند ہے "
+msgstr "حالت: بند ہے"
 
 msgid "checkout"
 msgstr "چیک آؤٹ"
@@ -171,7 +166,7 @@ msgid "lantern_user_forum"
 msgstr "Lantern کا صارفی فورم"
 
 msgid "search_apps"
-msgstr "ایپس تلاش کریں "
+msgstr "ایپس تلاش کریں"
 
 msgid "user_not_found"
 msgstr ""
@@ -241,7 +236,7 @@ msgid "terms_of_service"
 msgstr "سروس کی شرائط"
 
 msgid "follow_us"
-msgstr "ہمیں فالو کریں "
+msgstr "ہمیں فالو کریں"
 
 msgid "got_it"
 msgstr "سمجھ گئے"

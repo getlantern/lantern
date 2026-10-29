@@ -1273,13 +1273,13 @@ msgid "server_alias_cannot_be_empty"
 msgstr "Alias pelayan tidak boleh kosong"
 
 msgid "referral_code_applied"
-msgstr " Kod rujukan anda telah digunakan!"
+msgstr "Kod rujukan anda telah digunakan!"
 
 msgid "discount_applied"
 msgstr "Diskaun %s digunakan"
 
 msgid "referral_message_1y"
-msgstr " + 1 bulan tambahan percuma"
+msgstr "+ 1 bulan tambahan percuma"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1307,7 +1307,7 @@ msgid "lantern_pro_license_invalid_length"
 msgstr "Lesen Lantern Pro mestilah 25 aksara"
 
 msgid "create_an_account"
-msgstr " Cipta akaun"
+msgstr "Cipta akaun"
 
 msgid "no_projects_found"
 msgstr "Tiada Projek Dijumpai"
@@ -1610,10 +1610,10 @@ msgstr ""
 "pilih e-mel lain."
 
 msgid "account_deleted"
-msgstr "Akaun Dipadamkan "
+msgstr "Akaun Dipadamkan"
 
 msgid "account_deleted_message"
-msgstr "Akaun anda telah dipadamkan secara kekal. "
+msgstr "Akaun anda telah dipadamkan secara kekal."
 
 msgid "verify_with"
 msgstr "Sahkan dengan %s"

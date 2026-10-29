@@ -1601,10 +1601,10 @@ msgstr ""
 " मेल नहीं खाता। कृपया सही खाते से साइन इन करें या कोई अलग ईमेल चुनें।"
 
 msgid "account_deleted"
-msgstr "खाता हटाया गया "
+msgstr "खाता हटाया गया"
 
 msgid "account_deleted_message"
-msgstr "आपका खाता स्थायी रूप से हटा दिया गया है। "
+msgstr "आपका खाता स्थायी रूप से हटा दिया गया है।"
 
 msgid "verify_with"
 msgstr "%s से सत्यापित करें"

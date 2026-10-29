@@ -417,7 +417,7 @@ msgid "create_password"
 msgstr "Создать пароль"
 
 msgid "sign_in_to_lantern_pro"
-msgstr "Войти в Lantern "
+msgstr "Войти в Lantern"
 
 msgid "sign_in_with_email"
 msgstr "Войти через email"
@@ -1278,13 +1278,13 @@ msgid "server_alias_cannot_be_empty"
 msgstr "Псевдоним сервера не может быть пустым"
 
 msgid "referral_code_applied"
-msgstr " Ваш реферальный код применен!"
+msgstr "Ваш реферальный код применен!"
 
 msgid "discount_applied"
 msgstr "Применена скидка %s"
 
 msgid "referral_message_1y"
-msgstr " + 1 дополнительный месяц бесплатно"
+msgstr "+ 1 дополнительный месяц бесплатно"
 
 msgid "referral_code_invalid"
 msgstr ""
@@ -1300,7 +1300,7 @@ msgid "free"
 msgstr "Бесплатно"
 
 msgid "lantern_pro_license"
-msgstr " Лицензия Lantern Pro"
+msgstr "Лицензия Lantern Pro"
 
 msgid "lantern_pro_license_required"
 msgstr "Требуется лицензия Lantern Pro"
@@ -1456,8 +1456,7 @@ msgstr ""
 "периода."
 
 msgid "failed_to_update_routing_mode"
-msgstr ""
-"Не удалось обновить режим маршрутизации. Пожалуйста, попробуйте снова. "
+msgstr "Не удалось обновить режим маршрутизации. Пожалуйста, попробуйте снова."
 
 msgid "apps"
 msgstr "Приложения"
@@ -1485,7 +1484,7 @@ msgstr ""
 "«Забыли пароль?» ниже."
 
 msgid "pro_subscription_expired"
-msgstr "Срок действия вашей подписки Pro истёк "
+msgstr "Срок действия вашей подписки Pro истёк"
 
 msgid "renew_pro_subscription"
 msgstr "Продлить подписку Pro"
@@ -1503,10 +1502,7 @@ msgid "set_password"
 msgstr "Установить пароль"
 
 msgid "set_account_password_message"
-msgstr ""
-"Для управления аккаунтом или входа с других устройств необходимо установить "
-"пароль для вашего аккаунта Lantern Pro. Мы отправим вам код подтверждения на"
-" email для создания пароля."
+msgstr "Чтобы управлять аккаунтом или входить на других устройствах, теперь необходимо задать пароль для аккаунта Lantern Pro\n\nМы отправим вам на электронную почту код подтверждения для создания пароля."
 
 msgid "expired"
 msgstr "Истёк срок"
@@ -1656,7 +1652,7 @@ msgid "err_ruleset_failed"
 msgstr "Не удалось загрузить конфигурацию маршрутизации. Повторная попытка..."
 
 msgid "update_now"
-msgstr "Обновить "
+msgstr "Обновить"
 
 msgid "later"
 msgstr "Позже"

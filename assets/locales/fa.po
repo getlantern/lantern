@@ -1173,7 +1173,7 @@ msgid "confirm"
 msgstr "تأیید"
 
 msgid "private_server_warning"
-msgstr "فقط سرورهایی را بیفزایید که به دست افراد مورد اعتماد اداره می‌شوند"
+msgstr "فقط سرورهایی را بیفزایید که به دست افراد مورد اعتماد اداره می‌شوند "
 
 msgid "go_to_server_locations"
 msgstr "رفتن به مکان‌های سرور"
