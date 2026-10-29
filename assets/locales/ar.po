@@ -1938,3 +1938,6 @@ msgstr "السجلات"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "اضغط على %s أدناه للانتقال إلى DigitalOcean"
+
+msgid "faq_questions"
+msgstr "الأسئلة الشائعة والاستفسارات"

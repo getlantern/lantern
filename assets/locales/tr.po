@@ -1974,3 +1974,6 @@ msgstr "Günlükler"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean'a gitmek için aşağıdaki %s düğmesine dokunun"
+
+msgid "faq_questions"
+msgstr "SSS ve Sorular"

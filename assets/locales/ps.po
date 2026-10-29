@@ -1993,3 +1993,6 @@ msgstr "لاګونه"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean ته د تللو لپاره لاندې %s کېکاږئ"
+
+msgid "faq_questions"
+msgstr "عامې پوښتنې او پوښتنې"

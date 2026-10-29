@@ -1823,3 +1823,6 @@ msgstr "記錄檔"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "點按下方的 %s 前往 DigitalOcean"
+
+msgid "faq_questions"
+msgstr "常見問題與疑問"

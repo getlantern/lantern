@@ -1942,3 +1942,6 @@ msgstr "บันทึก"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "แตะ %s ด้านล่างเพื่อไปที่ DigitalOcean"
+
+msgid "faq_questions"
+msgstr "คำถามที่พบบ่อยและข้อสงสัย"

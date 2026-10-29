@@ -1818,3 +1818,6 @@ msgstr "日志"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "点按下方的 %s 前往 DigitalOcean"
+
+msgid "faq_questions"
+msgstr "常见问题与疑问"

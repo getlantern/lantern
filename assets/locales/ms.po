@@ -1981,3 +1981,6 @@ msgstr "Log"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Ketik %s di bawah untuk pergi ke DigitalOcean"
+
+msgid "faq_questions"
+msgstr "Soalan Lazim & Pertanyaan"
