@@ -73,6 +73,9 @@ type pairing struct {
 	Role  string    `json:"role"`
 	Name  string    `json:"name,omitempty"`
 	Since time.Time `json:"since"`
+	// Nickname is the name this user gave the pairing on this device. It is
+	// shown instead of Name and never leaves the device. Inviter side only.
+	Nickname string `json:"nickname,omitempty"`
 	// InviteHash is the hash of the invite a volunteer pairing came from, so
 	// re-opening that link is told apart from a link someone else used.
 	// State only; empty for pairings saved before it was kept.

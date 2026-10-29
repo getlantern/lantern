@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/getlantern/broflake/common/helperinvite"
@@ -137,6 +138,9 @@ func (e *Engine) view() View {
 	}
 	for _, p := range e.st.Pairings {
 		pv := PairingView{PairingID: p.ID, Name: p.Name, SinceUnix: p.Since.Unix()}
+		if p.Nickname != "" {
+			pv.Name = p.Nickname
+		}
 		if p.Role == RoleInviter {
 			pv.Online = e.online[p.ID]
 			v.Helpers = append(v.Helpers, pv)
@@ -591,6 +595,35 @@ func (e *Engine) endPairing(ctx context.Context, args []byte) (any, error) {
 	return e.view(), nil
 }
 
+// renameHelper sets the nickname this device shows for one of its personal
+// proxies, or clears it when the name is blank. Nothing is sent.
+func (e *Engine) renameHelper(args []byte) (any, error) {
+	var a struct {
+		PairingID string `json:"pairing_id"`
+		Name      string `json:"name"`
+	}
+	if err := decodeArgs(args, &a); err != nil {
+		return nil, err
+	}
+	p := e.pairing(a.PairingID)
+	if p == nil || p.Role != RoleInviter {
+		return nil, errCode(CodeNotFound)
+	}
+	nickname := ""
+	if strings.TrimSpace(a.Name) != "" {
+		name, err := helperinvite.CleanName(a.Name)
+		if err != nil {
+			return nil, errCode(CodeBadName)
+		}
+		nickname = name
+	}
+	p.Nickname = nickname
+	if err := e.save(); err != nil {
+		return nil, err
+	}
+	return e.view(), nil
+}
+
 // endAllHelpers is "remove all helpers": it ends every pairing in which this
 // device is helped, rejects claimed invites, and turns unclaimed ones into
 // tombstones without names, so a seized phone holds no helper names. It
@@ -602,6 +635,7 @@ func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
 	for _, p := range e.st.Pairings {
 		if p.Role == RoleInviter {
 			p.Name = ""
+			p.Nickname = ""
 		}
 	}
 	for _, c := range e.st.Claims {

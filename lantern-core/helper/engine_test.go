@@ -958,3 +958,46 @@ func TestANullOrEmptyListingIsEmpty(t *testing.T) {
 		call(t, e, "end_all_helpers", nil)
 	}
 }
+
+func TestRenameHelperIsLocalAndSurvivesRestarts(t *testing.T) {
+	cloud := newFakeCloud()
+	saraDir := t.TempDir()
+	sara := newTestEngine(t, cloud, "sara", saraDir)
+	ali := pair(t, cloud, sara, t.TempDir())
+	id := list(call(t, sara, "view", nil), "helpers")[0]["pairing_id"]
+
+	before := relayCalls(cloud)
+	v := call(t, sara, "rename_helper", map[string]any{"pairing_id": id, "name": "  Cousin Ali "})
+	assert.Equal(t, "Cousin Ali", list(v, "helpers")[0]["name"])
+	assert.Equal(t, before, relayCalls(cloud), "a nickname never leaves the device")
+
+	again := newTestEngine(t, cloud, "sara", saraDir)
+	assert.Equal(t, "Cousin Ali", list(call(t, again, "refresh", nil), "helpers")[0]["name"],
+		"kept across restarts and refreshes")
+
+	v = call(t, again, "rename_helper", map[string]any{"pairing_id": id, "name": " "})
+	assert.Equal(t, "Ali", list(v, "helpers")[0]["name"], "a blank name restores the friend's")
+
+	assert.Equal(t, CodeBadName, callErr(t, again, "rename_helper", map[string]any{"pairing_id": id, "name": "a‮b"}))
+	assert.Equal(t, CodeNotFound, callErr(t, again, "rename_helper", map[string]any{"pairing_id": "nope", "name": "X"}))
+	helping := list(call(t, ali, "refresh", nil), "helping")[0]["pairing_id"]
+	assert.Equal(t, CodeNotFound, callErr(t, ali, "rename_helper", map[string]any{"pairing_id": helping, "name": "X"}),
+		"only the user's own personal proxies are renamed")
+}
+
+func TestEndAllHelpersErasesNicknames(t *testing.T) {
+	cloud := newFakeCloud()
+	dir := t.TempDir()
+	sara := newTestEngine(t, cloud, "sara", dir)
+	pair(t, cloud, sara, t.TempDir())
+	id := list(call(t, sara, "view", nil), "helpers")[0]["pairing_id"]
+	call(t, sara, "rename_helper", map[string]any{"pairing_id": id, "name": "Cousin"})
+	// Offline, as in TestEndAllHelpersOfflineWipesNames: the names (and now
+	// nicknames) go before any request.
+	cloud.down = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "end_all_helpers", nil))
+	for _, p := range newTestEngine(t, cloud, "sara", dir).st.Pairings {
+		assert.Empty(t, p.Nickname)
+		assert.Empty(t, p.Name)
+	}
+}

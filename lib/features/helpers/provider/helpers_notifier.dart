@@ -375,6 +375,13 @@ class HelpersNotifier extends _$HelpersNotifier {
     refetch: true,
   );
 
+  /// Sets the name this device shows for one of its personal proxies, or
+  /// restores the friend's own when [name] is blank. It stays on this device.
+  Future<HelperResult> renameHelper(String pairingId, String name) async =>
+      _apply(
+        await _call('rename_helper', {'pairing_id': pairingId, 'name': name}),
+      );
+
   /// The engine erases the names before it contacts lantern-cloud, so when
   /// the network step fails the local view (already without them) is shown,
   /// with the original error kept. When that view fails too, the names are

@@ -366,6 +366,23 @@ void main() {
     });
   });
 
+  test('renameHelper sends rename_helper and applies the view', () async {
+    svc.answers = {
+      'rename_helper': _view(
+        helpers: '[{"pairing_id":"p1","name":"Cousin","since_unix":1}]',
+      ),
+    };
+    final c = container();
+    final r = await c
+        .read(helpersProvider.notifier)
+        .renameHelper('p1', 'Cousin');
+    expect(r.ok, isTrue);
+    expect(svc.calls, ['rename_helper']);
+    expect(c.read(helpersProvider).view.helpers.single.name, 'Cousin');
+    await Future<void>.delayed(Duration.zero);
+    expect(svc.configRequests, 0, reason: 'a nickname changes no route');
+  });
+
   test('a keystore failure never calls the engine', () async {
     sl.unregister<HelperKeyStore>();
     sl.registerSingleton<HelperKeyStore>(_Keys(fail: true));
