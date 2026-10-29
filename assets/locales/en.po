@@ -1842,5 +1842,5 @@ msgstr "We couldn't set up your private server. Please try again."
 msgid "logs"
 msgstr "Logs"
 
-msgid "faq"
-msgstr "FAQ"
+msgid "faq_questions"
+msgstr "FAQ & Questions"
