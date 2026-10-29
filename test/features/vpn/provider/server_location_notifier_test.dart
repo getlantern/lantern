@@ -12,6 +12,11 @@ import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class _Service implements LanternService {
+  bool tagAvailable = false;
+
+  @override
+  Future<bool> isTagAvailable(String tag) async => tagAvailable;
+
   @override
   Future<void> updateWidgetLocation({
     required String city,
@@ -61,12 +66,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late _Storage storage;
   late _Helpers helpers;
+  late _Service service;
 
   ProviderContainer container() {
     helpers = _Helpers();
     final c = ProviderContainer(
       overrides: [
-        lanternServiceProvider.overrideWithValue(_Service()),
+        lanternServiceProvider.overrideWithValue(service),
         helpersProvider.overrideWith(() => helpers),
         vpnProvider.overrideWithValue(VPNStatus.disconnected),
       ],
@@ -78,6 +84,7 @@ void main() {
 
   setUp(() {
     storage = _Storage();
+    service = _Service();
     sl.registerSingleton<LocalStorageService>(storage);
   });
   tearDown(() => sl.reset());
@@ -154,5 +161,52 @@ void main() {
       c.read(serverLocationProvider).serverType,
       ServerLocationType.lanternLocation.name,
     );
+  });
+
+  test('an empty view after a keystore reset keeps the selection', () async {
+    storage.location = ServerLocation.personalProxy();
+    final c = container();
+    c.read(serverLocationProvider);
+    helpers.set(
+      const HelpersState(
+        viewLoaded: true,
+        keystoreReset: true,
+        view: HelpersView(unlocked: true),
+      ),
+    );
+    await pumpEventQueue();
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.personalProxy.name,
+    );
+    expect(storage.location!.serverType, ServerLocationType.personalProxy.name);
+  });
+
+  test('an empty view keeps the selection while the group exists', () async {
+    service.tagAvailable = true;
+    storage.location = ServerLocation.personalProxy();
+    final c = container();
+    c.read(serverLocationProvider);
+    helpers.set(_noHelpers);
+    await pumpEventQueue();
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.personalProxy.name,
+    );
+    expect(storage.location!.serverType, ServerLocationType.personalProxy.name);
+  });
+
+  test('an empty view with the group gone switches to auto', () async {
+    service.tagAvailable = false;
+    storage.location = ServerLocation.personalProxy();
+    final c = container();
+    c.read(serverLocationProvider);
+    helpers.set(_noHelpers);
+    await pumpEventQueue();
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.auto.name,
+    );
+    expect(storage.location!.serverType, ServerLocationType.auto.name);
   });
 }

@@ -3,6 +3,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -23,19 +24,12 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // connects through auto, but sends no server-location event for it.
     // fireImmediately covers a view that loaded empty before this notifier
     // was built; the check is deferred because state is unset during build.
+    // An empty local view is not proof: after a keystore reset unlock
+    // returns no pairings until a refresh recovers the remote ones, so the
+    // switch waits for radiance to confirm the group is gone.
     ref.listen(helpersProvider, (_, next) {
-      if (!next.viewLoaded || next.view.helpers.isNotEmpty) return;
-      unawaited(
-        Future.microtask(() async {
-          if (!ref.mounted) return;
-          if (state.serverType.toServerLocationType !=
-              ServerLocationType.personalProxy) {
-            return;
-          }
-          await switchToAuto();
-          await refreshAutoLocationIfNeeded();
-        }),
-      );
+      if (!_helpersGone(next)) return;
+      unawaited(Future.microtask(_dropPersonalProxyIfGone));
     }, fireImmediately: true);
     final cached = _storage.getServerLocation();
     final initial = cached ?? _defaultLocation();
@@ -46,6 +40,32 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // Use cached value for instant display, then refresh from radiance.
     fetchServerLocation();
     return initial;
+  }
+
+  static bool _helpersGone(HelpersState s) =>
+      s.viewLoaded &&
+      s.view.helpers.isEmpty &&
+      !s.keystoreReset &&
+      s.error == null;
+
+  bool get _personalProxySelected =>
+      state.serverType.toServerLocationType == ServerLocationType.personalProxy;
+
+  Future<void> _dropPersonalProxyIfGone() async {
+    if (!ref.mounted || !_personalProxySelected) return;
+    final bool available;
+    try {
+      available = await ref
+          .read(lanternServiceProvider)
+          .isTagAvailable(personalProxiesTag);
+    } catch (e) {
+      appLogger.debug('personal proxies: tag check failed: $e');
+      return;
+    }
+    if (!ref.mounted || available || !_personalProxySelected) return;
+    if (!_helpersGone(ref.read(helpersProvider))) return;
+    await switchToAuto();
+    await refreshAutoLocationIfNeeded();
   }
 
   /// Fetches the current server location from radiance.

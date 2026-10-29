@@ -15,10 +15,11 @@ import 'package:lantern/features/vpn/server_selection.dart';
 class _Helpers extends HelpersNotifier {
   _Helpers(this.initial);
   final HelpersState initial;
+  int refreshes = 0;
   @override
   HelpersState build() => initial;
   @override
-  Future<void> refreshIfUsed() async {}
+  Future<void> refreshIfUsed() async => refreshes++;
 }
 
 class _NoServers extends AvailableServersNotifier {
@@ -26,19 +27,20 @@ class _NoServers extends AvailableServersNotifier {
   Future<AvailableServers> build() async => AvailableServers([]);
 }
 
+late _Helpers _notifier;
+
 Future<void> _pump(WidgetTester tester, List<HelperPairingView> helpers) async {
+  _notifier = _Helpers(
+    HelpersState(
+      viewLoaded: true,
+      view: HelpersView(unlocked: true, helpers: helpers),
+    ),
+  );
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         availableServersProvider.overrideWith(_NoServers.new),
-        helpersProvider.overrideWith(
-          () => _Helpers(
-            HelpersState(
-              viewLoaded: true,
-              view: HelpersView(unlocked: true, helpers: helpers),
-            ),
-          ),
-        ),
+        helpersProvider.overrideWith(() => _notifier),
         serverLocationProvider.overrideWithValue(
           ServerLocation(
             serverName: '',
@@ -82,5 +84,40 @@ void main() {
       find.byKey(const Key('server_selection.personal_proxies')),
       findsNothing,
     );
+  });
+
+  testWidgets('helper presence refreshes on the interval only while resumed', (
+    tester,
+  ) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+    await _pump(tester, const [HelperPairingView(pairingId: 'p1')]);
+    expect(_notifier.refreshes, 0);
+    await tester.pump(personalProxiesRefreshInterval);
+    expect(_notifier.refreshes, 1);
+    await tester.pump(personalProxiesRefreshInterval);
+    expect(_notifier.refreshes, 2);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(personalProxiesRefreshInterval * 3);
+    expect(_notifier.refreshes, 2);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(personalProxiesRefreshInterval);
+    expect(_notifier.refreshes, 3);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(personalProxiesRefreshInterval);
+    expect(_notifier.refreshes, 3);
+  });
+
+  testWidgets('no refresh timer without personal proxies', (tester) async {
+    await _pump(tester, const []);
+    await tester.pump(personalProxiesRefreshInterval * 2);
+    expect(_notifier.refreshes, 0);
   });
 }

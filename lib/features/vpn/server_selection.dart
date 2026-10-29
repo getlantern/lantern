@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -763,6 +764,9 @@ class CountryCitySheetList extends ConsumerWidget {
   }
 }
 
+/// How often the Private Locations tab refreshes helper presence.
+const personalProxiesRefreshInterval = Duration(seconds: 60);
+
 class PrivateServerLocationListView extends StatefulHookConsumerWidget {
   const PrivateServerLocationListView({super.key});
 
@@ -781,6 +785,25 @@ class _PrivateServerLocationListViewState
 
     final availableServers = ref.watch(availableServersProvider);
     final selected = ref.watch(serverLocationProvider);
+    final hasPersonalProxies = ref.watch(
+      helpersProvider.select((s) => s.view.helpers.isNotEmpty),
+    );
+
+    // Helpers stop polling once nothing is pending, so a friend coming
+    // online would leave the Personal proxies row disabled. TabBarView
+    // builds this only while the tab is shown. refreshIfUsed, never
+    // refresh: the list must not touch the keystore.
+    useEffect(() {
+      if (!hasPersonalProxies) return null;
+      final timer = Timer.periodic(personalProxiesRefreshInterval, (_) {
+        if (WidgetsBinding.instance.lifecycleState !=
+            AppLifecycleState.resumed) {
+          return;
+        }
+        unawaited(ref.read(helpersProvider.notifier).refreshIfUsed());
+      });
+      return timer.cancel;
+    }, [hasPersonalProxies]);
 
     if (availableServers.isLoading) {
       return const Center(child: Spinner());
@@ -798,9 +821,6 @@ class _PrivateServerLocationListViewState
     final personalSelected =
         selected.serverType.toServerLocationType ==
         ServerLocationType.personalProxy;
-    final hasPersonalProxies = ref.watch(
-      helpersProvider.select((s) => s.view.helpers.isNotEmpty),
-    );
 
     if (userLocations.isEmpty && !hasPersonalProxies) {
       return Column(
