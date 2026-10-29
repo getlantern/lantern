@@ -344,9 +344,12 @@ func CancelDeployment() error {
 	return nil
 }
 
-// AddServerManually adds a server manually to the VPN client.
-// It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
-func AddServerManually(ip, port, accessToken, tag string, joined bool, vpnClient *ipc.Client, events utils.PrivateServerEventListener) error {
+type privateServerClient interface {
+	AddPrivateServer(context.Context, string, string, int, string, C.ServerLocation, bool) error
+}
+
+// AddServerManually registers a server without changing an active provisioning session.
+func AddServerManually(ip, port, accessToken, tag string, joined bool, vpnClient privateServerClient, events utils.PrivateServerEventListener) error {
 	slog.Debug("Adding server manually", slog.String("ip", ip), slog.String("port", port), slog.String("tag", tag))
 	portInt, err := strconv.Atoi(port)
 	if err != nil {
@@ -358,15 +361,10 @@ func AddServerManually(ip, port, accessToken, tag string, joined bool, vpnClient
 		AccessToken: accessToken,
 		Tag:         tag,
 	}
-	provisionSession := &provisionSession{
-		client:    vpnClient,
-		eventSink: events,
-	}
-	storeSession(provisionSession)
 	location := getGeoInfo(ip)
 	loc := geoLocation(location)
 	ctx := context.Background()
-	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, loc, joined)
+	err = vpnClient.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, loc, joined)
 	if err != nil {
 		return err
 	}

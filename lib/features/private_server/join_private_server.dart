@@ -237,17 +237,25 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
   }
 
   Future<void> onJoinServer(String urls, String serverName) async {
-    // For invite links the nickname becomes the server tag, so it replaces the
-    // name in the link. Other access keys (ss://, vmess://, ...) must pass
-    // through untouched: Uri normalisation lowercases the host and corrupts them.
+    // Only rewrite invite links. Reserializing proxy URLs can change
+    // case-sensitive access keys.
     urls = urls.trim();
-    final uri = Uri.tryParse(urls);
-    if (uri != null && _isInviteLink(uri)) {
-      urls = uri
-          .replace(
-            queryParameters: {...uri.queryParameters, 'name': serverName},
-          )
-          .toString();
+    try {
+      final uri = Uri.tryParse(urls);
+      if (uri != null && _isInviteLink(uri)) {
+        urls = uri
+            .replace(
+              queryParameters: {...uri.queryParameters, 'name': serverName},
+            )
+            .toString();
+      }
+    } on FormatException {
+      AppDialog.errorDialog(
+        context: context,
+        title: 'error'.i18n,
+        content: 'invalid_server_details'.i18n,
+      );
+      return;
     }
     context.showLoadingDialog();
     final result = await ref
@@ -282,9 +290,9 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
         uri.host == 'private-server' ||
         path == 'private-server' ||
         path.endsWith('/private-server');
+    if (!isInvitePath) return false;
     final q = uri.queryParameters;
-    return isInvitePath &&
-        q.containsKey('ip') &&
+    return q.containsKey('ip') &&
         q.containsKey('port') &&
         q.containsKey('token');
   }

@@ -1,6 +1,78 @@
 package privateserver
 
-import "testing"
+import (
+	"context"
+	"errors"
+	"net/http"
+	"testing"
+
+	C "github.com/getlantern/common"
+)
+
+func TestAddServerManuallyPreservesProvisioningSession(t *testing.T) {
+	previous, existed := sessions.Load("provisioner")
+	t.Cleanup(func() {
+		if existed {
+			sessions.Store("provisioner", previous)
+		} else {
+			sessions.Delete("provisioner")
+		}
+	})
+	withGeoLookupServer(t, func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(amsterdamLookupResponse))
+	})
+	addErr := errors.New("registration failed")
+	for _, tt := range []struct {
+		name    string
+		active  bool
+		joined  bool
+		wantErr error
+	}{
+		{name: "invite during provisioning", active: true, joined: true},
+		{name: "failed invite during provisioning", active: true, joined: true, wantErr: addErr},
+		{name: "manual registration during provisioning", active: true},
+		{name: "invite without provisioning", joined: true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			active := &provisionSession{serverName: "deploying", serverLocation: "nyc3 - new-york-city [US]"}
+			if tt.active {
+				storeSession(active)
+			} else {
+				sessions.Delete("provisioner")
+			}
+			client := &testPrivateServerClient{t: t, joined: tt.joined, err: tt.wantErr}
+			if err := AddServerManually("192.0.2.1", "443", "token", "joined", tt.joined, client, nil); !errors.Is(err, tt.wantErr) {
+				t.Fatalf("AddServerManually() = %v, want %v", err, tt.wantErr)
+			}
+			if !client.called {
+				t.Fatal("private server was not registered")
+			}
+			got, found := sessions.Load("provisioner")
+			if found != tt.active || tt.active && got != active {
+				t.Fatal("manual registration changed the provisioning session")
+			}
+		})
+	}
+}
+
+type testPrivateServerClient struct {
+	t      *testing.T
+	joined bool
+	err    error
+	called bool
+}
+
+func (c *testPrivateServerClient) AddPrivateServer(_ context.Context, tag, ip string, port int, token string, location C.ServerLocation, joined bool) error {
+	c.t.Helper()
+	c.called = true
+	if tag != "joined" || ip != "192.0.2.1" || port != 443 || token != "token" || joined != c.joined {
+		c.t.Fatalf("unexpected registration: tag=%q ip=%q port=%d joined=%t", tag, ip, port, joined)
+	}
+	if want := (C.ServerLocation{City: "North Holland", Country: "The Netherlands", CountryCode: "NL"}); location != want {
+		c.t.Fatalf("location = %+v, want %+v", location, want)
+	}
+	return c.err
+}
 
 func TestParseInviteURL(t *testing.T) {
 	want := Invite{IP: "137.184.162.106", Port: "50733", Token: "tok", Name: "ps-test"}
