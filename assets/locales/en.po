@@ -2225,6 +2225,13 @@ msgstr "Get a personal proxy"
 msgid "personal_proxy_banner_body"
 msgstr "A friend abroad can keep you connected."
 
+# The same banner while a friend who opened the user's invite waits for the user to compare codes and approve them.
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Your friend is waiting"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Compare the code and approve them."
+
 # Label of the field for the name this device shows for a personal proxy. It stays on this device.
 msgid "personal_proxy_nickname_label"
 msgstr "Name on this device"

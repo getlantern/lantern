@@ -25,6 +25,11 @@ class HelpersView {
   /// Something is waiting on the other person: poll for it.
   bool get needsPolling => invites.isNotEmpty || claims.isNotEmpty;
 
+  /// The first invite a friend has claimed: it waits on this user to
+  /// compare codes and approve.
+  HelperInviteView? get awaitingApproval =>
+      invites.where((i) => i.claimed).firstOrNull;
+
   /// Claims whose code the volunteer can still show the inviter: sent (not
   /// provisional) and unexpired at [nowUnix].
   Iterable<HelperClaimView> waitingClaims(int nowUnix) => claims.where(

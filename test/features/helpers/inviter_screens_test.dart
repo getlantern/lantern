@@ -17,6 +17,7 @@ import 'package:lantern/features/helpers/approve_helper_sheet.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxies_tab.dart';
+import 'package:lantern/features/helpers/personal_proxy_banner.dart';
 import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -38,6 +39,22 @@ class _Helpers extends HelpersNotifier {
 
   @override
   Future<void> refreshIfUsed() async => refreshes++;
+
+  bool usedFlag = false;
+
+  @override
+  bool get used => usedFlag;
+
+  /// What refresh() loads, as the engine's view would.
+  HelpersState? onRefresh;
+  int fullRefreshes = 0;
+
+  @override
+  Future<HelperResult> refresh() async {
+    fullRefreshes++;
+    if (onRefresh != null) state = onRefresh!;
+    return HelperResult.parse('{"unlocked":true}');
+  }
 
   @override
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
@@ -477,6 +494,141 @@ void main() {
       expect(fake.created, ['Sara']);
       expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
     });
+
+    Future<void> tapStart(WidgetTester tester, _Helpers fake) async {
+      await _pump(
+        tester,
+        fake,
+        Consumer(
+          builder: (context, ref, _) => TextButton(
+            onPressed: () => startPersonalProxyInvite(context, ref),
+            child: const Text('go'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+    }
+
+    const pendingInvite = HelperInviteView(id: 'i2', state: 'pending');
+
+    testWidgets('startPersonalProxyInvite opens an invite awaiting approval '
+        'instead of creating one', (tester) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(
+        const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(unlocked: true, invites: [pendingInvite, _claimed]),
+        ),
+      );
+      await tapStart(tester, fake);
+      expect(find.byType(TextFormField), findsNothing, reason: 'no name asked');
+      expect(fake.created, isEmpty);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+    });
+
+    testWidgets('an invite no one has opened does not stop another', (
+      tester,
+    ) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(
+        const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(unlocked: true, invites: [pendingInvite]),
+        ),
+      );
+      await tapStart(tester, fake);
+      await tester.enterText(find.byType(TextFormField), 'Sara');
+      await tester.tap(find.text('continue'.i18n));
+      await tester.pumpAndSettle();
+      expect(fake.created, ['Sara']);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
+    });
+
+    testWidgets('a used device loads its view before deciding', (tester) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(const HelpersState())
+        ..usedFlag = true
+        ..onRefresh = const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(unlocked: true, invites: [_claimed]),
+        );
+      await tapStart(tester, fake);
+      expect(fake.fullRefreshes, 1);
+      expect(fake.created, isEmpty);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+    });
+
+    testWidgets('Invite another in the Manage tab creates an invite while '
+        'one awaits approval', (tester) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(
+        const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(unlocked: true, invites: [_claimed]),
+        ),
+      );
+      await _pump(tester, fake, const PersonalProxiesTab());
+      await tester.tap(find.byKey(const Key('personal_proxies.invite')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), 'Sara');
+      await tester.tap(find.text('continue'.i18n));
+      await tester.pumpAndSettle();
+      expect(fake.created, ['Sara']);
+    });
+
+    for (final small in [false, true]) {
+      testWidgets('the ${small ? 'compact ' : ''}banner says a friend is '
+          'waiting and opens their invite', (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = small
+            ? const Size(393, 560)
+            : const Size(393, 852);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        final router = _Router();
+        sl.registerSingleton<AppRouter>(router);
+        final fake = _Helpers(
+          const HelpersState(
+            viewLoaded: true,
+            view: HelpersView(unlocked: true, invites: [_claimed]),
+          ),
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              helpersProvider.overrideWith(() => fake),
+              personalProxyBannerVisibleProvider.overrideWithValue(true),
+            ],
+            child: ScreenUtilInit(
+              designSize: tester.view.physicalSize,
+              child: MaterialApp(
+                theme: AppTheme.appTheme(),
+                home: const Scaffold(body: PersonalProxyBanner()),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(
+          find.text('personal_proxy_banner_waiting_title'.i18n),
+          findsOneWidget,
+        );
+        expect(find.text('personal_proxy_banner_title'.i18n), findsNothing);
+        expect(
+          find.text('personal_proxy_banner_waiting_body'.i18n),
+          small ? findsNothing : findsOneWidget,
+        );
+        await tester.tap(find.byKey(const Key('vpn.personal_proxy_banner')));
+        await tester.pumpAndSettle();
+        expect(fake.created, isEmpty);
+        expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+      });
+    }
 
     testWidgets('Copy link goes through copySensitiveText', (tester) async {
       final platform = _Platform();

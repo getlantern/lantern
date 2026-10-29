@@ -103,7 +103,8 @@ class PersonalProxiesTab extends HookConsumerWidget {
           key: const Key('personal_proxies.invite'),
           child: PrimaryButton(
             label: 'invite_another'.i18n,
-            onPressed: () => startPersonalProxyInvite(context, ref),
+            onPressed: () =>
+                startPersonalProxyInvite(context, ref, resumeWaiting: false),
           ),
         ),
         if (view.helpers.isNotEmpty || view.invites.isNotEmpty) ...[

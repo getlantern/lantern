@@ -5,7 +5,9 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
-/// The VPN tab's "Get a personal proxy", in the Pro banner's slot.
+/// The VPN tab's "Get a personal proxy", in the Pro banner's slot. While a
+/// friend who claimed an invite waits on the user's approval, it says so, and
+/// a tap opens that invite (startPersonalProxyInvite).
 class PersonalProxyBanner extends ConsumerWidget {
   const PersonalProxyBanner({super.key, this.topMargin = 16});
 
@@ -16,12 +18,22 @@ class PersonalProxyBanner extends ConsumerWidget {
     if (!ref.watch(personalProxyBannerVisibleProvider)) {
       return const SizedBox.shrink();
     }
+    final waiting = ref.watch(
+      helpersProvider.select((s) => s.view.awaitingApproval != null),
+    );
+    final title = waiting
+        ? 'personal_proxy_banner_waiting_title'.i18n
+        : 'personal_proxy_banner_title'.i18n;
+    final body = waiting
+        ? 'personal_proxy_banner_waiting_body'.i18n
+        : 'personal_proxy_banner_body'.i18n;
     final textTheme = Theme.of(context).textTheme;
     if (isSmallScreen(context)) {
       return Padding(
         key: const Key('vpn.personal_proxy_banner'),
         padding: EdgeInsets.only(top: topMargin),
         child: _CompactPersonalProxyBanner(
+          title: title,
           onTap: () => startPersonalProxyInvite(context, ref),
         ),
       );
@@ -33,9 +45,9 @@ class PersonalProxyBanner extends ConsumerWidget {
         padding: EdgeInsets.zero,
         child: AppTile(
           icon: AppImagePaths.handshake,
-          label: 'personal_proxy_banner_title'.i18n,
+          label: title,
           subtitle: Text(
-            'personal_proxy_banner_body'.i18n,
+            body,
             style: textTheme.bodySmall!.copyWith(color: context.textSecondary),
           ),
           trailing: const AppImage(path: AppImagePaths.arrowForward),
@@ -48,8 +60,9 @@ class PersonalProxyBanner extends ConsumerWidget {
 
 /// The small-screen pill, styled like the compact Pro banner.
 class _CompactPersonalProxyBanner extends StatelessWidget {
-  const _CompactPersonalProxyBanner({required this.onTap});
+  const _CompactPersonalProxyBanner({required this.title, required this.onTap});
 
+  final String title;
   final VoidCallback onTap;
 
   @override
@@ -83,7 +96,7 @@ class _CompactPersonalProxyBanner extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: AutoSizeText(
-                      'personal_proxy_banner_title'.i18n,
+                      title,
                       style: textTheme.bodyMedium!.copyWith(
                         color: context.textPrimary,
                         fontWeight: FontWeight.bold,
