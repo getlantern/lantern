@@ -703,18 +703,11 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   }) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.addServerBasedOnURLs(
-        urls: urls,
-        skipCertVerification: skipCertVerification,
-      );
+      return _ffiService.addServerBasedOnURLs(urls: urls);
     }
-    return _platformService.addServerBasedOnURLs(
-      urls: urls,
-      skipCertVerification: skipCertVerification,
-    );
+    return _platformService.addServerBasedOnURLs(urls: urls);
   }
 
   /// connectToServer is used to connect to a server
