@@ -7,6 +7,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -16,7 +18,7 @@ const fixtureJSON = `{"schema_version":1,"account_environment":"staging","user_i
 
 func fixture(t *testing.T) Expected {
 	t.Helper()
-	expected, err := decodeExpected(strings.NewReader(fixtureJSON))
+	expected, err := decodeExpected(strings.NewReader(fixtureJSON), "staging")
 	if err != nil {
 		t.Fatal("valid fixture rejected")
 	}
@@ -89,10 +91,61 @@ func TestExpectedFixtureRejectsUnsafeOrAmbiguousIdentity(t *testing.T) {
 		"trailing document":        fixtureJSON + `{}`,
 	} {
 		t.Run(name, func(t *testing.T) {
-			if _, err := decodeExpected(strings.NewReader(invalid)); err == nil {
+			if _, err := decodeExpected(strings.NewReader(invalid), "staging"); err == nil {
 				t.Fatal("invalid expected fixture accepted")
 			}
 		})
+	}
+}
+
+func TestFixtureEnvironmentMustBeExplicit(t *testing.T) {
+	production := strings.Replace(fixtureJSON, `"staging"`, `"prod"`, 1)
+	for _, tc := range []struct {
+		fixture, environment string
+		valid                bool
+	}{
+		{production, "prod", true}, {production, "staging", false}, {fixtureJSON, "prod", false}, {production, "unknown", false},
+	} {
+		_, err := decodeExpected(strings.NewReader(tc.fixture), tc.environment)
+		if (err == nil) != tc.valid {
+			t.Fatal("fixture accepted for the wrong account environment")
+		}
+	}
+}
+
+func TestCaptureLegacyIdentityKeepsCredentialsPrivate(t *testing.T) {
+	root := t.TempDir()
+	settings, expected := filepath.Join(root, "settings.yaml"), filepath.Join(root, "expected.json")
+	source := "userID: 9223372036854775806\nuserToken: private-original-token\nlang: fa\nautoReport: false\nproxyAll: true\nautoLaunch: true\n"
+	if err := os.WriteFile(settings, []byte(source), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(expected, []byte("{}"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	var output bytes.Buffer
+	args := []string{"--mode", "capture-legacy", "--account-environment", "prod", "--legacy-settings", settings,
+		"--legacy-device-id", "original-device", "--expected", expected}
+	if command(args, &output) != 0 || strings.Contains(output.String(), "private-original-token") {
+		t.Fatal("capture failed or exposed credentials")
+	}
+	actual, err := readExpected(expected, "prod")
+	if err != nil || actual.UserID != "9223372036854775806" || actual.Token != "private-original-token" || actual.DeviceID != "original-device" || *actual.AutoReport || !*actual.ProxyAll {
+		t.Fatal("captured fixture does not preserve the original identity")
+	}
+	before, err := os.ReadFile(expected)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(settings, []byte(strings.Replace(source, "autoReport: false\n", "", 1)), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if captureLegacy(settings, "original-device", expected) == nil {
+		t.Fatal("incomplete settings accepted")
+	}
+	after, err := os.ReadFile(expected)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatal("failed capture overwrote the private fixture")
 	}
 }
 

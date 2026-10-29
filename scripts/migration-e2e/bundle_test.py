@@ -46,6 +46,17 @@ class BundleTest(unittest.TestCase):
     def test_valid(self):
         self.assertEqual(self.validate()["lane"], "rebuilt-staging")
 
+    def test_released_lane_requires_original_seed_and_production_endpoints(self):
+        self.m.update(lane="released-production", account_environment="prod",
+                      endpoint="https://update.getlantern.org/update/lantern", catalog="getlantern/lantern")
+        for role in ("global_checker", "global_config"):
+            del self.m["artifacts"][role]
+        with self.assertRaisesRegex(ValueError, "not_released_seed"):
+            self.validate()
+        self.m["account_environment"] = "staging"
+        with self.assertRaisesRegex(ValueError, "wrong_lane_environment"):
+            self.validate()
+
     def test_account_requires_must_proxy_route(self):
         path = self.root / "global.json"
         config = json.loads(path.read_text(encoding="utf-8"))

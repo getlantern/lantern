@@ -103,6 +103,22 @@ try {
     try { Check-Routes; throw 'accepted_wrong_offer' }
     catch { if ($_.Exception.Data['migration-e2e-code'] -ne 'catalog_drift') { throw } }
   }
+  function Get-CimInstance { param($ClassName, $Filter); $script:testService }
+  $script:testService = @{State='Running'; StartName='LocalSystem'; StartMode='Auto';
+    PathName='"C:\Program Files\Lantern\LanternSvc.exe" run --environment staging'}
+  $script:Released = $false
+  Check-Service
+  $script:Released = $true
+  try { Check-Service; throw 'accepted_staging_service_for_production' }
+  catch { if ($_.Exception.Data['migration-e2e-code'] -ne 'service_not_production') { throw } }
+  foreach ($command in @('"C:\Program Files\Lantern\LanternSvc.exe" run',
+    '"C:\Program Files\Lantern\LanternSvc.exe" run --environment prod')) {
+    $script:testService.PathName = $command
+    Check-Service
+  }
+  $script:Released = $false
+  try { Check-Service; throw 'accepted_production_service_for_staging' }
+  catch { if ($_.Exception.Data['migration-e2e-code'] -ne 'service_not_staging') { throw } }
   'PowerShell parser, read-sharing/error-code, UTC timestamp and download routing checks passed'
 } finally {
   # Only the unique directory created by this test is removed.

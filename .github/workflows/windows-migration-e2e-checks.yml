@@ -10,6 +10,10 @@ on:
       - '.github/workflows/build-windows.yml'
       - 'windows/packaging/exe/inno_setup.iss'
   workflow_dispatch:
+    inputs:
+      cloud_sha:
+        description: Optional full Cloud controller commit to check on Windows
+        type: string
 
 permissions:
   contents: read
@@ -32,6 +36,26 @@ jobs:
       - name: Check harness parsing, atomic read sharing and diagnostic errors
         shell: pwsh
         run: ./scripts/migration-e2e/harness_checks.ps1
+      - name: Validate optional Cloud commit
+        if: inputs.cloud_sha != ''
+        shell: pwsh
+        env:
+          CLOUD_SHA: ${{ inputs.cloud_sha }}
+        run: |
+          if ($env:CLOUD_SHA -cnotmatch '^[a-f0-9]{40}$') { throw 'Expected a full Cloud commit' }
+      - uses: actions/checkout@v4
+        if: inputs.cloud_sha != ''
+        with:
+          repository: getlantern/lantern-cloud
+          ref: ${{ inputs.cloud_sha }}
+          token: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
+          path: cloud-checks
+          sparse-checkout: scripts/windows-migration
+          persist-credentials: false
+      - name: Check Cloud runner and reboot guards
+        if: inputs.cloud_sha != ''
+        shell: pwsh
+        run: ./cloud-checks/scripts/windows-migration/checks.ps1
       - name: Test and build the real IPC probe
         shell: pwsh
         env:

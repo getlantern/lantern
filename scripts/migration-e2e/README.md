@@ -1,4 +1,4 @@
-# Windows legacy migration staging E2E
+# Windows legacy migration E2E
 
 This exercises **7.9.5 x86 → bridge x86 → v10 installer → authenticated Radiance adoption → startup → reboot**, using the real updater, installer, service and IPC. It does not deploy, publish, enable flags, create accounts or provision machines. All production rollout gates remain disabled.
 
@@ -8,7 +8,9 @@ The executable lane is `rebuilt-staging`. The seed is rebuilt from the exact Win
 
 The legacy client requires a hostname and sends account requests at the root, such as `/user-data`. Lantern Cloud routes `pro-api.staging.iantem.io` to the same staging account service that v10 uses at `api.staging.iantem.io/pro-server`.
 
-The original released 7.9.5 binary hardcodes the production account API. Its supported configuration changes the updater endpoint/CA, not that account API. Consequently an isolated full account-migration test with the original release is **blocked pending a reviewed endpoint/account strategy**. This harness rejects a `released-7.9.5` manifest and always records `production_activation_ready: false`. Neither a rebuilt pass nor synthetic HTTP requests satisfy that release prerequisite.
+The `released-production` lane tests the original published 7.9.5 binary, a signed production bridge and a released v10 installer against production services. Its manifest uses `account_environment: "prod"`, `catalog: "getlantern/lantern"`, and `endpoint: "https://update.getlantern.org/update/lantern"`. Include only `seed`, `bridge`, `installer` and `probe` artifacts; production uses the released apps' embedded configuration. The seed must match the original published SHA256. Both legacy binaries must retain their production build metadata, and Windows verifies all three Authenticode signatures.
+
+For a fresh free test account, start the lab runner as the standard user with `start-runner.ps1 -InitializeProductionAccount`. The original v7 app initializes the account; the probe captures its identity privately on the VM. An existing private production fixture can also be supplied for a dedicated Pro account. Production update pins and flags must permit only the reviewed canary. A released pass requires both real update hops and reboot; diagnostics retain `production_activation_ready: false` because a test does not automatically enable rollout.
 
 The real clients must accept signatures from the staging updater using the RSA key compiled into 7.9.5. Replacing that public key, disabling TLS verification, hosts-file/TLS interception, or using `mockupdate` would change the property being tested and is not supported. If staging's signing key is incompatible, stop and resolve the trust arrangement separately.
 

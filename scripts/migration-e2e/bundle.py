@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a reviewed, local staging migration bundle. Never fetch or run assets."""
+"""Validate a reviewed local Windows migration bundle. Never fetch or run assets."""
 import argparse
 import hashlib
 import json
@@ -12,6 +12,7 @@ import subprocess
 ENDPOINT = "https://update.staging.iantem.io/update/lantern"
 CATALOG = "getlantern/lantern-update-fixtures"
 SEED_COMMIT = "1145e4ca7a7d1d5bfb7b4cd9cdb719a7aaea202e"
+RELEASED_SEED_SHA256 = "e63e12b594edfed8dd4b7ccac5b2dabb27436d0168c004d7667ba04ab7b9a055"
 HEX64 = re.compile(r"[a-f0-9]{64}\Z")
 
 
@@ -54,7 +55,7 @@ def pe_machine(path):
         return struct.unpack("<H", stream.read(2))[0]
 
 
-def verify_legacy_build(info, role, commit, version):
+def verify_legacy_build(info, role, commit, version, lane="rebuilt-staging"):
     """Check metadata read directly from the EXE, including after Authenticode signing."""
     require(info.splitlines() and info.splitlines()[0].endswith(": go1.22.4"), "legacy_toolchain")
     require("\tpath\tgithub.com/getlantern/lantern-desktop/main" in info, "legacy_package")
@@ -67,11 +68,13 @@ def verify_legacy_build(info, role, commit, version):
             settings[key] = value
     for key, value in {"GOOS": "windows", "GOARCH": "386", "vcs.revision": commit, "vcs.modified": "false"}.items():
         require(settings.get(key) == value, "legacy_build_setting")
-    tags = {"lantern", "walk_use_cgo"} | ({"migratione2e"} if role == "bridge" else set())
+    staging = lane == "rebuilt-staging"
+    tags = {"lantern", "walk_use_cgo"} | ({"migratione2e"} if staging and role == "bridge" else set())
     require(set(re.split("[, ]+", settings.get("-tags", ""))) == tags, "legacy_build_tags")
     prefix = "github.com/getlantern/lantern-desktop/"
-    expected = {"github.com/getlantern/flashlight/v7/common.ProAPIHost": "pro-api.staging.iantem.io",
-                prefix + "desktop.ApplicationVersion": version}
+    expected = {prefix + "desktop.ApplicationVersion": version}
+    if staging:
+        expected["github.com/getlantern/flashlight/v7/common.ProAPIHost"] = "pro-api.staging.iantem.io"
     if role == "bridge":
         expected[prefix + "autoupdate.WindowsInstallerHandoff"] = "1"
     optional = {prefix + "desktop.BuildDate", prefix + "desktop.RevisionDate"}
@@ -100,7 +103,7 @@ def verify_binary_builds(root, manifest):
                                 text=True, encoding="utf-8", timeout=30, check=True)
         verify_legacy_build(result.stdout, role,
                             manifest["source_commits"]["seed" if role == "seed" else "lantern-desktop"],
-                            "7.9.5" if role == "seed" else manifest["bridge_version"])
+                            "7.9.5" if role == "seed" else manifest["bridge_version"], manifest["lane"])
 
 
 def validate(root, manifest_hash):
@@ -112,11 +115,13 @@ def validate(root, manifest_hash):
                        "source_commits", "artifacts", "bridge_version", "installer_version",
                        "probe_url", "account_environment", "production_activation_ready"}, "manifest_fields")
     require(m["schema_version"] == 1 and m["production_activation_ready"] is False, "manifest_version")
-    require(m["lane"] == "rebuilt-staging", "released_binary_account_isolation_blocked")
+    require(m["lane"] in {"rebuilt-staging", "released-production"}, "invalid_lane")
+    released = m["lane"] == "released-production"
     require(m["scenario"] in {"success", "cancel", "installer-failure"}, "invalid_scenario")
     require(bool(re.fullmatch(r"[a-f0-9]{32}", m["run_id"])), "invalid_run_id")
-    require(m["endpoint"] == ENDPOINT and m["catalog"] == CATALOG
-            and m["account_environment"] == "staging", "not_isolated_staging")
+    require(m["endpoint"] == ("https://update.getlantern.org/update/lantern" if released else ENDPOINT)
+            and m["catalog"] == ("getlantern/lantern" if released else CATALOG)
+            and m["account_environment"] == ("prod" if released else "staging"), "wrong_lane_environment")
     require(bool(re.fullmatch(r"7\.(0|[1-9]\d*)\.(0|[1-9]\d*)", m["bridge_version"]))
             and tuple(map(int, m["bridge_version"].split("."))) > (7, 9, 5), "invalid_bridge_version")
     require(bool(re.fullmatch(r"10\.(0|[1-9]\d*)\.(0|[1-9]\d*)", m["installer_version"])), "invalid_installer_version")
@@ -129,7 +134,10 @@ def validate(root, manifest_hash):
                 for v in m["source_commits"].values()), "source_commits")
     require(m["source_commits"]["seed"] == SEED_COMMIT, "wrong_seed_source")
     artifacts = m["artifacts"]
-    require(set(artifacts) == {"seed", "bridge", "installer", "probe", "global_checker", "global_config"}, "asset_set")
+    roles = {"seed", "bridge", "installer", "probe"}
+    if not released:
+        roles |= {"global_checker", "global_config"}
+    require(set(artifacts) == roles, "asset_set")
     for name, asset in artifacts.items():
         expected = {"file", "sha256"} | ({"signer_thumbprint"} if name in {"seed", "bridge", "installer"} else set())
         require(set(asset) == expected, "asset_fields")
@@ -140,6 +148,9 @@ def validate(root, manifest_hash):
             require(bool(re.fullmatch(r"[A-Fa-f0-9]{40}", asset["signer_thumbprint"])), "invalid_signer")
         if name in {"seed", "bridge", "probe", "global_checker"}:
             require(pe_machine(file) == (0x14C if name != "probe" else 0x8664), "wrong_pe_arch")
+    if released:
+        require(artifacts["seed"]["sha256"] == RELEASED_SEED_SHA256, "not_released_seed")
+        return m
     # Use JSON (a YAML subset) to avoid ambiguous/duplicate YAML keys and keep the
     # seed's sticky config inspectable. The application still reads real global.yaml.
     config = json.loads(local_file(root, artifacts["global_config"]["file"]).read_text(encoding="utf-8"))
