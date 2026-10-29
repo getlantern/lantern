@@ -54,6 +54,12 @@ jobs:
         run: |
           last=$(gh api "repos/$GITHUB_REPOSITORY/commits?sha=$GITHUB_REF_NAME&path=assets/locales&author=github-actions%5Bbot%5D&per_page=30" \
                    --jq '[.[] | (.commit.message | capture("Translated-From: (?<sha>[0-9a-f]{40})") | .sha) // empty] | first // empty' || true)
+          # the trailer's commit must be at or behind the one being processed, or changes between
+          # the two would be missed; anything else (odd manual base, other branch) falls back
+          if [ -n "$last" ]; then
+            rel=$(gh api "repos/$GITHUB_REPOSITORY/compare/$last...$GITHUB_SHA" --jq .status 2>/dev/null || echo unknown)
+            case "$rel" in ahead|identical) ;; *) echo "trailer commit $last is $rel relative to $GITHUB_SHA; ignoring it"; last="";; esac
+          fi
           base="${MANUAL:-${last:-$BEFORE}}"
           [ "$base" = "0000000000000000000000000000000000000000" ] && base=""
           if [ -n "$base" ] && ! git fetch --depth=1 origin "$base"; then
