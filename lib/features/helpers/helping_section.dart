@@ -57,8 +57,8 @@ class HelpingSection extends HookConsumerWidget {
       return timer.cancel;
     }, [helpsSomeone, tabVisible]);
 
-    // A volunteer who never opens GetHelp must still learn that the
-    // keystore lost the old names.
+    // A volunteer who never opens the Personal Proxies tab must still learn
+    // that the keystore lost the old names.
     final notice = helpers.keystoreReset
         ? Padding(
             padding: const EdgeInsets.only(top: defaultSize),

@@ -7,6 +7,8 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/helpers/personal_proxies_tab.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/private_server/provider/manage_server_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -49,11 +51,12 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         final myServers = allServers
             .where((s) => s.credentials?.isJoined != true)
             .toList();
+        final showProxies = ref.watch(personalProxiesTabVisibleProvider);
 
         return BaseScreen(
           title: 'manage_private_locations'.i18n,
           body: DefaultTabController(
-            length: 2,
+            length: showProxies ? 3 : 2,
             child: Column(
               children: [
                 SizedBox(
@@ -76,6 +79,11 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                     tabs: [
                       Tab(child: Text('my_servers'.i18n)),
                       Tab(child: Text('joined_servers'.i18n)),
+                      if (showProxies)
+                        Tab(
+                          key: const Key('manage.personal_proxies_tab'),
+                          child: Text('personal_proxies_tab'.i18n),
+                        ),
                     ],
                   ),
                 ),
@@ -92,6 +100,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                           showShareAccessKey: false,
                         ),
                       ),
+                      if (showProxies) const PersonalProxiesTab(),
                     ],
                   ),
                 ),

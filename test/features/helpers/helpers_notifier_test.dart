@@ -787,7 +787,7 @@ void main() {
     }
   });
 
-  group('helperEntryVisibleProvider with the flag off', () {
+  group('personalProxiesTabVisibleProvider with the flag off', () {
     test('shows the entry while this device has helpers to manage', () async {
       svc.answers = {
         'unlock': _view(),
@@ -796,7 +796,7 @@ void main() {
       final c = container();
       await c.read(helpersProvider.notifier).refresh();
       expect(c.read(helperInvitesAvailableProvider), isFalse);
-      expect(c.read(helperEntryVisibleProvider), isTrue);
+      expect(c.read(personalProxiesTabVisibleProvider), isTrue);
     });
 
     test('shows the entry while this device has an invite out', () async {
@@ -806,12 +806,12 @@ void main() {
       };
       final c = container();
       await c.read(helpersProvider.notifier).refresh();
-      expect(c.read(helperEntryVisibleProvider), isTrue);
+      expect(c.read(personalProxiesTabVisibleProvider), isTrue);
     });
 
     test('hides it, without the keystore, when there is nothing', () async {
       final c = container();
-      expect(c.read(helperEntryVisibleProvider), isFalse);
+      expect(c.read(personalProxiesTabVisibleProvider), isFalse);
       expect(keys.reads, 0);
       expect(svc.calls, isEmpty);
       expect(storage.values.containsKey(HelpersNotifier.usedKey), isFalse);
@@ -824,10 +824,14 @@ void main() {
         sl.unregister<HelperKeyStore>();
         sl.registerSingleton<HelperKeyStore>(_Keys(fail: true));
         final c = container();
-        expect(c.read(helperEntryVisibleProvider), isTrue, reason: 'before');
+        expect(
+          c.read(personalProxiesTabVisibleProvider),
+          isTrue,
+          reason: 'before',
+        );
         await c.read(helpersProvider.notifier).refresh();
         expect(c.read(helpersProvider).viewLoaded, isFalse);
-        expect(c.read(helperEntryVisibleProvider), isTrue);
+        expect(c.read(personalProxiesTabVisibleProvider), isTrue);
       },
     );
 
@@ -837,7 +841,7 @@ void main() {
       final c = container();
       await c.read(helpersProvider.notifier).refresh();
       expect(c.read(helpersProvider).viewLoaded, isTrue);
-      expect(c.read(helperEntryVisibleProvider), isFalse);
+      expect(c.read(personalProxiesTabVisibleProvider), isFalse);
     });
 
     test('hides it in a stealth build', () async {
@@ -848,7 +852,7 @@ void main() {
       final c = container();
       await c.read(helpersProvider.notifier).refresh();
       HelpersNotifier.debugBuildEnabled = false;
-      expect(c.read(helperEntryVisibleProvider), isFalse);
+      expect(c.read(personalProxiesTabVisibleProvider), isFalse);
     });
   });
 

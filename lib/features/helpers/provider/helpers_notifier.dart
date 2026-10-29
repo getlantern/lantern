@@ -22,14 +22,13 @@ bool helperInvitesAvailable(Ref ref) =>
     AppBuildInfo.enableHelperInvites &&
     ref.watch(featureFlagProvider).getBool(FeatureFlag.helperInvites);
 
-/// Whether settings offer "Get help from a friend": while helper invites are
-/// available, and after the flag goes off while this device still has
-/// helpers or invites to manage, or may have them: it used helper invites
-/// and no view has loaded yet. Reads only the notifier's state and the used
-/// mark in local storage, never the keystore, so a device that never used
-/// them stays hidden.
+/// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+/// helper invites are available, and after the flag goes off while this
+/// device still has personal proxies or invites to manage, or may have them:
+/// it used helper invites and no view has loaded yet. Reads only the
+/// notifier's state and the used mark in local storage, never the keystore.
 @riverpod
-bool helperEntryVisible(Ref ref) {
+bool personalProxiesTabVisible(Ref ref) {
   if (!HelpersNotifier._buildEnabled) return false;
   if (ref.watch(helperInvitesAvailableProvider)) return true;
   final s = ref.watch(helpersProvider);

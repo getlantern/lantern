@@ -2174,29 +2174,11 @@ msgstr "Couldn't copy the link. Use Share link instead."
 
 # Helper invites: the inviter's side. A "helper" is a friend abroad whose
 # internet connection this user borrows through Lantern.
-msgid "helpers_title"
-msgstr "Get help from a friend"
-
-msgid "helpers_intro"
-msgstr "Invite someone you trust who lives somewhere without censorship. Lantern can connect you through their internet."
-
-msgid "invite_someone"
-msgstr "Invite someone to help me"
-
 msgid "helpers_your_name_label"
 msgstr "Your name, as your friend knows you"
 
 msgid "helpers_your_name_hint"
 msgstr "For example, Sara"
-
-msgid "helpers_list_title"
-msgstr "Your helpers"
-
-msgid "helpers_empty"
-msgstr "No one is helping you yet."
-
-msgid "helpers_nudge_second"
-msgstr "If your helper's computer goes offline, so does your connection through it. Invite a second friend to stay connected."
 
 msgid "helper_online"
 msgstr "Online"
@@ -2229,6 +2211,17 @@ msgstr "Manage Private Locations"
 msgid "invite_personal_proxy"
 msgstr "Invite a Personal Proxy"
 
+# Manage Private Locations' tab for the user's personal proxies.
+msgid "personal_proxies_tab"
+msgstr "Personal Proxies"
+
+msgid "invite_another"
+msgstr "Invite another"
+
+# Label of the field for the name this device shows for a personal proxy. It stays on this device.
+msgid "personal_proxy_nickname_label"
+msgstr "Name on this device"
+
 msgid "invite_share_body"
 msgstr "Send this link to one person you trust. It works once and expires in 48 hours."
 
@@ -2254,9 +2247,6 @@ msgstr "Waiting for your friend to open the link"
 # %s is a number of hours.
 msgid "invite_expires"
 msgstr "Expires in %s hours"
-
-msgid "invite_forget"
-msgstr "Cancel invite"
 
 msgid "invite_gone"
 msgstr "This invite has been used or has expired."

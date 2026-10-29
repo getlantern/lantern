@@ -55,45 +55,42 @@ final class HelperInvitesAvailableProvider
 String _$helperInvitesAvailableHash() =>
     r'28b6defb614c556b2fadebc03865e801586b6872';
 
-/// Whether settings offer "Get help from a friend": while helper invites are
-/// available, and after the flag goes off while this device still has
-/// helpers or invites to manage, or may have them: it used helper invites
-/// and no view has loaded yet. Reads only the notifier's state and the used
-/// mark in local storage, never the keystore, so a device that never used
-/// them stays hidden.
+/// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+/// helper invites are available, and after the flag goes off while this
+/// device still has personal proxies or invites to manage, or may have them:
+/// it used helper invites and no view has loaded yet. Reads only the
+/// notifier's state and the used mark in local storage, never the keystore.
 
-@ProviderFor(helperEntryVisible)
-final helperEntryVisibleProvider = HelperEntryVisibleProvider._();
+@ProviderFor(personalProxiesTabVisible)
+final personalProxiesTabVisibleProvider = PersonalProxiesTabVisibleProvider._();
 
-/// Whether settings offer "Get help from a friend": while helper invites are
-/// available, and after the flag goes off while this device still has
-/// helpers or invites to manage, or may have them: it used helper invites
-/// and no view has loaded yet. Reads only the notifier's state and the used
-/// mark in local storage, never the keystore, so a device that never used
-/// them stays hidden.
+/// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+/// helper invites are available, and after the flag goes off while this
+/// device still has personal proxies or invites to manage, or may have them:
+/// it used helper invites and no view has loaded yet. Reads only the
+/// notifier's state and the used mark in local storage, never the keystore.
 
-final class HelperEntryVisibleProvider
+final class PersonalProxiesTabVisibleProvider
     extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
-  /// Whether settings offer "Get help from a friend": while helper invites are
-  /// available, and after the flag goes off while this device still has
-  /// helpers or invites to manage, or may have them: it used helper invites
-  /// and no view has loaded yet. Reads only the notifier's state and the used
-  /// mark in local storage, never the keystore, so a device that never used
-  /// them stays hidden.
-  HelperEntryVisibleProvider._()
+  /// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+  /// helper invites are available, and after the flag goes off while this
+  /// device still has personal proxies or invites to manage, or may have them:
+  /// it used helper invites and no view has loaded yet. Reads only the
+  /// notifier's state and the used mark in local storage, never the keystore.
+  PersonalProxiesTabVisibleProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'helperEntryVisibleProvider',
+        name: r'personalProxiesTabVisibleProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$helperEntryVisibleHash();
+  String debugGetCreateSourceHash() => _$personalProxiesTabVisibleHash();
 
   @$internal
   @override
@@ -102,7 +99,7 @@ final class HelperEntryVisibleProvider
 
   @override
   bool create(Ref ref) {
-    return helperEntryVisible(ref);
+    return personalProxiesTabVisible(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -114,8 +111,8 @@ final class HelperEntryVisibleProvider
   }
 }
 
-String _$helperEntryVisibleHash() =>
-    r'583159a4d2587bc65da4bdac79291d1494bbdca4';
+String _$personalProxiesTabVisibleHash() =>
+    r'c25872760ac30e76edd3a739ed8d9f686f03f70f';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
@@ -159,7 +156,7 @@ final class HelpersNotifierProvider
   }
 }
 
-String _$helpersNotifierHash() => r'0c5eb5ff0396001b200e7f5a0878fb16e8b616e4';
+String _$helpersNotifierHash() => r'38913c692920a2459ae57bfd887946566edb1b1a';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
