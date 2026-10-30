@@ -181,6 +181,89 @@ class ShareNotifier extends _$ShareNotifier {
     _startEventSubscription(widgetRef);
   }
 
+  /// The iOS network extension cannot carry the peer proxy's second sing-box
+  /// instance, so the backend refuses SmC there.
+  @visibleForTesting
+  bool Function() isIOS = () => PlatformUtils.isIOS;
+
+  /// Set by the first [reconcileLaunch] and by any start, so the launch
+  /// reconciliation runs at most once and never acts on a session this app
+  /// run started.
+  bool _launchSettled = false;
+
+  /// Reconciles a session radiance resumed from persisted settings at
+  /// process start with the user's settings. Call after [syncFromBackend].
+  ///
+  /// A resumed session the user does not want (auto-enable off, or the tab
+  /// hidden) is stopped, unless this device helps a friend through a
+  /// helper-invite pairing: stopping it would cut off the friend's personal
+  /// proxy. A kept Unbounded session switches to SmC when a manual port is
+  /// set, as the toggle would pick; a failed SmC start falls back to
+  /// Unbounded as usual.
+  Future<void> reconcileLaunch(WidgetRef widgetRef) async {
+    if (_launchSettled) return;
+    _launchSettled = true;
+    if (_changing || state.probing) return;
+    _changes++;
+    try {
+      await _reconcileLaunch(widgetRef);
+    } finally {
+      _changes--;
+    }
+  }
+
+  Future<void> _reconcileLaunch(WidgetRef widgetRef) async {
+    final svc = widgetRef.read(lanternServiceProvider);
+    final ShareMode resumed;
+    if (state.active && state.mode == ShareMode.smc) {
+      resumed = ShareMode.smc;
+    } else {
+      // Unbounded reaches the UI through snapshots, which may not have
+      // arrived yet, so ask radiance outright.
+      final enabled =
+          state.mode == ShareMode.unbounded ||
+          (await svc.isUnboundedEnabled()).fold((_) => false, (v) => v);
+      if (!ref.mounted) return;
+      if (!enabled) return;
+      resumed = ShareMode.unbounded;
+      // Shown as running until the first snapshot fills in the rest, so the
+      // auto-start gate that follows does not start it a second time.
+      state = state.copyWith(active: true, mode: ShareMode.unbounded);
+    }
+
+    final settings = ref.read(appSettingProvider);
+    if (settings.unboundedHidden || !settings.unboundedAutoEnable) {
+      // A view that cannot be read keeps the session: a local read failure
+      // must never cut off a friend.
+      final helps = await ref.read(helpersProvider.notifier).helpsSomeone();
+      if (!ref.mounted) return;
+      if (helps != false) {
+        appLogger.info('Action Mode resumed at launch: kept for a friend');
+      } else {
+        appLogger.info('Action Mode resumed at launch: not wanted, stopping');
+        await _stop(widgetRef, mode: resumed);
+        return;
+      }
+    }
+
+    if (resumed != ShareMode.unbounded || isIOS()) return;
+    // A manually forwarded port is an explicit request for SmC.
+    final port = (await svc.getPeerManualPort()).fold((_) => 0, (p) => p);
+    if (!ref.mounted || port <= 0) return;
+    appLogger.info(
+      'Action Mode resumed as Unbounded with a manual port: '
+      'switching to SmC',
+    );
+    final off = await svc.setUnboundedEnabled(false);
+    if (!ref.mounted) return;
+    if (off.isLeft()) {
+      appLogger.error('Switching resumed Unbounded to SmC: could not stop it');
+      return;
+    }
+    _startGuard = null;
+    await _start(widgetRef, ShareMode.smc);
+  }
+
   /// The phase to adopt from a raw peer-status payload, or null to leave
   /// state untouched. Only phases that mean sharing is genuinely up qualify:
   /// idle means the backend agrees we are off, error is owned by the toggle
@@ -275,9 +358,7 @@ class ShareNotifier extends _$ShareNotifier {
       await _start(widgetRef, mode);
     }
 
-    // The iOS network extension cannot carry the peer proxy's second sing-box
-    // instance, so the backend refuses SmC there.
-    if (PlatformUtils.isIOS) {
+    if (isIOS()) {
       await start(ShareMode.unbounded);
       return;
     }
@@ -364,6 +445,7 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
+    _launchSettled = true;
     state = ShareState(
       active: true,
       mode: mode,
@@ -408,8 +490,9 @@ class ShareNotifier extends _$ShareNotifier {
     );
   }
 
-  Future<void> _stop(WidgetRef widgetRef) async {
-    final result = switch (state.mode) {
+  /// Stops the session in [mode], the current one by default.
+  Future<void> _stop(WidgetRef widgetRef, {ShareMode? mode}) async {
+    final result = switch (mode ?? state.mode) {
       ShareMode.smc =>
         await widgetRef
             .read(radianceSettingsProvider.notifier)

@@ -17,6 +17,8 @@ import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/core/models/radiance_settings_state.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
 // Reconciliation of ShareState against the peer client's real state. The
 // peer-status stream is edge-triggered, so a UI that only listens opens at
@@ -45,10 +47,37 @@ class _FakeService implements LanternService {
 
   @override
   Stream<AppEvent> watchAppEvents() => const Stream.empty();
+  int manualPort = 0;
+
   @override
   Future<Either<Failure, int>> getPeerManualPort() async {
     calls.add('manual_port');
-    return right(0);
+    return right(manualPort);
+  }
+
+  /// radiance's persisted Unbounded opt-in.
+  bool unboundedEnabled = false;
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async {
+    calls.add('unbounded?');
+    return right(unboundedEnabled);
+  }
+
+  /// The raw peer status syncFromBackend reads; empty means not sharing.
+  String peerStatus = '';
+
+  @override
+  Future<Either<Failure, String>> getPeerStatusJSON() async =>
+      right(peerStatus);
+
+  bool peerOk = true;
+
+  @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
+    calls.add('peer:$enabled');
+    if (peerOk) return right(unit);
+    return left(Failure(error: 'no upnp', localizedErrorMessage: 'no upnp'));
   }
 
   /// Runs during the UPnP probe, as a country change can.
@@ -82,12 +111,23 @@ class _FakeService implements LanternService {
 
 ShareNotifier _notifier() => _setUp().$1;
 
+/// What [_Helpers.helpsSomeone] answers: null is a view that failed to load.
+bool? _helps = false;
+
 /// The people this device helps, as an approval leaves them: one friend.
 class _Helpers extends HelpersNotifier {
   @override
   HelpersState build() => const HelpersState(
     view: HelpersView(helping: [HelperPairingView(pairingId: 'p1')]),
   );
+
+  int helpsAsked = 0;
+
+  @override
+  Future<bool?> helpsSomeone() async {
+    helpsAsked++;
+    return _helps;
+  }
 
   void helpNobody() =>
       state = state.copyWith(view: const HelpersView(unlocked: true));
@@ -97,11 +137,19 @@ class _Helpers extends HelpersNotifier {
   );
 }
 
+AppSetting _appSetting = const AppSetting();
+
 class _Settings extends AppSettingNotifier {
   @override
-  AppSetting build() => const AppSetting();
+  AppSetting build() => _appSetting;
   @override
   void setUnboundedSessionCount(int value) {}
+}
+
+/// Skips the settings fetch the real build starts.
+class _Radiance extends RadianceSettings {
+  @override
+  RadianceSettingsState build() => const RadianceSettingsState();
 }
 
 (ShareNotifier, ProviderContainer, _FakeService) _setUp() {
@@ -111,6 +159,7 @@ class _Settings extends AppSettingNotifier {
       lanternServiceProvider.overrideWithValue(service),
       appSettingProvider.overrideWith(_Settings.new),
       helpersProvider.overrideWith(_Helpers.new),
+      radianceSettingsProvider.overrideWith(_Radiance.new),
     ],
   );
   addTearDown(container.dispose);
@@ -121,7 +170,10 @@ class _Settings extends AppSettingNotifier {
 /// from a Consumer.
 BuildContext? _context;
 
-Future<WidgetRef> _refFor(WidgetTester tester, ProviderContainer container) async {
+Future<WidgetRef> _refFor(
+  WidgetTester tester,
+  ProviderContainer container,
+) async {
   late WidgetRef captured;
   await tester.pumpWidget(
     UncontrolledProviderScope(
@@ -152,7 +204,11 @@ Future<(ShareNotifier, WidgetRef, _FakeService)> _start(
 }
 
 void main() {
-  setUp(() => sl.registerSingleton<LocalStorageService>(_FakeStorage()));
+  setUp(() {
+    _appSetting = const AppSetting();
+    _helps = false;
+    sl.registerSingleton<LocalStorageService>(_FakeStorage());
+  });
   tearDown(() => sl.reset());
 
   group('adoptablePhase adopts', () {
@@ -407,6 +463,217 @@ void main() {
       CountryCode.update('IR');
       await notifier.retryPendingHelperStart(ref);
       expect(service.calls, isEmpty);
+    });
+  });
+
+  group('reconcileLaunch', () {
+    const autoOn = AppSetting(
+      onboardingCompleted: true,
+      unboundedAutoEnable: true,
+    );
+    const autoOff = AppSetting(onboardingCompleted: true);
+
+    /// Home's launch sequence: sync, reconcile, then the auto-start gate.
+    Future<void> launch(ShareNotifier notifier, WidgetRef ref) async {
+      await notifier.syncFromBackend(ref);
+      await notifier.reconcileLaunch(ref);
+      final s = _appSetting;
+      if (s.unboundedHidden || !s.onboardingCompleted) return;
+      if (!s.unboundedAutoEnable) return;
+      if (notifier.state.active || notifier.state.probing) return;
+      await notifier.autoStart(ref);
+    }
+
+    _Helpers helpers(WidgetRef ref) =>
+        ref.read(helpersProvider.notifier) as _Helpers;
+
+    testWidgets('stops a resumed Unbounded session when auto-enable is off', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?', 'unbounded:false']);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.mode, ShareMode.off);
+    });
+
+    testWidgets('stops a resumed session when the tab is hidden', (
+      tester,
+    ) async {
+      _appSetting = autoOn.copyWith(unboundedHidden: true);
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      service.manualPort = 5698;
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?', 'unbounded:false']);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('keeps a resumed session that helps a friend', (tester) async {
+      _appSetting = autoOff;
+      _helps = true;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?', 'manual_port']);
+      expect(helpers(ref).helpsAsked, 1);
+      expect(notifier.state.active, isTrue);
+      expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('keeps a resumed session when the helper view cannot be read', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      _helps = null;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      await launch(notifier, ref);
+      expect(service.calls, isNot(contains('unbounded:false')));
+      expect(notifier.state.active, isTrue);
+      expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('switches a resumed Unbounded session to SmC for a manual '
+        'port', (tester) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.manualPort = 5698;
+      service.unboundedOk = true;
+      await launch(notifier, ref);
+      expect(service.calls, [
+        'unbounded?',
+        'manual_port',
+        'unbounded:false',
+        'peer:true',
+      ]);
+      expect(helpers(ref).helpsAsked, 0, reason: 'wanted, so never asked');
+      expect(notifier.state.active, isTrue);
+      expect(notifier.state.mode, ShareMode.smc);
+    });
+
+    testWidgets('a switch whose SmC start fails falls back to Unbounded', (
+      tester,
+    ) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.manualPort = 5698;
+      service.peerOk = false;
+      service.unboundedOk = true;
+      await launch(notifier, ref);
+      await tester.pump();
+      expect(service.calls, [
+        'unbounded?',
+        'manual_port',
+        'unbounded:false',
+        'peer:true',
+        'unbounded:true',
+      ]);
+      expect(notifier.state.mode, ShareMode.unbounded);
+      expect(notifier.state.fallbackReason, 'no upnp');
+    });
+
+    testWidgets('a volunteer\'s kept session also switches to SmC', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      _helps = true;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.manualPort = 5698;
+      service.unboundedOk = true;
+      await launch(notifier, ref);
+      expect(service.calls.last, 'peer:true');
+      expect(notifier.state.mode, ShareMode.smc);
+    });
+
+    testWidgets('keeps a resumed Unbounded session without a manual port', (
+      tester,
+    ) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?', 'manual_port']);
+      expect(notifier.state.active, isTrue);
+      expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('keeps a resumed Unbounded session on iOS', (tester) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      notifier.isIOS = () => true;
+      service.unboundedEnabled = true;
+      service.manualPort = 5698;
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?']);
+      expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('stops a resumed SmC session when auto-enable is off', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      await launch(notifier, ref);
+      expect(service.calls, ['peer:false']);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.mode, ShareMode.off);
+    });
+
+    testWidgets('keeps a resumed SmC session when auto-enable is on', (
+      tester,
+    ) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      service.manualPort = 5698;
+      await launch(notifier, ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.mode, ShareMode.smc);
+    });
+
+    testWidgets('auto-starts Unbounded when nothing was resumed', (
+      tester,
+    ) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      service.manualPort = 5698;
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?', 'unbounded:true']);
+      expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('does nothing when nothing was resumed and auto-enable is '
+        'off', (tester) async {
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?']);
+      expect(helpers(ref).helpsAsked, 0);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('runs once, and never on a session this run started', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      await notifier.autoStart(ref);
+      service.calls.clear();
+      service.unboundedEnabled = true;
+      await notifier.reconcileLaunch(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isTrue);
     });
   });
 

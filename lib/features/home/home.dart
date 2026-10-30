@@ -172,33 +172,40 @@ class Home extends HookConsumerWidget {
     ref.read(appEventProvider);
 
     // Reconcile the share UI with the backend before anything reads its
-    // state. Peer sharing resumes from persisted settings at process start,
-    // and the peer-status stream is edge-triggered, so without asking
-    // outright the UI opens at mode=off while SmC is already serving.
-    // Deliberately not gated on unboundedAutoEnable: the point is to reflect
-    // what is running, which has nothing to do with the auto-start
-    // preference.
-    // Auto-enable Unbounded — gated on the "Auto-enable Unbounded"
-    // toggle from Unbounded Settings (opt-in, default off) AND the per-user
-    // "Hide Unbounded" toggle. Hiding the tab is the opt-out: a user
-    // who hid Unbounded should not see it silently auto-enable in
-    // the background. Fires from two entry points so the spec's
-    // subtitle "Turn on automatically when Lantern is open" is
-    // honoured whether the user connects the VPN or not:
-    //   1. App launch (this useEffect) — once on Home mount.
-    //   2. VPN connect (ref.listen further down) — on every
+    // state. radiance resumes sharing (Unbounded or SmC) from persisted
+    // settings at process start, and the peer-status stream is
+    // edge-triggered, so without asking outright the UI opens at mode=off
+    // while SmC is already serving. syncFromBackend is deliberately not
+    // gated on unboundedAutoEnable: it reflects what is running.
+    //
+    // reconcileLaunch then holds the resumed session to the user's
+    // settings. With "Auto-enable Unbounded" off, or the tab hidden (hiding
+    // is the opt-out), a resumed session is stopped, unless this device
+    // helps a friend through a helper-invite pairing: stopping it would cut
+    // off the friend's personal proxy. A kept Unbounded session switches to
+    // SmC when a manual port is set (not on iOS), since a manual port is an
+    // explicit request for SmC.
+    //
+    // Auto-enable Unbounded: gated on the "Auto-enable Unbounded" toggle
+    // from Unbounded Settings (opt-in, default off) AND the per-user "Hide
+    // Unbounded" toggle. Fires from two entry points so the spec's subtitle
+    // "Turn on automatically when Lantern is open" is honoured whether the
+    // user connects the VPN or not:
+    //   1. App launch (this useEffect): once on Home mount, when nothing
+    //      was resumed.
+    //   2. VPN connect (ref.listen further down): on every
     //      disconnected → connected transition, in case the toggle
     //      flipped on after launch or the user finally connects.
     // Both paths gate on (active || probing) to avoid re-triggering
     // while a Start is in flight, and skip the disclosure dialog
-    // because the user has already opted in via settings.
+    // because the user has already opted in via settings. Auto-start is
+    // always Unbounded: it cannot disclose that SmC makes the device a
+    // residential exit.
     //
     // The reconciliation must complete before that gate is read, which is
-    // why these are one sequential callback rather than two. Peer sharing
-    // resumes from persisted settings at process start and the peer-status
-    // stream is edge-triggered, so until the UI asks outright it believes
-    // mode=off. Evaluating (active || probing) against that would start
-    // Unbounded on top of an SmC session that is already serving.
+    // why these are one sequential callback. Until the UI asks outright it
+    // believes mode=off, and evaluating (active || probing) against that
+    // would start Unbounded on top of a session that is already serving.
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         // Home can be torn down before the frame settles, and again while
@@ -206,9 +213,9 @@ class Home extends HookConsumerWidget {
         // Same guard the other post-frame callbacks in this file use.
         if (!context.mounted) return;
         if (!unboundedAvailable) return;
-        // Not gated on unboundedAutoEnable: reflecting what is actually
-        // running has nothing to do with the auto-start preference.
         await ref.read(shareProvider.notifier).syncFromBackend(ref);
+        if (!context.mounted) return;
+        await ref.read(shareProvider.notifier).reconcileLaunch(ref);
         if (!context.mounted) return;
         final appSetting = ref.read(appSettingProvider);
         if (appSetting.unboundedHidden) return;

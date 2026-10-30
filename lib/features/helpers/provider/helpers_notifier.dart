@@ -338,6 +338,18 @@ class HelpersNotifier extends _$HelpersNotifier {
 
   Future<HelperResult> refreshView() async => _apply(await _call('view'));
 
+  /// Whether this device helps a friend through a helper-invite pairing,
+  /// from the local view (no network). False, without touching the keystore,
+  /// on a device that never used helper invites or a build without them.
+  /// Null when the view cannot be read.
+  Future<bool?> helpsSomeone() async {
+    if (!_buildEnabled || !used) return false;
+    if (!await ensureUnlocked()) return null;
+    final r = await refreshView();
+    if (!r.ok) return null;
+    return HelpersView.fromJson(r.data).helping.isNotEmpty;
+  }
+
   Future<HelperResult> createInvite(String name) async {
     final locked = await _guard();
     if (locked != null) return locked;
