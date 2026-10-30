@@ -4,16 +4,40 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/getlantern/radiance/servers"
 )
 
-// fakeServerStore holds user servers by tag, refusing reserved tags the way
-// radiance's AddServers does.
+var errTunnel = errors.New("tunnel update failed")
+
+// fakeServerStore holds user servers by tag. It refuses reserved tags the
+// way radiance's AddServers does, and each call can be scripted: radiance
+// saves (or deletes) before updating the tunnel, so an error does not say
+// whether the store changed.
 type fakeServerStore struct {
 	byTag map[string]*servers.Server
 	adds  int
+
+	// addOutcomes and removeOutcomes script successive calls; past the end
+	// a call applies and succeeds.
+	addOutcomes    []outcome
+	removeOutcomes []outcome
+}
+
+type outcome struct {
+	apply bool
+	err   error
+}
+
+func next(o *[]outcome) outcome {
+	if len(*o) == 0 {
+		return outcome{apply: true}
+	}
+	r := (*o)[0]
+	*o = (*o)[1:]
+	return r
 }
 
 func (f *fakeServerStore) GetServerByTag(_ context.Context, tag string) (*servers.Server, bool, error) {
@@ -26,10 +50,13 @@ func (f *fakeServerStore) GetServerByTag(_ context.Context, tag string) (*server
 }
 
 func (f *fakeServerStore) RemoveServers(_ context.Context, tags []string) error {
-	for _, t := range tags {
-		delete(f.byTag, t)
+	o := next(&f.removeOutcomes)
+	if o.apply {
+		for _, t := range tags {
+			delete(f.byTag, t)
+		}
 	}
-	return nil
+	return o.err
 }
 
 func (f *fakeServerStore) AddServers(_ context.Context, list servers.ServerList) error {
@@ -39,11 +66,23 @@ func (f *fakeServerStore) AddServers(_ context.Context, list servers.ServerList)
 			return servers.ErrReservedTag
 		}
 	}
-	for _, s := range list.Servers {
-		cp := *s
-		f.byTag[s.Tag] = &cp
+	o := next(&f.addOutcomes)
+	if o.apply {
+		for _, s := range list.Servers {
+			cp := *s
+			f.byTag[s.Tag] = &cp
+		}
 	}
-	return nil
+	return o.err
+}
+
+func (f *fakeServerStore) tags() []string {
+	var t []string
+	for k := range f.byTag {
+		t = append(t, k)
+	}
+	slices.Sort(t)
+	return t
 }
 
 func newRenameCore(t *testing.T, store *fakeServerStore) *LanternCore {
@@ -59,32 +98,12 @@ func TestUpdatePrivateServerNameRefusesReservedNames(t *testing.T) {
 		if !errors.Is(err, servers.ErrReservedTag) {
 			t.Errorf("rename to %q: error = %v, want ErrReservedTag", name, err)
 		}
-		if _, ok := store.byTag["home"]; !ok {
-			t.Errorf("rename to %q lost the server", name)
+		if !slices.Equal(store.tags(), []string{"home"}) {
+			t.Errorf("rename to %q: servers = %q", name, store.tags())
 		}
 		if store.adds != 0 {
 			t.Errorf("rename to %q reached AddServers", name)
 		}
-	}
-}
-
-func TestUpdatePrivateServerNameRestoresOriginal(t *testing.T) {
-	store := &fakeServerStore{}
-	lc := newRenameCore(t, store)
-	failOnce := &failingFirstAdd{fakeServerStore: store}
-	lc.serverStore = failOnce
-	if err := lc.UpdatePrivateServerName("home", "office"); err == nil {
-		t.Fatal("rename succeeded; want the add failure")
-	}
-	got, ok := store.byTag["home"]
-	if !ok {
-		t.Fatal("original server was not restored")
-	}
-	if got.Type != "vless" {
-		t.Errorf("restored server type = %q, want vless", got.Type)
-	}
-	if _, ok := store.byTag["office"]; ok {
-		t.Error("renamed server exists after a failed add")
 	}
 }
 
@@ -94,59 +113,77 @@ func TestUpdatePrivateServerNameRenames(t *testing.T) {
 	if err := lc.UpdatePrivateServerName("home", "office"); err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := store.byTag["home"]; ok {
-		t.Error("old tag kept")
-	}
-	if s, ok := store.byTag["office"]; !ok || s.Tag != "office" {
-		t.Errorf("renamed server = %+v, %v", s, ok)
+	if !slices.Equal(store.tags(), []string{"office"}) {
+		t.Errorf("servers = %q, want [office]", store.tags())
 	}
 }
 
-// failingFirstAdd fails the first AddServers (the renamed copy) and lets
-// the restore through.
-type failingFirstAdd struct {
-	*fakeServerStore
-	failed bool
-}
-
-func (f *failingFirstAdd) AddServers(ctx context.Context, list servers.ServerList) error {
-	if !f.failed {
-		f.failed = true
-		return errors.New("backend refused")
-	}
-	return f.fakeServerStore.AddServers(ctx, list)
-}
-
-// persistThenFail stores the renamed copy and then fails, as radiance does
-// when the tunnel update after the save fails.
-type persistThenFail struct {
-	*fakeServerStore
-	failed bool
-}
-
-func (f *persistThenFail) AddServers(ctx context.Context, list servers.ServerList) error {
-	err := f.fakeServerStore.AddServers(ctx, list)
-	if !f.failed {
-		f.failed = true
-		return errors.New("tunnel update failed")
-	}
-	return err
-}
-
-func TestUpdatePrivateServerNameDropsAPersistedFailedAdd(t *testing.T) {
-	store := &fakeServerStore{}
-	lc := newRenameCore(t, store)
-	lc.serverStore = &persistThenFail{fakeServerStore: store}
-	if err := lc.UpdatePrivateServerName("home", "office"); err == nil {
-		t.Fatal("rename succeeded; want the add failure")
-	}
-	if _, ok := store.byTag["office"]; ok {
-		t.Error("the renamed copy the failed add saved is still there")
-	}
-	if _, ok := store.byTag["home"]; !ok {
-		t.Error("original server was not restored")
-	}
-	if len(store.byTag) != 1 {
-		t.Errorf("servers = %d, want only the original", len(store.byTag))
+func TestUpdatePrivateServerNameReconcilesAFailedAdd(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		add     []outcome
+		remove  []outcome
+		want    []string
+		wantMsg string // in the error, besides the add error
+	}{
+		{
+			name: "nothing saved, restore applies",
+			add:  []outcome{{apply: false, err: errTunnel}},
+			want: []string{"home"},
+		},
+		{
+			name: "nothing saved, restore saves then errors",
+			add:  []outcome{{apply: false, err: errTunnel}, {apply: true, err: errTunnel}},
+			want: []string{"home"},
+		},
+		{
+			name:    "nothing saved, restore saves nothing",
+			add:     []outcome{{apply: false, err: errTunnel}, {apply: false, err: errTunnel}},
+			want:    nil,
+			wantMsg: "no longer stored",
+		},
+		{
+			name:    "renamed copy saved: the rename stands",
+			add:     []outcome{{apply: true, err: errTunnel}},
+			want:    []string{"office"},
+			wantMsg: `saved as "office"`,
+		},
+		{
+			name: "both saved, cleanup applies",
+			// The first remove (of home) reports success but keeps it.
+			remove: []outcome{{apply: false}},
+			add:    []outcome{{apply: true, err: errTunnel}},
+			want:   []string{"home"},
+		},
+		{
+			name:   "both saved, cleanup deletes then errors",
+			remove: []outcome{{apply: false}, {apply: true, err: errTunnel}},
+			add:    []outcome{{apply: true, err: errTunnel}},
+			want:   []string{"home"},
+		},
+		{
+			name:    "both saved, cleanup deletes nothing",
+			remove:  []outcome{{apply: false}, {apply: false, err: errTunnel}},
+			add:     []outcome{{apply: true, err: errTunnel}},
+			want:    []string{"home", "office"},
+			wantMsg: "both",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			store := &fakeServerStore{}
+			lc := newRenameCore(t, store)
+			store.addOutcomes = tt.add
+			store.removeOutcomes = tt.remove
+			err := lc.UpdatePrivateServerName("home", "office")
+			if !errors.Is(err, errTunnel) {
+				t.Fatalf("error = %v, want the add error", err)
+			}
+			if tt.wantMsg != "" && !strings.Contains(err.Error(), tt.wantMsg) {
+				t.Errorf("error = %q, want it to mention %q", err, tt.wantMsg)
+			}
+			if !slices.Equal(store.tags(), tt.want) {
+				t.Errorf("servers = %q, want %q", store.tags(), tt.want)
+			}
+		})
 	}
 }

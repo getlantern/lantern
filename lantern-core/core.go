@@ -1427,8 +1427,9 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 		return fmt.Errorf("server with tag %q already exists", newTag)
 	}
 
-	// Remove old, add renamed copy; put the original back if the add fails
-	// so a refused rename never loses the server.
+	// Remove old, add renamed copy. radiance saves or deletes before it
+	// updates the tunnel, so an error does not say what is stored: a failed
+	// add is reconciled from what the store holds afterwards.
 	original := *source
 	if err := lc.serverStore.RemoveServers(lc.ctx, []string{oldTag}); err != nil {
 		return fmt.Errorf("failed to remove old server %q: %w", oldTag, err)
@@ -1437,20 +1438,60 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	renamed.Tag = newTag
 	list := servers.ServerList{Servers: []*servers.Server{&renamed}}
 	if err := lc.serverStore.AddServers(lc.ctx, list); err != nil {
-		// radiance saves before updating the tunnel, so a failed add can
-		// still have stored the renamed copy; drop it before restoring.
-		if _, saved, gerr := lc.serverStore.GetServerByTag(lc.ctx, newTag); gerr == nil && saved {
-			if rerr := lc.serverStore.RemoveServers(lc.ctx, []string{newTag}); rerr != nil {
-				return fmt.Errorf("failed to add renamed server %q: %w (removing its saved copy also failed: %v)", newTag, err, rerr)
-			}
-		}
-		restore := servers.ServerList{Servers: []*servers.Server{&original}}
-		if rerr := lc.serverStore.AddServers(lc.ctx, restore); rerr != nil {
-			return fmt.Errorf("failed to add renamed server %q: %w (restoring %q also failed: %v)", newTag, err, oldTag, rerr)
-		}
-		return fmt.Errorf("failed to add renamed server %q: %w", newTag, err)
+		return lc.reconcileRename(oldTag, newTag, &original, err)
 	}
 	return nil
+}
+
+// reconcileRename settles a rename whose add failed, from the stored state
+// rather than the errors, with at most one corrective call. It always
+// returns an error wrapping addErr, describing the final state.
+func (lc *LanternCore) reconcileRename(oldTag, newTag string, original *servers.Server, addErr error) error {
+	hasOld, hasNew, err := lc.renameState(oldTag, newTag)
+	if err != nil {
+		return fmt.Errorf("failed to add renamed server %q: %w (stored state unknown: %v)", newTag, addErr, err)
+	}
+	switch {
+	case hasOld && hasNew:
+		// Best effort: the result is read back below.
+		_ = lc.serverStore.RemoveServers(lc.ctx, []string{newTag})
+	case !hasOld && !hasNew:
+		_ = lc.serverStore.AddServers(lc.ctx, servers.ServerList{Servers: []*servers.Server{original}})
+	}
+	if hasOld != hasNew {
+		return lc.renameResult(oldTag, newTag, hasOld, hasNew, addErr)
+	}
+	hasOld, hasNew, err = lc.renameState(oldTag, newTag)
+	if err != nil {
+		return fmt.Errorf("failed to add renamed server %q: %w (stored state unknown: %v)", newTag, addErr, err)
+	}
+	return lc.renameResult(oldTag, newTag, hasOld, hasNew, addErr)
+}
+
+func (lc *LanternCore) renameState(oldTag, newTag string) (hasOld, hasNew bool, err error) {
+	if _, hasOld, err = lc.serverStore.GetServerByTag(lc.ctx, oldTag); err != nil {
+		return false, false, err
+	}
+	_, hasNew, err = lc.serverStore.GetServerByTag(lc.ctx, newTag)
+	return hasOld, hasNew, err
+}
+
+func renameError(newTag string, addErr error, state string) error {
+	return fmt.Errorf("failed to add renamed server %q: %w (%s)", newTag, addErr, state)
+}
+
+func (lc *LanternCore) renameResult(oldTag, newTag string, hasOld, hasNew bool, addErr error) error {
+	switch {
+	case hasOld && !hasNew:
+		return renameError(newTag, addErr, fmt.Sprintf("kept as %q", oldTag))
+	case hasNew && !hasOld:
+		// The rename was saved; only the tunnel update after it failed.
+		return renameError(newTag, addErr, fmt.Sprintf("saved as %q", newTag))
+	case hasOld && hasNew:
+		return renameError(newTag, addErr, fmt.Sprintf("both %q and %q are stored", oldTag, newTag))
+	default:
+		return renameError(newTag, addErr, fmt.Sprintf("server %q is no longer stored", oldTag))
+	}
 }
 
 // serverStore is the part of the IPC client a rename uses.
