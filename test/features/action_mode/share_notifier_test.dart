@@ -114,6 +114,9 @@ ShareNotifier _notifier() => _setUp().$1;
 /// What [_Helpers.helpsSomeone] answers: null is a view that failed to load.
 bool? _helps = false;
 
+/// When set, helpsSomeone waits for it, as behind a launch refresh.
+Completer<void>? _helpsGate;
+
 /// The people this device helps, as an approval leaves them: one friend.
 class _Helpers extends HelpersNotifier {
   @override
@@ -126,6 +129,7 @@ class _Helpers extends HelpersNotifier {
   @override
   Future<bool?> helpsSomeone() async {
     helpsAsked++;
+    await _helpsGate?.future;
     return _helps;
   }
 
@@ -207,6 +211,7 @@ void main() {
   setUp(() {
     _appSetting = const AppSetting();
     _helps = false;
+    _helpsGate = null;
     sl.registerSingleton<LocalStorageService>(_FakeStorage());
   });
   tearDown(() => sl.reset());
@@ -659,6 +664,51 @@ void main() {
       await launch(notifier, ref);
       expect(service.calls, ['unbounded?']);
       expect(helpers(ref).helpsAsked, 0);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('a toggle while the helper view is pending is not ignored, '
+        'and the reconciliation leaves the choice alone', (tester) async {
+      _appSetting = autoOff;
+      _helpsGate = Completer<void>();
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      final reconcile = notifier.reconcileLaunch(ref);
+      await tester.pump();
+      expect(helpers(ref).helpsAsked, 1);
+      expect(notifier.state.active, isTrue, reason: 'shown as resumed');
+      // The user turns it off, then on again, while the view is pending.
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isFalse);
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isTrue);
+      service.calls.clear();
+      _helpsGate!.complete();
+      await reconcile;
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isTrue);
+      expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('a stop while the helper view is pending is final', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      _helps = true;
+      _helpsGate = Completer<void>();
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      service.manualPort = 5698;
+      final reconcile = notifier.reconcileLaunch(ref);
+      await tester.pump();
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isFalse);
+      service.calls.clear();
+      _helpsGate!.complete();
+      await reconcile;
+      expect(service.calls, isEmpty, reason: 'no switch to SmC either');
       expect(notifier.state.active, isFalse);
     });
 

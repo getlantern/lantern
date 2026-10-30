@@ -257,6 +257,26 @@ void main() {
       expect(svc.calls, ['unlock', 'view']);
     });
 
+    test('an older empty view answered after a newer pairing does not '
+        'drop it', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {
+        'unlock': _view(),
+        'view': _view(),
+        'refresh': _view(helping: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final gate = Completer<void>();
+      svc.gates['view'] = gate.future;
+      final c = container();
+      final n = c.read(helpersProvider.notifier);
+      final helps = n.helpsSomeone();
+      await pumpEventQueue();
+      expect(svc.calls, ['unlock', 'view']);
+      await n.refresh();
+      gate.complete();
+      expect(await helps, isTrue);
+    });
+
     test('is false when the view helps nobody', () async {
       storage.values[HelpersNotifier.usedKey] = true;
       svc.answers = {'unlock': _view(), 'view': _view()};

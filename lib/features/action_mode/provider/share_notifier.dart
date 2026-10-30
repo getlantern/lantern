@@ -151,6 +151,7 @@ class ShareNotifier extends _$ShareNotifier {
     // The user has chosen, on or off: a held-back helper start must not
     // override that later.
     _helperStartPending = false;
+    _sessionChanges++;
     _changes++;
     try {
       await _toggle(context, widgetRef);
@@ -191,6 +192,11 @@ class ShareNotifier extends _$ShareNotifier {
   /// run started.
   bool _launchSettled = false;
 
+  /// Counts toggles, starts and stops. The launch reconciliation acts only
+  /// if it has not moved while it waited, so a user's choice made meanwhile
+  /// wins.
+  int _sessionChanges = 0;
+
   /// Reconciles a session radiance resumed from persisted settings at
   /// process start with the user's settings. Call after [syncFromBackend].
   ///
@@ -200,19 +206,21 @@ class ShareNotifier extends _$ShareNotifier {
   /// proxy. A kept Unbounded session switches to SmC when a manual port is
   /// set, as the toggle would pick; a failed SmC start falls back to
   /// Unbounded as usual.
+  ///
+  /// The checks run outside the transition gate: the helper view can wait
+  /// behind a launch refresh's network requests, and the toggle must keep
+  /// working meanwhile. Only the stop or switch itself holds the gate.
   Future<void> reconcileLaunch(WidgetRef widgetRef) async {
     if (_launchSettled) return;
     _launchSettled = true;
     if (_changing || state.probing) return;
-    _changes++;
-    try {
-      await _reconcileLaunch(widgetRef);
-    } finally {
-      _changes--;
-    }
-  }
+    final changes = _sessionChanges;
+    bool untouched() =>
+        ref.mounted &&
+        !_changing &&
+        !state.probing &&
+        _sessionChanges == changes;
 
-  Future<void> _reconcileLaunch(WidgetRef widgetRef) async {
     final svc = widgetRef.read(lanternServiceProvider);
     final ShareMode resumed;
     if (state.active && state.mode == ShareMode.smc) {
@@ -223,45 +231,61 @@ class ShareNotifier extends _$ShareNotifier {
       final enabled =
           state.mode == ShareMode.unbounded ||
           (await svc.isUnboundedEnabled()).fold((_) => false, (v) => v);
-      if (!ref.mounted) return;
-      if (!enabled) return;
+      if (!enabled || !untouched()) return;
       resumed = ShareMode.unbounded;
       // Shown as running until the first snapshot fills in the rest, so the
-      // auto-start gate that follows does not start it a second time.
-      state = state.copyWith(active: true, mode: ShareMode.unbounded);
-    }
-
-    final settings = ref.read(appSettingProvider);
-    if (settings.unboundedHidden || !settings.unboundedAutoEnable) {
-      // A view that cannot be read keeps the session: a local read failure
-      // must never cut off a friend.
-      final helps = await ref.read(helpersProvider.notifier).helpsSomeone();
-      if (!ref.mounted) return;
-      if (helps != false) {
-        appLogger.info('Action Mode resumed at launch: kept for a friend');
-      } else {
-        appLogger.info('Action Mode resumed at launch: not wanted, stopping');
-        await _stop(widgetRef, mode: resumed);
-        return;
+      // auto-start gate that follows does not start it a second time, and a
+      // toggle meanwhile stops it.
+      if (!state.active) {
+        state = state.copyWith(active: true, mode: ShareMode.unbounded);
       }
     }
 
-    if (resumed != ShareMode.unbounded || isIOS()) return;
-    // A manually forwarded port is an explicit request for SmC.
-    final port = (await svc.getPeerManualPort()).fold((_) => 0, (p) => p);
-    if (!ref.mounted || port <= 0) return;
-    appLogger.info(
-      'Action Mode resumed as Unbounded with a manual port: '
-      'switching to SmC',
-    );
-    final off = await svc.setUnboundedEnabled(false);
-    if (!ref.mounted) return;
-    if (off.isLeft()) {
-      appLogger.error('Switching resumed Unbounded to SmC: could not stop it');
-      return;
+    final settings = ref.read(appSettingProvider);
+    final wanted = !settings.unboundedHidden && settings.unboundedAutoEnable;
+    var stop = false;
+    if (!wanted) {
+      // A view that cannot be read keeps the session: a local read failure
+      // must never cut off a friend.
+      final helps = await ref.read(helpersProvider.notifier).helpsSomeone();
+      if (!untouched()) return;
+      stop = helps == false;
+      appLogger.info(
+        stop
+            ? 'Action Mode resumed at launch: not wanted, stopping'
+            : 'Action Mode resumed at launch: kept for a friend',
+      );
     }
-    _startGuard = null;
-    await _start(widgetRef, ShareMode.smc);
+    if (!stop && (resumed != ShareMode.unbounded || isIOS())) return;
+
+    _changes++;
+    try {
+      // A snapshot may have shown the session gone while the checks ran.
+      if (!state.active || state.mode != resumed) return;
+      if (stop) {
+        await _stop(widgetRef, mode: resumed);
+        return;
+      }
+      // A manually forwarded port is an explicit request for SmC.
+      final port = (await svc.getPeerManualPort()).fold((_) => 0, (p) => p);
+      if (!ref.mounted || port <= 0) return;
+      appLogger.info(
+        'Action Mode resumed as Unbounded with a manual port: '
+        'switching to SmC',
+      );
+      final off = await svc.setUnboundedEnabled(false);
+      if (!ref.mounted) return;
+      if (off.isLeft()) {
+        appLogger.error(
+          'Switching resumed Unbounded to SmC: could not stop it',
+        );
+        return;
+      }
+      _startGuard = null;
+      await _start(widgetRef, ShareMode.smc);
+    } finally {
+      _changes--;
+    }
   }
 
   /// The phase to adopt from a raw peer-status payload, or null to leave
@@ -446,6 +470,7 @@ class ShareNotifier extends _$ShareNotifier {
 
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
     _launchSettled = true;
+    _sessionChanges++;
     state = ShareState(
       active: true,
       mode: mode,
@@ -492,6 +517,7 @@ class ShareNotifier extends _$ShareNotifier {
 
   /// Stops the session in [mode], the current one by default.
   Future<void> _stop(WidgetRef widgetRef, {ShareMode? mode}) async {
+    _sessionChanges++;
     final result = switch (mode ?? state.mode) {
       ShareMode.smc =>
         await widgetRef
