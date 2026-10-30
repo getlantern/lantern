@@ -23,7 +23,7 @@ function Get-LanternFlutterLogPath {
   Join-Path $env:PUBLIC 'Lantern/logs/flutter.log'
 }
 
-function Assert-LanternUpdaterStartup([DateTime]$StartedAt, [string]$OutputPath) {
+function Assert-LanternUpdaterStartup([DateTime]$StartedAt, [string]$OutputPath, [switch]$ConfigurationOnly) {
   # Filter by the logger's UTC timestamp so an older launch cannot pass this check.
   $lines = @(Get-Content -LiteralPath (Get-LanternFlutterLogPath) | Where-Object {
     if ($_ -match '^time="(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) UTC"') {
@@ -32,9 +32,12 @@ function Assert-LanternUpdaterStartup([DateTime]$StartedAt, [string]$OutputPath)
       $time.ToUniversalTime() -ge $StartedAt.ToUniversalTime()
     } else { $false }
   })
-  $lines | Set-Content -LiteralPath $OutputPath
-  if (-not ($lines -match 'message=autoUpdater configured\.') -or
-      -not ($lines -match 'message=Desktop update check: source=startup(?:\s|$)')) {
-    throw 'This launch did not configure the native updater and start its normal startup check'
+  $lines | Where-Object { $_ -match 'message=(autoUpdater|Desktop update|WinSparkle)' } |
+    Set-Content -LiteralPath $OutputPath
+  if (-not ($lines -match 'message=autoUpdater configured\.')) {
+    throw 'This launch did not configure the native updater'
+  }
+  if (-not $ConfigurationOnly -and -not ($lines -match 'message=Desktop update check: source=startup(?:\s|$)')) {
+    throw 'This launch did not start its normal startup update check'
   }
 }

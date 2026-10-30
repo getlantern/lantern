@@ -317,7 +317,9 @@ function Save-Diagnostics {
   }
   $flutterLog = Get-LanternFlutterLogPath
   if (Test-Path -LiteralPath $flutterLog) {
-    Copy-Item -LiteralPath $flutterLog -Destination (Join-Path $ArtifactDirectory 'flutter.log') -Force
+    Get-Content -LiteralPath $flutterLog |
+      Where-Object { $_ -match 'message=(autoUpdater|Desktop update|WinSparkle|Failed to shut down|Failed to close|Failed to release)' } |
+      Set-Content -LiteralPath (Join-Path $ArtifactDirectory 'flutter-updater.log')
   }
   Get-ChildItem $env:TEMP -Filter 'Update-*' -Directory -ErrorAction SilentlyContinue |
     ForEach-Object { Get-ChildItem $_.FullName -Recurse -ErrorAction SilentlyContinue } |
@@ -390,8 +392,9 @@ try {
   $script:RelaunchedPid = $relaunched.Id
   Assert-AppVersion 'updated' $targetBuild $displayVersion
   Wait-LanternGuiHealthy $script:RelaunchedPid $AppExecutable
+  # Published targets may configure the updater without the newer startup-check log.
   Assert-LanternUpdaterStartup $relaunched.StartTime.ToUniversalTime() `
-    (Join-Path $ArtifactDirectory 'after-update-flutter.log')
+    (Join-Path $ArtifactDirectory 'after-update-flutter.log') -ConfigurationOnly
   & python $ScenarioHelper verify --scenario $Scenario --target $TargetJson `
     --handoff (Join-Path $ArtifactDirectory 'auto-update-handoff.json') `
     --output (Join-Path $ArtifactDirectory 'scenario-after.json')
