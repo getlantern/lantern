@@ -140,7 +140,7 @@ jobs:
 
   build-fixture:
     name: Build signed lower fixture
-    if: ${{ !inputs.fixture_run_id }}
+    if: ${{ inputs.fixture_run_id == 0 }}
     needs: resolve-target
     permissions:
       contents: read
@@ -207,7 +207,7 @@ jobs:
         with:
           name: lantern-windows-app-fixture
           github-token: ${{ github.token }}
-          run-id: ${{ inputs.fixture_run_id || github.run_id }}
+          run-id: ${{ inputs.fixture_run_id != 0 && inputs.fixture_run_id || github.run_id }}
           path: ${{ runner.temp }}/windows-auto-update-fixture
 
       - name: Download resolved target
@@ -224,7 +224,7 @@ jobs:
           FIXTURE_APP_DIR: ${{ runner.temp }}/windows-auto-update-fixture
           TARGET_JSON: ${{ runner.temp }}/windows-auto-update-target/target.json
         run: |
-          Write-Host "Fixture source run: ${{ inputs.fixture_run_id || github.run_id }}"
+          Write-Host "Fixture source run: ${{ inputs.fixture_run_id != 0 && inputs.fixture_run_id || github.run_id }}"
           ./.github/scripts/windows_auto_update_smoke.ps1
 
       - name: Restore update network access
