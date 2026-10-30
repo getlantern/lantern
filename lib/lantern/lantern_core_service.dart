@@ -309,6 +309,14 @@ abstract class LanternCoreService {
     required String code,
   });
 
+  Future<Either<Failure, Unit>> startBindLegacyEmail(String email);
+
+  Future<Either<Failure, Unit>> completeBindLegacyEmail({
+    required String email,
+    required String password,
+    required String code,
+  });
+
   //Forgot password
   Future<Either<Failure, Unit>> startRecoveryByEmail(String email);
 

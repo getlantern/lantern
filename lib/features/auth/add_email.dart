@@ -7,6 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
 import 'package:lantern/core/keys/app_keys.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
@@ -38,21 +39,39 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   final _formKey = GlobalKey<FormState>();
   TextTheme? textTheme;
 
+  UserResponseModel? _loadedUser(AsyncValue<UserResponseModel> account) =>
+      account.isLoading || account.hasError ? null : account.asData?.value;
+
+  bool get _isBindLegacyEmailFlow =>
+      widget.authFlow == AuthFlow.bindLegacyEmail ||
+      (_loadedUser(ref.read(homeProvider))?.hasLegacyPlaceholderEmail ?? false);
+
   @override
   Widget build(BuildContext context) {
     final emailController = useTextEditingController();
     useListenable(emailController);
-    final user = ref.watch(homeProvider).value;
+    // Account type determines whether this binds an existing account or signs up.
+    final account = ref.watch(homeProvider);
+    final user = _loadedUser(account);
     final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
     final currentEmail = user?.legacyUserData.email ?? '';
     final isChangeEmailFlow = widget.authFlow == AuthFlow.changeEmail;
+    final isBindLegacyEmailFlow = _isBindLegacyEmailFlow;
 
-    useEffect(() {
-      if (isUserRegistered && !isChangeEmailFlow) {
-        emailController.text = currentEmail;
-      }
-      return null;
-    }, [isUserRegistered, isChangeEmailFlow, currentEmail]);
+    useEffect(
+      () {
+        if (isUserRegistered && !isChangeEmailFlow && !isBindLegacyEmailFlow) {
+          emailController.text = currentEmail;
+        }
+        return null;
+      },
+      [
+        isUserRegistered,
+        isChangeEmailFlow,
+        isBindLegacyEmailFlow,
+        currentEmail,
+      ],
+    );
 
     textTheme = Theme.of(context).textTheme;
     return EnterKeyShortcut(
@@ -77,9 +96,27 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (user == null) ...[
+                  if (!account.isLoading && account.hasError)
+                    Column(
+                      children: [
+                        Text('an_error_occurred'.i18n),
+                        AppTextButton(
+                          label: 'retry'.i18n,
+                          onPressed: () => ref.invalidate(homeProvider),
+                        ),
+                      ],
+                    )
+                  else
+                    const Center(child: CircularProgressIndicator()),
+                  SizedBox(height: defaultSize),
+                ],
                 AppTextField(
                   fieldKey: AuthKeys.signUpEmailField,
-                  enable: !isUserRegistered || isChangeEmailFlow,
+                  enable:
+                      !isUserRegistered ||
+                      isChangeEmailFlow ||
+                      isBindLegacyEmailFlow,
                   controller: emailController,
                   label: 'email'.i18n,
                   keyboardType: TextInputType.emailAddress,
@@ -95,7 +132,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     if (email.isEmpty) {
                       return null;
                     }
-                    if (!email.isValidEmail()) {
+                    if (!email.isValidEmail() ||
+                        isLegacyPlaceholderEmail(email)) {
                       return 'invalid_email'.i18n;
                     }
                     if (isChangeEmailFlow &&
@@ -153,7 +191,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                     currentEmail,
                   ),
                 ),
-                if (!isUserRegistered) ...{
+                if (user != null &&
+                    !isUserRegistered &&
+                    !isBindLegacyEmailFlow) ...{
                   SizedBox(height: defaultSize),
                   DividerSpace(),
                   SizedBox(height: defaultSize),
@@ -198,8 +238,10 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   bool _canSubmitEmail(String email, String currentEmail) {
+    if (_loadedUser(ref.read(homeProvider)) == null) return false;
     final trimmedEmail = email.trim();
-    if (!trimmedEmail.isValidEmail()) {
+    if (!trimmedEmail.isValidEmail() ||
+        isLegacyPlaceholderEmail(trimmedEmail)) {
       return false;
     }
     if (widget.authFlow == AuthFlow.changeEmail &&
@@ -228,29 +270,35 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_isProblematicEmail(email) && !isUserRegistered) {
-      _showEmailDeliverabilityNotice(
-        () => _handleContinue(type, email, isUserRegistered),
-      );
+      _showEmailDeliverabilityNotice(() => _handleContinue(type, email));
       return;
     }
-    _handleContinue(type, email, isUserRegistered);
+    _handleContinue(type, email);
   }
 
-  Future<void> _handleContinue(
-    SignUpMethodType type,
-    String email,
-    bool isUserRegistered,
-  ) async {
+  Future<void> _handleContinue(SignUpMethodType type, String email) async {
     try {
+      final user = _loadedUser(ref.read(homeProvider));
+      if (user == null) return;
       if (!_formKey.currentState!.validate()) {
         return;
       }
-      if (widget.authFlow == AuthFlow.changeEmail) {
+      if (_isBindLegacyEmailFlow) {
+        appRouter.push(
+          CreatePassword(
+            email: email,
+            authFlow: AuthFlow.bindLegacyEmail,
+            code: '',
+            bindingOrigin: widget.authFlow,
+            licenseKey: widget.licenseKey,
+          ),
+        );
+      } else if (widget.authFlow == AuthFlow.changeEmail) {
         //Change email flow
         appLogger.debug('Starting change email flow');
         startChangeEmailFlow(email);
       } else {
-        if (isUserRegistered) {
+        if (user.legacyUserData.unpassRegistered) {
           ///This mean user is already registered
           /// plan is expired or user are creating new account with same email
           /// by pass signup flow and start forgot password flow
@@ -358,6 +406,12 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     Map<String, dynamic> result,
     SignUpMethodType type,
   ) async {
+    final user = _loadedUser(ref.read(homeProvider));
+    if (user == null ||
+        user.legacyUserData.unpassRegistered ||
+        _isBindLegacyEmailFlow) {
+      return;
+    }
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();

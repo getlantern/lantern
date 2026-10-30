@@ -1067,6 +1067,36 @@ func completeChangeEmail(_newEmail, _password, _code *C.char) *C.char {
 	})
 }
 
+//export startBindLegacyEmail
+func startBindLegacyEmail(_email *C.char) *C.char {
+	email := C.GoString(_email)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.StartBindLegacyEmail(email); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
+//export completeBindLegacyEmail
+func completeBindLegacyEmail(_email, _password, _code *C.char) *C.char {
+	email, password, code := C.GoString(_email), C.GoString(_password), C.GoString(_code)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.CompleteBindLegacyEmail(email, password, code); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
 // Delete account permanently
 //
 //export deleteAccount
