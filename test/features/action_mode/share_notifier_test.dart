@@ -77,9 +77,13 @@ class _FakeService implements LanternService {
 
   bool peerOk = true;
 
+  /// When set, setPeerProxyEnabled waits for it, as behind radiance's Start.
+  Completer<void>? peerGate;
+
   @override
   Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
     calls.add('peer:$enabled');
+    await peerGate?.future;
     if (peerOk) return right(unit);
     return left(Failure(error: 'no upnp', localizedErrorMessage: 'no upnp'));
   }
@@ -921,6 +925,71 @@ void main() {
       await notifier.reconcileLaunch(ref);
       expect(service.calls, isEmpty);
       expect(notifier.state.active, isTrue);
+    });
+  });
+
+  group('a stop wins over a fallback', () {
+    const smcError = '{"phase":"error","error":"start failed"}';
+
+    /// An adopted SmC session that is still starting.
+    Future<(ShareNotifier, WidgetRef, _FakeService)> startingSmc(
+      WidgetTester tester,
+    ) async {
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"registering"}';
+      service.unboundedOk = true;
+      await notifier.syncFromBackend(ref);
+      expect(notifier.state.mode, ShareMode.smc);
+      return (notifier, ref, service);
+    }
+
+    testWidgets('a launch stop of a starting SmC session', (tester) async {
+      _appSetting = const AppSetting(onboardingCompleted: true);
+      final (notifier, ref, service) = await startingSmc(tester);
+      service.peerGate = Completer<void>();
+      final reconcile = notifier.reconcileLaunch(ref);
+      await tester.pump();
+      expect(service.calls, ['peer:false']);
+      service.events.add(AppEvent(eventType: 'peer-status', message: smcError));
+      await tester.pump();
+      service.peerGate!.complete();
+      await reconcile;
+      await tester.pump();
+      expect(service.calls, ['peer:false']);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.mode, ShareMode.off);
+    });
+
+    testWidgets('a toggle-off of a starting SmC session', (tester) async {
+      final (notifier, ref, service) = await startingSmc(tester);
+      service.peerGate = Completer<void>();
+      final stop = notifier.toggle(_context!, ref);
+      await tester.pump();
+      service.events.add(AppEvent(eventType: 'peer-status', message: smcError));
+      await tester.pump();
+      service.peerGate!.complete();
+      await stop;
+      await tester.pump();
+      expect(service.calls, ['peer:false']);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('a stop that begins while a fallback runs ends with both off', (
+      tester,
+    ) async {
+      final (notifier, ref, service) = await startingSmc(tester);
+      service.unboundedGate = Completer<void>();
+      service.events.add(AppEvent(eventType: 'peer-status', message: smcError));
+      await tester.pump();
+      expect(service.calls, ['unbounded:true']);
+      final stop = notifier.debugStop(ref);
+      await tester.pump();
+      expect(service.calls, ['unbounded:true'], reason: 'waits for it');
+      service.unboundedGate!.complete();
+      await stop;
+      expect(service.calls, ['unbounded:true', 'unbounded:false']);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.mode, ShareMode.off);
     });
   });
 

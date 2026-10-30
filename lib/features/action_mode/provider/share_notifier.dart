@@ -572,9 +572,35 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   /// Stops the session in [mode], the current one by default.
+  ///
+  /// A stop wins over a fallback: while it runs, a failed SmC start does not
+  /// fall back to Unbounded, and a fallback already in flight is waited for
+  /// and its Unbounded session stopped instead.
   Future<void> _stop(WidgetRef widgetRef, {ShareMode? mode}) async {
     _sessionChanges++;
-    final result = switch (mode ?? state.mode) {
+    _stopping = true;
+    try {
+      await _stopSession(widgetRef, mode ?? state.mode);
+    } finally {
+      _stopping = false;
+    }
+  }
+
+  @visibleForTesting
+  Future<void> debugStop(WidgetRef widgetRef) => _stop(widgetRef);
+
+  /// Set while [_stop] runs; a fallback is then dropped.
+  bool _stopping = false;
+
+  Future<void> _stopSession(WidgetRef widgetRef, ShareMode mode) async {
+    if (_fallbackInFlight != null) {
+      await _fallbackSettled();
+      if (!ref.mounted) return;
+      // radiance rolled SmC back when it failed; what is left is the
+      // fallback's Unbounded, or nothing if that failed too.
+      mode = state.mode;
+    }
+    final result = switch (mode) {
       ShareMode.smc =>
         await widgetRef
             .read(radianceSettingsProvider.notifier)
@@ -605,6 +631,10 @@ class ShareNotifier extends _$ShareNotifier {
   /// A failed start reports itself twice, so a second call can overlap the
   /// first; [_fallbackInFlight] covers both.
   Future<void> _fallbackToUnbounded(WidgetRef widgetRef, String? reason) {
+    if (_stopping) {
+      appLogger.info('SmC failed while stopping: no fallback');
+      return Future.value();
+    }
     final prev = _fallbackInFlight;
     final run = _runFallback(widgetRef, reason);
     final all = prev == null ? run : Future.wait([prev, run]);
@@ -730,6 +760,8 @@ class ShareNotifier extends _$ShareNotifier {
       final phase = SharePhase.fromWire(payload['phase'] as String?);
       final errMsg = payload['error'] as String?;
       if (phase == SharePhase.error) {
+        // A stop wins over a fallback.
+        if (_stopping) return;
         appLogger.info(
           'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
         );
