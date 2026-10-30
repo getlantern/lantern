@@ -128,6 +128,9 @@ class HelperPairingView {
   final bool online;
   final int sinceUnix;
 
+  // Per-friend selection plugs in here once a pairing maps to its outbound tag.
+  bool get selectable => false;
+
   factory HelperPairingView.fromJson(Map<String, dynamic> j) =>
       HelperPairingView(
         pairingId: _str(j['pairing_id']),

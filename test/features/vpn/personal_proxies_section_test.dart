@@ -73,6 +73,48 @@ void main() {
     expect(taps, hasLength(1));
   });
 
+  testWidgets('an offline friend is veiled like a locked Pro location: no '
+      'radio, not tappable', (tester) async {
+    await _pump(tester, _with([ali, bo]));
+    final veil = find.byKey(
+      const Key('server_selection.personal_proxy.offline.p2'),
+    );
+    expect(veil, findsOneWidget);
+    expect(
+      find.byKey(const Key('server_selection.personal_proxy.offline.p1')),
+      findsNothing,
+    );
+    final container = tester.widget<Container>(
+      find.descendant(of: veil, matching: find.byType(Container)).last,
+    );
+    final color = (container.decoration! as BoxDecoration).color!;
+    expect(color.a, closeTo(0.72, 0.01));
+    final tile = tester.widget<ListTile>(
+      find.descendant(
+        of: find.byKey(const Key('server_selection.personal_proxy.p2')),
+        matching: find.byType(ListTile),
+        matchRoot: true,
+      ),
+    );
+    expect(tile.onTap, isNull);
+  });
+
+  testWidgets('friend rows show no radio and no place until a friend can be '
+      'selected on their own', (tester) async {
+    expect(ali.selectable, isFalse);
+    await _pump(tester, _with([ali, bo]));
+    expect(find.byType(AppRadioButton<String>), findsNothing);
+    expect(find.byType(Flag), findsNothing);
+    final tile = tester.widget<ListTile>(
+      find.descendant(
+        of: find.byKey(const Key('server_selection.personal_proxy.p1')),
+        matching: find.byType(ListTile),
+        matchRoot: true,
+      ),
+    );
+    expect(tile.onTap, isNull);
+  });
+
   testWidgets('the row is disabled while no friend is online', (tester) async {
     final taps = await _pump(tester, _with([bo]));
     await tester.tap(

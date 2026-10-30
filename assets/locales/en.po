@@ -2308,9 +2308,9 @@ msgstr "Codes Match, Approve"
 msgid "approve_reject"
 msgstr "Reject"
 
-# The VPN tab's selected location while connected through the user's personal proxies.
+# The VPN tab's selected location while connected through the user's personal proxies: the line under the location's name.
 msgid "personal_proxy"
-msgstr "Personal proxy"
+msgstr "Personal Proxy"
 
 # The server list's tab for private servers and personal proxies.
 msgid "private_locations"
@@ -2318,7 +2318,7 @@ msgstr "Private Locations"
 
 # Section header in Private Locations: friends abroad who route this user's traffic.
 msgid "personal_proxies"
-msgstr "Personal proxies"
+msgstr "Personal Proxies:"
 
 # The selectable row that connects through all of the user's personal proxies.
 msgid "your_personal_proxies"
