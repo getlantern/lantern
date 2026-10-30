@@ -50,10 +50,12 @@ class _FakeService implements LanternService {
   @override
   Stream<AppEvent> watchAppEvents() => events.stream;
   int manualPort = 0;
+  void Function()? onManualPort;
 
   @override
   Future<Either<Failure, int>> getPeerManualPort() async {
     calls.add('manual_port');
+    onManualPort?.call();
     return right(manualPort);
   }
 
@@ -113,7 +115,8 @@ class _FakeService implements LanternService {
 
 ShareNotifier _notifier() => _setUp().$1;
 
-/// What [_Helpers.helpsSomeone] answers: null is a view that failed to load.
+/// The view [_Helpers.helpsSomeone] loads: true helps a friend, false helps
+/// nobody, null fails to load.
 bool? _helps = false;
 
 /// When set, helpsSomeone waits for it, as behind a launch refresh.
@@ -129,16 +132,31 @@ class _Helpers extends HelpersNotifier {
   int helpsAsked = 0;
 
   @override
+  bool get used => true;
+
+  /// Loads the [_helps] view, unless a newer one was applied meanwhile, as
+  /// the real notifier drops an out-of-order view.
+  @override
   Future<bool?> helpsSomeone() async {
     helpsAsked++;
     await _helpsGate?.future;
-    return _helps;
+    if (_helps != null && !state.viewLoaded) {
+      state = state.copyWith(
+        viewLoaded: true,
+        view: HelpersView(
+          helping: [if (_helps!) const HelperPairingView(pairingId: 'p1')],
+        ),
+      );
+    }
+    return helpsSomeoneNow;
   }
 
   void helpNobody() =>
       state = state.copyWith(view: const HelpersView(unlocked: true));
 
+  /// A newly approved pairing, as a refresh applies it.
   void helpSomeone() => state = state.copyWith(
+    viewLoaded: true,
     view: const HelpersView(helping: [HelperPairingView(pairingId: 'p2')]),
   );
 }
@@ -150,6 +168,8 @@ class _Settings extends AppSettingNotifier {
   AppSetting build() => _appSetting;
   @override
   void setUnboundedSessionCount(int value) {}
+
+  void set(AppSetting value) => state = value;
 }
 
 /// Skips the settings fetch the real build starts.
@@ -502,7 +522,7 @@ void main() {
       service.unboundedEnabled = true;
       service.unboundedOk = true;
       await launch(notifier, ref);
-      expect(service.calls, ['unbounded?', 'unbounded:false']);
+      expect(service.calls, ['unbounded?', 'manual_port', 'unbounded:false']);
       expect(notifier.state.active, isFalse);
       expect(notifier.state.mode, ShareMode.off);
     });
@@ -516,7 +536,7 @@ void main() {
       service.unboundedOk = true;
       service.manualPort = 5698;
       await launch(notifier, ref);
-      expect(service.calls, ['unbounded?', 'unbounded:false']);
+      expect(service.calls, ['unbounded?', 'manual_port', 'unbounded:false']);
       expect(notifier.state.active, isFalse);
     });
 
@@ -800,6 +820,93 @@ void main() {
       await reconcile;
       expect(service.calls, ['unbounded:true']);
       expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('a pairing approved while a fallback runs keeps the session, '
+        'though the view said nobody', (tester) async {
+      _appSetting = autoOff;
+      _helpsGate = Completer<void>();
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      service.unboundedOk = true;
+      service.unboundedGate = Completer<void>();
+      await notifier.syncFromBackend(ref);
+      final reconcile = notifier.reconcileLaunch(ref);
+      await tester.pump();
+      service.events.add(
+        AppEvent(eventType: 'peer-status', message: '{"phase":"error"}'),
+      );
+      await tester.pump();
+      _helpsGate!.complete();
+      await tester.pump();
+      expect(helpers(ref).helpsSomeoneNow, isFalse);
+      helpers(ref).helpSomeone();
+      service.unboundedGate!.complete();
+      await reconcile;
+      expect(service.calls, ['unbounded:true']);
+      expect(notifier.state.active, isTrue);
+      expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('a pairing approved during the helper wait keeps the session', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      _helpsGate = Completer<void>();
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      final reconcile = notifier.reconcileLaunch(ref);
+      await tester.pump();
+      helpers(ref).helpSomeone();
+      // The view the reconciliation asked for answers late, and is dropped.
+      _helpsGate!.complete();
+      await reconcile;
+      expect(service.calls, ['unbounded?', 'manual_port']);
+      expect(notifier.state.active, isTrue);
+    });
+
+    testWidgets('settings changed during the wait decide', (tester) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      service.manualPort = 5698;
+      // Auto-enable turned off while the manual port was read.
+      service.onManualPort = () =>
+          (ref.read(appSettingProvider.notifier) as _Settings).set(autoOff);
+      await notifier.reconcileLaunch(ref);
+      expect(service.calls, ['unbounded?', 'manual_port', 'unbounded:false']);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('a helper start skipped during the stop runs once it is done', (
+      tester,
+    ) async {
+      addTearDown(() => CountryCode.update(''));
+      CountryCode.update('DE');
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      service.unboundedGate = Completer<void>();
+      final reconcile = notifier.reconcileLaunch(ref);
+      await tester.pump();
+      expect(service.calls.last, 'unbounded:false');
+      // Approved while the stop runs: the start is held back, not lost.
+      helpers(ref).helpSomeone();
+      await notifier.startForHelper(ref);
+      service.unboundedGate!.complete();
+      await reconcile;
+      expect(service.calls, [
+        'unbounded?',
+        'manual_port',
+        'unbounded:false',
+        'manual_port',
+        'upnp',
+        'unbounded:true',
+      ]);
+      expect(notifier.state.active, isTrue);
     });
 
     testWidgets('runs once, and never on a session this run started', (

@@ -292,11 +292,20 @@ void main() {
       expect(await c.read(helpersProvider.notifier).helpsSomeone(), isNull);
     });
 
-    test('is unknown when the view fails', () async {
+    test('is unknown when the engine never answers with a view', () async {
       storage.values[HelpersNotifier.usedKey] = true;
-      svc.answers = {'unlock': _view()};
       final c = container();
       expect(await c.read(helpersProvider.notifier).helpsSomeone(), isNull);
+      expect(c.read(helpersProvider.notifier).helpsSomeoneNow, isNull);
+    });
+
+    test('a failed view op answers from the view unlock applied', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {
+        'unlock': _view(helping: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final c = container();
+      expect(await c.read(helpersProvider.notifier).helpsSomeone(), isTrue);
     });
   });
 

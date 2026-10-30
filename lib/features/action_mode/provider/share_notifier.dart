@@ -192,10 +192,10 @@ class ShareNotifier extends _$ShareNotifier {
   /// run started.
   bool _launchSettled = false;
 
-  /// Counts toggles, starts and stops. The launch reconciliation acts only
-  /// if it has not moved while it waited, so a user's choice made meanwhile
-  /// wins. The backend's SmC→Unbounded fallback is not counted: it changes
-  /// how the session runs, not whether anyone wants it.
+  /// Counts toggles, starts and stops: a user's choice, or a session this
+  /// run started. The launch reconciliation stands down once it moves. The
+  /// backend's SmC→Unbounded fallback is not counted: it changes how the
+  /// session runs, not whether anyone wants it.
   int _sessionChanges = 0;
 
   /// The SmC→Unbounded fallback in flight, if any.
@@ -208,6 +208,9 @@ class ShareNotifier extends _$ShareNotifier {
     }
   }
 
+  /// Rounds [reconcileLaunch] waits for a quiet moment before giving up.
+  static const _reconcileRounds = 5;
+
   /// Reconciles a session radiance resumed from persisted settings at
   /// process start with the user's settings. Call after [syncFromBackend].
   ///
@@ -218,23 +221,33 @@ class ShareNotifier extends _$ShareNotifier {
   /// set, as the toggle would pick; a failed SmC start falls back to
   /// Unbounded as usual.
   ///
-  /// The checks run outside the transition gate: the helper view can wait
-  /// behind a launch refresh's network requests, and the toggle must keep
-  /// working meanwhile. Only the stop or switch itself holds the gate. A
-  /// fallback that runs meanwhile is waited for, and the stop then applies
-  /// to the Unbounded session it started.
+  /// Nothing learned before an await is trusted after it. The awaits only
+  /// gather (radiance's Unbounded opt-in, the manual port, a loaded helper
+  /// view); the stop or switch is decided under the transition gate from
+  /// the settings, helper view and share state as they are at that moment.
+  /// The gate is not held while gathering, so the toggle keeps working, and
+  /// a toggle or a start made meanwhile makes this stand down.
   Future<void> reconcileLaunch(WidgetRef widgetRef) async {
     if (_launchSettled) return;
     _launchSettled = true;
+    await _reconcileLaunch(widgetRef);
+    // A helper start skipped while the gate was held runs now, if sharing
+    // ended up off.
+    if (ref.mounted &&
+        _helperStartPending &&
+        !_changing &&
+        !state.active &&
+        !state.probing) {
+      await startForHelper(widgetRef);
+    }
+  }
+
+  Future<void> _reconcileLaunch(WidgetRef widgetRef) async {
     await _fallbackSettled();
     if (!ref.mounted || _changing || state.probing) return;
     final changes = _sessionChanges;
-    // A toggle or a start counts before it holds the gate, so only a
-    // fallback can hold it unannounced, and that is waited for.
-    Future<bool> untouched() async {
-      await _fallbackSettled();
-      return ref.mounted && !state.probing && _sessionChanges == changes;
-    }
+    bool standDown() =>
+        !ref.mounted || state.probing || _sessionChanges != changes;
 
     final svc = widgetRef.read(lanternServiceProvider);
     final ShareMode resumed;
@@ -246,7 +259,7 @@ class ShareNotifier extends _$ShareNotifier {
       final enabled =
           state.mode == ShareMode.unbounded ||
           (await svc.isUnboundedEnabled()).fold((_) => false, (v) => v);
-      if (!enabled || !await untouched()) return;
+      if (!enabled || standDown()) return;
       resumed = ShareMode.unbounded;
       // Shown as running until the first snapshot fills in the rest, so the
       // auto-start gate that follows does not start it a second time, and a
@@ -256,55 +269,79 @@ class ShareNotifier extends _$ShareNotifier {
       }
     }
 
-    final settings = ref.read(appSettingProvider);
-    final wanted = !settings.unboundedHidden && settings.unboundedAutoEnable;
-    var stop = false;
-    if (!wanted) {
-      // A view that cannot be read keeps the session: a local read failure
-      // must never cut off a friend.
-      final helps = await ref.read(helpersProvider.notifier).helpsSomeone();
-      if (!await untouched()) return;
-      stop = helps == false;
-      appLogger.info(
-        stop
-            ? 'Action Mode resumed at launch: not wanted, stopping'
-            : 'Action Mode resumed at launch: kept for a friend',
-      );
+    // A manually forwarded port is an explicit request for SmC.
+    var manualPort = 0;
+    if (resumed == ShareMode.unbounded && !isIOS()) {
+      manualPort = (await svc.getPeerManualPort()).fold((_) => 0, (p) => p);
+      if (standDown()) return;
     }
-    if (!stop && (resumed != ShareMode.unbounded || isIOS())) return;
+    // Loads the helper view the decision reads. Its answer may be stale by
+    // the time the gate is taken, so it is not the decision.
+    if (!_launchWanted()) {
+      await ref.read(helpersProvider.notifier).helpsSomeone();
+    }
 
-    _changes++;
-    try {
-      // A snapshot may have shown the session gone while the checks ran, or
-      // a failed SmC session may have fallen back to Unbounded. A fallback is
-      // stopped like the session it replaced, but never switched back to the
-      // SmC that just failed.
-      if (!state.active || state.mode == ShareMode.off) return;
-      if (stop) {
+    for (var round = 0; round < _reconcileRounds; round++) {
+      await _fallbackSettled();
+      if (standDown()) return;
+      // Only a fallback holds the gate without counting as a change, and its
+      // in-flight marker can clear a turn before it lets go.
+      if (_changing) {
+        await Future<void>.delayed(Duration.zero);
+        continue;
+      }
+      _changes++;
+      try {
+        await _settleLaunch(widgetRef, resumed, manualPort);
+      } finally {
+        _changes--;
+      }
+      return;
+    }
+    appLogger.info('Action Mode at launch: never quiet, left as it is');
+  }
+
+  bool _launchWanted() {
+    final settings = ref.read(appSettingProvider);
+    return !settings.unboundedHidden && settings.unboundedAutoEnable;
+  }
+
+  /// The launch decision, taken under the gate from the current state. A
+  /// failed SmC session may have fallen back to Unbounded: that is stopped
+  /// like the session it replaced, but never switched back to the SmC that
+  /// just failed.
+  Future<void> _settleLaunch(
+    WidgetRef widgetRef,
+    ShareMode resumed,
+    int manualPort,
+  ) async {
+    // A snapshot may have shown the session gone while the checks ran.
+    if (!state.active || state.mode == ShareMode.off) return;
+    if (!_launchWanted()) {
+      // A view that never loaded keeps the session: a local read failure
+      // must never cut off a friend.
+      if (ref.read(helpersProvider.notifier).helpsSomeoneNow == false) {
+        appLogger.info('Action Mode resumed at launch: not wanted, stopping');
         await _stop(widgetRef, mode: state.mode);
         return;
       }
-      if (state.mode != resumed) return;
-      // A manually forwarded port is an explicit request for SmC.
-      final port = (await svc.getPeerManualPort()).fold((_) => 0, (p) => p);
-      if (!ref.mounted || port <= 0) return;
-      appLogger.info(
-        'Action Mode resumed as Unbounded with a manual port: '
-        'switching to SmC',
-      );
-      final off = await svc.setUnboundedEnabled(false);
-      if (!ref.mounted) return;
-      if (off.isLeft()) {
-        appLogger.error(
-          'Switching resumed Unbounded to SmC: could not stop it',
-        );
-        return;
-      }
-      _startGuard = null;
-      await _start(widgetRef, ShareMode.smc);
-    } finally {
-      _changes--;
+      appLogger.info('Action Mode resumed at launch: kept for a friend');
     }
+    if (state.mode != resumed || resumed != ShareMode.unbounded) return;
+    if (manualPort <= 0) return;
+    appLogger.info(
+      'Action Mode resumed as Unbounded with a manual port: switching to SmC',
+    );
+    final off = await widgetRef
+        .read(lanternServiceProvider)
+        .setUnboundedEnabled(false);
+    if (!ref.mounted) return;
+    if (off.isLeft()) {
+      appLogger.error('Switching resumed Unbounded to SmC: could not stop it');
+      return;
+    }
+    _startGuard = null;
+    await _start(widgetRef, ShareMode.smc);
   }
 
   /// The phase to adopt from a raw peer-status payload, or null to leave
