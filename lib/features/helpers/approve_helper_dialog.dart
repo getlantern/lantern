@@ -54,6 +54,8 @@ Future<bool> showApproveHelperDialog(
   await AppDialog.show(
     context: context,
     centered: true,
+    // Small phones with large text: keep both buttons reachable.
+    scrollable: true,
     header: const Icon(Icons.check_circle_outline, size: 40),
     title: 'approve_title'.i18n.fill([name]),
     body: 'approve_body'.i18n.fill([name]),

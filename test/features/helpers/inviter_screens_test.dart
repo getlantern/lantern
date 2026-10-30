@@ -376,6 +376,29 @@ void main() {
     expect(await result, isFalse);
   });
 
+  testWidgets('the approval dialog scrolls to its buttons on a small phone '
+      'with large text', (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    expect(tester.takeException(), isNull);
+    await tester.scrollUntilVisible(
+      _approveNo,
+      100,
+      scrollable: find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.tap(_approveNo);
+    await tester.pumpAndSettle();
+    expect(fake.decisions, [('i1', false)]);
+  });
+
   testWidgets('Back during a decision leaves the screen under the dialog', (
     tester,
   ) async {
