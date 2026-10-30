@@ -222,6 +222,9 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
             displayName: isAuto
                 ? (auto?.displayName ?? '')
                 : location.displayName,
+            // A widget connect must follow the selection, including a
+            // fallback to auto that no auto startVPN went through.
+            autoServer: isAuto,
           ),
     );
   }

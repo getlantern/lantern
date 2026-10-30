@@ -18,6 +18,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class _Service implements LanternService {
   bool tagAvailable = false;
+  final widgetAuto = <bool>[];
 
   @override
   Future<bool> isTagAvailable(String tag) async => tagAvailable;
@@ -38,7 +39,8 @@ class _Service implements LanternService {
     required String country,
     required String countryCode,
     required String displayName,
-  }) async {}
+    bool autoServer = false,
+  }) async => widgetAuto.add(autoServer);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -415,5 +417,19 @@ void main() {
     await pumpEventQueue();
     expect(c.read(serverLocationProvider).serverName, 'fra');
     expect(storage.location!.serverName, 'fra');
+  });
+
+  test('dropping the personal proxy points the widget back at auto', () async {
+    storage.location = ServerLocation.personalProxy();
+    final c = container();
+    c.read(serverLocationProvider);
+    expect(service.widgetAuto.last, isFalse);
+    helpers.set(_noHelpers);
+    await pumpEventQueue();
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.auto.name,
+    );
+    expect(service.widgetAuto.last, isTrue);
   });
 }

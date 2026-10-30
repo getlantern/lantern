@@ -1206,6 +1206,11 @@ class MethodHandler {
     case (true, true): name = displayName
     }
     VPNWidgetStore.setLocation(name: name, city: city, country: country, countryCode: countryCode)
+    // The app fell back to auto (or chose it) without going through
+    // startTunnel; a widget connect must not dial the dropped server.
+    if data["autoServer"] as? Bool == true {
+      VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
+    }
     result(nil)
   }
 

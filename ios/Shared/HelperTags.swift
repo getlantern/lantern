@@ -14,7 +14,8 @@ import Foundation
 // radiance redaction remove those.
 private let helperTagPattern = try! NSRegularExpression(
   pattern: "(?<![A-Za-z0-9_])helper-[0-9a-f]{12}")
-private let personalProxiesTag = "personal-proxies"
+/// radiance's url-test group over every helper outbound.
+let personalProxiesTag = "personal-proxies"
 private let personalProxyTypePattern = try! NSRegularExpression(
   pattern: "(?<![A-Za-z0-9_])personalProxy(?![A-Za-z0-9_])")
 

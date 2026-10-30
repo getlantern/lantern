@@ -153,6 +153,15 @@ class ExtensionProvider: NEPacketTunnelProvider {
     if error != nil {
       appLogger.log(
         "error while connecting to server \(redactHelperTags(error?.localizedDescription ?? ""))")
+      // The last pairing ended while the app was away: radiance dropped the
+      // personal proxies group, and a widget or on-demand start still asks
+      // for it. Connect through auto, as radiance itself falls back.
+      if serverName == personalProxiesTag && !MobileIsTagAvailable(serverName) {
+        appLogger.log("(lantern-tunnel) selected group is gone; starting auto")
+        VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
+        startVPN(completion: completion)
+        return
+      }
       completion?(false, error?.localizedDescription)
       cancelTunnelWithError(error)
 
