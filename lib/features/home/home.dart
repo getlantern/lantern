@@ -184,7 +184,8 @@ class Home extends HookConsumerWidget {
     // helps a friend through a helper-invite pairing: stopping it would cut
     // off the friend's personal proxy. A kept Unbounded session switches to
     // SmC when a manual port is set (not on iOS), since a manual port is an
-    // explicit request for SmC.
+    // explicit request for SmC. Once the user has toggled sharing this run,
+    // the launch auto-start below leaves that choice alone.
     //
     // Auto-enable Unbounded: gated on the "Auto-enable Unbounded" toggle
     // from Unbounded Settings (opt-in, default off) AND the per-user "Hide
@@ -215,8 +216,10 @@ class Home extends HookConsumerWidget {
         if (!unboundedAvailable) return;
         await ref.read(shareProvider.notifier).syncFromBackend(ref);
         if (!context.mounted) return;
-        await ref.read(shareProvider.notifier).reconcileLaunch(ref);
-        if (!context.mounted) return;
+        final mayAutoStart = await ref
+            .read(shareProvider.notifier)
+            .reconcileLaunch(ref);
+        if (!context.mounted || !mayAutoStart) return;
         final appSetting = ref.read(appSettingProvider);
         if (appSetting.unboundedHidden) return;
         if (!appSetting.onboardingCompleted) return;
