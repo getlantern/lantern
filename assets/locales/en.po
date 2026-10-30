@@ -2149,7 +2149,7 @@ msgid "helper_error_disabled"
 msgstr "Helping friends isn't available on this device yet."
 
 msgid "helper_error_not_found"
-msgstr "This invite or helper no longer exists."
+msgstr "This invite or Personal Proxy no longer exists."
 
 msgid "helper_error_unavailable"
 msgstr "Couldn't reach Lantern. Check your connection and try again."
@@ -2158,7 +2158,7 @@ msgid "helper_error_too_many_invites"
 msgstr "You've sent as many invites as you can for now. Try again tomorrow."
 
 msgid "helper_error_too_many_pairings"
-msgstr "You've reached the limit of 20 people."
+msgstr "You've reached the limit of 20 friends."
 
 msgid "helper_error_no_pending_claim"
 msgstr "This invite has already been decided."
@@ -2201,10 +2201,10 @@ msgid "helper_remove_confirm_body"
 msgstr "%s will stop helping you. You can invite them again later."
 
 msgid "helpers_remove_all"
-msgstr "Remove all helpers"
+msgstr "Remove all Personal Proxies"
 
 msgid "helpers_remove_all_body"
-msgstr "Every helper stops helping you, and their names are erased from this device."
+msgstr "Every Personal Proxy stops helping you, and their names are erased from this device."
 
 # The screen and menu entry for the user's private servers and personal proxies.
 msgid "manage_private_locations"
@@ -2223,11 +2223,11 @@ msgstr "Invite another"
 
 # Shown in the Personal Proxies tab while the user has exactly one personal proxy.
 msgid "helpers_nudge_second"
-msgstr "If your personal proxy goes offline, so does your connection through it. Invite a second friend to stay connected."
+msgstr "If your Personal Proxy goes offline, so does your connection through it. Invite a second friend to stay connected."
 
 # VPN tab banner offering to invite a friend abroad as a personal proxy.
 msgid "personal_proxy_banner_title"
-msgstr "Get a personal proxy"
+msgstr "Get a Personal Proxy"
 
 msgid "personal_proxy_banner_body"
 msgstr "A friend abroad can keep you connected."
@@ -2400,7 +2400,7 @@ msgid "help_friend_already_helping_named"
 msgstr "You're already helping %s."
 
 msgid "help_friend_bad_link"
-msgstr "This isn't a helper invite link."
+msgstr "This isn't a Personal Proxy invite link."
 
 msgid "help_friend_own_invite"
 msgstr "This is your own invite. Send it to the friend you'd like help from."
@@ -2464,7 +2464,7 @@ msgid "helping_unnamed"
 msgstr "Someone you help"
 
 msgid "helping_sharing_off_warning"
-msgstr "Sharing is off, so the people you help can't connect through you."
+msgstr "Sharing is off, so the friends you help can't connect through you."
 
 msgid "helping_remove"
 msgstr "Stop helping"
@@ -2480,7 +2480,7 @@ msgid "help_others_too_body"
 msgstr "Lend spare capacity to other people facing censorship; Lantern only lets them reach allowed sites, which protects your connection from misuse."
 
 msgid "help_others_too_note"
-msgstr "Changing this briefly reconnects the people you help."
+msgstr "Changing this briefly reconnects the friends you help."
 
 # %s %s are hours and minutes, as numbers.
 msgid "helping_duration_hm"
