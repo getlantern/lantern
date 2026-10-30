@@ -208,15 +208,34 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   }
 
   _PendingSelection? _pending;
+  int _selectionAttempt = 0;
+
+  /// Registers a selection before its connection request starts. Cancellation
+  /// must invalidate it even while the request has not yet queued a save.
+  int beginSelectionAttempt() {
+    _retirePendingSelection();
+    return _selectionAttempt;
+  }
+
+  bool isCurrentSelectionAttempt(int attempt) =>
+      ref.mounted && attempt == _selectionAttempt;
+
+  void cancelSelectionAttempt(int attempt) {
+    if (isCurrentSelectionAttempt(attempt)) _retirePendingSelection();
+  }
 
   /// Runs [save] once the VPN reports connected, so the stored selection never
   /// gets ahead of the status the home screen shows. Owned here rather than by
   /// the selection screen so leaving that screen doesn't drop the save. A newer
   /// request, disconnect, or VPN error retires a pending one. Resolves true once
   /// the VPN connected and [save] ran, false if the request was retired.
-  Future<bool> saveOnceConnected(FutureOr<void> Function() save) {
-    _retirePendingSelection();
+  Future<bool> saveOnceConnected(
+    FutureOr<void> Function() save, {
+    required int attempt,
+  }) {
+    if (!isCurrentSelectionAttempt(attempt)) return Future.value(false);
     if (ref.read(vpnProvider) == VPNStatus.connected) {
+      _retirePendingSelection();
       return _runSave(save).then((_) => true);
     }
     final pending = _PendingSelection(save);
@@ -225,19 +244,23 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   }
 
   void _settlePendingSelection(VPNStatus status) {
+    if (status == VPNStatus.disconnected || status == VPNStatus.error) {
+      _retirePendingSelection();
+      return;
+    }
     final pending = _pending;
     if (pending == null) return;
     if (status == VPNStatus.connected) {
       _pending = null;
+      _selectionAttempt++;
       unawaited(
         _runSave(pending.save).then((_) => pending.completer.complete(true)),
       );
-    } else if (status == VPNStatus.disconnected || status == VPNStatus.error) {
-      _retirePendingSelection();
     }
   }
 
   void _retirePendingSelection() {
+    _selectionAttempt++;
     _pending?.completer.complete(false);
     _pending = null;
   }

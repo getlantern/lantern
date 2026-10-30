@@ -122,10 +122,60 @@ void main() {
       container.read(serverLocationProvider.notifier);
   _FakeVpn vpn() => container.read(vpnProvider.notifier) as _FakeVpn;
 
+  Future<bool> saveOnceConnected(FutureOr<void> Function() save) => notifier()
+      .saveOnceConnected(save, attempt: notifier().beginSelectionAttempt());
+
+  group('selection attempts', () {
+    test(
+      'does not save before an already-connected request is accepted',
+      () async {
+        vpn().set(VPNStatus.connected);
+        final attempt = notifier().beginSelectionAttempt();
+        await _pump();
+        expect(notifier().isCurrentSelectionAttempt(attempt), isTrue);
+        expect(storage.getServerLocation(), isNull);
+
+        notifier().cancelSelectionAttempt(attempt);
+        expect(
+          await notifier().saveOnceConnected(
+            () => notifier().updateServerLocation(_location('failed')),
+            attempt: attempt,
+          ),
+          isFalse,
+        );
+        expect(storage.getServerLocation(), isNull);
+      },
+    );
+
+    test(
+      'stale completion and cancellation leave a newer save intact',
+      () async {
+        final first = notifier().beginSelectionAttempt();
+        final second = notifier().beginSelectionAttempt();
+        final saved = notifier().saveOnceConnected(
+          () => notifier().updateServerLocation(_location('newer')),
+          attempt: second,
+        );
+
+        notifier().cancelSelectionAttempt(first);
+        expect(
+          await notifier().saveOnceConnected(
+            () => notifier().updateServerLocation(_location('stale')),
+            attempt: first,
+          ),
+          isFalse,
+        );
+        vpn().set(VPNStatus.connected);
+        expect(await saved, isTrue);
+        expect(storage.getServerLocation()?.serverName, 'newer');
+      },
+    );
+  });
+
   group('saveOnceConnected', () {
     test('saves immediately when already connected', () async {
       vpn().set(VPNStatus.connected);
-      final saved = await notifier().saveOnceConnected(
+      final saved = await saveOnceConnected(
         () => notifier().updateServerLocation(_location('a')),
       );
 
@@ -134,7 +184,7 @@ void main() {
     });
 
     test('defers the save until the VPN reports connected', () async {
-      final result = notifier().saveOnceConnected(
+      final result = saveOnceConnected(
         () => notifier().updateServerLocation(_location('a')),
       );
       await _pump();
@@ -151,7 +201,7 @@ void main() {
     });
 
     test('drops the pending save when the VPN errors', () async {
-      final result = notifier().saveOnceConnected(
+      final result = saveOnceConnected(
         () => notifier().updateServerLocation(_location('a')),
       );
       vpn().set(VPNStatus.error);
@@ -164,7 +214,7 @@ void main() {
     });
 
     test('a disconnected attempt cannot save on a later connection', () async {
-      final result = notifier().saveOnceConnected(
+      final result = saveOnceConnected(
         () => notifier().updateServerLocation(_location('cancelled')),
       );
       vpn().set(VPNStatus.connecting);
@@ -183,10 +233,10 @@ void main() {
     });
 
     test('a newer request retires the pending one', () async {
-      final first = notifier().saveOnceConnected(
+      final first = saveOnceConnected(
         () => notifier().updateServerLocation(_location('a')),
       );
-      final second = notifier().saveOnceConnected(
+      final second = saveOnceConnected(
         () => notifier().updateServerLocation(_location('b')),
       );
       expect(await first, isFalse);
@@ -198,76 +248,91 @@ void main() {
 
     test('still resolves when the save itself throws', () async {
       vpn().set(VPNStatus.connected);
-      final saved = await notifier().saveOnceConnected(
+      final saved = await saveOnceConnected(
         () => throw StateError('disk full'),
       );
       expect(saved, isTrue);
     });
   });
 
-  for (final requestFinished in [false, true]) {
-    testWidgets(
-      'a private selection survives disposal ${requestFinished ? 'after' : 'before'} request acceptance',
-      (tester) async {
-        final subscription = container.listen(
-          serverLocationProvider,
-          (_, _) {},
-        );
-        addTearDown(subscription.close);
-        final showingSelection = ValueNotifier(true);
-        addTearDown(showingSelection.dispose);
-        await tester.pumpWidget(
-          UncontrolledProviderScope(
-            container: container,
-            child: ScreenUtilInit(
-              designSize: const Size(393, 852),
-              child: GlobalLoaderOverlay(
-                child: MaterialApp(
-                  theme: AppTheme.appTheme(),
-                  home: Scaffold(
-                    body: ValueListenableBuilder(
-                      valueListenable: showingSelection,
-                      builder: (_, showing, _) => showing
-                          ? const PrivateServerLocationListView()
-                          : const SizedBox(),
+  for (final cancelledStatus in [
+    null,
+    VPNStatus.disconnected,
+    VPNStatus.error,
+  ]) {
+    for (final requestFinished in [false, true]) {
+      testWidgets(
+        'a private selection ${cancelledStatus == null ? 'survives disposal' : 'is cancelled by ${cancelledStatus.name}'} ${requestFinished ? 'after' : 'before'} request acceptance',
+        (tester) async {
+          notifier().updateServerLocation(_location('previous'));
+          final subscription = container.listen(
+            serverLocationProvider,
+            (_, _) {},
+          );
+          addTearDown(subscription.close);
+          final showingSelection = ValueNotifier(true);
+          addTearDown(showingSelection.dispose);
+          await tester.pumpWidget(
+            UncontrolledProviderScope(
+              container: container,
+              child: ScreenUtilInit(
+                designSize: const Size(393, 852),
+                child: GlobalLoaderOverlay(
+                  child: MaterialApp(
+                    theme: AppTheme.appTheme(),
+                    home: Scaffold(
+                      body: ValueListenableBuilder(
+                        valueListenable: showingSelection,
+                        builder: (_, showing, _) => showing
+                            ? const PrivateServerLocationListView()
+                            : const SizedBox(),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        );
-        await tester.pump();
-        await tester.tap(
-          find.byKey(const Key('server_selection.private_server.private')),
-        );
-        await tester.pump();
-        expect(container.read(vpnProvider), VPNStatus.connecting);
-        if (requestFinished) {
-          vpn().connection.complete(const Right('ok'));
+          );
+          await tester.pump();
+          await tester.tap(
+            find.byKey(const Key('server_selection.private_server.private')),
+          );
+          await tester.pump();
+          expect(container.read(vpnProvider), VPNStatus.connecting);
+          if (requestFinished) {
+            vpn().connection.complete(const Right('ok'));
+            await tester.runAsync(_pump);
+            await tester.pump();
+          }
+          showingSelection.value = false;
+          await tester.pump();
+          expect(find.byType(PrivateServerLocationListView), findsNothing);
+          if (cancelledStatus != null) {
+            vpn().set(cancelledStatus);
+            await tester.runAsync(_pump);
+            await tester.pump();
+          }
+          if (!requestFinished) {
+            vpn().connection.complete(const Right('ok'));
+            await tester.runAsync(_pump);
+            await tester.pump();
+          }
+          vpn().set(VPNStatus.connected);
           await tester.runAsync(_pump);
           await tester.pump();
-        }
-        showingSelection.value = false;
-        await tester.pump();
-        expect(find.byType(PrivateServerLocationListView), findsNothing);
-        if (!requestFinished) {
-          vpn().connection.complete(const Right('ok'));
-          await tester.runAsync(_pump);
-          await tester.pump();
-        }
-        vpn().set(VPNStatus.connected);
-        await tester.runAsync(_pump);
-        await tester.pump();
 
-        expect(container.read(serverLocationProvider).serverName, 'private');
-        expect(storage.getServerLocation()?.serverName, 'private');
-        expect(
-          storage.getServerLocation()?.serverType,
-          ServerLocationType.privateServer.name,
-        );
-        expect(tester.takeException(), isNull);
-      },
-    );
+          final expected = cancelledStatus == null ? 'private' : 'previous';
+          expect(container.read(serverLocationProvider).serverName, expected);
+          expect(storage.getServerLocation()?.serverName, expected);
+          expect(
+            storage.getServerLocation()?.serverType,
+            cancelledStatus == null
+                ? ServerLocationType.privateServer.name
+                : ServerLocationType.lanternLocation.name,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
   }
 }

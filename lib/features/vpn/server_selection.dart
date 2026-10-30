@@ -799,6 +799,7 @@ Future<void> _connectAndReturnHome(
   bool skipConflictCheck = false,
 }) async {
   final locationNotifier = ref.read(serverLocationProvider.notifier);
+  final selectionAttempt = locationNotifier.beginSelectionAttempt();
   // The overlay is app-wide, so hide it through its controller rather than
   // this context, which may be gone by the time the attempt returns.
   final overlay = context.loaderOverlay;
@@ -806,11 +807,16 @@ Future<void> _connectAndReturnHome(
   final Either<Failure, String> result;
   try {
     result = await attempt(skipConflictCheck);
+  } catch (_) {
+    locationNotifier.cancelSelectionAttempt(selectionAttempt);
+    rethrow;
   } finally {
     overlay.hide();
   }
+  if (!locationNotifier.isCurrentSelectionAttempt(selectionAttempt)) return;
   result.fold(
     (failure) {
+      locationNotifier.cancelSelectionAttempt(selectionAttempt);
       if (!context.mounted) return;
       if (failure is VpnConflictFailure && !skipConflictCheck) {
         AppDialog.vpnConflictDialog(
@@ -834,7 +840,13 @@ Future<void> _connectAndReturnHome(
       context.showSnackBar(failure.localizedErrorMessage);
     },
     (_) => unawaited(
-      _returnHomeOnceSaved(context, locationNotifier, save, connectedMessage),
+      _returnHomeOnceSaved(
+        context,
+        locationNotifier,
+        selectionAttempt,
+        save,
+        connectedMessage,
+      ),
     ),
   );
 }
@@ -844,10 +856,14 @@ Future<void> _connectAndReturnHome(
 Future<void> _returnHomeOnceSaved(
   BuildContext context,
   ServerLocationNotifier locationNotifier,
+  int selectionAttempt,
   FutureOr<void> Function() save,
   String? connectedMessage,
 ) async {
-  final saved = await locationNotifier.saveOnceConnected(save);
+  final saved = await locationNotifier.saveOnceConnected(
+    save,
+    attempt: selectionAttempt,
+  );
   if (!saved || !context.mounted) return;
   if (connectedMessage != null) context.showSnackBar(connectedMessage);
   appRouter.popUntilRoot();
