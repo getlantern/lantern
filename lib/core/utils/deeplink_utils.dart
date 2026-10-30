@@ -67,6 +67,13 @@ String normalizeHelperInviteInput(String input) {
   return trimmed;
 }
 
+/// Whether [input] holds a helper invite link, alone or inside a pasted
+/// share message, in any form [normalizeHelperInviteInput] accepts.
+bool isHelperInviteInput(String input) {
+  final uri = Uri.tryParse(normalizeHelperInviteInput(input));
+  return uri != null && uri.fragment.isNotEmpty && isHelperInviteUri(uri);
+}
+
 // Punctuation a link picks up from the sentence around it. The secret is
 // base64url, so none of these can be part of it.
 final _enclosingPunctuation = RegExp(r'''^[("'<\[]+|[.,;:!?)"'>\]]+$''');

@@ -85,7 +85,7 @@ Future<void> _pump(
   // Tall enough that HelpFriend's whole form, below the "what helping
   // means" card, is built without scrolling.
   tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = const Size(800, 1400);
+  tester.view.physicalSize = const Size(800, 2000);
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
@@ -152,6 +152,36 @@ void main() {
     await _claim(tester);
     expect(helpers.claims, [(_link, 'Ali')]);
     expect(find.text('2562'), findsOneWidget);
+    expect(find.text('become_personal_proxy'.i18n), findsOneWidget);
+    final card = find.byKey(const Key('help_friend.waiting'));
+    for (final text in [
+      'help_friend_tell_code'.i18n,
+      '2562',
+      'help_friend_code_check'.i18n,
+      'help_friend_waiting_approval'.i18n,
+    ]) {
+      expect(
+        find.descendant(of: card, matching: find.text(text)),
+        findsOneWidget,
+      );
+    }
+    final code = tester.widget<Text>(find.byKey(const Key('help_friend.code')));
+    expect(
+      code.style?.fontSize,
+      Theme.of(tester.element(card)).textTheme.displayMedium?.fontSize,
+    );
+    final note = find.byKey(const Key('help_friend.code_note'));
+    expect(
+      find.descendant(
+        of: note,
+        matching: find.text('help_friend_code_note'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(note).dy,
+      greaterThan(tester.getBottomLeft(card).dy),
+    );
   });
 
   testWidgets('an already claimed invite says so prominently', (tester) async {
@@ -298,19 +328,24 @@ void main() {
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
   });
 
-  testWidgets('a link that opened HelpFriend and is not an invite can be '
-      'corrected', (tester) async {
+  testWidgets('a link that opened HelpFriend and the engine refuses shows '
+      'the error on the field, and can be corrected', (tester) async {
     final helpers = _Helpers(
       const HelpersState(),
       claimAnswers: ['{"error":"bad_link"}', '{"claim_id":"c1","code":"2562"}'],
     );
     helpers.holdLink('https://lantern.io/help/#broken');
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
-    expect(find.byKey(const Key('help_friend.link')), findsNothing);
-    await _claim(tester);
-    expect(find.text(helperErrorText('bad_link')), findsOneWidget);
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    await _claim(tester);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('help_friend.link_error'))).data,
+      helperErrorText('bad_link'),
+    );
+    expect(find.byKey(const Key('help_friend.error')), findsNothing);
     await tester.enterText(find.byKey(const Key('help_friend.link')), _link);
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
     await tester.pump();
     await tester.pump();
@@ -318,15 +353,59 @@ void main() {
     expect(find.text('2562'), findsOneWidget);
   });
 
-  testWidgets('opening HelpFriend refreshes only if used, never shows the '
-      'held link, and caps the name at 60', (tester) async {
+  testWidgets('the button waits for a valid link; a bad one is flagged on '
+      'the field', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    PrimaryButton button() => tester.widget<PrimaryButton>(
+      find.descendant(
+        of: find.byKey(const Key('help_friend.accept')),
+        matching: find.byType(PrimaryButton),
+      ),
+    );
+    expect(button().enabled, isFalse);
+    expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
+    expect(find.text('help_friend_link_hint'.i18n), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('help_friend.link')),
+      'https://example.com/help#AAAA',
+    );
+    await tester.pump();
+    expect(button().enabled, isFalse);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('help_friend.link_error'))).data,
+      helperErrorText('bad_link'),
+    );
+    await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await tester.pump();
+    expect(helpers.claims, isEmpty);
+
+    // Pasted with the share message around it.
+    await tester.enterText(
+      find.byKey(const Key('help_friend.link')),
+      'Sara wants your help staying online. $_link',
+    );
+    await tester.pump();
+    expect(button().enabled, isTrue);
+    expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
+  });
+
+  testWidgets('opening HelpFriend refreshes only if used, fills in the held '
+      'link, and caps the name at 60', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     expect(helpers.refreshes, 1);
-    // The link was taken once, and is not on screen.
+    // The link was taken once, and fills the field.
     expect(helpers.takeLink(), isNull);
-    expect(find.textContaining('AAAAAAAA'), findsNothing);
+    final link = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('help_friend.link')),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(link.controller!.text, _link);
     final field = tester.widget<TextField>(
       find.descendant(
         of: find.byKey(const Key('help_friend.name')),
@@ -336,28 +415,41 @@ void main() {
     expect(field.maxLength, 60);
   });
 
-  testWidgets('before claiming, a card says what helping means, above the '
-      'link field', (tester) async {
+  testWidgets('before claiming: what being a Personal Proxy means, then the '
+      'link and name card', (tester) async {
     final helpers = _Helpers(const HelpersState());
     await _pump(tester, helpers, const HelpFriend());
+    expect(find.text('become_personal_proxy'.i18n), findsOneWidget);
     final card = find.byKey(const Key('help_friend.means'));
     expect(card, findsOneWidget);
     for (final key in [
-      'help_friend_means_title',
-      'help_friend_means_traffic',
-      'help_friend_means_online',
-      'help_friend_means_stop',
+      'become_means_title',
+      'become_means_traffic',
+      'become_means_seen',
+      'become_means_remove',
     ]) {
       expect(
         find.descendant(of: card, matching: find.text(key.i18n)),
         findsOneWidget,
       );
     }
-    expect(find.text('help_friend_intro'.i18n), findsNothing);
-    expect(
-      tester.getTopLeft(card).dy,
-      lessThan(tester.getTopLeft(find.byKey(const Key('help_friend.link'))).dy),
-    );
+    // Decision 5: never "you cannot see it".
+    expect(find.textContaining('cannot see'), findsNothing);
+    final form = find.byKey(const Key('help_friend.form'));
+    for (final text in [
+      'help_friend_form_title'.i18n,
+      'help_friend_link_label'.i18n,
+      'help_friend_link_hint'.i18n,
+      'help_friend_name_label'.i18n,
+      'help_friend_name_hint'.i18n,
+      'help_friend_become'.i18n,
+    ]) {
+      expect(
+        find.descendant(of: form, matching: find.text(text)),
+        findsOneWidget,
+      );
+    }
+    expect(tester.getBottomLeft(card).dy, lessThan(tester.getTopLeft(form).dy));
   });
 
   testWidgets('without a held link, the link field is shown', (tester) async {

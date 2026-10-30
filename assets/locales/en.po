@@ -2324,25 +2324,49 @@ msgstr "Personal Proxies:"
 msgid "your_personal_proxies"
 msgstr "Your personal proxies"
 
-# Helper invites: the volunteer's side.
-msgid "help_friend_title"
-msgstr "Help a friend stay online"
+# Title of the card that tells a volunteer what being someone's Personal Proxy involves.
+msgid "become_means_title"
+msgstr "What being a Personal Proxy means"
 
-msgid "help_friend_intro"
-msgstr "A friend asked for your help. While Lantern runs, they can reach the open internet through your connection."
+msgid "become_means_traffic"
+msgstr "A friend asked for your help. While Action Mode runs, they can reach the open internet through your connection. Depending on your router, their traffic leaves from your network or is relayed through Lantern's servers. Lantern doesn't show you what they do online."
 
-# Title of the card that tells a volunteer what helping a friend involves.
-msgid "help_friend_means_title"
-msgstr "What helping a friend means"
+msgid "become_means_seen"
+msgstr "They can see when you're connected. Only accept invites from people you know."
 
-msgid "help_friend_means_traffic"
-msgstr "Your friend reaches the open internet through your connection. Depending on your router, their traffic leaves from your network or is relayed through Lantern's servers. Lantern doesn't show you what they do online."
+msgid "become_means_remove"
+msgstr "Remove the connection any time."
 
-msgid "help_friend_means_online"
-msgstr "Your friend can see when you're online. Only accept invites from people you know."
+# Title of the card with the invite link and name fields.
+msgid "help_friend_form_title"
+msgstr "Paste the link from the person you're helping"
 
-msgid "help_friend_means_stop"
-msgstr "You can stop helping at any time."
+# Under the invite link field.
+msgid "help_friend_link_hint"
+msgstr "If you opened the link on this device, this is filled in for you"
+
+msgid "help_friend_name_label"
+msgstr "Your name, as they know you"
+
+# Under the name field.
+msgid "help_friend_name_hint"
+msgstr "This is how you appear in their Lantern"
+
+msgid "help_friend_become"
+msgstr "Become Their Personal Proxy"
+
+msgid "help_friend_tell_code"
+msgstr "Tell them this code"
+
+msgid "help_friend_code_check"
+msgstr "They will check it matches the code on their phone, then approve you."
+
+msgid "help_friend_waiting_approval"
+msgstr "Waiting for approval"
+
+# Note under the code a volunteer reads to the friend who invited them.
+msgid "help_friend_code_note"
+msgstr "Say the code over a call or in a different app than the one the invite link arrived in. Anyone who saw the link should not also see the code."
 
 msgid "help_friend_link_label"
 msgstr "Invite link"
@@ -2352,21 +2376,6 @@ msgstr "Paste the link your friend sent"
 
 msgid "help_friend_scan"
 msgstr "Scan your friend's QR code"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern helps automatically while it's running. It uses a direct connection when your router allows one, and a browser-style connection otherwise."
-
-msgid "help_friend_accept"
-msgstr "Help my friend"
-
-msgid "help_friend_code_title"
-msgstr "Tell your friend this code"
-
-msgid "help_friend_code_body"
-msgstr "Your friend will check that it matches the code on their phone, then approve you. A call or a different app is safest."
-
-msgid "help_friend_waiting"
-msgstr "Waiting for your friend to approve"
 
 # %s is the friend's name.
 msgid "help_friend_approved"
