@@ -2297,9 +2297,9 @@ msgstr "Compare codes"
 msgid "approve_title"
 msgstr "%s wants to be your Personal Proxy"
 
-# %s is the name the friend typed.
+# %s is the name the friend typed. Comparing the code over a different channel from the link is what stops someone who intercepted the link.
 msgid "approve_body"
-msgstr "Ask %s for the 4-digit code Lantern shows them. Approve only if it matches."
+msgstr "Ask %s for the 4-digit code Lantern shows them, on a call or in a different app from the one you sent the link in. Approve only if it matches."
 
 msgid "approve_codes_match"
 msgstr "Codes Match, Approve"
