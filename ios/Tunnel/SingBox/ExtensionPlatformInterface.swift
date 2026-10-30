@@ -75,11 +75,19 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     if options.getAutoRoute() {
       settings.mtu = NSNumber(value: options.getMTU())
 
-      let dnsServer = try options.getDNSServerAddress()
-      let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
-      dnsSettings.matchDomains = [""]
-      dnsSettings.matchDomainsNoSearch = true
-      settings.dnsSettings = dnsSettings
+      if options.getDNSMode()?.value != LibboxDNSModeDisabled {
+        let dnsServerIterator = try options.getDNSServerAddress()
+        var dnsServers: [String] = []
+        while dnsServerIterator.hasNext() {
+          dnsServers.append(dnsServerIterator.next())
+        }
+        if !dnsServers.isEmpty {
+          let dnsSettings = NEDNSSettings(servers: dnsServers)
+          dnsSettings.matchDomains = [""]
+          dnsSettings.matchDomainsNoSearch = true
+          settings.dnsSettings = dnsSettings
+        }
+      }
 
       var ipv4Address: [String] = []
       var ipv4Mask: [String] = []
@@ -479,8 +487,75 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     nil
   }
 
-  public func systemCertificates() -> (any LibboxStringIteratorProtocol)? {
-    nil
+  public func cancelNotification(_ identifier: String?, typeID _: Int32) throws {
+    #if !os(tvOS)
+      guard let identifier else {
+        return
+      }
+      let center = UNUserNotificationCenter.current()
+      center.removePendingNotificationRequests(withIdentifiers: [identifier])
+      center.removeDeliveredNotifications(withIdentifiers: [identifier])
+    #endif
+  }
+
+  // Called on every openTun, so it must not throw.
+  public func registerMyInterface(_: String?) {}
+
+  // sing-box calls the methods below only for features Lantern doesn't
+  // configure: the neighbor resolver, the platform shell and SSH used by
+  // Tailscale, and the bridge outbound.
+
+  public func startNeighborMonitor(_: LibboxNeighborUpdateListenerProtocol?) throws {
+    throw unsupported("neighbor monitor")
+  }
+
+  public func closeNeighborMonitor(_: LibboxNeighborUpdateListenerProtocol?) throws {}
+
+  public func usePlatformShell() -> Bool {
+    false
+  }
+
+  public func checkPlatformShell() throws {
+    throw unsupported("platform shell")
+  }
+
+  public func openShellSession(
+    _: LibboxPlatformUser?, command _: String?, environ _: (any LibboxStringIteratorProtocol)?,
+    term _: String?, rows _: Int32, cols _: Int32
+  ) throws -> any LibboxShellSessionProtocol {
+    throw unsupported("platform shell")
+  }
+
+  public func lookupUser(_: String?) throws -> LibboxPlatformUser {
+    throw unsupported("user lookup")
+  }
+
+  public func lookupSFTPServer(_ error: NSErrorPointer) -> String {
+    error?.pointee = unsupported("SFTP server")
+    return ""
+  }
+
+  public func readSystemSSHHostKey(_ error: NSErrorPointer) -> String {
+    error?.pointee = unsupported("system SSH host key")
+    return ""
+  }
+
+  public func tailscaleHostname() -> String {
+    ""
+  }
+
+  public func usePlatformBridge() -> Bool {
+    false
+  }
+
+  public func createBridge(_: LibboxBridgeOptions?) throws -> any LibboxBridgeSessionProtocol {
+    throw unsupported("platform bridge")
+  }
+
+  private func unsupported(_ feature: String) -> NSError {
+    NSError(
+      domain: "ExtensionPlatformInterface", code: -1,
+      userInfo: [NSLocalizedDescriptionKey: "\(feature) is not supported"])
   }
 
 }

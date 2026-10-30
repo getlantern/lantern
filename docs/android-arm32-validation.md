@@ -23,7 +23,9 @@ Its verified APK SHA-256 is
 Physical testing also exposed gVisor TUN teardown retaining Android's VPN
 network after disconnect. The shared [sing-tun backport](https://github.com/getlantern/sing-tun/commit/5448fbd8b70bb2057bd1f6f2148830fde4f18f85)
 preserves `Attach(nil)` through its filter so the packet reader stops before
-closing the descriptor. Reconnect passes with that fix.
+closing the descriptor. Reconnect passes with that fix. The sing-tun that
+sing-box 1.14 uses includes the same fix upstream (be4ce8d320a5), so the
+backport is no longer pinned.
 
 ## Verified evidence
 
