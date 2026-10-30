@@ -108,7 +108,9 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
   void _reconcilePersonalProxy() {
     if (!ref.exists(serverLocationProvider)) return;
     unawaited(
-      ref.read(serverLocationProvider.notifier).reconcilePersonalProxy(),
+      ref
+          .read(serverLocationProvider.notifier)
+          .reconcilePersonalProxy(fromConfig: true),
     );
   }
 

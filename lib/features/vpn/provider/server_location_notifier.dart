@@ -44,20 +44,25 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     return initial;
   }
 
+  static bool _trusted(HelpersState s) =>
+      s.viewLoaded && !s.keystoreReset && s.error == null;
+
   static bool _helpersGone(HelpersState s) =>
-      s.viewLoaded &&
-      s.view.helpers.isEmpty &&
-      !s.keystoreReset &&
-      s.error == null;
+      _trusted(s) && s.view.helpers.isEmpty;
 
   bool get _personalProxySelected =>
       state.serverType.toServerLocationType == ServerLocationType.personalProxy;
 
   /// Switches a personal proxy selection to auto once the helpers view is
   /// loaded empty and radiance no longer has the personal proxies group.
-  Future<void> reconcilePersonalProxy() async {
+  /// [fromConfig] is a config refresh: a friend may have ended the pairing
+  /// remotely, so a non-empty view is refreshed once before giving up.
+  Future<void> reconcilePersonalProxy({bool fromConfig = false}) async {
     if (!ref.mounted || !_personalProxySelected) return;
-    if (!_helpersGone(ref.read(helpersProvider))) return;
+    final before = ref.read(helpersProvider);
+    final stale =
+        fromConfig && _trusted(before) && before.view.helpers.isNotEmpty;
+    if (!stale && !_helpersGone(before)) return;
     final bool available;
     try {
       available = await ref
@@ -68,6 +73,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       return;
     }
     if (!ref.mounted || available || !_personalProxySelected) return;
+    if (stale) {
+      await ref.read(helpersProvider.notifier).refreshIfUsed();
+      if (!ref.mounted || !_personalProxySelected) return;
+    }
     if (!_helpersGone(ref.read(helpersProvider))) return;
     await switchToAuto();
     await refreshAutoLocationIfNeeded();

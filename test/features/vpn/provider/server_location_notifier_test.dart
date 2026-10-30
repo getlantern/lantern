@@ -46,10 +46,19 @@ class _Storage implements LocalStorageService {
 }
 
 class _Helpers extends HelpersNotifier {
+  HelpersState? afterRefresh;
+  int refreshes = 0;
+
   @override
   HelpersState build() => const HelpersState();
 
   void set(HelpersState s) => state = s;
+
+  @override
+  Future<void> refreshIfUsed() async {
+    refreshes++;
+    if (afterRefresh != null) state = afterRefresh!;
+  }
 }
 
 class _Servers extends AvailableServersNotifier {
@@ -263,4 +272,78 @@ void main() {
       );
     },
   );
+
+  test('a config refresh with a stale helper list refreshes it and switches '
+      'to auto once the friend is gone', () async {
+    service.tagAvailable = true;
+    storage.location = ServerLocation.personalProxy();
+    final c = container();
+    c.read(serverLocationProvider);
+    helpers.set(_oneHelper);
+    await c.read(availableServersProvider.future);
+    await pumpEventQueue();
+
+    service.tagAvailable = false;
+    helpers.afterRefresh = _noHelpers;
+    await c
+        .read(availableServersProvider.notifier)
+        .forceFetchAvailableServers();
+    await pumpEventQueue();
+    expect(helpers.refreshes, 1);
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.auto.name,
+    );
+    expect(storage.location!.serverType, ServerLocationType.auto.name);
+  });
+
+  test('a config refresh keeps the selection when the refreshed list still '
+      'has the friend', () async {
+    service.tagAvailable = true;
+    storage.location = ServerLocation.personalProxy();
+    final c = container();
+    c.read(serverLocationProvider);
+    helpers.set(_oneHelper);
+    await c.read(availableServersProvider.future);
+    await pumpEventQueue();
+
+    service.tagAvailable = false;
+    helpers.afterRefresh = _oneHelper;
+    await c
+        .read(availableServersProvider.notifier)
+        .forceFetchAvailableServers();
+    await pumpEventQueue();
+    expect(helpers.refreshes, 1);
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.personalProxy.name,
+    );
+  });
+
+  test('a config refresh after a keystore reset neither refreshes nor '
+      'switches', () async {
+    storage.location = ServerLocation.personalProxy();
+    final c = container();
+    c.read(serverLocationProvider);
+    helpers.set(
+      const HelpersState(
+        viewLoaded: true,
+        keystoreReset: true,
+        view: HelpersView(
+          unlocked: true,
+          helpers: [HelperPairingView(pairingId: 'p1')],
+        ),
+      ),
+    );
+    helpers.afterRefresh = _noHelpers;
+    await c
+        .read(availableServersProvider.notifier)
+        .forceFetchAvailableServers();
+    await pumpEventQueue();
+    expect(helpers.refreshes, 0);
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.personalProxy.name,
+    );
+  });
 }
