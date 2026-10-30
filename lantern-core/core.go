@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -86,6 +87,7 @@ type LanternCore struct {
 	client         *ipc.Client
 	userMessages   userMessageClient
 	serverImporter serverURLImporter
+	serverStore    serverStore
 	ctx            context.Context
 	cancel         context.CancelFunc
 	initOnce       sync.Once
@@ -330,6 +332,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.client = client
 	lc.userMessages = client
 	lc.serverImporter = client
+	lc.serverStore = client
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
@@ -1403,9 +1406,14 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	if oldTag == newTag {
 		return nil
 	}
+	// radiance refuses these at AddServers, which here runs after the
+	// remove; refuse them before touching the server.
+	if slices.Contains(servers.ReservedTags(), newTag) {
+		return fmt.Errorf("server name %q: %w", newTag, servers.ErrReservedTag)
+	}
 
 	// Find source server
-	source, exists, err := lc.client.GetServerByTag(lc.ctx, oldTag)
+	source, exists, err := lc.serverStore.GetServerByTag(lc.ctx, oldTag)
 	if err != nil {
 		return fmt.Errorf("failed to get server %q: %w", oldTag, err)
 	}
@@ -1414,21 +1422,35 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	}
 
 	// Check new tag doesn't collide
-	_, collision, _ := lc.client.GetServerByTag(lc.ctx, newTag)
+	_, collision, _ := lc.serverStore.GetServerByTag(lc.ctx, newTag)
 	if collision {
 		return fmt.Errorf("server with tag %q already exists", newTag)
 	}
 
-	// Remove old, add renamed copy
-	if err := lc.client.RemoveServers(lc.ctx, []string{oldTag}); err != nil {
+	// Remove old, add renamed copy; put the original back if the add fails
+	// so a refused rename never loses the server.
+	original := *source
+	if err := lc.serverStore.RemoveServers(lc.ctx, []string{oldTag}); err != nil {
 		return fmt.Errorf("failed to remove old server %q: %w", oldTag, err)
 	}
-	source.Tag = newTag
-	list := servers.ServerList{Servers: []*servers.Server{source}}
-	if err := lc.client.AddServers(lc.ctx, list); err != nil {
+	renamed := *source
+	renamed.Tag = newTag
+	list := servers.ServerList{Servers: []*servers.Server{&renamed}}
+	if err := lc.serverStore.AddServers(lc.ctx, list); err != nil {
+		restore := servers.ServerList{Servers: []*servers.Server{&original}}
+		if rerr := lc.serverStore.AddServers(lc.ctx, restore); rerr != nil {
+			return fmt.Errorf("failed to add renamed server %q: %w (restoring %q also failed: %v)", newTag, err, oldTag, rerr)
+		}
 		return fmt.Errorf("failed to add renamed server %q: %w", newTag, err)
 	}
 	return nil
+}
+
+// serverStore is the part of the IPC client a rename uses.
+type serverStore interface {
+	GetServerByTag(context.Context, string) (*servers.Server, bool, error)
+	RemoveServers(context.Context, []string) error
+	AddServers(context.Context, servers.ServerList) error
 }
 
 type serverURLImporter interface {
