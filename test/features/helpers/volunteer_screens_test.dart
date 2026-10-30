@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +6,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 // common.dart re-exports the generated route classes, which share the
 // screens' names.
 import 'package:lantern/core/common/common.dart' hide HelpFriend;
+import 'package:lantern/core/common/common.dart' as routes show HelpFriend;
+import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
@@ -65,6 +69,19 @@ class _Helpers extends HelpersNotifier {
   );
 
   void setView(HelpersView view) => state = state.copyWith(view: view);
+}
+
+class _Router extends AppRouter {
+  final pushed = <PageRouteInfo>[];
+
+  @override
+  Future<T?> push<T extends Object?>(
+    PageRouteInfo route, {
+    OnNavigationFailure? onFailure,
+  }) async {
+    pushed.add(route);
+    return null;
+  }
 }
 
 class _Share extends ShareNotifier {
@@ -882,6 +899,49 @@ void main() {
     await tester.pump();
     await tester.pump(PersonalProxyConnectionsCard.refreshInterval * 3);
     expect(helpers.refreshes, 3, reason: 'the timer goes with the card');
+  });
+
+  testWidgets('Paste another invite link opens the paste form in new-invite '
+      'mode', (tester) async {
+    await sl.reset();
+    final router = _Router();
+    sl.registerSingleton<AppRouter>(router);
+    addTearDown(sl.reset);
+    await _pump(
+      tester,
+      _Helpers(_helping()),
+      Navigator(
+        onGenerateRoute: (_) => MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: HelpingFriendsSheet()),
+        ),
+      ),
+      sharing: true,
+    );
+    await tester.tap(find.byKey(const Key('helping.paste_another')));
+    await tester.pump();
+    final route = router.pushed.single;
+    expect(route.routeName, routes.HelpFriend.name);
+    expect((route.args! as HelpFriendArgs).newInvite, isTrue);
+  });
+
+  testWidgets('in new-invite mode a waiting claim does not take over: the '
+      'paste form shows', (tester) async {
+    final helpers = _Helpers(
+      const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          helping: [_sara],
+          claims: [
+            HelperClaimView(id: 'c1', code: '2562', expiresUnix: _future),
+          ],
+        ),
+      ),
+    );
+    await _pump(tester, helpers, const HelpFriend(newInvite: true));
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.code')), findsNothing);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.form')), findsOneWidget);
   });
 
   testWidgets('the sheet warns when sharing is off', (tester) async {

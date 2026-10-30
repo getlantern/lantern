@@ -646,10 +646,15 @@ class HelpFriend extends _i47.PageRouteInfo<HelpFriendArgs> {
   HelpFriend({
     _i48.Key? key,
     bool fromLink = false,
+    bool newInvite = false,
     List<_i47.PageRouteInfo>? children,
   }) : super(
          HelpFriend.name,
-         args: HelpFriendArgs(key: key, fromLink: fromLink),
+         args: HelpFriendArgs(
+           key: key,
+           fromLink: fromLink,
+           newInvite: newInvite,
+         ),
          initialChildren: children,
        );
 
@@ -661,32 +666,44 @@ class HelpFriend extends _i47.PageRouteInfo<HelpFriendArgs> {
       final args = data.argsAs<HelpFriendArgs>(
         orElse: () => const HelpFriendArgs(),
       );
-      return _i15.HelpFriend(key: args.key, fromLink: args.fromLink);
+      return _i15.HelpFriend(
+        key: args.key,
+        fromLink: args.fromLink,
+        newInvite: args.newInvite,
+      );
     },
   );
 }
 
 class HelpFriendArgs {
-  const HelpFriendArgs({this.key, this.fromLink = false});
+  const HelpFriendArgs({
+    this.key,
+    this.fromLink = false,
+    this.newInvite = false,
+  });
 
   final _i48.Key? key;
 
   final bool fromLink;
 
+  final bool newInvite;
+
   @override
   String toString() {
-    return 'HelpFriendArgs{key: $key, fromLink: $fromLink}';
+    return 'HelpFriendArgs{key: $key, fromLink: $fromLink, newInvite: $newInvite}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! HelpFriendArgs) return false;
-    return key == other.key && fromLink == other.fromLink;
+    return key == other.key &&
+        fromLink == other.fromLink &&
+        newInvite == other.newInvite;
   }
 
   @override
-  int get hashCode => key.hashCode ^ fromLink.hashCode;
+  int get hashCode => key.hashCode ^ fromLink.hashCode ^ newInvite.hashCode;
 }
 
 /// generated route for

@@ -22,11 +22,15 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 /// secret: it is never logged.
 @RoutePage(name: 'HelpFriend')
 class HelpFriend extends HookConsumerWidget {
-  const HelpFriend({super.key, this.fromLink = false});
+  const HelpFriend({super.key, this.fromLink = false, this.newInvite = false});
 
   /// Whether a deep link opened this screen. Its secret is held by the
   /// notifier (holdLink), never passed in route arguments.
   final bool fromLink;
+
+  /// Opened to add another friend ("Paste another invite link"): show the
+  /// paste form even while an earlier claim waits, rather than its code.
+  final bool newInvite;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -70,6 +74,7 @@ class HelpFriend extends HookConsumerWidget {
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final pending = helpers.view.waitingClaims(now);
       if (link != null ||
+          newInvite ||
           resumed.value ||
           code.value != null ||
           busy.value ||

@@ -199,7 +199,7 @@ class HelpingFriendsSheet extends HookConsumerWidget {
                 trailing: const AppImage(path: AppImagePaths.arrowForward),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  appRouter.push(HelpFriend());
+                  appRouter.push(HelpFriend(newInvite: true));
                 },
               ),
             ],
