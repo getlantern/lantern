@@ -45,8 +45,10 @@ class _FakeStorage implements LocalStorageService {
 class _FakeService implements LanternService {
   final calls = <String>[];
 
+  final events = StreamController<AppEvent>.broadcast();
+
   @override
-  Stream<AppEvent> watchAppEvents() => const Stream.empty();
+  Stream<AppEvent> watchAppEvents() => events.stream;
   int manualPort = 0;
 
   @override
@@ -710,6 +712,94 @@ void main() {
       await reconcile;
       expect(service.calls, isEmpty, reason: 'no switch to SmC either');
       expect(notifier.state.active, isFalse);
+    });
+
+    /// SmC resumed with auto-enable off, a non-volunteer's view pending;
+    /// then SmC fails and falls back to Unbounded.
+    Future<(ShareNotifier, WidgetRef, _FakeService, Future<void>)>
+    smcFailsWhileHelpersPending(WidgetTester tester) async {
+      _appSetting = autoOff;
+      _helpsGate = Completer<void>();
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      service.unboundedOk = true;
+      await notifier.syncFromBackend(ref);
+      expect(notifier.state.mode, ShareMode.smc);
+      final reconcile = notifier.reconcileLaunch(ref);
+      await tester.pump();
+      expect(helpers(ref).helpsAsked, 1);
+      service.events.add(
+        AppEvent(eventType: 'peer-status', message: '{"phase":"error"}'),
+      );
+      await tester.pump();
+      return (notifier, ref, service, reconcile);
+    }
+
+    testWidgets('a fallback while the helper view is pending is stopped once '
+        'it completes', (tester) async {
+      final (notifier, ref, service, reconcile) =
+          await smcFailsWhileHelpersPending(tester);
+      expect(notifier.state.mode, ShareMode.unbounded);
+      _helpsGate!.complete();
+      await reconcile;
+      expect(service.calls, ['unbounded:true', 'unbounded:false']);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.mode, ShareMode.off);
+    });
+
+    testWidgets('a fallback still running when the view arrives is waited for '
+        'and stopped', (tester) async {
+      _appSetting = autoOff;
+      _helpsGate = Completer<void>();
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      service.unboundedOk = true;
+      service.unboundedGate = Completer<void>();
+      await notifier.syncFromBackend(ref);
+      final reconcile = notifier.reconcileLaunch(ref);
+      await tester.pump();
+      service.events.add(
+        AppEvent(eventType: 'peer-status', message: '{"phase":"error"}'),
+      );
+      await tester.pump();
+      expect(service.calls, ['unbounded:true']);
+      _helpsGate!.complete();
+      await tester.pump();
+      expect(service.calls, ['unbounded:true'], reason: 'waits for it');
+      service.unboundedGate!.complete();
+      await reconcile;
+      expect(service.calls, ['unbounded:true', 'unbounded:false']);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('a toggle after a fallback while the view is pending still '
+        'wins', (tester) async {
+      final (notifier, ref, service, reconcile) =
+          await smcFailsWhileHelpersPending(tester);
+      // The user turns the fallback off, then sharing on again.
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isFalse);
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isTrue);
+      service.calls.clear();
+      _helpsGate!.complete();
+      await reconcile;
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isTrue);
+    });
+
+    testWidgets('a wanted fallback is kept, not switched back to SmC', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      _helps = true;
+      final (notifier, ref, service, reconcile) =
+          await smcFailsWhileHelpersPending(tester);
+      service.manualPort = 5698;
+      _helpsGate!.complete();
+      await reconcile;
+      expect(service.calls, ['unbounded:true']);
+      expect(notifier.state.mode, ShareMode.unbounded);
     });
 
     testWidgets('runs once, and never on a session this run started', (
