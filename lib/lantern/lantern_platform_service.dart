@@ -198,9 +198,11 @@ class LanternPlatformService implements LanternCoreService {
     required String country,
     required String countryCode,
     required String displayName,
+    required String serverName,
   }) async {
     try {
       await _methodChannel.invokeMethod('updateWidgetLocation', {
+        'serverName': serverName,
         'city': city,
         'country': country,
         'countryCode': countryCode,
@@ -1662,13 +1664,7 @@ class LanternPlatformService implements LanternCoreService {
         );
       }
       final server = Server.fromJson(serverJson);
-      return Right(
-        ServerLocation.fromServer(server: server).copyWith(
-          serverType: server.isLantern
-              ? ServerLocationType.lanternLocation.name
-              : ServerLocationType.privateServer.name,
-        ),
-      );
+      return Right(ServerLocation.selected(server));
     } catch (e, stackTrace) {
       appLogger.error('Error fetching selected server', e, stackTrace);
       return Left(e.toFailure());

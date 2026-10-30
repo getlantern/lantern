@@ -113,12 +113,16 @@ class ApproveHelperSheet extends HookConsumerWidget {
   }
 }
 
-/// Asks for the name the other person knows this user by. Returns null when
-/// cancelled or left empty.
+/// Asks for the name the other person knows this user by, or, given another
+/// [label], some other name, such as a friend's nickname on this device.
+/// Returns null when cancelled or left empty; with [allowEmpty], a name left
+/// empty returns '' instead.
 Future<String?> askHelperName(
   BuildContext context, {
   required String initial,
   required String title,
+  String? label,
+  bool allowEmpty = false,
 }) async {
   var current = initial;
   String? result;
@@ -129,6 +133,7 @@ Future<String?> askHelperName(
     title: title,
     content: _HelperNameField(
       initial: initial,
+      label: label,
       invalid: invalid,
       onChanged: (v) {
         current = v;
@@ -141,7 +146,7 @@ Future<String?> askHelperName(
     dismissOnPrimary: false,
     onPrimaryPressed: () {
       final name = current.trim();
-      if (name.isEmpty) {
+      if (name.isEmpty && !allowEmpty) {
         // Keep the dialog open and say why, rather than closing silently.
         invalid.value = true;
         return;
@@ -152,7 +157,8 @@ Future<String?> askHelperName(
     secondaryLabel: 'cancel'.i18n,
   );
   final name = result;
-  return (name == null || name.isEmpty) ? null : name;
+  if (name == null) return null;
+  return name.isEmpty && !allowEmpty ? null : name;
 }
 
 /// The name field inside askHelperName's dialog. It owns its controller,
@@ -161,11 +167,13 @@ Future<String?> askHelperName(
 class _HelperNameField extends HookWidget {
   const _HelperNameField({
     required this.initial,
+    this.label,
     required this.invalid,
     required this.onChanged,
   });
 
   final String initial;
+  final String? label;
   final ValueListenable<bool> invalid;
   final ValueChanged<String> onChanged;
 
@@ -179,7 +187,7 @@ class _HelperNameField extends HookWidget {
       children: [
         AppTextField(
           controller: controller,
-          label: 'helpers_your_name_label'.i18n,
+          label: label ?? 'helpers_your_name_label'.i18n,
           hintText: 'helpers_your_name_hint'.i18n,
           maxLength: 60,
           autofocus: true,

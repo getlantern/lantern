@@ -335,6 +335,19 @@ void main() {
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
   });
 
+  testWidgets('a pasted lantern:// link is claimed in canonical form', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    await tester.enterText(
+      find.byKey(const Key('help_friend.link')),
+      '${AppBuildInfo.appAuthScheme}://help#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    );
+    await _claim(tester);
+    expect(helpers.claims.single.$1, _link);
+  });
+
   testWidgets('approval after the claim says so', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);
@@ -686,6 +699,60 @@ void main() {
       );
       expect(
         helperInviteLink(Uri.parse('https://www.lantern.io/help#SECRET')),
+        'https://lantern.io/help/#SECRET',
+      );
+    });
+
+    test('pasted links normalize like deep links', () {
+      for (final u in [
+        'https://lantern.io/help/#SECRET',
+        'https://lantern.io/help#SECRET',
+        '  https://www.lantern.io/help#SECRET\n',
+        '${AppBuildInfo.appAuthScheme}://help#SECRET',
+      ]) {
+        expect(
+          normalizeHelperInviteInput(u),
+          'https://lantern.io/help/#SECRET',
+          reason: u,
+        );
+      }
+      expect(normalizeHelperInviteInput(' not a link '), 'not a link');
+      for (final u in [
+        'Sara wants your help staying online. https://lantern.io/help/#SECRET',
+        'HTTPS://LANTERN.IO/help#SECRET',
+      ]) {
+        expect(
+          normalizeHelperInviteInput(u),
+          'https://lantern.io/help/#SECRET',
+          reason: u,
+        );
+      }
+      expect(
+        normalizeHelperInviteInput('https://evil.example/help#SECRET'),
+        'https://evil.example/help#SECRET',
+      );
+    });
+
+    test('trailing sentence punctuation is not part of the secret', () {
+      for (final u in [
+        'https://lantern.io/help/#SECRET.',
+        'Join me: https://lantern.io/help/#SECRET!',
+        '(https://lantern.io/help/#SECRET),',
+        '"https://lantern.io/help#SECRET"',
+      ]) {
+        expect(
+          normalizeHelperInviteInput(u),
+          'https://lantern.io/help/#SECRET',
+          reason: u,
+        );
+      }
+    });
+
+    test('a help link without a secret does not hide a later invite', () {
+      expect(
+        normalizeHelperInviteInput(
+          'See https://lantern.io/help then https://lantern.io/help/#SECRET',
+        ),
         'https://lantern.io/help/#SECRET',
       );
     });

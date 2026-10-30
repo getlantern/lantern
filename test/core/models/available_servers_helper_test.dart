@@ -10,6 +10,17 @@ Map<String, dynamic> _server(String tag) => {
 };
 
 void main() {
+  test('the personal proxies group is never listed as a server', () {
+    final servers = AvailableServers.fromJson([
+      _server('lantern-1'),
+      _server(personalProxiesTag),
+      {..._server(personalProxiesTag), 'isLantern': false},
+    ]);
+    expect(servers.lanternServers.map((s) => s.tag), ['lantern-1']);
+    expect(servers.userServers, isEmpty);
+    expect(servers.hasUserServers, isFalse);
+  });
+
   test('helper outbounds are never listed as Lantern servers', () {
     final servers = AvailableServers.fromJson([
       _server('lantern-1'),
@@ -105,6 +116,36 @@ void main() {
     expect(
       redactHelperTags('nothing to see 198.51.100.9'),
       'nothing to see 198.51.100.9',
+    );
+  });
+
+  test('redactHelperTags redacts the personal proxies group tag', () {
+    expect(
+      redactHelperTags(
+        'Connecting to server: personalProxy with tag: personal-proxies',
+      ),
+      'Connecting to server: helper with tag: helper',
+    );
+    expect(
+      redactHelperTags(
+        'outbound/mutableurltest[personal-proxies]: dial tcp 203.0.113.7:443',
+      ),
+      'outbound/mutableurltest[helper]: dial tcp <redacted>',
+    );
+  });
+
+  test('redactHelperTags redacts the personalProxy location type', () {
+    expect(
+      redactHelperTags('updateServerLocation: type=personalProxy name=x'),
+      'updateServerLocation: type=helper name=x',
+    );
+    expect(
+      redactHelperTags('{serverType: personalProxy, via 203.0.113.7:443}'),
+      '{serverType: helper, via <redacted>}',
+    );
+    expect(
+      redactHelperTags('personalProxyBanner shown'),
+      'personalProxyBanner shown',
     );
   });
 }

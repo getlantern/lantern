@@ -1206,6 +1206,13 @@ class MethodHandler {
     case (true, true): name = displayName
     }
     VPNWidgetStore.setLocation(name: name, city: city, country: country, countryCode: countryCode)
+    // The app's current selection, published on every change: a widget or
+    // Control Center connect dials it. Empty means auto. Mirroring it here,
+    // not only in connectToServer, keeps a fallback to auto (which skips
+    // startTunnel) and any write made mid-switch from leaving it stale.
+    if let serverName = data["serverName"] as? String {
+      VPNWidgetStore.setServerName(serverName)
+    }
     result(nil)
   }
 

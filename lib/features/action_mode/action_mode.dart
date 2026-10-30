@@ -6,7 +6,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
@@ -25,11 +27,10 @@ class ActionModeTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final visible = ref.watch(actionModeTabVisibleProvider);
-    final helperInvites = ref.watch(helperInvitesAvailableProvider);
-    final helping = ref.watch(
-      helpersProvider.select((s) => s.view.helping.isNotEmpty),
-    );
-    // A volunteer waiting on a claim gets back to its code from here.
+    // A volunteer is someone abroad: the row stays hidden where sharing may
+    // not start on its own (unknown or censored country), and in stealth. A
+    // volunteer waiting on a claim gets back to its code from here wherever
+    // it is, even before the country is known.
     final waiting = ref.watch(
       helpersProvider.select(
         (s) => s.view
@@ -37,6 +38,9 @@ class ActionModeTab extends HookConsumerWidget {
             .isNotEmpty,
       ),
     );
+    final inviteRow =
+        AppBuildInfo.enableHelperInvites &&
+        (waiting || helperAutoStartAllowed(ref.watch(countryCodeProvider)));
 
     useEffect(() {
       // refreshIfUsed, never refresh: showing the tab must not touch the
@@ -96,12 +100,19 @@ class ActionModeTab extends HookConsumerWidget {
                     // that nobody in their country sees the inviter UI.
                     if (AppBuildInfo.enableHelperInvites)
                       const HelpingSection(),
-                    if (AppBuildInfo.enableHelperInvites &&
-                        (helperInvites || helping || waiting)) ...[
+                    if (inviteRow) ...[
                       const SizedBox(height: defaultSize),
-                      AppTextButton(
-                        label: 'help_friend_entry'.i18n,
-                        onPressed: () => appRouter.push(HelpFriend()),
+                      AppCard(
+                        padding: EdgeInsets.zero,
+                        child: AppTile(
+                          tileKey: const Key('action_mode.invite_link'),
+                          icon: AppImagePaths.handshake,
+                          label: 'have_invite_link'.i18n,
+                          trailing: const AppImage(
+                            path: AppImagePaths.arrowForward,
+                          ),
+                          onPressed: () => appRouter.push(HelpFriend()),
+                        ),
                       ),
                     ],
                   ],

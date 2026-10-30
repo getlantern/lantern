@@ -1658,14 +1658,7 @@ class LanternFFIService implements LanternCoreService {
         );
       }
       final server = Server.fromJson(serverJson);
-      final isLantern = server.isLantern;
-      return Right(
-        ServerLocation.fromServer(server: server).copyWith(
-          serverType: isLantern
-              ? ServerLocationType.lanternLocation.name
-              : ServerLocationType.privateServer.name,
-        ),
-      );
+      return Right(ServerLocation.selected(server));
     } catch (e, stackTrace) {
       appLogger.error('Error while getting selected server', e, stackTrace);
       return Left(e.toFailure());
@@ -2030,6 +2023,7 @@ class LanternFFIService implements LanternCoreService {
     required String country,
     required String countryCode,
     required String displayName,
+    required String serverName,
   }) async {
     // Desktop has no home-screen widget.
   }

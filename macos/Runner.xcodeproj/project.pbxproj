@@ -29,6 +29,7 @@
 		A91310042FAD000100000001 /* NetworkResetSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91310052FAD000100000001 /* NetworkResetSchedulerTests.swift */; };
 		A4E1B0012FAD000100000001 /* HelperTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1B0022FAD000100000001 /* HelperTags.swift */; };
 		A4E1B0032FAD000100000001 /* HelperTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1B0022FAD000100000001 /* HelperTags.swift */; };
+		B7E1A0042FAD000100000001 /* HelperTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1B0022FAD000100000001 /* HelperTags.swift */; };
 		A4E1B0042FAD000100000001 /* HelperTagsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1B0052FAD000100000001 /* HelperTagsTests.swift */; };
 		A38250062FAD000100000001 /* AppInstallation.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A38250072FAD000100000001 /* AppInstallation.xcstrings */; };
 		A38250012FAD000100000001 /* AppInstallation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38250022FAD000100000001 /* AppInstallation.swift */; };
@@ -716,6 +717,7 @@
 				5F53D01B2E440BBC00740586 /* ExtensionPlatformInterface.swift in Sources */,
 				5F53D01C2E440BBC00740586 /* ExtensionProvider.swift in Sources */,
 				03545F012E8ABA7B0051E2F5 /* Logger.swift in Sources */,
+				B7E1A0042FAD000100000001 /* HelperTags.swift in Sources */,
 				5F53D01D2E440BBC00740586 /* main.swift in Sources */,
 				5F53D01F2E440BBC00740586 /* PacketTunnelProvider.swift in Sources */,
 			);

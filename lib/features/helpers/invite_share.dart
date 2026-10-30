@@ -69,7 +69,7 @@ class InviteShare extends ConsumerWidget {
 
     if (invite == null || invite.expired) {
       return BaseScreen(
-        title: 'invite_share_title'.i18n,
+        title: 'invite_personal_proxy'.i18n,
         body: Center(
           child: Text('invite_gone'.i18n, key: const Key('invite.gone')),
         ),
@@ -77,7 +77,7 @@ class InviteShare extends ConsumerWidget {
     }
     if (invite.claimed) {
       return BaseScreen(
-        title: 'invite_share_title'.i18n,
+        title: 'invite_personal_proxy'.i18n,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -105,7 +105,7 @@ class InviteShare extends ConsumerWidget {
 
     final message = inviteShareMessage(view, invite);
     return BaseScreen(
-      title: 'invite_share_title'.i18n,
+      title: 'invite_personal_proxy'.i18n,
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: defaultSize),
         children: [

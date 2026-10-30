@@ -12,6 +12,15 @@ final class HelperTagsTests: XCTestCase {
     XCTAssertEqual(redactHelperTags("{\"tag\":\"\(tag)\"}"), "{\"tag\":\"helper\"}")
   }
 
+  func testRedactsThePersonalProxiesGroupAndType() {
+    XCTAssertEqual(
+      redactHelperTags("selected personal-proxies (type=personalProxy)"),
+      "selected helper (type=helper)")
+    XCTAssertEqual(
+      redactHelperTags("{\"tag\":\"personal-proxies\"}"), "{\"tag\":\"helper\"}")
+    XCTAssertEqual(redactHelperTags("personalProxyX stays"), "personalProxyX stays")
+  }
+
   func testLeavesOtherTextAlone() {
     XCTAssertEqual(redactHelperTags("helper-short stays"), "helper-short stays")
     XCTAssertEqual(redactHelperTags("x\(tag)"), "x\(tag)")

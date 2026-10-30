@@ -89,6 +89,24 @@ class ServerLocation {
     );
   }
 
+  /// The user's personal proxies, selected as one location. Where the friends
+  /// are is never shown.
+  factory ServerLocation.personalProxy() => ServerLocation(
+    serverName: personalProxiesTag,
+    serverType: ServerLocationType.personalProxy.name,
+    displayName: 'personal_proxy'.i18n,
+  );
+
+  /// The location of the server radiance reports as selected.
+  factory ServerLocation.selected(Server server) {
+    if (server.tag == personalProxiesTag) return ServerLocation.personalProxy();
+    return ServerLocation.fromServer(server: server).copyWith(
+      serverType: server.isLantern
+          ? ServerLocationType.lanternLocation.name
+          : ServerLocationType.privateServer.name,
+    );
+  }
+
   /// Build from a user private server (formerly `privateServer(...)`)
   factory ServerLocation.fromPrivateServer({
     required PrivateServer privateServer,
@@ -118,7 +136,26 @@ class ServerLocation {
     'autoLocation': autoLocation?.toJson(),
   };
 
+  /// [toJson] for log lines. A personal proxy's label would reveal it in any
+  /// language, so it is left out.
+  Map<String, dynamic> toLogJson() {
+    final json = toJson();
+    if (serverType == ServerLocationType.personalProxy.name) {
+      json.remove('displayName');
+    }
+    return json;
+  }
+
   factory ServerLocation.fromJson(Map<String, dynamic> json) {
+    final autoLocation = json['autoLocation'] is Map<String, dynamic>
+        ? AutoLocation.fromJson(json['autoLocation'] as Map<String, dynamic>)
+        : null;
+    // Rebuilt rather than read, so the label follows the current language.
+    if (json['serverType'] == ServerLocationType.personalProxy.name) {
+      return ServerLocation.personalProxy().copyWith(
+        autoLocation: autoLocation,
+      );
+    }
     return ServerLocation(
       serverName: (json['serverName'] ?? '') as String,
       serverType: (json['serverType'] ?? '') as String,
@@ -127,9 +164,7 @@ class ServerLocation {
       city: (json['city'] ?? '') as String,
       displayName: (json['displayName'] as String?),
       protocol: (json['protocol'] ?? '') as String,
-      autoLocation: json['autoLocation'] is Map<String, dynamic>
-          ? AutoLocation.fromJson(json['autoLocation'] as Map<String, dynamic>)
-          : null,
+      autoLocation: autoLocation,
     );
   }
 

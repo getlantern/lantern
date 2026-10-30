@@ -118,6 +118,8 @@ func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, erro
 		out, err = e.endPairing(ctx, args)
 	case "end_all_helpers":
 		out, err = e.endAllHelpers(ctx)
+	case "rename_helper":
+		out, err = e.renameHelper(args)
 	default:
 		return nil, errCode(CodeInternal)
 	}

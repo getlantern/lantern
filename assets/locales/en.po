@@ -1111,9 +1111,6 @@ msgstr "Join Server"
 msgid "private_server_usage_message"
 msgstr "Private server usage is not counted towards your Lantern daily data cap."
 
-msgid "manage_private_servers"
-msgstr "Manage Private Servers"
-
 msgid "my_servers"
 msgstr "My Servers"
 
@@ -2177,29 +2174,11 @@ msgstr "Couldn't copy the link. Use Share link instead."
 
 # Helper invites: the inviter's side. A "helper" is a friend abroad whose
 # internet connection this user borrows through Lantern.
-msgid "helpers_title"
-msgstr "Get help from a friend"
-
-msgid "helpers_intro"
-msgstr "Invite someone you trust who lives somewhere without censorship. Lantern can connect you through their internet."
-
-msgid "invite_someone"
-msgstr "Invite someone to help me"
-
 msgid "helpers_your_name_label"
 msgstr "Your name, as your friend knows you"
 
 msgid "helpers_your_name_hint"
 msgstr "For example, Sara"
-
-msgid "helpers_list_title"
-msgstr "Your helpers"
-
-msgid "helpers_empty"
-msgstr "No one is helping you yet."
-
-msgid "helpers_nudge_second"
-msgstr "If your helper's computer goes offline, so does your connection through it. Invite a second friend to stay connected."
 
 msgid "helper_online"
 msgstr "Online"
@@ -2224,8 +2203,42 @@ msgstr "Remove all helpers"
 msgid "helpers_remove_all_body"
 msgstr "Every helper stops helping you, and their names are erased from this device."
 
-msgid "invite_share_title"
-msgstr "Send your invite"
+# The screen and menu entry for the user's private servers and personal proxies.
+msgid "manage_private_locations"
+msgstr "Manage Private Locations"
+
+# Starts an invite to a friend abroad who will become the user's personal proxy.
+msgid "invite_personal_proxy"
+msgstr "Invite a Personal Proxy"
+
+# Manage Private Locations' tab for the user's personal proxies.
+msgid "personal_proxies_tab"
+msgstr "Personal Proxies"
+
+msgid "invite_another"
+msgstr "Invite another"
+
+# Shown in the Personal Proxies tab while the user has exactly one personal proxy.
+msgid "helpers_nudge_second"
+msgstr "If your personal proxy goes offline, so does your connection through it. Invite a second friend to stay connected."
+
+# VPN tab banner offering to invite a friend abroad as a personal proxy.
+msgid "personal_proxy_banner_title"
+msgstr "Get a personal proxy"
+
+msgid "personal_proxy_banner_body"
+msgstr "A friend abroad can keep you connected."
+
+# The same banner while a friend who opened the user's invite waits for the user to compare codes and approve them.
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Your friend is waiting"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Compare the code and approve them."
+
+# Label of the field for the name this device shows for a personal proxy. It stays on this device.
+msgid "personal_proxy_nickname_label"
+msgstr "Name on this device"
 
 msgid "invite_share_body"
 msgstr "Send this link to one person you trust. It works once and expires in 48 hours."
@@ -2253,9 +2266,6 @@ msgstr "Waiting for your friend to open the link"
 msgid "invite_expires"
 msgstr "Expires in %s hours"
 
-msgid "invite_forget"
-msgstr "Cancel invite"
-
 msgid "invite_gone"
 msgstr "This invite has been used or has expired."
 
@@ -2281,12 +2291,29 @@ msgstr "Codes don't match: reject"
 msgid "reject_explainer"
 msgstr "If the codes are different, someone else opened your link. Reject them and send a new invite."
 
+# The VPN tab's selected location while connected through the user's personal proxies.
+msgid "personal_proxy"
+msgstr "Personal proxy"
+
+# The server list's tab for private servers and personal proxies.
+msgid "private_locations"
+msgstr "Private Locations"
+
+# Section header in Private Locations: friends abroad who route this user's traffic.
+msgid "personal_proxies"
+msgstr "Personal proxies"
+
+# The selectable row that connects through all of the user's personal proxies.
+msgid "your_personal_proxies"
+msgstr "Your personal proxies"
+
 # Helper invites: the volunteer's side.
 msgid "help_friend_title"
 msgstr "Help a friend stay online"
 
-msgid "help_friend_entry"
-msgstr "Help a friend"
+# Action Mode row that opens the screen for pasting a friend's invite link.
+msgid "have_invite_link"
+msgstr "Have an invite link?"
 
 msgid "help_friend_intro"
 msgstr "A friend asked for your help. While Lantern runs, they can reach the open internet through your connection."

@@ -3,6 +3,8 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,11 +15,28 @@ part 'server_location_notifier.g.dart';
 class ServerLocationNotifier extends _$ServerLocationNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
 
+  // Bumped by every selection change, so a radiance fetch that started
+  // before one does not overwrite it.
+  int _selection = 0;
+
   @override
   ServerLocation build() {
     // Every change to the selected/resolved location is mirrored into the
     // native widget so it can show where the tunnel exits.
     listenSelf((_, next) => _publishToWidget(next));
+    // radiance drops the personal proxies group with the last pairing and
+    // connects through auto, but sends no server-location event for it.
+    // fireImmediately covers a view that loaded empty before this notifier
+    // was built; the check is deferred because state is unset during build.
+    // An empty local view is not proof: after a keystore reset unlock
+    // returns no pairings until a refresh recovers the remote ones, so the
+    // switch waits for radiance to confirm the group is gone. The config
+    // that drops it can land after the view, so the server list calls
+    // [reconcilePersonalProxy] again when it changes.
+    ref.listen(helpersProvider, (_, next) {
+      if (!_helpersGone(next)) return;
+      unawaited(Future.microtask(reconcilePersonalProxy));
+    }, fireImmediately: true);
     final cached = _storage.getServerLocation();
     final initial = cached ?? _defaultLocation();
     appLogger.debug(
@@ -27,6 +46,44 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // Use cached value for instant display, then refresh from radiance.
     fetchServerLocation();
     return initial;
+  }
+
+  static bool _trusted(HelpersState s) =>
+      s.viewLoaded && !s.keystoreReset && s.error == null;
+
+  static bool _helpersGone(HelpersState s) =>
+      _trusted(s) && s.view.helpers.isEmpty;
+
+  bool get _personalProxySelected =>
+      state.serverType.toServerLocationType == ServerLocationType.personalProxy;
+
+  /// Switches a personal proxy selection to auto once the helpers view is
+  /// loaded empty and radiance no longer has the personal proxies group.
+  /// [fromConfig] is a config refresh: a friend may have ended the pairing
+  /// remotely, so a non-empty view is refreshed once before giving up.
+  Future<void> reconcilePersonalProxy({bool fromConfig = false}) async {
+    if (!ref.mounted || !_personalProxySelected) return;
+    final before = ref.read(helpersProvider);
+    final stale =
+        fromConfig && _trusted(before) && before.view.helpers.isNotEmpty;
+    if (!stale && !_helpersGone(before)) return;
+    final bool available;
+    try {
+      available = await ref
+          .read(lanternServiceProvider)
+          .isTagAvailable(personalProxiesTag);
+    } catch (e) {
+      appLogger.debug('personal proxies: tag check failed: $e');
+      return;
+    }
+    if (!ref.mounted || available || !_personalProxySelected) return;
+    if (stale) {
+      await ref.read(helpersProvider.notifier).refreshIfUsed();
+      if (!ref.mounted || !_personalProxySelected) return;
+    }
+    if (!_helpersGone(ref.read(helpersProvider))) return;
+    await switchToAuto();
+    await refreshAutoLocationIfNeeded();
   }
 
   /// Fetches the current server location from radiance.
@@ -58,10 +115,11 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
 
   Future<void> _fetchAutoLocation() async {
     appLogger.debug('Fetching auto server location from radiance...');
+    final selection = _selection;
     final result = await ref
         .read(lanternServiceProvider)
         .getAutoServerLocation();
-    if (!ref.mounted) return;
+    if (!ref.mounted || selection != _selection) return;
     result.fold(
       (error) {
         // Expected when VPN isn't connected yet — auto location is only
@@ -71,7 +129,9 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       },
       (autoServer) {
         final location = ServerLocation.autoSelected(autoServer);
-        appLogger.debug('Fetched auto server location: ${location.toJson()}');
+        appLogger.debug(
+          'Fetched auto server location: ${location.toLogJson()}',
+        );
         state = location;
         _storage.saveServerLocation(location);
       },
@@ -80,10 +140,11 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
 
   Future<void> _fetchSelectedLocation() async {
     appLogger.debug('Fetching selected server location from radiance...');
+    final selection = _selection;
     final result = await ref
         .read(lanternServiceProvider)
         .getSelectedServerLocation();
-    if (!ref.mounted) return;
+    if (!ref.mounted || selection != _selection) return;
     result.fold(
       (error) {
         appLogger.error(
@@ -93,7 +154,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       },
       (location) {
         appLogger.debug(
-          'Fetched selected server location: ${location.toJson()}',
+          'Fetched selected server location: ${location.toLogJson()}',
         );
         state = location;
         _storage.saveServerLocation(location);
@@ -115,6 +176,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       'updateServerLocation: type=${updated.serverType} '
       'name=${updated.serverName} city=${updated.city}',
     );
+    _selection++;
     state = updated;
     _storage.saveServerLocation(updated);
   }
@@ -139,6 +201,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   Future<void> switchToAuto() async {
     if (state.serverType == ServerLocationType.auto.name) return;
     final updated = state.copyWith(serverType: ServerLocationType.auto.name);
+    _selection++;
     state = updated;
     await _storage.saveServerLocation(updated);
   }
@@ -159,6 +222,9 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
             displayName: isAuto
                 ? (auto?.displayName ?? '')
                 : location.displayName,
+            // A widget connect dials what the app has selected now, so the
+            // last publish wins over any native write made mid-switch.
+            serverName: isAuto ? '' : location.serverName,
           ),
     );
   }

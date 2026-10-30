@@ -366,6 +366,23 @@ void main() {
     });
   });
 
+  test('renameHelper sends rename_helper and applies the view', () async {
+    svc.answers = {
+      'rename_helper': _view(
+        helpers: '[{"pairing_id":"p1","name":"Cousin","since_unix":1}]',
+      ),
+    };
+    final c = container();
+    final r = await c
+        .read(helpersProvider.notifier)
+        .renameHelper('p1', 'Cousin');
+    expect(r.ok, isTrue);
+    expect(svc.calls, ['rename_helper']);
+    expect(c.read(helpersProvider).view.helpers.single.name, 'Cousin');
+    await Future<void>.delayed(Duration.zero);
+    expect(svc.configRequests, 0, reason: 'a nickname changes no route');
+  });
+
   test('a keystore failure never calls the engine', () async {
     sl.unregister<HelperKeyStore>();
     sl.registerSingleton<HelperKeyStore>(_Keys(fail: true));
@@ -770,7 +787,7 @@ void main() {
     }
   });
 
-  group('helperEntryVisibleProvider with the flag off', () {
+  group('personalProxiesTabVisibleProvider with the flag off', () {
     test('shows the entry while this device has helpers to manage', () async {
       svc.answers = {
         'unlock': _view(),
@@ -779,7 +796,7 @@ void main() {
       final c = container();
       await c.read(helpersProvider.notifier).refresh();
       expect(c.read(helperInvitesAvailableProvider), isFalse);
-      expect(c.read(helperEntryVisibleProvider), isTrue);
+      expect(c.read(personalProxiesTabVisibleProvider), isTrue);
     });
 
     test('shows the entry while this device has an invite out', () async {
@@ -789,12 +806,12 @@ void main() {
       };
       final c = container();
       await c.read(helpersProvider.notifier).refresh();
-      expect(c.read(helperEntryVisibleProvider), isTrue);
+      expect(c.read(personalProxiesTabVisibleProvider), isTrue);
     });
 
     test('hides it, without the keystore, when there is nothing', () async {
       final c = container();
-      expect(c.read(helperEntryVisibleProvider), isFalse);
+      expect(c.read(personalProxiesTabVisibleProvider), isFalse);
       expect(keys.reads, 0);
       expect(svc.calls, isEmpty);
       expect(storage.values.containsKey(HelpersNotifier.usedKey), isFalse);
@@ -807,10 +824,14 @@ void main() {
         sl.unregister<HelperKeyStore>();
         sl.registerSingleton<HelperKeyStore>(_Keys(fail: true));
         final c = container();
-        expect(c.read(helperEntryVisibleProvider), isTrue, reason: 'before');
+        expect(
+          c.read(personalProxiesTabVisibleProvider),
+          isTrue,
+          reason: 'before',
+        );
         await c.read(helpersProvider.notifier).refresh();
         expect(c.read(helpersProvider).viewLoaded, isFalse);
-        expect(c.read(helperEntryVisibleProvider), isTrue);
+        expect(c.read(personalProxiesTabVisibleProvider), isTrue);
       },
     );
 
@@ -820,7 +841,7 @@ void main() {
       final c = container();
       await c.read(helpersProvider.notifier).refresh();
       expect(c.read(helpersProvider).viewLoaded, isTrue);
-      expect(c.read(helperEntryVisibleProvider), isFalse);
+      expect(c.read(personalProxiesTabVisibleProvider), isFalse);
     });
 
     test('hides it in a stealth build', () async {
@@ -831,7 +852,54 @@ void main() {
       final c = container();
       await c.read(helpersProvider.notifier).refresh();
       HelpersNotifier.debugBuildEnabled = false;
-      expect(c.read(helperEntryVisibleProvider), isFalse);
+      expect(c.read(personalProxiesTabVisibleProvider), isFalse);
+    });
+  });
+
+  group('personalProxyBannerVisibleProvider', () {
+    ProviderContainer withFlag(bool on) {
+      final c = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(svc),
+          helperInvitesAvailableProvider.overrideWithValue(on),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test(
+      'shows for a device that never used invites, without the keystore',
+      () {
+        final c = withFlag(true);
+        expect(c.read(personalProxyBannerVisibleProvider), isTrue);
+        expect(keys.reads, 0);
+        expect(svc.calls, isEmpty);
+      },
+    );
+
+    test('waits for the view on a device that used invites', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {'unlock': _view(), 'refresh': _view()};
+      final c = withFlag(true);
+      expect(c.read(personalProxyBannerVisibleProvider), isFalse);
+      await c.read(helpersProvider.notifier).refresh();
+      expect(c.read(personalProxyBannerVisibleProvider), isTrue);
+    });
+
+    test('hides once the device has a personal proxy', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {
+        'unlock': _view(),
+        'refresh': _view(helpers: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final c = withFlag(true);
+      await c.read(helpersProvider.notifier).refresh();
+      expect(c.read(personalProxyBannerVisibleProvider), isFalse);
+    });
+
+    test('hides without helper invites', () {
+      expect(withFlag(false).read(personalProxyBannerVisibleProvider), isFalse);
     });
   });
 

@@ -7,17 +7,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 // common.dart re-exports the generated route classes, which share the
 // screens' names.
-import 'package:lantern/core/common/common.dart'
-    hide GetHelp, InviteShare, Setting;
+import 'package:lantern/core/common/common.dart' hide InviteShare, Setting;
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/helpers/approve_helper_sheet.dart';
-import 'package:lantern/features/helpers/get_help.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
+import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/personal_proxies_tab.dart';
+import 'package:lantern/features/helpers/personal_proxy_banner.dart';
+import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
@@ -39,6 +41,24 @@ class _Helpers extends HelpersNotifier {
   @override
   Future<void> refreshIfUsed() async => refreshes++;
 
+  bool usedFlag = false;
+
+  @override
+  bool get used => usedFlag;
+
+  /// What refresh() loads, as the engine's view would.
+  HelpersState? onRefresh;
+  HelperResult? refreshResult;
+  int fullRefreshes = 0;
+
+  @override
+  Future<HelperResult> refresh() async {
+    fullRefreshes++;
+    if (refreshResult != null) return refreshResult!;
+    if (onRefresh != null) state = onRefresh!;
+    return HelperResult.parse('{"unlocked":true}');
+  }
+
   @override
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
     decisions.add((inviteId, approve));
@@ -58,6 +78,21 @@ class _Helpers extends HelpersNotifier {
   @override
   Future<HelperResult> endPairing(String pairingId) async {
     ended.add(pairingId);
+    return HelperResult.parse('{}');
+  }
+
+  final renamed = <(String, String)>[];
+  final forgotten = <String>[];
+
+  @override
+  Future<HelperResult> renameHelper(String pairingId, String name) async {
+    renamed.add((pairingId, name));
+    return HelperResult.parse('{}');
+  }
+
+  @override
+  Future<HelperResult> forgetInvite(String inviteId) async {
+    forgotten.add(inviteId);
     return HelperResult.parse('{}');
   }
 
@@ -126,6 +161,12 @@ Future<void> _pumpPushed(
   await tester.pumpAndSettle();
 }
 
+/// The confirmation dialog's Remove, not the row's.
+final _dialogRemove = find.descendant(
+  of: find.byType(AlertDialog),
+  matching: find.text('remove'.i18n),
+);
+
 int _now() => DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
 const _oneHelper = HelpersState(
@@ -177,9 +218,7 @@ void main() {
     expect(fake.decisions, [('i1', false)]);
   });
 
-  testWidgets('one helper: status shown and a second helper suggested', (
-    tester,
-  ) async {
+  testWidgets('one helper: status shown', (tester) async {
     final fake = _Helpers(
       const HelpersState(
         view: HelpersView(
@@ -195,18 +234,19 @@ void main() {
         ),
       ),
     );
-    await _pump(tester, fake, const GetHelp());
+    await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.text('Ali'), findsOneWidget);
     expect(find.byKey(const Key('helpers.online.0')), findsOneWidget);
     expect(find.byKey(const Key('helpers.nudge')), findsOneWidget);
+    expect(find.text('helpers_nudge_second'.i18n), findsOneWidget);
     expect(
       fake.refreshes,
       1,
-      reason: 'opening the screen refreshes, if helper invites were used',
+      reason: 'showing the tab refreshes, if helper invites were used',
     );
   });
 
-  testWidgets('two helpers: no nudge; offline shown', (tester) async {
+  testWidgets('two helpers: offline shown', (tester) async {
     final fake = _Helpers(
       const HelpersState(
         view: HelpersView(
@@ -218,9 +258,9 @@ void main() {
         ),
       ),
     );
-    await _pump(tester, fake, const GetHelp());
-    expect(find.byKey(const Key('helpers.nudge')), findsNothing);
+    await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.byKey(const Key('helpers.offline.1')), findsOneWidget);
+    expect(find.byKey(const Key('helpers.nudge')), findsNothing);
   });
 
   testWidgets('a claimed invite is surfaced above the helpers', (tester) async {
@@ -229,7 +269,7 @@ void main() {
         view: HelpersView(unlocked: true, invites: [_claimed]),
       ),
     );
-    await _pump(tester, fake, const GetHelp());
+    await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.byKey(const Key('helpers.claimed.i1')), findsOneWidget);
   });
 
@@ -237,12 +277,12 @@ void main() {
     tester,
   ) async {
     final fake = _Helpers(const HelpersState(keystoreReset: true));
-    await _pump(tester, fake, const GetHelp());
-    expect(find.byKey(const Key('helpers.keystore_reset')), findsOneWidget);
+    await _pump(tester, fake, const PersonalProxiesTab());
+    expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
     expect(find.text('helper_error_keystore_reset'.i18n), findsOneWidget);
-    await tester.tap(find.byKey(const Key('helpers.keystore_reset.dismiss')));
+    await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
     await tester.pump();
-    expect(find.byKey(const Key('helpers.keystore_reset')), findsNothing);
+    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
     expect(fake.state.keystoreReset, isFalse);
   });
 
@@ -309,6 +349,7 @@ void main() {
     );
     await _pump(tester, fake, const InviteShare(inviteId: 'i2'));
     expect(find.byKey(const Key('invite.qr')), findsOneWidget);
+    expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
     expect(find.byKey(const Key('invite.share')), findsOneWidget);
   });
 
@@ -406,7 +447,7 @@ void main() {
           ),
         ),
       );
-      await _pump(tester, fake, const GetHelp());
+      await _pump(tester, fake, const PersonalProxiesTab());
       await tester.tap(find.text('invite_waiting'.i18n));
       await tester.pump();
       expect(router.pushed, hasLength(1));
@@ -424,8 +465,8 @@ void main() {
       final router = _Router();
       sl.registerSingleton<AppRouter>(router);
       final fake = _Helpers(const HelpersState());
-      await _pump(tester, fake, const GetHelp());
-      await tester.tap(find.byKey(const Key('helpers.invite')));
+      await _pump(tester, fake, const PersonalProxiesTab());
+      await tester.tap(find.byKey(const Key('personal_proxies.invite')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'Sara');
       await tester.tap(find.text('continue'.i18n));
@@ -433,6 +474,183 @@ void main() {
       expect(fake.created, ['Sara']);
       expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
     });
+
+    testWidgets('startPersonalProxyInvite names the invite, then opens it', (
+      tester,
+    ) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(const HelpersState());
+      await _pump(
+        tester,
+        fake,
+        Consumer(
+          builder: (context, ref, _) => TextButton(
+            onPressed: () => startPersonalProxyInvite(context, ref),
+            child: const Text('go'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
+      await tester.enterText(find.byType(TextFormField), 'Sara');
+      await tester.tap(find.text('continue'.i18n));
+      await tester.pumpAndSettle();
+      expect(fake.created, ['Sara']);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
+    });
+
+    Future<void> tapStart(WidgetTester tester, _Helpers fake) async {
+      await _pump(
+        tester,
+        fake,
+        Consumer(
+          builder: (context, ref, _) => TextButton(
+            onPressed: () => startPersonalProxyInvite(context, ref),
+            child: const Text('go'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+    }
+
+    const pendingInvite = HelperInviteView(id: 'i2', state: 'pending');
+
+    testWidgets('startPersonalProxyInvite opens an invite awaiting approval '
+        'instead of creating one', (tester) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(
+        const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(unlocked: true, invites: [pendingInvite, _claimed]),
+        ),
+      );
+      await tapStart(tester, fake);
+      expect(find.byType(TextFormField), findsNothing, reason: 'no name asked');
+      expect(fake.created, isEmpty);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+    });
+
+    testWidgets('an invite no one has opened does not stop another', (
+      tester,
+    ) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(
+        const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(unlocked: true, invites: [pendingInvite]),
+        ),
+      );
+      await tapStart(tester, fake);
+      await tester.enterText(find.byType(TextFormField), 'Sara');
+      await tester.tap(find.text('continue'.i18n));
+      await tester.pumpAndSettle();
+      expect(fake.created, ['Sara']);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
+    });
+
+    testWidgets('a used device loads its view before deciding', (tester) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(const HelpersState())
+        ..usedFlag = true
+        ..onRefresh = const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(unlocked: true, invites: [_claimed]),
+        );
+      await tapStart(tester, fake);
+      expect(fake.fullRefreshes, 1);
+      expect(fake.created, isEmpty);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+    });
+
+    testWidgets('a used device whose view fails to load creates no invite', (
+      tester,
+    ) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(const HelpersState())
+        ..usedFlag = true
+        ..refreshResult = HelperResult.failure('unavailable');
+      await tapStart(tester, fake);
+      expect(fake.fullRefreshes, 1);
+      expect(find.byType(TextFormField), findsNothing, reason: 'no name asked');
+      expect(fake.created, isEmpty);
+      expect(router.pushed, isEmpty);
+      expect(find.text(helperErrorText('unavailable')), findsOneWidget);
+    });
+
+    testWidgets('Invite another in the Manage tab creates an invite while '
+        'one awaits approval', (tester) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(
+        const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(unlocked: true, invites: [_claimed]),
+        ),
+      );
+      await _pump(tester, fake, const PersonalProxiesTab());
+      await tester.tap(find.byKey(const Key('personal_proxies.invite')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), 'Sara');
+      await tester.tap(find.text('continue'.i18n));
+      await tester.pumpAndSettle();
+      expect(fake.created, ['Sara']);
+    });
+
+    for (final small in [false, true]) {
+      testWidgets('the ${small ? 'compact ' : ''}banner says a friend is '
+          'waiting and opens their invite', (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = small
+            ? const Size(393, 560)
+            : const Size(393, 852);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        final router = _Router();
+        sl.registerSingleton<AppRouter>(router);
+        final fake = _Helpers(
+          const HelpersState(
+            viewLoaded: true,
+            view: HelpersView(unlocked: true, invites: [_claimed]),
+          ),
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              helpersProvider.overrideWith(() => fake),
+              personalProxyBannerVisibleProvider.overrideWithValue(true),
+            ],
+            child: ScreenUtilInit(
+              designSize: tester.view.physicalSize,
+              child: MaterialApp(
+                theme: AppTheme.appTheme(),
+                home: const Scaffold(body: PersonalProxyBanner()),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(
+          find.text('personal_proxy_banner_waiting_title'.i18n),
+          findsOneWidget,
+        );
+        expect(find.text('personal_proxy_banner_title'.i18n), findsNothing);
+        expect(
+          find.text('personal_proxy_banner_waiting_body'.i18n),
+          small ? findsNothing : findsOneWidget,
+        );
+        await tester.tap(find.byKey(const Key('vpn.personal_proxy_banner')));
+        await tester.pumpAndSettle();
+        expect(fake.created, isEmpty);
+        expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+      });
+    }
 
     testWidgets('Copy link goes through copySensitiveText', (tester) async {
       final platform = _Platform();
@@ -454,46 +672,33 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
     });
 
-    testWidgets('the Settings tile follows helperInvitesAvailableProvider', (
+    testWidgets('Settings no longer offers "Get help from a friend"', (
       tester,
     ) async {
-      Future<void> pumpSetting(bool available) async {
-        await tester.pumpWidget(
-          ProviderScope(
-            key: UniqueKey(),
-            overrides: [
-              helperInvitesAvailableProvider.overrideWithValue(available),
-              isUserProProvider.overrideWithValue(true),
-              isUserExpiredProvider.overrideWithValue(false),
-              userEmailProvider.overrideWithValue(''),
-              appSettingProvider.overrideWithValue(const AppSetting()),
-              countryCodeProvider.overrideWithValue('US'),
-              featureFlagProvider.overrideWithValue(const {}),
-              homeProvider.overrideWith(_Home.new),
-            ],
-            child: ScreenUtilInit(
-              designSize: const Size(393, 852),
-              child: MaterialApp(
-                theme: AppTheme.appTheme(),
-                home: const Setting(),
-              ),
+      sl.registerSingleton<LocalStorageService>(_Storage(used: true));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            helperInvitesAvailableProvider.overrideWithValue(true),
+            isUserProProvider.overrideWithValue(true),
+            isUserExpiredProvider.overrideWithValue(false),
+            userEmailProvider.overrideWithValue(''),
+            appSettingProvider.overrideWithValue(const AppSetting()),
+            countryCodeProvider.overrideWithValue('US'),
+            featureFlagProvider.overrideWithValue(const {}),
+            homeProvider.overrideWith(_Home.new),
+          ],
+          child: ScreenUtilInit(
+            designSize: const Size(393, 852),
+            child: MaterialApp(
+              theme: AppTheme.appTheme(),
+              home: const Setting(),
             ),
           ),
-        );
-        await tester.pump();
-      }
-
-      sl.registerSingleton<LocalStorageService>(_Storage());
-      await pumpSetting(false);
+        ),
+      );
+      await tester.pump();
       expect(find.byKey(const Key('setting.get_help_tile')), findsNothing);
-      await pumpSetting(true);
-      expect(find.byKey(const Key('setting.get_help_tile')), findsOneWidget);
-      // Flag off on a device that used helper invites, before any view has
-      // loaded: still offered, so its helpers can be managed.
-      sl.unregister<LocalStorageService>();
-      sl.registerSingleton<LocalStorageService>(_Storage(used: true));
-      await pumpSetting(false);
-      expect(find.byKey(const Key('setting.get_help_tile')), findsOneWidget);
     });
   });
 
@@ -501,15 +706,15 @@ void main() {
     tester,
   ) async {
     final fake = _Helpers(_oneHelper);
-    await _pumpPushed(tester, fake, const GetHelp());
-    await tester.tap(find.text('helpers_remove_all'.i18n));
+    await _pumpPushed(tester, fake, const PersonalProxiesTab());
+    await tester.tap(find.byKey(const Key('personal_proxies.remove_all')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('remove'.i18n));
+    await tester.tap(_dialogRemove);
     await tester.pump();
-    // Leave GetHelp inside AppDialog's 400 ms callback delay.
+    // Leave PersonalProxiesTab inside AppDialog's 400 ms callback delay.
     tester.state<NavigatorState>(find.byType(Navigator)).pop();
     await tester.pump();
-    expect(find.byType(GetHelp), findsNothing);
+    expect(find.byType(PersonalProxiesTab), findsNothing);
     await tester.pumpAndSettle();
     await tester.pump(const Duration(milliseconds: 500));
     expect(fake.endAll, 1);
@@ -517,10 +722,10 @@ void main() {
 
   testWidgets('removing a helper ends that pairing', (tester) async {
     final fake = _Helpers(_oneHelper);
-    await _pump(tester, fake, const GetHelp());
-    await tester.tap(find.byIcon(Icons.person_remove_outlined));
+    await _pump(tester, fake, const PersonalProxiesTab());
+    await tester.tap(find.byKey(const Key('personal_proxies.remove.p1')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('remove'.i18n));
+    await tester.tap(_dialogRemove);
     await tester.pumpAndSettle();
     await tester.pump(const Duration(milliseconds: 500));
     expect(fake.ended, ['p1']);
@@ -576,9 +781,8 @@ void main() {
         ),
       ),
     );
-    await _pump(tester, fake, const GetHelp());
+    await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.text('invite_waiting'.i18n), findsNothing);
-    expect(find.byKey(const Key('helpers.empty')), findsOneWidget);
 
     await _pump(tester, fake, const InviteShare(inviteId: 'old'));
     expect(find.byKey(const Key('invite.gone')), findsOneWidget);
@@ -623,6 +827,73 @@ void main() {
     expect(find.bySemanticsLabel('2 5 6 2'), findsOneWidget);
     expect(find.bySemanticsLabel('2562'), findsNothing);
     handle.dispose();
+  });
+
+  testWidgets('rename stores a nickname for that pairing', (tester) async {
+    final fake = _Helpers(_oneHelper);
+    await _pump(tester, fake, const PersonalProxiesTab());
+    await tester.tap(find.byKey(const Key('personal_proxies.rename.p1')));
+    await tester.pumpAndSettle();
+    expect(find.text('personal_proxy_nickname_label'.i18n), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField), 'Cousin');
+    await tester.tap(find.text('continue'.i18n));
+    await tester.pumpAndSettle();
+    expect(fake.renamed, [('p1', 'Cousin')]);
+  });
+
+  testWidgets('a blank nickname is sent, restoring the friend\'s own name', (
+    tester,
+  ) async {
+    final fake = _Helpers(_oneHelper);
+    await _pump(tester, fake, const PersonalProxiesTab());
+    await tester.tap(find.byKey(const Key('personal_proxies.rename.p1')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), '   ');
+    await tester.tap(find.text('continue'.i18n));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('helpers.name.error')), findsNothing);
+    expect(fake.renamed, [('p1', '')]);
+  });
+
+  testWidgets('a pending invite can be cancelled', (tester) async {
+    final fake = _Helpers(
+      HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          invites: [
+            HelperInviteView(
+              id: 'i2',
+              state: 'pending',
+              expiresUnix: _now() + 3600,
+            ),
+          ],
+        ),
+      ),
+    );
+    await _pump(tester, fake, const PersonalProxiesTab());
+    await tester.tap(find.byKey(const Key('personal_proxies.cancel.i2')));
+    await tester.pump();
+    expect(fake.forgotten, ['i2']);
+  });
+
+  testWidgets('the tab polls for online status only while shown', (
+    tester,
+  ) async {
+    final fake = _Helpers(_oneHelper);
+    await _pump(tester, fake, const PersonalProxiesTab());
+    final first = fake.refreshes;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(const Duration(seconds: 61));
+    expect(fake.refreshes, first + 1);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(seconds: 61));
+    expect(fake.refreshes, first + 1, reason: 'not while the app is behind');
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(const Duration(seconds: 61));
+    expect(fake.refreshes, first + 2);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 61));
+    expect(fake.refreshes, first + 2, reason: 'the timer goes with the tab');
   });
 }
 

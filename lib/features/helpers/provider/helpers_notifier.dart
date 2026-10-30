@@ -22,19 +22,30 @@ bool helperInvitesAvailable(Ref ref) =>
     AppBuildInfo.enableHelperInvites &&
     ref.watch(featureFlagProvider).getBool(FeatureFlag.helperInvites);
 
-/// Whether settings offer "Get help from a friend": while helper invites are
-/// available, and after the flag goes off while this device still has
-/// helpers or invites to manage, or may have them: it used helper invites
-/// and no view has loaded yet. Reads only the notifier's state and the used
-/// mark in local storage, never the keystore, so a device that never used
-/// them stays hidden.
+/// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+/// helper invites are available, and after the flag goes off while this
+/// device still has personal proxies or invites to manage, or may have them:
+/// it used helper invites and no view has loaded yet. Reads only the
+/// notifier's state and the used mark in local storage, never the keystore.
 @riverpod
-bool helperEntryVisible(Ref ref) {
+bool personalProxiesTabVisible(Ref ref) {
   if (!HelpersNotifier._buildEnabled) return false;
   if (ref.watch(helperInvitesAvailableProvider)) return true;
   final s = ref.watch(helpersProvider);
   if (!s.viewLoaded && ref.read(helpersProvider.notifier).used) return true;
   return s.view.helpers.isNotEmpty || s.view.invites.any((i) => !i.expired);
+}
+
+/// Whether the VPN tab offers "Get a personal proxy": while helper invites
+/// are available and this device has no personal proxy. A device that never
+/// used helper invites has none, so the keystore is never touched to decide;
+/// one that did waits for a loaded view.
+@riverpod
+bool personalProxyBannerVisible(Ref ref) {
+  if (!ref.watch(helperInvitesAvailableProvider)) return false;
+  final s = ref.watch(helpersProvider);
+  if (!s.viewLoaded) return !ref.read(helpersProvider.notifier).used;
+  return s.view.helpers.isEmpty;
 }
 
 /// One engine call's result: its JSON, or an error code.
@@ -374,6 +385,13 @@ class HelpersNotifier extends _$HelpersNotifier {
     await _call('end_pairing', {'pairing_id': pairingId}),
     refetch: true,
   );
+
+  /// Sets the name this device shows for one of its personal proxies, or
+  /// restores the friend's own when [name] is blank. It stays on this device.
+  Future<HelperResult> renameHelper(String pairingId, String name) async =>
+      _apply(
+        await _call('rename_helper', {'pairing_id': pairingId, 'name': name}),
+      );
 
   /// The engine erases the names before it contacts lantern-cloud, so when
   /// the network step fails the local view (already without them) is shown,
