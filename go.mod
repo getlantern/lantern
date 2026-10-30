@@ -198,7 +198,7 @@ require (
 	github.com/getlantern/semconv v0.0.0-20261028170058-373fcfda8972 // indirect
 	github.com/getlantern/soar v0.2.4 // indirect
 	github.com/getlantern/twiddle v0.0.0-20260914204124-f698a0d67d2f // indirect
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
 	github.com/go-llsqlite/adapter v0.0.0-20230927005056-7f5ce7f0c916 // indirect
 	github.com/go-llsqlite/crawshaw v0.5.6-0.20250312230104-194977a03421 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
