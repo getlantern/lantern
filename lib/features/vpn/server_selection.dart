@@ -229,13 +229,14 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     }
 
     // Tapping here means switch to auto regardless of the VPN state.
+    final locationNotifier = ref.read(serverLocationProvider.notifier);
     await _connectAndReturnHome(
       context,
       ref,
       attempt: (skipConflictCheck) => ref
           .read(vpnProvider.notifier)
           .startVPN(force: true, skipConflictCheck: skipConflictCheck),
-      save: () => ref.read(serverLocationProvider.notifier).switchToAuto(),
+      save: locationNotifier.switchToAuto,
     );
   }
 
@@ -415,6 +416,7 @@ class _ServerLocationListViewState
   Future<void> onServerSelected(Server server) async {
     if (!_macOSExtensionReady(ref)) return;
 
+    final locationNotifier = ref.read(serverLocationProvider.notifier);
     await _connectAndReturnHome(
       context,
       ref,
@@ -425,9 +427,9 @@ class _ServerLocationListViewState
             server.tag,
             skipConflictCheck: skipConflictCheck,
           ),
-      save: () => ref
-          .read(serverLocationProvider.notifier)
-          .updateServerLocation(ServerLocation.fromServer(server: server)),
+      save: () => locationNotifier.updateServerLocation(
+        ServerLocation.fromServer(server: server),
+      ),
     );
   }
 }
@@ -761,15 +763,14 @@ class _PrivateServerLocationListViewState
     ServerLocation location, {
     String? connectedMessage,
   }) async {
+    final locationNotifier = ref.read(serverLocationProvider.notifier);
     await _connectAndReturnHome(
       context,
       ref,
       attempt: (skipConflictCheck) => ref
           .read(vpnProvider.notifier)
           .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
-      save: () => ref
-          .read(serverLocationProvider.notifier)
-          .updateServerLocation(location),
+      save: () => locationNotifier.updateServerLocation(location),
       connectedMessage: connectedMessage,
     );
   }
@@ -797,6 +798,7 @@ Future<void> _connectAndReturnHome(
   String? connectedMessage,
   bool skipConflictCheck = false,
 }) async {
+  final locationNotifier = ref.read(serverLocationProvider.notifier);
   // The overlay is app-wide, so hide it through its controller rather than
   // this context, which may be gone by the time the attempt returns.
   final overlay = context.loaderOverlay;
@@ -807,10 +809,9 @@ Future<void> _connectAndReturnHome(
   } finally {
     overlay.hide();
   }
-  if (!context.mounted) return;
-
   result.fold(
     (failure) {
+      if (!context.mounted) return;
       if (failure is VpnConflictFailure && !skipConflictCheck) {
         AppDialog.vpnConflictDialog(
           context: context,
@@ -832,8 +833,9 @@ Future<void> _connectAndReturnHome(
       }
       context.showSnackBar(failure.localizedErrorMessage);
     },
-    (_) =>
-        unawaited(_returnHomeOnceSaved(context, ref, save, connectedMessage)),
+    (_) => unawaited(
+      _returnHomeOnceSaved(context, locationNotifier, save, connectedMessage),
+    ),
   );
 }
 
@@ -841,13 +843,11 @@ Future<void> _connectAndReturnHome(
 /// if this screen is still showing. A retired request leaves the screen alone.
 Future<void> _returnHomeOnceSaved(
   BuildContext context,
-  WidgetRef ref,
+  ServerLocationNotifier locationNotifier,
   FutureOr<void> Function() save,
   String? connectedMessage,
 ) async {
-  final saved = await ref
-      .read(serverLocationProvider.notifier)
-      .saveOnceConnected(save);
+  final saved = await locationNotifier.saveOnceConnected(save);
   if (!saved || !context.mounted) return;
   if (connectedMessage != null) context.showSnackBar(connectedMessage);
   appRouter.popUntilRoot();
