@@ -51,14 +51,15 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> updateTimeZone(String timeZone);
 
   /// Pushes the resolved server location to the native home-screen widget.
-  /// [autoServer] also points the widget's own connect at auto, replacing a
-  /// server the app no longer selects. No-op on platforms without a widget.
+  /// [serverName] is the selected server's tag ('' for auto); the widget's own
+  /// connect dials it, so every publish mirrors the app's current selection.
+  /// No-op on platforms without a widget.
   Future<void> updateWidgetLocation({
     required String city,
     required String country,
     required String countryCode,
     required String displayName,
-    bool autoServer = false,
+    required String serverName,
   });
 
   Stream<AppEvent> watchAppEvents();

@@ -151,7 +151,7 @@ class LanternService implements LanternCoreService {
     required String country,
     required String countryCode,
     required String displayName,
-    bool autoServer = false,
+    required String serverName,
   }) {
     // Only iOS ships a WidgetKit extension today.
     if (!PlatformUtils.isIOS) return Future.value();
@@ -160,7 +160,7 @@ class LanternService implements LanternCoreService {
       country: country,
       countryCode: countryCode,
       displayName: displayName,
-      autoServer: autoServer,
+      serverName: serverName,
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -18,7 +19,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class _Service implements LanternService {
   bool tagAvailable = false;
-  final widgetAuto = <bool>[];
+  final widgetServers = <String>[];
 
   @override
   Future<bool> isTagAvailable(String tag) async => tagAvailable;
@@ -39,8 +40,8 @@ class _Service implements LanternService {
     required String country,
     required String countryCode,
     required String displayName,
-    bool autoServer = false,
-  }) async => widgetAuto.add(autoServer);
+    required String serverName,
+  }) async => widgetServers.add(serverName);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -423,13 +424,36 @@ void main() {
     storage.location = ServerLocation.personalProxy();
     final c = container();
     c.read(serverLocationProvider);
-    expect(service.widgetAuto.last, isFalse);
+    expect(service.widgetServers.last, personalProxiesTag);
     helpers.set(_noHelpers);
     await pumpEventQueue();
     expect(
       c.read(serverLocationProvider).serverType,
       ServerLocationType.auto.name,
     );
-    expect(service.widgetAuto.last, isTrue);
+    expect(service.widgetServers.last, '');
+  });
+
+  test('the widget ends on the selection the app made last', () async {
+    final c = container();
+    final notifier = c.read(serverLocationProvider.notifier);
+    // A server-location event for auto lands mid-switch, then the switch
+    // to personal proxies completes.
+    notifier.updateServerLocation(
+      ServerLocation(
+        serverType: ServerLocationType.auto.name,
+        serverName: '',
+        displayName: '',
+        protocol: '',
+        city: 'Frankfurt',
+      ),
+    );
+    notifier.updateServerLocation(ServerLocation.personalProxy());
+    await pumpEventQueue();
+    expect(service.widgetServers.last, personalProxiesTag);
+
+    notifier.updateServerLocation(frankfurt);
+    await pumpEventQueue();
+    expect(service.widgetServers.last, 'fra');
   });
 }

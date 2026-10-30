@@ -2023,7 +2023,7 @@ class LanternFFIService implements LanternCoreService {
     required String country,
     required String countryCode,
     required String displayName,
-    bool autoServer = false,
+    required String serverName,
   }) async {
     // Desktop has no home-screen widget.
   }

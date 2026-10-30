@@ -198,11 +198,11 @@ class LanternPlatformService implements LanternCoreService {
     required String country,
     required String countryCode,
     required String displayName,
-    bool autoServer = false,
+    required String serverName,
   }) async {
     try {
       await _methodChannel.invokeMethod('updateWidgetLocation', {
-        'autoServer': autoServer,
+        'serverName': serverName,
         'city': city,
         'country': country,
         'countryCode': countryCode,
