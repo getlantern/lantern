@@ -232,7 +232,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 					if changed {
 						_ = e.save()
 					}
-					return nil, errCode(CodeUnavailable)
+					return nil, badAnswer()
 				}
 				inv.State = "claimed"
 				inv.VolunteerPub = st.VolunteerPubkey
@@ -247,7 +247,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 				if changed {
 					_ = e.save()
 				}
-				return nil, errCode(CodeUnavailable)
+				return nil, badAnswer()
 			}
 			e.addPairing(st.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil)
 			e.dropInvite(inv.ID)
@@ -318,11 +318,11 @@ func (e *Engine) listPairings(ctx context.Context) ([]listedPairing, error) {
 	}
 	field, ok := raw["pairings"]
 	if !ok {
-		return nil, errCode(CodeUnavailable)
+		return nil, badAnswer()
 	}
 	var listed []listedPairing
 	if json.Unmarshal(field, &listed) != nil {
-		return nil, errCode(CodeUnavailable)
+		return nil, badAnswer()
 	}
 	return listed, nil
 }
@@ -418,7 +418,7 @@ func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
 		switch {
 		case errors.Is(err, helperinvite.ErrKey):
 			// VolunteerPub came from lantern-cloud: a malformed answer.
-			return nil, errCode(CodeUnavailable)
+			return nil, badAnswer()
 		case errors.Is(err, helperinvite.ErrName):
 			return nil, errCode(CodeBadName)
 		case err != nil:
@@ -434,7 +434,7 @@ func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
 		if resp.PairingID == "" {
 			// A malformed answer: keep the claimed invite and its name. The
 			// next refresh reads the approval with its pairing.
-			return nil, errCode(CodeUnavailable)
+			return nil, badAnswer()
 		}
 		e.addPairing(resp.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil)
 		e.dropInvite(inv.ID)
@@ -693,7 +693,7 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) error {
 			// so cannot be ended: remove all did not finish.
 			kept = append(kept, lp)
 			if firstErr == nil {
-				firstErr = errCode(CodeUnavailable)
+				firstErr = badAnswer()
 			}
 			continue
 		}

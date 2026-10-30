@@ -157,6 +157,41 @@ func TestStatusErrors(t *testing.T) {
 	assert.JSONEq(t, `{"error":"internal"}`, ErrorJSON(errors.New("boom")))
 }
 
+func TestDescribeCarriesTheStatus(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	cloud.disabled = true
+	_, err := sara.Call(context.Background(), "create_invite", mustJSON(map[string]any{"name": "Sara"}))
+	code, status := Describe(err)
+	assert.Equal(t, CodeDisabled, code)
+	assert.Equal(t, 404, status)
+
+	code, status = Describe(statusError("invites", 400, "bad request"))
+	assert.Equal(t, CodeInternal, code)
+	assert.Equal(t, 400, status)
+
+	code, status = Describe(errors.New("boom"))
+	assert.Equal(t, CodeInternal, code)
+	assert.Zero(t, status)
+}
+
+func TestMalformedAnswersCarryTheStatus(t *testing.T) {
+	answer := []byte("not json")
+	e := NewEngine(t.TempDir(), func(context.Context, string, []byte) (int, []byte, string, error) {
+		return 200, answer, "", nil
+	}, nil)
+	var raw map[string]json.RawMessage
+	code, status := Describe(e.post(context.Background(), "pairings", struct{}{}, &raw))
+	assert.Equal(t, CodeUnavailable, code)
+	assert.Equal(t, 200, status)
+
+	answer = []byte(`{}`)
+	_, err := e.listPairings(context.Background())
+	code, status = Describe(err)
+	assert.Equal(t, CodeUnavailable, code)
+	assert.Equal(t, 200, status)
+}
+
 func TestStateIsSealed(t *testing.T) {
 	cloud := newFakeCloud()
 	dir := t.TempDir()

@@ -198,7 +198,7 @@ func (e *Engine) post(ctx context.Context, op string, req, resp any) error {
 		return statusError(op, status, errText)
 	}
 	if resp != nil && len(data) > 0 && json.Unmarshal(data, resp) != nil {
-		return errCode(CodeUnavailable)
+		return &Error{Code: CodeUnavailable, Status: status}
 	}
 	return nil
 }
