@@ -224,7 +224,11 @@ class Home extends HookConsumerWidget {
             .read(shareProvider.notifier)
             .reconcileLaunch(ref);
         if (!context.mounted || !mayAutoStart) return;
-        if (!unboundedAvailable) return;
+        // Read again: the flag captured before the awaits may have turned
+        // off while the reconciliation ran, and stopped the session for it.
+        if (!ref.read(featureFlagProvider).getBool(FeatureFlag.unbounded)) {
+          return;
+        }
         final appSetting = ref.read(appSettingProvider);
         if (appSetting.unboundedHidden) return;
         if (!appSetting.onboardingCompleted) return;

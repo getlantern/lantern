@@ -1125,6 +1125,25 @@ void main() {
       expect(notifier.state.active, isFalse);
     });
 
+    testWidgets('a flag that turns off during the reconciliation stops the '
+        'session and is not undone by the auto-start', (tester) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      service.probeGate = Completer<void>();
+      final launched = launch(notifier, ref);
+      await tester.pump();
+      (ref.read(featureFlagProvider.notifier) as _Flags).set(const {
+        'unbounded': false,
+      });
+      service.probeGate!.complete();
+      await launched;
+      // Stopped for the flag, and no auto-start turns it back on.
+      expect(service.calls, ['unbounded?', 'manual_port', 'unbounded:false']);
+      expect(notifier.state.active, isFalse);
+    });
+
     testWidgets('Unbounded unavailable: a resumed SmC session is stopped', (
       tester,
     ) async {
