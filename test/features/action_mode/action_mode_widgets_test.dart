@@ -22,6 +22,19 @@ import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/auto_enable_mode.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+
+class _Helpers extends HelpersNotifier {
+  _Helpers(this.initial);
+  final HelpersState initial;
+  @override
+  HelpersState build() => initial;
+  @override
+  Future<void> refreshIfUsed() async {}
+  @override
+  Future<void> loadHelpOthers() async {}
+}
 
 class _Share extends ShareNotifier {
   _Share(this.initialState);
@@ -79,6 +92,8 @@ void main() {
     double scale = 1,
     Brightness brightness = Brightness.light,
     bool animated = false,
+    bool helperInvites = false,
+    HelpersState helpers = const HelpersState(),
     ShareState shareState = const ShareState(
       active: true,
       mode: ShareMode.unbounded,
@@ -98,6 +113,8 @@ void main() {
           overrides: [
             appSettingProvider.overrideWith(_Settings.new),
             shareProvider.overrideWith(() => _Share(shareState)),
+            helperInvitesAvailableProvider.overrideWithValue(helperInvites),
+            helpersProvider.overrideWith(() => _Helpers(helpers)),
           ],
           child: ScreenUtilInit(
             designSize: const Size(393, 852),
@@ -131,6 +148,51 @@ void main() {
       await tester.pumpAndSettle();
     }
   }
+
+  group('helper invites on the tab', () {
+    testWidgets('no "Help a friend" entry without the flag or a pairing', (
+      tester,
+    ) async {
+      await mount(tester, const ActionModeTab(), animated: true);
+      expect(find.text('help_friend_entry'.i18n), findsNothing);
+      expect(find.byKey(const Key('helping.today')), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('the flag shows the "Help a friend" entry', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        helperInvites: true,
+        animated: true,
+      );
+      expect(find.text('help_friend_entry'.i18n), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets("a volunteer without the flag sees You're helping and the "
+        'entry', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        helpers: const HelpersState(
+          view: HelpersView(
+            unlocked: true,
+            helping: [HelperPairingView(pairingId: 'p1', name: 'Sara')],
+          ),
+        ),
+      );
+      await tester.scrollUntilVisible(
+        find.text('help_friend_entry'.i18n),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const Key('helping.today')), findsOneWidget);
+      expect(find.text('help_friend_entry'.i18n), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+  });
 
   for (final mode in [ShareMode.smc, ShareMode.unbounded]) {
     testWidgets('failed $mode stop is visible and can be retried', (

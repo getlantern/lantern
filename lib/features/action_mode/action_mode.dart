@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -13,6 +14,8 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
 import 'package:lantern/features/action_mode/action_mode_welcome_dialog.dart';
+import 'package:lantern/features/helpers/helping_section.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 /// Unbounded tab body, hosted by the Home tab shell.
 class ActionModeTab extends HookConsumerWidget {
@@ -22,6 +25,30 @@ class ActionModeTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final visible = ref.watch(actionModeTabVisibleProvider);
+    final helperInvites = ref.watch(helperInvitesAvailableProvider);
+    final helping = ref.watch(
+      helpersProvider.select((s) => s.view.helping.isNotEmpty),
+    );
+    // A volunteer waiting on a claim gets back to its code from here.
+    final waiting = ref.watch(
+      helpersProvider.select(
+        (s) => s.view
+            .waitingClaims(DateTime.now().millisecondsSinceEpoch ~/ 1000)
+            .isNotEmpty,
+      ),
+    );
+
+    useEffect(() {
+      // refreshIfUsed, never refresh: showing the tab must not touch the
+      // keystore of someone who has not used helper invites.
+      if (visible && AppBuildInfo.enableHelperInvites) {
+        final helpers = ref.read(helpersProvider.notifier);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          unawaited(helpers.refreshIfUsed());
+        });
+      }
+      return null;
+    }, [visible]);
 
     useEffect(() {
       if (visible && !ref.read(appSettingProvider).unboundedWelcomeSeen) {
@@ -65,6 +92,18 @@ class ActionModeTab extends HookConsumerWidget {
                           ref.read(shareProvider.notifier).toggle(context, ref),
                       onInfo: () => showActionModeWelcomeDialog(context, ref),
                     ),
+                    // Needs no flag: a volunteer abroad is never flagged, so
+                    // that nobody in their country sees the inviter UI.
+                    if (AppBuildInfo.enableHelperInvites)
+                      const HelpingSection(),
+                    if (AppBuildInfo.enableHelperInvites &&
+                        (helperInvites || helping || waiting)) ...[
+                      const SizedBox(height: defaultSize),
+                      AppTextButton(
+                        label: 'help_friend_entry'.i18n,
+                        onPressed: () => appRouter.push(HelpFriend()),
+                      ),
+                    ],
                   ],
                 ),
               ),

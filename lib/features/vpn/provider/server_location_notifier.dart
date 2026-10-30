@@ -70,21 +70,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
         appLogger.debug('Auto server location not available yet: $error');
       },
       (autoServer) {
-        final countryName = autoServer.location.country;
-        final cityName = autoServer.location.city;
-        final location = ServerLocation(
-          serverType: ServerLocationType.auto.name,
-          serverName: '',
-          displayName: '',
-          protocol: '',
-          city: cityName,
-          autoLocation: AutoLocation(
-            countryCode: autoServer.location.countryCode,
-            country: countryName,
-            displayName: '$countryName - $cityName',
-            tag: autoServer.tag,
-          ),
-        );
+        final location = ServerLocation.autoSelected(autoServer);
         appLogger.debug('Fetched auto server location: ${location.toJson()}');
         state = location;
         _storage.saveServerLocation(location);

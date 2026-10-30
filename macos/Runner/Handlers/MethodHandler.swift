@@ -410,6 +410,24 @@ class MethodHandler {
           await MainActor.run { result(available) }
         }
 
+      // One helper-invite operation (lantern-core/helper). Network-bound,
+      // so it runs off the main actor. Never log the arguments.
+      case "helperCall":
+        let data = call.arguments as? [String: Any] ?? [:]
+        let op = data["op"] as? String ?? ""
+        let args = data["args"] as? String ?? "{}"
+        Task.detached {
+          var error: NSError?
+          let json = MobileHelperCall(op, args, &error)
+          await MainActor.run {
+            if let error {
+              result(FlutterError(code: "HELPER_CALL_FAILED", message: error.localizedDescription, details: nil))
+            } else {
+              result(json)
+            }
+          }
+        }
+
       case "updateTelemetryEvents":
         guard let consent: Bool = self.decodeValue(from: call.arguments, result: result) else {
           return

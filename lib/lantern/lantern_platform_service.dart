@@ -164,6 +164,10 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  /// Android only: copies [text] with ClipDescription's IS_SENSITIVE extra.
+  Future<void> copySensitiveText(String text) =>
+      _methodChannel.invokeMethod('copySensitiveText', {'text': text});
+
   /// Android only: opens the system share sheet for [paths] with read-only
   /// URI grants (share_plus grants read+write to every resolvable package).
   Future<void> shareFiles(
@@ -454,6 +458,23 @@ class LanternPlatformService implements LanternCoreService {
       return right(res ?? '');
     } catch (e, st) {
       appLogger.error('getPeerStatusJSON failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>('helperCall', {
+        'op': op,
+        'args': jsonEncode(args),
+      });
+      return right(result ?? '');
+    } catch (e, st) {
+      appLogger.error('helperCall failed', e, st);
       return Left(e.toFailure());
     }
   }
@@ -1567,14 +1588,13 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   }) async {
     try {
       final result = await _methodChannel.invokeMethod<String>(
         'addServerBasedOnURLs',
         {
           'urls': urls,
-          'skipValidation': skipCertVerification,
+          'skipValidation': false,
           'serverName': '',
         },
       );

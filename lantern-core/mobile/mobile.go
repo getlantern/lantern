@@ -243,6 +243,14 @@ func GetPeerStatus() string {
 	return v
 }
 
+// HelperCall runs one helper-invite operation and returns its JSON result or
+// {"error": code}. The error return is only "radiance not initialized".
+func HelperCall(op, argsJSON string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.HelperCall(op, argsJSON), nil
+	})
+}
+
 // SetUnboundedEnabled is the local opt-in for the broflake / Unbounded
 // widget proxy ("Basic mode" in the SmC UI). Surfaced through the
 // MethodChannel so platforms running radiance inside a network
@@ -872,7 +880,6 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 }
 
 func AddServerBasedOnURLs(urls string, skipCertVerification bool) (string, error) {
-	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCoreR(func(c lanterncore.Core) (string, error) {
 		// Already a JSON array of tags; marshalling again would base64 it.
 		tags, err := c.AddServersByURL(urls, skipCertVerification)

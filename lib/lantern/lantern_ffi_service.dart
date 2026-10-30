@@ -1343,12 +1343,11 @@ class LanternFFIService implements LanternCoreService {
   @override
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   }) async {
     try {
       final result = await runInBackground<String>(() async {
         return _ffiService
-            .addServerBasedOnURLs(urls.toCharPtr, skipCertVerification ? 1 : 0)
+            .addServerBasedOnURLs(urls.toCharPtr, 0)
             .toDartString();
       });
       checkAPIError(result);
@@ -1856,6 +1855,38 @@ class LanternFFIService implements LanternCoreService {
       return payload['phase'] != null;
     } catch (_) {
       return false;
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async {
+    try {
+      final payload = jsonEncode(args);
+      final result = await runInBackground<String>(() async {
+        final opPtr = op.toNativeUtf8();
+        final argsPtr = payload.toNativeUtf8();
+        try {
+          final resultPtr = _ffiService.helperCall(
+            opPtr.cast<Char>(),
+            argsPtr.cast<Char>(),
+          );
+          try {
+            return resultPtr.cast<Utf8>().toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(opPtr);
+          malloc.free(argsPtr);
+        }
+      });
+      return right(result);
+    } catch (e, st) {
+      appLogger.error('helperCall failed', e, st);
+      return Left(e.toFailure());
     }
   }
 

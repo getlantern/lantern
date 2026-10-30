@@ -33,12 +33,14 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 require (
 	github.com/1Password/srp v0.2.0
 	github.com/alecthomas/assert/v2 v2.3.0
+	github.com/getlantern/broflake v0.0.0-20261028191118-e764fdcbe3e0
 	github.com/getlantern/common v1.2.1-0.20261028190346-77afb53a5b63
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
 	github.com/getlantern/radiance v0.0.0-20261030090845-7e8abd99fcf6
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb
+	github.com/stretchr/testify v1.12.1
 	golang.org/x/crypto v0.57.0
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
 	golang.org/x/sys v0.48.0
@@ -177,7 +179,6 @@ require (
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20260731172949-952f13725b7b // indirect
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
-	github.com/getlantern/broflake v0.0.0-20261028191118-e764fdcbe3e0 // indirect
 	github.com/getlantern/domainfront v0.0.0-20261026202828-9727b2f2a34a // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20261009194109-22f33eaeac6e // indirect
 	github.com/getlantern/kindling v0.0.0-20261026211804-dac6d561f52e // indirect
@@ -326,6 +327,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	go.uber.org/mock v0.5.2 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
 	go4.org/mem v0.0.0-20240501181205-ae6ca9944745 // indirect
 	golang.getoutline.org/sdk v0.0.21 // indirect

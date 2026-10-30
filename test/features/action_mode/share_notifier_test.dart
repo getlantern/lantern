@@ -1,4 +1,10 @@
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/utils/country_code.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -9,6 +15,8 @@ import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 // Reconciliation of ShareState against the peer client's real state. The
 // peer-status stream is edge-triggered, so a UI that only listens opens at
@@ -22,29 +30,125 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 // containsKey is exercised; returning false means "consent never given",
 // which keeps build() off the auto-enable reconciliation path.
 class _FakeStorage implements LocalStorageService {
+  _FakeStorage({this.consent = false});
+  final bool consent;
+
   @override
-  bool containsKey(String key) => false;
+  bool containsKey(String key) => consent && key == 'share_consent_acked';
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeService implements LanternService {
+  final calls = <String>[];
+
   @override
   Stream<AppEvent> watchAppEvents() => const Stream.empty();
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() async {
+    calls.add('manual_port');
+    return right(0);
+  }
+
+  /// Runs during the UPnP probe, as a country change can.
+  void Function()? onProbe;
+
+  @override
+  Future<Either<Failure, bool>> probeUPnP() async {
+    calls.add('upnp');
+    onProbe?.call();
+    return right(false);
+  }
+
+  /// When set, setUnboundedEnabled waits for it, holding a start in flight.
+  Completer<void>? unboundedGate;
+
+  /// By default Unbounded fails to start, so a start ends without touching
+  /// app settings.
+  bool unboundedOk = false;
+
+  @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
+    calls.add('unbounded:$enabled');
+    await unboundedGate?.future;
+    if (unboundedOk) return right(unit);
+    return left(Failure(error: 'test', localizedErrorMessage: 'test'));
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-ShareNotifier _notifier() {
+ShareNotifier _notifier() => _setUp().$1;
+
+/// The people this device helps, as an approval leaves them: one friend.
+class _Helpers extends HelpersNotifier {
+  @override
+  HelpersState build() => const HelpersState(
+    view: HelpersView(helping: [HelperPairingView(pairingId: 'p1')]),
+  );
+
+  void helpNobody() =>
+      state = state.copyWith(view: const HelpersView(unlocked: true));
+
+  void helpSomeone() => state = state.copyWith(
+    view: const HelpersView(helping: [HelperPairingView(pairingId: 'p2')]),
+  );
+}
+
+class _Settings extends AppSettingNotifier {
+  @override
+  AppSetting build() => const AppSetting();
+  @override
+  void setUnboundedSessionCount(int value) {}
+}
+
+(ShareNotifier, ProviderContainer, _FakeService) _setUp() {
+  final service = _FakeService();
   final container = ProviderContainer(
     overrides: [
-      lanternServiceProvider.overrideWithValue(_FakeService()),
-      appSettingProvider.overrideWithValue(const AppSetting()),
+      lanternServiceProvider.overrideWithValue(service),
+      appSettingProvider.overrideWith(_Settings.new),
+      helpersProvider.overrideWith(_Helpers.new),
     ],
   );
   addTearDown(container.dispose);
-  return container.read(shareProvider.notifier);
+  return (container.read(shareProvider.notifier), container, service);
+}
+
+/// A real WidgetRef over [container]: WidgetRef is sealed, so tests take one
+/// from a Consumer.
+BuildContext? _context;
+
+Future<WidgetRef> _refFor(WidgetTester tester, ProviderContainer container) async {
+  late WidgetRef captured;
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: Consumer(
+        builder: (context, ref, _) {
+          captured = ref;
+          _context = context;
+          return const SizedBox();
+        },
+      ),
+    ),
+  );
+  return captured;
+}
+
+/// Consent given, so only the country decides.
+Future<(ShareNotifier, WidgetRef, _FakeService)> _start(
+  WidgetTester tester, {
+  bool consent = true,
+}) async {
+  if (consent) {
+    sl.unregister<LocalStorageService>();
+    sl.registerSingleton<LocalStorageService>(_FakeStorage(consent: true));
+  }
+  final (notifier, container, service) = _setUp();
+  return (notifier, await _refFor(tester, container), service);
 }
 
 void main() {
@@ -119,5 +223,205 @@ void main() {
       _notifier().adoptablePhase('{"phase":"serving","error":""}'),
       SharePhase.serving,
     );
+  });
+
+  group('startForHelper', () {
+    tearDown(() => CountryCode.update(''));
+
+    testWidgets('does nothing without the sharing consent', (tester) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester, consent: false);
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.probing, isFalse);
+    });
+
+    testWidgets('never auto-starts while the country is unknown', (
+      tester,
+    ) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.probing, isFalse);
+    });
+
+    testWidgets('never auto-starts in a censored country', (tester) async {
+      CountryCode.update('IR');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.probing, isFalse);
+    });
+
+    testWidgets('starts as the toggle would in an uncensored country', (
+      tester,
+    ) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+    });
+
+    testWidgets('a start held back for an unknown country runs once it is '
+        'known', (tester) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+      // Once only.
+      service.calls.clear();
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+    });
+
+    testWidgets('a country change alone never starts sharing', (tester) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+    });
+
+    testWidgets('a manual toggle cancels a held-back start', (tester) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isTrue);
+      await notifier.toggle(_context!, ref);
+      expect(notifier.state.active, isFalse);
+      service.calls.clear();
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('a held-back start is dropped once this device helps nobody', (
+      tester,
+    ) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      (ref.read(helpersProvider.notifier) as _Helpers).helpNobody();
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.probing, isFalse);
+    });
+
+    testWidgets('a held-back start is not run for a pairing already gone', (
+      tester,
+    ) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      (ref.read(helpersProvider.notifier) as _Helpers).helpNobody();
+      // An approval counted after a newer view already dropped the pairing.
+      await notifier.startForHelper(ref);
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+    });
+
+    testWidgets('a late approval after the pairing ended never starts', (
+      tester,
+    ) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      (ref.read(helpersProvider.notifier) as _Helpers).helpNobody();
+      // An older view's new_helping, counted after a newer empty view.
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.probing, isFalse);
+      // Nothing was kept pending either: a later, unrelated pairing does not
+      // start it on a country change.
+      (ref.read(helpersProvider.notifier) as _Helpers).helpSomeone();
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+    });
+
+    testWidgets('a retry skipped while another start is in flight keeps the '
+        'held-back start', (tester) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      service.unboundedGate = Completer<void>();
+      final other = notifier.autoStart(ref);
+      await tester.pump();
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['unbounded:true'], reason: 'the retry is skipped');
+      service.unboundedGate!.complete();
+      await other;
+      expect(notifier.state.active, isFalse);
+      service.calls.clear();
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+    });
+
+    testWidgets('a country that becomes unknown during the network checks '
+        'stops the start before the backend', (tester) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      service.onProbe = () => CountryCode.update('');
+      await notifier.startForHelper(ref);
+      expect(service.calls, ['manual_port', 'upnp']);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.probing, isFalse);
+      service.onProbe = null;
+      service.calls.clear();
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+      expect(notifier.state.active, isTrue);
+    });
+
+    testWidgets('a pairing that ends during the network checks stops the '
+        'start before the backend', (tester) async {
+      CountryCode.update('DE');
+      final (notifier, ref, service) = await _start(tester);
+      service.onProbe = () =>
+          (ref.read(helpersProvider.notifier) as _Helpers).helpNobody();
+      await notifier.startForHelper(ref);
+      expect(service.calls, ['manual_port', 'upnp']);
+      expect(notifier.state.probing, isFalse);
+    });
+
+    testWidgets('a held-back start stays held in a censored country', (
+      tester,
+    ) async {
+      CountryCode.update('');
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      CountryCode.update('IR');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+    });
+  });
+
+  test('helperAutoStartAllowed mirrors lantern-cloud censoredCountries', () {
+    expect(helperAutoStartAllowed(''), isFalse);
+    for (final c in [
+      'AE', 'AF', 'AZ', 'BY', 'CN', 'CU', 'EG', 'ET', 'IR', 'KP', //
+      'MM', 'PK', 'RU', 'SA', 'SY', 'TJ', 'TM', 'UZ', 'VN', 'YE',
+    ]) {
+      expect(helperAutoStartAllowed(c), isFalse, reason: c);
+      expect(helperAutoStartAllowed(c.toLowerCase()), isFalse, reason: c);
+    }
+    expect(CountryCode.helperCensoredCountries.length, 20);
+    for (final c in ['DE', 'US', 'GB', 'TR']) {
+      expect(helperAutoStartAllowed(c), isTrue, reason: c);
+    }
   });
 }

@@ -130,6 +130,14 @@ abstract class LanternCoreService {
   /// rather than synthesizing an idle status.
   Future<Either<Failure, String>> getPeerStatusJSON();
 
+  /// Runs one helper-invite operation in the Go core (lantern-core/helper)
+  /// and returns its JSON result, which is `{"error": code}` on failure.
+  /// [args] carries invite links and names: never log it.
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  );
+
   /// Local opt-in for the broflake / Unbounded widget proxy ("Basic
   /// mode" in the Share My Connection UI). Actual run state also
   /// depends on server feature-flag and config availability.
@@ -369,7 +377,6 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   });
 
   Future<Either<Failure, Unit>> cancelDeployment();

@@ -1,3 +1,5 @@
+import 'package:lantern/core/utils/helper_tags.dart';
+
 class AvailableServers {
   final List<Server> servers;
 
@@ -7,7 +9,10 @@ class AvailableServers {
     json.map((e) => Server.fromJson(e as Map<String, dynamic>)).toList(),
   );
 
-  List<Server> get lanternServers => servers.where((s) => s.isLantern).toList();
+  /// Lantern servers the user can see and pick. Helper outbounds are left out:
+  /// auto-selection may use them, but they are never listed.
+  List<Server> get lanternServers =>
+      servers.where((s) => s.isLantern && !isHelperTag(s.tag)).toList();
 
   List<Server> get userServers => servers.where((s) => !s.isLantern).toList();
 
