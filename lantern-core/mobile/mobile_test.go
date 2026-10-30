@@ -1,7 +1,9 @@
 package mobile
 
 import (
+	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -208,4 +210,53 @@ func TestIPCResourcesCloseWaitsForBootstrap(t *testing.T) {
 			t.Fatal("close blocked with no bootstrap to wait for")
 		}
 	})
+}
+
+func TestIsTagAvailableUsesExtensionClientWithoutCore(t *testing.T) {
+	prevCore := lanternCore.Load()
+	lanternCore = atomic.Value{}
+	want := &ipc.Client{}
+	prevClient := ipcClient.Swap(want)
+	prevLookup := serverByTag
+	t.Cleanup(func() {
+		if prevCore != nil {
+			lanternCore.Store(prevCore)
+		}
+		ipcClient.Store(prevClient)
+		serverByTag = prevLookup
+	})
+
+	var asked []string
+	serverByTag = func(_ context.Context, c *ipc.Client, tag string) (bool, error) {
+		if c != want {
+			t.Fatalf("lookup used client %p, want the extension's %p", c, want)
+		}
+		asked = append(asked, tag)
+		return tag == "present", nil
+	}
+
+	if IsTagAvailable("personal-proxies") {
+		t.Fatal("IsTagAvailable = true for a missing tag; want the real answer")
+	}
+	if !IsTagAvailable("present") {
+		t.Fatal("IsTagAvailable = false for a present tag")
+	}
+	if len(asked) != 2 {
+		t.Fatalf("lookups = %d, want 2", len(asked))
+	}
+}
+
+func TestIsTagAvailableFailsOpenWithoutAnyClient(t *testing.T) {
+	prevCore := lanternCore.Load()
+	lanternCore = atomic.Value{}
+	prevClient := ipcClient.Swap(nil)
+	t.Cleanup(func() {
+		if prevCore != nil {
+			lanternCore.Store(prevCore)
+		}
+		ipcClient.Store(prevClient)
+	})
+	if !IsTagAvailable("personal-proxies") {
+		t.Fatal("IsTagAvailable = false with no backend; want fail-open true")
+	}
 }
