@@ -763,6 +763,8 @@ class _PrivateServerLocationListViewState
     ServerLocation location, {
     String? connectedMessage,
   }) async {
+    if (!_macOSExtensionReady(ref)) return;
+
     final locationNotifier = ref.read(serverLocationProvider.notifier);
     await _connectAndReturnHome(
       context,
