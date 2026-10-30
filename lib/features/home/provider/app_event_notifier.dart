@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:i18n_extension/default.i18n.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/server_location.dart';
@@ -81,21 +80,8 @@ class AppEventNotifier extends _$AppEventNotifier {
             break;
           }
           try {
-            final autoLocation = Server.fromJson(jsonDecode(event.message));
-            final countryName = autoLocation.location.country;
-            final cityName = autoLocation.location.city;
-            final autoServer = ServerLocation(
-              serverType: ServerLocationType.auto.name,
-              serverName: ''.i18n,
-              displayName: '',
-              protocol: '',
-              city: cityName,
-              autoLocation: AutoLocation(
-                countryCode: autoLocation.location.countryCode,
-                country: countryName,
-                displayName: '$countryName - $cityName',
-                tag: autoLocation.tag,
-              ),
+            final autoServer = ServerLocation.autoSelected(
+              Server.fromJson(jsonDecode(event.message)),
             );
             ref
                 .read(serverLocationProvider.notifier)

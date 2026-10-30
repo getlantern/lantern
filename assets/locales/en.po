@@ -1111,9 +1111,6 @@ msgstr "Join Server"
 msgid "private_server_usage_message"
 msgstr "Private server usage is not counted towards your Lantern daily data cap."
 
-msgid "manage_private_servers"
-msgstr "Manage Private Servers"
-
 msgid "my_servers"
 msgstr "My Servers"
 
@@ -2143,3 +2140,273 @@ msgstr "Direct connection unavailable: %s"
 
 msgid "view_advanced_stats"
 msgstr "View advanced stats"
+
+# Helper invites: errors. "Lantern" is the app.
+msgid "helper_error_disabled"
+msgstr "Helping friends isn't available on this device yet."
+
+msgid "helper_error_not_found"
+msgstr "This invite or helper no longer exists."
+
+msgid "helper_error_unavailable"
+msgstr "Couldn't reach Lantern. Check your connection and try again."
+
+msgid "helper_error_too_many_invites"
+msgstr "You've sent as many invites as you can for now. Try again tomorrow."
+
+msgid "helper_error_too_many_pairings"
+msgstr "You've reached the limit of 20 people."
+
+msgid "helper_error_no_pending_claim"
+msgstr "This invite has already been decided."
+
+msgid "helper_error_bad_name"
+msgstr "Enter a name your friend will recognise, up to 60 characters."
+
+msgid "helper_error_keystore"
+msgstr "This device can't store names securely, so helping friends is off. On Linux, start a keyring such as GNOME Keyring."
+
+msgid "helper_error_keystore_reset"
+msgstr "This device's secure storage was reset, so the names of your helpers and invites could not be read. Your helpers still work; invite them again to see their names."
+
+msgid "helper_error_copy"
+msgstr "Couldn't copy the link. Use Share link instead."
+
+# Helper invites: the inviter's side. A "helper" is a friend abroad whose
+# internet connection this user borrows through Lantern.
+msgid "helpers_your_name_label"
+msgstr "Your name, as your friend knows you"
+
+msgid "helpers_your_name_hint"
+msgstr "For example, Sara"
+
+msgid "helper_online"
+msgstr "Online"
+
+msgid "helper_offline"
+msgstr "Offline"
+
+msgid "helper_unnamed"
+msgstr "Your helper"
+
+# %s is the helper's name.
+msgid "helper_remove_confirm_title"
+msgstr "Remove %s?"
+
+# %s is the helper's name.
+msgid "helper_remove_confirm_body"
+msgstr "%s will stop helping you. You can invite them again later."
+
+msgid "helpers_remove_all"
+msgstr "Remove all helpers"
+
+msgid "helpers_remove_all_body"
+msgstr "Every helper stops helping you, and their names are erased from this device."
+
+# The screen and menu entry for the user's private servers and personal proxies.
+msgid "manage_private_locations"
+msgstr "Manage Private Locations"
+
+# Starts an invite to a friend abroad who will become the user's personal proxy.
+msgid "invite_personal_proxy"
+msgstr "Invite a Personal Proxy"
+
+# Manage Private Locations' tab for the user's personal proxies.
+msgid "personal_proxies_tab"
+msgstr "Personal Proxies"
+
+msgid "invite_another"
+msgstr "Invite another"
+
+# Shown in the Personal Proxies tab while the user has exactly one personal proxy.
+msgid "helpers_nudge_second"
+msgstr "If your personal proxy goes offline, so does your connection through it. Invite a second friend to stay connected."
+
+# VPN tab banner offering to invite a friend abroad as a personal proxy.
+msgid "personal_proxy_banner_title"
+msgstr "Get a personal proxy"
+
+msgid "personal_proxy_banner_body"
+msgstr "A friend abroad can keep you connected."
+
+# The same banner while a friend who opened the user's invite waits for the user to compare codes and approve them.
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Your friend is waiting"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Compare the code and approve them."
+
+# Label of the field for the name this device shows for a personal proxy. It stays on this device.
+msgid "personal_proxy_nickname_label"
+msgstr "Name on this device"
+
+msgid "invite_share_body"
+msgstr "Send this link to one person you trust. It works once and expires in 48 hours."
+
+# The text shared with the link. The first %s is the user's name; the second is the link.
+msgid "invite_share_message"
+msgstr "%s wants your help staying online. %s"
+
+msgid "invite_share_button"
+msgstr "Share link"
+
+msgid "invite_copy_link"
+msgstr "Copy link"
+
+msgid "invite_link_copied"
+msgstr "Link copied"
+
+msgid "invite_qr_hint"
+msgstr "Your friend can scan this with Lantern."
+
+msgid "invite_waiting"
+msgstr "Waiting for your friend to open the link"
+
+# %s is a number of hours.
+msgid "invite_expires"
+msgstr "Expires in %s hours"
+
+msgid "invite_gone"
+msgstr "This invite has been used or has expired."
+
+msgid "invite_claimed_title"
+msgstr "Someone opened your invite"
+
+msgid "invite_compare_codes"
+msgstr "Compare codes"
+
+# %s is the name the person typed.
+msgid "approve_code_intro"
+msgstr "Ask %s which code their Lantern shows. Compare it on a call or in a different app, not in the chat you sent the link in."
+
+msgid "approve_code_label"
+msgstr "Code on this device"
+
+msgid "approve_button"
+msgstr "Codes match: approve"
+
+msgid "reject_button"
+msgstr "Codes don't match: reject"
+
+msgid "reject_explainer"
+msgstr "If the codes are different, someone else opened your link. Reject them and send a new invite."
+
+# The VPN tab's selected location while connected through the user's personal proxies.
+msgid "personal_proxy"
+msgstr "Personal proxy"
+
+# The server list's tab for private servers and personal proxies.
+msgid "private_locations"
+msgstr "Private Locations"
+
+# Section header in Private Locations: friends abroad who route this user's traffic.
+msgid "personal_proxies"
+msgstr "Personal proxies"
+
+# The selectable row that connects through all of the user's personal proxies.
+msgid "your_personal_proxies"
+msgstr "Your personal proxies"
+
+# Helper invites: the volunteer's side.
+msgid "help_friend_title"
+msgstr "Help a friend stay online"
+
+# Action Mode row that opens the screen for pasting a friend's invite link.
+msgid "have_invite_link"
+msgstr "Have an invite link?"
+
+msgid "help_friend_intro"
+msgstr "A friend asked for your help. While Lantern runs, they can reach the open internet through your connection."
+
+msgid "help_friend_link_label"
+msgstr "Invite link"
+
+msgid "help_friend_paste"
+msgstr "Paste the link your friend sent"
+
+msgid "help_friend_scan"
+msgstr "Scan your friend's QR code"
+
+msgid "help_friend_sharing_note"
+msgstr "Lantern helps automatically while it's running. It uses a direct connection when your router allows one, and a browser-style connection otherwise."
+
+msgid "help_friend_accept"
+msgstr "Help my friend"
+
+msgid "help_friend_code_title"
+msgstr "Tell your friend this code"
+
+msgid "help_friend_code_body"
+msgstr "Your friend will check that it matches the code on their phone, then approve you. A call or a different app is safest."
+
+msgid "help_friend_waiting"
+msgstr "Waiting for your friend to approve"
+
+# %s is the friend's name.
+msgid "help_friend_approved"
+msgstr "You're now helping %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "This request is no longer pending. Ask your friend for a new invite."
+
+msgid "help_friend_done"
+msgstr "Done"
+
+msgid "help_friend_already_claimed_title"
+msgstr "This invite was already claimed"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Someone else opened this link first, or it expired. Ask your friend for a new invite, and tell them this one may have been seen by someone else."
+
+msgid "help_friend_already_helping"
+msgstr "You're already helping this friend."
+
+msgid "help_friend_already_helping_named"
+msgstr "You're already helping %s."
+
+msgid "help_friend_bad_link"
+msgstr "This isn't a helper invite link."
+
+msgid "help_friend_own_invite"
+msgstr "This is your own invite. Send it to the friend you'd like help from."
+
+msgid "helping_title"
+msgstr "You're helping"
+
+# First %s is a duration such as "3h 20m"; second is an amount of data such as "1.2 GB".
+msgid "helping_today"
+msgstr "Today: active %s, %s shared"
+
+# %s is a date.
+msgid "helping_since"
+msgstr "Since %s"
+
+msgid "helping_unnamed"
+msgstr "Someone you help"
+
+msgid "helping_sharing_off_warning"
+msgstr "Sharing is off, so the people you help can't connect through you."
+
+msgid "helping_remove"
+msgstr "Stop helping"
+
+# %s is the person's name.
+msgid "helping_remove_confirm"
+msgstr "Stop helping %s? They'll need a new invite to connect through you again."
+
+msgid "help_others_too"
+msgstr "Help others too"
+
+msgid "help_others_too_body"
+msgstr "Lend spare capacity to other people facing censorship; Lantern only lets them reach allowed sites, which protects your connection from misuse."
+
+msgid "help_others_too_note"
+msgstr "Changing this briefly reconnects the people you help."
+
+# %s %s are hours and minutes, as numbers.
+msgid "helping_duration_hm"
+msgstr "%sh %sm"
+
+# %s is minutes, as a number.
+msgid "helping_duration_m"
+msgstr "%sm"

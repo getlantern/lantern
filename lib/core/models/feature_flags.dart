@@ -4,6 +4,11 @@ enum FeatureFlag {
   traces('otel.traces'),
   autoUpdateEnabled('autoUpdateEnabled'),
   androidSideloadAutoUpdateEnabled('androidSideloadAutoUpdateEnabled'),
+  // Server-side gate for the inviter's side of helper invites ("Get help
+  // from a friend"). lantern-cloud sets it for the pilot's inviters only.
+  // Volunteers are never flagged: their screens show through an invite link
+  // or a pairing (lantern-cloud lets them through without the flag).
+  helperInvites('helper_invites'),
   // Server-side gate for the entire Unbounded / Share My Connection
   // surface. When false (the default for censored regions), the
   // Unbounded tab, settings entry, project link, and auto-enable hooks

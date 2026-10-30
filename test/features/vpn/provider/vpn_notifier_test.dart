@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -64,8 +65,10 @@ class _FakeLanternService implements LanternService {
   @override
   Future<bool> checkVpnConflict() async => false;
 
+  bool tagAvailable = true;
+
   @override
-  Future<bool> isTagAvailable(String tag) async => true;
+  Future<bool> isTagAvailable(String tag) async => tagAvailable;
 
   Future<void> dispose() => statusController.close();
 
@@ -84,6 +87,20 @@ class _FakeStorage extends LocalStorageService {
 
   @override
   Future<void> remove(String key) async => values.remove(key);
+}
+
+class _FakeServerLocation extends ServerLocationNotifier {
+  _FakeServerLocation(this._initial);
+
+  final ServerLocation _initial;
+
+  @override
+  ServerLocation build() => _initial;
+
+  @override
+  Future<void> switchToAuto() async {
+    state = state.copyWith(serverType: ServerLocationType.auto.name);
+  }
 }
 
 class _FakeAppSettings extends AppSettingNotifier {
@@ -244,6 +261,34 @@ void main() {
         final recoveredStatus = container.read(vPNStatusProvider);
         expect(recoveredStatus.hasValue, isTrue);
         expect(recoveredStatus.value?.status, VPNStatus.disconnected);
+      },
+    );
+
+    test(
+      'a personal proxy whose group is gone falls back to Smart Location',
+      () async {
+        final service = _FakeLanternService()..tagAvailable = false;
+        final container = ProviderContainer(
+          overrides: [
+            lanternServiceProvider.overrideWithValue(service),
+            serverLocationProvider.overrideWith(
+              () => _FakeServerLocation(ServerLocation.personalProxy()),
+            ),
+            appSettingProvider.overrideWith(_FakeAppSettings.new),
+          ],
+        );
+        _disposeContainerAndService(container, service);
+
+        final result = await container
+            .read(vpnProvider.notifier)
+            .startVPN(skipConflictCheck: true);
+
+        expect(result.isRight(), isTrue);
+        expect(service.startVPNCalls, 1);
+        expect(
+          container.read(serverLocationProvider).serverType,
+          ServerLocationType.auto.name,
+        );
       },
     );
   });

@@ -13,7 +13,9 @@ import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/action_mode/share_consent_dialog.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -103,6 +105,14 @@ class ShareNotifier extends _$ShareNotifier {
       _eventController.close();
       _relayPersistTimer?.cancel();
     });
+    // A held-back helper start is for the people this device helps: once it
+    // helps nobody, there is nothing left to start for.
+    ref.listen<bool>(helpersProvider.select((s) => s.view.helping.isEmpty), (
+      _,
+      helpsNobody,
+    ) {
+      if (helpsNobody) _helperStartPending = false;
+    });
 
     final settings = ref.read(appSettingProvider);
     // Earlier builds enabled auto-start without a disclosure. autoStart refuses
@@ -138,6 +148,9 @@ class ShareNotifier extends _$ShareNotifier {
   /// picks the mode from the network.
   Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
     if (_changing) return;
+    // The user has chosen, on or off: a held-back helper start must not
+    // override that later.
+    _helperStartPending = false;
     _changes++;
     try {
       await _toggle(context, widgetRef);
@@ -149,17 +162,8 @@ class ShareNotifier extends _$ShareNotifier {
   /// Starts Unbounded without UI. Used by the VPN-connected auto-enable hook.
   /// Always Unbounded, never SmC: this path cannot disclose that the device
   /// would become a residential exit. No-ops without a prior consent ack.
-  Future<void> autoStart(WidgetRef widgetRef) async {
-    if (_changing || state.active || state.probing) return;
-    if (!_consentAcked) return;
-    _changes++;
-    try {
-      state = state.copyWith(probing: true);
-      await _start(widgetRef, ShareMode.unbounded);
-    } finally {
-      _changes--;
-    }
-  }
+  Future<void> autoStart(WidgetRef widgetRef) =>
+      _autoStartWith(() => _start(widgetRef, ShareMode.unbounded));
 
   /// Adopts an SmC session that radiance resumed from persisted settings
   /// before this notifier existed. The peer-status stream is edge-triggered,
@@ -249,10 +253,32 @@ class ShareNotifier extends _$ShareNotifier {
 
     state = state.copyWith(probing: true);
 
+    await _startAuto(widgetRef);
+  }
+
+  /// Picks the sharing mode from the network and starts it: direct (SmC)
+  /// where a manual port or UPnP gateway allows, Unbounded otherwise. The
+  /// spec's "Mode": direct whenever it works, with no picker.
+  ///
+  /// [mayStart], when given, is asked again right before the backend is
+  /// enabled, after the port and UPnP checks; false abandons the start.
+  Future<void> _startAuto(
+    WidgetRef widgetRef, {
+    bool Function()? mayStart,
+  }) async {
+    Future<void> start(ShareMode mode) async {
+      if (mayStart != null && !mayStart()) {
+        state = state.copyWith(probing: false);
+        return;
+      }
+      _startGuard = mayStart;
+      await _start(widgetRef, mode);
+    }
+
     // The iOS network extension cannot carry the peer proxy's second sing-box
     // instance, so the backend refuses SmC there.
     if (PlatformUtils.isIOS) {
-      await _start(widgetRef, ShareMode.unbounded);
+      await start(ShareMode.unbounded);
       return;
     }
 
@@ -262,7 +288,7 @@ class ShareNotifier extends _$ShareNotifier {
         .getPeerManualPort();
     if (!ref.mounted) return;
     if (manualPortRes.fold((_) => 0, (p) => p) > 0) {
-      await _start(widgetRef, ShareMode.smc);
+      await start(ShareMode.smc);
       return;
     }
 
@@ -270,10 +296,71 @@ class ShareNotifier extends _$ShareNotifier {
     final probeRes = await widgetRef.read(lanternServiceProvider).probeUPnP();
     if (!ref.mounted) return;
     final upnpAvailable = probeRes.fold((_) => false, (v) => v);
-    await _start(
-      widgetRef,
-      upnpAvailable ? ShareMode.smc : ShareMode.unbounded,
-    );
+    await start(upnpAvailable ? ShareMode.smc : ShareMode.unbounded);
+  }
+
+  /// The [_startAuto] guard of the running session, asked again before an
+  /// SmC failure falls back to Unbounded. Null for a start the user made.
+  bool Function()? _startGuard;
+
+  /// A helper approval whose start was held back because this device's
+  /// country was unknown or censored. Memory only.
+  bool _helperStartPending = false;
+
+  /// Starts sharing for a newly approved helper pairing, as the toggle would.
+  /// The consent was collected when the user accepted the invite; without it
+  /// this does nothing. A user who later turns sharing off stays off.
+  ///
+  /// Never starts while this device's own country is unknown or censored:
+  /// lantern-cloud's guard relies on IP geolocation and can fail open. The
+  /// approval is then kept, and [retryPendingHelperStart] starts it once the
+  /// country is known and allowed. The user can still turn sharing on.
+  Future<void> startForHelper(WidgetRef widgetRef) async {
+    if (!_helperStartAllowed()) return;
+    // Held until a start actually proceeds: one skipped because another
+    // change is in flight or sharing is already up is retried later.
+    _helperStartPending = true;
+    await _autoStartWith(() {
+      _helperStartPending = false;
+      return _startAuto(widgetRef, mayStart: _helperStartAllowed);
+    });
+  }
+
+  /// Whether a helper start may run now. Asked again after the port and UPnP
+  /// checks, since the country or the pairing can change while they run.
+  bool _helperStartAllowed() {
+    // An approval can be counted from a view older than the one applied,
+    // after the pairing already ended: start only for someone still helped.
+    if (ref.read(helpersProvider).view.helping.isEmpty) {
+      _helperStartPending = false;
+      return false;
+    }
+    if (!helperAutoStartAllowed(CountryCode.current)) {
+      _helperStartPending = true;
+      return false;
+    }
+    return true;
+  }
+
+  /// Retries a helper start held back by [startForHelper]. Called when the
+  /// country changes. Dropped if this device no longer helps anyone.
+  Future<void> retryPendingHelperStart(WidgetRef widgetRef) async {
+    if (_helperStartPending) await startForHelper(widgetRef);
+  }
+
+  /// The no-UI start shared by autoStart and startForHelper: skip while a
+  /// change is in flight or sharing is already up, and never start without
+  /// the consent ack.
+  Future<void> _autoStartWith(Future<void> Function() start) async {
+    if (_changing || state.active || state.probing) return;
+    if (!_consentAcked) return;
+    _changes++;
+    try {
+      state = state.copyWith(probing: true);
+      await start();
+    } finally {
+      _changes--;
+    }
   }
 
   Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
@@ -351,6 +438,14 @@ class ShareNotifier extends _$ShareNotifier {
   /// its peer-share setting back, so only the local mode and broflake remain.
   Future<void> _fallbackToUnbounded(WidgetRef widgetRef, String? reason) async {
     if (state.mode == ShareMode.unbounded) return;
+    // A helper start may have lost its eligibility while SmC registered.
+    final guard = _startGuard;
+    if (guard != null && !guard()) {
+      _stopEventSubscription();
+      state = ShareState(totalCount: state.totalCount, relay: _idleRelay());
+      _persistRelay(force: true);
+      return;
+    }
     _changes++;
     try {
       _stopEventSubscription();

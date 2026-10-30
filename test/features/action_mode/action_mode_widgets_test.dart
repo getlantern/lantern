@@ -22,6 +22,20 @@ import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/auto_enable_mode.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
+
+class _Helpers extends HelpersNotifier {
+  _Helpers(this.initial);
+  final HelpersState initial;
+  @override
+  HelpersState build() => initial;
+  @override
+  Future<void> refreshIfUsed() async {}
+  @override
+  Future<void> loadHelpOthers() async {}
+}
 
 class _Share extends ShareNotifier {
   _Share(this.initialState);
@@ -79,6 +93,8 @@ void main() {
     double scale = 1,
     Brightness brightness = Brightness.light,
     bool animated = false,
+    String country = 'US',
+    HelpersState helpers = const HelpersState(),
     ShareState shareState = const ShareState(
       active: true,
       mode: ShareMode.unbounded,
@@ -98,6 +114,9 @@ void main() {
           overrides: [
             appSettingProvider.overrideWith(_Settings.new),
             shareProvider.overrideWith(() => _Share(shareState)),
+            helperInvitesAvailableProvider.overrideWithValue(false),
+            helpersProvider.overrideWith(() => _Helpers(helpers)),
+            countryCodeProvider.overrideWithValue(country),
           ],
           child: ScreenUtilInit(
             designSize: const Size(393, 852),
@@ -131,6 +150,89 @@ void main() {
       await tester.pumpAndSettle();
     }
   }
+
+  group('helper invites on the tab', () {
+    testWidgets('"Have an invite link?" shows in an uncensored country', (
+      tester,
+    ) async {
+      await mount(tester, const ActionModeTab(), animated: true);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('action_mode.invite_link')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('have_invite_link'.i18n), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    for (final country in ['', 'IR', 'CN']) {
+      testWidgets('no invite row where sharing may not start ("$country")', (
+        tester,
+      ) async {
+        await mount(
+          tester,
+          const ActionModeTab(),
+          animated: true,
+          country: country,
+        );
+        expect(find.byKey(const Key('action_mode.invite_link')), findsNothing);
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+
+    testWidgets('a volunteer waiting on a claim sees the invite row before '
+        'the country is known', (tester) async {
+      final expires = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600;
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        country: '',
+        helpers: HelpersState(
+          view: HelpersView(
+            unlocked: true,
+            claims: [
+              HelperClaimView(id: 'c1', code: '2562', expiresUnix: expires),
+            ],
+          ),
+        ),
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('action_mode.invite_link')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const Key('action_mode.invite_link')), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets("a volunteer sees You're helping", (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        helpers: const HelpersState(
+          view: HelpersView(
+            unlocked: true,
+            helping: [HelperPairingView(pairingId: 'p1', name: 'Sara')],
+          ),
+        ),
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('helping.today')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const Key('helping.today')), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('action_mode.invite_link')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const Key('action_mode.invite_link')), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+  });
 
   for (final mode in [ShareMode.smc, ShareMode.unbounded]) {
     testWidgets('failed $mode stop is visible and can be retried', (
