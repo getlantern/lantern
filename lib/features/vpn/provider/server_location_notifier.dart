@@ -212,8 +212,8 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   /// Runs [save] once the VPN reports connected, so the stored selection never
   /// gets ahead of the status the home screen shows. Owned here rather than by
   /// the selection screen so leaving that screen doesn't drop the save. A newer
-  /// request or a VPN error retires a pending one. Resolves true once the VPN
-  /// connected and [save] ran, false if the request was retired.
+  /// request, disconnect, or VPN error retires a pending one. Resolves true once
+  /// the VPN connected and [save] ran, false if the request was retired.
   Future<bool> saveOnceConnected(FutureOr<void> Function() save) {
     _retirePendingSelection();
     if (ref.read(vpnProvider) == VPNStatus.connected) {
@@ -232,7 +232,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       unawaited(
         _runSave(pending.save).then((_) => pending.completer.complete(true)),
       );
-    } else if (status == VPNStatus.error) {
+    } else if (status == VPNStatus.disconnected || status == VPNStatus.error) {
       _retirePendingSelection();
     }
   }
