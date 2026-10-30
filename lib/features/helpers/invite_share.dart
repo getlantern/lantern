@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/helpers/approve_helper_sheet.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
@@ -76,6 +77,8 @@ class InviteShare extends ConsumerWidget {
       );
     }
     if (invite.claimed) {
+      // This screen offers the codes itself: the app-wide prompt need not.
+      ref.read(helpersProvider.notifier).markApprovalPrompted(invite.id);
       return BaseScreen(
         title: 'invite_personal_proxy'.i18n,
         body: Column(
@@ -153,6 +156,13 @@ class InviteShare extends ConsumerWidget {
           const SizedBox(height: 8),
           Center(
             child: Text('invite_qr_hint'.i18n, style: textTheme.labelMedium),
+          ),
+          const SizedBox(height: 24),
+          InfoRow(
+            key: const Key('invite.trust_warning'),
+            backgroundColor: context.bgPromo,
+            imagePath: AppImagePaths.warning,
+            text: 'invite_trust_warning'.i18n,
           ),
           const SizedBox(height: 24),
           Row(

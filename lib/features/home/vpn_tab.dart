@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/helpers/personal_proxy_banner.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -37,8 +38,12 @@ class VpnTab extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  // The Pro upsell wins its slot; the personal proxy banner waits.
-                  if (proBannerShows(ref))
+                  // A friend waiting on approval wins the slot: the wait is
+                  // short and the invite expires. Otherwise the Pro upsell
+                  // wins it, and the personal proxy banner waits.
+                  if (ref.watch(personalProxyWaitingProvider))
+                    const PersonalProxyBanner()
+                  else if (proBannerShows(ref))
                     const ProBanner()
                   else
                     const PersonalProxyBanner(),

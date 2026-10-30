@@ -82,6 +82,12 @@ Future<void> _pump(
   Widget child, {
   bool sharing = false,
 }) async {
+  // Tall enough that HelpFriend's whole form, below the "what helping
+  // means" card, is built without scrolling.
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = const Size(800, 1400);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -327,6 +333,30 @@ void main() {
       ),
     );
     expect(field.maxLength, 60);
+  });
+
+  testWidgets('before claiming, a card says what helping means, above the '
+      'link field', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    final card = find.byKey(const Key('help_friend.means'));
+    expect(card, findsOneWidget);
+    for (final key in [
+      'help_friend_means_title',
+      'help_friend_means_traffic',
+      'help_friend_means_online',
+      'help_friend_means_stop',
+    ]) {
+      expect(
+        find.descendant(of: card, matching: find.text(key.i18n)),
+        findsOneWidget,
+      );
+    }
+    expect(find.text('help_friend_intro'.i18n), findsNothing);
+    expect(
+      tester.getTopLeft(card).dy,
+      lessThan(tester.getTopLeft(find.byKey(const Key('help_friend.link'))).dy),
+    );
   });
 
   testWidgets('without a held link, the link field is shown', (tester) async {

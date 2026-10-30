@@ -48,6 +48,18 @@ bool personalProxyBannerVisible(Ref ref) {
   return s.view.helpers.isEmpty;
 }
 
+/// Whether a friend who claimed an invite waits on this user's approval, in
+/// a build and for a server that offer helper invites. The VPN tab then gives
+/// the banner's waiting variant the Pro banner's slot, and shows it to a user
+/// who already has a personal proxy too: the wait is short and the invite
+/// expires.
+@riverpod
+bool personalProxyWaiting(Ref ref) {
+  if (!HelpersNotifier.buildEnabled) return false;
+  if (ref.watch(helpersProvider).view.awaitingApproval == null) return false;
+  return ref.watch(helperInvitesAvailableProvider);
+}
+
 /// One engine call's result: its JSON, or an error code.
 class HelperResult {
   const HelperResult._(this.data, this.error);
@@ -151,6 +163,9 @@ class HelpersNotifier extends _$HelpersNotifier {
   static bool get _buildEnabled =>
       debugBuildEnabled ?? AppBuildInfo.enableHelperInvites;
 
+  /// Whether this build has helper invites; a stealth build does not.
+  static bool get buildEnabled => _buildEnabled;
+
   Timer? _poll;
   Future<void>? _unlocking;
 
@@ -163,6 +178,17 @@ class HelpersNotifier extends _$HelpersNotifier {
   int _sent = 0;
   int _applied = 0;
   String? _heldLink;
+
+  /// The claimed invites whose approval sheet was shown or offered on this
+  /// device, by invite ID. Memory only.
+  final _approvalPrompted = <String>{};
+
+  /// Records that [inviteId]'s approval was put in front of the user, so the
+  /// app-wide prompt does not open it again. Returns whether it was new.
+  bool markApprovalPrompted(String inviteId) => _approvalPrompted.add(inviteId);
+
+  bool approvalPrompted(String inviteId) =>
+      _approvalPrompted.contains(inviteId);
 
   /// Holds an invite link that opened the app, for HelpFriend to take, so
   /// the secret never travels in route arguments. Memory only.
