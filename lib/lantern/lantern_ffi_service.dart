@@ -1658,14 +1658,7 @@ class LanternFFIService implements LanternCoreService {
         );
       }
       final server = Server.fromJson(serverJson);
-      final isLantern = server.isLantern;
-      return Right(
-        ServerLocation.fromServer(server: server).copyWith(
-          serverType: isLantern
-              ? ServerLocationType.lanternLocation.name
-              : ServerLocationType.privateServer.name,
-        ),
-      );
+      return Right(ServerLocation.selected(server));
     } catch (e, stackTrace) {
       appLogger.error('Error while getting selected server', e, stackTrace);
       return Left(e.toFailure());
@@ -1797,6 +1790,38 @@ class LanternFFIService implements LanternCoreService {
       return payload['phase'] != null;
     } catch (_) {
       return false;
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async {
+    try {
+      final payload = jsonEncode(args);
+      final result = await runInBackground<String>(() async {
+        final opPtr = op.toNativeUtf8();
+        final argsPtr = payload.toNativeUtf8();
+        try {
+          final resultPtr = _ffiService.helperCall(
+            opPtr.cast<Char>(),
+            argsPtr.cast<Char>(),
+          );
+          try {
+            return resultPtr.cast<Utf8>().toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(opPtr);
+          malloc.free(argsPtr);
+        }
+      });
+      return right(result);
+    } catch (e, st) {
+      appLogger.error('helperCall failed', e, st);
+      return Left(e.toFailure());
     }
   }
 
@@ -1998,6 +2023,7 @@ class LanternFFIService implements LanternCoreService {
     required String country,
     required String countryCode,
     required String displayName,
+    required String serverName,
   }) async {
     // Desktop has no home-screen widget.
   }

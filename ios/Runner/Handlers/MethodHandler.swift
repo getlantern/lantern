@@ -375,6 +375,24 @@ class MethodHandler {
           await MainActor.run { result(available) }
         }
 
+      // One helper-invite operation (lantern-core/helper). Network-bound,
+      // so it runs off the main actor. Never log the arguments.
+      case "helperCall":
+        let data = call.arguments as? [String: Any] ?? [:]
+        let op = data["op"] as? String ?? ""
+        let args = data["args"] as? String ?? "{}"
+        Task.detached {
+          var error: NSError?
+          let json = MobileHelperCall(op, args, &error)
+          await MainActor.run {
+            if let error {
+              result(FlutterError(code: "HELPER_CALL_FAILED", message: error.localizedDescription, details: nil))
+            } else {
+              result(json)
+            }
+          }
+        }
+
       case "isTelemetryEnabled":
         Task {
           await MainActor.run { result(MobileIsTelemetryEnabled()) }
@@ -1188,6 +1206,13 @@ class MethodHandler {
     case (true, true): name = displayName
     }
     VPNWidgetStore.setLocation(name: name, city: city, country: country, countryCode: countryCode)
+    // The app's current selection, published on every change: a widget or
+    // Control Center connect dials it. Empty means auto. Mirroring it here,
+    // not only in connectToServer, keeps a fallback to auto (which skips
+    // startTunnel) and any write made mid-switch from leaving it stale.
+    if let serverName = data["serverName"] as? String {
+      VPNWidgetStore.setServerName(serverName)
+    }
     result(nil)
   }
 
