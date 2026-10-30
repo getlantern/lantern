@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
-import 'package:lantern/features/helpers/approve_helper_sheet.dart'
+import 'package:lantern/features/helpers/approve_helper_dialog.dart'
     show spokenCode;
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_section.dart'

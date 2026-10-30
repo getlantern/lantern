@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
-import 'package:lantern/features/helpers/approve_helper_sheet.dart';
+import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
@@ -95,7 +95,10 @@ class InviteShare extends ConsumerWidget {
               child: PrimaryButton(
                 label: 'invite_compare_codes'.i18n,
                 onPressed: () async {
-                  final decided = await showApproveHelperSheet(context, invite);
+                  final decided = await showApproveHelperDialog(
+                    context,
+                    invite,
+                  );
                   // The invite is used now; go back to the helpers list
                   // rather than staying on "used or expired".
                   if (decided && context.mounted) {

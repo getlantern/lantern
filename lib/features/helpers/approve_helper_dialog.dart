@@ -7,111 +7,78 @@ import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
-/// Shows the matching code of a claimed invite and lets the inviter approve
-/// or reject the person who claimed it. Completes with true once the engine
-/// accepted a decision.
-Future<bool> showApproveHelperSheet(
+/// Shows the matching code of a claimed invite in a modal dialog, and lets
+/// the inviter approve or reject the person who claimed it. Tapping outside
+/// does not close it. Rejecting burns the invite: its link no longer works.
+/// Completes with true once the engine accepted a decision.
+Future<bool> showApproveHelperDialog(
   BuildContext context,
   HelperInviteView invite,
 ) async {
-  final decided = await showModalBottomSheet<bool>(
+  // Read once: the notifier is keepAlive and outlives this dialog.
+  final notifier = ProviderScope.containerOf(
+    context,
+    listen: false,
+  ).read(helpersProvider.notifier);
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final textTheme = Theme.of(context).textTheme;
+  final name = invite.volunteerName.isEmpty
+      ? 'helper_unnamed'.i18n
+      : invite.volunteerName;
+  var decided = false;
+  var busy = false;
+
+  Future<void> decide(bool approve) async {
+    if (busy) return;
+    busy = true;
+    final r = await notifier.decide(invite.id, approve: approve);
+    busy = false;
+    if (r.ok) {
+      decided = true;
+      navigator.pop();
+      return;
+    }
+    if (context.mounted) context.showSnackBarError(helperErrorText(r.error!));
+    if (r.error == 'no_pending_claim') {
+      // Decided elsewhere, or an approval whose answer was lost: re-read,
+      // and close, since there is nothing left to decide here.
+      navigator.pop();
+      await notifier.refresh();
+    }
+  }
+
+  await AppDialog.show(
     context: context,
-    isScrollControlled: true,
-    builder: (_) => ApproveHelperSheet(invite: invite),
+    centered: true,
+    header: const Icon(Icons.check_circle_outline, size: 40),
+    title: 'approve_title'.i18n.fill([name]),
+    body: 'approve_body'.i18n.fill([name]),
+    content: Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Semantics(
+        label: spokenCode(invite.code),
+        excludeSemantics: true,
+        child: Text(
+          invite.code,
+          key: const Key('approve.code'),
+          textAlign: TextAlign.center,
+          style: textTheme.displayMedium,
+        ),
+      ),
+    ),
+    primaryLabel: 'approve_codes_match'.i18n,
+    dismissOnPrimary: false,
+    onPrimaryPressed: () => decide(true),
+    secondaryLabel: 'approve_reject'.i18n,
+    dismissOnSecondary: false,
+    onSecondaryPressed: () => decide(false),
   );
-  return decided ?? false;
+  return decided;
 }
 
 /// Spells a matching code digit by digit, so a screen reader does not read
 /// "2562" as a number.
 String spokenCode(String code) => code.split('').join(' ');
-
-class ApproveHelperSheet extends HookConsumerWidget {
-  const ApproveHelperSheet({super.key, required this.invite});
-
-  final HelperInviteView invite;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final busy = useState(false);
-    final textTheme = Theme.of(context).textTheme;
-    final name = invite.volunteerName.isEmpty
-        ? 'helper_unnamed'.i18n
-        : invite.volunteerName;
-
-    Future<void> decide(bool approve) async {
-      // Read once: the notifier outlives this sheet; its ref may not.
-      final notifier = ref.read(helpersProvider.notifier);
-      busy.value = true;
-      final r = await notifier.decide(invite.id, approve: approve);
-      if (!context.mounted) return;
-      busy.value = false;
-      if (r.ok) {
-        await Navigator.of(context).maybePop(true);
-        return;
-      }
-      context.showSnackBarError(helperErrorText(r.error!));
-      if (r.error == 'no_pending_claim') {
-        // Decided elsewhere, or an approval whose answer was lost: re-read.
-        await notifier.refresh();
-      }
-    }
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(defaultSize),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('invite_claimed_title'.i18n, style: textTheme.titleLarge),
-            const SizedBox(height: 12),
-            Text(
-              'approve_code_intro'.i18n.fill([name]),
-              style: textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'approve_code_label'.i18n,
-              style: textTheme.labelMedium,
-              textAlign: TextAlign.center,
-            ),
-            Semantics(
-              label: spokenCode(invite.code),
-              excludeSemantics: true,
-              child: Text(
-                invite.code,
-                key: const Key('approve.code'),
-                textAlign: TextAlign.center,
-                style: textTheme.displayMedium?.copyWith(letterSpacing: 8),
-              ),
-            ),
-            const SizedBox(height: 16),
-            KeyedSubtree(
-              key: const Key('approve.yes'),
-              child: PrimaryButton(
-                label: 'approve_button'.i18n,
-                enabled: !busy.value,
-                onPressed: () => decide(true),
-              ),
-            ),
-            const SizedBox(height: 8),
-            KeyedSubtree(
-              key: const Key('approve.no'),
-              child: SecondaryButton(
-                label: 'reject_button'.i18n,
-                enabled: !busy.value,
-                onPressed: () => decide(false),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text('reject_explainer'.i18n, style: textTheme.bodySmall),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Asks for the name the other person knows this user by, or, given another
 /// [label], some other name, such as a friend's nickname on this device.

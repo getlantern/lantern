@@ -2282,21 +2282,20 @@ msgstr "Someone opened your invite"
 msgid "invite_compare_codes"
 msgstr "Compare codes"
 
-# %s is the name the person typed.
-msgid "approve_code_intro"
-msgstr "Ask %s which code their Lantern shows. Compare it on a call or in a different app, not in the chat you sent the link in."
+# Title of the dialog in which the user approves a friend as a Personal Proxy. %s is the name the friend typed.
+msgid "approve_title"
+msgstr "%s wants to be your Personal Proxy"
 
-msgid "approve_code_label"
-msgstr "Code on this device"
+# %s is the name the friend typed.
+msgid "approve_body"
+msgstr "Ask %s for the 4-digit code Lantern shows them. Approve only if it matches."
 
-msgid "approve_button"
-msgstr "Codes match: approve"
+msgid "approve_codes_match"
+msgstr "Codes Match, Approve"
 
-msgid "reject_button"
-msgstr "Codes don't match: reject"
-
-msgid "reject_explainer"
-msgstr "If the codes are different, someone else opened your link. Reject them and send a new invite."
+# Rejecting also cancels the invite link.
+msgid "approve_reject"
+msgstr "Reject"
 
 # The VPN tab's selected location while connected through the user's personal proxies.
 msgid "personal_proxy"

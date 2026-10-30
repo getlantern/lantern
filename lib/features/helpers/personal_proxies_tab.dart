@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/features/helpers/approve_helper_sheet.dart';
+import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_section.dart'
     show HelperKeystoreResetNotice;
@@ -66,7 +66,7 @@ class PersonalProxiesTab extends HookConsumerWidget {
                     : inv.volunteerName,
               ),
               trailing: const Icon(Icons.chevron_right),
-              onPressed: () => showApproveHelperSheet(context, inv),
+              onPressed: () => showApproveHelperDialog(context, inv),
             ),
           ),
           const SizedBox(height: defaultSize),

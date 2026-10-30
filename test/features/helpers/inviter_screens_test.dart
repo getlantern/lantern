@@ -14,7 +14,7 @@ import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
-import 'package:lantern/features/helpers/approve_helper_sheet.dart';
+import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_approval_prompt.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
@@ -65,10 +65,12 @@ class _Helpers extends HelpersNotifier {
     return HelperResult.parse('{"unlocked":true}');
   }
 
+  HelperResult? decideResult;
+
   @override
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
     decisions.add((inviteId, approve));
-    return HelperResult.parse('{"unlocked":true}');
+    return decideResult ?? HelperResult.parse('{"unlocked":true}');
   }
 
   int endAll = 0;
@@ -282,23 +284,88 @@ const _claimed = HelperInviteView(
   volunteerName: 'Ali',
 );
 
+final _approveYes = find.widgetWithText(
+  PrimaryButton,
+  'approve_codes_match'.i18n,
+);
+final _approveNo = find.widgetWithText(SecondaryButton, 'approve_reject'.i18n);
+
+/// Opens the approval dialog for [_claimed]; completes with its result.
+Future<Future<bool>> _openApproval(WidgetTester tester, _Helpers fake) async {
+  final result = Completer<bool>();
+  await _pump(
+    tester,
+    fake,
+    Builder(
+      builder: (context) => TextButton(
+        onPressed: () async =>
+            result.complete(await showApproveHelperDialog(context, _claimed)),
+        child: const Text('approve'),
+      ),
+    ),
+  );
+  await tester.tap(find.text('approve'));
+  await tester.pumpAndSettle();
+  return result.future;
+}
+
 void main() {
-  testWidgets('the approve sheet shows the code and approves', (tester) async {
+  testWidgets('the approval dialog names the friend, shows the code and '
+      'approves', (tester) async {
     final fake = _Helpers(const HelpersState());
-    await _pump(tester, fake, const ApproveHelperSheet(invite: _claimed));
+    final result = await _openApproval(tester, fake);
+    final dialog = find.byType(AlertDialog);
+    expect(dialog, findsOneWidget);
+    expect(find.text('approve_title'.i18n.fill(['Ali'])), findsOneWidget);
+    expect(find.text('approve_body'.i18n.fill(['Ali'])), findsOneWidget);
     expect(find.byKey(const Key('approve.code')), findsOneWidget);
     expect(find.text('2562'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('approve.yes')));
+    final code = tester.widget<Text>(find.byKey(const Key('approve.code')));
+    expect(
+      code.style?.fontSize,
+      Theme.of(tester.element(dialog)).textTheme.displayMedium?.fontSize,
+    );
+    await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
+    expect(dialog, findsNothing);
+    expect(await result, isTrue);
   });
 
-  testWidgets('the approve sheet rejects', (tester) async {
+  testWidgets('rejecting decides with reject, which burns the invite', (
+    tester,
+  ) async {
     final fake = _Helpers(const HelpersState());
-    await _pump(tester, fake, const ApproveHelperSheet(invite: _claimed));
-    await tester.tap(find.byKey(const Key('approve.no')));
+    final result = await _openApproval(tester, fake);
+    await tester.tap(_approveNo);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', false)]);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(await result, isTrue);
+  });
+
+  testWidgets('the approval dialog does not close on a tap outside', (
+    tester,
+  ) async {
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(fake.decisions, isEmpty);
+  });
+
+  testWidgets('an approval decided elsewhere closes the dialog and re-reads', (
+    tester,
+  ) async {
+    final fake = _Helpers(const HelpersState())
+      ..decideResult = HelperResult.failure('no_pending_claim');
+    final result = await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(fake.fullRefreshes, 1);
+    expect(await result, isFalse);
   });
 
   testWidgets('one helper: status shown', (tester) async {
@@ -801,12 +868,13 @@ void main() {
   group('the approval prompt', () {
     final approveCode = find.byKey(const Key('approve.code'));
 
+    // Back, the only way to leave the dialog undecided.
     Future<void> dismissSheet(WidgetTester tester) async {
-      await tester.tapAt(const Offset(10, 10));
+      Navigator.of(tester.element(approveCode)).pop();
       await tester.pumpAndSettle();
     }
 
-    testWidgets('opens the sheet once per claim', (tester) async {
+    testWidgets('opens the dialog once per claim', (tester) async {
       final fake = _Helpers(_withInvites(const []));
       await _pumpPromptHost(tester, fake);
       expect(approveCode, findsNothing);
@@ -1045,7 +1113,7 @@ void main() {
     await _pumpPushed(tester, fake, const InviteShare(inviteId: 'i1'));
     await tester.tap(find.byKey(const Key('invite.compare')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('approve.yes')));
+    await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
     expect(find.byType(InviteShare), findsNothing);
@@ -1055,7 +1123,7 @@ void main() {
   testWidgets('the code is read out digit by digit', (tester) async {
     final handle = tester.ensureSemantics();
     final fake = _Helpers(const HelpersState());
-    await _pump(tester, fake, const ApproveHelperSheet(invite: _claimed));
+    await _openApproval(tester, fake);
     expect(find.bySemanticsLabel('2 5 6 2'), findsOneWidget);
     expect(find.bySemanticsLabel('2562'), findsNothing);
     handle.dispose();
