@@ -1628,6 +1628,10 @@ func (lc *LanternCore) HelperCall(op, argsJSON string) string {
 	defer cancel()
 	out, err := lc.helpers.Call(ctx, op, []byte(argsJSON))
 	if err != nil {
+		// Only the op, code and status: the arguments and the rest of the
+		// error can carry invite secrets or names.
+		code, status := helper.Describe(err)
+		slog.Warn("Helper operation failed", "op", op, "code", code, "status", status)
 		return helper.ErrorJSON(err)
 	}
 	return string(out)

@@ -157,6 +157,24 @@ func TestStatusErrors(t *testing.T) {
 	assert.JSONEq(t, `{"error":"internal"}`, ErrorJSON(errors.New("boom")))
 }
 
+func TestDescribeCarriesTheStatus(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	cloud.disabled = true
+	_, err := sara.Call(context.Background(), "create_invite", mustJSON(map[string]any{"name": "Sara"}))
+	code, status := Describe(err)
+	assert.Equal(t, CodeDisabled, code)
+	assert.Equal(t, 404, status)
+
+	code, status = Describe(statusError("invites", 400, "bad request"))
+	assert.Equal(t, CodeInternal, code)
+	assert.Equal(t, 400, status)
+
+	code, status = Describe(errors.New("boom"))
+	assert.Equal(t, CodeInternal, code)
+	assert.Zero(t, status)
+}
+
 func TestStateIsSealed(t *testing.T) {
 	cloud := newFakeCloud()
 	dir := t.TempDir()
