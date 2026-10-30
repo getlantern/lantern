@@ -1437,6 +1437,13 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	renamed.Tag = newTag
 	list := servers.ServerList{Servers: []*servers.Server{&renamed}}
 	if err := lc.serverStore.AddServers(lc.ctx, list); err != nil {
+		// radiance saves before updating the tunnel, so a failed add can
+		// still have stored the renamed copy; drop it before restoring.
+		if _, saved, gerr := lc.serverStore.GetServerByTag(lc.ctx, newTag); gerr == nil && saved {
+			if rerr := lc.serverStore.RemoveServers(lc.ctx, []string{newTag}); rerr != nil {
+				return fmt.Errorf("failed to add renamed server %q: %w (removing its saved copy also failed: %v)", newTag, err, rerr)
+			}
+		}
 		restore := servers.ServerList{Servers: []*servers.Server{&original}}
 		if rerr := lc.serverStore.AddServers(lc.ctx, restore); rerr != nil {
 			return fmt.Errorf("failed to add renamed server %q: %w (restoring %q also failed: %v)", newTag, err, oldTag, rerr)

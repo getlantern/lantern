@@ -116,3 +116,37 @@ func (f *failingFirstAdd) AddServers(ctx context.Context, list servers.ServerLis
 	}
 	return f.fakeServerStore.AddServers(ctx, list)
 }
+
+// persistThenFail stores the renamed copy and then fails, as radiance does
+// when the tunnel update after the save fails.
+type persistThenFail struct {
+	*fakeServerStore
+	failed bool
+}
+
+func (f *persistThenFail) AddServers(ctx context.Context, list servers.ServerList) error {
+	err := f.fakeServerStore.AddServers(ctx, list)
+	if !f.failed {
+		f.failed = true
+		return errors.New("tunnel update failed")
+	}
+	return err
+}
+
+func TestUpdatePrivateServerNameDropsAPersistedFailedAdd(t *testing.T) {
+	store := &fakeServerStore{}
+	lc := newRenameCore(t, store)
+	lc.serverStore = &persistThenFail{fakeServerStore: store}
+	if err := lc.UpdatePrivateServerName("home", "office"); err == nil {
+		t.Fatal("rename succeeded; want the add failure")
+	}
+	if _, ok := store.byTag["office"]; ok {
+		t.Error("the renamed copy the failed add saved is still there")
+	}
+	if _, ok := store.byTag["home"]; !ok {
+		t.Error("original server was not restored")
+	}
+	if len(store.byTag) != 1 {
+		t.Errorf("servers = %d, want only the original", len(store.byTag))
+	}
+}
