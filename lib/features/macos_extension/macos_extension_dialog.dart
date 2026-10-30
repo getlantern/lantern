@@ -6,6 +6,7 @@ import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
+import 'package:window_manager/window_manager.dart';
 
 @RoutePage(name: 'MacOSExtensionDialog')
 class MacOSExtensionDialog extends StatefulHookConsumerWidget {
@@ -16,11 +17,33 @@ class MacOSExtensionDialog extends StatefulHookConsumerWidget {
       _MacOSExtensionDialogState();
 }
 
-class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
+class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog>
+    with WindowListener {
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
+  // Re-enabling the extension in System Settings leaves no pending request
+  // to call us back, so re-query when the user returns to the window.
+  @override
+  void onWindowFocus() {
+    ref.read(macosExtensionProvider.notifier).isSystemExtensionInstalled();
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final systemExtensionStatus = ref.watch(macosExtensionProvider);
+    final requiresEnable =
+        systemExtensionStatus.status == SystemExtensionStatus.requiresEnable;
     appLogger.info(
       "Current System Extension Status: ${systemExtensionStatus.status}",
     );
@@ -80,38 +103,39 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'enable_network_extension_message'.i18n,
+              requiresEnable
+                  ? 'network_extension_disabled_message'.i18n
+                  : 'enable_network_extension_message'.i18n,
               style: textTheme.bodyLarge!.copyWith(
                 color: context.textSecondary,
               ),
             ),
           ),
           const SizedBox(height: 16.0),
-          RichText(
-            text: TextSpan(
-              style: textTheme.bodyLarge!.copyWith(color: context.textTertiary),
-              children: [
-                TextSpan(text: 'click'.i18n),
-                WidgetSpan(child: SizedBox(width: 4.0)),
-                TextSpan(
-                  text: 'open_system_settings'.i18n,
-                  style: AppTextStyles.bodyLargeBold.copyWith(
-                    color: context.textSecondary,
-                  ),
+          if (!requiresEnable)
+            RichText(
+              text: TextSpan(
+                style: textTheme.bodyLarge!.copyWith(
+                  color: context.textTertiary,
                 ),
-                WidgetSpan(child: SizedBox(width: 4.0)),
-                TextSpan(text: 'when_prompted'.i18n),
-              ],
+                children: [
+                  TextSpan(text: 'click'.i18n),
+                  WidgetSpan(child: SizedBox(width: 4.0)),
+                  TextSpan(
+                    text: 'open_system_settings'.i18n,
+                    style: AppTextStyles.bodyLargeBold.copyWith(
+                      color: context.textSecondary,
+                    ),
+                  ),
+                  WidgetSpan(child: SizedBox(width: 4.0)),
+                  TextSpan(text: 'when_prompted'.i18n),
+                ],
+              ),
             ),
-          ),
           SizedBox(height: 48.0),
           PrimaryButton(
             buttonKey: const Key('macos_extension.install'),
-            label:
-                systemExtensionStatus.status ==
-                    SystemExtensionStatus.requiresApproval
-                ? 'activate_extension'.i18n
-                : 'install_now'.i18n,
+            label: _buttonLabel(systemExtensionStatus.status),
             isTaller: true,
             onPressed: () => onInstall(ref, context, systemExtensionStatus),
           ),
@@ -128,9 +152,12 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
   ) async {
     appLogger.info("Current System Extension Status: $systemExtensionStatus");
     if (systemExtensionStatus.status ==
-        SystemExtensionStatus.requiresApproval) {
+            SystemExtensionStatus.requiresApproval ||
+        systemExtensionStatus.status == SystemExtensionStatus.requiresEnable) {
       ref.read(macosExtensionProvider.notifier).openSystemExtension();
-      appLogger.info("Opening System Settings for Approval");
+      appLogger.info(
+        "Opening System Settings for ${systemExtensionStatus.status.name}",
+      );
       return;
     }
 
@@ -160,6 +187,17 @@ class _MacOSExtensionDialogState extends ConsumerState<MacOSExtensionDialog> {
         appLogger.info("System Extension Installation Triggered: $result");
       },
     );
+  }
+
+  String _buttonLabel(SystemExtensionStatus status) {
+    switch (status) {
+      case SystemExtensionStatus.requiresApproval:
+        return 'activate_extension'.i18n;
+      case SystemExtensionStatus.requiresEnable:
+        return 'open_system_settings'.i18n;
+      default:
+        return 'install_now'.i18n;
+    }
   }
 
   void onLearnMore() {}
