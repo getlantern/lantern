@@ -50,12 +50,18 @@ jobs:
           ref: ${{ inputs.cloud_sha }}
           token: ${{ secrets.GH_TEAMLANTERN_TOKEN }}
           path: cloud-checks
-          sparse-checkout: scripts/windows-migration
+          sparse-checkout: |
+            scripts/windows-migration
+            scripts/windows-test
           persist-credentials: false
       - name: Check Cloud runner and reboot guards
         if: inputs.cloud_sha != ''
         shell: pwsh
-        run: ./cloud-checks/scripts/windows-migration/checks.ps1
+        run: |
+          $checks = './cloud-checks/scripts/windows-test/checks.ps1'
+          if (-not (Test-Path $checks)) { $checks = './cloud-checks/scripts/windows-migration/checks.ps1' }
+          & $checks
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Test and build the real IPC probe
         shell: pwsh
         env:

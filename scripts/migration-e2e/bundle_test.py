@@ -5,8 +5,11 @@ from pathlib import Path
 import tempfile
 import unittest
 import shlex
+from unittest.mock import patch
+import zipfile
 
 import bundle
+import prepare_bundle
 
 
 class BundleTest(unittest.TestCase):
@@ -45,6 +48,43 @@ class BundleTest(unittest.TestCase):
 
     def test_valid(self):
         self.assertEqual(self.validate()["lane"], "rebuilt-staging")
+
+    def test_preparation_only_archives_verified_manifest_assets(self):
+        self.validate()
+        manifest = self.root / "manifest.json"
+        sources = {role: str(self.root / asset["file"]) for role, asset in self.m["artifacts"].items()}
+        (self.root / "private-fixture.json").write_text('secret', encoding="utf-8")
+        output = self.root / "output" / "bundle.zip"
+        with patch.object(prepare_bundle.sys, "platform", "win32"), \
+                patch.object(bundle, "verify_binary_builds"), \
+                patch.object(prepare_bundle, "verify_signatures") as signatures:
+            result = prepare_bundle.assemble(manifest, bundle.sha256(manifest), sources, output)
+        signatures.assert_called_once()
+        with zipfile.ZipFile(output) as archive:
+            self.assertEqual(set(archive.namelist()), {"manifest.json"} |
+                             {asset["file"] for asset in self.m["artifacts"].values()})
+            self.assertEqual(archive.read("manifest.json"), manifest.read_bytes())
+        self.assertEqual(result["bundle_sha256"], bundle.sha256(output))
+
+    def test_preparation_refuses_tampered_bytes_before_signing(self):
+        self.validate()
+        manifest = self.root / "manifest.json"
+        sources = {role: str(self.root / asset["file"]) for role, asset in self.m["artifacts"].items()}
+        (self.root / "seed.exe").write_bytes(b"tampered")
+        output = self.root / "bundle.zip"
+        with patch.object(prepare_bundle.sys, "platform", "win32"), \
+                patch.object(prepare_bundle, "verify_signatures") as signatures, \
+                self.assertRaisesRegex(ValueError, "asset_hash_mismatch"):
+            prepare_bundle.assemble(manifest, bundle.sha256(manifest), sources, output)
+        signatures.assert_not_called()
+        self.assertFalse(output.exists())
+
+    def test_preparation_decompresses_released_legacy_assets(self):
+        import bz2
+        source, target = self.root / "update_windows_386.bz2", self.root / "download.exe"
+        source.write_bytes(bz2.compress(b"released signed binary"))
+        prepare_bundle.fetch(str(source), target)
+        self.assertEqual(target.read_bytes(), b"released signed binary")
 
     def test_released_lane_requires_original_seed_and_production_endpoints(self):
         self.m.update(lane="released-production", account_environment="prod",

@@ -74,6 +74,19 @@ Manifest structure (replace all example hashes, versions, commits, thumbprints a
 }
 ```
 
+To prepare the archive automatically on Windows, supply that reviewed manifest and
+a `sources.json` object mapping each artifact role to a local file or HTTPS URL.
+Released `.bz2` assets are decompressed before checking their pinned raw hashes.
+
+```sh
+python scripts/migration-e2e/prepare_bundle.py --manifest manifest.json \
+  --manifest-sha256 APPROVED_SHA256 --sources sources.json --output bundle.zip
+```
+
+The helper checks build metadata and native Authenticode signatures, then writes
+only manifest-listed files to `bundle.zip` and its hashes to `bundle.json`. The lab
+workflow uploads the archive to an immutable GCS generation before dispatch.
+
 ## Provision one disposable VM per scenario
 
 Use native x64 Windows 10 1903+ or Windows 11, with Python 3.11+, PowerShell 7.2+, Go (for inspecting build metadata), required app prerequisites, and an interactive **standard user** session. A separate administrator approves the real UAC prompt. The GitHub runner must run interactively as that original user; a Session 0 service runner or elevated administrator runner is rejected. Register only this leased VM under `lantern-migration-e2e`, and configure the protected `staging-migration-e2e` environment. Do not run this on a personal workstation.
