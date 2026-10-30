@@ -15,6 +15,7 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/helpers/approve_helper_sheet.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
+import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxies_tab.dart';
 import 'package:lantern/features/helpers/personal_proxy_banner.dart';
@@ -47,11 +48,13 @@ class _Helpers extends HelpersNotifier {
 
   /// What refresh() loads, as the engine's view would.
   HelpersState? onRefresh;
+  HelperResult? refreshResult;
   int fullRefreshes = 0;
 
   @override
   Future<HelperResult> refresh() async {
     fullRefreshes++;
+    if (refreshResult != null) return refreshResult!;
     if (onRefresh != null) state = onRefresh!;
     return HelperResult.parse('{"unlocked":true}');
   }
@@ -563,6 +566,22 @@ void main() {
       expect(fake.fullRefreshes, 1);
       expect(fake.created, isEmpty);
       expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+    });
+
+    testWidgets('a used device whose view fails to load creates no invite', (
+      tester,
+    ) async {
+      final router = _Router();
+      sl.registerSingleton<AppRouter>(router);
+      final fake = _Helpers(const HelpersState())
+        ..usedFlag = true
+        ..refreshResult = HelperResult.failure('unavailable');
+      await tapStart(tester, fake);
+      expect(fake.fullRefreshes, 1);
+      expect(find.byType(TextFormField), findsNothing, reason: 'no name asked');
+      expect(fake.created, isEmpty);
+      expect(router.pushed, isEmpty);
+      expect(find.text(helperErrorText('unavailable')), findsOneWidget);
     });
 
     testWidgets('Invite another in the Manage tab creates an invite while '

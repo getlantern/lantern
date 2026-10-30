@@ -21,8 +21,14 @@ Future<void> startPersonalProxyInvite(
   if (resumeWaiting) {
     // A device that used helper invites may not have loaded its view yet.
     if (!ref.read(helpersProvider).viewLoaded && notifier.used) {
-      await notifier.refresh();
+      final r = await notifier.refresh();
       if (!context.mounted) return;
+      // Without the view a claimed invite waiting on approval is unknown;
+      // creating another would leave that friend waiting.
+      if (!r.ok) {
+        context.showSnackBarError(helperErrorText(r.error ?? 'unavailable'));
+        return;
+      }
     }
     final waiting = ref.read(helpersProvider).view.awaitingApproval;
     if (waiting != null) {

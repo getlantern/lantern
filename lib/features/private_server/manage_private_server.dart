@@ -33,82 +33,82 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     final serversAsync = ref.watch(availableServersProvider);
+    final showProxies = ref.watch(personalProxiesTabVisibleProvider);
 
-    return serversAsync.when(
-      loading: () => BaseScreen(
-        title: 'manage_private_locations'.i18n,
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (err, st) => BaseScreen(
-        title: 'manage_private_locations'.i18n,
-        body: Center(child: Text(err.toString())),
-      ),
-      data: (servers) {
-        final allServers = servers.userServers;
-        final joinedServers = allServers
-            .where((s) => s.credentials?.isJoined == true)
-            .toList();
-        final myServers = allServers
-            .where((s) => s.credentials?.isJoined != true)
-            .toList();
-        final showProxies = ref.watch(personalProxiesTabVisibleProvider);
+    // Personal proxies come from the helpers engine, not the server list,
+    // so their tab stays usable while the list loads or fails.
+    Widget servers(Widget Function(List<Server> all) data) => serversAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, st) => Center(child: Text(err.toString())),
+      data: (s) => data(s.userServers),
+    );
 
-        return BaseScreen(
-          title: 'manage_private_locations'.i18n,
-          body: DefaultTabController(
-            length: showProxies ? 3 : 2,
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 35.h,
-                  child: TabBar(
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
-                    splashBorderRadius: BorderRadius.circular(40),
-                    labelColor: context.actionTabbarSelectedText,
-                    dividerHeight: 0,
-                    unselectedLabelColor: context.actionTabbarDisabledText,
-                    labelStyle: textTheme!.titleSmall,
-                    indicator: BoxDecoration(
-                      color: context.actionTabbarBg,
-                      borderRadius: BorderRadius.circular(40),
-                      shape: BoxShape.rectangle,
-                      border: Border.all(
-                          color: context.actionTabbarBorder, width: 1),
+    return BaseScreen(
+      title: 'manage_private_locations'.i18n,
+      body: DefaultTabController(
+        length: showProxies ? 3 : 2,
+        child: Column(
+          children: [
+            SizedBox(
+              height: 35.h,
+              child: TabBar(
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
+                splashBorderRadius: BorderRadius.circular(40),
+                labelColor: context.actionTabbarSelectedText,
+                dividerHeight: 0,
+                unselectedLabelColor: context.actionTabbarDisabledText,
+                labelStyle: textTheme!.titleSmall,
+                indicator: BoxDecoration(
+                  color: context.actionTabbarBg,
+                  borderRadius: BorderRadius.circular(40),
+                  shape: BoxShape.rectangle,
+                  border: Border.all(
+                    color: context.actionTabbarBorder,
+                    width: 1,
+                  ),
+                ),
+                tabs: [
+                  Tab(child: Text('my_servers'.i18n)),
+                  Tab(child: Text('joined_servers'.i18n)),
+                  if (showProxies)
+                    Tab(
+                      key: const Key('manage.personal_proxies_tab'),
+                      child: Text('personal_proxies_tab'.i18n),
                     ),
-                    tabs: [
-                      Tab(child: Text('my_servers'.i18n)),
-                      Tab(child: Text('joined_servers'.i18n)),
-                      if (showProxies)
-                        Tab(
-                          key: const Key('manage.personal_proxies_tab'),
-                          child: Text('personal_proxies_tab'.i18n),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                DividerSpace(padding: EdgeInsets.zero),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      buildMyServer(myServers),
-                      Padding(
-                        padding: const EdgeInsets.only(top: defaultSize),
-                        child: _buildListView(
-                          joinedServers,
-                          showShareAccessKey: false,
-                        ),
-                      ),
-                      if (showProxies) const PersonalProxiesTab(),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 8),
+            DividerSpace(padding: EdgeInsets.zero),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  servers(
+                    (all) => buildMyServer(
+                      all
+                          .where((s) => s.credentials?.isJoined != true)
+                          .toList(),
+                    ),
+                  ),
+                  servers(
+                    (all) => Padding(
+                      padding: const EdgeInsets.only(top: defaultSize),
+                      child: _buildListView(
+                        all
+                            .where((s) => s.credentials?.isJoined == true)
+                            .toList(),
+                        showShareAccessKey: false,
+                      ),
+                    ),
+                  ),
+                  if (showProxies) const PersonalProxiesTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -116,16 +116,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     return Column(
       children: <Widget>[
         const SizedBox(height: 8),
-        InfoRow(
-          text: 'access_key_expiration'.i18n,
-        ),
+        InfoRow(text: 'access_key_expiration'.i18n),
         const SizedBox(height: 8),
-        Expanded(
-          child: _buildListView(
-            myServers,
-            showShareAccessKey: true,
-          ),
-        ),
+        Expanded(child: _buildListView(myServers, showShareAccessKey: true)),
       ],
     );
   }
@@ -152,8 +145,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     IconButton(
-                      icon: Icon(Icons.delete_outline,
-                          color: context.textPrimary),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: context.textPrimary,
+                      ),
                       iconSize: 24,
                       onPressed: () => showDeleteDialog(item.tag),
                     ),
@@ -170,7 +165,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   onPressed: () => onTapShareAccessKey(item),
                 ),
                 SizedBox(height: 8),
-              }
+              },
             ],
           ),
         );
@@ -209,7 +204,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         return;
       } catch (e) {
         appLogger.warning(
-            'Cached access key invalid for tag: ${server.tag}, regenerating');
+          'Cached access key invalid for tag: ${server.tag}, regenerating',
+        );
         _accessKeyCache.remove(server.tag);
       }
     }
@@ -220,50 +216,47 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   void showShareAccessKeyDialog(PrivateServer server) {
     final inviteNameController = TextEditingController();
     AppDialog.customDialog(
-        context: context,
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            SizedBox(height: 16),
-            Text(
-              'set_server_alias'.i18n,
-              style: textTheme!.headlineMedium,
-            ),
-            SizedBox(height: defaultSize),
-            Text(
-              'this_name_pre_filled'.i18n,
-              style: textTheme!.bodyMedium,
-            ),
-            SizedBox(height: size24),
-            AppTextField(
-              label: 'server_alias'.i18n,
-              prefixIcon: AppImagePaths.server,
-              controller: inviteNameController,
-              hintText: '',
-            )
-          ],
-        ),
-        action: [
-          AppTextButton(
-            label: 'cancel'.i18n,
-            textColor: context.textDisabled,
-            onPressed: () {
-              appRouter.pop();
-            },
+      context: context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 16),
+          Text('set_server_alias'.i18n, style: textTheme!.headlineMedium),
+          SizedBox(height: defaultSize),
+          Text('this_name_pre_filled'.i18n, style: textTheme!.bodyMedium),
+          SizedBox(height: size24),
+          AppTextField(
+            label: 'server_alias'.i18n,
+            prefixIcon: AppImagePaths.server,
+            controller: inviteNameController,
+            hintText: '',
           ),
-          AppTextButton(
-            label: 'generate_access_key'.i18n,
-            onPressed: () {
-              generateAccessKey(server, inviteNameController.text.trim());
-              appRouter.pop();
-            },
-          )
-        ]);
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'cancel'.i18n,
+          textColor: context.textDisabled,
+          onPressed: () {
+            appRouter.pop();
+          },
+        ),
+        AppTextButton(
+          label: 'generate_access_key'.i18n,
+          onPressed: () {
+            generateAccessKey(server, inviteNameController.text.trim());
+            appRouter.pop();
+          },
+        ),
+      ],
+    );
   }
 
   Future<void> generateAccessKey(
-      PrivateServer server, String inviteName) async {
+    PrivateServer server,
+    String inviteName,
+  ) async {
     if (inviteName.isEmpty) {
       context.showSnackBar('server_alias_cannot_be_empty'.i18n);
       return;
@@ -272,7 +265,11 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     final result = await ref
         .read(privateServerProvider.notifier)
         .inviteToServerManagerInstance(
-            server.externalIp, server.port, server.accessToken, inviteName);
+          server.externalIp,
+          server.port,
+          server.accessToken,
+          inviteName,
+        );
 
     result.fold(
       (failure) {
@@ -286,8 +283,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       (accessKey) {
         context.hideLoadingDialog();
         _accessKeyCache[server.serverName] = accessKey;
-        appLogger
-            .info('Access key generated and cached for: ${server.serverName}');
+        appLogger.info(
+          'Access key generated and cached for: ${server.serverName}',
+        );
         final tokenData = JwtDecoder.decode(accessKey);
         sharePrivateAccessKey(server, tokenData);
       },
@@ -302,10 +300,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 16),
-          Text(
-            'rename_server'.i18n,
-            style: textTheme!.titleLarge,
-          ),
+          Text('rename_server'.i18n, style: textTheme!.titleLarge),
           SizedBox(height: 16),
           AppTextField(
             label: 'server_name'.i18n,
@@ -343,14 +338,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 16),
-          AppImage(
-            path: AppImagePaths.delete,
-            height: 40,
-          ),
-          Text(
-            'remove_server_?'.i18n,
-            style: textTheme!.titleLarge,
-          ),
+          AppImage(path: AppImagePaths.delete, height: 40),
+          Text('remove_server_?'.i18n, style: textTheme!.titleLarge),
           SizedBox(height: 16),
           Text('remove_server_message'.i18n.fill([serverName])),
           SizedBox(height: 16),
@@ -394,8 +383,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
 
   Future<void> onDelete(String serverName) async {
     context.showLoadingDialog();
-    final res =
-        await ref.read(manageServerProvider.notifier).deleteServer(serverName);
+    final res = await ref
+        .read(manageServerProvider.notifier)
+        .deleteServer(serverName);
     if (!mounted) return;
     context.hideLoadingDialog();
     res.fold(

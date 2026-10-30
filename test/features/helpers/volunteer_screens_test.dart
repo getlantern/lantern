@@ -732,5 +732,29 @@ void main() {
         'https://evil.example/help#SECRET',
       );
     });
+
+    test('trailing sentence punctuation is not part of the secret', () {
+      for (final u in [
+        'https://lantern.io/help/#SECRET.',
+        'Join me: https://lantern.io/help/#SECRET!',
+        '(https://lantern.io/help/#SECRET),',
+        '"https://lantern.io/help#SECRET"',
+      ]) {
+        expect(
+          normalizeHelperInviteInput(u),
+          'https://lantern.io/help/#SECRET',
+          reason: u,
+        );
+      }
+    });
+
+    test('a help link without a secret does not hide a later invite', () {
+      expect(
+        normalizeHelperInviteInput(
+          'See https://lantern.io/help then https://lantern.io/help/#SECRET',
+        ),
+        'https://lantern.io/help/#SECRET',
+      );
+    });
   });
 }

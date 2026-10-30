@@ -14,6 +14,11 @@ class _Servers extends AvailableServersNotifier {
   Future<AvailableServers> build() async => AvailableServers(const []);
 }
 
+class _FailingServers extends AvailableServersNotifier {
+  @override
+  Future<AvailableServers> build() async => throw Exception('offline');
+}
+
 class _Helpers extends HelpersNotifier {
   int refreshes = 0;
 
@@ -36,11 +41,14 @@ Future<void> _pump(
   WidgetTester tester, {
   required bool tab,
   _Helpers? helpers,
+  bool serversFail = false,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        availableServersProvider.overrideWith(_Servers.new),
+        availableServersProvider.overrideWith(
+          serversFail ? _FailingServers.new : _Servers.new,
+        ),
         helpersProvider.overrideWith(() => helpers ?? _Helpers()),
         personalProxiesTabVisibleProvider.overrideWithValue(tab),
       ],
@@ -123,5 +131,15 @@ void main() {
   testWidgets('two tabs otherwise', (tester) async {
     await _pump(tester, tab: false);
     expect(find.byKey(const Key('manage.personal_proxies_tab')), findsNothing);
+  });
+
+  testWidgets('personal proxies stay manageable when servers fail to load', (
+    tester,
+  ) async {
+    await _pump(tester, tab: true, serversFail: true);
+    expect(find.textContaining('offline'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('manage.personal_proxies_tab')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ali'), findsOneWidget);
   });
 }

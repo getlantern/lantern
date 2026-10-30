@@ -59,8 +59,14 @@ String helperInviteLink(Uri uri) => 'https://lantern.io/help/#${uri.fragment}';
 String normalizeHelperInviteInput(String input) {
   final trimmed = input.trim();
   for (final token in trimmed.split(RegExp(r'\s+'))) {
-    final uri = Uri.tryParse(token);
-    if (uri != null && isHelperInviteUri(uri)) return helperInviteLink(uri);
+    final uri = Uri.tryParse(token.replaceAll(_enclosingPunctuation, ''));
+    if (uri != null && uri.fragment.isNotEmpty && isHelperInviteUri(uri)) {
+      return helperInviteLink(uri);
+    }
   }
   return trimmed;
 }
+
+// Punctuation a link picks up from the sentence around it. The secret is
+// base64url, so none of these can be part of it.
+final _enclosingPunctuation = RegExp(r'''^[("'<\[]+|[.,;:!?)"'>\]]+$''');

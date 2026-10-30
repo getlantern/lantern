@@ -15,6 +15,10 @@ part 'server_location_notifier.g.dart';
 class ServerLocationNotifier extends _$ServerLocationNotifier {
   LocalStorageService get _storage => sl<LocalStorageService>();
 
+  // Bumped by every selection change, so a radiance fetch that started
+  // before one does not overwrite it.
+  int _selection = 0;
+
   @override
   ServerLocation build() {
     // Every change to the selected/resolved location is mirrored into the
@@ -111,10 +115,11 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
 
   Future<void> _fetchAutoLocation() async {
     appLogger.debug('Fetching auto server location from radiance...');
+    final selection = _selection;
     final result = await ref
         .read(lanternServiceProvider)
         .getAutoServerLocation();
-    if (!ref.mounted) return;
+    if (!ref.mounted || selection != _selection) return;
     result.fold(
       (error) {
         // Expected when VPN isn't connected yet — auto location is only
@@ -135,10 +140,11 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
 
   Future<void> _fetchSelectedLocation() async {
     appLogger.debug('Fetching selected server location from radiance...');
+    final selection = _selection;
     final result = await ref
         .read(lanternServiceProvider)
         .getSelectedServerLocation();
-    if (!ref.mounted) return;
+    if (!ref.mounted || selection != _selection) return;
     result.fold(
       (error) {
         appLogger.error(
@@ -170,6 +176,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       'updateServerLocation: type=${updated.serverType} '
       'name=${updated.serverName} city=${updated.city}',
     );
+    _selection++;
     state = updated;
     _storage.saveServerLocation(updated);
   }
@@ -194,6 +201,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   Future<void> switchToAuto() async {
     if (state.serverType == ServerLocationType.auto.name) return;
     final updated = state.copyWith(serverType: ServerLocationType.auto.name);
+    _selection++;
     state = updated;
     await _storage.saveServerLocation(updated);
   }

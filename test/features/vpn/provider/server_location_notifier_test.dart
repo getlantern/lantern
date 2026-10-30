@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
@@ -19,6 +21,16 @@ class _Service implements LanternService {
 
   @override
   Future<bool> isTagAvailable(String tag) async => tagAvailable;
+
+  final auto = Completer<Either<Failure, Server>>();
+  final selected = Completer<Either<Failure, ServerLocation>>();
+
+  @override
+  Future<Either<Failure, Server>> getAutoServerLocation() => auto.future;
+
+  @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() =>
+      selected.future;
 
   @override
   Future<void> updateWidgetLocation({
@@ -86,13 +98,13 @@ void main() {
   late _Helpers helpers;
   late _Service service;
 
-  ProviderContainer container() {
+  ProviderContainer container({VPNStatus vpn = VPNStatus.disconnected}) {
     helpers = _Helpers();
     final c = ProviderContainer(
       overrides: [
         lanternServiceProvider.overrideWithValue(service),
         helpersProvider.overrideWith(() => helpers),
-        vpnProvider.overrideWithValue(VPNStatus.disconnected),
+        vpnProvider.overrideWithValue(vpn),
         availableServersProvider.overrideWith(_Servers.new),
       ],
     );
@@ -345,5 +357,63 @@ void main() {
       c.read(serverLocationProvider).serverType,
       ServerLocationType.personalProxy.name,
     );
+  });
+
+  final frankfurt = ServerLocation(
+    serverType: ServerLocationType.lanternLocation.name,
+    serverName: 'fra',
+    displayName: 'Germany',
+    protocol: '',
+    city: 'Frankfurt',
+  );
+
+  test('a selected-location fetch finishing after the switch to auto does '
+      'not restore the personal proxy', () async {
+    storage.location = ServerLocation.personalProxy();
+    final c = container(vpn: VPNStatus.connected);
+    c.read(serverLocationProvider);
+    await c.read(serverLocationProvider.notifier).switchToAuto();
+    service.selected.complete(Right(ServerLocation.personalProxy()));
+    await pumpEventQueue();
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.auto.name,
+    );
+    expect(storage.location!.serverType, ServerLocationType.auto.name);
+  });
+
+  test('an auto fetch finishing after a newer selection does not replace '
+      'it', () async {
+    storage.location = ServerLocation.personalProxy();
+    final c = container(vpn: VPNStatus.connected);
+    c.read(serverLocationProvider);
+    service.selected.complete(Right(ServerLocation.personalProxy()));
+    await pumpEventQueue();
+    helpers.set(_noHelpers);
+    await pumpEventQueue();
+    expect(
+      c.read(serverLocationProvider).serverType,
+      ServerLocationType.auto.name,
+    );
+    c.read(serverLocationProvider.notifier).updateServerLocation(frankfurt);
+    service.auto.complete(
+      Right(
+        Server(
+          tag: 'fastest',
+          type: 'lantern',
+          isLantern: true,
+          location: GeoLocation(
+            country: 'United States',
+            countryCode: 'US',
+            city: 'New York',
+            latitude: 0,
+            longitude: 0,
+          ),
+        ),
+      ),
+    );
+    await pumpEventQueue();
+    expect(c.read(serverLocationProvider).serverName, 'fra');
+    expect(storage.location!.serverName, 'fra');
   });
 }
