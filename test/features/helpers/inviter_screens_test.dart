@@ -69,10 +69,13 @@ class _Helpers extends HelpersNotifier {
   }
 
   HelperResult? decideResult;
+  // When set, decide waits for it.
+  Completer<void>? decideGate;
 
   @override
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
     decisions.add((inviteId, approve));
+    await decideGate?.future;
     return decideResult ?? HelperResult.parse('{"unlocked":true}');
   }
 
@@ -373,6 +376,22 @@ void main() {
     expect(await result, isFalse);
   });
 
+  testWidgets('Back during a decision leaves the screen under the dialog', (
+    tester,
+  ) async {
+    final fake = _Helpers(const HelpersState())..decideGate = Completer();
+    final result = await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    fake.decideGate!.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('approve'), findsOneWidget);
+    expect(await result, isTrue);
+  });
+
   testWidgets('one helper: status shown', (tester) async {
     final fake = _Helpers(
       const HelpersState(
@@ -606,6 +625,23 @@ void main() {
     await tester.tap(find.byKey(const Key('invite.link')));
     await tester.pump();
     expect(copied, ['https://lantern.io/help/#AAAA']);
+  });
+
+  testWidgets('the invite link has no selection menu to copy it around '
+      'copySensitiveText', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(unlocked: true, invites: [_pendingI1]),
+      ),
+    );
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('invite.link')),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(field.enableInteractiveSelection, isFalse);
   });
 
   test('the share text names this invite\'s inviter, else the last name', () {

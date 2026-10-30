@@ -27,6 +27,10 @@ Future<bool> showApproveHelperDialog(
       : invite.volunteerName;
   var decided = false;
   var busy = false;
+  // Back can close the dialog while a decision is in flight; popping then
+  // would close whatever is under it.
+  var open = true;
+  Future<void>? inflight;
 
   Future<void> decide(bool approve) async {
     if (busy) return;
@@ -35,14 +39,14 @@ Future<bool> showApproveHelperDialog(
     busy = false;
     if (r.ok) {
       decided = true;
-      navigator.pop();
+      if (open) navigator.pop();
       return;
     }
     if (context.mounted) context.showSnackBarError(helperErrorText(r.error!));
     if (r.error == 'no_pending_claim') {
       // Decided elsewhere, or an approval whose answer was lost: re-read,
       // and close, since there is nothing left to decide here.
-      navigator.pop();
+      if (open) navigator.pop();
       await notifier.refresh();
     }
   }
@@ -68,11 +72,18 @@ Future<bool> showApproveHelperDialog(
     ),
     primaryLabel: 'approve_codes_match'.i18n,
     dismissOnPrimary: false,
-    onPrimaryPressed: () => decide(true),
+    onPrimaryPressed: () {
+      if (!busy) inflight = decide(true);
+    },
     secondaryLabel: 'approve_reject'.i18n,
     dismissOnSecondary: false,
-    onSecondaryPressed: () => decide(false),
+    onSecondaryPressed: () {
+      if (!busy) inflight = decide(false);
+    },
   );
+  open = false;
+  // Closed by Back mid-decision: answer with how the decision went.
+  await inflight;
   return decided;
 }
 

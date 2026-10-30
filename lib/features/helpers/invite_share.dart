@@ -144,7 +144,8 @@ class InviteShare extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Read-only: a tap copies it, as does the copy icon.
+                // Read-only: a tap copies it, as does the copy icon. No
+                // selection menu, whose Copy would skip copySensitiveText.
                 AppTextField(
                   fieldKey: const Key('invite.link'),
                   initialValue: invite.link,
@@ -154,6 +155,7 @@ class InviteShare extends ConsumerWidget {
                   enableSuggestions: false,
                   enableIMEPersonalizedLearning: false,
                   autocorrect: false,
+                  enableInteractiveSelection: false,
                   onTap: copy,
                   suffixIcon: IconButton(
                     key: const Key('invite.copy'),

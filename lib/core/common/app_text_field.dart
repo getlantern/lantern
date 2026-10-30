@@ -26,6 +26,7 @@ class AppTextField extends StatelessWidget {
   final bool enableSuggestions;
   final bool enableIMEPersonalizedLearning;
   final bool obscureText;
+  final bool enableInteractiveSelection;
   final List<TextInputFormatter> inputFormatters;
   final VoidCallback? onTap;
   final int? maxLength;
@@ -52,6 +53,7 @@ class AppTextField extends StatelessWidget {
     this.enableSuggestions = true,
     this.enableIMEPersonalizedLearning = true,
     this.obscureText = false,
+    this.enableInteractiveSelection = true,
     this.inputFormatters = const [],
     this.keyboardType,
     this.textInputAction,
@@ -90,6 +92,7 @@ class AppTextField extends StatelessWidget {
       initialValue: initialValue,
       inputFormatters: inputFormatters,
       obscureText: obscureText,
+      enableInteractiveSelection: enableInteractiveSelection,
       onChanged: onChanged,
       onFieldSubmitted: onSubmitted,
       onEditingComplete: onEditingComplete,
