@@ -1372,7 +1372,7 @@ func (lc *LanternCore) CancelDeployment() error {
 }
 
 func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
-	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.client, events)
+	return privateserver.AddServerManually(ip, port, accessToken, tag, false, lc.client, events)
 }
 
 func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, inviteName string) (string, error) {
@@ -1431,12 +1431,15 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 }
 
 func (lc *LanternCore) AddServersByURL(urls string, skipCertVerification bool) ([]byte, error) {
-	urlList := strings.Split(urls, ",")
-	for i, u := range urlList {
-		urlList[i] = strings.TrimSpace(u)
+	urls = strings.TrimSpace(urls)
+	// Invite links join a private server; anything else goes to radiance, which splits URL lists itself.
+	if inv, ok := privateserver.ParseInviteURL(urls); ok {
+		if err := privateserver.AddServerManually(inv.IP, inv.Port, inv.Token, inv.Name, true, lc.client, nil); err != nil {
+			return nil, err
+		}
+		return json.Marshal([]string{inv.Name})
 	}
-
-	tags, err := lc.client.AddServersByURL(lc.ctx, urlList, skipCertVerification)
+	tags, err := lc.client.AddServersByURL(lc.ctx, []string{urls}, skipCertVerification)
 	if err != nil {
 		return nil, err
 	}
