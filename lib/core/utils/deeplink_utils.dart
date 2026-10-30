@@ -1,3 +1,5 @@
+import 'package:lantern/core/common/app_build_info.dart';
+
 /// OAuth callback: `token` on success, `result=false` with device[...] or `error`.
 bool isOAuthCallbackResult(Uri uri) =>
     uri.queryParameters.containsKey('token') ||
@@ -36,3 +38,35 @@ class DeepLinkCallbackManager {
     _handler = null; // Reset after use
   }
 }
+
+/// A helper invite link: `https://lantern.io/help#…`, `/help/#…` (also on
+/// www.lantern.io) or `<APP_AUTH_SCHEME>://help#…`. Never in a build without
+/// helper invites (stealth). The secret is the fragment: never log it.
+bool isHelperInviteUri(Uri uri) {
+  if (!AppBuildInfo.enableHelperInvites) return false;
+  if (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'help') return true;
+  return uri.scheme == 'https' &&
+      (uri.host == 'lantern.io' || uri.host == 'www.lantern.io') &&
+      (uri.path == '/help' || uri.path == '/help/');
+}
+
+/// The canonical link for a helper invite URI, for the engine to parse.
+String helperInviteLink(Uri uri) => 'https://lantern.io/help/#${uri.fragment}';
+
+/// A pasted invite link in the canonical form the engine parses, accepting
+/// every form a deep link may take, alone or inside the pasted share message.
+/// Anything else is passed on trimmed, for the engine to refuse as bad_link.
+String normalizeHelperInviteInput(String input) {
+  final trimmed = input.trim();
+  for (final token in trimmed.split(RegExp(r'\s+'))) {
+    final uri = Uri.tryParse(token.replaceAll(_enclosingPunctuation, ''));
+    if (uri != null && uri.fragment.isNotEmpty && isHelperInviteUri(uri)) {
+      return helperInviteLink(uri);
+    }
+  }
+  return trimmed;
+}
+
+// Punctuation a link picks up from the sentence around it. The secret is
+// base64url, so none of these can be part of it.
+final _enclosingPunctuation = RegExp(r'''^[("'<\[]+|[.,;:!?)"'>\]]+$''');

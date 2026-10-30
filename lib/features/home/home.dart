@@ -8,7 +8,9 @@ import 'package:lantern/core/utils/pro_utils.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/pro_renewal_popup.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
@@ -236,6 +238,34 @@ class Home extends HookConsumerWidget {
       // the microtask running, the deferred ref.read would be on a
       // disposed scope.
       ref.read(shareProvider.notifier).autoStart(ref);
+    });
+
+    // A device that has used helper invites refreshes them at launch, so a
+    // volunteer approved while the app was closed starts helping now. Not
+    // behind the helper_invites flag: volunteers abroad are not flagged.
+    useEffect(() {
+      if (!AppBuildInfo.enableHelperInvites) return null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) ref.read(helpersProvider.notifier).refreshIfUsed();
+      });
+      return null;
+    }, const []);
+
+    // A newly approved pairing this device helps: start sharing, picking the
+    // mode as the toggle does. Not gated on the Unbounded tab being visible:
+    // a paired volunteer's widget is turned on server-side (Features[unbounded]).
+    // startForHelper holds the start back while this device's country is
+    // unknown or censored; a later country-code event retries it.
+    ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
+      prev,
+      next,
+    ) {
+      if (next <= (prev ?? 0)) return;
+      ref.read(shareProvider.notifier).startForHelper(ref);
+    });
+    ref.listen<String>(countryCodeProvider, (prev, next) {
+      if (prev == next) return;
+      ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
     });
 
     return Scaffold(

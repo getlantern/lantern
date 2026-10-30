@@ -7,6 +7,8 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/private_server.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/helpers/personal_proxies_tab.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/private_server/provider/manage_server_notifier.dart';
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -31,75 +33,80 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     final serversAsync = ref.watch(availableServersProvider);
+    final showProxies = ref.watch(personalProxiesTabVisibleProvider);
 
-    return serversAsync.when(
-      loading: () => BaseScreen(
-        title: 'manage_private_servers'.i18n,
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (err, st) => BaseScreen(
-        title: 'manage_private_servers'.i18n,
-        body: Center(child: Text(err.toString())),
-      ),
-      data: (servers) {
-        final allServers = servers.userServers;
-        final joinedServers = allServers
-            .where((s) => s.credentials?.isJoined == true)
-            .toList();
-        final myServers = allServers
-            .where((s) => s.credentials?.isJoined != true)
-            .toList();
+    // Personal proxies come from the helpers engine, not the server list,
+    // so their tab stays usable while the list loads or fails.
+    Widget servers(Widget Function(List<Server> all) data) => serversAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, st) => Center(child: Text(err.toString())),
+      data: (s) => data(s.userServers),
+    );
 
-        return BaseScreen(
-          title: 'manage_private_servers'.i18n,
-          body: DefaultTabController(
-            length: 2,
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 35.h,
-                  child: TabBar(
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
-                    splashBorderRadius: BorderRadius.circular(40),
-                    labelColor: context.actionTabbarSelectedText,
-                    dividerHeight: 0,
-                    unselectedLabelColor: context.actionTabbarDisabledText,
-                    labelStyle: textTheme!.titleSmall,
-                    indicator: BoxDecoration(
-                      color: context.actionTabbarBg,
-                      borderRadius: BorderRadius.circular(40),
-                      shape: BoxShape.rectangle,
-                      border: Border.all(
-                          color: context.actionTabbarBorder, width: 1),
+    return BaseScreen(
+      title: 'manage_private_locations'.i18n,
+      body: DefaultTabController(
+        length: showProxies ? 3 : 2,
+        child: Column(
+          children: [
+            SizedBox(
+              height: 35.h,
+              child: TabBar(
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
+                splashBorderRadius: BorderRadius.circular(40),
+                labelColor: context.actionTabbarSelectedText,
+                dividerHeight: 0,
+                unselectedLabelColor: context.actionTabbarDisabledText,
+                labelStyle: textTheme!.titleSmall,
+                indicator: BoxDecoration(
+                  color: context.actionTabbarBg,
+                  borderRadius: BorderRadius.circular(40),
+                  shape: BoxShape.rectangle,
+                  border: Border.all(
+                      color: context.actionTabbarBorder, width: 1),
+                ),
+                tabs: [
+                  Tab(child: Text('my_servers'.i18n)),
+                  Tab(child: Text('joined_servers'.i18n)),
+                  if (showProxies)
+                    Tab(
+                      key: const Key('manage.personal_proxies_tab'),
+                      child: Text('personal_proxies_tab'.i18n),
                     ),
-                    tabs: [
-                      Tab(child: Text('my_servers'.i18n)),
-                      Tab(child: Text('joined_servers'.i18n)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                DividerSpace(padding: EdgeInsets.zero),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      buildMyServer(myServers),
-                      Padding(
-                        padding: const EdgeInsets.only(top: defaultSize),
-                        child: _buildListView(
-                          joinedServers,
-                          showShareAccessKey: false,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 8),
+            DividerSpace(padding: EdgeInsets.zero),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  servers(
+                    (all) => buildMyServer(
+                      all
+                          .where((s) => s.credentials?.isJoined != true)
+                          .toList(),
+                    ),
+                  ),
+                  servers(
+                    (all) => Padding(
+                      padding: const EdgeInsets.only(top: defaultSize),
+                      child: _buildListView(
+                        all
+                            .where((s) => s.credentials?.isJoined == true)
+                            .toList(),
+                        showShareAccessKey: false,
+                      ),
+                    ),
+                  ),
+                  if (showProxies) const PersonalProxiesTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

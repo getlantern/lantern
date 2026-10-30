@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
 
 class ServerLocation {
   final String serverName;
@@ -38,6 +39,39 @@ class ServerLocation {
     return '$c - $t';
   }
 
+  /// The Smart Location for the server auto-selection picked. A helper
+  /// outbound is a friend's device, so where it is is never shown: it gets the
+  /// generic label used when no location is known.
+  factory ServerLocation.autoSelected(Server server) {
+    if (isHelperTag(server.tag)) {
+      return ServerLocation(
+        serverType: ServerLocationType.auto.name,
+        serverName: '',
+        displayName: '',
+        autoLocation: AutoLocation(
+          country: '',
+          countryCode: '',
+          displayName: 'fastest_server'.i18n,
+          tag: server.tag,
+        ),
+      );
+    }
+    final country = server.location.country;
+    final city = server.location.city;
+    return ServerLocation(
+      serverType: ServerLocationType.auto.name,
+      serverName: '',
+      displayName: '',
+      city: city,
+      autoLocation: AutoLocation(
+        countryCode: server.location.countryCode,
+        country: country,
+        displayName: '$country - $city',
+        tag: server.tag,
+      ),
+    );
+  }
+
   /// Build from a radiance [Server] object.
   factory ServerLocation.fromServer({
     required Server server,
@@ -53,6 +87,24 @@ class ServerLocation {
       displayName: '${server.location.country} - ${server.location.city}',
       protocol: server.type,
       autoLocation: autoLocation,
+    );
+  }
+
+  /// The user's personal proxies, selected as one location. Where the friends
+  /// are is never shown.
+  factory ServerLocation.personalProxy() => ServerLocation(
+    serverName: personalProxiesTag,
+    serverType: ServerLocationType.personalProxy.name,
+    displayName: 'personal_proxy'.i18n,
+  );
+
+  /// The location of the server radiance reports as selected.
+  factory ServerLocation.selected(Server server) {
+    if (server.tag == personalProxiesTag) return ServerLocation.personalProxy();
+    return ServerLocation.fromServer(server: server).copyWith(
+      serverType: server.isLantern
+          ? ServerLocationType.lanternLocation.name
+          : ServerLocationType.privateServer.name,
     );
   }
 
@@ -75,17 +127,36 @@ class ServerLocation {
 
   // ---------- JSON ----------
   Map<String, dynamic> toJson() => {
-        'serverName': serverName,
-        'serverType': serverType,
-        'countryCode': countryCode,
-        'country': country,
-        'city': city,
-        'displayName': displayName,
-        'protocol': protocol,
-        'autoLocation': autoLocation?.toJson(),
-      };
+    'serverName': serverName,
+    'serverType': serverType,
+    'countryCode': countryCode,
+    'country': country,
+    'city': city,
+    'displayName': displayName,
+    'protocol': protocol,
+    'autoLocation': autoLocation?.toJson(),
+  };
+
+  /// [toJson] for log lines. A personal proxy's label would reveal it in any
+  /// language, so it is left out.
+  Map<String, dynamic> toLogJson() {
+    final json = toJson();
+    if (serverType == ServerLocationType.personalProxy.name) {
+      json.remove('displayName');
+    }
+    return json;
+  }
 
   factory ServerLocation.fromJson(Map<String, dynamic> json) {
+    final autoLocation = json['autoLocation'] is Map<String, dynamic>
+        ? AutoLocation.fromJson(json['autoLocation'] as Map<String, dynamic>)
+        : null;
+    // Rebuilt rather than read, so the label follows the current language.
+    if (json['serverType'] == ServerLocationType.personalProxy.name) {
+      return ServerLocation.personalProxy().copyWith(
+        autoLocation: autoLocation,
+      );
+    }
     return ServerLocation(
       serverName: (json['serverName'] ?? '') as String,
       serverType: (json['serverType'] ?? '') as String,
@@ -94,9 +165,7 @@ class ServerLocation {
       city: (json['city'] ?? '') as String,
       displayName: (json['displayName'] as String?),
       protocol: (json['protocol'] ?? '') as String,
-      autoLocation: json['autoLocation'] is Map<String, dynamic>
-          ? AutoLocation.fromJson(json['autoLocation'] as Map<String, dynamic>)
-          : null,
+      autoLocation: autoLocation,
     );
   }
 
@@ -143,15 +212,16 @@ class AutoLocation {
     this.tag,
   });
 
-  String get protocol =>
-      tag != null && tag!.isNotEmpty ? tag!.split('-').first : '';
+  String get protocol => tag != null && tag!.isNotEmpty && !isHelperTag(tag!)
+      ? tag!.split('-').first
+      : '';
 
   Map<String, dynamic> toJson() => {
-        'country': country,
-        'countryCode': countryCode,
-        'displayName': displayName,
-        'tag': tag,
-      };
+    'country': country,
+    'countryCode': countryCode,
+    'displayName': displayName,
+    'tag': tag,
+  };
 
   factory AutoLocation.fromJson(Map<String, dynamic> json) {
     return AutoLocation(

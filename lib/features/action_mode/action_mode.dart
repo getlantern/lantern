@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -5,7 +6,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
@@ -13,6 +16,8 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
 import 'package:lantern/features/action_mode/action_mode_welcome_dialog.dart';
+import 'package:lantern/features/helpers/helping_section.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 /// Unbounded tab body, hosted by the Home tab shell.
 class ActionModeTab extends HookConsumerWidget {
@@ -22,6 +27,32 @@ class ActionModeTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final visible = ref.watch(actionModeTabVisibleProvider);
+    // A volunteer is someone abroad: the row stays hidden where sharing may
+    // not start on its own (unknown or censored country), and in stealth. A
+    // volunteer waiting on a claim gets back to its code from here wherever
+    // it is, even before the country is known.
+    final waiting = ref.watch(
+      helpersProvider.select(
+        (s) => s.view
+            .waitingClaims(DateTime.now().millisecondsSinceEpoch ~/ 1000)
+            .isNotEmpty,
+      ),
+    );
+    final inviteRow =
+        AppBuildInfo.enableHelperInvites &&
+        (waiting || helperAutoStartAllowed(ref.watch(countryCodeProvider)));
+
+    useEffect(() {
+      // refreshIfUsed, never refresh: showing the tab must not touch the
+      // keystore of someone who has not used helper invites.
+      if (visible && AppBuildInfo.enableHelperInvites) {
+        final helpers = ref.read(helpersProvider.notifier);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          unawaited(helpers.refreshIfUsed());
+        });
+      }
+      return null;
+    }, [visible]);
 
     useEffect(() {
       if (visible && !ref.read(appSettingProvider).unboundedWelcomeSeen) {
@@ -65,6 +96,25 @@ class ActionModeTab extends HookConsumerWidget {
                           ref.read(shareProvider.notifier).toggle(context, ref),
                       onInfo: () => showActionModeWelcomeDialog(context, ref),
                     ),
+                    // Needs no flag: a volunteer abroad is never flagged, so
+                    // that nobody in their country sees the inviter UI.
+                    if (AppBuildInfo.enableHelperInvites)
+                      const HelpingSection(),
+                    if (inviteRow) ...[
+                      const SizedBox(height: defaultSize),
+                      AppCard(
+                        padding: EdgeInsets.zero,
+                        child: AppTile(
+                          tileKey: const Key('action_mode.invite_link'),
+                          icon: AppImagePaths.handshake,
+                          label: 'have_invite_link'.i18n,
+                          trailing: const AppImage(
+                            path: AppImagePaths.arrowForward,
+                          ),
+                          onPressed: () => appRouter.push(HelpFriend()),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
