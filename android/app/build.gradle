@@ -416,7 +416,9 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++14 -fexceptions -frtti"
-                arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=c++_shared'
+                // CMake packages our hardened runtime explicitly. Selecting
+                // c++_shared here makes AGP also inject the NDK's stock prebuilt.
+                arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=none'
             }
         }
         buildConfigField "String", "ANDROID_IDENTITY_LABEL", buildConfigString(androidIdentity.identityLabel)

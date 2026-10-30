@@ -182,6 +182,15 @@ jobs:
           if-no-files-found: error
           retention-days: 2
 
+      - name: Upload native hardening evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-native-hardening
+          path: build/reports/android-native-hardening/*.json
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Upload Android AAB
         uses: actions/upload-artifact@v4
         with:

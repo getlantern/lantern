@@ -10,8 +10,11 @@ on:
       - "scripts/ci/choco-retry.sh"
       - "scripts/ci/validate_composite_actions.rb"
       - "scripts/ci/verify_android_abis*"
+      - "scripts/ci/verify_android_hardening*"
       - "scripts/ci/verify_android_version*"
       - "scripts/ci/android_version_test.py"
+      - "scripts/android/build-hardened-libcxx*"
+      - "scripts/android/hardened-libcxx-sources.json"
       - "android/abi-targets.properties"
       - "Makefile"
 
@@ -34,6 +37,8 @@ jobs:
         run: ruby scripts/ci/validate_composite_actions.rb
       - name: Test Android ABI artifact validation
         run: python3 -m unittest discover -s scripts/ci -p 'verify_android_abis_test.py' -v
+      - name: Test Android native hardening validation
+        run: python3 -m unittest discover -s scripts/ci -p 'verify_android_hardening_test.py' -v
       - name: Test Android version stamping and artifact validation
         run: python3 -m unittest discover -s scripts/ci -p '*android_version_test.py' -v
       - name: Check setup script syntax
@@ -42,3 +47,4 @@ jobs:
           bash -n scripts/ci/choco-retry.sh
           bash -n scripts/ci/setup-windows-toolchain.sh
           bash -n scripts/ci/verify_android_version.sh
+          python3 -m py_compile scripts/android/build-hardened-libcxx.py

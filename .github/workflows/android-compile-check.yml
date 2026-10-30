@@ -24,6 +24,10 @@ on:
       - "lib/**"
       - "integration_test/**"
       - "scripts/ci/verify_android_abis*"
+      - "scripts/ci/verify_android_hardening*"
+      - "scripts/android/build-hardened-libcxx*"
+      - "scripts/android/hardened-libcxx-sources.json"
+      - "android/app/cpp/**"
       - "scripts/android/test-runtime-seccomp.py"
       - "scripts/android/runtime-seccomp/**"
       - "lantern-core/vpn_tunnel/**"
@@ -93,6 +97,8 @@ jobs:
           touch bin/android/.abis
           touch bin/android/liblantern.aar android/app/libs/liblantern.aar
           python3 scripts/ci/verify_android_abis.py --expected-abis "$(sed -n 's/^android.abis=//p' android/abi-targets.properties)" \
+            --aar bin/android/liblantern.aar --aar android/app/libs/liblantern.aar
+          python3 scripts/ci/verify_android_hardening.py \
             --aar bin/android/liblantern.aar --aar android/app/libs/liblantern.aar
 
       - name: Install dependencies (gomobile)

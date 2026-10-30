@@ -1,0 +1,79 @@
+{
+  "ndk_version": "28.2.13676358",
+  "llvm_revision": "3b5e7c83a6e226d5bd7ed2e9b67449b64812074c",
+  "android_revision": "e727bfb014bd436f581a66a450c939a6983a1fc3",
+  "archives": [
+    {
+      "path": "cmake",
+      "sha256": "51c97f7ec13d601edc8cd021485d798de0f806d59f193d31baaad009d55dc94b",
+      "size": 9967
+    },
+    {
+      "path": "llvm/cmake",
+      "sha256": "cd4f0dd0f36b5c076de773b7469302b54765097d013ef5ba92e98376a7addc03",
+      "size": 175996
+    },
+    {
+      "path": "libcxx",
+      "sha256": "cac9f8a61658412a83fa871e338001ac1f7beecc42d096399125224d2e3f021c",
+      "size": 7252571
+    },
+    {
+      "path": "libcxxabi",
+      "sha256": "988800b47ff87004f090527a34eb6403bc17278f8d09a28091e2f8ae9628409c",
+      "size": 802574
+    },
+    {
+      "path": "libunwind",
+      "sha256": "9bff8792ae33a94be1c496f5701722c2d974a87f5273b483ea99586b5e55857f",
+      "size": 164759
+    },
+    {
+      "path": "runtimes",
+      "sha256": "175f528103deaf0d6dca31a5c2f3f60c29eacfae4bb640bdd2b67943be47255c",
+      "size": 7582
+    }
+  ],
+  "patches": [
+    {
+      "path": "cherry/0847c903c8a04a2bdf53d5f1b93be5705d998801.patch",
+      "sha256": "c4e38e928ccc056e8cf13b5231e8a49fa58a60b487622cb0ca8838102299dc49"
+    },
+    {
+      "path": "cherry/f886dfed3ae6cf70827cedc8d8aefde6250a239b.patch",
+      "sha256": "1e7a30444f33594f27ec14faf8d51b21a702fb1f452f16dc886779ed62e7a7f9"
+    },
+    {
+      "path": "cherry/e9adcc488f96a9f2b8c4344f5e3c7ca6639b9562.patch",
+      "sha256": "4ff1cd2a122ecafc3d8920386bc3387b22c9b01e541931f9096b0f3d1047849d"
+    },
+    {
+      "path": "Ensure-that-we-use-our-toolchain-s-lipo-and-not-the-.patch",
+      "sha256": "be814908517462677660c8aff7485e5867c1cd1e6e91bc6aeaa57a7c22f7497b"
+    },
+    {
+      "path": "move-cxa-demangle-into-libcxxdemangle.patch",
+      "sha256": "6a8879953b2133491d4bc6be97332d4d031b837e0175227969f4ef7f7d6ef8b9"
+    },
+    {
+      "path": "avoid-triggering-fdsan-in-filebuf-test.patch",
+      "sha256": "4e1524cacdb74e6998b0ca127cbdd93bad8ef7e10494d78cfe1cba38bf23116a"
+    },
+    {
+      "path": "disable-symlink-resolve-test-on-android.patch",
+      "sha256": "43da3d11f2b648967ddc12a72a88bee2506be3c81629245faacccbb138b61b53"
+    },
+    {
+      "path": "avoid-fifo-socket-hardlink-in-libcxx-tests.patch",
+      "sha256": "a2ef134dd468076fe3a18a97ca42dce8a17919e66491182b0f470c1bf5299769"
+    },
+    {
+      "path": "hide-locale-lit-features-for-bionic-v2.patch",
+      "sha256": "8a2631e1b4eefd87f5f580f65bb901e509fbafef7f84cd723bfea14ecc0df29e"
+    },
+    {
+      "path": "Revert-Fix-diagnostic-for-stdatomic.h-before-C++23.patch",
+      "sha256": "66ee94328064e17ed534c1ace72d5a35ae09a4eac3fa514e4b236d6997af4ab9"
+    }
+  ]
+}

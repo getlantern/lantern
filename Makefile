@@ -189,6 +189,8 @@ override ANDROID_APK_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
 override ANDROID_AAB_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
 ANDROID_ABI_STAMP := $(BIN_DIR)/android/.abis
 ANDROID_ABI_CHECK = $(PYTHON) scripts/ci/verify_android_abis.py --expected-abis $(ANDROID_ABIS)
+ANDROID_HARDENING_CHECK = $(PYTHON) scripts/ci/verify_android_hardening.py --expected-abis $(ANDROID_ABIS)
+ANDROID_HARDENING_REPORTS := $(BUILD_DIR)/reports/android-native-hardening
 ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
 # Sideload APKs are per-ABI so arm64 users don't download 32-bit libraries;
 # the autoupdate server maps "-armv7" to arch=arm.
@@ -219,7 +221,12 @@ SDKMANAGER                   := $(or $(SDKMANAGER_IN_SDK),$(ANDROID_SDK_ROOT)/cm
 ANDROID_DEBUG_FLUTTER_FLAGS  ?= --verbose
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
-ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
+ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,relro,-z,now,-z,noexecstack,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
+# gomobile invokes Clang directly, bypassing the NDK CMake hardening defaults.
+# Apply these to JNI and dependency C/C++ code in both Android build variants.
+# Go's runtime/cgo retains its own upstream -fno-stack-protector override.
+ANDROID_CGO_CFLAGS = $(if $(strip $(CGO_CFLAGS)),$(CGO_CFLAGS),-O2 -g) -fstack-protector-strong -D_FORTIFY_SOURCE=2
+ANDROID_CGO_CXXFLAGS = $(if $(strip $(CGO_CXXFLAGS)),$(CGO_CXXFLAGS),-O2 -g) -fstack-protector-strong -D_FORTIFY_SOURCE=2
 ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE)),1,0)
 ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
@@ -965,7 +972,11 @@ android-env: check-android-sdk
 	@echo "NDK_HOME=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
 
 .PHONY: install-android-deps
-install-android-deps: install-gomobile
+install-android-deps: install-gomobile android-hardened-libcxx
+
+.PHONY: android-hardened-libcxx
+android-hardened-libcxx: check-android-sdk
+	$(PYTHON) scripts/android/build-hardened-libcxx.py --ndk "$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)" --abis "$(ANDROID_ABIS)"
 
 .PHONY: android-identity-profile
 android-identity-profile: $(MAYBE_STEALTH_PROFILE)
@@ -1000,7 +1011,7 @@ $(ANDROID_ABI_STAMP): FORCE
 android-abi-config:
 	@echo "abis=$(ANDROID_ABIS) flutter=$(ANDROID_TARGET_PLATFORMS) gomobile=$(GOMOBILE_ANDROID_TARGET)"
 
-$(ANDROID_LIB_BUILD): $(GO_SOURCES) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
+$(ANDROID_LIB_BUILD): $(GO_SOURCES) Makefile android/abi-targets.properties scripts/ci/verify_android_hardening.py $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
 	$(MAKE) build-android
 
 build-android: check-android-sdk check-gomobile $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
@@ -1008,6 +1019,7 @@ build-android: check-android-sdk check-gomobile $(ANDROID_ABI_STAMP) $(MAYBE_STE
 	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
 
+	CGO_CFLAGS="$(ANDROID_CGO_CFLAGS)" CGO_CXXFLAGS="$(ANDROID_CGO_CXXFLAGS)" \
 	GOMOBILECACHE="$(GOMOBILECACHE)" \
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-androidapi=23 \
@@ -1019,6 +1031,7 @@ build-android: check-android-sdk check-gomobile $(ANDROID_ABI_STAMP) $(MAYBE_STE
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
+	$(ANDROID_HARDENING_CHECK) --aar $(ANDROID_LIB_BUILD) --report $(ANDROID_HARDENING_REPORTS)/aar.json
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
@@ -1037,6 +1050,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 	GARBLE_SEED="$(GARBLE_SEED)" \
 	GARBLE_FLAGS="$(GARBLE_FLAGS)" \
 	GARBLE_GOGARBLE="$(GARBLE_GOGARBLE)" \
+	CGO_CFLAGS="$(ANDROID_CGO_CFLAGS)" CGO_CXXFLAGS="$(ANDROID_CGO_CXXFLAGS)" \
 	GOMOBILECACHE="$(GOMOBILECACHE)" \
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-androidapi=23 \
@@ -1048,6 +1062,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
+	$(ANDROID_HARDENING_CHECK) --aar $(ANDROID_LIB_BUILD) --report $(ANDROID_HARDENING_REPORTS)/aar.json
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built obfuscated Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 	$(if $(STEALTH_ENABLED),$(MAKE) ANDROID_LIBS_DIR="$(ANDROID_LIBS_DIR)" ANDROID_LIB="$(ANDROID_LIB)" verify-stealth-jni,)
@@ -1149,6 +1164,7 @@ define android_apk_for_abi
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(2) -Plantern.abis=$(1) --verbose --build-name=$(ANDROID_VERSION_NAME) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
 	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_APK_RELEASE_BUILD),true)
 	$(ANDROID_ABI_CHECK) --app-abis $(1) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_APK_RELEASE_BUILD) --release
+	$(ANDROID_HARDENING_CHECK) --app-abis $(1) --apk $(ANDROID_APK_RELEASE_BUILD) --report $(ANDROID_HARDENING_REPORTS)/apk-$(1).json
 	cp $(ANDROID_APK_RELEASE_BUILD) $(3)
 endef
 
@@ -1169,6 +1185,7 @@ android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(ANDROID_VERSION_NAME) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE) $(PLAY_STORE_GRADLE_FLAGS)
 	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_AAB_RELEASE_BUILD),true)
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --aab $(ANDROID_AAB_RELEASE_BUILD) --release
+	$(ANDROID_HARDENING_CHECK) --aab $(ANDROID_AAB_RELEASE_BUILD) --report $(ANDROID_HARDENING_REPORTS)/aab.json
 	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
 	$(MAKE) android-copy-play-artifacts
 
