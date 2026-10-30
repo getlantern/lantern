@@ -183,7 +183,9 @@ object AppLogger {
     private fun writeAsync(level: String, tag: String, msg: String) {
         scope.launch {
             try {
-                val line = "time=\"${timestamp()}\" level=$level [$tag] $msg\n"
+                // An error from the core can name the selected outbound, and
+                // this file is uploaded with issue reports.
+                val line = "time=\"${timestamp()}\" level=$level [$tag] ${HelperTags.redact(msg)}\n"
                 writer?.apply {
                     append(line)
                     flush()

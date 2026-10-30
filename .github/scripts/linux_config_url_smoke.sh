@@ -18,9 +18,8 @@ chmod 600 "$config_urls_file"
 set -x
 
 config_server_base="${JOIN_SERVER_CONFIG_SERVER_NAME:-ci-config-url-smoke-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}}"
-config_skip_cert="${JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION:-true}"
 
-JOIN_SERVER_CONFIG_URLS_FILE="$config_urls_file" JOIN_SERVER_CONFIG_SERVER_NAME="${config_server_base}-api" JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION="$config_skip_cert" \
+JOIN_SERVER_CONFIG_URLS_FILE="$config_urls_file" JOIN_SERVER_CONFIG_SERVER_NAME="${config_server_base}-api" \
 	xvfb-run -a flutter test integration_test/vpn/linux_config_url_api_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true
-JOIN_SERVER_CONFIG_URLS_FILE="$config_urls_file" JOIN_SERVER_CONFIG_SERVER_NAME="${config_server_base}-ui" JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION="$config_skip_cert" \
+JOIN_SERVER_CONFIG_URLS_FILE="$config_urls_file" JOIN_SERVER_CONFIG_SERVER_NAME="${config_server_base}-ui" \
 	xvfb-run -a flutter test integration_test/vpn/linux_config_url_smoke_test.dart -d linux --dart-define=DISABLE_SYSTEM_TRAY=true
