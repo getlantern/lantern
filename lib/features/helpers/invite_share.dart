@@ -100,8 +100,12 @@ class InviteShare extends ConsumerWidget {
                     invite,
                   );
                   // The invite is used now; go back to the helpers list
-                  // rather than staying on "used or expired".
-                  if (decided && context.mounted) {
+                  // rather than staying on "used or expired". Only while
+                  // this screen is on top: a decision that lands after Back
+                  // closed its dialog must not close a newer one.
+                  if (decided &&
+                      context.mounted &&
+                      (ModalRoute.of(context)?.isCurrent ?? false)) {
                     await Navigator.of(context).maybePop();
                   }
                 },

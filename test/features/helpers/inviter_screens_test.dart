@@ -415,6 +415,42 @@ void main() {
     expect(await result, isTrue);
   });
 
+  testWidgets('the approval dialog says to compare the code away from the '
+      'link', (tester) async {
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    final body = 'approve_body'.i18n.fill(['Ali']);
+    expect(find.text(body), findsOneWidget);
+    expect(body, contains('different app from the one you sent the link in'));
+  });
+
+  testWidgets('a decision that lands after Back does not close a newer '
+      'dialog from InviteShare', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(unlocked: true, invites: [_claimed]),
+      ),
+    )..decideGate = Completer();
+    await _pumpPushed(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.tap(find.byKey(const Key('invite.compare')));
+    await tester.pumpAndSettle();
+    await tester.tap(_approveYes);
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+
+    // Compare codes again while the first decision is still in flight.
+    await tester.tap(find.byKey(const Key('invite.compare')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+
+    fake.decideGate!.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.byType(InviteShare), findsOneWidget);
+  });
+
   testWidgets('one helper: status shown', (tester) async {
     final fake = _Helpers(
       const HelpersState(
