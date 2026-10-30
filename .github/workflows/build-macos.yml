@@ -451,7 +451,7 @@ jobs:
           ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/Lantern.app.zip"
 
       - name: Sign macOS update
-        if: ${{ !inputs.secretless_test_build && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        if: ${{ !inputs.secretless_test_build && inputs.sign_update_artifact }}
         shell: bash
         env:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
@@ -476,7 +476,7 @@ jobs:
           retention-days: 2
 
       - name: Upload macOS update signature
-        if: ${{ !inputs.secretless_test_build && inputs.build_type != 'nightly' && inputs.sign_update_artifact }}
+        if: ${{ !inputs.secretless_test_build && inputs.sign_update_artifact }}
         uses: actions/upload-artifact@v4
         with:
           name: lantern-installer-dmg-signature

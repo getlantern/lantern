@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 
 class AppUrls {
@@ -30,6 +31,7 @@ class AppUrls {
       'https://update.getlantern.org/update/lantern';
   static const appcastProd = '$updateServiceLantern/appcast.xml?channel=stable';
   static const appcastBeta = '$updateServiceLantern/appcast.xml?channel=beta';
+  static const appcastNightly = '$updateServiceLantern/appcast.xml?channel=nightly';
   static const appcastE2E =
       'https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta';
   static String manuallyServerSetupURL =
@@ -41,6 +43,7 @@ class AppUrls {
   static String appcastFor(
     String buildType, {
     bool autoUpdateE2E = AppBuildInfo.autoUpdateE2E,
+    TargetPlatform? platform,
   }) {
     if (autoUpdateE2E) return appcastE2E;
     switch (buildType) {
@@ -48,6 +51,9 @@ class AppUrls {
         return appcastProd;
       case 'beta':
         return appcastBeta;
+      case 'nightly':
+        final target = platform ?? defaultTargetPlatform;
+        return '$appcastNightly&platform=${target.name.toLowerCase()}';
       default:
         return appcastProd;
     }

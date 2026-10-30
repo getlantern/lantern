@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -43,7 +44,7 @@ class ReleaseWorkflowTest(unittest.TestCase):
         for name in ("gh", "aws", "python3"):
             command = self.bin / name
             command.write_text(f"#!{sys.executable}\n" + '''
-import json, os, sys
+import json, os, subprocess, sys
 from pathlib import Path
 name = Path(sys.argv[0]).name
 with open(os.environ["COMMAND_LOG"], "a") as log:
@@ -52,6 +53,25 @@ if name == os.environ.get("FAIL_COMMAND"):
     sys.exit(1)
 if name == "gh" and sys.argv[1:3] == ["release", "view"]:
     print(os.environ.get("IS_DRAFT", "true"))
+if name == "python3" and sys.argv[1].endswith("generate_update_metadata.py"):
+    sys.exit(subprocess.call([sys.executable, *sys.argv[1:]]))
+if name == "aws" and sys.argv[1:3] == ["s3api", "head-object"]:
+    checksum = os.environ.get("EXISTING_NIGHTLY_SHA256")
+    if checksum:
+        print(checksum)
+    else:
+        print("An error occurred (" + os.environ.get("NIGHTLY_HEAD_ERROR", "404") + ")", file=sys.stderr)
+        sys.exit(1)
+if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".update.json"):
+    if not sys.argv[4].startswith("s3://"):
+        previous = os.environ.get("PREVIOUS_NIGHTLY_BUILD")
+        if previous:
+            Path(sys.argv[4]).write_text(json.dumps({"sparkle_version": previous}))
+        else:
+            print("An error occurred (" + os.environ.get("NIGHTLY_FETCH_ERROR", "404") + ")", file=sys.stderr)
+            sys.exit(1)
+    else:
+        Path(os.environ["COMMAND_LOG"]).with_suffix(".metadata").write_text(Path(sys.argv[3]).read_text())
 ''')
             command.chmod(0o755)
 
@@ -286,6 +306,65 @@ if name == "gh" and sys.argv[1:3] == ["release", "view"]:
             [f"s3://release-test/releases/nightly/9.2.0/{filename}" for filename in filenames],
         )
         self.assertNotIn("https://s3.amazonaws.com/release-test/releases/nightly/latest/", result.stdout)
+
+    def test_nightly_feed_only_promotes_new_signed_main_builds(self) -> None:
+        filename = "lantern-installer-nightly.exe"
+        artifact = self.work / "lantern-installer-exe" / filename
+        artifact.parent.mkdir()
+        artifact.write_bytes(b"signed installer")
+        signature = self.work / "lantern-installer-exe-signature" / f"{filename}.sparkle-signature"
+        signature.parent.mkdir()
+        cases = (
+            ("new signed main", True, "false", "", "404", True, True),
+            ("newer than previous", True, "false", "885", "404", True, True),
+            ("older rerun", True, "false", "895", "404", True, False),
+            ("same build", True, "false", "886", "404", True, False),
+            ("branch build", True, "true", "", "404", True, False),
+            ("unsigned main", False, "false", "", "404", True, False),
+            ("storage failure", True, "false", "", "AccessDenied", False, False),
+        )
+        for label, signed, is_test_run, previous, fetch_error, success, promote in cases:
+            with self.subTest(label=label):
+                if signed:
+                    signature.write_text(base64.b64encode(b"s" * 64).decode())
+                else:
+                    signature.unlink(missing_ok=True)
+                (self.work / "commands.jsonl").write_text("")
+                result = self.run_s3_upload(
+                    "nightly", "windows", IS_TEST_RUN=is_test_run, SPARKLE_VERSION="886",
+                    PREVIOUS_NIGHTLY_BUILD=previous, NIGHTLY_FETCH_ERROR=fetch_error,
+                )
+                self.assertEqual(result.returncode == 0, success, result.stderr)
+                published = [c for c in self.commands() if c[:3] == ["aws", "s3", "cp"]
+                             and c[4].endswith(".update.json")]
+                self.assertEqual(len(published), 2 if promote else 0)
+                if promote:
+                    metadata = json.loads((self.work / "commands.metadata").read_text())
+                    self.assertEqual(metadata["channel"], "nightly")
+                    self.assertEqual(metadata["sparkle_version"], "886")
+                    self.assertEqual(metadata["url"], f"https://s3.amazonaws.com/release-test/releases/nightly/9.2.0/{filename}")
+                    self.assertEqual(published[-1][4], f"s3://release-test/releases/nightly/latest/{filename}.update.json")
+
+    def test_nightly_reruns_preserve_versioned_desktop_installer_bytes(self) -> None:
+        checksum = hashlib.sha256(b"installer").hexdigest()
+        for platform, extension in (("windows", "exe"), ("macos", "dmg")):
+            artifact = self.work / f"lantern-installer-{extension}" / f"lantern-installer-nightly.{extension}"
+            artifact.parent.mkdir()
+            artifact.write_bytes(b"installer")
+            for previous, error, success in (
+                (checksum, "404", True),
+                ("a" * 64, "404", False),
+                ("", "AccessDenied", False),
+            ):
+                with self.subTest(platform=platform, previous=previous, error=error):
+                    (self.work / "commands.jsonl").write_text("")
+                    result = self.run_s3_upload(
+                        "nightly", platform, IS_TEST_RUN="false",
+                        EXISTING_NIGHTLY_SHA256=previous, NIGHTLY_HEAD_ERROR=error,
+                    )
+                    self.assertEqual(result.returncode == 0, success, result.stderr)
+                    uploads = [c for c in self.commands() if c[:3] == ["aws", "s3", "cp"]]
+                    self.assertEqual(len(uploads), 2 if success else 0)
 
     def test_nightly_download_messages_point_to_the_published_artifacts(self) -> None:
         filenames = [
