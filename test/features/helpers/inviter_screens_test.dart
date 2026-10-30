@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -310,6 +311,8 @@ Future<Future<bool>> _openApproval(WidgetTester tester, _Helpers fake) async {
 }
 
 void main() {
+  setUpAll(Localization.loadTranslations);
+
   testWidgets('the approval dialog names the friend, shows the code and '
       'approves', (tester) async {
     final fake = _Helpers(const HelpersState());
@@ -482,6 +485,11 @@ void main() {
   testWidgets('the invite screen shows a pending invite as a QR code', (
     tester,
   ) async {
+    // Tall enough to build the whole list in the test font.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 2000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
     final fake = _Helpers(
       const HelpersState(
         view: HelpersView(
@@ -500,7 +508,25 @@ void main() {
     await _pump(tester, fake, const InviteShare(inviteId: 'i2'));
     expect(find.byKey(const Key('invite.qr')), findsOneWidget);
     expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
-    expect(find.byKey(const Key('invite.share')), findsOneWidget);
+    final card = find.byKey(const Key('invite.card'));
+    for (final text in [
+      'invite_share_title'.i18n,
+      'invite_share_steps'.i18n,
+      'invite_link_label'.i18n,
+      'invite_link_expiry'.i18n,
+      'https://lantern.io/help/#AAAA',
+    ]) {
+      expect(
+        find.descendant(of: card, matching: find.text(text)),
+        findsOneWidget,
+      );
+    }
+    for (final key in ['invite.link', 'invite.copy', 'invite.share']) {
+      expect(
+        find.descendant(of: card, matching: find.byKey(Key(key))),
+        findsOneWidget,
+      );
+    }
     final warning = find.byKey(const Key('invite.trust_warning'));
     expect(
       find.descendant(
@@ -509,11 +535,45 @@ void main() {
       ),
       findsOneWidget,
     );
-    // Read before the share controls, even on a short screen.
+    // The Note sits below the card, and the QR code below the Note.
     expect(
       tester.getTopLeft(warning).dy,
-      lessThan(tester.getTopLeft(find.byKey(const Key('invite.share'))).dy),
+      greaterThan(tester.getBottomLeft(card).dy),
     );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('invite.qr'))).dy,
+      greaterThan(tester.getBottomLeft(warning).dy),
+    );
+  });
+
+  testWidgets('tapping the link field copies the link', (tester) async {
+    debugCopyAsAndroid = false;
+    addTearDown(() => debugCopyAsAndroid = null);
+    final copied = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied.add((call.arguments as Map)['text'] as String);
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(unlocked: true, invites: [_pendingI1]),
+      ),
+    );
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.tap(find.byKey(const Key('invite.link')));
+    await tester.pump();
+    expect(copied, ['https://lantern.io/help/#AAAA']);
   });
 
   test('the share text names this invite\'s inviter, else the last name', () {

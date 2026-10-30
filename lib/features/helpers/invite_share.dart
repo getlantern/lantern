@@ -113,56 +113,93 @@ class InviteShare extends ConsumerWidget {
     }
 
     final message = inviteShareMessage(view, invite);
+    Future<void> copy() async {
+      try {
+        await copySensitiveText(invite.link);
+        if (context.mounted) context.showSnackBar('invite_link_copied'.i18n);
+      } catch (_) {
+        if (context.mounted) {
+          context.showSnackBarError('helper_error_copy'.i18n);
+        }
+      }
+    }
+
     return BaseScreen(
       title: 'invite_personal_proxy'.i18n,
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: defaultSize),
         children: [
-          Text(
-            'invite_share_body'.i18n,
-            style: textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+          AppCard(
+            key: const Key('invite.card'),
+            padding: const EdgeInsets.all(defaultSize),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('invite_share_title'.i18n, style: textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  'invite_share_steps'.i18n,
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: defaultSize),
+                // Read-only: a tap copies it, as does the copy icon.
+                AppTextField(
+                  fieldKey: const Key('invite.link'),
+                  initialValue: invite.link,
+                  label: 'invite_link_label'.i18n,
+                  hintText: '',
+                  prefixIcon: Icons.link,
+                  enableSuggestions: false,
+                  enableIMEPersonalizedLearning: false,
+                  autocorrect: false,
+                  onTap: copy,
+                  suffixIcon: IconButton(
+                    key: const Key('invite.copy'),
+                    tooltip: 'invite_copy_link'.i18n,
+                    icon: const AppImage(path: AppImagePaths.copy),
+                    onPressed: copy,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    'invite_link_expiry'.i18n,
+                    style: textTheme.labelMedium!.copyWith(
+                      color: context.textTertiary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: defaultSize),
+                KeyedSubtree(
+                  key: const Key('invite.share'),
+                  child: Builder(
+                    builder: (buttonContext) => PrimaryButton(
+                      label: 'invite_share_button'.i18n,
+                      icon: AppImagePaths.share,
+                      onPressed: () => shareInvite(buttonContext, message),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: defaultSize),
           InfoRow(
             key: const Key('invite.trust_warning'),
             backgroundColor: context.bgPromo,
             imagePath: AppImagePaths.warning,
             text: 'invite_trust_warning'.i18n,
           ),
-          const SizedBox(height: 24),
-          KeyedSubtree(
-            key: const Key('invite.share'),
-            child: Builder(
-              builder: (buttonContext) => PrimaryButton(
-                label: 'invite_share_button'.i18n,
-                onPressed: () => shareInvite(buttonContext, message),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SecondaryButton(
-            key: const Key('invite.copy'),
-            label: 'invite_copy_link'.i18n,
-            onPressed: () async {
-              try {
-                await copySensitiveText(invite.link);
-                if (context.mounted) {
-                  context.showSnackBar('invite_link_copied'.i18n);
-                }
-              } catch (_) {
-                if (context.mounted) {
-                  context.showSnackBarError('helper_error_copy'.i18n);
-                }
-              }
-            },
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: defaultSize),
           Center(
             child: QrImageView(
               key: const Key('invite.qr'),
               data: invite.link,
               version: QrVersions.auto,
-              size: 220,
+              size: 160,
               backgroundColor: Colors.white,
             ),
           ),
@@ -170,7 +207,7 @@ class InviteShare extends ConsumerWidget {
           Center(
             child: Text('invite_qr_hint'.i18n, style: textTheme.labelMedium),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: defaultSize),
           Row(
             children: [
               const SizedBox(

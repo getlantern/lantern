@@ -2173,7 +2173,7 @@ msgid "helper_error_keystore_reset"
 msgstr "This device's secure storage was reset, so the names of your helpers and invites could not be read. Your helpers still work; invite them again to see their names."
 
 msgid "helper_error_copy"
-msgstr "Couldn't copy the link. Use Share link instead."
+msgstr "Couldn't copy the link. Use Share instead."
 
 # Helper invites: the inviter's side. A "helper" is a friend abroad whose
 # internet connection this user borrows through Lantern.
@@ -2243,15 +2243,26 @@ msgstr "Compare the code and approve them."
 msgid "personal_proxy_nickname_label"
 msgstr "Name on this device"
 
-msgid "invite_share_body"
-msgstr "Send this link to one person you trust. It works once and expires in 48 hours."
+# The invite screen's card: the user sends a friend abroad a link that makes the friend their Personal Proxy.
+msgid "invite_share_title"
+msgstr "Share this link with someone you trust outside your country"
+
+msgid "invite_share_steps"
+msgstr "They open the link, install Lantern if needed, and enter their name. You will approve them by checking a 4-digit code, then you can connect through them."
+
+# Label of the read-only field that shows the invite link.
+msgid "invite_link_label"
+msgstr "Your invite link"
+
+msgid "invite_link_expiry"
+msgstr "Works once and expires in 48 hours."
 
 # The text shared with the link. The first %s is the user's name; the second is the link.
 msgid "invite_share_message"
 msgstr "%s wants your help staying online. %s"
 
 msgid "invite_share_button"
-msgstr "Share link"
+msgstr "Share"
 
 msgid "invite_copy_link"
 msgstr "Copy link"
@@ -2265,7 +2276,7 @@ msgstr "Your friend can scan this with Lantern."
 msgid "invite_waiting"
 msgstr "Waiting for your friend to open the link"
 
-# Warning above an invite's share buttons and QR code.
+# Warning below the invite link and Share button, above the QR code.
 msgid "invite_trust_warning"
 msgstr "The person you invite will know you use Lantern and can see when you're connected through them. Your traffic passes through their internet connection, so they could learn which sites you visit, though not what you do on secure (https) sites. Only invite someone you trust."
 
