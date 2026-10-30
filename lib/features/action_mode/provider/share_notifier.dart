@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/action_mode_connection_event.dart';
 import 'package:lantern/core/models/app_event.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
@@ -17,6 +18,7 @@ import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/action_mode/share_consent_dialog.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -208,7 +210,7 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   /// Rounds [reconcileLaunch] waits for a quiet moment before giving up.
-  static const _reconcileRounds = 5;
+  static const _reconcileRounds = 8;
 
   /// How long [reconcileLaunch] waits for a core that cannot answer yet.
   @visibleForTesting
@@ -243,7 +245,12 @@ class ShareNotifier extends _$ShareNotifier {
   Future<bool> reconcileLaunch(WidgetRef widgetRef) async {
     if (!_launchSettled) {
       _launchSettled = true;
-      await _reconcileLaunch();
+      _launchInProgress = true;
+      try {
+        await _reconcileLaunch();
+      } finally {
+        _launchInProgress = false;
+      }
       // A helper start skipped while the gate was held runs now, if sharing
       // ended up off.
       if (ref.mounted &&
@@ -256,6 +263,13 @@ class ShareNotifier extends _$ShareNotifier {
     }
     return _toggles == 0;
   }
+
+  bool _launchInProgress = false;
+
+  /// Whether [reconcileLaunch] is running. Other auto-starts wait it out:
+  /// until it settles, sharing radiance resumed may not show yet, and the
+  /// launch auto-start that follows it covers them.
+  bool get launchInProgress => _launchInProgress;
 
   Future<void> _reconcileLaunch() async {
     await _fallbackSettled();
@@ -276,15 +290,25 @@ class ShareNotifier extends _$ShareNotifier {
       }
     }
 
-    // Each round gathers at most one thing, then looks again: the helper
-    // view whenever the settings say the session may not be wanted, then the
-    // manual port, read last so no other wait follows it. Neither answer is
+    // Each round gathers at most one thing, then looks again: the feature
+    // flags if not loaded, the helper view whenever the settings say the
+    // session may not be wanted, then the manual port, read last so no other
+    // wait follows it. Neither answer is
     // the decision.
+    var flagsLoaded = false;
     var viewLoaded = false;
     int? manualPort;
     for (var round = 0; round < _reconcileRounds; round++) {
       await _fallbackSettled();
       if (standDown()) return;
+      // Flags not fetched yet at first frame: whether Unbounded is available
+      // decides whether the session is wanted.
+      if (!flagsLoaded && ref.read(featureFlagProvider).isEmpty) {
+        flagsLoaded = true;
+        manualPort = null;
+        await ref.read(featureFlagProvider.notifier).fetchFeatureFlags();
+        continue;
+      }
       if (!viewLoaded && !_launchWanted()) {
         viewLoaded = true;
         manualPort = null;
@@ -334,9 +358,16 @@ class ShareNotifier extends _$ShareNotifier {
     return res.fold((_) => false, (v) => v);
   }
 
+  /// Whether the user wants sharing at launch: auto-enable on, the tab
+  /// shown, and Unbounded available. Flags that have not loaded yet do not
+  /// count against it.
   bool _launchWanted() {
     final settings = ref.read(appSettingProvider);
-    return !settings.unboundedHidden && settings.unboundedAutoEnable;
+    if (settings.unboundedHidden || !settings.unboundedAutoEnable) {
+      return false;
+    }
+    final flags = ref.read(featureFlagProvider);
+    return flags.isEmpty || flags.getBool(FeatureFlag.unbounded);
   }
 
   /// Whether a kept session could switch to SmC: a resumed (not fallback)

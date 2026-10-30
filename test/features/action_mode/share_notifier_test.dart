@@ -19,6 +19,8 @@ import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 
 // Reconciliation of ShareState against the peer client's real state. The
 // peer-status stream is edge-triggered, so a UI that only listens opens at
@@ -190,6 +192,25 @@ class _Settings extends AppSettingNotifier {
   void set(AppSetting value) => state = value;
 }
 
+/// The feature flags at first frame, and what a fetch loads.
+Map<String, dynamic> _flags = const {'unbounded': true};
+Map<String, dynamic>? _flagsFetched;
+
+class _Flags extends FeatureFlagNotifier {
+  @override
+  Map<String, dynamic> build() => _flags;
+
+  int fetches = 0;
+
+  @override
+  Future<void> fetchFeatureFlags() async {
+    fetches++;
+    if (_flagsFetched != null) state = _flagsFetched!;
+  }
+
+  void set(Map<String, dynamic> flags) => state = flags;
+}
+
 /// Skips the settings fetch the real build starts.
 class _Radiance extends RadianceSettings {
   @override
@@ -204,6 +225,7 @@ class _Radiance extends RadianceSettings {
       appSettingProvider.overrideWith(_Settings.new),
       helpersProvider.overrideWith(_Helpers.new),
       radianceSettingsProvider.overrideWith(_Radiance.new),
+      featureFlagProvider.overrideWith(_Flags.new),
     ],
   );
   addTearDown(container.dispose);
@@ -252,6 +274,8 @@ void main() {
     _appSetting = const AppSetting();
     _helps = false;
     _helpsGate = null;
+    _flags = const {'unbounded': true};
+    _flagsFetched = null;
     sl.registerSingleton<LocalStorageService>(_FakeStorage());
   });
   tearDown(() => sl.reset());
@@ -523,12 +547,27 @@ void main() {
       await notifier.syncFromBackend(ref);
       final mayAutoStart = await notifier.reconcileLaunch(ref);
       if (!mayAutoStart) return false;
+      if (!ref.read(featureFlagProvider).getBool(FeatureFlag.unbounded)) {
+        return true;
+      }
       final s = ref.read(appSettingProvider);
       if (s.unboundedHidden || !s.onboardingCompleted) return true;
       if (!s.unboundedAutoEnable) return true;
       if (notifier.state.active || notifier.state.probing) return true;
       await notifier.autoStart(ref);
       return true;
+    }
+
+    /// Home's VPN-connected auto-start.
+    void vpnConnected(ShareNotifier notifier, WidgetRef ref) {
+      final s = ref.read(appSettingProvider);
+      if (!ref.read(featureFlagProvider).getBool(FeatureFlag.unbounded)) {
+        return;
+      }
+      if (s.unboundedHidden || !s.unboundedAutoEnable) return;
+      if (notifier.launchInProgress) return;
+      if (notifier.state.active || notifier.state.probing) return;
+      notifier.autoStart(ref);
     }
 
     _Helpers helpers(WidgetRef ref) =>
@@ -1056,6 +1095,110 @@ void main() {
       expect(helpers(ref).helpsAsked, 1);
       expect(service.calls, ['unbounded:true', 'unbounded:false']);
       expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('Unbounded unavailable: a resumed SmC session is stopped', (
+      tester,
+    ) async {
+      _appSetting = autoOff;
+      _flags = const {'unbounded': false};
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      await launch(notifier, ref);
+      expect(service.calls, ['peer:false']);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('Unbounded unavailable is not wanted even with auto-enable '
+        'on', (tester) async {
+      _appSetting = autoOn;
+      _flags = const {'unbounded': false};
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      await launch(notifier, ref);
+      expect(service.calls, ['peer:false']);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('Unbounded unavailable keeps a session that helps a friend', (
+      tester,
+    ) async {
+      _appSetting = autoOn;
+      _flags = const {'unbounded': false};
+      _helps = true;
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      await launch(notifier, ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.mode, ShareMode.smc);
+    });
+
+    testWidgets('flags not loaded yet are fetched, not taken as unavailable', (
+      tester,
+    ) async {
+      _appSetting = autoOn;
+      _flags = const {};
+      _flagsFetched = const {'unbounded': true};
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      await launch(notifier, ref);
+      expect((ref.read(featureFlagProvider.notifier) as _Flags).fetches, 1);
+      expect(service.calls, ['unbounded?', 'manual_port']);
+      expect(notifier.state.active, isTrue);
+    });
+
+    testWidgets('a flag that turns on after launch still auto-starts once', (
+      tester,
+    ) async {
+      _appSetting = autoOn;
+      _flags = const {};
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?']);
+      expect(notifier.state.active, isFalse);
+      // The config loads: Home's launch effect runs again.
+      (ref.read(featureFlagProvider.notifier) as _Flags).set(const {
+        'unbounded': true,
+      });
+      await launch(notifier, ref);
+      await launch(notifier, ref);
+      expect(service.calls, ['unbounded?', 'unbounded:true']);
+      expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('a VPN connect during the reconciliation does not start on '
+        'top of a resumed session', (tester) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      service.probeGate = Completer<void>();
+      final launched = launch(notifier, ref);
+      await tester.pump();
+      expect(notifier.launchInProgress, isTrue);
+      vpnConnected(notifier, ref);
+      service.probeGate!.complete();
+      await launched;
+      expect(notifier.launchInProgress, isFalse);
+      expect(service.calls, ['unbounded?', 'manual_port']);
+      expect(notifier.state.active, isTrue);
+    });
+
+    testWidgets('a VPN connect during the reconciliation leaves exactly one '
+        'start to the launch', (tester) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedOk = true;
+      service.probeGate = Completer<void>();
+      final launched = launch(notifier, ref);
+      await tester.pump();
+      vpnConnected(notifier, ref);
+      service.probeGate!.complete();
+      await launched;
+      vpnConnected(notifier, ref);
+      expect(service.calls, ['unbounded?', 'unbounded:true']);
+      expect(notifier.state.mode, ShareMode.unbounded);
     });
 
     testWidgets('runs once, and never on a session this run started', (

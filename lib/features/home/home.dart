@@ -213,13 +213,18 @@ class Home extends HookConsumerWidget {
         // the reconciliation is in flight; reading a disposed scope throws.
         // Same guard the other post-frame callbacks in this file use.
         if (!context.mounted) return;
-        if (!unboundedAvailable) return;
+        // Not gated on unboundedAvailable: a session radiance resumed is
+        // reconciled either way, and Unbounded unavailable counts as not
+        // wanted. The flag gates only the auto-start below. The flag may be
+        // off only until the config loads; this effect runs again when it
+        // flips, and reconcileLaunch runs once per process.
         await ref.read(shareProvider.notifier).syncFromBackend(ref);
         if (!context.mounted) return;
         final mayAutoStart = await ref
             .read(shareProvider.notifier)
             .reconcileLaunch(ref);
         if (!context.mounted || !mayAutoStart) return;
+        if (!unboundedAvailable) return;
         final appSetting = ref.read(appSettingProvider);
         if (appSetting.unboundedHidden) return;
         if (!appSetting.onboardingCompleted) return;
@@ -238,6 +243,9 @@ class Home extends HookConsumerWidget {
       final appSetting = ref.read(appSettingProvider);
       if (appSetting.unboundedHidden) return;
       if (!appSetting.unboundedAutoEnable) return;
+      // The launch reconciliation may not show a resumed session yet; the
+      // launch auto-start that follows it covers this connect.
+      if (ref.read(shareProvider.notifier).launchInProgress) return;
       final share = ref.read(shareProvider);
       if (share.active || share.probing) return;
       // Call autoStart synchronously — shareProvider is a different
