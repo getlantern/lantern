@@ -7,7 +7,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_section.dart'
-    show HelperKeystoreResetNotice;
+    show HelperKeystoreResetNotice, helperSinceLabel;
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
@@ -72,17 +72,14 @@ class PersonalProxiesTab extends HookConsumerWidget {
           const SizedBox(height: defaultSize),
         ],
         if (view.helpers.isNotEmpty) ...[
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                for (final (i, h) in view.helpers.indexed) ...[
-                  if (i > 0) DividerSpace(),
-                  _ProxyRow(index: i, helper: h, notifier: notifier),
-                ],
-              ],
+          // One card per friend, with icon buttons, as designed.
+          for (final (i, h) in view.helpers.indexed) ...[
+            if (i > 0) const SizedBox(height: 8),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: _ProxyRow(index: i, helper: h, notifier: notifier),
             ),
-          ),
+          ],
           if (view.helpers.length == 1) ...[
             const SizedBox(height: defaultSize),
             Text(
@@ -174,35 +171,29 @@ class _ProxyRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = helper.name.isEmpty ? 'helper_unnamed'.i18n : helper.name;
+    final status = helper.online ? 'helper_online'.i18n : 'helper_offline'.i18n;
     return AppTile(
+      icon: AppImagePaths.person,
       label: name,
-      subtitle: Row(
+      subtitle: Text(
+        [
+          status,
+          if (helper.sinceUnix > 0) helperSinceLabel(helper.sinceUnix),
+        ].join(' · '),
         key: Key(
           helper.online ? 'helpers.online.$index' : 'helpers.offline.$index',
         ),
-        children: [
-          Icon(
-            Icons.circle,
-            size: 10,
-            color: helper.online
-                ? context.statusSuccessBgDot
-                : context.textTertiary,
-          ),
-          const SizedBox(width: 6),
-          Text(helper.online ? 'helper_online'.i18n : 'helper_offline'.i18n),
-        ],
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium!.copyWith(color: context.textTertiary),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppTextButton(
-            key: Key('personal_proxies.rename.${helper.pairingId}'),
-            label: 'rename'.i18n,
-            onPressed: () => _rename(context),
-          ),
-          AppTextButton(
+          IconButton(
             key: Key('personal_proxies.remove.${helper.pairingId}'),
-            label: 'remove'.i18n,
+            tooltip: 'remove'.i18n,
+            icon: const Icon(Icons.delete_outline),
             onPressed: () => AppDialog.show(
               context: context,
               title: 'helper_remove_confirm_title'.i18n.fill([name]),
@@ -211,6 +202,12 @@ class _ProxyRow extends StatelessWidget {
               onPrimaryPressed: () => notifier.endPairing(helper.pairingId),
               secondaryLabel: 'cancel'.i18n,
             ),
+          ),
+          IconButton(
+            key: Key('personal_proxies.rename.${helper.pairingId}'),
+            tooltip: 'rename'.i18n,
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _rename(context),
           ),
         ],
       ),

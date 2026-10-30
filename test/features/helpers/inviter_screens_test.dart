@@ -19,6 +19,8 @@ import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_approval_prompt.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
+import 'package:lantern/features/helpers/helping_section.dart'
+    show helperSinceLabel;
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxies_tab.dart';
 import 'package:lantern/features/helpers/personal_proxy_banner.dart';
@@ -390,6 +392,27 @@ void main() {
     await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.text('Ali'), findsOneWidget);
     expect(find.byKey(const Key('helpers.online.0')), findsOneWidget);
+    expect(
+      find.text('${'helper_online'.i18n} · ${helperSinceLabel(1700000000)}'),
+      findsOneWidget,
+    );
+    // Trash and pencil icon buttons, in that order, in the friend's own card.
+    final trash = find.byKey(const Key('personal_proxies.remove.p1'));
+    final pencil = find.byKey(const Key('personal_proxies.rename.p1'));
+    expect(
+      find.descendant(of: trash, matching: find.byIcon(Icons.delete_outline)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: pencil, matching: find.byIcon(Icons.edit_outlined)),
+      findsOneWidget,
+    );
+    expect(tester.getCenter(trash).dx, lessThan(tester.getCenter(pencil).dx));
+    expect(
+      find.ancestor(of: trash, matching: find.byType(AppCard)),
+      findsOneWidget,
+    );
+    expect(find.byType(Flag), findsNothing);
     expect(find.byKey(const Key('helpers.nudge')), findsOneWidget);
     expect(find.text('helpers_nudge_second'.i18n), findsOneWidget);
     expect(
@@ -413,6 +436,15 @@ void main() {
     );
     await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.byKey(const Key('helpers.offline.1')), findsOneWidget);
+    expect(find.text('helper_offline'.i18n), findsOneWidget);
+    // Each friend has a card of their own.
+    expect(
+      find.ancestor(
+        of: find.byKey(const Key('personal_proxies.remove.p2')),
+        matching: find.byType(AppCard),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('helpers.nudge')), findsNothing);
   });
 

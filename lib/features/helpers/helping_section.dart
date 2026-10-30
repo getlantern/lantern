@@ -114,7 +114,7 @@ class HelpingSection extends HookConsumerWidget {
                   AppTile(
                     label: _name(p),
                     subtitle: p.sinceUnix > 0
-                        ? Text('helping_since'.i18n.fill([_date(p.sinceUnix)]))
+                        ? Text(helperSinceLabel(p.sinceUnix))
                         : null,
                     trailing: IconButton(
                       key: Key('helping.remove.${p.pairingId}'),
@@ -223,5 +223,7 @@ String helpingDuration(int seconds) {
       : 'helping_duration_m'.i18n.fill([m]);
 }
 
-String _date(int unix) =>
-    DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(unix * 1000));
+/// "Since Oct 20", localized, for a pairing made at [unix].
+String helperSinceLabel(int unix) => 'helping_since'.i18n.fill([
+  DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(unix * 1000)),
+]);
