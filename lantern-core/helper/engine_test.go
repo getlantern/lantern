@@ -175,6 +175,23 @@ func TestDescribeCarriesTheStatus(t *testing.T) {
 	assert.Zero(t, status)
 }
 
+func TestMalformedAnswersCarryTheStatus(t *testing.T) {
+	answer := []byte("not json")
+	e := NewEngine(t.TempDir(), func(context.Context, string, []byte) (int, []byte, string, error) {
+		return 200, answer, "", nil
+	}, nil)
+	var raw map[string]json.RawMessage
+	code, status := Describe(e.post(context.Background(), "pairings", struct{}{}, &raw))
+	assert.Equal(t, CodeUnavailable, code)
+	assert.Equal(t, 200, status)
+
+	answer = []byte(`{}`)
+	_, err := e.listPairings(context.Background())
+	code, status = Describe(err)
+	assert.Equal(t, CodeUnavailable, code)
+	assert.Equal(t, 200, status)
+}
+
 func TestStateIsSealed(t *testing.T) {
 	cloud := newFakeCloud()
 	dir := t.TempDir()

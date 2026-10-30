@@ -36,6 +36,10 @@ const (
 
 func errCode(code string) *Error { return &Error{Code: code} }
 
+// badAnswer is a malformed answer from lantern-cloud. HelperService answers
+// 200 to every request it serves, so that is the status logged.
+func badAnswer() *Error { return &Error{Code: CodeUnavailable, Status: http.StatusOK} }
+
 // ErrorJSON is the bridge's answer for err: {"error": code}.
 func ErrorJSON(err error) string {
 	code, _ := Describe(err)
