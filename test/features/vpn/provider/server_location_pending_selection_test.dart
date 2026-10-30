@@ -7,9 +7,11 @@ import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -110,6 +112,11 @@ void main() {
         lanternServiceProvider.overrideWithValue(_FakeLanternService()),
         vpnProvider.overrideWith(_FakeVpn.new),
         availableServersProvider.overrideWith(_PrivateServers.new),
+        // The private row checks the macOS extension first; on a Mac test
+        // host Platform.isMacOS is true.
+        macosExtensionProvider.overrideWithValue(
+          const MacOSExtensionState(SystemExtensionStatus.activated),
+        ),
       ],
     );
     addTearDown(container.dispose);
