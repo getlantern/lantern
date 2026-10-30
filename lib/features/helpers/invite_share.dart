@@ -143,7 +143,7 @@ class InviteShare extends ConsumerWidget {
                     color: context.textSecondary,
                   ),
                 ),
-                const SizedBox(height: defaultSize),
+                const SizedBox(height: 12),
                 // Read-only: a tap copies it, as does the copy icon.
                 AppTextField(
                   fieldKey: const Key('invite.link'),
@@ -172,7 +172,7 @@ class InviteShare extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: defaultSize),
+                const SizedBox(height: 12),
                 KeyedSubtree(
                   key: const Key('invite.share'),
                   child: Builder(
@@ -187,11 +187,15 @@ class InviteShare extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: defaultSize),
+          // Small type, so the QR code below still fits without scrolling.
           InfoRow(
             key: const Key('invite.trust_warning'),
             backgroundColor: context.bgPromo,
             imagePath: AppImagePaths.warning,
             text: 'invite_trust_warning'.i18n,
+            textStyle: textTheme.bodySmall!.copyWith(
+              color: context.textSecondary,
+            ),
           ),
           const SizedBox(height: defaultSize),
           Center(
@@ -199,15 +203,15 @@ class InviteShare extends ConsumerWidget {
               key: const Key('invite.qr'),
               data: invite.link,
               version: QrVersions.auto,
-              size: 160,
+              size: 112,
               backgroundColor: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Center(
             child: Text('invite_qr_hint'.i18n, style: textTheme.labelMedium),
           ),
-          const SizedBox(height: defaultSize),
+          const SizedBox(height: 8),
           Row(
             children: [
               const SizedBox(

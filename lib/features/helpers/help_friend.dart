@@ -378,7 +378,7 @@ class HelpFriend extends HookConsumerWidget {
                   controller: nameCtl,
                   label: 'help_friend_name_label'.i18n,
                   hintText: 'helpers_your_name_hint'.i18n,
-                  prefixIcon: AppImagePaths.person,
+                  prefixIcon: Icons.person_outline,
                   maxLength: 60,
                 ),
                 below('help_friend_name_hint'.i18n),
