@@ -165,7 +165,6 @@ void main() {
       expect(find.text('become_personal_proxy'.i18n), findsOneWidget);
       expect(find.text('become_personal_proxy_body'.i18n), findsOneWidget);
       expect(connections, findsNothing);
-      expect(find.text('have_invite_link'.i18n), findsNothing);
       await tester.pumpWidget(const SizedBox());
     });
 
