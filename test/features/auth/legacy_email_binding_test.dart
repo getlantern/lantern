@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -10,6 +13,7 @@ import 'package:lantern/core/common/app_theme.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/router/router.dart' as routes;
 import 'package:lantern/core/router/router.gr.dart' as pages;
@@ -21,9 +25,12 @@ import 'package:lantern/features/auth/add_email.dart';
 import 'package:lantern/features/auth/confirm_email.dart';
 import 'package:lantern/features/auth/create_password.dart';
 import 'package:lantern/features/auth/reset_password_email.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
+import 'package:lantern/features/setting/setting.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -32,23 +39,30 @@ const _placeholder = 'support+123@getlantern.org';
 const _email = 'person@example.com';
 const _password = 'New-password-123!';
 
-UserResponseModel _user(String email, {bool registered = true}) =>
-    UserResponseModel(
-      legacyID: 123,
-      legacyToken: 'test-token',
-      emailConfirmed: true,
-      success: true,
-      legacyUserData: UserDataModel(
-        userId: 123,
-        email: email,
-        userLevel: 'pro',
-        unpassRegistered: registered,
-      ),
-    );
+UserResponseModel _user(
+  String email, {
+  bool registered = true,
+  String userLevel = 'pro',
+}) => UserResponseModel(
+  legacyID: 123,
+  legacyToken: 'test-token',
+  emailConfirmed: true,
+  success: true,
+  legacyUserData: UserDataModel(
+    userId: 123,
+    email: email,
+    userLevel: userLevel,
+    unpassRegistered: registered,
+  ),
+);
 
 class _Router extends routes.AppRouter {
   final pushed = <PageRouteInfo>[];
   int rootPops = 0;
+  int pops = 0;
+
+  @override
+  void pop<T extends Object?>([T? result]) => pops++;
 
   @override
   void popUntilRoot() => rootPops++;
@@ -63,21 +77,6 @@ class _Router extends routes.AppRouter {
   }
 }
 
-class _Home extends HomeNotifier {
-  _Home(this.user);
-  final UserResponseModel user;
-  int refreshes = 0;
-
-  @override
-  Future<UserResponseModel> build() async => user;
-
-  @override
-  Future<void> reloadUserData() async {
-    refreshes++;
-    state = AsyncData(_user(_email));
-  }
-}
-
 class _Settings extends AppSettingNotifier {
   @override
   AppSetting build() => const AppSetting(userLoggedIn: false);
@@ -89,12 +88,52 @@ class _Settings extends AppSettingNotifier {
 }
 
 class _Service implements LanternService {
+  UserResponseModel user = _user(_placeholder);
+  Completer<void>? ready;
+  Completer<Either<Failure, UserResponseModel>>? pendingUserRead;
+  int userReads = 0;
+  int loginCalls = 0;
+  final oAuthCallbacks = <String>[];
   final starts = <String>[];
   final completions = <({String email, String password, String code})>[];
   final recoveries = <String>[];
   final changes = <({String email, String password})>[];
   bool rejectCode = false;
   bool loginRequired = false;
+
+  @override
+  Future<void> waitForRadiance() => ready?.future ?? Future.value();
+
+  @override
+  Future<Either<Failure, UserResponseModel>> getUserData() async {
+    userReads++;
+    if (pendingUserRead != null) return pendingUserRead!.future;
+    return right(user);
+  }
+
+  @override
+  Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo() async =>
+      right(DataCapUsageResponse(enabled: false));
+
+  @override
+  Future<Either<Failure, String>> featureFlag() async => right('{}');
+
+  @override
+  Future<Either<Failure, UserResponseModel>> login({
+    required String email,
+    required String password,
+  }) async {
+    loginCalls++;
+    return right(user);
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
+    String token,
+  ) async {
+    oAuthCallbacks.add(token);
+    return right(user);
+  }
 
   @override
   Future<Either<Failure, Unit>> startBindLegacyEmail(String email) async {
@@ -117,14 +156,13 @@ class _Service implements LanternService {
         ),
       );
     }
-    return rejectCode
-        ? left(
-            Failure(
-              error: 'invalid_code',
-              localizedErrorMessage: 'Invalid code',
-            ),
-          )
-        : right(unit);
+    if (rejectCode) {
+      return left(
+        Failure(error: 'invalid_code', localizedErrorMessage: 'Invalid code'),
+      );
+    }
+    user = _user(email, userLevel: user.legacyUserData.userLevel);
+    return right(unit);
   }
 
   @override
@@ -151,21 +189,20 @@ void main() {
   setUpAll(Localization.loadTranslations);
   late _Router router;
   late _Service service;
-  late _Home home;
   late ProviderContainer container;
 
   setUp(() async {
     await sl.reset();
     router = _Router();
     service = _Service();
-    home = _Home(_user(_placeholder));
     sl.registerSingleton<routes.AppRouter>(router);
     container = ProviderContainer(
+      retry: (_, _) => null,
       overrides: [
         lanternServiceProvider.overrideWithValue(service),
-        homeProvider.overrideWith(() => home),
         appSettingProvider.overrideWith(_Settings.new),
         isOAuthLoginProvider.overrideWith((ref) async => false),
+        helperEntryVisibleProvider.overrideWithValue(false),
       ],
     );
   });
@@ -175,8 +212,12 @@ void main() {
     await sl.reset();
   });
 
-  Future<void> mount(WidgetTester tester, Widget screen) async {
-    await container.read(homeProvider.future);
+  Future<void> mount(
+    WidgetTester tester,
+    Widget screen, {
+    bool waitForUser = true,
+  }) async {
+    if (waitForUser) await container.read(homeProvider.future);
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -211,11 +252,167 @@ void main() {
     },
   );
 
+  testWidgets('placeholder setup does not hide Settings sign-in actions', (
+    tester,
+  ) async {
+    service.user = _user(_placeholder, registered: false);
+    await mount(tester, const Setting());
+    expect(find.byKey(const Key('setting.account_tile')), findsOneWidget);
+    expect(find.byKey(const Key('setting.sign_in_tile')), findsOneWidget);
+    expect(
+      find.byKey(const Key('setting.authorize_device_tile')),
+      findsOneWidget,
+    );
+    expect(find.text(_placeholder), findsNothing);
+    expect(container.read(appSettingProvider).userLoggedIn, isFalse);
+  });
+
+  testWidgets('email and OAuth stay unavailable until account data loads', (
+    tester,
+  ) async {
+    service.ready = Completer<void>();
+    await mount(tester, const AddEmail(), waitForUser: false);
+    await tester.enterText(find.byType(TextFormField), _email);
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(
+      tester
+          .widget<PrimaryButton>(find.byKey(AuthKeys.signUpContinueButton))
+          .enabled,
+      isFalse,
+    );
+    expect(find.byType(OAuthLogin), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(router.pushed, isEmpty);
+    expect(service.starts, isEmpty);
+    expect(service.recoveries, isEmpty);
+    expect(service.oAuthCallbacks, isEmpty);
+
+    service.ready!.complete();
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await tester.tap(find.byKey(AuthKeys.signUpContinueButton));
+    await tester.pump();
+    final args = router.pushed.single.args as pages.CreatePasswordArgs;
+    expect(args.authFlow, AuthFlow.bindLegacyEmail);
+    expect(find.byType(OAuthLogin), findsNothing);
+  });
+
+  testWidgets(
+    'account lookup failure offers a retry before signup can resume',
+    (tester) async {
+      service.pendingUserRead = Completer<Either<Failure, UserResponseModel>>();
+      await mount(tester, const AddEmail(), waitForUser: false);
+      await tester.enterText(find.byType(TextFormField), _email);
+      service.pendingUserRead!.complete(
+        left(Failure(error: 'offline', localizedErrorMessage: 'Offline')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('retry'.i18n), findsOneWidget);
+      expect(find.byType(OAuthLogin), findsNothing);
+      expect(
+        tester
+            .widget<PrimaryButton>(find.byKey(AuthKeys.signUpContinueButton))
+            .enabled,
+        isFalse,
+      );
+      expect(router.pushed, isEmpty);
+      service.pendingUserRead = null;
+      await tester.tap(find.text('retry'.i18n));
+      await tester.pumpAndSettle();
+      expect(find.text('retry'.i18n), findsNothing);
+      await tester.tap(find.byKey(AuthKeys.signUpContinueButton));
+      await tester.pumpAndSettle();
+      expect(
+        (router.pushed.single.args as pages.CreatePasswordArgs).authFlow,
+        AuthFlow.bindLegacyEmail,
+      );
+      expect(service.loginCalls, 0);
+      expect(service.recoveries, isEmpty);
+    },
+  );
+
+  for (final (invalidate, fail) in [
+    (false, false),
+    (true, false),
+    (true, true),
+  ]) {
+    testWidgets(
+      'refresh blocks stale account actions: invalidate=$invalidate, fail=$fail',
+      (tester) async {
+        service.user = _user('', registered: false, userLevel: 'free');
+        await mount(tester, const AddEmail());
+        final oauth = tester.widget<OAuthLogin>(find.byType(OAuthLogin).first);
+        await tester.enterText(find.byType(TextFormField), _email);
+        service.pendingUserRead =
+            Completer<Either<Failure, UserResponseModel>>();
+        final Future<void> refresh;
+        if (invalidate) {
+          container.invalidate(homeProvider);
+          refresh = container.read(homeProvider.future);
+          expect(container.read(homeProvider).asData, isNotNull);
+        } else {
+          refresh = container.read(homeProvider.notifier).refreshUser();
+        }
+        await tester.pump();
+        expect(container.read(homeProvider).isLoading, isTrue);
+        expect(find.byType(OAuthLogin), findsNothing);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(
+          tester
+              .widget<PrimaryButton>(find.byKey(AuthKeys.signUpContinueButton))
+              .enabled,
+          isFalse,
+        );
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        oauth.onResult({'token': 'callback-while-loading'});
+        await tester.pump();
+        expect(service.oAuthCallbacks, isEmpty);
+        expect(router.pushed, isEmpty);
+        expect(container.read(appSettingProvider).userLoggedIn, isFalse);
+        final completed = fail
+            ? expectLater(refresh, throwsException)
+            : refresh;
+        service.pendingUserRead!.complete(
+          fail
+              ? left(
+                  Failure(error: 'offline', localizedErrorMessage: 'Offline'),
+                )
+              : right(service.user),
+        );
+        await completed;
+        await tester.pump();
+        if (fail) {
+          expect(container.read(homeProvider).hasValue, isTrue);
+          expect(container.read(homeProvider).hasError, isTrue);
+          expect(find.text('retry'.i18n), findsOneWidget);
+          expect(find.byType(OAuthLogin), findsNothing);
+          expect(
+            tester
+                .widget<PrimaryButton>(
+                  find.byKey(AuthKeys.signUpContinueButton),
+                )
+                .enabled,
+            isFalse,
+          );
+          await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+          oauth.onResult({'token': 'callback-after-error'});
+          await tester.pump();
+          expect(service.oAuthCallbacks, isEmpty);
+          expect(router.pushed, isEmpty);
+        } else {
+          expect(find.byType(OAuthLogin), findsNWidgets(2));
+        }
+      },
+    );
+  }
+
   for (final registered in [false, true]) {
     testWidgets(
       'placeholder AddEmail uses binding when registered=$registered',
       (tester) async {
-        home = _Home(_user(_placeholder, registered: registered));
+        service.user = _user(_placeholder, registered: registered);
         await mount(tester, const AddEmail());
         expect(find.text(_placeholder), findsNothing);
         expect(find.byType(OAuthLogin), findsNothing);
@@ -238,6 +435,7 @@ void main() {
         final args = router.pushed.single.args as pages.CreatePasswordArgs;
         expect(args.email, _email);
         expect(args.authFlow, AuthFlow.bindLegacyEmail);
+        expect(args.bindingOrigin, AuthFlow.signUp);
         expect(service.starts, isEmpty);
         expect(service.recoveries, isEmpty);
         expect(
@@ -282,6 +480,7 @@ void main() {
   testWidgets(
     'binding resend and completion use only the dedicated endpoints',
     (tester) async {
+      container.read(paymentSessionProvider.notifier).markRedirectInitiated();
       await mount(
         tester,
         const ConfirmEmail(
@@ -301,13 +500,18 @@ void main() {
         (email: _email, password: _password, code: '123456'),
       ]);
       expect(service.recoveries, isEmpty);
-      expect(home.refreshes, 1);
+      expect(service.userReads, 2);
       final user = container.read(homeProvider).value!;
       expect(user.legacyID, 123);
       expect(user.legacyToken, 'test-token');
       expect(user.legacyUserData.email, _email);
       expect(container.read(appSettingProvider).userLoggedIn, isTrue);
+      expect(container.read(paymentSessionProvider), isFalse);
       expect(find.text('email_updated'.i18n), findsOneWidget);
+      await tester.tap(find.text('ok'.i18n));
+      await tester.pumpAndSettle();
+      expect(router.rootPops, 1);
+      expect(router.pushed.single, isA<pages.Account>());
     },
   );
 
@@ -315,6 +519,7 @@ void main() {
     'rejected binding code keeps the existing account and login state',
     (tester) async {
       service.rejectCode = true;
+      container.read(paymentSessionProvider.notifier).markRedirectInitiated();
       await mount(
         tester,
         const ConfirmEmail(
@@ -326,8 +531,9 @@ void main() {
       await tester.enterText(find.byType(EditableText), '123456');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
-      expect(home.refreshes, 0);
+      expect(service.userReads, 1);
       expect(container.read(appSettingProvider).userLoggedIn, isFalse);
+      expect(container.read(paymentSessionProvider), isTrue);
       expect(
         container.read(homeProvider).value?.legacyUserData.email,
         _placeholder,
@@ -338,9 +544,10 @@ void main() {
 
   for (final loggedIn in [false, true]) {
     testWidgets(
-      'completed binding offers sign-in without replacing the account when loggedIn=$loggedIn',
+      'completed binding retries the identity-checked endpoint when loggedIn=$loggedIn',
       (tester) async {
         service.loginRequired = true;
+        container.read(paymentSessionProvider.notifier).markRedirectInitiated();
         container.read(appSettingProvider.notifier).setUserLoggedIn(loggedIn);
         await mount(
           tester,
@@ -356,32 +563,142 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
 
         expect(find.textContaining('email_updated'.i18n), findsOneWidget);
-        expect(find.text('Could not connect'), findsNothing);
-        expect(home.refreshes, 0);
+        expect(find.textContaining('Could not connect'), findsOneWidget);
+        expect(service.userReads, 1);
         expect(container.read(homeProvider).value, same(originalUser));
         expect(container.read(appSettingProvider).userLoggedIn, loggedIn);
+        expect(container.read(paymentSessionProvider), isTrue);
 
-        await tester.tap(find.text('sign_in'.i18n));
+        service.loginRequired = false;
+        await tester.tap(find.text('retry'.i18n));
         await tester.pumpAndSettle();
-        final args = router.pushed.single.args as pages.SignInPasswordArgs;
-        expect(args.email, _email);
-        expect(args.fromChangeEmail, isFalse);
-        expect(router.rootPops, 1);
+        expect(router.pushed, isEmpty);
+        expect(router.rootPops, 0);
+        expect(service.loginCalls, 0);
         expect(service.completions, [
+          (email: _email, password: _password, code: '123456'),
           (email: _email, password: _password, code: '123456'),
         ]);
         expect(service.starts, isEmpty);
         expect(service.recoveries, isEmpty);
-        expect(container.read(homeProvider).value, same(originalUser));
-        expect(container.read(appSettingProvider).userLoggedIn, loggedIn);
+        expect(service.userReads, 2);
+        final user = container.read(homeProvider).value!;
+        expect(user.legacyID, originalUser!.legacyID);
+        expect(user.legacyToken, originalUser.legacyToken);
+        expect(user.legacyUserData.email, _email);
+        expect(container.read(appSettingProvider).userLoggedIn, isTrue);
+        expect(container.read(paymentSessionProvider), isFalse);
       },
     );
+  }
+
+  testWidgets(
+    'cancelling a bound-email retry preserves the account and session',
+    (tester) async {
+      service.loginRequired = true;
+      container.read(paymentSessionProvider.notifier).markRedirectInitiated();
+      await mount(
+        tester,
+        const ConfirmEmail(
+          email: _email,
+          password: _password,
+          authFlow: AuthFlow.bindLegacyEmail,
+        ),
+      );
+      final originalUser = container.read(homeProvider).value;
+      await tester.enterText(find.byType(EditableText), '123456');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('cancel'.i18n));
+      await tester.pumpAndSettle();
+      expect(find.text('retry'.i18n), findsNothing);
+      expect(service.completions, hasLength(1));
+      expect(service.loginCalls, 0);
+      expect(service.userReads, 1);
+      expect(container.read(homeProvider).value, same(originalUser));
+      expect(container.read(appSettingProvider).userLoggedIn, isFalse);
+      expect(container.read(paymentSessionProvider), isTrue);
+      expect(router.pushed, isEmpty);
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      expect(router.pops, 1);
+      expect(container.read(homeProvider).value, same(originalUser));
+    },
+  );
+
+  for (final origin in [AuthFlow.signUp, AuthFlow.lanternProLicense]) {
+    testWidgets('binding resumes ${origin.name} without restarting signup', (
+      tester,
+    ) async {
+      const licenseKey = 'ABCDE-FGHIJ-KLMNO-PQRST-UVWXY';
+      service.user = _user(_placeholder, registered: false, userLevel: 'free');
+      container.read(paymentSessionProvider.notifier).markRedirectInitiated();
+      await mount(tester, AddEmail(authFlow: origin, licenseKey: licenseKey));
+      await tester.enterText(find.byType(TextFormField), _email);
+      await tester.pump();
+      await tester.tap(find.byKey(AuthKeys.signUpContinueButton));
+      await tester.pumpAndSettle();
+      final create = router.pushed.last.args as pages.CreatePasswordArgs;
+      expect(create.bindingOrigin, origin);
+      expect(create.licenseKey, licenseKey);
+      await mount(
+        tester,
+        CreatePassword(
+          email: create.email,
+          authFlow: create.authFlow,
+          code: create.code,
+          bindingOrigin: create.bindingOrigin,
+          licenseKey: create.licenseKey,
+        ),
+      );
+      await tester.enterText(find.byType(TextFormField), _password);
+      await tester.pump();
+      await tester.tap(find.byKey(AuthKeys.createPasswordContinueButton));
+      await tester.pumpAndSettle();
+      final confirm = router.pushed.last.args as pages.ConfirmEmailArgs;
+      expect(confirm.bindingOrigin, origin);
+      expect(confirm.licenseKey, licenseKey);
+      await mount(
+        tester,
+        ConfirmEmail(
+          email: confirm.email,
+          password: confirm.password,
+          authFlow: confirm.authFlow,
+          bindingOrigin: confirm.bindingOrigin,
+          licenseKey: confirm.licenseKey,
+        ),
+      );
+      await tester.enterText(find.byType(EditableText), '123456');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ok'.i18n));
+      await tester.pumpAndSettle();
+      expect(router.rootPops, 1);
+      if (origin == AuthFlow.signUp) {
+        final checkout =
+            router.pushed.last.args as pages.ChoosePaymentMethodArgs;
+        expect(checkout.email, _email);
+        expect(checkout.authFlow, AuthFlow.renewSubscription);
+        expect(checkout.code, isNull);
+      } else {
+        final license = router.pushed.last.args as pages.LanternProLicenseArgs;
+        expect(license.email, _email);
+        expect(license.code, isEmpty);
+        expect(license.licenseKey, licenseKey);
+      }
+      expect(service.recoveries, isEmpty);
+      expect(service.loginCalls, 0);
+      expect(service.completions, hasLength(1));
+      expect(container.read(homeProvider).value!.legacyID, 123);
+      expect(container.read(homeProvider).value!.legacyToken, 'test-token');
+      expect(container.read(homeProvider).value!.legacyUserData.email, _email);
+      expect(container.read(appSettingProvider).userLoggedIn, isTrue);
+      expect(container.read(paymentSessionProvider), isFalse);
+    });
   }
 
   testWidgets('real email keeps the existing password-verified change flow', (
     tester,
   ) async {
-    home = _Home(_user('old@example.com'));
+    service.user = _user('old@example.com');
     await mount(
       tester,
       const AddEmail(authFlow: AuthFlow.changeEmail, password: 'old-password'),

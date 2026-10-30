@@ -11,6 +11,7 @@ import 'package:lantern/core/widgets/app_pin_field.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
@@ -20,6 +21,9 @@ class ConfirmEmail extends HookConsumerWidget {
   final String? password;
   final AuthFlow authFlow;
 
+  /// The action to resume after a legacy account has its email bound.
+  final AuthFlow bindingOrigin;
+
   /// Web-licensing key to pre-fill on the license screen.
   final String licenseKey;
 
@@ -28,6 +32,7 @@ class ConfirmEmail extends HookConsumerWidget {
     required this.email,
     this.password,
     this.authFlow = AuthFlow.signUp,
+    this.bindingOrigin = AuthFlow.bindLegacyEmail,
     this.licenseKey = '',
   });
 
@@ -167,15 +172,16 @@ class ConfirmEmail extends HookConsumerWidget {
         context.hideLoadingDialog();
         if (isBindingEmail &&
             failure.error.contains('legacy_email_bound_login_required')) {
-          AppDialog.dialog(
+          AppDialog.show(
             context: context,
             title: 'add_email'.i18n,
-            content:
-                '${'email_updated'.i18n}\n\n${'confirm_password_to_continue'.i18n}',
-            action: 'sign_in'.i18n,
-            onPressed: () {
-              appRouter.popUntilRoot();
-              appRouter.push(SignInPassword(email: email));
+            body: '${'email_updated'.i18n}\n\n${failure.localizedErrorMessage}',
+            primaryLabel: 'retry'.i18n,
+            secondaryLabel: 'cancel'.i18n,
+            onPrimaryPressed: () {
+              if (context.mounted) {
+                completeChangeEmail(context, ref, code);
+              }
             },
           );
           return;
@@ -186,6 +192,7 @@ class ConfirmEmail extends HookConsumerWidget {
         context.hideLoadingDialog();
         if (isBindingEmail) {
           ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
+          ref.read(paymentSessionProvider.notifier).clearRedirect();
           TextInput.finishAutofillContext(shouldSave: true);
         }
         final home = ref.read(homeProvider.notifier);
@@ -195,22 +202,61 @@ class ConfirmEmail extends HookConsumerWidget {
           await home.fetchUserData();
         }
         if (!context.mounted) return;
+        if (isBindingEmail) {
+          AppDialog.show(
+            context: context,
+            title: 'add_email'.i18n,
+            body: 'email_updated'.i18n,
+            primaryLabel: 'ok'.i18n,
+            onPrimaryPressed: () {
+              if (context.mounted) resumeAfterBinding(context, ref);
+            },
+          );
+          return;
+        }
         AppDialog.dialog(
           context: context,
-          title: isBindingEmail ? 'add_email'.i18n : 'change_email'.i18n,
+          title: 'change_email'.i18n,
           content: 'email_updated'.i18n,
           action: 'ok'.i18n,
           onPressed: () {
-            if (isBindingEmail) {
-              appRouter.popUntilRoot();
-              appRouter.push(Account());
-              return;
-            }
             appRouter.popUntil((route) => (route.settings.name == 'Account'));
           },
         );
       },
     );
+  }
+
+  void resumeAfterBinding(BuildContext context, WidgetRef ref) {
+    if (bindingOrigin == AuthFlow.signUp && ref.read(isUserProProvider)) {
+      AppDialog.showLanternProDialog(
+        context: context,
+        onPressed: appRouter.popUntilRoot,
+      );
+      return;
+    }
+    appRouter.popUntilRoot();
+    switch (bindingOrigin) {
+      case AuthFlow.signUp:
+        if (isStoreVersion()) {
+          appRouter.push(Plans());
+        } else {
+          appRouter.push(
+            ChoosePaymentMethod(
+              email: email,
+              authFlow: AuthFlow.renewSubscription,
+            ),
+          );
+        }
+        break;
+      case AuthFlow.lanternProLicense:
+        appRouter.push(
+          LanternProLicense(email: email, code: '', licenseKey: licenseKey),
+        );
+        break;
+      default:
+        appRouter.push(Account());
+    }
   }
 
   Future<void> validateCode(

@@ -39,15 +39,20 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   final _formKey = GlobalKey<FormState>();
   TextTheme? textTheme;
 
+  UserResponseModel? _loadedUser(AsyncValue<UserResponseModel> account) =>
+      account.isLoading || account.hasError ? null : account.asData?.value;
+
   bool get _isBindLegacyEmailFlow =>
       widget.authFlow == AuthFlow.bindLegacyEmail ||
-      (ref.read(homeProvider).value?.hasLegacyPlaceholderEmail ?? false);
+      (_loadedUser(ref.read(homeProvider))?.hasLegacyPlaceholderEmail ?? false);
 
   @override
   Widget build(BuildContext context) {
     final emailController = useTextEditingController();
     useListenable(emailController);
-    final user = ref.watch(homeProvider).value;
+    // Account type determines whether this binds an existing account or signs up.
+    final account = ref.watch(homeProvider);
+    final user = _loadedUser(account);
     final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
     final currentEmail = user?.legacyUserData.email ?? '';
     final isChangeEmailFlow = widget.authFlow == AuthFlow.changeEmail;
@@ -91,6 +96,21 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (user == null) ...[
+                  if (!account.isLoading && account.hasError)
+                    Column(
+                      children: [
+                        Text('an_error_occurred'.i18n),
+                        AppTextButton(
+                          label: 'retry'.i18n,
+                          onPressed: () => ref.invalidate(homeProvider),
+                        ),
+                      ],
+                    )
+                  else
+                    const Center(child: CircularProgressIndicator()),
+                  SizedBox(height: defaultSize),
+                ],
                 AppTextField(
                   fieldKey: AuthKeys.signUpEmailField,
                   enable:
@@ -218,7 +238,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
   }
 
   bool _canSubmitEmail(String email, String currentEmail) {
-    if (ref.read(homeProvider).value == null) return false;
+    if (_loadedUser(ref.read(homeProvider)) == null) return false;
     final trimmedEmail = email.trim();
     if (!trimmedEmail.isValidEmail() ||
         isLegacyPlaceholderEmail(trimmedEmail)) {
@@ -250,20 +270,16 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_isProblematicEmail(email) && !isUserRegistered) {
-      _showEmailDeliverabilityNotice(
-        () => _handleContinue(type, email, isUserRegistered),
-      );
+      _showEmailDeliverabilityNotice(() => _handleContinue(type, email));
       return;
     }
-    _handleContinue(type, email, isUserRegistered);
+    _handleContinue(type, email);
   }
 
-  Future<void> _handleContinue(
-    SignUpMethodType type,
-    String email,
-    bool isUserRegistered,
-  ) async {
+  Future<void> _handleContinue(SignUpMethodType type, String email) async {
     try {
+      final user = _loadedUser(ref.read(homeProvider));
+      if (user == null) return;
       if (!_formKey.currentState!.validate()) {
         return;
       }
@@ -273,6 +289,8 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             email: email,
             authFlow: AuthFlow.bindLegacyEmail,
             code: '',
+            bindingOrigin: widget.authFlow,
+            licenseKey: widget.licenseKey,
           ),
         );
       } else if (widget.authFlow == AuthFlow.changeEmail) {
@@ -280,7 +298,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         appLogger.debug('Starting change email flow');
         startChangeEmailFlow(email);
       } else {
-        if (isUserRegistered) {
+        if (user.legacyUserData.unpassRegistered) {
           ///This mean user is already registered
           /// plan is expired or user are creating new account with same email
           /// by pass signup flow and start forgot password flow
@@ -388,6 +406,12 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     Map<String, dynamic> result,
     SignUpMethodType type,
   ) async {
+    final user = _loadedUser(ref.read(homeProvider));
+    if (user == null ||
+        user.legacyUserData.unpassRegistered ||
+        _isBindLegacyEmailFlow) {
+      return;
+    }
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();

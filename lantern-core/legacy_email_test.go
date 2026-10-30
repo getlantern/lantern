@@ -5,12 +5,15 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"io"
 	"maps"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/1Password/srp"
 	"github.com/alecthomas/assert/v2"
@@ -22,16 +25,26 @@ import (
 )
 
 type legacyEmailTestAccount struct {
-	values settings.Settings
-	login  func(context.Context, string, string, int64) (*account.UserData, error)
+	values      settings.Settings
+	getSettings func(context.Context) (settings.Settings, error)
+	login       func(context.Context, string, string, int64) (*account.UserData, error)
 }
 
-func (a *legacyEmailTestAccount) Settings(context.Context) (settings.Settings, error) {
+func (a *legacyEmailTestAccount) Settings(ctx context.Context) (settings.Settings, error) {
+	if a.getSettings != nil {
+		return a.getSettings(ctx)
+	}
 	return a.values, nil
 }
 
 func (a *legacyEmailTestAccount) LoginForAccount(ctx context.Context, email, password string, id int64) (*account.UserData, error) {
 	return a.login(ctx, email, password, id)
+}
+
+type legacyEmailRoundTripper func(*http.Request) (*http.Response, error)
+
+func (f legacyEmailRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+	return f(r)
 }
 
 func requireLegacyEmailError(t *testing.T, err error, message string) {
@@ -101,9 +114,28 @@ func TestLegacyEmailBindingFailures(t *testing.T) {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(`{"status":400,"msg":"invalid or expired verification code"}`))
 	})
-	requireLegacyEmailError(t, b.complete(t.Context(), "owner@example.com", "password", "000000"), "invalid or expired verification code")
+	err := b.complete(t.Context(), "owner@example.com", "password", "000000")
+	requireLegacyEmailError(t, err, "received bad response: invalid or expired verification code")
 	delete(a.values, settings.TokenKey)
 	requireLegacyEmailError(t, b.start(t.Context(), "owner@example.com"), "not logged in")
+}
+
+func TestLegacyEmailBindingAPIErrorMessageOnly(t *testing.T) {
+	for _, tc := range []struct {
+		body string
+		want string
+	}{
+		{`{"msg":"invalid email","token":"pro-token"}`, "legacy email binding: HTTP 400: received bad response: invalid email"},
+		{`<html>pro-token</html>`, "legacy email binding: HTTP 400"},
+	} {
+		b, _ := legacyEmailTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(tc.body))
+		})
+		err := b.start(t.Context(), "owner@example.com")
+		requireLegacyEmailError(t, err, tc.want)
+		assert.Equal(t, tc.want, err.Error())
+	}
 }
 
 func TestLegacyEmailBindingCommittedResponseRetry(t *testing.T) {
@@ -133,20 +165,163 @@ func TestLegacyEmailBindingCommittedResponseRetry(t *testing.T) {
 }
 
 func TestLegacyEmailBindingReadbackMustMatchAccountAndEmail(t *testing.T) {
-	for _, body := range []string{
-		`{"userId":999,"email":"owner@example.com"}`,
-		`{"userId":2000000042,"email":"support+2000000042@getlantern.org"}`,
-		`{}`,
-		`{"error":"unavailable"}`,
-	} {
-		b, _ := legacyEmailTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/user-data" {
-				_, _ = w.Write([]byte(body))
-				return
+	for _, status := range []int{http.StatusBadRequest, http.StatusServiceUnavailable} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			for _, body := range []string{
+				`{"userId":999,"email":"owner@example.com"}`,
+				`{"userId":2000000042,"email":"support+2000000042@getlantern.org"}`,
+				`{}`,
+				`{"error":"unavailable"}`,
+			} {
+				b, _ := legacyEmailTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Path == "/user-data" {
+						_, _ = w.Write([]byte(body))
+						return
+					}
+					w.WriteHeader(status)
+					_, _ = w.Write([]byte(`{"msg":"completion failed"}`))
+				})
+				err := b.complete(t.Context(), "owner@example.com", "password", "123456")
+				var apiErr *legacyEmailAPIError
+				assert.True(t, errors.As(err, &apiErr))
+				assert.Equal(t, status, apiErr.status)
+				requireLegacyEmailError(t, err, "received bad response: completion failed")
 			}
-			w.WriteHeader(http.StatusServiceUnavailable)
 		})
-		requireLegacyEmailError(t, b.complete(t.Context(), "owner@example.com", "password", "123456"), "HTTP 503")
+	}
+}
+
+func TestLegacyEmailBindingCommittedLoginRetry(t *testing.T) {
+	for _, tc := range []struct {
+		status     int
+		loginError string
+	}{
+		{http.StatusBadRequest, "temporary login failure"},
+		{http.StatusForbidden, "authenticated account does not match expected account"},
+	} {
+		t.Run(http.StatusText(tc.status), func(t *testing.T) {
+			var posts atomic.Int32
+			logins := 0
+			b, a := legacyEmailTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "2000000042", r.Header.Get(common.UserIDHeader))
+				assert.Equal(t, "pro-token", r.Header.Get(common.ProTokenHeader))
+				assert.Equal(t, "device", r.Header.Get(common.DeviceIDHeader))
+				if r.URL.Path == "/user-data" {
+					_, _ = w.Write([]byte(`{"userId":2000000042,"email":"owner@example.com"}`))
+					return
+				}
+				if posts.Add(1) > 1 {
+					w.WriteHeader(tc.status)
+					_, _ = w.Write([]byte(`{"msg":"invalid or expired verification code"}`))
+				}
+			})
+			before := maps.Clone(a.values)
+			a.login = func(_ context.Context, email, password string, id int64) (*account.UserData, error) {
+				assert.Equal(t, "owner@example.com", email)
+				assert.Equal(t, "password", password)
+				assert.Equal(t, int64(2000000042), id)
+				logins++
+				if logins == 1 {
+					return nil, errors.New(tc.loginError)
+				}
+				return &account.UserData{LegacyID: id, Success: true}, nil
+			}
+			requireLegacyEmailError(t, b.complete(t.Context(), "owner@example.com", "password", "123456"), "legacy_email_bound_login_required")
+			assert.Equal(t, before, a.values)
+			assert.NoError(t, b.complete(t.Context(), "owner@example.com", "password", "123456"))
+			assert.Equal(t, int32(2), posts.Load())
+			assert.Equal(t, 2, logins)
+		})
+	}
+}
+
+func TestLegacyEmailBindingTimedOutResponseUsesFreshBudgets(t *testing.T) {
+	b, a := legacyEmailTestClient(t, func(http.ResponseWriter, *http.Request) {
+		t.Error("unexpected network request")
+	})
+	b.timeout = 5 * time.Millisecond
+	var identityCtx, completionCtx, recoveryCtx, loginCtx context.Context
+	a.getSettings = func(ctx context.Context) (settings.Settings, error) {
+		identityCtx = ctx
+		return a.values, nil
+	}
+	b.http.Transport = legacyEmailRoundTripper(func(r *http.Request) (*http.Response, error) {
+		if r.URL.Path == "/users/bind_legacy_email/complete" {
+			completionCtx = r.Context()
+			// The server committed the binding, but its response never arrived.
+			<-r.Context().Done()
+			return nil, r.Context().Err()
+		}
+		assert.Equal(t, "/user-data", r.URL.Path)
+		recoveryCtx = r.Context()
+		assert.NoError(t, recoveryCtx.Err())
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(
+			`{"userId":2000000042,"email":"owner@example.com"}`,
+		))}, nil
+	})
+	a.login = func(ctx context.Context, _, _ string, id int64) (*account.UserData, error) {
+		loginCtx = ctx
+		assert.NoError(t, ctx.Err())
+		assert.Equal(t, int64(2000000042), id)
+		return &account.UserData{LegacyID: id, Success: true}, nil
+	}
+	assert.NoError(t, b.complete(t.Context(), "owner@example.com", "password", "123456"))
+	assert.True(t, errors.Is(completionCtx.Err(), context.DeadlineExceeded))
+	var previousDeadline time.Time
+	for _, ctx := range []context.Context{identityCtx, completionCtx, recoveryCtx, loginCtx} {
+		deadline, ok := ctx.Deadline()
+		assert.True(t, ok)
+		assert.True(t, deadline.After(previousDeadline))
+		previousDeadline = deadline
+	}
+}
+
+func TestLegacyEmailBindingHonorsCallerCancellation(t *testing.T) {
+	for _, stage := range []string{"identity", "completion", "recovery", "login"} {
+		t.Run(stage, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			b, a := legacyEmailTestClient(t, func(http.ResponseWriter, *http.Request) {
+				t.Error("unexpected network request")
+			})
+			a.getSettings = func(ctx context.Context) (settings.Settings, error) {
+				if stage == "identity" {
+					cancel()
+					assert.True(t, errors.Is(ctx.Err(), context.Canceled))
+					return nil, ctx.Err()
+				}
+				return a.values, nil
+			}
+			b.http.Transport = legacyEmailRoundTripper(func(r *http.Request) (*http.Response, error) {
+				assert.NoError(t, r.Context().Err())
+				if r.URL.Path == "/users/bind_legacy_email/complete" {
+					if stage == "completion" {
+						cancel()
+						assert.True(t, errors.Is(r.Context().Err(), context.Canceled))
+						return nil, r.Context().Err()
+					}
+					if stage == "recovery" {
+						return nil, errors.New("response lost")
+					}
+					return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}, nil
+				}
+				if stage != "recovery" {
+					t.Fatal("unexpected recovery request after cancellation")
+				}
+				cancel()
+				assert.True(t, errors.Is(r.Context().Err(), context.Canceled))
+				return nil, r.Context().Err()
+			})
+			a.login = func(ctx context.Context, _, _ string, _ int64) (*account.UserData, error) {
+				if stage != "login" {
+					t.Fatal("unexpected login after cancellation")
+				}
+				cancel()
+				assert.True(t, errors.Is(ctx.Err(), context.Canceled))
+				return nil, ctx.Err()
+			}
+			assert.True(t, errors.Is(b.complete(ctx, "owner@example.com", "password", "123456"), context.Canceled))
+		})
 	}
 }
 

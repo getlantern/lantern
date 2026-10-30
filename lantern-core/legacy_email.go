@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/1Password/srp"
 	"golang.org/x/crypto/pbkdf2"
@@ -33,6 +34,7 @@ type legacyEmailBinder struct {
 	http    *http.Client
 	authURL string
 	proURL  string
+	timeout time.Duration
 }
 
 type legacyEmailIdentity struct {
@@ -67,7 +69,7 @@ func (b legacyEmailBinder) identity(ctx context.Context) (legacyEmailIdentity, e
 }
 
 func (b legacyEmailBinder) start(ctx context.Context, email string) error {
-	ctx, cancel := context.WithTimeout(ctx, common.DefaultHTTPTimeout)
+	ctx, cancel := b.withTimeout(ctx)
 	defer cancel()
 	identity, err := b.identity(ctx)
 	if err != nil {
@@ -78,9 +80,9 @@ func (b legacyEmailBinder) start(ctx context.Context, email string) error {
 }
 
 func (b legacyEmailBinder) complete(ctx context.Context, email, password, code string) error {
-	ctx, cancel := context.WithTimeout(ctx, common.DefaultHTTPTimeout)
-	defer cancel()
-	identity, err := b.identity(ctx)
+	identityCtx, cancel := b.withTimeout(ctx)
+	identity, err := b.identity(identityCtx)
+	cancel()
 	if err != nil {
 		return err
 	}
@@ -104,19 +106,29 @@ func (b legacyEmailBinder) complete(ctx context.Context, email, password, code s
 		NewSalt     []byte `json:"new_salt"`
 		NewVerifier []byte `json:"new_verifier"`
 	}{email, code, salt, verifier.Bytes()}
-	if err := b.request(ctx, identity, http.MethodPost, b.authURL+"/users/bind_legacy_email/complete", request, nil); err != nil {
-		var apiErr *legacyEmailAPIError
-		if errors.As(err, &apiErr) && apiErr.status < 500 && apiErr.status != http.StatusForbidden {
-			return err
+	requestCtx, cancel := b.withTimeout(ctx)
+	err = b.request(requestCtx, identity, http.MethodPost, b.authURL+"/users/bind_legacy_email/complete", request, nil)
+	cancel()
+	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
 		}
-		// A lost response must not force a replay of a committed binding.
+		// A committed binding may outlive its response or verification code.
 		var data account.UserDataResponse
-		if fetchErr := b.request(ctx, identity, http.MethodGet, b.proURL+"/user-data", nil, &data); fetchErr != nil ||
+		recoveryCtx, cancel := b.withTimeout(ctx)
+		fetchErr := b.request(recoveryCtx, identity, http.MethodGet, b.proURL+"/user-data", nil, &data)
+		cancel()
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		if fetchErr != nil ||
 			data.LoginResponse_UserData == nil || data.UserId != identity.userID || !strings.EqualFold(data.Email, email) {
 			return err
 		}
 	}
-	user, err := b.account.LoginForAccount(ctx, email, password, identity.userID)
+	loginCtx, cancel := b.withTimeout(ctx)
+	defer cancel()
+	user, err := b.account.LoginForAccount(loginCtx, email, password, identity.userID)
 	if err != nil {
 		return fmt.Errorf("legacy_email_bound_login_required: %w", err)
 	}
@@ -126,13 +138,24 @@ func (b legacyEmailBinder) complete(ctx context.Context, email, password, code s
 	return nil
 }
 
+func (b legacyEmailBinder) withTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
+	timeout := b.timeout
+	if timeout <= 0 {
+		timeout = common.DefaultHTTPTimeout
+	}
+	return context.WithTimeout(ctx, timeout)
+}
+
 type legacyEmailAPIError struct {
 	status  int
 	message string
 }
 
 func (e *legacyEmailAPIError) Error() string {
-	return fmt.Sprintf("legacy email binding: HTTP %d: %s", e.status, e.message)
+	if e.message == "" {
+		return fmt.Sprintf("legacy email binding: HTTP %d", e.status)
+	}
+	return fmt.Sprintf("legacy email binding: HTTP %d: received bad response: %s", e.status, e.message)
 }
 
 func (b legacyEmailBinder) request(ctx context.Context, identity legacyEmailIdentity, method, url string, body, result any) error {

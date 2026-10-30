@@ -16,12 +16,16 @@ class CreatePassword extends HookConsumerWidget {
   final String email;
   final String code;
   final AuthFlow authFlow;
+  final AuthFlow bindingOrigin;
+  final String licenseKey;
 
   const CreatePassword({
     super.key,
     required this.email,
     required this.authFlow,
     required this.code,
+    this.bindingOrigin = AuthFlow.bindLegacyEmail,
+    this.licenseKey = '',
   });
 
   @override
@@ -121,7 +125,13 @@ class CreatePassword extends HookConsumerWidget {
         context.hideLoadingDialog();
         if (isBindingEmail) {
           appRouter.push(
-            ConfirmEmail(email: email, password: password, authFlow: authFlow),
+            ConfirmEmail(
+              email: email,
+              password: password,
+              authFlow: authFlow,
+              bindingOrigin: bindingOrigin,
+              licenseKey: licenseKey,
+            ),
           );
           return;
         }

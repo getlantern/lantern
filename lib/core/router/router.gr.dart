@@ -378,6 +378,7 @@ class ConfirmEmail extends _i48.PageRouteInfo<ConfirmEmailArgs> {
     required String email,
     String? password,
     _i50.AuthFlow authFlow = _i50.AuthFlow.signUp,
+    _i50.AuthFlow bindingOrigin = _i50.AuthFlow.bindLegacyEmail,
     String licenseKey = '',
     List<_i48.PageRouteInfo>? children,
   }) : super(
@@ -387,6 +388,7 @@ class ConfirmEmail extends _i48.PageRouteInfo<ConfirmEmailArgs> {
            email: email,
            password: password,
            authFlow: authFlow,
+           bindingOrigin: bindingOrigin,
            licenseKey: licenseKey,
          ),
          initialChildren: children,
@@ -403,6 +405,7 @@ class ConfirmEmail extends _i48.PageRouteInfo<ConfirmEmailArgs> {
         email: args.email,
         password: args.password,
         authFlow: args.authFlow,
+        bindingOrigin: args.bindingOrigin,
         licenseKey: args.licenseKey,
       );
     },
@@ -415,6 +418,7 @@ class ConfirmEmailArgs {
     required this.email,
     this.password,
     this.authFlow = _i50.AuthFlow.signUp,
+    this.bindingOrigin = _i50.AuthFlow.bindLegacyEmail,
     this.licenseKey = '',
   });
 
@@ -426,11 +430,13 @@ class ConfirmEmailArgs {
 
   final _i50.AuthFlow authFlow;
 
+  final _i50.AuthFlow bindingOrigin;
+
   final String licenseKey;
 
   @override
   String toString() {
-    return 'ConfirmEmailArgs{key: $key, email: $email, password: $password, authFlow: $authFlow, licenseKey: $licenseKey}';
+    return 'ConfirmEmailArgs{key: $key, email: $email, password: $password, authFlow: $authFlow, bindingOrigin: $bindingOrigin, licenseKey: $licenseKey}';
   }
 
   @override
@@ -441,6 +447,7 @@ class ConfirmEmailArgs {
         email == other.email &&
         password == other.password &&
         authFlow == other.authFlow &&
+        bindingOrigin == other.bindingOrigin &&
         licenseKey == other.licenseKey;
   }
 
@@ -450,6 +457,7 @@ class ConfirmEmailArgs {
       email.hashCode ^
       password.hashCode ^
       authFlow.hashCode ^
+      bindingOrigin.hashCode ^
       licenseKey.hashCode;
 }
 
@@ -461,6 +469,8 @@ class CreatePassword extends _i48.PageRouteInfo<CreatePasswordArgs> {
     required String email,
     required _i50.AuthFlow authFlow,
     required String code,
+    _i50.AuthFlow bindingOrigin = _i50.AuthFlow.bindLegacyEmail,
+    String licenseKey = '',
     List<_i48.PageRouteInfo>? children,
   }) : super(
          CreatePassword.name,
@@ -469,6 +479,8 @@ class CreatePassword extends _i48.PageRouteInfo<CreatePasswordArgs> {
            email: email,
            authFlow: authFlow,
            code: code,
+           bindingOrigin: bindingOrigin,
+           licenseKey: licenseKey,
          ),
          initialChildren: children,
        );
@@ -484,6 +496,8 @@ class CreatePassword extends _i48.PageRouteInfo<CreatePasswordArgs> {
         email: args.email,
         authFlow: args.authFlow,
         code: args.code,
+        bindingOrigin: args.bindingOrigin,
+        licenseKey: args.licenseKey,
       );
     },
   );
@@ -495,6 +509,8 @@ class CreatePasswordArgs {
     required this.email,
     required this.authFlow,
     required this.code,
+    this.bindingOrigin = _i50.AuthFlow.bindLegacyEmail,
+    this.licenseKey = '',
   });
 
   final _i49.Key? key;
@@ -505,9 +521,13 @@ class CreatePasswordArgs {
 
   final String code;
 
+  final _i50.AuthFlow bindingOrigin;
+
+  final String licenseKey;
+
   @override
   String toString() {
-    return 'CreatePasswordArgs{key: $key, email: $email, authFlow: $authFlow, code: $code}';
+    return 'CreatePasswordArgs{key: $key, email: $email, authFlow: $authFlow, code: $code, bindingOrigin: $bindingOrigin, licenseKey: $licenseKey}';
   }
 
   @override
@@ -517,12 +537,19 @@ class CreatePasswordArgs {
     return key == other.key &&
         email == other.email &&
         authFlow == other.authFlow &&
-        code == other.code;
+        code == other.code &&
+        bindingOrigin == other.bindingOrigin &&
+        licenseKey == other.licenseKey;
   }
 
   @override
   int get hashCode =>
-      key.hashCode ^ email.hashCode ^ authFlow.hashCode ^ code.hashCode;
+      key.hashCode ^
+      email.hashCode ^
+      authFlow.hashCode ^
+      code.hashCode ^
+      bindingOrigin.hashCode ^
+      licenseKey.hashCode;
 }
 
 /// generated route for

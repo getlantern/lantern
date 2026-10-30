@@ -81,8 +81,7 @@ class _SettingState extends ConsumerState<Setting>
 
     final hasProSession = hasRegisteredProAccount(user);
 
-    final isAuthenticated =
-        appSetting.userLoggedIn || hasProSession || needsEmail;
+    final isAuthenticated = appSetting.userLoggedIn || hasProSession;
 
     final locale = appSetting.locale;
     final themeMode = appSetting.themeMode;
