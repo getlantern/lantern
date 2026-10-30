@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/latency_status.dart';
 import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
@@ -85,6 +86,27 @@ void main() {
 
     await pump(const LatencyUnreachable());
     expect(find.text('latency_unreachable'), findsOneWidget);
+  });
+
+  testWidgets('measured labels occupy the same width regardless of digits', (
+    tester,
+  ) async {
+    Future<double> widthOf(LatencyStatus status) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(child: LatencyIndicator(status: status)),
+          ),
+        ),
+      );
+      return tester.getSize(find.byType(LatencyIndicator)).width;
+    }
+
+    // The app font has no tabular figures, so without a reserved block the
+    // dot column would shift with the digit count.
+    final twoDigits = await widthOf(const LatencyMeasured(61));
+    final fourDigits = await widthOf(const LatencyMeasured(1347));
+    expect(twoDigits, fourDigits);
   });
 
   testWidgets('country sheet tracks provider refreshes while open', (

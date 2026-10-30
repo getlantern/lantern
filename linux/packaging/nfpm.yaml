@@ -43,18 +43,21 @@ overrides:
       - libblkid1
       - liblzma5
       - libwebkit2gtk-4.1-0
+      - libsecret-1-0
   rpm:
     depends:
       - gtk3
       - xz-libs
       - libblkid
       - webkit2gtk4.1
+      - libsecret
   archlinux:
     depends:
       - gtk3
       - xz
       - util-linux-libs
       - webkit2gtk-4.1
+      - libsecret
     scripts:
       postinstall: linux/packaging/arch/postinstall.sh
       preremove: linux/packaging/arch/preremove.sh

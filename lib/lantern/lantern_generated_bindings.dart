@@ -4917,6 +4917,30 @@ class LanternBindings {
   late final _googleCloudPrivateServer = _googleCloudPrivateServerPtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> helperCall(
+    ffi.Pointer<ffi.Char> _op,
+    ffi.Pointer<ffi.Char> _args,
+  ) {
+    return _helperCall(_op, _args);
+  }
+
+  late final _helperCallPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('helperCall');
+  late final _helperCall = _helperCallPtr
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+        )
+      >();
+
   ffi.Pointer<ffi.Char> inviteToServerManagerInstance(
     ffi.Pointer<ffi.Char> _ip,
     ffi.Pointer<ffi.Char> _port,

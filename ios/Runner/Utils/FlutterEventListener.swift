@@ -29,7 +29,9 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
         appLogger.log(message())
       }
     }
-    logEvent("FlutterEventListener sending event: \(event.type) - \(event.message)")
+    logEvent(
+      "FlutterEventListener sending event: \(loggableFlutterEvent(type: event.type, message: event.message))"
+    )
     let map: [String: Any] = [
       "type": event.type,
       "message": event.message,
@@ -38,7 +40,7 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
     lock.lock()
     if let sink = eventSink {
       lock.unlock()
-      logEvent("FlutterEventListener sending event immediately: \(map)")
+      logEvent("FlutterEventListener sending event immediately: \(event.type)")
       DispatchQueue.main.async {
         sink(map)
       }

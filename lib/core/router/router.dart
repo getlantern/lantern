@@ -38,6 +38,14 @@ class AppRouter extends RootStackRouter {
       page: InviteFriends.page,
     ),
     AutoRoute(
+      path: '/invite-share',
+      page: InviteShare.page,
+    ),
+    AutoRoute(
+      path: '/help-friend',
+      page: HelpFriend.page,
+    ),
+    AutoRoute(
       path: '/vpn-setting',
       page: VPNSetting.page,
     ),

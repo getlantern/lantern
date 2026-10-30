@@ -44,6 +44,11 @@ class LocationSetting extends HookConsumerWidget {
         flag = serverLocation.countryCode;
         protocol = serverLocation.protocol;
         break;
+
+      case ServerLocationType.personalProxy:
+        title = 'selected_location'.i18n;
+        value = 'personal_proxy'.i18n;
+        break;
     }
 
     return SettingTile(
