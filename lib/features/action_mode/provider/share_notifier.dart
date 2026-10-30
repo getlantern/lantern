@@ -242,26 +242,39 @@ class ShareNotifier extends _$ShareNotifier {
   /// start made then makes this stand down. The stop or switch is decided
   /// under the gate from the settings, helper view and share state as they
   /// are at that moment.
+  ///
+  /// It runs once per process. A later call, such as Home's launch callback
+  /// running again when the feature flag arrives, waits for that run before
+  /// answering, so its auto-start cannot overtake the reconciliation.
   Future<bool> reconcileLaunch(WidgetRef widgetRef) async {
     if (!_launchSettled) {
       _launchSettled = true;
-      _launchInProgress = true;
-      try {
-        await _reconcileLaunch();
-      } finally {
-        _launchInProgress = false;
-      }
-      // A helper start skipped while the gate was held runs now, if sharing
-      // ended up off.
-      if (ref.mounted &&
-          _helperStartPending &&
-          !_changing &&
-          !state.active &&
-          !state.probing) {
-        await startForHelper(widgetRef);
-      }
+      _launchRun = _runLaunch(widgetRef);
     }
+    await _launchRun;
     return _toggles == 0;
+  }
+
+  /// The one launch reconciliation, while or after it runs; null if a start
+  /// settled the launch first.
+  Future<void>? _launchRun;
+
+  Future<void> _runLaunch(WidgetRef widgetRef) async {
+    _launchInProgress = true;
+    try {
+      await _reconcileLaunch();
+    } finally {
+      _launchInProgress = false;
+    }
+    // A helper start skipped while the gate was held runs now, if sharing
+    // ended up off.
+    if (ref.mounted &&
+        _helperStartPending &&
+        !_changing &&
+        !state.active &&
+        !state.probing) {
+      await startForHelper(widgetRef);
+    }
   }
 
   bool _launchInProgress = false;

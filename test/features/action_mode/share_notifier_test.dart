@@ -643,6 +643,34 @@ void main() {
       expect(notifier.state.mode, ShareMode.smc);
     });
 
+    testWidgets('a second launch callback waits for the reconciliation, so '
+        'its auto-start cannot overtake the switch to SmC', (tester) async {
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.manualPort = 5698;
+      service.unboundedOk = true;
+      service.probeGate = Completer<void>();
+      // Home's callback runs again when the feature flag arrives, while the
+      // first run is still asking radiance what it resumed.
+      final first = launch(notifier, ref);
+      await tester.pump();
+      var secondDone = false;
+      final second = launch(notifier, ref).then((v) => secondDone = true);
+      await tester.pump();
+      expect(secondDone, isFalse, reason: 'waits for the first run');
+      service.probeGate!.complete();
+      await first;
+      await second;
+      expect(service.calls, [
+        'unbounded?',
+        'manual_port',
+        'unbounded:false',
+        'peer:true',
+      ]);
+      expect(notifier.state.mode, ShareMode.smc);
+    });
+
     testWidgets('a switch whose SmC start fails falls back to Unbounded', (
       tester,
     ) async {
