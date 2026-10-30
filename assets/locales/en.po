@@ -2267,7 +2267,7 @@ msgstr "Waiting for your friend to open the link"
 
 # Warning under an invite's link and QR code.
 msgid "invite_trust_warning"
-msgstr "The person you invite will know you use Lantern and can see when you're connected through them. They can't see what you do online. Only invite someone you trust."
+msgstr "The person you invite will know you use Lantern and can see when you're connected through them. Your traffic leaves through their internet connection, so they could learn which sites you visit, though not what you do on secure (https) sites. Only invite someone you trust."
 
 # %s is a number of hours.
 msgid "invite_expires"
@@ -2330,7 +2330,7 @@ msgid "help_friend_means_title"
 msgstr "What helping a friend means"
 
 msgid "help_friend_means_traffic"
-msgstr "Your friend reaches the open internet through your connection. Their traffic is encrypted, and you can't see it."
+msgstr "Your friend reaches the open internet through your connection, so their traffic leaves from your network. Lantern doesn't show you what they do online."
 
 msgid "help_friend_means_online"
 msgstr "Your friend can see when you're online. Only accept invites from people you know."
