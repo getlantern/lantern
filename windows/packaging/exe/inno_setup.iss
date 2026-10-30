@@ -29,8 +29,10 @@ var
   Dependency_NeedToRestart, Dependency_ForceX86: Boolean;
   Dependency_DownloadPage: TDownloadWizardPage;
   LegacyMigration: Boolean;
+  Dependency_VCRuntimeEnabled: Boolean;
 
 function ValidateInstallTarget: String; forward;
+function Dependency_EnsureVCRuntime(var NeedsRestart: Boolean): String; forward;
 
 procedure Dependency_Add(const Filename, Parameters, Title, URL, Checksum: String; const ForceSuccess, RestartAfter: Boolean);
 var
@@ -73,6 +75,8 @@ var
 begin
   // Validate before downloading/installing prerequisites or closing applications.
   Result := ValidateInstallTarget;
+  if Result <> '' then exit;
+  Result := Dependency_EnsureVCRuntime(NeedsRestart);
   if Result <> '' then exit;
   DependencyCount := GetArrayLength(Dependency_List);
 
@@ -234,63 +238,148 @@ begin
   end;
 end;
 
-function Dependency_IsVCRuntimeInstalled: Boolean;
-var
-  Arch, Key, Version: String;
-  Installed: Cardinal;
-  PackedVersion, RequiredVersion: Int64;
+function Dependency_VCRuntimeArch: String;
 begin
-  Result := False;
   // The x64 bundle installs ARM64X DLLs on ARM64, supporting our x64 UI.
   // https://learn.microsoft.com/en-us/windows/arm/arm64x-pe
-  if IsArm64 then
-    Arch := 'arm64'
-  else
-    Arch := 'x64';
+  if IsArm64 then Result := 'arm64' else Result := 'x64';
+end;
 
-  // https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files
-  Key := 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\' + Arch;
-  Log('Checking Visual C++ runtime: ' + Arch);
+function Dependency_ReadVCRuntimeVersion(var Version: String; var PackedVersion: Int64): Boolean;
+var
+  Key: String;
+  Installed: Cardinal;
+begin
+  Result := False;
+  Version := '';
+  PackedVersion := 0;
+  Key := 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\' + Dependency_VCRuntimeArch;
   if not RegQueryDWordValue(HKLM64, Key, 'Installed', Installed) or (Installed <> 1) then begin
-    Log('Visual C++ runtime is not installed: ' + Arch);
+    Log('Visual C++ runtime is not installed: ' + Dependency_VCRuntimeArch);
     exit;
   end;
   if not RegQueryStringValue(HKLM64, Key, 'Version', Version) then begin
-    Log('Visual C++ runtime version is missing: ' + Arch);
+    Log('Visual C++ runtime registry version is missing: ' + Dependency_VCRuntimeArch);
     exit;
   end;
-  Log('Installed Visual C++ runtime version: ' + Version);
-  if Lowercase(Copy(Version, 1, 1)) = 'v' then
-    Delete(Version, 1, 1);
-  if not StrToVersion(Version, PackedVersion) then begin
-    Log('Visual C++ runtime version is invalid: ' + Version);
-    exit;
-  end;
+  Log('Registered Visual C++ runtime version: ' + Version);
+  if Lowercase(Copy(Version, 1, 1)) = 'v' then Delete(Version, 1, 1);
+  Result := StrToVersion(Version, PackedVersion);
+  if not Result then Log('Visual C++ runtime registry version is invalid: ' + Version);
+end;
 
+function Dependency_CheckVCRuntimeFile(const Filename: String; const RequiredVersion: Int64): Boolean;
+var
+  Path, Version: String;
+  PackedVersion: Int64;
+  PreviousRedirection: Boolean;
+begin
+  Path := ExpandConstant('{sys}\') + Filename;
+  // Setup is a 32-bit process. Inspect native System32, including ARM64X on
+  // ARM64, rather than the unrelated 32-bit runtime under SysWOW64.
+  PreviousRedirection := EnableFsRedirection(False);
+  try
+    Result := GetVersionNumbersString(Path, Version);
+  finally
+    EnableFsRedirection(PreviousRedirection);
+  end;
+  if Result then Result := StrToVersion(Version, PackedVersion);
+  if Result then begin
+    Log('Visual C++ runtime file: ' + Path + '; version: ' + Version);
+    Result := ComparePackedVersion(PackedVersion, RequiredVersion) >= 0;
+  end else
+    Version := 'missing or unreadable';
+  if not Result then
+    Log('Visual C++ runtime file does not meet minimum {#VCRedistVersion}: ' + Path + '; version: ' + Version);
+end;
+
+function Dependency_IsVCRuntimeInstalled: Boolean;
+var
+  Version: String;
+  PackedVersion, RequiredVersion: Int64;
+begin
   if not StrToVersion('{#VCRedistVersion}', RequiredVersion) then
     RaiseException('Invalid bundled Visual C++ runtime version: {#VCRedistVersion}');
-  Result := ComparePackedVersion(PackedVersion, RequiredVersion) >= 0;
-  if Result then
-    Log('Visual C++ runtime meets minimum {#VCRedistVersion}; skipping installation')
-  else
-    Log('Visual C++ runtime is below minimum {#VCRedistVersion}; installation required');
+  Result := Dependency_ReadVCRuntimeVersion(Version, PackedVersion);
+  if Result then Result := ComparePackedVersion(PackedVersion, RequiredVersion) >= 0;
+  // Registry metadata can survive stale or missing DLLs. Check every DLL even
+  // when registration is invalid, retaining useful diagnostics in the log.
+  if not Dependency_CheckVCRuntimeFile('msvcp140.dll', RequiredVersion) then Result := False;
+  if not Dependency_CheckVCRuntimeFile('vcruntime140.dll', RequiredVersion) then Result := False;
+  if not Dependency_CheckVCRuntimeFile('vcruntime140_1.dll', RequiredVersion) then Result := False;
+  if Result then Log('Visual C++ runtime registration and native DLLs meet minimum {#VCRedistVersion}');
+end;
+
+function Dependency_VCRuntimeRepairMessage(const Detail: String): String;
+begin
+  Result := 'The Microsoft Visual C++ runtime needs repair before Lantern can be installed. ' +
+    Detail + ' Repair the installed Microsoft Visual C++ Redistributable in Windows Settings > Apps > Installed apps, ' +
+    'or run the same or a newer Microsoft redistributable with /repair, then retry Lantern setup.';
+  Log(Result);
+end;
+
+function Dependency_EnsureVCRuntime(var NeedsRestart: Boolean): String;
+var
+  Version, Operation, LogPath, Parameters: String;
+  PackedVersion, RequiredVersion: Int64;
+  HasVersion: Boolean;
+  Attempt, ResultCode: Integer;
+begin
+  Result := '';
+  if not Dependency_VCRuntimeEnabled then exit;
+  if Dependency_IsVCRuntimeInstalled then exit;
+  if not StrToVersion('{#VCRedistVersion}', RequiredVersion) then
+    RaiseException('Invalid bundled Visual C++ runtime version: {#VCRedistVersion}');
+  HasVersion := Dependency_ReadVCRuntimeVersion(Version, PackedVersion);
+  if HasVersion and (ComparePackedVersion(PackedVersion, RequiredVersion) > 0) then begin
+    Result := Dependency_VCRuntimeRepairMessage('Windows reports version ' + Version +
+      ', but its native DLLs are missing or outdated. The bundled version {#VCRedistVersion} is older and cannot repair it.');
+    exit;
+  end;
+  Operation := '/install';
+  if HasVersion and (ComparePackedVersion(PackedVersion, RequiredVersion) = 0) then Operation := '/repair';
+  // Preserve logs after Inno removes its temporary directory.
+  LogPath := ChangeFileExt(ExpandConstant('{log}'), '-vcredist.log');
+  ExtractTemporaryFile('VC_redist.x64.exe');
+  for Attempt := 1 to 2 do begin
+    Parameters := Operation + ' /passive /norestart /log "' + LogPath + '"';
+    Log('Starting Visual C++ runtime ' + Parameters);
+    if not ShellExec('', ExpandConstant('{tmp}\VC_redist.x64.exe'), Parameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then begin
+      Result := Dependency_VCRuntimeRepairMessage('The bundled redistributable could not start (error ' + IntToStr(ResultCode) + ').');
+      exit;
+    end;
+    Log('Visual C++ runtime exit code: ' + IntToStr(ResultCode));
+    if (ResultCode = 3010) or (ResultCode = 1641) then begin
+      // Do not install/launch the app against DLLs whose replacement is pending.
+      NeedsRestart := True;
+      Result := 'Restart Windows before retrying Lantern setup to finish the Visual C++ runtime repair.';
+      exit;
+    end;
+    // Burn may return HRESULT_FROM_WIN32(ERROR_PRODUCT_VERSION), rather than
+    // raw MSI 1638. Neither result proves that the actual DLLs are healthy.
+    if (ResultCode <> 0) and (ResultCode <> 1638) and (ResultCode <> -2147023258) then begin
+      Result := Dependency_VCRuntimeRepairMessage('The bundled redistributable failed (exit ' + IntToStr(ResultCode) + '). See ' + LogPath + '.');
+      exit;
+    end;
+    if Dependency_IsVCRuntimeInstalled then exit;
+    HasVersion := Dependency_ReadVCRuntimeVersion(Version, PackedVersion);
+    // An install can leave an already-registered bundle untouched. Only that
+    // exact version is safe to repair with our offline bundle, and only once.
+    if (Attempt = 1) and (Operation = '/install') and HasVersion and
+      (ComparePackedVersion(PackedVersion, RequiredVersion) = 0) then
+      Operation := '/repair'
+    else begin
+      Result := Dependency_VCRuntimeRepairMessage('Its native DLLs still do not meet minimum {#VCRedistVersion}. See ' + LogPath + '.');
+      exit;
+    end;
+  end;
 end;
 
 procedure Dependency_AddVCRuntime;
-var
-  LogPath: String;
 begin
-  if not Dependency_IsVCRuntimeInstalled then begin
-    // Preserve the runtime log after Inno removes its temporary directory.
-    LogPath := ChangeFileExt(ExpandConstant('{log}'), '-vcredist.log');
-    Log('Visual C++ redistributable log: ' + LogPath);
-    ExtractTemporaryFile('VC_redist.x64.exe');
-    Dependency_Add('VC_redist.x64.exe',
-      '/install /passive /norestart /log "' + LogPath + '"',
-      'Microsoft Visual C++ Runtime {#VCRedistVersion}',
-      '',
-      '', False, False);
-  end;
+  Dependency_VCRuntimeEnabled := True;
+  if not Dependency_IsVCRuntimeInstalled then
+    Dependency_Memo := Dependency_Memo + #13#10 + '%1Microsoft Visual C++ Runtime {#VCRedistVersion}';
 end;
 
 procedure Dependency_AddWebView2;
