@@ -171,7 +171,7 @@ jobs:
     name: Install and update through WinSparkle
     if: |
       !cancelled() && needs.resolve-target.result == 'success' &&
-      (needs.build-fixture.result == 'success' || (inputs.fixture_run_id > 0 && needs.build-fixture.result == 'skipped'))
+      (needs.build-fixture.result == 'success' || (inputs.fixture_run_id != 0 && needs.build-fixture.result == 'skipped'))
     needs:
       - resolve-target
       - build-fixture
