@@ -626,8 +626,10 @@ stage-macos-profile: build-macos-profile
 
 # stapler fetches the ticket from Apple's CloudKit, and one dropped connection
 # there failed v10.0.3-beta-3 after notarization had been accepted. Stapling is
-# idempotent, so every failure is retried.
-STAPLER_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" --
+# idempotent, so every failure is retried. CloudKit outages outlasted the
+# default three attempts (~90s of waiting) on v10.0.4-beta.3 and the
+# 2026-10-28 nightly, so stapling waits through six attempts (15 minutes).
+STAPLER_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" -n 6 -b 60 --
 
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
