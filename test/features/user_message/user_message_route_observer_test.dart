@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/router/router.gr.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/lantern_app.dart';
 
 void main() {
+  test("the app's observer blocks the QR scanner", () {
+    final observer = userMessageRouteObserver;
+    final home = MaterialPageRoute<void>(
+      settings: const RouteSettings(name: 'home'),
+      builder: (_) => const SizedBox.shrink(),
+    );
+    observer.didPush(home, null);
+    expect(observer.isReadyForMessages, isTrue);
+    // It scans under a sheet and pops itself with the code it read.
+    final scanner = MaterialPageRoute<void>(
+      settings: const RouteSettings(name: QrCodeScanner.name),
+      builder: (_) => const SizedBox.shrink(),
+    );
+    observer.didPush(scanner, home);
+    expect(observer.isReadyForMessages, isFalse);
+    observer.didPop(scanner, home);
+    observer.didPop(home, null);
+  });
+
   test('is not ready before the shell has a page route', () {
     final observer = UserMessageRouteObserver();
 
