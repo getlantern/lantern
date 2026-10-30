@@ -64,9 +64,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   borderRadius: BorderRadius.circular(40),
                   shape: BoxShape.rectangle,
                   border: Border.all(
-                    color: context.actionTabbarBorder,
-                    width: 1,
-                  ),
+                      color: context.actionTabbarBorder, width: 1),
                 ),
                 tabs: [
                   Tab(child: Text('my_servers'.i18n)),
@@ -116,9 +114,16 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     return Column(
       children: <Widget>[
         const SizedBox(height: 8),
-        InfoRow(text: 'access_key_expiration'.i18n),
+        InfoRow(
+          text: 'access_key_expiration'.i18n,
+        ),
         const SizedBox(height: 8),
-        Expanded(child: _buildListView(myServers, showShareAccessKey: true)),
+        Expanded(
+          child: _buildListView(
+            myServers,
+            showShareAccessKey: true,
+          ),
+        ),
       ],
     );
   }
@@ -145,10 +150,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     IconButton(
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: context.textPrimary,
-                      ),
+                      icon: Icon(Icons.delete_outline,
+                          color: context.textPrimary),
                       iconSize: 24,
                       onPressed: () => showDeleteDialog(item.tag),
                     ),
@@ -165,7 +168,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                   onPressed: () => onTapShareAccessKey(item),
                 ),
                 SizedBox(height: 8),
-              },
+              }
             ],
           ),
         );
@@ -204,8 +207,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         return;
       } catch (e) {
         appLogger.warning(
-          'Cached access key invalid for tag: ${server.tag}, regenerating',
-        );
+            'Cached access key invalid for tag: ${server.tag}, regenerating');
         _accessKeyCache.remove(server.tag);
       }
     }
@@ -216,47 +218,50 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   void showShareAccessKeyDialog(PrivateServer server) {
     final inviteNameController = TextEditingController();
     AppDialog.customDialog(
-      context: context,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 16),
-          Text('set_server_alias'.i18n, style: textTheme!.headlineMedium),
-          SizedBox(height: defaultSize),
-          Text('this_name_pre_filled'.i18n, style: textTheme!.bodyMedium),
-          SizedBox(height: size24),
-          AppTextField(
-            label: 'server_alias'.i18n,
-            prefixIcon: AppImagePaths.server,
-            controller: inviteNameController,
-            hintText: '',
+        context: context,
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: 16),
+            Text(
+              'set_server_alias'.i18n,
+              style: textTheme!.headlineMedium,
+            ),
+            SizedBox(height: defaultSize),
+            Text(
+              'this_name_pre_filled'.i18n,
+              style: textTheme!.bodyMedium,
+            ),
+            SizedBox(height: size24),
+            AppTextField(
+              label: 'server_alias'.i18n,
+              prefixIcon: AppImagePaths.server,
+              controller: inviteNameController,
+              hintText: '',
+            )
+          ],
+        ),
+        action: [
+          AppTextButton(
+            label: 'cancel'.i18n,
+            textColor: context.textDisabled,
+            onPressed: () {
+              appRouter.pop();
+            },
           ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: 'cancel'.i18n,
-          textColor: context.textDisabled,
-          onPressed: () {
-            appRouter.pop();
-          },
-        ),
-        AppTextButton(
-          label: 'generate_access_key'.i18n,
-          onPressed: () {
-            generateAccessKey(server, inviteNameController.text.trim());
-            appRouter.pop();
-          },
-        ),
-      ],
-    );
+          AppTextButton(
+            label: 'generate_access_key'.i18n,
+            onPressed: () {
+              generateAccessKey(server, inviteNameController.text.trim());
+              appRouter.pop();
+            },
+          )
+        ]);
   }
 
   Future<void> generateAccessKey(
-    PrivateServer server,
-    String inviteName,
-  ) async {
+      PrivateServer server, String inviteName) async {
     if (inviteName.isEmpty) {
       context.showSnackBar('server_alias_cannot_be_empty'.i18n);
       return;
@@ -265,11 +270,7 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     final result = await ref
         .read(privateServerProvider.notifier)
         .inviteToServerManagerInstance(
-          server.externalIp,
-          server.port,
-          server.accessToken,
-          inviteName,
-        );
+            server.externalIp, server.port, server.accessToken, inviteName);
 
     result.fold(
       (failure) {
@@ -283,9 +284,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       (accessKey) {
         context.hideLoadingDialog();
         _accessKeyCache[server.serverName] = accessKey;
-        appLogger.info(
-          'Access key generated and cached for: ${server.serverName}',
-        );
+        appLogger
+            .info('Access key generated and cached for: ${server.serverName}');
         final tokenData = JwtDecoder.decode(accessKey);
         sharePrivateAccessKey(server, tokenData);
       },
@@ -300,7 +300,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 16),
-          Text('rename_server'.i18n, style: textTheme!.titleLarge),
+          Text(
+            'rename_server'.i18n,
+            style: textTheme!.titleLarge,
+          ),
           SizedBox(height: 16),
           AppTextField(
             label: 'server_name'.i18n,
@@ -338,8 +341,14 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SizedBox(height: 16),
-          AppImage(path: AppImagePaths.delete, height: 40),
-          Text('remove_server_?'.i18n, style: textTheme!.titleLarge),
+          AppImage(
+            path: AppImagePaths.delete,
+            height: 40,
+          ),
+          Text(
+            'remove_server_?'.i18n,
+            style: textTheme!.titleLarge,
+          ),
           SizedBox(height: 16),
           Text('remove_server_message'.i18n.fill([serverName])),
           SizedBox(height: 16),
@@ -383,9 +392,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
 
   Future<void> onDelete(String serverName) async {
     context.showLoadingDialog();
-    final res = await ref
-        .read(manageServerProvider.notifier)
-        .deleteServer(serverName);
+    final res =
+        await ref.read(manageServerProvider.notifier).deleteServer(serverName);
     if (!mounted) return;
     context.hideLoadingDialog();
     res.fold(
