@@ -10,7 +10,7 @@ import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/help_friend.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
-import 'package:lantern/features/helpers/helping_section.dart';
+import 'package:lantern/features/helpers/helping_friends.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
@@ -123,18 +123,19 @@ const _sara = HelperPairingView(
   sinceUnix: 1700000000,
 );
 
-HelpersState _helping() => const HelpersState(
-  helpOthers: true,
-  view: HelpersView(
-    unlocked: true,
-    helping: [_sara],
-    activity: HelperActivity(
-      day: '2026-10-23',
-      activeSeconds: 3 * 3600 + 20 * 60,
-      relayedBytes: 1200000000,
-    ),
-  ),
-);
+HelpersState _helping({List<HelperPairingView> helping = const [_sara]}) =>
+    HelpersState(
+      helpOthers: true,
+      view: HelpersView(
+        unlocked: true,
+        helping: helping,
+        activity: const HelperActivity(
+          day: '2026-10-23',
+          activeSeconds: 3 * 3600 + 20 * 60,
+          relayedBytes: 1200000000,
+        ),
+      ),
+    );
 
 const _reza = HelperPairingView(pairingId: 'p2', name: 'Reza');
 
@@ -574,27 +575,190 @@ void main() {
     },
   );
 
-  testWidgets("you're helping: rows, totals, and help others too", (
+  testWidgets('the connections card counts friends and opens the sheet', (
     tester,
   ) async {
     final helpers = _Helpers(_helping());
-    await _pump(
-      tester,
-      helpers,
-      const SingleChildScrollView(child: HelpingSection()),
-      sharing: true,
+    await _pump(tester, helpers, const PersonalProxyConnectionsCard());
+    expect(find.text('helping_connections_title'.i18n), findsOneWidget);
+    expect(find.text('helping_friends_one'.i18n), findsOneWidget);
+    // Live status is not reported yet: no third line rather than a wrong one.
+    expect(find.textContaining('connected right now'), findsNothing);
+    await tester.tap(
+      find.byKey(const Key('action_mode.personal_proxy_connections')),
     );
+    await tester.pumpAndSettle();
+    expect(find.text('helping_sheet_title'.i18n), findsOneWidget);
+    expect(find.byType(HelpingFriendsSheet), findsOneWidget);
+  });
+
+  testWidgets('with live status, the card names the one friend connected', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      _helping(
+        helping: const [
+          HelperPairingView(pairingId: 'p1', name: 'Sara', connected: true),
+          HelperPairingView(pairingId: 'p2', name: 'Reza', connected: false),
+        ],
+      ),
+    );
+    await _pump(tester, helpers, const PersonalProxyConnectionsCard());
+    expect(find.text('helping_friends_count'.i18n.fill([2])), findsOneWidget);
+    expect(
+      find.text('helping_connected_named'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+  });
+
+  test('connectedRightNow: unknown, one by name, else a count', () {
+    const known = HelperPairingView(pairingId: 'a', name: 'A', connected: true);
+    const off = HelperPairingView(pairingId: 'b', name: 'B', connected: false);
+    const unknown = HelperPairingView(pairingId: 'c', name: 'C');
+    expect(connectedRightNow(const []), isNull);
+    expect(connectedRightNow(const [known, unknown]), isNull);
+    expect(
+      connectedRightNow(const [known, off]),
+      'helping_connected_named'.i18n.fill(['A']),
+    );
+    expect(
+      connectedRightNow(const [off]),
+      'helping_connected_count'.i18n.fill([0]),
+    );
+    expect(
+      connectedRightNow(const [known, known]),
+      'helping_connected_count'.i18n.fill([2]),
+    );
+  });
+
+  test('connected is read when reported, and null otherwise', () {
+    expect(
+      HelperPairingView.fromJson(const {
+        'pairing_id': 'p',
+        'connected': true,
+      }).connected,
+      isTrue,
+    );
+    expect(
+      HelperPairingView.fromJson(const {
+        'pairing_id': 'p',
+        'connected': false,
+      }).connected,
+      isFalse,
+    );
+    expect(
+      HelperPairingView.fromJson(const {'pairing_id': 'p'}).connected,
+      isNull,
+    );
+    expect(
+      HelperPairingView.fromJson(const {
+        'pairing_id': 'p',
+        'connected': 'yes',
+      }).connected,
+      isNull,
+    );
+  });
+
+  testWidgets('the friends sheet: rows, paste another, data relayed, and '
+      'help others too', (tester) async {
+    final helpers = _Helpers(_helping());
+    await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
+    expect(find.text('helping_your_friends'.i18n), findsOneWidget);
     expect(find.text('Sara'), findsOneWidget);
-    expect(find.byKey(const Key('helping.today')), findsOneWidget);
+    expect(find.text(helperSinceLabel(1700000000)), findsOneWidget);
+    // No live status yet: no Connected or Not connected.
+    expect(find.byKey(const Key('helping.status.p1')), findsNothing);
+    expect(find.byKey(const Key('helping.remove.p1')), findsOneWidget);
+    expect(find.byKey(const Key('helping.paste_another')), findsOneWidget);
+    expect(find.text('helping_paste_another'.i18n), findsOneWidget);
+    final data = find.byKey(const Key('helping.data_relayed'));
+    expect(
+      find.descendant(of: data, matching: find.text(1200000000.siBytes)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: data,
+        matching: find.text(
+          'helping_active_today'.i18n.fill([helpingDuration(12000)]),
+        ),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('helping.sharing_off')), findsNothing);
     await tester.tap(find.byKey(const Key('helping.help_others_switch')));
     await tester.pump();
     expect(helpers.helpOthers, [false]);
   });
 
-  testWidgets('refreshes every minute while shown, and stops when gone', (
+  testWidgets('the friends sheet shows Connected and Not connected once '
+      'known, and a friend not connected stays enabled', (tester) async {
+    final helpers = _Helpers(
+      _helping(
+        helping: const [
+          HelperPairingView(pairingId: 'p1', name: 'Sara', connected: true),
+          HelperPairingView(pairingId: 'p2', name: 'Reza', connected: false),
+        ],
+      ),
+    );
+    await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.status.p1'))).data,
+      'helping_connected'.i18n,
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.status.p2'))).data,
+      'helping_not_connected'.i18n,
+    );
+    final reza = tester.widget<ListTile>(
+      find.descendant(
+        of: find.byKey(const Key('helping.friend.p2')),
+        matching: find.byType(ListTile),
+        matchRoot: true,
+      ),
+    );
+    expect(reza.enabled, isTrue);
+  });
+
+  testWidgets('the sheet title says how many are connected only once known', (
     tester,
   ) async {
+    Future<void> open(HelpersState state) async {
+      await _pump(
+        tester,
+        _Helpers(state),
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showHelpingFriendsSheet(context),
+            child: const Text('open'),
+          ),
+        ),
+        sharing: true,
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    await open(_helping());
+    expect(find.text('helping_sheet_title'.i18n), findsOneWidget);
+    expect(find.byKey(const Key('helping.sheet.connected')), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await open(
+      _helping(
+        helping: const [
+          HelperPairingView(pairingId: 'p1', name: 'Sara', connected: true),
+        ],
+      ),
+    );
+    expect(
+      find.text('helping_connected_named'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the card refreshes every minute while shown, and stops when '
+      'gone', (tester) async {
     final helpers = _Helpers(_helping());
     final show = ValueNotifier(true);
     await _pump(
@@ -603,71 +767,38 @@ void main() {
       ValueListenableBuilder<bool>(
         valueListenable: show,
         builder: (_, visible, _) => visible
-            ? const SingleChildScrollView(child: HelpingSection())
+            ? const PersonalProxyConnectionsCard()
             : const SizedBox.shrink(),
       ),
       sharing: true,
     );
     expect(helpers.refreshes, 0);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump(HelpingSection.refreshInterval);
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval);
     expect(helpers.refreshes, 1);
-    await tester.pump(HelpingSection.refreshInterval);
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval);
     expect(helpers.refreshes, 2);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await tester.pump(HelpingSection.refreshInterval);
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval);
     expect(helpers.refreshes, 2, reason: 'not while the app is in the back');
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump(HelpingSection.refreshInterval);
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval);
     expect(helpers.refreshes, 3);
 
     show.value = false;
     await tester.pump();
-    await tester.pump(HelpingSection.refreshInterval * 3);
-    expect(helpers.refreshes, 3, reason: 'the timer goes with the section');
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval * 3);
+    expect(helpers.refreshes, 3, reason: 'the timer goes with the card');
   });
 
-  testWidgets('does not refresh while helping nobody', (tester) async {
-    final helpers = _Helpers(const HelpersState());
-    await _pump(tester, helpers, const HelpingSection());
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump(HelpingSection.refreshInterval * 2);
-    expect(helpers.refreshes, 0);
-  });
-
-  testWidgets('warns when sharing is off', (tester) async {
-    await _pump(
-      tester,
-      _Helpers(_helping()),
-      const SingleChildScrollView(child: HelpingSection()),
-    );
+  testWidgets('the sheet warns when sharing is off', (tester) async {
+    await _pump(tester, _Helpers(_helping()), const HelpingFriendsSheet());
     expect(find.byKey(const Key('helping.sharing_off')), findsOneWidget);
   });
 
-  testWidgets('hidden for someone helping nobody', (tester) async {
-    await _pump(tester, _Helpers(const HelpersState()), const HelpingSection());
-    expect(find.byKey(const Key('helping.today')), findsNothing);
-    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
-  });
-
-  testWidgets('the keystore-reset notice shows to a volunteer, even helping '
-      'nobody, and is acknowledged on dismiss', (tester) async {
-    final helpers = _Helpers(const HelpersState(keystoreReset: true));
-    await _pump(
-      tester,
-      helpers,
-      const SingleChildScrollView(child: HelpingSection()),
-    );
-    expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
-    await tester.pump();
-    expect(helpers.acknowledged, 1);
-    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
-  });
-
-  testWidgets('stop helping still ends the pairing when the section is gone '
-      'before the dialog callback runs', (tester) async {
+  testWidgets('removing a friend asks first, then ends the pairing even when '
+      'the sheet is gone before the dialog callback runs', (tester) async {
     final helpers = _Helpers(_helping());
     final show = ValueNotifier(true);
     await _pump(
@@ -675,14 +806,18 @@ void main() {
       helpers,
       ValueListenableBuilder<bool>(
         valueListenable: show,
-        builder: (_, visible, _) => visible
-            ? const SingleChildScrollView(child: HelpingSection())
-            : const SizedBox.shrink(),
+        builder: (_, visible, _) =>
+            visible ? const HelpingFriendsSheet() : const SizedBox.shrink(),
       ),
       sharing: true,
     );
     await tester.tap(find.byKey(const Key('helping.remove.p1')));
     await tester.pumpAndSettle();
+    expect(
+      find.text('helping_remove_confirm'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+    expect(helpers.ended, isEmpty);
     await tester.tap(find.widgetWithText(PrimaryButton, 'helping_remove'.i18n));
     await tester.pump();
     show.value = false;

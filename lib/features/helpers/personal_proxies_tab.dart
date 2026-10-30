@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
-import 'package:lantern/features/helpers/helping_section.dart'
+import 'package:lantern/features/helpers/helping_friends.dart'
     show HelperKeystoreResetNotice, helperSinceLabel;
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxy_invite.dart';

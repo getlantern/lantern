@@ -19,7 +19,7 @@ import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_approval_prompt.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
-import 'package:lantern/features/helpers/helping_section.dart'
+import 'package:lantern/features/helpers/helping_friends.dart'
     show helperSinceLabel;
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxies_tab.dart';

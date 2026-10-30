@@ -2328,10 +2328,6 @@ msgstr "Your personal proxies"
 msgid "help_friend_title"
 msgstr "Help a friend stay online"
 
-# Action Mode row that opens the screen for pasting a friend's invite link.
-msgid "have_invite_link"
-msgstr "Have an invite link?"
-
 msgid "help_friend_intro"
 msgstr "A friend asked for your help. While Lantern runs, they can reach the open internet through your connection."
 
@@ -2400,12 +2396,56 @@ msgstr "This isn't a helper invite link."
 msgid "help_friend_own_invite"
 msgstr "This is your own invite. Send it to the friend you'd like help from."
 
-msgid "helping_title"
-msgstr "You're helping"
+# Action Mode card for someone abroad, before they help any friend. Opens the screen for an invite link.
+msgid "become_personal_proxy"
+msgstr "Become a Personal Proxy"
 
-# First %s is a duration such as "3h 20m"; second is an amount of data such as "1.2 GB".
-msgid "helping_today"
-msgstr "Today: active %s, %s shared"
+msgid "become_personal_proxy_body"
+msgstr "Help someone you know get online"
+
+# Action Mode card once this device helps at least one friend as their Personal Proxy.
+msgid "helping_connections_title"
+msgstr "Your Personal Proxy connections"
+
+msgid "helping_friends_one"
+msgstr "1 friend"
+
+# %s is a number of friends, 2 or more.
+msgid "helping_friends_count"
+msgstr "%s friends"
+
+# %s is the name of the one friend routing through this device right now.
+msgid "helping_connected_named"
+msgstr "%s connected right now"
+
+# %s is how many friends route through this device right now.
+msgid "helping_connected_count"
+msgstr "%s connected right now"
+
+# Title of the sheet listing the friends this device is the Personal Proxy for.
+msgid "helping_sheet_title"
+msgstr "Friends you're helping"
+
+msgid "helping_your_friends"
+msgstr "Your friends"
+
+# A friend routes through this device right now.
+msgid "helping_connected"
+msgstr "Connected"
+
+msgid "helping_not_connected"
+msgstr "Not connected"
+
+msgid "helping_paste_another"
+msgstr "Paste another invite link"
+
+# Card with today's totals for the data this device relayed for others.
+msgid "helping_data_relayed"
+msgstr "Data relayed today"
+
+# %s is a duration such as "3h 20m".
+msgid "helping_active_today"
+msgstr "Active %s"
 
 # %s is a date.
 msgid "helping_since"
