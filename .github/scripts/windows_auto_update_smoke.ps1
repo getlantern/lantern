@@ -240,7 +240,7 @@ function Get-DownloadedInstaller([string]$ExpectedName, [long]$ExpectedLength) {
 }
 
 function Install-Update(
-  [int]$OriginalPid,
+  [System.Diagnostics.Process]$OriginalProcess,
   [string]$ExpectedInstallerName,
   [long]$ExpectedInstallerLength,
   [int]$ExpectedBuild
@@ -248,8 +248,7 @@ function Install-Update(
   $deadline = [DateTime]::UtcNow.AddSeconds($UpdateTimeout)
   $launchRequested = $false
   $originalExited = $false
-  $originalProcess = Get-Process -Id $OriginalPid -ErrorAction Stop
-  $null = $originalProcess.Handle
+  $OriginalPid = $OriginalProcess.Id
   while ([DateTime]::UtcNow -lt $deadline) {
     $installer = Get-Window @('Setup - Lantern', 'Lantern Setup')
     $button = Get-Button $installer @('Next >', 'Next', 'Install', 'Finish', 'Yes')
@@ -268,12 +267,17 @@ function Install-Update(
         }
       }
     }
-    if (-not $originalExited -and -not (Get-Process -Id $OriginalPid -ErrorAction SilentlyContinue)) {
-      if (-not $originalProcess.WaitForExit(5000) -or $originalProcess.ExitCode -ne 0) {
-        throw 'Original GUI crashed during update handoff'
+    if (-not $originalExited -and $OriginalProcess.HasExited) {
+      if (-not $OriginalProcess.WaitForExit(5000)) {
+        throw 'Original GUI exit could not be confirmed within 5 seconds'
+      }
+      $exitCode = $OriginalProcess.ExitCode
+      if ($null -eq $exitCode) { throw 'Original GUI exit code is unavailable' }
+      if ($exitCode -ne 0) {
+        throw ('Original GUI crashed during update handoff: exit {0} (0x{0:X8})' -f $exitCode)
       }
       $originalExited = $true
-      Write-E2E "original Lantern process $OriginalPid exited"
+      Write-E2E "original Lantern process $OriginalPid exited with code $exitCode"
     }
     if ($originalExited -and (Test-Path -LiteralPath $AppExecutable)) {
       try {
@@ -310,6 +314,10 @@ function Save-Diagnostics {
   $logs = Join-Path $DataDirectory 'Logs'
   if (Test-Path -LiteralPath $logs) {
     Copy-Item $logs (Join-Path $ArtifactDirectory 'lantern-logs') -Recurse -Force
+  }
+  $flutterLog = Get-LanternFlutterLogPath
+  if (Test-Path -LiteralPath $flutterLog) {
+    Copy-Item -LiteralPath $flutterLog -Destination (Join-Path $ArtifactDirectory 'flutter.log') -Force
   }
   Get-ChildItem $env:TEMP -Filter 'Update-*' -Directory -ErrorAction SilentlyContinue |
     ForEach-Object { Get-ChildItem $_.FullName -Recurse -ErrorAction SilentlyContinue } |
@@ -366,6 +374,8 @@ try {
   if ($original.Path -ne $AppExecutable) {
     throw "Flutter handoff PID $script:OriginalPid is not the installed Lantern app"
   }
+  # Retain the process before either update button can close it.
+  $null = $original.Handle
 
   Wait-LanternGuiHealthy $script:OriginalPid $AppExecutable
   $installButton = Wait-ForUpdatePrompt
@@ -373,7 +383,7 @@ try {
   Save-Screenshot 'prompt'
   Press-Button $installButton
   $relaunched = Install-Update `
-    $script:OriginalPid `
+    $original `
     $targetInstallerName `
     $targetInstallerLength `
     $targetBuild

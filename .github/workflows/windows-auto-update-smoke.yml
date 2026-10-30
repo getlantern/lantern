@@ -9,14 +9,23 @@ on:
         type: choice
         options: [baseline, core-unavailable, core-unavailable-direct-blocked]
         default: baseline
+      fixture_run_id:
+        description: "Reuse a signed fixture from this repository for a script-only retest (0 rebuilds)"
+        type: number
+        default: 0
   workflow_call:
     inputs:
       scenario:
         description: "baseline, core-unavailable, or core-unavailable-direct-blocked"
         type: string
         default: baseline
+      fixture_run_id:
+        description: "Existing signed fixture run ID; use only when app sources are unchanged"
+        type: number
+        default: 0
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -131,6 +140,7 @@ jobs:
 
   build-fixture:
     name: Build signed lower fixture
+    if: ${{ !inputs.fixture_run_id }}
     needs: resolve-target
     permissions:
       contents: read
@@ -159,6 +169,9 @@ jobs:
 
   exercise-update:
     name: Install and update through WinSparkle
+    if: |
+      !cancelled() && needs.resolve-target.result == 'success' &&
+      (needs.build-fixture.result == 'success' || (inputs.fixture_run_id > 0 && needs.build-fixture.result == 'skipped'))
     needs:
       - resolve-target
       - build-fixture
@@ -193,6 +206,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lantern-windows-app-fixture
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.fixture_run_id || github.run_id }}
           path: ${{ runner.temp }}/windows-auto-update-fixture
 
       - name: Download resolved target
@@ -208,7 +223,9 @@ jobs:
           ARTIFACT_DIR: ${{ runner.temp }}/windows-auto-update-smoke
           FIXTURE_APP_DIR: ${{ runner.temp }}/windows-auto-update-fixture
           TARGET_JSON: ${{ runner.temp }}/windows-auto-update-target/target.json
-        run: ./.github/scripts/windows_auto_update_smoke.ps1
+        run: |
+          Write-Host "Fixture source run: ${{ inputs.fixture_run_id || github.run_id }}"
+          ./.github/scripts/windows_auto_update_smoke.ps1
 
       - name: Restore update network access
         if: ${{ always() && inputs.scenario == 'core-unavailable-direct-blocked' }}
