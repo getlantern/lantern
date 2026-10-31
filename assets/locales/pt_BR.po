@@ -1981,3 +1981,279 @@ msgstr "Registros"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Toque em %s abaixo para ir ao DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "A extensão de rede do Lantern está desativada nos Ajustes do Sistema. Ative-a em Itens de Início e Extensões > Extensões de Rede e depois volte ao Lantern."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Falha ao entrar. Tente novamente."
+
+msgid "oauth_error_session_expired"
+msgstr "Sua sessão de login expirou. Tente novamente."
+
+msgid "oauth_error_provider_failed"
+msgstr "Não foi possível entrar com essa conta. Tente novamente."
+
+msgid "oauth_error_no_email"
+msgstr "Essa conta não compartilhou um endereço de e-mail. Permita o acesso ao e-mail e tente novamente."
+
+msgid "oauth_error_add_device"
+msgstr "Não foi possível vincular este dispositivo à sua conta. Entre em contato com o suporte."
+
+msgid "helper_error_disabled"
+msgstr "Ajudar amigos ainda não está disponível neste dispositivo."
+
+msgid "helper_error_not_found"
+msgstr "Este convite ou ajudante não existe mais."
+
+msgid "helper_error_unavailable"
+msgstr "Não foi possível acessar o Lantern. Verifique sua conexão e tente novamente."
+
+msgid "helper_error_too_many_invites"
+msgstr "Você já enviou o máximo de convites por enquanto. Tente novamente amanhã."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Você atingiu o limite de 20 pessoas."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Este convite já foi decidido."
+
+msgid "helper_error_bad_name"
+msgstr "Digite um nome que seu amigo reconheça, com até 60 caracteres."
+
+msgid "helper_error_keystore"
+msgstr "Este dispositivo não consegue armazenar nomes com segurança, então a ajuda a amigos está desativada. No Linux, inicie um chaveiro como o GNOME Keyring."
+
+msgid "helper_error_keystore_reset"
+msgstr "O armazenamento seguro deste dispositivo foi redefinido, então os nomes dos seus ajudantes e convites não puderam ser lidos. Seus ajudantes continuam funcionando; convide-os novamente para ver os nomes."
+
+msgid "helper_error_copy"
+msgstr "Não foi possível copiar o link. Use Compartilhar link."
+
+msgid "helpers_your_name_label"
+msgstr "Seu nome, como seu amigo conhece você"
+
+msgid "helpers_your_name_hint"
+msgstr "Por exemplo, Sara"
+
+msgid "helper_online"
+msgstr "Online"
+
+msgid "helper_offline"
+msgstr "Offline"
+
+msgid "helper_unnamed"
+msgstr "Seu ajudante"
+
+msgid "helper_remove_confirm_title"
+msgstr "Remover %s?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s deixará de ajudar você. Você pode convidar novamente mais tarde."
+
+msgid "helpers_remove_all"
+msgstr "Remover todos os ajudantes"
+
+msgid "helpers_remove_all_body"
+msgstr "Nenhum ajudante continuará ajudando você, e os nomes serão apagados deste dispositivo."
+
+msgid "manage_private_locations"
+msgstr "Gerenciar locais privados"
+
+msgid "invite_personal_proxy"
+msgstr "Convidar um proxy pessoal"
+
+msgid "personal_proxies_tab"
+msgstr "Proxies pessoais"
+
+msgid "invite_another"
+msgstr "Convidar outro"
+
+msgid "helpers_nudge_second"
+msgstr "Se o seu proxy pessoal ficar offline, sua conexão por meio dele também cai. Convide um segundo amigo para manter a conexão."
+
+msgid "personal_proxy_banner_title"
+msgstr "Obtenha um proxy pessoal"
+
+msgid "personal_proxy_banner_body"
+msgstr "Um amigo no exterior pode manter sua conexão."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Seu amigo está esperando"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Compare o código e aprove a solicitação."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Nome neste dispositivo"
+
+msgid "invite_share_body"
+msgstr "Envie este link para uma pessoa de confiança. Ele funciona uma única vez e expira em 48 horas."
+
+msgid "invite_share_message"
+msgstr "%s quer sua ajuda para continuar on-line. %s"
+
+msgid "invite_share_button"
+msgstr "Compartilhar link"
+
+msgid "invite_copy_link"
+msgstr "Copiar link"
+
+msgid "invite_link_copied"
+msgstr "Link copiado"
+
+msgid "invite_qr_hint"
+msgstr "Seu amigo pode escanear isto com o Lantern."
+
+msgid "invite_waiting"
+msgstr "Aguardando seu amigo abrir o link"
+
+msgid "invite_trust_warning"
+msgstr "A pessoa que você convidar saberá que você usa o Lantern e poderá ver quando você se conecta por meio dela. Seu tráfego passa pela conexão de internet dela, então ela poderia saber quais sites você visita, mas não o que você faz em sites seguros (https). Convide apenas alguém de confiança."
+
+msgid "invite_expires"
+msgstr "Expira em %s horas"
+
+msgid "invite_gone"
+msgstr "Este convite já foi usado ou expirou."
+
+msgid "invite_claimed_title"
+msgstr "Alguém abriu seu convite"
+
+msgid "invite_compare_codes"
+msgstr "Comparar códigos"
+
+msgid "approve_code_intro"
+msgstr "Pergunte a %s qual código o Lantern dessa pessoa mostra. Compare em uma ligação ou em outro app, não no chat em que você enviou o link."
+
+msgid "approve_code_label"
+msgstr "Código neste dispositivo"
+
+msgid "approve_button"
+msgstr "Os códigos coincidem: aprovar"
+
+msgid "reject_button"
+msgstr "Códigos diferentes: rejeitar"
+
+msgid "reject_explainer"
+msgstr "Se os códigos forem diferentes, outra pessoa abriu seu link. Rejeite essa pessoa e envie um novo convite."
+
+msgid "personal_proxy"
+msgstr "Proxy pessoal"
+
+msgid "private_locations"
+msgstr "Locais privados"
+
+msgid "personal_proxies"
+msgstr "Proxies pessoais"
+
+msgid "your_personal_proxies"
+msgstr "Seus proxies pessoais"
+
+msgid "help_friend_title"
+msgstr "Ajude alguém a ficar on-line"
+
+msgid "have_invite_link"
+msgstr "Tem um link de convite?"
+
+msgid "help_friend_intro"
+msgstr "Uma pessoa próxima pediu sua ajuda. Enquanto o Lantern estiver em execução, ela pode acessar a internet livre pela sua conexão."
+
+msgid "help_friend_means_title"
+msgstr "O que significa ajudar alguém"
+
+msgid "help_friend_means_traffic"
+msgstr "Seu amigo acessa a internet aberta pela sua conexão. Dependendo do seu roteador, o tráfego dele sai da sua rede ou é retransmitido pelos servidores do Lantern. O Lantern não mostra a você o que ele faz on-line."
+
+msgid "help_friend_means_online"
+msgstr "Seu amigo pode ver quando você está on-line. Aceite convites apenas de pessoas que você conhece."
+
+msgid "help_friend_means_stop"
+msgstr "Você pode parar de ajudar a qualquer momento."
+
+msgid "help_friend_link_label"
+msgstr "Link de convite"
+
+msgid "help_friend_paste"
+msgstr "Colar o link que seu amigo enviou"
+
+msgid "help_friend_scan"
+msgstr "Escaneie o código QR do seu amigo"
+
+msgid "help_friend_sharing_note"
+msgstr "O Lantern ajuda automaticamente enquanto está em execução. Ele usa uma conexão direta quando seu roteador permite e, caso contrário, uma conexão do tipo navegador."
+
+msgid "help_friend_accept"
+msgstr "Ajudar meu amigo"
+
+msgid "help_friend_code_title"
+msgstr "Diga este código ao seu amigo"
+
+msgid "help_friend_code_body"
+msgstr "Seu amigo vai conferir se ele corresponde ao código no celular dele e depois aprovar você. Uma ligação ou outro app é o mais seguro."
+
+msgid "help_friend_waiting"
+msgstr "Aguardando a aprovação do seu amigo"
+
+msgid "help_friend_approved"
+msgstr "Agora você está ajudando %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Esta solicitação não está mais pendente. Peça um novo convite ao seu amigo."
+
+msgid "help_friend_done"
+msgstr "Concluído"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Este convite já foi usado"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Outra pessoa abriu este link primeiro, ou ele expirou. Peça um novo convite ao seu amigo e avise que este pode ter sido visto por outra pessoa."
+
+msgid "help_friend_already_helping"
+msgstr "Você já está ajudando este amigo."
+
+msgid "help_friend_already_helping_named"
+msgstr "Você já está ajudando %s."
+
+msgid "help_friend_bad_link"
+msgstr "Este não é um link de convite para ajudar."
+
+msgid "help_friend_own_invite"
+msgstr "Este é o seu próprio convite. Envie-o ao amigo de quem você quer receber ajuda."
+
+msgid "helping_title"
+msgstr "Você está ajudando"
+
+msgid "helping_today"
+msgstr "Hoje: %s de atividade, %s compartilhados"
+
+msgid "helping_since"
+msgstr "Desde %s"
+
+msgid "helping_unnamed"
+msgstr "Alguém que você ajuda"
+
+msgid "helping_sharing_off_warning"
+msgstr "O compartilhamento está desativado, então as pessoas que você ajuda não conseguem se conectar por meio de você."
+
+msgid "helping_remove"
+msgstr "Parar de ajudar"
+
+msgid "helping_remove_confirm"
+msgstr "Parar de ajudar %s? Será necessário um novo convite para se conectar por meio de você novamente."
+
+msgid "help_others_too"
+msgstr "Ajude outras pessoas também"
+
+msgid "help_others_too_body"
+msgstr "Empreste sua capacidade ociosa a outras pessoas que enfrentam censura; o Lantern só permite que elas acessem sites autorizados, o que protege sua conexão contra uso indevido."
+
+msgid "help_others_too_note"
+msgstr "Alterar isso reconecta brevemente as pessoas que você ajuda."
+
+msgid "helping_duration_hm"
+msgstr "%s h %s min"
+
+msgid "helping_duration_m"
+msgstr "%s min"
