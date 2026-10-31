@@ -1784,3 +1784,219 @@ msgstr "Journaux"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Touchez %s ci-dessous pour accéder à DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "L’extension réseau de Lantern est désactivée dans Réglages Système. Activez-la sous Ouverture et extensions > Extensions réseau, puis revenez dans Lantern."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Échec de la connexion. Veuillez réessayer."
+
+msgid "oauth_error_session_expired"
+msgstr "Votre session de connexion a expiré. Veuillez réessayer."
+
+msgid "oauth_error_provider_failed"
+msgstr "Impossible de vous connecter avec ce compte. Veuillez réessayer."
+
+msgid "oauth_error_no_email"
+msgstr "Ce compte n’a pas partagé d’adresse courriel. Veuillez autoriser l’accès au courriel et réessayer."
+
+msgid "oauth_error_add_device"
+msgstr "Impossible d'associer cet appareil à votre compte. Veuillez communiquer avec le soutien technique."
+
+msgid "helper_error_disabled"
+msgstr "L'aide aux amis n'est pas encore offerte sur cet appareil."
+
+msgid "helper_error_not_found"
+msgstr "Cette invitation ou cet assistant n'existe plus."
+
+msgid "helper_error_unavailable"
+msgstr "Impossible de joindre Lantern. Vérifiez votre connexion et réessayez."
+
+msgid "helper_error_too_many_invites"
+msgstr "Vous avez envoyé le maximum d'invitations pour le moment. Réessayez demain."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Limite de 20 personnes atteinte."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Cette invitation a déjà été traitée."
+
+msgid "helper_error_bad_name"
+msgstr "Entrez un nom que votre ami reconnaîtra, 60 caractères maximum."
+
+msgid "helper_error_keystore"
+msgstr "Cet appareil ne peut pas stocker les noms de façon sécurisée : l'aide aux amis est donc désactivée. Sous Linux, lancez un trousseau comme GNOME Keyring."
+
+msgid "helper_error_keystore_reset"
+msgstr "Le stockage sécurisé de cet appareil a été réinitialisé : les noms de vos aidants et invitations n'ont pas pu être lus. Vos aidants fonctionnent toujours; invitez-les à nouveau pour voir leurs noms."
+
+msgid "helper_error_copy"
+msgstr "Impossible de copier le lien. Utilisez plutôt Partager le lien."
+
+msgid "helpers_your_name_label"
+msgstr "Votre nom, tel que votre ami vous connaît"
+
+msgid "helpers_your_name_hint"
+msgstr "Par exemple, Sara"
+
+msgid "helper_online"
+msgstr "En ligne"
+
+msgid "helper_offline"
+msgstr "Hors ligne"
+
+msgid "helper_unnamed"
+msgstr "Votre assistant"
+
+msgid "helper_remove_confirm_title"
+msgstr "Retirer %s?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s ne vous aidera plus. Vous pourrez l'inviter à nouveau plus tard."
+
+msgid "helpers_remove_all"
+msgstr "Retirer tous les assistants"
+
+msgid "helpers_remove_all_body"
+msgstr "Tous les assistants cesseront de vous aider et leurs noms seront effacés de cet appareil."
+
+msgid "manage_private_locations"
+msgstr "Gérer les emplacements privés"
+
+msgid "invite_personal_proxy"
+msgstr "Inviter un mandataire personnel"
+
+msgid "personal_proxies_tab"
+msgstr "Mandataires personnels"
+
+msgid "invite_another"
+msgstr "Inviter une autre personne"
+
+msgid "helpers_nudge_second"
+msgstr "Si votre mandataire personnel se déconnecte, votre connexion par celui-ci est coupée aussi. Invitez un deuxième ami pour rester en ligne."
+
+msgid "personal_proxy_banner_title"
+msgstr "Obtenir un mandataire personnel"
+
+msgid "personal_proxy_banner_body"
+msgstr "Un ami à l'étranger peut vous garder en ligne."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Votre ami attend"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Comparez le code et approuvez la demande."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Nom sur cet appareil"
+
+msgid "invite_share_message"
+msgstr "%s a besoin de votre aide pour rester en ligne. %s"
+
+msgid "invite_share_button"
+msgstr "Partager le lien"
+
+msgid "invite_copy_link"
+msgstr "Copier le lien"
+
+msgid "invite_link_copied"
+msgstr "Lien copié"
+
+msgid "invite_qr_hint"
+msgstr "Votre ami peut balayer ce code avec Lantern."
+
+msgid "invite_waiting"
+msgstr "En attente de l'ouverture du lien par votre ami"
+
+msgid "invite_trust_warning"
+msgstr "La personne que vous invitez saura que vous utilisez Lantern et pourra voir quand vous vous connectez par son intermédiaire. Votre trafic passe par sa connexion Internet : elle pourrait donc savoir quels sites vous visitez, mais pas ce que vous faites sur les sites sécurisés (https). N'invitez qu'une personne de confiance."
+
+msgid "invite_expires"
+msgstr "Expire dans %s heures"
+
+msgid "invite_gone"
+msgstr "Cette invitation a déjà été utilisée ou a expiré."
+
+msgid "invite_claimed_title"
+msgstr "Quelqu'un a ouvert votre invitation"
+
+msgid "invite_compare_codes"
+msgstr "Comparer les codes"
+
+msgid "personal_proxy"
+msgstr "Serveur mandataire personnel"
+
+msgid "private_locations"
+msgstr "Emplacements privés"
+
+msgid "personal_proxies"
+msgstr "Serveurs mandataires personnels"
+
+msgid "your_personal_proxies"
+msgstr "Vos mandataires personnels"
+
+msgid "help_friend_link_label"
+msgstr "Lien d'invitation"
+
+msgid "help_friend_paste"
+msgstr "Coller le lien envoyé par votre ami"
+
+msgid "help_friend_scan"
+msgstr "Balayer le code QR de votre ami"
+
+msgid "help_friend_approved"
+msgstr "Vous aidez maintenant %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Cette demande n'est plus en attente. Demandez une nouvelle invitation à votre ami."
+
+msgid "help_friend_done"
+msgstr "Terminé"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Cette invitation a déjà été utilisée"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Quelqu’un d’autre a ouvert ce lien en premier, ou il a expiré. Demandez une nouvelle invitation à votre ami et prévenez-le que celle-ci a peut-être été vue par quelqu’un d’autre."
+
+msgid "help_friend_already_helping"
+msgstr "Vous aidez déjà cet ami."
+
+msgid "help_friend_already_helping_named"
+msgstr "Vous aidez déjà %s."
+
+msgid "help_friend_bad_link"
+msgstr "Ce lien n’est pas une invitation d’aide."
+
+msgid "help_friend_own_invite"
+msgstr "Il s’agit de votre propre invitation. Envoyez-la à l’ami dont vous souhaitez recevoir de l’aide."
+
+msgid "helping_since"
+msgstr "Depuis le %s"
+
+msgid "helping_unnamed"
+msgstr "Une personne que vous aidez"
+
+msgid "helping_sharing_off_warning"
+msgstr "Le partage est désactivé : les personnes que vous aidez ne peuvent pas se connecter par votre intermédiaire."
+
+msgid "helping_remove"
+msgstr "Arrêter d’aider"
+
+msgid "helping_remove_confirm"
+msgstr "Arrêter d’aider %s? Une nouvelle invitation sera nécessaire pour se connecter à nouveau par votre intermédiaire."
+
+msgid "help_others_too"
+msgstr "Aidez aussi les autres"
+
+msgid "help_others_too_body"
+msgstr "Partagez votre capacité inutilisée avec d’autres personnes confrontées à la censure; Lantern ne leur permet d’accéder qu’aux sites autorisés, ce qui protège votre connexion contre les abus."
+
+msgid "help_others_too_note"
+msgstr "Modifier ce paramètre reconnecte brièvement les personnes que vous aidez."
+
+msgid "helping_duration_hm"
+msgstr "%s h %s min"
+
+msgid "helping_duration_m"
+msgstr "%s min"

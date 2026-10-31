@@ -1978,3 +1978,219 @@ msgstr "Log"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Ketik %s di bawah untuk pergi ke DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "Sambungan rangkaian Lantern dimatikan dalam Tetapan Sistem. Hidupkannya di bawah Login Items & Extensions > Network Extensions, kemudian kembali ke Lantern."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Log masuk gagal. Sila cuba lagi."
+
+msgid "oauth_error_session_expired"
+msgstr "Sesi log masuk anda telah tamat. Sila cuba lagi."
+
+msgid "oauth_error_provider_failed"
+msgstr "Kami tidak dapat log masuk anda dengan akaun itu. Sila cuba lagi."
+
+msgid "oauth_error_no_email"
+msgstr "Akaun itu tidak berkongsi alamat e-mel. Sila benarkan akses e-mel dan cuba lagi."
+
+msgid "oauth_error_add_device"
+msgstr "Peranti ini tidak dapat dipautkan ke akaun anda. Sila hubungi sokongan."
+
+msgid "helper_error_disabled"
+msgstr "Membantu rakan belum tersedia pada peranti ini."
+
+msgid "helper_error_not_found"
+msgstr "Jemputan atau pembantu ini tidak wujud lagi."
+
+msgid "helper_error_unavailable"
+msgstr "Tidak dapat menghubungi Lantern. Semak sambungan anda dan cuba lagi."
+
+msgid "helper_error_too_many_invites"
+msgstr "Anda telah menghantar jemputan maksimum buat masa ini. Cuba lagi esok."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Anda telah mencapai had 20 orang."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Jemputan ini telah pun diputuskan."
+
+msgid "helper_error_bad_name"
+msgstr "Masukkan nama yang dikenali oleh rakan anda, sehingga 60 aksara."
+
+msgid "helper_error_keystore"
+msgstr "Peranti ini tidak dapat menyimpan nama dengan selamat, jadi membantu rakan dimatikan. Pada Linux, mulakan keyring seperti GNOME Keyring."
+
+msgid "helper_error_keystore_reset"
+msgstr "Storan selamat peranti ini telah ditetapkan semula, jadi nama pembantu dan jemputan anda tidak dapat dibaca. Pembantu anda masih berfungsi; jemput mereka semula untuk melihat nama mereka."
+
+msgid "helper_error_copy"
+msgstr "Tidak dapat menyalin pautan. Gunakan Kongsi pautan."
+
+msgid "helpers_your_name_label"
+msgstr "Nama anda, seperti yang dikenali oleh rakan anda"
+
+msgid "helpers_your_name_hint"
+msgstr "Contohnya, Sara"
+
+msgid "helper_online"
+msgstr "Dalam talian"
+
+msgid "helper_offline"
+msgstr "Luar talian"
+
+msgid "helper_unnamed"
+msgstr "Pembantu anda"
+
+msgid "helper_remove_confirm_title"
+msgstr "Alih keluar %s?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s akan berhenti membantu anda. Anda boleh menjemputnya semula kemudian."
+
+msgid "helpers_remove_all"
+msgstr "Alih keluar semua pembantu"
+
+msgid "helpers_remove_all_body"
+msgstr "Semua pembantu berhenti membantu anda, dan nama mereka dipadam daripada peranti ini."
+
+msgid "manage_private_locations"
+msgstr "Urus Lokasi Peribadi"
+
+msgid "invite_personal_proxy"
+msgstr "Jemput Proksi Peribadi"
+
+msgid "personal_proxies_tab"
+msgstr "Proksi Peribadi"
+
+msgid "invite_another"
+msgstr "Jemput seorang lagi"
+
+msgid "helpers_nudge_second"
+msgstr "Jika proksi peribadi anda luar talian, sambungan anda melaluinya juga terputus. Jemput rakan kedua untuk kekal bersambung."
+
+msgid "personal_proxy_banner_title"
+msgstr "Dapatkan proksi peribadi"
+
+msgid "personal_proxy_banner_body"
+msgstr "Rakan di luar negara boleh memastikan anda kekal bersambung."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Rakan anda sedang menunggu"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Bandingkan kod dan luluskan rakan anda."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Nama pada peranti ini"
+
+msgid "invite_share_message"
+msgstr "%s mahukan bantuan anda untuk kekal dalam talian. %s"
+
+msgid "invite_share_button"
+msgstr "Kongsi pautan"
+
+msgid "invite_copy_link"
+msgstr "Salin pautan"
+
+msgid "invite_link_copied"
+msgstr "Pautan disalin"
+
+msgid "invite_qr_hint"
+msgstr "Rakan anda boleh mengimbas ini dengan Lantern."
+
+msgid "invite_waiting"
+msgstr "Menunggu rakan anda membuka pautan"
+
+msgid "invite_trust_warning"
+msgstr "Orang yang anda jemput akan tahu anda menggunakan Lantern dan boleh melihat bila anda bersambung melalui mereka. Trafik anda melalui sambungan internet mereka, jadi mereka mungkin tahu laman yang anda lawati, tetapi bukan apa yang anda lakukan di laman selamat (https). Jemput hanya orang yang anda percayai."
+
+msgid "invite_expires"
+msgstr "Tamat tempoh dalam %s jam"
+
+msgid "invite_gone"
+msgstr "Jemputan ini telah digunakan atau telah tamat tempoh."
+
+msgid "invite_claimed_title"
+msgstr "Seseorang telah membuka jemputan anda"
+
+msgid "invite_compare_codes"
+msgstr "Bandingkan kod"
+
+msgid "personal_proxy"
+msgstr "Proksi peribadi"
+
+msgid "private_locations"
+msgstr "Lokasi Peribadi"
+
+msgid "personal_proxies"
+msgstr "Proksi peribadi"
+
+msgid "your_personal_proxies"
+msgstr "Proksi peribadi anda"
+
+msgid "help_friend_link_label"
+msgstr "Pautan jemputan"
+
+msgid "help_friend_paste"
+msgstr "Tampal pautan yang dihantar oleh rakan anda"
+
+msgid "help_friend_scan"
+msgstr "Imbas kod QR rakan anda"
+
+msgid "help_friend_approved"
+msgstr "Anda kini membantu %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Permintaan ini tidak lagi menunggu. Minta jemputan baharu daripada rakan anda."
+
+msgid "help_friend_done"
+msgstr "Selesai"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Jemputan ini telah pun dituntut"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Orang lain telah membuka pautan ini dahulu, atau ia telah tamat tempoh. Minta jemputan baharu daripada rakan anda, dan beritahu mereka bahawa jemputan ini mungkin telah dilihat oleh orang lain."
+
+msgid "help_friend_already_helping"
+msgstr "Anda sudah membantu rakan ini."
+
+msgid "help_friend_already_helping_named"
+msgstr "Anda sudah membantu %s."
+
+msgid "help_friend_bad_link"
+msgstr "Ini bukan pautan jemputan pembantu."
+
+msgid "help_friend_own_invite"
+msgstr "Ini jemputan anda sendiri. Hantar kepada rakan yang anda mahu minta bantuan."
+
+msgid "helping_since"
+msgstr "Sejak %s"
+
+msgid "helping_unnamed"
+msgstr "Seseorang yang anda bantu"
+
+msgid "helping_sharing_off_warning"
+msgstr "Perkongsian dimatikan, jadi orang yang anda bantu tidak boleh bersambung melalui anda."
+
+msgid "helping_remove"
+msgstr "Berhenti membantu"
+
+msgid "helping_remove_confirm"
+msgstr "Berhenti membantu %s? Mereka memerlukan jemputan baharu untuk menyambung semula melalui anda."
+
+msgid "help_others_too"
+msgstr "Bantu orang lain juga"
+
+msgid "help_others_too_body"
+msgstr "Pinjamkan kapasiti lebihan anda kepada orang lain yang berdepan penapisan; Lantern hanya membenarkan mereka mengakses laman yang dibenarkan, yang melindungi sambungan anda daripada disalah guna."
+
+msgid "help_others_too_note"
+msgstr "Menukar tetapan ini akan menyambung semula orang yang anda bantu buat seketika."
+
+msgid "helping_duration_hm"
+msgstr "%s j %s m"
+
+msgid "helping_duration_m"
+msgstr "%s m"

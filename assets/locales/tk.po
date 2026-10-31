@@ -1951,3 +1951,219 @@ msgstr "Loglar"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean sahypasyna geçmek üçin aşakdaky %s düwmesine basyň"
+
+msgid "network_extension_disabled_message"
+msgstr "Lantern-iň tor giňeltmesi Ulgam sazlamalarynda öçürilen. Ony Login Items & Extensions > Network Extensions bölüminde açyň, soňra Lantern-e gaýdyp geliň."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Içeri girip bolmady. Täzeden synanyşyň."
+
+msgid "oauth_error_session_expired"
+msgstr "Içeri giriş sessiýaňyzyň möhleti gutardy. Täzeden synanyşyň."
+
+msgid "oauth_error_provider_failed"
+msgstr "Ol hasap bilen sizi içeri girizip bilmedik. Täzeden synanyşyň."
+
+msgid "oauth_error_no_email"
+msgstr "Ol hasap e-poçta salgysyny paýlaşmady. E-poçta elýeterliligine rugsat beriň we täzeden synanyşyň."
+
+msgid "oauth_error_add_device"
+msgstr "Bu enjamy hasabyňyza baglap bolmady. Goldaw bilen habarlaşmagyňyzy haýyş edýäris."
+
+msgid "helper_error_disabled"
+msgstr "Dostlara kömek etmek bu enjamda entek elýeterli däl."
+
+msgid "helper_error_not_found"
+msgstr "Bu çakylyk ýa-da kömekçi indi ýok."
+
+msgid "helper_error_unavailable"
+msgstr "Lantern bilen baglanyşyp bolmady. Baglanyşygyňyzy barlaň we täzeden synanyşyň."
+
+msgid "helper_error_too_many_invites"
+msgstr "Häzirlikçe iň köp çakylyk iberdiňiz. Ertir täzeden synanyşyň."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Siz 20 adam çägine ýetdiňiz."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Bu çakylyk boýunça eýýäm karar berildi."
+
+msgid "helper_error_bad_name"
+msgstr "Dostuňyzyň tanajak adyny giriziň, iň köp 60 nyşan."
+
+msgid "helper_error_keystore"
+msgstr "Bu enjam atlary howpsuz saklap bilmeýär, şonuň üçin dostlara kömek öçürildi. Linux-da GNOME Keyring ýaly açar ammaryny işlediň."
+
+msgid "helper_error_keystore_reset"
+msgstr "Bu enjamyň howpsuz ammary täzeden düzüldi, şonuň üçin kömekçileriňiziň we çakylyklaryňyzyň atlaryny okap bolmady. Kömekçileriňiz henizem işleýär; atlaryny görmek üçin olary täzeden çagyryň."
+
+msgid "helper_error_copy"
+msgstr "Salgyny göçürip bolmady. Onuň ýerine Salgyny paýlaş ulanyň."
+
+msgid "helpers_your_name_label"
+msgstr "Dostuňyzyň sizi tanaýan adyňyz"
+
+msgid "helpers_your_name_hint"
+msgstr "Mysal üçin, Sara"
+
+msgid "helper_online"
+msgstr "Onlaýn"
+
+msgid "helper_offline"
+msgstr "Oflaýn"
+
+msgid "helper_unnamed"
+msgstr "Kömekçiňiz"
+
+msgid "helper_remove_confirm_title"
+msgstr "Kömekçi aýrylsynmy: %s?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s indi size kömek etmez. Soňra ony täzeden çagyryp bilersiňiz."
+
+msgid "helpers_remove_all"
+msgstr "Ähli kömekçileri aýyr"
+
+msgid "helpers_remove_all_body"
+msgstr "Ähli kömekçiler size kömek etmegi bes eder we olaryň atlary bu enjamdan pozular."
+
+msgid "manage_private_locations"
+msgstr "Hususy ýerleri dolandyr"
+
+msgid "invite_personal_proxy"
+msgstr "Şahsy proksi çagyr"
+
+msgid "personal_proxies_tab"
+msgstr "Şahsy proksiler"
+
+msgid "invite_another"
+msgstr "Ýene birini çagyr"
+
+msgid "helpers_nudge_second"
+msgstr "Şahsy proksiňiz öçse, onuň üsti bilen baglanyşygyňyz hem kesilýär. Baglanyşykda galmak üçin ikinji dostuňyzy çagyryň."
+
+msgid "personal_proxy_banner_title"
+msgstr "Şahsy proksi alyň"
+
+msgid "personal_proxy_banner_body"
+msgstr "Daşary ýurtdaky dostuňyz sizi birikdirilen ýagdaýda saklap biler."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Dostuňyz garaşýar"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Kody deňeşdiriň we tassyklaň."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Bu enjamdaky ady"
+
+msgid "invite_share_message"
+msgstr "%s onlaýn galmak üçin siziň kömegiňizi isleýär. %s"
+
+msgid "invite_share_button"
+msgstr "Baglanyşygy paýlaş"
+
+msgid "invite_copy_link"
+msgstr "Baglanyşygy göçür"
+
+msgid "invite_link_copied"
+msgstr "Baglanyşyk göçürildi"
+
+msgid "invite_qr_hint"
+msgstr "Dostuňyz muny Lantern bilen skanirläp biler."
+
+msgid "invite_waiting"
+msgstr "Dostuňyzyň baglanyşygy açmagyna garaşylýar"
+
+msgid "invite_trust_warning"
+msgstr "Çagyrýan adamyňyz siziň Lantern ulanýandygyňyzy biler we siziň haçan onuň üsti bilen birikýändigiňizi görüp biler. Siziň trafigiňiz onuň internet baglanyşygyndan geçýär, şonuň üçin ol haýsy saýtlara girýändigiňizi bilip biler, ýöne howpsuz (https) saýtlarda näme edýändigiňizi bilip bilmez. Diňe ynanýan adamyňyzy çagyryň."
+
+msgid "invite_expires"
+msgstr "Möhleti gutarýar, sagat: %s"
+
+msgid "invite_gone"
+msgstr "Bu çakylyk ulanyldy ýa-da möhleti gutardy."
+
+msgid "invite_claimed_title"
+msgstr "Kimdir biri çakylygyňyzy açdy"
+
+msgid "invite_compare_codes"
+msgstr "Kodlary deňeşdir"
+
+msgid "personal_proxy"
+msgstr "Şahsy proksi"
+
+msgid "private_locations"
+msgstr "Hususy ýerler"
+
+msgid "personal_proxies"
+msgstr "Şahsy proksiler"
+
+msgid "your_personal_proxies"
+msgstr "Şahsy proksileriňiz"
+
+msgid "help_friend_link_label"
+msgstr "Çakylyk salgysy"
+
+msgid "help_friend_paste"
+msgstr "Dostuňyzyň iberen salgysyny goýuň"
+
+msgid "help_friend_scan"
+msgstr "Dostuňyzyň QR koduny skanirläň"
+
+msgid "help_friend_approved"
+msgstr "Siz indi kömek edýärsiňiz: %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Bu haýyş indi garaşylmaýar. Dostuňyzdan täze çakylyk soraň."
+
+msgid "help_friend_done"
+msgstr "Taýýar"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Bu çakylyk eýýäm ulanyldy"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Bu baglanyşygy öň başga biri açdy ýa-da onuň möhleti gutardy. Dostuňyzdan täze çakylyk soraň we bu çakylygy başga biriniň gören bolmagynyň mümkindigini oňa aýdyň."
+
+msgid "help_friend_already_helping"
+msgstr "Siz eýýäm bu dostuňyza kömek edýärsiňiz."
+
+msgid "help_friend_already_helping_named"
+msgstr "Siz eýýäm kömek edýärsiňiz: %s."
+
+msgid "help_friend_bad_link"
+msgstr "Bu kömekçi çakylyk baglanyşygy däl."
+
+msgid "help_friend_own_invite"
+msgstr "Bu siziň öz çakylygyňyz. Ony kömek almak isleýän dostuňyza iberiň."
+
+msgid "helping_since"
+msgstr "Başlanan senesi: %s"
+
+msgid "helping_unnamed"
+msgstr "Kömek edýän adamyňyz"
+
+msgid "helping_sharing_off_warning"
+msgstr "Paýlaşmak öçürildi, şonuň üçin kömek edýän adamlaryňyz siziň üstüňiz bilen birigip bilmeýär."
+
+msgid "helping_remove"
+msgstr "Kömegi bes et"
+
+msgid "helping_remove_confirm"
+msgstr "Kömegi bes etmelimi: %s? Siziň üstüňizden täzeden birikmek üçin täze çakylyk gerek bolar."
+
+msgid "help_others_too"
+msgstr "Başgalara-da kömek et"
+
+msgid "help_others_too_body"
+msgstr "Senzura bilen ýüzbe-ýüz bolýan beýleki adamlara artykmaç kuwwatyňyzy beriň; Lantern olara diňe rugsat berlen saýtlara girmäge ýol berýär, bu bolsa baglanyşygyňyzy hyýanatçylykly ulanylyşdan goraýar."
+
+msgid "help_others_too_note"
+msgstr "Muny üýtgetmek kömek edýän adamlaryňyzy gysga wagtlaýyn täzeden birikdirýär."
+
+msgid "helping_duration_hm"
+msgstr "%s sag %s min"
+
+msgid "helping_duration_m"
+msgstr "%s min"

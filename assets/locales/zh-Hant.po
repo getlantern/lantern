@@ -1820,3 +1820,219 @@ msgstr "記錄檔"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "點按下方的 %s 前往 DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "Lantern 的網路延伸功能已在系統設定中關閉。在「登入項目與延伸功能」>「網路延伸功能」中開啟，然後返回 Lantern。"
+
+msgid "oauth_error_sign_in_failed"
+msgstr "登入失敗。請再試一次。"
+
+msgid "oauth_error_session_expired"
+msgstr "你的登入工作階段已過期。請再試一次。"
+
+msgid "oauth_error_provider_failed"
+msgstr "無法使用該帳號讓你登入。請再試一次。"
+
+msgid "oauth_error_no_email"
+msgstr "該帳號未分享電子郵件地址。請允許存取電子郵件後再試一次。"
+
+msgid "oauth_error_add_device"
+msgstr "無法將這部裝置連結至你的帳戶。請聯絡客服。"
+
+msgid "helper_error_disabled"
+msgstr "這部裝置目前尚不支援幫助朋友。"
+
+msgid "helper_error_not_found"
+msgstr "這個邀請或協助者已不存在。"
+
+msgid "helper_error_unavailable"
+msgstr "無法連線至 Lantern。檢查你的網路連線後再試一次。"
+
+msgid "helper_error_too_many_invites"
+msgstr "你目前傳送的邀請已達上限。明天再試一次。"
+
+msgid "helper_error_too_many_pairings"
+msgstr "你已達到 20 人的上限。"
+
+msgid "helper_error_no_pending_claim"
+msgstr "此邀請已處理。"
+
+msgid "helper_error_bad_name"
+msgstr "輸入你的朋友認得的名稱，最多 60 個字元。"
+
+msgid "helper_error_keystore"
+msgstr "此裝置無法安全儲存名稱，因此已關閉協助朋友功能。在 Linux 上，啟動 GNOME Keyring 等金鑰圈。"
+
+msgid "helper_error_keystore_reset"
+msgstr "此裝置的安全儲存空間已重設，因此無法讀取你的協助者和邀請的名稱。你的協助者仍然有效；再次邀請他們即可看到名稱。"
+
+msgid "helper_error_copy"
+msgstr "無法複製連結。可改用「分享連結」。"
+
+msgid "helpers_your_name_label"
+msgstr "你的名字（朋友對你的稱呼）"
+
+msgid "helpers_your_name_hint"
+msgstr "例如：小雅"
+
+msgid "helper_online"
+msgstr "線上"
+
+msgid "helper_offline"
+msgstr "離線"
+
+msgid "helper_unnamed"
+msgstr "你的協助者"
+
+msgid "helper_remove_confirm_title"
+msgstr "移除 %s？"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s 將不再協助你。你之後可以再次邀請。"
+
+msgid "helpers_remove_all"
+msgstr "移除所有協助者"
+
+msgid "helpers_remove_all_body"
+msgstr "所有協助者將停止協助你，其名稱將從這部裝置上清除。"
+
+msgid "manage_private_locations"
+msgstr "管理私人位置"
+
+msgid "invite_personal_proxy"
+msgstr "邀請個人代理"
+
+msgid "personal_proxies_tab"
+msgstr "個人代理"
+
+msgid "invite_another"
+msgstr "再邀請一位"
+
+msgid "helpers_nudge_second"
+msgstr "如果你的個人代理離線，透過它的連線也會中斷。邀請第二位朋友，保持連線。"
+
+msgid "personal_proxy_banner_title"
+msgstr "取得個人代理"
+
+msgid "personal_proxy_banner_body"
+msgstr "海外的朋友可以幫你保持連線。"
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "你的朋友正在等待"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "核對驗證碼並核准對方。"
+
+msgid "personal_proxy_nickname_label"
+msgstr "在此裝置上的名稱"
+
+msgid "invite_share_message"
+msgstr "%s 需要你的協助來保持連線。%s"
+
+msgid "invite_share_button"
+msgstr "分享連結"
+
+msgid "invite_copy_link"
+msgstr "複製連結"
+
+msgid "invite_link_copied"
+msgstr "已複製連結"
+
+msgid "invite_qr_hint"
+msgstr "你的朋友可以用 Lantern 掃描這個 QR 碼。"
+
+msgid "invite_waiting"
+msgstr "正在等待朋友開啟連結"
+
+msgid "invite_trust_warning"
+msgstr "你邀請的人會知道你在使用 Lantern，並能看到你何時透過對方連線。你的流量會經過對方的網路連線，因此對方可能得知你造訪了哪些網站，但無法得知你在安全（https）網站上的操作。只邀請你信任的人。"
+
+msgid "invite_expires"
+msgstr "%s 小時後到期"
+
+msgid "invite_gone"
+msgstr "此邀請已被使用或已過期。"
+
+msgid "invite_claimed_title"
+msgstr "有人開啟了你的邀請"
+
+msgid "invite_compare_codes"
+msgstr "比對代碼"
+
+msgid "personal_proxy"
+msgstr "個人代理"
+
+msgid "private_locations"
+msgstr "私人位置"
+
+msgid "personal_proxies"
+msgstr "個人代理"
+
+msgid "your_personal_proxies"
+msgstr "你的個人代理伺服器"
+
+msgid "help_friend_link_label"
+msgstr "邀請連結"
+
+msgid "help_friend_paste"
+msgstr "貼上朋友傳來的連結"
+
+msgid "help_friend_scan"
+msgstr "掃描朋友的 QR 碼"
+
+msgid "help_friend_approved"
+msgstr "你現在正在幫助 %s。"
+
+msgid "help_friend_no_longer_pending"
+msgstr "此請求已不再等待處理。向你的朋友索取新的邀請。"
+
+msgid "help_friend_done"
+msgstr "完成"
+
+msgid "help_friend_already_claimed_title"
+msgstr "此邀請已被使用"
+
+msgid "help_friend_already_claimed_body"
+msgstr "其他人已先開啟此連結，或連結已過期。向你的朋友索取新的邀請，並告訴對方這個邀請可能已被他人看到。"
+
+msgid "help_friend_already_helping"
+msgstr "你已在幫助這位朋友。"
+
+msgid "help_friend_already_helping_named"
+msgstr "你已在幫助 %s。"
+
+msgid "help_friend_bad_link"
+msgstr "這不是協助者邀請連結。"
+
+msgid "help_friend_own_invite"
+msgstr "這是你自己的邀請。將它傳送給你想請求協助的朋友。"
+
+msgid "helping_since"
+msgstr "自 %s 起"
+
+msgid "helping_unnamed"
+msgstr "你幫助的某個人"
+
+msgid "helping_sharing_off_warning"
+msgstr "分享已關閉，你幫助的人無法透過你連線。"
+
+msgid "helping_remove"
+msgstr "停止幫助"
+
+msgid "helping_remove_confirm"
+msgstr "停止幫助 %s？對方需要新的邀請才能再次透過你連線。"
+
+msgid "help_others_too"
+msgstr "也幫助他人"
+
+msgid "help_others_too_body"
+msgstr "將閒置容量借給其他面臨審查的人；Lantern 只允許他們連上許可的網站，藉此保護你的連線不被濫用。"
+
+msgid "help_others_too_note"
+msgstr "變更此設定會讓你幫助的人短暫重新連線。"
+
+msgid "helping_duration_hm"
+msgstr "%s 小時 %s 分鐘"
+
+msgid "helping_duration_m"
+msgstr "%s 分鐘"

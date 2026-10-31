@@ -1815,3 +1815,219 @@ msgstr "日志"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "点按下方的 %s 前往 DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "蓝灯的网络扩展已在系统设置中关闭。请在“登录项与扩展”>“网络扩展”中将其开启，然后返回蓝灯。"
+
+msgid "oauth_error_sign_in_failed"
+msgstr "登录失败。请重试。"
+
+msgid "oauth_error_session_expired"
+msgstr "您的登录会话已过期。请重试。"
+
+msgid "oauth_error_provider_failed"
+msgstr "无法使用该账户为您登录。请重试。"
+
+msgid "oauth_error_no_email"
+msgstr "该账户未共享电子邮件地址。请允许访问电子邮件后重试。"
+
+msgid "oauth_error_add_device"
+msgstr "无法将此设备关联到您的账户。请联系客服。"
+
+msgid "helper_error_disabled"
+msgstr "此设备暂不支持帮助好友。"
+
+msgid "helper_error_not_found"
+msgstr "此邀请或帮助者已不存在。"
+
+msgid "helper_error_unavailable"
+msgstr "无法连接到蓝灯。检查您的网络连接后重试。"
+
+msgid "helper_error_too_many_invites"
+msgstr "您目前发送的邀请已达上限。明天再试。"
+
+msgid "helper_error_too_many_pairings"
+msgstr "您已达到 20 人的上限。"
+
+msgid "helper_error_no_pending_claim"
+msgstr "此邀请已处理。"
+
+msgid "helper_error_bad_name"
+msgstr "输入您的朋友能认出的名称，最多 60 个字符。"
+
+msgid "helper_error_keystore"
+msgstr "此设备无法安全存储名称，因此已关闭帮助朋友功能。在 Linux 上，启动 GNOME Keyring 等密钥环。"
+
+msgid "helper_error_keystore_reset"
+msgstr "此设备的安全存储已被重置，因此无法读取您的帮助者和邀请的名称。您的帮助者仍然有效；再次邀请他们即可看到名称。"
+
+msgid "helper_error_copy"
+msgstr "无法复制链接。可改用“分享链接”。"
+
+msgid "helpers_your_name_label"
+msgstr "您的名字（朋友对您的称呼）"
+
+msgid "helpers_your_name_hint"
+msgstr "例如：小雅"
+
+msgid "helper_online"
+msgstr "在线"
+
+msgid "helper_offline"
+msgstr "离线"
+
+msgid "helper_unnamed"
+msgstr "您的帮手"
+
+msgid "helper_remove_confirm_title"
+msgstr "移除 %s？"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s 将不再帮助您。您以后可以再次邀请。"
+
+msgid "helpers_remove_all"
+msgstr "移除所有帮手"
+
+msgid "helpers_remove_all_body"
+msgstr "所有帮手将停止帮助您，其名字将从此设备上清除。"
+
+msgid "manage_private_locations"
+msgstr "管理私人位置"
+
+msgid "invite_personal_proxy"
+msgstr "邀请个人代理"
+
+msgid "personal_proxies_tab"
+msgstr "个人代理"
+
+msgid "invite_another"
+msgstr "再邀请一位"
+
+msgid "helpers_nudge_second"
+msgstr "如果您的个人代理离线，通过它的连接也会中断。邀请第二位好友，保持连接。"
+
+msgid "personal_proxy_banner_title"
+msgstr "获取个人代理"
+
+msgid "personal_proxy_banner_body"
+msgstr "海外的朋友可以帮您保持连接。"
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "您的朋友正在等待"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "核对验证码并批准对方。"
+
+msgid "personal_proxy_nickname_label"
+msgstr "在此设备上的名称"
+
+msgid "invite_share_message"
+msgstr "%s 需要您的帮助来保持在线。%s"
+
+msgid "invite_share_button"
+msgstr "分享链接"
+
+msgid "invite_copy_link"
+msgstr "复制链接"
+
+msgid "invite_link_copied"
+msgstr "链接已复制"
+
+msgid "invite_qr_hint"
+msgstr "您的好友可以用蓝灯扫描此码。"
+
+msgid "invite_waiting"
+msgstr "正在等待好友打开链接"
+
+msgid "invite_trust_warning"
+msgstr "您邀请的人会知道您在使用蓝灯，并能看到您何时通过其网络连接。您的流量经过对方的互联网连接，因此对方可能得知您访问了哪些网站，但无法得知您在安全（https）网站上的操作。只邀请您信任的人。"
+
+msgid "invite_expires"
+msgstr "%s 小时后过期"
+
+msgid "invite_gone"
+msgstr "此邀请已被使用或已过期。"
+
+msgid "invite_claimed_title"
+msgstr "有人打开了您的邀请"
+
+msgid "invite_compare_codes"
+msgstr "比对代码"
+
+msgid "personal_proxy"
+msgstr "个人代理"
+
+msgid "private_locations"
+msgstr "私有位置"
+
+msgid "personal_proxies"
+msgstr "个人代理"
+
+msgid "your_personal_proxies"
+msgstr "您的个人代理"
+
+msgid "help_friend_link_label"
+msgstr "邀请链接"
+
+msgid "help_friend_paste"
+msgstr "粘贴朋友发来的链接"
+
+msgid "help_friend_scan"
+msgstr "扫描朋友的二维码"
+
+msgid "help_friend_approved"
+msgstr "您现在正在帮助 %s。"
+
+msgid "help_friend_no_longer_pending"
+msgstr "此请求已不再待处理。向您的朋友索取新的邀请。"
+
+msgid "help_friend_done"
+msgstr "完成"
+
+msgid "help_friend_already_claimed_title"
+msgstr "此邀请已被使用"
+
+msgid "help_friend_already_claimed_body"
+msgstr "其他人已先打开此链接，或链接已过期。向您的朋友索取新的邀请，并告诉对方此邀请可能已被他人看到。"
+
+msgid "help_friend_already_helping"
+msgstr "您已在帮助这位朋友。"
+
+msgid "help_friend_already_helping_named"
+msgstr "您已在帮助 %s。"
+
+msgid "help_friend_bad_link"
+msgstr "这不是帮助者邀请链接。"
+
+msgid "help_friend_own_invite"
+msgstr "这是您自己的邀请。将其发送给您想向其求助的朋友。"
+
+msgid "helping_since"
+msgstr "自 %s 起"
+
+msgid "helping_unnamed"
+msgstr "您帮助的某个人"
+
+msgid "helping_sharing_off_warning"
+msgstr "共享已关闭，您帮助的人无法通过您连接。"
+
+msgid "helping_remove"
+msgstr "停止帮助"
+
+msgid "helping_remove_confirm"
+msgstr "停止帮助 %s？对方需要新的邀请才能再次通过您连接。"
+
+msgid "help_others_too"
+msgstr "也帮助他人"
+
+msgid "help_others_too_body"
+msgstr "将闲置容量借给其他面临审查的人；蓝灯只允许他们访问许可的网站，从而保护您的连接不被滥用。"
+
+msgid "help_others_too_note"
+msgstr "更改此项会使您帮助的人短暂重新连接。"
+
+msgid "helping_duration_hm"
+msgstr "%s 小时 %s 分钟"
+
+msgid "helping_duration_m"
+msgstr "%s 分钟"

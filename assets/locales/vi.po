@@ -1969,3 +1969,219 @@ msgstr "Nhật ký"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Nhấn %s bên dưới để đi đến DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "Tiện ích mở rộng mạng của Lantern đang tắt trong Cài đặt hệ thống. Hãy bật trong Mục đăng nhập & tiện ích mở rộng > Tiện ích mở rộng mạng, sau đó quay lại Lantern."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Đăng nhập không thành công. Vui lòng thử lại."
+
+msgid "oauth_error_session_expired"
+msgstr "Phiên đăng nhập của bạn đã hết hạn. Vui lòng thử lại."
+
+msgid "oauth_error_provider_failed"
+msgstr "Không thể đăng nhập bằng tài khoản đó. Vui lòng thử lại."
+
+msgid "oauth_error_no_email"
+msgstr "Tài khoản đó không chia sẻ địa chỉ email. Vui lòng cho phép truy cập email và thử lại."
+
+msgid "oauth_error_add_device"
+msgstr "Không thể liên kết thiết bị này với tài khoản của bạn. Vui lòng liên hệ bộ phận hỗ trợ."
+
+msgid "helper_error_disabled"
+msgstr "Tính năng giúp bạn bè chưa có trên thiết bị này."
+
+msgid "helper_error_not_found"
+msgstr "Lời mời hoặc người trợ giúp này không còn tồn tại."
+
+msgid "helper_error_unavailable"
+msgstr "Không thể kết nối tới Lantern. Hãy kiểm tra kết nối và thử lại."
+
+msgid "helper_error_too_many_invites"
+msgstr "Bạn đã gửi số lời mời tối đa cho lúc này. Hãy thử lại vào ngày mai."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Bạn đã đạt giới hạn 20 người."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Lời mời này đã được quyết định."
+
+msgid "helper_error_bad_name"
+msgstr "Nhập tên mà bạn của bạn sẽ nhận ra, tối đa 60 ký tự."
+
+msgid "helper_error_keystore"
+msgstr "Thiết bị này không thể lưu tên một cách an toàn nên tính năng giúp bạn bè đã tắt. Trên Linux, hãy khởi động một keyring như GNOME Keyring."
+
+msgid "helper_error_keystore_reset"
+msgstr "Bộ nhớ an toàn của thiết bị này đã bị đặt lại nên không thể đọc tên người trợ giúp và lời mời của bạn. Người trợ giúp vẫn hoạt động; hãy mời lại để xem tên của họ."
+
+msgid "helper_error_copy"
+msgstr "Không thể sao chép liên kết. Hãy dùng Chia sẻ liên kết."
+
+msgid "helpers_your_name_label"
+msgstr "Tên của bạn mà bạn bè biết"
+
+msgid "helpers_your_name_hint"
+msgstr "Ví dụ: Sara"
+
+msgid "helper_online"
+msgstr "Trực tuyến"
+
+msgid "helper_offline"
+msgstr "Ngoại tuyến"
+
+msgid "helper_unnamed"
+msgstr "Người giúp của bạn"
+
+msgid "helper_remove_confirm_title"
+msgstr "Xóa %s?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s sẽ ngừng giúp bạn. Bạn có thể mời lại sau."
+
+msgid "helpers_remove_all"
+msgstr "Xóa tất cả người giúp"
+
+msgid "helpers_remove_all_body"
+msgstr "Tất cả người giúp sẽ ngừng giúp bạn và tên của họ sẽ bị xóa khỏi thiết bị này."
+
+msgid "manage_private_locations"
+msgstr "Quản lý vị trí riêng"
+
+msgid "invite_personal_proxy"
+msgstr "Mời proxy cá nhân"
+
+msgid "personal_proxies_tab"
+msgstr "Proxy cá nhân"
+
+msgid "invite_another"
+msgstr "Mời thêm người khác"
+
+msgid "helpers_nudge_second"
+msgstr "Nếu proxy cá nhân của bạn ngoại tuyến, kết nối của bạn qua proxy đó cũng bị ngắt. Hãy mời thêm một người bạn thứ hai để luôn được kết nối."
+
+msgid "personal_proxy_banner_title"
+msgstr "Nhận proxy cá nhân"
+
+msgid "personal_proxy_banner_body"
+msgstr "Một người bạn ở nước ngoài có thể giúp bạn luôn kết nối."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Bạn của bạn đang chờ"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Hãy so sánh mã và chấp thuận."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Tên trên thiết bị này"
+
+msgid "invite_share_message"
+msgstr "%s muốn bạn giúp để có thể tiếp tục truy cập mạng. %s"
+
+msgid "invite_share_button"
+msgstr "Chia sẻ liên kết"
+
+msgid "invite_copy_link"
+msgstr "Sao chép liên kết"
+
+msgid "invite_link_copied"
+msgstr "Đã sao chép liên kết"
+
+msgid "invite_qr_hint"
+msgstr "Bạn của bạn có thể quét mã này bằng Lantern."
+
+msgid "invite_waiting"
+msgstr "Đang chờ bạn của bạn mở liên kết"
+
+msgid "invite_trust_warning"
+msgstr "Người bạn mời sẽ biết bạn dùng Lantern và có thể thấy khi nào bạn kết nối qua họ. Lưu lượng của bạn đi qua kết nối internet của họ, nên họ có thể biết bạn truy cập những trang nào, nhưng không biết bạn làm gì trên các trang bảo mật (https). Chỉ mời người bạn tin tưởng."
+
+msgid "invite_expires"
+msgstr "Hết hạn sau %s giờ"
+
+msgid "invite_gone"
+msgstr "Lời mời này đã được sử dụng hoặc đã hết hạn."
+
+msgid "invite_claimed_title"
+msgstr "Có người đã mở lời mời của bạn"
+
+msgid "invite_compare_codes"
+msgstr "So sánh mã"
+
+msgid "personal_proxy"
+msgstr "Proxy cá nhân"
+
+msgid "private_locations"
+msgstr "Vị trí riêng"
+
+msgid "personal_proxies"
+msgstr "Proxy cá nhân"
+
+msgid "your_personal_proxies"
+msgstr "Proxy cá nhân của bạn"
+
+msgid "help_friend_link_label"
+msgstr "Liên kết mời"
+
+msgid "help_friend_paste"
+msgstr "Dán liên kết bạn bè đã gửi"
+
+msgid "help_friend_scan"
+msgstr "Quét mã QR của bạn bè"
+
+msgid "help_friend_approved"
+msgstr "Bạn hiện đang giúp đỡ %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Yêu cầu này không còn chờ xử lý. Hãy xin bạn bè của bạn một lời mời mới."
+
+msgid "help_friend_done"
+msgstr "Xong"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Lời mời này đã được sử dụng"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Người khác đã mở liên kết này trước, hoặc liên kết đã hết hạn. Hãy xin bạn của bạn một lời mời mới và cho họ biết lời mời này có thể đã bị người khác xem."
+
+msgid "help_friend_already_helping"
+msgstr "Bạn đang giúp người bạn này rồi."
+
+msgid "help_friend_already_helping_named"
+msgstr "Bạn đang giúp %s rồi."
+
+msgid "help_friend_bad_link"
+msgstr "Đây không phải là liên kết mời người trợ giúp."
+
+msgid "help_friend_own_invite"
+msgstr "Đây là lời mời của chính bạn. Hãy gửi nó cho người bạn mà bạn muốn nhờ giúp đỡ."
+
+msgid "helping_since"
+msgstr "Từ %s"
+
+msgid "helping_unnamed"
+msgstr "Người được bạn giúp"
+
+msgid "helping_sharing_off_warning"
+msgstr "Chia sẻ đang tắt, nên những người được bạn giúp không thể kết nối qua bạn."
+
+msgid "helping_remove"
+msgstr "Ngừng giúp"
+
+msgid "helping_remove_confirm"
+msgstr "Ngừng giúp %s ? Họ sẽ cần lời mời mới để kết nối lại qua bạn."
+
+msgid "help_others_too"
+msgstr "Giúp cả người khác"
+
+msgid "help_others_too_body"
+msgstr "Chia sẻ dung lượng dư cho những người khác đang bị kiểm duyệt; Lantern chỉ cho họ truy cập các trang được phép, giúp bảo vệ kết nối của bạn khỏi bị lạm dụng."
+
+msgid "help_others_too_note"
+msgstr "Thay đổi tùy chọn này sẽ khiến những người bạn đang giúp kết nối lại trong giây lát."
+
+msgid "helping_duration_hm"
+msgstr "%s giờ %s phút"
+
+msgid "helping_duration_m"
+msgstr "%s phút"

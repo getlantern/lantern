@@ -1967,3 +1967,219 @@ msgstr "گزارش‌ها"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "برای رفتن به DigitalOcean، روی %s در پایین ضربه بزنید"
+
+msgid "network_extension_disabled_message"
+msgstr "افزونه شبکه Lantern در تنظیمات سیستم خاموش است. آن را از Login Items & Extensions > Network Extensions روشن کنید، سپس به Lantern برگردید."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "ورود ناموفق بود. لطفاً دوباره امتحان کنید."
+
+msgid "oauth_error_session_expired"
+msgstr "نشست ورود شما منقضی شد. لطفاً دوباره امتحان کنید."
+
+msgid "oauth_error_provider_failed"
+msgstr "نتوانستیم شما را با آن حساب کاربری وارد کنیم. لطفاً دوباره امتحان کنید."
+
+msgid "oauth_error_no_email"
+msgstr "آن حساب کاربری آدرس ایمیلی به اشتراک نگذاشت. لطفاً اجازه دسترسی به ایمیل را بدهید و دوباره امتحان کنید."
+
+msgid "oauth_error_add_device"
+msgstr "این دستگاه به حساب کاربری شما متصل نشد. لطفاً با پشتیبانی تماس بگیرید."
+
+msgid "helper_error_disabled"
+msgstr "کمک به دوستان هنوز در این دستگاه در دسترس نیست."
+
+msgid "helper_error_not_found"
+msgstr "این دعوت یا کمک‌کننده دیگر وجود ندارد."
+
+msgid "helper_error_unavailable"
+msgstr "دسترسی به Lantern ممکن نشد. اتصال خود را بررسی کنید و دوباره امتحان کنید."
+
+msgid "helper_error_too_many_invites"
+msgstr "فعلاً حداکثر تعداد دعوت را ارسال کرده‌اید. فردا دوباره امتحان کنید."
+
+msgid "helper_error_too_many_pairings"
+msgstr "به سقف ۲۰ نفر رسیده‌اید."
+
+msgid "helper_error_no_pending_claim"
+msgstr "درباره این دعوت قبلاً تصمیم گرفته شده است."
+
+msgid "helper_error_bad_name"
+msgstr "نامی وارد کنید که دوستتان آن را بشناسد، حداکثر ۶۰ نویسه."
+
+msgid "helper_error_keystore"
+msgstr "این دستگاه نمی‌تواند نام‌ها را به‌صورت امن ذخیره کند، بنابراین کمک به دوستان غیرفعال است. در Linux، یک کی‌رینگ مانند GNOME Keyring را اجرا کنید."
+
+msgid "helper_error_keystore_reset"
+msgstr "فضای ذخیره‌سازی امن این دستگاه بازنشانی شد، بنابراین خواندن نام کمک‌کنندگان و دعوت‌های شما ممکن نشد. کمک‌کنندگان شما همچنان کار می‌کنند؛ برای دیدن نامشان دوباره آن‌ها را دعوت کنید."
+
+msgid "helper_error_copy"
+msgstr "کپی پیوند انجام نشد. به‌جای آن از «اشتراک‌گذاری پیوند» استفاده کنید."
+
+msgid "helpers_your_name_label"
+msgstr "نام شما، همان‌طور که دوستتان شما را می‌شناسد"
+
+msgid "helpers_your_name_hint"
+msgstr "برای مثال، سارا"
+
+msgid "helper_online"
+msgstr "آنلاین"
+
+msgid "helper_offline"
+msgstr "آفلاین"
+
+msgid "helper_unnamed"
+msgstr "کمک‌کننده شما"
+
+msgid "helper_remove_confirm_title"
+msgstr "حذف %s؟"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s دیگر به شما کمک نمی‌کند. بعداً می‌توانید دوباره دعوتش کنید."
+
+msgid "helpers_remove_all"
+msgstr "حذف همه کمک‌کننده‌ها"
+
+msgid "helpers_remove_all_body"
+msgstr "همه کمک‌کننده‌ها دیگر به شما کمک نمی‌کنند و نامشان از این دستگاه پاک می‌شود."
+
+msgid "manage_private_locations"
+msgstr "مدیریت مکان‌های خصوصی"
+
+msgid "invite_personal_proxy"
+msgstr "دعوت از پروکسی شخصی"
+
+msgid "personal_proxies_tab"
+msgstr "پروکسی‌های شخصی"
+
+msgid "invite_another"
+msgstr "دعوت از فردی دیگر"
+
+msgid "helpers_nudge_second"
+msgstr "اگر پروکسی شخصی شما آفلاین شود، اتصال شما از طریق آن هم قطع می‌شود. برای متصل ماندن، دوست دومی را دعوت کنید."
+
+msgid "personal_proxy_banner_title"
+msgstr "دریافت پروکسی شخصی"
+
+msgid "personal_proxy_banner_body"
+msgstr "یک دوست در خارج از کشور می‌تواند شما را متصل نگه دارد."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "دوستتان منتظر است"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "کد را مقایسه و او را تأیید کنید."
+
+msgid "personal_proxy_nickname_label"
+msgstr "نام در این دستگاه"
+
+msgid "invite_share_message"
+msgstr "%s برای آنلاین ماندن از شما کمک می‌خواهد. %s"
+
+msgid "invite_share_button"
+msgstr "اشتراک‌گذاری پیوند"
+
+msgid "invite_copy_link"
+msgstr "کپی پیوند"
+
+msgid "invite_link_copied"
+msgstr "پیوند کپی شد"
+
+msgid "invite_qr_hint"
+msgstr "دوست شما می‌تواند این را با Lantern اسکن کند."
+
+msgid "invite_waiting"
+msgstr "در انتظار باز کردن پیوند توسط دوستتان"
+
+msgid "invite_trust_warning"
+msgstr "فردی که دعوت می‌کنید متوجه می‌شود که شما از Lantern استفاده می‌کنید و می‌تواند ببیند چه زمانی از طریق او متصل هستید. ترافیک شما از اتصال اینترنت او عبور می‌کند، بنابراین ممکن است بفهمد از چه سایت‌هایی بازدید می‌کنید، اما نه اینکه در سایت‌های امن (https) چه می‌کنید. فقط کسی را دعوت کنید که به او اعتماد دارید."
+
+msgid "invite_expires"
+msgstr "تا %s ساعت دیگر منقضی می‌شود"
+
+msgid "invite_gone"
+msgstr "این دعوت‌نامه استفاده شده یا منقضی شده است."
+
+msgid "invite_claimed_title"
+msgstr "کسی دعوت شما را باز کرد"
+
+msgid "invite_compare_codes"
+msgstr "مقایسه کدها"
+
+msgid "personal_proxy"
+msgstr "پروکسی شخصی"
+
+msgid "private_locations"
+msgstr "مکان‌های خصوصی"
+
+msgid "personal_proxies"
+msgstr "پروکسی‌های شخصی"
+
+msgid "your_personal_proxies"
+msgstr "پروکسی‌های شخصی شما"
+
+msgid "help_friend_link_label"
+msgstr "لینک دعوت"
+
+msgid "help_friend_paste"
+msgstr "لینکی را که دوستتان فرستاده جای‌گذاری کنید"
+
+msgid "help_friend_scan"
+msgstr "کد QR دوستتان را اسکن کنید"
+
+msgid "help_friend_approved"
+msgstr "اکنون به %s کمک می‌کنید."
+
+msgid "help_friend_no_longer_pending"
+msgstr "این درخواست دیگر در انتظار نیست. از دوستتان دعوت جدیدی بخواهید."
+
+msgid "help_friend_done"
+msgstr "انجام شد"
+
+msgid "help_friend_already_claimed_title"
+msgstr "این دعوت قبلاً استفاده شده است"
+
+msgid "help_friend_already_claimed_body"
+msgstr "شخص دیگری زودتر این پیوند را باز کرده یا مهلت آن تمام شده است. از دوستتان یک دعوت‌نامه جدید بخواهید و به او بگویید ممکن است شخص دیگری این یکی را دیده باشد."
+
+msgid "help_friend_already_helping"
+msgstr "شما از قبل به این دوست کمک می‌کنید."
+
+msgid "help_friend_already_helping_named"
+msgstr "شما از قبل به %s کمک می‌کنید."
+
+msgid "help_friend_bad_link"
+msgstr "این پیوند دعوت کمک‌رسان نیست."
+
+msgid "help_friend_own_invite"
+msgstr "این دعوت‌نامه خودتان است. آن را برای دوستی بفرستید که می‌خواهید به شما کمک کند."
+
+msgid "helping_since"
+msgstr "از %s"
+
+msgid "helping_unnamed"
+msgstr "کسی که به او کمک می‌کنید"
+
+msgid "helping_sharing_off_warning"
+msgstr "اشتراک‌گذاری خاموش است، بنابراین افرادی که به آن‌ها کمک می‌کنید نمی‌توانند از طریق شما متصل شوند."
+
+msgid "helping_remove"
+msgstr "توقف کمک"
+
+msgid "helping_remove_confirm"
+msgstr "کمک به %s متوقف شود؟ برای اتصال دوباره از طریق شما به دعوت جدید نیاز خواهد داشت."
+
+msgid "help_others_too"
+msgstr "به دیگران هم کمک کنید"
+
+msgid "help_others_too_body"
+msgstr "ظرفیت اضافی خود را در اختیار افراد دیگری بگذارید که با سانسور روبه‌رو هستند؛ Lantern فقط اجازه دسترسی به سایت‌های مجاز را به آن‌ها می‌دهد و از اتصال شما در برابر سوءاستفاده محافظت می‌کند."
+
+msgid "help_others_too_note"
+msgstr "تغییر این گزینه، اتصال افرادی را که به آن‌ها کمک می‌کنید برای مدت کوتاهی دوباره برقرار می‌کند."
+
+msgid "helping_duration_hm"
+msgstr "%s ساعت %s دقیقه"
+
+msgid "helping_duration_m"
+msgstr "%s دقیقه"

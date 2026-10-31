@@ -40,30 +40,47 @@ jobs:
       LOCALES: ${{ inputs.locales }}
       DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
     steps:
+      # On main, check out main itself rather than the commit that triggered the run: runs are
+      # serialized, so a queued run must start from the tree its predecessor's translations
+      # landed on, or it re-translates them and its rebase conflicts with them.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name == 'main' && 'main' || '' }}
+
+      - run: echo "HEAD_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
       # Changed English strings are found by diffing en.po against the source commit the bot's
       # last all-locale run processed, recorded as a "Translated-From:" trailer on its commit.
       # That survives replaced queued runs, filtered runs and main moving while the models ran.
-      # A manual base wins; with no such commit yet, the push's previous head is used.
+      # A manual base wins, and a manual run without one only fills gaps; with no such commit
+      # yet, the push's previous head is used.
       - name: Pick the base commit for change detection
         env:
           GH_TOKEN: ${{ github.token }}
           MANUAL: ${{ inputs.base }}
           BEFORE: ${{ github.event_name == 'push' && github.event.before || '' }}
         run: |
-          last=$(gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&path=assets/locales&author=github-actions%5Bbot%5D&per_page=30" \
-                   --jq '[.[] | (.commit.message | capture("Translated-From: (?<sha>[0-9a-f]{40})") | .sha) // empty] | first // empty' || true)
-          # the trailer's commit must be at or behind the one being processed, or changes between
-          # the two would be missed; anything else (odd manual base, other branch) falls back
-          if [ -n "$last" ]; then
-            rel=$(gh api "repos/$GITHUB_REPOSITORY/compare/$last...$GITHUB_SHA" --jq .status 2>/dev/null || echo unknown)
-            case "$rel" in ahead|identical) ;; *) echo "trailer commit $last is $rel relative to $GITHUB_SHA; ignoring it"; last="";; esac
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            base="$MANUAL"
+          else
+            last=$(gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&path=assets/locales&author=github-actions%5Bbot%5D&per_page=30" \
+                     --jq '[.[] | (.commit.message | capture("Translated-From: (?<sha>[0-9a-f]{40})") | .sha) // empty] | first // empty' || true)
+            # the trailer's commit must be at or behind the one being processed, or changes between
+            # the two would be missed; anything else (odd manual base, other branch) falls back
+            if [ -n "$last" ]; then
+              rel=$(gh api "repos/$GITHUB_REPOSITORY/compare/$last...$HEAD_SHA" --jq .status 2>/dev/null || echo unknown)
+              case "$rel" in ahead|identical) ;; *) echo "trailer commit $last is $rel relative to $HEAD_SHA; ignoring it"; last="";; esac
+            fi
+            base="${last:-$BEFORE}"
           fi
-          base="${MANUAL:-${last:-$BEFORE}}"
           [ "$base" = "0000000000000000000000000000000000000000" ] && base=""
           if [ -n "$base" ] && ! git fetch --depth=1 origin "$base"; then
             echo "base $base not reachable; filling gaps only"; base=""
+          fi
+          # translate.py also falls back to gaps when it can't read en.po at the base; clear it
+          # here too, so BASE is empty exactly when no English was compared and no trailer is written
+          if [ -n "$base" ] && ! git cat-file -e "$base:assets/locales/en.po" 2>/dev/null; then
+            echo "en.po missing at $base; filling gaps only"; base=""
           fi
           echo "BASE=$base" >> "$GITHUB_ENV"
           echo "base: ${base:-none (gaps only)}"
@@ -72,8 +89,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -q anthropic && sudo apt-get install -y -q gettext  # msgfmt validates every file the run writes
+      - run: pip install -q anthropic==2.3.0 && sudo apt-get install -y -q gettext  # msgfmt validates every file the run writes
 
+      # A locale group that fails doesn't fail this step: the locales that succeeded still get
+      # committed, and the job fails at the end instead.
       - name: Translate
         id: translate
         env:
@@ -83,7 +102,7 @@ jobs:
           [ -n "$BASE" ] && args+=(--base "$BASE")
           [ -n "$LOCALES" ] && args+=(--locales "$LOCALES")
           [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
-          python tools/localization/translate.py "${args[@]}"
+          python tools/localization/translate.py "${args[@]}" || echo "failed=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload report
         if: always()
@@ -96,15 +115,32 @@ jobs:
       # Only a run on main itself may push; a dispatch from another branch gets the report only.
       - name: Commit translations
         if: github.ref_name == 'main' && steps.translate.outputs.changed == 'true' && env.DRY_RUN != 'true'
+        env:
+          FAILED: ${{ steps.translate.outputs.failed }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/locales/*.po
           if git diff --cached --quiet; then echo "no file content changed"; exit 0; fi
-          # an all-locale run records the en.po revision it processed as the next baseline;
-          # a locale-filtered run does not, so it can never hide other locales' stale strings
-          if [ -z "$LOCALES" ]; then printf '\nTranslated-From: %s\n' "$GITHUB_SHA" >> build/translate/commit_message.txt; fi
+          # a complete all-locale run that diffed English against a base records the en.po revision
+          # it processed as the next baseline; a locale-filtered, partly failed or gap-only run
+          # (no base, or one that couldn't be fetched) does not, so it can never move the baseline
+          # past English edits it never compared
+          if [ -z "$LOCALES" ] && [ "$FAILED" != "true" ] && [ -n "$BASE" ]; then printf '\nTranslated-From: %s\n' "$HEAD_SHA" >> build/translate/commit_message.txt; fi
           git commit -F build/translate/commit_message.txt
           # main may have moved while the models ran; rebase once and push
           git pull --rebase origin main
+          # a key en.po dropped in the meantime rebases cleanly back into every locale, so prune
+          # entries whose key left en.po before pushing
+          python tools/localization/translate.py --prune --out build/translate
+          if ! git diff --quiet -- assets/locales; then
+            git add assets/locales/*.po
+            git commit --amend --no-edit
+          fi
           git push origin HEAD:main
+
+      - name: Fail if any locale failed
+        if: steps.translate.outputs.failed == 'true'
+        run: |
+          echo "::error::translate.py exited non-zero; see the translation-report artifact"
+          exit 1

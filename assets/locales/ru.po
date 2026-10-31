@@ -1981,3 +1981,219 @@ msgstr "Логи"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "Нажмите %s ниже, чтобы перейти в DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "Сетевое расширение Lantern отключено в Системных настройках. Включите его в разделе «Объекты входа и расширения» > «Сетевые расширения», затем вернитесь в Lantern."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Не удалось войти. Повторите попытку."
+
+msgid "oauth_error_session_expired"
+msgstr "Сеанс входа истёк. Повторите попытку."
+
+msgid "oauth_error_provider_failed"
+msgstr "Не удалось войти с помощью этого аккаунта. Повторите попытку."
+
+msgid "oauth_error_no_email"
+msgstr "Этот аккаунт не предоставил адрес электронной почты. Разрешите доступ к электронной почте и повторите попытку."
+
+msgid "oauth_error_add_device"
+msgstr "Не удалось привязать это устройство к вашему аккаунту. Пожалуйста, обратитесь в поддержку."
+
+msgid "helper_error_disabled"
+msgstr "Помощь друзьям пока недоступна на этом устройстве."
+
+msgid "helper_error_not_found"
+msgstr "Это приглашение или помощник больше не существует."
+
+msgid "helper_error_unavailable"
+msgstr "Не удалось связаться с Lantern. Проверьте подключение и повторите попытку."
+
+msgid "helper_error_too_many_invites"
+msgstr "Лимит приглашений на сегодня исчерпан. Повторите попытку завтра."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Достигнут лимит: 20 человек."
+
+msgid "helper_error_no_pending_claim"
+msgstr "По этому приглашению уже принято решение."
+
+msgid "helper_error_bad_name"
+msgstr "Введите имя, которое узнает ваш друг, — не более 60 символов."
+
+msgid "helper_error_keystore"
+msgstr "Это устройство не может надёжно хранить имена, поэтому помощь друзьям отключена. В Linux запустите хранилище ключей, например GNOME Keyring."
+
+msgid "helper_error_keystore_reset"
+msgstr "Защищённое хранилище этого устройства было сброшено, поэтому не удалось прочитать имена ваших помощников и приглашений. Помощники по-прежнему работают; пригласите их снова, чтобы увидеть имена."
+
+msgid "helper_error_copy"
+msgstr "Не удалось скопировать ссылку. Используйте «Поделиться ссылкой»."
+
+msgid "helpers_your_name_label"
+msgstr "Ваше имя, под которым вас знает друг"
+
+msgid "helpers_your_name_hint"
+msgstr "Например, Сара"
+
+msgid "helper_online"
+msgstr "В сети"
+
+msgid "helper_offline"
+msgstr "Не в сети"
+
+msgid "helper_unnamed"
+msgstr "Ваш помощник"
+
+msgid "helper_remove_confirm_title"
+msgstr "Удалить помощника %s?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s больше не будет вам помогать. Позже можно пригласить снова."
+
+msgid "helpers_remove_all"
+msgstr "Удалить всех помощников"
+
+msgid "helpers_remove_all_body"
+msgstr "Все помощники перестанут вам помогать, а их имена будут удалены с этого устройства."
+
+msgid "manage_private_locations"
+msgstr "Управление частными локациями"
+
+msgid "invite_personal_proxy"
+msgstr "Пригласить личный прокси"
+
+msgid "personal_proxies_tab"
+msgstr "Личные прокси"
+
+msgid "invite_another"
+msgstr "Пригласить ещё"
+
+msgid "helpers_nudge_second"
+msgstr "Если ваш личный прокси отключится, пропадёт и подключение через него. Пригласите второго друга, чтобы оставаться на связи."
+
+msgid "personal_proxy_banner_title"
+msgstr "Получить личный прокси"
+
+msgid "personal_proxy_banner_body"
+msgstr "Друг за границей поможет вам оставаться на связи."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Ваш друг ждёт"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Сравните код и подтвердите запрос."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Имя на этом устройстве"
+
+msgid "invite_share_message"
+msgstr "%s просит вашей помощи, чтобы оставаться в сети. %s"
+
+msgid "invite_share_button"
+msgstr "Поделиться ссылкой"
+
+msgid "invite_copy_link"
+msgstr "Копировать ссылку"
+
+msgid "invite_link_copied"
+msgstr "Ссылка скопирована"
+
+msgid "invite_qr_hint"
+msgstr "Ваш друг может отсканировать этот код в Lantern."
+
+msgid "invite_waiting"
+msgstr "Ожидание, пока друг откроет ссылку"
+
+msgid "invite_trust_warning"
+msgstr "Приглашённый человек узнает, что вы используете Lantern, и сможет видеть, когда вы подключаетесь через него. Ваш трафик идёт через его интернет-подключение, поэтому он может узнать, какие сайты вы посещаете, но не то, что вы делаете на защищённых (https) сайтах. Приглашайте только тех, кому доверяете."
+
+msgid "invite_expires"
+msgstr "Истекает через %s ч"
+
+msgid "invite_gone"
+msgstr "Это приглашение уже использовано или истекло."
+
+msgid "invite_claimed_title"
+msgstr "Ваше приглашение открыли"
+
+msgid "invite_compare_codes"
+msgstr "Сравнить коды"
+
+msgid "personal_proxy"
+msgstr "Личный прокси"
+
+msgid "private_locations"
+msgstr "Частные локации"
+
+msgid "personal_proxies"
+msgstr "Личные прокси"
+
+msgid "your_personal_proxies"
+msgstr "Ваши личные прокси"
+
+msgid "help_friend_link_label"
+msgstr "Ссылка-приглашение"
+
+msgid "help_friend_paste"
+msgstr "Вставьте ссылку, которую прислал друг"
+
+msgid "help_friend_scan"
+msgstr "Отсканируйте QR-код друга"
+
+msgid "help_friend_approved"
+msgstr "Теперь вы помогаете: %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Этот запрос больше не ожидает ответа. Попросите друга прислать новое приглашение."
+
+msgid "help_friend_done"
+msgstr "Готово"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Это приглашение уже использовано"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Кто-то другой открыл эту ссылку раньше, или срок её действия истёк. Попросите у друга новое приглашение и предупредите, что это приглашение мог увидеть кто-то другой."
+
+msgid "help_friend_already_helping"
+msgstr "Вы уже помогаете этому другу."
+
+msgid "help_friend_already_helping_named"
+msgstr "Вы уже помогаете пользователю %s."
+
+msgid "help_friend_bad_link"
+msgstr "Это не ссылка-приглашение для помощи."
+
+msgid "help_friend_own_invite"
+msgstr "Это ваше собственное приглашение. Отправьте его другу, от которого хотите получить помощь."
+
+msgid "helping_since"
+msgstr "С %s"
+
+msgid "helping_unnamed"
+msgstr "Человек, которому вы помогаете"
+
+msgid "helping_sharing_off_warning"
+msgstr "Общий доступ выключен, поэтому люди, которым вы помогаете, не могут подключиться через вас."
+
+msgid "helping_remove"
+msgstr "Прекратить помощь"
+
+msgid "helping_remove_confirm"
+msgstr "Прекратить помощь: %s? Для повторного подключения через вас понадобится новое приглашение."
+
+msgid "help_others_too"
+msgstr "Помогайте и другим"
+
+msgid "help_others_too_body"
+msgstr "Делитесь свободной пропускной способностью с людьми, столкнувшимися с цензурой; Lantern открывает им только разрешённые сайты, что защищает ваше подключение от злоупотреблений."
+
+msgid "help_others_too_note"
+msgstr "При изменении этой настройки люди, которым вы помогаете, ненадолго переподключатся."
+
+msgid "helping_duration_hm"
+msgstr "%s ч %s мин"
+
+msgid "helping_duration_m"
+msgstr "%s мин"
