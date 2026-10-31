@@ -67,17 +67,17 @@ object AppLogger {
     }
 
     fun d(tag: String, message: String) {
-        Log.d(tag, message)
+        Log.d(tag, HelperTags.redact(message))
         writeAsync("DEBUG", tag, message)
     }
 
     fun i(tag: String, message: String) {
-        Log.i(tag, message)
+        Log.i(tag, HelperTags.redact(message))
         writeAsync("INFO", tag, message)
     }
 
     fun w(tag: String, message: String, throwable: Throwable? = null) {
-        Log.w(tag, message, throwable)
+        Log.w(tag, HelperTags.redact(message), throwable)
         val errorMessage = buildString {
             append(message)
             if (throwable != null) {
@@ -89,7 +89,7 @@ object AppLogger {
     }
 
     fun e(tag: String, message: String, throwable: Throwable? = null) {
-        Log.e(tag, message, throwable)
+        Log.e(tag, HelperTags.redact(message), throwable)
         val errorMessage = buildString {
             append(message)
             if (throwable != null) {

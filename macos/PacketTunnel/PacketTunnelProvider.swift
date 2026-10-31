@@ -16,7 +16,8 @@ public class PacketTunnelProvider: ExtensionProvider {
   {
     appLogger.info("PacketTunnelProvider received app message with data: \(messageData)")
     func respond(_ dict: [String: Any]) {
-      appLogger.info("PacketTunnelProvider responding with: \(dict)")
+      // The response can name the server, so only a redacted copy is logged.
+      appLogger.info(redactHelperTags("PacketTunnelProvider responding with: \(dict)"))
       let data = try? JSONSerialization.data(withJSONObject: dict)
       completionHandler?(data)
     }
