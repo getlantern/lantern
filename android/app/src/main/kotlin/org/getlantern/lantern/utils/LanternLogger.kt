@@ -76,28 +76,18 @@ object AppLogger {
         writeAsync("INFO", tag, message)
     }
 
+    // The throwable is rendered into the redacted text, never passed on: its
+    // message and its causes' can name a helper outbound.
     fun w(tag: String, message: String, throwable: Throwable? = null) {
-        Log.w(tag, HelperTags.redact(message), throwable)
-        val errorMessage = buildString {
-            append(message)
-            if (throwable != null) {
-                append("\n")
-                append(throwable.stackTraceToString())
-            }
-        }
-        writeAsync("WARN", tag, errorMessage)
+        val text = HelperTags.redactWithThrowable(message, throwable)
+        Log.w(tag, text)
+        writeAsync("WARN", tag, text)
     }
 
     fun e(tag: String, message: String, throwable: Throwable? = null) {
-        Log.e(tag, HelperTags.redact(message), throwable)
-        val errorMessage = buildString {
-            append(message)
-            if (throwable != null) {
-                append("\n")
-                append(throwable.stackTraceToString())
-            }
-        }
-        writeAsync("ERROR", tag, errorMessage)
+        val text = HelperTags.redactWithThrowable(message, throwable)
+        Log.e(tag, text)
+        writeAsync("ERROR", tag, text)
     }
     /**
      * Must be called on the logger's IO scope (or before the writer is opened);

@@ -35,6 +35,14 @@ object HelperTags {
     }
 
     /**
+     * [message] and, when there is one, [throwable]'s stack trace (with every
+     * cause's message) as one redacted text. A throwable handed to Log or a
+     * writer as is would leave its messages unredacted.
+     */
+    fun redactWithThrowable(message: String, throwable: Throwable?): String =
+        redact(if (throwable == null) message else "$message\n${throwable.stackTraceToString()}")
+
+    /**
      * What may be logged about a Flutter event. A server-location event carries
      * the auto-selected server, which may be a helper outbound whose tag,
      * address and city must never reach a log, so only its type is logged.
