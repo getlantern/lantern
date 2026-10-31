@@ -2,10 +2,12 @@ package lanterncore
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/vpn"
@@ -91,4 +93,37 @@ func TestSelectedServerReadsRadiancesSelection(t *testing.T) {
 func TestSelectedServerRunsWithoutTheEngine(t *testing.T) {
 	lc := &LanternCore{ctx: context.Background()}
 	assert.JSONEq(t, `{"error":"unavailable"}`, lc.HelperCall(opSelectedServer, "{}"))
+}
+
+// The settings endpoint answers with settings.GetAll(), Koanf's flattened
+// view, sent as JSON. After an unrelated write reloads the file, the selected
+// server is "selected_server.tag", not an object.
+func TestSelectedServerReadsTheFlattenedSettingsShape(t *testing.T) {
+	settings.Reset()
+	t.Cleanup(settings.Reset)
+	require.NoError(t, settings.InitSettings(t.TempDir()))
+	overIPC := func() settings.Settings {
+		b, err := json.Marshal(settings.GetAll())
+		require.NoError(t, err)
+		var s settings.Settings
+		require.NoError(t, json.Unmarshal(b, &s))
+		return s
+	}
+
+	require.NoError(t, settings.Patch(settings.Settings{
+		settings.AutoConnectKey: false,
+		settings.SelectedServerKey: map[string]any{
+			"tag": "personal-proxy:helper-0123456789ab", "type": "mutableurltest",
+		},
+	}))
+	require.NoError(t, settings.Set(settings.LocaleKey, "en-US"))
+	s := overIPC()
+	_, nested := s[settings.SelectedServerKey]
+	assert.False(t, nested, "the shape this test is about")
+	assert.Contains(t, s, settings.SelectedServerKey+".tag")
+	assert.JSONEq(t, `{"tag":"personal-proxy:helper-0123456789ab"}`, selectedServerJSON(s))
+
+	require.NoError(t, settings.Patch(settings.Settings{settings.AutoConnectKey: true}))
+	require.NoError(t, settings.Set(settings.LocaleKey, "fa-IR"))
+	assert.JSONEq(t, `{"tag":"auto"}`, selectedServerJSON(overIPC()))
 }

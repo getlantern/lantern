@@ -99,30 +99,46 @@ func forwardPersonalProxyFallback(evt vpn.PersonalProxyFallbackEvent, notify fun
 // selectedServerJSON answers the selected_server op from radiance's settings.
 // Nothing is logged: the tag can name a friend.
 func selectedServerJSON(s settings.Settings) string {
+	tag, ok := selectedTag(s)
+	if !ok {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+	}
+	out, err := json.Marshal(struct {
+		Tag string `json:"tag"`
+	}{tag})
+	if err != nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeInternal})
+	}
+	return string(out)
+}
+
+// selectedTag is the selection in radiance's settings, "auto" for
+// auto-select. The settings endpoint answers with Koanf's flattened view, so
+// a selected server persisted to disk arrives as "selected_server.tag", while
+// one only just set can still arrive as a "selected_server" object. Both are
+// read.
+func selectedTag(s settings.Settings) (string, bool) {
 	if auto, _ := s[settings.AutoConnectKey].(bool); auto {
-		return `{"tag":"auto"}`
+		return vpn.AutoSelectTag, true
+	}
+	if tag, _ := s[settings.SelectedServerKey+".tag"].(string); tag != "" {
+		return tag, true
 	}
 	raw, ok := s[settings.SelectedServerKey]
 	if !ok || raw == nil {
-		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+		return "", false
 	}
 	b, err := json.Marshal(raw)
 	if err != nil {
-		return helper.ErrorJSON(&helper.Error{Code: helper.CodeInternal})
+		return "", false
 	}
 	var selected struct {
 		Tag string `json:"tag"`
 	}
 	if json.Unmarshal(b, &selected) != nil || selected.Tag == "" {
-		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+		return "", false
 	}
-	out, err := json.Marshal(struct {
-		Tag string `json:"tag"`
-	}{selected.Tag})
-	if err != nil {
-		return helper.ErrorJSON(&helper.Error{Code: helper.CodeInternal})
-	}
-	return string(out)
+	return selected.Tag, true
 }
 
 // readSelectedServer reads radiance's settings for the selected_server op.
