@@ -24,14 +24,19 @@ class _Service implements LanternService {
   @override
   Future<bool> isTagAvailable(String tag) async => tagAvailable;
 
-  /// The selected_server op's answer.
-  Completer<String> selectedServer = Completer<String>();
+  /// The selected_server op's answers, one per read, in the order the reads
+  /// start.
+  final selectedServer = <Completer<String>>[];
 
   @override
   Future<Either<Failure, String>> helperCall(
     String op,
     Map<String, dynamic> args,
-  ) async => Right(await selectedServer.future);
+  ) async {
+    final answer = Completer<String>();
+    selectedServer.add(answer);
+    return Right(await answer.future);
+  }
 
   final auto = Completer<Either<Failure, Server>>();
   final selected = Completer<Either<Failure, ServerLocation>>();
@@ -90,6 +95,12 @@ class _Servers extends AvailableServersNotifier {
   Future<Either<Failure, AvailableServers>> fetchAvailableServers() async =>
       Right(AvailableServers([]));
 }
+
+ServerLocation _location(String tag) => ServerLocation(
+  serverType: ServerLocationType.lanternLocation.name,
+  serverName: tag,
+  displayName: tag,
+);
 
 const _oneHelper = HelpersState(
   viewLoaded: true,
@@ -466,81 +477,69 @@ void main() {
     expect(service.widgetServers.last, 'fra');
   });
 
-  group('personalProxyFellBack', () {
+  group('syncSelection', () {
     const friend = 'helper-0123456789ab';
+    final friendTag = personalProxySelection(friend);
 
-    test('the selected friend falls back to the group', () async {
-      storage.location = ServerLocation.personalProxy(friendTag: friend);
-      final c = container(vpn: VPNStatus.connected);
-      await c
-          .read(serverLocationProvider.notifier)
-          .personalProxyFellBack(friend, personalProxiesTag);
-      final loc = c.read(serverLocationProvider);
-      expect(loc.serverName, personalProxiesTag);
-      expect(loc.personalProxyFriendTag, isNull);
-      expect(storage.location!.serverName, personalProxiesTag);
-    });
+    Future<void> answer(int i, String json) async {
+      service.selectedServer[i].complete(json);
+      await Future<void>.delayed(Duration.zero);
+    }
 
-    test('or to Smart Location', () async {
-      storage.location = ServerLocation.personalProxy(friendTag: friend);
+    test('only the newest started read applies, whatever order the answers '
+        'come in', () async {
       final c = container();
-      await c
-          .read(serverLocationProvider.notifier)
-          .personalProxyFellBack(friend, 'auto');
-      expect(
-        c.read(serverLocationProvider).serverType,
-        ServerLocationType.auto.name,
-      );
-    });
-
-    test('a selection that is no longer that friend is left alone', () async {
-      storage.location = ServerLocation.personalProxy(
-        friendTag: 'helper-ffffffffffff',
-      );
-      final c = container();
-      await c
-          .read(serverLocationProvider.notifier)
-          .personalProxyFellBack(friend, 'auto');
-      expect(
-        c.read(serverLocationProvider).personalProxyFriendTag,
-        'helper-ffffffffffff',
-      );
-    });
-  });
-
-  group('saveFriendSelection', () {
-    const friend = 'helper-0123456789ab';
-
-    test('saves auto when radiance fell back to it', () async {
-      storage.location = ServerLocation.personalProxy();
-      final c = container();
-      service.selectedServer.complete('{"tag":"auto"}');
-      await c.read(serverLocationProvider.notifier).saveFriendSelection(friend);
-      expect(
-        c.read(serverLocationProvider).serverType,
-        ServerLocationType.auto.name,
-      );
-    });
-
-    test('saves the friend radiance reports', () async {
-      final c = container();
-      service.selectedServer.complete(
-        '{"tag":"${personalProxySelection(friend)}"}',
-      );
-      await c.read(serverLocationProvider.notifier).saveFriendSelection(friend);
+      final notifier = c.read(serverLocationProvider.notifier);
+      final older = notifier.syncSelection();
+      final newer = notifier.syncSelection();
+      await Future<void>.delayed(Duration.zero);
+      await answer(1, '{"tag":"$friendTag"}');
+      await answer(0, '{"tag":"$personalProxiesTag"}');
+      await Future.wait([older, newer]);
       expect(c.read(serverLocationProvider).personalProxyFriendTag, friend);
     });
 
-    test('a selection made while reading wins', () async {
+    test('mirrors the group, a friend and auto', () async {
+      storage.location = ServerLocation.personalProxy(friendTag: friend);
       final c = container();
       final notifier = c.read(serverLocationProvider.notifier);
-      final saving = notifier.saveFriendSelection(friend);
-      notifier.updateServerLocation(ServerLocation.personalProxy());
-      service.selectedServer.complete(
-        '{"tag":"${personalProxySelection(friend)}"}',
-      );
-      await saving;
+
+      var sync = notifier.syncSelection();
+      await answer(0, '{"tag":"$personalProxiesTag"}');
+      await sync;
       expect(c.read(serverLocationProvider).serverName, personalProxiesTag);
+      expect(storage.location!.serverName, personalProxiesTag);
+
+      sync = notifier.syncSelection();
+      await answer(1, '{"tag":"$friendTag"}');
+      await sync;
+      expect(c.read(serverLocationProvider).personalProxyFriendTag, friend);
+
+      sync = notifier.syncSelection();
+      await answer(2, '{"tag":"auto"}');
+      await sync;
+      expect(
+        c.read(serverLocationProvider).serverType,
+        ServerLocationType.auto.name,
+      );
+    });
+
+    test('a failed read changes nothing', () async {
+      storage.location = ServerLocation.personalProxy(friendTag: friend);
+      final c = container();
+      final sync = c.read(serverLocationProvider.notifier).syncSelection();
+      await answer(0, '{"error":"unavailable"}');
+      await sync;
+      expect(c.read(serverLocationProvider).personalProxyFriendTag, friend);
+    });
+
+    test('another server is fetched with its details', () async {
+      final c = container(vpn: VPNStatus.connected);
+      final sync = c.read(serverLocationProvider.notifier).syncSelection();
+      await answer(0, '{"tag":"lantern-1"}');
+      service.selected.complete(Right(_location('lantern-1')));
+      await sync;
+      expect(c.read(serverLocationProvider).serverName, 'lantern-1');
     });
   });
 }

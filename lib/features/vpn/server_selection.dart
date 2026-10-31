@@ -733,16 +733,13 @@ class _PrivateServerLocationListViewState
             ServerLocation.personalProxy(),
           ),
           selectedFriend: selectedFriend,
-          onSelectFriend: (h) {
-            final locations = ref.read(serverLocationProvider.notifier);
-            _select(
-              ServerLocationType.personalProxy,
-              personalProxySelection(h.outboundTag),
-              ServerLocation.personalProxy(friendTag: h.outboundTag),
-              // Saves what radiance selected, which may be a fallback.
-              save: () => locations.saveFriendSelection(h.outboundTag),
-            );
-          },
+          onSelectFriend: (h) => _select(
+            ServerLocationType.personalProxy,
+            personalProxySelection(h.outboundTag),
+            ServerLocation.personalProxy(friendTag: h.outboundTag),
+            // Shows what radiance selected, which may be a fallback.
+            save: ref.read(serverLocationProvider.notifier).syncSelection,
+          ),
         ),
         if (userLocations.isNotEmpty) ...[
           Padding(

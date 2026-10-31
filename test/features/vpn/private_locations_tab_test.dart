@@ -337,33 +337,32 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  for (final (name, selected, fallbackEvent, want) in [
+  // The connect is faked, so only the screen's save reads radiance's
+  // selection, plus whatever the event in flight triggers.
+  for (final (name, selected, duringConnect, want) in [
     (
-      'a connect that ends on the group, with no fallback event, saves the '
-          'group',
+      'a fallback during a pending connect ends on the group',
       'personal-proxies',
-      false,
+      (_Location l) => l.syncSelection(),
       'personal-proxies',
     ),
     (
-      'a fallback event before the connect reply does not let the friend be '
-          'saved',
-      'personal-proxies',
-      true,
-      'personal-proxies',
-    ),
-    (
-      'a connect that ends on the friend saves the friend',
+      'a location metadata event while selecting a friend ends on the friend',
       'personal-proxy:helper-0123456789ab',
-      false,
-      'personal-proxy:helper-0123456789ab',
-    ),
-    (
-      'without an answer from radiance the requested friend is saved',
-      null,
-      false,
+      (_Location l) async {
+        // What a server-location event does while still on auto.
+        l.updateServerLocation(
+          ServerLocation(
+            serverName: '',
+            serverType: ServerLocationType.auto.name,
+            city: 'Berlin',
+          ),
+        );
+        await l.syncSelection();
+      },
       'personal-proxy:helper-0123456789ab',
     ),
+    ('a failed read leaves the selection as it was', null, null, ''),
   ]) {
     testWidgets(name, (tester) async {
       await sl.reset();
@@ -373,18 +372,14 @@ void main() {
       final container = _selectionContainer(vpn, location, service);
       addTearDown(container.dispose);
       await _pumpSelection(tester, container);
-      if (fallbackEvent) {
-        vpn.beforeReply = () => location.personalProxyFellBack(
-          'helper-0123456789ab',
-          'personal-proxies',
-        );
+      if (duringConnect != null) {
+        vpn.beforeReply = () => duringConnect(location);
       }
       await tester.tap(
         find.byKey(const Key('server_selection.personal_proxy.p1')),
       );
       await tester.pump();
       await tester.pump();
-      expect(service.selectionReads, 1);
       expect(container.read(serverLocationProvider).serverName, want);
     });
   }

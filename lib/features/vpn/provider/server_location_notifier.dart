@@ -87,56 +87,56 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     await refreshAutoLocationIfNeeded();
   }
 
-  /// radiance switched the friend selected on their own, whose outbound tag
-  /// is [friendTag], to [fallback] (the personal proxies group, or auto)
-  /// because no route to them was left. Follows it while that friend is
-  /// still the selection here.
-  Future<void> personalProxyFellBack(String friendTag, String fallback) async {
-    if (!ref.mounted || state.personalProxyFriendTag != friendTag) return;
-    if (fallback == personalProxiesTag) {
-      updateServerLocation(ServerLocation.personalProxy());
+  // Numbers each read of radiance's selection: only the newest started read
+  // is applied.
+  int _reads = 0;
+
+  /// Mirrors the selection radiance has persisted, the one source of truth.
+  /// Called when a connect returns, on a personal proxy fallback and on a
+  /// server-location event. Each call starts a fresh read and only the newest
+  /// started read is applied, so the last one always reflects radiance's
+  /// latest state. A failed read changes nothing.
+  Future<void> syncSelection() async {
+    final read = ++_reads;
+    Object? tag;
+    try {
+      final res = await ref
+          .read(lanternServiceProvider)
+          .helperCall('selected_server', const {});
+      final r = res.fold(
+        (_) => HelperResult.failure('unavailable'),
+        HelperResult.parse,
+      );
+      if (r.ok) tag = r.data['tag'];
+    } catch (_) {
       return;
     }
-    await switchToAuto();
-    await refreshAutoLocationIfNeeded();
-  }
-
-  /// Saves the selection radiance actually has once a connect to the friend
-  /// whose outbound tag is [friendTag] succeeded: that friend, or the group
-  /// or auto it fell back to. radiance's fallback event can arrive before
-  /// the connect answers, and the native tunnel's own retry sends none, so
-  /// radiance's persisted selection is the one source of truth. If it cannot
-  /// be read, the requested friend is saved; a later fallback event still
-  /// moves it.
-  Future<void> saveFriendSelection(String friendTag) async {
-    final selection = _selection;
-    final res = await ref
-        .read(lanternServiceProvider)
-        .helperCall('selected_server', const {});
-    if (!ref.mounted || selection != _selection) return;
-    final r = res.fold(
-      (_) => HelperResult.failure('unavailable'),
-      HelperResult.parse,
-    );
-    final tag = r.ok ? r.data['tag'] : null;
+    if (!ref.mounted || read != _reads || tag is! String || tag.isEmpty) {
+      return;
+    }
     if (tag == 'auto') {
+      if (state.serverType == ServerLocationType.auto.name) return;
       await switchToAuto();
       await refreshAutoLocationIfNeeded();
       return;
     }
-    if (tag == personalProxiesTag) {
-      updateServerLocation(ServerLocation.personalProxy());
+    final friend = personalProxyFriend(tag);
+    if (tag == personalProxiesTag || friend != null) {
+      if (state.serverName == tag) return;
+      updateServerLocation(ServerLocation.personalProxy(friendTag: friend));
       return;
     }
-    if (tag is String && tag.isNotEmpty && personalProxyFriend(tag) == null) {
-      // Something else entirely: show what radiance reports.
-      await _fetchSelectedLocation();
+    // A Lantern or private server: already shown with its details, or
+    // fetched from radiance.
+    if (state.serverName == tag &&
+        state.serverType != ServerLocationType.auto.name) {
       return;
     }
-    final friend = tag is String ? personalProxyFriend(tag) : null;
-    updateServerLocation(
-      ServerLocation.personalProxy(friendTag: friend ?? friendTag),
-    );
+    final result = await ref
+        .read(lanternServiceProvider)
+        .getSelectedServerLocation();
+    if (!ref.mounted || read != _reads) return;
+    result.fold((_) {}, updateServerLocation);
   }
 
   /// Fetches the current server location from radiance.

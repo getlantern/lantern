@@ -58,8 +58,9 @@ class AppEventNotifier extends _$AppEventNotifier {
   }
 
   /// radiance switched the friend selected on their own, who has no route
-  /// left, to the personal proxies group or to auto: follows it and tells
-  /// the user, by the friend's name. Neither the tag nor the name is logged.
+  /// left, to the personal proxies group or to auto: tells the user, by the
+  /// friend's name, and reads the selection again. Neither the tag nor the
+  /// name is logged.
   Future<void> _personalProxyFellBack(String message) async {
     final String tag;
     final String fallback;
@@ -77,11 +78,8 @@ class AppEventNotifier extends _$AppEventNotifier {
       fallback,
     );
     if (text == null) return;
-    await ref
-        .read(serverLocationProvider.notifier)
-        .personalProxyFellBack(tag, fallback);
-    if (!ref.mounted) return;
     showMessage(text);
+    unawaited(ref.read(serverLocationProvider.notifier).syncSelection());
   }
 
   /// Watches for application events and triggers appropriate actions.
@@ -112,6 +110,7 @@ class AppEventNotifier extends _$AppEventNotifier {
                 .read(availableServersProvider.notifier)
                 .forceFetchAvailableServers(),
           );
+          unawaited(ref.read(serverLocationProvider.notifier).syncSelection());
           // Only consume this event when the user is actually in auto mode.
           // Otherwise (custom server selected) ignore it — applying it would
           // silently flip the user's selection back to Smart Location on

@@ -6,7 +6,6 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/notification_event.dart';
-import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/services/rating_prompt_service.dart';
@@ -215,7 +214,7 @@ class VpnNotifier extends _$VpnNotifier {
       appLogger.debug(
         'Got server location with type auto or force is true, starting VPN with auto',
       );
-      return lantern.startVPN();
+      return _thenSync(lantern.startVPN());
     }
 
     final tag = serverLocation.serverName;
@@ -229,9 +228,6 @@ class VpnNotifier extends _$VpnNotifier {
         // exists, as radiance does for a running tunnel.
         if (serverLocation.personalProxyFriendTag != null &&
             await lantern.isTagAvailable(personalProxiesTag)) {
-          ref
-              .read(serverLocationProvider.notifier)
-              .updateServerLocation(ServerLocation.personalProxy());
           return connectToServer(
             type,
             personalProxiesTag,
@@ -242,25 +238,9 @@ class VpnNotifier extends _$VpnNotifier {
         // is what connects.
         await ref.read(serverLocationProvider.notifier).switchToAuto();
       }
-      return lantern.startVPN();
+      return _thenSync(lantern.startVPN());
     }
-    final result = await connectToServer(
-      type,
-      tag,
-      skipConflictCheck: skipConflictCheck,
-    );
-    final friend = serverLocation.personalProxyFriendTag;
-    if (friend != null && result.isRight()) {
-      // The native tunnel may connect the group or auto instead of a friend
-      // who went away: show what radiance selected once connected.
-      final locations = ref.read(serverLocationProvider.notifier);
-      unawaited(
-        locations.saveOnceConnected(
-          () => locations.saveFriendSelection(friend),
-        ),
-      );
-    }
-    return result;
+    return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
   }
 
   /// Connects to a specific server location.
@@ -279,10 +259,31 @@ class VpnNotifier extends _$VpnNotifier {
     }
 
     appLogger.debug("Connecting to server: $location with tag: $tag");
-    final result = await ref
-        .read(lanternServiceProvider)
-        .connectToServer(location.name, tag);
-    return result;
+    return _thenSync(
+      ref.read(lanternServiceProvider).connectToServer(location.name, tag),
+    );
+  }
+
+  // Best effort: the connect's own result is what the caller gets.
+  void _syncSelection() {
+    if (!ref.mounted) return;
+    try {
+      unawaited(ref.read(serverLocationProvider.notifier).syncSelection());
+    } catch (e) {
+      appLogger.debug('Could not read the selection again: $e');
+    }
+  }
+
+  /// Once a connect returns, either way, the shown selection is read again
+  /// from radiance, which may have selected something else.
+  Future<Either<Failure, String>> _thenSync(
+    Future<Either<Failure, String>> connect,
+  ) async {
+    try {
+      return await connect;
+    } finally {
+      _syncSelection();
+    }
   }
 
   Future<Left<Failure, String>?> _checkVpnConflict() async {

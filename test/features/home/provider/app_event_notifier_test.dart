@@ -31,13 +31,12 @@ class _Helpers extends HelpersNotifier {
 }
 
 class _Location extends ServerLocationNotifier {
-  final fallbacks = <(String, String)>[];
+  int syncs = 0;
   @override
   ServerLocation build() =>
       ServerLocation(serverName: '', serverType: ServerLocationType.auto.name);
   @override
-  Future<void> personalProxyFellBack(String friendTag, String fallback) async =>
-      fallbacks.add((friendTag, fallback));
+  Future<void> syncSelection() async => syncs++;
 }
 
 void main() {
@@ -93,18 +92,18 @@ void main() {
       outboundTag: tag,
     );
 
-    test('to the group: names the friend and follows', () async {
+    test('to the group: names the friend and reads the selection', () async {
       await start(const [sara]);
       await send('{"tag":"$tag","fallback":"personal-proxies"}');
       expect(shown, ['Sara is offline. Switched to Your personal proxies.']);
-      expect(location.fallbacks, [(tag, 'personal-proxies')]);
+      expect(location.syncs, 1, reason: 'reads what radiance selected');
     });
 
     test('to auto: Smart Location', () async {
       await start(const [sara]);
       await send('{"tag":"$tag","fallback":"auto"}');
       expect(shown, ['Sara is offline. Switched to Smart Location.']);
-      expect(location.fallbacks, [(tag, 'auto')]);
+      expect(location.syncs, 1);
     });
 
     test(
@@ -123,7 +122,7 @@ void main() {
       await send('not json');
       await send('{"tag":"$tag","fallback":"elsewhere"}');
       expect(shown, isEmpty);
-      expect(location.fallbacks, isEmpty);
+      expect(location.syncs, 0);
     });
   });
 
