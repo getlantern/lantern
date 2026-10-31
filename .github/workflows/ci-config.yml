@@ -42,6 +42,10 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq gettext
           python3 -m unittest discover -s tools/localization -p 'test_translate.py' -v
+      # The translation run propagates en.po into every locale, so a duplicate msgid or bad
+      # escape has to fail here, before it merges.
+      - name: Check PO files with msgfmt
+        run: for f in assets/locales/*.po; do msgfmt --check -o /dev/null "$f" || exit 1; done
       - name: Check setup script syntax
         run: |
           bash -n .github/actions/setup-flutter/read-version.sh

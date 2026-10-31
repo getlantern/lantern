@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import datetime as dt
+import functools
 import json
 import os
 import re
@@ -116,6 +117,7 @@ def meta_for(code: str) -> LocaleMeta:
     return LocaleMeta(code, code)
 
 
+@functools.cache
 def _guide_sections() -> dict[str, str]:
     sections: dict[str, list[str]] = {}
     current = None
@@ -196,7 +198,7 @@ class PoFile:
         seen_msgstr = False
         for line in text.splitlines(keepends=True):
             s = line.rstrip("\r\n")
-            if seen_msgstr and (s.startswith("#") or s.startswith("msgid")):
+            if seen_msgstr and (s.startswith("#") or s.startswith("msgid") or s.startswith("msgctxt")):
                 groups.append(cur)
                 cur, seen_msgstr = [], False
             if s.startswith("msgstr"):
@@ -211,7 +213,9 @@ class PoFile:
     def _entry(raw: list[str]) -> Entry:
         stripped = [l.rstrip("\r\n") for l in raw]
         msgid_i = next((i for i, l in enumerate(stripped) if l.startswith("msgid ")), None)
-        if msgid_i is None:
+        # Plural entries (msgid_plural / msgstr[n]) are kept byte for byte but not managed:
+        # nothing here translates them, and treating them as plain strings would corrupt them.
+        if msgid_i is None or any(l.startswith("msgid_plural") for l in stripped):
             return Entry(None, "", "", raw, -1, -1)
         msgstr_i = next(i for i, l in enumerate(stripped) if l.startswith("msgstr "))
 
@@ -251,17 +255,22 @@ class PoFile:
         e = self._index.get(key)
         return "" if e is None else e.comment
 
-    def set(self, key: str, value: str) -> None:
+    def set(self, key: str, value: str, multiline: bool = False) -> None:
+        """multiline writes the gettext wrapped form, one quoted line per "\\n"; it's
+        what headers use, so rewriting one doesn't collapse it onto a single line."""
         e = self._index.get(key)
-        line = f'msgstr "{po_escape(value)}"\n'
+        if multiline:
+            lines = ['msgstr ""\n'] + [f'"{po_escape(seg)}"\n' for seg in value.splitlines(keepends=True)]
+        else:
+            lines = [f'msgstr "{po_escape(value)}"\n']
         if e is None:
             self._ensure_separator()
-            e = Entry(key, value, "", [f'msgid "{po_escape(key)}"\n', line, "\n"], 1, 2)
+            e = Entry(key, value, "", [f'msgid "{po_escape(key)}"\n', *lines, "\n"], 1, 1 + len(lines))
             self.entries.append(e)
             self._index[key] = e
             return
-        e.raw = e.raw[: e.msgstr_start] + [line] + e.raw[e.msgstr_end:]
-        e.msgstr_end = e.msgstr_start + 1
+        e.raw = e.raw[: e.msgstr_start] + lines + e.raw[e.msgstr_end:]
+        e.msgstr_end = e.msgstr_start + len(lines)
         e.value = value
 
     def remove(self, key: str) -> None:
@@ -792,6 +801,11 @@ def decide(it: Item, skip_review: bool) -> None:
     elif it.verdict == "pass" and (it.confidence or 0) >= LOW_CONFIDENCE and not real_soft(it.soft_issues):
         it.soft_issues = real_soft(it.soft_issues)  # the reviewer accepted the untranslated term
         it.status = "passed"
+    elif it.verdict == "flag":
+        # The reviewer says it's wrong and couldn't fix it: don't ship it. Rejected keeps it
+        # out of the file (and clears a stale old translation), so the gap is retried.
+        it.status = "rejected"
+        it.reviewer_note = ("Reviewer marked it wrong. " + it.reviewer_note).strip()
     else:
         it.status = "flagged"
         if not it.verdict:
@@ -1135,7 +1149,7 @@ def ensure_charset(po: PoFile) -> bool:
     hdr = po.get("")
     if hdr is None or "charset=" in hdr:
         return False
-    po.set("", hdr + "Content-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n")
+    po.set("", hdr + "Content-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n", multiline=True)
     return True
 
 
