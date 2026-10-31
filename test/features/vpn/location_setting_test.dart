@@ -8,9 +8,10 @@ import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 
 void main() {
-  testWidgets('a personal proxy shows as "Personal proxy" with no place', (
-    tester,
-  ) async {
+  setUpAll(Localization.loadTranslations);
+
+  testWidgets('the personal proxies group shows by name, with "Personal '
+      'Proxy" under it and no place', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -29,7 +30,14 @@ void main() {
     );
     await tester.pump();
     expect(find.text('selected_location'.i18n), findsOneWidget);
+    expect(find.text('your_personal_proxies'.i18n), findsOneWidget);
     expect(find.text('personal_proxy'.i18n), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('personal_proxy'.i18n)).dy,
+      greaterThan(
+        tester.getTopLeft(find.text('your_personal_proxies'.i18n)).dy,
+      ),
+    );
     expect(find.byType(Flag), findsNothing);
   });
 }

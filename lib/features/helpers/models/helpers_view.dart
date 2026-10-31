@@ -121,6 +121,7 @@ class HelperPairingView {
     this.name = '',
     this.online = false,
     this.sinceUnix = 0,
+    this.connected,
   });
 
   final String pairingId;
@@ -128,12 +129,21 @@ class HelperPairingView {
   final bool online;
   final int sinceUnix;
 
+  /// On a pairing this device helps: whether that friend routes through this
+  /// device right now. Null until the engine reports it, and then nothing
+  /// may claim either way.
+  final bool? connected;
+
+  // Per-friend selection plugs in here once a pairing maps to its outbound tag.
+  bool get selectable => false;
+
   factory HelperPairingView.fromJson(Map<String, dynamic> j) =>
       HelperPairingView(
         pairingId: _str(j['pairing_id']),
         name: _str(j['name']),
         online: j['online'] == true,
         sinceUnix: _int(j['since_unix']),
+        connected: j['connected'] is bool ? j['connected'] as bool : null,
       );
 }
 

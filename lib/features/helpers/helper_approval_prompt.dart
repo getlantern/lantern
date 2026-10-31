@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/features/helpers/approve_helper_sheet.dart';
+import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
@@ -56,7 +56,7 @@ void useHelperApprovalPrompt(
       }
       notifier.markApprovalPrompted(invite.id);
       showing.value = true;
-      await showApproveHelperSheet(context, invite);
+      await showApproveHelperDialog(context, invite);
       showing.value = false;
     }
 

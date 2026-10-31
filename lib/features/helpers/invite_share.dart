@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
-import 'package:lantern/features/helpers/approve_helper_sheet.dart';
+import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
@@ -95,10 +95,17 @@ class InviteShare extends ConsumerWidget {
               child: PrimaryButton(
                 label: 'invite_compare_codes'.i18n,
                 onPressed: () async {
-                  final decided = await showApproveHelperSheet(context, invite);
+                  final decided = await showApproveHelperDialog(
+                    context,
+                    invite,
+                  );
                   // The invite is used now; go back to the helpers list
-                  // rather than staying on "used or expired".
-                  if (decided && context.mounted) {
+                  // rather than staying on "used or expired". Only while
+                  // this screen is on top: a decision that lands after Back
+                  // closed its dialog must not close a newer one.
+                  if (decided &&
+                      context.mounted &&
+                      (ModalRoute.of(context)?.isCurrent ?? false)) {
                     await Navigator.of(context).maybePop();
                   }
                 },
@@ -110,64 +117,107 @@ class InviteShare extends ConsumerWidget {
     }
 
     final message = inviteShareMessage(view, invite);
+    Future<void> copy() async {
+      try {
+        await copySensitiveText(invite.link);
+        if (context.mounted) context.showSnackBar('invite_link_copied'.i18n);
+      } catch (_) {
+        if (context.mounted) {
+          context.showSnackBarError('helper_error_copy'.i18n);
+        }
+      }
+    }
+
     return BaseScreen(
       title: 'invite_personal_proxy'.i18n,
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: defaultSize),
         children: [
-          Text(
-            'invite_share_body'.i18n,
-            style: textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+          AppCard(
+            key: const Key('invite.card'),
+            padding: const EdgeInsets.all(defaultSize),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('invite_share_title'.i18n, style: textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  'invite_share_steps'.i18n,
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Read-only: a tap copies it, as does the copy icon. No
+                // selection menu, whose Copy would skip copySensitiveText.
+                AppTextField(
+                  fieldKey: const Key('invite.link'),
+                  initialValue: invite.link,
+                  label: 'invite_link_label'.i18n,
+                  hintText: '',
+                  prefixIcon: Icons.link,
+                  enableSuggestions: false,
+                  enableIMEPersonalizedLearning: false,
+                  autocorrect: false,
+                  enableInteractiveSelection: false,
+                  onTap: copy,
+                  suffixIcon: IconButton(
+                    key: const Key('invite.copy'),
+                    tooltip: 'invite_copy_link'.i18n,
+                    icon: const AppImage(path: AppImagePaths.copy),
+                    onPressed: copy,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    'invite_link_expiry'.i18n,
+                    style: textTheme.labelMedium!.copyWith(
+                      color: context.textTertiary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                KeyedSubtree(
+                  key: const Key('invite.share'),
+                  child: Builder(
+                    builder: (buttonContext) => PrimaryButton(
+                      label: 'invite_share_button'.i18n,
+                      icon: AppImagePaths.share,
+                      onPressed: () => shareInvite(buttonContext, message),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: defaultSize),
+          // Small type, so the QR code below still fits without scrolling.
           InfoRow(
             key: const Key('invite.trust_warning'),
             backgroundColor: context.bgPromo,
             imagePath: AppImagePaths.warning,
             text: 'invite_trust_warning'.i18n,
-          ),
-          const SizedBox(height: 24),
-          KeyedSubtree(
-            key: const Key('invite.share'),
-            child: Builder(
-              builder: (buttonContext) => PrimaryButton(
-                label: 'invite_share_button'.i18n,
-                onPressed: () => shareInvite(buttonContext, message),
-              ),
+            textStyle: textTheme.bodySmall!.copyWith(
+              color: context.textSecondary,
             ),
           ),
-          const SizedBox(height: 8),
-          SecondaryButton(
-            key: const Key('invite.copy'),
-            label: 'invite_copy_link'.i18n,
-            onPressed: () async {
-              try {
-                await copySensitiveText(invite.link);
-                if (context.mounted) {
-                  context.showSnackBar('invite_link_copied'.i18n);
-                }
-              } catch (_) {
-                if (context.mounted) {
-                  context.showSnackBarError('helper_error_copy'.i18n);
-                }
-              }
-            },
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: defaultSize),
           Center(
             child: QrImageView(
               key: const Key('invite.qr'),
               data: invite.link,
               version: QrVersions.auto,
-              size: 220,
+              size: 112,
               backgroundColor: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Center(
             child: Text('invite_qr_hint'.i18n, style: textTheme.labelMedium),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           Row(
             children: [
               const SizedBox(

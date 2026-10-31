@@ -45,9 +45,12 @@ class LocationSetting extends HookConsumerWidget {
         protocol = serverLocation.protocol;
         break;
 
+      // Never a flag or a place: the generic location icon, the group's name
+      // and "Personal Proxy" under it.
       case ServerLocationType.personalProxy:
         title = 'selected_location'.i18n;
-        value = 'personal_proxy'.i18n;
+        value = 'your_personal_proxies'.i18n;
+        protocol = 'personal_proxy'.i18n;
         break;
     }
 

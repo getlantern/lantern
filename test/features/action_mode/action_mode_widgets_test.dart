@@ -152,16 +152,19 @@ void main() {
   }
 
   group('helper invites on the tab', () {
-    testWidgets('"Have an invite link?" shows in an uncensored country', (
+    final become = find.byKey(const Key('action_mode.become_personal_proxy'));
+    final connections = find.byKey(
+      const Key('action_mode.personal_proxy_connections'),
+    );
+
+    testWidgets('"Become a Personal Proxy" shows in an uncensored country', (
       tester,
     ) async {
       await mount(tester, const ActionModeTab(), animated: true);
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('action_mode.invite_link')),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('have_invite_link'.i18n), findsOneWidget);
+      expect(become, findsOneWidget);
+      expect(find.text('become_personal_proxy'.i18n), findsOneWidget);
+      expect(find.text('become_personal_proxy_body'.i18n), findsOneWidget);
+      expect(connections, findsNothing);
       await tester.pumpWidget(const SizedBox());
     });
 
@@ -175,7 +178,8 @@ void main() {
           animated: true,
           country: country,
         );
-        expect(find.byKey(const Key('action_mode.invite_link')), findsNothing);
+        expect(become, findsNothing);
+        expect(connections, findsNothing);
         await tester.pumpWidget(const SizedBox());
       });
     }
@@ -197,16 +201,12 @@ void main() {
           ),
         ),
       );
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('action_mode.invite_link')),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.byKey(const Key('action_mode.invite_link')), findsOneWidget);
+      expect(become, findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
 
-    testWidgets("a volunteer sees You're helping", (tester) async {
+    testWidgets('a volunteer sees the connections card instead, and no '
+        '"You\'re helping"', (tester) async {
       await mount(
         tester,
         const ActionModeTab(),
@@ -218,20 +218,65 @@ void main() {
           ),
         ),
       );
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('helping.today')),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.byKey(const Key('helping.today')), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('action_mode.invite_link')),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.byKey(const Key('action_mode.invite_link')), findsOneWidget);
+      expect(connections, findsOneWidget);
+      expect(become, findsNothing);
+      expect(find.text('helping_friends_one'.i18n), findsOneWidget);
+      expect(find.byKey(const Key('helping.today')), findsNothing);
+      expect(find.byKey(const Key('helping.remove.p1')), findsNothing);
       await tester.pumpWidget(const SizedBox());
     });
+
+    testWidgets('the keystore-reset notice shows to a volunteer helping '
+        'nobody', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        helpers: const HelpersState(keystoreReset: true),
+      );
+      expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    for (final helping in [false, true]) {
+      testWidgets(
+        'status, both counts and the ${helping ? 'connections card' : 'Become row'} '
+        'fit above the fold at the default size',
+        (tester) async {
+          await mount(
+            tester,
+            const ActionModeTab(),
+            size: desktopWindowSize,
+            animated: true,
+            helpers: HelpersState(
+              view: HelpersView(
+                unlocked: true,
+                helping: [
+                  if (helping) const HelperPairingView(pairingId: 'p1'),
+                ],
+              ),
+            ),
+          );
+          final card = helping ? connections : become;
+          expect(card, findsOneWidget);
+          expect(
+            tester.getRect(card).bottom,
+            lessThanOrEqualTo(desktopWindowSize.height),
+          );
+          expect(
+            tester
+                .getRect(find.byKey(const Key('action-mode.total-helped')))
+                .bottom,
+            lessThanOrEqualTo(tester.getRect(card).top),
+          );
+          expect(
+            tester.getSize(find.byType(ActionModeGlobe)).height,
+            greaterThan(0),
+          );
+          await tester.pumpWidget(const SizedBox());
+        },
+      );
+    }
   });
 
   for (final mode in [ShareMode.smc, ShareMode.unbounded]) {

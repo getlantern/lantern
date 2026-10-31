@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,10 +15,12 @@ import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
-import 'package:lantern/features/helpers/approve_helper_sheet.dart';
+import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_approval_prompt.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
+import 'package:lantern/features/helpers/helping_friends.dart'
+    show helperSinceLabel;
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxies_tab.dart';
 import 'package:lantern/features/helpers/personal_proxy_banner.dart';
@@ -65,10 +68,15 @@ class _Helpers extends HelpersNotifier {
     return HelperResult.parse('{"unlocked":true}');
   }
 
+  HelperResult? decideResult;
+  // When set, decide waits for it.
+  Completer<void>? decideGate;
+
   @override
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
     decisions.add((inviteId, approve));
-    return HelperResult.parse('{"unlocked":true}');
+    await decideGate?.future;
+    return decideResult ?? HelperResult.parse('{"unlocked":true}');
   }
 
   int endAll = 0;
@@ -282,23 +290,165 @@ const _claimed = HelperInviteView(
   volunteerName: 'Ali',
 );
 
+final _approveYes = find.widgetWithText(
+  PrimaryButton,
+  'approve_codes_match'.i18n,
+);
+final _approveNo = find.widgetWithText(SecondaryButton, 'approve_reject'.i18n);
+
+/// Opens the approval dialog for [_claimed]; completes with its result.
+Future<Future<bool>> _openApproval(WidgetTester tester, _Helpers fake) async {
+  final result = Completer<bool>();
+  await _pump(
+    tester,
+    fake,
+    Builder(
+      builder: (context) => TextButton(
+        onPressed: () async =>
+            result.complete(await showApproveHelperDialog(context, _claimed)),
+        child: const Text('approve'),
+      ),
+    ),
+  );
+  await tester.tap(find.text('approve'));
+  await tester.pumpAndSettle();
+  return result.future;
+}
+
 void main() {
-  testWidgets('the approve sheet shows the code and approves', (tester) async {
+  setUpAll(Localization.loadTranslations);
+
+  testWidgets('the approval dialog names the friend, shows the code and '
+      'approves', (tester) async {
     final fake = _Helpers(const HelpersState());
-    await _pump(tester, fake, const ApproveHelperSheet(invite: _claimed));
+    final result = await _openApproval(tester, fake);
+    final dialog = find.byType(AlertDialog);
+    expect(dialog, findsOneWidget);
+    expect(find.text('approve_title'.i18n.fill(['Ali'])), findsOneWidget);
+    expect(find.text('approve_body'.i18n.fill(['Ali'])), findsOneWidget);
     expect(find.byKey(const Key('approve.code')), findsOneWidget);
     expect(find.text('2562'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('approve.yes')));
+    final code = tester.widget<Text>(find.byKey(const Key('approve.code')));
+    expect(
+      code.style?.fontSize,
+      Theme.of(tester.element(dialog)).textTheme.displayMedium?.fontSize,
+    );
+    await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
+    expect(dialog, findsNothing);
+    expect(await result, isTrue);
   });
 
-  testWidgets('the approve sheet rejects', (tester) async {
+  testWidgets('rejecting decides with reject, which burns the invite', (
+    tester,
+  ) async {
     final fake = _Helpers(const HelpersState());
-    await _pump(tester, fake, const ApproveHelperSheet(invite: _claimed));
-    await tester.tap(find.byKey(const Key('approve.no')));
+    final result = await _openApproval(tester, fake);
+    await tester.tap(_approveNo);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', false)]);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(await result, isTrue);
+  });
+
+  testWidgets('the approval dialog does not close on a tap outside', (
+    tester,
+  ) async {
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(fake.decisions, isEmpty);
+  });
+
+  testWidgets('an approval decided elsewhere closes the dialog and re-reads', (
+    tester,
+  ) async {
+    final fake = _Helpers(const HelpersState())
+      ..decideResult = HelperResult.failure('no_pending_claim');
+    final result = await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(fake.fullRefreshes, 1);
+    expect(await result, isFalse);
+  });
+
+  testWidgets('the approval dialog scrolls to its buttons on a small phone '
+      'with large text', (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    expect(tester.takeException(), isNull);
+    await tester.scrollUntilVisible(
+      _approveNo,
+      100,
+      scrollable: find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.tap(_approveNo);
+    await tester.pumpAndSettle();
+    expect(fake.decisions, [('i1', false)]);
+  });
+
+  testWidgets('Back during a decision leaves the screen under the dialog', (
+    tester,
+  ) async {
+    final fake = _Helpers(const HelpersState())..decideGate = Completer();
+    final result = await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    fake.decideGate!.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('approve'), findsOneWidget);
+    expect(await result, isTrue);
+  });
+
+  testWidgets('the approval dialog says to compare the code away from the '
+      'link', (tester) async {
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    final body = 'approve_body'.i18n.fill(['Ali']);
+    expect(find.text(body), findsOneWidget);
+    expect(body, contains('different app from the one you sent the link in'));
+  });
+
+  testWidgets('a decision that lands after Back does not close a newer '
+      'dialog from InviteShare', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(unlocked: true, invites: [_claimed]),
+      ),
+    )..decideGate = Completer();
+    await _pumpPushed(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.tap(find.byKey(const Key('invite.compare')));
+    await tester.pumpAndSettle();
+    await tester.tap(_approveYes);
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+
+    // Compare codes again while the first decision is still in flight.
+    await tester.tap(find.byKey(const Key('invite.compare')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+
+    fake.decideGate!.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.byType(InviteShare), findsOneWidget);
   });
 
   testWidgets('one helper: status shown', (tester) async {
@@ -320,6 +470,27 @@ void main() {
     await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.text('Ali'), findsOneWidget);
     expect(find.byKey(const Key('helpers.online.0')), findsOneWidget);
+    expect(
+      find.text('${'helper_online'.i18n} · ${helperSinceLabel(1700000000)}'),
+      findsOneWidget,
+    );
+    // Trash and pencil icon buttons, in that order, in the friend's own card.
+    final trash = find.byKey(const Key('personal_proxies.remove.p1'));
+    final pencil = find.byKey(const Key('personal_proxies.rename.p1'));
+    expect(
+      find.descendant(of: trash, matching: find.byIcon(Icons.delete_outline)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: pencil, matching: find.byIcon(Icons.edit_outlined)),
+      findsOneWidget,
+    );
+    expect(tester.getCenter(trash).dx, lessThan(tester.getCenter(pencil).dx));
+    expect(
+      find.ancestor(of: trash, matching: find.byType(AppCard)),
+      findsOneWidget,
+    );
+    expect(find.byType(Flag), findsNothing);
     expect(find.byKey(const Key('helpers.nudge')), findsOneWidget);
     expect(find.text('helpers_nudge_second'.i18n), findsOneWidget);
     expect(
@@ -343,6 +514,15 @@ void main() {
     );
     await _pump(tester, fake, const PersonalProxiesTab());
     expect(find.byKey(const Key('helpers.offline.1')), findsOneWidget);
+    expect(find.text('helper_offline'.i18n), findsOneWidget);
+    // Each friend has a card of their own.
+    expect(
+      find.ancestor(
+        of: find.byKey(const Key('personal_proxies.remove.p2')),
+        matching: find.byType(AppCard),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('helpers.nudge')), findsNothing);
   });
 
@@ -415,6 +595,11 @@ void main() {
   testWidgets('the invite screen shows a pending invite as a QR code', (
     tester,
   ) async {
+    // Tall enough to build the whole list in the test font.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 2000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
     final fake = _Helpers(
       const HelpersState(
         view: HelpersView(
@@ -433,7 +618,25 @@ void main() {
     await _pump(tester, fake, const InviteShare(inviteId: 'i2'));
     expect(find.byKey(const Key('invite.qr')), findsOneWidget);
     expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
-    expect(find.byKey(const Key('invite.share')), findsOneWidget);
+    final card = find.byKey(const Key('invite.card'));
+    for (final text in [
+      'invite_share_title'.i18n,
+      'invite_share_steps'.i18n,
+      'invite_link_label'.i18n,
+      'invite_link_expiry'.i18n,
+      'https://lantern.io/help/#AAAA',
+    ]) {
+      expect(
+        find.descendant(of: card, matching: find.text(text)),
+        findsOneWidget,
+      );
+    }
+    for (final key in ['invite.link', 'invite.copy', 'invite.share']) {
+      expect(
+        find.descendant(of: card, matching: find.byKey(Key(key))),
+        findsOneWidget,
+      );
+    }
     final warning = find.byKey(const Key('invite.trust_warning'));
     expect(
       find.descendant(
@@ -442,11 +645,62 @@ void main() {
       ),
       findsOneWidget,
     );
-    // Read before the share controls, even on a short screen.
+    // The Note sits below the card, and the QR code below the Note.
     expect(
       tester.getTopLeft(warning).dy,
-      lessThan(tester.getTopLeft(find.byKey(const Key('invite.share'))).dy),
+      greaterThan(tester.getBottomLeft(card).dy),
     );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('invite.qr'))).dy,
+      greaterThan(tester.getBottomLeft(warning).dy),
+    );
+  });
+
+  testWidgets('tapping the link field copies the link', (tester) async {
+    debugCopyAsAndroid = false;
+    addTearDown(() => debugCopyAsAndroid = null);
+    final copied = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied.add((call.arguments as Map)['text'] as String);
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(unlocked: true, invites: [_pendingI1]),
+      ),
+    );
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.tap(find.byKey(const Key('invite.link')));
+    await tester.pump();
+    expect(copied, ['https://lantern.io/help/#AAAA']);
+  });
+
+  testWidgets('the invite link has no selection menu to copy it around '
+      'copySensitiveText', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(unlocked: true, invites: [_pendingI1]),
+      ),
+    );
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('invite.link')),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(field.enableInteractiveSelection, isFalse);
   });
 
   test('the share text names this invite\'s inviter, else the last name', () {
@@ -801,12 +1055,13 @@ void main() {
   group('the approval prompt', () {
     final approveCode = find.byKey(const Key('approve.code'));
 
+    // Back, the only way to leave the dialog undecided.
     Future<void> dismissSheet(WidgetTester tester) async {
-      await tester.tapAt(const Offset(10, 10));
+      Navigator.of(tester.element(approveCode)).pop();
       await tester.pumpAndSettle();
     }
 
-    testWidgets('opens the sheet once per claim', (tester) async {
+    testWidgets('opens the dialog once per claim', (tester) async {
       final fake = _Helpers(_withInvites(const []));
       await _pumpPromptHost(tester, fake);
       expect(approveCode, findsNothing);
@@ -1045,7 +1300,7 @@ void main() {
     await _pumpPushed(tester, fake, const InviteShare(inviteId: 'i1'));
     await tester.tap(find.byKey(const Key('invite.compare')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('approve.yes')));
+    await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
     expect(find.byType(InviteShare), findsNothing);
@@ -1055,7 +1310,7 @@ void main() {
   testWidgets('the code is read out digit by digit', (tester) async {
     final handle = tester.ensureSemantics();
     final fake = _Helpers(const HelpersState());
-    await _pump(tester, fake, const ApproveHelperSheet(invite: _claimed));
+    await _openApproval(tester, fake);
     expect(find.bySemanticsLabel('2 5 6 2'), findsOneWidget);
     expect(find.bySemanticsLabel('2562'), findsNothing);
     handle.dispose();

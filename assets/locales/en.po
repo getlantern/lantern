@@ -1862,7 +1862,7 @@ msgid "helper_error_disabled"
 msgstr "Helping friends isn't available on this device yet."
 
 msgid "helper_error_not_found"
-msgstr "This invite or helper no longer exists."
+msgstr "This invite or Personal Proxy no longer exists."
 
 msgid "helper_error_unavailable"
 msgstr "Couldn't reach Lantern. Check your connection and try again."
@@ -1871,7 +1871,7 @@ msgid "helper_error_too_many_invites"
 msgstr "You've sent as many invites as you can for now. Try again tomorrow."
 
 msgid "helper_error_too_many_pairings"
-msgstr "You've reached the limit of 20 people."
+msgstr "You've reached the limit of 20 friends."
 
 msgid "helper_error_no_pending_claim"
 msgstr "This invite has already been decided."
@@ -1886,7 +1886,7 @@ msgid "helper_error_keystore_reset"
 msgstr "This device's secure storage was reset, so the names of your helpers and invites could not be read. Your helpers still work; invite them again to see their names."
 
 msgid "helper_error_copy"
-msgstr "Couldn't copy the link. Use Share link instead."
+msgstr "Couldn't copy the link. Use Share instead."
 
 # Helper invites: the inviter's side. A "helper" is a friend abroad whose
 # internet connection this user borrows through Lantern.
@@ -1914,10 +1914,10 @@ msgid "helper_remove_confirm_body"
 msgstr "%s will stop helping you. You can invite them again later."
 
 msgid "helpers_remove_all"
-msgstr "Remove all helpers"
+msgstr "Remove all Personal Proxies"
 
 msgid "helpers_remove_all_body"
-msgstr "Every helper stops helping you, and their names are erased from this device."
+msgstr "Every Personal Proxy stops helping you, and their names are erased from this device."
 
 # The screen and menu entry for the user's private servers and personal proxies.
 msgid "manage_private_locations"
@@ -1936,11 +1936,11 @@ msgstr "Invite another"
 
 # Shown in the Personal Proxies tab while the user has exactly one personal proxy.
 msgid "helpers_nudge_second"
-msgstr "If your personal proxy goes offline, so does your connection through it. Invite a second friend to stay connected."
+msgstr "If your Personal Proxy goes offline, so does your connection through it. Invite a second friend to stay connected."
 
 # VPN tab banner offering to invite a friend abroad as a personal proxy.
 msgid "personal_proxy_banner_title"
-msgstr "Get a personal proxy"
+msgstr "Get a Personal Proxy"
 
 msgid "personal_proxy_banner_body"
 msgstr "A friend abroad can keep you connected."
@@ -1956,15 +1956,26 @@ msgstr "Compare the code and approve them."
 msgid "personal_proxy_nickname_label"
 msgstr "Name on this device"
 
-msgid "invite_share_body"
-msgstr "Send this link to one person you trust. It works once and expires in 48 hours."
+# The invite screen's card: the user sends a friend abroad a link that makes the friend their Personal Proxy.
+msgid "invite_share_title"
+msgstr "Share this link with someone you trust outside your country"
+
+msgid "invite_share_steps"
+msgstr "They open the link, install Lantern if needed, and enter their name. You will approve them by checking a 4-digit code, then you can connect through them."
+
+# Label of the read-only field that shows the invite link.
+msgid "invite_link_label"
+msgstr "Your invite link"
+
+msgid "invite_link_expiry"
+msgstr "Works once and expires in 48 hours."
 
 # The text shared with the link. The first %s is the user's name; the second is the link.
 msgid "invite_share_message"
 msgstr "%s wants your help staying online. %s"
 
 msgid "invite_share_button"
-msgstr "Share link"
+msgstr "Share"
 
 msgid "invite_copy_link"
 msgstr "Copy link"
@@ -1978,7 +1989,7 @@ msgstr "Your friend can scan this with Lantern."
 msgid "invite_waiting"
 msgstr "Waiting for your friend to open the link"
 
-# Warning above an invite's share buttons and QR code.
+# Warning below the invite link and Share button, above the QR code.
 msgid "invite_trust_warning"
 msgstr "The person you invite will know you use Lantern and can see when you're connected through them. Your traffic passes through their internet connection, so they could learn which sites you visit, though not what you do on secure (https) sites. Only invite someone you trust."
 
@@ -1995,25 +2006,24 @@ msgstr "Someone opened your invite"
 msgid "invite_compare_codes"
 msgstr "Compare codes"
 
-# %s is the name the person typed.
-msgid "approve_code_intro"
-msgstr "Ask %s which code their Lantern shows. Compare it on a call or in a different app, not in the chat you sent the link in."
+# Title of the dialog in which the user approves a friend as a Personal Proxy. %s is the name the friend typed.
+msgid "approve_title"
+msgstr "%s wants to be your Personal Proxy"
 
-msgid "approve_code_label"
-msgstr "Code on this device"
+# %s is the name the friend typed. Comparing the code over a different channel from the link is what stops someone who intercepted the link.
+msgid "approve_body"
+msgstr "Ask %s for the 4-digit code Lantern shows them, on a call or in a different app from the one you sent the link in. Approve only if it matches."
 
-msgid "approve_button"
-msgstr "Codes match: approve"
+msgid "approve_codes_match"
+msgstr "Codes Match, Approve"
 
-msgid "reject_button"
-msgstr "Codes don't match: reject"
+# Rejecting also cancels the invite link.
+msgid "approve_reject"
+msgstr "Reject"
 
-msgid "reject_explainer"
-msgstr "If the codes are different, someone else opened your link. Reject them and send a new invite."
-
-# The VPN tab's selected location while connected through the user's personal proxies.
+# The VPN tab's selected location while connected through the user's personal proxies: the line under the location's name.
 msgid "personal_proxy"
-msgstr "Personal proxy"
+msgstr "Personal Proxy"
 
 # The server list's tab for private servers and personal proxies.
 msgid "private_locations"
@@ -2021,35 +2031,55 @@ msgstr "Private Locations"
 
 # Section header in Private Locations: friends abroad who route this user's traffic.
 msgid "personal_proxies"
-msgstr "Personal proxies"
+msgstr "Personal Proxies:"
 
 # The selectable row that connects through all of the user's personal proxies.
 msgid "your_personal_proxies"
 msgstr "Your personal proxies"
 
-# Helper invites: the volunteer's side.
-msgid "help_friend_title"
-msgstr "Help a friend stay online"
+# Title of the card that tells a volunteer what being someone's Personal Proxy involves.
+msgid "become_means_title"
+msgstr "What being a Personal Proxy means"
 
-# Action Mode row that opens the screen for pasting a friend's invite link.
-msgid "have_invite_link"
-msgstr "Have an invite link?"
+msgid "become_means_traffic"
+msgstr "A friend asked for your help. While Action Mode runs, they can reach the open internet through your connection. Depending on your router, their traffic leaves from your network or is relayed through Lantern's servers. Lantern doesn't show you what they do online."
 
-msgid "help_friend_intro"
-msgstr "A friend asked for your help. While Lantern runs, they can reach the open internet through your connection."
+msgid "become_means_seen"
+msgstr "They can see when you're connected. Only accept invites from people you know."
 
-# Title of the card that tells a volunteer what helping a friend involves.
-msgid "help_friend_means_title"
-msgstr "What helping a friend means"
+msgid "become_means_remove"
+msgstr "Remove the connection any time."
 
-msgid "help_friend_means_traffic"
-msgstr "Your friend reaches the open internet through your connection. Depending on your router, their traffic leaves from your network or is relayed through Lantern's servers. Lantern doesn't show you what they do online."
+# Title of the card with the invite link and name fields.
+msgid "help_friend_form_title"
+msgstr "Paste the link from the person you're helping"
 
-msgid "help_friend_means_online"
-msgstr "Your friend can see when you're online. Only accept invites from people you know."
+# Under the invite link field.
+msgid "help_friend_link_hint"
+msgstr "If you opened the link on this device, this is filled in for you"
 
-msgid "help_friend_means_stop"
-msgstr "You can stop helping at any time."
+msgid "help_friend_name_label"
+msgstr "Your name, as they know you"
+
+# Under the name field.
+msgid "help_friend_name_hint"
+msgstr "This is how you appear in their Lantern"
+
+msgid "help_friend_become"
+msgstr "Become Their Personal Proxy"
+
+msgid "help_friend_tell_code"
+msgstr "Tell them this code"
+
+msgid "help_friend_code_check"
+msgstr "They will check it matches the code on their phone, then approve you."
+
+msgid "help_friend_waiting_approval"
+msgstr "Waiting for approval"
+
+# Note under the code a volunteer reads to the friend who invited them.
+msgid "help_friend_code_note"
+msgstr "Say the code over a call or in a different app than the one the invite link arrived in. Anyone who saw the link should not also see the code."
 
 msgid "help_friend_link_label"
 msgstr "Invite link"
@@ -2059,21 +2089,6 @@ msgstr "Paste the link your friend sent"
 
 msgid "help_friend_scan"
 msgstr "Scan your friend's QR code"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern helps automatically while it's running. It uses a direct connection when your router allows one, and a browser-style connection otherwise."
-
-msgid "help_friend_accept"
-msgstr "Help my friend"
-
-msgid "help_friend_code_title"
-msgstr "Tell your friend this code"
-
-msgid "help_friend_code_body"
-msgstr "Your friend will check that it matches the code on their phone, then approve you. A call or a different app is safest."
-
-msgid "help_friend_waiting"
-msgstr "Waiting for your friend to approve"
 
 # %s is the friend's name.
 msgid "help_friend_approved"
@@ -2098,17 +2113,61 @@ msgid "help_friend_already_helping_named"
 msgstr "You're already helping %s."
 
 msgid "help_friend_bad_link"
-msgstr "This isn't a helper invite link."
+msgstr "This isn't a Personal Proxy invite link."
 
 msgid "help_friend_own_invite"
 msgstr "This is your own invite. Send it to the friend you'd like help from."
 
-msgid "helping_title"
-msgstr "You're helping"
+# Action Mode card for someone abroad, before they help any friend. Opens the screen for an invite link.
+msgid "become_personal_proxy"
+msgstr "Become a Personal Proxy"
 
-# First %s is a duration such as "3h 20m"; second is an amount of data such as "1.2 GB".
-msgid "helping_today"
-msgstr "Today: active %s, %s shared"
+msgid "become_personal_proxy_body"
+msgstr "Help someone you know get online"
+
+# Action Mode card once this device helps at least one friend as their Personal Proxy.
+msgid "helping_connections_title"
+msgstr "Your Personal Proxy connections"
+
+msgid "helping_friends_one"
+msgstr "1 friend"
+
+# %s is a number of friends, 2 or more.
+msgid "helping_friends_count"
+msgstr "%s friends"
+
+# %s is the name of the one friend routing through this device right now.
+msgid "helping_connected_named"
+msgstr "%s connected right now"
+
+# %s is how many friends route through this device right now.
+msgid "helping_connected_count"
+msgstr "%s connected right now"
+
+# Title of the sheet listing the friends this device is the Personal Proxy for.
+msgid "helping_sheet_title"
+msgstr "Friends you're helping"
+
+msgid "helping_your_friends"
+msgstr "Your friends"
+
+# A friend routes through this device right now.
+msgid "helping_connected"
+msgstr "Connected"
+
+msgid "helping_not_connected"
+msgstr "Not connected"
+
+msgid "helping_paste_another"
+msgstr "Paste another invite link"
+
+# Card with today's totals for the data this device relayed for others.
+msgid "helping_data_relayed"
+msgstr "Data relayed today"
+
+# %s is a duration such as "3h 20m".
+msgid "helping_active_today"
+msgstr "Active %s"
 
 # %s is a date.
 msgid "helping_since"
@@ -2118,7 +2177,7 @@ msgid "helping_unnamed"
 msgstr "Someone you help"
 
 msgid "helping_sharing_off_warning"
-msgstr "Sharing is off, so the people you help can't connect through you."
+msgstr "Sharing is off, so the friends you help can't connect through you."
 
 msgid "helping_remove"
 msgstr "Stop helping"
@@ -2134,7 +2193,7 @@ msgid "help_others_too_body"
 msgstr "Lend spare capacity to other people facing censorship; Lantern only lets them reach allowed sites, which protects your connection from misuse."
 
 msgid "help_others_too_note"
-msgstr "Changing this briefly reconnects the people you help."
+msgstr "Changing this briefly reconnects the friends you help."
 
 # %s %s are hours and minutes, as numbers.
 msgid "helping_duration_hm"
