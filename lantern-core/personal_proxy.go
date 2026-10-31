@@ -154,3 +154,25 @@ func (lc *LanternCore) readSelectedServer() string {
 	}
 	return selectedServerJSON(s)
 }
+
+// EventTypeSelectionChanged tells the app that the selection radiance has
+// saved may have changed, so it reads it again (the selected_server op). It
+// carries nothing, and can repeat: each one is only a prompt to read.
+const EventTypeSelectionChanged EventType = "selection-changed"
+
+// listenSelectionSavedEvents forwards radiance's selection-saved events to the
+// app. Blocks until lc.ctx is cancelled.
+func (lc *LanternCore) listenSelectionSavedEvents() {
+	forwardSelectionSaved(lc.ctx, lc.client.SelectionSavedEvents, lc.notifyFlutter)
+}
+
+// forwardSelectionSaved subscribes and sends the app one selection-changed
+// event per selection-saved event.
+func forwardSelectionSaved(ctx context.Context, subscribe func(context.Context, func(vpn.SelectionSavedEvent)) error, notify func(EventType, string)) {
+	err := subscribe(ctx, func(vpn.SelectionSavedEvent) {
+		notify(EventTypeSelectionChanged, "")
+	})
+	if err != nil && ctx.Err() == nil {
+		slog.Error("selection-saved event stream exited unexpectedly", "error", err)
+	}
+}

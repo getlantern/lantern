@@ -127,3 +127,19 @@ func TestSelectedServerReadsTheFlattenedSettingsShape(t *testing.T) {
 	require.NoError(t, settings.Set(settings.LocaleKey, "fa-IR"))
 	assert.JSONEq(t, `{"tag":"auto"}`, selectedServerJSON(overIPC()))
 }
+
+func TestSelectionSavedEventsAreForwarded(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	subscribe := func(ctx context.Context, handler func(vpn.SelectionSavedEvent)) error {
+		handler(vpn.SelectionSavedEvent{})
+		handler(vpn.SelectionSavedEvent{})
+		return ctx.Err()
+	}
+	var events []EventType
+	forwardSelectionSaved(ctx, subscribe, func(typ EventType, msg string) {
+		assert.Empty(t, msg, "the event carries nothing")
+		events = append(events, typ)
+	})
+	assert.Equal(t, []EventType{EventTypeSelectionChanged, EventTypeSelectionChanged}, events)
+}
