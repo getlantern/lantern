@@ -1036,3 +1036,29 @@ func TestEndAllHelpersErasesNicknames(t *testing.T) {
 		assert.Empty(t, p.Name)
 	}
 }
+
+func TestInviterRowsCarryTheFriendsOutboundTag(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara-device", t.TempDir())
+	ali := pair(t, cloud, sara, t.TempDir())
+
+	helpers := list(call(t, sara, "refresh", nil), "helpers")
+	require.Len(t, helpers, 1)
+	assert.Nil(t, helpers[0]["outbound_tag"], "no tag until lantern-cloud gives one")
+
+	cloud.outboundTag["ali"] = "helper-0123456789ab"
+	helpers = list(call(t, sara, "refresh", nil), "helpers")
+	assert.Equal(t, "helper-0123456789ab", helpers[0]["outbound_tag"])
+	helpers = list(call(t, sara, "view", nil), "helpers")
+	assert.Equal(t, "helper-0123456789ab", helpers[0]["outbound_tag"], "the view keeps the last list's tag")
+
+	helping := list(call(t, ali, "refresh", nil), "helping")
+	require.Len(t, helping, 1)
+	assert.Nil(t, helping[0]["outbound_tag"], "a volunteer row never carries one")
+
+	for _, bad := range []string{"helper-0123", "personal-proxies", "helper-0123456789AB", "x-0123456789ab"} {
+		cloud.outboundTag["ali"] = bad
+		helpers = list(call(t, sara, "refresh", nil), "helpers")
+		assert.Nil(t, helpers[0]["outbound_tag"], "%q is not a helper tag", bad)
+	}
+}

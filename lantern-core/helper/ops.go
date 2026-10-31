@@ -53,6 +53,9 @@ type listedPairing struct {
 	InviterBlob []byte    `json:"inviter_blob"`
 	Online      bool      `json:"online"`
 	CreatedUnix int64JSON `json:"created_unix"`
+	// OutboundTag is the friend's stable outbound tag on an inviter row, the
+	// one radiance selects that friend by; empty on a volunteer row.
+	OutboundTag string `json:"outbound_tag"`
 }
 
 const opRefreshTickets = "tickets/refresh"
@@ -143,6 +146,7 @@ func (e *Engine) view() View {
 		}
 		if p.Role == RoleInviter {
 			pv.Online = e.online[p.ID]
+			pv.OutboundTag = e.tags[p.ID]
 			v.Helpers = append(v.Helpers, pv)
 		} else {
 			pv.Connected = e.liveConnected(p.ID)
@@ -333,6 +337,7 @@ func (e *Engine) listPairings(ctx context.Context) ([]listedPairing, error) {
 func (e *Engine) dropVolunteerSide() bool {
 	n, c := len(e.st.Pairings), len(e.st.Claims)
 	e.online = map[string]bool{}
+	e.tags = map[string]string{}
 	e.st.Claims = nil
 	e.st.Pairings = slices.DeleteFunc(e.st.Pairings, func(p *pairing) bool { return p.Role == RoleVolunteer })
 	return n != len(e.st.Pairings) || c > 0
@@ -345,6 +350,7 @@ func (e *Engine) dropVolunteerSide() bool {
 func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 	seen := map[string]bool{}
 	e.online = map[string]bool{}
+	e.tags = map[string]string{}
 	complete := true
 	for _, lp := range listed {
 		if lp.PairingID == "" {
@@ -356,6 +362,9 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 		seen[lp.PairingID] = true
 		if lp.Role == RoleInviter {
 			e.online[lp.PairingID] = lp.Online
+			if isHelperTag(lp.OutboundTag) {
+				e.tags[lp.PairingID] = lp.OutboundTag
+			}
 		}
 		if e.pairing(lp.PairingID) != nil {
 			continue
@@ -724,4 +733,21 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) error {
 		return err
 	}
 	return firstErr
+}
+
+// isHelperTag reports whether tag is a helper outbound tag, "helper-" and 12
+// lowercase hex digits, as lantern-box's adapter.IsHelperTag decides it. Only
+// such a tag is offered for selection, so logs that redact helper tags
+// redact it too.
+func isHelperTag(tag string) bool {
+	hex, ok := strings.CutPrefix(tag, "helper-")
+	if !ok || len(hex) != 12 {
+		return false
+	}
+	for i := 0; i < len(hex); i++ {
+		if c := hex[i]; (c < '0' || c > '9') && (c < 'a' || c > 'f') {
+			return false
+		}
+	}
+	return true
 }
