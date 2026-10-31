@@ -333,11 +333,10 @@ func (e *Engine) listPairings(ctx context.Context) ([]listedPairing, error) {
 }
 
 // dropVolunteerSide forgets every claim and every pairing this device
-// volunteers in, leaving the pairings where it is helped.
+// volunteers in, leaving the pairings where it is helped, with their online
+// state and outbound tags, which only those pairings have.
 func (e *Engine) dropVolunteerSide() bool {
 	n, c := len(e.st.Pairings), len(e.st.Claims)
-	e.online = map[string]bool{}
-	e.tags = map[string]string{}
 	e.st.Claims = nil
 	e.st.Pairings = slices.DeleteFunc(e.st.Pairings, func(p *pairing) bool { return p.Role == RoleVolunteer })
 	return n != len(e.st.Pairings) || c > 0
@@ -349,6 +348,7 @@ func (e *Engine) dropVolunteerSide() bool {
 // newHelpingPending, which the next view an op returns reports.
 func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 	seen := map[string]bool{}
+	prevOnline, prevTags := e.online, e.tags
 	e.online = map[string]bool{}
 	e.tags = map[string]string{}
 	complete := true
@@ -379,6 +379,18 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 		changed = true
 	}
 	if !complete {
+		// A blank entry may be a kept pairing: it keeps what the last list
+		// said of it.
+		for id, online := range prevOnline {
+			if !seen[id] {
+				e.online[id] = online
+			}
+		}
+		for id, tag := range prevTags {
+			if !seen[id] {
+				e.tags[id] = tag
+			}
+		}
 		return changed
 	}
 	n := len(e.st.Pairings)

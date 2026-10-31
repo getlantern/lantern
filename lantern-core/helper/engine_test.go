@@ -366,10 +366,15 @@ func TestInviterKeepsHelpersWhenTheGateSaysDisabled(t *testing.T) {
 	cloud := newFakeCloud()
 	sara := newTestEngine(t, cloud, "sara", t.TempDir())
 	pair(t, cloud, sara, t.TempDir())
+	cloud.outboundTag["ali"] = "helper-0123456789ab"
+	cloud.online["ali"] = true
+	call(t, sara, "refresh", nil)
 	cloud.flagOff["sara"] = true
 	helpers := list(call(t, sara, "refresh", nil), "helpers")
 	require.Len(t, helpers, 1, "the helper row is kept")
 	assert.Equal(t, "Ali", helpers[0]["name"])
+	assert.Equal(t, "helper-0123456789ab", helpers[0]["outbound_tag"], "the helper keeps its tag")
+	assert.Equal(t, true, helpers[0]["online"], "and its online state")
 	cloud.flagOff["sara"] = false
 	call(t, sara, "end_pairing", map[string]any{"pairing_id": helpers[0]["pairing_id"]})
 	assert.Empty(t, cloud.pairings)
@@ -1035,6 +1040,24 @@ func TestEndAllHelpersErasesNicknames(t *testing.T) {
 		assert.Empty(t, p.Nickname)
 		assert.Empty(t, p.Name)
 	}
+}
+
+// TestABlankListedPairingKeepsItsTag: a listing with a blank pairing_id keeps
+// the local pairings, so they keep the tag and online state the last
+// complete listing gave them.
+func TestABlankListedPairingKeepsItsTag(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	pair(t, cloud, sara, t.TempDir())
+	cloud.outboundTag["ali"] = "helper-0123456789ab"
+	cloud.online["ali"] = true
+	require.Equal(t, "helper-0123456789ab", list(call(t, sara, "refresh", nil), "helpers")[0]["outbound_tag"])
+
+	cloud.blankInviterIDs = true
+	helpers := list(call(t, sara, "refresh", nil), "helpers")
+	require.Len(t, helpers, 1, "the helper row is kept")
+	assert.Equal(t, "helper-0123456789ab", helpers[0]["outbound_tag"])
+	assert.Equal(t, true, helpers[0]["online"])
 }
 
 func TestInviterRowsCarryTheFriendsOutboundTag(t *testing.T) {
