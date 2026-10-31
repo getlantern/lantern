@@ -145,6 +145,7 @@ func (e *Engine) view() View {
 			pv.Online = e.online[p.ID]
 			v.Helpers = append(v.Helpers, pv)
 		} else {
+			pv.Connected = e.liveConnected(p.ID)
 			v.Helping = append(v.Helping, pv)
 		}
 	}
