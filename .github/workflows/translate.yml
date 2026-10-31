@@ -77,6 +77,11 @@ jobs:
           if [ -n "$base" ] && ! git fetch --depth=1 origin "$base"; then
             echo "base $base not reachable; filling gaps only"; base=""
           fi
+          # translate.py also falls back to gaps when it can't read en.po at the base; clear it
+          # here too, so BASE is empty exactly when no English was compared and no trailer is written
+          if [ -n "$base" ] && ! git cat-file -e "$base:assets/locales/en.po" 2>/dev/null; then
+            echo "en.po missing at $base; filling gaps only"; base=""
+          fi
           echo "BASE=$base" >> "$GITHUB_ENV"
           echo "base: ${base:-none (gaps only)}"
 
