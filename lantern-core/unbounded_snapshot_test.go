@@ -77,21 +77,21 @@ func TestUnboundedCancellationDoesNotReportOutage(t *testing.T) {
 	}, func(name, _ string) { t.Fatalf("unexpected event: %s", name) })
 }
 
-// The globe labels a friend's arc from peerBytes[].pairing, so both snapshot
-// events must carry it through to the app unchanged.
-func TestSnapshotsCarryPeerPairing(t *testing.T) {
+// Pairing IDs never reach the app in snapshots: the globe draws a friend's
+// traffic as any other, so both events strip peerBytes[].pairing.
+func TestSnapshotsDropPeerPairing(t *testing.T) {
 	for _, tc := range []struct {
 		name string
 		poll func(ctx context.Context, notify func(string, string))
 	}{
 		{"peer-snapshot", func(ctx context.Context, notify func(string, string)) {
-			pollSnapshots(ctx, nil, func(context.Context) (peer.Snapshot, error) {
-				return peer.Snapshot{PeerBytes: []peer.PeerBytes{{IP: "192.0.2.1", Down: 1, Pairing: "p1"}}}, nil
-			}, notify, "peer-snapshot", "")
+			pollPeerSnapshots(ctx, nil, func(context.Context) (peer.Snapshot, error) {
+				return peer.Snapshot{PeerBytes: []peer.PeerBytes{{IP: "192.0.2.1", Down: 1, Pairing: "secret-pairing"}}}, nil
+			}, notify)
 		}},
 		{"unbounded-snapshot", func(ctx context.Context, notify func(string, string)) {
 			pollUnboundedSnapshots(ctx, nil, func(context.Context) (unbounded.Snapshot, error) {
-				return unbounded.Snapshot{PeerBytes: []unbounded.PeerBytes{{IP: "192.0.2.1", Down: 1, Pairing: "p1"}}}, nil
+				return unbounded.Snapshot{PeerBytes: []unbounded.PeerBytes{{IP: "192.0.2.1", Down: 1, Pairing: "secret-pairing"}}}, nil
 			}, notify)
 		}},
 	} {
@@ -103,8 +103,11 @@ func TestSnapshotsCarryPeerPairing(t *testing.T) {
 				got = name + " " + data
 				cancel()
 			})
-			if !strings.HasPrefix(got, tc.name+" ") || !strings.Contains(got, `{"ip":"192.0.2.1","down":1,"up":0,"pairing":"p1"}`) {
+			if !strings.HasPrefix(got, tc.name+" ") || !strings.Contains(got, `{"ip":"192.0.2.1","down":1,"up":0}`) {
 				t.Fatalf("event = %q", got)
+			}
+			if strings.Contains(got, "pairing") || strings.Contains(got, "secret-pairing") {
+				t.Fatalf("event carries a pairing: %q", got)
 			}
 		})
 	}
