@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/action_mode_connection_event.dart';
 import 'package:lantern/core/models/app_event.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/services/geo_lookup_service.dart';
@@ -17,6 +18,7 @@ import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/action_mode/share_consent_dialog.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -151,9 +153,11 @@ class ShareNotifier extends _$ShareNotifier {
     // The user has chosen, on or off: a held-back helper start must not
     // override that later.
     _helperStartPending = false;
+    _toggles++;
+    _sessionChanges++;
     _changes++;
     try {
-      await _toggle(context, widgetRef);
+      await _toggle(context);
     } finally {
       _changes--;
     }
@@ -163,22 +167,260 @@ class ShareNotifier extends _$ShareNotifier {
   /// Always Unbounded, never SmC: this path cannot disclose that the device
   /// would become a residential exit. No-ops without a prior consent ack.
   Future<void> autoStart(WidgetRef widgetRef) =>
-      _autoStartWith(() => _start(widgetRef, ShareMode.unbounded));
+      _autoStartWith(() => _start(ShareMode.unbounded));
 
   /// Adopts an SmC session that radiance resumed from persisted settings
   /// before this notifier existed. The peer-status stream is edge-triggered,
   /// so without this the UI opens at off while SmC is already serving.
   Future<void> syncFromBackend(WidgetRef widgetRef) async {
     if (state.active || state.probing) return;
-    final res = await widgetRef
-        .read(lanternServiceProvider)
-        .getPeerStatusJSON();
+    final res = await ref.read(lanternServiceProvider).getPeerStatusJSON();
     if (!ref.mounted) return;
     if (state.active || state.probing) return;
     final phase = adoptablePhase(res.fold((_) => '', (v) => v));
     if (phase == null) return;
     state = state.copyWith(active: true, mode: ShareMode.smc, phase: phase);
-    _startEventSubscription(widgetRef);
+    _startEventSubscription();
+  }
+
+  /// The iOS network extension cannot carry the peer proxy's second sing-box
+  /// instance, so the backend refuses SmC there.
+  @visibleForTesting
+  bool Function() isIOS = () => PlatformUtils.isIOS;
+
+  /// Set by the first [reconcileLaunch] and by any start, so the launch
+  /// reconciliation runs at most once and never acts on a session this app
+  /// run started.
+  bool _launchSettled = false;
+
+  /// Counts toggles, starts and stops: a user's choice, or a session this
+  /// run started. The launch reconciliation stands down once it moves. The
+  /// backend's SmC→Unbounded fallback is not counted: it changes how the
+  /// session runs, not whether anyone wants it.
+  int _sessionChanges = 0;
+
+  /// The SmC→Unbounded fallback in flight, if any.
+  Future<void>? _fallbackInFlight;
+
+  /// Waits until no fallback is in flight.
+  Future<void> _fallbackSettled() async {
+    while (_fallbackInFlight != null) {
+      await _fallbackInFlight;
+    }
+  }
+
+  /// Rounds [reconcileLaunch] waits for a quiet moment before giving up.
+  static const _reconcileRounds = 8;
+
+  /// How long [reconcileLaunch] waits for a core that cannot answer yet.
+  @visibleForTesting
+  static Duration radianceWait = const Duration(seconds: 30);
+
+  /// Toggles the user made this run. Once there is one, the launch
+  /// auto-start leaves the user's choice alone.
+  int _toggles = 0;
+
+  /// Whether the current session is the Unbounded one an SmC failure fell
+  /// back to, rather than one radiance resumed or the app started.
+  bool _fromFallback = false;
+
+  /// Reconciles a session radiance resumed from persisted settings at
+  /// process start with the user's settings. Call after [syncFromBackend].
+  /// Returns whether the launch auto-start may follow: false once the user
+  /// has toggled sharing this run.
+  ///
+  /// A resumed session the user does not want (auto-enable off, or the tab
+  /// hidden) is stopped, unless this device helps a friend through a
+  /// helper-invite pairing: stopping it would cut off the friend's personal
+  /// proxy. A kept Unbounded session switches to SmC when a manual port is
+  /// set, as the toggle would pick, unless it is a fallback from an SmC start
+  /// that just failed; a failed SmC start falls back to Unbounded as usual.
+  ///
+  /// Nothing learned before an await is trusted after it. The awaits before
+  /// the transition gate only gather (radiance's Unbounded opt-in, a loaded
+  /// helper view), and the toggle keeps working meanwhile; a toggle or a
+  /// start made then makes this stand down. The stop or switch is decided
+  /// under the gate from the settings, helper view and share state as they
+  /// are at that moment.
+  ///
+  /// It runs once per process. A later call, such as Home's launch callback
+  /// running again when the feature flag arrives, waits for that run before
+  /// answering, so its auto-start cannot overtake the reconciliation.
+  Future<bool> reconcileLaunch(WidgetRef widgetRef) async {
+    if (!_launchSettled) {
+      _launchSettled = true;
+      _launchRun = _runLaunch(widgetRef);
+    }
+    await _launchRun;
+    return _toggles == 0;
+  }
+
+  /// The one launch reconciliation, while or after it runs; null if a start
+  /// settled the launch first.
+  Future<void>? _launchRun;
+
+  Future<void> _runLaunch(WidgetRef widgetRef) async {
+    _launchInProgress = true;
+    try {
+      await _reconcileLaunch();
+    } finally {
+      _launchInProgress = false;
+    }
+    // A helper start skipped while the gate was held runs now, if sharing
+    // ended up off.
+    if (ref.mounted &&
+        _helperStartPending &&
+        !_changing &&
+        !state.active &&
+        !state.probing) {
+      await startForHelper(widgetRef);
+    }
+  }
+
+  bool _launchInProgress = false;
+
+  /// Whether [reconcileLaunch] is running. Other auto-starts wait it out:
+  /// until it settles, sharing radiance resumed may not show yet, and the
+  /// launch auto-start that follows it covers them.
+  bool get launchInProgress => _launchInProgress;
+
+  Future<void> _reconcileLaunch() async {
+    await _fallbackSettled();
+    if (!ref.mounted || _changing || state.probing) return;
+    final changes = _sessionChanges;
+    bool standDown() =>
+        !ref.mounted || state.probing || _sessionChanges != changes;
+
+    if (!state.active || state.mode == ShareMode.off) {
+      // Unbounded reaches the UI through snapshots, which may not have
+      // arrived yet, so ask radiance outright.
+      if (!await _unboundedResumed() || standDown()) return;
+      // Shown as running until the first snapshot fills in the rest, so the
+      // auto-start gate that follows does not start it a second time, and a
+      // toggle meanwhile stops it.
+      if (!state.active) {
+        state = state.copyWith(active: true, mode: ShareMode.unbounded);
+      }
+    }
+
+    // Each round gathers at most one thing, then looks again: the feature
+    // flags if not loaded, the helper view whenever the settings say the
+    // session may not be wanted, then the manual port, read last so no other
+    // wait follows it. Neither answer is
+    // the decision.
+    var flagsLoaded = false;
+    var viewLoaded = false;
+    int? manualPort;
+    for (var round = 0; round < _reconcileRounds; round++) {
+      await _fallbackSettled();
+      if (standDown()) return;
+      // Flags not fetched yet at first frame: whether Unbounded is available
+      // decides whether the session is wanted.
+      if (!flagsLoaded && ref.read(featureFlagProvider).isEmpty) {
+        flagsLoaded = true;
+        manualPort = null;
+        await ref.read(featureFlagProvider.notifier).fetchFeatureFlags();
+        continue;
+      }
+      if (!viewLoaded && !_launchWanted()) {
+        viewLoaded = true;
+        manualPort = null;
+        await ref.read(helpersProvider.notifier).helpsSomeone();
+        continue;
+      }
+      if (manualPort == null && _mayAskForSmc()) {
+        // A manually forwarded port is an explicit request for SmC.
+        manualPort =
+            (await ref.read(lanternServiceProvider).getPeerManualPort()).fold(
+              (_) => 0,
+              (p) => p,
+            );
+        continue;
+      }
+      // Only a fallback holds the gate without counting as a change, and it
+      // lets go before its in-flight marker clears; yield and look again.
+      if (_changing) {
+        await Future<void>.value();
+        continue;
+      }
+      _changes++;
+      try {
+        await _settleLaunch(manualPort ?? 0);
+      } finally {
+        _changes--;
+      }
+      return;
+    }
+    appLogger.info('Action Mode at launch: never quiet, left as it is');
+  }
+
+  /// Whether radiance resumed Unbounded. A core that cannot answer yet (still
+  /// starting, on Android) is waited for once, then asked again.
+  Future<bool> _unboundedResumed() async {
+    final svc = ref.read(lanternServiceProvider);
+    var res = await svc.isUnboundedEnabled();
+    if (res.isLeft() && ref.mounted) {
+      try {
+        await svc.waitForRadiance().timeout(radianceWait);
+      } catch (_) {
+        appLogger.warning('Action Mode at launch: the core is not ready');
+      }
+      if (!ref.mounted) return false;
+      res = await svc.isUnboundedEnabled();
+    }
+    return res.fold((_) => false, (v) => v);
+  }
+
+  /// Whether the user wants sharing at launch: auto-enable on, the tab
+  /// shown, and Unbounded available. Flags that have not loaded yet do not
+  /// count against it.
+  bool _launchWanted() {
+    final settings = ref.read(appSettingProvider);
+    if (settings.unboundedHidden || !settings.unboundedAutoEnable) {
+      return false;
+    }
+    final flags = ref.read(featureFlagProvider);
+    return flags.isEmpty || flags.getBool(FeatureFlag.unbounded);
+  }
+
+  /// Whether a kept session could switch to SmC: a resumed (not fallback)
+  /// Unbounded session, off iOS.
+  bool _mayAskForSmc() =>
+      state.active &&
+      state.mode == ShareMode.unbounded &&
+      !_fromFallback &&
+      !isIOS();
+
+  /// The launch decision, taken under the gate from the state as it is now.
+  /// A fallback from a failed SmC start is stopped like the session it
+  /// replaced, but never switched back to the SmC that just failed.
+  Future<void> _settleLaunch(int manualPort) async {
+    // A snapshot may have shown the session gone meanwhile.
+    if (!state.active || state.mode == ShareMode.off) return;
+    if (!_launchWanted()) {
+      // A view that never loaded keeps the session: a local read failure
+      // must never cut off a friend.
+      if (ref.read(helpersProvider.notifier).helpsSomeoneNow == false) {
+        appLogger.info('Action Mode resumed at launch: not wanted, stopping');
+        await _stop(mode: state.mode);
+        return;
+      }
+      appLogger.info('Action Mode resumed at launch: kept for a friend');
+    }
+    if (!_mayAskForSmc() || manualPort <= 0) return;
+    appLogger.info(
+      'Action Mode resumed as Unbounded with a manual port: switching to SmC',
+    );
+    final off = await ref
+        .read(lanternServiceProvider)
+        .setUnboundedEnabled(false);
+    if (!ref.mounted) return;
+    if (off.isLeft()) {
+      appLogger.error('Switching resumed Unbounded to SmC: could not stop it');
+      return;
+    }
+    _startGuard = null;
+    await _start(ShareMode.smc);
   }
 
   /// The phase to adopt from a raw peer-status payload, or null to leave
@@ -241,9 +483,9 @@ class ShareNotifier extends _$ShareNotifier {
     }
   }
 
-  Future<void> _toggle(BuildContext context, WidgetRef widgetRef) async {
+  Future<void> _toggle(BuildContext context) async {
     if (state.active || state.probing) {
-      await _stop(widgetRef);
+      await _stop();
       return;
     }
     if (!await ensureConsent(context)) return;
@@ -253,7 +495,7 @@ class ShareNotifier extends _$ShareNotifier {
 
     state = state.copyWith(probing: true);
 
-    await _startAuto(widgetRef);
+    await _startAuto();
   }
 
   /// Picks the sharing mode from the network and starts it: direct (SmC)
@@ -262,28 +504,23 @@ class ShareNotifier extends _$ShareNotifier {
   ///
   /// [mayStart], when given, is asked again right before the backend is
   /// enabled, after the port and UPnP checks; false abandons the start.
-  Future<void> _startAuto(
-    WidgetRef widgetRef, {
-    bool Function()? mayStart,
-  }) async {
+  Future<void> _startAuto({bool Function()? mayStart}) async {
     Future<void> start(ShareMode mode) async {
       if (mayStart != null && !mayStart()) {
         state = state.copyWith(probing: false);
         return;
       }
       _startGuard = mayStart;
-      await _start(widgetRef, mode);
+      await _start(mode);
     }
 
-    // The iOS network extension cannot carry the peer proxy's second sing-box
-    // instance, so the backend refuses SmC there.
-    if (PlatformUtils.isIOS) {
+    if (isIOS()) {
       await start(ShareMode.unbounded);
       return;
     }
 
     // A manually forwarded port is an explicit request for SmC.
-    final manualPortRes = await widgetRef
+    final manualPortRes = await ref
         .read(lanternServiceProvider)
         .getPeerManualPort();
     if (!ref.mounted) return;
@@ -293,7 +530,7 @@ class ShareNotifier extends _$ShareNotifier {
     }
 
     // Blocks up to ~6s on IGD discovery; any failure counts as unavailable.
-    final probeRes = await widgetRef.read(lanternServiceProvider).probeUPnP();
+    final probeRes = await ref.read(lanternServiceProvider).probeUPnP();
     if (!ref.mounted) return;
     final upnpAvailable = probeRes.fold((_) => false, (v) => v);
     await start(upnpAvailable ? ShareMode.smc : ShareMode.unbounded);
@@ -322,7 +559,7 @@ class ShareNotifier extends _$ShareNotifier {
     _helperStartPending = true;
     await _autoStartWith(() {
       _helperStartPending = false;
-      return _startAuto(widgetRef, mayStart: _helperStartAllowed);
+      return _startAuto(mayStart: _helperStartAllowed);
     });
   }
 
@@ -363,19 +600,22 @@ class ShareNotifier extends _$ShareNotifier {
     }
   }
 
-  Future<void> _start(WidgetRef widgetRef, ShareMode mode) async {
+  Future<void> _start(ShareMode mode) async {
+    _launchSettled = true;
+    _sessionChanges++;
+    _fromFallback = false;
     state = ShareState(
       active: true,
       mode: mode,
       totalCount: state.totalCount,
       relay: state.relay.newSession(),
     );
-    _startEventSubscription(widgetRef);
+    _startEventSubscription();
     switch (mode) {
       case ShareMode.smc:
         // A failed Start reports itself twice: as the error returned here and
         // as a phase=error event. Both fall back; the second is ignored.
-        final res = await widgetRef
+        final res = await ref
             .read(radianceSettingsProvider.notifier)
             .setPeerProxy(true);
         if (!ref.mounted) return;
@@ -383,10 +623,10 @@ class ShareNotifier extends _$ShareNotifier {
           appLogger.error(
             'SmC setPeerProxy failed, falling back to Unbounded: ${err.error}',
           );
-          unawaited(_fallbackToUnbounded(widgetRef, err.error));
+          unawaited(_fallbackToUnbounded(err.error));
         }, (_) => _recordSessionStart());
       case ShareMode.unbounded:
-        final res = await widgetRef
+        final res = await ref
             .read(lanternServiceProvider)
             .setUnboundedEnabled(true);
         if (!ref.mounted) return;
@@ -408,14 +648,40 @@ class ShareNotifier extends _$ShareNotifier {
     );
   }
 
-  Future<void> _stop(WidgetRef widgetRef) async {
-    final result = switch (state.mode) {
+  /// Stops the session in [mode], the current one by default.
+  ///
+  /// A stop wins over a fallback: while it runs, a failed SmC start does not
+  /// fall back to Unbounded, and a fallback already in flight is waited for
+  /// and its Unbounded session stopped instead.
+  Future<void> _stop({ShareMode? mode}) async {
+    _sessionChanges++;
+    _stopping = true;
+    try {
+      await _stopSession(mode ?? state.mode);
+    } finally {
+      _stopping = false;
+    }
+  }
+
+  @visibleForTesting
+  Future<void> debugStop() => _stop();
+
+  /// Set while [_stop] runs; a fallback is then dropped.
+  bool _stopping = false;
+
+  Future<void> _stopSession(ShareMode mode) async {
+    if (_fallbackInFlight != null) {
+      await _fallbackSettled();
+      if (!ref.mounted) return;
+      // radiance rolled SmC back when it failed; what is left is the
+      // fallback's Unbounded, or nothing if that failed too.
+      mode = state.mode;
+    }
+    final result = switch (mode) {
       ShareMode.smc =>
-        await widgetRef
-            .read(radianceSettingsProvider.notifier)
-            .setPeerProxy(false),
+        await ref.read(radianceSettingsProvider.notifier).setPeerProxy(false),
       ShareMode.unbounded =>
-        await widgetRef.read(lanternServiceProvider).setUnboundedEnabled(false),
+        await ref.read(lanternServiceProvider).setUnboundedEnabled(false),
       ShareMode.off => right<Failure, Unit>(unit),
     };
     if (!ref.mounted) return;
@@ -428,6 +694,7 @@ class ShareNotifier extends _$ShareNotifier {
       },
       (_) {
         _stopEventSubscription();
+        _fromFallback = false;
         state = ShareState(totalCount: state.totalCount, relay: _idleRelay());
         _persistRelay(force: true);
       },
@@ -436,7 +703,24 @@ class ShareNotifier extends _$ShareNotifier {
 
   /// Switches a failed SmC session to Unbounded. radiance has already rolled
   /// its peer-share setting back, so only the local mode and broflake remain.
-  Future<void> _fallbackToUnbounded(WidgetRef widgetRef, String? reason) async {
+  ///
+  /// A failed start reports itself twice, so a second call can overlap the
+  /// first; [_fallbackInFlight] covers both.
+  Future<void> _fallbackToUnbounded(String? reason) {
+    if (_stopping) {
+      appLogger.info('SmC failed while stopping: no fallback');
+      return Future.value();
+    }
+    final prev = _fallbackInFlight;
+    final run = _runFallback(reason);
+    final all = prev == null ? run : Future.wait([prev, run]);
+    _fallbackInFlight = all;
+    return all.whenComplete(() {
+      if (identical(_fallbackInFlight, all)) _fallbackInFlight = null;
+    });
+  }
+
+  Future<void> _runFallback(String? reason) async {
     if (state.mode == ShareMode.unbounded) return;
     // A helper start may have lost its eligibility while SmC registered.
     final guard = _startGuard;
@@ -449,6 +733,7 @@ class ShareNotifier extends _$ShareNotifier {
     _changes++;
     try {
       _stopEventSubscription();
+      _fromFallback = true;
       state = ShareState(
         active: true,
         mode: ShareMode.unbounded,
@@ -456,7 +741,7 @@ class ShareNotifier extends _$ShareNotifier {
         fallbackReason: (reason?.isNotEmpty ?? false) ? reason : null,
         relay: state.relay.newSession(),
       );
-      final result = await widgetRef
+      final result = await ref
           .read(lanternServiceProvider)
           .setUnboundedEnabled(true);
       if (!ref.mounted) return;
@@ -473,6 +758,7 @@ class ShareNotifier extends _$ShareNotifier {
 
   void _failOff(String message) {
     _stopEventSubscription();
+    _fromFallback = false;
     state = ShareState(
       totalCount: state.totalCount,
       phase: SharePhase.error,
@@ -521,20 +807,19 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   /// SmC-only: peer-status and peer-connection events from radiance.
-  void _startEventSubscription(WidgetRef widgetRef) {
+  void _startEventSubscription() {
     _stopEventSubscription();
     if (state.mode != ShareMode.smc) return;
-    _appEventSub = widgetRef
-        .read(lanternServiceProvider)
-        .watchAppEvents()
-        .listen((event) {
-          if (event.eventType == 'peer-status') {
-            _handlePeerStatus(event.message, widgetRef);
-          } else if (event.eventType == 'peer-connection' &&
-              state.mode == ShareMode.smc) {
-            _handlePeerConnection(event.message);
-          }
-        });
+    _appEventSub = ref.read(lanternServiceProvider).watchAppEvents().listen((
+      event,
+    ) {
+      if (event.eventType == 'peer-status') {
+        _handlePeerStatus(event.message);
+      } else if (event.eventType == 'peer-connection' &&
+          state.mode == ShareMode.smc) {
+        _handlePeerConnection(event.message);
+      }
+    });
   }
 
   void _stopEventSubscription() {
@@ -543,7 +828,7 @@ class ShareNotifier extends _$ShareNotifier {
     _clearPeers();
   }
 
-  void _handlePeerStatus(String message, WidgetRef widgetRef) {
+  void _handlePeerStatus(String message) {
     // A status event describes SmC only. Dropping it in other modes keeps a
     // late phase=error from overwriting a fallback that already happened.
     if (state.mode != ShareMode.smc) return;
@@ -552,10 +837,12 @@ class ShareNotifier extends _$ShareNotifier {
       final phase = SharePhase.fromWire(payload['phase'] as String?);
       final errMsg = payload['error'] as String?;
       if (phase == SharePhase.error) {
+        // A stop wins over a fallback.
+        if (_stopping) return;
         appLogger.info(
           'SmC start failed, falling back to Unbounded: ${errMsg ?? ""}',
         );
-        unawaited(_fallbackToUnbounded(widgetRef, errMsg));
+        unawaited(_fallbackToUnbounded(errMsg));
         return;
       }
       if (phase == SharePhase.idle) {
