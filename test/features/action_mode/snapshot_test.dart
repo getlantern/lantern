@@ -144,6 +144,23 @@ class HelpingOne extends HelpersNotifier {
 
 const unknownIp = '198.51.100.9';
 
+/// Helps Sara (p1), whose live status a test sets.
+class HelpingSara extends HelpersNotifier {
+  @override
+  HelpersState build() => live(null);
+
+  static HelpersState live(bool? connected) => HelpersState(
+    view: HelpersView(
+      unlocked: true,
+      helping: [
+        HelperPairingView(pairingId: 'p1', name: 'Sara', connected: connected),
+      ],
+    ),
+  );
+
+  void setConnected(bool? connected) => state = live(connected);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late FakeService service;
@@ -1033,5 +1050,121 @@ void main() {
     await tester.pump();
     expect(container.read(shareProvider).relay.speedDown, 0);
     expect(container.read(shareProvider).mode, ShareMode.smc);
+  });
+
+  group('friend arcs', () {
+    late ProviderContainer friends;
+    late List<ActionModeConnectionEvent> events;
+    setUp(() {
+      friends = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(service),
+          appSettingProvider.overrideWith(FakeSettings.new),
+          radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
+          helpersProvider.overrideWith(HelpingSara.new),
+        ],
+      );
+      addTearDown(friends.dispose);
+      events = [];
+      final sub = friends
+          .read(shareProvider.notifier)
+          .connectionEvents
+          .listen(events.add);
+      addTearDown(sub.cancel);
+    });
+
+    Future<void> send(
+      List<String> peers,
+      Map<String, (int, String)> peerBytes,
+    ) async {
+      service.events.add(
+        AppEvent(
+          eventType: 'unbounded-snapshot',
+          message: jsonEncode({
+            'epoch': 'run-1',
+            'arrivals': 2,
+            'enabled': true,
+            'running': true,
+            'peers': peers,
+            'bytesDown': peerBytes.values.fold<int>(0, (n, b) => n + b.$1),
+            'bytesUp': 0,
+            'peerBytes': [
+              for (final e in peerBytes.entries)
+                {
+                  'ip': e.key,
+                  'down': e.value.$1,
+                  'up': 0,
+                  if (e.value.$2.isNotEmpty) 'pairing': e.value.$2,
+                },
+            ],
+          }),
+        ),
+      );
+      // The geo lookup resolves from its cache asynchronously.
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+
+    test('a friend\'s arc has no country, and is named only while that '
+        'friend shows as connected', () async {
+      await send(
+        ['192.0.2.1:1', '192.0.2.2:2'],
+        {'192.0.2.1': (0, 'p1'), '192.0.2.2': (0, '')},
+      );
+      final sara = events.singleWhere((e) => e.friend);
+      expect(sara.state, 1);
+      expect(sara.countryName, isEmpty);
+      expect(sara.countryCode, isEmpty);
+      expect(sara.coordinates, isNotNull, reason: 'the arc is still drawn');
+      expect(sara.friendName, isEmpty, reason: 'status unknown: unnamed');
+      final pool = events.singleWhere((e) => !e.friend);
+      expect(pool.countryName, 'United States', reason: 'pool arcs unchanged');
+
+      events.clear();
+      (friends.read(helpersProvider.notifier) as HelpingSara).setConnected(
+        true,
+      );
+      await Future<void>.delayed(Duration.zero);
+      final named = events.single;
+      expect(named.workerIdx, sara.workerIdx, reason: 'redrawn in place');
+      expect(named.isReplay, isTrue, reason: 'no arrival burst, no camera');
+      expect(named.friend, isTrue);
+      expect(named.friendName, 'Sara');
+      expect(named.countryName, isEmpty);
+
+      events.clear();
+      (friends.read(helpersProvider.notifier) as HelpingSara).setConnected(
+        false,
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(events.single.friendName, isEmpty);
+
+      events.clear();
+      (friends.read(helpersProvider.notifier) as HelpingSara).setConnected(
+        null,
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(events, isEmpty, reason: 'still unnamed: nothing to redraw');
+    });
+
+    test('an arc labelled by a later snapshot is relabelled', () async {
+      (friends.read(helpersProvider.notifier) as HelpingSara).setConnected(
+        true,
+      );
+      await send(['192.0.2.1:1'], {});
+      expect(events.single.friend, isFalse);
+      events.clear();
+      await send(['192.0.2.1:1'], {'192.0.2.1': (0, 'p1')});
+      expect(events.single.friend, isTrue);
+      expect(events.single.friendName, 'Sara');
+      expect(events.single.countryName, isEmpty);
+    });
+
+    test('a friend\'s bytes count under unknown, not a country', () async {
+      await send(['192.0.2.1:1'], {'192.0.2.1': (100, 'p1')});
+      await send(['192.0.2.1:1'], {'192.0.2.1': (600, 'p1')});
+      final countries = friends.read(shareProvider).relay.countries;
+      expect(countries['US']!.down, 900, reason: 'the seed, unchanged');
+      expect(countries[RelayCountryStats.unknownCode]!.down, 500);
+    });
   });
 }

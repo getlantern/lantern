@@ -5,6 +5,7 @@ import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -92,6 +93,10 @@ class AppEventNotifier extends _$AppEventNotifier {
           break;
         case 'country-code':
           ref.read(countryCodeProvider.notifier).update(event.message);
+          break;
+        case 'helper-live':
+          // Carries nothing: the helper view holds the friends' status.
+          unawaited(ref.read(helpersProvider.notifier).liveChanged());
           break;
         case 'user-data':
           // Go refreshed user data from the server; re-read the cache.

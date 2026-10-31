@@ -40,6 +40,8 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
   ];
   static final _originPointColor = AppColors.blue4.withValues(alpha: 0.15);
   static const _peerPointColor = AppColors.green6;
+  // A connected friend's arc, in the friends sheet's Connected green.
+  static final _friendArcColor = AppColors.green5.withValues(alpha: 0.9);
   static const _atmosphereDark = AppColors.blue4;
   static const _atmosphereLight = AppColors.blue6;
   // Brief connections (URL-test probes) keep their arc long enough to be seen.
@@ -158,7 +160,12 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
 
   void _addPeer(ActionModeConnectionEvent event) {
     if (!mounted || _originCoords == null) return;
+    // A friend's arc is re-sent when its name changes: redraw it in place.
+    if (_drawn.contains(event.workerIdx)) _removePeer(event.workerIdx);
     final coords = _jittered(event.coordinates!, event.workerIdx);
+    // A connected friend's arc is theirs: their name and colour. No country,
+    // city or flag is ever drawn for a friend.
+    final named = event.friend && event.friendName.isNotEmpty;
     // dashAnimateTime stays 0: any other value keeps the package's repaint
     // loop running for as long as an arc exists.
     _globeController.addPointConnection(
@@ -168,7 +175,9 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
         end: _originCoords!,
         curveScale: .6,
         style: PointConnectionStyle(
-          color: _arcColors[event.workerIdx.abs() % _arcColors.length],
+          color: named
+              ? _friendArcColor
+              : _arcColors[event.workerIdx.abs() % _arcColors.length],
           lineWidth: 3,
           type: PointConnectionType.solid,
           dashAnimateTime: 0,
@@ -181,6 +190,14 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
         id: 'peer_${event.workerIdx}',
         coordinates: coords,
         style: PointStyle(color: _peerPointColor, size: 6),
+        label: named ? event.friendName : null,
+        isLabelVisible: named,
+        labelTextStyle: named
+            ? Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: _friendLabelColor(context),
+                fontWeight: FontWeight.w600,
+              )
+            : null,
       ),
     );
     _drawn.add(event.workerIdx);
@@ -193,6 +210,11 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
       curve: Curves.easeInOutCubic,
     );
   }
+
+  static Color _friendLabelColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? AppColors.green3
+      : AppColors.green7;
 
   void _removePeer(int workerIdx) {
     _globeController.removePointConnection('conn_$workerIdx');
