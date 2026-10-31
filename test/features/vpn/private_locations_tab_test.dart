@@ -40,9 +40,14 @@ class _Status extends PersonalProxyStatusNotifier {
 }
 
 class _Vpn extends VpnNotifier {
+  _Vpn([this.status = VPNStatus.connected]);
+  final VPNStatus status;
   final connects = <(ServerLocationType, String)>[];
+
+  /// Runs while the connect is in flight, before it answers.
+  Future<void> Function()? beforeReply;
   @override
-  VPNStatus build() => VPNStatus.connected;
+  VPNStatus build() => status;
   @override
   Future<Either<Failure, String>> connectToServer(
     ServerLocationType location,
@@ -50,6 +55,7 @@ class _Vpn extends VpnNotifier {
     bool skipConflictCheck = false,
   }) async {
     connects.add((location, tag));
+    await beforeReply?.call();
     return const Right('ok');
   }
 }
@@ -103,6 +109,58 @@ Future<void> _pump(WidgetTester tester, List<HelperPairingView> helpers) async {
         child: MaterialApp(
           theme: AppTheme.appTheme(),
           home: const Scaffold(body: PrivateServerLocationListView()),
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
+}
+
+ProviderContainer _selectionContainer(_Vpn vpn, _Location location) =>
+    ProviderContainer(
+      overrides: [
+        availableServersProvider.overrideWith(_NoServers.new),
+        helpersProvider.overrideWith(
+          () => _Helpers(
+            const HelpersState(
+              viewLoaded: true,
+              view: HelpersView(
+                unlocked: true,
+                helpers: [
+                  HelperPairingView(
+                    pairingId: 'p1',
+                    name: 'Sara',
+                    online: true,
+                    outboundTag: 'helper-0123456789ab',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        personalProxyStatusProvider.overrideWith(_Status.new),
+        vpnProvider.overrideWith(() => vpn),
+        serverLocationProvider.overrideWith(() => location),
+        macosExtensionProvider.overrideWithValue(
+          const MacOSExtensionState(SystemExtensionStatus.activated),
+        ),
+      ],
+    );
+
+Future<void> _pumpSelection(
+  WidgetTester tester,
+  ProviderContainer container,
+) async {
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: ScreenUtilInit(
+        designSize: const Size(393, 852),
+        child: GlobalLoaderOverlay(
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: const Scaffold(body: PrivateServerLocationListView()),
+          ),
         ),
       ),
     ),
@@ -204,56 +262,101 @@ void main() {
     expect(_status.polls, 0);
   });
 
-  testWidgets('selecting a friend connects by their selection tag and '
-      'saves them as the location', (tester) async {
-    await sl.reset();
-    final vpn = _Vpn();
-    final location = _Location();
-    final container = ProviderContainer(
-      overrides: [
-        availableServersProvider.overrideWith(_NoServers.new),
-        helpersProvider.overrideWith(
-          () => _Helpers(
-            const HelpersState(
-              viewLoaded: true,
-              view: HelpersView(
-                unlocked: true,
-                helpers: [
-                  HelperPairingView(
-                    pairingId: 'p1',
-                    name: 'Sara',
-                    online: true,
-                    outboundTag: 'helper-0123456789ab',
-                  ),
-                ],
+  testWidgets('opening the tab with the VPN off reads no status and does '
+      'not change a provider during build', (tester) async {
+    HelpersNotifier.debugBuildEnabled = true;
+    addTearDown(() => HelpersNotifier.debugBuildEnabled = null);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          availableServersProvider.overrideWith(_NoServers.new),
+          helpersProvider.overrideWith(
+            () => _Helpers(
+              const HelpersState(
+                viewLoaded: true,
+                view: HelpersView(
+                  unlocked: true,
+                  helpers: [HelperPairingView(pairingId: 'p1', online: true)],
+                ),
               ),
             ),
           ),
-        ),
-        personalProxyStatusProvider.overrideWith(_Status.new),
-        vpnProvider.overrideWith(() => vpn),
-        serverLocationProvider.overrideWith(() => location),
-        macosExtensionProvider.overrideWithValue(
-          const MacOSExtensionState(SystemExtensionStatus.activated),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
+          vpnProvider.overrideWith(() => _Vpn(VPNStatus.disconnected)),
+          serverLocationProvider.overrideWithValue(
+            ServerLocation(
+              serverName: '',
+              serverType: ServerLocationType.auto.name,
+            ),
+          ),
+        ],
         child: ScreenUtilInit(
           designSize: const Size(393, 852),
-          child: GlobalLoaderOverlay(
-            child: MaterialApp(
-              theme: AppTheme.appTheme(),
-              home: const Scaffold(body: PrivateServerLocationListView()),
-            ),
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: const Scaffold(body: PrivateServerLocationListView()),
           ),
         ),
       ),
     );
     await tester.pump();
+    await tester.pump(personalProxyStatusInterval);
+    expect(tester.takeException(), isNull);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PrivateServerLocationListView)),
+    );
+    expect(container.read(personalProxyStatusProvider), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  for (final olderFallback in [false, true]) {
+    testWidgets(
+      olderFallback
+          ? 'a fallback from before the request leaves the friend selected'
+          : 'a fallback that arrives before the connect reply wins over the '
+                'requested friend',
+      (tester) async {
+        await sl.reset();
+        final vpn = _Vpn();
+        final location = _Location();
+        final container = _selectionContainer(vpn, location);
+        addTearDown(container.dispose);
+        await _pumpSelection(tester, container);
+        vpn.beforeReply = () => location.personalProxyFellBack(
+          'helper-0123456789ab',
+          'personal-proxies',
+        );
+        if (olderFallback) {
+          // An older fallback, from before this request, does not count.
+          vpn.beforeReply = null;
+          await location.personalProxyFellBack(
+            'helper-0123456789ab',
+            'personal-proxies',
+          );
+        }
+        await tester.tap(
+          find.byKey(const Key('server_selection.personal_proxy.p1')),
+        );
+        await tester.pump();
+        await tester.pump();
+        final saved = container.read(serverLocationProvider);
+        if (olderFallback) {
+          expect(saved.personalProxyFriendTag, 'helper-0123456789ab');
+        } else {
+          expect(saved.serverName, 'personal-proxies');
+          expect(saved.personalProxyFriendTag, isNull);
+        }
+      },
+    );
+  }
+
+  testWidgets('selecting a friend connects by their selection tag and '
+      'saves them as the location', (tester) async {
+    await sl.reset();
+    final vpn = _Vpn();
+    final location = _Location();
+    final container = _selectionContainer(vpn, location);
+    addTearDown(container.dispose);
+    await _pumpSelection(tester, container);
     await tester.tap(
       find.byKey(const Key('server_selection.personal_proxy.p1')),
     );

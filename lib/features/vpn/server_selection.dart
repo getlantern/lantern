@@ -665,7 +665,12 @@ class _PrivateServerLocationListViewState
     useEffect(() {
       if (!hasPersonalProxies) return null;
       final status = ref.read(personalProxyStatusProvider.notifier);
-      unawaited(status.poll());
+      // The first read waits for the frame: the effect runs during build,
+      // when no provider may change.
+      var active = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (active) unawaited(status.poll());
+      });
       final timer = Timer.periodic(personalProxyStatusInterval, (_) {
         if (WidgetsBinding.instance.lifecycleState !=
             AppLifecycleState.resumed) {
@@ -673,7 +678,10 @@ class _PrivateServerLocationListViewState
         }
         unawaited(status.poll());
       });
-      return timer.cancel;
+      return () {
+        active = false;
+        timer.cancel();
+      };
     }, [hasPersonalProxies]);
 
     if (availableServers.isLoading) {
@@ -725,11 +733,19 @@ class _PrivateServerLocationListViewState
             ServerLocation.personalProxy(),
           ),
           selectedFriend: selectedFriend,
-          onSelectFriend: (h) => _select(
-            ServerLocationType.personalProxy,
-            personalProxySelection(h.outboundTag),
-            ServerLocation.personalProxy(friendTag: h.outboundTag),
-          ),
+          onSelectFriend: (h) {
+            // radiance can withdraw the friend while connecting, and its
+            // fallback event can arrive before the connect answers; the save
+            // then takes the fallback instead of the friend.
+            final locations = ref.read(serverLocationProvider.notifier);
+            final mark = locations.fallbackMark;
+            _select(
+              ServerLocationType.personalProxy,
+              personalProxySelection(h.outboundTag),
+              ServerLocation.personalProxy(friendTag: h.outboundTag),
+              save: () => locations.saveFriendSelection(h.outboundTag, mark),
+            );
+          },
         ),
         if (userLocations.isNotEmpty) ...[
           Padding(
@@ -799,6 +815,7 @@ class _PrivateServerLocationListViewState
     String tag,
     ServerLocation location, {
     String? connectedMessage,
+    FutureOr<void> Function()? save,
   }) async {
     if (!_macOSExtensionReady(ref)) return;
 
@@ -809,7 +826,7 @@ class _PrivateServerLocationListViewState
       attempt: (skipConflictCheck) => ref
           .read(vpnProvider.notifier)
           .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
-      save: () => locationNotifier.updateServerLocation(location),
+      save: save ?? () => locationNotifier.updateServerLocation(location),
       connectedMessage: connectedMessage,
     );
   }

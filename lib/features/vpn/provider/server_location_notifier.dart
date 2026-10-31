@@ -91,8 +91,38 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   /// is [friendTag], to [fallback] (the personal proxies group, or auto)
   /// because no route to them was left. Follows it while that friend is
   /// still the selection here.
+  ///
+  /// Every fallback is also recorded, so a selection of that friend still
+  /// being connected when it arrives saves the fallback instead (see
+  /// [saveFriendSelection]).
   Future<void> personalProxyFellBack(String friendTag, String fallback) async {
-    if (!ref.mounted || state.personalProxyFriendTag != friendTag) return;
+    if (!ref.mounted) return;
+    _fellBack[friendTag] = (++_fallbacks, fallback);
+    if (state.personalProxyFriendTag != friendTag) return;
+    await _applyFallback(fallback);
+  }
+
+  // Counts fallbacks; _fellBack holds each friend's last one with its count.
+  int _fallbacks = 0;
+  final _fellBack = <String, (int, String)>{};
+
+  /// Taken before connecting to a friend and passed to [saveFriendSelection],
+  /// which then knows which fallbacks came after the request.
+  int get fallbackMark => _fallbacks;
+
+  /// Saves the friend whose outbound tag is [friendTag] as the selection once
+  /// connected, unless radiance fell back from them after [mark]: the
+  /// fallback is what radiance selected, so that is saved instead.
+  Future<void> saveFriendSelection(String friendTag, int mark) async {
+    final fell = _fellBack[friendTag];
+    if (fell != null && fell.$1 > mark) {
+      await _applyFallback(fell.$2);
+      return;
+    }
+    updateServerLocation(ServerLocation.personalProxy(friendTag: friendTag));
+  }
+
+  Future<void> _applyFallback(String fallback) async {
     if (fallback == personalProxiesTag) {
       updateServerLocation(ServerLocation.personalProxy());
       return;
