@@ -112,16 +112,16 @@ jobs:
         if: github.ref_name == 'main' && steps.translate.outputs.changed == 'true' && env.DRY_RUN != 'true'
         env:
           FAILED: ${{ steps.translate.outputs.failed }}
-          MANUAL: ${{ inputs.base }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/locales/*.po
           if git diff --cached --quiet; then echo "no file content changed"; exit 0; fi
-          # a complete all-locale run that diffed English records the en.po revision it processed
-          # as the next baseline; a locale-filtered, partly failed or gap-only manual run does not,
-          # so it can never move the baseline past English edits it never looked at
-          if [ -z "$LOCALES" ] && [ "$FAILED" != "true" ] && { [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ] || [ -n "$MANUAL" ]; }; then printf '\nTranslated-From: %s\n' "$HEAD_SHA" >> build/translate/commit_message.txt; fi
+          # a complete all-locale run that diffed English against a base records the en.po revision
+          # it processed as the next baseline; a locale-filtered, partly failed or gap-only run
+          # (no base, or one that couldn't be fetched) does not, so it can never move the baseline
+          # past English edits it never compared
+          if [ -z "$LOCALES" ] && [ "$FAILED" != "true" ] && [ -n "$BASE" ]; then printf '\nTranslated-From: %s\n' "$HEAD_SHA" >> build/translate/commit_message.txt; fi
           git commit -F build/translate/commit_message.txt
           # main may have moved while the models ran; rebase once and push
           git pull --rebase origin main
