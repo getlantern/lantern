@@ -62,19 +62,11 @@ msgstr ""
 msgid "send_without_email"
 msgstr "ส่งโดยไม่มีอีเมล"
 
-msgid "lantern_projects"
-msgstr "โปรเจกต์ Lantern:"
-
 msgid "invite_friends"
 msgstr "เชิญเพื่อน"
 
 msgid "your_referral_code"
 msgstr "รหัสแนะนำของคุณ"
-
-msgid "invite_friends_message"
-msgstr ""
-"แชร์โค้ดแนะนำของคุณกับเพื่อน เมื่อพวกเขาซื้อ Lantern Pro "
-"คุณทั้งคู่จะได้เวลาโบนัส:"
 
 msgid "share_referral_code"
 msgstr "แชร์รหัสแนะนำ"
@@ -139,9 +131,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "ช่วยต่อสู้กับการเซ็นเซอร์อินเทอร์เน็ตทั่วโลก"
-
 msgid "vpn_settings"
 msgstr "การตั้งค่า VPN"
 
@@ -166,9 +155,6 @@ msgstr "อุปกรณ์ Lantern Pro"
 msgid "remove"
 msgstr "ลบออก"
 
-msgid "add_device"
-msgstr "เพิ่มอุปกรณ์"
-
 msgid "danger_zone"
 msgstr "โซนอันตราย:"
 
@@ -191,9 +177,6 @@ msgstr ""
 
 msgid "delete_account_message_two"
 msgstr "กรุณากรอกรหัสผ่านด้านล่างเพื่อยืนยันการลบ"
-
-msgid "Submit Issue Report"
-msgstr "กรอกรหัสผ่านเพื่อยืนยัน"
 
 msgid "confirm_deletion"
 msgstr "ยืนยันการลบ"
@@ -228,23 +211,14 @@ msgstr "การเลือกเซิร์ฟเวอร์"
 msgid "smart_location"
 msgstr "ตำแหน่งอัจฉริยะ"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "เลือกตำแหน่งที่เร็วที่สุดโดยอัตโนมัติ"
-
 msgid "pro_locations"
 msgstr "ตำแหน่ง Pro:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "เลือกตำแหน่งของคุณด้วย Lantern Pro:"
 
 msgid "language"
 msgstr "ภาษา"
 
 msgid "sign_in"
 msgstr "ลงชื่อเข้าใช้"
-
-msgid "sign_out"
-msgstr "ออกจากระบบ"
 
 msgid "check_for_updates"
 msgstr "ตรวจสอบการอัปเดต"
@@ -256,9 +230,6 @@ msgid "android_sideload_update_available_message"
 msgstr ""
 "Lantern %s พร้อมใช้งานแล้ว Lantern จะดาวน์โหลดและตรวจสอบไฟล์ APK "
 "ก่อนเปิดตัวติดตั้งของ Android"
-
-msgid "download_and_install_update"
-msgstr "ดาวน์โหลดและติดตั้ง"
 
 msgid "allow_unknown_app_installs"
 msgstr "อนุญาตการติดตั้งแอป"
@@ -274,9 +245,6 @@ msgstr "ไม่สามารถติดตั้งอัปเดตได
 msgid "android_sideload_install_failed_message"
 msgstr ""
 "Lantern ไม่สามารถตรวจสอบหรือติดตั้งอัปเดตนี้ได้ โปรดลองอีกครั้งภายหลัง"
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern เป็นเวอร์ชันล่าสุดแล้ว"
 
 msgid "support"
 msgstr "ฝ่ายสนับสนุน"
@@ -304,9 +272,6 @@ msgstr "ไม่สามารถเข้าถึงเว็บไซต์
 msgid "cannot_complete_purchase"
 msgstr "ไม่สามารถทำการซื้อให้เสร็จสมบูรณ์"
 
-msgid "discover_not_working"
-msgstr "Discover ใช้งานไม่ได้"
-
 msgid "cannot_sign_in"
 msgstr "ไม่สามารถลงชื่อเข้าใช้"
 
@@ -331,12 +296,6 @@ msgstr "การเลือกเซิร์ฟเวอร์ไม่ทำ
 msgid "upgrade_fail"
 msgstr "อัปเกรด Lantern Pro ไม่สำเร็จ"
 
-msgid "wrong_device_linking_code"
-msgstr "รหัสเชื่อมโยงอุปกรณ์ผิดหรือไม่ถูกต้อง"
-
-msgid "cannot_remove_device"
-msgstr "ไม่สามารถลบอุปกรณ์"
-
 msgid "application_crashes"
 msgstr "แอปพลิเคชันขัดข้อง"
 
@@ -349,32 +308,11 @@ msgstr "อธิบายปัญหาของคุณ"
 msgid "enter_password_to_confirm"
 msgstr "กรอกรหัสผ่านเพื่อยืนยัน"
 
-msgid "cannot_view_logs"
-msgstr "Lantern ไม่สามารถดูบันทึกการวินิจฉัยของคุณได้ เว้นแต่คุณจะส่งมาให้เรา"
-
-msgid "split_tunneling_mode"
-msgstr "โหมดแยกอุโมงค์"
-
 msgid "apps_split_tunneling"
 msgstr "แยกอุโมงค์สำหรับแอป"
 
 msgid "website_split_tunneling"
 msgstr "แยกอุโมงค์สำหรับเว็บไซต์"
-
-msgid "iran_optimized"
-msgstr "แยกอุโมงค์ที่ปรับให้เหมาะกับอิหร่าน"
-
-msgid "china_optimized"
-msgstr "แยกอุโมงค์ที่ปรับให้เหมาะกับจีน"
-
-msgid "russia_optimized"
-msgstr "แยกอุโมงค์ที่ปรับให้เหมาะกับรัสเซีย"
-
-msgid "global_optimized"
-msgstr "แยกอุโมงค์ที่ปรับให้เหมาะทั่วโลก"
-
-msgid "enter_url"
-msgstr "กรอก URL"
 
 msgid "add"
 msgstr "เพิ่ม"
@@ -417,47 +355,6 @@ msgstr "ลิงก์นี้หมดอายุแล้ว กรุณ�
 
 msgid "invalid_deep_link"
 msgstr "ลิงก์นี้ไม่ถูกต้อง กรุณาขอลิงก์ใหม่"
-
-msgid "default_bypass"
-msgstr "รายการข้ามเริ่มต้น"
-
-msgid "global_bypass_list"
-msgstr "รายการข้ามทั่วโลก"
-
-msgid "global_bypass_desc"
-msgstr "เว็บไซต์ที่เชื่อถือได้ (HTTPS) ที่มีเนื้อหาที่ไม่ละเอียดอ่อน"
-
-msgid "china_bypass_list"
-msgstr "รายการข้ามสำหรับจีน"
-
-msgid "china_bypass_desc"
-msgstr "เว็บไซต์ที่เข้าถึงได้อย่างอิสระในจีน อัปเดตเป็นประจำ"
-
-msgid "iran_bypass_list"
-msgstr "รายการข้ามสำหรับอิหร่าน"
-
-msgid "iran_bypass_desc"
-msgstr "เว็บไซต์ที่เข้าถึงได้อย่างอิสระในอิหร่าน อัปเดตเป็นประจำ"
-
-msgid "russia_bypass_list"
-msgstr "รายการข้ามสำหรับรัสเซีย"
-
-msgid "russia_bypass_desc"
-msgstr "เว็บไซต์ที่เข้าถึงได้อย่างอิสระในรัสเซีย อัปเดตเป็นประจำ"
-
-msgid "see_sites_included"
-msgstr "ดูเว็บไซต์ที่รวมอยู่ใน"
-
-msgid "default_lists_here"
-msgstr "รายการเริ่มต้นที่นี่"
-
-msgid "when_connected"
-msgstr "เมื่อเชื่อมต่อแล้ว เว็บไซต์ที่คุณเลือกจะข้าม VPN"
-
-msgid "lantern_automatic"
-msgstr ""
-"Lantern เลือกแอปและเว็บไซต์ที่ข้าม VPN โดยอัตโนมัติตามตำแหน่งของคุณ "
-"เพื่อประสิทธิภาพที่ดีที่สุด"
 
 msgid "apps_bypassing_vpn"
 msgstr "แอปที่ข้าม VPN (%d)"
@@ -549,9 +446,6 @@ msgstr "จำเป็นต้องยืนยันรหัสผ่าน
 msgid "passwords_do_not_match"
 msgstr "รหัสผ่านไม่ตรงกัน"
 
-msgid "activation_code"
-msgstr "รหัสเปิดใช้งาน"
-
 msgid "activate_lantern_pro"
 msgstr "เปิดใช้งาน Lantern Pro"
 
@@ -604,9 +498,6 @@ msgstr "กฎเหล่านี้แตกต่างกันไปตา
 
 msgid "view_the_full_list"
 msgstr "ดูรายการกฎการจัดเส้นทางทั้งหมด"
-
-msgid "turn_on_split_tunneling"
-msgstr "เปิดการแยกอุโมงค์เพื่อปรับแต่งว่าเว็บไซต์ใดใช้ VPN"
 
 msgid "welcome_to_lantern_pro"
 msgstr "ยินดีต้อนรับสู่ Lantern Pro!"
@@ -661,9 +552,6 @@ msgstr "คุ้มค่าที่สุด!"
 msgid "choose_payment_method"
 msgstr "เลือกวิธีการชำระเงิน"
 
-msgid "payment_information_encrypted"
-msgstr "ข้อมูลการชำระเงินของคุณได้รับการเข้ารหัสอย่างสมบูรณ์"
-
 msgid "purchase_not_completed"
 msgstr ""
 "การซื้อไม่เสร็จสมบูรณ์ คุณสามารถลองอีกครั้งได้ทุกเมื่อ "
@@ -684,21 +572,6 @@ msgstr "บล็อกโฆษณา"
 msgid "only_active"
 msgstr "ใช้งานได้เฉพาะเมื่อเชื่อมต่อ VPN"
 
-msgid "share_my_connection"
-msgstr "แชร์การเชื่อมต่อของฉัน"
-
-msgid "share_my_connection_subtitle"
-msgstr ""
-"ให้ผู้ใช้ Lantern "
-"คนอื่นใช้เส้นทางผ่านการเชื่อมต่อของคุณเพื่อหลบเลี่ยงการเซ็นเซอร์"
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr ""
-"ช่วยผู้อื่นหลบเลี่ยงการเซ็นเซอร์ด้วยการแชร์การเชื่อมต่อของคุณอย่างปลอดภัย"
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "เกี่ยวกับ Action Mode"
@@ -713,53 +586,11 @@ msgstr "ปิดใช้งาน"
 msgid "smc_status_configuring"
 msgstr "กำลังกำหนดค่าเครือข่าย"
 
-msgid "smc_status_probing"
-msgstr "กำลังตรวจสอบเครือข่ายของคุณ…"
-
-msgid "smc_status_active_unbounded"
-msgstr "เปิดใช้งาน"
-
-msgid "smc_status_active_smc"
-msgstr "กำลังเริ่ม…"
-
-msgid "smc_status_mapping_port"
-msgstr "กำลังเปิดพอร์ตบนเราเตอร์ของคุณ…"
-
-msgid "smc_status_detecting_ip"
-msgstr "กำลังตรวจหา IP สาธารณะของคุณ…"
-
-msgid "smc_status_registering"
-msgstr "กำลังลงทะเบียนกับ Lantern…"
-
-msgid "smc_status_starting_proxy"
-msgstr "กำลังเริ่มพร็อกซีในเครื่อง…"
-
-msgid "smc_status_verifying"
-msgstr "กำลังตรวจสอบการเชื่อมต่อ…"
-
-msgid "smc_status_serving"
-msgstr "เปิดใช้งาน"
-
-msgid "smc_status_stopping"
-msgstr "กำลังหยุด…"
-
 msgid "smc_status_error_with_message"
 msgstr "แชร์ไม่ได้: %s"
 
 msgid "smc_status_error_generic"
 msgstr "แชร์ไม่ได้ — ลองปิดแล้วเปิดใหม่"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "คนที่คุณกำลังช่วยอยู่ตอนนี้:"
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "จำนวนคนที่ช่วยไปแล้วทั้งหมด:"
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -884,9 +715,6 @@ msgstr "สมัครสมาชิก"
 msgid "checkout"
 msgstr "ชำระเงิน"
 
-msgid "next_billing_date"
-msgstr "วันที่เรียกเก็บเงินครั้งถัดไป"
-
 msgid "vpn_may_be_needed"
 msgstr "อาจต้องใช้ VPN"
 
@@ -913,39 +741,17 @@ msgstr "ตั้งค่าโดยใช้ Google Cloud Platform"
 msgid "continue_with_do"
 msgstr "ดำเนินการต่อด้วย Digital Ocean"
 
-msgid "do_allows"
-msgstr ""
-"Digital Ocean ให้คุณเลือกตำแหน่งเซิร์ฟเวอร์หนึ่งตำแหน่งจาก %d "
-"ตัวเลือกด้านล่าง"
-
 msgid "server_setup_gcp_price"
 msgstr "เพียง %s ต่อเดือนผ่าน GCP"
 
 msgid "continue_with_gcp"
 msgstr "ดำเนินการต่อด้วย Google"
 
-msgid "gcp_allows"
-msgstr ""
-"Google Cloud Platform ให้คุณเลือกตำแหน่งเซิร์ฟเวอร์หนึ่งตำแหน่งจาก %d "
-"ตัวเลือกด้านล่าง:"
-
-msgid "server_setup_aws"
-msgstr "ตั้งค่าเซิร์ฟเวอร์ส่วนตัวบน AWS"
-
-msgid "server_setup_aws_price"
-msgstr "เพียง %s ต่อเดือนผ่าน AWS"
-
 msgid "server_setup_manual"
 msgstr "ตั้งค่าด้วยตนเอง"
 
 msgid "seamless_integration"
 msgstr "รวมเข้ากับ Lantern ได้อย่างลงตัว"
-
-msgid "easiest_setup"
-msgstr "กระบวนการตั้งค่าที่ง่ายที่สุด"
-
-msgid "multiple_location_options"
-msgstr "ตัวเลือกตำแหน่งเซิร์ฟเวอร์หลายตำแหน่ง"
 
 msgid "one_month_included"
 msgstr "รวมข้อมูล %d TB/เดือน"
@@ -1022,29 +828,11 @@ msgstr "เลือกบัญชีของคุณ"
 msgid "choose_your_project"
 msgstr "เลือกโปรเจกต์ของคุณ"
 
-msgid "name_your_google_cloud_project"
-msgstr "ตั้งชื่อโปรเจกต์ Google Cloud ของคุณ"
-
 msgid "billing_account"
 msgstr "บัญชีการเรียกเก็บเงิน"
 
-msgid "billing_account_placeholder"
-msgstr "บัญชีการเรียกเก็บเงินสำหรับ %s"
-
 msgid "server_name"
 msgstr "ชื่อเซิร์ฟเวอร์"
-
-msgid "google_project"
-msgstr "โปรเจกต์ Google"
-
-msgid "field_name_required"
-msgstr "จำเป็นต้องมีชื่อ"
-
-msgid "choose_google_account"
-msgstr "เลือกบัญชีการเรียกเก็บเงิน Google"
-
-msgid "server_name_placeholder"
-msgstr "เซิร์ฟเวอร์ของเดเร็ค"
 
 msgid "change"
 msgstr "เปลี่ยน"
@@ -1058,38 +846,6 @@ msgstr "เลือกตำแหน่งของคุณ"
 msgid "start_deployment"
 msgstr "เริ่มการติดตั้ง"
 
-msgid "server_name_description"
-msgstr "วิธีที่เซิร์ฟเวอร์จะปรากฏในรายการเลือกเซิร์ฟเวอร์"
-
-msgid "select_private_server_region"
-msgstr ""
-"เลือกภูมิภาคสำหรับเซิร์ฟเวอร์ส่วนตัวของคุณ "
-"ตำแหน่งที่ใกล้กว่าอาจช่วยปรับปรุงความเร็วและเวลาแฝง"
-
-msgid "gcp_location_options"
-msgstr "ตัวเลือกตำแหน่ง Google Cloud Platform (%d):"
-
-msgid "australia_sydney"
-msgstr "ออสเตรเลีย - ซิดนีย์"
-
-msgid "belgium_stghislain"
-msgstr "เบลเยียม - เซนต์กีแล็ง"
-
-msgid "brazil_saopaulo"
-msgstr "เซาเปาลู"
-
-msgid "us_los_angeles"
-msgstr "สหรัฐอเมริกา - ลอสแองเจลิส"
-
-msgid "japan_tokyo"
-msgstr "ญี่ปุ่น - โตเกียว"
-
-msgid "deploying_private_server"
-msgstr "กำลังติดตั้งเซิร์ฟเวอร์ส่วนตัว"
-
-msgid "deploying_server_status"
-msgstr "รอสักครู่! เซิร์ฟเวอร์ส่วนตัวของคุณกำลังถูกตั้งค่า อาจใช้เวลาสักครู่"
-
 msgid "private_server_setup_in_progress"
 msgstr ""
 "รอสักครู่! เซิร์ฟเวอร์ส่วนตัวของคุณกำลังถูกตั้งค่า อาจใช้เวลาสักครู่ "
@@ -1097,19 +853,6 @@ msgstr ""
 
 msgid "cancel_server_deployment"
 msgstr "ยกเลิกการติดตั้งเซิร์ฟเวอร์"
-
-msgid "server_ready_title"
-msgstr "เซิร์ฟเวอร์ส่วนตัวพร้อมแล้ว"
-
-msgid "server_ready_message"
-msgstr ""
-"เซิร์ฟเวอร์ส่วนตัวของคุณถูกตั้งค่าเรียบร้อยแล้วและเพิ่มเข้าในรายการเซิร์ฟเวอร์ของคุณ"
-" คุณพร้อมที่จะเชื่อมต่อแล้ว!"
-
-msgid "server_failed_message"
-msgstr ""
-"มีบางอย่างผิดพลาดขณะตั้งค่าเซิร์ฟเวอร์ส่วนตัวของคุณ "
-"คุณสามารถลองใหม่อีกครั้งหรือลองอีกครั้งในภายหลัง"
 
 msgid "close"
 msgstr "ปิด"
@@ -1119,9 +862,6 @@ msgstr "เชื่อมต่อตอนนี้"
 
 msgid "server_setup_failed"
 msgstr "การตั้งค่าเซิร์ฟเวอร์ล้มเหลว"
-
-msgid "cancel_deployment"
-msgstr "ยกเลิกการติดตั้ง"
 
 msgid "server_setup_failed_message"
 msgstr ""
@@ -1133,9 +873,6 @@ msgstr "ออก"
 
 msgid "retry"
 msgstr "ลองอีกครั้ง"
-
-msgid "all_required_fields"
-msgstr "กรุณากรอกข้อมูลที่จำเป็นทั้งหมด"
 
 msgid "private_server_ready"
 msgstr "เซิร์ฟเวอร์ส่วนตัวพร้อมแล้ว!"
@@ -1173,9 +910,6 @@ msgstr "ยืนยันเซิร์ฟเวอร์"
 msgid "vpn_client_not_setup"
 msgstr "กรุณาเปิดไคลเอนต์ VPN"
 
-msgid "continue_with"
-msgstr "ดำเนินการต่อด้วย"
-
 msgid "join_a_private_server"
 msgstr "เข้าร่วมเซิร์ฟเวอร์ส่วนตัว"
 
@@ -1187,9 +921,6 @@ msgstr "เข้าร่วมเซิร์ฟเวอร์"
 
 msgid "private_server_usage_message"
 msgstr "การใช้งานเซิร์ฟเวอร์ส่วนตัวไม่นับรวมในขีดจำกัดข้อมูลรายวันของ Lantern"
-
-msgid "manage_private_servers"
-msgstr "จัดการเซิร์ฟเวอร์ส่วนตัว"
 
 msgid "my_servers"
 msgstr "เซิร์ฟเวอร์ของฉัน"
@@ -1225,9 +956,6 @@ msgstr ""
 msgid "generate_access_key"
 msgstr "สร้างคีย์เข้าถึง"
 
-msgid "invite_name"
-msgstr "ชื่อคำเชิญ"
-
 msgid "trust_server_operator"
 msgstr "ไว้วางใจผู้ดูแลเซิร์ฟเวอร์"
 
@@ -1246,9 +974,6 @@ msgid "trust_server_operator_message_three"
 msgstr ""
 "หากคุณไม่แน่ใจว่าใครเป็นผู้ดูแลเซิร์ฟเวอร์หรือมีการกำหนดค่าอย่างไร "
 "เราแนะนำให้ใช้เซิร์ฟเวอร์ Lantern เริ่มต้นที่มีอยู่ในรายการเซิร์ฟเวอร์ของคุณ"
-
-msgid "invalid_server_details"
-msgstr "รายละเอียดเซิร์ฟเวอร์ไม่ถูกต้อง กรุณาตรวจสอบคีย์เข้าถึงและลองอีกครั้ง"
 
 msgid "lantern_servers"
 msgstr "เซิร์ฟเวอร์ Lantern"
@@ -1303,9 +1028,6 @@ msgstr "เซิร์ฟเวอร์พรีเมียมที่แอ
 
 msgid "advanced_anti_censorship"
 msgstr "เทคโนโลยีต่อต้านการเซ็นเซอร์ขั้นสูง"
-
-msgid "exclusive_access_new_features"
-msgstr "เข้าถึงฟีเจอร์ใหม่ได้เฉพาะ"
 
 msgid "connect_up_to_five_devices"
 msgstr "เชื่อมต่อได้สูงสุด 5 อุปกรณ์"
@@ -1391,9 +1113,6 @@ msgstr "กรุณากรอกอีเมลที่ถูกต้อง
 msgid "please_select_an_issue"
 msgstr "กรุณาเลือกปัญหา"
 
-msgid "please_enter_issue_description"
-msgstr "กรุณากรอกคำอธิบายปัญหา"
-
 msgid "thanks_for_feedback"
 msgstr "ขอบคุณสำหรับความคิดเห็นของคุณ!"
 
@@ -1409,20 +1128,11 @@ msgstr "เลือกทั้งหมด"
 msgid "no_websites_selected"
 msgstr "ไม่ได้เลือกเว็บไซต์"
 
-msgid "enter_activation_code"
-msgstr "กรอกรหัสเปิดใช้งาน"
-
 msgid "restore_purchase"
 msgstr "คืนค่าการซื้อ"
 
 msgid "already_purchased"
 msgstr "ซื้อแล้วใช่ไหม?"
-
-msgid "restore_purchase_success"
-msgstr "กู้คืนการซื้อสำเร็จแล้ว"
-
-msgid "restore_purchase_no_purchases"
-msgstr "ไม่พบการซื้อที่จะกู้คืน"
 
 msgid "do_private_server_setup"
 msgstr "การตั้งค่าเซิร์ฟเวอร์ส่วนตัว DO"
@@ -1445,7 +1155,7 @@ msgid "confirm"
 msgstr "ยืนยัน"
 
 msgid "private_server_warning"
-msgstr "เพิ่มเฉพาะเซิร์ฟเวอร์ที่ดูแลโดยคนที่คุณไว้วางใจเท่านั้น"
+msgstr "เพิ่มเฉพาะเซิร์ฟเวอร์ที่ดูแลโดยคนที่คุณไว้วางใจเท่านั้น "
 
 msgid "go_to_server_locations"
 msgstr "ไปที่ตำแหน่งเซิร์ฟเวอร์"
@@ -1475,9 +1185,6 @@ msgstr "วันที่ต่ออายุการสมัครสมา
 
 msgid "pro_access_until"
 msgstr "ใช้งาน Pro ได้ถึง %s"
-
-msgid "enabled_bypass_lists"
-msgstr "รายการข้ามที่เปิดใช้งาน (%d):"
 
 msgid "diagnostic_logs"
 msgstr "บันทึกการวินิจฉัย"
@@ -1526,9 +1233,6 @@ msgstr "เพิ่มรหัสแนะนำ"
 msgid "referral_code"
 msgstr "รหัสแนะนำ"
 
-msgid "update_fails"
-msgstr "การอัปเดตล้มเหลว"
-
 msgid "scan_qr_code"
 msgstr "สแกนรหัส QR"
 
@@ -1541,42 +1245,17 @@ msgstr "เราจัดการการกำหนดค่า เพี�
 msgid "90_day_free_trial"
 msgstr "ทดลองใช้งานฟรี 90 วัน"
 
-msgid "identity_changed"
-msgstr "ตัวตนเปลี่ยนแปลงสำหรับ %s"
-
-msgid "identity_changed_message"
-msgstr ""
-"ลายนิ้วมือความปลอดภัยของ %s เปลี่ยนแปลงไป "
-"อาจบ่งชี้ถึงการงัดแงะหรือการกำหนดค่าที่ผิดพลาด"
-
-msgid "recommendation"
-msgstr "คำแนะนำ:"
-
-msgid "recommendation_message"
-msgstr ""
-"เราแนะนำให้ลบ %s ออกจาก Lantern และลบออกจากบัญชีผู้ให้บริการคลาวด์ของคุณ "
-"จากนั้นตั้งค่าเซิร์ฟเวอร์ใหม่เพื่อให้แน่ใจว่าการเชื่อมต่อของคุณยังคงปลอดภัย"
-
-msgid "remove_server"
-msgstr "ลบเซิร์ฟเวอร์"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "ชื่อเล่นเซิร์ฟเวอร์ต้องไม่ว่างเปล่า"
 
 msgid "referral_code_applied"
-msgstr " โค้ดแนะนำของคุณถูกใช้แล้ว!"
+msgstr "โค้ดแนะนำของคุณถูกใช้แล้ว!"
 
 msgid "discount_applied"
 msgstr "ใช้ส่วนลด %s แล้ว"
 
-msgid "referral_message_1m"
-msgstr " + 15 วันเพิ่มเติมฟรี"
-
 msgid "referral_message_1y"
-msgstr " + 1 เดือนเพิ่มเติมฟรี"
-
-msgid "referral_message_2y"
-msgstr "+ ฟรีเพิ่มอีก 2 เดือน"
+msgstr "+ 1 เดือนเพิ่มเติมฟรี"
 
 msgid "referral_code_invalid"
 msgstr "รหัสแนะนำ/โปรโมชันที่คุณกรอกไม่ถูกต้อง โปรดตรวจสอบรหัสแล้วลองอีกครั้ง"
@@ -1586,28 +1265,6 @@ msgstr "คุณไม่สามารถใช้โค้ดแนะนำ
 
 msgid "free"
 msgstr "ฟรี"
-
-msgid "monthly_plan"
-msgstr " แผนรายเดือน:"
-
-msgid "15_days_each"
-msgstr "+15 วันต่อคน"
-
-msgid "annual_plan"
-msgstr " แผนรายปี:"
-
-msgid "1_month_each"
-msgstr "+1 เดือนต่อแผน"
-
-msgid "two_year_plan"
-msgstr "แผน 2 ปี:"
-
-msgid "2_month_each"
-msgstr "+2 เดือนต่อแผน"
-
-msgid "referral_code_info"
-msgstr ""
-"ยังไม่ใช่ผู้ใช้ Lantern Pro? คุณจะเป็นเมื่อการแนะนำรายแรกของคุณสมัครใช้งาน"
 
 msgid "lantern_pro_license"
 msgstr "ใบอนุญาต Lantern Pro"
@@ -1621,17 +1278,11 @@ msgstr "ใบอนุญาต Lantern Pro ไม่ถูกต้อง"
 msgid "lantern_pro_license_invalid_length"
 msgstr "ใบอนุญาต Lantern Pro ต้องมี 25 ตัวอักษร"
 
-msgid "select_account"
-msgstr " เลือกบัญชี"
-
-msgid "new_to_lantern"
-msgstr "ใหม่กับ Lantern?"
-
 msgid "create_an_account"
 msgstr "สร้างบัญชี"
 
 msgid "no_projects_found"
-msgstr " ไม่พบโครงการ"
+msgstr "ไม่พบโครงการ"
 
 msgid "no_projects_found_desc"
 msgstr "ไม่พบโครงการ โปรดสร้างโครงการในบัญชีผู้ให้บริการคลาวด์ของคุณก่อน"
@@ -1641,12 +1292,6 @@ msgstr "เพิ่มรายละเอียดการเรียกเ
 
 msgid "do_billing_details_message"
 msgstr "DigitalOcean ต้องการข้อมูลการชำระเงินเพื่อสร้างเซิร์ฟเวอร์"
-
-msgid "tap"
-msgstr "แตะ"
-
-msgid "below_to_go_to_do"
-msgstr "ด้านล่างเพื่อไปยัง DigitalOcean"
 
 msgid "1"
 msgstr "1"
@@ -1665,11 +1310,6 @@ msgstr "กลับไปที่ Lantern และแตะ \"ดำเนิ
 
 msgid "how_to_add_billing_details"
 msgstr "วิธีเพิ่มรายละเอียดการเรียกเก็บเงิน:"
-
-msgid "add_payment_method_message"
-msgstr ""
-"โปรดเพิ่มวิธีการชำระเงินในบัญชี DigitalOcean ของคุณ หากคุณได้เพิ่มแล้ว "
-"กรุณารอสักครู่แล้วลองอีกครั้ง"
 
 msgid "ok"
 msgstr "ตกลง"
@@ -1690,12 +1330,6 @@ msgid "developer_mode_note"
 msgstr ""
 "โหมดนักพัฒนาเป็นโหมดที่ใช้สำหรับนักพัฒนา Lantern "
 "ในการทดสอบฟีเจอร์ระหว่างการพัฒนาเท่านั้น"
-
-msgid "invalid_activation_code"
-msgstr "รหัสเปิดใช้งานไม่ถูกต้อง โปรดตรวจสอบรหัสและลองอีกครั้ง"
-
-msgid "invalid_activation_code_length"
-msgstr "รหัสเปิดใช้งานต้องมีความยาว 25 ตัวอักษร"
 
 msgid "error_while_vpn_connection"
 msgstr "เกิดข้อผิดพลาดขณะสร้างการเชื่อมต่อ VPN โปรดลองอีกครั้ง"
@@ -1726,9 +1360,6 @@ msgstr "ข้อมูลการใช้งานแบบไม่ระบ
 
 msgid "helps_improve_lantern_performance"
 msgstr "ช่วยปรับปรุงประสิทธิภาพของ Lantern"
-
-msgid "changes_applied_after_restart"
-msgstr "การเปลี่ยนแปลงจะมีผลหลังจากรีสตาร์ท Lantern"
 
 msgid "email_deliverability_notice"
 msgstr "ประกาศการส่งอีเมล"
@@ -1770,9 +1401,6 @@ msgstr "เพิ่มแอปและเว็บไซต์เพื่อ
 
 msgid "lantern_pro_license_applied"
 msgstr "ใบอนุญาต Lantern Pro ของคุณจะถูกนำไปใช้กับบัญชีที่มีอยู่ของคุณ"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "การซื้อของคุณจะถูกนำไปใช้กับบัญชีที่มีอยู่ของคุณ"
 
 msgid "daily_data_cap_reached"
 msgstr "ถึงขอบเขตข้อมูลรายวันแล้ว"
@@ -1825,14 +1453,6 @@ msgstr "การสมัครสมาชิกหมดอายุ"
 
 msgid "pro"
 msgstr "Pro"
-
-msgid "pro_subscription_expired_message"
-msgstr ""
-"การสมัครสมาชิก Lantern Pro หมดอายุแล้ว "
-"ต่ออายุเพื่อคืนค่าข้อมูลไม่จำกัดและฟีเจอร์ Pro"
-
-msgid "last_subscription_renewal_date"
-msgstr "วันที่ต่ออายุการสมัครสมาชิกล่าสุด"
 
 msgid "set_account_password"
 msgstr "ตั้งรหัสผ่านบัญชี"
@@ -2172,3 +1792,150 @@ msgstr "ปิด"
 
 msgid "unbounded_status_waiting"
 msgstr "กำลังรอเริ่มต้น"
+
+msgid "affiliate_offer_unavailable"
+msgstr "ไม่สามารถโหลดแพ็กเกจราคาพิเศษจากสโตร์ได้ โปรดลองอีกครั้ง"
+
+msgid "action_mode_helping_now"
+msgstr "กำลังช่วยเหลืออยู่ตอนนี้"
+
+msgid "action_mode_total_helped"
+msgstr "จำนวนคนที่ได้รับความช่วยเหลือทั้งหมดจนถึงตอนนี้"
+
+msgid "show_license"
+msgstr "แสดงสัญญาอนุญาต"
+
+msgid "hide_license"
+msgstr "ซ่อนสัญญาอนุญาต"
+
+msgid "share_logs_warning_title"
+msgstr "แชร์บันทึกการวินิจฉัย?"
+
+msgid "share_logs_warning_body"
+msgstr "บันทึกเหล่านี้อาจมีอีเมล ที่อยู่ IP ตัวระบุอุปกรณ์ของคุณ และเซิร์ฟเวอร์ Lantern ที่คุณเคยเชื่อมต่อ เมื่อส่งออกจากแอปแล้วบันทึกจะไม่ได้รับการปกป้อง ทุกคนที่ได้รับจึงสามารถอ่านได้ ส่งให้ฝ่ายสนับสนุนของ Lantern ที่ support@lantern.io เท่านั้น"
+
+msgid "share_logs_anyway"
+msgstr "แชร์บันทึก"
+
+msgid "widget"
+msgstr "วิดเจ็ต"
+
+msgid "add_lantern_widget"
+msgstr "เพิ่มวิดเจ็ต Lantern"
+
+msgid "add_lantern_widget_description"
+msgstr "เชื่อมต่อจากหน้าจอหลักของโทรศัพท์โดยไม่ต้องเปิดแอป"
+
+msgid "widget_step_1"
+msgstr "แตะพื้นที่ว่างบนหน้าจอหลักของโทรศัพท์ค้างไว้"
+
+msgid "widget_step_2"
+msgstr "แตะ “แก้ไข” แล้วแตะ “เพิ่มวิดเจ็ต”"
+
+msgid "widget_step_3"
+msgstr "ค้นหา Lantern เลือกขนาด แล้วแตะ “เพิ่มวิดเจ็ต”"
+
+msgid "people_helped_title"
+msgstr "ผู้ที่คุณได้ช่วยเหลือ"
+
+msgid "people_helped_subtitle"
+msgstr "ช่วยเหลือไปแล้ว %s · ขณะนี้ %s"
+
+msgid "advanced_stats_by_country"
+msgstr "แยกตามประเทศ ทั้งหมด"
+
+msgid "advanced_stats_relayed"
+msgstr "ส่งต่อแล้ว %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "ข้อมูลที่ส่งต่อ"
+
+msgid "advanced_stats_this_session"
+msgstr "เซสชันนี้"
+
+msgid "advanced_stats_all_time_short"
+msgstr "ทั้งหมด"
+
+msgid "advanced_stats_current_speed"
+msgstr "ความเร็วปัจจุบัน"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "ส่ง %s · รับ %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "ยังไม่มีใครได้รับความช่วยเหลือ ประเทศต่างๆ จะแสดงที่นี่เมื่อมีผู้คนเชื่อมต่อผ่านคุณ"
+
+msgid "advanced_stats_unknown_country"
+msgstr "ไม่ทราบ"
+
+msgid "advanced_stats_one_person"
+msgstr "1 คน"
+
+msgid "advanced_stats_people"
+msgstr "%s คน"
+
+msgid "share_mode_smc"
+msgstr "การเชื่อมต่อโดยตรง"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "โหมดการแชร์"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "การเชื่อมต่อโดยตรงไม่พร้อมใช้งาน: %s"
+
+msgid "view_advanced_stats"
+msgstr "ดูสถิติขั้นสูง"
+
+msgid "error_occurred"
+msgstr "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"
+
+msgid "unknown_error_occurred"
+msgstr "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "เรากำลังประสบปัญหาทางเทคนิค กรุณาลองอีกครั้งในภายหลัง"
+
+msgid "proxy_error"
+msgstr "ไม่สามารถเชื่อมต่อผ่านพร็อกซีได้ โปรดตรวจสอบการเชื่อมต่อของคุณแล้วลองอีกครั้ง"
+
+msgid "err_while_sending_code"
+msgstr "ไม่สามารถส่งรหัสยืนยันได้ โปรดลองอีกครั้ง"
+
+msgid "recovery_not_found"
+msgstr "ไม่พบบัญชีที่จะกู้คืนด้วยข้อมูลดังกล่าว"
+
+msgid "wrong_link_code"
+msgstr "รหัสเชื่อมโยงอุปกรณ์ไม่ถูกต้อง โปรดตรวจสอบแล้วลองอีกครั้ง"
+
+msgid "wrong_seller_code"
+msgstr "รหัสตัวแทนจำหน่ายไม่ถูกต้อง โปรดตรวจสอบแล้วลองอีกครั้ง"
+
+msgid "purchase_not_found"
+msgstr "เราไม่พบการซื้อสำหรับบัญชีนี้"
+
+msgid "purchase_restored_error"
+msgstr "ไม่สามารถกู้คืนการซื้อของคุณได้ โปรดลองอีกครั้ง"
+
+msgid "empty_url"
+msgstr "ไม่สามารถเปิดหน้าชำระเงินได้ โปรดลองอีกครั้ง"
+
+msgid "please_enter_referral_code"
+msgstr "โปรดป้อนรหัสแนะนำ"
+
+msgid "access_token_missing"
+msgstr "ไม่พบโทเค็นการเข้าถึง โปรดลงชื่อเข้าใช้ผู้ให้บริการคลาวด์ของคุณอีกครั้ง"
+
+msgid "private_server_setup_error"
+msgstr "ไม่สามารถตั้งค่าเซิร์ฟเวอร์ส่วนตัวของคุณได้ โปรดลองอีกครั้ง"
+
+msgid "logs"
+msgstr "บันทึก"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "แตะ %s ด้านล่างเพื่อไปที่ DigitalOcean"

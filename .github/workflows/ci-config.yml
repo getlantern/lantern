@@ -14,6 +14,8 @@ on:
       - "scripts/ci/android_version_test.py"
       - "android/abi-targets.properties"
       - "Makefile"
+      - "tools/localization/**"
+      - "assets/locales/**"
 
 permissions:
   contents: read
@@ -36,6 +38,10 @@ jobs:
         run: python3 -m unittest discover -s scripts/ci -p 'verify_android_abis_test.py' -v
       - name: Test Android version stamping and artifact validation
         run: python3 -m unittest discover -s scripts/ci -p '*android_version_test.py' -v
+      - name: Test translation pipeline and PO round-trip
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq gettext
+          python3 -m unittest discover -s tools/localization -p 'test_translate.py' -v
       - name: Check setup script syntax
         run: |
           bash -n .github/actions/setup-flutter/read-version.sh
