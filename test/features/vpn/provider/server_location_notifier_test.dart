@@ -24,6 +24,15 @@ class _Service implements LanternService {
   @override
   Future<bool> isTagAvailable(String tag) async => tagAvailable;
 
+  /// The selected_server op's answer.
+  Completer<String> selectedServer = Completer<String>();
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async => Right(await selectedServer.future);
+
   final auto = Completer<Either<Failure, Server>>();
   final selected = Completer<Either<Failure, ServerLocation>>();
 
@@ -496,6 +505,42 @@ void main() {
         c.read(serverLocationProvider).personalProxyFriendTag,
         'helper-ffffffffffff',
       );
+    });
+  });
+
+  group('saveFriendSelection', () {
+    const friend = 'helper-0123456789ab';
+
+    test('saves auto when radiance fell back to it', () async {
+      storage.location = ServerLocation.personalProxy();
+      final c = container();
+      service.selectedServer.complete('{"tag":"auto"}');
+      await c.read(serverLocationProvider.notifier).saveFriendSelection(friend);
+      expect(
+        c.read(serverLocationProvider).serverType,
+        ServerLocationType.auto.name,
+      );
+    });
+
+    test('saves the friend radiance reports', () async {
+      final c = container();
+      service.selectedServer.complete(
+        '{"tag":"${personalProxySelection(friend)}"}',
+      );
+      await c.read(serverLocationProvider.notifier).saveFriendSelection(friend);
+      expect(c.read(serverLocationProvider).personalProxyFriendTag, friend);
+    });
+
+    test('a selection made while reading wins', () async {
+      final c = container();
+      final notifier = c.read(serverLocationProvider.notifier);
+      final saving = notifier.saveFriendSelection(friend);
+      notifier.updateServerLocation(ServerLocation.personalProxy());
+      service.selectedServer.complete(
+        '{"tag":"${personalProxySelection(friend)}"}',
+      );
+      await saving;
+      expect(c.read(serverLocationProvider).serverName, personalProxiesTag);
     });
   });
 }

@@ -734,16 +734,13 @@ class _PrivateServerLocationListViewState
           ),
           selectedFriend: selectedFriend,
           onSelectFriend: (h) {
-            // radiance can withdraw the friend while connecting, and its
-            // fallback event can arrive before the connect answers; the save
-            // then takes the fallback instead of the friend.
             final locations = ref.read(serverLocationProvider.notifier);
-            final mark = locations.fallbackMark;
             _select(
               ServerLocationType.personalProxy,
               personalProxySelection(h.outboundTag),
               ServerLocation.personalProxy(friendTag: h.outboundTag),
-              save: () => locations.saveFriendSelection(h.outboundTag, mark),
+              // Saves what radiance selected, which may be a fallback.
+              save: () => locations.saveFriendSelection(h.outboundTag),
             );
           },
         ),

@@ -119,6 +119,18 @@ class _FakeServerLocation extends ServerLocationNotifier {
 
   @override
   void updateServerLocation(ServerLocation entity) => state = entity;
+
+  final friendSaves = <String>[];
+
+  @override
+  Future<bool> saveOnceConnected(FutureOr<void> Function() save) async {
+    await save();
+    return true;
+  }
+
+  @override
+  Future<void> saveFriendSelection(String friendTag) async =>
+      friendSaves.add(friendTag);
 }
 
 class _FakeAppSettings extends AppSettingNotifier {
@@ -330,14 +342,20 @@ void main() {
       return container;
     }
 
-    test('connects through the friend by their selection tag', () async {
+    test('connects through the friend by their selection tag, then saves '
+        'what radiance selected', () async {
       final service = _FakeLanternService();
       final container = friendContainer(service);
 
       await container.read(vpnProvider.notifier).startVPN();
+      await Future<void>.delayed(Duration.zero);
 
       expect(service.connected, [personalProxySelection(friend)]);
       expect(service.startVPNCalls, 0);
+      final location =
+          container.read(serverLocationProvider.notifier)
+              as _FakeServerLocation;
+      expect(location.friendSaves, [friend]);
     });
 
     test('a friend with no route falls back to the personal proxies group, '

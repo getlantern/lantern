@@ -91,44 +91,52 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   /// is [friendTag], to [fallback] (the personal proxies group, or auto)
   /// because no route to them was left. Follows it while that friend is
   /// still the selection here.
-  ///
-  /// Every fallback is also recorded, so a selection of that friend still
-  /// being connected when it arrives saves the fallback instead (see
-  /// [saveFriendSelection]).
   Future<void> personalProxyFellBack(String friendTag, String fallback) async {
-    if (!ref.mounted) return;
-    _fellBack[friendTag] = (++_fallbacks, fallback);
-    if (state.personalProxyFriendTag != friendTag) return;
-    await _applyFallback(fallback);
-  }
-
-  // Counts fallbacks; _fellBack holds each friend's last one with its count.
-  int _fallbacks = 0;
-  final _fellBack = <String, (int, String)>{};
-
-  /// Taken before connecting to a friend and passed to [saveFriendSelection],
-  /// which then knows which fallbacks came after the request.
-  int get fallbackMark => _fallbacks;
-
-  /// Saves the friend whose outbound tag is [friendTag] as the selection once
-  /// connected, unless radiance fell back from them after [mark]: the
-  /// fallback is what radiance selected, so that is saved instead.
-  Future<void> saveFriendSelection(String friendTag, int mark) async {
-    final fell = _fellBack[friendTag];
-    if (fell != null && fell.$1 > mark) {
-      await _applyFallback(fell.$2);
-      return;
-    }
-    updateServerLocation(ServerLocation.personalProxy(friendTag: friendTag));
-  }
-
-  Future<void> _applyFallback(String fallback) async {
+    if (!ref.mounted || state.personalProxyFriendTag != friendTag) return;
     if (fallback == personalProxiesTag) {
       updateServerLocation(ServerLocation.personalProxy());
       return;
     }
     await switchToAuto();
     await refreshAutoLocationIfNeeded();
+  }
+
+  /// Saves the selection radiance actually has once a connect to the friend
+  /// whose outbound tag is [friendTag] succeeded: that friend, or the group
+  /// or auto it fell back to. radiance's fallback event can arrive before
+  /// the connect answers, and the native tunnel's own retry sends none, so
+  /// radiance's persisted selection is the one source of truth. If it cannot
+  /// be read, the requested friend is saved; a later fallback event still
+  /// moves it.
+  Future<void> saveFriendSelection(String friendTag) async {
+    final selection = _selection;
+    final res = await ref
+        .read(lanternServiceProvider)
+        .helperCall('selected_server', const {});
+    if (!ref.mounted || selection != _selection) return;
+    final r = res.fold(
+      (_) => HelperResult.failure('unavailable'),
+      HelperResult.parse,
+    );
+    final tag = r.ok ? r.data['tag'] : null;
+    if (tag == 'auto') {
+      await switchToAuto();
+      await refreshAutoLocationIfNeeded();
+      return;
+    }
+    if (tag == personalProxiesTag) {
+      updateServerLocation(ServerLocation.personalProxy());
+      return;
+    }
+    if (tag is String && tag.isNotEmpty && personalProxyFriend(tag) == null) {
+      // Something else entirely: show what radiance reports.
+      await _fetchSelectedLocation();
+      return;
+    }
+    final friend = tag is String ? personalProxyFriend(tag) : null;
+    updateServerLocation(
+      ServerLocation.personalProxy(friendTag: friend ?? friendTag),
+    );
   }
 
   /// Fetches the current server location from radiance.

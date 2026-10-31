@@ -244,7 +244,23 @@ class VpnNotifier extends _$VpnNotifier {
       }
       return lantern.startVPN();
     }
-    return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
+    final result = await connectToServer(
+      type,
+      tag,
+      skipConflictCheck: skipConflictCheck,
+    );
+    final friend = serverLocation.personalProxyFriendTag;
+    if (friend != null && result.isRight()) {
+      // The native tunnel may connect the group or auto instead of a friend
+      // who went away: show what radiance selected once connected.
+      final locations = ref.read(serverLocationProvider.notifier);
+      unawaited(
+        locations.saveOnceConnected(
+          () => locations.saveFriendSelection(friend),
+        ),
+      );
+    }
+    return result;
   }
 
   /// Connects to a specific server location.

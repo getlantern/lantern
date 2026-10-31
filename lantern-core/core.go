@@ -253,8 +253,9 @@ type Helper interface {
 	// HelperCall runs one helper-invite operation (see lantern-core/helper)
 	// and returns its JSON result, or {"error": code}. It never returns a raw
 	// error, so nothing about a failure but its code crosses into Dart.
-	// The op "personal_proxy_status" reads radiance's status of each friend
-	// this device invited, without the engine.
+	// The ops "personal_proxy_status" (radiance's status of each friend this
+	// device invited) and "selected_server" (the selection radiance has
+	// persisted) run without the engine.
 	HelperCall(op, argsJSON string) string
 }
 
@@ -1630,6 +1631,9 @@ func (lc *LanternCore) HelperCall(op, argsJSON string) string {
 			return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
 		}
 		return personalProxyStatusJSON(lc.ctx, lc.client.PersonalProxyStatus)
+	}
+	if op == opSelectedServer {
+		return lc.readSelectedServer()
 	}
 	if lc.helpers == nil {
 		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})

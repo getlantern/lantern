@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/vpn"
 )
 
@@ -63,4 +64,31 @@ func TestMalformedPersonalProxyFallbackIsDropped(t *testing.T) {
 	} {
 		forwardPersonalProxyFallback(evt, func(EventType, string) { t.Errorf("forwarded %+v", evt) })
 	}
+}
+
+func TestSelectedServerReadsRadiancesSelection(t *testing.T) {
+	friend := map[string]any{"tag": "personal-proxy:helper-0123456789ab", "type": "mutableurltest"}
+	cases := []struct {
+		name string
+		s    settings.Settings
+		want string
+	}{
+		{"a friend", settings.Settings{settings.SelectedServerKey: friend}, `{"tag":"personal-proxy:helper-0123456789ab"}`},
+		{"the group after a fallback", settings.Settings{settings.AutoConnectKey: false,
+			settings.SelectedServerKey: map[string]any{"tag": "personal-proxies"}}, `{"tag":"personal-proxies"}`},
+		{"auto wins over a stale server", settings.Settings{settings.AutoConnectKey: true,
+			settings.SelectedServerKey: friend}, `{"tag":"auto"}`},
+		{"nothing selected", settings.Settings{}, `{"error":"unavailable"}`},
+		{"a server without a tag", settings.Settings{settings.SelectedServerKey: map[string]any{}}, `{"error":"unavailable"}`},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			assert.JSONEq(t, c.want, selectedServerJSON(c.s))
+		})
+	}
+}
+
+func TestSelectedServerRunsWithoutTheEngine(t *testing.T) {
+	lc := &LanternCore{ctx: context.Background()}
+	assert.JSONEq(t, `{"error":"unavailable"}`, lc.HelperCall(opSelectedServer, "{}"))
 }

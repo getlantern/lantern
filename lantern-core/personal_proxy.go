@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/vpn"
 
 	"github.com/getlantern/lantern/lantern-core/helper"
@@ -21,6 +22,14 @@ const EventTypePersonalProxyFallback EventType = "personal-proxy-fallback"
 // each friend this device invited. It runs outside the helper engine, so it
 // never waits on the engine's lock or touches the keystore.
 const opPersonalProxyStatus = "personal_proxy_status"
+
+// opSelectedServer is the HelperCall op that reads the selection radiance
+// has persisted: {"tag": <tag>}, with "auto" for auto-select. After
+// connecting to a friend the app saves this, not the friend it asked for, so
+// a selection radiance or the native tunnel moved elsewhere is shown as it
+// is. radiance's selected-server read cannot tell auto apart from the server
+// auto picked, so this reads the settings.
+const opSelectedServer = "selected_server"
 
 // personalProxyStatusTimeout bounds one status read: the app polls it while
 // the server list is open, and a stale answer is worth nothing.
@@ -85,4 +94,47 @@ func forwardPersonalProxyFallback(evt vpn.PersonalProxyFallbackEvent, notify fun
 	}
 	slog.Info("The selected personal proxy fell back")
 	notify(EventTypePersonalProxyFallback, string(b))
+}
+
+// selectedServerJSON answers the selected_server op from radiance's settings.
+// Nothing is logged: the tag can name a friend.
+func selectedServerJSON(s settings.Settings) string {
+	if auto, _ := s[settings.AutoConnectKey].(bool); auto {
+		return `{"tag":"auto"}`
+	}
+	raw, ok := s[settings.SelectedServerKey]
+	if !ok || raw == nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+	}
+	b, err := json.Marshal(raw)
+	if err != nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeInternal})
+	}
+	var selected struct {
+		Tag string `json:"tag"`
+	}
+	if json.Unmarshal(b, &selected) != nil || selected.Tag == "" {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+	}
+	out, err := json.Marshal(struct {
+		Tag string `json:"tag"`
+	}{selected.Tag})
+	if err != nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeInternal})
+	}
+	return string(out)
+}
+
+// readSelectedServer reads radiance's settings for the selected_server op.
+func (lc *LanternCore) readSelectedServer() string {
+	if lc.client == nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+	}
+	ctx, cancel := context.WithTimeout(lc.ctx, personalProxyStatusTimeout)
+	defer cancel()
+	s, err := lc.client.Settings(ctx)
+	if err != nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+	}
+	return selectedServerJSON(s)
 }

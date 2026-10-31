@@ -20,6 +20,8 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/server_selection.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class _Helpers extends HelpersNotifier {
   _Helpers(this.initial);
@@ -75,6 +77,27 @@ class _Location extends ServerLocationNotifier {
   }
 }
 
+/// Answers the selected_server op with [selected], or fails when null.
+class _Service implements LanternService {
+  _Service(this.selected);
+  final String? selected;
+  int selectionReads = 0;
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async {
+    if (op != 'selected_server') return const Right('{"error":"internal"}');
+    selectionReads++;
+    final tag = selected;
+    return Right(tag == null ? '{"error":"unavailable"}' : '{"tag":"$tag"}');
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _NoServers extends AvailableServersNotifier {
   @override
   Future<AvailableServers> build() async => AvailableServers([]);
@@ -116,36 +139,42 @@ Future<void> _pump(WidgetTester tester, List<HelperPairingView> helpers) async {
   await tester.pump();
 }
 
-ProviderContainer _selectionContainer(_Vpn vpn, _Location location) =>
-    ProviderContainer(
-      overrides: [
-        availableServersProvider.overrideWith(_NoServers.new),
-        helpersProvider.overrideWith(
-          () => _Helpers(
-            const HelpersState(
-              viewLoaded: true,
-              view: HelpersView(
-                unlocked: true,
-                helpers: [
-                  HelperPairingView(
-                    pairingId: 'p1',
-                    name: 'Sara',
-                    online: true,
-                    outboundTag: 'helper-0123456789ab',
-                  ),
-                ],
+ProviderContainer _selectionContainer(
+  _Vpn vpn,
+  _Location location, [
+  _Service? service,
+]) => ProviderContainer(
+  overrides: [
+    lanternServiceProvider.overrideWithValue(
+      service ?? _Service('personal-proxy:helper-0123456789ab'),
+    ),
+    availableServersProvider.overrideWith(_NoServers.new),
+    helpersProvider.overrideWith(
+      () => _Helpers(
+        const HelpersState(
+          viewLoaded: true,
+          view: HelpersView(
+            unlocked: true,
+            helpers: [
+              HelperPairingView(
+                pairingId: 'p1',
+                name: 'Sara',
+                online: true,
+                outboundTag: 'helper-0123456789ab',
               ),
-            ),
+            ],
           ),
         ),
-        personalProxyStatusProvider.overrideWith(_Status.new),
-        vpnProvider.overrideWith(() => vpn),
-        serverLocationProvider.overrideWith(() => location),
-        macosExtensionProvider.overrideWithValue(
-          const MacOSExtensionState(SystemExtensionStatus.activated),
-        ),
-      ],
-    );
+      ),
+    ),
+    personalProxyStatusProvider.overrideWith(_Status.new),
+    vpnProvider.overrideWith(() => vpn),
+    serverLocationProvider.overrideWith(() => location),
+    macosExtensionProvider.overrideWithValue(
+      const MacOSExtensionState(SystemExtensionStatus.activated),
+    ),
+  ],
+);
 
 Future<void> _pumpSelection(
   WidgetTester tester,
@@ -308,45 +337,56 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  for (final olderFallback in [false, true]) {
-    testWidgets(
-      olderFallback
-          ? 'a fallback from before the request leaves the friend selected'
-          : 'a fallback that arrives before the connect reply wins over the '
-                'requested friend',
-      (tester) async {
-        await sl.reset();
-        final vpn = _Vpn();
-        final location = _Location();
-        final container = _selectionContainer(vpn, location);
-        addTearDown(container.dispose);
-        await _pumpSelection(tester, container);
+  for (final (name, selected, fallbackEvent, want) in [
+    (
+      'a connect that ends on the group, with no fallback event, saves the '
+          'group',
+      'personal-proxies',
+      false,
+      'personal-proxies',
+    ),
+    (
+      'a fallback event before the connect reply does not let the friend be '
+          'saved',
+      'personal-proxies',
+      true,
+      'personal-proxies',
+    ),
+    (
+      'a connect that ends on the friend saves the friend',
+      'personal-proxy:helper-0123456789ab',
+      false,
+      'personal-proxy:helper-0123456789ab',
+    ),
+    (
+      'without an answer from radiance the requested friend is saved',
+      null,
+      false,
+      'personal-proxy:helper-0123456789ab',
+    ),
+  ]) {
+    testWidgets(name, (tester) async {
+      await sl.reset();
+      final vpn = _Vpn();
+      final location = _Location();
+      final service = _Service(selected);
+      final container = _selectionContainer(vpn, location, service);
+      addTearDown(container.dispose);
+      await _pumpSelection(tester, container);
+      if (fallbackEvent) {
         vpn.beforeReply = () => location.personalProxyFellBack(
           'helper-0123456789ab',
           'personal-proxies',
         );
-        if (olderFallback) {
-          // An older fallback, from before this request, does not count.
-          vpn.beforeReply = null;
-          await location.personalProxyFellBack(
-            'helper-0123456789ab',
-            'personal-proxies',
-          );
-        }
-        await tester.tap(
-          find.byKey(const Key('server_selection.personal_proxy.p1')),
-        );
-        await tester.pump();
-        await tester.pump();
-        final saved = container.read(serverLocationProvider);
-        if (olderFallback) {
-          expect(saved.personalProxyFriendTag, 'helper-0123456789ab');
-        } else {
-          expect(saved.serverName, 'personal-proxies');
-          expect(saved.personalProxyFriendTag, isNull);
-        }
-      },
-    );
+      }
+      await tester.tap(
+        find.byKey(const Key('server_selection.personal_proxy.p1')),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(service.selectionReads, 1);
+      expect(container.read(serverLocationProvider).serverName, want);
+    });
   }
 
   testWidgets('selecting a friend connects by their selection tag and '
