@@ -25,9 +25,17 @@ class PersonalProxyStatusNotifier
     extends Notifier<Map<String, PersonalProxyStatus>?> {
   bool _reading = false;
 
+  /// Bumped on every change into or out of connected, so a read that spans
+  /// a disconnect and reconnect cannot apply the old connection's answer.
+  int _connection = 0;
+
   @override
   Map<String, PersonalProxyStatus>? build() {
-    ref.listen(vpnProvider, (_, next) {
+    ref.listen(vpnProvider, (prev, next) {
+      if (prev != next &&
+          (prev == VPNStatus.connected || next == VPNStatus.connected)) {
+        _connection++;
+      }
       if (next != VPNStatus.connected) state = null;
     });
     return null;
@@ -43,6 +51,7 @@ class PersonalProxyStatusNotifier
       return;
     }
     _reading = true;
+    final connection = _connection;
     try {
       final res = await ref
           .read(lanternServiceProvider)
@@ -56,6 +65,7 @@ class PersonalProxyStatusNotifier
         state = null;
         return;
       }
+      if (connection != _connection) return;
       state = r.ok ? PersonalProxyStatus.parseAll(r.data) : null;
     } finally {
       _reading = false;

@@ -92,6 +92,18 @@ void main() {
     expect(status(), isNull);
   });
 
+  test(
+    'a disconnect and reconnect during a read discards its answer',
+    () async {
+      final poll = notifier().poll();
+      vpn.set(VPNStatus.disconnected);
+      vpn.set(VPNStatus.connected);
+      service.answer(_live);
+      await poll;
+      expect(status(), isNull);
+    },
+  );
+
   test('a failed read clears the status that was live', () async {
     var poll = notifier().poll();
     service.answer(_live);

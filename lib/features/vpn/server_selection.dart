@@ -164,20 +164,16 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     ServerLocation serverLocation,
   ) {
     final textTheme = Theme.of(context).textTheme;
-    final autoLocation = serverLocation.autoLocation;
-    // With one friend selected the card shows that friend, never where they
-    // are: their name, "Personal Proxy" and the generic icon.
-    final friendTag = serverLocation.personalProxyFriendTag;
-    final friendName = friendTag == null
-        ? null
-        : personalProxyFriendName(ref, friendTag);
-    final displayName =
-        friendName ?? (autoLocation?.displayName ?? 'fastest_server').i18n;
-    final flag = friendName != null ? '' : (autoLocation?.countryCode ?? '');
-    final protocol = friendName != null
-        ? 'personal_proxy'.i18n
-        : (autoLocation?.protocol ?? '').capitalize;
-    final autoTag = friendName != null ? null : autoLocation?.tag;
+    // The card is the Smart Location choice, which a tap switches to. With a
+    // friend selected it shows only the generic choice: the auto location
+    // kept with the selection must reveal nothing about the friend.
+    final autoLocation = serverLocation.personalProxyFriendTag == null
+        ? serverLocation.autoLocation
+        : null;
+    final displayName = (autoLocation?.displayName ?? 'fastest_server').i18n;
+    final flag = autoLocation?.countryCode ?? '';
+    final protocol = (autoLocation?.protocol ?? '').capitalize;
+    final autoTag = autoLocation?.tag;
     final autoServer = autoTag == null ? null : servers.serverByTag(autoTag);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -727,12 +723,16 @@ class _PrivateServerLocationListViewState
         const SizedBox(height: 16),
         PersonalProxiesSection(
           selected: personalSelected,
-          onSelect: () =>
-              _select(ServerLocationType.personalProxy, personalProxiesTag),
+          onSelect: () => _select(
+            ServerLocationType.personalProxy,
+            personalProxiesTag,
+            ServerLocation.personalProxy(),
+          ),
           selectedFriend: selectedFriend,
           onSelectFriend: (h) => _select(
             ServerLocationType.personalProxy,
             personalProxySelection(h.outboundTag),
+            ServerLocation.personalProxy(friendTag: h.outboundTag),
           ),
         ),
         if (userLocations.isNotEmpty) ...[
@@ -786,16 +786,27 @@ class _PrivateServerLocationListViewState
   Future<void> onPrivateServerSelected(Server server) => _select(
     ServerLocationType.privateServer,
     server.tag,
+    ServerLocation(
+      serverType: ServerLocationType.privateServer.name,
+      serverName: server.tag,
+      country: server.location.country,
+      city: server.location.city,
+      countryCode: server.location.countryCode,
+      protocol: server.type,
+    ),
     connectedMessage: 'connected_to_private_server'.i18n,
   );
 
-  /// Connects to [tag] and, once connected, shows the selection radiance
-  /// saved. That may be a fallback: a group, friend or private server that
-  /// went away during the connect is replaced there, and its event can arrive
-  /// before the connect answers.
+  /// Connects to [tag] and, once connected, makes [location] the selection,
+  /// then shows the selection radiance saved. That may be a fallback: a
+  /// group, friend or private server that went away during the connect is
+  /// replaced there, and its event can arrive before the connect answers.
+  /// [location] is saved first so a failed read still shows what the VPN
+  /// was asked to use, not the previous selection.
   Future<void> _select(
     ServerLocationType type,
-    String tag, {
+    String tag,
+    ServerLocation location, {
     String? connectedMessage,
   }) async {
     if (!_macOSExtensionReady(ref)) return;
@@ -807,7 +818,10 @@ class _PrivateServerLocationListViewState
       attempt: (skipConflictCheck) => ref
           .read(vpnProvider.notifier)
           .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
-      save: locationNotifier.syncSelection,
+      save: () {
+        locationNotifier.updateServerLocation(location);
+        return locationNotifier.syncSelection();
+      },
       connectedMessage: connectedMessage,
     );
   }

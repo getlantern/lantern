@@ -69,6 +69,11 @@ class _Location extends ServerLocationNotifier {
   @override
   void updateServerLocation(ServerLocation entity) => state = entity;
   @override
+  Future<void> switchToAuto() async =>
+      state = state.copyWith(serverType: ServerLocationType.auto.name);
+  @override
+  Future<void> refreshAutoLocationIfNeeded() async {}
+  @override
   // Saves, then reports the request retired, so the screen stays put and no
   // router is needed.
   Future<bool> saveOnceConnected(FutureOr<void> Function() save) async {
@@ -82,12 +87,14 @@ class _Service implements LanternService {
   _Service(this.selected);
   final String? selected;
   int selectionReads = 0;
+  final ops = <String>[];
 
   @override
   Future<Either<Failure, String>> helperCall(
     String op,
     Map<String, dynamic> args,
   ) async {
+    ops.add(op);
     if (op != 'selected_server') return const Right('{"error":"internal"}');
     selectionReads++;
     final tag = selected;
@@ -295,9 +302,11 @@ void main() {
       'not change a provider during build', (tester) async {
     HelpersNotifier.debugBuildEnabled = true;
     addTearDown(() => HelpersNotifier.debugBuildEnabled = null);
+    final service = _Service(null);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          lanternServiceProvider.overrideWithValue(service),
           availableServersProvider.overrideWith(_NoServers.new),
           helpersProvider.overrideWith(
             () => _Helpers(
@@ -334,6 +343,7 @@ void main() {
       tester.element(find.byType(PrivateServerLocationListView)),
     );
     expect(container.read(personalProxyStatusProvider), isNull);
+    expect(service.ops, isNot(contains('personal_proxy_status')));
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -362,7 +372,12 @@ void main() {
       },
       'personal-proxy:helper-0123456789ab',
     ),
-    ('a failed read leaves the selection as it was', null, null, ''),
+    (
+      'a failed read leaves the friend asked for',
+      null,
+      null,
+      'personal-proxy:helper-0123456789ab',
+    ),
   ]) {
     testWidgets(name, (tester) async {
       await sl.reset();
@@ -380,7 +395,9 @@ void main() {
       );
       await tester.pump();
       await tester.pump();
-      expect(container.read(serverLocationProvider).serverName, want);
+      final shown = container.read(serverLocationProvider);
+      expect(shown.serverName, want);
+      expect(shown.serverType, ServerLocationType.personalProxy.name);
     });
   }
 
@@ -405,9 +422,12 @@ void main() {
     expect(vpn.connects, [
       (ServerLocationType.personalProxy, 'personal-proxies'),
     ]);
-    final shown = container.read(serverLocationProvider);
-    expect(shown.serverType, ServerLocationType.auto.name);
-    expect(shown.serverName, isEmpty);
+    // The group asked for is saved first, so switching to auto keeps its
+    // tag as serverName; the type is what every reader checks.
+    expect(
+      container.read(serverLocationProvider).serverType,
+      ServerLocationType.auto.name,
+    );
   });
 
   testWidgets('selecting a friend connects by their selection tag and '

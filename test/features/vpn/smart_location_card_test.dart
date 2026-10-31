@@ -78,8 +78,10 @@ void main() {
     matchRoot: true,
   );
 
-  testWidgets('with a friend selected the Smart Location card shows them by '
-      'name, with "Personal Proxy" and no flag or place', (tester) async {
+  testWidgets('with a friend selected the Smart Location card shows only the '
+      'generic Smart Location: no friend, flag, place or protocol', (
+    tester,
+  ) async {
     await _pump(
       tester,
       ServerLocation.personalProxy(friendTag: 'helper-0123456789ab').copyWith(
@@ -91,9 +93,11 @@ void main() {
         ),
       ),
     );
-    expect(inCard(find.text('Sara')), findsOneWidget);
-    expect(inCard(find.text('personal_proxy'.i18n)), findsOneWidget);
+    expect(inCard(find.text('fastest_server'.i18n)), findsOneWidget);
+    expect(inCard(find.text('Sara')), findsNothing);
+    expect(inCard(find.text('personal_proxy'.i18n)), findsNothing);
     expect(inCard(find.text('Germany - Berlin')), findsNothing);
+    expect(inCard(find.text('Samizdat')), findsNothing);
     expect(inCard(find.byType(Flag)), findsNothing);
   });
 
