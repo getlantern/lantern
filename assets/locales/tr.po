@@ -1971,3 +1971,279 @@ msgstr "Günlükler"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean'a gitmek için aşağıdaki %s düğmesine dokunun"
+
+msgid "network_extension_disabled_message"
+msgstr "Lantern ağ uzantısı Sistem Ayarları'nda kapalı. Giriş Öğeleri ve Uzantılar > Ağ Uzantıları bölümünden açın, ardından Lantern uygulamasına dönün."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Giriş başarısız oldu. Lütfen tekrar deneyin."
+
+msgid "oauth_error_session_expired"
+msgstr "Giriş oturumunuzun süresi doldu. Lütfen tekrar deneyin."
+
+msgid "oauth_error_provider_failed"
+msgstr "Bu hesapla giriş yapamadık. Lütfen tekrar deneyin."
+
+msgid "oauth_error_no_email"
+msgstr "Bu hesap bir e-posta adresi paylaşmadı. Lütfen e-posta erişimine izin verin ve tekrar deneyin."
+
+msgid "oauth_error_add_device"
+msgstr "Bu cihaz hesabınıza bağlanamadı. Lütfen destek ekibiyle iletişime geçin."
+
+msgid "helper_error_disabled"
+msgstr "Arkadaşlara yardım etme özelliği bu cihazda henüz kullanılamıyor."
+
+msgid "helper_error_not_found"
+msgstr "Bu davet veya yardımcı artık mevcut değil."
+
+msgid "helper_error_unavailable"
+msgstr "Lantern ile bağlantı kurulamadı. Bağlantınızı kontrol edip tekrar deneyin."
+
+msgid "helper_error_too_many_invites"
+msgstr "Şimdilik gönderebileceğiniz tüm davetleri gönderdiniz. Yarın tekrar deneyin."
+
+msgid "helper_error_too_many_pairings"
+msgstr "20 kişilik sınıra ulaştınız."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Bu davet hakkında zaten karar verildi."
+
+msgid "helper_error_bad_name"
+msgstr "Arkadaşınızın tanıyacağı bir ad girin, en fazla 60 karakter."
+
+msgid "helper_error_keystore"
+msgstr "Bu cihaz adları güvenli şekilde saklayamıyor, bu yüzden arkadaşlara yardım kapalı. Linux'ta GNOME Keyring gibi bir anahtarlık başlatın."
+
+msgid "helper_error_keystore_reset"
+msgstr "Bu cihazın güvenli depolama alanı sıfırlandı, bu yüzden yardımcılarınızın ve davetlerinizin adları okunamadı. Yardımcılarınız hâlâ çalışıyor; adlarını görmek için onları yeniden davet edin."
+
+msgid "helper_error_copy"
+msgstr "Bağlantı kopyalanamadı. Bunun yerine Bağlantıyı Paylaş seçeneğini kullanın."
+
+msgid "helpers_your_name_label"
+msgstr "Arkadaşınızın sizi tanıdığı adınız"
+
+msgid "helpers_your_name_hint"
+msgstr "Örneğin, Sara"
+
+msgid "helper_online"
+msgstr "Çevrimiçi"
+
+msgid "helper_offline"
+msgstr "Çevrimdışı"
+
+msgid "helper_unnamed"
+msgstr "Yardımcınız"
+
+msgid "helper_remove_confirm_title"
+msgstr "%s kaldırılsın mı?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s artık size yardım etmeyecek. Daha sonra tekrar davet edebilirsiniz."
+
+msgid "helpers_remove_all"
+msgstr "Tüm Yardımcıları Kaldır"
+
+msgid "helpers_remove_all_body"
+msgstr "Tüm yardımcılar size yardım etmeyi bırakır ve adları bu cihazdan silinir."
+
+msgid "manage_private_locations"
+msgstr "Özel Konumları Yönet"
+
+msgid "invite_personal_proxy"
+msgstr "Kişisel Proxy Davet Et"
+
+msgid "personal_proxies_tab"
+msgstr "Kişisel Proxy'ler"
+
+msgid "invite_another"
+msgstr "Başka Birini Davet Et"
+
+msgid "helpers_nudge_second"
+msgstr "Kişisel proxy'niz çevrimdışı olursa, onun üzerinden kurduğunuz bağlantı da kesilir. Bağlı kalmak için ikinci bir arkadaşınızı davet edin."
+
+msgid "personal_proxy_banner_title"
+msgstr "Kişisel proxy edinin"
+
+msgid "personal_proxy_banner_body"
+msgstr "Yurt dışındaki bir arkadaşınız bağlı kalmanızı sağlayabilir."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Arkadaşınız bekliyor"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Kodu karşılaştırın ve onaylayın."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Bu cihazdaki ad"
+
+msgid "invite_share_body"
+msgstr "Bu bağlantıyı güvendiğiniz tek bir kişiye gönderin. Yalnızca bir kez çalışır ve 48 saat içinde sona erer."
+
+msgid "invite_share_message"
+msgstr "%s çevrimiçi kalmak için yardımınızı istiyor. %s"
+
+msgid "invite_share_button"
+msgstr "Bağlantıyı Paylaş"
+
+msgid "invite_copy_link"
+msgstr "Bağlantıyı Kopyala"
+
+msgid "invite_link_copied"
+msgstr "Bağlantı kopyalandı"
+
+msgid "invite_qr_hint"
+msgstr "Arkadaşınız bunu Lantern ile tarayabilir."
+
+msgid "invite_waiting"
+msgstr "Arkadaşınızın bağlantıyı açması bekleniyor"
+
+msgid "invite_trust_warning"
+msgstr "Davet ettiğiniz kişi Lantern kullandığınızı bilecek ve onun üzerinden ne zaman bağlı olduğunuzu görebilecek. Trafiğiniz onun internet bağlantısından geçer, bu yüzden hangi siteleri ziyaret ettiğinizi öğrenebilir, ancak güvenli (https) sitelerde ne yaptığınızı öğrenemez. Yalnızca güvendiğiniz birini davet edin."
+
+msgid "invite_expires"
+msgstr "%s saat içinde sona erer"
+
+msgid "invite_gone"
+msgstr "Bu davet kullanılmış veya süresi dolmuş."
+
+msgid "invite_claimed_title"
+msgstr "Biri davetinizi açtı"
+
+msgid "invite_compare_codes"
+msgstr "Kodları Karşılaştır"
+
+msgid "approve_code_intro"
+msgstr "Lantern uygulamasında hangi kodun göründüğünü %s adlı kişiye sorun. Kodu bağlantıyı gönderdiğiniz sohbette değil, bir aramada veya başka bir uygulamada karşılaştırın."
+
+msgid "approve_code_label"
+msgstr "Bu cihazdaki kod"
+
+msgid "approve_button"
+msgstr "Kodlar Eşleşiyor: Onayla"
+
+msgid "reject_button"
+msgstr "Kodlar eşleşmiyor: Reddet"
+
+msgid "reject_explainer"
+msgstr "Kodlar farklıysa bağlantınızı başka biri açmıştır. Bu kişiyi reddedin ve yeni bir davet gönderin."
+
+msgid "personal_proxy"
+msgstr "Kişisel proxy"
+
+msgid "private_locations"
+msgstr "Özel Konumlar"
+
+msgid "personal_proxies"
+msgstr "Kişisel proxy'ler"
+
+msgid "your_personal_proxies"
+msgstr "Kişisel proxy'leriniz"
+
+msgid "help_friend_title"
+msgstr "Bir arkadaşınızın çevrimiçi kalmasına yardım edin"
+
+msgid "have_invite_link"
+msgstr "Davet bağlantınız var mı?"
+
+msgid "help_friend_intro"
+msgstr "Bir arkadaşınız sizden yardım istedi. Lantern çalışırken bağlantınız üzerinden açık internete erişebilir."
+
+msgid "help_friend_means_title"
+msgstr "Bir arkadaşa yardım etmek ne demek"
+
+msgid "help_friend_means_traffic"
+msgstr "Arkadaşınız açık internete sizin bağlantınız üzerinden erişir. Yönlendiricinize bağlı olarak trafiği ağınızdan çıkar veya Lantern sunucuları üzerinden aktarılır. Lantern, arkadaşınızın çevrimiçi ne yaptığını size göstermez."
+
+msgid "help_friend_means_online"
+msgstr "Arkadaşınız ne zaman çevrimiçi olduğunuzu görebilir. Yalnızca tanıdığınız kişilerin davetlerini kabul edin."
+
+msgid "help_friend_means_stop"
+msgstr "Yardım etmeyi istediğiniz zaman bırakabilirsiniz."
+
+msgid "help_friend_link_label"
+msgstr "Davet bağlantısı"
+
+msgid "help_friend_paste"
+msgstr "Arkadaşınızın gönderdiği bağlantıyı yapıştırın"
+
+msgid "help_friend_scan"
+msgstr "Arkadaşınızın QR Kodunu Tarayın"
+
+msgid "help_friend_sharing_note"
+msgstr "Lantern çalışırken otomatik olarak yardım eder. Yönlendiriciniz izin verdiğinde doğrudan bağlantı, aksi halde tarayıcı tarzı bir bağlantı kullanır."
+
+msgid "help_friend_accept"
+msgstr "Arkadaşıma Yardım Et"
+
+msgid "help_friend_code_title"
+msgstr "Bu kodu arkadaşınıza söyleyin"
+
+msgid "help_friend_code_body"
+msgstr "Arkadaşınız bunun telefonundaki kodla eşleştiğini kontrol edip sizi onaylayacak. En güvenlisi bir arama veya farklı bir uygulamadır."
+
+msgid "help_friend_waiting"
+msgstr "Arkadaşınızın onayı bekleniyor"
+
+msgid "help_friend_approved"
+msgstr "Artık şu kişiye yardım ediyorsunuz: %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Bu istek artık beklemede değil. Arkadaşınızdan yeni bir davet isteyin."
+
+msgid "help_friend_done"
+msgstr "Bitti"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Bu davet zaten kullanıldı"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Bu bağlantıyı önce başka biri açtı veya bağlantının süresi doldu. Arkadaşınızdan yeni bir davet isteyin ve bu davetin başka biri tarafından görülmüş olabileceğini söyleyin."
+
+msgid "help_friend_already_helping"
+msgstr "Bu arkadaşınıza zaten yardım ediyorsunuz."
+
+msgid "help_friend_already_helping_named"
+msgstr "Zaten yardım ediyorsunuz: %s."
+
+msgid "help_friend_bad_link"
+msgstr "Bu bir yardımcı davet bağlantısı değil."
+
+msgid "help_friend_own_invite"
+msgstr "Bu sizin kendi davetiniz. Yardım almak istediğiniz arkadaşınıza gönderin."
+
+msgid "helping_title"
+msgstr "Yardım ediyorsunuz"
+
+msgid "helping_today"
+msgstr "Bugün: etkin %s, paylaşılan %s"
+
+msgid "helping_since"
+msgstr "Başlangıç: %s"
+
+msgid "helping_unnamed"
+msgstr "Yardım ettiğiniz biri"
+
+msgid "helping_sharing_off_warning"
+msgstr "Paylaşım kapalı, bu yüzden yardım ettiğiniz kişiler sizin üzerinizden bağlanamıyor."
+
+msgid "helping_remove"
+msgstr "Yardımı Durdur"
+
+msgid "helping_remove_confirm"
+msgstr "Yardım durdurulsun mu: %s? Sizin üzerinizden tekrar bağlanmak için yeni bir davet gerekecek."
+
+msgid "help_others_too"
+msgstr "Başkalarına da yardım edin"
+
+msgid "help_others_too_body"
+msgstr "Sansürle karşılaşan diğer kişilere boş kapasitenizi ödünç verin; Lantern onların yalnızca izin verilen sitelere erişmesine izin verir, bu da bağlantınızı kötüye kullanıma karşı korur."
+
+msgid "help_others_too_note"
+msgstr "Bunu değiştirmek, yardım ettiğiniz kişilerin bağlantısını kısa süreliğine yeniler."
+
+msgid "helping_duration_hm"
+msgstr "%s sa %s dk"
+
+msgid "helping_duration_m"
+msgstr "%s dk"

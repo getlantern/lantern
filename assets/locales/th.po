@@ -1939,3 +1939,279 @@ msgstr "บันทึก"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "แตะ %s ด้านล่างเพื่อไปที่ DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "ส่วนขยายเครือข่ายของ Lantern ถูกปิดอยู่ในการตั้งค่าระบบ เปิดได้ที่ Login Items & Extensions > Network Extensions แล้วกลับมาที่ Lantern"
+
+msgid "oauth_error_sign_in_failed"
+msgstr "ลงชื่อเข้าใช้ไม่สำเร็จ กรุณาลองอีกครั้ง"
+
+msgid "oauth_error_session_expired"
+msgstr "เซสชันการลงชื่อเข้าใช้ของคุณหมดอายุแล้ว กรุณาลองอีกครั้ง"
+
+msgid "oauth_error_provider_failed"
+msgstr "ไม่สามารถลงชื่อเข้าใช้ด้วยบัญชีนั้นได้ กรุณาลองอีกครั้ง"
+
+msgid "oauth_error_no_email"
+msgstr "บัญชีนั้นไม่ได้แชร์ที่อยู่อีเมล กรุณาอนุญาตการเข้าถึงอีเมลแล้วลองอีกครั้ง"
+
+msgid "oauth_error_add_device"
+msgstr "ไม่สามารถเชื่อมโยงอุปกรณ์นี้กับบัญชีของคุณได้ กรุณาติดต่อฝ่ายสนับสนุน"
+
+msgid "helper_error_disabled"
+msgstr "ยังไม่สามารถช่วยเหลือเพื่อนบนอุปกรณ์นี้ได้"
+
+msgid "helper_error_not_found"
+msgstr "คำเชิญหรือผู้ช่วยนี้ไม่มีอยู่แล้ว"
+
+msgid "helper_error_unavailable"
+msgstr "ไม่สามารถติดต่อ Lantern ได้ ตรวจสอบการเชื่อมต่อของคุณแล้วลองอีกครั้ง"
+
+msgid "helper_error_too_many_invites"
+msgstr "คุณส่งคำเชิญครบจำนวนสูงสุดแล้วในตอนนี้ ลองอีกครั้งพรุ่งนี้"
+
+msgid "helper_error_too_many_pairings"
+msgstr "คุณถึงขีดจำกัด 20 คนแล้ว"
+
+msgid "helper_error_no_pending_claim"
+msgstr "คำเชิญนี้ได้รับการตัดสินแล้ว"
+
+msgid "helper_error_bad_name"
+msgstr "ป้อนชื่อที่เพื่อนของคุณจำได้ ไม่เกิน 60 ตัวอักษร"
+
+msgid "helper_error_keystore"
+msgstr "อุปกรณ์นี้จัดเก็บชื่ออย่างปลอดภัยไม่ได้ จึงปิดการช่วยเหลือเพื่อนไว้ บน Linux ให้เปิดคีย์ริง เช่น GNOME Keyring"
+
+msgid "helper_error_keystore_reset"
+msgstr "ที่เก็บข้อมูลที่ปลอดภัยของอุปกรณ์นี้ถูกรีเซ็ต จึงอ่านชื่อผู้ช่วยและคำเชิญของคุณไม่ได้ ผู้ช่วยของคุณยังใช้งานได้ เชิญอีกครั้งเพื่อดูชื่อ"
+
+msgid "helper_error_copy"
+msgstr "คัดลอกลิงก์ไม่ได้ ใช้แชร์ลิงก์แทน"
+
+msgid "helpers_your_name_label"
+msgstr "ชื่อของคุณที่เพื่อนรู้จัก"
+
+msgid "helpers_your_name_hint"
+msgstr "เช่น ซารา"
+
+msgid "helper_online"
+msgstr "ออนไลน์"
+
+msgid "helper_offline"
+msgstr "ออฟไลน์"
+
+msgid "helper_unnamed"
+msgstr "ผู้ช่วยของคุณ"
+
+msgid "helper_remove_confirm_title"
+msgstr "ลบ %s ?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s จะหยุดช่วยเหลือคุณ คุณสามารถเชิญอีกครั้งได้ภายหลัง"
+
+msgid "helpers_remove_all"
+msgstr "ลบผู้ช่วยทั้งหมด"
+
+msgid "helpers_remove_all_body"
+msgstr "ผู้ช่วยทุกคนจะหยุดช่วยเหลือคุณ และชื่อของพวกเขาจะถูกลบออกจากอุปกรณ์นี้"
+
+msgid "manage_private_locations"
+msgstr "จัดการตำแหน่งส่วนตัว"
+
+msgid "invite_personal_proxy"
+msgstr "เชิญพร็อกซีส่วนตัว"
+
+msgid "personal_proxies_tab"
+msgstr "พร็อกซีส่วนตัว"
+
+msgid "invite_another"
+msgstr "เชิญอีกคน"
+
+msgid "helpers_nudge_second"
+msgstr "หากพร็อกซีส่วนตัวของคุณออฟไลน์ การเชื่อมต่อผ่านพร็อกซีนั้นก็จะหยุดไปด้วย เชิญเพื่อนคนที่สองเพื่อให้เชื่อมต่อได้ต่อเนื่อง"
+
+msgid "personal_proxy_banner_title"
+msgstr "รับพร็อกซีส่วนตัว"
+
+msgid "personal_proxy_banner_body"
+msgstr "เพื่อนในต่างประเทศช่วยให้คุณเชื่อมต่ออยู่เสมอได้"
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "เพื่อนของคุณกำลังรออยู่"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "เปรียบเทียบรหัสแล้วอนุมัติ"
+
+msgid "personal_proxy_nickname_label"
+msgstr "ชื่อบนอุปกรณ์นี้"
+
+msgid "invite_share_body"
+msgstr "ส่งลิงก์นี้ให้คนที่คุณไว้ใจหนึ่งคน ลิงก์ใช้ได้ครั้งเดียวและหมดอายุใน 48 ชั่วโมง"
+
+msgid "invite_share_message"
+msgstr "%s ต้องการความช่วยเหลือจากคุณเพื่อให้ออนไลน์ได้ %s"
+
+msgid "invite_share_button"
+msgstr "แชร์ลิงก์"
+
+msgid "invite_copy_link"
+msgstr "คัดลอกลิงก์"
+
+msgid "invite_link_copied"
+msgstr "คัดลอกลิงก์แล้ว"
+
+msgid "invite_qr_hint"
+msgstr "เพื่อนของคุณสามารถสแกนรหัสนี้ด้วย Lantern"
+
+msgid "invite_waiting"
+msgstr "กำลังรอให้เพื่อนของคุณเปิดลิงก์"
+
+msgid "invite_trust_warning"
+msgstr "ผู้ที่คุณเชิญจะรู้ว่าคุณใช้ Lantern และเห็นได้ว่าคุณเชื่อมต่อผ่านเขาเมื่อใด การรับส่งข้อมูลของคุณผ่านการเชื่อมต่ออินเทอร์เน็ตของเขา เขาจึงอาจรู้ว่าคุณเข้าเว็บไซต์ใดบ้าง แต่ไม่รู้ว่าคุณทำอะไรบนเว็บไซต์ที่ปลอดภัย (https) เชิญเฉพาะคนที่คุณไว้ใจ"
+
+msgid "invite_expires"
+msgstr "หมดอายุใน %s ชั่วโมง"
+
+msgid "invite_gone"
+msgstr "คำเชิญนี้ถูกใช้แล้วหรือหมดอายุแล้ว"
+
+msgid "invite_claimed_title"
+msgstr "มีคนเปิดคำเชิญของคุณ"
+
+msgid "invite_compare_codes"
+msgstr "เปรียบเทียบรหัส"
+
+msgid "approve_code_intro"
+msgstr "ถาม %s ว่า Lantern ของเขาแสดงรหัสอะไร เปรียบเทียบผ่านการโทรหรือแอปอื่น ไม่ใช่ในแชทที่คุณส่งลิงก์ไป"
+
+msgid "approve_code_label"
+msgstr "รหัสบนอุปกรณ์นี้"
+
+msgid "approve_button"
+msgstr "รหัสตรงกัน: อนุมัติ"
+
+msgid "reject_button"
+msgstr "รหัสไม่ตรงกัน: ปฏิเสธ"
+
+msgid "reject_explainer"
+msgstr "หากรหัสไม่ตรงกัน แสดงว่ามีคนอื่นเปิดลิงก์ของคุณ ปฏิเสธบุคคลนั้นและส่งคำเชิญใหม่"
+
+msgid "personal_proxy"
+msgstr "พร็อกซีส่วนตัว"
+
+msgid "private_locations"
+msgstr "ตำแหน่งส่วนตัว"
+
+msgid "personal_proxies"
+msgstr "พร็อกซีส่วนตัว"
+
+msgid "your_personal_proxies"
+msgstr "พร็อกซีส่วนตัวของคุณ"
+
+msgid "help_friend_title"
+msgstr "ช่วยให้เพื่อนออนไลน์ได้ต่อไป"
+
+msgid "have_invite_link"
+msgstr "มีลิงก์คำเชิญไหม?"
+
+msgid "help_friend_intro"
+msgstr "เพื่อนขอความช่วยเหลือจากคุณ ขณะที่ Lantern ทำงาน เพื่อนจะเข้าถึงอินเทอร์เน็ตเสรีผ่านการเชื่อมต่อของคุณได้"
+
+msgid "help_friend_means_title"
+msgstr "การช่วยเพื่อนหมายถึงอะไร"
+
+msgid "help_friend_means_traffic"
+msgstr "เพื่อนของคุณเข้าถึงอินเทอร์เน็ตแบบเปิดผ่านการเชื่อมต่อของคุณ ทราฟฟิกของเขาจะออกจากเครือข่ายของคุณหรือส่งต่อผ่านเซิร์ฟเวอร์ของ Lantern ขึ้นอยู่กับเราเตอร์ของคุณ Lantern ไม่แสดงให้คุณเห็นว่าเขาทำอะไรทางออนไลน์"
+
+msgid "help_friend_means_online"
+msgstr "เพื่อนของคุณจะเห็นได้ว่าคุณออนไลน์อยู่เมื่อใด ยอมรับคำเชิญจากคนที่คุณรู้จักเท่านั้น"
+
+msgid "help_friend_means_stop"
+msgstr "คุณหยุดให้ความช่วยเหลือได้ทุกเมื่อ"
+
+msgid "help_friend_link_label"
+msgstr "ลิงก์คำเชิญ"
+
+msgid "help_friend_paste"
+msgstr "วางลิงก์ที่เพื่อนของคุณส่งมา"
+
+msgid "help_friend_scan"
+msgstr "สแกนคิวอาร์โค้ดของเพื่อน"
+
+msgid "help_friend_sharing_note"
+msgstr "Lantern ช่วยโดยอัตโนมัติขณะทำงาน โดยใช้การเชื่อมต่อโดยตรงเมื่อเราเตอร์ของคุณอนุญาต และใช้การเชื่อมต่อแบบเบราว์เซอร์ในกรณีอื่น"
+
+msgid "help_friend_accept"
+msgstr "ช่วยเพื่อนของฉัน"
+
+msgid "help_friend_code_title"
+msgstr "บอกรหัสนี้กับเพื่อนของคุณ"
+
+msgid "help_friend_code_body"
+msgstr "เพื่อนของคุณจะตรวจสอบว่าตรงกับรหัสบนโทรศัพท์ของเขา แล้วจึงอนุมัติคุณ การโทรหรือใช้แอปอื่นปลอดภัยที่สุด"
+
+msgid "help_friend_waiting"
+msgstr "กำลังรอให้เพื่อนของคุณอนุมัติ"
+
+msgid "help_friend_approved"
+msgstr "ตอนนี้คุณกำลังช่วย %s"
+
+msgid "help_friend_no_longer_pending"
+msgstr "คำขอนี้ไม่ได้รอดำเนินการอีกต่อไป ขอคำเชิญใหม่จากเพื่อนของคุณ"
+
+msgid "help_friend_done"
+msgstr "เสร็จสิ้น"
+
+msgid "help_friend_already_claimed_title"
+msgstr "คำเชิญนี้ถูกใช้ไปแล้ว"
+
+msgid "help_friend_already_claimed_body"
+msgstr "มีคนอื่นเปิดลิงก์นี้ก่อน หรือลิงก์หมดอายุแล้ว ขอคำเชิญใหม่จากเพื่อนของคุณ และบอกเพื่อนว่าคำเชิญนี้อาจถูกคนอื่นเห็นแล้ว"
+
+msgid "help_friend_already_helping"
+msgstr "คุณกำลังช่วยเพื่อนคนนี้อยู่แล้ว"
+
+msgid "help_friend_already_helping_named"
+msgstr "คุณกำลังช่วย %s อยู่แล้ว"
+
+msgid "help_friend_bad_link"
+msgstr "นี่ไม่ใช่ลิงก์คำเชิญผู้ช่วย"
+
+msgid "help_friend_own_invite"
+msgstr "นี่คือคำเชิญของคุณเอง ส่งให้เพื่อนที่คุณต้องการขอความช่วยเหลือ"
+
+msgid "helping_title"
+msgstr "คุณกำลังช่วยเหลือ"
+
+msgid "helping_today"
+msgstr "วันนี้: ใช้งาน %s แชร์ %s"
+
+msgid "helping_since"
+msgstr "ตั้งแต่ %s"
+
+msgid "helping_unnamed"
+msgstr "คนที่คุณช่วย"
+
+msgid "helping_sharing_off_warning"
+msgstr "การแชร์ปิดอยู่ ผู้ที่คุณช่วยจึงเชื่อมต่อผ่านคุณไม่ได้"
+
+msgid "helping_remove"
+msgstr "หยุดช่วยเหลือ"
+
+msgid "helping_remove_confirm"
+msgstr "หยุดช่วยเหลือ %s ? ผู้นั้นจะต้องได้รับคำเชิญใหม่เพื่อเชื่อมต่อผ่านคุณอีกครั้ง"
+
+msgid "help_others_too"
+msgstr "ช่วยเหลือผู้อื่นด้วย"
+
+msgid "help_others_too_body"
+msgstr "แบ่งปันความจุที่เหลือให้ผู้อื่นที่เผชิญการเซ็นเซอร์ Lantern อนุญาตให้พวกเขาเข้าถึงเฉพาะเว็บไซต์ที่อนุญาตเท่านั้น ซึ่งช่วยปกป้องการเชื่อมต่อของคุณจากการใช้งานในทางที่ผิด"
+
+msgid "help_others_too_note"
+msgstr "การเปลี่ยนตัวเลือกนี้จะทำให้ผู้ที่คุณช่วยเหลือเชื่อมต่อใหม่ชั่วครู่"
+
+msgid "helping_duration_hm"
+msgstr "%s ชม. %s นาที"
+
+msgid "helping_duration_m"
+msgstr "%s นาที"

@@ -2007,3 +2007,279 @@ msgstr "မှတ်တမ်းများ"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean သို့ သွားရန် အောက်ပါ %s ကို နှိပ်ပါ"
+
+msgid "network_extension_disabled_message"
+msgstr "System Settings တွင် Lantern ၏ network extension ကို ပိတ်ထားသည်။ Login Items & Extensions > Network Extensions တွင် ဖွင့်ပြီး Lantern သို့ ပြန်လာပါ။"
+
+msgid "oauth_error_sign_in_failed"
+msgstr "ဝင်ရောက်မှု မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။"
+
+msgid "oauth_error_session_expired"
+msgstr "သင်၏ ဝင်ရောက်မှု session သက်တမ်းကုန်သွားပါပြီ။ ထပ်ကြိုးစားပါ။"
+
+msgid "oauth_error_provider_failed"
+msgstr "ထိုအကောင့်ဖြင့် သင့်ကို ဝင်ရောက်ပေး၍ မရပါ။ ထပ်ကြိုးစားပါ။"
+
+msgid "oauth_error_no_email"
+msgstr "ထိုအကောင့်က အီးမေးလ်လိပ်စာကို မျှဝေမထားပါ။ အီးမေးလ် အသုံးပြုခွင့်ပေးပြီး ထပ်ကြိုးစားပါ။"
+
+msgid "oauth_error_add_device"
+msgstr "ဤစက်ကို သင့်အကောင့်နှင့် ချိတ်ဆက်၍ မရပါ။ ကျေးဇူးပြု၍ အကူအညီဌာနကို ဆက်သွယ်ပါ။"
+
+msgid "helper_error_disabled"
+msgstr "ဤစက်တွင် သူငယ်ချင်းများကို ကူညီခြင်း မရရှိနိုင်သေးပါ။"
+
+msgid "helper_error_not_found"
+msgstr "ဤဖိတ်ကြားချက် သို့မဟုတ် ကူညီသူ မရှိတော့ပါ။"
+
+msgid "helper_error_unavailable"
+msgstr "Lantern သို့ ဆက်သွယ်၍ မရပါ။ သင့်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။"
+
+msgid "helper_error_too_many_invites"
+msgstr "ယခုအချိန်အတွက် ဖိတ်ကြားချက် အများဆုံး ပို့ပြီးပါပြီ။ မနက်ဖြန် ထပ်စမ်းကြည့်ပါ။"
+
+msgid "helper_error_too_many_pairings"
+msgstr "လူ 20 ဦး ကန့်သတ်ချက်သို့ ရောက်ရှိပြီဖြစ်သည်။"
+
+msgid "helper_error_no_pending_claim"
+msgstr "ဤဖိတ်ကြားချက်ကို ဆုံးဖြတ်ပြီးဖြစ်သည်။"
+
+msgid "helper_error_bad_name"
+msgstr "သင့်သူငယ်ချင်း သိမည့် အမည်ကို ထည့်ပါ။ စာလုံး 60 အထိ ရေးနိုင်သည်။"
+
+msgid "helper_error_keystore"
+msgstr "ဤစက်သည် အမည်များကို လုံခြုံစွာ မသိမ်းနိုင်သဖြင့် သူငယ်ချင်းများကို ကူညီခြင်းကို ပိတ်ထားသည်။ Linux တွင် GNOME Keyring ကဲ့သို့ keyring တစ်ခုကို စတင်ပါ။"
+
+msgid "helper_error_keystore_reset"
+msgstr "ဤစက်၏ လုံခြုံသော သိုလှောင်မှုကို ပြန်လည်သတ်မှတ်ထားသဖြင့် သင့်ကူညီသူများနှင့် ဖိတ်ကြားချက်များ၏ အမည်များကို မဖတ်နိုင်ပါ။ သင့်ကူညီသူများ ဆက်အလုပ်လုပ်နေဆဲဖြစ်သည်။ ၎င်းတို့၏ အမည်များကို မြင်ရန် ထပ်မံဖိတ်ကြားပါ။"
+
+msgid "helper_error_copy"
+msgstr "လင့်ခ်ကို ကူးယူ၍ မရပါ။ လင့်ခ်မျှဝေရန် ကို အစားသုံးပါ။"
+
+msgid "helpers_your_name_label"
+msgstr "သင့်သူငယ်ချင်း သိသည့် သင့်အမည်"
+
+msgid "helpers_your_name_hint"
+msgstr "ဥပမာ၊ Sara"
+
+msgid "helper_online"
+msgstr "အွန်လိုင်း"
+
+msgid "helper_offline"
+msgstr "အော့ဖ်လိုင်း"
+
+msgid "helper_unnamed"
+msgstr "သင်၏ ကူညီသူ"
+
+msgid "helper_remove_confirm_title"
+msgstr "%s ကို ဖယ်ရှားမလား?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s သည် သင့်ကို ကူညီခြင်း ရပ်ပါမည်။ နောက်မှ ပြန်ဖိတ်ခေါ်နိုင်ပါသည်။"
+
+msgid "helpers_remove_all"
+msgstr "ကူညီသူအားလုံး ဖယ်ရှားရန်"
+
+msgid "helpers_remove_all_body"
+msgstr "ကူညီသူအားလုံး သင့်ကို ကူညီခြင်း ရပ်ပြီး ၎င်းတို့၏ အမည်များကို ဤစက်မှ ဖျက်ပါမည်။"
+
+msgid "manage_private_locations"
+msgstr "သီးသန့်တည်နေရာများ စီမံရန်"
+
+msgid "invite_personal_proxy"
+msgstr "ကိုယ်ပိုင် proxy ဖိတ်ခေါ်ရန်"
+
+msgid "personal_proxies_tab"
+msgstr "ကိုယ်ပိုင် proxy များ"
+
+msgid "invite_another"
+msgstr "နောက်တစ်ဦး ဖိတ်ခေါ်ရန်"
+
+msgid "helpers_nudge_second"
+msgstr "သင့်ကိုယ်ပိုင် proxy အော့ဖ်လိုင်းဖြစ်သွားပါက ၎င်းမှတစ်ဆင့် ချိတ်ဆက်မှုလည်း ပြတ်သွားပါမည်။ ဆက်လက်ချိတ်ဆက်ထားရန် ဒုတိယသူငယ်ချင်းတစ်ဦးကို ဖိတ်ခေါ်ပါ။"
+
+msgid "personal_proxy_banner_title"
+msgstr "ကိုယ်ပိုင် proxy ရယူပါ"
+
+msgid "personal_proxy_banner_body"
+msgstr "နိုင်ငံခြားရှိ သူငယ်ချင်းတစ်ဦးက သင့်ကို ချိတ်ဆက်ထားပေးနိုင်သည်။"
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "သင့်သူငယ်ချင်း စောင့်နေသည်"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "ကုဒ်ကို နှိုင်းယှဉ်ပြီး အတည်ပြုပါ။"
+
+msgid "personal_proxy_nickname_label"
+msgstr "ဤစက်ပေါ်ရှိ အမည်"
+
+msgid "invite_share_body"
+msgstr "ဤလင့်ခ်ကို သင်ယုံကြည်ရသူ တစ်ဦးထံ ပို့ပါ။ တစ်ကြိမ်သာ အသုံးပြုနိုင်ပြီး 48 နာရီအတွင်း သက်တမ်းကုန်ပါမည်။"
+
+msgid "invite_share_message"
+msgstr "%s သည် အွန်လိုင်းဆက်ရှိနေရန် သင့်အကူအညီကို လိုလားပါသည်။ %s"
+
+msgid "invite_share_button"
+msgstr "လင့်ခ် မျှဝေရန်"
+
+msgid "invite_copy_link"
+msgstr "လင့်ခ် ကူးယူရန်"
+
+msgid "invite_link_copied"
+msgstr "လင့်ခ် ကူးယူပြီး"
+
+msgid "invite_qr_hint"
+msgstr "သင့်သူငယ်ချင်းက ၎င်းကို Lantern ဖြင့် စကင်ဖတ်နိုင်သည်။"
+
+msgid "invite_waiting"
+msgstr "သင့်သူငယ်ချင်း လင့်ခ်ဖွင့်ရန် စောင့်နေသည်"
+
+msgid "invite_trust_warning"
+msgstr "သင်ဖိတ်ခေါ်သူသည် သင် Lantern သုံးကြောင်း သိမည်ဖြစ်ပြီး သင် ၎င်းမှတစ်ဆင့် ချိတ်ဆက်ထားချိန်ကို မြင်နိုင်သည်။ သင့်ဒေတာများသည် ၎င်း၏ အင်တာနက်ချိတ်ဆက်မှုမှတစ်ဆင့် သွားသောကြောင့် သင်ဝင်ကြည့်သော ဆိုက်များကို သိနိုင်သည်။ သို့သော် လုံခြုံသော (https) ဆိုက်များတွင် သင်ဘာလုပ်သည်ကို မသိနိုင်ပါ။ သင်ယုံကြည်သူကိုသာ ဖိတ်ခေါ်ပါ။"
+
+msgid "invite_expires"
+msgstr "%s နာရီအတွင်း သက်တမ်းကုန်မည်"
+
+msgid "invite_gone"
+msgstr "ဤဖိတ်ကြားချက်ကို အသုံးပြုပြီး သို့မဟုတ် သက်တမ်းကုန်သွားပါပြီ။"
+
+msgid "invite_claimed_title"
+msgstr "တစ်စုံတစ်ယောက်က သင့်ဖိတ်ကြားချက်ကို ဖွင့်ခဲ့သည်"
+
+msgid "invite_compare_codes"
+msgstr "ကုဒ်များ နှိုင်းယှဉ်ပါ"
+
+msgid "approve_code_intro"
+msgstr "%s ၏ Lantern တွင် မည်သည့်ကုဒ် ပြနေသည်ကို မေးပါ။ လင့်ခ်ပို့ခဲ့သော ချတ်တွင် မဟုတ်ဘဲ ဖုန်းခေါ်ဆိုမှု သို့မဟုတ် အခြားအက်ပ်တွင် နှိုင်းယှဉ်ပါ။"
+
+msgid "approve_code_label"
+msgstr "ဤစက်ပေါ်ရှိ ကုဒ်"
+
+msgid "approve_button"
+msgstr "ကုဒ်များ ကိုက်ညီသည်- အတည်ပြုပါ"
+
+msgid "reject_button"
+msgstr "ကုဒ်မကိုက်ညီပါ - ငြင်းပယ်ရန်"
+
+msgid "reject_explainer"
+msgstr "ကုဒ်များ မတူပါက အခြားသူတစ်ဦးက သင့်လင့်ခ်ကို ဖွင့်ထားသည်။ ၎င်းကို ငြင်းပယ်ပြီး ဖိတ်ကြားချက်အသစ် ပို့ပါ။"
+
+msgid "personal_proxy"
+msgstr "ကိုယ်ပိုင် proxy"
+
+msgid "private_locations"
+msgstr "ကိုယ်ပိုင်တည်နေရာများ"
+
+msgid "personal_proxies"
+msgstr "ကိုယ်ပိုင် proxy များ"
+
+msgid "your_personal_proxies"
+msgstr "သင့်ကိုယ်ပိုင် proxy များ"
+
+msgid "help_friend_title"
+msgstr "သူငယ်ချင်း အွန်လိုင်းဆက်ရှိနေရန် ကူညီပါ"
+
+msgid "have_invite_link"
+msgstr "ဖိတ်ကြားချက် လင့်ခ် ရှိပါသလား"
+
+msgid "help_friend_intro"
+msgstr "သူငယ်ချင်းတစ်ဦးက သင့်အကူအညီကို တောင်းခံထားသည်။ Lantern ဖွင့်ထားစဉ် သူတို့သည် သင့်ချိတ်ဆက်မှုမှတစ်ဆင့် လွတ်လပ်သော အင်တာနက်ကို အသုံးပြုနိုင်သည်။"
+
+msgid "help_friend_means_title"
+msgstr "သူငယ်ချင်းကို ကူညီခြင်း၏ အဓိပ္ပာယ်"
+
+msgid "help_friend_means_traffic"
+msgstr "သင့်သူငယ်ချင်းသည် သင့်ချိတ်ဆက်မှုမှတစ်ဆင့် လွတ်လပ်သော အင်တာနက်သို့ ရောက်ရှိသည်။ သင့် router ပေါ်မူတည်၍ ၎င်းတို့၏ traffic သည် သင့်ကွန်ရက်မှ ထွက်သွားသည် သို့မဟုတ် Lantern ၏ ဆာဗာများမှတစ်ဆင့် လွှဲပို့သည်။ ၎င်းတို့ အွန်လိုင်းတွင် ဘာလုပ်သည်ကို Lantern က သင့်အား မပြပါ။"
+
+msgid "help_friend_means_online"
+msgstr "သင် အွန်လိုင်းရှိချိန်ကို သင့်သူငယ်ချင်း မြင်နိုင်သည်။ သင်သိသူများထံမှ ဖိတ်ကြားချက်များကိုသာ လက်ခံပါ။"
+
+msgid "help_friend_means_stop"
+msgstr "သင် အချိန်မရွေး ကူညီခြင်းကို ရပ်နိုင်သည်။"
+
+msgid "help_friend_link_label"
+msgstr "ဖိတ်ကြားချက် လင့်ခ်"
+
+msgid "help_friend_paste"
+msgstr "သင့်သူငယ်ချင်း ပို့ထားသော လင့်ခ်ကို ကူးထည့်ပါ"
+
+msgid "help_friend_scan"
+msgstr "သင့်သူငယ်ချင်း၏ QR ကုဒ်ကို စကင်ဖတ်ပါ"
+
+msgid "help_friend_sharing_note"
+msgstr "Lantern သည် ဖွင့်ထားစဉ် အလိုအလျောက် ကူညီပေးသည်။ သင့် router ခွင့်ပြုလျှင် တိုက်ရိုက်ချိတ်ဆက်မှုကို သုံးပြီး မဟုတ်ပါက browser ပုံစံ ချိတ်ဆက်မှုကို သုံးသည်။"
+
+msgid "help_friend_accept"
+msgstr "ကျွန်ုပ်၏ သူငယ်ချင်းကို ကူညီရန်"
+
+msgid "help_friend_code_title"
+msgstr "ဤကုဒ်ကို သင့်သူငယ်ချင်းအား ပြောပြပါ"
+
+msgid "help_friend_code_body"
+msgstr "သင့်သူငယ်ချင်းက ၎င်း၏ဖုန်းရှိ ကုဒ်နှင့် ကိုက်ညီမှုကို စစ်ဆေးပြီး သင့်ကို အတည်ပြုပါမည်။ ဖုန်းခေါ်ခြင်း သို့မဟုတ် အခြားအက်ပ်တစ်ခုက အလုံခြုံဆုံးဖြစ်သည်။"
+
+msgid "help_friend_waiting"
+msgstr "သင့်သူငယ်ချင်း၏ အတည်ပြုချက်ကို စောင့်နေသည်"
+
+msgid "help_friend_approved"
+msgstr "သင်သည် ယခု %s ကို ကူညီနေပါသည်။"
+
+msgid "help_friend_no_longer_pending"
+msgstr "ဤတောင်းဆိုချက်သည် စောင့်ဆိုင်းဆဲ မဟုတ်တော့ပါ။ သင့်သူငယ်ချင်းထံ ဖိတ်ကြားချက်အသစ် တောင်းပါ။"
+
+msgid "help_friend_done"
+msgstr "ပြီးပါပြီ"
+
+msgid "help_friend_already_claimed_title"
+msgstr "ဤဖိတ်ကြားချက်ကို အသုံးပြုပြီးဖြစ်သည်"
+
+msgid "help_friend_already_claimed_body"
+msgstr "အခြားသူတစ်ဦးက ဤလင့်ခ်ကို အရင်ဖွင့်သွားပြီ သို့မဟုတ် သက်တမ်းကုန်သွားပြီ။ သင့်သူငယ်ချင်းထံ ဖိတ်ကြားချက်အသစ် တောင်းပါ။ ဤဖိတ်ကြားချက်ကို အခြားသူ မြင်သွားနိုင်ကြောင်းလည်း ပြောပြပါ။"
+
+msgid "help_friend_already_helping"
+msgstr "သင် ဤသူငယ်ချင်းကို ကူညီနေပြီးဖြစ်သည်။"
+
+msgid "help_friend_already_helping_named"
+msgstr "သင် %s ကို ကူညီနေပြီးဖြစ်သည်။"
+
+msgid "help_friend_bad_link"
+msgstr "ဤလင့်ခ်သည် ကူညီသူ ဖိတ်ကြားချက်လင့်ခ် မဟုတ်ပါ။"
+
+msgid "help_friend_own_invite"
+msgstr "ဤသည်မှာ သင့်ကိုယ်ပိုင် ဖိတ်ကြားချက်ဖြစ်သည်။ အကူအညီရယူလိုသော သူငယ်ချင်းထံ ပို့ပါ။"
+
+msgid "helping_title"
+msgstr "သင် ကူညီနေပါသည်"
+
+msgid "helping_today"
+msgstr "ယနေ့: အသုံးပြုချိန် %s၊ မျှဝေမှု %s"
+
+msgid "helping_since"
+msgstr "%s ကတည်းက"
+
+msgid "helping_unnamed"
+msgstr "သင်ကူညီသူတစ်ဦး"
+
+msgid "helping_sharing_off_warning"
+msgstr "မျှဝေခြင်း ပိတ်ထားသည်။ ထို့ကြောင့် သင်ကူညီသူများသည် သင့်မှတစ်ဆင့် ချိတ်ဆက်၍ မရပါ။"
+
+msgid "helping_remove"
+msgstr "ကူညီမှု ရပ်ရန်"
+
+msgid "helping_remove_confirm"
+msgstr "%s ကို ကူညီမှု ရပ်မလား။ သင့်မှတစ်ဆင့် ပြန်ချိတ်ဆက်ရန် ဖိတ်ကြားချက်အသစ် လိုအပ်ပါမည်။"
+
+msgid "help_others_too"
+msgstr "အခြားသူများကိုလည်း ကူညီပါ"
+
+msgid "help_others_too_body"
+msgstr "ဆင်ဆာဖြတ်တောက်မှုနှင့် ရင်ဆိုင်နေရသူများကို သင့်ပိုလျှံသော စွမ်းရည်ကို မျှဝေပါ။ Lantern သည် ခွင့်ပြုထားသော ဆိုက်များကိုသာ ဝင်ခွင့်ပေးသဖြင့် သင့်ချိတ်ဆက်မှုကို အလွဲသုံးစားမှုမှ ကာကွယ်ပေးသည်။"
+
+msgid "help_others_too_note"
+msgstr "၎င်းကို ပြောင်းလဲပါက သင်ကူညီနေသူများ ခဏတာ ပြန်လည်ချိတ်ဆက်ပါမည်။"
+
+msgid "helping_duration_hm"
+msgstr "%s နာရီ %s မိနစ်"
+
+msgid "helping_duration_m"
+msgstr "%s မိနစ်"

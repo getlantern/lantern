@@ -1990,3 +1990,279 @@ msgstr "لاګونه"
 
 msgid "tap_open_settings_to_go_to_do"
 msgstr "DigitalOcean ته د تللو لپاره لاندې %s کېکاږئ"
+
+msgid "network_extension_disabled_message"
+msgstr "د Lantern د شبکې توسیع په System Settings کې بنده ده. دا په Login Items & Extensions > Network Extensions کې فعاله کړئ، بیا Lantern ته راستانه شئ."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "ننوتل ناکام شو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "oauth_error_session_expired"
+msgstr "ستاسو د ننوتلو ناسته پای ته ورسیده. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "oauth_error_provider_failed"
+msgstr "موږ ونه شو کولی تاسو په هغه حساب ننباسو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "oauth_error_no_email"
+msgstr "هغه حساب بریښنالیک پته شریکه نه کړه. مهرباني وکړئ بریښنالیک ته د لاسرسي اجازه ورکړئ او بیا هڅه وکړئ."
+
+msgid "oauth_error_add_device"
+msgstr "دا وسیله ستاسو له حساب سره ونه نښلول شوه. مهرباني وکړئ له ملاتړ سره اړیکه ونیسئ."
+
+msgid "helper_error_disabled"
+msgstr "د ملګرو مرسته لا په دې وسیله کې شتون نه لري."
+
+msgid "helper_error_not_found"
+msgstr "دا بلنه یا مرستندوی نور شتون نه لري."
+
+msgid "helper_error_unavailable"
+msgstr "Lantern ته لاسرسی ونه شو. خپل اتصال وګورئ او بیا هڅه وکړئ."
+
+msgid "helper_error_too_many_invites"
+msgstr "تاسو د اوس لپاره د وس وړ ټولې بلنې لېږلې دي. سبا بیا هڅه وکړئ."
+
+msgid "helper_error_too_many_pairings"
+msgstr "تاسو د 20 کسانو حد ته رسېدلي یاست."
+
+msgid "helper_error_no_pending_claim"
+msgstr "د دې بلنې پرېکړه مخکې شوې ده."
+
+msgid "helper_error_bad_name"
+msgstr "داسې نوم ولیکئ چې ستاسو ملګری یې وپیژني، تر 60 تورو پورې."
+
+msgid "helper_error_keystore"
+msgstr "دا وسیله نومونه په خوندي ډول نشي ساتلای، نو د ملګرو مرسته بنده ده. په Linux کې یو کیرینګ لکه GNOME Keyring پیل کړئ."
+
+msgid "helper_error_keystore_reset"
+msgstr "د دې وسیلې خوندي زېرمه بیا تنظیم شوه، نو ستاسو د مرستندویانو او بلنو نومونه ونه لوستل شول. ستاسو مرستندویان لا هم کار کوي. د دوی د نومونو لیدو لپاره یې بیا وبلئ."
+
+msgid "helper_error_copy"
+msgstr "لینک کاپي نشو. پر ځای یې د لینک شریکول وکاروئ."
+
+msgid "helpers_your_name_label"
+msgstr "ستاسو نوم، لکه څنګه چې ستاسو ملګری تاسو پېژني"
+
+msgid "helpers_your_name_hint"
+msgstr "د بېلګې په توګه، سارا"
+
+msgid "helper_online"
+msgstr "آنلاین"
+
+msgid "helper_offline"
+msgstr "آفلاین"
+
+msgid "helper_unnamed"
+msgstr "ستاسو مرستندوی"
+
+msgid "helper_remove_confirm_title"
+msgstr "%s لرې کړئ؟"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s به نور ستاسو مرسته ونه کړي. تاسو کولی شئ وروسته بیا یې راوبولئ."
+
+msgid "helpers_remove_all"
+msgstr "ټول مرستندویان لرې کړئ"
+
+msgid "helpers_remove_all_body"
+msgstr "ټول مرستندویان به ستاسو مرسته ودروي، او نومونه به یې له دې وسیلې پاک شي."
+
+msgid "manage_private_locations"
+msgstr "شخصي ځایونه اداره کړئ"
+
+msgid "invite_personal_proxy"
+msgstr "شخصي پراکسي راوبلئ"
+
+msgid "personal_proxies_tab"
+msgstr "شخصي پراکسۍ"
+
+msgid "invite_another"
+msgstr "بل څوک راوبلئ"
+
+msgid "helpers_nudge_second"
+msgstr "که ستاسو شخصي پراکسي آفلاین شي، د هغې له لارې ستاسو اتصال هم قطع کېږي. د وصل پاتې کېدو لپاره دوهم ملګری راوبلئ."
+
+msgid "personal_proxy_banner_title"
+msgstr "شخصي پراکسي ترلاسه کړئ"
+
+msgid "personal_proxy_banner_body"
+msgstr "په بهر کې یو ملګری کولی شي تاسو وصل وساتي."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "ستاسو ملګری انتظار کوي"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "کوډ پرتله کړئ او هغه تایید کړئ."
+
+msgid "personal_proxy_nickname_label"
+msgstr "په دې وسیله کې نوم"
+
+msgid "invite_share_body"
+msgstr "دا لینک یو داسې کس ته ولېږئ چې باور پرې لرئ. دا یوازې یو ځل کار کوي او په 48 ساعتونو کې پای ته رسي."
+
+msgid "invite_share_message"
+msgstr "%s غواړي چې آنلاین پاتې کېدو کې ورسره مرسته وکړئ. %s"
+
+msgid "invite_share_button"
+msgstr "لینک شریک کړئ"
+
+msgid "invite_copy_link"
+msgstr "لینک کاپي کړئ"
+
+msgid "invite_link_copied"
+msgstr "لینک کاپي شو"
+
+msgid "invite_qr_hint"
+msgstr "ستاسو ملګری کولی شي دا د Lantern په مرسته سکن کړي."
+
+msgid "invite_waiting"
+msgstr "ستاسو ملګري ته انتظار چې لینک پرانیزي"
+
+msgid "invite_trust_warning"
+msgstr "هغه څوک چې تاسو یې رابولئ پوهېږي چې تاسو Lantern کاروئ او لیدلی شي چې تاسو کله د هغه له لارې وصل یاست. ستاسو ټرافیک د هغه د انټرنیټ اتصال له لارې تېرېږي. نو هغه کولی شي پوه شي چې تاسو کومې پاڼې ګورئ، خو دا نه چې په خوندي (https) پاڼو کې څه کوئ. یوازې هغه څوک راوبلئ چې باور پرې لرئ."
+
+msgid "invite_expires"
+msgstr "په %s ساعتونو کې پای ته رسېږي"
+
+msgid "invite_gone"
+msgstr "دا بلنه کارول شوې یا یې موده پای ته رسېدلې ده."
+
+msgid "invite_claimed_title"
+msgstr "یو چا ستاسو بلنه پرانیستله"
+
+msgid "invite_compare_codes"
+msgstr "کوډونه پرتله کړئ"
+
+msgid "approve_code_intro"
+msgstr "له %s وپوښتئ چې د هغوی Lantern کوم کوډ ښيي. دا په زنګ یا بل اپ کې پرتله کړئ. په هغه چټ کې یې مه پرتله کوئ چې لینک مو پکې لیږلی و."
+
+msgid "approve_code_label"
+msgstr "په دې وسیله کوډ"
+
+msgid "approve_button"
+msgstr "کوډونه سمون لري: تایید کړئ"
+
+msgid "reject_button"
+msgstr "کوډونه سره سمون نه لري: رد کړئ"
+
+msgid "reject_explainer"
+msgstr "که کوډونه توپیر ولري، بل چا ستاسو لینک خلاص کړی دی. هغه رد کړئ او نوې بلنه ولېږئ."
+
+msgid "personal_proxy"
+msgstr "شخصي پراکسي"
+
+msgid "private_locations"
+msgstr "شخصي ځایونه"
+
+msgid "personal_proxies"
+msgstr "شخصي پراکسي ګانې"
+
+msgid "your_personal_proxies"
+msgstr "ستاسو شخصي پراکسي ګانې"
+
+msgid "help_friend_title"
+msgstr "له ملګري سره مرسته وکړئ چې آنلاین پاتې شي"
+
+msgid "have_invite_link"
+msgstr "د بلنې لینک لرئ؟"
+
+msgid "help_friend_intro"
+msgstr "یوه ملګري ستاسو مرسته غوښتې ده. کله چې Lantern چلېږي، هغه ستاسو د اتصال له لارې آزاد انټرنیټ ته لاسرسی لري."
+
+msgid "help_friend_means_title"
+msgstr "د ملګري سره مرسته څه معنی لري"
+
+msgid "help_friend_means_traffic"
+msgstr "ستاسو ملګری ستاسو د اتصال له لارې خلاص انټرنیټ ته رسېږي. ستاسو د روټر پورې اړه لري، د هغوی ټرافیک ستاسو له شبکې وځي یا د Lantern د سرورونو له لارې لېږدول کېږي. Lantern تاسو ته نه ښيي چې هغوی آنلاین څه کوي."
+
+msgid "help_friend_means_online"
+msgstr "ستاسو ملګری لیدلی شي چې تاسو کله آنلاین یاست. یوازې د هغو کسانو بلنې ومنئ چې پېژنئ یې."
+
+msgid "help_friend_means_stop"
+msgstr "تاسو هر وخت مرسته بندولی شئ."
+
+msgid "help_friend_link_label"
+msgstr "د بلنې لینک"
+
+msgid "help_friend_paste"
+msgstr "هغه لینک پیسټ کړئ چې ملګري مو لېږلی"
+
+msgid "help_friend_scan"
+msgstr "د خپل ملګري QR کوډ سکین کړئ"
+
+msgid "help_friend_sharing_note"
+msgstr "Lantern چې کله روان وي په اتوماتيک ډول مرسته کوي. که ستاسو روټر اجازه ورکړي مستقیم اتصال کاروي، که نه نو د براوزر په څېر اتصال."
+
+msgid "help_friend_accept"
+msgstr "له خپل ملګري سره مرسته"
+
+msgid "help_friend_code_title"
+msgstr "خپل ملګري ته دا کوډ ووایاست"
+
+msgid "help_friend_code_body"
+msgstr "ستاسو ملګری به وګوري چې دا د هغه په تلیفون کې له کوډ سره سمون لري، بیا به تاسو تایید کړي. زنګ یا بل اپ تر ټولو خوندي دی."
+
+msgid "help_friend_waiting"
+msgstr "ستاسو د ملګري تایید ته انتظار"
+
+msgid "help_friend_approved"
+msgstr "تاسو اوس له %s سره مرسته کوئ."
+
+msgid "help_friend_no_longer_pending"
+msgstr "دا غوښتنه نور په تمه کې نه ده. له خپل ملګري څخه نوې بلنه وغواړئ."
+
+msgid "help_friend_done"
+msgstr "بشپړ شو"
+
+msgid "help_friend_already_claimed_title"
+msgstr "دا بلنه دمخه کارول شوې ده"
+
+msgid "help_friend_already_claimed_body"
+msgstr "بل چا دا لینک مخکې پرانیستی، یا یې موده پای ته رسېدلې. له خپل ملګري څخه نوې بلنه وغواړئ. هغه ته ووایئ چې ښايي دا بلنه بل چا لیدلې وي."
+
+msgid "help_friend_already_helping"
+msgstr "تاسو دمخه له دې ملګري سره مرسته کوئ."
+
+msgid "help_friend_already_helping_named"
+msgstr "تاسو دمخه له %s سره مرسته کوئ."
+
+msgid "help_friend_bad_link"
+msgstr "دا د مرستندوی بلنې لینک نه دی."
+
+msgid "help_friend_own_invite"
+msgstr "دا ستاسو خپله بلنه ده. هغه ملګري ته یې واستوئ چې غواړئ له هغه مرسته ترلاسه کړئ."
+
+msgid "helping_title"
+msgstr "تاسو مرسته کوئ"
+
+msgid "helping_today"
+msgstr "نن: فعال %s، شریک شوي %s"
+
+msgid "helping_since"
+msgstr "له %s راهیسې"
+
+msgid "helping_unnamed"
+msgstr "یو څوک چې تاسو یې مرسته کوئ"
+
+msgid "helping_sharing_off_warning"
+msgstr "شریکول بند دي، نو هغه کسان چې تاسو یې مرسته کوئ ستاسو له لارې وصل نشي کېدای."
+
+msgid "helping_remove"
+msgstr "مرسته بنده کړئ"
+
+msgid "helping_remove_confirm"
+msgstr "له %s سره مرسته بنده کړئ؟ هغوی به ستاسو له لارې د بیا وصلېدو لپاره نوې بلنې ته اړتیا ولري."
+
+msgid "help_others_too"
+msgstr "له نورو سره هم مرسته وکړئ"
+
+msgid "help_others_too_body"
+msgstr "خپل اضافي ظرفیت له هغو نورو خلکو سره شریک کړئ چې له سانسور سره مخ دي. Lantern یوازې اجازه لرونکو سایټونو ته د هغوی لاسرسی ورکوي، چې ستاسو اتصال له ناوړه ګټې اخیستنې ساتي."
+
+msgid "help_others_too_note"
+msgstr "د دې بدلول هغه خلک چې تاسو ورسره مرسته کوئ، د لنډ وخت لپاره بیا وصلوي."
+
+msgid "helping_duration_hm"
+msgstr "%s ساعته %s دقیقې"
+
+msgid "helping_duration_m"
+msgstr "%s دقیقې"
