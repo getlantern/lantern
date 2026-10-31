@@ -2084,9 +2084,6 @@ msgstr "Bandingkan kod dan luluskan rakan anda."
 msgid "personal_proxy_nickname_label"
 msgstr "Nama pada peranti ini"
 
-msgid "invite_share_body"
-msgstr "Hantar pautan ini kepada seorang yang anda percayai. Ia berfungsi sekali sahaja dan tamat tempoh dalam 48 jam."
-
 msgid "invite_share_message"
 msgstr "%s mahukan bantuan anda untuk kekal dalam talian. %s"
 
@@ -2120,21 +2117,6 @@ msgstr "Seseorang telah membuka jemputan anda"
 msgid "invite_compare_codes"
 msgstr "Bandingkan kod"
 
-msgid "approve_code_intro"
-msgstr "Tanya %s kod yang dipaparkan oleh Lantern mereka. Bandingkan melalui panggilan atau dalam aplikasi lain, bukan dalam sembang tempat anda menghantar pautan itu."
-
-msgid "approve_code_label"
-msgstr "Kod pada peranti ini"
-
-msgid "approve_button"
-msgstr "Kod sepadan: luluskan"
-
-msgid "reject_button"
-msgstr "Kod tidak sepadan: tolak"
-
-msgid "reject_explainer"
-msgstr "Jika kod berbeza, orang lain telah membuka pautan anda. Tolak orang tersebut dan hantar jemputan baharu."
-
 msgid "personal_proxy"
 msgstr "Proksi peribadi"
 
@@ -2147,27 +2129,6 @@ msgstr "Proksi peribadi"
 msgid "your_personal_proxies"
 msgstr "Proksi peribadi anda"
 
-msgid "help_friend_title"
-msgstr "Bantu rakan kekal dalam talian"
-
-msgid "have_invite_link"
-msgstr "Ada pautan jemputan?"
-
-msgid "help_friend_intro"
-msgstr "Seorang rakan meminta bantuan anda. Semasa Lantern berjalan, mereka boleh mengakses internet terbuka melalui sambungan anda."
-
-msgid "help_friend_means_title"
-msgstr "Maksud membantu rakan"
-
-msgid "help_friend_means_traffic"
-msgstr "Rakan anda mencapai internet terbuka melalui sambungan anda. Bergantung pada penghala anda, trafik mereka keluar dari rangkaian anda atau disalurkan melalui pelayan Lantern. Lantern tidak menunjukkan kepada anda apa yang mereka lakukan dalam talian."
-
-msgid "help_friend_means_online"
-msgstr "Rakan anda boleh melihat bila anda dalam talian. Terima jemputan daripada orang yang anda kenali sahaja."
-
-msgid "help_friend_means_stop"
-msgstr "Anda boleh berhenti membantu pada bila-bila masa."
-
 msgid "help_friend_link_label"
 msgstr "Pautan jemputan"
 
@@ -2176,21 +2137,6 @@ msgstr "Tampal pautan yang dihantar oleh rakan anda"
 
 msgid "help_friend_scan"
 msgstr "Imbas kod QR rakan anda"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern membantu secara automatik semasa ia berjalan. Ia menggunakan sambungan terus apabila penghala anda membenarkannya, dan sambungan gaya pelayar jika tidak."
-
-msgid "help_friend_accept"
-msgstr "Bantu rakan saya"
-
-msgid "help_friend_code_title"
-msgstr "Beritahu rakan anda kod ini"
-
-msgid "help_friend_code_body"
-msgstr "Rakan anda akan menyemak bahawa kod ini sepadan dengan kod pada telefonnya, kemudian meluluskan anda. Panggilan atau aplikasi lain adalah paling selamat."
-
-msgid "help_friend_waiting"
-msgstr "Menunggu kelulusan rakan anda"
 
 msgid "help_friend_approved"
 msgstr "Anda kini membantu %s."
@@ -2218,12 +2164,6 @@ msgstr "Ini bukan pautan jemputan pembantu."
 
 msgid "help_friend_own_invite"
 msgstr "Ini jemputan anda sendiri. Hantar kepada rakan yang anda mahu minta bantuan."
-
-msgid "helping_title"
-msgstr "Anda sedang membantu"
-
-msgid "helping_today"
-msgstr "Hari ini: aktif %s, %s dikongsi"
 
 msgid "helping_since"
 msgstr "Sejak %s"

@@ -2057,9 +2057,6 @@ msgstr "Kody deňeşdiriň we tassyklaň."
 msgid "personal_proxy_nickname_label"
 msgstr "Bu enjamdaky ady"
 
-msgid "invite_share_body"
-msgstr "Bu baglanyşygy ynanýan bir adamyňyza iberiň. Ol diňe bir gezek işleýär we 48 sagatdan soň möhleti gutarýar."
-
 msgid "invite_share_message"
 msgstr "%s onlaýn galmak üçin siziň kömegiňizi isleýär. %s"
 
@@ -2093,21 +2090,6 @@ msgstr "Kimdir biri çakylygyňyzy açdy"
 msgid "invite_compare_codes"
 msgstr "Kodlary deňeşdir"
 
-msgid "approve_code_intro"
-msgstr "Adam: %s. Onuň Lantern-inde haýsy kodyň görkezilýändigini soraň. Ony jaňda ýa-da başga programmada deňeşdiriň, salgyny iberen çatyňyzda däl."
-
-msgid "approve_code_label"
-msgstr "Bu enjamdaky kod"
-
-msgid "approve_button"
-msgstr "Kodlar gabat gelýär: tassykla"
-
-msgid "reject_button"
-msgstr "Kodlar gabat gelmeýär: ret et"
-
-msgid "reject_explainer"
-msgstr "Kodlar tapawutly bolsa, siziň salgyňyzy başga biri açdy. Ony ret ediň we täze çakylyk iberiň."
-
 msgid "personal_proxy"
 msgstr "Şahsy proksi"
 
@@ -2120,27 +2102,6 @@ msgstr "Şahsy proksiler"
 msgid "your_personal_proxies"
 msgstr "Şahsy proksileriňiz"
 
-msgid "help_friend_title"
-msgstr "Dostuňyza onlaýn galmaga kömek ediň"
-
-msgid "have_invite_link"
-msgstr "Çakylyk salgyňyz barmy?"
-
-msgid "help_friend_intro"
-msgstr "Bir dostuňyz sizden kömek sorady. Lantern işläp durka, ol siziň baglanyşygyňyz arkaly açyk internete girip biler."
-
-msgid "help_friend_means_title"
-msgstr "Dosta kömek etmek näme diýmek"
-
-msgid "help_friend_means_traffic"
-msgstr "Dostuňyz siziň baglanyşygyňyz arkaly açyk internete çykýar. Routeriňize baglylykda, onuň trafigi siziň toruňyzdan çykýar ýa-da Lantern serwerleri arkaly geçirilýär. Lantern onuň onlaýn näme edýändigini size görkezmeýär."
-
-msgid "help_friend_means_online"
-msgstr "Dostuňyz siziň haçan onlaýndygyňyzy görüp biler. Diňe tanaýan adamlaryňyzyň çakylyklaryny kabul ediň."
-
-msgid "help_friend_means_stop"
-msgstr "Islän wagtyňyz kömek etmegi bes edip bilersiňiz."
-
 msgid "help_friend_link_label"
 msgstr "Çakylyk salgysy"
 
@@ -2149,21 +2110,6 @@ msgstr "Dostuňyzyň iberen salgysyny goýuň"
 
 msgid "help_friend_scan"
 msgstr "Dostuňyzyň QR koduny skanirläň"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern işläp durka awtomatik kömek edýär. Router rugsat berse göni baglanyşygy, bolmasa brauzer görnüşli baglanyşygy ulanýar."
-
-msgid "help_friend_accept"
-msgstr "Dostuma kömek et"
-
-msgid "help_friend_code_title"
-msgstr "Bu kody dostuňyza aýdyň"
-
-msgid "help_friend_code_body"
-msgstr "Dostuňyz onuň telefonyndaky kod bilen gabat gelýändigini barlap, soňra sizi tassyklar. Jaň ýa-da başga programma iň howpsuzydyr."
-
-msgid "help_friend_waiting"
-msgstr "Dostuňyzyň tassyklamagyna garaşylýar"
 
 msgid "help_friend_approved"
 msgstr "Siz indi kömek edýärsiňiz: %s."
@@ -2191,12 +2137,6 @@ msgstr "Bu kömekçi çakylyk baglanyşygy däl."
 
 msgid "help_friend_own_invite"
 msgstr "Bu siziň öz çakylygyňyz. Ony kömek almak isleýän dostuňyza iberiň."
-
-msgid "helping_title"
-msgstr "Siz kömek edýärsiňiz"
-
-msgid "helping_today"
-msgstr "Şu gün: işjeň %s, paýlaşylan %s"
 
 msgid "helping_since"
 msgstr "Başlanan senesi: %s"

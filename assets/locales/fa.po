@@ -2073,9 +2073,6 @@ msgstr "کد را مقایسه و او را تأیید کنید."
 msgid "personal_proxy_nickname_label"
 msgstr "نام در این دستگاه"
 
-msgid "invite_share_body"
-msgstr "این پیوند را برای یک نفر که به او اعتماد دارید بفرستید. فقط یک بار کار می‌کند و ظرف ۴۸ ساعت منقضی می‌شود."
-
 msgid "invite_share_message"
 msgstr "%s برای آنلاین ماندن از شما کمک می‌خواهد. %s"
 
@@ -2109,21 +2106,6 @@ msgstr "کسی دعوت شما را باز کرد"
 msgid "invite_compare_codes"
 msgstr "مقایسه کدها"
 
-msgid "approve_code_intro"
-msgstr "از %s بپرسید Lantern او چه کدی نشان می‌دهد. آن را در تماس یا برنامه‌ای دیگر مقایسه کنید، نه در گفتگویی که پیوند را در آن فرستادید."
-
-msgid "approve_code_label"
-msgstr "کد روی این دستگاه"
-
-msgid "approve_button"
-msgstr "کدها یکسان است: تأیید"
-
-msgid "reject_button"
-msgstr "کدها مطابقت ندارند: رد"
-
-msgid "reject_explainer"
-msgstr "اگر کدها متفاوت هستند، شخص دیگری پیوند شما را باز کرده است. او را رد کنید و دعوت‌نامه جدیدی بفرستید."
-
 msgid "personal_proxy"
 msgstr "پروکسی شخصی"
 
@@ -2136,27 +2118,6 @@ msgstr "پروکسی‌های شخصی"
 msgid "your_personal_proxies"
 msgstr "پروکسی‌های شخصی شما"
 
-msgid "help_friend_title"
-msgstr "به دوستتان کمک کنید آنلاین بماند"
-
-msgid "have_invite_link"
-msgstr "لینک دعوت دارید؟"
-
-msgid "help_friend_intro"
-msgstr "یکی از دوستانتان از شما کمک خواسته است. تا زمانی که Lantern در حال اجراست، او می‌تواند از طریق اتصال شما به اینترنت آزاد دسترسی داشته باشد."
-
-msgid "help_friend_means_title"
-msgstr "کمک به یک دوست یعنی چه"
-
-msgid "help_friend_means_traffic"
-msgstr "دوست شما از طریق اتصال شما به اینترنت آزاد دسترسی پیدا می‌کند. بسته به روتر شما، ترافیک او از شبکه شما خارج می‌شود یا از طریق سرورهای Lantern منتقل می‌شود. Lantern کارهایی را که او آنلاین انجام می‌دهد به شما نشان نمی‌دهد."
-
-msgid "help_friend_means_online"
-msgstr "دوست شما می‌تواند ببیند چه زمانی آنلاین هستید. فقط دعوت افرادی را بپذیرید که می‌شناسید."
-
-msgid "help_friend_means_stop"
-msgstr "هر زمان بخواهید می‌توانید کمک را متوقف کنید."
-
 msgid "help_friend_link_label"
 msgstr "لینک دعوت"
 
@@ -2165,21 +2126,6 @@ msgstr "لینکی را که دوستتان فرستاده جای‌گذاری �
 
 msgid "help_friend_scan"
 msgstr "کد QR دوستتان را اسکن کنید"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern تا زمانی که در حال اجراست به‌طور خودکار کمک می‌کند. اگر روتر شما اجازه دهد از اتصال مستقیم و در غیر این صورت از اتصالی شبیه مرورگر استفاده می‌کند."
-
-msgid "help_friend_accept"
-msgstr "کمک به دوستم"
-
-msgid "help_friend_code_title"
-msgstr "این کد را به دوستتان بگویید"
-
-msgid "help_friend_code_body"
-msgstr "دوست شما بررسی می‌کند که با کد روی گوشی‌اش یکسان باشد، سپس شما را تأیید می‌کند. تماس تلفنی یا یک برنامه دیگر امن‌ترین راه است."
-
-msgid "help_friend_waiting"
-msgstr "در انتظار تأیید دوست شما"
 
 msgid "help_friend_approved"
 msgstr "اکنون به %s کمک می‌کنید."
@@ -2207,12 +2153,6 @@ msgstr "این پیوند دعوت کمک‌رسان نیست."
 
 msgid "help_friend_own_invite"
 msgstr "این دعوت‌نامه خودتان است. آن را برای دوستی بفرستید که می‌خواهید به شما کمک کند."
-
-msgid "helping_title"
-msgstr "شما در حال کمک هستید"
-
-msgid "helping_today"
-msgstr "امروز: فعال %s، اشتراک‌گذاری‌شده %s"
 
 msgid "helping_since"
 msgstr "از %s"

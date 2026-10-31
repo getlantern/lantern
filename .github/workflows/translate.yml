@@ -125,6 +125,13 @@ jobs:
           git commit -F build/translate/commit_message.txt
           # main may have moved while the models ran; rebase once and push
           git pull --rebase origin main
+          # a key en.po dropped in the meantime rebases cleanly back into every locale, so prune
+          # entries whose key left en.po before pushing
+          python tools/localization/translate.py --prune --out build/translate
+          if ! git diff --quiet -- assets/locales; then
+            git add assets/locales/*.po
+            git commit --amend --no-edit
+          fi
           git push origin HEAD:main
 
       - name: Fail if any locale failed

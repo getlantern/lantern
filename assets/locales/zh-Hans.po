@@ -1921,9 +1921,6 @@ msgstr "核对验证码并批准对方。"
 msgid "personal_proxy_nickname_label"
 msgstr "在此设备上的名称"
 
-msgid "invite_share_body"
-msgstr "将此链接发送给一位您信任的人。链接仅可使用一次，48 小时后失效。"
-
 msgid "invite_share_message"
 msgstr "%s 需要您的帮助来保持在线。%s"
 
@@ -1957,21 +1954,6 @@ msgstr "有人打开了您的邀请"
 msgid "invite_compare_codes"
 msgstr "比对代码"
 
-msgid "approve_code_intro"
-msgstr "向 %s 询问其蓝灯显示的是哪个代码。通过通话或其他应用进行比对，不要在您发送链接的聊天中比对。"
-
-msgid "approve_code_label"
-msgstr "此设备上的代码"
-
-msgid "approve_button"
-msgstr "代码一致：批准"
-
-msgid "reject_button"
-msgstr "代码不一致：拒绝"
-
-msgid "reject_explainer"
-msgstr "如果代码不同，说明有其他人打开了您的链接。请拒绝对方并发送新的邀请。"
-
 msgid "personal_proxy"
 msgstr "个人代理"
 
@@ -1984,27 +1966,6 @@ msgstr "个人代理"
 msgid "your_personal_proxies"
 msgstr "您的个人代理"
 
-msgid "help_friend_title"
-msgstr "帮助朋友保持在线"
-
-msgid "have_invite_link"
-msgstr "有邀请链接？"
-
-msgid "help_friend_intro"
-msgstr "一位朋友向您求助。蓝灯运行期间，对方可以通过您的连接访问开放的互联网。"
-
-msgid "help_friend_means_title"
-msgstr "帮助朋友意味着什么"
-
-msgid "help_friend_means_traffic"
-msgstr "您的朋友通过您的连接访问开放的互联网。根据您的路由器，对方的流量会从您的网络发出，或通过蓝灯的服务器中转。蓝灯不会向您显示对方的上网内容。"
-
-msgid "help_friend_means_online"
-msgstr "您的朋友可以看到您何时在线。只接受您认识的人发来的邀请。"
-
-msgid "help_friend_means_stop"
-msgstr "您可以随时停止帮助。"
-
 msgid "help_friend_link_label"
 msgstr "邀请链接"
 
@@ -2013,21 +1974,6 @@ msgstr "粘贴朋友发来的链接"
 
 msgid "help_friend_scan"
 msgstr "扫描朋友的二维码"
-
-msgid "help_friend_sharing_note"
-msgstr "蓝灯运行时会自动提供帮助。路由器允许时使用直接连接，否则使用类似浏览器的连接。"
-
-msgid "help_friend_accept"
-msgstr "帮助我的朋友"
-
-msgid "help_friend_code_title"
-msgstr "将此代码告诉您的朋友"
-
-msgid "help_friend_code_body"
-msgstr "您的朋友会核对它是否与其手机上的代码一致，然后批准您。通过电话或其他应用告知最安全。"
-
-msgid "help_friend_waiting"
-msgstr "正在等待您的朋友批准"
 
 msgid "help_friend_approved"
 msgstr "您现在正在帮助 %s。"
@@ -2055,12 +2001,6 @@ msgstr "这不是帮助者邀请链接。"
 
 msgid "help_friend_own_invite"
 msgstr "这是您自己的邀请。将其发送给您想向其求助的朋友。"
-
-msgid "helping_title"
-msgstr "您正在帮助他人"
-
-msgid "helping_today"
-msgstr "今天：活跃 %s，已共享 %s"
 
 msgid "helping_since"
 msgstr "自 %s 起"

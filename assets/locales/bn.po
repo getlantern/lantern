@@ -2071,9 +2071,6 @@ msgstr "কোডটি মিলিয়ে দেখুন এবং অন�
 msgid "personal_proxy_nickname_label"
 msgstr "এই ডিভাইসে নাম"
 
-msgid "invite_share_body"
-msgstr "আপনার বিশ্বস্ত একজন ব্যক্তিকে এই লিংকটি পাঠান। এটি একবারই কাজ করে এবং ৪৮ ঘণ্টা পর মেয়াদ শেষ হয়।"
-
 msgid "invite_share_message"
 msgstr "%s অনলাইনে থাকতে আপনার সাহায্য চান। %s"
 
@@ -2107,21 +2104,6 @@ msgstr "কেউ আপনার আমন্ত্রণ খুলেছেন
 msgid "invite_compare_codes"
 msgstr "কোড মিলিয়ে দেখুন"
 
-msgid "approve_code_intro"
-msgstr "%s কে জিজ্ঞেস করুন তার Lantern এ কোন কোড দেখাচ্ছে। কলে বা অন্য কোনো অ্যাপে মিলিয়ে দেখুন, যে চ্যাটে লিংক পাঠিয়েছেন সেখানে নয়।"
-
-msgid "approve_code_label"
-msgstr "এই ডিভাইসের কোড"
-
-msgid "approve_button"
-msgstr "কোড মিলেছে: অনুমোদন করুন"
-
-msgid "reject_button"
-msgstr "কোড মেলেনি: প্রত্যাখ্যান করুন"
-
-msgid "reject_explainer"
-msgstr "কোড ভিন্ন হলে, অন্য কেউ আপনার লিংক খুলেছে। তাকে প্রত্যাখ্যান করুন এবং নতুন আমন্ত্রণ পাঠান।"
-
 msgid "personal_proxy"
 msgstr "ব্যক্তিগত প্রক্সি"
 
@@ -2134,27 +2116,6 @@ msgstr "ব্যক্তিগত প্রক্সি"
 msgid "your_personal_proxies"
 msgstr "আপনার ব্যক্তিগত প্রক্সি"
 
-msgid "help_friend_title"
-msgstr "বন্ধুকে অনলাইনে থাকতে সাহায্য করুন"
-
-msgid "have_invite_link"
-msgstr "আমন্ত্রণ লিংক আছে?"
-
-msgid "help_friend_intro"
-msgstr "একজন বন্ধু আপনার সাহায্য চেয়েছেন। Lantern চালু থাকাকালীন তিনি আপনার সংযোগের মাধ্যমে উন্মুক্ত ইন্টারনেটে প্রবেশ করতে পারবেন।"
-
-msgid "help_friend_means_title"
-msgstr "বন্ধুকে সাহায্য করার অর্থ কী"
-
-msgid "help_friend_means_traffic"
-msgstr "আপনার বন্ধু আপনার সংযোগের মাধ্যমে মুক্ত ইন্টারনেটে পৌঁছান। আপনার রাউটারের উপর নির্ভর করে, তাদের ট্রাফিক আপনার নেটওয়ার্ক থেকে বের হয় অথবা Lantern এর সার্ভারের মাধ্যমে পাঠানো হয়। তারা অনলাইনে কী করেন তা Lantern আপনাকে দেখায় না।"
-
-msgid "help_friend_means_online"
-msgstr "আপনি কখন অনলাইনে আছেন তা আপনার বন্ধু দেখতে পারবেন। শুধু পরিচিত মানুষের আমন্ত্রণ গ্রহণ করুন।"
-
-msgid "help_friend_means_stop"
-msgstr "আপনি যেকোনো সময় সাহায্য করা বন্ধ করতে পারেন।"
-
 msgid "help_friend_link_label"
 msgstr "আমন্ত্রণ লিংক"
 
@@ -2163,21 +2124,6 @@ msgstr "আপনার বন্ধুর পাঠানো লিংকটি
 
 msgid "help_friend_scan"
 msgstr "আপনার বন্ধুর QR কোড স্ক্যান করুন"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern চালু থাকলে স্বয়ংক্রিয়ভাবে সাহায্য করে। আপনার রাউটার অনুমতি দিলে এটি সরাসরি সংযোগ ব্যবহার করে, নইলে ব্রাউজারের মতো সংযোগ।"
-
-msgid "help_friend_accept"
-msgstr "আমার বন্ধুকে সাহায্য করুন"
-
-msgid "help_friend_code_title"
-msgstr "আপনার বন্ধুকে এই কোডটি বলুন"
-
-msgid "help_friend_code_body"
-msgstr "আপনার বন্ধু নিজের ফোনের কোডের সাথে এটি মিলছে কিনা দেখে আপনাকে অনুমোদন দেবেন। কল বা অন্য কোনো অ্যাপ সবচেয়ে নিরাপদ।"
-
-msgid "help_friend_waiting"
-msgstr "আপনার বন্ধুর অনুমোদনের অপেক্ষায়"
 
 msgid "help_friend_approved"
 msgstr "আপনি এখন %s কে সাহায্য করছেন।"
@@ -2205,12 +2151,6 @@ msgstr "এটি কোনো সাহায্যকারী আমন্ত
 
 msgid "help_friend_own_invite"
 msgstr "এটি আপনার নিজের আমন্ত্রণ। যে বন্ধুর কাছ থেকে সাহায্য চান, তাকে এটি পাঠান।"
-
-msgid "helping_title"
-msgstr "আপনি সাহায্য করছেন"
-
-msgid "helping_today"
-msgstr "আজ: সক্রিয় %s, শেয়ার করা হয়েছে %s"
 
 msgid "helping_since"
 msgstr "%s থেকে"

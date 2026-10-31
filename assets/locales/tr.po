@@ -2077,9 +2077,6 @@ msgstr "Kodu karşılaştırın ve onaylayın."
 msgid "personal_proxy_nickname_label"
 msgstr "Bu cihazdaki ad"
 
-msgid "invite_share_body"
-msgstr "Bu bağlantıyı güvendiğiniz tek bir kişiye gönderin. Yalnızca bir kez çalışır ve 48 saat içinde sona erer."
-
 msgid "invite_share_message"
 msgstr "%s çevrimiçi kalmak için yardımınızı istiyor. %s"
 
@@ -2113,21 +2110,6 @@ msgstr "Biri davetinizi açtı"
 msgid "invite_compare_codes"
 msgstr "Kodları Karşılaştır"
 
-msgid "approve_code_intro"
-msgstr "Lantern uygulamasında hangi kodun göründüğünü %s adlı kişiye sorun. Kodu bağlantıyı gönderdiğiniz sohbette değil, bir aramada veya başka bir uygulamada karşılaştırın."
-
-msgid "approve_code_label"
-msgstr "Bu cihazdaki kod"
-
-msgid "approve_button"
-msgstr "Kodlar Eşleşiyor: Onayla"
-
-msgid "reject_button"
-msgstr "Kodlar eşleşmiyor: Reddet"
-
-msgid "reject_explainer"
-msgstr "Kodlar farklıysa bağlantınızı başka biri açmıştır. Bu kişiyi reddedin ve yeni bir davet gönderin."
-
 msgid "personal_proxy"
 msgstr "Kişisel proxy"
 
@@ -2140,27 +2122,6 @@ msgstr "Kişisel proxy'ler"
 msgid "your_personal_proxies"
 msgstr "Kişisel proxy'leriniz"
 
-msgid "help_friend_title"
-msgstr "Bir arkadaşınızın çevrimiçi kalmasına yardım edin"
-
-msgid "have_invite_link"
-msgstr "Davet bağlantınız var mı?"
-
-msgid "help_friend_intro"
-msgstr "Bir arkadaşınız sizden yardım istedi. Lantern çalışırken bağlantınız üzerinden açık internete erişebilir."
-
-msgid "help_friend_means_title"
-msgstr "Bir arkadaşa yardım etmek ne demek"
-
-msgid "help_friend_means_traffic"
-msgstr "Arkadaşınız açık internete sizin bağlantınız üzerinden erişir. Yönlendiricinize bağlı olarak trafiği ağınızdan çıkar veya Lantern sunucuları üzerinden aktarılır. Lantern, arkadaşınızın çevrimiçi ne yaptığını size göstermez."
-
-msgid "help_friend_means_online"
-msgstr "Arkadaşınız ne zaman çevrimiçi olduğunuzu görebilir. Yalnızca tanıdığınız kişilerin davetlerini kabul edin."
-
-msgid "help_friend_means_stop"
-msgstr "Yardım etmeyi istediğiniz zaman bırakabilirsiniz."
-
 msgid "help_friend_link_label"
 msgstr "Davet bağlantısı"
 
@@ -2169,21 +2130,6 @@ msgstr "Arkadaşınızın gönderdiği bağlantıyı yapıştırın"
 
 msgid "help_friend_scan"
 msgstr "Arkadaşınızın QR Kodunu Tarayın"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern çalışırken otomatik olarak yardım eder. Yönlendiriciniz izin verdiğinde doğrudan bağlantı, aksi halde tarayıcı tarzı bir bağlantı kullanır."
-
-msgid "help_friend_accept"
-msgstr "Arkadaşıma Yardım Et"
-
-msgid "help_friend_code_title"
-msgstr "Bu kodu arkadaşınıza söyleyin"
-
-msgid "help_friend_code_body"
-msgstr "Arkadaşınız bunun telefonundaki kodla eşleştiğini kontrol edip sizi onaylayacak. En güvenlisi bir arama veya farklı bir uygulamadır."
-
-msgid "help_friend_waiting"
-msgstr "Arkadaşınızın onayı bekleniyor"
 
 msgid "help_friend_approved"
 msgstr "Artık şu kişiye yardım ediyorsunuz: %s."
@@ -2211,12 +2157,6 @@ msgstr "Bu bir yardımcı davet bağlantısı değil."
 
 msgid "help_friend_own_invite"
 msgstr "Bu sizin kendi davetiniz. Yardım almak istediğiniz arkadaşınıza gönderin."
-
-msgid "helping_title"
-msgstr "Yardım ediyorsunuz"
-
-msgid "helping_today"
-msgstr "Bugün: etkin %s, paylaşılan %s"
 
 msgid "helping_since"
 msgstr "Başlangıç: %s"
