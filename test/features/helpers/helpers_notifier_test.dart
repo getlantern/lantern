@@ -124,9 +124,10 @@ String _view({
   bool helpersChanged = false,
   String helpers = '[]',
   String invites = '[]',
+  String helping = '[]',
 }) =>
     '{"unlocked":true,"my_name":"","invites":$invites,"claims":[],"helpers":$helpers,'
-    '"helping":[],"new_helping":$newHelping'
+    '"helping":$helping,"new_helping":$newHelping'
     '${helpersChanged ? ',"helpers_changed":true' : ''}}';
 
 void main() {
@@ -223,6 +224,88 @@ void main() {
       final c = container();
       await c.read(helpersProvider.notifier).refreshIfUsed();
       expect(svc.calls, ['waitForRadiance', 'unlock', 'refresh']);
+    });
+  });
+
+  group('helpsSomeone', () {
+    test('is false, without the keystore, on a device that never used '
+        'helper invites', () async {
+      final c = container();
+      expect(await c.read(helpersProvider.notifier).helpsSomeone(), isFalse);
+      expect(keys.reads, 0);
+      expect(svc.calls, isEmpty);
+      expect(storage.values.containsKey(HelpersNotifier.usedKey), isFalse);
+    });
+
+    test('is false in a stealth build', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      HelpersNotifier.debugBuildEnabled = false;
+      final c = container();
+      expect(await c.read(helpersProvider.notifier).helpsSomeone(), isFalse);
+      expect(keys.reads, 0);
+      expect(svc.calls, isEmpty);
+    });
+
+    test('reads the local view, not the network', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {
+        'unlock': _view(),
+        'view': _view(helping: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final c = container();
+      expect(await c.read(helpersProvider.notifier).helpsSomeone(), isTrue);
+      expect(svc.calls, ['unlock', 'view']);
+    });
+
+    test('an older empty view answered after a newer pairing does not '
+        'drop it', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {
+        'unlock': _view(),
+        'view': _view(),
+        'refresh': _view(helping: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final gate = Completer<void>();
+      svc.gates['view'] = gate.future;
+      final c = container();
+      final n = c.read(helpersProvider.notifier);
+      final helps = n.helpsSomeone();
+      await pumpEventQueue();
+      expect(svc.calls, ['unlock', 'view']);
+      await n.refresh();
+      gate.complete();
+      expect(await helps, isTrue);
+    });
+
+    test('is false when the view helps nobody', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {'unlock': _view(), 'view': _view()};
+      final c = container();
+      expect(await c.read(helpersProvider.notifier).helpsSomeone(), isFalse);
+    });
+
+    test('is unknown when the keystore fails', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      sl.unregister<HelperKeyStore>();
+      sl.registerSingleton<HelperKeyStore>(_Keys(fail: true));
+      final c = container();
+      expect(await c.read(helpersProvider.notifier).helpsSomeone(), isNull);
+    });
+
+    test('is unknown when the engine never answers with a view', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      final c = container();
+      expect(await c.read(helpersProvider.notifier).helpsSomeone(), isNull);
+      expect(c.read(helpersProvider.notifier).helpsSomeoneNow, isNull);
+    });
+
+    test('a failed view op answers from the view unlock applied', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      svc.answers = {
+        'unlock': _view(helping: '[{"pairing_id":"p1","name":"Ali"}]'),
+      };
+      final c = container();
+      expect(await c.read(helpersProvider.notifier).helpsSomeone(), isTrue);
     });
   });
 
