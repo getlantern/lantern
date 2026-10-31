@@ -2206,3 +2206,108 @@ msgstr "%s ساعته %s دقیقې"
 
 msgid "helping_duration_m"
 msgstr "%s دقیقې"
+
+msgid "invite_share_title"
+msgstr "دا لینک له خپل هېواده بهر له یو باوري کس سره شریک کړئ"
+
+msgid "invite_share_steps"
+msgstr "هغوی لینک خلاصوي، که اړتیا وي Lantern نصبوي او خپل نوم لیکي. تاسو به د 4 عددي کوډ په کتلو سره هغوی تایید کړئ، بیا کولی شئ د هغوی له لارې وصل شئ."
+
+msgid "invite_link_label"
+msgstr "ستاسو د بلنې لینک"
+
+msgid "invite_link_expiry"
+msgstr "یوازې یو ځل کار کوي او په 48 ساعتونو کې پای ته رسېږي."
+
+msgid "approve_title"
+msgstr "%s غواړي ستاسو شخصي پراکسي شي"
+
+msgid "approve_body"
+msgstr "له %s څخه هغه 4 عددي کوډ وپوښتئ چې Lantern یې ورته ښيي، په زنګ کې یا په بل اپ کې، نه په هغه کې چې لینک مو پکې لیږلی. یوازې هغه وخت یې تایید کړئ چې سمون ولري."
+
+msgid "approve_codes_match"
+msgstr "کوډونه سمون لري، تایید کړئ"
+
+msgid "approve_reject"
+msgstr "رد کړئ"
+
+msgid "personal_proxy_fallback_group"
+msgstr "اوس مهال %s ته رسېدل نه کېږي. ستاسو شخصي پراکسيو ته واوښتل."
+
+msgid "become_means_title"
+msgstr "شخصي پراکسي کېدل څه معنا لري"
+
+msgid "become_means_traffic"
+msgstr "یوه ملګري ستاسو مرسته غوښتې ده. کله چې Action Mode روان وي، هغه ستاسو د اتصال له لارې آزاد انټرنېټ ته لاسرسی لري. ستاسو د روټر پورې اړه لري چې د هغه ټرافیک ستاسو له شبکې وځي یا د Lantern له سرورونو تېرېږي. Lantern تاسو ته نه ښيي چې هغه آنلاین څه کوي."
+
+msgid "become_means_seen"
+msgstr "دوی لیدلی شي چې تاسو کله وصل یاست. یوازې د هغو کسانو بلنې ومنئ چې پېژنئ یې."
+
+msgid "become_means_remove"
+msgstr "اتصال هر وخت لرې کولی شئ."
+
+msgid "help_friend_form_title"
+msgstr "د هغه چا لینک دلته کېږدئ چې مرسته یې کوئ"
+
+msgid "help_friend_link_hint"
+msgstr "که مو لینک په دې وسیله پرانیستی وي، دا به په خپله ډک شوی وي"
+
+msgid "help_friend_name_label"
+msgstr "ستاسو نوم، لکه څنګه چې تاسو پېژني"
+
+msgid "help_friend_name_hint"
+msgstr "تاسو د هغوی په Lantern کې داسې ښکارئ"
+
+msgid "help_friend_become"
+msgstr "د هغوی شخصي پراکسي شئ"
+
+msgid "help_friend_tell_code"
+msgstr "دا کوډ هغوی ته ووایاست"
+
+msgid "help_friend_code_check"
+msgstr "هغوی به وګوري چې دا د دوی په تلیفون له کوډ سره سمون لري، بیا به تاسو تایید کړي."
+
+msgid "help_friend_waiting_approval"
+msgstr "د تایید په تمه"
+
+msgid "help_friend_code_note"
+msgstr "کوډ په زنګ کې یا په داسې اپ کې ووایاست چې د بلنې لینک پکې نه وي راغلی. هر څوک چې لینک یې لیدلی، باید کوډ ونه ګوري."
+
+msgid "become_personal_proxy"
+msgstr "شخصي پراکسي شئ"
+
+msgid "helping_connections_title"
+msgstr "ستاسو د Personal Proxy اتصالونه"
+
+msgid "helping_friends_one"
+msgstr "1 ملګری"
+
+msgid "helping_friends_count"
+msgstr "%s ملګري"
+
+msgid "helping_connected_named"
+msgstr "%s اوس وصل دی"
+
+msgid "helping_connected_count"
+msgstr "اوس وصل: %s"
+
+msgid "helping_sheet_title"
+msgstr "هغه ملګري چې تاسو یې مرسته کوئ"
+
+msgid "helping_your_friends"
+msgstr "ستاسو ملګري"
+
+msgid "helping_connected"
+msgstr "وصل دی"
+
+msgid "helping_not_connected"
+msgstr "وصل نه دی"
+
+msgid "helping_paste_another"
+msgstr "بل د بلنې لینک پیسټ کړئ"
+
+msgid "helping_data_relayed"
+msgstr "نن ورځ لېږدول شوي ډېټا"
+
+msgid "helping_active_today"
+msgstr "فعال: %s"

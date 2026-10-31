@@ -2151,3 +2151,108 @@ msgstr "%s س %s د"
 
 msgid "helping_duration_m"
 msgstr "%s د"
+
+msgid "invite_share_title"
+msgstr "شارك هذا الرابط مع شخص تثق به خارج بلدك"
+
+msgid "invite_share_steps"
+msgstr "يفتح الرابط، ويثبّت Lantern إذا لزم الأمر، ثم يدخل اسمه. ستوافق عليه بعد التحقق من رمز مكون من 4 أرقام، ثم يمكنك الاتصال من خلاله."
+
+msgid "invite_link_label"
+msgstr "رابط الدعوة الخاص بك"
+
+msgid "invite_link_expiry"
+msgstr "يعمل مرة واحدة وتنتهي صلاحيته خلال 48 ساعة."
+
+msgid "approve_title"
+msgstr "%s يريد أن يكون الوكيل الشخصي لك"
+
+msgid "approve_body"
+msgstr "اطلب من %s الرمز المكوّن من 4 أرقام الذي يعرضه له Lantern، عبر مكالمة أو في تطبيق غير الذي أرسلت فيه الرابط. وافق فقط إذا تطابق الرمز."
+
+msgid "approve_codes_match"
+msgstr "الرمزان متطابقان، موافقة"
+
+msgid "approve_reject"
+msgstr "رفض"
+
+msgid "personal_proxy_fallback_group"
+msgstr "تعذّر الوصول إلى %s حاليًا. تم التبديل إلى الوكلاء الشخصيون."
+
+msgid "become_means_title"
+msgstr "ماذا يعني أن تكون وكيلا شخصيا"
+
+msgid "become_means_traffic"
+msgstr "طلب منك صديق المساعدة. أثناء تشغيل Action Mode، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك. حسب جهاز التوجيه لديك، تخرج حركة بياناته من شبكتك أو تمر عبر خوادم Lantern. لا يعرض لك Lantern ما يفعله على الإنترنت."
+
+msgid "become_means_seen"
+msgstr "يمكنه رؤية وقت اتصالك. لا تقبل الدعوات إلا من أشخاص تعرفهم."
+
+msgid "become_means_remove"
+msgstr "يمكنك إزالة الاتصال في أي وقت."
+
+msgid "help_friend_form_title"
+msgstr "الصق الرابط من الشخص الذي تساعده"
+
+msgid "help_friend_link_hint"
+msgstr "إذا فتحت الرابط على هذا الجهاز، فسيُملأ هذا الحقل تلقائيًا"
+
+msgid "help_friend_name_label"
+msgstr "اسمك كما يعرفك صديقك"
+
+msgid "help_friend_name_hint"
+msgstr "هكذا يظهر اسمك في Lantern لدى صديقك"
+
+msgid "help_friend_become"
+msgstr "كن الوكيل الشخصي لصديقك"
+
+msgid "help_friend_tell_code"
+msgstr "أخبر صديقك بهذا الرمز"
+
+msgid "help_friend_code_check"
+msgstr "سيتحقق من مطابقته للرمز الظاهر على هاتفه، ثم يوافق عليك."
+
+msgid "help_friend_waiting_approval"
+msgstr "في انتظار الموافقة"
+
+msgid "help_friend_code_note"
+msgstr "أخبره بالرمز عبر مكالمة أو في تطبيق غير الذي وصل فيه رابط الدعوة. يجب ألا يرى الرمز أي شخص رأى الرابط."
+
+msgid "become_personal_proxy_body"
+msgstr "ساعد شخصًا تعرفه على الاتصال بالإنترنت"
+
+msgid "helping_connections_title"
+msgstr "اتصالات Personal Proxy الخاصة بك"
+
+msgid "helping_friends_one"
+msgstr "صديق واحد"
+
+msgid "helping_friends_count"
+msgstr "الأصدقاء: %s"
+
+msgid "helping_connected_named"
+msgstr "%s متصل الآن"
+
+msgid "helping_connected_count"
+msgstr "عدد المتصلين الآن: %s"
+
+msgid "helping_sheet_title"
+msgstr "أصدقاء تساعدهم"
+
+msgid "helping_your_friends"
+msgstr "أصدقاؤك"
+
+msgid "helping_connected"
+msgstr "متصل"
+
+msgid "helping_not_connected"
+msgstr "غير متصل"
+
+msgid "helping_paste_another"
+msgstr "لصق رابط دعوة آخر"
+
+msgid "helping_data_relayed"
+msgstr "البيانات المُرحّلة اليوم"
+
+msgid "helping_active_today"
+msgstr "نشط: %s"

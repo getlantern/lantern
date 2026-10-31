@@ -2181,3 +2181,111 @@ msgstr "%s ঘণ্টা %s মিনিট"
 
 msgid "helping_duration_m"
 msgstr "%s মিনিট"
+
+msgid "invite_share_title"
+msgstr "দেশের বাইরে আপনার বিশ্বস্ত কারও সাথে এই লিংক শেয়ার করুন"
+
+msgid "invite_share_steps"
+msgstr "তিনি লিংকটি খুলবেন, প্রয়োজনে Lantern ইনস্টল করবেন এবং নিজের নাম লিখবেন। একটি ৪ সংখ্যার কোড মিলিয়ে আপনি তাঁকে অনুমোদন করবেন, তারপর তাঁর মাধ্যমে সংযোগ করতে পারবেন।"
+
+msgid "invite_link_label"
+msgstr "আপনার আমন্ত্রণ লিংক"
+
+msgid "invite_link_expiry"
+msgstr "একবারই কাজ করে এবং ৪৮ ঘণ্টায় মেয়াদ শেষ হয়।"
+
+msgid "approve_title"
+msgstr "%s আপনার পার্সোনাল প্রক্সি হতে চান"
+
+msgid "approve_body"
+msgstr "%s কে Lantern যে ৪ অঙ্কের কোড দেখাচ্ছে তা জিজ্ঞেস করুন, কলে বা লিংক পাঠানো অ্যাপ ছাড়া অন্য কোনো অ্যাপে। কোড মিললেই কেবল অনুমোদন করুন।"
+
+msgid "approve_codes_match"
+msgstr "কোড মিলেছে, অনুমোদন করুন"
+
+msgid "approve_reject"
+msgstr "প্রত্যাখ্যান করুন"
+
+msgid "personal_proxy_fallback_group"
+msgstr "এই মুহূর্তে %s এর সাথে সংযোগ করা যাচ্ছে না। আপনার ব্যক্তিগত প্রক্সিতে পরিবর্তন করা হয়েছে।"
+
+msgid "become_means_title"
+msgstr "পার্সোনাল প্রক্সি হওয়ার অর্থ কী"
+
+msgid "become_means_traffic"
+msgstr "একজন বন্ধু আপনার সাহায্য চেয়েছেন। Action Mode চালু থাকার সময় তারা আপনার সংযোগের মাধ্যমে মুক্ত ইন্টারনেটে যেতে পারেন। আপনার রাউটারের ওপর নির্ভর করে, তাদের ট্রাফিক আপনার নেটওয়ার্ক থেকে বের হয় অথবা Lantern এর সার্ভারের মাধ্যমে পাঠানো হয়। তারা অনলাইনে কী করেন, Lantern তা আপনাকে দেখায় না।"
+
+msgid "become_means_seen"
+msgstr "আপনি কখন সংযুক্ত আছেন তা তারা দেখতে পারেন। শুধু পরিচিত মানুষের আমন্ত্রণ গ্রহণ করুন।"
+
+msgid "become_means_remove"
+msgstr "যেকোনো সময় সংযোগটি সরিয়ে দিতে পারেন।"
+
+msgid "help_friend_form_title"
+msgstr "যাকে সাহায্য করছেন তার পাঠানো লিংকটি পেস্ট করুন"
+
+msgid "help_friend_link_hint"
+msgstr "এই ডিভাইসে লিংকটি খুলে থাকলে এটি আপনার জন্য পূরণ করা থাকবে"
+
+msgid "help_friend_name_label"
+msgstr "আপনার নাম, যে নামে তারা আপনাকে চেনে"
+
+msgid "help_friend_name_hint"
+msgstr "তাদের Lantern-এ আপনাকে এভাবেই দেখাবে"
+
+msgid "help_friend_become"
+msgstr "তাদের ব্যক্তিগত প্রক্সি হন"
+
+msgid "help_friend_tell_code"
+msgstr "তাদের এই কোডটি বলুন"
+
+msgid "help_friend_code_check"
+msgstr "তিনি দেখবেন এটি তার ফোনের কোডের সাথে মেলে কি না, তারপর আপনাকে অনুমোদন দেবেন।"
+
+msgid "help_friend_waiting_approval"
+msgstr "অনুমোদনের অপেক্ষায়"
+
+msgid "help_friend_code_note"
+msgstr "কোডটি কলে বা আমন্ত্রণ লিংক যে অ্যাপে এসেছে তা ছাড়া অন্য কোনো অ্যাপে বলুন। যে লিংকটি দেখেছে, সে যেন কোডটিও না দেখে।"
+
+msgid "become_personal_proxy"
+msgstr "ব্যক্তিগত প্রক্সি হোন"
+
+msgid "become_personal_proxy_body"
+msgstr "আপনার পরিচিত কাউকে অনলাইনে আসতে সাহায্য করুন"
+
+msgid "helping_connections_title"
+msgstr "আপনার Personal Proxy সংযোগ"
+
+msgid "helping_friends_one"
+msgstr "১ জন বন্ধু"
+
+msgid "helping_friends_count"
+msgstr "%s জন বন্ধু"
+
+msgid "helping_connected_named"
+msgstr "%s এখন সংযুক্ত"
+
+msgid "helping_connected_count"
+msgstr "এখন সংযুক্ত: %s"
+
+msgid "helping_sheet_title"
+msgstr "যে বন্ধুদের আপনি সাহায্য করছেন"
+
+msgid "helping_your_friends"
+msgstr "আপনার বন্ধুরা"
+
+msgid "helping_connected"
+msgstr "সংযুক্ত"
+
+msgid "helping_not_connected"
+msgstr "সংযুক্ত নয়"
+
+msgid "helping_paste_another"
+msgstr "আরেকটি আমন্ত্রণ লিংক পেস্ট করুন"
+
+msgid "helping_data_relayed"
+msgstr "আজ রিলে করা ডেটা"
+
+msgid "helping_active_today"
+msgstr "সক্রিয়: %s"

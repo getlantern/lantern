@@ -2185,3 +2185,114 @@ msgstr "%s giờ %s phút"
 
 msgid "helping_duration_m"
 msgstr "%s phút"
+
+msgid "invite_share_title"
+msgstr "Chia sẻ liên kết này với người bạn tin tưởng ở ngoài nước"
+
+msgid "invite_share_steps"
+msgstr "Người đó mở liên kết, cài Lantern nếu cần và nhập tên. Bạn sẽ chấp thuận bằng cách kiểm tra mã 4 chữ số, sau đó có thể kết nối thông qua họ."
+
+msgid "invite_link_label"
+msgstr "Liên kết mời của bạn"
+
+msgid "invite_link_expiry"
+msgstr "Chỉ dùng được một lần và hết hạn sau 48 giờ."
+
+msgid "approve_title"
+msgstr "%s muốn làm proxy cá nhân của bạn"
+
+msgid "approve_body"
+msgstr "Hỏi %s mã 4 chữ số mà Lantern hiển thị cho họ, qua cuộc gọi hoặc trong ứng dụng khác với ứng dụng bạn đã gửi liên kết. Chỉ chấp thuận nếu mã trùng khớp."
+
+msgid "approve_codes_match"
+msgstr "Mã trùng khớp, chấp thuận"
+
+msgid "approve_reject"
+msgstr "Từ chối"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Proxy cá nhân của bạn."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Vị trí thông minh."
+
+msgid "become_means_title"
+msgstr "Làm proxy cá nhân nghĩa là gì"
+
+msgid "become_means_traffic"
+msgstr "Một người bạn đã nhờ bạn giúp đỡ. Khi Action Mode đang chạy, họ có thể truy cập internet mở qua kết nối của bạn. Tùy vào bộ định tuyến của bạn, lưu lượng của họ đi ra từ mạng của bạn hoặc được chuyển tiếp qua máy chủ của Lantern. Lantern không cho bạn thấy họ làm gì trên mạng."
+
+msgid "become_means_seen"
+msgstr "Họ có thể thấy khi nào bạn đang kết nối. Chỉ chấp nhận lời mời từ người bạn quen biết."
+
+msgid "become_means_remove"
+msgstr "Gỡ kết nối bất cứ lúc nào."
+
+msgid "help_friend_form_title"
+msgstr "Dán liên kết từ người mà bạn đang giúp"
+
+msgid "help_friend_link_hint"
+msgstr "Nếu bạn đã mở liên kết trên thiết bị này, mục này sẽ được điền sẵn"
+
+msgid "help_friend_name_label"
+msgstr "Tên của bạn mà bạn bè biết"
+
+msgid "help_friend_name_hint"
+msgstr "Đây là cách bạn hiển thị trong Lantern của bạn bè"
+
+msgid "help_friend_become"
+msgstr "Trở thành proxy cá nhân của bạn bè"
+
+msgid "help_friend_tell_code"
+msgstr "Cho bạn bè biết mã này"
+
+msgid "help_friend_code_check"
+msgstr "Họ sẽ kiểm tra xem mã có khớp với mã trên điện thoại của họ không, rồi phê duyệt bạn."
+
+msgid "help_friend_waiting_approval"
+msgstr "Đang chờ phê duyệt"
+
+msgid "help_friend_code_note"
+msgstr "Hãy đọc mã qua cuộc gọi hoặc trong một ứng dụng khác với ứng dụng đã nhận liên kết mời. Người đã thấy liên kết không được thấy cả mã."
+
+msgid "become_personal_proxy"
+msgstr "Trở thành proxy cá nhân"
+
+msgid "become_personal_proxy_body"
+msgstr "Giúp người quen của bạn truy cập mạng"
+
+msgid "helping_connections_title"
+msgstr "Kết nối Personal Proxy của bạn"
+
+msgid "helping_friends_one"
+msgstr "1 người bạn"
+
+msgid "helping_friends_count"
+msgstr "%s người bạn"
+
+msgid "helping_connected_named"
+msgstr "%s hiện đã kết nối"
+
+msgid "helping_connected_count"
+msgstr "Hiện có %s người đã kết nối"
+
+msgid "helping_sheet_title"
+msgstr "Bạn bè bạn đang giúp"
+
+msgid "helping_your_friends"
+msgstr "Bạn bè của bạn"
+
+msgid "helping_connected"
+msgstr "Đã kết nối"
+
+msgid "helping_not_connected"
+msgstr "Chưa kết nối"
+
+msgid "helping_paste_another"
+msgstr "Dán liên kết mời khác"
+
+msgid "helping_data_relayed"
+msgstr "Dữ liệu đã chuyển tiếp hôm nay"
+
+msgid "helping_active_today"
+msgstr "Hoạt động %s"

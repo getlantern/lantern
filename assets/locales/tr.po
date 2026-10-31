@@ -2187,3 +2187,114 @@ msgstr "%s sa %s dk"
 
 msgid "helping_duration_m"
 msgstr "%s dk"
+
+msgid "invite_share_title"
+msgstr "Bu bağlantıyı ülkeniz dışında güvendiğiniz biriyle paylaşın"
+
+msgid "invite_share_steps"
+msgstr "Kişi bağlantıyı açar, gerekirse Lantern'i yükler ve adını girer. 4 haneli bir kodu kontrol ederek onu onaylarsınız, ardından onun üzerinden bağlanabilirsiniz."
+
+msgid "invite_link_label"
+msgstr "Davet bağlantınız"
+
+msgid "invite_link_expiry"
+msgstr "Yalnızca bir kez çalışır ve 48 saat içinde sona erer."
+
+msgid "approve_title"
+msgstr "%s Kişisel Proxy'niz olmak istiyor"
+
+msgid "approve_body"
+msgstr "Lantern'ın gösterdiği 4 haneli kodu bir aramada veya bağlantıyı gönderdiğiniz uygulamadan farklı bir uygulamada şu kişiye sorun: %s. Yalnızca eşleşirse onaylayın."
+
+msgid "approve_codes_match"
+msgstr "Kodlar Eşleşiyor, Onayla"
+
+msgid "approve_reject"
+msgstr "Reddet"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Şu anda ulaşılamıyor: %s. Kişisel proxy'leriniz seçeneğine geçildi."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Şu anda ulaşılamıyor: %s. Akıllı Konum'a geçildi."
+
+msgid "become_means_title"
+msgstr "Kişisel Proxy olmak ne demek"
+
+msgid "become_means_traffic"
+msgstr "Bir arkadaşınız sizden yardım istedi. Action Mode çalışırken bağlantınız üzerinden açık internete erişebilir. Yönlendiricinize bağlı olarak trafiği ağınızdan çıkar veya Lantern sunucuları üzerinden aktarılır. Lantern, çevrimiçi ne yaptığını size göstermez."
+
+msgid "become_means_seen"
+msgstr "Ne zaman bağlı olduğunuzu görebilirler. Yalnızca tanıdığınız kişilerden gelen davetleri kabul edin."
+
+msgid "become_means_remove"
+msgstr "Bağlantıyı istediğiniz zaman kaldırın."
+
+msgid "help_friend_form_title"
+msgstr "Yardım ettiğiniz kişiden gelen bağlantıyı yapıştırın"
+
+msgid "help_friend_link_hint"
+msgstr "Bağlantıyı bu cihazda açtıysanız bu alan sizin için doldurulur"
+
+msgid "help_friend_name_label"
+msgstr "Sizi tanıdıkları adınız"
+
+msgid "help_friend_name_hint"
+msgstr "Arkadaşınızın Lantern uygulamasında bu şekilde görünürsünüz"
+
+msgid "help_friend_become"
+msgstr "Arkadaşınızın Kişisel Proxy'si Olun"
+
+msgid "help_friend_tell_code"
+msgstr "Bu kodu arkadaşınıza söyleyin"
+
+msgid "help_friend_code_check"
+msgstr "Karşı taraf kodun kendi telefonundaki kodla eşleştiğini kontrol edip sizi onaylayacak."
+
+msgid "help_friend_waiting_approval"
+msgstr "Onay bekleniyor"
+
+msgid "help_friend_code_note"
+msgstr "Kodu bir aramada veya davet bağlantısının geldiği uygulamadan farklı bir uygulamada söyleyin. Bağlantıyı gören kişi kodu da görmemeli."
+
+msgid "become_personal_proxy"
+msgstr "Kişisel Proxy Ol"
+
+msgid "become_personal_proxy_body"
+msgstr "Tanıdığınız birinin internete bağlanmasına yardım edin"
+
+msgid "helping_connections_title"
+msgstr "Personal Proxy bağlantılarınız"
+
+msgid "helping_friends_one"
+msgstr "1 arkadaş"
+
+msgid "helping_friends_count"
+msgstr "%s arkadaş"
+
+msgid "helping_connected_named"
+msgstr "%s şu anda bağlı"
+
+msgid "helping_connected_count"
+msgstr "Şu anda bağlı: %s"
+
+msgid "helping_sheet_title"
+msgstr "Yardım ettiğiniz arkadaşlar"
+
+msgid "helping_your_friends"
+msgstr "Arkadaşlarınız"
+
+msgid "helping_connected"
+msgstr "Bağlı"
+
+msgid "helping_not_connected"
+msgstr "Bağlı değil"
+
+msgid "helping_paste_another"
+msgstr "Başka Bir Davet Bağlantısı Yapıştır"
+
+msgid "helping_data_relayed"
+msgstr "Bugün aktarılan veri"
+
+msgid "helping_active_today"
+msgstr "Etkin: %s"

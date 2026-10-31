@@ -2031,3 +2031,114 @@ msgstr "%s 小时 %s 分钟"
 
 msgid "helping_duration_m"
 msgstr "%s 分钟"
+
+msgid "invite_share_title"
+msgstr "将此链接分享给您信任的境外人士"
+
+msgid "invite_share_steps"
+msgstr "对方打开链接，如有需要安装 Lantern，然后输入名字。您核对 4 位数验证码后批准对方，即可通过对方连接。"
+
+msgid "invite_link_label"
+msgstr "您的邀请链接"
+
+msgid "invite_link_expiry"
+msgstr "仅可使用一次，48 小时后失效。"
+
+msgid "approve_title"
+msgstr "%s 想成为您的个人代理"
+
+msgid "approve_body"
+msgstr "通过电话或发送链接以外的其他应用，向 %s 询问蓝灯显示给对方的 4 位验证码。仅在一致时批准。"
+
+msgid "approve_codes_match"
+msgstr "验证码一致，批准"
+
+msgid "approve_reject"
+msgstr "拒绝"
+
+msgid "personal_proxy_fallback_group"
+msgstr "暂时无法连接 %s。已切换到您的个人代理。"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "暂时无法连接 %s。已切换到智能位置。"
+
+msgid "become_means_title"
+msgstr "成为个人代理意味着什么"
+
+msgid "become_means_traffic"
+msgstr "一位朋友向您求助。Action Mode 运行期间，对方可以通过您的连接访问开放的互联网。根据您的路由器情况，对方的流量会从您的网络发出，或经由蓝灯的服务器中转。蓝灯不会向您显示对方的网上活动。"
+
+msgid "become_means_seen"
+msgstr "对方可以看到您何时在线连接。只接受认识的人发来的邀请。"
+
+msgid "become_means_remove"
+msgstr "您可以随时移除此连接。"
+
+msgid "help_friend_form_title"
+msgstr "粘贴您所帮助之人发来的链接"
+
+msgid "help_friend_link_hint"
+msgstr "如果您在此设备上打开了链接，此处会自动填写"
+
+msgid "help_friend_name_label"
+msgstr "朋友所知道的您的名字"
+
+msgid "help_friend_name_hint"
+msgstr "您在朋友的蓝灯中将显示为此名称"
+
+msgid "help_friend_become"
+msgstr "成为朋友的专属代理"
+
+msgid "help_friend_tell_code"
+msgstr "把此代码告诉朋友"
+
+msgid "help_friend_code_check"
+msgstr "对方会核对它与其手机上的代码是否一致，然后批准您。"
+
+msgid "help_friend_waiting_approval"
+msgstr "等待批准"
+
+msgid "help_friend_code_note"
+msgstr "通过通话或在收到邀请链接的应用以外的其他应用中告知代码。看到链接的人不应同时看到代码。"
+
+msgid "become_personal_proxy"
+msgstr "成为个人代理"
+
+msgid "become_personal_proxy_body"
+msgstr "帮助您认识的人上网"
+
+msgid "helping_connections_title"
+msgstr "您的 Personal Proxy 连接"
+
+msgid "helping_friends_one"
+msgstr "1 位好友"
+
+msgid "helping_friends_count"
+msgstr "%s 位好友"
+
+msgid "helping_connected_named"
+msgstr "%s 当前已连接"
+
+msgid "helping_connected_count"
+msgstr "当前 %s 人已连接"
+
+msgid "helping_sheet_title"
+msgstr "您正在帮助的好友"
+
+msgid "helping_your_friends"
+msgstr "您的好友"
+
+msgid "helping_connected"
+msgstr "已连接"
+
+msgid "helping_not_connected"
+msgstr "未连接"
+
+msgid "helping_paste_another"
+msgstr "粘贴另一个邀请链接"
+
+msgid "helping_data_relayed"
+msgstr "今日中继数据"
+
+msgid "helping_active_today"
+msgstr "已活跃 %s"

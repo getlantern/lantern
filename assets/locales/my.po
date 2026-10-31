@@ -2223,3 +2223,111 @@ msgstr "%s နာရီ %s မိနစ်"
 
 msgid "helping_duration_m"
 msgstr "%s မိနစ်"
+
+msgid "invite_share_title"
+msgstr "ဤလင့်ခ်ကို နိုင်ငံပြင်ပရှိ သင်ယုံကြည်သူနှင့် မျှဝေပါ"
+
+msgid "invite_share_steps"
+msgstr "သူတို့သည် လင့်ခ်ကိုဖွင့်ပြီး လိုအပ်ပါက Lantern ကို ထည့်သွင်းကာ ၎င်းတို့၏အမည်ကို ရိုက်ထည့်ပါမည်။ ဂဏန်း 4 လုံးကုဒ်ကို စစ်ဆေး၍ သင်အတည်ပြုပြီးနောက် ၎င်းတို့မှတစ်ဆင့် ချိတ်ဆက်နိုင်ပါမည်။"
+
+msgid "invite_link_label"
+msgstr "သင်၏ ဖိတ်ကြားလင့်ခ်"
+
+msgid "invite_link_expiry"
+msgstr "တစ်ကြိမ်သာ အသုံးပြုနိုင်ပြီး 48 နာရီအတွင်း သက်တမ်းကုန်ပါမည်။"
+
+msgid "approve_title"
+msgstr "%s သည် သင်၏ ကိုယ်ပိုင် Proxy ဖြစ်လိုပါသည်"
+
+msgid "approve_body"
+msgstr "Lantern က ပြသထားသော ဂဏန်း 4 လုံးကုဒ်ကို %s ထံ ဖုန်းခေါ်၍ သို့မဟုတ် လင့်ခ်ပို့ခဲ့သည့်အက်ပ်မှလွဲ၍ အခြားအက်ပ်တွင် မေးပါ။ ကိုက်ညီမှသာ အတည်ပြုပါ။"
+
+msgid "approve_codes_match"
+msgstr "ကုဒ်ကိုက်ညီသည်၊ အတည်ပြုပါ"
+
+msgid "approve_reject"
+msgstr "ငြင်းပယ်ရန်"
+
+msgid "personal_proxy_fallback_group"
+msgstr "ယခု %s ထံ မချိတ်ဆက်နိုင်ပါ။ သင့်ကိုယ်ပိုင် proxy များသို့ ပြောင်းထားသည်။"
+
+msgid "become_means_title"
+msgstr "ကိုယ်ပိုင် Proxy ဖြစ်ခြင်း၏ အဓိပ္ပာယ်"
+
+msgid "become_means_traffic"
+msgstr "သူငယ်ချင်းတစ်ဦးက သင့်အကူအညီ တောင်းခဲ့သည်။ Action Mode ဖွင့်ထားစဉ် သူတို့သည် သင့်ချိတ်ဆက်မှုမှတစ်ဆင့် ပွင့်လင်းသော အင်တာနက်ကို သုံးနိုင်သည်။ သင့် router ပေါ်မူတည်၍ သူတို့၏ traffic သည် သင့်ကွန်ရက်မှ ထွက်သွားသည် သို့မဟုတ် Lantern ၏ ဆာဗာများမှတစ်ဆင့် ပို့သည်။ သူတို့ အွန်လိုင်းတွင် ဘာလုပ်သည်ကို Lantern က သင့်အား မပြပါ။"
+
+msgid "become_means_seen"
+msgstr "သင် ချိတ်ဆက်ထားချိန်ကို သူတို့ မြင်နိုင်ပါသည်။ သင်သိသူများထံမှ ဖိတ်ကြားချက်ကိုသာ လက်ခံပါ။"
+
+msgid "become_means_remove"
+msgstr "ချိတ်ဆက်မှုကို အချိန်မရွေး ဖယ်ရှားနိုင်ပါသည်။"
+
+msgid "help_friend_form_title"
+msgstr "သင်ကူညီနေသူထံမှ လင့်ခ်ကို ကူးထည့်ပါ"
+
+msgid "help_friend_link_hint"
+msgstr "ဤစက်ပေါ်တွင် လင့်ခ်ကို ဖွင့်ခဲ့ပါက ဤနေရာကို အလိုအလျောက် ဖြည့်ပေးထားပါသည်"
+
+msgid "help_friend_name_label"
+msgstr "သူတို့ သိသော သင့်အမည်"
+
+msgid "help_friend_name_hint"
+msgstr "သူတို့၏ Lantern တွင် သင် ဤသို့ ပေါ်မည်ဖြစ်သည်"
+
+msgid "help_friend_become"
+msgstr "သူတို့၏ ကိုယ်ပိုင် ပရောက်စီ ဖြစ်လာပါ"
+
+msgid "help_friend_tell_code"
+msgstr "ဤကုဒ်ကို သူတို့အား ပြောပြပါ"
+
+msgid "help_friend_code_check"
+msgstr "၎င်းတို့ဖုန်းပေါ်ရှိ ကုဒ်နှင့် ကိုက်ညီကြောင်း စစ်ဆေးပြီး သင့်ကို အတည်ပြုပါမည်။"
+
+msgid "help_friend_waiting_approval"
+msgstr "အတည်ပြုချက်ကို စောင့်နေသည်"
+
+msgid "help_friend_code_note"
+msgstr "ကုဒ်ကို ဖုန်းခေါ်ဆိုမှုဖြင့် သို့မဟုတ် ဖိတ်ကြားလင့်ခ် ရောက်လာသည့်အက်ပ်မှလွဲ၍ အခြားအက်ပ်တွင် ပြောပါ။ လင့်ခ်ကို မြင်ခဲ့သူသည် ကုဒ်ကိုပါ မမြင်သင့်ပါ။"
+
+msgid "become_personal_proxy"
+msgstr "ကိုယ်ပိုင် Proxy ဖြစ်လာပါ"
+
+msgid "become_personal_proxy_body"
+msgstr "သင်သိသူတစ်ဦးကို အွန်လိုင်းရောက်အောင် ကူညီပါ"
+
+msgid "helping_connections_title"
+msgstr "သင်၏ Personal Proxy ချိတ်ဆက်မှုများ"
+
+msgid "helping_friends_one"
+msgstr "သူငယ်ချင်း 1 ယောက်"
+
+msgid "helping_friends_count"
+msgstr "သူငယ်ချင်း %s ယောက်"
+
+msgid "helping_connected_named"
+msgstr "%s ယခု ချိတ်ဆက်ထားသည်"
+
+msgid "helping_connected_count"
+msgstr "ယခု ချိတ်ဆက်ထားသူ: %s"
+
+msgid "helping_sheet_title"
+msgstr "သင်ကူညီနေသော သူငယ်ချင်းများ"
+
+msgid "helping_your_friends"
+msgstr "သင့်သူငယ်ချင်းများ"
+
+msgid "helping_connected"
+msgstr "ချိတ်ဆက်ထားသည်"
+
+msgid "helping_not_connected"
+msgstr "ချိတ်ဆက်မထားပါ"
+
+msgid "helping_paste_another"
+msgstr "နောက်ထပ် ဖိတ်ကြားလင့်ခ် ကူးထည့်ရန်"
+
+msgid "helping_data_relayed"
+msgstr "ယနေ့ ထပ်ဆင့်ပို့ခဲ့သော ဒေတာ"
+
+msgid "helping_active_today"
+msgstr "အသုံးပြုချိန် %s"

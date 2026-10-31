@@ -2000,3 +2000,108 @@ msgstr "%s h %s min"
 
 msgid "helping_duration_m"
 msgstr "%s min"
+
+msgid "invite_share_title"
+msgstr "Partagez ce lien avec une personne de confiance hors de votre pays"
+
+msgid "invite_share_steps"
+msgstr "La personne ouvre le lien, installe Lantern au besoin et entre son nom. Vous l'approuvez en vérifiant un code à 4 chiffres, puis vous pouvez vous connecter par son intermédiaire."
+
+msgid "invite_link_label"
+msgstr "Votre lien d'invitation"
+
+msgid "invite_link_expiry"
+msgstr "Utilisable une seule fois, expire dans 48 heures."
+
+msgid "approve_body"
+msgstr "Demandez à %s le code à 4 chiffres affiché par Lantern, par appel ou dans une autre application que celle utilisée pour envoyer le lien. N'approuvez que s'il correspond."
+
+msgid "approve_codes_match"
+msgstr "Les codes correspondent, approuver"
+
+msgid "approve_reject"
+msgstr "Refuser"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Impossible de joindre %s pour le moment. Passage à Vos mandataires personnels."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Impossible de joindre %s pour le moment. Passage à Emplacement intelligent."
+
+msgid "become_means_title"
+msgstr "Être un mandataire personnel : ce que cela implique"
+
+msgid "become_means_traffic"
+msgstr "Un proche vous a demandé de l'aide. Tant que Action Mode est actif, il peut accéder à l'Internet libre par votre connexion. Selon votre routeur, son trafic sort de votre réseau ou transite par les serveurs de Lantern. Lantern ne vous montre pas ce qu'il fait en ligne."
+
+msgid "become_means_seen"
+msgstr "Ces personnes voient quand votre connexion est active. N'acceptez que les invitations de personnes que vous connaissez."
+
+msgid "become_means_remove"
+msgstr "Supprimez la connexion en tout temps."
+
+msgid "help_friend_form_title"
+msgstr "Collez le lien de la personne que vous aidez"
+
+msgid "help_friend_link_hint"
+msgstr "Si vous avez ouvert le lien sur cet appareil, ce champ est déjà rempli"
+
+msgid "help_friend_name_label"
+msgstr "Votre nom, tel que la personne vous connaît"
+
+msgid "help_friend_name_hint"
+msgstr "C'est ainsi que vous apparaîtrez dans son Lantern"
+
+msgid "help_friend_become"
+msgstr "Devenir son proxy personnel"
+
+msgid "help_friend_tell_code"
+msgstr "Communiquez-lui ce code"
+
+msgid "help_friend_code_check"
+msgstr "Cette personne vérifiera qu'il correspond au code affiché sur son cellulaire, puis vous approuvera."
+
+msgid "help_friend_waiting_approval"
+msgstr "En attente d'approbation"
+
+msgid "help_friend_code_note"
+msgstr "Communiquez le code par appel ou dans une autre application que celle où le lien d'invitation est arrivé. Quiconque a vu le lien ne doit pas voir aussi le code."
+
+msgid "become_personal_proxy_body"
+msgstr "Aidez une personne que vous connaissez à se connecter"
+
+msgid "helping_connections_title"
+msgstr "Vos connexions Personal Proxy"
+
+msgid "helping_friends_one"
+msgstr "1 ami"
+
+msgid "helping_friends_count"
+msgstr "%s amis"
+
+msgid "helping_connected_named"
+msgstr "%s est en ligne"
+
+msgid "helping_connected_count"
+msgstr "Connexions en cours : %s"
+
+msgid "helping_sheet_title"
+msgstr "Amis que vous aidez"
+
+msgid "helping_your_friends"
+msgstr "Vos amis"
+
+msgid "helping_connected"
+msgstr "Connecté"
+
+msgid "helping_not_connected"
+msgstr "Non connecté"
+
+msgid "helping_paste_another"
+msgstr "Coller un autre lien d’invitation"
+
+msgid "helping_data_relayed"
+msgstr "Données relayées aujourd'hui"
+
+msgid "helping_active_today"
+msgstr "Actif : %s"

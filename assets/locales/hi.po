@@ -2185,3 +2185,111 @@ msgstr "%s घं %s मि"
 
 msgid "helping_duration_m"
 msgstr "%s मि"
+
+msgid "invite_share_title"
+msgstr "यह लिंक अपने देश के बाहर किसी भरोसेमंद व्यक्ति के साथ साझा करें"
+
+msgid "invite_share_steps"
+msgstr "वे लिंक खोलेंगे, ज़रूरत हो तो Lantern इंस्टॉल करेंगे और अपना नाम डालेंगे। आप 4 अंकों का कोड जांचकर उन्हें स्वीकृत करेंगे, फिर उनके ज़रिए कनेक्ट कर सकेंगे।"
+
+msgid "invite_link_label"
+msgstr "आपका आमंत्रण लिंक"
+
+msgid "invite_link_expiry"
+msgstr "यह एक बार काम करता है और 48 घंटे में समाप्त हो जाता है।"
+
+msgid "approve_title"
+msgstr "%s आपका पर्सनल प्रॉक्सी बनना चाहते हैं"
+
+msgid "approve_body"
+msgstr "%s से वह 4 अंकों का कोड पूछें जो Lantern उन्हें दिखा रहा है, कॉल पर या उस ऐप से अलग किसी ऐप में जिसमें आपने लिंक भेजा था। कोड मेल खाने पर ही मंज़ूरी दें।"
+
+msgid "approve_codes_match"
+msgstr "कोड मेल खाते हैं, मंज़ूर करें"
+
+msgid "approve_reject"
+msgstr "अस्वीकार करें"
+
+msgid "personal_proxy_fallback_group"
+msgstr "अभी %s तक नहीं पहुंच पा रहे। आपकी निजी प्रॉक्सी पर स्विच किया गया।"
+
+msgid "become_means_title"
+msgstr "पर्सनल प्रॉक्सी होने का क्या मतलब है"
+
+msgid "become_means_traffic"
+msgstr "एक दोस्त ने आपसे मदद मांगी है। जब तक Action Mode चल रहा है, वे आपके कनेक्शन के ज़रिए खुले इंटरनेट तक पहुंच सकते हैं। आपके राउटर के अनुसार, उनका ट्रैफ़िक आपके नेटवर्क से निकलता है या Lantern के सर्वर से होकर जाता है। वे ऑनलाइन क्या करते हैं, Lantern आपको नहीं दिखाता।"
+
+msgid "become_means_seen"
+msgstr "वे देख सकते हैं कि आप कब कनेक्ट हैं। केवल उन्हीं लोगों के आमंत्रण स्वीकार करें जिन्हें आप जानते हैं।"
+
+msgid "become_means_remove"
+msgstr "कनेक्शन को कभी भी हटाएं।"
+
+msgid "help_friend_form_title"
+msgstr "जिसकी आप मदद कर रहे हैं, उसका लिंक पेस्ट करें"
+
+msgid "help_friend_link_hint"
+msgstr "अगर आपने इस डिवाइस पर लिंक खोला है, तो यह अपने आप भर जाता है"
+
+msgid "help_friend_name_label"
+msgstr "आपका नाम, जिससे वे आपको जानते हैं"
+
+msgid "help_friend_name_hint"
+msgstr "उनके Lantern में आप इसी तरह दिखेंगे"
+
+msgid "help_friend_become"
+msgstr "उनका निजी प्रॉक्सी बनें"
+
+msgid "help_friend_tell_code"
+msgstr "उन्हें यह कोड बताएं"
+
+msgid "help_friend_code_check"
+msgstr "वे जांचेंगे कि यह उनके फ़ोन पर दिख रहे कोड से मेल खाता है, फिर आपको स्वीकृति देंगे।"
+
+msgid "help_friend_waiting_approval"
+msgstr "स्वीकृति का इंतज़ार है"
+
+msgid "help_friend_code_note"
+msgstr "कोड कॉल पर या उस ऐप के अलावा किसी दूसरे ऐप में बताएं जिसमें आमंत्रण लिंक आया था। जिसने लिंक देखा है, उसे कोड भी नहीं दिखना चाहिए।"
+
+msgid "become_personal_proxy"
+msgstr "पर्सनल प्रॉक्सी बनें"
+
+msgid "become_personal_proxy_body"
+msgstr "किसी जान-पहचान वाले को ऑनलाइन आने में मदद करें"
+
+msgid "helping_connections_title"
+msgstr "आपके Personal Proxy कनेक्शन"
+
+msgid "helping_friends_one"
+msgstr "1 दोस्त"
+
+msgid "helping_friends_count"
+msgstr "%s दोस्त"
+
+msgid "helping_connected_named"
+msgstr "%s अभी कनेक्टेड है"
+
+msgid "helping_connected_count"
+msgstr "अभी कनेक्टेड: %s"
+
+msgid "helping_sheet_title"
+msgstr "दोस्त जिनकी आप मदद कर रहे हैं"
+
+msgid "helping_your_friends"
+msgstr "आपके दोस्त"
+
+msgid "helping_connected"
+msgstr "कनेक्टेड"
+
+msgid "helping_not_connected"
+msgstr "कनेक्ट नहीं है"
+
+msgid "helping_paste_another"
+msgstr "दूसरा आमंत्रण लिंक पेस्ट करें"
+
+msgid "helping_data_relayed"
+msgstr "आज रिले किया गया डेटा"
+
+msgid "helping_active_today"
+msgstr "सक्रिय: %s"

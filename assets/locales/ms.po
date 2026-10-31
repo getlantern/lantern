@@ -2194,3 +2194,114 @@ msgstr "%s j %s m"
 
 msgid "helping_duration_m"
 msgstr "%s m"
+
+msgid "invite_share_title"
+msgstr "Kongsi pautan ini dengan seseorang yang anda percayai di luar negara anda"
+
+msgid "invite_share_steps"
+msgstr "Mereka membuka pautan, memasang Lantern jika perlu dan memasukkan nama mereka. Anda akan meluluskan mereka dengan menyemak kod 4 digit, kemudian anda boleh bersambung melalui mereka."
+
+msgid "invite_link_label"
+msgstr "Pautan jemputan anda"
+
+msgid "invite_link_expiry"
+msgstr "Berfungsi sekali sahaja dan tamat tempoh dalam 48 jam."
+
+msgid "approve_title"
+msgstr "%s mahu menjadi Proksi Peribadi anda"
+
+msgid "approve_body"
+msgstr "Minta %s kod 4 digit yang Lantern tunjukkan kepada mereka, melalui panggilan atau dalam aplikasi lain daripada yang anda gunakan untuk menghantar pautan. Luluskan hanya jika ia sepadan."
+
+msgid "approve_codes_match"
+msgstr "Kod Sepadan, Luluskan"
+
+msgid "approve_reject"
+msgstr "Tolak"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Tidak dapat menghubungi %s sekarang. Ditukar ke Proksi peribadi anda."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Tidak dapat menghubungi %s sekarang. Ditukar ke Lokasi Pintar."
+
+msgid "become_means_title"
+msgstr "Maksud menjadi Proksi Peribadi"
+
+msgid "become_means_traffic"
+msgstr "Seorang rakan meminta bantuan anda. Semasa Action Mode berjalan, mereka boleh mengakses internet terbuka melalui sambungan anda. Bergantung pada penghala anda, trafik mereka keluar dari rangkaian anda atau disalurkan melalui pelayan Lantern. Lantern tidak menunjukkan kepada anda apa yang mereka lakukan dalam talian."
+
+msgid "become_means_seen"
+msgstr "Mereka boleh melihat bila anda bersambung. Terima jemputan daripada orang yang anda kenali sahaja."
+
+msgid "become_means_remove"
+msgstr "Alih keluar sambungan pada bila-bila masa."
+
+msgid "help_friend_form_title"
+msgstr "Tampal pautan daripada orang yang anda bantu"
+
+msgid "help_friend_link_hint"
+msgstr "Jika anda membuka pautan pada peranti ini, ruangan ini diisi untuk anda"
+
+msgid "help_friend_name_label"
+msgstr "Nama anda, seperti yang mereka kenali"
+
+msgid "help_friend_name_hint"
+msgstr "Beginilah anda dipaparkan dalam Lantern mereka"
+
+msgid "help_friend_become"
+msgstr "Jadi Proksi Peribadi Mereka"
+
+msgid "help_friend_tell_code"
+msgstr "Beritahu mereka kod ini"
+
+msgid "help_friend_code_check"
+msgstr "Mereka akan menyemak sama ada ia sepadan dengan kod pada telefon mereka, kemudian meluluskan anda."
+
+msgid "help_friend_waiting_approval"
+msgstr "Menunggu kelulusan"
+
+msgid "help_friend_code_note"
+msgstr "Sebutkan kod melalui panggilan atau dalam aplikasi lain daripada aplikasi yang menerima pautan jemputan. Sesiapa yang melihat pautan itu tidak boleh melihat kod juga."
+
+msgid "become_personal_proxy"
+msgstr "Jadi Proksi Peribadi"
+
+msgid "become_personal_proxy_body"
+msgstr "Bantu seseorang yang anda kenali untuk berada dalam talian"
+
+msgid "helping_connections_title"
+msgstr "Sambungan Personal Proxy anda"
+
+msgid "helping_friends_one"
+msgstr "1 rakan"
+
+msgid "helping_friends_count"
+msgstr "%s rakan"
+
+msgid "helping_connected_named"
+msgstr "%s disambungkan sekarang"
+
+msgid "helping_connected_count"
+msgstr "Disambungkan sekarang: %s"
+
+msgid "helping_sheet_title"
+msgstr "Rakan yang anda bantu"
+
+msgid "helping_your_friends"
+msgstr "Rakan anda"
+
+msgid "helping_connected"
+msgstr "Disambungkan"
+
+msgid "helping_not_connected"
+msgstr "Tidak disambungkan"
+
+msgid "helping_paste_another"
+msgstr "Tampal pautan jemputan lain"
+
+msgid "helping_data_relayed"
+msgstr "Data dipancarkan hari ini"
+
+msgid "helping_active_today"
+msgstr "Aktif %s"

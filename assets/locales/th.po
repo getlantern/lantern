@@ -2155,3 +2155,111 @@ msgstr "%s ชม. %s นาที"
 
 msgid "helping_duration_m"
 msgstr "%s นาที"
+
+msgid "invite_share_title"
+msgstr "แชร์ลิงก์นี้กับคนที่คุณไว้ใจซึ่งอยู่นอกประเทศของคุณ"
+
+msgid "invite_share_steps"
+msgstr "ผู้รับเปิดลิงก์ ติดตั้ง Lantern หากจำเป็น และใส่ชื่อของตน คุณจะอนุมัติโดยตรวจสอบรหัส 4 หลัก จากนั้นจึงเชื่อมต่อผ่านผู้นั้นได้"
+
+msgid "invite_link_label"
+msgstr "ลิงก์คำเชิญของคุณ"
+
+msgid "invite_link_expiry"
+msgstr "ใช้ได้ครั้งเดียวและหมดอายุใน 48 ชั่วโมง"
+
+msgid "approve_title"
+msgstr "%s ต้องการเป็นพร็อกซีส่วนตัวของคุณ"
+
+msgid "approve_body"
+msgstr "ขอรหัส 4 หลักที่ Lantern แสดงจาก %s ทางโทรศัพท์หรือในแอปอื่นที่ไม่ใช่แอปที่คุณใช้ส่งลิงก์ อนุมัติเฉพาะเมื่อรหัสตรงกัน"
+
+msgid "approve_codes_match"
+msgstr "รหัสตรงกัน อนุมัติ"
+
+msgid "approve_reject"
+msgstr "ปฏิเสธ"
+
+msgid "personal_proxy_fallback_group"
+msgstr "ไม่สามารถติดต่อ %s ได้ในขณะนี้ เปลี่ยนเป็นพร็อกซีส่วนตัวของคุณแล้ว"
+
+msgid "become_means_title"
+msgstr "การเป็นพร็อกซีส่วนตัวหมายถึงอะไร"
+
+msgid "become_means_traffic"
+msgstr "เพื่อนขอความช่วยเหลือจากคุณ ขณะที่ Action Mode ทำงาน เพื่อนจะเข้าถึงอินเทอร์เน็ตแบบเปิดผ่านการเชื่อมต่อของคุณได้ ทราฟฟิกของเพื่อนจะออกจากเครือข่ายของคุณหรือส่งต่อผ่านเซิร์ฟเวอร์ของ Lantern ขึ้นอยู่กับเราเตอร์ของคุณ Lantern ไม่แสดงให้คุณเห็นว่าเพื่อนทำอะไรทางออนไลน์"
+
+msgid "become_means_seen"
+msgstr "พวกเขาเห็นได้ว่าคุณเชื่อมต่ออยู่เมื่อใด ยอมรับคำเชิญจากคนที่คุณรู้จักเท่านั้น"
+
+msgid "become_means_remove"
+msgstr "ลบการเชื่อมต่อได้ทุกเมื่อ"
+
+msgid "help_friend_form_title"
+msgstr "วางลิงก์จากคนที่คุณกำลังช่วย"
+
+msgid "help_friend_link_hint"
+msgstr "หากคุณเปิดลิงก์บนอุปกรณ์นี้ ช่องนี้จะถูกกรอกให้อัตโนมัติ"
+
+msgid "help_friend_name_label"
+msgstr "ชื่อของคุณที่เพื่อนรู้จัก"
+
+msgid "help_friend_name_hint"
+msgstr "นี่คือชื่อที่จะแสดงใน Lantern ของเพื่อน"
+
+msgid "help_friend_become"
+msgstr "เป็นพร็อกซีส่วนตัวของเพื่อน"
+
+msgid "help_friend_tell_code"
+msgstr "บอกรหัสนี้กับเพื่อน"
+
+msgid "help_friend_code_check"
+msgstr "อีกฝ่ายจะตรวจสอบว่าตรงกับรหัสบนโทรศัพท์ของเขา แล้วจึงอนุมัติคุณ"
+
+msgid "help_friend_waiting_approval"
+msgstr "กำลังรอการอนุมัติ"
+
+msgid "help_friend_code_note"
+msgstr "บอกรหัสทางโทรศัพท์หรือในแอปอื่นที่ไม่ใช่แอปที่ได้รับลิงก์คำเชิญ คนที่เห็นลิงก์ไม่ควรเห็นรหัสด้วย"
+
+msgid "become_personal_proxy"
+msgstr "เป็นพร็อกซีส่วนตัว"
+
+msgid "become_personal_proxy_body"
+msgstr "ช่วยคนที่คุณรู้จักให้ออนไลน์ได้"
+
+msgid "helping_connections_title"
+msgstr "การเชื่อมต่อ Personal Proxy ของคุณ"
+
+msgid "helping_friends_one"
+msgstr "เพื่อน 1 คน"
+
+msgid "helping_friends_count"
+msgstr "เพื่อน %s คน"
+
+msgid "helping_connected_named"
+msgstr "%s เชื่อมต่ออยู่ตอนนี้"
+
+msgid "helping_connected_count"
+msgstr "ตอนนี้เชื่อมต่ออยู่ %s คน"
+
+msgid "helping_sheet_title"
+msgstr "เพื่อนที่คุณกำลังช่วย"
+
+msgid "helping_your_friends"
+msgstr "เพื่อนของคุณ"
+
+msgid "helping_connected"
+msgstr "เชื่อมต่ออยู่"
+
+msgid "helping_not_connected"
+msgstr "ไม่ได้เชื่อมต่อ"
+
+msgid "helping_paste_another"
+msgstr "วางลิงก์คำเชิญอื่น"
+
+msgid "helping_data_relayed"
+msgstr "ข้อมูลที่ส่งต่อวันนี้"
+
+msgid "helping_active_today"
+msgstr "ใช้งาน %s"

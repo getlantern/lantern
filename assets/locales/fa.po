@@ -2183,3 +2183,114 @@ msgstr "%s ساعت %s دقیقه"
 
 msgid "helping_duration_m"
 msgstr "%s دقیقه"
+
+msgid "invite_share_title"
+msgstr "این پیوند را با فردی مورد اعتماد در خارج از کشور به اشتراک بگذارید"
+
+msgid "invite_share_steps"
+msgstr "او پیوند را باز می‌کند، در صورت نیاز Lantern را نصب می‌کند و نامش را وارد می‌کند. شما با بررسی یک کد ۴ رقمی او را تأیید می‌کنید و سپس می‌توانید از طریق او متصل شوید."
+
+msgid "invite_link_label"
+msgstr "پیوند دعوت شما"
+
+msgid "invite_link_expiry"
+msgstr "فقط یک بار کار می‌کند و پس از ۴۸ ساعت منقضی می‌شود."
+
+msgid "approve_title"
+msgstr "%s می‌خواهد پراکسی شخصی شما باشد"
+
+msgid "approve_body"
+msgstr "کد ۴ رقمی‌ای را که Lantern به %s نشان می‌دهد، از طریق تماس یا برنامه‌ای غیر از برنامه‌ای که لینک را در آن فرستادید، بپرسید. فقط در صورت مطابقت تأیید کنید."
+
+msgid "approve_codes_match"
+msgstr "کدها مطابقت دارند، تأیید"
+
+msgid "approve_reject"
+msgstr "رد کردن"
+
+msgid "personal_proxy_fallback_group"
+msgstr "در حال حاضر دسترسی به %s ممکن نیست. به پروکسی‌های شخصی شما تغییر کرد."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "در حال حاضر دسترسی به %s ممکن نیست. به مکان هوشمند تغییر کرد."
+
+msgid "become_means_title"
+msgstr "پروکسی شخصی بودن یعنی چه"
+
+msgid "become_means_traffic"
+msgstr "یکی از دوستانتان از شما کمک خواسته است. تا زمانی که Action Mode فعال است، او می‌تواند از طریق اتصال شما به اینترنت آزاد دسترسی داشته باشد. بسته به روتر شما، ترافیک او از شبکه شما خارج می‌شود یا از طریق سرورهای Lantern منتقل می‌شود. Lantern فعالیت آنلاین او را به شما نشان نمی‌دهد."
+
+msgid "become_means_seen"
+msgstr "آن‌ها می‌توانند ببینند چه زمانی متصل هستید. فقط دعوت افرادی را که می‌شناسید بپذیرید."
+
+msgid "become_means_remove"
+msgstr "هر زمان بخواهید می‌توانید اتصال را حذف کنید."
+
+msgid "help_friend_form_title"
+msgstr "لینک فردی را که به او کمک می‌کنید جای‌گذاری کنید"
+
+msgid "help_friend_link_hint"
+msgstr "اگر لینک را در این دستگاه باز کرده باشید، این قسمت خودکار پر می‌شود"
+
+msgid "help_friend_name_label"
+msgstr "نام شما، همان‌طور که شما را می‌شناسند"
+
+msgid "help_friend_name_hint"
+msgstr "در Lantern دوستتان با این نام نمایش داده می‌شوید"
+
+msgid "help_friend_become"
+msgstr "پروکسی شخصی دوستتان شوید"
+
+msgid "help_friend_tell_code"
+msgstr "این کد را به دوستتان بگویید"
+
+msgid "help_friend_code_check"
+msgstr "او بررسی می‌کند که با کد روی گوشی‌اش یکی باشد و سپس شما را تأیید می‌کند."
+
+msgid "help_friend_waiting_approval"
+msgstr "در انتظار تأیید"
+
+msgid "help_friend_code_note"
+msgstr "کد را در تماس یا در برنامه‌ای غیر از برنامه‌ای که لینک دعوت در آن رسید بگویید. کسی که لینک را دیده نباید کد را هم ببیند."
+
+msgid "become_personal_proxy"
+msgstr "پروکسی شخصی شوید"
+
+msgid "become_personal_proxy_body"
+msgstr "به یکی از آشنایانتان کمک کنید آنلاین شود"
+
+msgid "helping_connections_title"
+msgstr "اتصال‌های Personal Proxy شما"
+
+msgid "helping_friends_one"
+msgstr "۱ دوست"
+
+msgid "helping_friends_count"
+msgstr "%s دوست"
+
+msgid "helping_connected_named"
+msgstr "%s اکنون متصل است"
+
+msgid "helping_connected_count"
+msgstr "اکنون متصل: %s"
+
+msgid "helping_sheet_title"
+msgstr "دوستانی که به آن‌ها کمک می‌کنید"
+
+msgid "helping_your_friends"
+msgstr "دوستان شما"
+
+msgid "helping_connected"
+msgstr "متصل"
+
+msgid "helping_not_connected"
+msgstr "متصل نیست"
+
+msgid "helping_paste_another"
+msgstr "جای‌گذاری پیوند دعوت دیگر"
+
+msgid "helping_data_relayed"
+msgstr "داده‌های بازپخش‌شده امروز"
+
+msgid "helping_active_today"
+msgstr "فعال: %s"

@@ -2197,3 +2197,114 @@ msgstr "%s ч %s мин"
 
 msgid "helping_duration_m"
 msgstr "%s мин"
+
+msgid "invite_share_title"
+msgstr "Отправьте эту ссылку человеку, которому доверяете, за пределами вашей страны"
+
+msgid "invite_share_steps"
+msgstr "Получатель открывает ссылку, при необходимости устанавливает Lantern и вводит имя. Вы подтверждаете его, сверив 4-значный код, а затем сможете подключаться через него."
+
+msgid "invite_link_label"
+msgstr "Ваша ссылка-приглашение"
+
+msgid "invite_link_expiry"
+msgstr "Срабатывает один раз и действует 48 часов."
+
+msgid "approve_title"
+msgstr "%s хочет стать вашим личным прокси"
+
+msgid "approve_body"
+msgstr "Узнайте у %s 4-значный код, который показывает Lantern, — по телефону или в другом приложении, не в том, где вы отправили ссылку. Подтверждайте, только если он совпадает."
+
+msgid "approve_codes_match"
+msgstr "Коды совпадают, подтвердить"
+
+msgid "approve_reject"
+msgstr "Отклонить"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Сейчас нет связи с %s. Выполнен переход на «Ваши личные прокси»."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Сейчас нет связи с %s. Выполнен переход на «Умное расположение»."
+
+msgid "become_means_title"
+msgstr "Что значит быть личным прокси"
+
+msgid "become_means_traffic"
+msgstr "Друг попросил вас о помощи. Пока работает Action Mode, он может выходить в открытый интернет через ваше подключение. В зависимости от роутера его трафик выходит из вашей сети или передаётся через серверы Lantern. Lantern не показывает вам, что он делает в сети."
+
+msgid "become_means_seen"
+msgstr "Они видят, когда у вас активно подключение. Принимайте приглашения только от знакомых людей."
+
+msgid "become_means_remove"
+msgstr "Подключение можно удалить в любой момент."
+
+msgid "help_friend_form_title"
+msgstr "Вставьте ссылку от человека, которому вы помогаете"
+
+msgid "help_friend_link_hint"
+msgstr "Если вы открыли ссылку на этом устройстве, поле заполнено автоматически"
+
+msgid "help_friend_name_label"
+msgstr "Ваше имя, под которым вас знают"
+
+msgid "help_friend_name_hint"
+msgstr "Так вас будет видно в Lantern друга"
+
+msgid "help_friend_become"
+msgstr "Станьте личным прокси для друга"
+
+msgid "help_friend_tell_code"
+msgstr "Сообщите этот код другу"
+
+msgid "help_friend_code_check"
+msgstr "Собеседник сверит код с кодом на своём телефоне и подтвердит вас."
+
+msgid "help_friend_waiting_approval"
+msgstr "Ожидание подтверждения"
+
+msgid "help_friend_code_note"
+msgstr "Сообщите код по телефону или в другом приложении — не в том, куда пришла ссылка-приглашение. Тот, кто видел ссылку, не должен видеть и код."
+
+msgid "become_personal_proxy"
+msgstr "Стать личным прокси"
+
+msgid "become_personal_proxy_body"
+msgstr "Помогите знакомому выйти в интернет"
+
+msgid "helping_connections_title"
+msgstr "Ваши подключения Personal Proxy"
+
+msgid "helping_friends_one"
+msgstr "1 друг"
+
+msgid "helping_friends_count"
+msgstr "Друзей: %s"
+
+msgid "helping_connected_named"
+msgstr "Сейчас подключён: %s"
+
+msgid "helping_connected_count"
+msgstr "Подключено сейчас: %s"
+
+msgid "helping_sheet_title"
+msgstr "Друзья, которым вы помогаете"
+
+msgid "helping_your_friends"
+msgstr "Ваши друзья"
+
+msgid "helping_connected"
+msgstr "Подключено"
+
+msgid "helping_not_connected"
+msgstr "Не подключено"
+
+msgid "helping_paste_another"
+msgstr "Вставить ещё одну ссылку-приглашение"
+
+msgid "helping_data_relayed"
+msgstr "Передано данных сегодня"
+
+msgid "helping_active_today"
+msgstr "Активно: %s"

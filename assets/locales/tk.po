@@ -2167,3 +2167,96 @@ msgstr "%s sag %s min"
 
 msgid "helping_duration_m"
 msgstr "%s min"
+
+msgid "invite_link_expiry"
+msgstr "Diňe bir gezek işleýär we 48 sagadyň dowamynda möhleti gutarýar."
+
+msgid "approve_title"
+msgstr "%s siziň şahsy proksiňiz bolmak isleýär"
+
+msgid "approve_body"
+msgstr "Lantern-iň görkezýän 4 sanly koduny sorap, %s bilen jaňda ýa-da salgyny iberen programmaňyzdan başga programmada habarlaşyň. Diňe kod gabat gelse tassyklaň."
+
+msgid "approve_codes_match"
+msgstr "Kodlar gabat gelýär, tassykla"
+
+msgid "approve_reject"
+msgstr "Ret et"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Häzir %s bilen baglanyşyp bolmaýar. Şahsy proksileriňiz saýlandy."
+
+msgid "become_means_title"
+msgstr "Şahsy proksi bolmak näme diýmek"
+
+msgid "become_means_traffic"
+msgstr "Bir dostuňyz sizden kömek sorady. Action Mode işleýän wagty ol siziň baglanyşygyňyz arkaly açyk internete girip bilýär. Routeriňize baglylykda, onuň trafigi siziň toruňyzdan çykýar ýa-da Lantern serwerleri arkaly geçirilýär. Lantern onuň onlaýn näme edýändigini size görkezmeýär."
+
+msgid "become_means_seen"
+msgstr "Olar siziň haçan birikendigiňizi görüp bilýär. Diňe tanaýan adamlaryňyzyň çakylyklaryny kabul ediň."
+
+msgid "become_means_remove"
+msgstr "Baglanyşygy islän wagtyňyz aýryň."
+
+msgid "help_friend_form_title"
+msgstr "Kömek edýän adamyňyzdan gelen salgyny goýuň"
+
+msgid "help_friend_link_hint"
+msgstr "Salgyny şu enjamda açan bolsaňyz, bu awtomatik doldurylýar"
+
+msgid "help_friend_name_hint"
+msgstr "Dostuňyzyň Lantern programmasynda siz şeýle görünersiňiz"
+
+msgid "help_friend_become"
+msgstr "Dostuňyzyň şahsy proksisi boluň"
+
+msgid "help_friend_tell_code"
+msgstr "Bu kody dostuňyza aýdyň"
+
+msgid "help_friend_code_check"
+msgstr "Ol muny öz telefonyndaky kod bilen gabat gelýändigini barlar, soňra sizi tassyklar."
+
+msgid "help_friend_waiting_approval"
+msgstr "Tassyklama garaşylýar"
+
+msgid "help_friend_code_note"
+msgstr "Kody jaň arkaly ýa-da çakylyk salgysy gelen programmadan başga programmada aýdyň. Salgyny gören adam kody hem görmeli däl."
+
+msgid "become_personal_proxy"
+msgstr "Şahsy proksi bol"
+
+msgid "become_personal_proxy_body"
+msgstr "Tanaýan adamyňyza onlaýn bolmaga kömek ediň"
+
+msgid "helping_connections_title"
+msgstr "Personal Proxy baglanyşyklaryňyz"
+
+msgid "helping_friends_one"
+msgstr "1 dost"
+
+msgid "helping_friends_count"
+msgstr "%s dost"
+
+msgid "helping_connected_named"
+msgstr "%s häzir birikdirildi"
+
+msgid "helping_connected_count"
+msgstr "Häzir birikdirilen: %s"
+
+msgid "helping_sheet_title"
+msgstr "Kömek edýän dostlaryňyz"
+
+msgid "helping_your_friends"
+msgstr "Dostlaryňyz"
+
+msgid "helping_connected"
+msgstr "Birikdirildi"
+
+msgid "helping_not_connected"
+msgstr "Birikdirilmedik"
+
+msgid "helping_data_relayed"
+msgstr "Şu gün geçirilen maglumat"
+
+msgid "helping_active_today"
+msgstr "Işjeň: %s"

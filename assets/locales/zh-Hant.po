@@ -2036,3 +2036,114 @@ msgstr "%s 小時 %s 分鐘"
 
 msgid "helping_duration_m"
 msgstr "%s 分鐘"
+
+msgid "invite_share_title"
+msgstr "將此連結分享給你信任的國外人士"
+
+msgid "invite_share_steps"
+msgstr "對方開啟連結，必要時安裝 Lantern，然後輸入名字。你核對 4 位數代碼後核准對方，即可透過對方連線。"
+
+msgid "invite_link_label"
+msgstr "你的邀請連結"
+
+msgid "invite_link_expiry"
+msgstr "僅能使用一次，48 小時後失效。"
+
+msgid "approve_title"
+msgstr "%s 想成為你的個人代理"
+
+msgid "approve_body"
+msgstr "透過電話或傳送連結以外的其他應用程式，向 %s 詢問 Lantern 顯示給對方的 4 位數驗證碼。只有一致時才核准。"
+
+msgid "approve_codes_match"
+msgstr "驗證碼一致，核准"
+
+msgid "approve_reject"
+msgstr "拒絕"
+
+msgid "personal_proxy_fallback_group"
+msgstr "目前無法連線至 %s。已切換至你的個人代理。"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "目前無法連線至 %s。已切換至智慧位置。"
+
+msgid "become_means_title"
+msgstr "擔任個人代理的意義"
+
+msgid "become_means_traffic"
+msgstr "一位朋友向你求助。Action Mode 執行期間，對方可以透過你的連線存取開放的網際網路。視你的路由器而定，對方的流量會從你的網路送出，或經由 Lantern 的伺服器轉送。Lantern 不會向你顯示對方的網路活動。"
+
+msgid "become_means_seen"
+msgstr "對方可以看到你何時連線。只接受認識的人傳來的邀請。"
+
+msgid "become_means_remove"
+msgstr "你可以隨時移除此連線。"
+
+msgid "help_friend_form_title"
+msgstr "貼上你所協助的人傳來的連結"
+
+msgid "help_friend_link_hint"
+msgstr "如果你在這部裝置上開啟了連結，這裡會自動填入"
+
+msgid "help_friend_name_label"
+msgstr "朋友所認識的你的名字"
+
+msgid "help_friend_name_hint"
+msgstr "你在朋友的 Lantern 中會顯示為這個名稱"
+
+msgid "help_friend_become"
+msgstr "成為朋友的專屬代理"
+
+msgid "help_friend_tell_code"
+msgstr "把這組代碼告訴朋友"
+
+msgid "help_friend_code_check"
+msgstr "對方會確認它與其手機上的代碼是否相符，然後核准你。"
+
+msgid "help_friend_waiting_approval"
+msgstr "等待核准"
+
+msgid "help_friend_code_note"
+msgstr "透過通話或在收到邀請連結的應用程式以外的其他應用程式中告知代碼。看過連結的人不應同時看到代碼。"
+
+msgid "become_personal_proxy"
+msgstr "成為個人代理"
+
+msgid "become_personal_proxy_body"
+msgstr "幫助你認識的人上網"
+
+msgid "helping_connections_title"
+msgstr "你的 Personal Proxy 連線"
+
+msgid "helping_friends_one"
+msgstr "1 位好友"
+
+msgid "helping_friends_count"
+msgstr "%s 位好友"
+
+msgid "helping_connected_named"
+msgstr "%s 目前已連線"
+
+msgid "helping_connected_count"
+msgstr "目前 %s 人已連線"
+
+msgid "helping_sheet_title"
+msgstr "你正在幫助的朋友"
+
+msgid "helping_your_friends"
+msgstr "你的朋友"
+
+msgid "helping_connected"
+msgstr "已連線"
+
+msgid "helping_not_connected"
+msgstr "未連線"
+
+msgid "helping_paste_another"
+msgstr "貼上另一個邀請連結"
+
+msgid "helping_data_relayed"
+msgstr "今日中繼資料"
+
+msgid "helping_active_today"
+msgstr "已活躍 %s"

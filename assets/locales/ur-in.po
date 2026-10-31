@@ -2188,3 +2188,111 @@ msgstr "%s گھنٹے %s منٹ"
 
 msgid "helping_duration_m"
 msgstr "%s منٹ"
+
+msgid "invite_share_title"
+msgstr "یہ لنک اپنے ملک سے باہر کسی بھروسے مند شخص کے ساتھ شیئر کریں"
+
+msgid "invite_share_steps"
+msgstr "وہ لنک کھولیں گے، ضرورت ہو تو Lantern انسٹال کریں گے اور اپنا نام درج کریں گے۔ آپ 4 ہندسوں کا کوڈ چیک کر کے انہیں منظور کریں گے، پھر ان کے ذریعے منسلک ہو سکیں گے۔"
+
+msgid "invite_link_label"
+msgstr "آپ کا دعوتی لنک"
+
+msgid "invite_link_expiry"
+msgstr "یہ ایک بار کام کرتا ہے اور 48 گھنٹے میں ختم ہو جاتا ہے۔"
+
+msgid "approve_title"
+msgstr "%s آپ کا ذاتی پراکسی بننا چاہتے ہیں"
+
+msgid "approve_body"
+msgstr "%s سے وہ 4 ہندسوں کا کوڈ پوچھیں جو Lantern انہیں دکھا رہا ہے، کال پر یا اس ایپ کے علاوہ کسی اور ایپ میں جس میں آپ نے لنک بھیجا۔ صرف میل کھانے پر منظور کریں۔"
+
+msgid "approve_codes_match"
+msgstr "کوڈ میل کھاتے ہیں، منظور کریں"
+
+msgid "approve_reject"
+msgstr "مسترد کریں"
+
+msgid "personal_proxy_fallback_group"
+msgstr "ابھی %s تک رسائی نہیں ہو رہی۔ آپ کی ذاتی پراکسیز پر منتقل کر دیا گیا۔"
+
+msgid "become_means_title"
+msgstr "پرسنل پراکسی ہونے کا کیا مطلب ہے"
+
+msgid "become_means_traffic"
+msgstr "ایک دوست نے آپ سے مدد مانگی ہے۔ جب تک Action Mode چل رہا ہے، وہ آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچ سکتے ہیں۔ آپ کے راؤٹر کے مطابق، ان کا ٹریفک آپ کے نیٹ ورک سے نکلتا ہے یا Lantern کے سرورز سے ہو کر جاتا ہے۔ وہ آن لائن کیا کرتے ہیں، Lantern آپ کو نہیں دکھاتا۔"
+
+msgid "become_means_seen"
+msgstr "وہ دیکھ سکتے ہیں کہ آپ کب منسلک ہیں۔ صرف جاننے والے لوگوں کے دعوت نامے قبول کریں۔"
+
+msgid "become_means_remove"
+msgstr "کنکشن کسی بھی وقت ہٹا دیں۔"
+
+msgid "help_friend_form_title"
+msgstr "جس کی آپ مدد کر رہے ہیں اس کا لنک پیسٹ کریں"
+
+msgid "help_friend_link_hint"
+msgstr "اگر آپ نے اس ڈیوائس پر لنک کھولا ہے تو یہ خود بخود بھر دیا گیا ہے"
+
+msgid "help_friend_name_label"
+msgstr "آپ کا نام، جس سے وہ آپ کو جانتے ہیں"
+
+msgid "help_friend_name_hint"
+msgstr "ان کے Lantern میں آپ اسی طرح نظر آئیں گے"
+
+msgid "help_friend_become"
+msgstr "ان کی ذاتی پراکسی بنیں"
+
+msgid "help_friend_tell_code"
+msgstr "انہیں یہ کوڈ بتائیں"
+
+msgid "help_friend_code_check"
+msgstr "وہ چیک کریں گے کہ یہ ان کے فون پر موجود کوڈ سے ملتا ہے، پھر آپ کو منظوری دیں گے۔"
+
+msgid "help_friend_waiting_approval"
+msgstr "منظوری کا انتظار ہے"
+
+msgid "help_friend_code_note"
+msgstr "کوڈ کال پر یا اس ایپ کے علاوہ کسی دوسری ایپ میں بتائیں جس میں دعوتی لنک آیا تھا۔ جس نے لنک دیکھا ہو، اسے کوڈ بھی نظر نہیں آنا چاہیے۔"
+
+msgid "become_personal_proxy"
+msgstr "پرسنل پراکسی بنیں"
+
+msgid "become_personal_proxy_body"
+msgstr "کسی جان پہچان والے کو آن لائن آنے میں مدد کریں"
+
+msgid "helping_connections_title"
+msgstr "آپ کے Personal Proxy کنکشن"
+
+msgid "helping_friends_one"
+msgstr "1 دوست"
+
+msgid "helping_friends_count"
+msgstr "%s دوست"
+
+msgid "helping_connected_named"
+msgstr "%s ابھی منسلک ہے"
+
+msgid "helping_connected_count"
+msgstr "ابھی منسلک: %s"
+
+msgid "helping_sheet_title"
+msgstr "دوست جن کی آپ مدد کر رہے ہیں"
+
+msgid "helping_your_friends"
+msgstr "آپ کے دوست"
+
+msgid "helping_connected"
+msgstr "منسلک"
+
+msgid "helping_not_connected"
+msgstr "منسلک نہیں"
+
+msgid "helping_paste_another"
+msgstr "دوسرا دعوتی لنک پیسٹ کریں"
+
+msgid "helping_data_relayed"
+msgstr "آج ریلے کیا گیا ڈیٹا"
+
+msgid "helping_active_today"
+msgstr "فعال: %s"
