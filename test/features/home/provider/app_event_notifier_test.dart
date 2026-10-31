@@ -227,14 +227,45 @@ void main() {
     await _settle();
     expect(c.read(countryCodeProvider), 'IR');
   });
+
+  test('a country-code event during the settings read wins over its older '
+      'answer', () async {
+    CountryCode.update('');
+    addTearDown(() => CountryCode.update(''));
+    final service = _SettingsService({'country_code': 'us'})
+      ..hold = Completer<void>();
+    final c = ProviderContainer(
+      overrides: [
+        lanternServiceProvider.overrideWithValue(service),
+        helpersProvider.overrideWith(_Helpers.new),
+        serverLocationProvider.overrideWith(_Location.new),
+      ],
+    );
+    addTearDown(() async {
+      c.dispose();
+      await service.events.close();
+    });
+    await c.read(appEventProvider.future);
+    await _settle();
+    service.events.add(AppEvent(eventType: 'country-code', message: 'IR'));
+    expect(c.read(countryCodeProvider), 'IR');
+    service.hold!.complete();
+    await _settle();
+    expect(c.read(countryCodeProvider), 'IR');
+  });
 }
 
 class _SettingsService extends _Service {
   _SettingsService(this.settings);
   final Map<String, dynamic> settings;
+
+  /// When set, the settings answer waits for it.
+  Completer<void>? hold;
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getSettings() async =>
-      Right(settings);
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async {
+    await hold?.future;
+    return Right(settings);
+  }
 }
 
 /// The real location notifier's view of radiance: each selected_server read

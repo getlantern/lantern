@@ -131,6 +131,7 @@ class AppEventNotifier extends _$AppEventNotifier {
           }
           break;
         case 'country-code':
+          _countryEvents++;
           ref.read(countryCodeProvider.notifier).update(event.message);
           break;
         case 'helper-live':
@@ -190,12 +191,17 @@ class AppEventNotifier extends _$AppEventNotifier {
     unawaited(_readCountryCode());
   }
 
+  /// Counts country-code events, so a settings read that started before one
+  /// cannot replace its newer country.
+  int _countryEvents = 0;
+
   /// The country-code event is sent only after a config fetch, so a listener
   /// that missed it reads the country radiance saved instead.
   Future<void> _readCountryCode() async {
+    final events = _countryEvents;
     try {
       final res = await ref.read(lanternServiceProvider).getSettings();
-      if (!ref.mounted) return;
+      if (!ref.mounted || events != _countryEvents) return;
       final code = res.fold((_) => null, (s) => s['country_code']);
       if (code is! String || code.trim().isEmpty) return;
       if (code.trim().toUpperCase() == ref.read(countryCodeProvider)) return;
