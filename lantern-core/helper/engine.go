@@ -50,10 +50,13 @@ type Engine struct {
 	now        func() time.Time
 	rand       io.Reader
 
-	mu       sync.Mutex
-	key      []byte
-	st       state
-	online   map[string]bool
+	mu     sync.Mutex
+	key    []byte
+	st     state
+	online map[string]bool
+	// tags holds each inviter pairing's outbound tag from the last list,
+	// like online. Memory only: the next refresh brings it back.
+	tags     map[string]string
 	activity *Activity
 	// reset is set when unlock found a state file the key could not open.
 	reset bool
@@ -73,12 +76,18 @@ type Engine struct {
 	// (a merged pairing, a consumed claim) the file does not. Every op
 	// retries the save first.
 	dirty bool
+
+	// liveMu guards live and liveKnown, which SetLive writes from radiance's
+	// live status. It is a leaf lock: view takes it under mu.
+	liveMu    sync.Mutex
+	live      map[string]bool
+	liveKnown bool
 }
 
 // NewEngine returns an engine that keeps its state in dir.
 func NewEngine(dir string, relay Relay, activity ActivityFunc) *Engine {
 	return &Engine{dir: dir, relay: relay, activityFn: activity, now: time.Now, rand: rand.Reader,
-		online: map[string]bool{}}
+		online: map[string]bool{}, tags: map[string]string{}}
 }
 
 // Call runs op with JSON args and returns its JSON result. Its errors are
@@ -247,4 +256,11 @@ type PairingView struct {
 	Name      string `json:"name"`
 	Online    bool   `json:"online,omitempty"`
 	SinceUnix int64  `json:"since_unix"`
+	// OutboundTag is set on a pairing in which this device is helped, once
+	// lantern-cloud has said which outbound tag the friend has: the app
+	// selects that friend by it. It is never logged.
+	OutboundTag string `json:"outbound_tag,omitempty"`
+	// Connected is set on a pairing this device helps, while radiance can
+	// say whether that friend routes through this device right now.
+	Connected *bool `json:"connected,omitempty"`
 }

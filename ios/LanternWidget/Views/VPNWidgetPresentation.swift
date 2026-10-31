@@ -32,6 +32,7 @@ struct VPNWidgetPresentation {
   var locationText: String {
     if !state.locationName.isEmpty { return state.locationName }
     if state.isAutoServer { return String(localized: "Best location") }
+    if state.isPersonalProxy { return String(localized: "Personal Proxy") }
     return state.serverName
   }
 

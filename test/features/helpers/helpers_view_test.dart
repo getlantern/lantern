@@ -102,4 +102,78 @@ void main() {
     );
     expect(v.waitingClaims(100).map((c) => c.id), ['live']);
   });
+
+  group('per-friend selection', () {
+    const tag = 'helper-0123456789ab';
+
+    test('an inviter row carries its outbound tag', () {
+      final v = HelpersView.fromJson({
+        'helpers': [
+          {
+            'pairing_id': 'p1',
+            'name': 'Ali',
+            'online': true,
+            'outbound_tag': tag,
+          },
+          {'pairing_id': 'p2', 'name': 'Bo'},
+        ],
+      });
+      expect(v.helpers[0].outboundTag, tag);
+      expect(v.helpers[1].outboundTag, isEmpty);
+      expect(v.helperByTag(tag)?.name, 'Ali');
+      expect(v.helperByTag(''), isNull);
+      expect(v.helperByTag('helper-ffffffffffff'), isNull);
+    });
+
+    test('selectable needs a tag, online and a live route', () {
+      const ali = HelperPairingView(
+        pairingId: 'p1',
+        online: true,
+        outboundTag: tag,
+      );
+      const direct = {tag: PersonalProxyStatus(direct: true)};
+      const rooms = {tag: PersonalProxyStatus(rooms: true)};
+      const dead = {tag: PersonalProxyStatus()};
+      expect(ali.selectable(direct), isTrue);
+      expect(ali.selectable(rooms), isTrue);
+      expect(ali.selectable(dead), isFalse);
+      expect(
+        ali.selectable(const {}),
+        isFalse,
+        reason: 'radiance has no route',
+      );
+
+      const offline = HelperPairingView(pairingId: 'p1', outboundTag: tag);
+      expect(offline.selectable(direct), isFalse);
+      const noTag = HelperPairingView(pairingId: 'p1', online: true);
+      expect(noTag.selectable(direct), isFalse);
+      expect(noTag.selectable(null), isFalse);
+    });
+
+    test('with no status from radiance (VPN off), online decides alone', () {
+      const ali = HelperPairingView(
+        pairingId: 'p1',
+        online: true,
+        outboundTag: tag,
+      );
+      const bo = HelperPairingView(pairingId: 'p2', outboundTag: tag);
+      expect(ali.selectable(null), isTrue);
+      expect(bo.selectable(null), isFalse);
+    });
+
+    test("parses the status op's answer by tag", () {
+      final all = PersonalProxyStatus.parseAll({
+        'statuses': [
+          {'tag': tag, 'direct': true, 'rooms': false},
+          {'tag': 'helper-ba9876543210', 'rooms': true},
+          {'direct': true},
+          'junk',
+        ],
+      });
+      expect(all.keys, [tag, 'helper-ba9876543210']);
+      expect(all[tag]!.direct, isTrue);
+      expect(all['helper-ba9876543210']!.live, isTrue);
+      expect(PersonalProxyStatus.parseAll(const {}), isEmpty);
+    });
+  });
 }

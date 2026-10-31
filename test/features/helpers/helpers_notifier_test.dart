@@ -1008,4 +1008,63 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(svc.calls.length, after);
   });
+
+  group('live status', () {
+    String helpingView(String helping) =>
+        '{"unlocked":true,"my_name":"","invites":[],"claims":[],"helpers":'
+        '[{"pairing_id":"i1","name":"Inviter","since_unix":1}],'
+        '"helping":$helping,"new_helping":false}';
+
+    test('liveChanged re-reads the view, which carries each friend\'s '
+        'connected; a missing field stays unknown', () async {
+      svc.answers = {
+        'unlock': helpingView(
+          '[{"pairing_id":"p1","name":"Sara","since_unix":1},'
+          '{"pairing_id":"p2","name":"Reza","since_unix":1}]',
+        ),
+        'view': helpingView(
+          '[{"pairing_id":"p1","name":"Sara","since_unix":1,"connected":true},'
+          '{"pairing_id":"p2","name":"Reza","since_unix":1,"connected":false}]',
+        ),
+      };
+      final c = container();
+      final n = c.read(helpersProvider.notifier);
+      await n.ensureUnlocked();
+      expect(c.read(helpersProvider).view.helping.map((p) => p.connected), [
+        null,
+        null,
+      ]);
+      await n.liveChanged();
+      expect(svc.calls, ['unlock', 'view'], reason: 'no refresh, no cloud');
+      final helping = c.read(helpersProvider).view.helping;
+      expect(helping.map((p) => p.connected), [true, false]);
+      expect(
+        c.read(helpersProvider).view.helpers.single.connected,
+        isNull,
+        reason: 'inviter rows never carry it',
+      );
+    });
+
+    test('liveChanged does nothing before the engine is unlocked', () async {
+      storage.values[HelpersNotifier.usedKey] = true;
+      final c = container();
+      await c.read(helpersProvider.notifier).liveChanged();
+      expect(svc.calls, isEmpty);
+      expect(keys.reads, 0, reason: 'never touches the keystore');
+    });
+
+    test('a failed live re-read keeps the view and sets no error', () async {
+      svc.answers = {
+        'unlock': helpingView(
+          '[{"pairing_id":"p1","name":"Sara","since_unix":1,"connected":true}]',
+        ),
+      };
+      final c = container();
+      final n = c.read(helpersProvider.notifier);
+      await n.ensureUnlocked();
+      await n.liveChanged();
+      expect(c.read(helpersProvider).error, isNull);
+      expect(c.read(helpersProvider).view.helping.single.connected, isTrue);
+    });
+  });
 }

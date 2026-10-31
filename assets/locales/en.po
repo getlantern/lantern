@@ -2037,6 +2037,14 @@ msgstr "Personal Proxies:"
 msgid "your_personal_proxies"
 msgstr "Your personal proxies"
 
+# Shown when Lantern can't connect through the friend the user selected as their Personal Proxy and switches to all of the user's personal proxies ("Your personal proxies" is that row's name). The friend may still be online, so this must not say they are offline. %s is the friend's name.
+msgid "personal_proxy_fallback_group"
+msgstr "Can't reach %s right now. Switched to Your personal proxies."
+
+# Shown when Lantern can't connect through the friend the user selected as their Personal Proxy and switches to Smart Location, its automatic choice of server. The friend may still be online, so this must not say they are offline. %s is the friend's name.
+msgid "personal_proxy_fallback_auto"
+msgstr "Can't reach %s right now. Switched to Smart Location."
+
 # Title of the card that tells a volunteer what being someone's Personal Proxy involves.
 msgid "become_means_title"
 msgstr "What being a Personal Proxy means"

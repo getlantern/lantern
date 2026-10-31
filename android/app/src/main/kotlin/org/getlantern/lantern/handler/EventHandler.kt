@@ -41,7 +41,7 @@ class EventHandler : FlutterPlugin {
     private var appDataHandler: AppDataHandler? = null
 
     private var statusObserver: Observer<Event<VPNStatus>>? = null
-    private var flutterEventObserver: Observer<Event<FlutterEvent>>? = null
+    private var flutterEventObserver: ((FlutterEvent) -> Unit)? = null
     var job: Job? = null
     private var logsSubscription: LogSubscription? = null
     private var logsListener: LogListener? = null
@@ -97,10 +97,8 @@ class EventHandler : FlutterPlugin {
         if (appEventStatusChannel != null) {
             appEventStatusChannel!!.setStreamHandler(null)
         }
-        if (flutterEventObserver != null) {
-            FlutterEventStream.events.removeObserver(flutterEventObserver!!)
-            flutterEventObserver = null
-        }
+        flutterEventObserver?.let { FlutterEventStream.removeListener(it) }
+        flutterEventObserver = null
         logsChannel?.setStreamHandler(null)
         logsSubscription?.cancel()
         logsSubscription = null
@@ -179,24 +177,21 @@ class EventHandler : FlutterPlugin {
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     AppLogger.d(TAG, "App event status channel listening")
-                    // Observe the LiveData
-                    flutterEventObserver = Observer { wrappedEvent ->
-                        wrappedEvent.contentIfNotHandled?.let { event ->
-                            val map = mutableMapOf<String, Any?>()
-                            map["type"] = event.type
-                            map["message"] = event.message
-                            events?.success(map)
-                        }
+                    flutterEventObserver?.let { FlutterEventStream.removeListener(it) }
+                    val listener: (FlutterEvent) -> Unit = { event ->
+                        val map = mutableMapOf<String, Any?>()
+                        map["type"] = event.type
+                        map["message"] = event.message
+                        events?.success(map)
                     }
-
-                    FlutterEventStream.events.observeForever(flutterEventObserver!!)
+                    flutterEventObserver = listener
+                    FlutterEventStream.addListener(listener)
                 }
 
                 override fun onCancel(arguments: Any?) {
                     AppLogger.d(TAG, "App event status channel cancelled")
-                    if (flutterEventObserver != null) {
-                        FlutterEventStream.events.removeObserver(flutterEventObserver!!)
-                    }
+                    flutterEventObserver?.let { FlutterEventStream.removeListener(it) }
+                    flutterEventObserver = null
                 }
             })
 

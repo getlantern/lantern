@@ -20,7 +20,27 @@ import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
+/// radiance has saved the private server once the screen reads it back.
 class _FakeLanternService implements LanternService {
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async => const Right('{"tag":"private"}');
+
+  @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async =>
+      Right(
+        ServerLocation(
+          serverType: ServerLocationType.privateServer.name,
+          serverName: 'private',
+          city: 'Amsterdam',
+          country: 'Netherlands',
+          countryCode: 'NL',
+          protocol: 'samizdat',
+        ),
+      );
+
   @override
   Future<void> updateWidgetLocation({
     required String city,

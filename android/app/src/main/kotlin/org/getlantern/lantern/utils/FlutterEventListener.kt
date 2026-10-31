@@ -1,18 +1,15 @@
 package org.getlantern.lantern.utils
 
-import androidx.lifecycle.MutableLiveData
 import lantern.io.utils.FlutterEvent
 import lantern.io.utils.FlutterEventEmitter
 
 
-object FlutterEventStream {
-    private val _events = MutableLiveData<Event<FlutterEvent>>()
-    val events: MutableLiveData<Event<FlutterEvent>> = _events
-
-    fun emit(event: FlutterEvent) {
-        _events.postValue(Event(event))
-    }
-}
+/**
+ * The core's events on their way to Flutter. Every event is delivered: a
+ * coalescing LiveData let a snapshot replace a selection-changed or
+ * helper-live event before Flutter saw it.
+ */
+val FlutterEventStream = EventQueue<FlutterEvent>()
 
 
 class FlutterEventListener : FlutterEventEmitter {

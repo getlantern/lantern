@@ -87,6 +87,76 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     await refreshAutoLocationIfNeeded();
   }
 
+  // Numbers each read of radiance's selection: only the newest started read
+  // is applied.
+  int _reads = 0;
+
+  /// The number of the last read started so far, to pass to [confirmedSince].
+  int get readsStarted => _reads;
+
+  /// Whether a read started after [read] confirmed radiance's selection, so a
+  /// save that began at [read] must not replace radiance's answer with the
+  /// row asked for. A read already in flight then predates the save.
+  bool confirmedSince(int read) => _confirmedRead > read;
+
+  // The number of the newest read whose answer the shown selection matches.
+  int _confirmedRead = 0;
+
+  /// Mirrors the selection radiance has persisted, the one source of truth.
+  /// Called on radiance's selection-changed event, which follows every saved
+  /// selection (and repeats on reconnect), and on a personal proxy fallback.
+  /// Each call starts a fresh read and only the newest started read is
+  /// applied, so the last one always reflects radiance's latest state. A
+  /// failed read changes nothing.
+  Future<void> syncSelection() async {
+    final read = ++_reads;
+    Object? tag;
+    try {
+      final res = await ref
+          .read(lanternServiceProvider)
+          .helperCall('selected_server', const {});
+      final r = res.fold(
+        (_) => HelperResult.failure('unavailable'),
+        HelperResult.parse,
+      );
+      if (r.ok) tag = r.data['tag'];
+    } catch (_) {
+      return;
+    }
+    if (!ref.mounted || read != _reads || tag is! String || tag.isEmpty) {
+      return;
+    }
+    if (tag == 'auto') {
+      _confirmedRead = read;
+      if (state.serverType == ServerLocationType.auto.name) return;
+      await switchToAuto();
+      await refreshAutoLocationIfNeeded();
+      return;
+    }
+    final friend = personalProxyFriend(tag);
+    if (tag == personalProxiesTag || friend != null) {
+      _confirmedRead = read;
+      if (state.serverName == tag && _personalProxySelected) return;
+      updateServerLocation(ServerLocation.personalProxy(friendTag: friend));
+      return;
+    }
+    // A Lantern or private server: already shown with its details, or
+    // fetched from radiance.
+    if (state.serverName == tag &&
+        state.serverType != ServerLocationType.auto.name) {
+      _confirmedRead = read;
+      return;
+    }
+    final result = await ref
+        .read(lanternServiceProvider)
+        .getSelectedServerLocation();
+    if (!ref.mounted || read != _reads) return;
+    result.fold((_) {}, (location) {
+      _confirmedRead = read;
+      updateServerLocation(location);
+    });
+  }
+
   /// Fetches the current server location from radiance.
   /// If the VPN isn't connected, uses the cached value.
   /// If auto-selected, fetches the auto location; otherwise fetches the
@@ -201,7 +271,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   /// the Smart Location label remains available until the next push event.
   Future<void> switchToAuto() async {
     if (state.serverType == ServerLocationType.auto.name) return;
-    final updated = state.copyWith(serverType: ServerLocationType.auto.name);
+    final updated = state.copyWith(
+      serverType: ServerLocationType.auto.name,
+      serverName: '',
+    );
     _selection++;
     state = updated;
     await _storage.saveServerLocation(updated);

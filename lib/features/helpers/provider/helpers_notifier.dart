@@ -364,6 +364,16 @@ class HelpersNotifier extends _$HelpersNotifier {
 
   Future<HelperResult> refreshView() async => _apply(await _call('view'));
 
+  /// lantern-core says the live status of the friends this device helps
+  /// changed: reads the view again, which carries it. It costs no request to
+  /// lantern-cloud. Only once the engine is unlocked, so the keystore is
+  /// never touched for it, and a failed read keeps the last view and error.
+  Future<void> liveChanged() async {
+    if (!_buildEnabled || !_engineUnlocked) return;
+    final a = await _call('view');
+    if (a.$1.ok) _apply(a);
+  }
+
   /// Whether this device helps a friend through a helper-invite pairing,
   /// from the view applied so far. False on a device that never used helper
   /// invites or a build without them; null while no view has loaded.

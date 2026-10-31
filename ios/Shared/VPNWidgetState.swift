@@ -83,6 +83,11 @@ public struct VPNWidgetState: Codable, Equatable {
 
   public var isAutoServer: Bool { serverName.isEmpty || serverName == Self.autoServerName }
 
+  /// The personal proxies group or one friend, whose tags are never shown.
+  public var isPersonalProxy: Bool {
+    serverName == "personal-proxies" || serverName.hasPrefix("personal-proxy:")
+  }
+
   /// Regional-indicator flag for `countryCode`, or nil when unknown.
   public var flagEmoji: String? {
     let code = countryCode.uppercased()

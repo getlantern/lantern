@@ -36,6 +36,7 @@ class _Helpers extends HelpersNotifier {
 
   @override
   HelpersState build() => initial;
+
   @override
   Future<void> refreshIfUsed() async => refreshes++;
   @override
@@ -718,6 +719,56 @@ void main() {
       find.text('helping_connected_named'.i18n.fill(['Sara'])),
       findsOneWidget,
     );
+  });
+
+  testWidgets('live status: the card and sheet follow it, the headline names '
+      'the first connected friend, and unknown hides it again', (tester) async {
+    const unknown = [
+      HelperPairingView(pairingId: 'p1', name: 'Sara'),
+      HelperPairingView(pairingId: 'p2', name: 'Reza'),
+    ];
+    final helpers = _Helpers(_helping(helping: unknown));
+    await _pump(
+      tester,
+      helpers,
+      const Column(
+        children: [
+          PersonalProxyConnectionsCard(),
+          Expanded(child: HelpingFriendsSheet()),
+        ],
+      ),
+      sharing: true,
+    );
+    expect(find.textContaining('connected right now'), findsNothing);
+    expect(find.byKey(const Key('helping.status.p1')), findsNothing);
+    expect(find.byKey(const Key('helping.status.p2')), findsNothing);
+
+    helpers.setView(
+      _helping(
+        helping: const [
+          HelperPairingView(pairingId: 'p1', name: 'Sara', connected: false),
+          HelperPairingView(pairingId: 'p2', name: 'Reza', connected: true),
+        ],
+      ).view,
+    );
+    await tester.pump();
+    expect(
+      find.text('helping_connected_named'.i18n.fill(['Reza'])),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.status.p1'))).data,
+      'helping_not_connected'.i18n,
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.status.p2'))).data,
+      'helping_connected'.i18n,
+    );
+
+    helpers.setView(_helping(helping: unknown).view);
+    await tester.pump();
+    expect(find.textContaining('connected right now'), findsNothing);
+    expect(find.byKey(const Key('helping.status.p2')), findsNothing);
   });
 
   test('connectedRightNow: unknown, one by name, else a count', () {

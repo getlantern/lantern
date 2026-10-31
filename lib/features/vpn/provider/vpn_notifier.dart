@@ -9,6 +9,7 @@ import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/services/rating_prompt_service.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
@@ -223,6 +224,16 @@ class VpnNotifier extends _$VpnNotifier {
         'Server tag "$tag" not available, falling back to auto VPN',
       );
       if (type == ServerLocationType.personalProxy) {
+        // A friend with no route left falls back to the group while it
+        // exists, as radiance does for a running tunnel.
+        if (serverLocation.personalProxyFriendTag != null &&
+            await lantern.isTagAvailable(personalProxiesTag)) {
+          return connectToServer(
+            type,
+            personalProxiesTag,
+            skipConflictCheck: true,
+          );
+        }
         // The group is gone with the last pairing: show Smart Location, which
         // is what connects.
         await ref.read(serverLocationProvider.notifier).switchToAuto();
