@@ -4,9 +4,9 @@ import "maps"
 
 // SetLive records which pairings radiance reports connected through this
 // device right now, for the helping rows of every later view. With known
-// false it records that nobody can say (radiance is not answering, or the
-// VPN is off), and those rows carry no connected at all, as from a core that
-// never had live status. A pairing missing from connected is not connected.
+// false it records that nobody can say (radiance is not answering), and
+// those rows carry no connected at all, as from a core that never had live
+// status. A pairing missing from connected is not connected.
 // It returns whether that changed anything a view shows. Pairing IDs are
 // never logged.
 //

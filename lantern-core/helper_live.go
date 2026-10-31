@@ -2,10 +2,7 @@ package lanterncore
 
 import (
 	"context"
-	"errors"
 	"time"
-
-	"github.com/getlantern/radiance/vpn"
 )
 
 // EventTypeHelperLive tells the app that the connected status of the friends
@@ -13,26 +10,22 @@ import (
 // pairing IDs: the view does.
 const EventTypeHelperLive EventType = "helper-live"
 
-var errVPNOff = errors.New("vpn is off")
-
 // listenHelperLive polls radiance's per-friend live status beside the relay
-// snapshots and merges it into the helper engine's view.
+// snapshots and merges it into the helper engine's view. It polls whatever
+// the VPN's state: a volunteer abroad typically shares with the VPN off, and
+// sharing runs in radiance apart from the tunnel. The read starts nothing:
+// on desktop and Android an IPC server that is not up just fails the read,
+// and on Apple builds the client answers from its in-process backend, as it
+// already does for the relay snapshot pollers polling at the same rate.
 func (lc *LanternCore) listenHelperLive() {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	pollHelperLive(lc.ctx, ticker.C, lc.readHelperLive, lc.helpers.SetLive, lc.notifyFlutter)
 }
 
-// readHelperLive returns which pairings radiance reports connected, and an
-// error while the VPN is off, when the app shows no live status.
+// readHelperLive returns which pairings radiance reports connected. A
+// pairing it leaves out is not connected.
 func (lc *LanternCore) readHelperLive(ctx context.Context) (map[string]bool, error) {
-	status, err := lc.client.VPNStatus(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if status != vpn.Connected {
-		return nil, errVPNOff
-	}
 	s, err := lc.client.HelperLive(ctx)
 	if err != nil {
 		return nil, err

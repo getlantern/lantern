@@ -23,7 +23,7 @@ func TestHelperLiveNotifiesOnlyOnChangeAndCarriesNoPairing(t *testing.T) {
 	}{
 		{map[string]bool{"pairing-secret": true}, nil},
 		{map[string]bool{"pairing-secret": true}, nil},
-		{nil, errors.New("vpn is off")},
+		{nil, errors.New("ipc not running")},
 		{map[string]bool{}, nil},
 	}
 	// One read comes before the first tick, so the last read finds no tick
