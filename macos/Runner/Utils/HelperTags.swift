@@ -9,17 +9,26 @@ import Foundation
 // redacted the same way, as the Dart port (lib/core/utils/helper_tags.dart)
 // does.
 //
-// This redacts tags only: helper-…, personal-proxies and personalProxy.
+// This redacts tags only: helper-…, personal-proxies, personal-proxy (and so a
+// friend's selection, personal-proxy:helper-…) and personalProxy.
 // Addresses on lines naming helpers are not touched here; the Dart and
 // radiance redaction remove those.
 private let helperTagPattern = try! NSRegularExpression(
   pattern: "(?<![A-Za-z0-9_])helper-[0-9a-f]{12}")
 /// radiance's url-test group over every helper outbound.
 let personalProxiesTag = "personal-proxies"
+/// radiance's url-test group over one friend's outbounds. The app selects a
+/// friend as "personal-proxy:<helper tag>".
+let personalProxyTag = "personal-proxy"
+
+/// Whether `tag` selects one friend ("personal-proxy:<helper tag>").
+func isPersonalProxySelection(_ tag: String) -> Bool {
+  tag.hasPrefix(personalProxyTag + ":")
+}
 private let personalProxyTypePattern = try! NSRegularExpression(
   pattern: "(?<![A-Za-z0-9_])personalProxy(?![A-Za-z0-9_])")
 
-/// Replaces each helper tag, the personal proxies group tag and the
+/// Replaces each helper tag, the personal proxy group tags and the
 /// personalProxy type in `text` with "helper".
 func redactHelperTags(_ text: String) -> String {
   var out = text
@@ -29,6 +38,9 @@ func redactHelperTags(_ text: String) -> String {
   }
   if out.contains(personalProxiesTag) {
     out = out.replacingOccurrences(of: personalProxiesTag, with: "helper")
+  }
+  if out.contains(personalProxyTag) {
+    out = out.replacingOccurrences(of: personalProxyTag, with: "helper")
   }
   if out.contains("personalProxy") {
     out = personalProxyTypePattern.stringByReplacingMatches(

@@ -41,4 +41,16 @@ class HelperTagsTest {
     fun otherEventsLogARedactedMessage() {
         assertEquals("config - using helper", HelperTags.loggableEvent("config", "using $tag"))
     }
+
+    @Test
+    fun redactsAFriendsSelection() {
+        assertEquals(
+            "connecting to helper:helper",
+            HelperTags.redact("connecting to personal-proxy:$tag"),
+        )
+        assertEquals(
+            "outbound/mutableurltest[helper]",
+            HelperTags.redact("outbound/mutableurltest[personal-proxy]"),
+        )
+    }
 }

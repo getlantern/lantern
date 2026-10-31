@@ -37,4 +37,15 @@ final class HelperTagsTests: XCTestCase {
     XCTAssertEqual(
       loggableFlutterEvent(type: "config", message: "using \(tag)"), "config - using helper")
   }
+
+  func testRedactsAFriendsSelection() {
+    XCTAssertEqual(
+      redactHelperTags("params: [\"server\": \"personal-proxy:\(tag)\"]"),
+      "params: [\"server\": \"helper:helper\"]")
+    XCTAssertEqual(
+      redactHelperTags("outbound/mutableurltest[personal-proxy]"),
+      "outbound/mutableurltest[helper]")
+    XCTAssertTrue(isPersonalProxySelection("personal-proxy:\(tag)"))
+    XCTAssertFalse(isPersonalProxySelection(personalProxiesTag))
+  }
 }

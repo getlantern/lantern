@@ -39,7 +39,7 @@ class PersonalProxyStatusNotifier
   Future<void> poll() async {
     if (_reading || !HelpersNotifier.buildEnabled) return;
     if (ref.read(vpnProvider) != VPNStatus.connected) {
-      state = null;
+      if (state != null) state = null;
       return;
     }
     _reading = true;
