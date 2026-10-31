@@ -540,6 +540,28 @@ void main() {
       expect(c.read(serverLocationProvider).personalProxyFriendTag, friend);
     });
 
+    test('friend, then auto, then the same friend: the friend is shown '
+        'again', () async {
+      storage.location = ServerLocation.personalProxy(friendTag: friend);
+      final c = container();
+      final notifier = c.read(serverLocationProvider.notifier);
+      var sync = notifier.syncSelection();
+      await answer(0, '{"tag":"auto"}');
+      await sync;
+      expect(
+        c.read(serverLocationProvider).serverType,
+        ServerLocationType.auto.name,
+      );
+      sync = notifier.syncSelection();
+      await answer(1, '{"tag":"$friendTag"}');
+      await sync;
+      expect(c.read(serverLocationProvider).personalProxyFriendTag, friend);
+      expect(
+        c.read(serverLocationProvider).serverType,
+        ServerLocationType.personalProxy.name,
+      );
+    });
+
     test('duplicate events do not flap the selection', () async {
       storage.location = ServerLocation.personalProxy();
       final c = container();

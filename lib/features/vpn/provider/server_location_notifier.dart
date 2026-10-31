@@ -123,7 +123,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     }
     final friend = personalProxyFriend(tag);
     if (tag == personalProxiesTag || friend != null) {
-      if (state.serverName == tag) return;
+      if (state.serverName == tag && _personalProxySelected) return;
       updateServerLocation(ServerLocation.personalProxy(friendTag: friend));
       return;
     }
