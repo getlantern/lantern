@@ -456,4 +456,46 @@ void main() {
     await pumpEventQueue();
     expect(service.widgetServers.last, 'fra');
   });
+
+  group('personalProxyFellBack', () {
+    const friend = 'helper-0123456789ab';
+
+    test('the selected friend falls back to the group', () async {
+      storage.location = ServerLocation.personalProxy(friendTag: friend);
+      final c = container(vpn: VPNStatus.connected);
+      await c
+          .read(serverLocationProvider.notifier)
+          .personalProxyFellBack(friend, personalProxiesTag);
+      final loc = c.read(serverLocationProvider);
+      expect(loc.serverName, personalProxiesTag);
+      expect(loc.personalProxyFriendTag, isNull);
+      expect(storage.location!.serverName, personalProxiesTag);
+    });
+
+    test('or to Smart Location', () async {
+      storage.location = ServerLocation.personalProxy(friendTag: friend);
+      final c = container();
+      await c
+          .read(serverLocationProvider.notifier)
+          .personalProxyFellBack(friend, 'auto');
+      expect(
+        c.read(serverLocationProvider).serverType,
+        ServerLocationType.auto.name,
+      );
+    });
+
+    test('a selection that is no longer that friend is left alone', () async {
+      storage.location = ServerLocation.personalProxy(
+        friendTag: 'helper-ffffffffffff',
+      );
+      final c = container();
+      await c
+          .read(serverLocationProvider.notifier)
+          .personalProxyFellBack(friend, 'auto');
+      expect(
+        c.read(serverLocationProvider).personalProxyFriendTag,
+        'helper-ffffffffffff',
+      );
+    });
+  });
 }

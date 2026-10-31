@@ -87,6 +87,20 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     await refreshAutoLocationIfNeeded();
   }
 
+  /// radiance switched the friend selected on their own, whose outbound tag
+  /// is [friendTag], to [fallback] (the personal proxies group, or auto)
+  /// because no route to them was left. Follows it while that friend is
+  /// still the selection here.
+  Future<void> personalProxyFellBack(String friendTag, String fallback) async {
+    if (!ref.mounted || state.personalProxyFriendTag != friendTag) return;
+    if (fallback == personalProxiesTag) {
+      updateServerLocation(ServerLocation.personalProxy());
+      return;
+    }
+    await switchToAuto();
+    await refreshAutoLocationIfNeeded();
+  }
+
   /// Fetches the current server location from radiance.
   /// If the VPN isn't connected, uses the cached value.
   /// If auto-selected, fetches the auto location; otherwise fetches the

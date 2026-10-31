@@ -19,6 +19,7 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/personal_proxies_section.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -164,10 +165,19 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   ) {
     final textTheme = Theme.of(context).textTheme;
     final autoLocation = serverLocation.autoLocation;
-    final displayName = autoLocation?.displayName ?? 'fastest_server'.i18n;
-    final flag = autoLocation?.countryCode ?? '';
-    final protocol = autoLocation?.protocol ?? '';
-    final autoTag = autoLocation?.tag;
+    // With one friend selected the card shows that friend, never where they
+    // are: their name, "Personal Proxy" and the generic icon.
+    final friendTag = serverLocation.personalProxyFriendTag;
+    final friendName = friendTag == null
+        ? null
+        : personalProxyFriendName(ref, friendTag);
+    final displayName =
+        friendName ?? (autoLocation?.displayName ?? 'fastest_server').i18n;
+    final flag = friendName != null ? '' : (autoLocation?.countryCode ?? '');
+    final protocol = friendName != null
+        ? 'personal_proxy'.i18n
+        : (autoLocation?.protocol ?? '').capitalize;
+    final autoTag = friendName != null ? null : autoLocation?.tag;
     final autoServer = autoTag == null ? null : servers.serverByTag(autoTag);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,12 +195,13 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             icon: flag.isEmpty
                 ? AppImagePaths.location
                 : Flag(countryCode: flag),
-            label: displayName.i18n,
+            tileKey: const Key('server_selection.smart_location'),
+            label: displayName,
             onPressed: onSmartLocation,
             subtitle: protocol.isEmpty
                 ? null
                 : Text(
-                    protocol.capitalize,
+                    protocol,
                     style: textTheme.labelMedium!.copyWith(
                       color: context.textTertiary,
                     ),
@@ -647,6 +658,24 @@ class _PrivateServerLocationListViewState
       return timer.cancel;
     }, [hasPersonalProxies]);
 
+    // Whether each friend can be selected on their own also needs radiance's
+    // status. It is local IPC, read only while this tab shows friends, so
+    // nothing polls it otherwise; the fallback when a selected friend goes
+    // away comes as an event, not from this poll.
+    useEffect(() {
+      if (!hasPersonalProxies) return null;
+      final status = ref.read(personalProxyStatusProvider.notifier);
+      unawaited(status.poll());
+      final timer = Timer.periodic(personalProxyStatusInterval, (_) {
+        if (WidgetsBinding.instance.lifecycleState !=
+            AppLifecycleState.resumed) {
+          return;
+        }
+        unawaited(status.poll());
+      });
+      return timer.cancel;
+    }, [hasPersonalProxies]);
+
     if (availableServers.isLoading) {
       return const Center(child: Spinner());
     }
@@ -660,9 +689,11 @@ class _PrivateServerLocationListViewState
 
     final userLocations = availableServers.requireValue.userServers;
     final selectedTag = selected.serverName;
+    final selectedFriend = selected.personalProxyFriendTag;
     final personalSelected =
         selected.serverType.toServerLocationType ==
-        ServerLocationType.personalProxy;
+            ServerLocationType.personalProxy &&
+        selectedFriend == null;
 
     if (userLocations.isEmpty && !hasPersonalProxies) {
       return Column(
@@ -692,6 +723,12 @@ class _PrivateServerLocationListViewState
             ServerLocationType.personalProxy,
             personalProxiesTag,
             ServerLocation.personalProxy(),
+          ),
+          selectedFriend: selectedFriend,
+          onSelectFriend: (h) => _select(
+            ServerLocationType.personalProxy,
+            personalProxySelection(h.outboundTag),
+            ServerLocation.personalProxy(friendTag: h.outboundTag),
           ),
         ),
         if (userLocations.isNotEmpty) ...[

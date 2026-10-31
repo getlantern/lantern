@@ -90,17 +90,31 @@ class ServerLocation {
     );
   }
 
-  /// The user's personal proxies, selected as one location. Where the friends
-  /// are is never shown.
-  factory ServerLocation.personalProxy() => ServerLocation(
-    serverName: personalProxiesTag,
+  /// The user's personal proxies, selected as one location, or with
+  /// [friendTag] the one friend whose outbound tag it is. Where the friends
+  /// are is never shown. Nor is a friend's name kept here, where it would be
+  /// stored and sent to the home-screen widget: the UI looks it up by
+  /// [personalProxyFriendTag].
+  factory ServerLocation.personalProxy({String? friendTag}) => ServerLocation(
+    serverName: friendTag == null
+        ? personalProxiesTag
+        : personalProxySelection(friendTag),
     serverType: ServerLocationType.personalProxy.name,
     displayName: 'personal_proxy'.i18n,
   );
 
+  /// The outbound tag of the friend selected on their own, or null for the
+  /// personal proxies group and every other location.
+  String? get personalProxyFriendTag =>
+      serverType == ServerLocationType.personalProxy.name
+      ? personalProxyFriend(serverName)
+      : null;
+
   /// The location of the server radiance reports as selected.
   factory ServerLocation.selected(Server server) {
     if (server.tag == personalProxiesTag) return ServerLocation.personalProxy();
+    final friend = personalProxyFriend(server.tag);
+    if (friend != null) return ServerLocation.personalProxy(friendTag: friend);
     return ServerLocation.fromServer(server: server).copyWith(
       serverType: server.isLantern
           ? ServerLocationType.lanternLocation.name
@@ -153,9 +167,10 @@ class ServerLocation {
         : null;
     // Rebuilt rather than read, so the label follows the current language.
     if (json['serverType'] == ServerLocationType.personalProxy.name) {
-      return ServerLocation.personalProxy().copyWith(
-        autoLocation: autoLocation,
-      );
+      final name = json['serverName'];
+      return ServerLocation.personalProxy(
+        friendTag: name is String ? personalProxyFriend(name) : null,
+      ).copyWith(autoLocation: autoLocation);
     }
     return ServerLocation(
       serverName: (json['serverName'] ?? '') as String,

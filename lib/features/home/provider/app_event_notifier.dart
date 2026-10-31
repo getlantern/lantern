@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/common.dart' show appRouter;
+import 'package:lantern/core/extensions/context.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/vpn/personal_proxies_section.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
@@ -42,6 +46,43 @@ class AppEventNotifier extends _$AppEventNotifier {
   /// reports past their attachment budget so users could not send logs at all.
   /// Per-event diagnostics are available at the opt-in trace level.
   static const _highVolumeEvents = {'peer-connection', 'data-cap-event'};
+
+  /// Shows a message to the user. Tests replace it.
+  @visibleForTesting
+  static void Function(String message) showMessage = _showSnackBar;
+
+  static void _showSnackBar(String message) {
+    final context = appRouter.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    context.showSnackBar(message);
+  }
+
+  /// radiance switched the friend selected on their own, who has no route
+  /// left, to the personal proxies group or to auto: follows it and tells
+  /// the user, by the friend's name. Neither the tag nor the name is logged.
+  Future<void> _personalProxyFellBack(String message) async {
+    final String tag;
+    final String fallback;
+    try {
+      final j = jsonDecode(message) as Map<String, dynamic>;
+      tag = j['tag'] as String;
+      fallback = j['fallback'] as String;
+    } catch (_) {
+      appLogger.error('Error parsing personal-proxy-fallback event');
+      return;
+    }
+    final text = personalProxyFallbackMessage(
+      ref.read(helpersProvider).view,
+      tag,
+      fallback,
+    );
+    if (text == null) return;
+    await ref
+        .read(serverLocationProvider.notifier)
+        .personalProxyFellBack(tag, fallback);
+    if (!ref.mounted) return;
+    showMessage(text);
+  }
 
   /// Watches for application events and triggers appropriate actions.
   /// Currently, it listens for 'config' and server-location events.
@@ -97,6 +138,9 @@ class AppEventNotifier extends _$AppEventNotifier {
         case 'helper-live':
           // Carries nothing: the helper view holds the friends' status.
           unawaited(ref.read(helpersProvider.notifier).liveChanged());
+          break;
+        case 'personal-proxy-fallback':
+          unawaited(_personalProxyFellBack(event.message));
           break;
         case 'user-data':
           // Go refreshed user data from the server; re-read the cache.
