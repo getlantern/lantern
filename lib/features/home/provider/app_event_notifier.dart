@@ -164,5 +164,28 @@ class AppEventNotifier extends _$AppEventNotifier {
           break;
       }
     });
+    unawaited(_readStateOnListen());
+  }
+
+  /// How long the first read waits for the core to be ready.
+  @visibleForTesting
+  static Duration coreWait = const Duration(seconds: 30);
+
+  /// Events sent before this listener existed never reach it: radiance
+  /// replays its selection-saved event to the core, not to a late app
+  /// listener. So the state those events prompt is read once here, when the
+  /// core is ready, and never depends on catching the replay.
+  Future<void> _readStateOnListen() async {
+    try {
+      await ref
+          .read(lanternServiceProvider)
+          .waitForRadiance()
+          .timeout(coreWait);
+    } catch (_) {
+      // Read anyway: a failed read changes nothing.
+    }
+    if (!ref.mounted) return;
+    unawaited(ref.read(serverLocationProvider.notifier).syncSelection());
+    unawaited(ref.read(helpersProvider.notifier).liveChanged());
   }
 }

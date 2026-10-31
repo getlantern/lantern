@@ -43,6 +43,13 @@ class _Location extends ServerLocationNotifier {
   Future<void> syncSelection() async => syncs++;
 }
 
+/// Lets the read made when the listener starts finish.
+Future<void> _settle() async {
+  for (var i = 0; i < 5; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(Localization.loadTranslations);
@@ -81,6 +88,9 @@ void main() {
         await service.events.close();
       });
       await c.read(appEventProvider.future);
+      await _settle();
+      expect(location.syncs, 1, reason: 'one read when the listener starts');
+      location.syncs = 0;
     }
 
     Future<void> send(String message) async {
@@ -135,6 +145,19 @@ void main() {
       expect(shown, isEmpty);
     });
 
+    test(
+      'a selection event followed at once by snapshots still reads',
+      () async {
+        await start(const [sara]);
+        service.events
+          ..add(AppEvent(eventType: 'selection-changed', message: ''))
+          ..add(AppEvent(eventType: 'peer-snapshot', message: '{}'))
+          ..add(AppEvent(eventType: 'unbounded-snapshot', message: '{}'));
+        await Future<void>.delayed(Duration.zero);
+        expect(location.syncs, 1);
+      },
+    );
+
     test('a malformed event or unknown fallback shows nothing', () async {
       await start(const [sara]);
       await send('not json');
@@ -152,6 +175,7 @@ void main() {
       overrides: [
         lanternServiceProvider.overrideWithValue(service),
         helpersProvider.overrideWith(() => helpers),
+        serverLocationProvider.overrideWith(_Location.new),
       ],
     );
     addTearDown(() async {
@@ -159,6 +183,9 @@ void main() {
       await service.events.close();
     });
     await c.read(appEventProvider.future);
+    await _settle();
+    expect(helpers.liveChanges, 1, reason: 'one read when the listener starts');
+    helpers.liveChanges = 0;
 
     service.events.add(AppEvent(eventType: 'helper-live', message: '{}'));
     await Future<void>.delayed(Duration.zero);
@@ -218,7 +245,9 @@ void selectionChangedTests() {
         );
       sl.registerSingleton<LocalStorageService>(storage);
       addTearDown(sl.reset);
-      final service = _SelectionService([a, b]);
+      // The read when the listener starts, the read after the connect, then
+      // the read on selection-changed.
+      final service = _SelectionService([a, a, b]);
       final c = ProviderContainer(
         overrides: [
           lanternServiceProvider.overrideWithValue(service),
@@ -231,6 +260,7 @@ void selectionChangedTests() {
         await service.events.close();
       });
       await c.read(appEventProvider.future);
+      await _settle();
       final location = c.read(serverLocationProvider.notifier);
 
       // The platform acknowledged the connect before switching.
@@ -244,4 +274,30 @@ void selectionChangedTests() {
       expect(storage.location!.serverName, b);
     },
   );
+
+  test('a late listener, which missed every selection event, still ends on '
+      'the selection radiance has', () async {
+    const b = 'personal-proxy:helper-bbbbbbbbbbbb';
+    final storage = _Storage()
+      ..location = ServerLocation.personalProxy(
+        friendTag: 'helper-aaaaaaaaaaaa',
+      );
+    sl.registerSingleton<LocalStorageService>(storage);
+    addTearDown(sl.reset);
+    final service = _SelectionService([b]);
+    final c = ProviderContainer(
+      overrides: [
+        lanternServiceProvider.overrideWithValue(service),
+        helpersProvider.overrideWith(_Helpers.new),
+        vpnProvider.overrideWithValue(VPNStatus.disconnected),
+      ],
+    );
+    addTearDown(() async {
+      c.dispose();
+      await service.events.close();
+    });
+    await c.read(appEventProvider.future);
+    await _settle();
+    expect(c.read(serverLocationProvider).serverName, b);
+  });
 }
