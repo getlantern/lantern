@@ -874,9 +874,6 @@ msgstr "加入伺服器"
 msgid "private_server_usage_message"
 msgstr "私人伺服器的使用量不計入你的 Lantern 每日數據限額。"
 
-msgid "manage_private_servers"
-msgstr "管理私人伺服器"
-
 msgid "my_servers"
 msgstr "我的伺服器"
 

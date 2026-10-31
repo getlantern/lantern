@@ -933,9 +933,6 @@ msgstr "सर्वर से जुड़ें"
 msgid "private_server_usage_message"
 msgstr "निजी सर्वर उपयोग आपकी Lantern दैनिक डेटा सीमा में नहीं गिना जाता।"
 
-msgid "manage_private_servers"
-msgstr "निजी सर्वर प्रबंधित करें"
-
 msgid "my_servers"
 msgstr "मेरे सर्वर"
 

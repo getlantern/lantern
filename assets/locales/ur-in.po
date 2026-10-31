@@ -932,9 +932,6 @@ msgid "private_server_usage_message"
 msgstr ""
 "نجی سرور کا استعمال آپ کی Lantern روزانہ ڈیٹا کی حد میں شمار نہیں ہوتا۔"
 
-msgid "manage_private_servers"
-msgstr "نجی سرورز کا انتظام کریں"
-
 msgid "my_servers"
 msgstr "میرے سرورز"
 

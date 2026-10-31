@@ -926,9 +926,6 @@ msgstr "الانضمام إلى الخادم"
 msgid "private_server_usage_message"
 msgstr "استخدام الخادم الخاص لا يُحتسب ضمن حد البيانات اليومي لـ Lantern."
 
-msgid "manage_private_servers"
-msgstr "إدارة الخوادم الخاصة"
-
 msgid "my_servers"
 msgstr "خوادمي"
 

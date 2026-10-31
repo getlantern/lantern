@@ -813,9 +813,6 @@ msgstr ""
 "L'utilisation du serveur privé n'est pas comptabilisée dans votre limite de "
 "données quotidiennes Lantern."
 
-msgid "manage_private_servers"
-msgstr "Gérer les serveurs privés"
-
 msgid "my_servers"
 msgstr "Mes serveurs"
 

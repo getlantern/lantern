@@ -941,9 +941,6 @@ msgstr ""
 "Использование частного сервера не учитывается в вашем ежедневном лимите "
 "данных Lantern."
 
-msgid "manage_private_servers"
-msgstr "Управление частными серверами"
-
 msgid "my_servers"
 msgstr "Мои серверы"
 

@@ -939,9 +939,6 @@ msgstr ""
 "O uso de servidor privado não é contabilizado no limite diário de dados do "
 "Lantern."
 
-msgid "manage_private_servers"
-msgstr "Gerenciar Servidores Privados"
-
 msgid "my_servers"
 msgstr "Meus Servidores"
 

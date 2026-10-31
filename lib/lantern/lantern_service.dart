@@ -151,6 +151,7 @@ class LanternService implements LanternCoreService {
     required String country,
     required String countryCode,
     required String displayName,
+    required String serverName,
   }) {
     // Only iOS ships a WidgetKit extension today.
     if (!PlatformUtils.isIOS) return Future.value();
@@ -159,6 +160,7 @@ class LanternService implements LanternCoreService {
       country: country,
       countryCode: countryCode,
       displayName: displayName,
+      serverName: serverName,
     );
   }
 
@@ -703,18 +705,11 @@ class LanternService implements LanternCoreService {
   @override
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   }) {
     if (PlatformUtils.isFFISupported) {
-      return _ffiService.addServerBasedOnURLs(
-        urls: urls,
-        skipCertVerification: skipCertVerification,
-      );
+      return _ffiService.addServerBasedOnURLs(urls: urls);
     }
-    return _platformService.addServerBasedOnURLs(
-      urls: urls,
-      skipCertVerification: skipCertVerification,
-    );
+    return _platformService.addServerBasedOnURLs(urls: urls);
   }
 
   /// connectToServer is used to connect to a server
@@ -964,6 +959,17 @@ class LanternService implements LanternCoreService {
       return _ffiService.getPeerStatusJSON();
     }
     return _platformService.getPeerStatusJSON();
+  }
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.helperCall(op, args);
+    }
+    return _platformService.helperCall(op, args);
   }
 
   @override

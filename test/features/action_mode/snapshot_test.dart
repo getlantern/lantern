@@ -22,6 +22,9 @@ import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/core/utils/country_code.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 class FakeStorage implements LocalStorageService {
   @override
@@ -126,6 +129,17 @@ class FakeRadianceSettings extends RadianceSettings {
   @override
   Future<Either<Failure, Unit>> setPeerProxy(bool value) =>
       onSetPeerProxy?.call(value) ?? startResult.future;
+}
+
+/// One friend helped, until [helpNobody].
+class HelpingOne extends HelpersNotifier {
+  @override
+  HelpersState build() => const HelpersState(
+    view: HelpersView(helping: [HelperPairingView(pairingId: 'p1')]),
+  );
+
+  void helpNobody() =>
+      state = state.copyWith(view: const HelpersView(unlocked: true));
 }
 
 const unknownIp = '198.51.100.9';
@@ -551,6 +565,91 @@ void main() {
         left(Failure(error: 'offline', localizedErrorMessage: 'offline')),
       );
       await starting;
+    });
+  });
+
+  group('a helper start falling back to Unbounded', () {
+    late ProviderContainer helperContainer;
+    setUp(() {
+      CountryCode.update('DE');
+      helperContainer = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(service),
+          appSettingProvider.overrideWith(FakeSettings.new),
+          radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
+          helpersProvider.overrideWith(HelpingOne.new),
+        ],
+      );
+    });
+    tearDown(() {
+      helperContainer.dispose();
+      CountryCode.update('');
+    });
+
+    Future<(WidgetRef, Future<void>)> startSmc(WidgetTester tester) async {
+      late WidgetRef widgetRef;
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: helperContainer,
+          child: Consumer(
+            builder: (ctx, ref, child) {
+              widgetRef = ref;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      final starting = helperContainer
+          .read(shareProvider.notifier)
+          .startForHelper(widgetRef);
+      await tester.pump();
+      expect(helperContainer.read(shareProvider).mode, ShareMode.smc);
+      return (widgetRef, starting);
+    }
+
+    void failSmc() => service.events.add(
+      AppEvent(
+        eventType: 'peer-status',
+        message: jsonEncode({'phase': 'error', 'error': 'port unreachable'}),
+      ),
+    );
+
+    testWidgets('stops instead once this device helps nobody', (tester) async {
+      final (_, starting) = await startSmc(tester);
+      (helperContainer.read(helpersProvider.notifier) as HelpingOne)
+          .helpNobody();
+      failSmc();
+      await tester.pump();
+      expect(service.enableCalls, 0);
+      expect(helperContainer.read(shareProvider).active, isFalse);
+      expect(helperContainer.read(shareProvider).mode, ShareMode.off);
+      final radiance =
+          helperContainer.read(radianceSettingsProvider.notifier)
+              as FakeRadianceSettings;
+      await tester.runAsync(() async {
+        radiance.startResult.complete(
+          left(Failure(error: 'port', localizedErrorMessage: 'port')),
+        );
+        await starting;
+      });
+      expect(service.enableCalls, 0);
+    });
+
+    testWidgets('stops instead once the country is censored', (tester) async {
+      await startSmc(tester);
+      CountryCode.update('IR');
+      failSmc();
+      await tester.pump();
+      expect(service.enableCalls, 0);
+      expect(helperContainer.read(shareProvider).active, isFalse);
+    });
+
+    testWidgets('falls back while still eligible', (tester) async {
+      await startSmc(tester);
+      failSmc();
+      await tester.pump();
+      expect(service.enableCalls, 1);
+      expect(helperContainer.read(shareProvider).mode, ShareMode.unbounded);
     });
   });
 

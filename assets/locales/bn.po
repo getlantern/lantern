@@ -927,9 +927,6 @@ msgid "private_server_usage_message"
 msgstr ""
 "প্রাইভেট সার্ভার ব্যবহার আপনার Lantern দৈনিক ডেটা ক্যাপে গণনা করা হয় না।"
 
-msgid "manage_private_servers"
-msgstr "প্রাইভেট সার্ভার পরিচালনা করুন"
-
 msgid "my_servers"
 msgstr "আমার সার্ভার"
 

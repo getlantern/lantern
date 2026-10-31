@@ -937,9 +937,6 @@ msgid "private_server_usage_message"
 msgstr ""
 "Penggunaan pelayan peribadi tidak dikira dalam had data harian Lantern anda."
 
-msgid "manage_private_servers"
-msgstr "Urus Pelayan Peribadi"
-
 msgid "my_servers"
 msgstr "Pelayan Saya"
 

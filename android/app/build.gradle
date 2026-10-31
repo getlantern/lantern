@@ -401,6 +401,9 @@ android {
                 identityMetadata: androidIdentity.identityMetadata,
                 quickTileIcon: androidIdentity.quickTileIcon,
                 appAuthScheme: androidIdentity.appAuthScheme,
+                // Helper invite links open the app only in normal builds;
+                // stealth artifacts must not claim lantern.io/help.
+                helperLinksEnabled: stealthMode ? "false" : "true",
                 usesCleartextTraffic: cleartextTraffic,
         ]
         resValue "string", "app_name", androidIdentity.appLabel

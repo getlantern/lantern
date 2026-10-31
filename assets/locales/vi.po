@@ -935,9 +935,6 @@ msgstr ""
 "Lưu lượng sử dụng máy chủ riêng không được tính vào hạn mức dữ liệu hàng "
 "ngày của Lantern."
 
-msgid "manage_private_servers"
-msgstr "Quản lý máy chủ riêng"
-
 msgid "my_servers"
 msgstr "Máy chủ của tôi"
 

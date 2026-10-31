@@ -871,9 +871,6 @@ msgstr "加入服务器"
 msgid "private_server_usage_message"
 msgstr "私有服务器使用量不计入您的蓝灯每日数据上限。"
 
-msgid "manage_private_servers"
-msgstr "管理私有服务器"
-
 msgid "my_servers"
 msgstr "我的服务器"
 

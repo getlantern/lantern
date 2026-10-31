@@ -11,6 +11,9 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/personal_proxy_banner.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
@@ -43,6 +46,18 @@ class _FakeLanternService implements LanternService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _WaitingHelpers extends HelpersNotifier {
+  @override
+  HelpersState build() => const HelpersState(
+    viewLoaded: true,
+    view: HelpersView(
+      unlocked: true,
+      helpers: [HelperPairingView(pairingId: 'p1', name: 'Ali')],
+      invites: [HelperInviteView(id: 'i1', state: 'claimed', code: '2562')],
+    ),
+  );
 }
 
 void main() {
@@ -176,5 +191,152 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  }
+
+  const withinWeek = ProRenewalInfo(ProRenewalState.withinWeek, null, 3);
+  for (final (name, pro, renewal, banner) in [
+    (
+      'a Pro user sees the personal proxy banner',
+      true,
+      ProRenewalInfo.none,
+      true,
+    ),
+    ('the Pro upsell wins for a free user', false, ProRenewalInfo.none, false),
+    ('the renewal card wins for a Pro user', true, withinWeek, false),
+  ]) {
+    testWidgets(name, (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = desktopWindowSize;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            lanternServiceProvider.overrideWithValue(_FakeLanternService()),
+            isUserProProvider.overrideWithValue(pro),
+            isUserExpiredProvider.overrideWithValue(false),
+            proRenewalProvider.overrideWithValue(renewal),
+            personalProxyBannerVisibleProvider.overrideWithValue(true),
+            serverLocationProvider.overrideWithValue(initialServerLocation()),
+            radianceSettingsProvider.overrideWithValue(
+              const RadianceSettingsState(),
+            ),
+            vpnProvider.overrideWithValue(VPNStatus.disconnected),
+            macosExtensionProvider.overrideWithValue(
+              const MacOSExtensionState(SystemExtensionStatus.activated),
+            ),
+          ],
+          child: ScreenUtilInit(
+            designSize: desktopWindowSize,
+            child: MaterialApp(
+              theme: AppTheme.appTheme(),
+              home: const Scaffold(body: VpnTab()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.byKey(const Key('vpn.personal_proxy_banner')),
+        banner ? findsOneWidget : findsNothing,
+      );
+      if (banner) {
+        expect(find.text('personal_proxy_banner_title'.i18n), findsOneWidget);
+        expect(find.text('personal_proxy_banner_body'.i18n), findsOneWidget);
+      }
+    });
+  }
+
+  testWidgets('a friend waiting on approval takes the slot from the Pro '
+      'upsell, for a user who has a personal proxy too', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = desktopWindowSize;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(_FakeLanternService()),
+          isUserProProvider.overrideWithValue(false),
+          isUserExpiredProvider.overrideWithValue(false),
+          proRenewalProvider.overrideWithValue(ProRenewalInfo.none),
+          helpersProvider.overrideWith(_WaitingHelpers.new),
+          helperInvitesAvailableProvider.overrideWithValue(true),
+          serverLocationProvider.overrideWithValue(initialServerLocation()),
+          radianceSettingsProvider.overrideWithValue(
+            const RadianceSettingsState(),
+          ),
+          vpnProvider.overrideWithValue(VPNStatus.disconnected),
+          macosExtensionProvider.overrideWithValue(
+            const MacOSExtensionState(SystemExtensionStatus.activated),
+          ),
+        ],
+        child: ScreenUtilInit(
+          designSize: desktopWindowSize,
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: const Scaffold(body: VpnTab()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(ProBanner), findsNothing);
+    expect(find.byKey(const Key('vpn.personal_proxy_banner')), findsOneWidget);
+    expect(
+      find.text('personal_proxy_banner_waiting_title'.i18n),
+      findsOneWidget,
+    );
+  });
+
+  for (final (size, compact) in [
+    (desktopWindowSize, false),
+    (const Size(393, 560), true),
+  ]) {
+    testWidgets('the personal proxy banner at ${size.height.toInt()}dp tall '
+        'is ${compact ? 'a compact pill' : 'the full card'}', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = size;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            personalProxyBannerVisibleProvider.overrideWithValue(true),
+          ],
+          child: ScreenUtilInit(
+            designSize: size,
+            child: MaterialApp(
+              theme: AppTheme.appTheme(),
+              home: const Scaffold(body: PersonalProxyBanner()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.byKey(const Key('vpn.personal_proxy_banner')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('vpn.personal_proxy_banner.compact')),
+        compact ? findsOneWidget : findsNothing,
+      );
+      expect(find.text('personal_proxy_banner_title'.i18n), findsOneWidget);
+      expect(
+        find.text('personal_proxy_banner_body'.i18n),
+        compact ? findsNothing : findsOneWidget,
+      );
+      if (compact) {
+        expect(
+          tester
+              .getSize(
+                find.byKey(const Key('vpn.personal_proxy_banner.compact')),
+              )
+              .height,
+          40,
+        );
+      }
+    });
   }
 }
