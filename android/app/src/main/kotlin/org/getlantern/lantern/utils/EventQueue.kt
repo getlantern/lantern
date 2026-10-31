@@ -30,7 +30,9 @@ class EventQueue<T>(
      * when it runs, so a listener added in between never hears it.
      */
     fun emit(event: T) {
-        val targets = listeners.toList()
+        // ArrayList copies through toArray, one atomic read of the
+        // CopyOnWriteArrayList. toList reads the size, then the element.
+        val targets = ArrayList(listeners)
         dispatch(Runnable { for (listener in targets) if (listener in listeners) listener(event) })
     }
 
