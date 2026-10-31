@@ -15,7 +15,6 @@ import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/action_mode/share_consent_dialog.dart';
-import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
@@ -114,12 +113,6 @@ class ShareNotifier extends _$ShareNotifier {
     ) {
       if (helpsNobody) _helperStartPending = false;
     });
-    // A friend's arc is named while that friend shows as connected, so it
-    // follows the helper view's live status and names.
-    ref.listen<List<HelperPairingView>>(
-      helpersProvider.select((s) => s.view.helping),
-      (_, _) => _relabelArcs(),
-    );
 
     final settings = ref.read(appSettingProvider);
     // Earlier builds enabled auto-start without a disclosure. autoStart refuses
@@ -586,20 +579,14 @@ class ShareNotifier extends _$ShareNotifier {
       final eventState = (payload['state'] as num?)?.toInt() ?? 0;
       final ip = ((payload['source'] as String?) ?? '').hostAddress;
       if (ip.isEmpty) return;
-      final pairing = payload['pairing'] is String
-          ? payload['pairing'] as String
-          : '';
 
       if (eventState == 1) {
         final existing = _peerArcs[ip];
         if (existing != null) {
           existing.streamCount++;
-          // An IP is labelled by its latest connection, as radiance does.
-          existing.pairing = pairing;
-          _relabel(existing);
           return;
         }
-        final arc = _PeerArc(_workerSeq++)..pairing = pairing;
+        final arc = _PeerArc(_workerSeq++);
         _peerArcs[ip] = arc;
         final newTotal = state.totalCount + 1;
         state = state.copyWith(
@@ -609,14 +596,7 @@ class ShareNotifier extends _$ShareNotifier {
         ref.read(appSettingProvider.notifier).setUnboundedTotalHelped(newTotal);
         unawaited(_resolveAndEmit(ip, arc));
         // Bytes follow from SmC relay snapshots; this adds the person.
-        unawaited(
-          _attributeToCountry(
-            ip,
-            (down: 0, up: 0),
-            arrived: true,
-            friend: pairing.isNotEmpty,
-          ),
-        );
+        unawaited(_attributeToCountry(ip, (down: 0, up: 0), arrived: true));
       } else if (eventState == -1) {
         final entry = _peerArcs[ip];
         if (entry == null) return;
@@ -683,9 +663,6 @@ class ShareNotifier extends _$ShareNotifier {
       }
       arc.streamCount = entry.value;
     }
-    // Before any new arc's geo lookup completes, so a friend's first emit
-    // already carries no country.
-    _applyPairings(snapshot['peerBytes']);
 
     // Arrivals are a per-epoch counter; a new epoch means the backend
     // restarted, so only same-epoch deltas count.
@@ -725,7 +702,6 @@ class ShareNotifier extends _$ShareNotifier {
   void _applyPeerSnapshot(Map<String, dynamic> snapshot) {
     if (_changing) return;
     final smc = state.mode == ShareMode.smc;
-    if (smc) _applyPairings(snapshot['peerBytes']);
     state = state.copyWith(
       relay: _applyRelayCounters(
         snapshot,
@@ -767,7 +743,6 @@ class ShareNotifier extends _$ShareNotifier {
           ? counts
           : (down: prev.down + counts.down, up: prev.up + counts.up);
     });
-    final pairings = _pairingsByIp(snapshot['peerBytes']);
     final markBefore = feed.counters.watermark;
     final delta = feed.counters.apply(
       epoch: epoch,
@@ -819,27 +794,20 @@ class ShareNotifier extends _$ShareNotifier {
           ip,
           delta.peers[ip] ?? (down: 0, up: 0),
           arrived: arrivals.contains(ip),
-          friend: (pairings[ip] ?? '').isNotEmpty,
         ),
       );
     }
     return relay;
   }
 
-  /// A friend's bytes count under unknown: no country is shown for a friend.
   Future<void> _attributeToCountry(
     String ip,
     ByteCounts bytes, {
     required bool arrived,
-    bool friend = false,
   }) async {
     PeerGeo geo;
     try {
-      // Awaited for a friend too: the caller sets its own relay state after
-      // this starts, and this must land after it.
-      geo = await (friend
-          ? Future.value(PeerGeo.unknown)
-          : GeoLookupService.peerLookup(ip));
+      geo = await GeoLookupService.peerLookup(ip);
     } catch (_) {
       geo = PeerGeo.unknown;
     }
@@ -917,81 +885,17 @@ class ShareNotifier extends _$ShareNotifier {
     _emitConnected(arc, geo, isReplay: isReplay);
   }
 
-  /// A friend's arc carries no country, only the friend's name, and that
-  /// only while the friend shows as connected.
   void _emitConnected(_PeerArc arc, PeerGeo geo, {required bool isReplay}) {
-    final friend = arc.pairing.isNotEmpty;
-    final name = _connectedFriendName(arc.pairing);
-    arc.emittedFriend = friend;
-    arc.emittedName = name;
     _eventController.add(
       ActionModeConnectionEvent(
         state: 1,
         workerIdx: arc.workerIdx,
-        countryName: friend ? '' : geo.countryName,
-        countryCode: friend ? '' : geo.countryCode,
+        countryName: geo.countryName,
+        countryCode: geo.countryCode,
         coordinates: geo.coordinates,
         isReplay: isReplay,
-        friend: friend,
-        friendName: name,
       ),
     );
-  }
-
-  /// The name a friend's arc shows: the helping row's, while that row is
-  /// connected, else empty.
-  String _connectedFriendName(String pairing) {
-    if (pairing.isEmpty) return '';
-    for (final p in ref.read(helpersProvider).view.helping) {
-      if (p.pairingId == pairing && p.connected == true) {
-        return p.name.isEmpty ? 'helping_unnamed'.i18n : p.name;
-      }
-    }
-    return '';
-  }
-
-  /// Each peer IP's helper pairing in a snapshot's peerBytes: that of its
-  /// latest connection, '' for the pool. Pairing IDs are never logged.
-  static Map<String, String> _pairingsByIp(Object? raw) {
-    final out = <String, String>{};
-    if (raw is! List) return out;
-    for (final item in raw) {
-      if (item is! Map) continue;
-      final source = item['ip'];
-      final ip = source is String ? source.hostAddress : '';
-      if (ip.isEmpty) continue;
-      final pairing = item['pairing'];
-      out[ip] = pairing is String ? pairing : '';
-    }
-    return out;
-  }
-
-  /// Labels the arcs a snapshot's peerBytes name.
-  void _applyPairings(Object? peerBytes) {
-    _pairingsByIp(peerBytes).forEach((ip, pairing) {
-      final arc = _peerArcs[ip];
-      if (arc == null) return;
-      arc.pairing = pairing;
-      _relabel(arc);
-    });
-  }
-
-  void _relabelArcs() {
-    for (final arc in _peerArcs.values) {
-      _relabel(arc);
-    }
-  }
-
-  /// Re-emits a drawn arc whose friend label changed, as a replay so the
-  /// globe redraws it in place without a new-arrival burst.
-  void _relabel(_PeerArc arc) {
-    final geo = arc.geo;
-    if (geo == null || _eventController.isClosed) return;
-    if (arc.emittedFriend == arc.pairing.isNotEmpty &&
-        arc.emittedName == _connectedFriendName(arc.pairing)) {
-      return;
-    }
-    _emitConnected(arc, geo, isReplay: true);
   }
 
   /// Emits -1 only for arcs the globe has seen (geo resolved).
@@ -1032,11 +936,6 @@ class _PeerArc {
   int streamCount;
   // Resolved async after the first +1; no arc is emitted until then.
   PeerGeo? geo;
-  // The helper pairing of the IP's latest connection, '' for the pool.
-  String pairing = '';
-  // What the globe last drew for this arc.
-  bool emittedFriend = false;
-  String emittedName = '';
 }
 
 /// A snapshot source's counter tracker and the time of its last sample, from

@@ -16,17 +16,8 @@ class ActionModeConnectionEvent {
   final GlobeCoordinates? coordinates;
 
   /// True for events re-emitted to seed a globe that mounted mid-session, so
-  /// the UI can skip the "new connection" burst. A friend's arc is also
-  /// re-emitted this way when its label changes.
+  /// the UI can skip the "new connection" burst.
   final bool isReplay;
-
-  /// A personal-proxy friend's connection: no country, city or flag is ever
-  /// shown for it, so [countryName] and [countryCode] stay empty.
-  final bool friend;
-
-  /// The friend's display name, set only while that friend shows as
-  /// connected; empty otherwise.
-  final String friendName;
 
   ActionModeConnectionEvent({
     required this.state,
@@ -35,7 +26,5 @@ class ActionModeConnectionEvent {
     this.countryCode = '',
     this.coordinates,
     this.isReplay = false,
-    this.friend = false,
-    this.friendName = '',
   });
 }
