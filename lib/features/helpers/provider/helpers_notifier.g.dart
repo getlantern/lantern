@@ -171,6 +171,65 @@ final class PersonalProxyBannerVisibleProvider
 String _$personalProxyBannerVisibleHash() =>
     r'd1a6a288dcfef7277eed8cb4fbd8d43a0b437474';
 
+/// Whether a friend who claimed an invite waits on this user's approval, in
+/// a build and for a server that offer helper invites. The VPN tab then gives
+/// the banner's waiting variant the Pro banner's slot, and shows it to a user
+/// who already has a personal proxy too: the wait is short and the invite
+/// expires.
+
+@ProviderFor(personalProxyWaiting)
+final personalProxyWaitingProvider = PersonalProxyWaitingProvider._();
+
+/// Whether a friend who claimed an invite waits on this user's approval, in
+/// a build and for a server that offer helper invites. The VPN tab then gives
+/// the banner's waiting variant the Pro banner's slot, and shows it to a user
+/// who already has a personal proxy too: the wait is short and the invite
+/// expires.
+
+final class PersonalProxyWaitingProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// Whether a friend who claimed an invite waits on this user's approval, in
+  /// a build and for a server that offer helper invites. The VPN tab then gives
+  /// the banner's waiting variant the Pro banner's slot, and shows it to a user
+  /// who already has a personal proxy too: the wait is short and the invite
+  /// expires.
+  PersonalProxyWaitingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'personalProxyWaitingProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$personalProxyWaitingHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return personalProxyWaiting(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$personalProxyWaitingHash() =>
+    r'59243d39cdf252a46873f4d8f9327983eea8084c';
+
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
 /// never logged.
@@ -213,7 +272,7 @@ final class HelpersNotifierProvider
   }
 }
 
-String _$helpersNotifierHash() => r'38913c692920a2459ae57bfd887946566edb1b1a';
+String _$helpersNotifierHash() => r'c3174b0d6dbdf8aa0c4a3a3816b37c079f821da9';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are

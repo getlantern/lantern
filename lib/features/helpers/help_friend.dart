@@ -275,7 +275,7 @@ class HelpFriend extends HookConsumerWidget {
             HelperKeystoreResetNotice(notifier: notifier),
             const SizedBox(height: defaultSize),
           ],
-          Text('help_friend_intro'.i18n, style: textTheme.bodyMedium),
+          const _HelpingMeansCard(),
           const SizedBox(height: defaultSize),
           if (link == null || editLink.value) ...[
             AppTextField(
@@ -326,6 +326,58 @@ class HelpFriend extends HookConsumerWidget {
       );
     }
     return BaseScreen(title: 'help_friend_title'.i18n, body: body);
+  }
+}
+
+/// What helping a friend involves, before the volunteer accepts: what the
+/// friend can and cannot see, and that it can stop.
+class _HelpingMeansCard extends StatelessWidget {
+  const _HelpingMeansCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    Widget row(Widget icon, String text) => Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(child: icon),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: textTheme.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return AppCard(
+      key: const Key('help_friend.means'),
+      padding: const EdgeInsets.all(defaultSize),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('help_friend_means_title'.i18n, style: textTheme.titleMedium),
+          row(
+            const AppImage(path: AppImagePaths.lock, width: 24, height: 24),
+            'help_friend_means_traffic'.i18n,
+          ),
+          row(
+            const AppImage(path: AppImagePaths.eye, width: 24, height: 24),
+            'help_friend_means_online'.i18n,
+          ),
+          // The app's delete.svg is an alert mark; this is the trash can.
+          row(
+            const Icon(Icons.delete_outline, size: 24),
+            'help_friend_means_stop'.i18n,
+          ),
+        ],
+      ),
+    );
   }
 }
 

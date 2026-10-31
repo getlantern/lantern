@@ -10,6 +10,7 @@ import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/helpers/helper_approval_prompt.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/pro_renewal_popup.dart';
@@ -21,6 +22,7 @@ import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_no
 import 'package:lantern/features/action_mode/action_mode.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
+import 'package:lantern/lantern_app.dart' show userMessageRouteObserver;
 
 import '../../core/common/common.dart';
 
@@ -272,6 +274,10 @@ class Home extends HookConsumerWidget {
       });
       return null;
     }, const []);
+
+    // A friend who claimed an invite waits on approval: open the code sheet
+    // over whatever shows, once per claim.
+    useHelperApprovalPrompt(context, ref, userMessageRouteObserver);
 
     // A newly approved pairing this device helps: start sharing, picking the
     // mode as the toggle does. Not gated on the Unbounded tab being visible:

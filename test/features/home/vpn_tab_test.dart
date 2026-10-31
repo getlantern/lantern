@@ -11,6 +11,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxy_banner.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
@@ -45,6 +46,18 @@ class _FakeLanternService implements LanternService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _WaitingHelpers extends HelpersNotifier {
+  @override
+  HelpersState build() => const HelpersState(
+    viewLoaded: true,
+    view: HelpersView(
+      unlocked: true,
+      helpers: [HelperPairingView(pairingId: 'p1', name: 'Ali')],
+      invites: [HelperInviteView(id: 'i1', state: 'claimed', code: '2562')],
+    ),
+  );
 }
 
 void main() {
@@ -233,6 +246,48 @@ void main() {
       }
     });
   }
+
+  testWidgets('a friend waiting on approval takes the slot from the Pro '
+      'upsell, for a user who has a personal proxy too', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = desktopWindowSize;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(_FakeLanternService()),
+          isUserProProvider.overrideWithValue(false),
+          isUserExpiredProvider.overrideWithValue(false),
+          proRenewalProvider.overrideWithValue(ProRenewalInfo.none),
+          helpersProvider.overrideWith(_WaitingHelpers.new),
+          helperInvitesAvailableProvider.overrideWithValue(true),
+          serverLocationProvider.overrideWithValue(initialServerLocation()),
+          radianceSettingsProvider.overrideWithValue(
+            const RadianceSettingsState(),
+          ),
+          vpnProvider.overrideWithValue(VPNStatus.disconnected),
+          macosExtensionProvider.overrideWithValue(
+            const MacOSExtensionState(SystemExtensionStatus.activated),
+          ),
+        ],
+        child: ScreenUtilInit(
+          designSize: desktopWindowSize,
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: const Scaffold(body: VpnTab()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(ProBanner), findsNothing);
+    expect(find.byKey(const Key('vpn.personal_proxy_banner')), findsOneWidget);
+    expect(
+      find.text('personal_proxy_banner_waiting_title'.i18n),
+      findsOneWidget,
+    );
+  });
 
   for (final (size, compact) in [
     (desktopWindowSize, false),

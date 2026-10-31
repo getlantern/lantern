@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,7 @@ import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/helpers/approve_helper_sheet.dart';
+import 'package:lantern/features/helpers/helper_approval_prompt.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
@@ -21,11 +23,13 @@ import 'package:lantern/features/helpers/personal_proxies_tab.dart';
 import 'package:lantern/features/helpers/personal_proxy_banner.dart';
 import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/setting.dart';
+import 'package:lantern/features/user_message/user_message_route_observer.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -37,6 +41,8 @@ class _Helpers extends HelpersNotifier {
 
   @override
   HelpersState build() => initial;
+
+  void emit(HelpersState next) => state = next;
 
   @override
   Future<void> refreshIfUsed() async => refreshes++;
@@ -104,6 +110,77 @@ class _Helpers extends HelpersNotifier {
     );
   }
 }
+
+class _PromptHost extends HookConsumerWidget {
+  const _PromptHost(this.routes, this.overlay);
+  final UserMessageRouteObserver routes;
+  final ValueListenable<bool> overlay;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    useHelperApprovalPrompt(
+      context,
+      ref,
+      routes,
+      overlayVisible: (_) => overlay.value,
+    );
+    return const Text('home');
+  }
+}
+
+Future<UserMessageRouteObserver> _pumpPromptHost(
+  WidgetTester tester,
+  _Helpers fake, {
+  ValueListenable<bool> overlay = const _Off(),
+}) async {
+  final routes = UserMessageRouteObserver();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [helpersProvider.overrideWith(() => fake)],
+      child: ScreenUtilInit(
+        designSize: const Size(393, 852),
+        child: MaterialApp(
+          theme: AppTheme.appTheme(),
+          navigatorObservers: [routes],
+          home: Scaffold(body: _PromptHost(routes, overlay)),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return routes;
+}
+
+class _Off implements ValueListenable<bool> {
+  const _Off();
+  @override
+  bool get value => false;
+  @override
+  void addListener(VoidCallback listener) {}
+  @override
+  void removeListener(VoidCallback listener) {}
+}
+
+/// Pushes [child] over the prompt host's page, as appRouter would. Pumps
+/// past the transition rather than settling: InviteShare's wait spins.
+Future<void> _pushOverHost(WidgetTester tester, Widget child) async {
+  unawaited(
+    Navigator.of(
+      tester.element(find.text('home', skipOffstage: false)),
+    ).push(MaterialPageRoute<void>(builder: (_) => Scaffold(body: child))),
+  );
+  await _pumpPast(tester);
+}
+
+Future<void> _pumpPast(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(seconds: 1));
+}
+
+HelpersState _withInvites(List<HelperInviteView> invites) => HelpersState(
+  viewLoaded: true,
+  view: HelpersView(unlocked: true, invites: invites),
+);
 
 class _Storage implements LocalStorageService {
   _Storage({this.used = false});
@@ -191,6 +268,12 @@ Future<void> _pump(WidgetTester tester, _Helpers fake, Widget child) async {
   );
   await tester.pump();
 }
+
+const _pendingI1 = HelperInviteView(
+  id: 'i1',
+  state: 'pending',
+  link: 'https://lantern.io/help/#AAAA',
+);
 
 const _claimed = HelperInviteView(
   id: 'i1',
@@ -351,6 +434,19 @@ void main() {
     expect(find.byKey(const Key('invite.qr')), findsOneWidget);
     expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
     expect(find.byKey(const Key('invite.share')), findsOneWidget);
+    final warning = find.byKey(const Key('invite.trust_warning'));
+    expect(
+      find.descendant(
+        of: warning,
+        matching: find.text('invite_trust_warning'.i18n),
+      ),
+      findsOneWidget,
+    );
+    // Read before the share controls, even on a short screen.
+    expect(
+      tester.getTopLeft(warning).dy,
+      lessThan(tester.getTopLeft(find.byKey(const Key('invite.share'))).dy),
+    );
   });
 
   test('the share text names this invite\'s inviter, else the last name', () {
@@ -699,6 +795,142 @@ void main() {
       );
       await tester.pump();
       expect(find.byKey(const Key('setting.get_help_tile')), findsNothing);
+    });
+  });
+
+  group('the approval prompt', () {
+    final approveCode = find.byKey(const Key('approve.code'));
+
+    Future<void> dismissSheet(WidgetTester tester) async {
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('opens the sheet once per claim', (tester) async {
+      final fake = _Helpers(_withInvites(const []));
+      await _pumpPromptHost(tester, fake);
+      expect(approveCode, findsNothing);
+
+      fake.emit(_withInvites(const [_claimed]));
+      await tester.pumpAndSettle();
+      expect(approveCode, findsOneWidget);
+      expect(find.text('2562'), findsOneWidget);
+      await dismissSheet(tester);
+      expect(approveCode, findsNothing);
+
+      // The poll brings the same claim again: no second prompt.
+      fake.emit(
+        _withInvites(const [
+          _claimed,
+          HelperInviteView(id: 'i2', state: 'pending'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      expect(approveCode, findsNothing);
+
+      // A new claim prompts.
+      fake.emit(
+        _withInvites(const [
+          _claimed,
+          HelperInviteView(id: 'i3', state: 'claimed', code: '7181'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('7181'), findsOneWidget);
+      expect(find.text('2562'), findsNothing);
+    });
+
+    testWidgets('waits for an open dialog to close', (tester) async {
+      final fake = _Helpers(_withInvites(const []));
+      await _pumpPromptHost(tester, fake);
+      unawaited(
+        showDialog<void>(
+          context: tester.element(find.text('home')),
+          builder: (_) => const AlertDialog(content: Text('other')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      fake.emit(_withInvites(const [_claimed]));
+      await tester.pumpAndSettle();
+      expect(approveCode, findsNothing);
+
+      Navigator.of(tester.element(find.text('other'))).pop();
+      await tester.pumpAndSettle();
+      expect(approveCode, findsOneWidget);
+    });
+
+    testWidgets('does not open over the invite screen\'s own codes', (
+      tester,
+    ) async {
+      final fake = _Helpers(_withInvites(const [_pendingI1]));
+      await _pumpPromptHost(tester, fake);
+      await _pushOverHost(tester, const InviteShare(inviteId: 'i1'));
+      fake.emit(_withInvites(const [_claimed]));
+      await _pumpPast(tester);
+      expect(find.byKey(const Key('invite.compare')), findsOneWidget);
+      expect(approveCode, findsNothing);
+      expect(fake.approvalPrompted('i1'), isTrue);
+    });
+
+    testWidgets('opens over another screen that covers the invite screen', (
+      tester,
+    ) async {
+      final fake = _Helpers(_withInvites(const [_pendingI1]));
+      await _pumpPromptHost(tester, fake);
+      await _pushOverHost(tester, const InviteShare(inviteId: 'i1'));
+      await _pushOverHost(tester, const Text('cover'));
+      // Riverpod pauses the covered screen's watch, but a resize in the same
+      // frame still rebuilds it with the claim.
+      addTearDown(tester.view.resetPhysicalSize);
+      tester.view.physicalSize = tester.view.physicalSize * 1.1;
+      fake.emit(_withInvites(const [_claimed]));
+      await _pumpPast(tester);
+      expect(approveCode, findsOneWidget);
+    });
+
+    testWidgets('waits for checkout to end', (tester) async {
+      final fake = _Helpers(_withInvites(const []));
+      await _pumpPromptHost(tester, fake);
+      final container = ProviderScope.containerOf(
+        tester.element(find.text('home')),
+      );
+      container.read(paymentSessionProvider.notifier).markRedirectInitiated();
+      fake.emit(_withInvites(const [_claimed]));
+      await tester.pumpAndSettle();
+      expect(approveCode, findsNothing);
+
+      container.read(paymentSessionProvider.notifier).clearRedirect();
+      await tester.pumpAndSettle();
+      expect(approveCode, findsOneWidget);
+    });
+
+    testWidgets('waits for the loading overlay to hide', (tester) async {
+      final overlay = ValueNotifier(true);
+      addTearDown(overlay.dispose);
+      final fake = _Helpers(_withInvites(const []));
+      await _pumpPromptHost(tester, fake, overlay: overlay);
+      fake.emit(_withInvites(const [_claimed]));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      expect(approveCode, findsNothing);
+      expect(fake.approvalPrompted('i1'), isFalse);
+
+      overlay.value = false;
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+      expect(approveCode, findsOneWidget);
+    });
+
+    testWidgets('never opens in a build without helper invites', (
+      tester,
+    ) async {
+      HelpersNotifier.debugBuildEnabled = false;
+      addTearDown(() => HelpersNotifier.debugBuildEnabled = null);
+      // A build with them would prompt for this claim at once.
+      final fake = _Helpers(_withInvites(const [_claimed]));
+      await _pumpPromptHost(tester, fake);
+      expect(approveCode, findsNothing);
+      expect(fake.approvalPrompted('i1'), isFalse);
     });
   });
 
