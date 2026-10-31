@@ -91,6 +91,12 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   // is applied.
   int _reads = 0;
 
+  /// Counts reads of radiance's selection that the shown selection now
+  /// matches, so a save that started before one knows radiance has spoken
+  /// since and must not replace its answer with the row asked for.
+  int get confirmedSelections => _confirmed;
+  int _confirmed = 0;
+
   /// Mirrors the selection radiance has persisted, the one source of truth.
   /// Called on radiance's selection-changed event, which follows every saved
   /// selection (and repeats on reconnect), and on a personal proxy fallback.
@@ -116,6 +122,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       return;
     }
     if (tag == 'auto') {
+      _confirmed++;
       if (state.serverType == ServerLocationType.auto.name) return;
       await switchToAuto();
       await refreshAutoLocationIfNeeded();
@@ -123,6 +130,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     }
     final friend = personalProxyFriend(tag);
     if (tag == personalProxiesTag || friend != null) {
+      _confirmed++;
       if (state.serverName == tag && _personalProxySelected) return;
       updateServerLocation(ServerLocation.personalProxy(friendTag: friend));
       return;
@@ -131,13 +139,17 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // fetched from radiance.
     if (state.serverName == tag &&
         state.serverType != ServerLocationType.auto.name) {
+      _confirmed++;
       return;
     }
     final result = await ref
         .read(lanternServiceProvider)
         .getSelectedServerLocation();
     if (!ref.mounted || read != _reads) return;
-    result.fold((_) {}, updateServerLocation);
+    result.fold((_) {}, (location) {
+      _confirmed++;
+      updateServerLocation(location);
+    });
   }
 
   /// Fetches the current server location from radiance.

@@ -83,9 +83,11 @@ class _Location extends ServerLocationNotifier {
 }
 
 /// Answers the selected_server op with [selected], or fails when null.
+/// [answers], when given, answers the reads in turn instead.
 class _Service implements LanternService {
-  _Service(this.selected);
+  _Service(this.selected, [this.answers]);
   final String? selected;
+  final List<String?>? answers;
   int selectionReads = 0;
   final ops = <String>[];
 
@@ -96,8 +98,8 @@ class _Service implements LanternService {
   ) async {
     ops.add(op);
     if (op != 'selected_server') return const Right('{"error":"internal"}');
+    final tag = answers?[selectionReads] ?? (answers == null ? selected : null);
     selectionReads++;
-    final tag = selected;
     return Right(tag == null ? '{"error":"unavailable"}' : '{"tag":"$tag"}');
   }
 
@@ -428,6 +430,29 @@ void main() {
       container.read(serverLocationProvider).serverType,
       ServerLocationType.auto.name,
     );
+  });
+
+  testWidgets('a fallback read during the connect stays shown when the read '
+      'after it fails', (tester) async {
+    await sl.reset();
+    final vpn = _Vpn();
+    final location = _Location();
+    // The read on radiance's selection-changed event during the connect
+    // finds the group; the read after the connect fails.
+    final service = _Service(null, ['personal-proxies', null]);
+    final container = _selectionContainer(vpn, location, service);
+    addTearDown(container.dispose);
+    await _pumpSelection(tester, container);
+    vpn.beforeReply = location.syncSelection;
+    await tester.tap(
+      find.byKey(const Key('server_selection.personal_proxy.p1')),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(service.selectionReads, 2);
+    final shown = container.read(serverLocationProvider);
+    expect(shown.serverName, 'personal-proxies');
+    expect(shown.personalProxyFriendTag, isNull);
   });
 
   testWidgets('selecting a friend connects by their selection tag and '

@@ -802,7 +802,8 @@ class _PrivateServerLocationListViewState
   /// group, friend or private server that went away during the connect is
   /// replaced there, and its event can arrive before the connect answers.
   /// [location] is saved first so a failed read still shows what the VPN
-  /// was asked to use, not the previous selection.
+  /// was asked to use, not the previous selection, unless a read of
+  /// radiance's selection landed during the connect: that answer stands.
   Future<void> _select(
     ServerLocationType type,
     String tag,
@@ -812,6 +813,7 @@ class _PrivateServerLocationListViewState
     if (!_macOSExtensionReady(ref)) return;
 
     final locationNotifier = ref.read(serverLocationProvider.notifier);
+    final confirmed = locationNotifier.confirmedSelections;
     await _connectAndReturnHome(
       context,
       ref,
@@ -819,7 +821,9 @@ class _PrivateServerLocationListViewState
           .read(vpnProvider.notifier)
           .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
       save: () {
-        locationNotifier.updateServerLocation(location);
+        if (confirmed == locationNotifier.confirmedSelections) {
+          locationNotifier.updateServerLocation(location);
+        }
         return locationNotifier.syncSelection();
       },
       connectedMessage: connectedMessage,
