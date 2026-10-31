@@ -91,6 +91,9 @@ class _Service implements LanternService {
   int selectionReads = 0;
   final ops = <String>[];
 
+  /// When set, the first selection read waits for it before answering.
+  Completer<void>? firstReadGate;
+
   @override
   Future<Either<Failure, String>> helperCall(
     String op,
@@ -99,7 +102,9 @@ class _Service implements LanternService {
     ops.add(op);
     if (op != 'selected_server') return const Right('{"error":"internal"}');
     final tag = answers?[selectionReads] ?? (answers == null ? selected : null);
+    final gate = selectionReads == 0 ? firstReadGate : null;
     selectionReads++;
+    await gate?.future;
     return Right(tag == null ? '{"error":"unavailable"}' : '{"tag":"$tag"}');
   }
 
@@ -429,6 +434,35 @@ void main() {
     expect(
       container.read(serverLocationProvider).serverType,
       ServerLocationType.auto.name,
+    );
+  });
+
+  testWidgets('a read started before the tap does not stop the save of the '
+      'friend asked for', (tester) async {
+    await sl.reset();
+    final vpn = _Vpn();
+    final location = _Location();
+    // A read already in flight at the tap answers with the old selection
+    // during the connect; the read after the connect fails.
+    final service = _Service(null, ['auto', null])
+      ..firstReadGate = Completer<void>();
+    final container = _selectionContainer(vpn, location, service);
+    addTearDown(container.dispose);
+    await _pumpSelection(tester, container);
+    final early = location.syncSelection();
+    vpn.beforeReply = () async {
+      service.firstReadGate!.complete();
+      await early;
+    };
+    await tester.tap(
+      find.byKey(const Key('server_selection.personal_proxy.p1')),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(service.selectionReads, 2);
+    expect(
+      container.read(serverLocationProvider).personalProxyFriendTag,
+      'helper-0123456789ab',
     );
   });
 

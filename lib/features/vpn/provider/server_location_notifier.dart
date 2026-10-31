@@ -91,11 +91,16 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   // is applied.
   int _reads = 0;
 
-  /// Counts reads of radiance's selection that the shown selection now
-  /// matches, so a save that started before one knows radiance has spoken
-  /// since and must not replace its answer with the row asked for.
-  int get confirmedSelections => _confirmed;
-  int _confirmed = 0;
+  /// The number of the last read started so far, to pass to [confirmedSince].
+  int get readsStarted => _reads;
+
+  /// Whether a read started after [read] confirmed radiance's selection, so a
+  /// save that began at [read] must not replace radiance's answer with the
+  /// row asked for. A read already in flight then predates the save.
+  bool confirmedSince(int read) => _confirmedRead > read;
+
+  // The number of the newest read whose answer the shown selection matches.
+  int _confirmedRead = 0;
 
   /// Mirrors the selection radiance has persisted, the one source of truth.
   /// Called on radiance's selection-changed event, which follows every saved
@@ -122,7 +127,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       return;
     }
     if (tag == 'auto') {
-      _confirmed++;
+      _confirmedRead = read;
       if (state.serverType == ServerLocationType.auto.name) return;
       await switchToAuto();
       await refreshAutoLocationIfNeeded();
@@ -130,7 +135,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     }
     final friend = personalProxyFriend(tag);
     if (tag == personalProxiesTag || friend != null) {
-      _confirmed++;
+      _confirmedRead = read;
       if (state.serverName == tag && _personalProxySelected) return;
       updateServerLocation(ServerLocation.personalProxy(friendTag: friend));
       return;
@@ -139,7 +144,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // fetched from radiance.
     if (state.serverName == tag &&
         state.serverType != ServerLocationType.auto.name) {
-      _confirmed++;
+      _confirmedRead = read;
       return;
     }
     final result = await ref
@@ -147,7 +152,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
         .getSelectedServerLocation();
     if (!ref.mounted || read != _reads) return;
     result.fold((_) {}, (location) {
-      _confirmed++;
+      _confirmedRead = read;
       updateServerLocation(location);
     });
   }
@@ -266,7 +271,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   /// the Smart Location label remains available until the next push event.
   Future<void> switchToAuto() async {
     if (state.serverType == ServerLocationType.auto.name) return;
-    final updated = state.copyWith(serverType: ServerLocationType.auto.name);
+    final updated = state.copyWith(
+      serverType: ServerLocationType.auto.name,
+      serverName: '',
+    );
     _selection++;
     state = updated;
     await _storage.saveServerLocation(updated);

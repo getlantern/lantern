@@ -813,7 +813,7 @@ class _PrivateServerLocationListViewState
     if (!_macOSExtensionReady(ref)) return;
 
     final locationNotifier = ref.read(serverLocationProvider.notifier);
-    final confirmed = locationNotifier.confirmedSelections;
+    final since = locationNotifier.readsStarted;
     await _connectAndReturnHome(
       context,
       ref,
@@ -821,7 +821,7 @@ class _PrivateServerLocationListViewState
           .read(vpnProvider.notifier)
           .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
       save: () {
-        if (confirmed == locationNotifier.confirmedSelections) {
+        if (!locationNotifier.confirmedSince(since)) {
           locationNotifier.updateServerLocation(location);
         }
         return locationNotifier.syncSelection();

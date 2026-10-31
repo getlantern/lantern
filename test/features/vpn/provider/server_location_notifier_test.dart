@@ -405,6 +405,21 @@ void main() {
     expect(storage.location!.serverType, ServerLocationType.auto.name);
   });
 
+  test('switching to auto forgets the server that was selected', () async {
+    storage.location = ServerLocation(
+      serverType: ServerLocationType.privateServer.name,
+      serverName: 'private',
+      city: 'Amsterdam',
+    );
+    final c = container(vpn: VPNStatus.disconnected);
+    c.read(serverLocationProvider);
+    await c.read(serverLocationProvider.notifier).switchToAuto();
+    final shown = c.read(serverLocationProvider);
+    expect(shown.serverType, ServerLocationType.auto.name);
+    expect(shown.serverName, isEmpty);
+    expect(storage.location!.serverName, isEmpty);
+  });
+
   test('an auto fetch finishing after a newer selection does not replace '
       'it', () async {
     storage.location = ServerLocation.personalProxy();

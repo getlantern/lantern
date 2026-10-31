@@ -135,6 +135,7 @@ void main() {
         expect(shown, [
           "Can't reach ${'helper_unnamed'.i18n} right now. Switched to Smart Location.",
         ]);
+        expect(location.syncs, 1);
       },
     );
 
