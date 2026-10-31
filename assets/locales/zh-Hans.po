@@ -62,17 +62,11 @@ msgstr "您没有填写电子邮件地址，因此我们将无法回复或跟进
 msgid "send_without_email"
 msgstr "不填邮箱发送"
 
-msgid "lantern_projects"
-msgstr "蓝灯项目:"
-
 msgid "invite_friends"
 msgstr "邀请好友"
 
 msgid "your_referral_code"
 msgstr "您的邀请码"
-
-msgid "invite_friends_message"
-msgstr "将您的推荐码分享给朋友。当他们购买蓝灯 Pro时，您和朋友都将获得额外时间： "
 
 msgid "share_referral_code"
 msgstr "分享邀请码"
@@ -133,9 +127,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "共同对抗全球互联网审查"
-
 msgid "vpn_settings"
 msgstr "VPN 设置"
 
@@ -160,9 +151,6 @@ msgstr "蓝灯专业版设备"
 msgid "remove"
 msgstr "移除"
 
-msgid "add_device"
-msgstr "添加设备"
-
 msgid "danger_zone"
 msgstr "危险操作:"
 
@@ -183,9 +171,6 @@ msgstr "账户删除是永久性的。您将在所有设备上失去访问权限
 
 msgid "delete_account_message_two"
 msgstr "请在下方输入您的密码以确认删除"
-
-msgid "Submit Issue Report"
-msgstr "输入密码以确认"
 
 msgid "confirm_deletion"
 msgstr "确认删除"
@@ -220,23 +205,14 @@ msgstr "服务器选择"
 msgid "smart_location"
 msgstr "智能位置"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "自动选择最快的位置"
-
 msgid "pro_locations"
 msgstr "专业版位置:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "使用蓝灯专业版选择您的位置:"
 
 msgid "language"
 msgstr "语言"
 
 msgid "sign_in"
 msgstr "登录"
-
-msgid "sign_out"
-msgstr "退出登录"
 
 msgid "check_for_updates"
 msgstr "检查更新"
@@ -246,9 +222,6 @@ msgstr "有可用更新"
 
 msgid "android_sideload_update_available_message"
 msgstr "蓝灯 %s 已发布。蓝灯将在打开 Android 安装程序之前下载并验证 APK。"
-
-msgid "download_and_install_update"
-msgstr "下载并安装"
 
 msgid "allow_unknown_app_installs"
 msgstr "允许安装应用"
@@ -261,9 +234,6 @@ msgstr "无法安装更新"
 
 msgid "android_sideload_install_failed_message"
 msgstr "蓝灯无法验证或安装此更新。请稍后再试。"
-
-msgid "lantern_is_up_to_date"
-msgstr "蓝灯已是最新版本。"
 
 msgid "support"
 msgstr "支持"
@@ -289,9 +259,6 @@ msgstr "无法访问被屏蔽的网站"
 msgid "cannot_complete_purchase"
 msgstr "无法完成购买"
 
-msgid "discover_not_working"
-msgstr "发现功能无法使用"
-
 msgid "cannot_sign_in"
 msgstr "无法登录"
 
@@ -316,12 +283,6 @@ msgstr "服务器选择无法使用"
 msgid "upgrade_fail"
 msgstr "升级蓝灯专业版失败"
 
-msgid "wrong_device_linking_code"
-msgstr "设备关联码错误或无效"
-
-msgid "cannot_remove_device"
-msgstr "无法移除设备"
-
 msgid "application_crashes"
 msgstr "应用崩溃"
 
@@ -334,32 +295,11 @@ msgstr "描述您的问题"
 msgid "enter_password_to_confirm"
 msgstr "输入密码以确认"
 
-msgid "cannot_view_logs"
-msgstr "除非您将诊断日志发送给我们,否则蓝灯无法查看您的诊断日志。"
-
-msgid "split_tunneling_mode"
-msgstr "分流模式"
-
 msgid "apps_split_tunneling"
 msgstr "应用分流"
 
 msgid "website_split_tunneling"
 msgstr "网站分流"
-
-msgid "iran_optimized"
-msgstr "伊朗优化分流规则"
-
-msgid "china_optimized"
-msgstr "中国优化分流规则"
-
-msgid "russia_optimized"
-msgstr "俄罗斯优化分流规则"
-
-msgid "global_optimized"
-msgstr "全球优化分流规则"
-
-msgid "enter_url"
-msgstr "输入 URL"
 
 msgid "add"
 msgstr "添加"
@@ -402,45 +342,6 @@ msgstr "此链接已过期，请重新获取。"
 
 msgid "invalid_deep_link"
 msgstr "此链接无效，请重新获取。"
-
-msgid "default_bypass"
-msgstr "默认直连列表"
-
-msgid "global_bypass_list"
-msgstr "全球直连列表"
-
-msgid "global_bypass_desc"
-msgstr "包含非敏感内容的可信网站(HTTPS)。"
-
-msgid "china_bypass_list"
-msgstr "中国直连列表"
-
-msgid "china_bypass_desc"
-msgstr "在中国可以自由访问的网站。定期更新。"
-
-msgid "iran_bypass_list"
-msgstr "伊朗直连列表"
-
-msgid "iran_bypass_desc"
-msgstr "在伊朗可以自由访问的网站。定期更新。"
-
-msgid "russia_bypass_list"
-msgstr "俄罗斯直连列表"
-
-msgid "russia_bypass_desc"
-msgstr "在俄罗斯可以自由访问的网站。定期更新。"
-
-msgid "see_sites_included"
-msgstr "查看包含在"
-
-msgid "default_lists_here"
-msgstr "默认列表中的网站"
-
-msgid "when_connected"
-msgstr "连接时,您选择的网站将直连而不经过 VPN。"
-
-msgid "lantern_automatic"
-msgstr "蓝灯会根据您的位置自动选择哪些应用和网站绕过 VPN 直连互联网,以获得最佳性能。"
 
 msgid "apps_bypassing_vpn"
 msgstr "直连的应用 (%d)"
@@ -532,9 +433,6 @@ msgstr "必须确认密码"
 msgid "passwords_do_not_match"
 msgstr "密码不匹配"
 
-msgid "activation_code"
-msgstr "激活码"
-
 msgid "activate_lantern_pro"
 msgstr "激活蓝灯专业版"
 
@@ -579,9 +477,6 @@ msgstr "这些规则因国家而异,并定期更新。"
 
 msgid "view_the_full_list"
 msgstr "查看完整的路由规则列表。"
-
-msgid "turn_on_split_tunneling"
-msgstr "开启分流以自定义哪些网站使用 VPN。"
 
 msgid "welcome_to_lantern_pro"
 msgstr "欢迎使用蓝灯专业版!"
@@ -634,9 +529,6 @@ msgstr "最超值!"
 msgid "choose_payment_method"
 msgstr "选择支付方式"
 
-msgid "payment_information_encrypted"
-msgstr "您的支付信息已完全加密。"
-
 msgid "purchase_not_completed"
 msgstr "购买未完成。您可以随时重试,如需帮助请联系支持团队"
 
@@ -655,18 +547,6 @@ msgstr "屏蔽广告"
 msgid "only_active"
 msgstr "仅在 VPN 连接时生效"
 
-msgid "share_my_connection"
-msgstr "共享我的连接"
-
-msgid "share_my_connection_subtitle"
-msgstr "让其他蓝灯用户通过您的连接绕过审查。"
-
-# Unbounded tab — hero copy. Short variant for the tab embed; the
-# longer privacy explanation now lives in the welcome dialog
-# (showUnboundedWelcomeDialog) so the tab body stays scannable.
-msgid "smc_intro"
-msgstr "通过安全地共享您的连接，帮助他人绕过审查。"
-
 # Info-bubble tooltip on the Unbounded tab header
 msgid "about_unbounded"
 msgstr "关于 Action Mode"
@@ -681,53 +561,11 @@ msgstr "已禁用"
 msgid "smc_status_configuring"
 msgstr "正在配置网络"
 
-msgid "smc_status_probing"
-msgstr "正在探测您的网络…"
-
-msgid "smc_status_active_unbounded"
-msgstr "已启用"
-
-msgid "smc_status_active_smc"
-msgstr "正在启动…"
-
-msgid "smc_status_mapping_port"
-msgstr "正在您的路由器上打开端口…"
-
-msgid "smc_status_detecting_ip"
-msgstr "正在检测您的公网 IP…"
-
-msgid "smc_status_registering"
-msgstr "正在向蓝灯注册…"
-
-msgid "smc_status_starting_proxy"
-msgstr "正在启动本地代理…"
-
-msgid "smc_status_verifying"
-msgstr "正在验证连通性…"
-
-msgid "smc_status_serving"
-msgstr "已启用"
-
-msgid "smc_status_stopping"
-msgstr "正在停止…"
-
 msgid "smc_status_error_with_message"
 msgstr "无法共享：%s"
 
 msgid "smc_status_error_generic"
 msgstr "无法共享 — 请尝试重新开关"
-
-# Status card — stats + tooltip. Counts the number of remote
-# clients currently routing through THIS device (people being
-# helped, not helpers); parallel framing to smc_stat_total_helped
-# (same semantics, lifetime).
-msgid "smc_stat_active_now"
-msgstr "您此刻正在帮助的人数："
-
-# Lifetime ("to date") rather than daily — backed by the persisted
-# unboundedTotalHelped setting so the count survives app restarts.
-msgid "smc_stat_total_helped"
-msgstr "迄今帮助的总人数："
 
 # Arrival toast surfaced when a censored user starts routing through
 # this peer. The "Helping a new person" framing is intentional —
@@ -841,9 +679,6 @@ msgstr "订阅"
 msgid "checkout"
 msgstr "结账"
 
-msgid "next_billing_date"
-msgstr "下次扣费日期"
-
 msgid "vpn_may_be_needed"
 msgstr "可能需要 VPN"
 
@@ -868,35 +703,17 @@ msgstr "使用 Google Cloud Platform 设置"
 msgid "continue_with_do"
 msgstr "使用 Digital Ocean 继续"
 
-msgid "do_allows"
-msgstr "Digital Ocean 允许您从以下 %d 个选项中选择一个服务器位置"
-
 msgid "server_setup_gcp_price"
 msgstr "通过 GCP 每月仅需 %s"
 
 msgid "continue_with_gcp"
 msgstr "使用 Google 继续"
 
-msgid "gcp_allows"
-msgstr "Google Cloud Platform 允许您从以下 %d 个选项中选择一个服务器位置:"
-
-msgid "server_setup_aws"
-msgstr "在 AWS 上设置私有服务器"
-
-msgid "server_setup_aws_price"
-msgstr "通过 AWS 每月仅需 %s"
-
 msgid "server_setup_manual"
 msgstr "手动设置"
 
 msgid "seamless_integration"
 msgstr "与蓝灯无缝集成"
-
-msgid "easiest_setup"
-msgstr "最简单的设置流程"
-
-msgid "multiple_location_options"
-msgstr "多个服务器位置选项"
 
 msgid "one_month_included"
 msgstr "包含 %d TB/月 数据"
@@ -967,29 +784,11 @@ msgstr "选择您的账户"
 msgid "choose_your_project"
 msgstr "选择您的项目"
 
-msgid "name_your_google_cloud_project"
-msgstr "为您的 Google Cloud 项目命名"
-
 msgid "billing_account"
 msgstr "账单账户"
 
-msgid "billing_account_placeholder"
-msgstr "%s 的账单账户"
-
 msgid "server_name"
 msgstr "服务器名称"
-
-msgid "google_project"
-msgstr "Google 项目"
-
-msgid "field_name_required"
-msgstr "需要填写名称"
-
-msgid "choose_google_account"
-msgstr "选择 Google 账单账户"
-
-msgid "server_name_placeholder"
-msgstr "Derek 的服务器"
 
 msgid "change"
 msgstr "更改"
@@ -1003,50 +802,11 @@ msgstr "选择您的位置"
 msgid "start_deployment"
 msgstr "开始部署"
 
-msgid "server_name_description"
-msgstr "服务器在服务器选择列表中的显示名称。"
-
-msgid "select_private_server_region"
-msgstr "为您的私有服务器选择区域。距离较近的位置可能会提高速度并降低延迟。"
-
-msgid "gcp_location_options"
-msgstr "Google Cloud Platform 位置选项 (%d):"
-
-msgid "australia_sydney"
-msgstr "澳大利亚 - 悉尼"
-
-msgid "belgium_stghislain"
-msgstr "比利时 - 圣吉斯兰"
-
-msgid "brazil_saopaulo"
-msgstr "圣保罗"
-
-msgid "us_los_angeles"
-msgstr "美国 - 洛杉矶"
-
-msgid "japan_tokyo"
-msgstr "日本 - 东京"
-
-msgid "deploying_private_server"
-msgstr "正在部署私有服务器"
-
-msgid "deploying_server_status"
-msgstr "请稍候!您的私有服务器正在设置中。这可能需要几分钟。"
-
 msgid "private_server_setup_in_progress"
 msgstr "请稍候!您的私有服务器正在设置中。这可能需要几分钟,请保持此屏幕打开。"
 
 msgid "cancel_server_deployment"
 msgstr "取消服务器部署"
-
-msgid "server_ready_title"
-msgstr "私有服务器已就绪"
-
-msgid "server_ready_message"
-msgstr "您的私有服务器已设置完成并添加到服务器列表中。您可以开始连接了!"
-
-msgid "server_failed_message"
-msgstr "设置私有服务器时出现问题。您可以重试或稍后再试。"
 
 msgid "close"
 msgstr "关闭"
@@ -1057,9 +817,6 @@ msgstr "立即连接"
 msgid "server_setup_failed"
 msgstr "服务器设置失败"
 
-msgid "cancel_deployment"
-msgstr "取消部署"
-
 msgid "server_setup_failed_message"
 msgstr "设置私有服务器时出现问题。您可以重试或稍后再试。"
 
@@ -1068,9 +825,6 @@ msgstr "退出"
 
 msgid "retry"
 msgstr "重试"
-
-msgid "all_required_fields"
-msgstr "请填写所有必填字段。"
 
 msgid "private_server_ready"
 msgstr "私有服务器已就绪!"
@@ -1105,9 +859,6 @@ msgstr "验证服务器"
 msgid "vpn_client_not_setup"
 msgstr "请开启 VPN 客户端。"
 
-msgid "continue_with"
-msgstr "继续使用"
-
 msgid "join_a_private_server"
 msgstr "加入私有服务器"
 
@@ -1119,9 +870,6 @@ msgstr "加入服务器"
 
 msgid "private_server_usage_message"
 msgstr "私有服务器使用量不计入您的蓝灯每日数据上限。"
-
-msgid "manage_private_servers"
-msgstr "管理私有服务器"
 
 msgid "my_servers"
 msgstr "我的服务器"
@@ -1153,9 +901,6 @@ msgstr "移除 %s?这只会将其从您的应用中移除,不会从您的云服�
 msgid "generate_access_key"
 msgstr "生成访问密钥"
 
-msgid "invite_name"
-msgstr "邀请名称"
-
 msgid "trust_server_operator"
 msgstr "信任服务器运营者"
 
@@ -1167,9 +912,6 @@ msgstr "蓝灯不管理或监控私有服务器。在加入之前,请确保您�
 
 msgid "trust_server_operator_message_three"
 msgstr "如果您不确定谁在运营服务器或服务器如何配置，我们建议您使用服务器列表中的默认蓝灯服务器。"
-
-msgid "invalid_server_details"
-msgstr "无效的服务器详情。请检查访问密钥并重试。"
 
 msgid "lantern_servers"
 msgstr "蓝灯服务器"
@@ -1224,9 +966,6 @@ msgstr "高级服务器,拥堵更少"
 
 msgid "advanced_anti_censorship"
 msgstr "先进的反审查技术"
-
-msgid "exclusive_access_new_features"
-msgstr "独享新功能访问权"
 
 msgid "connect_up_to_five_devices"
 msgstr "最多连接 5 台设备"
@@ -1309,9 +1048,6 @@ msgstr "请输入有效的电子邮箱"
 msgid "please_select_an_issue"
 msgstr "请选择问题类型"
 
-msgid "please_enter_issue_description"
-msgstr "请输入问题描述"
-
 msgid "thanks_for_feedback"
 msgstr "感谢您的反馈!"
 
@@ -1327,20 +1063,11 @@ msgstr "全选"
 msgid "no_websites_selected"
 msgstr "未选择网站"
 
-msgid "enter_activation_code"
-msgstr "输入激活码"
-
 msgid "restore_purchase"
 msgstr "恢复购买"
 
 msgid "already_purchased"
 msgstr "已经购买过？"
-
-msgid "restore_purchase_success"
-msgstr "购买恢复成功。"
-
-msgid "restore_purchase_no_purchases"
-msgstr "未找到可恢复的购买记录。"
 
 msgid "do_private_server_setup"
 msgstr "DO 私有服务器设置"
@@ -1361,7 +1088,7 @@ msgid "confirm"
 msgstr "确认"
 
 msgid "private_server_warning"
-msgstr "仅添加您信任的人运行的服务器"
+msgstr "仅添加您信任的人运行的服务器 "
 
 msgid "go_to_server_locations"
 msgstr "前往服务器位置"
@@ -1389,9 +1116,6 @@ msgstr "订阅续订日期"
 
 msgid "pro_access_until"
 msgstr "专业版有效期至 %s"
-
-msgid "enabled_bypass_lists"
-msgstr "已启用的直连列表 (%d):"
 
 msgid "diagnostic_logs"
 msgstr "诊断日志"
@@ -1438,9 +1162,6 @@ msgstr "添加邀请码"
 msgid "referral_code"
 msgstr "邀请码"
 
-msgid "update_fails"
-msgstr "更新失败"
-
 msgid "scan_qr_code"
 msgstr "扫描二维码"
 
@@ -1453,21 +1174,6 @@ msgstr "我们处理配置,您只需注册。"
 msgid "90_day_free_trial"
 msgstr "90 天免费试用"
 
-msgid "identity_changed"
-msgstr "%s 的身份已更改"
-
-msgid "identity_changed_message"
-msgstr "%s 的安全指纹已更改。这可能表示遭到篡改或配置错误。"
-
-msgid "recommendation"
-msgstr "建议:"
-
-msgid "recommendation_message"
-msgstr "我们建议从蓝灯中移除 %s 并从您的云服务商账户中删除它,然后设置一个新服务器以确保您的连接保持安全。"
-
-msgid "remove_server"
-msgstr "移除服务器"
-
 msgid "server_alias_cannot_be_empty"
 msgstr "服务器别名不能为空"
 
@@ -1477,14 +1183,8 @@ msgstr "您的推荐码已应用！"
 msgid "discount_applied"
 msgstr "已应用 %s 折扣"
 
-msgid "referral_message_1m"
-msgstr "+ 15 天免费"
-
 msgid "referral_message_1y"
 msgstr "+ 1 个月免费"
-
-msgid "referral_message_2y"
-msgstr "+ 额外赠送 2 个月"
 
 msgid "referral_code_invalid"
 msgstr "您输入的推荐码/优惠码无效。请检查后重试。"
@@ -1494,27 +1194,6 @@ msgstr "你不能使用自己的推荐码。请输入其他代码。"
 
 msgid "free"
 msgstr "免费"
-
-msgid "monthly_plan"
-msgstr "月度计划："
-
-msgid "15_days_each"
-msgstr "每次+15天"
-
-msgid "annual_plan"
-msgstr "年度计划："
-
-msgid "1_month_each"
-msgstr "每个 +1 个月"
-
-msgid "two_year_plan"
-msgstr "两年计划："
-
-msgid "2_month_each"
-msgstr "每个 +2 个月"
-
-msgid "referral_code_info"
-msgstr "还不是蓝灯 Pro用户？当您的第一个推荐人订阅时，您将成为用户。"
 
 msgid "lantern_pro_license"
 msgstr "蓝灯专业版许可证"
@@ -1527,12 +1206,6 @@ msgstr "蓝灯 Pro 许可证无效"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "蓝灯 Pro 许可证必须为 25 个字符"
-
-msgid "select_account"
-msgstr "选择账户"
-
-msgid "new_to_lantern"
-msgstr "初次使用蓝灯？"
 
 msgid "create_an_account"
 msgstr "创建账户"
@@ -1548,12 +1221,6 @@ msgstr "添加账单详情"
 
 msgid "do_billing_details_message"
 msgstr "DigitalOcean 需要付款信息才能创建服务器。"
-
-msgid "tap"
-msgstr "点击"
-
-msgid "below_to_go_to_do"
-msgstr "下方前往 DigitalOcean"
 
 msgid "1"
 msgstr "1"
@@ -1573,9 +1240,6 @@ msgstr "返回蓝灯并点击\"继续\"以继续设置"
 msgid "how_to_add_billing_details"
 msgstr "如何添加账单详情:"
 
-msgid "add_payment_method_message"
-msgstr "请在您的 DigitalOcean 账户中添加付款方式。如果已添加,请等待几分钟后重试。"
-
 msgid "ok"
 msgstr "好的"
 
@@ -1593,12 +1257,6 @@ msgstr "开发者模式"
 
 msgid "developer_mode_note"
 msgstr "开发者模式专供蓝灯开发人员在开发过程中测试功能使用。"
-
-msgid "invalid_activation_code"
-msgstr "激活码无效。请检查代码后重试。"
-
-msgid "invalid_activation_code_length"
-msgstr "激活码必须为 25 个字符。"
 
 msgid "error_while_vpn_connection"
 msgstr "建立 VPN 连接时发生错误。请重试。"
@@ -1626,9 +1284,6 @@ msgstr "匿名使用数据"
 
 msgid "helps_improve_lantern_performance"
 msgstr "帮助提升蓝灯性能"
-
-msgid "changes_applied_after_restart"
-msgstr "更改将在重启蓝灯后生效。"
 
 msgid "email_deliverability_notice"
 msgstr "邮件送达提醒"
@@ -1665,9 +1320,6 @@ msgstr "添加应用和网站以绕过 VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "您的蓝灯 Pro 许可证将应用于您的现有账户"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "您的购买将应用于您的现有账户"
 
 msgid "daily_data_cap_reached"
 msgstr "已达到每日数据上限"
@@ -1713,12 +1365,6 @@ msgstr "订阅已过期"
 
 msgid "pro"
 msgstr "专业版"
-
-msgid "pro_subscription_expired_message"
-msgstr "蓝灯 Pro 订阅已过期。续订以恢复无限流量和 Pro 功能。"
-
-msgid "last_subscription_renewal_date"
-msgstr "上次订阅续订日期"
 
 msgid "set_account_password"
 msgstr "设置账户密码"
@@ -2022,3 +1668,150 @@ msgstr "关闭"
 
 msgid "unbounded_status_waiting"
 msgstr "等待启动"
+
+msgid "affiliate_offer_unavailable"
+msgstr "无法从商店加载优惠套餐。请重试。"
+
+msgid "action_mode_helping_now"
+msgstr "当前正在帮助"
+
+msgid "action_mode_total_helped"
+msgstr "累计帮助人数"
+
+msgid "show_license"
+msgstr "显示许可证"
+
+msgid "hide_license"
+msgstr "隐藏许可证"
+
+msgid "share_logs_warning_title"
+msgstr "分享诊断日志？"
+
+msgid "share_logs_warning_body"
+msgstr "这些日志可能包含您的电子邮件、IP 地址、设备标识符以及您连接过的蓝灯服务器。日志离开软件后将不受保护，任何收到的人都能读取。仅可发送给蓝灯支持团队 support@lantern.io。"
+
+msgid "share_logs_anyway"
+msgstr "共享日志"
+
+msgid "widget"
+msgstr "小组件"
+
+msgid "add_lantern_widget"
+msgstr "添加蓝灯小组件"
+
+msgid "add_lantern_widget_description"
+msgstr "无需打开软件，即可在手机主屏幕上连接。"
+
+msgid "widget_step_1"
+msgstr "长按手机主屏幕上的空白处。"
+
+msgid "widget_step_2"
+msgstr "轻点“编辑”，然后轻点“添加小组件”。"
+
+msgid "widget_step_3"
+msgstr "搜索 Lantern，选择尺寸，然后轻点“添加小组件”。"
+
+msgid "people_helped_title"
+msgstr "您帮助过的人"
+
+msgid "people_helped_subtitle"
+msgstr "累计帮助 %s · 当前 %s"
+
+msgid "advanced_stats_by_country"
+msgstr "按国家，累计"
+
+msgid "advanced_stats_relayed"
+msgstr "已中继 %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "已中转数据"
+
+msgid "advanced_stats_this_session"
+msgstr "本次会话"
+
+msgid "advanced_stats_all_time_short"
+msgstr "累计"
+
+msgid "advanced_stats_current_speed"
+msgstr "当前速度"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "已发送 %s · 已接收 %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "尚未帮助任何人。有人通过您连接后，国家将显示在这里。"
+
+msgid "advanced_stats_unknown_country"
+msgstr "未知"
+
+msgid "advanced_stats_one_person"
+msgstr "1 人"
+
+msgid "advanced_stats_people"
+msgstr "%s 人"
+
+msgid "share_mode_smc"
+msgstr "直接连接"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "共享模式"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "直接连接不可用：%s"
+
+msgid "view_advanced_stats"
+msgstr "查看高级统计"
+
+msgid "error_occurred"
+msgstr "发生错误。请重试。"
+
+msgid "unknown_error_occurred"
+msgstr "发生未知错误。"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "我们遇到了技术问题。请稍后重试。"
+
+msgid "proxy_error"
+msgstr "无法通过代理连接。请检查您的网络连接后重试。"
+
+msgid "err_while_sending_code"
+msgstr "无法发送验证码。请重试。"
+
+msgid "recovery_not_found"
+msgstr "未找到与这些信息匹配的可恢复账户。"
+
+msgid "wrong_link_code"
+msgstr "设备关联码不正确。请检查后重试。"
+
+msgid "wrong_seller_code"
+msgstr "经销商代码不正确。请检查后重试。"
+
+msgid "purchase_not_found"
+msgstr "未找到此账户的购买记录。"
+
+msgid "purchase_restored_error"
+msgstr "无法恢复您的购买。请重试。"
+
+msgid "empty_url"
+msgstr "无法打开付款页面。请重试。"
+
+msgid "please_enter_referral_code"
+msgstr "请输入推荐码。"
+
+msgid "access_token_missing"
+msgstr "缺少访问令牌。请重新登录您的云服务提供商。"
+
+msgid "private_server_setup_error"
+msgstr "无法设置您的私人服务器。请重试。"
+
+msgid "logs"
+msgstr "日志"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "点按下方的 %s 前往 DigitalOcean"

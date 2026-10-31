@@ -1,0 +1,110 @@
+name: Translate strings
+
+# Runs when en.po changes on main: translates the new or changed strings into
+# every locale under assets/locales and commits the result straight to main.
+# A run dispatched from any other branch only produces the report artifact.
+# The push uses GITHUB_TOKEN, so it triggers no further workflows.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/locales/en.po'
+  schedule:
+    - cron: '0 6 * * 1'   # weekly gap fill: retries anything a failed or partial run left empty
+  workflow_dispatch:
+    inputs:
+      base:
+        description: 'Commit to diff en.po against for changed strings (empty = fill gaps only)'
+        default: ''
+      locales:
+        description: 'Comma-separated locale codes (empty = all)'
+        default: ''
+      dry_run:
+        description: 'Produce the report only, commit nothing'
+        type: boolean
+        default: false
+
+concurrency:
+  group: translate-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LOCALES: ${{ inputs.locales }}
+      DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Changed English strings are found by diffing en.po against the source commit the bot's
+      # last all-locale run processed, recorded as a "Translated-From:" trailer on its commit.
+      # That survives replaced queued runs, filtered runs and main moving while the models ran.
+      # A manual base wins; with no such commit yet, the push's previous head is used.
+      - name: Pick the base commit for change detection
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANUAL: ${{ inputs.base }}
+          BEFORE: ${{ github.event_name == 'push' && github.event.before || '' }}
+        run: |
+          last=$(gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&path=assets/locales&author=github-actions%5Bbot%5D&per_page=30" \
+                   --jq '[.[] | (.commit.message | capture("Translated-From: (?<sha>[0-9a-f]{40})") | .sha) // empty] | first // empty' || true)
+          # the trailer's commit must be at or behind the one being processed, or changes between
+          # the two would be missed; anything else (odd manual base, other branch) falls back
+          if [ -n "$last" ]; then
+            rel=$(gh api "repos/$GITHUB_REPOSITORY/compare/$last...$GITHUB_SHA" --jq .status 2>/dev/null || echo unknown)
+            case "$rel" in ahead|identical) ;; *) echo "trailer commit $last is $rel relative to $GITHUB_SHA; ignoring it"; last="";; esac
+          fi
+          base="${MANUAL:-${last:-$BEFORE}}"
+          [ "$base" = "0000000000000000000000000000000000000000" ] && base=""
+          if [ -n "$base" ] && ! git fetch --depth=1 origin "$base"; then
+            echo "base $base not reachable; filling gaps only"; base=""
+          fi
+          echo "BASE=$base" >> "$GITHUB_ENV"
+          echo "base: ${base:-none (gaps only)}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -q anthropic && sudo apt-get install -y -q gettext  # msgfmt validates every file the run writes
+
+      - name: Translate
+        id: translate
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          args=(--out build/translate)
+          [ -n "$BASE" ] && args+=(--base "$BASE")
+          [ -n "$LOCALES" ] && args+=(--locales "$LOCALES")
+          [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
+          python tools/localization/translate.py "${args[@]}"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: translation-report
+          path: build/translate/
+          if-no-files-found: ignore
+
+      # Only a run on main itself may push; a dispatch from another branch gets the report only.
+      - name: Commit translations
+        if: github.ref_name == 'main' && steps.translate.outputs.changed == 'true' && env.DRY_RUN != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/locales/*.po
+          if git diff --cached --quiet; then echo "no file content changed"; exit 0; fi
+          # an all-locale run records the en.po revision it processed as the next baseline;
+          # a locale-filtered run does not, so it can never hide other locales' stale strings
+          if [ -z "$LOCALES" ]; then printf '\nTranslated-From: %s\n' "$GITHUB_SHA" >> build/translate/commit_message.txt; fi
+          git commit -F build/translate/commit_message.txt
+          # main may have moved while the models ran; rebase once and push
+          git pull --rebase origin main
+          git push origin HEAD:main
