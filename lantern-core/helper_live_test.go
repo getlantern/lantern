@@ -26,8 +26,10 @@ func TestHelperLiveNotifiesOnlyOnChangeAndCarriesNoPairing(t *testing.T) {
 		{nil, errors.New("vpn is off")},
 		{map[string]bool{}, nil},
 	}
-	ticks := make(chan time.Time, len(reads))
-	for range reads {
+	// One read comes before the first tick, so the last read finds no tick
+	// left and only the cancellation.
+	ticks := make(chan time.Time, len(reads)-1)
+	for range len(reads) - 1 {
 		ticks <- time.Now()
 	}
 	var calls []liveCall
