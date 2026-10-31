@@ -72,7 +72,7 @@ type serviceClient interface {
 	Close()
 }
 
-func readExpected(path string) (Expected, error) {
+func readExpected(path, accountEnvironment string) (Expected, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return Expected{}, errors.New("invalid fixture")
@@ -82,10 +82,10 @@ func readExpected(path string) (Expected, error) {
 	if err != nil || !info.Mode().IsRegular() || info.Size() > 64*1024 {
 		return Expected{}, errors.New("invalid fixture")
 	}
-	return decodeExpected(io.LimitReader(file, 64*1024+1))
+	return decodeExpected(io.LimitReader(file, 64*1024+1), accountEnvironment)
 }
 
-func decodeExpected(reader io.Reader) (Expected, error) {
+func decodeExpected(reader io.Reader, accountEnvironment string) (Expected, error) {
 	var expected Expected
 	decoder := json.NewDecoder(reader)
 	decoder.DisallowUnknownFields()
@@ -94,7 +94,8 @@ func decodeExpected(reader io.Reader) (Expected, error) {
 	}
 	id, err := strconv.ParseInt(expected.UserID, 10, 64)
 	if err != nil || id <= 0 || strconv.FormatInt(id, 10) != expected.UserID ||
-		expected.SchemaVersion != 1 || expected.AccountEnvironment != "staging" ||
+		expected.SchemaVersion != 1 || (accountEnvironment != "staging" && accountEnvironment != "prod") ||
+		expected.AccountEnvironment != accountEnvironment ||
 		expected.Locale == nil || expected.AutoReport == nil || expected.ProxyAll == nil || expected.AutoLaunch == nil ||
 		(expected.UserLevel != "free" && expected.UserLevel != "pro") ||
 		!boundedText(expected.Token, 4096, true) || !boundedText(expected.DeviceID, 256, true) ||

@@ -28,17 +28,19 @@ func command(args []string, output io.Writer) int {
 	flags := flag.NewFlagSet("migration-probe", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	expectedPath := flags.String("expected", "", "")
+	accountEnvironment := flags.String("account-environment", "staging", "")
 	mode := flags.String("mode", "verify", "")
 	timeout := flags.Duration("timeout", 90*time.Second, "")
 	probeURL := flags.String("probe-url", "", "")
 	if flags.Parse(args) != nil || flags.NArg() != 0 || *expectedPath == "" ||
+		(*accountEnvironment != "staging" && *accountEnvironment != "prod") ||
 		(*mode != "verify" && *mode != "connect" && *mode != "disconnect") ||
 		*timeout <= 0 || *timeout > 15*time.Minute ||
 		(*mode == "connect" && !validProbeURL(*probeURL)) || (*mode != "connect" && *probeURL != "") {
 		return write()
 	}
 	result.Phase = *mode
-	expected, err := readExpected(*expectedPath)
+	expected, err := readExpected(*expectedPath, *accountEnvironment)
 	if err != nil {
 		result.Code = "invalid_expected_fixture"
 		return write()
