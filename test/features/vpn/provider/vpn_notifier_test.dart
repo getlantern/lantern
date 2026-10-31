@@ -119,11 +119,6 @@ class _FakeServerLocation extends ServerLocationNotifier {
 
   @override
   void updateServerLocation(ServerLocation entity) => state = entity;
-
-  int syncs = 0;
-
-  @override
-  Future<void> syncSelection() async => syncs++;
 }
 
 class _FakeAppSettings extends AppSettingNotifier {
@@ -335,20 +330,14 @@ void main() {
       return container;
     }
 
-    test('connects through the friend by their selection tag, then reads '
-        'what radiance selected', () async {
+    test('connects through the friend by their selection tag', () async {
       final service = _FakeLanternService();
       final container = friendContainer(service);
 
       await container.read(vpnProvider.notifier).startVPN();
-      await Future<void>.delayed(Duration.zero);
 
       expect(service.connected, [personalProxySelection(friend)]);
       expect(service.startVPNCalls, 0);
-      final location =
-          container.read(serverLocationProvider.notifier)
-              as _FakeServerLocation;
-      expect(location.syncs, 1);
     });
 
     test('a friend with no route falls back to the personal proxies group, '
@@ -362,10 +351,6 @@ void main() {
           .startVPN(skipConflictCheck: true);
 
       expect(service.connected, [personalProxiesTag]);
-      final location =
-          container.read(serverLocationProvider.notifier)
-              as _FakeServerLocation;
-      expect(location.syncs, 1, reason: 'radiance says what is shown');
     });
 
     test('with the group gone too, Smart Location', () async {

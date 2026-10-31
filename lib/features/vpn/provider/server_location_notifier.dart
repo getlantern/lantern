@@ -92,10 +92,11 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
   int _reads = 0;
 
   /// Mirrors the selection radiance has persisted, the one source of truth.
-  /// Called when a connect returns, on a personal proxy fallback and on a
-  /// server-location event. Each call starts a fresh read and only the newest
-  /// started read is applied, so the last one always reflects radiance's
-  /// latest state. A failed read changes nothing.
+  /// Called on radiance's selection-changed event, which follows every saved
+  /// selection (and repeats on reconnect), and on a personal proxy fallback.
+  /// Each call starts a fresh read and only the newest started read is
+  /// applied, so the last one always reflects radiance's latest state. A
+  /// failed read changes nothing.
   Future<void> syncSelection() async {
     final read = ++_reads;
     Object? tag;

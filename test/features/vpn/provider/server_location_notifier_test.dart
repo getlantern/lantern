@@ -524,6 +524,52 @@ void main() {
       );
     });
 
+    test('acknowledged before the switch: the read after the connect sees A, '
+        'the selection-changed read sees B, and B is shown', () async {
+      const a = 'helper-aaaaaaaaaaaa';
+      storage.location = ServerLocation.personalProxy(friendTag: a);
+      final c = container(vpn: VPNStatus.connected);
+      final notifier = c.read(serverLocationProvider.notifier);
+      final afterConnect = notifier.syncSelection();
+      await answer(0, '{"tag":"${personalProxySelection(a)}"}');
+      await afterConnect;
+      expect(c.read(serverLocationProvider).personalProxyFriendTag, a);
+      final onEvent = notifier.syncSelection();
+      await answer(1, '{"tag":"$friendTag"}');
+      await onEvent;
+      expect(c.read(serverLocationProvider).personalProxyFriendTag, friend);
+    });
+
+    test('duplicate events do not flap the selection', () async {
+      storage.location = ServerLocation.personalProxy();
+      final c = container();
+      final notifier = c.read(serverLocationProvider.notifier);
+      final shown = <String>[];
+      c.listen(serverLocationProvider, (_, next) => shown.add(next.serverName));
+      final reads = [for (var i = 0; i < 3; i++) notifier.syncSelection()];
+      await Future<void>.delayed(Duration.zero);
+      await answer(2, '{"tag":"$friendTag"}');
+      await answer(0, '{"tag":"$friendTag"}');
+      await answer(1, '{"tag":"$friendTag"}');
+      await Future.wait(reads);
+      expect(shown, [friendTag], reason: 'one change, no flapping');
+    });
+
+    test('a Lantern server the screen saved keeps its details', () async {
+      final c = container(vpn: VPNStatus.connected);
+      final notifier = c.read(serverLocationProvider.notifier);
+      final screenSave = _location(
+        'lantern-1',
+      ).copyWith(city: 'Berlin', countryCode: 'DE');
+      notifier.updateServerLocation(screenSave);
+      final sync = notifier.syncSelection();
+      await answer(0, '{"tag":"lantern-1"}');
+      await sync;
+      final loc = c.read(serverLocationProvider);
+      expect(loc.serverName, 'lantern-1');
+      expect(loc.city, 'Berlin');
+    });
+
     test('a failed read changes nothing', () async {
       storage.location = ServerLocation.personalProxy(friendTag: friend);
       final c = container();

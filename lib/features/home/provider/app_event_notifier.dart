@@ -110,7 +110,6 @@ class AppEventNotifier extends _$AppEventNotifier {
                 .read(availableServersProvider.notifier)
                 .forceFetchAvailableServers(),
           );
-          unawaited(ref.read(serverLocationProvider.notifier).syncSelection());
           // Only consume this event when the user is actually in auto mode.
           // Otherwise (custom server selected) ignore it — applying it would
           // silently flip the user's selection back to Smart Location on
@@ -137,6 +136,11 @@ class AppEventNotifier extends _$AppEventNotifier {
         case 'helper-live':
           // Carries nothing: the helper view holds the friends' status.
           unawaited(ref.read(helpersProvider.notifier).liveChanged());
+          break;
+        case 'selection-changed':
+          // radiance saved a selection: show what it saved. Events can
+          // repeat; each is only a prompt to read, and the newest read wins.
+          unawaited(ref.read(serverLocationProvider.notifier).syncSelection());
           break;
         case 'personal-proxy-fallback':
           unawaited(_personalProxyFellBack(event.message));

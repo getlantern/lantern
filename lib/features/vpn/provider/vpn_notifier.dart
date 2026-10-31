@@ -214,7 +214,7 @@ class VpnNotifier extends _$VpnNotifier {
       appLogger.debug(
         'Got server location with type auto or force is true, starting VPN with auto',
       );
-      return _thenSync(lantern.startVPN());
+      return lantern.startVPN();
     }
 
     final tag = serverLocation.serverName;
@@ -238,7 +238,7 @@ class VpnNotifier extends _$VpnNotifier {
         // is what connects.
         await ref.read(serverLocationProvider.notifier).switchToAuto();
       }
-      return _thenSync(lantern.startVPN());
+      return lantern.startVPN();
     }
     return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
   }
@@ -259,31 +259,10 @@ class VpnNotifier extends _$VpnNotifier {
     }
 
     appLogger.debug("Connecting to server: $location with tag: $tag");
-    return _thenSync(
-      ref.read(lanternServiceProvider).connectToServer(location.name, tag),
-    );
-  }
-
-  // Best effort: the connect's own result is what the caller gets.
-  void _syncSelection() {
-    if (!ref.mounted) return;
-    try {
-      unawaited(ref.read(serverLocationProvider.notifier).syncSelection());
-    } catch (e) {
-      appLogger.debug('Could not read the selection again: $e');
-    }
-  }
-
-  /// Once a connect returns, either way, the shown selection is read again
-  /// from radiance, which may have selected something else.
-  Future<Either<Failure, String>> _thenSync(
-    Future<Either<Failure, String>> connect,
-  ) async {
-    try {
-      return await connect;
-    } finally {
-      _syncSelection();
-    }
+    final result = await ref
+        .read(lanternServiceProvider)
+        .connectToServer(location.name, tag);
+    return result;
   }
 
   Future<Left<Failure, String>?> _checkVpnConflict() async {

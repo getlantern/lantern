@@ -1,14 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart' show Either, Right;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -42,6 +46,7 @@ class _Location extends ServerLocationNotifier {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(Localization.loadTranslations);
+  selectionChangedTests();
 
   group('personal-proxy-fallback', () {
     const tag = 'helper-0123456789ab';
@@ -117,6 +122,19 @@ void main() {
       },
     );
 
+    test('selection-changed reads the selection, once per event, and '
+        'shows nothing', () async {
+      await start(const [sara]);
+      for (var i = 0; i < 3; i++) {
+        service.events.add(
+          AppEvent(eventType: 'selection-changed', message: ''),
+        );
+      }
+      await Future<void>.delayed(Duration.zero);
+      expect(location.syncs, 3);
+      expect(shown, isEmpty);
+    });
+
     test('a malformed event or unknown fallback shows nothing', () async {
       await start(const [sara]);
       await send('not json');
@@ -154,4 +172,76 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(helpers.liveChanges, 2);
   });
+}
+
+/// The real location notifier's view of radiance: each selected_server read
+/// gets the next answer.
+class _SelectionService extends _Service {
+  _SelectionService(this.answers);
+  final List<String> answers;
+  var _next = 0;
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async => Right('{"tag":"${answers[_next++]}"}');
+  @override
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+    required String serverName,
+  }) async {}
+}
+
+class _Storage implements LocalStorageService {
+  ServerLocation? location;
+  @override
+  ServerLocation? getServerLocation() => location;
+  @override
+  Future<void> saveServerLocation(ServerLocation l) async => location = l;
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+void selectionChangedTests() {
+  test(
+    'acknowledged before the switch: the read after the connect sees '
+    'friend A, then selection-changed reads friend B, and B is shown',
+    () async {
+      const a = 'personal-proxy:helper-aaaaaaaaaaaa';
+      const b = 'personal-proxy:helper-bbbbbbbbbbbb';
+      final storage = _Storage()
+        ..location = ServerLocation.personalProxy(
+          friendTag: 'helper-aaaaaaaaaaaa',
+        );
+      sl.registerSingleton<LocalStorageService>(storage);
+      addTearDown(sl.reset);
+      final service = _SelectionService([a, b]);
+      final c = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(service),
+          helpersProvider.overrideWith(_Helpers.new),
+          vpnProvider.overrideWithValue(VPNStatus.disconnected),
+        ],
+      );
+      addTearDown(() async {
+        c.dispose();
+        await service.events.close();
+      });
+      await c.read(appEventProvider.future);
+      final location = c.read(serverLocationProvider.notifier);
+
+      // The platform acknowledged the connect before switching.
+      await location.syncSelection();
+      expect(c.read(serverLocationProvider).serverName, a);
+
+      service.events.add(AppEvent(eventType: 'selection-changed', message: ''));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      expect(c.read(serverLocationProvider).serverName, b);
+      expect(storage.location!.serverName, b);
+    },
+  );
 }
