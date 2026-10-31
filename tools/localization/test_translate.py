@@ -94,6 +94,27 @@ class PoEdits(unittest.TestCase):
         self.p.write_text('msgid ""\nmsgstr ""\n\nmsgid "a" \nmsgstr  "A"\n', encoding="utf-8")
         self.assertEqual(t.PoFile(self.p).get("a"), "A")
 
+    def test_plural_entry_is_kept_but_not_managed(self):
+        text = ('msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n'
+                '"Plural-Forms: nplurals=2; plural=(n != 1);\\n"\n\nmsgid "a"\nmsgstr "A"\n\n'
+                'msgid "%d item"\nmsgid_plural "%d items"\nmsgstr[0] "%d x"\nmsgstr[1] "%d xs"\n\n'
+                'msgid "b"\nmsgstr "B"\n')
+        self.p.write_text(text, encoding="utf-8")
+        po = t.PoFile(self.p)
+        self.assertEqual(po.keys(), ["a", "b"])
+        po.set("b", "BB")
+        po.write()
+        self.assertIn('msgid_plural "%d items"\nmsgstr[0] "%d x"\nmsgstr[1] "%d xs"\n', self.p.read_text(encoding="utf-8"))
+        t.validate_po(self.p, 2)
+
+    def test_msgctxt_starts_a_new_entry(self):
+        self.p.write_text('msgid ""\nmsgstr ""\n\nmsgid "a"\nmsgstr "A"\nmsgctxt "menu"\nmsgid "b"\nmsgstr "B"\n',
+                          encoding="utf-8")
+        po = t.PoFile(self.p)
+        po.remove("a")
+        self.assertEqual(po.get("b"), "B")
+        self.assertIn('msgctxt "menu"', po.text())
+
 
 class Escaping(unittest.TestCase):
     def test_round_trip(self):
@@ -150,6 +171,15 @@ class Checks(unittest.TestCase):
                     verdict="pass", confidence=0.95, soft_issues=["identical to English", "length ratio 2.5 outside [0.5, 2.0]"])
         t.decide(it, skip_review=False)
         self.assertEqual(it.status, "flagged")
+
+    def test_reviewer_flag_is_not_shipped_softer_doubts_are(self):
+        def decided(**kw):
+            it = t.Item(key="k", source="Connect", context="", reason="gap", old=None, translation="Conectar", **kw)
+            t.decide(it, skip_review=False)
+            return it.status
+        self.assertEqual(decided(verdict="flag", confidence=0.9), "rejected")
+        self.assertEqual(decided(verdict="fix", confidence=0.4), "flagged")
+        self.assertEqual(decided(), "flagged")  # review didn't run
 
     def test_developer_comment_is_context_without_markers(self):
         d = Path(tempfile.mkdtemp())
@@ -266,6 +296,9 @@ class Cleanup(unittest.TestCase):
             po.write()
             t.validate_po(p, 1)
             self.assertIn("charset=UTF-8", t.PoFile(p).get(""))
+            # the header stays in the wrapped form, one quoted line per field
+            self.assertIn('msgstr ""\n"Language: xx\\n"\n"Content-Type: text/plain; charset=UTF-8\\n"\n',
+                          p.read_text(encoding="utf-8"))
         finally:
             shutil.rmtree(d)
 

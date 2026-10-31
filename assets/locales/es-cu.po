@@ -2085,9 +2085,6 @@ msgstr "Compara el código y aprueba la solicitud."
 msgid "personal_proxy_nickname_label"
 msgstr "Nombre en este dispositivo"
 
-msgid "invite_share_body"
-msgstr "Mándale este enlace a una persona de confianza. Funciona una sola vez y vence en 48 horas."
-
 msgid "invite_share_message"
 msgstr "%s quiere tu ayuda para seguir en línea. %s"
 
@@ -2121,21 +2118,6 @@ msgstr "Alguien abrió tu invitación"
 msgid "invite_compare_codes"
 msgstr "Comparar códigos"
 
-msgid "approve_code_intro"
-msgstr "Pregúntale a %s qué código muestra su Lantern. Compáralo en una llamada o en otra aplicación, no en el chat donde mandaste el enlace."
-
-msgid "approve_code_label"
-msgstr "Código en este dispositivo"
-
-msgid "approve_button"
-msgstr "Los códigos coinciden: aprobar"
-
-msgid "reject_button"
-msgstr "Los códigos no coinciden: rechazar"
-
-msgid "reject_explainer"
-msgstr "Si los códigos son diferentes, otra persona abrió tu enlace. Recházala y manda una nueva invitación."
-
 msgid "personal_proxy"
 msgstr "Proxy personal"
 
@@ -2148,27 +2130,6 @@ msgstr "Proxies personales"
 msgid "your_personal_proxies"
 msgstr "Tus proxies personales"
 
-msgid "help_friend_title"
-msgstr "Ayuda a alguien a seguir conectado"
-
-msgid "have_invite_link"
-msgstr "¿Tienes un enlace de invitación?"
-
-msgid "help_friend_intro"
-msgstr "Alguien de tu confianza te pidió ayuda. Mientras Lantern esté activo, podrá navegar por el internet libre a través de tu conexión."
-
-msgid "help_friend_means_title"
-msgstr "Qué implica ayudar a alguien"
-
-msgid "help_friend_means_traffic"
-msgstr "Tu amigo llega al internet abierto a través de tu conexión. Según tu router, su tráfico sale desde tu red o pasa por los servidores de Lantern. Lantern no te muestra lo que hace en internet."
-
-msgid "help_friend_means_online"
-msgstr "Tu amigo puede ver cuándo estás en línea. Acepta invitaciones solo de personas que conoces."
-
-msgid "help_friend_means_stop"
-msgstr "Puedes dejar de ayudar en cualquier momento."
-
 msgid "help_friend_link_label"
 msgstr "Enlace de invitación"
 
@@ -2177,21 +2138,6 @@ msgstr "Pegar el enlace que te mandó tu amigo"
 
 msgid "help_friend_scan"
 msgstr "Escanea el código QR de tu amigo"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern ayuda automáticamente mientras está activo. Usa una conexión directa cuando tu router lo permite y, si no, una conexión tipo navegador."
-
-msgid "help_friend_accept"
-msgstr "Ayudar a mi amigo"
-
-msgid "help_friend_code_title"
-msgstr "Dile este código a tu amigo"
-
-msgid "help_friend_code_body"
-msgstr "Tu amigo verificará que coincida con el código de su celular y luego te aprobará. Lo más seguro es una llamada u otra app."
-
-msgid "help_friend_waiting"
-msgstr "Esperando la aprobación de tu amigo"
 
 msgid "help_friend_approved"
 msgstr "Ahora estás ayudando a %s."
@@ -2219,12 +2165,6 @@ msgstr "Este no es un enlace de invitación para ayudar."
 
 msgid "help_friend_own_invite"
 msgstr "Esta es tu propia invitación. Mándala al amigo de quien quieres recibir ayuda."
-
-msgid "helping_title"
-msgstr "Estás ayudando"
-
-msgid "helping_today"
-msgstr "Hoy: %s de actividad, %s compartidos"
 
 msgid "helping_since"
 msgstr "Desde %s"

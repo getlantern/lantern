@@ -2087,9 +2087,6 @@ msgstr "Сравните код и подтвердите запрос."
 msgid "personal_proxy_nickname_label"
 msgstr "Имя на этом устройстве"
 
-msgid "invite_share_body"
-msgstr "Отправьте эту ссылку одному человеку, которому вы доверяете. Она работает один раз и истекает через 48 часов."
-
 msgid "invite_share_message"
 msgstr "%s просит вашей помощи, чтобы оставаться в сети. %s"
 
@@ -2123,21 +2120,6 @@ msgstr "Ваше приглашение открыли"
 msgid "invite_compare_codes"
 msgstr "Сравнить коды"
 
-msgid "approve_code_intro"
-msgstr "Спросите у пользователя %s, какой код показывает его Lantern. Сравните его по телефону или в другом приложении, а не в чате, куда вы отправили ссылку."
-
-msgid "approve_code_label"
-msgstr "Код на этом устройстве"
-
-msgid "approve_button"
-msgstr "Коды совпадают: подтвердить"
-
-msgid "reject_button"
-msgstr "Коды не совпадают: отклонить"
-
-msgid "reject_explainer"
-msgstr "Если коды отличаются, вашу ссылку открыл кто-то другой. Отклоните его и отправьте новое приглашение."
-
 msgid "personal_proxy"
 msgstr "Личный прокси"
 
@@ -2150,27 +2132,6 @@ msgstr "Личные прокси"
 msgid "your_personal_proxies"
 msgstr "Ваши личные прокси"
 
-msgid "help_friend_title"
-msgstr "Помогите близким оставаться онлайн"
-
-msgid "have_invite_link"
-msgstr "Есть ссылка-приглашение?"
-
-msgid "help_friend_intro"
-msgstr "Близкий человек просит вас о помощи. Пока работает Lantern, он может выходить в открытый интернет через ваше подключение."
-
-msgid "help_friend_means_title"
-msgstr "Что значит помогать близким"
-
-msgid "help_friend_means_traffic"
-msgstr "Ваш друг выходит в открытый интернет через ваше подключение. В зависимости от роутера его трафик выходит из вашей сети или передаётся через серверы Lantern. Lantern не показывает вам, что он делает в интернете."
-
-msgid "help_friend_means_online"
-msgstr "Ваш друг может видеть, когда вы в сети. Принимайте приглашения только от знакомых людей."
-
-msgid "help_friend_means_stop"
-msgstr "Вы можете прекратить помощь в любой момент."
-
 msgid "help_friend_link_label"
 msgstr "Ссылка-приглашение"
 
@@ -2179,21 +2140,6 @@ msgstr "Вставьте ссылку, которую прислал друг"
 
 msgid "help_friend_scan"
 msgstr "Отсканируйте QR-код друга"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern помогает автоматически, пока работает. Он использует прямое подключение, если роутер это позволяет, а иначе — подключение как в браузере."
-
-msgid "help_friend_accept"
-msgstr "Помочь другу"
-
-msgid "help_friend_code_title"
-msgstr "Сообщите другу этот код"
-
-msgid "help_friend_code_body"
-msgstr "Ваш друг проверит, что он совпадает с кодом на его телефоне, и одобрит вас. Безопаснее всего — звонок или другое приложение."
-
-msgid "help_friend_waiting"
-msgstr "Ожидание подтверждения от друга"
 
 msgid "help_friend_approved"
 msgstr "Теперь вы помогаете: %s."
@@ -2221,12 +2167,6 @@ msgstr "Это не ссылка-приглашение для помощи."
 
 msgid "help_friend_own_invite"
 msgstr "Это ваше собственное приглашение. Отправьте его другу, от которого хотите получить помощь."
-
-msgid "helping_title"
-msgstr "Вы помогаете"
-
-msgid "helping_today"
-msgstr "Сегодня: активность %s, передано %s"
 
 msgid "helping_since"
 msgstr "С %s"

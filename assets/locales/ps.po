@@ -2096,9 +2096,6 @@ msgstr "کوډ پرتله کړئ او هغه تایید کړئ."
 msgid "personal_proxy_nickname_label"
 msgstr "په دې وسیله کې نوم"
 
-msgid "invite_share_body"
-msgstr "دا لینک یو داسې کس ته ولېږئ چې باور پرې لرئ. دا یوازې یو ځل کار کوي او په 48 ساعتونو کې پای ته رسي."
-
 msgid "invite_share_message"
 msgstr "%s غواړي چې آنلاین پاتې کېدو کې ورسره مرسته وکړئ. %s"
 
@@ -2132,21 +2129,6 @@ msgstr "یو چا ستاسو بلنه پرانیستله"
 msgid "invite_compare_codes"
 msgstr "کوډونه پرتله کړئ"
 
-msgid "approve_code_intro"
-msgstr "له %s وپوښتئ چې د هغوی Lantern کوم کوډ ښيي. دا په زنګ یا بل اپ کې پرتله کړئ. په هغه چټ کې یې مه پرتله کوئ چې لینک مو پکې لیږلی و."
-
-msgid "approve_code_label"
-msgstr "په دې وسیله کوډ"
-
-msgid "approve_button"
-msgstr "کوډونه سمون لري: تایید کړئ"
-
-msgid "reject_button"
-msgstr "کوډونه سره سمون نه لري: رد کړئ"
-
-msgid "reject_explainer"
-msgstr "که کوډونه توپیر ولري، بل چا ستاسو لینک خلاص کړی دی. هغه رد کړئ او نوې بلنه ولېږئ."
-
 msgid "personal_proxy"
 msgstr "شخصي پراکسي"
 
@@ -2159,27 +2141,6 @@ msgstr "شخصي پراکسي ګانې"
 msgid "your_personal_proxies"
 msgstr "ستاسو شخصي پراکسي ګانې"
 
-msgid "help_friend_title"
-msgstr "له ملګري سره مرسته وکړئ چې آنلاین پاتې شي"
-
-msgid "have_invite_link"
-msgstr "د بلنې لینک لرئ؟"
-
-msgid "help_friend_intro"
-msgstr "یوه ملګري ستاسو مرسته غوښتې ده. کله چې Lantern چلېږي، هغه ستاسو د اتصال له لارې آزاد انټرنیټ ته لاسرسی لري."
-
-msgid "help_friend_means_title"
-msgstr "د ملګري سره مرسته څه معنی لري"
-
-msgid "help_friend_means_traffic"
-msgstr "ستاسو ملګری ستاسو د اتصال له لارې خلاص انټرنیټ ته رسېږي. ستاسو د روټر پورې اړه لري، د هغوی ټرافیک ستاسو له شبکې وځي یا د Lantern د سرورونو له لارې لېږدول کېږي. Lantern تاسو ته نه ښيي چې هغوی آنلاین څه کوي."
-
-msgid "help_friend_means_online"
-msgstr "ستاسو ملګری لیدلی شي چې تاسو کله آنلاین یاست. یوازې د هغو کسانو بلنې ومنئ چې پېژنئ یې."
-
-msgid "help_friend_means_stop"
-msgstr "تاسو هر وخت مرسته بندولی شئ."
-
 msgid "help_friend_link_label"
 msgstr "د بلنې لینک"
 
@@ -2188,21 +2149,6 @@ msgstr "هغه لینک پیسټ کړئ چې ملګري مو لېږلی"
 
 msgid "help_friend_scan"
 msgstr "د خپل ملګري QR کوډ سکین کړئ"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern چې کله روان وي په اتوماتيک ډول مرسته کوي. که ستاسو روټر اجازه ورکړي مستقیم اتصال کاروي، که نه نو د براوزر په څېر اتصال."
-
-msgid "help_friend_accept"
-msgstr "له خپل ملګري سره مرسته"
-
-msgid "help_friend_code_title"
-msgstr "خپل ملګري ته دا کوډ ووایاست"
-
-msgid "help_friend_code_body"
-msgstr "ستاسو ملګری به وګوري چې دا د هغه په تلیفون کې له کوډ سره سمون لري، بیا به تاسو تایید کړي. زنګ یا بل اپ تر ټولو خوندي دی."
-
-msgid "help_friend_waiting"
-msgstr "ستاسو د ملګري تایید ته انتظار"
 
 msgid "help_friend_approved"
 msgstr "تاسو اوس له %s سره مرسته کوئ."
@@ -2230,12 +2176,6 @@ msgstr "دا د مرستندوی بلنې لینک نه دی."
 
 msgid "help_friend_own_invite"
 msgstr "دا ستاسو خپله بلنه ده. هغه ملګري ته یې واستوئ چې غواړئ له هغه مرسته ترلاسه کړئ."
-
-msgid "helping_title"
-msgstr "تاسو مرسته کوئ"
-
-msgid "helping_today"
-msgstr "نن: فعال %s، شریک شوي %s"
 
 msgid "helping_since"
 msgstr "له %s راهیسې"

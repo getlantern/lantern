@@ -2041,9 +2041,6 @@ msgstr "قارن الرمز ووافق على طلبه."
 msgid "personal_proxy_nickname_label"
 msgstr "الاسم على هذا الجهاز"
 
-msgid "invite_share_body"
-msgstr "أرسل هذا الرابط إلى شخص واحد تثق به. يعمل مرة واحدة وتنتهي صلاحيته خلال 48 ساعة."
-
 msgid "invite_share_message"
 msgstr "%s بحاجة إلى مساعدتك للبقاء على اتصال بالإنترنت. %s"
 
@@ -2077,21 +2074,6 @@ msgstr "فتح شخص ما دعوتك"
 msgid "invite_compare_codes"
 msgstr "مقارنة الرموز"
 
-msgid "approve_code_intro"
-msgstr "اسأل %s عن الرمز الذي يظهر في Lantern لديه. قارنه في مكالمة أو في تطبيق آخر، وليس في المحادثة التي أرسلت فيها الرابط."
-
-msgid "approve_code_label"
-msgstr "الرمز على هذا الجهاز"
-
-msgid "approve_button"
-msgstr "الرمزان متطابقان: موافقة"
-
-msgid "reject_button"
-msgstr "الرمزان غير متطابقين: رفض"
-
-msgid "reject_explainer"
-msgstr "إذا كان الرمزان مختلفين، فهذا يعني أن شخصًا آخر فتح رابطك. ارفضه وأرسل دعوة جديدة."
-
 msgid "personal_proxy"
 msgstr "وكيل شخصي"
 
@@ -2104,27 +2086,6 @@ msgstr "الوكلاء الشخصيون"
 msgid "your_personal_proxies"
 msgstr "الخوادم الوكيلة الشخصية"
 
-msgid "help_friend_title"
-msgstr "ساعد صديقًا على البقاء متصلًا"
-
-msgid "have_invite_link"
-msgstr "هل لديك رابط دعوة؟"
-
-msgid "help_friend_intro"
-msgstr "طلب منك صديق المساعدة. أثناء تشغيل Lantern، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك."
-
-msgid "help_friend_means_title"
-msgstr "ماذا تعني مساعدة صديق"
-
-msgid "help_friend_means_traffic"
-msgstr "يصل صديقك إلى الإنترنت المفتوح عبر اتصالك. حسب جهاز التوجيه لديك، تخرج حركة بياناته من شبكتك أو تُمرَّر عبر خوادم Lantern. لا يعرض لك Lantern ما يفعله على الإنترنت."
-
-msgid "help_friend_means_online"
-msgstr "يمكن لصديقك معرفة أوقات اتصالك بالإنترنت. اقبل الدعوات من أشخاص تعرفهم فقط."
-
-msgid "help_friend_means_stop"
-msgstr "يمكنك إيقاف المساعدة في أي وقت."
-
 msgid "help_friend_link_label"
 msgstr "رابط الدعوة"
 
@@ -2133,21 +2094,6 @@ msgstr "لصق الرابط الذي أرسله صديقك"
 
 msgid "help_friend_scan"
 msgstr "مسح رمز QR الخاص بصديقك"
-
-msgid "help_friend_sharing_note"
-msgstr "يساعد Lantern تلقائيًا أثناء تشغيله. يستخدم اتصالًا مباشرًا عندما يسمح جهاز التوجيه بذلك، واتصالًا شبيهًا بالمتصفح في غير ذلك."
-
-msgid "help_friend_accept"
-msgstr "مساعدة صديقي"
-
-msgid "help_friend_code_title"
-msgstr "أخبر صديقك بهذا الرمز"
-
-msgid "help_friend_code_body"
-msgstr "سيتحقق صديقك من تطابقه مع الرمز على هاتفه، ثم يوافق عليك. المكالمة أو تطبيق آخر هو الخيار الأكثر أمانًا."
-
-msgid "help_friend_waiting"
-msgstr "في انتظار موافقة صديقك"
 
 msgid "help_friend_approved"
 msgstr "أنت الآن تساعد %s."
@@ -2175,12 +2121,6 @@ msgstr "هذا ليس رابط دعوة للمساعدة."
 
 msgid "help_friend_own_invite"
 msgstr "هذه دعوتك أنت. أرسلها إلى الصديق الذي تريد أن يساعدك."
-
-msgid "helping_title"
-msgstr "أنت تساعد الآخرين"
-
-msgid "helping_today"
-msgstr "اليوم: نشط لمدة %s، تمت مشاركة %s"
 
 msgid "helping_since"
 msgstr "منذ %s"

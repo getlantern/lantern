@@ -2075,9 +2075,6 @@ msgstr "Hãy so sánh mã và chấp thuận."
 msgid "personal_proxy_nickname_label"
 msgstr "Tên trên thiết bị này"
 
-msgid "invite_share_body"
-msgstr "Gửi liên kết này cho một người bạn tin tưởng. Liên kết chỉ dùng được một lần và hết hạn sau 48 giờ."
-
 msgid "invite_share_message"
 msgstr "%s muốn bạn giúp để có thể tiếp tục truy cập mạng. %s"
 
@@ -2111,21 +2108,6 @@ msgstr "Có người đã mở lời mời của bạn"
 msgid "invite_compare_codes"
 msgstr "So sánh mã"
 
-msgid "approve_code_intro"
-msgstr "Hỏi %s xem Lantern của họ hiển thị mã nào. So sánh qua cuộc gọi hoặc trong ứng dụng khác, không phải trong cuộc trò chuyện bạn đã gửi liên kết."
-
-msgid "approve_code_label"
-msgstr "Mã trên thiết bị này"
-
-msgid "approve_button"
-msgstr "Mã khớp: phê duyệt"
-
-msgid "reject_button"
-msgstr "Mã không khớp: từ chối"
-
-msgid "reject_explainer"
-msgstr "Nếu mã khác nhau, người khác đã mở liên kết của bạn. Hãy từ chối họ và gửi lời mời mới."
-
 msgid "personal_proxy"
 msgstr "Proxy cá nhân"
 
@@ -2138,27 +2120,6 @@ msgstr "Proxy cá nhân"
 msgid "your_personal_proxies"
 msgstr "Proxy cá nhân của bạn"
 
-msgid "help_friend_title"
-msgstr "Giúp bạn bè duy trì kết nối"
-
-msgid "have_invite_link"
-msgstr "Bạn có liên kết mời không?"
-
-msgid "help_friend_intro"
-msgstr "Một người bạn đã nhờ bạn giúp đỡ. Khi Lantern đang chạy, họ có thể truy cập internet tự do qua kết nối của bạn."
-
-msgid "help_friend_means_title"
-msgstr "Giúp bạn bè nghĩa là gì"
-
-msgid "help_friend_means_traffic"
-msgstr "Bạn bè của bạn truy cập internet mở qua kết nối của bạn. Tùy vào bộ định tuyến của bạn, lưu lượng của họ đi ra từ mạng của bạn hoặc được chuyển tiếp qua máy chủ của Lantern. Lantern không cho bạn thấy họ làm gì trên mạng."
-
-msgid "help_friend_means_online"
-msgstr "Bạn bè của bạn có thể thấy khi nào bạn trực tuyến. Chỉ chấp nhận lời mời từ người bạn quen biết."
-
-msgid "help_friend_means_stop"
-msgstr "Bạn có thể ngừng giúp đỡ bất cứ lúc nào."
-
 msgid "help_friend_link_label"
 msgstr "Liên kết mời"
 
@@ -2167,21 +2128,6 @@ msgstr "Dán liên kết bạn bè đã gửi"
 
 msgid "help_friend_scan"
 msgstr "Quét mã QR của bạn bè"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern tự động giúp đỡ khi đang chạy. Ứng dụng dùng kết nối trực tiếp khi bộ định tuyến cho phép, nếu không thì dùng kết nối kiểu trình duyệt."
-
-msgid "help_friend_accept"
-msgstr "Giúp bạn của tôi"
-
-msgid "help_friend_code_title"
-msgstr "Cho bạn của bạn biết mã này"
-
-msgid "help_friend_code_body"
-msgstr "Bạn của bạn sẽ kiểm tra mã này có khớp với mã trên điện thoại của họ không, rồi chấp thuận bạn. Gọi điện hoặc dùng ứng dụng khác là an toàn nhất."
-
-msgid "help_friend_waiting"
-msgstr "Đang chờ bạn bè của bạn chấp thuận"
 
 msgid "help_friend_approved"
 msgstr "Bạn hiện đang giúp đỡ %s."
@@ -2209,12 +2155,6 @@ msgstr "Đây không phải là liên kết mời người trợ giúp."
 
 msgid "help_friend_own_invite"
 msgstr "Đây là lời mời của chính bạn. Hãy gửi nó cho người bạn mà bạn muốn nhờ giúp đỡ."
-
-msgid "helping_title"
-msgstr "Bạn đang giúp đỡ"
-
-msgid "helping_today"
-msgstr "Hôm nay: hoạt động %s, đã chia sẻ %s"
 
 msgid "helping_since"
 msgstr "Từ %s"

@@ -2045,9 +2045,6 @@ msgstr "เปรียบเทียบรหัสแล้วอนุมั
 msgid "personal_proxy_nickname_label"
 msgstr "ชื่อบนอุปกรณ์นี้"
 
-msgid "invite_share_body"
-msgstr "ส่งลิงก์นี้ให้คนที่คุณไว้ใจหนึ่งคน ลิงก์ใช้ได้ครั้งเดียวและหมดอายุใน 48 ชั่วโมง"
-
 msgid "invite_share_message"
 msgstr "%s ต้องการความช่วยเหลือจากคุณเพื่อให้ออนไลน์ได้ %s"
 
@@ -2081,21 +2078,6 @@ msgstr "มีคนเปิดคำเชิญของคุณ"
 msgid "invite_compare_codes"
 msgstr "เปรียบเทียบรหัส"
 
-msgid "approve_code_intro"
-msgstr "ถาม %s ว่า Lantern ของเขาแสดงรหัสอะไร เปรียบเทียบผ่านการโทรหรือแอปอื่น ไม่ใช่ในแชทที่คุณส่งลิงก์ไป"
-
-msgid "approve_code_label"
-msgstr "รหัสบนอุปกรณ์นี้"
-
-msgid "approve_button"
-msgstr "รหัสตรงกัน: อนุมัติ"
-
-msgid "reject_button"
-msgstr "รหัสไม่ตรงกัน: ปฏิเสธ"
-
-msgid "reject_explainer"
-msgstr "หากรหัสไม่ตรงกัน แสดงว่ามีคนอื่นเปิดลิงก์ของคุณ ปฏิเสธบุคคลนั้นและส่งคำเชิญใหม่"
-
 msgid "personal_proxy"
 msgstr "พร็อกซีส่วนตัว"
 
@@ -2108,27 +2090,6 @@ msgstr "พร็อกซีส่วนตัว"
 msgid "your_personal_proxies"
 msgstr "พร็อกซีส่วนตัวของคุณ"
 
-msgid "help_friend_title"
-msgstr "ช่วยให้เพื่อนออนไลน์ได้ต่อไป"
-
-msgid "have_invite_link"
-msgstr "มีลิงก์คำเชิญไหม?"
-
-msgid "help_friend_intro"
-msgstr "เพื่อนขอความช่วยเหลือจากคุณ ขณะที่ Lantern ทำงาน เพื่อนจะเข้าถึงอินเทอร์เน็ตเสรีผ่านการเชื่อมต่อของคุณได้"
-
-msgid "help_friend_means_title"
-msgstr "การช่วยเพื่อนหมายถึงอะไร"
-
-msgid "help_friend_means_traffic"
-msgstr "เพื่อนของคุณเข้าถึงอินเทอร์เน็ตแบบเปิดผ่านการเชื่อมต่อของคุณ ทราฟฟิกของเขาจะออกจากเครือข่ายของคุณหรือส่งต่อผ่านเซิร์ฟเวอร์ของ Lantern ขึ้นอยู่กับเราเตอร์ของคุณ Lantern ไม่แสดงให้คุณเห็นว่าเขาทำอะไรทางออนไลน์"
-
-msgid "help_friend_means_online"
-msgstr "เพื่อนของคุณจะเห็นได้ว่าคุณออนไลน์อยู่เมื่อใด ยอมรับคำเชิญจากคนที่คุณรู้จักเท่านั้น"
-
-msgid "help_friend_means_stop"
-msgstr "คุณหยุดให้ความช่วยเหลือได้ทุกเมื่อ"
-
 msgid "help_friend_link_label"
 msgstr "ลิงก์คำเชิญ"
 
@@ -2137,21 +2098,6 @@ msgstr "วางลิงก์ที่เพื่อนของคุณส
 
 msgid "help_friend_scan"
 msgstr "สแกนคิวอาร์โค้ดของเพื่อน"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern ช่วยโดยอัตโนมัติขณะทำงาน โดยใช้การเชื่อมต่อโดยตรงเมื่อเราเตอร์ของคุณอนุญาต และใช้การเชื่อมต่อแบบเบราว์เซอร์ในกรณีอื่น"
-
-msgid "help_friend_accept"
-msgstr "ช่วยเพื่อนของฉัน"
-
-msgid "help_friend_code_title"
-msgstr "บอกรหัสนี้กับเพื่อนของคุณ"
-
-msgid "help_friend_code_body"
-msgstr "เพื่อนของคุณจะตรวจสอบว่าตรงกับรหัสบนโทรศัพท์ของเขา แล้วจึงอนุมัติคุณ การโทรหรือใช้แอปอื่นปลอดภัยที่สุด"
-
-msgid "help_friend_waiting"
-msgstr "กำลังรอให้เพื่อนของคุณอนุมัติ"
 
 msgid "help_friend_approved"
 msgstr "ตอนนี้คุณกำลังช่วย %s"
@@ -2179,12 +2125,6 @@ msgstr "นี่ไม่ใช่ลิงก์คำเชิญผู้ช
 
 msgid "help_friend_own_invite"
 msgstr "นี่คือคำเชิญของคุณเอง ส่งให้เพื่อนที่คุณต้องการขอความช่วยเหลือ"
-
-msgid "helping_title"
-msgstr "คุณกำลังช่วยเหลือ"
-
-msgid "helping_today"
-msgstr "วันนี้: ใช้งาน %s แชร์ %s"
 
 msgid "helping_since"
 msgstr "ตั้งแต่ %s"

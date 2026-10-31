@@ -1926,9 +1926,6 @@ msgstr "核對驗證碼並核准對方。"
 msgid "personal_proxy_nickname_label"
 msgstr "在此裝置上的名稱"
 
-msgid "invite_share_body"
-msgstr "將此連結傳送給一位你信任的人。連結僅能使用一次，48 小時後失效。"
-
 msgid "invite_share_message"
 msgstr "%s 需要你的協助來保持連線。%s"
 
@@ -1962,21 +1959,6 @@ msgstr "有人開啟了你的邀請"
 msgid "invite_compare_codes"
 msgstr "比對代碼"
 
-msgid "approve_code_intro"
-msgstr "詢問 %s 對方的 Lantern 顯示哪個代碼。透過通話或其他應用程式比對，不要在你傳送連結的聊天中比對。"
-
-msgid "approve_code_label"
-msgstr "此裝置上的代碼"
-
-msgid "approve_button"
-msgstr "代碼相符：核准"
-
-msgid "reject_button"
-msgstr "代碼不一致：拒絕"
-
-msgid "reject_explainer"
-msgstr "如果代碼不同，表示有其他人開啟了你的連結。拒絕對方並傳送新的邀請。"
-
 msgid "personal_proxy"
 msgstr "個人代理"
 
@@ -1989,27 +1971,6 @@ msgstr "個人代理"
 msgid "your_personal_proxies"
 msgstr "你的個人代理伺服器"
 
-msgid "help_friend_title"
-msgstr "幫助朋友保持連線"
-
-msgid "have_invite_link"
-msgstr "有邀請連結嗎？"
-
-msgid "help_friend_intro"
-msgstr "有朋友向你求助。Lantern 執行期間，對方可以透過你的連線存取開放的網路。"
-
-msgid "help_friend_means_title"
-msgstr "幫助朋友意味著什麼"
-
-msgid "help_friend_means_traffic"
-msgstr "你的朋友透過你的連線存取開放的網際網路。視你的路由器而定，對方的流量會從你的網路送出，或經由 Lantern 的伺服器轉送。Lantern 不會向你顯示對方在網路上做什麼。"
-
-msgid "help_friend_means_online"
-msgstr "你的朋友可以看到你何時在線上。只接受你認識的人傳來的邀請。"
-
-msgid "help_friend_means_stop"
-msgstr "你可以隨時停止協助。"
-
 msgid "help_friend_link_label"
 msgstr "邀請連結"
 
@@ -2018,21 +1979,6 @@ msgstr "貼上朋友傳來的連結"
 
 msgid "help_friend_scan"
 msgstr "掃描朋友的 QR 碼"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern 執行時會自動提供協助。路由器允許時使用直接連線，否則使用類似瀏覽器的連線。"
-
-msgid "help_friend_accept"
-msgstr "幫助我的朋友"
-
-msgid "help_friend_code_title"
-msgstr "將此代碼告訴你的朋友"
-
-msgid "help_friend_code_body"
-msgstr "你的朋友會確認它與其手機上的代碼相符，然後核准你。透過通話或其他應用程式告知最安全。"
-
-msgid "help_friend_waiting"
-msgstr "正在等待你的朋友核准"
 
 msgid "help_friend_approved"
 msgstr "你現在正在幫助 %s。"
@@ -2060,12 +2006,6 @@ msgstr "這不是協助者邀請連結。"
 
 msgid "help_friend_own_invite"
 msgstr "這是你自己的邀請。將它傳送給你想請求協助的朋友。"
-
-msgid "helping_title"
-msgstr "你正在幫助他人"
-
-msgid "helping_today"
-msgstr "今天：活躍 %s，已分享 %s"
 
 msgid "helping_since"
 msgstr "自 %s 起"

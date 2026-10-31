@@ -2078,9 +2078,6 @@ msgstr "کوڈ ملائیں اور منظوری دیں۔"
 msgid "personal_proxy_nickname_label"
 msgstr "اس ڈیوائس پر نام"
 
-msgid "invite_share_body"
-msgstr "یہ لنک کسی ایک بھروسے مند شخص کو بھیجیں۔ یہ صرف ایک بار کام کرتا ہے اور 48 گھنٹوں میں ختم ہو جاتا ہے۔"
-
 msgid "invite_share_message"
 msgstr "%s آن لائن رہنے کے لیے آپ کی مدد چاہتے ہیں۔ %s"
 
@@ -2114,21 +2111,6 @@ msgstr "کسی نے آپ کا دعوت نامہ کھولا"
 msgid "invite_compare_codes"
 msgstr "کوڈ ملائیں"
 
-msgid "approve_code_intro"
-msgstr "%s سے پوچھیں کہ ان کا Lantern کون سا کوڈ دکھا رہا ہے۔ اسے کال پر یا کسی دوسری ایپ میں ملائیں، اس چیٹ میں نہیں جس میں آپ نے لنک بھیجا تھا۔"
-
-msgid "approve_code_label"
-msgstr "اس ڈیوائس پر کوڈ"
-
-msgid "approve_button"
-msgstr "کوڈ مماثل ہیں: منظور کریں"
-
-msgid "reject_button"
-msgstr "کوڈ مماثل نہیں: مسترد کریں"
-
-msgid "reject_explainer"
-msgstr "اگر کوڈ مختلف ہیں تو کسی اور نے آپ کا لنک کھولا ہے۔ انہیں مسترد کریں اور نیا دعوت نامہ بھیجیں۔"
-
 msgid "personal_proxy"
 msgstr "ذاتی پراکسی"
 
@@ -2141,27 +2123,6 @@ msgstr "ذاتی پراکسیز"
 msgid "your_personal_proxies"
 msgstr "آپ کی ذاتی پراکسیز"
 
-msgid "help_friend_title"
-msgstr "دوست کو آن لائن رہنے میں مدد دیں"
-
-msgid "have_invite_link"
-msgstr "کیا آپ کے پاس دعوتی لنک ہے؟"
-
-msgid "help_friend_intro"
-msgstr "ایک دوست نے آپ سے مدد مانگی ہے۔ Lantern چلنے کے دوران وہ آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچ سکتے ہیں۔"
-
-msgid "help_friend_means_title"
-msgstr "دوست کی مدد کرنے کا مطلب"
-
-msgid "help_friend_means_traffic"
-msgstr "آپ کا دوست آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچتا ہے۔ آپ کے راؤٹر کے لحاظ سے، اس کا ٹریفک آپ کے نیٹ ورک سے نکلتا ہے یا Lantern کے سرورز کے ذریعے بھیجا جاتا ہے۔ Lantern آپ کو نہیں دکھاتا کہ وہ آن لائن کیا کرتا ہے۔"
-
-msgid "help_friend_means_online"
-msgstr "آپ کا دوست دیکھ سکتا ہے کہ آپ کب آن لائن ہیں۔ صرف جاننے والے لوگوں کی دعوتیں قبول کریں۔"
-
-msgid "help_friend_means_stop"
-msgstr "آپ کسی بھی وقت مدد کرنا بند کر سکتے ہیں۔"
-
 msgid "help_friend_link_label"
 msgstr "دعوتی لنک"
 
@@ -2170,21 +2131,6 @@ msgstr "اپنے دوست کا بھیجا ہوا لنک پیسٹ کریں"
 
 msgid "help_friend_scan"
 msgstr "اپنے دوست کا QR کوڈ اسکین کریں"
-
-msgid "help_friend_sharing_note"
-msgstr "Lantern چلتے وقت خود بخود مدد کرتا ہے۔ اگر آپ کا راؤٹر اجازت دے تو یہ ڈائریکٹ کنکشن استعمال کرتا ہے، ورنہ براؤزر جیسا کنکشن۔"
-
-msgid "help_friend_accept"
-msgstr "میرے دوست کی مدد کریں"
-
-msgid "help_friend_code_title"
-msgstr "اپنے دوست کو یہ کوڈ بتائیں"
-
-msgid "help_friend_code_body"
-msgstr "آپ کا دوست تصدیق کرے گا کہ یہ اس کے فون پر موجود کوڈ سے ملتا ہے، پھر آپ کو منظور کرے گا۔ کال یا کوئی دوسری ایپ سب سے محفوظ ہے۔"
-
-msgid "help_friend_waiting"
-msgstr "آپ کے دوست کی منظوری کا انتظار ہے"
 
 msgid "help_friend_approved"
 msgstr "اب آپ %s کی مدد کر رہے ہیں۔"
@@ -2212,12 +2158,6 @@ msgstr "یہ مددگار دعوتی لنک نہیں ہے۔"
 
 msgid "help_friend_own_invite"
 msgstr "یہ آپ کا اپنا دعوت نامہ ہے۔ اسے اس دوست کو بھیجیں جس سے آپ مدد چاہتے ہیں۔"
-
-msgid "helping_title"
-msgstr "آپ مدد کر رہے ہیں"
-
-msgid "helping_today"
-msgstr "آج: فعال %s، شیئر کیا گیا %s"
 
 msgid "helping_since"
 msgstr "%s سے"
