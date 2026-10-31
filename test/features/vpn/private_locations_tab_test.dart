@@ -384,6 +384,32 @@ void main() {
     });
   }
 
+  testWidgets('a fallback saved before the group connect answers stays shown', (
+    tester,
+  ) async {
+    await sl.reset();
+    final vpn = _Vpn();
+    final location = _Location();
+    // radiance replaced the group, gone during the connect, with auto, and
+    // its event arrived before the connect answered.
+    final service = _Service('auto');
+    final container = _selectionContainer(vpn, location, service);
+    addTearDown(container.dispose);
+    await _pumpSelection(tester, container);
+    vpn.beforeReply = location.syncSelection;
+    await tester.tap(
+      find.byKey(const Key('server_selection.personal_proxies')),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(vpn.connects, [
+      (ServerLocationType.personalProxy, 'personal-proxies'),
+    ]);
+    final shown = container.read(serverLocationProvider);
+    expect(shown.serverType, ServerLocationType.auto.name);
+    expect(shown.serverName, isEmpty);
+  });
+
   testWidgets('selecting a friend connects by their selection tag and '
       'saves them as the location', (tester) async {
     await sl.reset();

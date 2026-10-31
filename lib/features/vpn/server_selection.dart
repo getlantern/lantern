@@ -727,18 +727,12 @@ class _PrivateServerLocationListViewState
         const SizedBox(height: 16),
         PersonalProxiesSection(
           selected: personalSelected,
-          onSelect: () => _select(
-            ServerLocationType.personalProxy,
-            personalProxiesTag,
-            ServerLocation.personalProxy(),
-          ),
+          onSelect: () =>
+              _select(ServerLocationType.personalProxy, personalProxiesTag),
           selectedFriend: selectedFriend,
           onSelectFriend: (h) => _select(
             ServerLocationType.personalProxy,
             personalProxySelection(h.outboundTag),
-            ServerLocation.personalProxy(friendTag: h.outboundTag),
-            // Shows what radiance selected, which may be a fallback.
-            save: ref.read(serverLocationProvider.notifier).syncSelection,
           ),
         ),
         if (userLocations.isNotEmpty) ...[
@@ -792,24 +786,17 @@ class _PrivateServerLocationListViewState
   Future<void> onPrivateServerSelected(Server server) => _select(
     ServerLocationType.privateServer,
     server.tag,
-    ServerLocation(
-      serverType: ServerLocationType.privateServer.name,
-      serverName: server.tag,
-      country: server.location.country,
-      city: server.location.city,
-      countryCode: server.location.countryCode,
-      protocol: server.type,
-    ),
     connectedMessage: 'connected_to_private_server'.i18n,
   );
 
-  /// Connects to [tag] and, once connected, makes [location] the selection.
+  /// Connects to [tag] and, once connected, shows the selection radiance
+  /// saved. That may be a fallback: a group, friend or private server that
+  /// went away during the connect is replaced there, and its event can arrive
+  /// before the connect answers.
   Future<void> _select(
     ServerLocationType type,
-    String tag,
-    ServerLocation location, {
+    String tag, {
     String? connectedMessage,
-    FutureOr<void> Function()? save,
   }) async {
     if (!_macOSExtensionReady(ref)) return;
 
@@ -820,7 +807,7 @@ class _PrivateServerLocationListViewState
       attempt: (skipConflictCheck) => ref
           .read(vpnProvider.notifier)
           .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
-      save: save ?? () => locationNotifier.updateServerLocation(location),
+      save: locationNotifier.syncSelection,
       connectedMessage: connectedMessage,
     );
   }

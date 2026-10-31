@@ -25,8 +25,13 @@ class EventQueue<T>(
         listeners.remove(listener)
     }
 
+    /**
+     * Delivers [event] to the listeners attached now that are still attached
+     * when it runs, so a listener added in between never hears it.
+     */
     fun emit(event: T) {
-        dispatch(Runnable { for (listener in listeners) listener(event) })
+        val targets = listeners.toList()
+        dispatch(Runnable { for (listener in targets) if (listener in listeners) listener(event) })
     }
 
     companion object {

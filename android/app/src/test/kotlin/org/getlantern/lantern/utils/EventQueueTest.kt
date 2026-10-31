@@ -46,4 +46,27 @@ class EventQueueTest {
         runPending()
         assertEquals(emptyList<String>(), got)
     }
+
+    @Test
+    fun anEventQueuedBeforeAListenerAttachesSkipsIt() {
+        val early = mutableListOf<String>()
+        queue.addListener { early.add(it) }
+        queue.emit("before")
+        val late = mutableListOf<String>()
+        queue.addListener { late.add(it) }
+        runPending()
+        assertEquals(listOf("before"), early)
+        assertEquals(emptyList<String>(), late)
+    }
+
+    @Test
+    fun aListenerRemovedBeforeDeliveryHearsNothing() {
+        val got = mutableListOf<String>()
+        val listener: (String) -> Unit = { got.add(it) }
+        queue.addListener(listener)
+        queue.emit("queued")
+        queue.removeListener(listener)
+        runPending()
+        assertEquals(emptyList<String>(), got)
+    }
 }
