@@ -8,9 +8,11 @@ import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -110,14 +112,18 @@ void main() {
     test('to the group: names the friend and reads the selection', () async {
       await start(const [sara]);
       await send('{"tag":"$tag","fallback":"personal-proxies"}');
-      expect(shown, ['Sara is offline. Switched to Your personal proxies.']);
+      expect(shown, [
+        "Can't reach Sara right now. Switched to Your personal proxies.",
+      ]);
       expect(location.syncs, 1, reason: 'reads what radiance selected');
     });
 
     test('to auto: Smart Location', () async {
       await start(const [sara]);
       await send('{"tag":"$tag","fallback":"auto"}');
-      expect(shown, ['Sara is offline. Switched to Smart Location.']);
+      expect(shown, [
+        "Can't reach Sara right now. Switched to Smart Location.",
+      ]);
       expect(location.syncs, 1);
     });
 
@@ -127,7 +133,7 @@ void main() {
         await start(const []);
         await send('{"tag":"$tag","fallback":"auto"}');
         expect(shown, [
-          '${'helper_unnamed'.i18n} is offline. Switched to Smart Location.',
+          "Can't reach ${'helper_unnamed'.i18n} right now. Switched to Smart Location.",
         ]);
       },
     );
@@ -199,6 +205,36 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(helpers.liveChanges, 2);
   });
+
+  test('a late listener, which missed the country-code event, reads the '
+      'country radiance saved', () async {
+    CountryCode.update('');
+    addTearDown(() => CountryCode.update(''));
+    final service = _SettingsService({'country_code': 'ir'});
+    final c = ProviderContainer(
+      overrides: [
+        lanternServiceProvider.overrideWithValue(service),
+        helpersProvider.overrideWith(_Helpers.new),
+        serverLocationProvider.overrideWith(_Location.new),
+      ],
+    );
+    addTearDown(() async {
+      c.dispose();
+      await service.events.close();
+    });
+    expect(c.read(countryCodeProvider), '');
+    await c.read(appEventProvider.future);
+    await _settle();
+    expect(c.read(countryCodeProvider), 'IR');
+  });
+}
+
+class _SettingsService extends _Service {
+  _SettingsService(this.settings);
+  final Map<String, dynamic> settings;
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async =>
+      Right(settings);
 }
 
 /// The real location notifier's view of radiance: each selected_server read

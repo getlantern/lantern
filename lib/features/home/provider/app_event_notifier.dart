@@ -187,5 +187,21 @@ class AppEventNotifier extends _$AppEventNotifier {
     if (!ref.mounted) return;
     unawaited(ref.read(serverLocationProvider.notifier).syncSelection());
     unawaited(ref.read(helpersProvider.notifier).liveChanged());
+    unawaited(_readCountryCode());
+  }
+
+  /// The country-code event is sent only after a config fetch, so a listener
+  /// that missed it reads the country radiance saved instead.
+  Future<void> _readCountryCode() async {
+    try {
+      final res = await ref.read(lanternServiceProvider).getSettings();
+      if (!ref.mounted) return;
+      final code = res.fold((_) => null, (s) => s['country_code']);
+      if (code is! String || code.trim().isEmpty) return;
+      if (code.trim().toUpperCase() == ref.read(countryCodeProvider)) return;
+      ref.read(countryCodeProvider.notifier).update(code);
+    } catch (_) {
+      // A failed read changes nothing; the next config event sends it.
+    }
   }
 }

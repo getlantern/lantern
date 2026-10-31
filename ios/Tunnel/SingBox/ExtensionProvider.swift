@@ -171,6 +171,9 @@ class ExtensionProvider: NEPacketTunnelProvider {
       {
         appLogger.log("(lantern-tunnel) selected group is gone; starting auto")
         VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
+        // The stored location still names the personal proxy, and the widget
+        // shows it ahead of the auto label.
+        VPNWidgetStore.setLocation(name: "", city: "", country: "", countryCode: "")
         startVPN(completion: completion)
         return
       }

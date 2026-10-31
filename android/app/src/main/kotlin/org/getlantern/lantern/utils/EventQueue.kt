@@ -28,7 +28,9 @@ class EventQueue<T>(
     /**
      * Delivers [event] to the listeners attached now that are still attached
      * when it runs, so a listener added in between never hears it.
+     * Synchronized so concurrent emits post in the order they took the lock.
      */
+    @Synchronized
     fun emit(event: T) {
         // ArrayList copies through toArray, one atomic read of the
         // CopyOnWriteArrayList. toList reads the size, then the element.
