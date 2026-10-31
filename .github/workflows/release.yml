@@ -21,7 +21,7 @@ on:
         type: string
         default: "linux"
       sign_windows:
-        description: "Sign Windows binaries (nightly skips signing by default)"
+        description: "Sign Windows branch nightlies (main and releases are always signed)"
         required: false
         type: boolean
         default: false
@@ -511,7 +511,7 @@ jobs:
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       run_auth_smoke: false
-      skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.event.inputs.sign_windows != 'true' }}
+      skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.ref_name != github.event.repository.default_branch && github.event.inputs.sign_windows != 'true' }}
 
   build-linux:
     needs: [set-metadata, preflight, release-approval]
@@ -698,6 +698,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
+      SPARKLE_VERSION: ${{ needs.set-metadata.outputs.sparkle_version }}
       RELEASE_TAG: ${{ needs.set-metadata.outputs.release_tag }}
       INSTALLER_BASE_NAME: ${{ needs.set-metadata.outputs.installer_base_name }}
       PLATFORM: ${{ needs.set-metadata.outputs.platform }}
