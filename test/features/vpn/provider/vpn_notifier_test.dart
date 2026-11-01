@@ -85,6 +85,15 @@ class _FakeLanternService implements LanternService {
     return right('ok');
   }
 
+  @override
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+    required String serverName,
+  }) async {}
+
   Future<void> dispose() => statusController.close();
 
   @override
@@ -368,6 +377,70 @@ void main() {
         ServerLocationType.auto.name,
       );
     });
+  });
+
+  // The real server location notifier listens to the VPN status, so in debug
+  // builds reading it back from the VPN notifier must not look like a cycle.
+  group('with the real server location notifier', () {
+    late _FakeStorage storage;
+
+    setUp(() async {
+      await sl.reset();
+      storage = _FakeStorage();
+      sl.registerSingleton<LocalStorageService>(storage);
+      addTearDown(sl.reset);
+    });
+
+    ProviderContainer realContainer(
+      _FakeLanternService service,
+      ServerLocation selected,
+    ) {
+      storage.values.clear();
+      unawaited(storage.saveServerLocation(selected));
+      final container = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(service),
+          appSettingProvider.overrideWith(_FakeAppSettings.new),
+        ],
+      );
+      _disposeContainerAndService(container, service);
+      container.read(serverLocationProvider);
+      return container;
+    }
+
+    test('starts the VPN on Smart Location', () async {
+      final service = _FakeLanternService();
+      final container = realContainer(service, initialServerLocation());
+
+      final result = await container
+          .read(vpnProvider.notifier)
+          .startVPN(skipConflictCheck: true);
+
+      expect(result.isRight(), isTrue);
+      expect(service.startVPNCalls, 1);
+    });
+
+    test(
+      'falls back to Smart Location when personal proxies are gone',
+      () async {
+        final service = _FakeLanternService()..availableTags = {};
+        final container = realContainer(
+          service,
+          ServerLocation.personalProxy(),
+        );
+
+        final result = await container
+            .read(vpnProvider.notifier)
+            .startVPN(skipConflictCheck: true);
+
+        expect(result.isRight(), isTrue);
+        expect(service.startVPNCalls, 1);
+        expect(
+          container.read(serverLocationProvider).serverType,
+          ServerLocationType.auto.name,
+        );
+      },
+    );
   });
 
   group('rating session lifecycle', () {

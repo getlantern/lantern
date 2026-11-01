@@ -24,7 +24,14 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // Every change to the selected/resolved location is mirrored into the
     // native widget so it can show where the tunnel exits.
     listenSelf((_, next) => _publishToWidget(next));
-    ref.listen(vpnProvider, (_, next) => _settlePendingSelection(next));
+    // Listened through the container: a ref.listen would make this provider
+    // a dependent of vpnProvider, and the VPN notifier reading it back on
+    // connect then throws a CircularDependencyError in debug builds.
+    final vpnSub = ref.container.listen(
+      vpnProvider,
+      (_, next) => _settlePendingSelection(next),
+    );
+    ref.onDispose(vpnSub.close);
     // radiance drops the personal proxies group with the last pairing and
     // connects through auto, but sends no server-location event for it.
     // fireImmediately covers a view that loaded empty before this notifier
