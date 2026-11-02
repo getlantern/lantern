@@ -399,6 +399,8 @@ void main() {
       helperErrorText('bad_link'),
     );
     expect(find.byKey(const Key('help_friend.error')), findsNothing);
+    // Refused, the link is no use: a new one can be asked for.
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsOneWidget);
     await tester.enterText(find.byKey(const Key('help_friend.link')), _link);
     await tester.pump();
     expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
@@ -407,6 +409,25 @@ void main() {
     await tester.pump();
     expect(helpers.claims.last, (_link, 'Ali'));
     expect(find.text('2562'), findsOneWidget);
+  });
+
+  testWidgets('a link that opened HelpFriend and the engine reports as the '
+      'volunteer\'s own invite shows the error on the field, without asking '
+      'for an invite', (tester) async {
+    final helpers = _Helpers(
+      const HelpersState(),
+      claimAnswers: ['{"error":"own_invite"}'],
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    await _claim(tester);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('help_friend.link_error'))).data,
+      helperErrorText('own_invite'),
+    );
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsNothing);
   });
 
   testWidgets('the button waits for a valid link; a bad one is flagged on '

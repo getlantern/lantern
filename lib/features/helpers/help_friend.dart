@@ -459,8 +459,9 @@ class HelpFriend extends HookConsumerWidget {
             ),
           ),
           // Invites start with the friend: one who wants help offered can
-          // be asked to send one.
-          if (linkShown) ...[
+          // be asked to send one. Not to someone who pasted their own invite:
+          // they are the friend, and the error says to send it instead.
+          if (linkShown && error.value != 'own_invite') ...[
             const SizedBox(height: defaultSize),
             Text(
               'help_friend_no_link'.i18n,
