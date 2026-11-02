@@ -59,7 +59,11 @@ class AppPurchase {
     PurchaseAcknowledger? acknowledger,
     bool Function()? canUseBilling,
     Future<bool> Function(String productId)? introOfferEligibility,
+    Future<String?> Function()? playAccountId,
+    Future<List<PurchaseDetails>> Function()? queryPastPurchases,
   }) : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance,
+       _playAccountId = playAccountId ?? _cachedPlayAccountId,
+       _queryPastPurchases = queryPastPurchases,
        _canUseBilling = canUseBilling ?? canUseStoreBilling,
        _introOfferEligibility =
            introOfferEligibility ?? SK2Product.isIntroductoryOfferEligible {
@@ -87,6 +91,15 @@ class AppPurchase {
   }
 
   final InAppPurchase _inAppPurchase;
+
+  /// The signed-in user's Play account ID; see [playAccountIdFor].
+  final Future<String?> Function() _playAccountId;
+
+  /// Overrides the Play past-purchases query in tests.
+  final Future<List<PurchaseDetails>> Function()? _queryPastPurchases;
+
+  /// Set once [reconcilePastPurchases] has run this launch.
+  bool _reconciled = false;
 
   /// Whether this Apple ID can still redeem [productId]'s introductory offer.
   /// StoreKit lists the offer on the product even when the user can't.
@@ -473,6 +486,7 @@ class AppPurchase {
       purchaseParam = GooglePlayPurchaseParam(
         productDetails: product,
         offerToken: product.offerToken,
+        applicationUserName: await _safePlayAccountId(),
       );
     } else {
       purchaseParam = PurchaseParam(productDetails: product);
@@ -515,6 +529,76 @@ class AppPurchase {
     } catch (e) {
       await _pendingStore.forgetProduct(product.id);
       _session.onError?.call("Error starting subscription: $e");
+    }
+  }
+
+  /// Reports Play purchases that were paid for but never confirmed with the
+  /// backend, e.g. when the app was killed mid-checkout. Play only hands those
+  /// back through a query, so this runs once per launch.
+  Future<void> reconcilePastPurchases() async {
+    if (_reconciled || !_canUseBilling()) return;
+    _reconciled = true;
+
+    final List<PurchaseDetails> purchases;
+    try {
+      purchases = await (_queryPastPurchases ?? _queryAndroidPastPurchases)();
+    } catch (e, st) {
+      appLogger.error('[AppPurchase] Unable to query past purchases', e, st);
+      return;
+    }
+    for (final purchase in purchases) {
+      if (purchase.status != PurchaseStatus.purchased ||
+          !purchase.pendingCompletePurchase) {
+        continue;
+      }
+      // A checkout or restore in progress handles its own receipts.
+      if (_session.onSuccess != null || _session.isRestoreFlow) return;
+      appLogger.info(
+        '[AppPurchase] Reporting unconfirmed purchase: ${purchase.productID}',
+      );
+      try {
+        await _handleCompletedPurchase(purchase);
+      } catch (e, st) {
+        appLogger.error(
+          '[AppPurchase] Unable to report unconfirmed purchase',
+          e,
+          st,
+        );
+      }
+    }
+  }
+
+  Future<List<PurchaseDetails>> _queryAndroidPastPurchases() async {
+    if (!Platform.isAndroid) return const [];
+    final response = await _inAppPurchase
+        .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>()
+        .queryPastPurchases();
+    if (response.error != null) {
+      throw Exception(response.error!.message);
+    }
+    return response.pastPurchases;
+  }
+
+  /// The Lantern user ID, sent to Play as the obfuscated account ID so the
+  /// server can tie a purchase the app never reported back to the user.
+  @visibleForTesting
+  static String? playAccountIdFor(UserResponseModel user) {
+    final id = user.legacyID > 0 ? user.legacyID : user.legacyUserData.userId;
+    return id > 0 ? '$id' : null;
+  }
+
+  static Future<String?> _cachedPlayAccountId() async {
+    final result = await sl<LanternPlatformService>().getUserData();
+    return result.fold((_) => null, playAccountIdFor);
+  }
+
+  /// A missing account ID only weakens recovery, so it never blocks checkout.
+  Future<String?> _safePlayAccountId() async {
+    try {
+      return await _playAccountId();
+    } catch (e, st) {
+      appLogger.error('[AppPurchase] Unable to read Play account ID', e, st);
+      return null;
     }
   }
 

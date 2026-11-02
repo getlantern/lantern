@@ -4,6 +4,8 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/extensions/user_data.dart';
 import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
@@ -35,6 +37,10 @@ class HomeNotifier extends _$HomeNotifier {
       (userData) {
         appLogger.debug('Loaded cached user data');
         _applyUserData(userData);
+        // The core is up now, so it can confirm any purchase the app missed.
+        if (PlatformUtils.isAndroid && sl.isRegistered<AppPurchase>()) {
+          unawaited(sl<AppPurchase>().reconcilePastPurchases());
+        }
         return userData;
       },
     );
