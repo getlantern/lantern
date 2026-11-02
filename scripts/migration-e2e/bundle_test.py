@@ -120,7 +120,7 @@ class BundleTest(unittest.TestCase):
 
     def test_production_canary_requires_explicit_opt_in_and_released_seed(self):
         self.production_canary()
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "released_binary_account_isolation_blocked"):
             self.validate()
         with self.assertRaisesRegex(ValueError, "not_released_seed"):
             self.validate(allow_production_canary=True)
@@ -129,19 +129,25 @@ class BundleTest(unittest.TestCase):
 
     def test_production_canary_does_not_accept_staging_or_old_bridge(self):
         self.production_canary()
-        for key, value in [("endpoint", bundle.ENDPOINT), ("catalog", bundle.CATALOG),
-                           ("account_environment", "staging"), ("scenario", "cancel"),
-                           ("scenario", "installer-failure"), ("bridge_version", "7.9.8"),
-                           ("production_activation_ready", True)]:
-            with self.subTest(key=key, value=value):
-                old = self.m[key]
-                self.m[key] = value
-                with self.assertRaises(ValueError):
-                    self.validate(True)
-                self.m[key] = old
-        self.m["artifacts"]["global_config"] = {"file": "global.json", "sha256": "0" * 64}
-        with self.assertRaisesRegex(ValueError, "asset_set"):
+        # Release the fixture seed so each case fails on its own check.
+        with mock.patch.object(bundle, "RELEASED_SEED_SHA256", self.m["artifacts"]["seed"]["sha256"]):
             self.validate(True)
+            for key, value, error in [("endpoint", bundle.ENDPOINT, "wrong_lane_environment"),
+                                      ("catalog", bundle.CATALOG, "wrong_lane_environment"),
+                                      ("account_environment", "staging", "wrong_lane_environment"),
+                                      ("scenario", "cancel", "canary_requires_success_scenario"),
+                                      ("scenario", "installer-failure", "canary_requires_success_scenario"),
+                                      ("bridge_version", "7.9.8", "invalid_bridge_version"),
+                                      ("production_activation_ready", True, "manifest_version")]:
+                with self.subTest(key=key, value=value):
+                    old = self.m[key]
+                    self.m[key] = value
+                    with self.assertRaisesRegex(ValueError, error):
+                        self.validate(True)
+                    self.m[key] = old
+            self.m["artifacts"]["global_config"] = {"file": "global.json", "sha256": "0" * 64}
+            with self.assertRaisesRegex(ValueError, "asset_set"):
+                self.validate(True)
 
     def test_production_canary_installer_versions(self):
         self.production_canary()
