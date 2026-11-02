@@ -2062,9 +2062,14 @@ msgstr "Remove the connection any time."
 msgid "help_friend_form_title"
 msgstr "Paste the link from the person you're helping"
 
+# Title of the same card when the invite link opened the app. The inviter's
+# name is not known yet.
+msgid "help_friend_form_title_from_link"
+msgstr "A friend invited you to be their personal proxy"
+
 # Under the invite link field.
 msgid "help_friend_link_hint"
-msgstr "If you opened the link on this device, this is filled in for you"
+msgstr "Tapping the link on this device fills this in"
 
 msgid "help_friend_name_label"
 msgstr "Your name, as they know you"
@@ -2097,6 +2102,10 @@ msgstr "Paste the link your friend sent"
 
 msgid "help_friend_scan"
 msgstr "Scan your friend's QR code"
+
+# Button under the invite link field: fills it from the clipboard.
+msgid "help_friend_paste_button"
+msgstr "Paste link"
 
 # %s is the friend's name.
 msgid "help_friend_approved"
