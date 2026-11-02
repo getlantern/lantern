@@ -178,12 +178,14 @@ class _StatRow extends StatelessWidget {
   const _StatRow({
     super.key,
     required this.label,
-    required this.value,
+    this.value,
     this.detail,
+    this.leading,
   });
 
-  final String label, value;
-  final String? detail;
+  final String label;
+  final String? value, detail;
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -191,10 +193,12 @@ class _StatRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          if (leading != null) ...[
+            SizedBox(width: 25, child: leading),
+            const SizedBox(width: 12),
+          ],
           Expanded(
-            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -209,13 +213,14 @@ class _StatRow extends StatelessWidget {
               ],
             ),
           ),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: textTheme.bodyLarge!.copyWith(color: context.textLink),
+          if (value != null)
+            Expanded(
+              child: Text(
+                value!,
+                textAlign: TextAlign.end,
+                style: textTheme.bodyLarge!.copyWith(color: context.textLink),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -228,63 +233,18 @@ class _CountryRow extends StatelessWidget {
   final RelayCountryStats stats;
 
   @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final name = stats.isUnknown
+  Widget build(BuildContext context) => _StatRow(
+    leading: stats.isUnknown
+        ? Icon(Icons.public, size: 20, color: context.textTertiary)
+        : Flag(countryCode: stats.code),
+    label: stats.isUnknown
         ? 'advanced_stats_unknown_country'.i18n
-        : (stats.name.isEmpty ? stats.code : stats.name);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 25,
-                  child: stats.isUnknown
-                      ? Icon(
-                          Icons.public,
-                          size: 20,
-                          color: context.textTertiary,
-                        )
-                      : Flag(countryCode: stats.code),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name, style: textTheme.bodyLarge),
-                      // Direct sharing reports people without bytes, so a
-                      // row can have nothing to say here.
-                      if (stats.bytes > 0)
-                        Text(
-                          'advanced_stats_relayed'.i18n.fill([
-                            stats.bytes.siBytes,
-                          ]),
-                          style: textTheme.labelMedium?.copyWith(
-                            color: context.textTertiary,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (stats.people > 0)
-            Flexible(
-              child: Text(
-                peopleCountLabel(stats.people),
-                textAlign: TextAlign.end,
-                style: textTheme.bodyLarge!.copyWith(color: context.textLink),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+        : (stats.name.isEmpty ? stats.code : stats.name),
+    // Direct sharing reports people without bytes, so a row can have
+    // nothing to say here.
+    detail: stats.bytes > 0
+        ? 'advanced_stats_relayed'.i18n.fill([stats.bytes.siBytes])
+        : null,
+    value: stats.people > 0 ? peopleCountLabel(stats.people) : null,
+  );
 }
