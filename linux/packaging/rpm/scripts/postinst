@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+warn() {
+	echo "lantern postinst: $*" >&2
+}
+
+# rpm passes 1 on install and 2 on upgrade; both need the service.
+if ! /usr/lib/lantern/lanternd install --log-level=info; then
+	warn "failed to install lanternd service"
+	exit 1
+fi
+
+exit 0
