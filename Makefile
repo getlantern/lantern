@@ -220,6 +220,13 @@ ANDROID_DEBUG_FLUTTER_FLAGS  ?= --verbose
 ANDROID_PAGE_SIZE ?= 16384
 # Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
 ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
+# gomobile calls clang directly, so cgo code misses the NDK's default stack
+# protector (MASA 1.6.3.1). go-libutp is the only C++ in libgojni.so; link
+# libc++ statically rather than shipping the NDK's libc++_shared.so, which is
+# built without stack canaries.
+ANDROID_CGO_CFLAGS ?= -O2 -g -fstack-protector-strong
+ANDROID_CGO_ENV = CGO_CFLAGS="$(ANDROID_CGO_CFLAGS)" CGO_CXXFLAGS="$(ANDROID_CGO_CFLAGS)" \
+	CGO_LDFLAGS="-O2 -g -static-libstdc++ -Wl,--exclude-libs,libc++_static.a:libc++abi.a"
 ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE)),1,0)
 ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
@@ -1009,6 +1016,7 @@ build-android: check-android-sdk check-gomobile $(ANDROID_ABI_STAMP) $(MAYBE_STE
 	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
 
 	GOMOBILECACHE="$(GOMOBILECACHE)" \
+	$(ANDROID_CGO_ENV) \
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
@@ -1019,6 +1027,7 @@ build-android: check-android-sdk check-gomobile $(ANDROID_ABI_STAMP) $(MAYBE_STE
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
+	$(PYTHON) scripts/ci/verify_android_hardening.py $(ANDROID_LIB_BUILD)
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 
@@ -1038,6 +1047,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 	GARBLE_FLAGS="$(GARBLE_FLAGS)" \
 	GARBLE_GOGARBLE="$(GARBLE_GOGARBLE)" \
 	GOMOBILECACHE="$(GOMOBILECACHE)" \
+	$(ANDROID_CGO_ENV) \
 	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
 		-androidapi=23 \
 		-target="$(GOMOBILE_ANDROID_TARGET)" \
@@ -1048,6 +1058,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
+	$(PYTHON) scripts/ci/verify_android_hardening.py $(ANDROID_LIB_BUILD)
 	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
 	@echo "Built obfuscated Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
 	$(if $(STEALTH_ENABLED),$(MAKE) ANDROID_LIBS_DIR="$(ANDROID_LIBS_DIR)" ANDROID_LIB="$(ANDROID_LIB)" verify-stealth-jni,)
