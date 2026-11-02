@@ -2260,3 +2260,18 @@ msgstr "Şu gün geçirilen maglumat"
 
 msgid "helping_active_today"
 msgstr "Işjeň: %s"
+
+msgid "invite_share_steps"
+msgstr "Ol baglanyşygy açýar, gerek bolsa Lantern-i gurnaýar we adyny girizýär. Siz 4 sanly kody barlap ony tassyklarsyňyz, soňra onuň üsti bilen birigip bilersiňiz."
+
+msgid "invite_link_label"
+msgstr "Çakylyk baglanyşygyňyz"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Häzir %s bilen baglanyşyp bolmaýar. Akylly ýerleşiş saýlandy."
+
+msgid "help_friend_name_label"
+msgstr "Adyňyz, olaryň sizi tanaýşy ýaly"
+
+msgid "helping_paste_another"
+msgstr "Başga çakylyk baglanyşygyny goýuň"

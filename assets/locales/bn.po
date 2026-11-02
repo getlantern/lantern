@@ -2289,3 +2289,6 @@ msgstr "আজ রিলে করা ডেটা"
 
 msgid "helping_active_today"
 msgstr "সক্রিয়: %s"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "এই মুহূর্তে %s এর সাথে সংযোগ করা যাচ্ছে না। স্মার্ট লোকেশনে পরিবর্তন করা হয়েছে।"

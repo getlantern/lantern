@@ -2311,3 +2311,9 @@ msgstr "نن ورځ لېږدول شوي ډېټا"
 
 msgid "helping_active_today"
 msgstr "فعال: %s"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "اوس مهال %s ته رسېدل نه کېږي. هوښيار موقعیت ته واوښتل."
+
+msgid "become_personal_proxy_body"
+msgstr "له یو پېژندل شوي کس سره مرسته وکړئ چې انټرنېټ ته لاسرسی ومومي"

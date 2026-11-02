@@ -2263,3 +2263,6 @@ msgstr "ข้อมูลที่ส่งต่อวันนี้"
 
 msgid "helping_active_today"
 msgstr "ใช้งาน %s"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "ไม่สามารถติดต่อ %s ได้ในขณะนี้ เปลี่ยนเป็นตำแหน่งอัจฉริยะแล้ว"

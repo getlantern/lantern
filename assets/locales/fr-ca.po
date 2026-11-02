@@ -2105,3 +2105,9 @@ msgstr "Données relayées aujourd'hui"
 
 msgid "helping_active_today"
 msgstr "Actif : %s"
+
+msgid "approve_title"
+msgstr "%s souhaite devenir votre proxy personnel"
+
+msgid "become_personal_proxy"
+msgstr "Devenir un proxy personnel"

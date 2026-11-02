@@ -2118,3 +2118,6 @@ msgstr "آج ریلے کیا گیا ڈیٹا"
 
 msgid "helping_active_today"
 msgstr "فعال: %s"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "ابھی %s تک رسائی نہیں ہو رہی۔ اسمارٹ لوکیشن پر منتقل کر دیا گیا۔"

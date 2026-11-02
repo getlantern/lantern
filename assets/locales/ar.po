@@ -2256,3 +2256,9 @@ msgstr "البيانات المُرحّلة اليوم"
 
 msgid "helping_active_today"
 msgstr "نشط: %s"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "تعذر الوصول إلى %s حاليًا. تم التبديل إلى الموقع الذكي."
+
+msgid "become_personal_proxy"
+msgstr "أن تصبح وكيلًا شخصيًا"

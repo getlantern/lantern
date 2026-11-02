@@ -2331,3 +2331,6 @@ msgstr "ယနေ့ ထပ်ဆင့်ပို့ခဲ့သော ဒေ�
 
 msgid "helping_active_today"
 msgstr "အသုံးပြုချိန် %s"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "ယခု %s ထံ မချိတ်ဆက်နိုင်ပါ။ Smart Location သို့ ပြောင်းထားသည်။"

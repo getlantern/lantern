@@ -2293,3 +2293,6 @@ msgstr "आज रिले किया गया डेटा"
 
 msgid "helping_active_today"
 msgstr "सक्रिय: %s"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "अभी %s तक नहीं पहुंच पा रहे। स्मार्ट लोकेशन पर स्विच किया गया।"
