@@ -388,14 +388,14 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
     _ session: NetworkResetScheduler.Session
   ) {
     guard networkResets.isCurrent(session) else { return }
-    if path.status == .unsatisfied {
+    guard path.status != .unsatisfied, let defaultInterface = path.availableInterfaces.first
+    else {
       appLogger.info("network path: \(describeNetworkPath(path))")
       clearPathState(session)
       listener.updateDefaultInterface(
         "", interfaceIndex: -1, isExpensive: false, isConstrained: false)
       return
     }
-    let defaultInterface = path.availableInterfaces.first!
     // libbox resets on its own when the default interface changes.
     if let last = lastDefaultInterface,
       last.name != defaultInterface.name || last.index != defaultInterface.index
@@ -577,11 +577,18 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       return
     }
     tunnel.reasserting = true
-    tunnel.setTunnelNetworkSettings(nil) { _ in
+    defer { tunnel.reasserting = false }
+    do {
+      try applyNetworkSettings(nil)
+    } catch {
+      appLogger.error("clearDNSCache: clear network settings: \(error.localizedDescription)")
     }
-    tunnel.setTunnelNetworkSettings(networkSettings) { _ in
+    // Restore even if clearing failed: a tunnel left without settings blackholes traffic.
+    do {
+      try applyNetworkSettings(networkSettings)
+    } catch {
+      appLogger.error("clearDNSCache: restore network settings: \(error.localizedDescription)")
     }
-    tunnel.reasserting = false
   }
 
   public func readWIFIState() -> LibboxWIFIState? {

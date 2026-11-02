@@ -310,15 +310,15 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   private func onUpdateDefaultInterface(
     _ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath
   ) {
-    if path.status == .unsatisfied {
+    guard path.status != .unsatisfied, let defaultInterface = path.availableInterfaces.first
+    else {
       listener.updateDefaultInterface(
         "", interfaceIndex: -1, isExpensive: false, isConstrained: false)
-    } else {
-      let defaultInterface = path.availableInterfaces.first!
-      listener.updateDefaultInterface(
-        defaultInterface.name, interfaceIndex: Int32(defaultInterface.index),
-        isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+      return
     }
+    listener.updateDefaultInterface(
+      defaultInterface.name, interfaceIndex: Int32(defaultInterface.index),
+      isExpensive: path.isExpensive, isConstrained: path.isConstrained)
   }
 
   public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
@@ -388,11 +388,18 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       return
     }
     tunnel.reasserting = true
-    tunnel.setTunnelNetworkSettings(nil) { _ in
+    defer { tunnel.reasserting = false }
+    do {
+      try applyNetworkSettings(nil)
+    } catch {
+      appLogger.error("clearDNSCache: clear network settings: \(error.localizedDescription)")
     }
-    tunnel.setTunnelNetworkSettings(networkSettings) { _ in
+    // Restore even if clearing failed: a tunnel left without settings blackholes traffic.
+    do {
+      try applyNetworkSettings(networkSettings)
+    } catch {
+      appLogger.error("clearDNSCache: restore network settings: \(error.localizedDescription)")
     }
-    tunnel.reasserting = false
   }
 
   public func readWIFIState() -> LibboxWIFIState? {
@@ -453,6 +460,8 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
 
   func reset() {
     networkSettings = nil
+    nwMonitor?.cancel()
+    nwMonitor = nil
   }
 
   public func send(_ notification: LibboxNotification?) throws {

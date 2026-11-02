@@ -114,6 +114,14 @@ interface PlatformInterfaceWrapper : PlatformInterface {
                 boxInterface.name = interfaceName
                 boxInterface.dnsServer =
                     StringArray(linkProperties.dnsServers.mapNotNull { it.hostAddress }.iterator())
+                boxInterface.gateway = StringArray(
+                    linkProperties.routes
+                        .filter { it.destination.prefixLength == 0 }
+                        .mapNotNull { it.gateway }
+                        .filterNot { it.isAnyLocalAddress }
+                        .mapNotNull { it.hostAddress }
+                        .iterator()
+                )
                 boxInterface.type = when {
                     networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> Libbox.InterfaceTypeWIFI
                     networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> Libbox.InterfaceTypeCellular
