@@ -2230,7 +2230,7 @@ msgid "help_friend_form_title"
 msgstr "لینک فردی را که به او کمک می‌کنید جای‌گذاری کنید"
 
 msgid "help_friend_link_hint"
-msgstr "اگر لینک را در این دستگاه باز کرده باشید، این قسمت خودکار پر می‌شود"
+msgstr "با زدن روی لینک در این دستگاه، این قسمت پر می‌شود"
 
 msgid "help_friend_name_label"
 msgstr "نام شما، همان‌طور که شما را می‌شناسند"
@@ -2294,3 +2294,18 @@ msgstr "داده‌های بازپخش‌شده امروز"
 
 msgid "helping_active_today"
 msgstr "فعال: %s"
+
+msgid "help_friend_form_title_from_link"
+msgstr "یکی از دوستانتان از شما دعوت کرده پروکسی شخصی او باشید"
+
+msgid "help_friend_paste_button"
+msgstr "جای‌گذاری لینک"
+
+msgid "help_friend_no_link"
+msgstr "هنوز لینک ندارید؟"
+
+msgid "help_friend_ask_invite"
+msgstr "درخواست دعوت از دوست"
+
+msgid "help_friend_ask_invite_message"
+msgstr "من می‌توانم پروکسی شخصی شما در Lantern باشم تا از طریق اتصال من آنلاین شوید. در Lantern، «انتخاب سرور» را باز کنید، روی منوی ⋮ در بالا بزنید، «دعوت از پروکسی شخصی» را انتخاب کنید و پیوند را برایم بفرستید."

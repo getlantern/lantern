@@ -2241,7 +2241,7 @@ msgid "help_friend_form_title"
 msgstr "Tampal pautan daripada orang yang anda bantu"
 
 msgid "help_friend_link_hint"
-msgstr "Jika anda membuka pautan pada peranti ini, ruangan ini diisi untuk anda"
+msgstr "Ketik pautan pada peranti ini untuk mengisi ruangan ini"
 
 msgid "help_friend_name_label"
 msgstr "Nama anda, seperti yang mereka kenali"
@@ -2305,3 +2305,18 @@ msgstr "Data dipancarkan hari ini"
 
 msgid "helping_active_today"
 msgstr "Aktif %s"
+
+msgid "help_friend_form_title_from_link"
+msgstr "Seorang rakan menjemput anda menjadi proksi peribadinya"
+
+msgid "help_friend_paste_button"
+msgstr "Tampal pautan"
+
+msgid "help_friend_no_link"
+msgstr "Belum ada pautan?"
+
+msgid "help_friend_ask_invite"
+msgstr "Minta rakan anda menjemput anda"
+
+msgid "help_friend_ask_invite_message"
+msgstr "Saya boleh menjadi proksi peribadi anda di Lantern, supaya anda boleh mengakses internet melalui sambungan saya. Dalam Lantern, buka \"Pemilihan Pelayan\", ketik menu ⋮ di bahagian atas, pilih \"Jemput Proksi Peribadi\" dan hantar pautan kepada saya."

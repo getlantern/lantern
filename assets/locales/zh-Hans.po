@@ -2078,7 +2078,7 @@ msgid "help_friend_form_title"
 msgstr "粘贴您所帮助之人发来的链接"
 
 msgid "help_friend_link_hint"
-msgstr "如果您在此设备上打开了链接，此处会自动填写"
+msgstr "在此设备上点击链接即可自动填写"
 
 msgid "help_friend_name_label"
 msgstr "朋友所知道的您的名字"
@@ -2142,3 +2142,18 @@ msgstr "今日中继数据"
 
 msgid "helping_active_today"
 msgstr "已活跃 %s"
+
+msgid "help_friend_form_title_from_link"
+msgstr "一位朋友邀请您成为其个人代理"
+
+msgid "help_friend_paste_button"
+msgstr "粘贴链接"
+
+msgid "help_friend_no_link"
+msgstr "还没有链接？"
+
+msgid "help_friend_ask_invite"
+msgstr "请朋友邀请您"
+
+msgid "help_friend_ask_invite_message"
+msgstr "我可以在蓝灯上做您的个人代理，让您通过我的连接上网。在蓝灯中打开“服务器选择”，点击顶部的 ⋮ 菜单，选择“邀请个人代理”，然后把链接发给我。"

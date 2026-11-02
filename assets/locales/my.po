@@ -2267,7 +2267,7 @@ msgid "help_friend_form_title"
 msgstr "သင်ကူညီနေသူထံမှ လင့်ခ်ကို ကူးထည့်ပါ"
 
 msgid "help_friend_link_hint"
-msgstr "ဤစက်ပေါ်တွင် လင့်ခ်ကို ဖွင့်ခဲ့ပါက ဤနေရာကို အလိုအလျောက် ဖြည့်ပေးထားပါသည်"
+msgstr "ဤစက်ပေါ်ရှိ လင့်ခ်ကို နှိပ်လျှင် ဤနေရာ အလိုအလျောက် ဖြည့်ပေးမည်"
 
 msgid "help_friend_name_label"
 msgstr "သူတို့ သိသော သင့်အမည်"
@@ -2334,3 +2334,18 @@ msgstr "အသုံးပြုချိန် %s"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "ယခု %s ထံ မချိတ်ဆက်နိုင်ပါ။ Smart Location သို့ ပြောင်းထားသည်။"
+
+msgid "help_friend_form_title_from_link"
+msgstr "သူငယ်ချင်းတစ်ဦးက သင့်ကို ၎င်း၏ ကိုယ်ပိုင် proxy ဖြစ်ရန် ဖိတ်ကြားထားသည်"
+
+msgid "help_friend_paste_button"
+msgstr "လင့်ခ် ကူးထည့်ပါ"
+
+msgid "help_friend_no_link"
+msgstr "လင့်ခ် မရသေးဘူးလား?"
+
+msgid "help_friend_ask_invite"
+msgstr "သင့်သူငယ်ချင်းကို ဖိတ်ခိုင်းပါ"
+
+msgid "help_friend_ask_invite_message"
+msgstr "ကျွန်ုပ်၏ ချိတ်ဆက်မှုမှတစ်ဆင့် သင် အွန်လိုင်းသုံးနိုင်ရန် Lantern တွင် သင့်ကိုယ်ပိုင် proxy ဖြစ်ပေးနိုင်ပါသည်။ Lantern တွင် \"ဆာဗာရွေးချယ်ရန်\" ကိုဖွင့်ပြီး အပေါ်ရှိ ⋮ မီနူးကို နှိပ်ပါ။ \"ကိုယ်ပိုင် Proxy ဖိတ်ရန်\" ကို ရွေးပြီး လင့်ခ်ကို ကျွန်ုပ်ထံ ပို့ပါ။"
