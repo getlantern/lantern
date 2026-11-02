@@ -17,7 +17,7 @@ import zipfile
 
 PT_GNU_RELRO = 0x6474E552
 SHT_DYNSYM, SHT_DYNAMIC = 11, 6
-DT_NEEDED, DT_FLAGS, DT_FLAGS_1 = 1, 30, 0x6FFFFFFB
+DT_NEEDED, DT_BIND_NOW, DT_FLAGS, DT_FLAGS_1 = 1, 24, 30, 0x6FFFFFFB
 DF_BIND_NOW, DF_1_NOW = 0x8, 0x1
 
 
@@ -40,7 +40,12 @@ def inspect_elf(data: bytes) -> dict:
         phoff, shoff = struct.unpack_from("<II", data, 28)
         phentsize, phnum, shentsize, shnum = struct.unpack_from("<HHHH", data, 42)
 
-    relro = any(struct.unpack_from("<I", data, phoff + i * phentsize)[0] == PT_GNU_RELRO for i in range(phnum))
+    # An empty GNU_RELRO segment protects nothing.
+    memsz_at, memsz_fmt = (40, "<Q") if is64 else (20, "<I")
+    relro = any(
+        struct.unpack_from("<I", data, base)[0] == PT_GNU_RELRO and struct.unpack_from(memsz_fmt, data, base + memsz_at)[0] > 0
+        for base in (phoff + i * phentsize for i in range(phnum))
+    )
 
     sections = []
     for i in range(shnum):
@@ -67,7 +72,8 @@ def inspect_elf(data: bytes) -> dict:
                 tag, value = struct.unpack_from("<qQ" if is64 else "<iI", data, base)
                 if tag == DT_NEEDED:
                     needed.add(cstr(names, value))
-                elif (tag == DT_FLAGS and value & DF_BIND_NOW) or (tag == DT_FLAGS_1 and value & DF_1_NOW):
+                elif (tag == DT_BIND_NOW or (tag == DT_FLAGS and value & DF_BIND_NOW)
+                      or (tag == DT_FLAGS_1 and value & DF_1_NOW)):
                     bind_now = True
     return {"canary": "__stack_chk_fail" in symbols, "relro": relro, "bind_now": bind_now, "needed": needed}
 

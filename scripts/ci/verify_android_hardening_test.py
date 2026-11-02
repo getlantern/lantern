@@ -7,12 +7,13 @@ import unittest
 import zipfile
 
 from verify_android_hardening import (
-    DF_BIND_NOW, DT_FLAGS, DT_NEEDED, PT_GNU_RELRO, SHT_DYNAMIC, SHT_DYNSYM,
+    DF_BIND_NOW, DT_BIND_NOW, DT_FLAGS, DT_NEEDED, PT_GNU_RELRO, SHT_DYNAMIC, SHT_DYNSYM,
     VerificationError, inspect_elf, verify_artifact,
 )
 
 
-def elf64(*, symbols=("__stack_chk_fail",), needed=("libc.so",), relro=True, bind_now=True) -> bytes:
+def elf64(*, symbols=("__stack_chk_fail",), needed=("libc.so",), relro=True, relro_size=0x1000,
+          bind_now="flags") -> bytes:
     """A minimal ELF64 shared object with just the bits the checker reads."""
     names = b"\0"
     offsets = {}
@@ -21,12 +22,14 @@ def elf64(*, symbols=("__stack_chk_fail",), needed=("libc.so",), relro=True, bin
         names += name.encode() + b"\0"
     dynsym = bytes(24) + b"".join(struct.pack("<IBBHQQ", offsets[s], 0x12, 0, 0, 0, 0) for s in symbols)
     entries = [(DT_NEEDED, offsets[n]) for n in needed]
-    if bind_now:
+    if bind_now == "flags":
         entries.append((DT_FLAGS, DF_BIND_NOW))
+    elif bind_now == "tag":
+        entries.append((DT_BIND_NOW, 0))
     dynamic = b"".join(struct.pack("<qQ", tag, value) for tag, value in (*entries, (0, 0)))
 
     phoff = 64
-    phdr = struct.pack("<IIQQQQQQ", PT_GNU_RELRO if relro else 1, 4, 0, 0, 0, 0, 0, 1)
+    phdr = struct.pack("<IIQQQQQQ", PT_GNU_RELRO if relro else 1, 4, 0, 0, 0, relro_size, relro_size, 1)
     strtab_off = phoff + len(phdr)
     dynsym_off = strtab_off + len(names)
     dynamic_off = dynsym_off + len(dynsym)
@@ -48,10 +51,16 @@ class InspectElfTest(unittest.TestCase):
         self.assertEqual(info, {"canary": True, "relro": True, "bind_now": True, "needed": {"libc.so", "liblog.so"}})
 
     def test_missing_features(self) -> None:
-        info = inspect_elf(elf64(symbols=("malloc",), relro=False, bind_now=False))
+        info = inspect_elf(elf64(symbols=("malloc",), relro=False, bind_now=None))
         self.assertFalse(info["canary"])
         self.assertFalse(info["relro"])
         self.assertFalse(info["bind_now"])
+
+    def test_dt_bind_now_tag_counts_as_bind_now(self) -> None:
+        self.assertTrue(inspect_elf(elf64(bind_now="tag"))["bind_now"])
+
+    def test_empty_relro_segment_does_not_count(self) -> None:
+        self.assertFalse(inspect_elf(elf64(relro_size=0))["relro"])
 
 
 class VerifyArtifactTest(unittest.TestCase):
@@ -75,7 +84,8 @@ class VerifyArtifactTest(unittest.TestCase):
         cases = {
             "no stack canary": elf64(symbols=("malloc",)),
             "no GNU_RELRO": elf64(relro=False),
-            "no BIND_NOW": elf64(bind_now=False),
+            "no BIND_NOW": elf64(bind_now=None),
+            "no GNU_RELRO segment": elf64(relro_size=0),
             "links libc\\+\\+_shared.so": elf64(needed=("libc.so", "libc++_shared.so")),
         }
         for message, library in cases.items():
