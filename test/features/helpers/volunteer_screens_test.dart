@@ -16,8 +16,10 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/help_friend.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_friends.dart';
+import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:share_plus/share_plus.dart';
 
 class _Helpers extends HelpersNotifier {
   _Helpers(
@@ -541,6 +543,42 @@ void main() {
     );
     await _claim(tester);
     expect(helpers.claims, [(_link, 'Ali')]);
+  });
+
+  testWidgets('without a link, the volunteer can ask a friend for an invite '
+      'through the share sheet', (tester) async {
+    final shared = <ShareParams>[];
+    debugShareInvite = (p) async => shared.add(p);
+    addTearDown(() => debugShareInvite = null);
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    final ask = find.byKey(const Key('help_friend.ask_invite'));
+    expect(ask, findsOneWidget);
+    expect(find.text('help_friend_no_link'.i18n), findsOneWidget);
+    expect(find.text('help_friend_ask_invite'.i18n), findsOneWidget);
+    final form = find.byKey(const Key('help_friend.form'));
+    expect(
+      tester.getTopLeft(ask).dy,
+      greaterThan(tester.getBottomLeft(form).dy),
+    );
+    await tester.tap(ask);
+    await tester.pump();
+    expect(shared.single.text, 'help_friend_ask_invite_message'.i18n);
+    expect(shared.single.text, contains('"${'invite_personal_proxy'.i18n}"'));
+    expect(shared.single.text, contains('server_selection'.i18n));
+    expect(shared.single.sharePositionOrigin!.isEmpty, isFalse);
+    expect(helpers.claims, isEmpty);
+  });
+
+  testWidgets('a link that opened HelpFriend offers no ask for an invite', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.form')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsNothing);
+    expect(find.text('help_friend_no_link'.i18n), findsNothing);
   });
 
   testWidgets('Paste fills the link field from the clipboard; mobile reads '

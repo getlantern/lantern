@@ -14,6 +14,7 @@ import 'package:lantern/features/helpers/approve_helper_dialog.dart'
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_friends.dart'
     show HelperKeystoreResetNotice;
+import 'package:lantern/features/helpers/invite_share.dart' show shareInvite;
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
@@ -457,6 +458,32 @@ class HelpFriend extends HookConsumerWidget {
               ],
             ),
           ),
+          // Invites start with the friend: one who wants help offered can
+          // be asked to send one.
+          if (linkShown) ...[
+            const SizedBox(height: defaultSize),
+            Text(
+              'help_friend_no_link'.i18n,
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            KeyedSubtree(
+              key: const Key('help_friend.ask_invite'),
+              child: Builder(
+                builder: (buttonContext) => SecondaryButton(
+                  label: 'help_friend_ask_invite'.i18n,
+                  icon: AppImagePaths.share,
+                  onPressed: () => shareInvite(
+                    buttonContext,
+                    'help_friend_ask_invite_message'.i18n,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       );
     }
