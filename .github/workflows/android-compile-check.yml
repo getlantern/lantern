@@ -21,7 +21,6 @@ on:
       - "Makefile"
       - "pubspec.yaml"
       - "pubspec.lock"
-      - "lib/**"
       - "integration_test/**"
       - "scripts/ci/verify_android_abis*"
       - "scripts/android/test-runtime-seccomp.py"
