@@ -13,10 +13,13 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
   private var pendingEvents: [[String: Any?]] = []
   private let lock = NSLock()
 
-  /// Frequent event diagnostics use opt-in trace logging.
+  /// Frequent event diagnostics use opt-in trace logging. The snapshots arrive
+  /// every second while sharing and carry the addresses of the peers relayed.
   private static let highVolumeEvents: Set<String> = [
     "peer-connection",
     "data-cap-event",
+    "unbounded-snapshot",
+    "peer-snapshot",
   ]
 
   func send(_ event: UtilsFlutterEvent?) {

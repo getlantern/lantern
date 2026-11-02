@@ -47,3 +47,23 @@ func TestPersonalProxiesTagMatchesTheAppAndIsRedacted(t *testing.T) {
 	assert.NotContains(t, string(data), "personal-proxies")
 	assert.Contains(t, string(data), "helper")
 }
+
+// The app selects one friend by vpn.PersonalProxySelection(tag) (Dart
+// personalProxySelection), and both halves must be redacted.
+func TestPersonalProxySelectionMatchesTheAppAndIsRedacted(t *testing.T) {
+	sel := vpn.PersonalProxySelection("helper-0123456789ab")
+	assert.Equal(t, "personal-proxy:helper-0123456789ab", sel, "keep lib/core/utils/helper_tags.dart in step")
+
+	t.Setenv("RADIANCE_TESTING", "false")
+	t.Setenv("RADIANCE_LOG_LEVEL", "info")
+	t.Setenv("RADIANCE_DISABLE_STDOUT_LOG", "true")
+	path := filepath.Join(t.TempDir(), AppLogFileName)
+	logger := rlog.NewLogger(rlog.Config{LogPath: path, Level: "info", Prod: true, DisablePublisher: true})
+	logger.Info("Connecting to server", "tag", sel)
+	logger.Info("Selected server tag=" + sel)
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	assert.NotContains(t, string(data), "helper-0123456789ab")
+	assert.NotContains(t, string(data), "personal-proxy")
+	assert.Contains(t, string(data), "helper")
+}

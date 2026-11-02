@@ -19,6 +19,7 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/latency_indicator.dart';
 import 'package:lantern/features/vpn/personal_proxies_section.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -163,10 +164,15 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     ServerLocation serverLocation,
   ) {
     final textTheme = Theme.of(context).textTheme;
-    final autoLocation = serverLocation.autoLocation;
-    final displayName = autoLocation?.displayName ?? 'fastest_server'.i18n;
+    // The card is the Smart Location choice, which a tap switches to. With a
+    // friend selected it shows only the generic choice: the auto location
+    // kept with the selection must reveal nothing about the friend.
+    final autoLocation = serverLocation.personalProxyFriendTag == null
+        ? serverLocation.autoLocation
+        : null;
+    final displayName = (autoLocation?.displayName ?? 'fastest_server').i18n;
     final flag = autoLocation?.countryCode ?? '';
-    final protocol = autoLocation?.protocol ?? '';
+    final protocol = (autoLocation?.protocol ?? '').capitalize;
     final autoTag = autoLocation?.tag;
     final autoServer = autoTag == null ? null : servers.serverByTag(autoTag);
     return Column(
@@ -185,12 +191,13 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             icon: flag.isEmpty
                 ? AppImagePaths.location
                 : Flag(countryCode: flag),
-            label: displayName.i18n,
+            tileKey: const Key('server_selection.smart_location'),
+            label: displayName,
             onPressed: onSmartLocation,
             subtitle: protocol.isEmpty
                 ? null
                 : Text(
-                    protocol.capitalize,
+                    protocol,
                     style: textTheme.labelMedium!.copyWith(
                       color: context.textTertiary,
                     ),
@@ -647,6 +654,32 @@ class _PrivateServerLocationListViewState
       return timer.cancel;
     }, [hasPersonalProxies]);
 
+    // Whether each friend can be selected on their own also needs radiance's
+    // status. It is local IPC, read only while this tab shows friends, so
+    // nothing polls it otherwise; the fallback when a selected friend goes
+    // away comes as an event, not from this poll.
+    useEffect(() {
+      if (!hasPersonalProxies) return null;
+      final status = ref.read(personalProxyStatusProvider.notifier);
+      // The first read waits for the frame: the effect runs during build,
+      // when no provider may change.
+      var active = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (active) unawaited(status.poll());
+      });
+      final timer = Timer.periodic(personalProxyStatusInterval, (_) {
+        if (WidgetsBinding.instance.lifecycleState !=
+            AppLifecycleState.resumed) {
+          return;
+        }
+        unawaited(status.poll());
+      });
+      return () {
+        active = false;
+        timer.cancel();
+      };
+    }, [hasPersonalProxies]);
+
     if (availableServers.isLoading) {
       return const Center(child: Spinner());
     }
@@ -660,9 +693,11 @@ class _PrivateServerLocationListViewState
 
     final userLocations = availableServers.requireValue.userServers;
     final selectedTag = selected.serverName;
+    final selectedFriend = selected.personalProxyFriendTag;
     final personalSelected =
         selected.serverType.toServerLocationType ==
-        ServerLocationType.personalProxy;
+            ServerLocationType.personalProxy &&
+        selectedFriend == null;
 
     if (userLocations.isEmpty && !hasPersonalProxies) {
       return Column(
@@ -692,6 +727,12 @@ class _PrivateServerLocationListViewState
             ServerLocationType.personalProxy,
             personalProxiesTag,
             ServerLocation.personalProxy(),
+          ),
+          selectedFriend: selectedFriend,
+          onSelectFriend: (h) => _select(
+            ServerLocationType.personalProxy,
+            personalProxySelection(h.outboundTag),
+            ServerLocation.personalProxy(friendTag: h.outboundTag),
           ),
         ),
         if (userLocations.isNotEmpty) ...[
@@ -756,7 +797,13 @@ class _PrivateServerLocationListViewState
     connectedMessage: 'connected_to_private_server'.i18n,
   );
 
-  /// Connects to [tag] and, once connected, makes [location] the selection.
+  /// Connects to [tag] and, once connected, makes [location] the selection,
+  /// then shows the selection radiance saved. That may be a fallback: a
+  /// group, friend or private server that went away during the connect is
+  /// replaced there, and its event can arrive before the connect answers.
+  /// [location] is saved first so a failed read still shows what the VPN
+  /// was asked to use, not the previous selection, unless a read of
+  /// radiance's selection landed during the connect: that answer stands.
   Future<void> _select(
     ServerLocationType type,
     String tag,
@@ -766,13 +813,19 @@ class _PrivateServerLocationListViewState
     if (!_macOSExtensionReady(ref)) return;
 
     final locationNotifier = ref.read(serverLocationProvider.notifier);
+    final since = locationNotifier.readsStarted;
     await _connectAndReturnHome(
       context,
       ref,
       attempt: (skipConflictCheck) => ref
           .read(vpnProvider.notifier)
           .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
-      save: () => locationNotifier.updateServerLocation(location),
+      save: () {
+        if (!locationNotifier.confirmedSince(since)) {
+          locationNotifier.updateServerLocation(location);
+        }
+        return locationNotifier.syncSelection();
+      },
       connectedMessage: connectedMessage,
     );
   }

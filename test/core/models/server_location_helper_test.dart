@@ -110,4 +110,53 @@ void main() {
       'Germany - Berlin',
     );
   });
+
+  group('one friend selected', () {
+    const friend = 'helper-0123456789ab';
+
+    test('selects by its selection tag and shows no place or name', () {
+      final loc = ServerLocation.personalProxy(friendTag: friend);
+      expect(loc.serverType, ServerLocationType.personalProxy.name);
+      expect(loc.serverName, personalProxySelection(friend));
+      expect(loc.personalProxyFriendTag, friend);
+      expect(loc.displayName, 'personal_proxy'.i18n);
+      expect(loc.countryCode, isEmpty);
+      expect(loc.city, isEmpty);
+      expect(ServerLocation.personalProxy().personalProxyFriendTag, isNull);
+    });
+
+    test("radiance's selection maps back to the friend", () {
+      final loc = ServerLocation.selected(
+        Server.fromJson({
+          'tag': personalProxySelection(friend),
+          'type': 'mutableurltest',
+          'isLantern': false,
+          'location': {'country': '', 'city': '', 'country_code': ''},
+        }),
+      );
+      expect(loc.serverType, ServerLocationType.personalProxy.name);
+      expect(loc.personalProxyFriendTag, friend);
+    });
+
+    test('survives storage, and only a well-formed tag does', () {
+      final loc = ServerLocation.fromJsonString(
+        ServerLocation.personalProxy(friendTag: friend).toJsonString(),
+      );
+      expect(loc.personalProxyFriendTag, friend);
+      final bad = ServerLocation.fromJsonString(
+        ServerLocation.personalProxy()
+            .copyWith(serverName: 'personal-proxy:not-a-tag')
+            .toJsonString(),
+      );
+      expect(bad.serverName, personalProxiesTag);
+    });
+
+    test('a non-personal-proxy location never has a friend', () {
+      final loc = ServerLocation(
+        serverName: personalProxySelection(friend),
+        serverType: ServerLocationType.privateServer.name,
+      );
+      expect(loc.personalProxyFriendTag, isNull);
+    });
+  });
 }
