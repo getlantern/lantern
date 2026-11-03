@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/getlantern/broflake/common/helperinvite"
@@ -52,6 +53,9 @@ type listedPairing struct {
 	InviterBlob []byte    `json:"inviter_blob"`
 	Online      bool      `json:"online"`
 	CreatedUnix int64JSON `json:"created_unix"`
+	// OutboundTag is the friend's stable outbound tag on an inviter row, the
+	// one radiance selects that friend by; empty on a volunteer row.
+	OutboundTag string `json:"outbound_tag"`
 }
 
 const opRefreshTickets = "tickets/refresh"
@@ -137,10 +141,15 @@ func (e *Engine) view() View {
 	}
 	for _, p := range e.st.Pairings {
 		pv := PairingView{PairingID: p.ID, Name: p.Name, SinceUnix: p.Since.Unix()}
+		if p.Nickname != "" {
+			pv.Name = p.Nickname
+		}
 		if p.Role == RoleInviter {
 			pv.Online = e.online[p.ID]
+			pv.OutboundTag = e.tags[p.ID]
 			v.Helpers = append(v.Helpers, pv)
 		} else {
+			pv.Connected = e.liveConnected(p.ID)
 			v.Helping = append(v.Helping, pv)
 		}
 	}
@@ -228,7 +237,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 					if changed {
 						_ = e.save()
 					}
-					return nil, errCode(CodeUnavailable)
+					return nil, badAnswer()
 				}
 				inv.State = "claimed"
 				inv.VolunteerPub = st.VolunteerPubkey
@@ -243,7 +252,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 				if changed {
 					_ = e.save()
 				}
-				return nil, errCode(CodeUnavailable)
+				return nil, badAnswer()
 			}
 			e.addPairing(st.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil)
 			e.dropInvite(inv.ID)
@@ -314,20 +323,20 @@ func (e *Engine) listPairings(ctx context.Context) ([]listedPairing, error) {
 	}
 	field, ok := raw["pairings"]
 	if !ok {
-		return nil, errCode(CodeUnavailable)
+		return nil, badAnswer()
 	}
 	var listed []listedPairing
 	if json.Unmarshal(field, &listed) != nil {
-		return nil, errCode(CodeUnavailable)
+		return nil, badAnswer()
 	}
 	return listed, nil
 }
 
 // dropVolunteerSide forgets every claim and every pairing this device
-// volunteers in, leaving the pairings where it is helped.
+// volunteers in, leaving the pairings where it is helped, with their online
+// state and outbound tags, which only those pairings have.
 func (e *Engine) dropVolunteerSide() bool {
 	n, c := len(e.st.Pairings), len(e.st.Claims)
-	e.online = map[string]bool{}
 	e.st.Claims = nil
 	e.st.Pairings = slices.DeleteFunc(e.st.Pairings, func(p *pairing) bool { return p.Role == RoleVolunteer })
 	return n != len(e.st.Pairings) || c > 0
@@ -339,7 +348,9 @@ func (e *Engine) dropVolunteerSide() bool {
 // newHelpingPending, which the next view an op returns reports.
 func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 	seen := map[string]bool{}
+	prevOnline, prevTags := e.online, e.tags
 	e.online = map[string]bool{}
+	e.tags = map[string]string{}
 	complete := true
 	for _, lp := range listed {
 		if lp.PairingID == "" {
@@ -351,6 +362,9 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 		seen[lp.PairingID] = true
 		if lp.Role == RoleInviter {
 			e.online[lp.PairingID] = lp.Online
+			if isHelperTag(lp.OutboundTag) {
+				e.tags[lp.PairingID] = lp.OutboundTag
+			}
 		}
 		if e.pairing(lp.PairingID) != nil {
 			continue
@@ -365,6 +379,18 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 		changed = true
 	}
 	if !complete {
+		// A blank entry may be a kept pairing: it keeps what the last list
+		// said of it.
+		for id, online := range prevOnline {
+			if !seen[id] {
+				e.online[id] = online
+			}
+		}
+		for id, tag := range prevTags {
+			if !seen[id] {
+				e.tags[id] = tag
+			}
+		}
 		return changed
 	}
 	n := len(e.st.Pairings)
@@ -414,7 +440,7 @@ func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
 		switch {
 		case errors.Is(err, helperinvite.ErrKey):
 			// VolunteerPub came from lantern-cloud: a malformed answer.
-			return nil, errCode(CodeUnavailable)
+			return nil, badAnswer()
 		case errors.Is(err, helperinvite.ErrName):
 			return nil, errCode(CodeBadName)
 		case err != nil:
@@ -430,7 +456,7 @@ func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
 		if resp.PairingID == "" {
 			// A malformed answer: keep the claimed invite and its name. The
 			// next refresh reads the approval with its pairing.
-			return nil, errCode(CodeUnavailable)
+			return nil, badAnswer()
 		}
 		e.addPairing(resp.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil)
 		e.dropInvite(inv.ID)
@@ -591,6 +617,35 @@ func (e *Engine) endPairing(ctx context.Context, args []byte) (any, error) {
 	return e.view(), nil
 }
 
+// renameHelper sets the nickname this device shows for one of its personal
+// proxies, or clears it when the name is blank. Nothing is sent.
+func (e *Engine) renameHelper(args []byte) (any, error) {
+	var a struct {
+		PairingID string `json:"pairing_id"`
+		Name      string `json:"name"`
+	}
+	if err := decodeArgs(args, &a); err != nil {
+		return nil, err
+	}
+	p := e.pairing(a.PairingID)
+	if p == nil || p.Role != RoleInviter {
+		return nil, errCode(CodeNotFound)
+	}
+	nickname := ""
+	if strings.TrimSpace(a.Name) != "" {
+		name, err := helperinvite.CleanName(a.Name)
+		if err != nil {
+			return nil, errCode(CodeBadName)
+		}
+		nickname = name
+	}
+	p.Nickname = nickname
+	if err := e.save(); err != nil {
+		return nil, err
+	}
+	return e.view(), nil
+}
+
 // endAllHelpers is "remove all helpers": it ends every pairing in which this
 // device is helped, rejects claimed invites, and turns unclaimed ones into
 // tombstones without names, so a seized phone holds no helper names. It
@@ -602,6 +657,7 @@ func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
 	for _, p := range e.st.Pairings {
 		if p.Role == RoleInviter {
 			p.Name = ""
+			p.Nickname = ""
 		}
 	}
 	for _, c := range e.st.Claims {
@@ -659,7 +715,7 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) error {
 			// so cannot be ended: remove all did not finish.
 			kept = append(kept, lp)
 			if firstErr == nil {
-				firstErr = errCode(CodeUnavailable)
+				firstErr = badAnswer()
 			}
 			continue
 		}
@@ -689,4 +745,21 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) error {
 		return err
 	}
 	return firstErr
+}
+
+// isHelperTag reports whether tag is a helper outbound tag, "helper-" and 12
+// lowercase hex digits, as lantern-box's adapter.IsHelperTag decides it. Only
+// such a tag is offered for selection, so logs that redact helper tags
+// redact it too.
+func isHelperTag(tag string) bool {
+	hex, ok := strings.CutPrefix(tag, "helper-")
+	if !ok || len(hex) != 12 {
+		return false
+	}
+	for i := 0; i < len(hex); i++ {
+		if c := hex[i]; (c < '0' || c > '9') && (c < 'a' || c > 'f') {
+			return false
+		}
+	}
+	return true
 }

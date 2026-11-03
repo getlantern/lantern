@@ -11,7 +11,7 @@ enum VPNStatus {
 
 enum SignUpMethodType { email, google, apple, withoutEmail }
 
-enum ServerLocationType { auto, privateServer, lanternLocation }
+enum ServerLocationType { auto, privateServer, lanternLocation, personalProxy }
 
 extension ServerLocationTypeExtension on String {
   ServerLocationType get toServerLocationType {
@@ -22,6 +22,8 @@ extension ServerLocationTypeExtension on String {
         return ServerLocationType.privateServer;
       case 'lanternLocation':
         return ServerLocationType.lanternLocation;
+      case 'personalProxy':
+        return ServerLocationType.personalProxy;
       default:
         return ServerLocationType.auto;
     }

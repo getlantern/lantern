@@ -17,6 +17,9 @@ PODS:
     - OrderedSet (~> 6.0.3)
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
+  - flutter_secure_storage_darwin (10.0.0):
+    - Flutter
+    - FlutterMacOS
   - flutter_timezone (0.1.0):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
@@ -57,6 +60,7 @@ DEPENDENCIES:
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
+  - flutter_secure_storage_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - flutter_timezone (from `Flutter/ephemeral/.symlinks/plugins/flutter_timezone/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - in_app_purchase_storekit (from `Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin`)
@@ -94,6 +98,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   flutter_local_notifications:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
+  flutter_secure_storage_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin
   flutter_timezone:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_timezone/macos
   FlutterMacOS:
@@ -130,6 +136,7 @@ SPEC CHECKSUMS:
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
   flutter_local_notifications: 14e285ca39907db50704f7f46c9ab7a526bd7ead
+  flutter_secure_storage_darwin: 79a377dfb00a246ccab2c64fe79d4d78c89e0fbc
   flutter_timezone: b3bc0c587d8780d395651284a1ff46eb1e5753ac
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a

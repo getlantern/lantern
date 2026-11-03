@@ -6,7 +6,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
@@ -14,8 +16,18 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
 import 'package:lantern/features/action_mode/action_mode_welcome_dialog.dart';
-import 'package:lantern/features/helpers/helping_section.dart';
+import 'package:lantern/features/helpers/helping_friends.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+
+/// The globe's least height before the content below it scrolls.
+const _minGlobeHeight = 140.0;
+
+/// The status card and the tab's padding, below the globe.
+const _belowGlobeHeight = 264.0;
+
+/// "Become a Personal Proxy" or "Your Personal Proxy connections", with the
+/// gap above it.
+const _personalProxyCardHeight = 96.0;
 
 /// Unbounded tab body, hosted by the Home tab shell.
 class ActionModeTab extends HookConsumerWidget {
@@ -25,11 +37,10 @@ class ActionModeTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final visible = ref.watch(actionModeTabVisibleProvider);
-    final helperInvites = ref.watch(helperInvitesAvailableProvider);
-    final helping = ref.watch(
-      helpersProvider.select((s) => s.view.helping.isNotEmpty),
-    );
-    // A volunteer waiting on a claim gets back to its code from here.
+    // A volunteer is someone abroad: the row stays hidden where sharing may
+    // not start on its own (unknown or censored country), and in stealth. A
+    // volunteer waiting on a claim gets back to its code from here wherever
+    // it is, even before the country is known.
     final waiting = ref.watch(
       helpersProvider.select(
         (s) => s.view
@@ -37,6 +48,20 @@ class ActionModeTab extends HookConsumerWidget {
             .isNotEmpty,
       ),
     );
+    final helpsSomeone = ref.watch(
+      helpersProvider.select((s) => s.view.helping.isNotEmpty),
+    );
+    final keystoreReset = ref.watch(
+      helpersProvider.select((s) => s.keystoreReset),
+    );
+    // Exactly one of the two: "Become a Personal Proxy" before the first
+    // pairing, then "Your Personal Proxy connections". A volunteer is never
+    // flagged, so that nobody in their country sees the inviter UI.
+    final connectionsCard = AppBuildInfo.enableHelperInvites && helpsSomeone;
+    final becomeRow =
+        AppBuildInfo.enableHelperInvites &&
+        !helpsSomeone &&
+        (waiting || helperAutoStartAllowed(ref.watch(countryCodeProvider)));
 
     useEffect(() {
       // refreshIfUsed, never refresh: showing the tab must not touch the
@@ -70,9 +95,18 @@ class ActionModeTab extends HookConsumerWidget {
               sliver: SliverToBoxAdapter(
                 child: Column(
                   children: [
+                    // Status, both counts and the Personal Proxy card stay
+                    // above the fold: the globe gives up the room first.
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        minHeight: math.max(180, constraints.maxHeight - 264),
+                        minHeight: math.max(
+                          _minGlobeHeight,
+                          constraints.maxHeight -
+                              _belowGlobeHeight -
+                              (connectionsCard || becomeRow
+                                  ? _personalProxyCardHeight
+                                  : 0),
+                        ),
                       ),
                       child: const Stack(
                         alignment: Alignment.bottomCenter,
@@ -92,16 +126,37 @@ class ActionModeTab extends HookConsumerWidget {
                           ref.read(shareProvider.notifier).toggle(context, ref),
                       onInfo: () => showActionModeWelcomeDialog(context, ref),
                     ),
-                    // Needs no flag: a volunteer abroad is never flagged, so
-                    // that nobody in their country sees the inviter UI.
-                    if (AppBuildInfo.enableHelperInvites)
-                      const HelpingSection(),
-                    if (AppBuildInfo.enableHelperInvites &&
-                        (helperInvites || helping || waiting)) ...[
+                    // A volunteer who never opens the friends sheet must
+                    // still learn that the keystore lost the old names.
+                    if (AppBuildInfo.enableHelperInvites && keystoreReset) ...[
                       const SizedBox(height: defaultSize),
-                      AppTextButton(
-                        label: 'help_friend_entry'.i18n,
-                        onPressed: () => appRouter.push(HelpFriend()),
+                      HelperKeystoreResetNotice(
+                        notifier: ref.read(helpersProvider.notifier),
+                      ),
+                    ],
+                    if (connectionsCard) ...[
+                      const SizedBox(height: defaultSize),
+                      const PersonalProxyConnectionsCard(),
+                    ] else if (becomeRow) ...[
+                      const SizedBox(height: defaultSize),
+                      AppCard(
+                        padding: EdgeInsets.zero,
+                        child: AppTile(
+                          tileKey: const Key(
+                            'action_mode.become_personal_proxy',
+                          ),
+                          icon: AppImagePaths.key,
+                          label: 'become_personal_proxy'.i18n,
+                          subtitle: Text(
+                            'become_personal_proxy_body'.i18n,
+                            style: Theme.of(context).textTheme.labelMedium!
+                                .copyWith(color: context.textTertiary),
+                          ),
+                          trailing: const AppImage(
+                            path: AppImagePaths.arrowForward,
+                          ),
+                          onPressed: () => appRouter.push(HelpFriend()),
+                        ),
                       ),
                     ],
                   ],

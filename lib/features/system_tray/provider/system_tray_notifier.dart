@@ -117,6 +117,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     if (_currentStatus == VPNStatus.connected) {
       await notifier.stopVPN(userInitiated: true);
     } else if (_currentStatus == VPNStatus.disconnected) {
+      if (!_checkMacOSExtension()) return;
       await notifier.startVPN();
     }
   }

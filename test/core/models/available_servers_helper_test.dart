@@ -10,6 +10,22 @@ Map<String, dynamic> _server(String tag) => {
 };
 
 void main() {
+  test('the personal proxies group is never listed as a server', () {
+    final servers = AvailableServers.fromJson([
+      _server('lantern-1'),
+      _server(personalProxiesTag),
+      {..._server(personalProxiesTag), 'isLantern': false},
+      _server(personalProxySelection('helper-0123456789ab')),
+      {
+        ..._server(personalProxySelection('helper-0123456789ab')),
+        'isLantern': false,
+      },
+    ]);
+    expect(servers.lanternServers.map((s) => s.tag), ['lantern-1']);
+    expect(servers.userServers, isEmpty);
+    expect(servers.hasUserServers, isFalse);
+  });
+
   test('helper outbounds are never listed as Lantern servers', () {
     final servers = AvailableServers.fromJson([
       _server('lantern-1'),
@@ -106,5 +122,72 @@ void main() {
       redactHelperTags('nothing to see 198.51.100.9'),
       'nothing to see 198.51.100.9',
     );
+  });
+
+  test('redactHelperTags redacts the personal proxies group tag', () {
+    expect(
+      redactHelperTags(
+        'Connecting to server: personalProxy with tag: personal-proxies',
+      ),
+      'Connecting to server: helper with tag: helper',
+    );
+    expect(
+      redactHelperTags(
+        'outbound/mutableurltest[personal-proxies]: dial tcp 203.0.113.7:443',
+      ),
+      'outbound/mutableurltest[helper]: dial tcp <redacted>',
+    );
+  });
+
+  test('redactHelperTags redacts the personalProxy location type', () {
+    expect(
+      redactHelperTags('updateServerLocation: type=personalProxy name=x'),
+      'updateServerLocation: type=helper name=x',
+    );
+    expect(
+      redactHelperTags('{serverType: personalProxy, via 203.0.113.7:443}'),
+      '{serverType: helper, via <redacted>}',
+    );
+    expect(
+      redactHelperTags('personalProxyBanner shown'),
+      'personalProxyBanner shown',
+    );
+  });
+
+  test("redactHelperTags redacts a friend's selection, both halves", () {
+    expect(
+      redactHelperTags(
+        'Connecting to server: personalProxy with tag: '
+        '${personalProxySelection('helper-0123456789ab')}',
+      ),
+      'Connecting to server: helper with tag: helper:helper',
+    );
+    expect(
+      redactHelperTags(
+        'outbound/mutableurltest[personal-proxy]: dial tcp 203.0.113.7:443',
+      ),
+      'outbound/mutableurltest[helper]: dial tcp <redacted>',
+    );
+  });
+
+  test("a friend's selection matches radiance and parses back", () {
+    expect(
+      personalProxySelection('helper-0123456789ab'),
+      'personal-proxy:helper-0123456789ab',
+    );
+    expect(
+      personalProxyFriend('personal-proxy:helper-0123456789ab'),
+      'helper-0123456789ab',
+    );
+    for (final tag in [
+      personalProxiesTag,
+      'personal-proxy',
+      'personal-proxy:',
+      'personal-proxy:helper-0123',
+      'personal-proxy:helper-0123456789AB',
+      'helper-0123456789ab',
+    ]) {
+      expect(personalProxyFriend(tag), isNull, reason: tag);
+    }
   });
 }

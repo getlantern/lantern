@@ -22,19 +22,42 @@ bool helperInvitesAvailable(Ref ref) =>
     AppBuildInfo.enableHelperInvites &&
     ref.watch(featureFlagProvider).getBool(FeatureFlag.helperInvites);
 
-/// Whether settings offer "Get help from a friend": while helper invites are
-/// available, and after the flag goes off while this device still has
-/// helpers or invites to manage, or may have them: it used helper invites
-/// and no view has loaded yet. Reads only the notifier's state and the used
-/// mark in local storage, never the keystore, so a device that never used
-/// them stays hidden.
+/// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+/// helper invites are available, and after the flag goes off while this
+/// device still has personal proxies or invites to manage, or may have them:
+/// it used helper invites and no view has loaded yet. Reads only the
+/// notifier's state and the used mark in local storage, never the keystore.
 @riverpod
-bool helperEntryVisible(Ref ref) {
+bool personalProxiesTabVisible(Ref ref) {
   if (!HelpersNotifier._buildEnabled) return false;
   if (ref.watch(helperInvitesAvailableProvider)) return true;
   final s = ref.watch(helpersProvider);
   if (!s.viewLoaded && ref.read(helpersProvider.notifier).used) return true;
   return s.view.helpers.isNotEmpty || s.view.invites.any((i) => !i.expired);
+}
+
+/// Whether the VPN tab offers "Get a personal proxy": while helper invites
+/// are available and this device has no personal proxy. A device that never
+/// used helper invites has none, so the keystore is never touched to decide;
+/// one that did waits for a loaded view.
+@riverpod
+bool personalProxyBannerVisible(Ref ref) {
+  if (!ref.watch(helperInvitesAvailableProvider)) return false;
+  final s = ref.watch(helpersProvider);
+  if (!s.viewLoaded) return !ref.read(helpersProvider.notifier).used;
+  return s.view.helpers.isEmpty;
+}
+
+/// Whether a friend who claimed an invite waits on this user's approval, in
+/// a build and for a server that offer helper invites. The VPN tab then gives
+/// the banner's waiting variant the Pro banner's slot, and shows it to a user
+/// who already has a personal proxy too: the wait is short and the invite
+/// expires.
+@riverpod
+bool personalProxyWaiting(Ref ref) {
+  if (!HelpersNotifier.buildEnabled) return false;
+  if (ref.watch(helpersProvider).view.awaitingApproval == null) return false;
+  return ref.watch(helperInvitesAvailableProvider);
 }
 
 /// One engine call's result: its JSON, or an error code.
@@ -140,6 +163,9 @@ class HelpersNotifier extends _$HelpersNotifier {
   static bool get _buildEnabled =>
       debugBuildEnabled ?? AppBuildInfo.enableHelperInvites;
 
+  /// Whether this build has helper invites; a stealth build does not.
+  static bool get buildEnabled => _buildEnabled;
+
   Timer? _poll;
   Future<void>? _unlocking;
 
@@ -152,6 +178,17 @@ class HelpersNotifier extends _$HelpersNotifier {
   int _sent = 0;
   int _applied = 0;
   String? _heldLink;
+
+  /// The claimed invites whose approval sheet was shown or offered on this
+  /// device, by invite ID. Memory only.
+  final _approvalPrompted = <String>{};
+
+  /// Records that [inviteId]'s approval was put in front of the user, so the
+  /// app-wide prompt does not open it again. Returns whether it was new.
+  bool markApprovalPrompted(String inviteId) => _approvalPrompted.add(inviteId);
+
+  bool approvalPrompted(String inviteId) =>
+      _approvalPrompted.contains(inviteId);
 
   /// Holds an invite link that opened the app, for HelpFriend to take, so
   /// the secret never travels in route arguments. Memory only.
@@ -327,6 +364,34 @@ class HelpersNotifier extends _$HelpersNotifier {
 
   Future<HelperResult> refreshView() async => _apply(await _call('view'));
 
+  /// lantern-core says the live status of the friends this device helps
+  /// changed: reads the view again, which carries it. It costs no request to
+  /// lantern-cloud. Only once the engine is unlocked, so the keystore is
+  /// never touched for it, and a failed read keeps the last view and error.
+  Future<void> liveChanged() async {
+    if (!_buildEnabled || !_engineUnlocked) return;
+    final a = await _call('view');
+    if (a.$1.ok) _apply(a);
+  }
+
+  /// Whether this device helps a friend through a helper-invite pairing,
+  /// from the view applied so far. False on a device that never used helper
+  /// invites or a build without them; null while no view has loaded.
+  bool? get helpsSomeoneNow {
+    if (!_buildEnabled || !used) return false;
+    if (!state.viewLoaded) return null;
+    return state.view.helping.isNotEmpty;
+  }
+
+  /// Loads the local view (no network) and answers [helpsSomeoneNow]. The
+  /// keystore is never touched on a device that never used helper invites.
+  Future<bool?> helpsSomeone() async {
+    if (!_buildEnabled || !used) return false;
+    if (await ensureUnlocked()) await refreshView();
+    if (!ref.mounted) return null;
+    return helpsSomeoneNow;
+  }
+
   Future<HelperResult> createInvite(String name) async {
     final locked = await _guard();
     if (locked != null) return locked;
@@ -374,6 +439,13 @@ class HelpersNotifier extends _$HelpersNotifier {
     await _call('end_pairing', {'pairing_id': pairingId}),
     refetch: true,
   );
+
+  /// Sets the name this device shows for one of its personal proxies, or
+  /// restores the friend's own when [name] is blank. It stays on this device.
+  Future<HelperResult> renameHelper(String pairingId, String name) async =>
+      _apply(
+        await _call('rename_helper', {'pairing_id': pairingId, 'name': name}),
+      );
 
   /// The engine erases the names before it contacts lantern-cloud, so when
   /// the network step fails the local view (already without them) is shown,

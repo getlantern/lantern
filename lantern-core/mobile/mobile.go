@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/settings"
+	"github.com/getlantern/radiance/ipc"
 	"github.com/sagernet/sing-box/experimental/libbox"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
@@ -439,16 +440,30 @@ func ResetNetworkForMonitor(listener libbox.InterfaceUpdateListener) error {
 // IsTagAvailable checks if a server with the given tag exists in the server list.
 // Returns true if the tag is found. Returns true when the check cannot be performed
 // (fail-open: allows connection attempts to proceed normally).
+//
+// It goes through getClient, not the core, so the tunnel extension (which
+// runs only the IPC server, never SetupRadiance) gets the real answer.
 func IsTagAvailable(tag string) bool {
-	found, err := withCoreR(func(c lanterncore.Core) (bool, error) {
-		_, ok, err := c.GetServerByTagJSON(tag)
-		return ok, err
+	found, err := utils.RunOffCgoStack(func() (bool, error) {
+		client, err := getClient()
+		if err != nil {
+			return false, err
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		return serverByTag(ctx, client, tag)
 	})
 	if err != nil {
 		slog.Warn("Unable to check tag availability, assuming available", "tag", tag, "error", err)
 		return true
 	}
 	return found
+}
+
+// serverByTag reports whether the backend has a server with tag; a test seam.
+var serverByTag = func(ctx context.Context, client *ipc.Client, tag string) (bool, error) {
+	_, ok, err := client.GetServerByTagJSON(ctx, tag)
+	return ok, err
 }
 
 // ConnectToServer connects to a server using the provided location type and tag.

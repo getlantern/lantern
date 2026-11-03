@@ -157,6 +157,41 @@ func TestStatusErrors(t *testing.T) {
 	assert.JSONEq(t, `{"error":"internal"}`, ErrorJSON(errors.New("boom")))
 }
 
+func TestDescribeCarriesTheStatus(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	cloud.disabled = true
+	_, err := sara.Call(context.Background(), "create_invite", mustJSON(map[string]any{"name": "Sara"}))
+	code, status := Describe(err)
+	assert.Equal(t, CodeDisabled, code)
+	assert.Equal(t, 404, status)
+
+	code, status = Describe(statusError("invites", 400, "bad request"))
+	assert.Equal(t, CodeInternal, code)
+	assert.Equal(t, 400, status)
+
+	code, status = Describe(errors.New("boom"))
+	assert.Equal(t, CodeInternal, code)
+	assert.Zero(t, status)
+}
+
+func TestMalformedAnswersCarryTheStatus(t *testing.T) {
+	answer := []byte("not json")
+	e := NewEngine(t.TempDir(), func(context.Context, string, []byte) (int, []byte, string, error) {
+		return 200, answer, "", nil
+	}, nil)
+	var raw map[string]json.RawMessage
+	code, status := Describe(e.post(context.Background(), "pairings", struct{}{}, &raw))
+	assert.Equal(t, CodeUnavailable, code)
+	assert.Equal(t, 200, status)
+
+	answer = []byte(`{}`)
+	_, err := e.listPairings(context.Background())
+	code, status = Describe(err)
+	assert.Equal(t, CodeUnavailable, code)
+	assert.Equal(t, 200, status)
+}
+
 func TestStateIsSealed(t *testing.T) {
 	cloud := newFakeCloud()
 	dir := t.TempDir()
@@ -331,10 +366,15 @@ func TestInviterKeepsHelpersWhenTheGateSaysDisabled(t *testing.T) {
 	cloud := newFakeCloud()
 	sara := newTestEngine(t, cloud, "sara", t.TempDir())
 	pair(t, cloud, sara, t.TempDir())
+	cloud.outboundTag["ali"] = "helper-0123456789ab"
+	cloud.online["ali"] = true
+	call(t, sara, "refresh", nil)
 	cloud.flagOff["sara"] = true
 	helpers := list(call(t, sara, "refresh", nil), "helpers")
 	require.Len(t, helpers, 1, "the helper row is kept")
 	assert.Equal(t, "Ali", helpers[0]["name"])
+	assert.Equal(t, "helper-0123456789ab", helpers[0]["outbound_tag"], "the helper keeps its tag")
+	assert.Equal(t, true, helpers[0]["online"], "and its online state")
 	cloud.flagOff["sara"] = false
 	call(t, sara, "end_pairing", map[string]any{"pairing_id": helpers[0]["pairing_id"]})
 	assert.Empty(t, cloud.pairings)
@@ -956,5 +996,92 @@ func TestANullOrEmptyListingIsEmpty(t *testing.T) {
 		call(t, e, "refresh", nil)
 		assert.Empty(t, e.st.Pairings, body)
 		call(t, e, "end_all_helpers", nil)
+	}
+}
+
+func TestRenameHelperIsLocalAndSurvivesRestarts(t *testing.T) {
+	cloud := newFakeCloud()
+	saraDir := t.TempDir()
+	sara := newTestEngine(t, cloud, "sara", saraDir)
+	ali := pair(t, cloud, sara, t.TempDir())
+	id := list(call(t, sara, "view", nil), "helpers")[0]["pairing_id"]
+
+	before := relayCalls(cloud)
+	v := call(t, sara, "rename_helper", map[string]any{"pairing_id": id, "name": "  Cousin Ali "})
+	assert.Equal(t, "Cousin Ali", list(v, "helpers")[0]["name"])
+	assert.Equal(t, before, relayCalls(cloud), "a nickname never leaves the device")
+
+	again := newTestEngine(t, cloud, "sara", saraDir)
+	assert.Equal(t, "Cousin Ali", list(call(t, again, "refresh", nil), "helpers")[0]["name"],
+		"kept across restarts and refreshes")
+
+	v = call(t, again, "rename_helper", map[string]any{"pairing_id": id, "name": " "})
+	assert.Equal(t, "Ali", list(v, "helpers")[0]["name"], "a blank name restores the friend's")
+
+	assert.Equal(t, CodeBadName, callErr(t, again, "rename_helper", map[string]any{"pairing_id": id, "name": "a‮b"}))
+	assert.Equal(t, CodeNotFound, callErr(t, again, "rename_helper", map[string]any{"pairing_id": "nope", "name": "X"}))
+	helping := list(call(t, ali, "refresh", nil), "helping")[0]["pairing_id"]
+	assert.Equal(t, CodeNotFound, callErr(t, ali, "rename_helper", map[string]any{"pairing_id": helping, "name": "X"}),
+		"only the user's own personal proxies are renamed")
+}
+
+func TestEndAllHelpersErasesNicknames(t *testing.T) {
+	cloud := newFakeCloud()
+	dir := t.TempDir()
+	sara := newTestEngine(t, cloud, "sara", dir)
+	pair(t, cloud, sara, t.TempDir())
+	id := list(call(t, sara, "view", nil), "helpers")[0]["pairing_id"]
+	call(t, sara, "rename_helper", map[string]any{"pairing_id": id, "name": "Cousin"})
+	// Offline, as in TestEndAllHelpersOfflineWipesNames: the names (and now
+	// nicknames) go before any request.
+	cloud.down = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "end_all_helpers", nil))
+	for _, p := range newTestEngine(t, cloud, "sara", dir).st.Pairings {
+		assert.Empty(t, p.Nickname)
+		assert.Empty(t, p.Name)
+	}
+}
+
+// TestABlankListedPairingKeepsItsTag: a listing with a blank pairing_id keeps
+// the local pairings, so they keep the tag and online state the last
+// complete listing gave them.
+func TestABlankListedPairingKeepsItsTag(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	pair(t, cloud, sara, t.TempDir())
+	cloud.outboundTag["ali"] = "helper-0123456789ab"
+	cloud.online["ali"] = true
+	require.Equal(t, "helper-0123456789ab", list(call(t, sara, "refresh", nil), "helpers")[0]["outbound_tag"])
+
+	cloud.blankInviterIDs = true
+	helpers := list(call(t, sara, "refresh", nil), "helpers")
+	require.Len(t, helpers, 1, "the helper row is kept")
+	assert.Equal(t, "helper-0123456789ab", helpers[0]["outbound_tag"])
+	assert.Equal(t, true, helpers[0]["online"])
+}
+
+func TestInviterRowsCarryTheFriendsOutboundTag(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara-device", t.TempDir())
+	ali := pair(t, cloud, sara, t.TempDir())
+
+	helpers := list(call(t, sara, "refresh", nil), "helpers")
+	require.Len(t, helpers, 1)
+	assert.Nil(t, helpers[0]["outbound_tag"], "no tag until lantern-cloud gives one")
+
+	cloud.outboundTag["ali"] = "helper-0123456789ab"
+	helpers = list(call(t, sara, "refresh", nil), "helpers")
+	assert.Equal(t, "helper-0123456789ab", helpers[0]["outbound_tag"])
+	helpers = list(call(t, sara, "view", nil), "helpers")
+	assert.Equal(t, "helper-0123456789ab", helpers[0]["outbound_tag"], "the view keeps the last list's tag")
+
+	helping := list(call(t, ali, "refresh", nil), "helping")
+	require.Len(t, helping, 1)
+	assert.Nil(t, helping[0]["outbound_tag"], "a volunteer row never carries one")
+
+	for _, bad := range []string{"helper-0123", "personal-proxies", "helper-0123456789AB", "x-0123456789ab"} {
+		cloud.outboundTag["ali"] = bad
+		helpers = list(call(t, sara, "refresh", nil), "helpers")
+		assert.Nil(t, helpers[0]["outbound_tag"], "%q is not a helper tag", bad)
 	}
 }

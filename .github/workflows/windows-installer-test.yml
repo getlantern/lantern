@@ -13,7 +13,8 @@ on:
       - .github/workflows/windows-installer-test.yml
       - .github/workflows/build-windows.yml
       - scripts/ci/choco-retry.sh
-      - scripts/ci/windows_installer_template.py
+      - scripts/ci/render_windows_installer.py
+      - scripts/requirements.txt
 
 permissions:
   contents: read
@@ -34,6 +35,9 @@ jobs:
       - name: Install Inno Setup 6
         shell: bash
         run: ./scripts/ci/choco-retry.sh -y innosetup --version=6.7.1 --allow-downgrade
+
+      - name: Install renderer dependencies
+        run: python -m pip install -r scripts/requirements.txt
 
       - name: Test toolchain staging and installer prerequisite behavior
         run: python .github/scripts/test_windows_installer.py --output "${{ runner.temp }}/lantern-installer-tests"

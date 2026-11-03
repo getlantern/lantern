@@ -200,6 +200,10 @@ jobs:
 
   windows-auto-update:
     needs: validate-inputs
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
     if: ${{ contains(fromJSON('["all", "windows"]'), inputs.platforms) && inputs.tests == 'auto-update' }}
     uses: ./.github/workflows/windows-auto-update-smoke.yml
     secrets: inherit

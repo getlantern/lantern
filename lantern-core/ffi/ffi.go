@@ -86,7 +86,11 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 type ffiFlutterEventEmitter struct{}
 
 func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
-	slog.Debug("Sending event to Flutter:", "event", event)
+	if utils.IsHighVolumeEvent(event.Type) {
+		slog.Debug("Sending event to Flutter:", "type", event.Type)
+	} else {
+		slog.Debug("Sending event to Flutter:", "event", event)
+	}
 	port := appEventPort.Load()
 	if port == 0 {
 		slog.Error("Apps port is not set, cannot send event")
@@ -97,7 +101,6 @@ func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
 		slog.Error("Error marshalling event:", "error", err)
 		return
 	}
-	slog.Debug("Marshalled event data:", "data", string(eventData))
 	go dart_api_dl.SendToPort(port, string(eventData))
 }
 

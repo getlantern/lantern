@@ -48,17 +48,11 @@ msgstr "You didn't include an email address, so we won't be able to reply or fol
 msgid "send_without_email"
 msgstr "Send Without Email"
 
-msgid "lantern_projects"
-msgstr "Lantern Projects:"
-
 msgid "invite_friends"
 msgstr "Invite Friends"
 
 msgid "your_referral_code"
 msgstr "Your Referral Code"
-
-msgid "invite_friends_message"
-msgstr "Share your referral code with a friend. When they purchase Lantern Pro, you both get bonus time: "
 
 msgid "share_referral_code"
 msgstr "Share Referral Code"
@@ -119,9 +113,6 @@ msgstr "Action Mode"
 msgid "vpn"
 msgstr "VPN"
 
-msgid "help_fight_global_internet_censorship"
-msgstr "Help Fight Global Internet Censorship"
-
 msgid "vpn_settings"
 msgstr "VPN Settings"
 
@@ -146,9 +137,6 @@ msgstr "Lantern Pro Devices"
 msgid "remove"
 msgstr "Remove"
 
-msgid "add_device"
-msgstr "Add Device"
-
 msgid "danger_zone"
 msgstr "Danger Zone:"
 
@@ -169,9 +157,6 @@ msgstr "Account deletion is permanent. You will lose access on all devices, and 
 
 msgid "delete_account_message_two"
 msgstr "To confirm deletion please enter your password below"
-
-msgid "Submit Issue Report"
-msgstr "Enter Password to Confirm"
 
 msgid "confirm_deletion"
 msgstr "Confirm Deletion"
@@ -206,23 +191,14 @@ msgstr "Server Selection"
 msgid "smart_location"
 msgstr "Smart Location"
 
-msgid "automatically_chooses_fastest_location"
-msgstr "Automatically chooses fastest location"
-
 msgid "pro_locations"
 msgstr "Pro locations:"
-
-msgid "choose_your_location_with_lantern_pro"
-msgstr "Choose your location with Lantern Pro:"
 
 msgid "language"
 msgstr "Language"
 
 msgid "sign_in"
 msgstr "Sign In"
-
-msgid "sign_out"
-msgstr "Sign Out"
 
 msgid "check_for_updates"
 msgstr "Check for Updates"
@@ -232,9 +208,6 @@ msgstr "Update available"
 
 msgid "android_sideload_update_available_message"
 msgstr "Lantern %s is available. Lantern will download and verify the APK before opening Android's installer."
-
-msgid "download_and_install_update"
-msgstr "Download and install"
 
 msgid "allow_unknown_app_installs"
 msgstr "Allow app installs"
@@ -247,9 +220,6 @@ msgstr "Unable to install update"
 
 msgid "android_sideload_install_failed_message"
 msgstr "Lantern could not verify or install this update. Please try again later."
-
-msgid "lantern_is_up_to_date"
-msgstr "Lantern is up to date."
 
 msgid "support"
 msgstr "Support"
@@ -277,9 +247,6 @@ msgid "cannot_complete_purchase"
 msgstr "Cannot complete purchase"
 
 
-msgid "discover_not_working"
-msgstr "Discover not working"
-
 msgid "cannot_sign_in"
 msgstr "Cannot sign in"
 
@@ -304,12 +271,6 @@ msgstr "Server selection does not work"
 msgid "upgrade_fail"
 msgstr "Lantern Pro upgrade unsuccessful"
 
-msgid "wrong_device_linking_code"
-msgstr "Wrong or invalid device linking code"
-
-msgid "cannot_remove_device"
-msgstr "Cannot remove device"
-
 msgid "application_crashes"
 msgstr "Application crashes"
 
@@ -322,33 +283,11 @@ msgstr "Describe your issue"
 msgid "enter_password_to_confirm"
 msgstr "Enter password to confirm"
 
-msgid "cannot_view_logs"
-msgstr "Lantern cannot view your diagnostic logs unless you send them to us."
-
-
-msgid "split_tunneling_mode"
-msgstr "Split Tunneling Mode"
-
 msgid "apps_split_tunneling"
 msgstr "Apps Split Tunneling"
 
 msgid "website_split_tunneling"
 msgstr "Website Split Tunneling"
-
-msgid "iran_optimized"
-msgstr "Iran-optimized split tunneling"
-
-msgid "china_optimized"
-msgstr "China-optimized split tunneling"
-
-msgid "russia_optimized"
-msgstr "Russia-optimized split tunneling"
-
-msgid "global_optimized"
-msgstr "Global-optimized split tunnneling"
-
-msgid "enter_url"
-msgstr "Enter URL"
 
 msgid "add"
 msgstr "Add"
@@ -391,45 +330,6 @@ msgstr "This link has expired. Please request a new one."
 
 msgid "invalid_deep_link"
 msgstr "This link is invalid. Please request a new one."
-
-msgid "default_bypass"
-msgstr "Default Bypass Lists"
-
-msgid "global_bypass_list"
-msgstr "Global Bypass List"
-
-msgid "global_bypass_desc"
-msgstr "Trusted sites (HTTPS) with non-sensitive content."
-
-msgid "china_bypass_list"
-msgstr "China Bypass List"
-
-msgid "china_bypass_desc"
-msgstr "Sites freely accessible in China. Updated regularly."
-
-msgid "iran_bypass_list"
-msgstr "Iran Bypass List"
-
-msgid "iran_bypass_desc"
-msgstr "Sites freely accessible in Iran. Updated regularly."
-
-msgid "russia_bypass_list"
-msgstr "Russia Bypass List"
-
-msgid "russia_bypass_desc"
-msgstr "Sites freely accessible in Russia. Updated regularly."
-
-msgid "see_sites_included"
-msgstr "See sites included in the "
-
-msgid "default_lists_here"
-msgstr "default lists here"
-
-msgid "when_connected"
-msgstr "When connected, the websites you select will bypass the VPN."
-
-msgid "lantern_automatic"
-msgstr "Lantern automatically chooses which apps and websites bypass the VPN based on your location for best performance. "
 
 msgid "apps_bypassing_vpn"
 msgstr "Apps bypassing the VPN (%d)"
@@ -523,9 +423,6 @@ msgstr "Confirm Password is required"
 msgid "passwords_do_not_match"
 msgstr "Passwords do not match"
 
-msgid "activation_code"
-msgstr "Activation Code"
-
 msgid "activate_lantern_pro"
 msgstr "Activate Lantern Pro"
 
@@ -570,9 +467,6 @@ msgstr "These rules vary by country and are updated regularly."
 
 msgid "view_the_full_list"
 msgstr "View the full list of routing rules."
-
-msgid "turn_on_split_tunneling"
-msgstr "Turn on split tunneling to customize which websites use the VPN."
 
 msgid "welcome_to_lantern_pro"
 msgstr "Welcome to Lantern Pro!"
@@ -628,9 +522,6 @@ msgstr "Best Value!"
 msgid "choose_payment_method"
 msgstr "Choose Payment Method"
 
-msgid "payment_information_encrypted"
-msgstr "Your payment information is fully encrypted."
-
 msgid "purchase_not_completed"
 msgstr "Purchase was not completed. You can try again anytime, or contact support if you need help"
 
@@ -649,12 +540,6 @@ msgstr "Block Ads"
 msgid "only_active"
 msgstr "Only active when VPN is connected"
 
-msgid "share_my_connection"
-msgstr "Share My Connection"
-
-msgid "share_my_connection_subtitle"
-msgstr "Let other Lantern users route through your connection to bypass censorship."
-
 # Tooltip of the info icon beside the status, which reopens the welcome
 # dialog (showActionModeWelcomeDialog).
 msgid "about_unbounded"
@@ -669,36 +554,6 @@ msgstr "Disabled"
 
 msgid "smc_status_configuring"
 msgstr "Configuring network"
-
-msgid "smc_status_probing"
-msgstr "Probing your network…"
-
-msgid "smc_status_active_unbounded"
-msgstr "Enabled"
-
-msgid "smc_status_active_smc"
-msgstr "Starting…"
-
-msgid "smc_status_mapping_port"
-msgstr "Opening port on your router…"
-
-msgid "smc_status_detecting_ip"
-msgstr "Detecting your public IP…"
-
-msgid "smc_status_registering"
-msgstr "Registering with Lantern…"
-
-msgid "smc_status_starting_proxy"
-msgstr "Starting local proxy…"
-
-msgid "smc_status_verifying"
-msgstr "Verifying connectivity…"
-
-msgid "smc_status_serving"
-msgstr "Enabled"
-
-msgid "smc_status_stopping"
-msgstr "Stopping…"
 
 msgid "smc_status_error_with_message"
 msgstr "Couldn't share: %s"
@@ -826,9 +681,6 @@ msgstr "Subscribe"
 msgid "checkout"
 msgstr "Checkout"
 
-msgid "next_billing_date"
-msgstr "Next Billing Date"
-
 msgid "vpn_may_be_needed"
 msgstr "VPN may be needed"
 
@@ -854,35 +706,17 @@ msgstr "Set up using Google Cloud Platform"
 msgid "continue_with_do"
 msgstr "Continue with Digital Ocean"
 
-msgid "do_allows"
-msgstr "Digital Ocean allows you to pick one server location from the %d options below"
-
 msgid "server_setup_gcp_price"
 msgstr "Only %s month through GCP"
 
 msgid "continue_with_gcp"
 msgstr "Continue with Google"
 
-msgid "gcp_allows"
-msgstr "Google Cloud Platform allows you to pick one server location from the %d options below:"
-
-msgid "server_setup_aws"
-msgstr "Set up a private server on Digital Ocean"
-
-msgid "server_setup_aws_price"
-msgstr "Only %s month through AWS"
-
 msgid "server_setup_manual"
 msgstr "Set Up Manually"
 
 msgid "seamless_integration"
 msgstr "Seamless integration with Lantern"
-
-msgid "easiest_setup"
-msgstr "Easiest setup process"
-
-msgid "multiple_location_options"
-msgstr "Multiple server location options"
 
 msgid "one_month_included"
 msgstr "%d TB/month data included"
@@ -956,30 +790,11 @@ msgid "choose_your_project"
 msgstr "Choose your project"
 
 
-msgid "name_your_google_cloud_project"
-msgstr "Name your Google Cloud Project"
-
 msgid "billing_account"
 msgstr "Billing Account"
 
-msgid "billing_account_placeholder"
-msgstr "Billing account for %s"
-
-
 msgid "server_name"
 msgstr "Server Name"
-
-msgid "google_project"
-msgstr "Google Project"
-
-msgid "field_name_required"
-msgstr "Name required"
-
-msgid "choose_google_account"
-msgstr "Choose Google billing account"
-
-msgid "server_name_placeholder"
-msgstr "Derek’s Server"
 
 msgid "change"
 msgstr "Change"
@@ -993,51 +808,11 @@ msgstr "Choose Your Location"
 msgid "start_deployment"
 msgstr "Start Deployment"
 
-msgid "server_name_description"
-msgstr "How the server will appear in the server selection list."
-
-msgid "select_private_server_region"
-msgstr "Select a region for your Private Server. Closer locations may improve speed and latency."
-
-msgid "gcp_location_options"
-msgstr "Google Cloud Platform Location Options (%d):"
-
-msgid "australia_sydney"
-msgstr "Australia - Sydney"
-
-msgid "belgium_stghislain"
-msgstr "Belgium - St. Ghislain"
-
-msgid "brazil_saopaulo"
-msgstr "São Paulo"
-
-msgid "us_los_angeles"
-msgstr "US - Los Angeles"
-
-msgid "japan_tokyo"
-msgstr "Japan - Tokyo"
-
-msgid "deploying_private_server"
-msgstr "Deploying Private Server"
-
-msgid "deploying_server_status"
-msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes."
-
 msgid "private_server_setup_in_progress"
 msgstr "Hang tight! Your Private Server is being set up. This may take a few minutes, please keep this screen open."
 
 msgid "cancel_server_deployment"
 msgstr "Cancel Server Deployment"
-
-msgid "server_ready_title"
-msgstr "Private Server is Ready"
-
-msgid "server_ready_message"
-msgstr "Your Private Server has been set up and added to your server list. You're ready to connect!"
-
-
-msgid "server_failed_message"
-msgstr "Something went wrong while setting up your Private Server. You can retry or try again later."
 
 msgid "close"
 msgstr "Close"
@@ -1048,9 +823,6 @@ msgstr "Connect Now"
 msgid "server_setup_failed"
 msgstr "Server Setup Failed"
 
-msgid "cancel_deployment"
-msgstr "Cancel Deployment"
-
 msgid "server_setup_failed_message"
 msgstr "Something went wrong while setting up your Private Server. You can retry or try again later.."
 
@@ -1059,9 +831,6 @@ msgstr "Exit"
 
 msgid "retry"
 msgstr "Retry"
-
-msgid "all_required_fields"
-msgstr "Please fill out all required fields."
 
 msgid "private_server_ready"
 msgstr "Private Server is Ready!"
@@ -1096,9 +865,6 @@ msgstr "Verify Server"
 msgid "vpn_client_not_setup"
 msgstr "Please turn on the VPN client."
 
-msgid "continue_with"
-msgstr "Continue with"
-
 msgid "join_a_private_server"
 msgstr "Join a Private Server"
 
@@ -1110,9 +876,6 @@ msgstr "Join Server"
 
 msgid "private_server_usage_message"
 msgstr "Private server usage is not counted towards your Lantern daily data cap."
-
-msgid "manage_private_servers"
-msgstr "Manage Private Servers"
 
 msgid "my_servers"
 msgstr "My Servers"
@@ -1146,9 +909,6 @@ msgstr "Remove %s? This will only remove it from your app, it won’t delete the
 msgid "generate_access_key"
 msgstr "Generate Access key"
 
-msgid "invite_name"
-msgstr "Invite Name"
-
 msgid "trust_server_operator"
 msgstr "Trust the Server Operator"
 
@@ -1160,9 +920,6 @@ msgstr "Lantern does not manage or monitor private servers. Make sure you know a
 
 msgid "trust_server_operator_message_three"
 msgstr "If you're unsure who runs the server or how it's configured, we recommend using one of the default Lantern servers available in your server list."
-
-msgid "invalid_server_details"
-msgstr "Invalid server details. Please check the access key and try again."
 
 msgid "lantern_servers"
 msgstr "Lantern Servers"
@@ -1217,9 +974,6 @@ msgstr "Premium servers with less congestion"
 
 msgid "advanced_anti_censorship"
 msgstr "Advanced anti-censorship technology"
-
-msgid "exclusive_access_new_features"
-msgstr "Exclusive access to new features"
 
 msgid "connect_up_to_five_devices"
 msgstr "Connect up to 5 devices"
@@ -1294,6 +1048,9 @@ msgstr "when prompted."
 msgid "activate_extension"
 msgstr "Install Now"
 
+msgid "network_extension_disabled_message"
+msgstr "Lantern's network extension is turned off in System Settings. Turn it on under Login Items & Extensions > Network Extensions, then return to Lantern."
+
 msgid "email_optional"
 msgstr "Email (optional)"
 
@@ -1303,9 +1060,6 @@ msgstr "Please enter a valid email"
 
 msgid "please_select_an_issue"
 msgstr "Please select an issue"
-
-msgid "please_enter_issue_description"
-msgstr "Please enter an issue description"
 
 msgid "thanks_for_feedback"
 msgstr "Thanks for your feedback!"
@@ -1322,21 +1076,11 @@ msgstr "Select All"
 msgid "no_websites_selected"
 msgstr "No websites selected"
 
-msgid "enter_activation_code"
-msgstr "Enter an Activation Code"
-
 msgid "restore_purchase"
 msgstr "Restore Purchase"
 
 msgid "already_purchased"
 msgstr "Already purchased?"
-
-msgid "restore_purchase_success"
-msgstr "Purchase restored successfully."
-
-msgid "restore_purchase_no_purchases"
-msgstr "No purchases were found to restore."
-
 
 msgid "do_private_server_setup"
 msgstr "DO Private Server Setup"
@@ -1386,10 +1130,6 @@ msgstr "Subscription Renewal Date"
 msgid "pro_access_until"
 msgstr "Pro access until %s"
 
-msgid "enabled_bypass_lists"
-msgstr "Enabled bypass lists (%d):"
-
-
 msgid "diagnostic_logs"
 msgstr "Diagnostic Logs"
 
@@ -1436,9 +1176,6 @@ msgstr "Add a Referral Code"
 msgid "referral_code"
 msgstr "Referral Code"
 
-msgid "update_fails"
-msgstr "Update fails"
-
 msgid "scan_qr_code"
 msgstr "Scan QR Code"
 
@@ -1451,21 +1188,6 @@ msgstr "We handle the configuration, just sign up."
 msgid "90_day_free_trial"
 msgstr "90-day free trial"
 
-msgid "identity_changed"
-msgstr "Identity Changed for %s"
-
-msgid "identity_changed_message"
-msgstr "The security fingerprint of %s has changed. This may indicate tampering or misconfiguration."
-
-msgid "recommendation"
-msgstr "Recommendation:"
-
-msgid "recommendation_message"
-msgstr "We recommend removing %s from Lantern and deleting it from your cloud provider account, then setting up a new server to ensure your connection stays secure."
-
-msgid "remove_server"
-msgstr "Remove Server"
-
 msgid "server_alias_cannot_be_empty"
 msgstr  "Server alias cannot be empty"
 
@@ -1475,14 +1197,8 @@ msgstr "Your referral code has been applied!"
 msgid "discount_applied"
 msgstr "%s discount applied"
 
-msgid "referral_message_1m"
-msgstr "+ 15 additional days free"
-
 msgid "referral_message_1y"
 msgstr "+ 1 additional month free"
-
-msgid "referral_message_2y"
-msgstr "+ 2 additional months free"
 
 msgid "referral_code_invalid"
 msgstr "The referral/promo code you entered is invalid. Please check the code and try again."
@@ -1493,33 +1209,14 @@ msgstr "You cannot use your own referral code. Please enter a different code."
 msgid "free"
 msgstr "Free"
 
-msgid "monthly_plan"
-msgstr "Monthly plan:"
-
-msgid "15_days_each"
-msgstr "+15 days each"
-
-msgid "annual_plan"
-msgstr "Annual plan:"
-
-msgid "1_month_each"
-msgstr "+1 month each"
-
-msgid "two_year_plan"
-msgstr "Two-year plan:"
-
-msgid "2_month_each"
-msgstr "+2 months each"
-
-msgid "referral_code_info"
-msgstr "Not a Lantern Pro user yet? You'll become one when your first referral subscribes"
-
 msgid "lantern_pro_license"
 msgstr "Lantern Pro License"
 
+#. Tooltip on the eye button that reveals the typed activation code
 msgid "show_license"
 msgstr "Show license"
 
+#. Tooltip on the eye button that masks the typed activation code
 msgid "hide_license"
 msgstr "Hide license"
 
@@ -1531,12 +1228,6 @@ msgstr "Invalid Lantern Pro license"
 
 msgid "lantern_pro_license_invalid_length"
 msgstr "Lantern Pro license must be 25 characters"
-
-msgid "select_account"
-msgstr "Select Account"
-
-msgid "new_to_lantern"
-msgstr "New to Lantern?"
 
 msgid "create_an_account"
 msgstr "Create an account"
@@ -1553,11 +1244,8 @@ msgstr "Add Billing Details"
 msgid "do_billing_details_message"
 msgstr "Digital Ocean requires payment information to create servers."
 
-msgid "tap"
-msgstr "Tap"
-
-msgid "below_to_go_to_do"
-msgstr "below to go to DigitalOcean"
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Tap %s below to go to DigitalOcean"
 
 msgid "1"
 msgstr "1"
@@ -1577,9 +1265,6 @@ msgstr "Return to Lantern and tap \"Continue\" to proceed with setup"
 msgid "how_to_add_billing_details"
 msgstr "How to add billing details:"
 
-msgid "add_payment_method_message"
-msgstr "Please add a payment method to your DigitalOcean account. If you already have, wait a few minutes and try again."
-
 msgid "ok"
 msgstr "Ok"
 
@@ -1597,12 +1282,6 @@ msgstr "Developer Mode"
 
 msgid "developer_mode_note"
 msgstr "Developer Mode is strictly for Lantern Developer to test feature while developing."
-
-msgid "invalid_activation_code"
-msgstr "Invalid activation code. Please check the code and try again."
-
-msgid "invalid_activation_code_length"
-msgstr "Activation code must be 25 characters long."
 
 msgid "error_while_vpn_connection"
 msgstr "An error occurred while establishing the VPN connection. Please try again."
@@ -1630,9 +1309,6 @@ msgstr "Anonymous Usage Data"
 
 msgid "helps_improve_lantern_performance"
 msgstr "Helps improve Lantern performance"
-
-msgid "changes_applied_after_restart"
-msgstr "Changes will be applied after restarting Lantern."
 
 msgid "email_deliverability_notice"
 msgstr "Email Deliverability Notice"
@@ -1669,9 +1345,6 @@ msgstr "Add apps & websites to bypass the VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "Your Lantern Pro License will be applied to your existing account"
-
-msgid "your_purchase_will_be_applied_to_your_existing_account"
-msgstr "Your purchase will be applied to your existing account"
 
 msgid "daily_data_cap_reached"
 msgstr "Daily data cap reached"
@@ -1717,12 +1390,6 @@ msgstr "Subscription Expired"
 
 msgid "pro"
 msgstr "Pro"
-
-msgid "pro_subscription_expired_message"
-msgstr "Lantern Pro subscription expired, Renew to restore unlimited data and Pro features."
-
-msgid "last_subscription_renewal_date"
-msgstr "Last Subscription Renewal Date"
 
 msgid "set_account_password"
 msgstr "Set Account Password"
@@ -2067,6 +1734,7 @@ msgstr "Touch and hold an empty spot on your phone's home screen."
 msgid "widget_step_2"
 msgstr "Tap Edit, then Add Widget."
 
+#. The widget gallery lists the app under its store name 'Lantern'; keep that name as typed
 msgid "widget_step_3"
 msgstr "Search for Lantern, choose a size, and tap add widget."
 
@@ -2144,12 +1812,57 @@ msgstr "Direct connection unavailable: %s"
 msgid "view_advanced_stats"
 msgstr "View advanced stats"
 
+msgid "error_occurred"
+msgstr "An error occurred. Please try again."
+
+msgid "unknown_error_occurred"
+msgstr "An unknown error occurred."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "We're experiencing technical difficulties. Please try again later."
+
+msgid "proxy_error"
+msgstr "We couldn't connect through the proxy. Please check your connection and try again."
+
+msgid "err_while_sending_code"
+msgstr "We couldn't send the verification code. Please try again."
+
+msgid "recovery_not_found"
+msgstr "We couldn't find an account to recover with those details."
+
+msgid "wrong_link_code"
+msgstr "That device linking code is incorrect. Please check it and try again."
+
+msgid "wrong_seller_code"
+msgstr "That reseller code is incorrect. Please check it and try again."
+
+msgid "purchase_not_found"
+msgstr "We couldn't find a purchase for this account."
+
+msgid "purchase_restored_error"
+msgstr "We couldn't restore your purchase. Please try again."
+
+msgid "empty_url"
+msgstr "We couldn't open the payment page. Please try again."
+
+msgid "please_enter_referral_code"
+msgstr "Please enter a referral code."
+
+msgid "access_token_missing"
+msgstr "Access token is missing. Please sign in to your cloud provider again."
+
+msgid "private_server_setup_error"
+msgstr "We couldn't set up your private server. Please try again."
+
+msgid "logs"
+msgstr "Logs"
+
 # Helper invites: errors. "Lantern" is the app.
 msgid "helper_error_disabled"
 msgstr "Helping friends isn't available on this device yet."
 
 msgid "helper_error_not_found"
-msgstr "This invite or helper no longer exists."
+msgstr "This invite or Personal Proxy no longer exists."
 
 msgid "helper_error_unavailable"
 msgstr "Couldn't reach Lantern. Check your connection and try again."
@@ -2158,7 +1871,7 @@ msgid "helper_error_too_many_invites"
 msgstr "You've sent as many invites as you can for now. Try again tomorrow."
 
 msgid "helper_error_too_many_pairings"
-msgstr "You've reached the limit of 20 people."
+msgstr "You've reached the limit of 20 friends."
 
 msgid "helper_error_no_pending_claim"
 msgstr "This invite has already been decided."
@@ -2173,33 +1886,15 @@ msgid "helper_error_keystore_reset"
 msgstr "This device's secure storage was reset, so the names of your helpers and invites could not be read. Your helpers still work; invite them again to see their names."
 
 msgid "helper_error_copy"
-msgstr "Couldn't copy the link. Use Share link instead."
+msgstr "Couldn't copy the link. Use Share instead."
 
 # Helper invites: the inviter's side. A "helper" is a friend abroad whose
 # internet connection this user borrows through Lantern.
-msgid "helpers_title"
-msgstr "Get help from a friend"
-
-msgid "helpers_intro"
-msgstr "Invite someone you trust who lives somewhere without censorship. Lantern can connect you through their internet."
-
-msgid "invite_someone"
-msgstr "Invite someone to help me"
-
 msgid "helpers_your_name_label"
 msgstr "Your name, as your friend knows you"
 
 msgid "helpers_your_name_hint"
 msgstr "For example, Sara"
-
-msgid "helpers_list_title"
-msgstr "Your helpers"
-
-msgid "helpers_empty"
-msgstr "No one is helping you yet."
-
-msgid "helpers_nudge_second"
-msgstr "If your helper's computer goes offline, so does your connection through it. Invite a second friend to stay connected."
 
 msgid "helper_online"
 msgstr "Online"
@@ -2219,23 +1914,68 @@ msgid "helper_remove_confirm_body"
 msgstr "%s will stop helping you. You can invite them again later."
 
 msgid "helpers_remove_all"
-msgstr "Remove all helpers"
+msgstr "Remove all Personal Proxies"
 
 msgid "helpers_remove_all_body"
-msgstr "Every helper stops helping you, and their names are erased from this device."
+msgstr "Every Personal Proxy stops helping you, and their names are erased from this device."
 
+# The screen and menu entry for the user's private servers and personal proxies.
+msgid "manage_private_locations"
+msgstr "Manage Private Locations"
+
+# Starts an invite to a friend abroad who will become the user's personal proxy.
+msgid "invite_personal_proxy"
+msgstr "Invite a Personal Proxy"
+
+# Manage Private Locations' tab for the user's personal proxies.
+msgid "personal_proxies_tab"
+msgstr "Personal Proxies"
+
+msgid "invite_another"
+msgstr "Invite another"
+
+# Shown in the Personal Proxies tab while the user has exactly one personal proxy.
+msgid "helpers_nudge_second"
+msgstr "If your Personal Proxy goes offline, so does your connection through it. Invite a second friend to stay connected."
+
+# VPN tab banner offering to invite a friend abroad as a personal proxy.
+msgid "personal_proxy_banner_title"
+msgstr "Get a Personal Proxy"
+
+msgid "personal_proxy_banner_body"
+msgstr "A friend abroad can keep you connected."
+
+# The same banner while a friend who opened the user's invite waits for the user to compare codes and approve them.
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Your friend is waiting"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Compare the code and approve them."
+
+# Label of the field for the name this device shows for a personal proxy. It stays on this device.
+msgid "personal_proxy_nickname_label"
+msgstr "Name on this device"
+
+# The invite screen's card: the user sends a friend abroad a link that makes the friend their Personal Proxy.
 msgid "invite_share_title"
-msgstr "Send your invite"
+msgstr "Share this link with someone you trust outside your country"
 
-msgid "invite_share_body"
-msgstr "Send this link to one person you trust. It works once and expires in 48 hours."
+msgid "invite_share_steps"
+msgstr "They open the link, install Lantern if needed, and enter their name. You will approve them by checking a 4-digit code, then you can connect through them."
+
+# Label of the read-only field that shows the invite link.
+msgid "invite_link_label"
+msgstr "Your invite link"
+
+msgid "invite_link_expiry"
+msgstr "Works once and expires in 48 hours."
 
 # The text shared with the link. The first %s is the user's name; the second is the link.
 msgid "invite_share_message"
 msgstr "%s wants your help staying online. %s"
 
 msgid "invite_share_button"
-msgstr "Share link"
+msgstr "Share"
 
 msgid "invite_copy_link"
 msgstr "Copy link"
@@ -2249,12 +1989,13 @@ msgstr "Your friend can scan this with Lantern."
 msgid "invite_waiting"
 msgstr "Waiting for your friend to open the link"
 
+# Warning below the invite link and Share button, above the QR code.
+msgid "invite_trust_warning"
+msgstr "The person you invite will know you use Lantern and can see when you're connected through them. Your traffic passes through their internet connection, so they could learn which sites you visit, though not what you do on secure (https) sites. Only invite someone you trust."
+
 # %s is a number of hours.
 msgid "invite_expires"
 msgstr "Expires in %s hours"
-
-msgid "invite_forget"
-msgstr "Cancel invite"
 
 msgid "invite_gone"
 msgstr "This invite has been used or has expired."
@@ -2265,31 +2006,93 @@ msgstr "Someone opened your invite"
 msgid "invite_compare_codes"
 msgstr "Compare codes"
 
-# %s is the name the person typed.
-msgid "approve_code_intro"
-msgstr "Ask %s which code their Lantern shows. Compare it on a call or in a different app, not in the chat you sent the link in."
+# Title of the dialog in which the user approves a friend as a Personal Proxy. %s is the name the friend typed.
+msgid "approve_title"
+msgstr "%s wants to be your Personal Proxy"
 
-msgid "approve_code_label"
-msgstr "Code on this device"
+# %s is the name the friend typed. Comparing the code over a different channel from the link is what stops someone who intercepted the link.
+msgid "approve_body"
+msgstr "Ask %s for the 4-digit code Lantern shows them, on a call or in a different app from the one you sent the link in. Approve only if it matches."
 
-msgid "approve_button"
-msgstr "Codes match: approve"
+msgid "approve_codes_match"
+msgstr "Codes Match, Approve"
 
-msgid "reject_button"
-msgstr "Codes don't match: reject"
+# Rejecting also cancels the invite link.
+msgid "approve_reject"
+msgstr "Reject"
 
-msgid "reject_explainer"
-msgstr "If the codes are different, someone else opened your link. Reject them and send a new invite."
+# The VPN tab's selected location while connected through the user's personal proxies: the line under the location's name.
+msgid "personal_proxy"
+msgstr "Personal Proxy"
 
-# Helper invites: the volunteer's side.
-msgid "help_friend_title"
-msgstr "Help a friend stay online"
+# The server list's tab for private servers and personal proxies.
+msgid "private_locations"
+msgstr "Private Locations"
 
-msgid "help_friend_entry"
-msgstr "Help a friend"
+# Section header in Private Locations: friends abroad who route this user's traffic.
+msgid "personal_proxies"
+msgstr "Personal Proxies:"
 
-msgid "help_friend_intro"
-msgstr "A friend asked for your help. While Lantern runs, they can reach the open internet through your connection."
+# The selectable row that connects through all of the user's personal proxies.
+msgid "your_personal_proxies"
+msgstr "Your personal proxies"
+
+# Shown when Lantern can't connect through the friend the user selected as their Personal Proxy and switches to all of the user's personal proxies ("Your personal proxies" is that row's name). The friend may still be online, so this must not say they are offline. %s is the friend's name.
+msgid "personal_proxy_fallback_group"
+msgstr "Can't reach %s right now. Switched to Your personal proxies."
+
+# Shown when Lantern can't connect through the friend the user selected as their Personal Proxy and switches to Smart Location, its automatic choice of server. The friend may still be online, so this must not say they are offline. %s is the friend's name.
+msgid "personal_proxy_fallback_auto"
+msgstr "Can't reach %s right now. Switched to Smart Location."
+
+# Title of the card that tells a volunteer what being someone's Personal Proxy involves.
+msgid "become_means_title"
+msgstr "What being a Personal Proxy means"
+
+msgid "become_means_traffic"
+msgstr "A friend asked for your help. While Action Mode runs, they can reach the open internet through your connection. Depending on your router, their traffic leaves from your network or is relayed through Lantern's servers. Lantern doesn't show you what they do online."
+
+msgid "become_means_seen"
+msgstr "They can see when you're connected. Only accept invites from people you know."
+
+msgid "become_means_remove"
+msgstr "Remove the connection any time."
+
+# Title of the card with the invite link and name fields.
+msgid "help_friend_form_title"
+msgstr "Paste the link from the person you're helping"
+
+# Title of the same card when the invite link opened the app. The inviter's
+# name is not known yet.
+msgid "help_friend_form_title_from_link"
+msgstr "A friend invited you to be their personal proxy"
+
+# Under the invite link field.
+msgid "help_friend_link_hint"
+msgstr "Tapping the link on this device fills this in"
+
+msgid "help_friend_name_label"
+msgstr "Your name, as they know you"
+
+# Under the name field.
+msgid "help_friend_name_hint"
+msgstr "This is how you appear in their Lantern"
+
+msgid "help_friend_become"
+msgstr "Become Their Personal Proxy"
+
+msgid "help_friend_tell_code"
+msgstr "Tell them this code"
+
+msgid "help_friend_code_check"
+msgstr "They will check it matches the code on their phone, then approve you."
+
+msgid "help_friend_waiting_approval"
+msgstr "Waiting for approval"
+
+# Note under the code a volunteer reads to the friend who invited them.
+msgid "help_friend_code_note"
+msgstr "Say the code over a call or in a different app than the one the invite link arrived in. Anyone who saw the link should not also see the code."
 
 msgid "help_friend_link_label"
 msgstr "Invite link"
@@ -2300,20 +2103,9 @@ msgstr "Paste the link your friend sent"
 msgid "help_friend_scan"
 msgstr "Scan your friend's QR code"
 
-msgid "help_friend_sharing_note"
-msgstr "Lantern helps automatically while it's running. It uses a direct connection when your router allows one, and a browser-style connection otherwise."
-
-msgid "help_friend_accept"
-msgstr "Help my friend"
-
-msgid "help_friend_code_title"
-msgstr "Tell your friend this code"
-
-msgid "help_friend_code_body"
-msgstr "Your friend will check that it matches the code on their phone, then approve you. A call or a different app is safest."
-
-msgid "help_friend_waiting"
-msgstr "Waiting for your friend to approve"
+# Button under the invite link field: fills it from the clipboard.
+msgid "help_friend_paste_button"
+msgstr "Paste link"
 
 # %s is the friend's name.
 msgid "help_friend_approved"
@@ -2338,17 +2130,76 @@ msgid "help_friend_already_helping_named"
 msgstr "You're already helping %s."
 
 msgid "help_friend_bad_link"
-msgstr "This isn't a helper invite link."
+msgstr "This isn't a Personal Proxy invite link."
 
 msgid "help_friend_own_invite"
 msgstr "This is your own invite. Send it to the friend you'd like help from."
 
-msgid "helping_title"
-msgstr "You're helping"
+# Above a button for someone abroad who has no invite link yet.
+msgid "help_friend_no_link"
+msgstr "Don't have a link yet?"
 
-# First %s is a duration such as "3h 20m"; second is an amount of data such as "1.2 GB".
-msgid "helping_today"
-msgstr "Today: active %s, %s shared"
+# Button: shares help_friend_ask_invite_message to a friend.
+msgid "help_friend_ask_invite"
+msgstr "Ask your friend to invite you"
+
+# Sent to a friend in a censored country, who will read it in their own
+# Lantern. "Server Selection" must match server_selection and "Invite a
+# Personal Proxy" must match invite_personal_proxy, as the friend's app shows
+# them in this language.
+msgid "help_friend_ask_invite_message"
+msgstr "I can be your personal proxy on Lantern, so you can get online through my connection. In Lantern, open Server Selection, tap the ⋮ menu at the top, choose \"Invite a Personal Proxy\" and send me the link."
+
+# Action Mode card for someone abroad, before they help any friend. Opens the screen for an invite link.
+msgid "become_personal_proxy"
+msgstr "Become a Personal Proxy"
+
+msgid "become_personal_proxy_body"
+msgstr "Help someone you know get online"
+
+# Action Mode card once this device helps at least one friend as their Personal Proxy.
+msgid "helping_connections_title"
+msgstr "Your Personal Proxy connections"
+
+msgid "helping_friends_one"
+msgstr "1 friend"
+
+# %s is a number of friends, 2 or more.
+msgid "helping_friends_count"
+msgstr "%s friends"
+
+# %s is the name of the one friend routing through this device right now.
+msgid "helping_connected_named"
+msgstr "%s connected right now"
+
+# %s is how many friends route through this device right now.
+msgid "helping_connected_count"
+msgstr "%s connected right now"
+
+# Title of the sheet listing the friends this device is the Personal Proxy for.
+msgid "helping_sheet_title"
+msgstr "Friends you're helping"
+
+msgid "helping_your_friends"
+msgstr "Your friends"
+
+# A friend routes through this device right now.
+msgid "helping_connected"
+msgstr "Connected"
+
+msgid "helping_not_connected"
+msgstr "Not connected"
+
+msgid "helping_paste_another"
+msgstr "Paste another invite link"
+
+# Card with today's totals for the data this device relayed for others.
+msgid "helping_data_relayed"
+msgstr "Data relayed today"
+
+# %s is a duration such as "3h 20m".
+msgid "helping_active_today"
+msgstr "Active %s"
 
 # %s is a date.
 msgid "helping_since"
@@ -2358,7 +2209,7 @@ msgid "helping_unnamed"
 msgstr "Someone you help"
 
 msgid "helping_sharing_off_warning"
-msgstr "Sharing is off, so the people you help can't connect through you."
+msgstr "Sharing is off, so the friends you help can't connect through you."
 
 msgid "helping_remove"
 msgstr "Stop helping"
@@ -2374,7 +2225,7 @@ msgid "help_others_too_body"
 msgstr "Lend spare capacity to other people facing censorship; Lantern only lets them reach allowed sites, which protects your connection from misuse."
 
 msgid "help_others_too_note"
-msgstr "Changing this briefly reconnects the people you help."
+msgstr "Changing this briefly reconnects the friends you help."
 
 # %s %s are hours and minutes, as numbers.
 msgid "helping_duration_hm"

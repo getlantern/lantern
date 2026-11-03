@@ -31,8 +31,11 @@ type fakeCloud struct {
 	invites  map[string]*fakeInvite
 	pairings []*fakePairing
 	online   map[string]bool
-	disabled bool
-	down     bool
+	// outboundTag is each volunteer device's outbound tag, as lantern-cloud
+	// gives it on the inviter's rows.
+	outboundTag map[string]string
+	disabled    bool
+	down        bool
 	// flagOff lists devices without the helper_invites flag. They get
 	// lantern-cloud's gate (Task 1): claims always; pairings, ending and
 	// tickets only while they hold a live claim or a pairing; nothing else.
@@ -55,7 +58,7 @@ type fakeCloud struct {
 }
 
 func newFakeCloud() *fakeCloud {
-	return &fakeCloud{invites: map[string]*fakeInvite{}, online: map[string]bool{}, flagOff: map[string]bool{},
+	return &fakeCloud{invites: map[string]*fakeInvite{}, online: map[string]bool{}, outboundTag: map[string]string{}, flagOff: map[string]bool{},
 		loseAnswer: map[string]bool{}, fail: map[string]int{}, bodies: map[string][][]byte{}}
 }
 
@@ -181,9 +184,10 @@ func (f *fakeCloud) handle(device, op string, body []byte) (int, []byte, string,
 					id = ""
 				}
 				out = append(out, map[string]any{"pairing_id": id, "role": "inviter",
-					"online": f.online[p.volunteer], "created_unix": strconv.Itoa(1800000000)})
+					"online": f.online[p.volunteer], "created_unix": strconv.Itoa(1800000000),
+					"outbound_tag": f.outboundTag[p.volunteer]})
 			case p.volunteer:
-				m := map[string]any{"pairing_id": p.id, "role": "volunteer", "created_unix": "1800000000"}
+				m := map[string]any{"pairing_id": p.id, "role": "volunteer", "created_unix": "1800000000", "outbound_tag": ""}
 				if len(p.inviterBlob) > 0 {
 					m["inviter_blob"] = p.inviterBlob
 					p.inviterBlob = nil // delivered once, as lantern-cloud does

@@ -75,17 +75,50 @@ class ServerLocation {
   /// Build from a radiance [Server] object.
   factory ServerLocation.fromServer({
     required Server server,
+    ServerLocationType type = ServerLocationType.lanternLocation,
     AutoLocation? autoLocation,
   }) {
     return ServerLocation(
       serverName: server.tag,
-      serverType: ServerLocationType.lanternLocation.name,
+      serverType: type.name,
       country: server.location.country,
       city: server.location.city,
       countryCode: server.location.countryCode,
       displayName: '${server.location.country} - ${server.location.city}',
       protocol: server.type,
       autoLocation: autoLocation,
+    );
+  }
+
+  /// The user's personal proxies, selected as one location, or with
+  /// [friendTag] the one friend whose outbound tag it is. Where the friends
+  /// are is never shown. Nor is a friend's name kept here, where it would be
+  /// stored and sent to the home-screen widget: the UI looks it up by
+  /// [personalProxyFriendTag].
+  factory ServerLocation.personalProxy({String? friendTag}) => ServerLocation(
+    serverName: friendTag == null
+        ? personalProxiesTag
+        : personalProxySelection(friendTag),
+    serverType: ServerLocationType.personalProxy.name,
+    displayName: 'personal_proxy'.i18n,
+  );
+
+  /// The outbound tag of the friend selected on their own, or null for the
+  /// personal proxies group and every other location.
+  String? get personalProxyFriendTag =>
+      serverType == ServerLocationType.personalProxy.name
+      ? personalProxyFriend(serverName)
+      : null;
+
+  /// The location of the server radiance reports as selected.
+  factory ServerLocation.selected(Server server) {
+    if (server.tag == personalProxiesTag) return ServerLocation.personalProxy();
+    final friend = personalProxyFriend(server.tag);
+    if (friend != null) return ServerLocation.personalProxy(friendTag: friend);
+    return ServerLocation.fromServer(server: server).copyWith(
+      serverType: server.isLantern
+          ? ServerLocationType.lanternLocation.name
+          : ServerLocationType.privateServer.name,
     );
   }
 
@@ -118,7 +151,27 @@ class ServerLocation {
     'autoLocation': autoLocation?.toJson(),
   };
 
+  /// [toJson] for log lines. A personal proxy's label would reveal it in any
+  /// language, so it is left out.
+  Map<String, dynamic> toLogJson() {
+    final json = toJson();
+    if (serverType == ServerLocationType.personalProxy.name) {
+      json.remove('displayName');
+    }
+    return json;
+  }
+
   factory ServerLocation.fromJson(Map<String, dynamic> json) {
+    final autoLocation = json['autoLocation'] is Map<String, dynamic>
+        ? AutoLocation.fromJson(json['autoLocation'] as Map<String, dynamic>)
+        : null;
+    // Rebuilt rather than read, so the label follows the current language.
+    if (json['serverType'] == ServerLocationType.personalProxy.name) {
+      final name = json['serverName'];
+      return ServerLocation.personalProxy(
+        friendTag: name is String ? personalProxyFriend(name) : null,
+      ).copyWith(autoLocation: autoLocation);
+    }
     return ServerLocation(
       serverName: (json['serverName'] ?? '') as String,
       serverType: (json['serverType'] ?? '') as String,
@@ -127,9 +180,7 @@ class ServerLocation {
       city: (json['city'] ?? '') as String,
       displayName: (json['displayName'] as String?),
       protocol: (json['protocol'] ?? '') as String,
-      autoLocation: json['autoLocation'] is Map<String, dynamic>
-          ? AutoLocation.fromJson(json['autoLocation'] as Map<String, dynamic>)
-          : null,
+      autoLocation: autoLocation,
     );
   }
 

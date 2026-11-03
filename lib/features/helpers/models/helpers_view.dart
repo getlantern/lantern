@@ -25,6 +25,16 @@ class HelpersView {
   /// Something is waiting on the other person: poll for it.
   bool get needsPolling => invites.isNotEmpty || claims.isNotEmpty;
 
+  /// The first invite a friend has claimed: it waits on this user to
+  /// compare codes and approve.
+  HelperInviteView? get awaitingApproval =>
+      invites.where((i) => i.claimed).firstOrNull;
+
+  /// The friend helping this device whose outbound tag is [outboundTag].
+  HelperPairingView? helperByTag(String outboundTag) => outboundTag.isEmpty
+      ? null
+      : helpers.where((h) => h.outboundTag == outboundTag).firstOrNull;
+
   /// Claims whose code the volunteer can still show the inviter: sent (not
   /// provisional) and unexpired at [nowUnix].
   Iterable<HelperClaimView> waitingClaims(int nowUnix) => claims.where(
@@ -116,6 +126,8 @@ class HelperPairingView {
     this.name = '',
     this.online = false,
     this.sinceUnix = 0,
+    this.connected,
+    this.outboundTag = '',
   });
 
   final String pairingId;
@@ -123,13 +135,67 @@ class HelperPairingView {
   final bool online;
   final int sinceUnix;
 
+  /// On a pairing in which this device is helped: the friend's outbound tag,
+  /// which selects them on their own. Empty until lantern-cloud gives it.
+  final String outboundTag;
+
+  /// On a pairing this device helps: whether that friend routes through this
+  /// device right now. Null until the engine reports it, and then nothing
+  /// may claim either way.
+  final bool? connected;
+
+  /// Whether this friend can be selected on their own: lantern-cloud gave
+  /// their outbound tag and says they are online, and radiance has a live
+  /// route to them. [status] is radiance's status by outbound tag, null while
+  /// unknown (the VPN is off, or radiance did not answer): online then
+  /// decides alone.
+  bool selectable(Map<String, PersonalProxyStatus>? status) {
+    if (outboundTag.isEmpty || !online) return false;
+    if (status == null) return true;
+    return status[outboundTag]?.live ?? false;
+  }
+
   factory HelperPairingView.fromJson(Map<String, dynamic> j) =>
       HelperPairingView(
         pairingId: _str(j['pairing_id']),
         name: _str(j['name']),
         online: j['online'] == true,
         sinceUnix: _int(j['since_unix']),
+        connected: j['connected'] is bool ? j['connected'] as bool : null,
+        outboundTag: _str(j['outbound_tag']),
       );
+}
+
+/// radiance's status of one friend this device invited (lantern-core's
+/// personal_proxy_status op).
+class PersonalProxyStatus {
+  const PersonalProxyStatus({this.direct = false, this.rooms = false});
+
+  /// The config carries the friend's direct outbound.
+  final bool direct;
+
+  /// This device can reach the friend through Unbounded's rooms.
+  final bool rooms;
+
+  /// The friend's group has a member to route through.
+  bool get live => direct || rooms;
+
+  /// The op's answer, by outbound tag. Entries without a tag are skipped.
+  static Map<String, PersonalProxyStatus> parseAll(Map<String, dynamic> j) {
+    final out = <String, PersonalProxyStatus>{};
+    final list = j['statuses'];
+    if (list is! List) return out;
+    for (final e in list) {
+      if (e is! Map<String, dynamic>) continue;
+      final tag = _str(e['tag']);
+      if (tag.isEmpty) continue;
+      out[tag] = PersonalProxyStatus(
+        direct: e['direct'] == true,
+        rooms: e['rooms'] == true,
+      );
+    }
+    return out;
+  }
 }
 
 class HelperActivity {

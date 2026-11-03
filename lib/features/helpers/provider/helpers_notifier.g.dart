@@ -55,45 +55,42 @@ final class HelperInvitesAvailableProvider
 String _$helperInvitesAvailableHash() =>
     r'28b6defb614c556b2fadebc03865e801586b6872';
 
-/// Whether settings offer "Get help from a friend": while helper invites are
-/// available, and after the flag goes off while this device still has
-/// helpers or invites to manage, or may have them: it used helper invites
-/// and no view has loaded yet. Reads only the notifier's state and the used
-/// mark in local storage, never the keystore, so a device that never used
-/// them stays hidden.
+/// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+/// helper invites are available, and after the flag goes off while this
+/// device still has personal proxies or invites to manage, or may have them:
+/// it used helper invites and no view has loaded yet. Reads only the
+/// notifier's state and the used mark in local storage, never the keystore.
 
-@ProviderFor(helperEntryVisible)
-final helperEntryVisibleProvider = HelperEntryVisibleProvider._();
+@ProviderFor(personalProxiesTabVisible)
+final personalProxiesTabVisibleProvider = PersonalProxiesTabVisibleProvider._();
 
-/// Whether settings offer "Get help from a friend": while helper invites are
-/// available, and after the flag goes off while this device still has
-/// helpers or invites to manage, or may have them: it used helper invites
-/// and no view has loaded yet. Reads only the notifier's state and the used
-/// mark in local storage, never the keystore, so a device that never used
-/// them stays hidden.
+/// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+/// helper invites are available, and after the flag goes off while this
+/// device still has personal proxies or invites to manage, or may have them:
+/// it used helper invites and no view has loaded yet. Reads only the
+/// notifier's state and the used mark in local storage, never the keystore.
 
-final class HelperEntryVisibleProvider
+final class PersonalProxiesTabVisibleProvider
     extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
-  /// Whether settings offer "Get help from a friend": while helper invites are
-  /// available, and after the flag goes off while this device still has
-  /// helpers or invites to manage, or may have them: it used helper invites
-  /// and no view has loaded yet. Reads only the notifier's state and the used
-  /// mark in local storage, never the keystore, so a device that never used
-  /// them stays hidden.
-  HelperEntryVisibleProvider._()
+  /// Whether Manage Private Locations shows its "Personal Proxies" tab: while
+  /// helper invites are available, and after the flag goes off while this
+  /// device still has personal proxies or invites to manage, or may have them:
+  /// it used helper invites and no view has loaded yet. Reads only the
+  /// notifier's state and the used mark in local storage, never the keystore.
+  PersonalProxiesTabVisibleProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'helperEntryVisibleProvider',
+        name: r'personalProxiesTabVisibleProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$helperEntryVisibleHash();
+  String debugGetCreateSourceHash() => _$personalProxiesTabVisibleHash();
 
   @$internal
   @override
@@ -102,7 +99,7 @@ final class HelperEntryVisibleProvider
 
   @override
   bool create(Ref ref) {
-    return helperEntryVisible(ref);
+    return personalProxiesTabVisible(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -114,8 +111,124 @@ final class HelperEntryVisibleProvider
   }
 }
 
-String _$helperEntryVisibleHash() =>
-    r'583159a4d2587bc65da4bdac79291d1494bbdca4';
+String _$personalProxiesTabVisibleHash() =>
+    r'c25872760ac30e76edd3a739ed8d9f686f03f70f';
+
+/// Whether the VPN tab offers "Get a personal proxy": while helper invites
+/// are available and this device has no personal proxy. A device that never
+/// used helper invites has none, so the keystore is never touched to decide;
+/// one that did waits for a loaded view.
+
+@ProviderFor(personalProxyBannerVisible)
+final personalProxyBannerVisibleProvider =
+    PersonalProxyBannerVisibleProvider._();
+
+/// Whether the VPN tab offers "Get a personal proxy": while helper invites
+/// are available and this device has no personal proxy. A device that never
+/// used helper invites has none, so the keystore is never touched to decide;
+/// one that did waits for a loaded view.
+
+final class PersonalProxyBannerVisibleProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// Whether the VPN tab offers "Get a personal proxy": while helper invites
+  /// are available and this device has no personal proxy. A device that never
+  /// used helper invites has none, so the keystore is never touched to decide;
+  /// one that did waits for a loaded view.
+  PersonalProxyBannerVisibleProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'personalProxyBannerVisibleProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$personalProxyBannerVisibleHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return personalProxyBannerVisible(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$personalProxyBannerVisibleHash() =>
+    r'd1a6a288dcfef7277eed8cb4fbd8d43a0b437474';
+
+/// Whether a friend who claimed an invite waits on this user's approval, in
+/// a build and for a server that offer helper invites. The VPN tab then gives
+/// the banner's waiting variant the Pro banner's slot, and shows it to a user
+/// who already has a personal proxy too: the wait is short and the invite
+/// expires.
+
+@ProviderFor(personalProxyWaiting)
+final personalProxyWaitingProvider = PersonalProxyWaitingProvider._();
+
+/// Whether a friend who claimed an invite waits on this user's approval, in
+/// a build and for a server that offer helper invites. The VPN tab then gives
+/// the banner's waiting variant the Pro banner's slot, and shows it to a user
+/// who already has a personal proxy too: the wait is short and the invite
+/// expires.
+
+final class PersonalProxyWaitingProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// Whether a friend who claimed an invite waits on this user's approval, in
+  /// a build and for a server that offer helper invites. The VPN tab then gives
+  /// the banner's waiting variant the Pro banner's slot, and shows it to a user
+  /// who already has a personal proxy too: the wait is short and the invite
+  /// expires.
+  PersonalProxyWaitingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'personalProxyWaitingProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$personalProxyWaitingHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return personalProxyWaiting(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$personalProxyWaitingHash() =>
+    r'59243d39cdf252a46873f4d8f9327983eea8084c';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
@@ -159,7 +272,7 @@ final class HelpersNotifierProvider
   }
 }
 
-String _$helpersNotifierHash() => r'0c5eb5ff0396001b200e7f5a0878fb16e8b616e4';
+String _$helpersNotifierHash() => r'c3174b0d6dbdf8aa0c4a3a3816b37c079f821da9';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are

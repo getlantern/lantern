@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 
@@ -61,6 +62,11 @@ class _CensoredDialogState extends ConsumerState<CensoredDialog> {
         AppTextButton(
           label: 'turn_on_vpn'.i18n,
           onPressed: () async {
+            if (PlatformUtils.isMacOS &&
+                !ref.read(macosExtensionProvider).isReady) {
+              final value = await appRouter.push(const MacOSExtensionDialog());
+              if (!mounted || value != true) return;
+            }
             final result = await ref.read(vpnProvider.notifier).startVPN();
             result.fold(
               (failure) {

@@ -202,7 +202,7 @@ void main() {
         lanternServiceProvider.overrideWithValue(service),
         appSettingProvider.overrideWith(_Settings.new),
         isOAuthLoginProvider.overrideWith((ref) async => false),
-        helperEntryVisibleProvider.overrideWithValue(false),
+        personalProxiesTabVisibleProvider.overrideWithValue(false),
       ],
     );
   });
