@@ -366,9 +366,13 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
                     )
                     self.assertEqual(result.returncode == 0, success, result.stderr)
                     uploads = [c for c in self.commands() if c[:3] == ["aws", "s3", "cp"]]
-                    # Branch builds skip the shared latest/ alias.
-                    expected = (1 if is_test_run == "true" else 2) if success else 0
-                    self.assertEqual(len(uploads), expected)
+                    expected = []
+                    if success:
+                        expected.append(f"s3://release-test/releases/nightly/9.2.0/{artifact.name}")
+                        # Branch builds skip the shared latest/ alias.
+                        if is_test_run == "false":
+                            expected.append(f"s3://release-test/releases/nightly/latest/{artifact.name}")
+                    self.assertEqual([c[4] for c in uploads], expected)
 
     def test_nightly_download_messages_point_to_the_published_artifacts(self) -> None:
         filenames = [
