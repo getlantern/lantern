@@ -34,3 +34,12 @@
 -dontwarn com.stripe.android.pushProvisioning.PushProvisioningActivityStarter$Error
 -dontwarn com.stripe.android.pushProvisioning.PushProvisioningActivityStarter
 -dontwarn com.stripe.android.pushProvisioning.PushProvisioningEphemeralKeyProvider
+# Strip debug and verbose logcat calls from release builds. Third-party
+# plugins log deep-link URLs at these levels (app_links logs every incoming
+# intent's data), and a helper invite link carries its secret in the URL
+# fragment, so it would land in logcat. Info, warning and error logs stay.
+# AppLogger.d still writes its file log; only the logcat call is removed.
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+}

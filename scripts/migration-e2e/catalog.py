@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assemble local catalog assets from a reviewed signed bundle; never publish."""
+"""Assemble local staging catalog assets from a reviewed signed bundle; never publish."""
 import argparse
 import bz2
 import json

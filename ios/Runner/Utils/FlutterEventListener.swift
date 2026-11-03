@@ -13,10 +13,13 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
   private var pendingEvents: [[String: Any?]] = []
   private let lock = NSLock()
 
-  /// Frequent event diagnostics use opt-in trace logging.
+  /// Frequent event diagnostics use opt-in trace logging. The snapshots arrive
+  /// every second while sharing and carry the addresses of the peers relayed.
   private static let highVolumeEvents: Set<String> = [
     "peer-connection",
     "data-cap-event",
+    "unbounded-snapshot",
+    "peer-snapshot",
   ]
 
   func send(_ event: UtilsFlutterEvent?) {
@@ -29,7 +32,9 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
         appLogger.log(message())
       }
     }
-    logEvent("FlutterEventListener sending event: \(event.type) - \(event.message)")
+    logEvent(
+      "FlutterEventListener sending event: \(loggableFlutterEvent(type: event.type, message: event.message))"
+    )
     let map: [String: Any] = [
       "type": event.type,
       "message": event.message,
@@ -38,7 +43,7 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
     lock.lock()
     if let sink = eventSink {
       lock.unlock()
-      logEvent("FlutterEventListener sending event immediately: \(map)")
+      logEvent("FlutterEventListener sending event immediately: \(event.type)")
       DispatchQueue.main.async {
         sink(map)
       }

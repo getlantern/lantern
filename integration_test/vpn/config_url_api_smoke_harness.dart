@@ -42,7 +42,6 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
   WidgetTester tester, {
   required String configUrl,
   required String configServerName,
-  required bool skipCertVerification,
 }) async {
   final urls = splitConfigUrls(configUrl);
   if (urls.length != 1) {
@@ -81,7 +80,6 @@ Future<void> runConfigUrlApiConnectSmokeHarness(
 
   final addServerResult = await lantern.addServerBasedOnURLs(
     urls: url,
-    skipCertVerification: skipCertVerification,
   );
   late final List<String> addedTags;
   addServerResult.fold(

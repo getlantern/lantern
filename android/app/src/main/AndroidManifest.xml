@@ -119,6 +119,28 @@
 
         </activity>
 
+        <!-- Helper invite links (lantern.io/help#…). Disabled in stealth builds
+             through the helperLinksEnabled placeholder. -->
+        <activity-alias
+            android:name=".HelperInviteLinks"
+            android:targetActivity=".MainActivity"
+            android:enabled="${helperLinksEnabled}"
+            android:exported="true">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="lantern.io" android:path="/help" />
+                <data android:scheme="https" android:host="lantern.io" android:pathPrefix="/help/" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${appAuthScheme}" android:host="help" />
+            </intent-filter>
+        </activity-alias>
+
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
             <intent-filter>

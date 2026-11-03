@@ -66,7 +66,9 @@ require an enabled dedicated runner. See [macOS CI runners](macos-ci.md) for the
 `MACOS_STATEFUL_SMOKE_ENABLED` gate and temporary coverage gap.
 Sparkle or WinSparkle downloads and installs the target. The smoke checks its
 signature and version, waits for the original process to exit, and verifies that
-the updated app relaunches with a visible window.
+the updated app relaunches with a visible window. Windows additionally checks
+120 seconds of responsive GUI startup before and after the update, and verifies
+the replacement app starts its native updater.
 
 Both workflows accept a `scenario` input:
 
@@ -94,3 +96,11 @@ update hostname and checks the DNS block before launch, at the update offer, and
 after relaunch. Script cleanup and an `always()` workflow step remove only the
 hosts-file entries added by the test. A passing build alone does not validate
 fronted delivery; the signed installation and relaunch checks must pass too.
+
+Signed Windows builds also install and launch the exact candidate before
+publishing. Packaging uses Inno directly to avoid rebuilding signed binaries;
+installed EXE/DLL signatures and hashes must match the signed payload. Setup
+checks native runtime DLL versions as well as registry metadata, repairs the
+bundled version when possible, and requests repair of newer damaged runtimes.
+Windows 11 Smart App Control and damaged-runtime validation still require a
+disposable Windows test machine.

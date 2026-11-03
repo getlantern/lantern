@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 
 class PlatformUtils {
   /// Android TV / Google TV (leanback). Set once at startup by [initDeviceType].
@@ -16,8 +17,13 @@ class PlatformUtils {
     }
   }
 
+  /// Lets a test act as a desktop or not, whatever its host.
+  @visibleForTesting
+  static bool? debugIsDesktop;
+
   static bool get isDesktop =>
-      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+      debugIsDesktop ??
+      (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
   static bool get isMacOS => Platform.isMacOS;
 

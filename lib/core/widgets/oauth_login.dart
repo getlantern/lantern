@@ -138,23 +138,27 @@ class OAuthLogin extends HookConsumerWidget {
     );
   }
 
-  /// The OAuth callback either carries just a token (login succeeded) or a
-  /// device-limit response (result=false plus the account's device[...] list
-  /// and a token identifying the account). In the latter case load the
-  /// account identity into the core so the removal is authorized, run the
-  /// same device-removal flow as password sign-in, then restart the OAuth
-  /// flow once a device has been freed up.
+  /// Success carries `token`; `result=false` carries `device[...]` (device
+  /// limit, handled via the removal flow) or `error` (shown to the user).
   Future<void> _handleOAuthPayload(
     SignUpMethodType type,
     WidgetRef ref,
     BuildContext context,
     Map<String, dynamic> payload,
   ) async {
-    final devices = payload['result'] == 'false'
-        ? _devicesFromPayload(payload)
-        : const <DeviceModel>[];
-    if (devices.isEmpty) {
+    if (payload['result'] != 'false') {
       onResult(payload);
+      return;
+    }
+    final devices = _devicesFromPayload(payload);
+    if (devices.isEmpty) {
+      final code = payload['error']?.toString() ?? '';
+      appLogger.error(
+        'OAuth login failed: ${code.isEmpty ? 'no error code' : code}',
+      );
+      if (context.mounted) {
+        context.showSnackBarError(oAuthErrorMessageKey(code).i18n);
+      }
       return;
     }
     appLogger.warning(

@@ -32,15 +32,18 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
-	github.com/getlantern/common v1.2.1-0.20261025061526-9182c99db6fa
+	github.com/getlantern/broflake v0.0.0-20261031143354-1bd725b74cfc
+	github.com/getlantern/common v1.2.1-0.20261031143256-3923eab754d6
+	github.com/getlantern/lantern-box v0.0.189
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261103131141-015a127d53c7
+	github.com/getlantern/radiance v0.0.0-20261103131907-ceb867312e79
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb
 	github.com/stretchr/testify v1.12.1
+	golang.org/x/crypto v0.58.0
 	golang.org/x/mobile v0.0.0-20250711185624-d5bb5ecc55c0
-	golang.org/x/sys v0.48.0
+	golang.org/x/sys v0.49.0
 	google.golang.org/protobuf v1.36.12
 	howett.net/plist v1.0.1
 )
@@ -52,7 +55,7 @@ require (
 	github.com/caddyserver/zerossl v0.1.5 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/go-chi/chi/v5 v5.2.5 // indirect
+	github.com/go-chi/chi/v5 v5.3.0 // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -64,7 +67,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libdns/alidns v1.0.6 // indirect
 	github.com/libdns/cloudflare v0.2.2 // indirect
@@ -81,7 +84,7 @@ require (
 	github.com/sagernet/fswatch v0.1.2 // indirect
 	github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b // indirect
 	github.com/sagernet/nftables v0.3.0-mod.2 // indirect
-	github.com/sagernet/quic-go v0.59.0-sing-box-mod.4 // indirect
+	github.com/sagernet/quic-go v0.61.0-sing-box-mod.1 // indirect
 	github.com/sagernet/sing-mux v0.3.5 // indirect
 	github.com/sagernet/sing-quic v0.6.4-0.20260803041914-d83826c306d7 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
@@ -104,11 +107,11 @@ require (
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/net v0.60.0
-	golang.org/x/sync v0.23.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/net v0.62.0
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
+	golang.org/x/tools v0.51.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260819154853-08b0e4226688 // indirect
 	google.golang.org/grpc v1.83.2 // indirect
@@ -177,17 +180,15 @@ require (
 	github.com/gaukas/wazerofs v0.1.0 // indirect
 	github.com/getlantern/algeneva v0.0.0-20260731172949-952f13725b7b // indirect
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
-	github.com/getlantern/broflake v0.0.0-20261027185621-f3e54408e4f0 // indirect
 	github.com/getlantern/domainfront v0.0.0-20261026202828-9727b2f2a34a // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20261009194109-22f33eaeac6e // indirect
 	github.com/getlantern/kindling v0.0.0-20261026211804-dac6d561f52e // indirect
-	github.com/getlantern/lantern-box v0.0.176 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
 	github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b // indirect
-	github.com/getlantern/samizdat v0.0.3-0.20261021183544-34a7d2563eef // indirect
-	github.com/getlantern/semconv v0.0.0-20261020020737-084d1daf4879 // indirect
+	github.com/getlantern/samizdat v0.0.3-0.20261031023545-1248df926631 // indirect
+	github.com/getlantern/semconv v0.0.0-20261028170058-373fcfda8972 // indirect
 	github.com/getlantern/soar v0.2.4 // indirect
 	github.com/getlantern/twiddle v0.0.0-20260914204124-f698a0d67d2f // indirect
 	github.com/go-json-experiment/json v0.0.0-20250813024750-ebf49471dced // indirect
@@ -211,6 +212,7 @@ require (
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
+	github.com/jackpal/gateway v1.2.0 // indirect
 	github.com/jsimonetti/rtnetlink v1.4.0 // indirect
 	github.com/keybase/go-keychain v0.0.1 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
@@ -220,7 +222,7 @@ require (
 	github.com/knadh/koanf/v2 v2.3.0 // indirect
 	github.com/libdns/acmedns v0.5.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/metacubex/utls v1.8.4 // indirect
+	github.com/metacubex/utls v1.8.7 // indirect
 	github.com/mholt/archives v0.1.5 // indirect
 	github.com/mikelolasagasti/xz v1.0.1 // indirect
 	github.com/minio/minlz v1.0.1 // indirect
@@ -331,9 +333,8 @@ require (
 	go4.org/mem v0.0.0-20240501181205-ae6ca9944745 // indirect
 	golang.getoutline.org/sdk v0.0.21 // indirect
 	golang.getoutline.org/sdk/x v0.1.0 // indirect
-	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/term v0.46.0 // indirect
+	golang.org/x/term v0.47.0 // indirect
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10 // indirect
 	golang.zx2c4.com/wireguard/windows v0.5.3 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260819154853-08b0e4226688 // indirect

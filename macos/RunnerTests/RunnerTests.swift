@@ -486,6 +486,43 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(reconciliation.change, .install)
   }
 
+  func testReconcileRequiresEnableWhenDisabledCopySitsBesideUninstallingRow() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let disabled = makeDescriptor(build: "220", hash: "hash-a")
+    let uninstalling = makeDescriptor(build: "210", hash: "hash-b", isUninstalling: true)
+
+    let first = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [disabled, uninstalling]
+    )
+    XCTAssertEqual(first.change, .enable)
+    assertActivate(first.action, contains: "activate bundled extension")
+
+    let second = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [disabled, uninstalling],
+      activationAttemptedOver: [disabled, uninstalling]
+    )
+    XCTAssertEqual(second.status, .requiresEnable)
+    XCTAssertEqual(second.action, .none)
+    XCTAssertEqual(second.change, .enable)
+  }
+
+  func testReconcileKeepsInstallingWhenOnlyUninstallingRowRemains() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let uninstalling = makeDescriptor(build: "210", hash: "hash-b", isUninstalling: true)
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [uninstalling],
+      activationAttemptedOver: [uninstalling]
+    )
+
+    assertUpdatePending(reconciliation.status, contains: "uninstalling")
+    assertActivate(reconciliation.action, contains: "activate")
+    XCTAssertEqual(reconciliation.change, .install)
+  }
+
   func testReconcileActivatesBundledExtensionWhenInstalledVersionIsNotEnabled() {
     let bundled = makeDescriptor(build: "220", hash: "hash-a")
     let installed = makeDescriptor(build: "220", hash: "hash-a")
@@ -495,7 +532,7 @@ final class RunnerTests: XCTestCase {
       installed: [installed]
     )
 
-    XCTAssertEqual(reconciliation.change, .install)
+    XCTAssertEqual(reconciliation.change, .enable)
     assertUpdatePending(
       reconciliation.status,
       contains: "no enabled system extension matches the current app"
@@ -504,6 +541,99 @@ final class RunnerTests: XCTestCase {
       reconciliation.action,
       contains: "activate bundled system extension"
     )
+  }
+
+  func testReconcileRequiresEnableWhenActivationOverDisabledExtensionWasNoOp() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let disabled = makeDescriptor(build: "220", hash: "hash-a")
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [disabled],
+      activationAttemptedOver: [disabled]
+    )
+
+    XCTAssertEqual(reconciliation.status, .requiresEnable)
+    XCTAssertEqual(reconciliation.action, .none)
+    XCTAssertEqual(reconciliation.change, .enable)
+  }
+
+  func testReconcileRetriesActivationWhenDisabledInstalledSetChanged() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let previous = makeDescriptor(build: "219", hash: "hash-b")
+    let current = makeDescriptor(build: "220", hash: "hash-a")
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [current],
+      activationAttemptedOver: [previous]
+    )
+
+    XCTAssertEqual(reconciliation.change, .enable)
+    assertActivate(
+      reconciliation.action,
+      contains: "activate bundled system extension"
+    )
+  }
+
+  func testReconcileIgnoresDisabledSnapshotOnceAnExtensionIsEnabled() {
+    let bundled = makeDescriptor(build: "220", hash: "hash-a")
+    let enabled = makeDescriptor(build: "220", hash: "hash-a", isEnabled: true)
+
+    let reconciliation = SystemExtensionReconciler.reconcile(
+      bundled: bundled,
+      installed: [enabled],
+      activationAttemptedOver: [makeDescriptor(build: "220", hash: "hash-a")]
+    )
+
+    XCTAssertEqual(reconciliation.status, .activated)
+    XCTAssertEqual(reconciliation.action, .none)
+  }
+
+  func testDisabledBaselineIsKeptWhenActivationCompletesAsNoOp() {
+    let disabled = [makeDescriptor(build: "220", hash: "hash-a")]
+
+    XCTAssertEqual(
+      SystemExtensionDisabledBaseline.resolve(
+        current: nil, attemptedOver: disabled, outcome: .completed),
+      disabled)
+  }
+
+  func testDisabledBaselineIsKeptWhenReplacementIsCanceled() {
+    let disabled = [makeDescriptor(build: "220", hash: "hash-a")]
+
+    XCTAssertEqual(
+      SystemExtensionDisabledBaseline.resolve(
+        current: nil, attemptedOver: disabled, outcome: .canceled),
+      disabled)
+  }
+
+  func testDisabledBaselineSurvivesASupersededRequest() {
+    let current = [makeDescriptor(build: "220", hash: "hash-a")]
+
+    XCTAssertEqual(
+      SystemExtensionDisabledBaseline.resolve(
+        current: current, attemptedOver: nil, outcome: .superseded),
+      current)
+  }
+
+  func testDisabledBaselineIsDroppedOnRebootOrFailure() {
+    let disabled = [makeDescriptor(build: "220", hash: "hash-a")]
+
+    XCTAssertNil(
+      SystemExtensionDisabledBaseline.resolve(
+        current: disabled, attemptedOver: disabled, outcome: .willCompleteAfterReboot))
+    XCTAssertNil(
+      SystemExtensionDisabledBaseline.resolve(
+        current: disabled, attemptedOver: disabled, outcome: .failed))
+  }
+
+  func testDisabledBaselineClearsAfterAnOrdinaryActivation() {
+    let stale = [makeDescriptor(build: "219", hash: "hash-b")]
+
+    XCTAssertNil(
+      SystemExtensionDisabledBaseline.resolve(
+        current: stale, attemptedOver: nil, outcome: .completed))
   }
 
   func testReconcileActivatesBundledExtensionWhenNothingIsInstalled() {

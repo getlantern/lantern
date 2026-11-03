@@ -10,6 +10,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 import '../../core/common/common.dart';
+import '../../core/utils/deeplink_utils.dart';
 
 @RoutePage(name: 'SignInEmail')
 class SignInEmail extends HookConsumerWidget {
@@ -142,7 +143,7 @@ class SignInEmail extends HookConsumerWidget {
         },
       );
     } else {
-      context.showSnackBar('Failed to retrieve token');
+      context.showSnackBar(oAuthSignInFailedKey.i18n);
     }
   }
 }

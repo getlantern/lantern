@@ -65,6 +65,12 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   /// after recovery.
   private var didAttemptStaleRegistryRecovery = false
 
+  /// Installed set an activation over a disabled extension was submitted
+  /// over, promoted here only once that request ended as a no-op. Seeing it
+  /// unchanged afterwards means the user has to re-enable the extension in
+  /// System Settings.
+  private var disabledActivationSnapshot: [SystemExtensionDescriptor]?
+
   override init() {
     super.init()
     // Query the installed extension state immediately so the status
@@ -119,6 +125,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
     switch result {
     case .completed:
+      settleDisabledActivation(state, outcome: .completed)
       guard let context else {
         submitPropertiesRequest(context: .inspectStatus)
         return
@@ -148,6 +155,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
         submitPropertiesRequest(context: .inspectStatus, observer: observer)
       }
     case .willCompleteAfterReboot:
+      settleDisabledActivation(state, outcome: .willCompleteAfterReboot)
       // Even when the deactivation needs a reboot, still attempt activation
       // if we were in a deactivate-then-activate flow. macOS can queue the
       // new extension while the old one is pending removal. Without this,
@@ -164,6 +172,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       let details = context?.rebootDetails ?? "system extension change will finish after reboot"
       publishStatus(.requiresReboot(details: details), observer: observer)
     @unknown default:
+      settleDisabledActivation(state, outcome: .failed)
       publishStatus(.error("Unknown system extension result"), observer: observer)
     }
   }
@@ -181,12 +190,19 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       && (nsError.code == OSSystemExtensionError.requestCanceled.rawValue
         || nsError.code == OSSystemExtensionError.requestSuperseded.rawValue)
     {
+      // Our own cancel in actionForReplacingExtension is the no-op this
+      // baseline exists to detect; a superseding request carries its own.
+      let canceled = nsError.code == OSSystemExtensionError.requestCanceled.rawValue
+      settleDisabledActivation(state, outcome: canceled ? .canceled : .superseded)
       appLogger.info(
         "System extension request ended without applying changes: context=\(context?.logDescription ?? "unknown") error=\(nsError.localizedDescription)"
       )
       submitPropertiesRequest(context: .inspectStatus, observer: observer)
       return
     }
+
+    // A failed activation is not a no-op; let the next reconcile retry it.
+    settleDisabledActivation(state, outcome: .failed)
 
     if StaleRegistryRecovery.shouldRecover(
       from: nsError,
@@ -240,12 +256,14 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
     let state = clearRequestState(for: request)
     let context = state?.context ?? .inspectStatus
     let observer = state?.observer
+    let previouslyActivatedOver = disabledActivationSnapshot
     reconciliationQueue.async { [self] in
       let bundled = SystemExtensionDescriptor.bundled(bundleID: self.tunnelBundleID)
       let installed = properties.map(SystemExtensionDescriptor.init(properties:))
       let reconciliation = SystemExtensionReconciler.reconcile(
         bundled: bundled,
-        installed: installed
+        installed: installed,
+        activationAttemptedOver: previouslyActivatedOver
       )
 
       Task { @MainActor [self] in
@@ -256,13 +274,18 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
           reconciliation: reconciliation
         )
 
+        if reconciliation.change != .enable {
+          self.disabledActivationSnapshot = nil
+        }
+
         self.publishStatus(reconciliation.status, observer: observer)
 
         guard context == .reconcile else {
           return
         }
 
-        self.perform(reconciliation.action, observer: observer)
+        let activatedOver = reconciliation.change == .enable ? installed : nil
+        self.perform(reconciliation.action, activatedOver: activatedOver, observer: observer)
       }
     }
   }
@@ -303,13 +326,16 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   private func submitActivationRequest(
     reason: String,
+    activatedOver: [SystemExtensionDescriptor]? = nil,
     observer: ((ExtensionStatus) -> Void)? = nil
   ) {
     let request = OSSystemExtensionRequest.activationRequest(
       forExtensionWithIdentifier: tunnelBundleID,
       queue: .main
     )
-    submit(request, context: .activate(reason: reason), observer: observer)
+    submit(
+      request, context: .activate(reason: reason), activatedOver: activatedOver,
+      observer: observer)
   }
 
   private func submitDeactivationRequest(
@@ -331,11 +357,13 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
   private func submit(
     _ request: OSSystemExtensionRequest,
     context: RequestContext,
+    activatedOver: [SystemExtensionDescriptor]? = nil,
     observer: ((ExtensionStatus) -> Void)? = nil
   ) {
     request.delegate = self
     contextQueue.sync {
-      requestStates[ObjectIdentifier(request)] = RequestState(context: context, observer: observer)
+      requestStates[ObjectIdentifier(request)] = RequestState(
+        context: context, observer: observer, activatedOver: activatedOver)
     }
     appLogger.info("Submitting system extension request: \(context.logDescription)")
     OSSystemExtensionManager.shared.submitRequest(request)
@@ -352,6 +380,7 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 
   private func perform(
     _ action: SystemExtensionInstallAction,
+    activatedOver: [SystemExtensionDescriptor]? = nil,
     observer: ((ExtensionStatus) -> Void)? = nil
   ) {
     switch action {
@@ -359,11 +388,21 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
       return
     case .activate(let reason):
       publishStatus(.updatePending(details: reason), observer: observer)
-      submitActivationRequest(reason: reason, observer: observer)
+      submitActivationRequest(reason: reason, activatedOver: activatedOver, observer: observer)
     case .deactivateThenActivate(let reason):
       publishStatus(.updatePending(details: reason), observer: observer)
       submitDeactivationRequest(reason: reason, activateAfter: true, observer: observer)
     }
+  }
+
+  private func settleDisabledActivation(
+    _ state: RequestState?,
+    outcome: SystemExtensionActivationOutcome
+  ) {
+    disabledActivationSnapshot = SystemExtensionDisabledBaseline.resolve(
+      current: disabledActivationSnapshot,
+      attemptedOver: state?.activatedOver,
+      outcome: outcome)
   }
 
   private func logSnapshot(
@@ -432,6 +471,9 @@ class SystemExtensionManager: NSObject, OSSystemExtensionRequestDelegate {
 private struct RequestState {
   let context: RequestContext
   let observer: ((ExtensionStatus) -> Void)?
+  /// Installed set this activation was submitted over when the bundled
+  /// extension was installed but disabled; nil for every other request.
+  let activatedOver: [SystemExtensionDescriptor]?
 }
 
 private enum RequestContext: Equatable {
@@ -718,6 +760,7 @@ internal struct SystemExtensionDescriptor: Equatable {
 internal enum SystemExtensionChangeKind: String, Equatable {
   case matched
   case install
+  case enable
   case upgrade
   case downgrade
   case contentChange
@@ -733,7 +776,8 @@ internal struct SystemExtensionReconciliation: Equatable {
 internal enum SystemExtensionReconciler {
   static func reconcile(
     bundled: SystemExtensionDescriptor?,
-    installed: [SystemExtensionDescriptor]
+    installed: [SystemExtensionDescriptor],
+    activationAttemptedOver: [SystemExtensionDescriptor]? = nil
   ) -> SystemExtensionReconciliation {
     guard let bundled else {
       return SystemExtensionReconciliation(
@@ -760,6 +804,15 @@ internal enum SystemExtensionReconciler {
 
     if installed.contains(where: \.isUninstalling) {
       if enabled == nil {
+        // A matching copy that is neither enabled nor uninstalling was switched
+        // off in System Settings; the stale row must not hide that.
+        let disabledCopy = installed.contains { $0.matches(bundled) }
+        if disabledCopy, let attempted = activationAttemptedOver, sameSet(attempted, installed) {
+          return SystemExtensionReconciliation(
+            status: .requiresEnable,
+            action: .none,
+            change: .enable)
+        }
         // Old extension is uninstalling but nothing is enabled — don't just wait
         // for a reboot that may never clear the state. Submit an activation request
         // so macOS can install the bundled extension alongside the pending removal.
@@ -767,7 +820,7 @@ internal enum SystemExtensionReconciler {
           status: .updatePending(
             details: "old extension is uninstalling, replacement activation pending"),
           action: .activate(reason: "activate bundled extension while old version awaits removal"),
-          change: .install)
+          change: disabledCopy ? .enable : .install)
       }
       // An enabled extension exists, but it does not match the bundled extension.
       // Fall through to normal upgrade/content-change handling. A stale uninstalling
@@ -782,10 +835,20 @@ internal enum SystemExtensionReconciler {
     }
 
     guard let enabled else {
+      // Installed, not awaiting approval, not uninstalling, yet nothing enabled:
+      // the user switched the extension off in System Settings. Activation
+      // completes there without enabling anything, so after one attempt over
+      // the same installed set stop looping and send the user to Settings.
+      if let attempted = activationAttemptedOver, sameSet(attempted, installed) {
+        return SystemExtensionReconciliation(
+          status: .requiresEnable,
+          action: .none,
+          change: .enable)
+      }
       return SystemExtensionReconciliation(
         status: .updatePending(details: "no enabled system extension matches the current app"),
         action: .activate(reason: "activate bundled system extension"),
-        change: .install)
+        change: .enable)
     }
 
     let change = classifyChange(current: enabled, desired: bundled)
@@ -811,7 +874,7 @@ internal enum SystemExtensionReconciler {
         action: .deactivateThenActivate(
           reason: "reload same-version system extension with bundled contents"),
         change: .contentChange)
-    case .install:
+    case .install, .enable:
       return SystemExtensionReconciliation(
         status: .notInstalled,
         action: .activate(reason: "install bundled system extension"),
@@ -865,6 +928,42 @@ internal enum SystemExtensionReconciler {
     desired: SystemExtensionDescriptor
   ) -> String {
     classifyChange(current: current, desired: desired).rawValue
+  }
+
+  private static func sameSet(
+    _ lhs: [SystemExtensionDescriptor],
+    _ rhs: [SystemExtensionDescriptor]
+  ) -> Bool {
+    lhs.count == rhs.count && rhs.allSatisfy(lhs.contains)
+  }
+}
+
+internal enum SystemExtensionActivationOutcome: Equatable {
+  case completed
+  case canceled
+  case superseded
+  case willCompleteAfterReboot
+  case failed
+}
+
+/// Decides which installed set, if any, later status queries compare against
+/// to detect that an activation over a disabled extension changed nothing.
+internal enum SystemExtensionDisabledBaseline {
+  static func resolve(
+    current: [SystemExtensionDescriptor]?,
+    attemptedOver: [SystemExtensionDescriptor]?,
+    outcome: SystemExtensionActivationOutcome
+  ) -> [SystemExtensionDescriptor]? {
+    switch outcome {
+    case .completed, .canceled:
+      // macOS either completed without enabling or declined to replace the
+      // matching extension; both leave the user to enable it in Settings.
+      return attemptedOver
+    case .superseded:
+      return current
+    case .willCompleteAfterReboot, .failed:
+      return nil
+    }
   }
 }
 
@@ -1013,6 +1112,7 @@ public enum ExtensionStatus: Equatable {
   case notInstalled
   case installed
   case requiresApproval
+  case requiresEnable
   case requiresReboot(details: String?)
   case uninstalling
   case updatePending(details: String)
@@ -1026,6 +1126,7 @@ public enum ExtensionStatus: Equatable {
     case .notInstalled: return "notInstalled"
     case .installed: return "installed"
     case .requiresApproval: return "requiresApproval"
+    case .requiresEnable: return "requiresEnable"
     case .requiresReboot: return "requiresReboot"
     case .uninstalling: return "uninstalling"
     case .updatePending: return "updatePending"

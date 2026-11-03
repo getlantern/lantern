@@ -12,6 +12,7 @@ import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/features/helpers/helper_key_store.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
@@ -60,6 +61,7 @@ Future<void> injectServices() async {
   sl.registerLazySingleton<DeepLinkCallbackManager>(
     () => DeepLinkCallbackManager(),
   );
+  sl.registerLazySingleton<HelperKeyStore>(() => HelperKeyStore());
   sl.registerSingleton<LanternPlatformService>(LanternPlatformService());
 
   appLogger.debug('Registering AppPurchase...');

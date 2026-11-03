@@ -72,6 +72,20 @@ BASE_MANIFEST = """\
                 <data android:scheme="https" android:host="www.lantern.io" />
             </intent-filter>
         </activity>
+        <activity-alias
+            android:name=".HelperInviteLinks"
+            android:targetActivity=".MainActivity"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <data android:scheme="https" android:host="lantern.io" android:path="/help" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <data android:scheme="lantern" android:host="help" />
+            </intent-filter>
+        </activity-alias>
         <service
             android:name=".service.LanternVpnService"
             android:permission="android.permission.BIND_VPN_SERVICE">
@@ -279,6 +293,40 @@ class VpnModeTest(unittest.TestCase):
                             msg=f"deep-link intent-filter with scheme={scheme!r} survived")
                 return
         self.fail(f"{f.STEALTH_ACTIVITY_NAME} not found")
+
+    def test_alias_left_without_filters_removed(self) -> None:
+        # A disabled, filter-less alias would still carry a Lantern-unique
+        # component name (HelperInviteLinks) that fingerprints the build.
+        self.assertEqual(self.app.findall("activity-alias"), [])
+        self.assertNotIn(b"HelperInviteLinks", self.out.read_bytes())
+        self.assertNotIn(b"lantern.io", self.out.read_bytes())
+
+    def test_alias_with_other_filters_kept_and_retargeted(self) -> None:
+        tmp = Path(self._tmp.name)
+        src = tmp / "alias.xml"
+        src.write_text(
+            BASE_MANIFEST.replace(
+                "<activity-alias",
+                """<activity-alias
+            android:name=".Shortcut"
+            android:targetActivity="org.getlantern.lantern.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias""",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        out = tmp / "alias_out.xml"
+        f.filter_manifest(src, out, "vpn")
+        aliases = _app(_parse(out)).findall("activity-alias")
+        self.assertEqual(_names(aliases), {".Shortcut"})
+        self.assertEqual(
+            aliases[0].attrib.get(f"{ANDROID}targetActivity"),
+            f.STEALTH_ACTIVITY_NAME,
+        )
 
     # ── Class-name rewrite applied ─────────────────────────────────────────
 

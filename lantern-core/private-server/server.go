@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"regexp"
 
 	"strconv"
@@ -14,18 +15,20 @@ import (
 	"time"
 
 	C "github.com/getlantern/common"
-	"github.com/getlantern/radiance/ipc"
-
 	pcommon "github.com/getlantern/lantern-server-provisioner/common"
 	"github.com/getlantern/lantern-server-provisioner/digitalocean"
 	"github.com/getlantern/lantern-server-provisioner/gcp"
 	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/radiance/ipc"
 )
 
 var (
 	provisionerMutex sync.Mutex
 	sessions         = sync.Map{}
-	locationRegex    = regexp.MustCompile(`^([a-z0-9]+)\s*-\s*([a-z-]+)\s*\[([A-Z]+)\]`)
+	// Provisioner labels: "<zone> - <city-id> [<CC>]", e.g. "us-central1-a - iowa [US]" or "sgp1 - SG [SG]".
+	locationRegex = regexp.MustCompile(`^([a-z0-9-]+)\s*-\s*([A-Za-z-]+)\s*\[([A-Z]+)\]`)
+	// Separator must be " - " so hyphenated regions such as Baden-Württemberg stay intact.
+	geoLocationRegex = regexp.MustCompile(`^(.*?) - (.*?) \[([A-Z]+)\]$`)
 )
 
 type provisionSession struct {
@@ -226,7 +229,7 @@ func listenToServerEvents(ps provisionSession) {
 				region, city, country := ParseLocation(provisioner.serverLocation)
 				slog.Debug("Provisioner response", slog.Any("response", resp), slog.String("region", region), slog.String("country", country), slog.String("city", city))
 				ctx := context.Background()
-				mangerErr := provisioner.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, C.ServerLocation{}, false)
+				mangerErr := provisioner.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, C.ServerLocation{City: city, CountryCode: country}, false)
 				if mangerErr != nil {
 					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
 					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
@@ -343,7 +346,7 @@ func CancelDeployment() error {
 
 // AddServerManually adds a server manually to the VPN client.
 // It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
-func AddServerManually(ip, port, accessToken, tag string, vpnClient *ipc.Client, events utils.PrivateServerEventListener) error {
+func AddServerManually(ip, port, accessToken, tag string, joined bool, vpnClient *ipc.Client, events utils.PrivateServerEventListener) error {
 	slog.Debug("Adding server manually", slog.String("ip", ip), slog.String("port", port), slog.String("tag", tag))
 	portInt, err := strconv.Atoi(port)
 	if err != nil {
@@ -361,14 +364,17 @@ func AddServerManually(ip, port, accessToken, tag string, vpnClient *ipc.Client,
 	}
 	storeSession(provisionSession)
 	location := getGeoInfo(ip)
-	_, _, _ = ParseLocation(location)
+	loc := geoLocation(location)
 	ctx := context.Background()
-	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, C.ServerLocation{}, false)
+	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, loc, joined)
 	if err != nil {
 		return err
 	}
 	slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
 	resp.Tag = tag
+	if events == nil {
+		return nil
+	}
 
 	resp.Location = location
 	server, jerr := json.Marshal(resp)
@@ -422,4 +428,49 @@ func ParseLocation(s string) (region, city, country string) {
 	city = strings.Join(words, " ")
 
 	return
+}
+
+// geoLocation converts getGeoInfo's "<region> - <country> [<code>]" string.
+func geoLocation(s string) C.ServerLocation {
+	match := geoLocationRegex.FindStringSubmatch(s)
+	if len(match) != 4 {
+		return C.ServerLocation{}
+	}
+	return C.ServerLocation{City: match[1], Country: match[2], CountryCode: match[3]}
+}
+
+// Invite is the connection info carried by a private server invite link.
+type Invite struct {
+	IP, Port, Token, Name string
+}
+
+// ParseInviteURL extracts an Invite from links such as
+// lantern//private-server?ip=..&port=..&token=..&name=.. (also the https://lantern.io
+// and lantern:// forms). ok is false for anything that is not an invite.
+func ParseInviteURL(raw string) (inv Invite, ok bool) {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || !isInvitePath(u) {
+		return Invite{}, false
+	}
+	q := u.Query()
+	inv = Invite{IP: q.Get("ip"), Port: q.Get("port"), Token: q.Get("token"), Name: q.Get("name")}
+	if inv.IP == "" || inv.Port == "" || inv.Token == "" {
+		return Invite{}, false
+	}
+	if inv.Name == "" {
+		inv.Name = q.Get("alias")
+	}
+	if inv.Name == "" {
+		inv.Name = inv.IP
+	}
+	return inv, true
+}
+
+// isInvitePath matches "private-server" as the host or the last path segment only.
+func isInvitePath(u *url.URL) bool {
+	if u.Host == "private-server" {
+		return true
+	}
+	p := strings.TrimRight(u.Path, "/")
+	return p == "private-server" || strings.HasSuffix(p, "/private-server")
 }

@@ -86,7 +86,11 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 type ffiFlutterEventEmitter struct{}
 
 func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
-	slog.Debug("Sending event to Flutter:", "event", event)
+	if utils.IsHighVolumeEvent(event.Type) {
+		slog.Debug("Sending event to Flutter:", "type", event.Type)
+	} else {
+		slog.Debug("Sending event to Flutter:", "event", event)
+	}
 	port := appEventPort.Load()
 	if port == 0 {
 		slog.Error("Apps port is not set, cannot send event")
@@ -97,7 +101,6 @@ func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
 		slog.Error("Error marshalling event:", "error", err)
 		return
 	}
-	slog.Debug("Marshalled event data:", "data", string(eventData))
 	go dart_api_dl.SendToPort(port, string(eventData))
 }
 
@@ -1452,7 +1455,6 @@ func addServerBasedOnURLs(_urls *C.char, _skipCertVerification C.int) *C.char {
 		if errStr != nil {
 			return errStr
 		}
-		slog.Debug("Adding server based on URLs:", "urls", urls, "skipCertVerification", skipCertVerification)
 		bytes, err := c.AddServersByURL(urls, skipCertVerification)
 		if err != nil {
 			return SendError(fmt.Errorf("Error adding server based on URLs: %v", err))
@@ -1579,6 +1581,21 @@ func getPeerStatusJSON() *C.char {
 			return errStr
 		}
 		return C.CString(c.PeerStatusJSON())
+	})
+}
+
+// helperCall runs one helper-invite operation and returns its JSON result or
+// {"error": code}. Its arguments carry invite links and names: never log them.
+//
+//export helperCall
+func helperCall(_op, _args *C.char) *C.char {
+	op, args := C.GoString(_op), C.GoString(_args)
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		return C.CString(c.HelperCall(op, args))
 	})
 }
 

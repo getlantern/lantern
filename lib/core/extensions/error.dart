@@ -80,6 +80,14 @@ extension ErrorExetension on Object {
         return "referral_code_own_invalid".i18n;
       }
 
+      // Duplicate private-server tag. Matched anywhere because the desktop FFI
+      // layer prefixes the message, so the IPC prefix strip above doesn't apply.
+      final duplicate = RegExp(
+        r'server "[^"]*" already exists',
+      ).firstMatch(description);
+
+      if (duplicate != null) return duplicate.group(0)!;
+
       final serverMessage = _serverErrorMessage(description);
       if (serverMessage != null) return serverMessage;
 

@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 
@@ -28,6 +29,7 @@ class VPNSetting extends HookConsumerWidget {
     final splitTunnel = showSplitTunneling
         ? ref.watch(splitTunnelProvider).value
         : null;
+    final personalProxies = ref.watch(personalProxiesTabVisibleProvider);
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
@@ -149,9 +151,10 @@ class VPNSetting extends HookConsumerWidget {
                 onPressed: () => appRouter.push(JoinPrivateServer()),
               ),
               DividerSpace(),
-              if (isPrivateServerFound)
+              if (isPrivateServerFound || personalProxies)
                 AppTile(
-                  label: 'manage_private_servers'.i18n,
+                  tileKey: const Key('vpn_setting.manage_private_locations'),
+                  label: 'manage_private_locations'.i18n,
                   icon: AppImagePaths.settingServer,
                   trailing: AppImage(
                     path: AppImagePaths.arrowForward,

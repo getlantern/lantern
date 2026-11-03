@@ -7,6 +7,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -16,7 +18,7 @@ const fixtureJSON = `{"schema_version":1,"account_environment":"staging","user_i
 
 func fixture(t *testing.T) Expected {
 	t.Helper()
-	expected, err := decodeExpected(strings.NewReader(fixtureJSON))
+	expected, err := decodeExpected(strings.NewReader(fixtureJSON), "staging")
 	if err != nil {
 		t.Fatal("valid fixture rejected")
 	}
@@ -89,10 +91,56 @@ func TestExpectedFixtureRejectsUnsafeOrAmbiguousIdentity(t *testing.T) {
 		"trailing document":        fixtureJSON + `{}`,
 	} {
 		t.Run(name, func(t *testing.T) {
-			if _, err := decodeExpected(strings.NewReader(invalid)); err == nil {
+			if _, err := decodeExpected(strings.NewReader(invalid), "staging"); err == nil {
 				t.Fatal("invalid expected fixture accepted")
 			}
 		})
+	}
+}
+
+func TestExpectedFixtureMatchesSelectedEnvironment(t *testing.T) {
+	for _, fixtureEnvironment := range []string{"staging", "prod"} {
+		for _, selectedEnvironment := range []string{"staging", "prod", "production", ""} {
+			t.Run(fixtureEnvironment+"/"+selectedEnvironment, func(t *testing.T) {
+				data := strings.Replace(fixtureJSON, `"staging"`, `"`+fixtureEnvironment+`"`, 1)
+				path := filepath.Join(t.TempDir(), "expected.json")
+				if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				expected, err := readExpected(path, selectedEnvironment)
+				if selectedEnvironment != fixtureEnvironment {
+					if err == nil {
+						t.Fatal("mismatched or unsupported account environment accepted")
+					}
+					return
+				}
+				if err != nil || expected.AccountEnvironment != selectedEnvironment {
+					t.Fatalf("matching account environment rejected: %v", err)
+				}
+			})
+		}
+	}
+}
+
+func TestCommandDefaultsToStagingAndRejectsEnvironmentMismatch(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "expected.json")
+	if err := os.WriteFile(path, []byte(strings.Replace(fixtureJSON, `"staging"`, `"prod"`, 1)), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{
+		{"--expected", path},
+		{"--expected", path, "--account-environment", "staging"},
+		{"--expected", path, "--account-environment", "production"},
+	} {
+		var output bytes.Buffer
+		if command(args, &output) == 0 {
+			t.Fatal("production fixture accepted without selecting prod")
+		}
+		var result Result
+		if err := json.Unmarshal(output.Bytes(), &result); err != nil ||
+			(result.Code != "invalid_expected_fixture" && result.Code != "invalid_arguments") {
+			t.Fatalf("environment mismatch did not fail before IPC: %s", output.String())
+		}
 	}
 }
 

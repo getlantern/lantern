@@ -5,6 +5,12 @@ import 'package:lantern/core/common/app_text_styles.dart';
 
 import '../common/common.dart';
 
+/// Whether [ProBanner] shows anything: a renewal card, or the upsell for a
+/// free user. Other banners in its slot wait while it does.
+bool proBannerShows(WidgetRef ref) =>
+    ref.watch(proRenewalProvider).state != ProRenewalState.none ||
+    !ref.watch(isUserProProvider);
+
 /// The one Pro banner. Picks its own variant:
 ///  - free user: yellow "get unlimited data" upsell
 ///  - one-time Pro approaching its end (engineering#3845): escalating renewal

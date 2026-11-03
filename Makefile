@@ -626,8 +626,10 @@ stage-macos-profile: build-macos-profile
 
 # stapler fetches the ticket from Apple's CloudKit, and one dropped connection
 # there failed v10.0.3-beta-3 after notarization had been accepted. Stapling is
-# idempotent, so every failure is retried.
-STAPLER_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" --
+# idempotent, so every failure is retried. CloudKit outages outlasted the
+# default three attempts (~90s of waiting) on v10.0.4-beta.3 and the
+# 2026-10-28 nightly, so stapling waits through six attempts (15 minutes).
+STAPLER_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" -n 6 -b 60 --
 
 .PHONY: notarize-darwin
 notarize-darwin: require-ac-username require-ac-password
@@ -1372,6 +1374,45 @@ pubget:
 
 find-duplicate-translations:
 	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
+
+# Translate en.po changes into every locale with Claude via OpenRouter (tools/localization). Needs OPENROUTER_API_KEY.
+TRANSLATE_VENV := $(BUILD_DIR)/translate-venv
+TRANSLATE_OUT  := $(BUILD_DIR)/translate
+TRANSLATE_FLAGS = --out $(TRANSLATE_OUT) \
+	$(if $(TRANSLATE_LOCALES),--locales $(TRANSLATE_LOCALES)) \
+	$(if $(TRANSLATE_LIMIT),--limit $(TRANSLATE_LIMIT)) \
+	$(if $(TRANSLATE_BASE),--base $(TRANSLATE_BASE)) \
+	$(TRANSLATE_ARGS)
+
+.PHONY: translate translate-plan translate-dry-run translate-apply translate-report translate-audit translate-cleanup translate-test
+translate: $(TRANSLATE_VENV)/bin/python
+	$(TRANSLATE_VENV)/bin/python tools/localization/translate.py $(TRANSLATE_FLAGS)
+
+translate-dry-run: $(TRANSLATE_VENV)/bin/python
+	$(TRANSLATE_VENV)/bin/python tools/localization/translate.py --dry-run $(TRANSLATE_FLAGS)
+
+translate-plan:
+	$(PYTHON) tools/localization/translate.py --plan $(TRANSLATE_FLAGS)
+
+translate-apply:
+	$(PYTHON) tools/localization/translate.py --apply $(or $(TRANSLATE_RESULTS),$(TRANSLATE_OUT)/results.json) $(if $(TRANSLATE_LOCALES),--locales $(TRANSLATE_LOCALES))
+
+translate-report:
+	@test -f $(TRANSLATE_OUT)/report.html || { echo "no report yet; run make translate-dry-run first"; exit 1; }
+	open $(TRANSLATE_OUT)/report.html 2>/dev/null || xdg-open $(TRANSLATE_OUT)/report.html
+
+translate-audit:
+	$(PYTHON) tools/localization/translate.py --audit --out $(TRANSLATE_OUT)
+
+translate-cleanup:
+	$(PYTHON) tools/localization/translate.py --cleanup $(TRANSLATE_ARGS) --out $(TRANSLATE_OUT)
+
+translate-test:
+	cd tools/localization && $(PYTHON) -m unittest test_translate -v
+
+$(TRANSLATE_VENV)/bin/python:
+	$(PYTHON) -m venv $(TRANSLATE_VENV)
+	$(TRANSLATE_VENV)/bin/pip install -q anthropic==2.3.0 || { rm -rf $(TRANSLATE_VENV); exit 1; }
 
 # flutter clean is what drops .dart_tool, where Flutter keeps its build stamps.
 # Removing the outputs under $(BUILD_DIR) without it leaves Flutter believing

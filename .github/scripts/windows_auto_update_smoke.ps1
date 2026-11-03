@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. "$PSScriptRoot/windows_gui_health.ps1"
 
 $AppDirectory = 'C:\Program Files\Lantern'
 $AppExecutable = Join-Path $AppDirectory 'lantern.exe'
@@ -215,6 +216,9 @@ function Save-UiTree([string]$Name) {
 function Wait-ForUpdatePrompt {
   $deadline = [DateTime]::UtcNow.AddSeconds($UiTimeout)
   while ([DateTime]::UtcNow -lt $deadline) {
+    if (-not (Get-Process -Id $script:OriginalPid -ErrorAction SilentlyContinue)) {
+      throw 'The original Lantern GUI exited before accepting the update'
+    }
     $button = Get-Button (Get-Window @('Software Update')) @('Install update', 'Get update')
     if ($button) { return $button }
     Start-Sleep -Milliseconds 250
@@ -236,7 +240,7 @@ function Get-DownloadedInstaller([string]$ExpectedName, [long]$ExpectedLength) {
 }
 
 function Install-Update(
-  [int]$OriginalPid,
+  [System.Diagnostics.Process]$OriginalProcess,
   [string]$ExpectedInstallerName,
   [long]$ExpectedInstallerLength,
   [int]$ExpectedBuild
@@ -244,6 +248,7 @@ function Install-Update(
   $deadline = [DateTime]::UtcNow.AddSeconds($UpdateTimeout)
   $launchRequested = $false
   $originalExited = $false
+  $OriginalPid = $OriginalProcess.Id
   while ([DateTime]::UtcNow -lt $deadline) {
     $installer = Get-Window @('Setup - Lantern', 'Lantern Setup')
     $button = Get-Button $installer @('Next >', 'Next', 'Install', 'Finish', 'Yes')
@@ -262,9 +267,17 @@ function Install-Update(
         }
       }
     }
-    if (-not $originalExited -and -not (Get-Process -Id $OriginalPid -ErrorAction SilentlyContinue)) {
+    if (-not $originalExited -and $OriginalProcess.HasExited) {
+      if (-not $OriginalProcess.WaitForExit(5000)) {
+        throw 'Original GUI exit could not be confirmed within 5 seconds'
+      }
+      $exitCode = $OriginalProcess.ExitCode
+      if ($null -eq $exitCode) { throw 'Original GUI exit code is unavailable' }
+      if ($exitCode -ne 0) {
+        throw ('Original GUI crashed during update handoff: exit {0} (0x{0:X8})' -f $exitCode)
+      }
       $originalExited = $true
-      Write-E2E "original Lantern process $OriginalPid exited"
+      Write-E2E "original Lantern process $OriginalPid exited with code $exitCode"
     }
     if ($originalExited -and (Test-Path -LiteralPath $AppExecutable)) {
       try {
@@ -301,6 +314,12 @@ function Save-Diagnostics {
   $logs = Join-Path $DataDirectory 'Logs'
   if (Test-Path -LiteralPath $logs) {
     Copy-Item $logs (Join-Path $ArtifactDirectory 'lantern-logs') -Recurse -Force
+  }
+  $flutterLog = Get-LanternFlutterLogPath
+  if (Test-Path -LiteralPath $flutterLog) {
+    Get-Content -LiteralPath $flutterLog |
+      Where-Object { $_ -match 'message=(autoUpdater|Desktop update|WinSparkle|Failed to shut down|Failed to close|Failed to release)' } |
+      Set-Content -LiteralPath (Join-Path $ArtifactDirectory 'flutter-updater.log')
   }
   Get-ChildItem $env:TEMP -Filter 'Update-*' -Directory -ErrorAction SilentlyContinue |
     ForEach-Object { Get-ChildItem $_.FullName -Recurse -ErrorAction SilentlyContinue } |
@@ -357,18 +376,25 @@ try {
   if ($original.Path -ne $AppExecutable) {
     throw "Flutter handoff PID $script:OriginalPid is not the installed Lantern app"
   }
+  # Retain the process before either update button can close it.
+  $null = $original.Handle
 
+  Wait-LanternGuiHealthy $script:OriginalPid $AppExecutable
   $installButton = Wait-ForUpdatePrompt
   Save-UiTree 'prompt'
   Save-Screenshot 'prompt'
   Press-Button $installButton
   $relaunched = Install-Update `
-    $script:OriginalPid `
+    $original `
     $targetInstallerName `
     $targetInstallerLength `
     $targetBuild
   $script:RelaunchedPid = $relaunched.Id
   Assert-AppVersion 'updated' $targetBuild $displayVersion
+  Wait-LanternGuiHealthy $script:RelaunchedPid $AppExecutable
+  # Published targets may configure the updater without the newer startup-check log.
+  Assert-LanternUpdaterStartup $relaunched.StartTime.ToUniversalTime() `
+    (Join-Path $ArtifactDirectory 'after-update-flutter.log') -ConfigurationOnly
   & python $ScenarioHelper verify --scenario $Scenario --target $TargetJson `
     --handoff (Join-Path $ArtifactDirectory 'auto-update-handoff.json') `
     --output (Join-Path $ArtifactDirectory 'scenario-after.json')

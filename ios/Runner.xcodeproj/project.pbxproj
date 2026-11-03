@@ -13,6 +13,8 @@
 		032CB5242DBA8A55002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
 		032CB5292DBA90ED002331EB /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5232DBA8A55002331EB /* Logger.swift */; };
 		032CB52A2DBA9109002331EB /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032CB5102DBA86FF002331EB /* KeychainService.swift */; };
+		B7E1A0012FAD000100000001 /* HelperTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E1A0022FAD000100000001 /* HelperTags.swift */; };
+		B7E1A0032FAD000100000001 /* HelperTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E1A0022FAD000100000001 /* HelperTags.swift */; };
 		03CC8B342E93EFC500EC8D51 /* FlutterEventHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CC8B332E93EFB500EC8D51 /* FlutterEventHandler.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		2111B86A56EC2F82BC00556C /* VPNWidgetState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5205C18B6B11252D789C0203 /* VPNWidgetState.swift */; };
@@ -106,6 +108,7 @@
 		00F3B52EB1C4B73316EFA332 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		0307936E2E09466100EA2B3C /* PrivateServerEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateServerEventHandler.swift; sourceTree = "<group>"; };
 		032CB5102DBA86FF002331EB /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		B7E1A0022FAD000100000001 /* HelperTags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperTags.swift; sourceTree = "<group>"; };
 		032CB5232DBA8A55002331EB /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		03CC8B332E93EFB500EC8D51 /* FlutterEventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterEventHandler.swift; sourceTree = "<group>"; };
 		08D54915C93A7DD6DC0DE1C1 /* WidgetBackgroundView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetBackgroundView.swift; sourceTree = "<group>"; };
@@ -243,6 +246,7 @@
 			isa = PBXGroup;
 			children = (
 				032CB5102DBA86FF002331EB /* KeychainService.swift */,
+				B7E1A0022FAD000100000001 /* HelperTags.swift */,
 				032CB5232DBA8A55002331EB /* Logger.swift */,
 				5F4C384F2D9155BC0053105F /* FilePath.swift */,
 				5205C18B6B11252D789C0203 /* VPNWidgetState.swift */,
@@ -679,6 +683,7 @@
 				5F4C38522D9155CF0053105F /* FilePath.swift in Sources */,
 				032CB5292DBA90ED002331EB /* Logger.swift in Sources */,
 				032CB5192DBA86FF002331EB /* KeychainService.swift in Sources */,
+				B7E1A0032FAD000100000001 /* HelperTags.swift in Sources */,
 				7F662F2F8EFFBE249C91F1F3 /* VPNWidgetState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -694,6 +699,7 @@
 				5F4C38512D9155BC0053105F /* FilePath.swift in Sources */,
 				03CC8B342E93EFC500EC8D51 /* FlutterEventHandler.swift in Sources */,
 				032CB52A2DBA9109002331EB /* KeychainService.swift in Sources */,
+				B7E1A0012FAD000100000001 /* HelperTags.swift in Sources */,
 				5FEB87302D9F45EB000AE0DB /* MethodHandler.swift in Sources */,
 				5FEB87312D9F45EB000AE0DB /* StatusEventHandler.swift in Sources */,
 				0307936F2E09466D00EA2B3C /* PrivateServerEventHandler.swift in Sources */,

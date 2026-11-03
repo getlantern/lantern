@@ -34,7 +34,9 @@
         <th>اندروید</th>
         <td>
             <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.apk">Android 7&#43; (ARM64)</a> <br>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 7&#43; (ARM64)</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.apk">Android 7&#43; (ARM64)</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer-armv7.apk">Android 7&#43; (32-bit / ARMv7)</a> <br>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer-armv7.apk">Android 7&#43; (32-bit / ARMv7)</a>
         </td>
         <td>
             <a href="https://play.google.com/store/apps/details?id=org.getlantern.lantern">Android 7&#43;</a>
@@ -47,14 +49,12 @@
     <tr>
         <th>macOS</th>
         <td>
-            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 12&#43;</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-8.3.5.dmg">macOS 11 Big Sur (legacy 8.3.5)</a> <br>
-            <a href="https://s3.amazonaws.com/lantern/lantern-installer-7.9.7.dmg">macOS 10.15 Catalina (legacy 7.9.7)</a>
+            <a href="https://github.com/getlantern/lantern/releases/latest/download/lantern-installer.dmg">macOS 10.15&#43;</a> <br>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/production/latest/lantern-installer.dmg">macOS 10.15&#43;</a>
         </td>
         <td></td>
         <td>
-            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 12&#43;</a>
+            <a href="https://s3.amazonaws.com/lantern.io/releases/beta/latest/lantern-installer-beta.dmg">macOS 10.15&#43;</a>
         </td>
     </tr>
     <tr>
@@ -103,7 +103,6 @@
 - اگر فروشگاه اپ در منطقه شما در دسترس نیست، شاید بتوانید با دنبال کردن [این مراحل](https://lantern.io/faq#use-2)، لنترن را دانلود کنید.
 - برای نسخه‌های پایدار، لینک‌های متعددی برای اطمینان از دسترسی و انتخاب وجود دارد.
 - نسخه آزمایشی &#34;بتا&#34; را امتحان کنید. اگرچه این نسخه ممکن است ناپایدار باشد، بازخوردها به بهبود آن کمک می‌کنند. برای مشارکت، به [forums](#links) ما بپیوندید.
-- لنترن نسخه ۹ و بالاتر روی macOS 10.15 و 11 اجرا نمی‌شود. از نسخه‌های قدیمی لینک‌شده در بالا استفاده کنید: 8.3.5 برای macOS 11 و 7.9.7 برای macOS 10.15. این نسخه‌ها دیگر به‌روزرسانی دریافت نمی‌کنند.
 
 ## لینک‌ها
 - [وب‌سایت](https://lantern.io)

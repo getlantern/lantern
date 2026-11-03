@@ -91,6 +91,10 @@ class AppBuildInfo {
   /// Stealth artifacts strip the camera permission and ML Kit components.
   static const bool enableQrScanner = !suppressIdentifyingFeatures;
 
+  /// Helper invites are a recognisable Lantern artifact in a chat, so
+  /// stealth artifacts leave them out.
+  static const bool enableHelperInvites = !suppressIdentifyingFeatures;
+
   static const String appAuthScheme = String.fromEnvironment(
     'APP_AUTH_SCHEME',
     defaultValue: 'lantern',
