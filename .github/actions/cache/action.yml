@@ -1,0 +1,33 @@
+name: Cache, saved from main only
+description: actions/cache that saves only from main or a manual branch run. Every other run restores without saving.
+# PRs can restore caches saved on main but never caches saved by another PR or
+# a tag, and the repo has a 10 GB cache limit. Saves from PRs and release tags
+# evicted the main caches every PR depends on, so every PR started cold.
+inputs:
+  path:
+    required: true
+  key:
+    required: true
+  restore-keys:
+    default: ""
+outputs:
+  cache-hit:
+    value: ${{ steps.save.outputs.cache-hit || steps.restore.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - id: save
+      if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/'))
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+        restore-keys: ${{ inputs.restore-keys }}
+
+    - id: restore
+      if: steps.save.conclusion == 'skipped'
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+        restore-keys: ${{ inputs.restore-keys }}
