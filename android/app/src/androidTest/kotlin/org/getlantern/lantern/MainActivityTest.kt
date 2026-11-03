@@ -28,6 +28,7 @@ class MainActivityTest {
         verifyRuntimeArchitecture()
         grantVpnConsent()
         grantNotificationPermission()
+        logNetworkChanges()
     }
 
     @JvmField

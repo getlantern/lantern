@@ -4,6 +4,7 @@ import 'auth/auth_smoke_test.dart';
 import 'plans/plans_smoke_test.dart';
 import 'report_issue/report_issue_smoke_test.dart';
 import 'setting/setting_smoke_test.dart';
+import 'utils/network_diagnostics.dart';
 import 'vpn/android_vpn_smoke_test.dart';
 
 /// Aggregator entrypoint for all Android end-to-end tests. This is the single
@@ -19,9 +20,13 @@ import 'vpn/android_vpn_smoke_test.dart';
 /// androidTest wrapper. For local runs use `make android-integration-test`.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  registerNetworkDiagnostics('start');
   registerVpnSmokeTests();
+  registerNetworkDiagnostics('after VPN');
   registerReportIssueSmokeTests();
+  registerNetworkDiagnostics('after report issue');
   registerSettingSmokeTests();
   registerPlansSmokeTests();
   registerAuthSmokeTests();
+  registerNetworkDiagnostics('end');
 }
