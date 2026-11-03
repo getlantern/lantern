@@ -11,7 +11,6 @@ import android.os.Looper
 import android.os.Message
 import android.os.Messenger
 import android.os.Process
-import android.os.ResultReceiver
 import android.os.SystemClock
 import android.util.Patterns
 import androidx.test.platform.app.InstrumentationRegistry
@@ -116,11 +115,12 @@ class VpnRoutingModeTest {
 
     private fun probe(): Bundle {
         val received = ArrayBlockingQueue<Bundle>(1)
-        val reply = object : ResultReceiver(Handler(Looper.getMainLooper())) {
-            override fun onReceiveResult(resultCode: Int, data: Bundle) {
-                received.offer(data)
-            }
-        }
+        // A framework Messenger, not a ResultReceiver subclass: the probe's
+        // process can't load this test's classes to unparcel one.
+        val reply = Messenger(Handler(Looper.getMainLooper()) { message ->
+            received.offer(Bundle(message.data))
+            true
+        })
         val connected = ArrayBlockingQueue<Messenger>(1)
         val connection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName, binder: IBinder) {
@@ -137,9 +137,7 @@ class VpnRoutingModeTest {
             assertTrue("Could not bind probe service", bound)
             val messenger = connected.poll(10, TimeUnit.SECONDS)
             assertNotNull("Probe service did not connect", messenger)
-            requireNotNull(messenger).send(Message.obtain().apply {
-                data = Bundle().apply { putParcelable(PublicIpProbeService.REPLY, reply) }
-            })
+            requireNotNull(messenger).send(Message.obtain().apply { replyTo = reply })
             val result = requireNotNull(received.poll(25, TimeUnit.SECONDS)) { "Probe service did not reply" }
             assertNotEquals("Probe must run outside Lantern's UID", Process.myUid(), result.getInt(PublicIpProbeService.UID))
             return result
