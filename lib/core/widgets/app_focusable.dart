@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 
 /// Tap target that a D-pad or keyboard can reach: select, Enter or Space
@@ -29,21 +30,27 @@ class _AppFocusableState extends State<AppFocusable> {
   @override
   Widget build(BuildContext context) {
     final child = Container(
-      // Drawn over the child so focus never shifts the layout.
-      foregroundDecoration: _focused
-          ? BoxDecoration(
-              border: Border.all(
+      // Drawn over the child so focus never shifts the layout. Always set,
+      // since adding or removing it would remount the child and drop its state.
+      foregroundDecoration: BoxDecoration(
+        border: _focused
+            ? Border.all(
                 color: Theme.of(context).colorScheme.onSurface,
                 width: 3,
-              ),
-              borderRadius: widget.borderRadius,
-            )
-          : null,
+              )
+            : null,
+        borderRadius: widget.borderRadius,
+      ),
       child: widget.child,
     );
     return FocusableActionDetector(
       enabled: widget.onActivate != null,
       onShowFocusHighlight: (value) => setState(() => _focused = value),
+      // Enter activates this target even inside a form that maps Enter to submit.
+      shortcuts: const {
+        SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+        SingleActivator(LogicalKeyboardKey.numpadEnter): ActivateIntent(),
+      },
       actions: {
         ActivateIntent: CallbackAction<ActivateIntent>(
           onInvoke: (_) {
@@ -68,6 +75,9 @@ class _AppFocusableState extends State<AppFocusable> {
 void focusFirstOnTv(BuildContext context) {
   if (!PlatformUtils.isTv) return;
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (context.mounted) FocusScope.of(context).nextFocus();
+    if (!context.mounted) return;
+    // Builders rerun on rebuilds; leave focus alone once the user has moved it.
+    final scope = FocusScope.of(context, createDependency: false);
+    if (scope.focusedChild == null) scope.nextFocus();
   });
 }

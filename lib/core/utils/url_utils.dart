@@ -98,12 +98,17 @@ class UrlUtils {
       content: Column(
         children: [
           const SizedBox(height: 16),
+          // Fixed box: the scrollable dialog needs an intrinsic height, which
+          // the QR's internal LayoutBuilder cannot provide.
           Center(
-            child: QrImageView(
-              key: const Key('tv.link.qr'),
-              data: url,
-              size: 160,
-              backgroundColor: Colors.white,
+            child: SizedBox(
+              width: 160,
+              height: 160,
+              child: QrImageView(
+                key: const Key('tv.link.qr'),
+                data: url,
+                backgroundColor: Colors.white,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -112,6 +117,7 @@ class UrlUtils {
       ),
       primaryLabel: 'close'.i18n,
       barrierDismissible: true,
+      scrollable: true,
     );
     return true;
   }

@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
+import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -29,7 +30,7 @@ class _FakeVpnStatus extends VPNStatusNotifier {
 void main() {
   tearDown(() => PlatformUtils.isTv = false);
 
-  // Home's shape on TV: the switch in the body, the tab pill as bottom nav.
+  // Home's shape on TV: switch and status rows in the body, the pill as bottom nav.
   testWidgets('D-pad moves from the VPN switch to the tab pill and back', (
     tester,
   ) async {
@@ -47,8 +48,22 @@ void main() {
         child: ScreenUtilInit(
           designSize: mobileSize,
           child: MaterialApp(
+            theme: AppTheme.appTheme(),
             home: Scaffold(
-              body: const Center(child: VPNSwitch()),
+              body: Column(
+                children: [
+                  const VPNSwitch(),
+                  // Home has tappable status rows between the switch and pill.
+                  SettingTile(
+                    tileKey: const Key('row'),
+                    label: 'row',
+                    value: '',
+                    icon: const Icon(Icons.info),
+                    actions: const [],
+                    onTap: () {},
+                  ),
+                ],
+              ),
               bottomNavigationBar: ActionModeNavigation(
                 selectedIndex: 0,
                 onSelected: selected.add,
@@ -69,12 +84,17 @@ void main() {
             ?.findAncestorWidgetOfExactType<InkWell>()
             ?.key ==
         key;
+    const row = Key('row');
     const vpnTab = Key('action-mode.nav.0');
     const unboundedTab = Key('action-mode.nav.1');
 
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pumpAndSettle();
-    expect(focused(vpnTab), isTrue, reason: 'down from the switch');
+    expect(focused(row), isTrue, reason: 'down from the switch');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(focused(vpnTab), isTrue, reason: 'down from the row');
 
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
     await tester.pumpAndSettle();
@@ -83,6 +103,10 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pumpAndSettle();
     expect(selected, [1]);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+    expect(focused(row), isTrue, reason: 'up from the pill');
 
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
     await tester.pumpAndSettle();

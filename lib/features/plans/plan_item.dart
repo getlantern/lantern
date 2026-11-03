@@ -111,13 +111,16 @@ class PlanItem extends StatelessWidget {
                       ),
                   ],
                 ),
-                Radio(
-                  value: true,
-                  groupValue: planSelected,
-                  fillColor: WidgetStatePropertyAll(context.textPrimary),
-                  onChanged: (value) {
-                    onPressed.call(plan);
-                  },
+                // The card is the focus stop; the radio stays tappable.
+                ExcludeFocus(
+                  child: Radio(
+                    value: true,
+                    groupValue: planSelected,
+                    fillColor: WidgetStatePropertyAll(context.textPrimary),
+                    onChanged: (value) {
+                      onPressed.call(plan);
+                    },
+                  ),
                 ),
               ],
             ),

@@ -74,20 +74,31 @@ class SignInEmail extends HookConsumerWidget {
                 isTaller: true,
               ),
               SizedBox(height: defaultSize),
-              DividerSpace(),
-              SizedBox(height: defaultSize),
-              OAuthLogin(
-                methodType: SignUpMethodType.google,
-                onResult: (token) =>
-                    onOAuthResult(token, context, ref, SignUpMethodType.google),
-              ),
-              SizedBox(height: defaultSize),
-              OAuthLogin(
-                methodType: SignUpMethodType.apple,
-                onResult: (token) =>
-                    onOAuthResult(token, context, ref, SignUpMethodType.apple),
-              ),
-              SizedBox(height: defaultSize),
+              // OAuth finishes in a browser, which a TV does not have.
+              if (!PlatformUtils.isTv) ...[
+                DividerSpace(),
+                SizedBox(height: defaultSize),
+                OAuthLogin(
+                  methodType: SignUpMethodType.google,
+                  onResult: (token) => onOAuthResult(
+                    token,
+                    context,
+                    ref,
+                    SignUpMethodType.google,
+                  ),
+                ),
+                SizedBox(height: defaultSize),
+                OAuthLogin(
+                  methodType: SignUpMethodType.apple,
+                  onResult: (token) => onOAuthResult(
+                    token,
+                    context,
+                    ref,
+                    SignUpMethodType.apple,
+                  ),
+                ),
+                SizedBox(height: defaultSize),
+              ],
               DividerSpace(),
               SizedBox(height: 32),
               AppRichText(

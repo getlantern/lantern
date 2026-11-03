@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/common.dart';
@@ -38,6 +39,46 @@ void main() {
         expect(buttonFocused(tester), tv);
       });
     }
+  });
+
+  testWidgets('a rebuild leaves focus where the user moved it', (tester) async {
+    PlatformUtils.isTv = true;
+    final theme = ValueNotifier(AppTheme.appTheme());
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: mobileSize,
+        child: ValueListenableBuilder(
+          valueListenable: theme,
+          builder: (_, value, _) => MaterialApp(
+            theme: value,
+            home: const Scaffold(body: Text('host')),
+          ),
+        ),
+      ),
+    );
+    showAppBottomSheet(
+      context: tester.element(find.text('host')),
+      title: 'sheet',
+      builder: (_, _) => Column(
+        children: [
+          TextButton(onPressed: () {}, child: const Text('first')),
+          TextButton(onPressed: () {}, child: const Text('second')),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(buttonFocused(tester), isTrue);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    bool secondFocused() =>
+        Focus.of(tester.element(find.text('second'))).hasPrimaryFocus;
+    expect(secondFocused(), isTrue);
+
+    // A theme change reruns the sheet builder.
+    theme.value = AppTheme.appTheme().copyWith(primaryColor: Colors.red);
+    await tester.pumpAndSettle();
+    expect(secondFocused(), isTrue, reason: 'focus was not moved on');
   });
 
   testWidgets('dialog primary button takes focus on TV', (tester) async {
