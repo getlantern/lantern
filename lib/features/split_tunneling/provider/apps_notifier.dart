@@ -43,7 +43,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     if (value.isEmpty) return Future.value(_invalidApp());
     return ref
         .read(splitTunnelProvider.notifier)
-        .setSelector(getFilterType(), value);
+        .setSelector(getFilterType(), value, selected: true);
   }
 
   Future<Failure?> addExecutable(String path) {

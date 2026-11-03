@@ -7,7 +7,6 @@ import 'package:flutter/services.dart' hide Uint8List;
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
-import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
@@ -18,6 +17,7 @@ import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/models/user_message.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -781,47 +781,26 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() async {
-    try {
-      final payload = await _methodChannel.invokeMethod<String>(
-        'getSplitTunnelState',
-      );
-      if (payload == null) {
-        throw const FormatException('Missing split-tunnel state');
-      }
-      return right(
-        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
-      );
-    } catch (e) {
-      return left(e.toFailure());
-    }
-  }
+  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() =>
+      _readSplitTunnelState('getSplitTunnelState');
 
   @override
   Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(
     String policy,
-  ) async {
-    try {
-      final payload = await _methodChannel.invokeMethod<String>(
-        'switchSplitTunnelPolicy',
-        {'policy': policy},
-      );
-      if (payload == null) {
-        throw const FormatException('Missing split-tunnel state');
-      }
-      return right(
-        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
-      );
-    } catch (e) {
-      return left(e.toFailure());
-    }
-  }
+  ) => _readSplitTunnelState('switchSplitTunnelPolicy', {'policy': policy});
 
   @override
-  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps() async {
+  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps() =>
+      _readSplitTunnelState('clearSplitTunnelApps');
+
+  Future<Either<Failure, SplitTunnelState>> _readSplitTunnelState(
+    String method, [
+    Map<String, String>? arguments,
+  ]) async {
     try {
       final payload = await _methodChannel.invokeMethod<String>(
-        'clearSplitTunnelApps',
+        method,
+        arguments,
       );
       if (payload == null) {
         throw const FormatException('Missing split-tunnel state');

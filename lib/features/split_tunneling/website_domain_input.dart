@@ -9,7 +9,6 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
-import 'package:lantern/features/split_tunneling/website_input.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class WebsiteDomainInput extends HookConsumerWidget {
@@ -31,13 +30,12 @@ class WebsiteDomainInput extends HookConsumerWidget {
         if (input.isEmpty) throw const FormatException('Empty website input');
         final added = <Website>{};
         for (final part in input.split(',')) {
-          parseSplitTunnelWebsite(part);
           final result = await ref
               .read(lanternServiceProvider)
               .normalizeSplitTunnelWebsite(part);
           final canonical = result.fold(
-            (failure) => throw failure,
-            (value) => validateCanonicalSplitTunnelWebsite(value),
+            (_) => throw const FormatException('Invalid website'),
+            (value) => value,
           );
           final website = Website(domain: canonical);
           if (websites.contains(website) || !added.add(website)) {

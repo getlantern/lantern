@@ -93,28 +93,16 @@ bool isWindowsExecutablePath(String path) =>
     !RegExp(r'[\x00-\x1f:<>"|?*]').hasMatch(path.substring(2)) &&
     p.windows.extension(path).toLowerCase() == '.exe';
 
-/// Keep saved executable rules visible even when app discovery misses them.
-List<AppData> windowsEnabledApps(
-  Iterable<AppData> installed,
-  Iterable<String> paths,
-) {
-  final byPath = <String, AppData>{};
+AppData windowsExecutableApp(String path, Iterable<AppData> installed) {
+  final id = windowsAppPathId(path);
+  AppData? metadata;
   for (final app in installed) {
-    if (app.appPath.trim().isEmpty) continue;
-    final id = windowsAppPathId(app.appPath);
-    byPath[id] = pickPreferredAppEntry(byPath[id], app);
+    if (windowsAppPathId(app.appPath) == id) {
+      metadata = pickPreferredAppEntry(metadata, app);
+    }
   }
-  final enabled = <String, AppData>{};
-  for (final path in paths) {
-    if (path.trim().isEmpty) continue;
-    final id = windowsAppPathId(path);
-    final app =
-        byPath[id] ??
-        AppData(name: p.windows.basename(path), bundleId: '', appPath: path);
-    // Use the stored path for removal, including any native normalization.
-    enabled[id] = app.copyWith(appPath: path, isEnabled: true);
-  }
-  return enabled.values.toList()..sort(_compareAppsByDisplayName);
+  return metadata ??
+      AppData(name: p.windows.basename(path), bundleId: '', appPath: path);
 }
 
 bool isLanternApp(AppData app) {

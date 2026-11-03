@@ -25,6 +25,24 @@ AppData _app({
 void main() {
   _macOSRuleTests();
   _indexTests();
+  test('Windows executable metadata matches its full normalized path', () {
+    final browser = _app(
+      name: 'Browser',
+      bundleId: '',
+      appPath: r'C:\Browsers\App.exe',
+    ).copyWith(isBrowser: true);
+    final game = _app(name: 'Game', bundleId: '', appPath: r'C:\Games\App.exe');
+    final catalog = [browser, game];
+    expect(windowsExecutableApp(r'c:/GAMES/./app.EXE', catalog), same(game));
+    expect(
+      windowsExecutableApp(r'C:\Browsers\App.exe', catalog).isBrowser,
+      isTrue,
+    );
+    final missing = windowsExecutableApp(r'C:\Other\App.exe', catalog);
+    expect(missing.appPath, r'C:\Other\App.exe');
+    expect(missing.name, 'App.exe');
+    expect(missing.isBrowser, isFalse);
+  });
   test('pickPreferredAppEntry prefers app with icon metadata', () {
     final current = _app(
       name: 'Sample',

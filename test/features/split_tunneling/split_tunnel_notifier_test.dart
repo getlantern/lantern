@@ -143,6 +143,23 @@ void main() {
     expect(container.read(splitTunnelProvider).requireValue.enabled, isTrue);
   });
 
+  test('mutations wait for the initial authoritative snapshot', () async {
+    final initialRead = Completer<Either<Failure, SplitTunnelState>>();
+    service.read = () => initialRead.future;
+    final initialized = container.read(splitTunnelProvider.future);
+    final mutation = container
+        .read(splitTunnelProvider.notifier)
+        .setEnabled(false);
+    await Future<void>.delayed(Duration.zero);
+    expect(service.calls, ['read']);
+    service.read = null;
+    initialRead.complete(right(_initial));
+    await initialized;
+    expect(await mutation, isNull);
+    expect(service.calls, ['read', 'enabled:false', 'read']);
+    expect(container.read(splitTunnelProvider).requireValue.enabled, isFalse);
+  });
+
   test('rapid toggles use the latest committed selectors', () async {
     await container.read(splitTunnelProvider.future);
     final notifier = container.read(splitTunnelProvider.notifier);
@@ -280,5 +297,29 @@ void main() {
     expect(state.selectors(SplitTunnelFilterType.domainSuffix), [
       'example.com',
     ]);
+  });
+
+  test('switch consumes the atomic snapshot without a second read', () async {
+    service.snapshot = const SplitTunnelState(
+      enabled: true,
+      policy: SplitTunnelPolicy.bypass,
+      supported: true,
+      filters: {
+        SplitTunnelFilterType.packageName: ['selected.app'],
+        SplitTunnelFilterType.domainSuffix: ['example.com'],
+      },
+    );
+    await container.read(splitTunnelProvider.future);
+    expect(
+      await container
+          .read(splitTunnelProvider.notifier)
+          .switchPolicy(SplitTunnelPolicy.includeOnly),
+      isNull,
+    );
+    expect(service.calls, ['read', 'switch:include']);
+    final state = container.read(splitTunnelProvider).requireValue;
+    expect(state.policy, SplitTunnelPolicy.includeOnly);
+    expect(state.appCount, 0);
+    expect(state.websiteCount, 0);
   });
 }

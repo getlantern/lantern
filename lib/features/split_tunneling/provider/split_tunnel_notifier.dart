@@ -82,6 +82,25 @@ class SplitTunnel extends _$SplitTunnel {
     return failure ?? refreshFailure;
   }
 
+  Future<Failure?> _writeSnapshot(
+    Future<Either<Failure, SplitTunnelState>> Function() action,
+  ) async {
+    final generation = _generation;
+    final result = await action();
+    return result.fold(
+      (failure) async {
+        await _refresh();
+        return failure;
+      },
+      (snapshot) async {
+        if (ref.mounted && generation == _generation) {
+          state = AsyncData(snapshot);
+        }
+        return null;
+      },
+    );
+  }
+
   Future<Failure?> setEnabled(bool enabled) => _serialize(() async {
     if (state.requireValue.enabled == enabled) return null;
     return _write(
@@ -99,42 +118,18 @@ class SplitTunnel extends _$SplitTunnel {
             localizedErrorMessage: 'split_tunnel_update_required'.i18n,
           );
         }
-        final generation = _generation;
-        final result = await ref
-            .read(lanternServiceProvider)
-            .switchSplitTunnelPolicy(policy.wireValue);
-        return result.fold(
-          (failure) async {
-            await _refresh();
-            return failure;
-          },
-          (snapshot) async {
-            if (ref.mounted && generation == _generation) {
-              state = AsyncData(snapshot);
-            }
-            return null;
-          },
+        return _writeSnapshot(
+          () => ref
+              .read(lanternServiceProvider)
+              .switchSplitTunnelPolicy(policy.wireValue),
         );
       });
 
-  Future<Failure?> clearApps() => _serialize(() async {
-    final generation = _generation;
-    final result = await ref
-        .read(lanternServiceProvider)
-        .clearSplitTunnelApps();
-    return result.fold(
-      (failure) async {
-        await _refresh();
-        return failure;
-      },
-      (snapshot) async {
-        if (ref.mounted && generation == _generation) {
-          state = AsyncData(snapshot);
-        }
-        return null;
-      },
-    );
-  });
+  Future<Failure?> clearApps() => _serialize(
+    () => _writeSnapshot(
+      () => ref.read(lanternServiceProvider).clearSplitTunnelApps(),
+    ),
+  );
 
   Future<Failure?> setSelector(
     SplitTunnelFilterType type,

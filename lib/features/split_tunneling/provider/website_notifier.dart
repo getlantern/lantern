@@ -17,9 +17,6 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
         .toSet();
   }
 
-  Future<Failure?> refreshFromCore() =>
-      ref.read(splitTunnelProvider.notifier).refresh();
-
   Future<List<Failure>> addWebsites(List<Website> websites) async {
     final failures = <Failure>[];
     for (final website in websites.toSet()) {

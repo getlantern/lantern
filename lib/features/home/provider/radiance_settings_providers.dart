@@ -1,4 +1,3 @@
-import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
@@ -17,10 +16,6 @@ part 'radiance_settings_providers.g.dart';
 class RadianceSettings extends _$RadianceSettings {
   @override
   RadianceSettingsState build() {
-    ref.listen(splitTunnelProvider, (_, next) {
-      final split = next.value;
-      if (split != null) state = state.copyWith(splitTunneling: split.enabled);
-    });
     _refresh();
     return const RadianceSettingsState();
   }
@@ -57,7 +52,6 @@ class RadianceSettings extends _$RadianceSettings {
         (smart) => smart ? RoutingMode.smart : RoutingMode.full,
       ),
       telemetry: telemetry.fold((_) => defaults.telemetry, (v) => v),
-      splitTunneling: ref.read(splitTunnelProvider).value?.enabled ?? false,
       peerProxy: peer.fold((_) => defaults.peerProxy, (v) => v),
       unboundedEnabled:
           unbounded.fold((_) => defaults.unboundedEnabled, (v) => v),
@@ -89,9 +83,6 @@ class RadianceSettings extends _$RadianceSettings {
       },
     );
   }
-
-  Future<Failure?> setSplitTunneling(bool value) =>
-      ref.read(splitTunnelProvider.notifier).setEnabled(value);
 
   Future<void> setTelemetry(bool consent) async {
     final svc = ref.read(lanternServiceProvider);

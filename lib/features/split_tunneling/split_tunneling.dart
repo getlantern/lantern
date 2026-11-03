@@ -53,15 +53,7 @@ class SplitTunneling extends HookConsumerWidget {
           SizedBox(height: defaultSize),
           if (snapshot == null)
             if (current.hasError)
-              Column(
-                children: [
-                  Text('split_tunnel_load_failed'.i18n),
-                  AppTextButton(
-                    label: 'retry'.i18n,
-                    onPressed: () => notifier.refresh(),
-                  ),
-                ],
-              )
+              SplitTunnelLoadFailed(onRetry: notifier.refresh)
             else
               const Center(child: CircularProgressIndicator())
           else ...[
@@ -215,4 +207,20 @@ Future<bool> confirmSplitTunnelPolicy(
     ],
   );
   return confirmed;
+}
+
+class SplitTunnelLoadFailed extends StatelessWidget {
+  const SplitTunnelLoadFailed({super.key, required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text('split_tunnel_load_failed'.i18n),
+        AppTextButton(label: 'retry'.i18n, onPressed: onRetry),
+      ],
+    );
+  }
 }

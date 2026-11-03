@@ -214,7 +214,7 @@ class MethodHandler : FlutterPlugin,
     private fun splitTunnelResult(result: MethodChannel.Result, action: () -> String) {
         val handler = CoroutineExceptionHandler { _, error ->
             Handler(Looper.getMainLooper()).post {
-                result.error("SPLIT_TUNNEL_ERROR", error.localizedMessage, null)
+                result.error("SPLIT_TUNNEL_ERROR", error.localizedMessage ?: "Split tunnel request failed", null)
             }
         }
         scope.launch(handler) {

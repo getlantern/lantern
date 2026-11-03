@@ -604,9 +604,7 @@ const (
 func (lc *LanternCore) ConnectVPN(tag string) error {
 	ctx, cancel := context.WithTimeout(lc.ctx, ipcConnectTimeout)
 	defer cancel()
-	if err := lc.prepareSplitTunnel(ctx); err != nil {
-		return err
-	}
+	lc.prepareSplitTunnel(ctx)
 	return vpn_tunnel.ConnectToServer(ctx, lc.client, tag)
 }
 

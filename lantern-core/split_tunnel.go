@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"runtime"
 	"sync"
@@ -20,9 +21,6 @@ type splitTunnelClient interface {
 	SplitTunnelFilters(context.Context) (vpn.SplitTunnelFilter, error)
 	AddSplitTunnelItems(context.Context, vpn.SplitTunnelFilter) error
 	RemoveSplitTunnelItems(context.Context, vpn.SplitTunnelFilter) error
-}
-
-type splitTunnelStateClient interface {
 	SplitTunnelState(context.Context) (vpn.SplitTunnelState, error)
 	SwitchSplitTunnelPolicy(context.Context, vpn.SplitTunnelPolicy) (vpn.SplitTunnelState, error)
 	ClearSplitTunnelApps(context.Context) (vpn.SplitTunnelState, error)
@@ -44,16 +42,11 @@ func (lc *LanternCore) GetSplitTunnelState() (string, error) {
 	defer cancel()
 	lc.splitTunnel.mu.Lock()
 	defer lc.splitTunnel.mu.Unlock()
-	if runtime.GOOS == "windows" {
-		if _, err := lc.splitTunnel.migrateLocked(ctx); err != nil {
-			return "", err
-		}
-	}
 	return lc.splitTunnel.stateJSONLocked(ctx)
 }
 
 func (s *splitTunnelPaths) stateJSONLocked(ctx context.Context) (string, error) {
-	state, err := s.client.(splitTunnelStateClient).SplitTunnelState(ctx)
+	state, err := s.client.SplitTunnelState(ctx)
 	supported := err == nil
 	if unsupportedSplitTunnelAPI(err) {
 		config, configErr := s.client.Settings(ctx)
@@ -85,7 +78,7 @@ func (lc *LanternCore) SwitchSplitTunnelPolicy(policy string) (string, error) {
 	defer cancel()
 	lc.splitTunnel.mu.Lock()
 	defer lc.splitTunnel.mu.Unlock()
-	state, err := lc.splitTunnel.client.(splitTunnelStateClient).SwitchSplitTunnelPolicy(ctx, p)
+	state, err := lc.splitTunnel.client.SwitchSplitTunnelPolicy(ctx, p)
 	if err != nil {
 		return "", err
 	}
@@ -99,7 +92,7 @@ func (lc *LanternCore) ClearSplitTunnelApps() (string, error) {
 	defer cancel()
 	lc.splitTunnel.mu.Lock()
 	defer lc.splitTunnel.mu.Unlock()
-	state, err := lc.splitTunnel.client.(splitTunnelStateClient).ClearSplitTunnelApps(ctx)
+	state, err := lc.splitTunnel.client.ClearSplitTunnelApps(ctx)
 	if unsupportedSplitTunnelAPI(err) {
 		filter, err := lc.splitTunnel.client.SplitTunnelFilters(ctx)
 		if err != nil {
@@ -137,13 +130,17 @@ func (s *splitTunnelPaths) prepareConnect(ctx context.Context) error {
 	return err
 }
 
-func (lc *LanternCore) prepareSplitTunnel(ctx context.Context) error {
+// prepareSplitTunnel migrates saved Windows paths. Unmigrated rules still
+// match, just less completely, so a failure here doesn't block connecting.
+func (lc *LanternCore) prepareSplitTunnel(ctx context.Context) {
 	if runtime.GOOS != "windows" {
-		return nil
+		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, ipcStatusTimeout)
 	defer cancel()
-	return lc.splitTunnel.prepareConnect(ctx)
+	if err := lc.splitTunnel.prepareConnect(ctx); err != nil {
+		slog.Warn("Could not migrate split-tunnel executable paths", "error", err)
+	}
 }
 
 func (s *splitTunnelPaths) filters(ctx context.Context) (vpn.SplitTunnelFilter, error) {

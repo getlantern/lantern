@@ -32,29 +32,25 @@ class SplitTunnelState {
 
   factory SplitTunnelState.fromJson(Map<String, dynamic> json) {
     final raw = json['filters'];
-    if (json['enabled'] is! bool ||
-        !['exclude', 'include'].contains(json['policy']) ||
-        raw is! Map) {
-      throw const FormatException('Invalid split-tunnel state');
-    }
     final filters = <SplitTunnelFilterType, List<String>>{};
-    for (final type in SplitTunnelFilterType.values) {
-      final name = type.value;
-      final entries =
-          raw[name] ?? raw['${name[0].toUpperCase()}${name.substring(1)}'];
-      if (entries is List) {
-        filters[type] = List.unmodifiable(
-          entries.whereType<String>().where((s) => s.isNotEmpty).toSet(),
-        );
+    if (raw is Map) {
+      for (final type in SplitTunnelFilterType.values) {
+        final name = type.value;
+        final entries =
+            raw[name] ?? raw['${name[0].toUpperCase()}${name.substring(1)}'];
+        if (entries is List) {
+          filters[type] = List.unmodifiable(
+            entries.whereType<String>().where((s) => s.isNotEmpty).toSet(),
+          );
+        }
       }
     }
-    final supported = json['supported'] == true;
     return SplitTunnelState(
       enabled: json['enabled'] == true,
       policy: json['policy'] == 'include'
           ? SplitTunnelPolicy.includeOnly
           : SplitTunnelPolicy.bypass,
-      supported: supported,
+      supported: json['supported'] == true,
       filters: Map.unmodifiable(filters),
     );
   }
@@ -88,9 +84,7 @@ class SplitTunnelState {
   int get appCount =>
       appTypes.fold(0, (count, type) => count + appSelectors(type).length);
 
-  int get websiteCount => SplitTunnelFilterType.values
-      .where((type) => !appTypes.contains(type))
-      .fold(0, (count, type) => count + selectors(type).length);
+  int get websiteCount => selectors(SplitTunnelFilterType.domainSuffix).length;
 
   String get statusLabelKey => enabled ? policy.labelKey : 'split_tunnel_off';
 }

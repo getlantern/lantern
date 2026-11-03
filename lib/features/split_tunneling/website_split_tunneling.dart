@@ -6,12 +6,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/models/split_tunnel_state.dart';
-import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
+import 'package:lantern/core/models/website.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/core/widgets/section_label.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
 import 'package:lantern/features/split_tunneling/website_domain_input.dart';
 
@@ -22,9 +22,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useEffect(() {
-      unawaited(
-        ref.read(splitTunnelingWebsitesProvider.notifier).refreshFromCore(),
-      );
+      unawaited(ref.read(splitTunnelProvider.notifier).refresh());
       return null;
     }, const []);
 

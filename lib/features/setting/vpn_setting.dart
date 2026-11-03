@@ -1,4 +1,3 @@
-import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:auto_route/annotations.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -24,7 +24,10 @@ class VPNSetting extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
     final isPrivateServerFound = ref.watch(isPrivateServerFoundProvider);
-    final splitTunnel = ref.watch(splitTunnelProvider);
+    final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
+    final splitTunnel = showSplitTunneling
+        ? ref.watch(splitTunnelProvider).value
+        : null;
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
@@ -65,14 +68,12 @@ class VPNSetting extends HookConsumerWidget {
                 ),
               ],
               DividerSpace(),
-              if (PlatformUtils.isAndroid ||
-                  PlatformUtils.isMacOS ||
-                  PlatformUtils.isWindows) ...[
+              if (showSplitTunneling) ...[
                 SplitTunnelingTile(
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
                   actionText:
-                      (splitTunnel.value?.statusLabelKey ??
+                      (splitTunnel?.statusLabelKey ??
                               'split_tunnel_unavailable')
                           .i18n,
                   onPressed: () => appRouter.push(const SplitTunneling()),

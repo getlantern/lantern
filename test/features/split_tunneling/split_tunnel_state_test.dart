@@ -5,32 +5,37 @@ import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
 void main() {
-  test(
-    'requires a valid state envelope while tolerating bad selector entries',
-    () {
-      for (final json in <Map<String, dynamic>>[
-        {},
-        {'enabled': false, 'policy': 'include'},
-        {'enabled': 'false', 'policy': 'exclude', 'filters': {}},
-        {'enabled': true, 'policy': 'unknown', 'filters': {}},
-      ]) {
-        expect(() => SplitTunnelState.fromJson(json), throwsFormatException);
-      }
-      final state = SplitTunnelState.fromJson({
-        'enabled': true,
-        'policy': 'include',
-        'filters': {
-          'PackageName': ['missing.app', 2, '', 'missing.app'],
-          'domainSuffix': ['.example.com'],
-        },
-      });
-      expect(state.policy, SplitTunnelPolicy.includeOnly);
-      expect(state.supported, isFalse);
-      expect(state.statusLabelKey, 'split_tunnel_include_only');
-      expect(state.appCount, 1);
-      expect(state.websiteCount, 1);
-    },
-  );
+  test('tolerates malformed envelopes and bad selector entries', () {
+    for (final json in <Map<String, dynamic>>[
+      {},
+      {'enabled': 'true', 'policy': 'include', 'filters': []},
+      {'enabled': true, 'policy': 'unknown', 'filters': {}},
+    ]) {
+      final state = SplitTunnelState.fromJson(json);
+      expect(
+        state.policy,
+        json['policy'] == 'include'
+            ? SplitTunnelPolicy.includeOnly
+            : SplitTunnelPolicy.bypass,
+      );
+      expect(state.enabled, json['enabled'] == true);
+      expect(state.filters, isEmpty);
+    }
+    final state = SplitTunnelState.fromJson({
+      'enabled': true,
+      'policy': 'include',
+      'filters': {
+        'PackageName': ['missing.app', 2, '', 'missing.app'],
+        'domainSuffix': ['.example.com'],
+        'domainKeyword': ['example'],
+      },
+    });
+    expect(state.policy, SplitTunnelPolicy.includeOnly);
+    expect(state.supported, isFalse);
+    expect(state.statusLabelKey, 'split_tunnel_include_only');
+    expect(state.appCount, 1);
+    expect(state.websiteCount, 1);
+  });
 
   test(
     'stored rows retain missing selectors and enrich discovered metadata',

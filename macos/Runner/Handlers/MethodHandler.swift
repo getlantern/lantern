@@ -1340,7 +1340,7 @@ class MethodHandler {
       var error: NSError?
       let json = MobileGetSplitTunnelStateJSON(&error)
       if let error {
-        await self.handleFlutterError(error, result: result, code: "GET_SPLIT_TUNNEL_STATE_ERROR")
+        await self.handleFlutterError(error, result: result, code: "SPLIT_TUNNEL_ERROR")
         return
       }
       await MainActor.run { result(json) }

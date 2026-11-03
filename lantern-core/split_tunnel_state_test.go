@@ -29,7 +29,7 @@ func (c *splitStateTestClient) Settings(ctx context.Context) (settings.Settings,
 	if c.settingsErr != nil {
 		return nil, c.settingsErr
 	}
-	return settings.Settings{settings.SplitTunnelKey: c.handler.IsEnabled(), settings.SplitTunnelPolicyKey: string(c.handler.Policy())}, nil
+	return settings.Settings{settings.SplitTunnelKey: c.handler.IsEnabled(), settings.SplitTunnelPolicyKey: string(c.handler.State().Policy)}, nil
 }
 
 func (c *splitStateTestClient) SplitTunnelFilters(ctx context.Context) (vpn.SplitTunnelFilter, error) {
@@ -70,7 +70,7 @@ func decodeSplitState(t *testing.T, payload string) splitTunnelSnapshot {
 
 func TestSplitTunnelStateCapabilitiesAndFailures(t *testing.T) {
 	lc, c := splitStateCore(t)
-	require.NoError(t, c.handler.SetEnabled(true))
+	require.NoError(t, c.setEnabled(true))
 	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{ProcessPath: []string{"missing.exe"}}))
 	stateJSON, err := lc.GetSplitTunnelState()
 	require.NoError(t, err)
@@ -115,7 +115,7 @@ func TestSplitTunnelSwitchAndClearReturnAuthoritativeState(t *testing.T) {
 	}))
 	_, err = lc.SwitchSplitTunnelPolicy("include")
 	require.NoError(t, err)
-	assert.NotEmpty(t, c.handler.Filters().ProcessPath)
+	assert.NotEmpty(t, c.handler.State().Filters.ProcessPath)
 	for _, legacy := range []bool{false, true} {
 		if legacy {
 			require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{PackageName: []string{"uninstalled.app"}}))
@@ -140,8 +140,8 @@ func TestSplitTunnelWebsiteWritesAreValidatedAndDeduplicated(t *testing.T) {
 	for _, invalid := range []string{"*", "*ir", "127.0.0.1", "foo..com"} {
 		require.Error(t, lc.AddSplitTunnelItem(vpn.TypeDomainSuffix, invalid))
 	}
-	assert.Empty(t, c.handler.Filters().DomainSuffix)
+	assert.Empty(t, c.handler.State().Filters.DomainSuffix)
 	require.NoError(t, lc.AddSplitTunnelItem(vpn.TypeDomainSuffix, "*.BÜCHER.de."))
 	require.NoError(t, lc.AddSplitTunnelItem(vpn.TypeDomainSuffix, ".xn--bcher-kva.de"))
-	assert.Equal(t, []string{".xn--bcher-kva.de"}, c.handler.Filters().DomainSuffix)
+	assert.Equal(t, []string{".xn--bcher-kva.de"}, c.handler.State().Filters.DomainSuffix)
 }

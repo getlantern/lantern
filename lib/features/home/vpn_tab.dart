@@ -1,10 +1,10 @@
-import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -69,7 +69,6 @@ class _SettingCard extends ConsumerWidget {
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
-    final splitTunnel = ref.watch(splitTunnelProvider);
     final isUserPro = ref.watch(isUserProProvider);
     final serverType = ref
         .watch(serverLocationProvider)
@@ -85,10 +84,10 @@ class _SettingCard extends ConsumerWidget {
         !isUserPro &&
         serverType != ServerLocationType.privateServer;
     final showRoutingMode = !PlatformUtils.isIOS;
-    final showSplitTunneling =
-        PlatformUtils.isAndroid ||
-        PlatformUtils.isMacOS ||
-        PlatformUtils.isWindows;
+    final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
+    final splitTunnel = showSplitTunneling
+        ? ref.watch(splitTunnelProvider).value
+        : null;
 
     // Small screens drop the > chevrons; rows stay tappable via onTap.
     final chevronActions = smallScreen
@@ -106,8 +105,7 @@ class _SettingCard extends ConsumerWidget {
       tileKey: const Key('home.split_tunneling_setting'),
       label: 'split_tunneling'.i18n,
       icon: AppImagePaths.callSpilt,
-      value: (splitTunnel.value?.statusLabelKey ?? 'split_tunnel_unavailable')
-          .i18n,
+      value: (splitTunnel?.statusLabelKey ?? 'split_tunnel_unavailable').i18n,
       actions: chevronActions,
       onTap: () => appRouter.push(const SplitTunneling()),
     );

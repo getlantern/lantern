@@ -10,13 +10,13 @@ import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
-import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/radiance_environment.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -535,9 +535,7 @@ class LanternFFIService implements LanternCoreService {
         return _takeSplitTunnelResult(_ffiService.getSplitTunnelState());
       });
       checkAPIError(payload);
-      return right(
-        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
-      );
+      return right(_decodeSplitTunnelState(payload));
     } catch (e) {
       return left(e.toFailure());
     }
@@ -559,9 +557,7 @@ class LanternFFIService implements LanternCoreService {
         }
       });
       checkAPIError(payload);
-      return right(
-        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
-      );
+      return right(_decodeSplitTunnelState(payload));
     } catch (e) {
       return left(e.toFailure());
     }
@@ -574,9 +570,7 @@ class LanternFFIService implements LanternCoreService {
         return _takeSplitTunnelResult(_ffiService.clearSplitTunnelApps());
       });
       checkAPIError(payload);
-      return right(
-        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
-      );
+      return right(_decodeSplitTunnelState(payload));
     } catch (e) {
       return left(e.toFailure());
     }
@@ -598,17 +592,24 @@ class LanternFFIService implements LanternCoreService {
         }
       });
       checkAPIError(value);
-      if (value.isEmpty)
+      if (value.isEmpty) {
         throw const FormatException('Missing website selector');
+      }
       return right(value);
     } catch (e) {
       return left(e.toFailure());
     }
   }
 
+  static SplitTunnelState _decodeSplitTunnelState(String payload) =>
+      SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>);
+
+  // Go allocates the result, so it must go back through freeCString;
+  // malloc.free crashes (0xC0000409).
   static String _takeSplitTunnelResult(Pointer<Char> result) {
-    if (result == nullptr)
+    if (result == nullptr) {
       throw const FormatException('Missing split-tunnel result');
+    }
     try {
       return result.cast<Utf8>().toDartString();
     } finally {
@@ -673,19 +674,9 @@ class LanternFFIService implements LanternCoreService {
           ? _ffiService.addSplitTunnelItem
           : _ffiService.removeSplitTunnelItem;
 
-      final result = fn(tPtr.cast<Char>(), vPtr.cast<Char>());
-      if (result == nullptr) {
-        throw const FormatException('Missing split-tunnel mutation result');
-      }
-      // `result` is a Go-allocated C string, so Dart's malloc.free would
-      // hard-crash (0xC0000409); hand it back to Go via freeCString after
-      // copying it into a Dart string.
-      final String resultStr;
-      try {
-        resultStr = result.cast<Utf8>().toDartString();
-      } finally {
-        _ffiService.freeCString(result);
-      }
+      final resultStr = _takeSplitTunnelResult(
+        fn(tPtr.cast<Char>(), vPtr.cast<Char>()),
+      );
       // The Go FFI returns a non-null C string like "ok" on success; only
       // treat unexpected payloads as errors.
       if (_ffiOkResults.contains(resultStr)) {

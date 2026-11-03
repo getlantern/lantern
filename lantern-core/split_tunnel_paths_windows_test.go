@@ -47,10 +47,10 @@ func TestSplitTunnelWindowsMigratesSavedPaths(t *testing.T) {
 				if err := client.handler.AddItems(initial); err != nil {
 					t.Fatal(err)
 				}
-				if err := client.handler.SetEnabled(true); err != nil {
+				if err := client.setEnabled(true); err != nil {
 					t.Fatal(err)
 				}
-				if err := client.handler.SetPolicy(policy); err != nil {
+				if err := client.handler.Configure(nil, &policy); err != nil {
 					t.Fatal(err)
 				}
 				paths := splitTunnelPaths{client: client}
@@ -68,8 +68,8 @@ func TestSplitTunnelWindowsMigratesSavedPaths(t *testing.T) {
 				if !reflect.DeepEqual(client.calls, wantCalls) {
 					t.Fatalf("migration calls = %v, want %v", client.calls, wantCalls)
 				}
-				saved := newSplitTunnelTestClient(t, dir).handler
-				if !reflect.DeepEqual(saved.Filters(), want) || !saved.IsEnabled() || saved.Policy() != policy {
+				saved := newSplitTunnelTestClient(t, dir).handler.State()
+				if !reflect.DeepEqual(saved.Filters, want) || !saved.Enabled || saved.Policy != policy {
 					t.Fatal("migration did not preserve the saved filters, enabled state, and policy")
 				}
 				client.calls = nil
@@ -99,13 +99,13 @@ func TestSplitTunnelWindowsNormalizesUpdates(t *testing.T) {
 	if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{path}}, false); err != nil {
 		t.Fatal(err)
 	}
-	if got := client.handler.Filters().ProcessPath; !reflect.DeepEqual(got, []string{strings.ToLower(path)}) {
+	if got := client.handler.State().Filters.ProcessPath; !reflect.DeepEqual(got, []string{strings.ToLower(path)}) {
 		t.Fatalf("saved paths = %v", got)
 	}
 	if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{short}}, true); err != nil {
 		t.Fatal(err)
 	}
-	saved := newSplitTunnelTestClient(t, dir).handler.Filters()
+	saved := newSplitTunnelTestClient(t, dir).handler.State().Filters
 	if len(saved.ProcessPath) != 0 || len(saved.ProcessPathRegex) != 0 || !reflect.DeepEqual(saved.Domain, filter.Domain) {
 		t.Fatalf("removing an alias changed other filters or left its path: %#v", saved)
 	}
@@ -124,7 +124,7 @@ func TestSplitTunnelWindowsRemovesMissingExecutable(t *testing.T) {
 	}, false); err != nil {
 		t.Fatal(err)
 	}
-	if len(client.handler.Filters().ProcessPathRegex) != 3 {
+	if len(client.handler.State().Filters.ProcessPathRegex) != 3 {
 		t.Fatal("expected a generated rule for each executable")
 	}
 	if err := os.Remove(path); err != nil {
@@ -136,7 +136,7 @@ func TestSplitTunnelWindowsRemovesMissingExecutable(t *testing.T) {
 	if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{path}}, true); err != nil {
 		t.Fatal(err)
 	}
-	saved := newSplitTunnelTestClient(t, dir).handler.Filters()
+	saved := newSplitTunnelTestClient(t, dir).handler.State().Filters
 	if !reflect.DeepEqual(saved.ProcessPath, []string{strings.ToLower(other)}) ||
 		!reflect.DeepEqual(saved.ProcessPathRegex, []string{userPattern, processpath.AliasPattern(other)}) {
 		t.Fatalf("removing missing executable left aliases or changed other rules: %#v", saved)
@@ -155,7 +155,7 @@ func TestSplitTunnelWindowsRemovesCanonicalLegacyPath(t *testing.T) {
 	if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{canonical}}, true); err != nil {
 		t.Fatal(err)
 	}
-	for _, saved := range []vpn.SplitTunnelFilter{client.handler.Filters(), newSplitTunnelTestClient(t, dir).handler.Filters()} {
+	for _, saved := range []vpn.SplitTunnelFilter{client.handler.State().Filters, newSplitTunnelTestClient(t, dir).handler.State().Filters} {
 		if len(saved.ProcessPath) != 0 || len(saved.ProcessPathRegex) != 0 {
 			t.Fatalf("removing a canonical legacy path left selectors: %#v", saved)
 		}
@@ -179,14 +179,14 @@ func TestSplitTunnelWindowsRefreshesStaleAliases(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := client.handler.SetEnabled(true); err != nil {
+	if err := client.setEnabled(true); err != nil {
 		t.Fatal(err)
 	}
 	paths := splitTunnelPaths{client: client}
 	if err := paths.prepareConnect(t.Context()); err != nil {
 		t.Fatal(err)
 	}
-	got := newSplitTunnelTestClient(t, dir).handler.Filters().ProcessPathRegex
+	got := newSplitTunnelTestClient(t, dir).handler.State().Filters.ProcessPathRegex
 	if !reflect.DeepEqual(got, []string{userPattern, alias}) {
 		t.Fatalf("saved patterns = %v", got)
 	}
@@ -211,7 +211,7 @@ func TestSplitTunnelWindowsRetriesAliasUpdate(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			initial := client.handler.Filters()
+			initial := client.handler.State().Filters
 			unblock := blockSplitTunnelSave(t, dir)
 			if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{short}}, remove); err == nil {
 				t.Fatal("update succeeded while saving was blocked")
@@ -221,18 +221,18 @@ func TestSplitTunnelWindowsRetriesAliasUpdate(t *testing.T) {
 				want.ProcessPath = []string{strings.ToLower(path)}
 				want.ProcessPathRegex = []string{processpath.AliasPattern(path)}
 			}
-			got := client.handler.Filters()
+			got := client.handler.State().Filters
 			if !slices.Equal(got.ProcessPath, initial.ProcessPath) || !slices.Equal(got.ProcessPathRegex, initial.ProcessPathRegex) {
 				t.Fatalf("failed save changed path or alias: %#v", got)
 			}
 			unblock()
-			if got := newSplitTunnelTestClient(t, dir).handler.Filters(); !reflect.DeepEqual(got, initial) {
+			if got := newSplitTunnelTestClient(t, dir).handler.State().Filters; !reflect.DeepEqual(got, initial) {
 				t.Fatalf("failed save changed disk: %#v", got)
 			}
 			if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{short}}, remove); err != nil {
 				t.Fatal(err)
 			}
-			if got := newSplitTunnelTestClient(t, dir).handler.Filters(); !reflect.DeepEqual(got, want) {
+			if got := newSplitTunnelTestClient(t, dir).handler.State().Filters; !reflect.DeepEqual(got, want) {
 				t.Fatalf("retried save = %#v, want %#v", got, want)
 			}
 		})
@@ -270,7 +270,7 @@ func TestSplitTunnelWindowsRetriesFailedMigration(t *testing.T) {
 			if !reflect.DeepEqual(client.calls, wantCalls) {
 				t.Fatalf("failed migration calls = %v, want %v", client.calls, wantCalls)
 			}
-			if got := client.handler.Filters().ProcessPath; !reflect.DeepEqual(got, wantMemory) {
+			if got := client.handler.State().Filters.ProcessPath; !reflect.DeepEqual(got, wantMemory) {
 				t.Fatalf("in-memory paths = %v, want %v", got, wantMemory)
 			}
 			if unblock == nil {
@@ -288,7 +288,7 @@ func TestSplitTunnelWindowsRetriesFailedMigration(t *testing.T) {
 			if !reflect.DeepEqual(client.calls, wantRetry) {
 				t.Fatalf("retry calls=%v", client.calls)
 			}
-			if got := newSplitTunnelTestClient(t, dir).handler.Filters().ProcessPath; !reflect.DeepEqual(got, []string{strings.ToLower(path)}) {
+			if got := newSplitTunnelTestClient(t, dir).handler.State().Filters.ProcessPath; !reflect.DeepEqual(got, []string{strings.ToLower(path)}) {
 				t.Fatalf("saved paths after retry = %v", got)
 			}
 		})

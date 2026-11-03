@@ -141,28 +141,22 @@ void main() {
     expect(normalizer.inputs, hasLength(2));
   });
 
-  testWidgets('invalid wildcard and IP input never reaches the backend', (
-    tester,
-  ) async {
-    await pump(tester);
-    for (final invalid in ['*ir', '127.0.0.1']) {
-      await add(tester, invalid);
-      expect(normalizer.inputs, isEmpty);
-      expect(websites.added, isEmpty);
-    }
-  });
-
-  testWidgets('normalization and mutation errors preserve input', (
+  testWidgets('core validation errors and mutation errors preserve input', (
     tester,
   ) async {
     normalizer.failure = Failure(
-      error: 'failed',
-      localizedErrorMessage: 'Normalization unavailable',
+      error: 'invalid split-tunnel website: "*ir"',
+      localizedErrorMessage: 'invalid split-tunnel website: "*ir"',
     );
     await pump(tester);
-    await add(tester, 'example.com');
-    expect(find.text('Normalization unavailable'), findsOneWidget);
+    await add(tester, '*ir');
+    expect(normalizer.inputs, ['*ir']);
+    expect(find.text('split_tunnel_invalid_website'), findsOneWidget);
     expect(websites.added, isEmpty);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '*ir',
+    );
     ScaffoldMessenger.of(
       tester.element(find.byType(WebsiteDomainInput)),
     ).removeCurrentSnackBar();

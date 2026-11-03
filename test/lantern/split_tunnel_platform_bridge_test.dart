@@ -110,7 +110,7 @@ void main() {
   test(
     'invalid state and filter payloads propagate as read failures',
     () async {
-      for (final payload in [null, '', '{}', '[]']) {
+      for (final payload in [null, '', '[]']) {
         messenger.setMockMethodCallHandler(channel, (_) async => payload);
         expect((await service.getSplitTunnelState()).isLeft(), isTrue);
       }

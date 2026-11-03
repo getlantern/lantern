@@ -49,7 +49,7 @@ class WindowsExecutablePicker extends HookConsumerWidget {
         if (path == null || !context.mounted) return;
         final installed = await ref.read(appsDataProvider.future);
         if (!context.mounted) return;
-        final app = windowsEnabledApps(installed, [path]).single;
+        final app = windowsExecutableApp(path, installed);
         if (!await confirmBypass(context, app) || !context.mounted) return;
         final failure = await ref
             .read(splitTunnelingAppsProvider.notifier)

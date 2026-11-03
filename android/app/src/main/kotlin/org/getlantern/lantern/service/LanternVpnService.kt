@@ -20,6 +20,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -120,13 +121,18 @@ open class LanternVpnService :
 
     private val packageChanges = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val pkg = intent?.data?.schemeSpecificPart ?: return
-            if (intent.action == Intent.ACTION_PACKAGE_REMOVED && intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return
+            // Updates keep the app's uid and a removed uid carries no traffic,
+            // so only a fresh install of a selected app needs a rebuild.
+            if (intent == null || intent.action != Intent.ACTION_PACKAGE_ADDED) return
+            if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return
+            val pkg = intent.data?.schemeSpecificPart ?: return
+            if (appCapture?.contains(pkg) != true) return
             synchronized(changedPackages) { changedPackages.add(pkg) }
             packageRebuilds.trySend(Unit)
         }
     }
 
+    // Don't hold the gate here: restartVPN calls back into restartService, which takes it.
     private suspend fun reconcilePackageChanges() {
         if (!vpnStartGate.awaitIdle(VPN_START_TIMEOUT_MS)) return
         val changed = synchronized(changedPackages) { changedPackages.toList().also { changedPackages.clear() } }
@@ -152,11 +158,10 @@ open class LanternVpnService :
         super.onCreate()
         ContextCompat.registerReceiver(this, packageChanges, IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
-            addAction(Intent.ACTION_PACKAGE_REMOVED)
             addDataScheme("package")
         }, ContextCompat.RECEIVER_NOT_EXPORTED)
         serviceScope.launch {
-            for (signal in packageRebuilds) reconcilePackageChanges()
+            packageRebuilds.consumeEach { reconcilePackageChanges() }
         }
     }
 
@@ -263,7 +268,8 @@ open class LanternVpnService :
 
     override fun onDestroy() {
         try {
-            unregisterReceiver(packageChanges)
+            runCatching { unregisterReceiver(packageChanges) }
+                .onFailure { e -> AppLogger.e(TAG, "Could not unregister package receiver", e) }
             packageRebuilds.close()
             appCapture = null
             AppLogger.d(TAG, "destroying LanternVpnService")
