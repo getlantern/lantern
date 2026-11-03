@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import itertools
 import json
 import os
 from pathlib import Path
@@ -351,20 +352,23 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
             artifact = self.work / f"lantern-installer-{extension}" / f"lantern-installer-nightly.{extension}"
             artifact.parent.mkdir()
             artifact.write_bytes(b"installer")
-            for previous, error, success in (
+            # Branch builds share the versioned key, so they get the same check.
+            for is_test_run, (previous, error, success) in itertools.product(("false", "true"), (
                 (checksum, "404", True),
                 ("a" * 64, "404", False),
                 ("", "AccessDenied", False),
-            ):
-                with self.subTest(platform=platform, previous=previous, error=error):
+            )):
+                with self.subTest(platform=platform, is_test_run=is_test_run, previous=previous, error=error):
                     (self.work / "commands.jsonl").write_text("")
                     result = self.run_s3_upload(
-                        "nightly", platform, IS_TEST_RUN="false",
+                        "nightly", platform, IS_TEST_RUN=is_test_run,
                         EXISTING_NIGHTLY_SHA256=previous, NIGHTLY_HEAD_ERROR=error,
                     )
                     self.assertEqual(result.returncode == 0, success, result.stderr)
                     uploads = [c for c in self.commands() if c[:3] == ["aws", "s3", "cp"]]
-                    self.assertEqual(len(uploads), 2 if success else 0)
+                    # Branch builds skip the shared latest/ alias.
+                    expected = (1 if is_test_run == "true" else 2) if success else 0
+                    self.assertEqual(len(uploads), expected)
 
     def test_nightly_download_messages_point_to_the_published_artifacts(self) -> None:
         filenames = [

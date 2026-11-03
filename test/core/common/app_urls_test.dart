@@ -33,6 +33,13 @@ void main() {
       );
     });
 
+    test('falls back to the stable feed for unknown build types', () {
+      expect(
+        AppUrls.appcastFor('development'),
+        'https://update.getlantern.org/update/lantern/appcast.xml?channel=stable',
+      );
+    });
+
     test('uses the isolated staging feed for E2E fixtures', () {
       for (final buildType in ['beta', 'nightly']) {
         expect(
@@ -41,5 +48,12 @@ void main() {
         );
       }
     });
+  });
+
+  test('UpdateChannel maps build types to channels', () {
+    expect(UpdateChannel.forBuildType('production'), UpdateChannel.stable);
+    expect(UpdateChannel.forBuildType('beta'), UpdateChannel.beta);
+    expect(UpdateChannel.forBuildType('nightly'), UpdateChannel.nightly);
+    expect(UpdateChannel.forBuildType(''), UpdateChannel.stable);
   });
 }

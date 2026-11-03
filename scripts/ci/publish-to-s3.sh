@@ -62,7 +62,7 @@ upload_file() {
   filename="$(basename "$filepath")"
   local checksum
   checksum="$(sha256sum "$filepath" | awk '{print $1}')"
-  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" && ( "$filename" == *.exe || "$filename" == *.dmg ) ]]; then
+  if [[ "$BUILD_TYPE" == "nightly" && ( "$filename" == *.exe || "$filename" == *.dmg ) ]]; then
     local existing_checksum
     if existing_checksum="$(aws s3api head-object --bucket "$BUCKET" --key "${VERSION_PREFIX}/${filename}" --query Metadata.sha256 --output text 2>&1)"; then
       if [[ "$existing_checksum" != "$checksum" ]]; then
