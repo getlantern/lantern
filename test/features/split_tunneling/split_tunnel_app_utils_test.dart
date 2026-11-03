@@ -23,6 +23,7 @@ AppData _app({
 }
 
 void main() {
+  _windowsAppTests();
   _macOSRuleTests();
   _indexTests();
   test('Windows executable metadata matches its full normalized path', () {
@@ -169,6 +170,44 @@ void main() {
 
     expect(deduped, hasLength(1));
     expect(deduped.single.name, 'Lantern');
+  });
+}
+
+void _windowsAppTests() {
+  test('Windows executable selections require local drive paths', () {
+    expect(isWindowsExecutablePath(r'C:\Games\game.exe'), isTrue);
+    expect(isWindowsExecutablePath('d:/Games/GAME.EXE'), isTrue);
+    for (final path in [
+      '',
+      'game.exe',
+      r'C:game.exe',
+      r'\Games\game.exe',
+      r'\\server\share\game.exe',
+      r'\\?\C:\Games\game.exe',
+      r'C:\Games\game.exe:stream.exe',
+      r'C:\Games\*.exe',
+      r'C:\Games\game.lnk',
+      'C:\\Games\\game\u0000.exe',
+    ]) {
+      expect(isWindowsExecutablePath(path), isFalse, reason: path);
+    }
+  });
+
+  test('Windows path identities ignore case and separators', () {
+    expect(windowsAppPathId(''), isEmpty);
+    expect(windowsAppPathId('  '), isEmpty);
+    expect(
+      windowsAppPathId(r'C:\Games\GAME.exe'),
+      windowsAppPathId('c:/games/game.exe'),
+    );
+  });
+
+  test('same display name does not merge different executable paths', () {
+    final apps = dedupeAndSortApps([
+      _app(name: 'Game', bundleId: 'one', appPath: r'C:\Games\one.exe'),
+      _app(name: 'Game', bundleId: 'two', appPath: r'C:\Games\two.exe'),
+    ]);
+    expect(apps, hasLength(2));
   });
 }
 
