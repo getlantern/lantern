@@ -245,10 +245,15 @@ class AppRobot {
 
   /// Waits for the home screen after launch. Does not touch onboarding.
   Future<void> launchToHome() async {
-    // Clear leftover routes and dialogs first — after a failed scenario they
-    // still cover home, and waiting for home underneath them would just burn
-    // the full timeout. Right after app.main() the navigator isn't mounted
-    // yet, so only reset when it is.
+    // app.main() rebuilds the app on the same router, which still holds any
+    // routes and dialogs a failed scenario left over home; waiting for home
+    // underneath them would just burn the full timeout. The navigator mounts a
+    // few frames after app.main(), so reset once it has.
+    final deadline = DateTime.now().add(const Duration(seconds: 10));
+    while (appRouter.navigatorKey.currentState == null &&
+        DateTime.now().isBefore(deadline)) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     if (appRouter.navigatorKey.currentState != null) {
       await resetToRoot();
     }
