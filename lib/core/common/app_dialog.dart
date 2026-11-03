@@ -31,6 +31,7 @@ class AppDialog {
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (context) {
+        focusFirstOnTv(context);
         final textTheme = Theme.of(context).textTheme;
         return AlertDialog(
           scrollable: scrollable,
@@ -225,6 +226,7 @@ class AppDialog {
       context: context,
       barrierDismissible: false,
       builder: (context) {
+        focusFirstOnTv(context);
         return AlertDialog(
           // backgroundColor and shape come from dialogTheme in app_theme.dart
           // Callers add their own top spacing inside content.
