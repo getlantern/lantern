@@ -2377,3 +2377,15 @@ msgstr "Dostuňyzdan sizi çagyrmagyny haýyş ediň"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Men Lantern-de siziň şahsy proksiňiz bolup bilerin, şonda siz meniň baglanyşygym arkaly internete girip bilersiňiz. Lantern-de \"Serwer saýlamak\" bölümini açyň, ýokardaky ⋮ menýusyna basyň, \"Şahsy proksini çagyr\" saýlaň we maňa baglanyşygy iberiň."
+
+msgid "add_executable"
+msgstr "Ýerine ýetiriji faýl goş"
+
+msgid "windows_executable_bypass_hint"
+msgstr "VPN-i aýlanyp geçmek üçin oýnuň ýa-da programmanyň hakyky .exe faýlyny saýlaň. Işe giriziji saýlansa, onuň açýan programmalary goşulmaýar."
+
+msgid "select_windows_executable"
+msgstr "Bu kompýuterde Lantern-den başga bir programmanyň .exe faýlyny saýlaň."
+
+msgid "unable_to_add_executable"
+msgstr "Ýerine ýetiriji faýly goşup bolmady. Bu kompýuterdäki bar bolan .exe faýly saýlaň we täzeden synanyşyň."

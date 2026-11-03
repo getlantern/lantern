@@ -2416,3 +2416,15 @@ msgstr "له خپل ملګري وغواړئ چې تاسو ته بلنه درکړ
 
 msgid "help_friend_ask_invite_message"
 msgstr "زه په Lantern کې ستاسو شخصي پراکسي کېدای شم، څو تاسو زما د اتصال له لارې آنلاین شئ. په Lantern کې \"د سرور انتخاب\" پرانیزئ، په سر کې ⋮ مینو کېکاږئ، \"شخصي پراکسي ته بلنه\" وټاکئ او لینک ماته راولېږئ."
+
+msgid "add_executable"
+msgstr "اجرايي فایل اضافه کړئ"
+
+msgid "windows_executable_bypass_hint"
+msgstr "د VPN څخه د تېرېدو لپاره د لوبې یا اپ اصلي .exe وټاکئ. د لانچر ټاکل هغه پروګرامونه نه شاملوي چې دا یې پیلوي."
+
+msgid "select_windows_executable"
+msgstr "پر دې کمپیوټر د Lantern پرته د یوې اپ .exe فایل وټاکئ."
+
+msgid "unable_to_add_executable"
+msgstr "اجرايي فایل اضافه نه شو. پر دې کمپیوټر یو موجود .exe فایل وټاکئ او بیا هڅه وکړئ."

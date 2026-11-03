@@ -2433,3 +2433,15 @@ msgstr "သင့်သူငယ်ချင်းကို ဖိတ်ခိ�
 
 msgid "help_friend_ask_invite_message"
 msgstr "ကျွန်ုပ်၏ ချိတ်ဆက်မှုမှတစ်ဆင့် သင် အွန်လိုင်းသုံးနိုင်ရန် Lantern တွင် သင့်ကိုယ်ပိုင် proxy ဖြစ်ပေးနိုင်ပါသည်။ Lantern တွင် \"ဆာဗာရွေးချယ်ရန်\" ကိုဖွင့်ပြီး အပေါ်ရှိ ⋮ မီနူးကို နှိပ်ပါ။ \"ကိုယ်ပိုင် Proxy ဖိတ်ရန်\" ကို ရွေးပြီး လင့်ခ်ကို ကျွန်ုပ်ထံ ပို့ပါ။"
+
+msgid "add_executable"
+msgstr "executable ဖိုင် ထည့်ရန်"
+
+msgid "windows_executable_bypass_hint"
+msgstr "VPN ကို ကျော်ရန် ဂိမ်း သို့မဟုတ် အက်ပ်၏ တကယ့် .exe ကို ရွေးပါ။ launcher ကို ရွေးလျှင် ၎င်းဖွင့်သော ပရိုဂရမ်များ မပါဝင်ပါ။"
+
+msgid "select_windows_executable"
+msgstr "ဤကွန်ပျူတာရှိ Lantern မဟုတ်သော အက်ပ်တစ်ခု၏ .exe ဖိုင်ကို ရွေးပါ။"
+
+msgid "unable_to_add_executable"
+msgstr "executable ဖိုင်ကို ထည့်၍မရပါ။ ဤကွန်ပျူတာရှိ .exe ဖိုင်တစ်ခုကို ရွေးပြီး ထပ်စမ်းကြည့်ပါ။"

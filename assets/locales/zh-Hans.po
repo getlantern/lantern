@@ -2241,3 +2241,15 @@ msgstr "请朋友邀请您"
 
 msgid "help_friend_ask_invite_message"
 msgstr "我可以在蓝灯上做您的个人代理，让您通过我的连接上网。在蓝灯中打开“服务器选择”，点击顶部的 ⋮ 菜单，选择“邀请个人代理”，然后把链接发给我。"
+
+msgid "add_executable"
+msgstr "添加可执行文件"
+
+msgid "windows_executable_bypass_hint"
+msgstr "选择游戏或应用本身的 .exe 以绕过 VPN。选择启动器不会包含它启动的程序。"
+
+msgid "select_windows_executable"
+msgstr "选择此电脑上除 Lantern 以外的应用的 .exe 文件。"
+
+msgid "unable_to_add_executable"
+msgstr "无法添加可执行文件。选择此电脑上已有的 .exe 文件，然后重试。"

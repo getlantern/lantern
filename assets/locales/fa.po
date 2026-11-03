@@ -2389,3 +2389,15 @@ msgstr "درخواست دعوت از دوست"
 
 msgid "help_friend_ask_invite_message"
 msgstr "من می‌توانم پروکسی شخصی شما در Lantern باشم تا از طریق اتصال من آنلاین شوید. در Lantern، «انتخاب سرور» را باز کنید، روی منوی ⋮ در بالا بزنید، «دعوت از پروکسی شخصی» را انتخاب کنید و پیوند را برایم بفرستید."
+
+msgid "add_executable"
+msgstr "افزودن فایل اجرایی"
+
+msgid "windows_executable_bypass_hint"
+msgstr "برای عبور از VPN، فایل .exe اصلی بازی یا برنامه را انتخاب کنید. انتخاب لانچر شامل برنامه‌هایی که اجرا می‌کند نمی‌شود."
+
+msgid "select_windows_executable"
+msgstr "فایل .exe یک برنامه، به‌جز Lantern، را در این رایانه انتخاب کنید."
+
+msgid "unable_to_add_executable"
+msgstr "افزودن فایل اجرایی ممکن نشد. یک فایل .exe موجود در این رایانه انتخاب کنید و دوباره تلاش کنید."
