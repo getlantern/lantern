@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/common.dart' show appRouter;
 import 'package:lantern/core/extensions/ref.dart';
 import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/localization/i18n.dart';
@@ -55,13 +54,6 @@ class AuthRobot {
   /// have left a session behind. Uses the service directly — signing out is
   /// not the behavior under test here.
   Future<void> ensureSignedOut() async {
-    // Clear leftover routes and dialogs first — after a failed scenario the
-    // error dialog and auth screens still cover home, and waiting for home
-    // underneath them would just burn the full timeout. Right after
-    // app.main() the navigator isn't mounted yet, so only reset when it is.
-    if (appRouter.navigatorKey.currentState != null) {
-      await app.resetToRoot();
-    }
     await app.waitForHomeReady();
     if (isSignedIn) {
       final email = signedInEmail;
