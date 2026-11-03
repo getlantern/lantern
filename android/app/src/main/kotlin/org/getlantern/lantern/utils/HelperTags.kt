@@ -10,13 +10,15 @@ package org.getlantern.lantern.utils
  * redacted the same way, as the Dart port (lib/core/utils/helper_tags.dart)
  * does.
  *
- * This redacts tags only: helper-…, personal-proxies and personalProxy.
+ * This redacts tags only: helper-…, personal-proxies, personal-proxy (and so a
+ * friend's selection, personal-proxy:helper-…) and personalProxy.
  * Addresses on lines naming helpers are not touched here; the Dart and
  * radiance redaction remove those.
  */
 object HelperTags {
     private val helperTag = Regex("(?<![A-Za-z0-9_])helper-[0-9a-f]{12}")
     private const val PERSONAL_PROXIES_TAG = "personal-proxies"
+    private const val PERSONAL_PROXY_TAG = "personal-proxy"
     private val personalProxyType = Regex("(?<![A-Za-z0-9_])personalProxy(?![A-Za-z0-9_])")
 
     /**
@@ -27,9 +29,18 @@ object HelperTags {
         var out = text
         if (out.contains("helper-")) out = helperTag.replace(out, "helper")
         if (out.contains(PERSONAL_PROXIES_TAG)) out = out.replace(PERSONAL_PROXIES_TAG, "helper")
+        if (out.contains(PERSONAL_PROXY_TAG)) out = out.replace(PERSONAL_PROXY_TAG, "helper")
         if (out.contains("personalProxy")) out = personalProxyType.replace(out, "helper")
         return out
     }
+
+    /**
+     * [message] and, when there is one, [throwable]'s stack trace (with every
+     * cause's message) as one redacted text. A throwable handed to Log or a
+     * writer as is would leave its messages unredacted.
+     */
+    fun redactWithThrowable(message: String, throwable: Throwable?): String =
+        redact(if (throwable == null) message else "$message\n${throwable.stackTraceToString()}")
 
     /**
      * What may be logged about a Flutter event. A server-location event carries

@@ -253,6 +253,9 @@ type Helper interface {
 	// HelperCall runs one helper-invite operation (see lantern-core/helper)
 	// and returns its JSON result, or {"error": code}. It never returns a raw
 	// error, so nothing about a failure but its code crosses into Dart.
+	// The ops "personal_proxy_status" (radiance's status of each friend this
+	// device invited) and "selected_server" (the selection radiance has
+	// persisted) run without the engine.
 	HelperCall(op, argsJSON string) string
 }
 
@@ -344,6 +347,9 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenPeerConnectionEvents()
 	go lc.listenUnboundedSnapshots()
 	go lc.listenPeerSnapshots()
+	go lc.listenHelperLive()
+	go lc.listenPersonalProxyFallbackEvents()
+	go lc.listenSelectionSavedEvents()
 	go lc.listenPeerStatusEvents()
 	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
@@ -1621,6 +1627,15 @@ func itemsForType(filter vpn.SplitTunnelFilter, filterType string) []string {
 const helperCallTimeout = 90 * time.Second
 
 func (lc *LanternCore) HelperCall(op, argsJSON string) string {
+	if op == opPersonalProxyStatus {
+		if lc.client == nil {
+			return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+		}
+		return personalProxyStatusJSON(lc.ctx, lc.client.PersonalProxyStatus)
+	}
+	if op == opSelectedServer {
+		return lc.readSelectedServer()
+	}
 	if lc.helpers == nil {
 		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
 	}

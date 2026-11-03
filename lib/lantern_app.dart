@@ -37,9 +37,15 @@ import 'features/system_tray/system_tray_wrapper.dart';
 
 final globalRouter = sl<AppRouter>();
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+// Nothing opens on its own over these. The QR scanner keeps scanning under a
+// sheet and pops itself with the scanned code, which would pop the sheet.
 final UserMessageRouteObserver userMessageRouteObserver =
     UserMessageRouteObserver(
-      blockedRouteNames: {Onboarding.name, ChoosePaymentMethod.name},
+      blockedRouteNames: {
+        Onboarding.name,
+        ChoosePaymentMethod.name,
+        QrCodeScanner.name,
+      },
     );
 
 class LanternApp extends StatefulHookConsumerWidget {

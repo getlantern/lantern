@@ -51,6 +51,21 @@ type FlutterEventEmitter interface {
 	SendEvent(event *FlutterEvent)
 }
 
+// highVolumeEvents arrive too often to log their payloads, as the iOS, macOS and
+// Android listeners treat them too. The snapshots come every second while sharing
+// and carry the addresses of the peers relayed.
+var highVolumeEvents = map[string]bool{
+	"peer-connection":    true,
+	"data-cap-event":     true,
+	"unbounded-snapshot": true,
+	"peer-snapshot":      true,
+}
+
+// IsHighVolumeEvent reports whether only an event's type should be logged.
+func IsHighVolumeEvent(eventType string) bool {
+	return highVolumeEvents[eventType]
+}
+
 // LogListener receives log entries streamed from the IPC client.
 type LogListener interface {
 	OnLogEntry(entry string)

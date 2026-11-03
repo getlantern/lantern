@@ -156,9 +156,24 @@ class ExtensionProvider: NEPacketTunnelProvider {
       // The last pairing ended while the app was away: radiance dropped the
       // personal proxies group, and a widget or on-demand start still asks
       // for it. Connect through auto, as radiance itself falls back.
-      if serverName == personalProxiesTag && !MobileIsTagAvailable(serverName) {
+      // A friend selected alone with no route left falls back to the group
+      // while it exists, as radiance does.
+      if isPersonalProxySelection(serverName) && !MobileIsTagAvailable(serverName)
+        && MobileIsTagAvailable(personalProxiesTag)
+      {
+        appLogger.log("(lantern-tunnel) selected friend is gone; starting the group")
+        VPNWidgetStore.setServerName(personalProxiesTag)
+        connectToServer(serverName: personalProxiesTag, completion: completion)
+        return
+      }
+      if (serverName == personalProxiesTag || isPersonalProxySelection(serverName))
+        && !MobileIsTagAvailable(serverName)
+      {
         appLogger.log("(lantern-tunnel) selected group is gone; starting auto")
         VPNWidgetStore.setServerName(VPNWidgetState.autoServerName)
+        // The stored location still names the personal proxy, and the widget
+        // shows it ahead of the auto label.
+        VPNWidgetStore.setLocation(name: "", city: "", country: "", countryCode: "")
         startVPN(completion: completion)
         return
       }

@@ -29,12 +29,39 @@ bool isHelperTag(String tag) => tag.startsWith('helper-');
 /// device as having them, so it is redacted like a helper tag.
 const personalProxiesTag = 'personal-proxies';
 
+/// radiance's url-test group over one friend's outbounds (vpn.PersonalProxyTag).
+/// It is never selected by itself: [personalProxySelection] selects one
+/// friend through it. Redacted like [personalProxiesTag].
+const personalProxyTag = 'personal-proxy';
+
+/// The tag that selects the friend whose outbound tag is [friendTag] as the
+/// personal proxy (radiance's vpn.PersonalProxySelection).
+String personalProxySelection(String friendTag) =>
+    '$personalProxyTag:$friendTag';
+
+/// The friend's outbound tag that [tag] selects, or null when [tag] is not a
+/// [personalProxySelection] (radiance's vpn.ParsePersonalProxySelection).
+String? personalProxyFriend(String tag) {
+  const prefix = '$personalProxyTag:';
+  if (!tag.startsWith(prefix)) return null;
+  final friend = tag.substring(prefix.length);
+  return _wholeHelperTag.hasMatch(friend) ? friend : null;
+}
+
+final _wholeHelperTag = RegExp(r'^helper-[0-9a-f]{12}$');
+
+/// Whether [tag] is the personal proxies group or one friend's selection:
+/// never listed as a server, since each has its own row.
+bool isPersonalProxyGroup(String tag) =>
+    tag == personalProxiesTag || tag.startsWith('$personalProxyTag:');
+
 // The app's ServerLocationType.personalProxy as it appears in log lines
 // ("type=personalProxy"). It reveals the same thing as the group tag.
 final _personalProxyType = RegExp(r'\bpersonalProxy\b');
 
 bool _namesHelper(String s) =>
     s.contains(personalProxiesTag) ||
+    s.contains(personalProxyTag) ||
     (s.contains('personalProxy') && _personalProxyType.hasMatch(s)) ||
     (s.contains('helper') && _helperNamed.hasMatch(s));
 
@@ -54,6 +81,7 @@ String redactHelperTags(String text) {
   return redacted
       .replaceAll(_helperTag, 'helper')
       .replaceAll(personalProxiesTag, 'helper')
+      .replaceAll(personalProxyTag, 'helper')
       .replaceAll(_personalProxyType, 'helper');
 }
 

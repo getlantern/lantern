@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/getlantern/radiance/peer"
 	"github.com/getlantern/radiance/unbounded"
 )
 
@@ -15,7 +16,31 @@ func (lc *LanternCore) listenUnboundedSnapshots() {
 }
 
 func pollUnboundedSnapshots(ctx context.Context, ticks <-chan time.Time, read func(context.Context) (unbounded.Snapshot, error), notify func(string, string)) {
-	pollSnapshots(ctx, ticks, read, notify, "unbounded-snapshot", "unbounded-unavailable")
+	pollSnapshots(ctx, ticks, withoutUnboundedPairings(read), notify, "unbounded-snapshot", "unbounded-unavailable")
+}
+
+// withoutUnboundedPairings clears each peerBytes entry's helper pairing: the
+// app never shows which relayed traffic is a friend's, so pairing IDs do not
+// reach it in snapshots.
+func withoutUnboundedPairings(read func(context.Context) (unbounded.Snapshot, error)) func(context.Context) (unbounded.Snapshot, error) {
+	return func(ctx context.Context) (unbounded.Snapshot, error) {
+		s, err := read(ctx)
+		for i := range s.PeerBytes {
+			s.PeerBytes[i].Pairing = ""
+		}
+		return s, err
+	}
+}
+
+// withoutPeerPairings is withoutUnboundedPairings for direct sharing.
+func withoutPeerPairings(read func(context.Context) (peer.Snapshot, error)) func(context.Context) (peer.Snapshot, error) {
+	return func(ctx context.Context) (peer.Snapshot, error) {
+		s, err := read(ctx)
+		for i := range s.PeerBytes {
+			s.PeerBytes[i].Pairing = ""
+		}
+		return s, err
+	}
 }
 
 // listenPeerSnapshots polls the bytes direct sharing has relayed, which the
@@ -24,7 +49,11 @@ func pollUnboundedSnapshots(ctx context.Context, ticks <-chan time.Time, read fu
 func (lc *LanternCore) listenPeerSnapshots() {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-	pollSnapshots(lc.ctx, ticker.C, lc.client.PeerRelaySnapshot, lc.notifyFlutter, "peer-snapshot", "")
+	pollPeerSnapshots(lc.ctx, ticker.C, lc.client.PeerRelaySnapshot, lc.notifyFlutter)
+}
+
+func pollPeerSnapshots(ctx context.Context, ticks <-chan time.Time, read func(context.Context) (peer.Snapshot, error), notify func(string, string)) {
+	pollSnapshots(ctx, ticks, withoutPeerPairings(read), notify, "peer-snapshot", "")
 }
 
 // pollSnapshots reads a snapshot on every tick and sends it to Flutter as

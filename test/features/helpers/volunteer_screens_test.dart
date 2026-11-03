@@ -1,18 +1,25 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 // common.dart re-exports the generated route classes, which share the
 // screens' names.
 import 'package:lantern/core/common/common.dart' hide HelpFriend;
+import 'package:lantern/core/common/common.dart' as routes show HelpFriend;
+import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/help_friend.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
-import 'package:lantern/features/helpers/helping_section.dart';
+import 'package:lantern/features/helpers/helping_friends.dart';
+import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:share_plus/share_plus.dart';
 
 class _Helpers extends HelpersNotifier {
   _Helpers(
@@ -32,6 +39,7 @@ class _Helpers extends HelpersNotifier {
 
   @override
   HelpersState build() => initial;
+
   @override
   Future<void> refreshIfUsed() async => refreshes++;
   @override
@@ -67,6 +75,19 @@ class _Helpers extends HelpersNotifier {
   void setView(HelpersView view) => state = state.copyWith(view: view);
 }
 
+class _Router extends AppRouter {
+  final pushed = <PageRouteInfo>[];
+
+  @override
+  Future<T?> push<T extends Object?>(
+    PageRouteInfo route, {
+    OnNavigationFailure? onFailure,
+  }) async {
+    pushed.add(route);
+    return null;
+  }
+}
+
 class _Share extends ShareNotifier {
   _Share({this.active = false});
   final bool active;
@@ -82,6 +103,12 @@ Future<void> _pump(
   Widget child, {
   bool sharing = false,
 }) async {
+  // Tall enough that HelpFriend's whole form, below the "what helping
+  // means" card, is built without scrolling.
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = const Size(800, 2000);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -108,6 +135,39 @@ Future<void> _claim(WidgetTester tester) async {
       .pump(); // pumpAndSettle would never settle: the waiting view spins
 }
 
+/// Serves [text] as the clipboard, counting reads.
+class _Clipboard {
+  _Clipboard(WidgetTester tester, this.text) {
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method != 'Clipboard.getData') return null;
+      reads++;
+      return text == null ? null : {'text': text};
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+  }
+
+  final String? text;
+  int reads = 0;
+}
+
+void _desktop(bool desktop) {
+  PlatformUtils.debugIsDesktop = desktop;
+  addTearDown(() => PlatformUtils.debugIsDesktop = null);
+}
+
+String _linkField(WidgetTester tester) => tester
+    .widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('help_friend.link')),
+        matching: find.byType(TextField),
+      ),
+    )
+    .controller!
+    .text;
+
 const _link =
     'https://lantern.io/help/#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 
@@ -117,18 +177,19 @@ const _sara = HelperPairingView(
   sinceUnix: 1700000000,
 );
 
-HelpersState _helping() => const HelpersState(
-  helpOthers: true,
-  view: HelpersView(
-    unlocked: true,
-    helping: [_sara],
-    activity: HelperActivity(
-      day: '2026-10-23',
-      activeSeconds: 3 * 3600 + 20 * 60,
-      relayedBytes: 1200000000,
-    ),
-  ),
-);
+HelpersState _helping({List<HelperPairingView> helping = const [_sara]}) =>
+    HelpersState(
+      helpOthers: true,
+      view: HelpersView(
+        unlocked: true,
+        helping: helping,
+        activity: const HelperActivity(
+          day: '2026-10-23',
+          activeSeconds: 3 * 3600 + 20 * 60,
+          relayedBytes: 1200000000,
+        ),
+      ),
+    );
 
 const _reza = HelperPairingView(pairingId: 'p2', name: 'Reza');
 
@@ -145,6 +206,36 @@ void main() {
     await _claim(tester);
     expect(helpers.claims, [(_link, 'Ali')]);
     expect(find.text('2562'), findsOneWidget);
+    expect(find.text('become_personal_proxy'.i18n), findsOneWidget);
+    final card = find.byKey(const Key('help_friend.waiting'));
+    for (final text in [
+      'help_friend_tell_code'.i18n,
+      '2562',
+      'help_friend_code_check'.i18n,
+      'help_friend_waiting_approval'.i18n,
+    ]) {
+      expect(
+        find.descendant(of: card, matching: find.text(text)),
+        findsOneWidget,
+      );
+    }
+    final code = tester.widget<Text>(find.byKey(const Key('help_friend.code')));
+    expect(
+      code.style?.fontSize,
+      Theme.of(tester.element(card)).textTheme.displayMedium?.fontSize,
+    );
+    final note = find.byKey(const Key('help_friend.code_note'));
+    expect(
+      find.descendant(
+        of: note,
+        matching: find.text('help_friend_code_note'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(note).dy,
+      greaterThan(tester.getBottomLeft(card).dy),
+    );
   });
 
   testWidgets('an already claimed invite says so prominently', (tester) async {
@@ -291,8 +382,8 @@ void main() {
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
   });
 
-  testWidgets('a link that opened HelpFriend and is not an invite can be '
-      'corrected', (tester) async {
+  testWidgets('a link that opened HelpFriend and the engine refuses shows '
+      'the error on the field, and can be corrected', (tester) async {
     final helpers = _Helpers(
       const HelpersState(),
       claimAnswers: ['{"error":"bad_link"}', '{"claim_id":"c1","code":"2562"}'],
@@ -301,9 +392,18 @@ void main() {
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     expect(find.byKey(const Key('help_friend.link')), findsNothing);
     await _claim(tester);
-    expect(find.text(helperErrorText('bad_link')), findsOneWidget);
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(find.text('help_friend_form_title'.i18n), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('help_friend.link_error'))).data,
+      helperErrorText('bad_link'),
+    );
+    expect(find.byKey(const Key('help_friend.error')), findsNothing);
+    // Refused, the link is no use: a new one can be asked for.
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsOneWidget);
     await tester.enterText(find.byKey(const Key('help_friend.link')), _link);
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
     await tester.pump();
     await tester.pump();
@@ -311,15 +411,70 @@ void main() {
     expect(find.text('2562'), findsOneWidget);
   });
 
-  testWidgets('opening HelpFriend refreshes only if used, never shows the '
-      'held link, and caps the name at 60', (tester) async {
+  testWidgets('a link that opened HelpFriend and the engine reports as the '
+      'volunteer\'s own invite shows the error on the field, without asking '
+      'for an invite', (tester) async {
+    final helpers = _Helpers(
+      const HelpersState(),
+      claimAnswers: ['{"error":"own_invite"}'],
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    await _claim(tester);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('help_friend.link_error'))).data,
+      helperErrorText('own_invite'),
+    );
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsNothing);
+  });
+
+  testWidgets('the button waits for a valid link; a bad one is flagged on '
+      'the field', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    PrimaryButton button() => tester.widget<PrimaryButton>(
+      find.descendant(
+        of: find.byKey(const Key('help_friend.accept')),
+        matching: find.byType(PrimaryButton),
+      ),
+    );
+    expect(button().enabled, isFalse);
+    expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
+    expect(find.text('help_friend_link_hint'.i18n), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('help_friend.link')),
+      'https://example.com/help#AAAA',
+    );
+    await tester.pump();
+    expect(button().enabled, isFalse);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('help_friend.link_error'))).data,
+      helperErrorText('bad_link'),
+    );
+    await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await tester.pump();
+    expect(helpers.claims, isEmpty);
+
+    // Pasted with the share message around it.
+    await tester.enterText(
+      find.byKey(const Key('help_friend.link')),
+      'Sara wants your help staying online. $_link',
+    );
+    await tester.pump();
+    expect(button().enabled, isTrue);
+    expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
+  });
+
+  testWidgets('opening HelpFriend refreshes only if used, takes the held '
+      'link once, and caps the name at 60', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     expect(helpers.refreshes, 1);
-    // The link was taken once, and is not on screen.
     expect(helpers.takeLink(), isNull);
-    expect(find.textContaining('AAAAAAAA'), findsNothing);
     final field = tester.widget<TextField>(
       find.descendant(
         of: find.byKey(const Key('help_friend.name')),
@@ -327,6 +482,43 @@ void main() {
       ),
     );
     expect(field.maxLength, 60);
+  });
+
+  testWidgets('before claiming: what being a Personal Proxy means, then the '
+      'link and name card', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    expect(find.text('become_personal_proxy'.i18n), findsOneWidget);
+    final card = find.byKey(const Key('help_friend.means'));
+    expect(card, findsOneWidget);
+    for (final key in [
+      'become_means_title',
+      'become_means_traffic',
+      'become_means_seen',
+      'become_means_remove',
+    ]) {
+      expect(
+        find.descendant(of: card, matching: find.text(key.i18n)),
+        findsOneWidget,
+      );
+    }
+    // Decision 5: never "you cannot see it".
+    expect(find.textContaining('cannot see'), findsNothing);
+    final form = find.byKey(const Key('help_friend.form'));
+    for (final text in [
+      'help_friend_form_title'.i18n,
+      'help_friend_link_label'.i18n,
+      'help_friend_link_hint'.i18n,
+      'help_friend_name_label'.i18n,
+      'help_friend_name_hint'.i18n,
+      'help_friend_become'.i18n,
+    ]) {
+      expect(
+        find.descendant(of: form, matching: find.text(text)),
+        findsOneWidget,
+      );
+    }
+    expect(tester.getBottomLeft(card).dy, lessThan(tester.getTopLeft(form).dy));
   });
 
   testWidgets('without a held link, the link field is shown', (tester) async {
@@ -346,6 +538,131 @@ void main() {
     );
     await _claim(tester);
     expect(helpers.claims.single.$1, _link);
+  });
+
+  testWidgets('a link that opened HelpFriend is not shown: only the name is '
+      'asked, and the link is claimed', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    expect(find.byKey(const Key('help_friend.scan')), findsNothing);
+    expect(find.byKey(const Key('help_friend.paste_button')), findsNothing);
+    expect(find.text('help_friend_link_hint'.i18n), findsNothing);
+    expect(find.text('help_friend_form_title'.i18n), findsNothing);
+    expect(find.text('help_friend_form_title_from_link'.i18n), findsOneWidget);
+    expect(
+      tester
+          .widget<PrimaryButton>(
+            find.descendant(
+              of: find.byKey(const Key('help_friend.accept')),
+              matching: find.byType(PrimaryButton),
+            ),
+          )
+          .enabled,
+      isTrue,
+    );
+    await _claim(tester);
+    expect(helpers.claims, [(_link, 'Ali')]);
+  });
+
+  testWidgets('without a link, the volunteer can ask a friend for an invite '
+      'through the share sheet', (tester) async {
+    final shared = <ShareParams>[];
+    debugShareInvite = (p) async => shared.add(p);
+    addTearDown(() => debugShareInvite = null);
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    final ask = find.byKey(const Key('help_friend.ask_invite'));
+    expect(ask, findsOneWidget);
+    expect(find.text('help_friend_no_link'.i18n), findsOneWidget);
+    expect(find.text('help_friend_ask_invite'.i18n), findsOneWidget);
+    final form = find.byKey(const Key('help_friend.form'));
+    expect(
+      tester.getTopLeft(ask).dy,
+      greaterThan(tester.getBottomLeft(form).dy),
+    );
+    await tester.tap(ask);
+    await tester.pump();
+    expect(shared.single.text, 'help_friend_ask_invite_message'.i18n);
+    expect(shared.single.text, contains('"${'invite_personal_proxy'.i18n}"'));
+    expect(shared.single.text, contains('server_selection'.i18n));
+    expect(shared.single.sharePositionOrigin!.isEmpty, isFalse);
+    expect(helpers.claims, isEmpty);
+  });
+
+  testWidgets('a link that opened HelpFriend offers no ask for an invite', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.form')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsNothing);
+    expect(find.text('help_friend_no_link'.i18n), findsNothing);
+  });
+
+  testWidgets('Paste fills the link field from the clipboard; mobile reads '
+      'it only on the tap', (tester) async {
+    _desktop(false);
+    final clipboard = _Clipboard(tester, '  $_link\n');
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    await tester.pump();
+    expect(clipboard.reads, 0);
+    expect(_linkField(tester), isEmpty);
+    await tester.tap(find.byKey(const Key('help_friend.paste_button')));
+    await tester.pump();
+    expect(clipboard.reads, 1);
+    expect(_linkField(tester), _link);
+    await _claim(tester);
+    expect(helpers.claims, [(_link, 'Ali')]);
+  });
+
+  testWidgets('Paste with nothing on the clipboard leaves the field', (
+    tester,
+  ) async {
+    _desktop(false);
+    _Clipboard(tester, null);
+    await _pump(tester, _Helpers(const HelpersState()), const HelpFriend());
+    await tester.enterText(find.byKey(const Key('help_friend.link')), 'abc');
+    await tester.tap(find.byKey(const Key('help_friend.paste_button')));
+    await tester.pump();
+    expect(_linkField(tester), 'abc');
+  });
+
+  testWidgets('on desktop, an invite on the clipboard is filled in', (
+    tester,
+  ) async {
+    _desktop(true);
+    final clipboard = _Clipboard(tester, 'Sara wants your help. $_link');
+    await _pump(tester, _Helpers(const HelpersState()), const HelpFriend());
+    await tester.pump();
+    expect(clipboard.reads, 1);
+    expect(_linkField(tester), 'Sara wants your help. $_link');
+    expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
+  });
+
+  testWidgets('on desktop, clipboard text that is not an invite is dropped', (
+    tester,
+  ) async {
+    _desktop(true);
+    final clipboard = _Clipboard(tester, 'https://example.com/help#AAAA');
+    await _pump(tester, _Helpers(const HelpersState()), const HelpFriend());
+    await tester.pump();
+    expect(clipboard.reads, 1);
+    expect(_linkField(tester), isEmpty);
+  });
+
+  testWidgets('a link that opened HelpFriend is not overridden by the '
+      'clipboard', (tester) async {
+    _desktop(true);
+    final clipboard = _Clipboard(tester, _link);
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink('https://lantern.io/help/#BBBB');
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await tester.pump();
+    expect(clipboard.reads, 0);
   });
 
   testWidgets('approval after the claim says so', (tester) async {
@@ -470,6 +787,7 @@ void main() {
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     await _claim(tester);
     expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
     await tester.pump();
     await tester
@@ -544,27 +862,240 @@ void main() {
     },
   );
 
-  testWidgets("you're helping: rows, totals, and help others too", (
+  testWidgets('the connections card counts friends and opens the sheet', (
     tester,
   ) async {
     final helpers = _Helpers(_helping());
+    await _pump(tester, helpers, const PersonalProxyConnectionsCard());
+    expect(find.text('helping_connections_title'.i18n), findsOneWidget);
+    expect(find.text('helping_friends_one'.i18n), findsOneWidget);
+    // Live status is not reported yet: no third line rather than a wrong one.
+    expect(find.textContaining('connected right now'), findsNothing);
+    await tester.tap(
+      find.byKey(const Key('action_mode.personal_proxy_connections')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('helping_sheet_title'.i18n), findsOneWidget);
+    expect(find.byType(HelpingFriendsSheet), findsOneWidget);
+  });
+
+  testWidgets('with live status, the card names the one friend connected', (
+    tester,
+  ) async {
+    final helpers = _Helpers(
+      _helping(
+        helping: const [
+          HelperPairingView(pairingId: 'p1', name: 'Sara', connected: true),
+          HelperPairingView(pairingId: 'p2', name: 'Reza', connected: false),
+        ],
+      ),
+    );
+    await _pump(tester, helpers, const PersonalProxyConnectionsCard());
+    expect(find.text('helping_friends_count'.i18n.fill([2])), findsOneWidget);
+    expect(
+      find.text('helping_connected_named'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('live status: the card and sheet follow it, the headline names '
+      'the first connected friend, and unknown hides it again', (tester) async {
+    const unknown = [
+      HelperPairingView(pairingId: 'p1', name: 'Sara'),
+      HelperPairingView(pairingId: 'p2', name: 'Reza'),
+    ];
+    final helpers = _Helpers(_helping(helping: unknown));
     await _pump(
       tester,
       helpers,
-      const SingleChildScrollView(child: HelpingSection()),
+      const Column(
+        children: [
+          PersonalProxyConnectionsCard(),
+          Expanded(child: HelpingFriendsSheet()),
+        ],
+      ),
       sharing: true,
     );
+    expect(find.textContaining('connected right now'), findsNothing);
+    expect(find.byKey(const Key('helping.status.p1')), findsNothing);
+    expect(find.byKey(const Key('helping.status.p2')), findsNothing);
+
+    helpers.setView(
+      _helping(
+        helping: const [
+          HelperPairingView(pairingId: 'p1', name: 'Sara', connected: false),
+          HelperPairingView(pairingId: 'p2', name: 'Reza', connected: true),
+        ],
+      ).view,
+    );
+    await tester.pump();
+    expect(
+      find.text('helping_connected_named'.i18n.fill(['Reza'])),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.status.p1'))).data,
+      'helping_not_connected'.i18n,
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.status.p2'))).data,
+      'helping_connected'.i18n,
+    );
+
+    helpers.setView(_helping(helping: unknown).view);
+    await tester.pump();
+    expect(find.textContaining('connected right now'), findsNothing);
+    expect(find.byKey(const Key('helping.status.p2')), findsNothing);
+  });
+
+  test('connectedRightNow: unknown, one by name, else a count', () {
+    const known = HelperPairingView(pairingId: 'a', name: 'A', connected: true);
+    const off = HelperPairingView(pairingId: 'b', name: 'B', connected: false);
+    const unknown = HelperPairingView(pairingId: 'c', name: 'C');
+    expect(connectedRightNow(const []), isNull);
+    expect(connectedRightNow(const [known, unknown]), isNull);
+    expect(
+      connectedRightNow(const [known, off]),
+      'helping_connected_named'.i18n.fill(['A']),
+    );
+    expect(
+      connectedRightNow(const [off]),
+      'helping_connected_count'.i18n.fill([0]),
+    );
+    expect(
+      connectedRightNow(const [known, known]),
+      'helping_connected_count'.i18n.fill([2]),
+    );
+  });
+
+  test('connected is read when reported, and null otherwise', () {
+    expect(
+      HelperPairingView.fromJson(const {
+        'pairing_id': 'p',
+        'connected': true,
+      }).connected,
+      isTrue,
+    );
+    expect(
+      HelperPairingView.fromJson(const {
+        'pairing_id': 'p',
+        'connected': false,
+      }).connected,
+      isFalse,
+    );
+    expect(
+      HelperPairingView.fromJson(const {'pairing_id': 'p'}).connected,
+      isNull,
+    );
+    expect(
+      HelperPairingView.fromJson(const {
+        'pairing_id': 'p',
+        'connected': 'yes',
+      }).connected,
+      isNull,
+    );
+  });
+
+  testWidgets('the friends sheet: rows, paste another, data relayed, and '
+      'help others too', (tester) async {
+    final helpers = _Helpers(_helping());
+    await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
+    expect(find.text('helping_your_friends'.i18n), findsOneWidget);
     expect(find.text('Sara'), findsOneWidget);
-    expect(find.byKey(const Key('helping.today')), findsOneWidget);
+    expect(find.text(helperSinceLabel(1700000000)), findsOneWidget);
+    // No live status yet: no Connected or Not connected.
+    expect(find.byKey(const Key('helping.status.p1')), findsNothing);
+    expect(find.byKey(const Key('helping.remove.p1')), findsOneWidget);
+    expect(find.byKey(const Key('helping.paste_another')), findsOneWidget);
+    expect(find.text('helping_paste_another'.i18n), findsOneWidget);
+    final data = find.byKey(const Key('helping.data_relayed'));
+    expect(
+      find.descendant(of: data, matching: find.text(1200000000.siBytes)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: data,
+        matching: find.text(
+          'helping_active_today'.i18n.fill([helpingDuration(12000)]),
+        ),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('helping.sharing_off')), findsNothing);
     await tester.tap(find.byKey(const Key('helping.help_others_switch')));
     await tester.pump();
     expect(helpers.helpOthers, [false]);
   });
 
-  testWidgets('refreshes every minute while shown, and stops when gone', (
+  testWidgets('the friends sheet shows Connected and Not connected once '
+      'known, and a friend not connected stays enabled', (tester) async {
+    final helpers = _Helpers(
+      _helping(
+        helping: const [
+          HelperPairingView(pairingId: 'p1', name: 'Sara', connected: true),
+          HelperPairingView(pairingId: 'p2', name: 'Reza', connected: false),
+        ],
+      ),
+    );
+    await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.status.p1'))).data,
+      'helping_connected'.i18n,
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.status.p2'))).data,
+      'helping_not_connected'.i18n,
+    );
+    final reza = tester.widget<ListTile>(
+      find.descendant(
+        of: find.byKey(const Key('helping.friend.p2')),
+        matching: find.byType(ListTile),
+        matchRoot: true,
+      ),
+    );
+    expect(reza.enabled, isTrue);
+  });
+
+  testWidgets('the sheet title says how many are connected only once known', (
     tester,
   ) async {
+    Future<void> open(HelpersState state) async {
+      await _pump(
+        tester,
+        _Helpers(state),
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showHelpingFriendsSheet(context),
+            child: const Text('open'),
+          ),
+        ),
+        sharing: true,
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    await open(_helping());
+    expect(find.text('helping_sheet_title'.i18n), findsOneWidget);
+    expect(find.byKey(const Key('helping.sheet.connected')), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await open(
+      _helping(
+        helping: const [
+          HelperPairingView(pairingId: 'p1', name: 'Sara', connected: true),
+        ],
+      ),
+    );
+    expect(
+      find.text('helping_connected_named'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the card refreshes every minute while shown, and stops when '
+      'gone', (tester) async {
     final helpers = _Helpers(_helping());
     final show = ValueNotifier(true);
     await _pump(
@@ -573,71 +1104,81 @@ void main() {
       ValueListenableBuilder<bool>(
         valueListenable: show,
         builder: (_, visible, _) => visible
-            ? const SingleChildScrollView(child: HelpingSection())
+            ? const PersonalProxyConnectionsCard()
             : const SizedBox.shrink(),
       ),
       sharing: true,
     );
     expect(helpers.refreshes, 0);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump(HelpingSection.refreshInterval);
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval);
     expect(helpers.refreshes, 1);
-    await tester.pump(HelpingSection.refreshInterval);
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval);
     expect(helpers.refreshes, 2);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await tester.pump(HelpingSection.refreshInterval);
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval);
     expect(helpers.refreshes, 2, reason: 'not while the app is in the back');
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump(HelpingSection.refreshInterval);
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval);
     expect(helpers.refreshes, 3);
 
     show.value = false;
     await tester.pump();
-    await tester.pump(HelpingSection.refreshInterval * 3);
-    expect(helpers.refreshes, 3, reason: 'the timer goes with the section');
+    await tester.pump(PersonalProxyConnectionsCard.refreshInterval * 3);
+    expect(helpers.refreshes, 3, reason: 'the timer goes with the card');
   });
 
-  testWidgets('does not refresh while helping nobody', (tester) async {
-    final helpers = _Helpers(const HelpersState());
-    await _pump(tester, helpers, const HelpingSection());
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await tester.pump(HelpingSection.refreshInterval * 2);
-    expect(helpers.refreshes, 0);
-  });
-
-  testWidgets('warns when sharing is off', (tester) async {
+  testWidgets('Paste another invite link opens the paste form in new-invite '
+      'mode', (tester) async {
+    await sl.reset();
+    final router = _Router();
+    sl.registerSingleton<AppRouter>(router);
+    addTearDown(sl.reset);
     await _pump(
       tester,
       _Helpers(_helping()),
-      const SingleChildScrollView(child: HelpingSection()),
+      Navigator(
+        onGenerateRoute: (_) => MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: HelpingFriendsSheet()),
+        ),
+      ),
+      sharing: true,
     );
+    await tester.tap(find.byKey(const Key('helping.paste_another')));
+    await tester.pump();
+    final route = router.pushed.single;
+    expect(route.routeName, routes.HelpFriend.name);
+    expect((route.args! as HelpFriendArgs).newInvite, isTrue);
+  });
+
+  testWidgets('in new-invite mode a waiting claim does not take over: the '
+      'paste form shows', (tester) async {
+    final helpers = _Helpers(
+      const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          helping: [_sara],
+          claims: [
+            HelperClaimView(id: 'c1', code: '2562', expiresUnix: _future),
+          ],
+        ),
+      ),
+    );
+    await _pump(tester, helpers, const HelpFriend(newInvite: true));
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.code')), findsNothing);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.form')), findsOneWidget);
+  });
+
+  testWidgets('the sheet warns when sharing is off', (tester) async {
+    await _pump(tester, _Helpers(_helping()), const HelpingFriendsSheet());
     expect(find.byKey(const Key('helping.sharing_off')), findsOneWidget);
   });
 
-  testWidgets('hidden for someone helping nobody', (tester) async {
-    await _pump(tester, _Helpers(const HelpersState()), const HelpingSection());
-    expect(find.byKey(const Key('helping.today')), findsNothing);
-    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
-  });
-
-  testWidgets('the keystore-reset notice shows to a volunteer, even helping '
-      'nobody, and is acknowledged on dismiss', (tester) async {
-    final helpers = _Helpers(const HelpersState(keystoreReset: true));
-    await _pump(
-      tester,
-      helpers,
-      const SingleChildScrollView(child: HelpingSection()),
-    );
-    expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('helping.keystore_reset.dismiss')));
-    await tester.pump();
-    expect(helpers.acknowledged, 1);
-    expect(find.byKey(const Key('helping.keystore_reset')), findsNothing);
-  });
-
-  testWidgets('stop helping still ends the pairing when the section is gone '
-      'before the dialog callback runs', (tester) async {
+  testWidgets('removing a friend asks first, then ends the pairing even when '
+      'the sheet is gone before the dialog callback runs', (tester) async {
     final helpers = _Helpers(_helping());
     final show = ValueNotifier(true);
     await _pump(
@@ -645,14 +1186,18 @@ void main() {
       helpers,
       ValueListenableBuilder<bool>(
         valueListenable: show,
-        builder: (_, visible, _) => visible
-            ? const SingleChildScrollView(child: HelpingSection())
-            : const SizedBox.shrink(),
+        builder: (_, visible, _) =>
+            visible ? const HelpingFriendsSheet() : const SizedBox.shrink(),
       ),
       sharing: true,
     );
     await tester.tap(find.byKey(const Key('helping.remove.p1')));
     await tester.pumpAndSettle();
+    expect(
+      find.text('helping_remove_confirm'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+    expect(helpers.ended, isEmpty);
     await tester.tap(find.widgetWithText(PrimaryButton, 'helping_remove'.i18n));
     await tester.pump();
     show.value = false;
