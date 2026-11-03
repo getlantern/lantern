@@ -219,7 +219,7 @@ jobs:
           gomobile-cache: "true"
 
       - name: Cache macOS CocoaPods
-        uses: actions/cache@v4
+        uses: ./.github/actions/cache
         timeout-minutes: 10
         continue-on-error: true
         with:

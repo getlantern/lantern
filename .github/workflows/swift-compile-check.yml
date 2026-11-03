@@ -102,7 +102,7 @@ jobs:
         run: python3 .github/scripts/swift_framework_cache.py --platform macos --arch "$SWIFT_CHECK_ARCH"
 
       - name: Cache CocoaPods dependencies
-        uses: actions/cache@v4
+        uses: ./.github/actions/cache
         timeout-minutes: 10
         continue-on-error: true
         env:
@@ -118,7 +118,7 @@ jobs:
 
       - name: Cache compile-only Liblantern.xcframework
         id: framework-cache
-        uses: actions/cache@v4
+        uses: ./.github/actions/cache
         timeout-minutes: 5
         continue-on-error: true
         env:
@@ -199,7 +199,7 @@ jobs:
         run: python3 .github/scripts/swift_framework_cache.py --platform ios --arch "$SWIFT_CHECK_ARCH"
 
       - name: Cache CocoaPods dependencies
-        uses: actions/cache@v4
+        uses: ./.github/actions/cache
         timeout-minutes: 10
         continue-on-error: true
         env:
@@ -215,7 +215,7 @@ jobs:
 
       - name: Cache compile-only Liblantern.xcframework
         id: framework-cache
-        uses: actions/cache@v4
+        uses: ./.github/actions/cache
         timeout-minutes: 5
         continue-on-error: true
         env:
