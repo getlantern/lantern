@@ -15,7 +15,8 @@ void registerNetworkDiagnostics(String label) {
   testWidgets('network diagnostics: $label', (tester) async {
     await app.main();
     final robot = AppRobot(tester);
-    await robot.launchToHome();
+    // Clears onboarding, which otherwise covers home for the next test.
+    await robot.waitForHomeReady();
     await logNetworkDiagnostics(
       label,
       container: ProviderScope.containerOf(
@@ -48,8 +49,6 @@ Future<void> logNetworkDiagnostics(
     'https api64.ipify.org': () => _get('https://api64.ipify.org', body: true),
     if (container != null) ...{
       'app plans': () => _app(container.read(lanternServiceProvider).plans()),
-      'app user data': () =>
-          _app(container.read(lanternServiceProvider).fetchUserData()),
     },
   };
   final results = await Future.wait(
@@ -77,11 +76,15 @@ Future<String> _lookup(String host) async {
 Future<String> _get(String url, {bool body = false}) async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
   try {
-    final response = await (await client.getUrl(Uri.parse(url))).close();
-    final text = await response
-        .transform(const SystemEncoding().decoder)
-        .join();
-    return body ? text.trim() : 'status ${response.statusCode}';
+    final request = await client.getUrl(Uri.parse(url));
+    request.followRedirects = false;
+    final response = await request.close();
+    if (!body) {
+      await response.drain<void>();
+      return 'status ${response.statusCode}';
+    }
+    return (await response.transform(const SystemEncoding().decoder).join())
+        .trim();
   } finally {
     client.close(force: true);
   }
