@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/getlantern/lantern-box/portforward"
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/env"
@@ -23,7 +24,6 @@ import (
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/peer"
-	"github.com/getlantern/radiance/portforward"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/unbounded"
 	"github.com/getlantern/radiance/vpn"
