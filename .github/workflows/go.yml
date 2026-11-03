@@ -9,6 +9,7 @@ on:
       - 'go.sum'
       - '.github/workflows/go.yml'
       - '.github/actions/setup-go/**'
+      - '.github/actions/cache/**'
       # lantern-core tests assert the report-issue app→core contract
       # against these files (see lantern-core/core_test.go).
       - 'lib/features/report_issue/report_issue.dart'
@@ -20,6 +21,7 @@ on:
       - 'go.sum'
       - '.github/workflows/go.yml'
       - '.github/actions/setup-go/**'
+      - '.github/actions/cache/**'
       - 'lib/features/report_issue/report_issue.dart'
       - 'assets/locales/en.po'
 

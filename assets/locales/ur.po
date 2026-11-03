@@ -2054,7 +2054,7 @@ msgid "help_friend_form_title"
 msgstr "جس کی آپ مدد کر رہے ہیں اس کا لنک پیسٹ کریں"
 
 msgid "help_friend_link_hint"
-msgstr "اگر آپ نے اس ڈیوائس پر لنک کھولا ہے تو یہ خود بخود بھر دیا گیا ہے"
+msgstr "اس ڈیوائس پر لنک پر ٹیپ کرنے سے یہ پُر ہو جائے گا"
 
 msgid "help_friend_name_label"
 msgstr "آپ کا نام، جس سے وہ آپ کو جانتے ہیں"
@@ -2121,3 +2121,30 @@ msgstr "فعال: %s"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "ابھی %s تک رسائی نہیں ہو رہی۔ اسمارٹ لوکیشن پر منتقل کر دیا گیا۔"
+
+msgid "help_friend_form_title_from_link"
+msgstr "ایک دوست نے آپ کو اپنی ذاتی پراکسی بننے کی دعوت دی ہے"
+
+msgid "help_friend_paste_button"
+msgstr "لنک پیسٹ کریں"
+
+msgid "help_friend_no_link"
+msgstr "ابھی تک لنک نہیں ملا؟"
+
+msgid "help_friend_ask_invite"
+msgstr "اپنے دوست سے دعوت بھیجنے کو کہیں"
+
+msgid "help_friend_ask_invite_message"
+msgstr "میں Lantern پر آپ کی ذاتی پراکسی بن سکتا ہوں، تاکہ آپ میرے کنکشن کے ذریعے آن لائن ہو سکیں۔ Lantern میں \"سرور کا انتخاب\" کھولیں، اوپر ⋮ مینو پر ٹیپ کریں، \"ذاتی پراکسی کو مدعو کریں\" منتخب کریں اور مجھے لنک بھیجیں۔"
+
+msgid "add_executable"
+msgstr "ایگزیکیوٹیبل شامل کریں"
+
+msgid "windows_executable_bypass_hint"
+msgstr "VPN کو بائی پاس کرنے کے لیے اصل گیم یا ایپ کی .exe منتخب کریں۔ لانچر منتخب کرنے سے اس کے شروع کیے گئے پروگرام شامل نہیں ہوتے۔"
+
+msgid "select_windows_executable"
+msgstr "اس کمپیوٹر پر Lantern کے علاوہ کسی ایپ کی .exe فائل منتخب کریں۔"
+
+msgid "unable_to_add_executable"
+msgstr "ایگزیکیوٹیبل شامل نہیں ہو سکا۔ اس کمپیوٹر پر موجود کوئی .exe فائل منتخب کریں اور دوبارہ کوشش کریں۔"

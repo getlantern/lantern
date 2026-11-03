@@ -2195,7 +2195,7 @@ msgid "help_friend_form_title"
 msgstr "الصق الرابط من الشخص الذي تساعده"
 
 msgid "help_friend_link_hint"
-msgstr "إذا فتحت الرابط على هذا الجهاز، فسيُملأ هذا الحقل تلقائيًا"
+msgstr "يُملأ هذا الحقل تلقائيًا عند النقر على الرابط على هذا الجهاز"
 
 msgid "help_friend_name_label"
 msgstr "اسمك كما يعرفك صديقك"
@@ -2262,3 +2262,30 @@ msgstr "تعذر الوصول إلى %s حاليًا. تم التبديل إلى
 
 msgid "become_personal_proxy"
 msgstr "أن تصبح وكيلًا شخصيًا"
+
+msgid "help_friend_form_title_from_link"
+msgstr "دعاك صديق لتكون الوكيل الشخصي له"
+
+msgid "help_friend_paste_button"
+msgstr "لصق الرابط"
+
+msgid "help_friend_no_link"
+msgstr "ألا تملك رابطًا بعد؟"
+
+msgid "help_friend_ask_invite"
+msgstr "طلب دعوة من صديقك"
+
+msgid "help_friend_ask_invite_message"
+msgstr "يمكنني أن أكون الوكيل الشخصي لك على Lantern، لتتصل بالإنترنت عبر اتصالي. في Lantern، افتح \"اختيار الخادم\"، واضغط على قائمة ⋮ في الأعلى، واختر \"دعوة وكيل شخصي\" وأرسل إليّ الرابط."
+
+msgid "add_executable"
+msgstr "إضافة ملف تنفيذي"
+
+msgid "windows_executable_bypass_hint"
+msgstr "اختر ملف .exe الفعلي للعبة أو التطبيق لتجاوز VPN. اختيار المشغّل لا يشمل البرامج التي يفتحها."
+
+msgid "select_windows_executable"
+msgstr "اختر ملف .exe لتطبيق على هذا الكمبيوتر، غير Lantern."
+
+msgid "unable_to_add_executable"
+msgstr "تعذّرت إضافة الملف التنفيذي. اختر ملف .exe موجودًا على هذا الكمبيوتر وحاول مرة أخرى."

@@ -1,10 +1,13 @@
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'apps_data_provider.dart';
@@ -17,7 +20,6 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
   @override
   FutureOr<Set<AppData>> build() async {
-    // Rebuild when installed apps list changes
     final appsAsync = ref.watch(appsDataProvider);
 
     final installed = appsAsync.maybeWhen(
@@ -25,34 +27,29 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       orElse: () => const <AppData>[],
     );
 
-    final filtered = dedupeAndSortApps(installed);
-
-    if (filtered.isEmpty) return <AppData>{};
-
     final type = getFilterType();
 
     final enabledItemsEither = await _lanternService.getSplitTunnelItems(type);
-    return enabledItemsEither.match(
-      (f) {
-        appLogger.error(
-          'Failed to load enabled split-tunnel items: ${f.error}',
-        );
-        return <AppData>{};
-      },
-      (items) {
-        final enabled = items.toSet();
-        return filtered
-            .where((app) {
-              final value = splitTunnelValue(app, logIfEmpty: false);
-              return value != null && enabled.contains(value);
-            })
-            .map((a) => a.copyWith(isEnabled: true))
-            .toSet();
-      },
-    );
+    return enabledItemsEither.match((f) {
+      appLogger.error('Failed to load enabled split-tunnel items: ${f.error}');
+      return <AppData>{};
+    }, (items) => _enabledApps(installed, items));
   }
 
-  /// Only called by macOS and Android
+  Set<AppData> _enabledApps(Iterable<AppData> installed, List<String> items) {
+    if (getFilterType() == SplitTunnelFilterType.processPath) {
+      return windowsEnabledApps(installed, items).toSet();
+    }
+    final enabled = items.toSet();
+    return dedupeAndSortApps(installed)
+        .where((app) {
+          final value = splitTunnelValue(app, logIfEmpty: false);
+          return value != null && enabled.contains(value);
+        })
+        .map((app) => app.copyWith(isEnabled: true))
+        .toSet();
+  }
+
   SplitTunnelFilterType getFilterType() {
     if (PlatformUtils.isMacOS) {
       return SplitTunnelFilterType.processPathRegex;
@@ -62,13 +59,11 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     return SplitTunnelFilterType.packageName;
   }
 
-  /// For macOS, we need to use regex to match the app path
-  /// For other platforms, we can use the bundleId/packageName
   String appPath(AppData appData) {
-    if (PlatformUtils.isMacOS) {
+    if (getFilterType() == SplitTunnelFilterType.processPathRegex) {
       return macOSSplitTunnelRule(appData);
     }
-    if (PlatformUtils.isWindows) {
+    if (getFilterType() == SplitTunnelFilterType.processPath) {
       return appData.appPath;
     }
     return appData.bundleId;
@@ -100,16 +95,58 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
 
   Set<AppData> _current() => state.value ?? <AppData>{};
 
-  Set<String> _stateIds() => _current().map(normalizedAppId).toSet();
+  String _appId(AppData app) =>
+      getFilterType() == SplitTunnelFilterType.processPath
+      ? windowsAppPathId(app.appPath)
+      : normalizedAppId(app);
+
+  Set<String> _stateIds() => _current().map(_appId).toSet();
+
+  /// Add one Windows executable without toggling an existing selection off.
+  Future<Failure?> addExecutable(String path) async {
+    final app = AppData(
+      name: p.windows.basename(path),
+      bundleId: '',
+      appPath: path,
+    );
+    if (getFilterType() != SplitTunnelFilterType.processPath ||
+        !isWindowsExecutablePath(path) ||
+        isLanternApp(app)) {
+      return Failure(
+        error: 'Invalid split-tunnel executable',
+        localizedErrorMessage: 'select_windows_executable'.i18n,
+      );
+    }
+    if (_stateIds().contains(_appId(app))) return null;
+
+    final result = await _lanternService.addSplitTunnelItem(
+      SplitTunnelFilterType.processPath,
+      path,
+    );
+    final failure = result.match((failure) => failure, (_) => null);
+    if (failure != null) return failure;
+
+    // The core may expand a short path. Read back the persisted identity.
+    final saved = await _lanternService.getSplitTunnelItems(
+      SplitTunnelFilterType.processPath,
+    );
+    return saved.match((failure) => failure, (paths) {
+      if (ref.mounted) {
+        state = AsyncData(_enabledApps(_installedAppsSnapshot(), paths));
+        ref.invalidateSelf();
+      }
+      return null;
+    });
+  }
 
   Future<void> toggleApp(AppData app) async {
-    final id = normalizedAppId(app);
+    final id = _appId(app);
     final value = splitTunnelValue(app);
     if (value == null) {
       return;
     }
     final current = _current();
-    final isEnabled = current.any((a) => normalizedAppId(a) == id);
+    final isEnabled = current.any((a) => _appId(a) == id);
 
     final result = isEnabled
         ? await _lanternService.removeSplitTunnelItem(getFilterType(), value)
@@ -122,26 +159,21 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
         );
       },
       (_) async {
-        // Optional optimistic UI update
         final next = isEnabled
-            ? current.where((a) => normalizedAppId(a) != id).toSet()
+            ? current.where((a) => _appId(a) != id).toSet()
             : {...current, app.copyWith(isEnabled: true)};
 
         state = AsyncData(next);
 
-        // Re-sync from lantern-core (authoritative)
         ref.invalidateSelf();
       },
     );
   }
 
-  /// Select exactly these apps
   Future<void> selectApps(Iterable<AppData> apps) async {
     final current = _current();
     final currentIds = _stateIds();
-    final toAdd = apps
-        .where((a) => !currentIds.contains(normalizedAppId(a)))
-        .toList();
+    final toAdd = apps.where((a) => !currentIds.contains(_appId(a))).toList();
     if (toAdd.isEmpty) return;
 
     final validToAdd = <AppData>[];
@@ -174,9 +206,7 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
   Future<void> deselectApps(Iterable<AppData> apps) async {
     final current = _current();
     final currentIds = _stateIds();
-    final toRemove = apps
-        .where((a) => currentIds.contains(normalizedAppId(a)))
-        .toList();
+    final toRemove = apps.where((a) => currentIds.contains(_appId(a))).toList();
     if (toRemove.isEmpty) return;
 
     final validToRemove = <AppData>[];
@@ -196,9 +226,9 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
     await result.match(
       (l) async => appLogger.error('Failed to remove apps: ${l.error}'),
       (_) async {
-        final removeIds = validToRemove.map(normalizedAppId).toSet();
+        final removeIds = validToRemove.map(_appId).toSet();
         state = AsyncData(
-          current.where((a) => !removeIds.contains(normalizedAppId(a))).toSet(),
+          current.where((a) => !removeIds.contains(_appId(a))).toSet(),
         );
 
         ref.invalidateSelf();

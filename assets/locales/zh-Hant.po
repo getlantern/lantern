@@ -2083,7 +2083,7 @@ msgid "help_friend_form_title"
 msgstr "貼上你所協助的人傳來的連結"
 
 msgid "help_friend_link_hint"
-msgstr "如果你在這部裝置上開啟了連結，這裡會自動填入"
+msgstr "在此裝置上輕觸連結即可自動填入"
 
 msgid "help_friend_name_label"
 msgstr "朋友所認識的你的名字"
@@ -2147,3 +2147,30 @@ msgstr "今日中繼資料"
 
 msgid "helping_active_today"
 msgstr "已活躍 %s"
+
+msgid "help_friend_form_title_from_link"
+msgstr "一位朋友邀請你成為其個人代理"
+
+msgid "help_friend_paste_button"
+msgstr "貼上連結"
+
+msgid "help_friend_no_link"
+msgstr "還沒有連結？"
+
+msgid "help_friend_ask_invite"
+msgstr "請朋友邀請你"
+
+msgid "help_friend_ask_invite_message"
+msgstr "我可以在 Lantern 上當你的個人代理，讓你透過我的連線上網。在 Lantern 中開啟「伺服器選擇」，點選頂端的 ⋮ 選單，選擇「邀請個人代理」，然後把連結傳給我。"
+
+msgid "add_executable"
+msgstr "新增執行檔"
+
+msgid "windows_executable_bypass_hint"
+msgstr "選擇遊戲或應用程式本身的 .exe 以略過 VPN。選擇啟動器不會包含它所啟動的程式。"
+
+msgid "select_windows_executable"
+msgstr "選擇這台電腦上 Lantern 以外應用程式的 .exe 檔案。"
+
+msgid "unable_to_add_executable"
+msgstr "無法新增執行檔。選擇這台電腦上現有的 .exe 檔案，然後再試一次。"

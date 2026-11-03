@@ -29,10 +29,11 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
-	github.com/getlantern/broflake v0.0.0-20261031143354-1bd725b74cfc
-	github.com/getlantern/common v1.2.1-0.20261102182804-e993d4d1deeb
+	github.com/getlantern/broflake v0.0.0-20261103013533-7904ee7e70b5
+	github.com/getlantern/common v1.2.1-0.20261103194836-0116c50c68ff
+	github.com/getlantern/lantern-box v0.0.192-0.20261103194955-3dc0500e5d0f
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261102183429-c0cf485de1ad
+	github.com/getlantern/radiance v0.0.0-20261103195555-0adec54638fb
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
@@ -189,7 +190,6 @@ require (
 	github.com/getlantern/domainfront v0.0.0-20261026202828-9727b2f2a34a // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20261009194109-22f33eaeac6e // indirect
 	github.com/getlantern/kindling v0.0.0-20261026211804-dac6d561f52e // indirect
-	github.com/getlantern/lantern-box v0.0.186-0.20261102182932-eccd23ca2baf // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
@@ -222,6 +222,7 @@ require (
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
+	github.com/jackpal/gateway v1.2.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jsimonetti/rtnetlink v1.4.1 // indirect
 	github.com/keybase/go-keychain v0.0.1 // indirect
