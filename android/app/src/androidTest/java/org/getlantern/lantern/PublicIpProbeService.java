@@ -8,9 +8,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
 import android.os.Messenger;
 import android.os.Process;
-import android.os.ResultReceiver;
+import android.os.RemoteException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -23,16 +24,13 @@ import java.net.URL;
  * the app's process provides.
  */
 public final class PublicIpProbeService extends Service {
-    public static final String REPLY = "reply";
     public static final String UID = "uid";
     public static final String VPN = "vpn";
     public static final String IP = "ip";
     public static final String ERROR = "error";
 
-    @SuppressWarnings("deprecation")
     private final Messenger messenger = new Messenger(new Handler(Looper.getMainLooper(), message -> {
-        ResultReceiver reply = message.getData().getParcelable(REPLY);
-        if (reply != null) probe(reply);
+        if (message.replyTo != null) probe(message.replyTo);
         return true;
     }));
 
@@ -41,7 +39,7 @@ public final class PublicIpProbeService extends Service {
         return messenger.getBinder();
     }
 
-    private void probe(ResultReceiver reply) {
+    private void probe(Messenger reply) {
         new Thread(() -> {
             Bundle result = new Bundle();
             result.putInt(UID, Process.myUid());
@@ -63,7 +61,13 @@ public final class PublicIpProbeService extends Service {
             } catch (Exception e) {
                 result.putString(ERROR, e.toString());
             }
-            reply.send(0, result);
+            Message message = Message.obtain();
+            message.setData(result);
+            try {
+                reply.send(message);
+            } catch (RemoteException ignored) {
+                // The test stopped waiting.
+            }
         }, "public-ip-probe").start();
     }
 }
