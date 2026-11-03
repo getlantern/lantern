@@ -147,6 +147,7 @@ jobs:
         shell: bash
         env:
           ANDROID_INTEGRATION_TARGET: ${{ inputs.test_target || 'integration_test/android_all_e2e_test.dart' }}
+          FTL_DEVICES: ${{ inputs.devices }}
         run: |
           set -euo pipefail
           if [[ ! "$ANDROID_INTEGRATION_TARGET" =~ ^integration_test/[A-Za-z0-9_./-]+_test\.dart$ ]] ||
@@ -155,8 +156,24 @@ jobs:
             echo "::error::Invalid Android integration-test target: $ANDROID_INTEGRATION_TARGET"
             exit 1
           fi
+          # Test Lab runs its devices in parallel against the same smoke
+          # accounts, so with several devices only the first physical one
+          # (whose model id is its Build.DEVICE) runs the auth suite.
+          IFS=';' read -ra devices <<<"$(scripts/android/ftl-run.sh --print-devices)"
+          dart_defines=""
+          if (( ${#devices[@]} > 1 )); then
+            for device in "${devices[@]}"; do
+              model=$(sed -n 's/.*model=\([^,]*\).*/\1/p' <<<"$device")
+              if [[ -n "$model" && "$model" != *.arm ]]; then
+                echo "Auth smoke suite runs on $model"
+                dart_defines="-Pdart-defines=$(printf 'AUTH_SMOKE_DEVICE=%s' "$model" | base64 | tr -d '\n')"
+                break
+              fi
+            done
+          fi
           make android-integration-apks ANDROID_GRADLE=gradle \
-            "ANDROID_INTEGRATION_TARGET=$ANDROID_INTEGRATION_TARGET"
+            "ANDROID_INTEGRATION_TARGET=$ANDROID_INTEGRATION_TARGET" \
+            "ANDROID_INTEGRATION_DART_DEFINES=$dart_defines"
 
       - name: Verify integration APK version
         shell: bash

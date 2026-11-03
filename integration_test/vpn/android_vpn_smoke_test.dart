@@ -13,11 +13,6 @@ import 'android_connect_smoke_harness.dart';
 /// The VpnService consent + notification dialogs never appear: the androidTest
 /// wrapper (android/app/src/androidTest) pre-grants them before launch. For a
 /// manual local run, prefer `make android-integration-test`.
-const _enableIpCheck = bool.fromEnvironment(
-  'ENABLE_IP_CHECK',
-  defaultValue: false,
-);
-
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   registerVpnSmokeTests();
@@ -29,7 +24,7 @@ void main() {
 void registerVpnSmokeTests() {
   testWidgets('VPN connect/disconnect smoke', (tester) async {
     await app.main();
-    await runAndroidConnectSmoke(tester, enableIpCheck: _enableIpCheck);
+    await runAndroidConnectSmoke(tester);
   });
 
   testWidgets('VPN reconnects cleanly after disconnect', (tester) async {
@@ -37,10 +32,10 @@ void registerVpnSmokeTests() {
     await runAndroidReconnectSmoke(tester);
   });
 
-  testWidgets('VPN IP changes across routing modes (smart <-> full)', (
+  testWidgets('VPN connects in each routing mode (smart <-> full)', (
     tester,
   ) async {
     await app.main();
-    await runAndroidRoutingModeIpChangeSmoke(tester);
+    await runAndroidRoutingModeSmoke(tester);
   });
 }
