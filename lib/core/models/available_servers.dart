@@ -11,16 +11,16 @@ class AvailableServers {
 
   /// Lantern servers the user can see and pick. Helper outbounds are left out:
   /// auto-selection may use them, but they are never listed. Nor is the
-  /// personal proxies group, which is selected through its own row.
+  /// personal proxies group, or one friend's, which have their own rows.
   List<Server> get lanternServers => servers
       .where(
         (s) =>
-            s.isLantern && !isHelperTag(s.tag) && s.tag != personalProxiesTag,
+            s.isLantern && !isHelperTag(s.tag) && !isPersonalProxyGroup(s.tag),
       )
       .toList();
 
   List<Server> get userServers => servers
-      .where((s) => !s.isLantern && s.tag != personalProxiesTag)
+      .where((s) => !s.isLantern && !isPersonalProxyGroup(s.tag))
       .toList();
 
   /// One representative Lantern server per country/city. If any server for the
@@ -38,7 +38,7 @@ class AvailableServers {
   }
 
   bool get hasUserServers =>
-      servers.any((s) => !s.isLantern && s.tag != personalProxiesTag);
+      servers.any((s) => !s.isLantern && !isPersonalProxyGroup(s.tag));
 
   Server? serverByTag(String tag) {
     for (final server in servers) {

@@ -15,6 +15,11 @@ void main() {
       _server('lantern-1'),
       _server(personalProxiesTag),
       {..._server(personalProxiesTag), 'isLantern': false},
+      _server(personalProxySelection('helper-0123456789ab')),
+      {
+        ..._server(personalProxySelection('helper-0123456789ab')),
+        'isLantern': false,
+      },
     ]);
     expect(servers.lanternServers.map((s) => s.tag), ['lantern-1']);
     expect(servers.userServers, isEmpty);
@@ -147,5 +152,42 @@ void main() {
       redactHelperTags('personalProxyBanner shown'),
       'personalProxyBanner shown',
     );
+  });
+
+  test("redactHelperTags redacts a friend's selection, both halves", () {
+    expect(
+      redactHelperTags(
+        'Connecting to server: personalProxy with tag: '
+        '${personalProxySelection('helper-0123456789ab')}',
+      ),
+      'Connecting to server: helper with tag: helper:helper',
+    );
+    expect(
+      redactHelperTags(
+        'outbound/mutableurltest[personal-proxy]: dial tcp 203.0.113.7:443',
+      ),
+      'outbound/mutableurltest[helper]: dial tcp <redacted>',
+    );
+  });
+
+  test("a friend's selection matches radiance and parses back", () {
+    expect(
+      personalProxySelection('helper-0123456789ab'),
+      'personal-proxy:helper-0123456789ab',
+    );
+    expect(
+      personalProxyFriend('personal-proxy:helper-0123456789ab'),
+      'helper-0123456789ab',
+    );
+    for (final tag in [
+      personalProxiesTag,
+      'personal-proxy',
+      'personal-proxy:',
+      'personal-proxy:helper-0123',
+      'personal-proxy:helper-0123456789AB',
+      'helper-0123456789ab',
+    ]) {
+      expect(personalProxyFriend(tag), isNull, reason: tag);
+    }
   });
 }

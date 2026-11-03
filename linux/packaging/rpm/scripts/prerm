@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+# rpm passes 0 on erase and 1 on upgrade. Keep the service on upgrade.
+if [ "$1" = "0" ]; then
+	/usr/lib/lantern/lanternd uninstall >/dev/null 2>&1 || true
+fi
+
+exit 0

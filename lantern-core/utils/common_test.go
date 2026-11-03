@@ -19,3 +19,16 @@ func TestSameInterfaceUpdateListener(t *testing.T) {
 		t.Fatal("missing listener must not match")
 	}
 }
+
+func TestIsHighVolumeEvent(t *testing.T) {
+	for _, typ := range []string{"unbounded-snapshot", "peer-snapshot", "peer-connection", "data-cap-event"} {
+		if !IsHighVolumeEvent(typ) {
+			t.Errorf("%s must be logged by type only", typ)
+		}
+	}
+	for _, typ := range []string{"helper-live", "selection-changed", "server-location", "unbounded-unavailable", ""} {
+		if IsHighVolumeEvent(typ) {
+			t.Errorf("%s must be logged in full", typ)
+		}
+	}
+}

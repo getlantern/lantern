@@ -16,7 +16,8 @@ public class PacketTunnelProvider: ExtensionProvider {
   {
     appLogger.info("PacketTunnelProvider received app message with data: \(messageData)")
     func respond(_ dict: [String: Any]) {
-      appLogger.info("PacketTunnelProvider responding with: \(dict)")
+      // The response can name the server, so only a redacted copy is logged.
+      appLogger.info(redactHelperTags("PacketTunnelProvider responding with: \(dict)"))
       let data = try? JSONSerialization.data(withJSONObject: dict)
       completionHandler?(data)
     }
@@ -30,15 +31,15 @@ public class PacketTunnelProvider: ExtensionProvider {
       return respond(["error": "Invalid message format"])
     }
 
-    appLogger.info("PacketTunnelProvider handling method: \(method) with params: \(params)")
+    appLogger.info(redactHelperTags("PacketTunnelProvider handling method: \(method) with params: \(params)"))
 
     switch method {
     case "PrivateServer":
-      appLogger.info("Received connectServer command with params: \(params)")
+      appLogger.info(redactHelperTags("Received connectServer command with params: \(params)"))
       guard let server = params["server"] as? String else {
         return respond(["error": "Missing parameters"])
       }
-      appLogger.info("Connecting to server \(server)")
+      appLogger.info(redactHelperTags("Connecting to server \(server)"))
       connectToServer(serverName: server) { success, errorMessage in
         if success {
           respond(["result": "Connected to \(server)"])
