@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -13,11 +14,12 @@ import 'package:lantern/features/helpers/approve_helper_dialog.dart'
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_friends.dart'
     show HelperKeystoreResetNotice;
+import 'package:lantern/features/helpers/invite_share.dart' show shareInvite;
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 /// "Become a Personal Proxy": a volunteer accepts an invite, from a link that
-/// opened the app (filled in), a scanned QR code, or a pasted link. It shows
+/// opened the app (not shown), a scanned QR code, or a pasted link. It shows
 /// the code to read to the friend, then waits for approval. The link is a
 /// secret: it is never logged.
 @RoutePage(name: 'HelpFriend')
@@ -58,6 +60,11 @@ class HelpFriend extends HookConsumerWidget {
     final error = useState<String?>(null);
     final busy = useState(false);
     final resumed = useRef(false);
+    // A link that opened the screen needs no field. It appears if the link
+    // is refused, and stays for the rest of this screen's life.
+    final showLinkField = useRef(
+      !(fromLink && isHelperInviteInput(link ?? '')),
+    );
 
     useEffect(() {
       // refreshIfUsed, not refresh: opening this screen must not touch the
@@ -93,6 +100,21 @@ class HelpFriend extends HookConsumerWidget {
       code.value = latest.code;
       return null;
     }, [helpers.view.claims]);
+
+    useEffect(() {
+      // Desktop only: on iOS and Android a programmatic read prompts or
+      // toasts, so mobile reads wait for the Paste button. Anything that is
+      // not an invite is dropped unseen.
+      if (fromLink || code.value != null || !PlatformUtils.isDesktop) {
+        return null;
+      }
+      unawaited(() async {
+        final text = await _readClipboard();
+        if (!context.mounted || linkCtl.text.isNotEmpty) return;
+        if (isHelperInviteInput(text)) linkCtl.text = text.trim();
+      }());
+      return null;
+    }, const []);
 
     if (!AppBuildInfo.enableHelperInvites) {
       return BaseScreen(
@@ -130,6 +152,11 @@ class HelpFriend extends HookConsumerWidget {
       helpingAtClaim.value = {for (final p in now.view.helping) p.pairingId};
       viewAtClaim.value = now.view;
       code.value = claimed;
+    }
+
+    void setLink(String text) {
+      linkCtl.text = text.trim();
+      if (_linkErrors.contains(error.value)) error.value = null;
     }
 
     final outcome = code.value == null
@@ -313,6 +340,8 @@ class HelpFriend extends HookConsumerWidget {
           : linkText.trim().isNotEmpty && !linkValid
           ? helperErrorText('bad_link')
           : null;
+      if (linkError != null) showLinkField.value = true;
+      final linkShown = showLinkField.value;
       final hintStyle = textTheme.labelMedium!.copyWith(
         color: context.textTertiary,
       );
@@ -340,44 +369,64 @@ class HelpFriend extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'help_friend_form_title'.i18n,
+                  linkShown
+                      ? 'help_friend_form_title'.i18n
+                      : 'help_friend_form_title_from_link'.i18n,
                   style: textTheme.titleMedium,
                 ),
                 const SizedBox(height: defaultSize),
-                AppTextField(
-                  fieldKey: const Key('help_friend.link'),
-                  controller: linkCtl,
-                  label: 'help_friend_link_label'.i18n,
-                  hintText: 'help_friend_paste'.i18n,
-                  prefixIcon: Icons.link,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  enableIMEPersonalizedLearning: false,
-                  onChanged: (_) {
-                    if (_linkErrors.contains(error.value)) error.value = null;
-                  },
-                ),
-                if (linkError != null)
-                  below(
-                    linkError,
-                    key: const Key('help_friend.link_error'),
-                    color: Theme.of(context).colorScheme.error,
-                  )
-                else
-                  below('help_friend_link_hint'.i18n),
-                if (AppBuildInfo.enableQrScanner && PlatformUtils.isMobile)
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: AppTextButton(
-                      key: const Key('help_friend.scan'),
-                      label: 'help_friend_scan'.i18n,
-                      onPressed: () async {
-                        final scanned = await appRouter.push(QrCodeScanner());
-                        if (scanned is String) linkCtl.text = scanned;
-                      },
-                    ),
+                if (linkShown) ...[
+                  AppTextField(
+                    fieldKey: const Key('help_friend.link'),
+                    controller: linkCtl,
+                    label: 'help_friend_link_label'.i18n,
+                    hintText: 'help_friend_paste'.i18n,
+                    prefixIcon: Icons.link,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    enableIMEPersonalizedLearning: false,
+                    onChanged: (_) {
+                      if (_linkErrors.contains(error.value)) error.value = null;
+                    },
                   ),
-                const SizedBox(height: defaultSize),
+                  if (linkError != null)
+                    below(
+                      linkError,
+                      key: const Key('help_friend.link_error'),
+                      color: Theme.of(context).colorScheme.error,
+                    )
+                  else
+                    below('help_friend_link_hint'.i18n),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      AppTextButton(
+                        key: const Key('help_friend.paste_button'),
+                        label: 'help_friend_paste_button'.i18n,
+                        onPressed: () async {
+                          final pasted = await _readClipboard();
+                          if (!context.mounted || pasted.trim().isEmpty) return;
+                          setLink(pasted);
+                        },
+                      ),
+                      if (AppBuildInfo.enableQrScanner &&
+                          PlatformUtils.isMobile)
+                        AppTextButton(
+                          key: const Key('help_friend.scan'),
+                          label: 'help_friend_scan'.i18n,
+                          onPressed: () async {
+                            final scanned = await appRouter.push(
+                              QrCodeScanner(),
+                            );
+                            if (scanned is String && context.mounted) {
+                              setLink(scanned);
+                            }
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: defaultSize),
+                ],
                 AppTextField(
                   fieldKey: const Key('help_friend.name'),
                   controller: nameCtl,
@@ -409,6 +458,33 @@ class HelpFriend extends HookConsumerWidget {
               ],
             ),
           ),
+          // Invites start with the friend: one who wants help offered can
+          // be asked to send one. Not to someone who pasted their own invite:
+          // they are the friend, and the error says to send it instead.
+          if (linkShown && error.value != 'own_invite') ...[
+            const SizedBox(height: defaultSize),
+            Text(
+              'help_friend_no_link'.i18n,
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            KeyedSubtree(
+              key: const Key('help_friend.ask_invite'),
+              child: Builder(
+                builder: (buttonContext) => SecondaryButton(
+                  label: 'help_friend_ask_invite'.i18n,
+                  icon: AppImagePaths.share,
+                  onPressed: () => shareInvite(
+                    buttonContext,
+                    'help_friend_ask_invite_message'.i18n,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       );
     }
@@ -465,6 +541,15 @@ class _HelpingMeansCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// The clipboard's text, or empty when it has none or cannot be read.
+Future<String> _readClipboard() async {
+  try {
+    return (await Clipboard.getData(Clipboard.kTextPlain))?.text ?? '';
+  } catch (_) {
+    return '';
   }
 }
 
