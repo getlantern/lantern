@@ -293,6 +293,8 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 	// in Start Menu or Run (e.g. user disabled auto-start).
 	squirrelApps := collectAppsFromSquirrelLocalAppData(seen, cb)
 	out = append(out, squirrelApps...)
+	registeredBrowsers := collectAppsFromRegisteredBrowsers(loadBrowserIndexOnce(), seen, cb)
+	out = append(out, registeredBrowsers...)
 
 	// Always log a summary at Info so a single log read tells us how many
 	// apps each source produced. Helps diagnose tickets like
@@ -304,6 +306,7 @@ func loadInstalledAppsPlatform(appDirs []string, seen map[string]bool, excludeDi
 		"appPathsCount", len(appPathsApps),
 		"runCount", len(runApps),
 		"squirrelCount", len(squirrelApps),
+		"registeredBrowserCount", len(registeredBrowsers),
 		"total", len(out),
 	)
 
@@ -351,7 +354,10 @@ func windowsStartMenuDirs() []string {
 
 // collectAppsFromStartMenuShortcuts enumerates apps by walking Start Menu shortcut files (*.lnk)
 func collectAppsFromStartMenuShortcuts(seen map[string]bool, cb Callback) []*AppData {
-	startDirs := windowsStartMenuDirs()
+	return collectAppsFromStartMenuDirs(windowsStartMenuDirs(), seen, cb)
+}
+
+func collectAppsFromStartMenuDirs(startDirs []string, seen map[string]bool, cb Callback) []*AppData {
 	var out []*AppData
 	recoveryHints := make(map[string]shortcutRecoveryHint)
 

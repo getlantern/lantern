@@ -2323,3 +2323,15 @@ msgstr "Pedir um convite a um amigo"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Posso ser seu proxy pessoal no Lantern, para que você fique on-line pela minha conexão. No Lantern, abra \"Seleção de servidor\", toque no menu ⋮ no topo, escolha \"Convidar um proxy pessoal\" e me envie o link."
+
+msgid "add_executable"
+msgstr "Adicionar executável"
+
+msgid "windows_executable_bypass_hint"
+msgstr "Escolha o .exe real do jogo ou aplicativo para ignorar a VPN. Selecionar um inicializador não inclui os programas que ele abre."
+
+msgid "select_windows_executable"
+msgstr "Selecione o arquivo .exe de um aplicativo neste computador, exceto o Lantern."
+
+msgid "unable_to_add_executable"
+msgstr "Não foi possível adicionar o executável. Escolha um arquivo .exe existente neste computador e tente novamente."

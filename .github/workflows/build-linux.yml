@@ -80,7 +80,7 @@ jobs:
           cache-scope: linux
 
       - name: Cache APT archives
-        uses: actions/cache@v4
+        uses: ./.github/actions/cache
         timeout-minutes: 5
         continue-on-error: true
         with:
