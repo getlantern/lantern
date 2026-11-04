@@ -157,19 +157,37 @@ jobs:
             exit 1
           fi
           # Test Lab runs its devices in parallel against the same smoke
-          # accounts, so with several devices only the first physical one
-          # (whose model id is its Build.DEVICE) runs the auth suite.
+          # accounts, so with several devices exactly one runs the auth suite:
+          # the first physical one, identified by its model id (Build.DEVICE)
+          # and API level.
           IFS=';' read -ra devices <<<"$(scripts/android/ftl-run.sh --print-devices)"
           dart_defines=""
           if (( ${#devices[@]} > 1 )); then
+            auth_device=""
             for device in "${devices[@]}"; do
               model=$(sed -n 's/.*model=\([^,]*\).*/\1/p' <<<"$device")
+              version=$(sed -n 's/.*version=\([^,]*\).*/\1/p' <<<"$device")
               if [[ -n "$model" && "$model" != *.arm ]]; then
-                echo "Auth smoke suite runs on $model"
-                dart_defines="-Pdart-defines=$(printf 'AUTH_SMOKE_DEVICE=%s' "$model" | base64 | tr -d '\n')"
+                auth_device="$model${version:+@$version}"
                 break
               fi
             done
+            if [[ -z "$auth_device" ]]; then
+              echo "::error::Several devices share the auth smoke accounts; include one physical device so only it runs the auth suite."
+              exit 1
+            fi
+            matches=0
+            for device in "${devices[@]}"; do
+              model=$(sed -n 's/.*model=\([^,]*\).*/\1/p' <<<"$device")
+              version=$(sed -n 's/.*version=\([^,]*\).*/\1/p' <<<"$device")
+              [[ "$model${version:+@$version}" == "$auth_device" ]] && matches=$((matches + 1))
+            done
+            if (( matches > 1 )); then
+              echo "::error::$auth_device appears $matches times; the auth suite would run on each at once."
+              exit 1
+            fi
+            echo "Auth smoke suite runs on $auth_device"
+            dart_defines="-Pdart-defines=$(printf 'AUTH_SMOKE_DEVICE=%s' "$auth_device" | base64 | tr -d '\n')"
           fi
           make android-integration-apks ANDROID_GRADLE=gradle \
             "ANDROID_INTEGRATION_TARGET=$ANDROID_INTEGRATION_TARGET" \

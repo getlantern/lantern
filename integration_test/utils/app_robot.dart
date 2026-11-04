@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lantern/core/common/common.dart' show appRouter;
+import 'package:lantern/core/common/common.dart' show Onboarding, appRouter;
 import 'package:lantern/core/utils/storage_utils.dart';
 
 import 'widget_wait_utils.dart';
@@ -201,12 +201,16 @@ class AppRobot {
     e2eLog('Keyboard inset still ${tester.view.viewInsets.bottom} after 5s');
   }
 
-  /// Pops every route back to the root (home). Hides the keyboard first —
-  /// see [hideKeyboard]. The standard cleanup at the end of a test.
+  /// Pops every route back to the root (home), stopping at onboarding: popping
+  /// it would skip the handler that marks onboarding complete. Hides the
+  /// keyboard first — see [hideKeyboard]. The standard cleanup at the end of a
+  /// test.
   Future<void> resetToRoot() async {
     e2eLog('Resetting navigation to root');
     await hideKeyboard();
-    appRouter.popUntilRoot();
+    appRouter.popUntil(
+      (route) => route.isFirst || route.settings.name == Onboarding.name,
+    );
     await tester.pumpAndSettle();
   }
 

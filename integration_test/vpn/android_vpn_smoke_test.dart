@@ -32,10 +32,10 @@ void registerVpnSmokeTests() {
     await runAndroidReconnectSmoke(tester);
   });
 
-  testWidgets('VPN connects in each routing mode (smart <-> full)', (
+  testWidgets('VPN IP changes across routing modes (smart <-> full)', (
     tester,
   ) async {
     await app.main();
-    await runAndroidRoutingModeSmoke(tester);
+    await runAndroidRoutingModeIpChangeSmoke(tester);
   });
 }

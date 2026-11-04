@@ -18,12 +18,11 @@ void main() {
     await robot.captureScreenshot('architecture-startup');
   });
 
-  // The public IP check runs natively in VpnRoutingModeTest.
-  testWidgets('VPN connects and disconnects on the selected ABI', (
+  testWidgets('VPN changes public IP and restores it after disconnect', (
     tester,
   ) async {
     await app.main();
-    await runAndroidConnectSmoke(tester);
+    await runAndroidConnectSmoke(tester, checkPublicIp: true);
   });
 
   testWidgets('VPN reconnects after disconnect on the selected ABI', (

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
 
 import '../utils/app_robot.dart';
+import '../utils/public_ip_probe.dart';
 import '../utils/vpn_robot.dart';
 
 /// Android VPN smoke harnesses. Self-contained: app shell via [AppRobot], VPN
@@ -26,11 +27,20 @@ Future<VpnRobot> _prepareVpnAtHome(WidgetTester tester) async {
   return vpn;
 }
 
-/// Connect/disconnect smoke.
-Future<void> runAndroidConnectSmoke(WidgetTester tester) async {
+/// Connect/disconnect smoke. With [checkPublicIp] it also checks that traffic
+/// leaves through a proxy while connected and goes direct again afterwards.
+Future<void> runAndroidConnectSmoke(
+  WidgetTester tester, {
+  bool checkPublicIp = false,
+}) async {
   final vpn = await _prepareVpnAtHome(tester);
-  await vpn.connect();
-  await vpn.disconnectIfNeeded();
+  if (!checkPublicIp) {
+    await vpn.connect();
+    await vpn.disconnectIfNeeded();
+    return;
+  }
+  final direct = await _directPublicIp();
+  await _connectAndExpectProxied(vpn, direct, label: 'connect smoke');
 }
 
 /// Connects and disconnects twice, asserting the VPN returns to a clean state
@@ -43,22 +53,45 @@ Future<void> runAndroidReconnectSmoke(WidgetTester tester) async {
   }
 }
 
-/// Connects and disconnects in full tunnel and smart routing. The public IP is
-/// checked natively by VpnRoutingModeTest: Lantern excludes its own process
-/// from the VPN, so a check from here never sees the tunnel.
-Future<void> runAndroidRoutingModeSmoke(WidgetTester tester) async {
+/// Switches routing mode full -> smart, checking in each that traffic leaves
+/// through a proxy while connected and goes direct again afterwards.
+Future<void> runAndroidRoutingModeIpChangeSmoke(WidgetTester tester) async {
   final vpn = await _prepareVpnAtHome(tester);
 
   try {
     // A prior scenario in the same process may have left a different mode.
     await vpn.setRoutingMode(RoutingMode.smart);
+    final direct = await _directPublicIp();
     for (final mode in [RoutingMode.full, RoutingMode.smart]) {
       await vpn.setRoutingMode(mode);
-      await vpn.connect();
-      await vpn.disconnectIfNeeded();
+      await _connectAndExpectProxied(vpn, direct, label: mode.name);
     }
   } finally {
     // Don't leak full-tunnel into later scenarios sharing this process.
     await vpn.setRoutingMode(RoutingMode.smart);
   }
+}
+
+Future<String> _directPublicIp() async =>
+    (await awaitPublicIp('direct traffic before connecting', (p) => !p.vpn)).ip;
+
+/// Connects, expects a VPN exit with an IP other than [directIp], then
+/// disconnects and expects direct traffic again.
+Future<void> _connectAndExpectProxied(
+  VpnRobot vpn,
+  String directIp, {
+  required String label,
+}) async {
+  await vpn.connect();
+  final tunneled = await awaitPublicIp(
+    'proxied traffic in $label',
+    (p) => p.vpn,
+  );
+  expect(
+    tunneled.ip,
+    isNot(directIp),
+    reason: 'Public IP did not change in $label',
+  );
+  await vpn.disconnectIfNeeded();
+  await awaitPublicIp('direct traffic after $label', (p) => !p.vpn);
 }
