@@ -201,6 +201,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         break;
 
       case 'shepherd':
+      case 'shepherd-wechat':
         if (isDesktop || isAndroidSideload) {
           await paymentRedirectFlow(
             provider.providers.name,
