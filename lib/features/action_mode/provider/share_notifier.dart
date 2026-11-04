@@ -48,6 +48,10 @@ class ShareNotifier extends _$ShareNotifier {
       _storage.containsKey(_consentAckKey) ||
       _storage.containsKey(_legacySmcAckKey);
 
+  /// Whether enabling needs the consent dialog first. The tray opens the
+  /// window before toggling when it does.
+  bool get consentAcked => _consentAcked;
+
   // ─── Sharing session ───────────────────────────────────────────────────────
 
   StreamSubscription? _appEventSub;
@@ -147,8 +151,8 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   /// Toggles sharing. Shows the consent dialog inline when needed, then
-  /// picks the mode from the network.
-  Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
+  /// picks the mode from the network. [widgetRef] is unused; the tray has none.
+  Future<void> toggle(BuildContext context, [WidgetRef? widgetRef]) async {
     if (_changing) return;
     // The user has chosen, on or off: a held-back helper start must not
     // override that later.
