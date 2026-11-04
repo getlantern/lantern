@@ -247,7 +247,8 @@ class AppRobot {
     }
   }
 
-  /// Waits for the home screen after launch. Does not touch onboarding.
+  /// Waits for the home screen after launch, or for onboarding over it on a
+  /// first launch. Does not dismiss onboarding; [waitForControlReady] does.
   Future<void> launchToHome() async {
     // app.main() rebuilds the app on the same router, which still holds any
     // routes and dialogs a failed scenario left over home; waiting for home
@@ -261,9 +262,9 @@ class AppRobot {
     if (appRouter.navigatorKey.currentState != null) {
       await resetToRoot();
     }
-    await WidgetWaitUtils.waitForFinder(
+    await WidgetWaitUtils.waitForAnyFinder(
       tester,
-      homeScreen,
+      [homeScreen, onboardingScreen],
       timeout: const Duration(seconds: 90),
       reason: 'Home screen did not load',
     );
