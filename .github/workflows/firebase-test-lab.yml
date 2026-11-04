@@ -163,27 +163,35 @@ jobs:
           IFS=';' read -ra devices <<<"$(scripts/android/ftl-run.sh --print-devices)"
           dart_defines=""
           if (( ${#devices[@]} > 1 )); then
-            auth_device=""
+            auth_model=""
+            auth_version=""
             for device in "${devices[@]}"; do
               model=$(sed -n 's/.*model=\([^,]*\).*/\1/p' <<<"$device")
               version=$(sed -n 's/.*version=\([^,]*\).*/\1/p' <<<"$device")
               if [[ -n "$model" && "$model" != *.arm ]]; then
-                auth_device="$model${version:+@$version}"
+                auth_model="$model"
+                auth_version="$version"
                 break
               fi
             done
-            if [[ -z "$auth_device" ]]; then
+            if [[ -z "$auth_model" ]]; then
               echo "::error::Several devices share the auth smoke accounts; include one physical device so only it runs the auth suite."
               exit 1
             fi
+            auth_device="$auth_model${auth_version:+@$auth_version}"
+            # Another entry of the same model matches too unless both name
+            # different API levels; a missing version could be any level.
             matches=0
             for device in "${devices[@]}"; do
               model=$(sed -n 's/.*model=\([^,]*\).*/\1/p' <<<"$device")
               version=$(sed -n 's/.*version=\([^,]*\).*/\1/p' <<<"$device")
-              [[ "$model${version:+@$version}" == "$auth_device" ]] && matches=$((matches + 1))
+              if [[ "$model" == "$auth_model" &&
+                    ( -z "$auth_version" || -z "$version" || "$version" == "$auth_version" ) ]]; then
+                matches=$((matches + 1))
+              fi
             done
             if (( matches > 1 )); then
-              echo "::error::$auth_device appears $matches times; the auth suite would run on each at once."
+              echo "::error::$auth_device matches $matches devices; the auth suite would run on each at once."
               exit 1
             fi
             echo "Auth smoke suite runs on $auth_device"
