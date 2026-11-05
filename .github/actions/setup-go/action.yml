@@ -1,5 +1,5 @@
 name: Set up Lantern Go toolchain
-description: Install the pinned Go version and cache modules separately from target-specific compilation.
+description: Install the pinned Go version and cache target-specific compilation.
 inputs:
   cache-scope:
     description: Build target or test suite; prevents unrelated jobs from racing to save one compiled cache.
@@ -23,24 +23,14 @@ runs:
       run: |
         set -euo pipefail
         build_cache=$(go env GOCACHE)
-        module_cache=$(go env GOMODCACHE)
-        printf 'build=%s\nmodules=%s\n' "$build_cache" "$module_cache" >> "$GITHUB_OUTPUT"
+        printf 'build=%s\n' "$build_cache" >> "$GITHUB_OUTPUT"
 
-    # Modules can be shared across targets. Compiled objects cannot use one
-    # immutable key: the first macOS/iOS/Android job would win every cache save.
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      continue-on-error: true
-      env:
-        SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
-      with:
-        path: ${{ steps.paths.outputs.modules }}
-        key: go-mod-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ hashFiles('go.mod', 'go.sum') }}
-        restore-keys: |
-          go-mod-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-
-
+    # Compiled objects cannot use one immutable key: the first
+    # macOS/iOS/Android job would win every cache save. Modules aren't cached:
+    # downloading them takes ~25s, and the 1.6 GB per OS crowded the compiled
+    # caches out of the repo's 10 GB limit.
     - name: Cache Go compilation
-      uses: actions/cache@v4
+      uses: ./.github/actions/cache
       continue-on-error: true
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
@@ -74,7 +64,7 @@ runs:
 
     - name: Cache gomobile initialization
       if: inputs.gomobile-cache == 'true'
-      uses: actions/cache@v4
+      uses: ./.github/actions/cache
       continue-on-error: true
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"

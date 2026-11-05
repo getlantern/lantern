@@ -10,7 +10,10 @@ on:
         required: false
         type: boolean
         default: false
-  pull_request:
+  # Main pushes save the caches PRs restore; PRs never save
+  # (.github/actions/cache).
+  push:
+    branches: [main]
     paths:
       - "**/*.kt"
       - "android/**/*.gradle"
@@ -21,7 +24,6 @@ on:
       - "Makefile"
       - "pubspec.yaml"
       - "pubspec.lock"
-      - "lib/**"
       - "integration_test/**"
       - "scripts/ci/verify_android_abis*"
       - "scripts/android/test-runtime-seccomp.py"
@@ -34,10 +36,36 @@ on:
       - ".github/actions/setup-android/**"
       - ".github/actions/setup-flutter/**"
       - ".github/actions/setup-go/**"
+      - ".github/actions/cache/**"
+  pull_request:
+    paths:
+      - "**/*.kt"
+      - "android/**/*.gradle"
+      - "android/abi-targets.properties"
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - "Makefile"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "integration_test/**"
+      - "scripts/ci/verify_android_abis*"
+      - "scripts/android/test-runtime-seccomp.py"
+      - "scripts/android/runtime-seccomp/**"
+      - "lantern-core/vpn_tunnel/**"
+      - ".github/workflows/android-compile-check.yml"
+      - ".github/workflows/android-abi-candidate.yml"
+      - ".github/workflows/build-android.yml"
+      - ".github/workflows/firebase-test-lab.yml"
+      - ".github/actions/setup-android/**"
+      - ".github/actions/setup-flutter/**"
+      - ".github/actions/setup-go/**"
+      - ".github/actions/cache/**"
 
 concurrency:
   group: android-compile-check-${{ github.ref }}
-  cancel-in-progress: true
+  # A cancelled main run saves nothing, so let main runs finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   candidate:
@@ -74,7 +102,7 @@ jobs:
 
       - name: Cache Android AAR
         id: android-aar-cache
-        uses: actions/cache@v4
+        uses: ./.github/actions/cache
         timeout-minutes: 5
         continue-on-error: true
         with:
