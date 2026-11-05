@@ -446,7 +446,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               observer: checkoutObserver,
             );
             if (!context.mounted) return;
-            // Alipay may finish in its own app, without a webview redirect.
+            // Alipay/WeChat may finish in their own app, without a webview redirect.
             await onPurchaseResult(
               purchaseResult ?? true,
               context,
