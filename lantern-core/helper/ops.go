@@ -95,11 +95,19 @@ func (e *Engine) dropPairing(id string) {
 	e.st.Pairings = slices.DeleteFunc(e.st.Pairings, func(p *pairing) bool { return p.ID == id })
 }
 
-func (e *Engine) addPairing(id, role, name string, since time.Time, inviteHash []byte) {
-	if id == "" || e.pairing(id) != nil {
+// addPairing adds a pairing, or gives an existing one key if it has none.
+func (e *Engine) addPairing(id, role, name string, since time.Time, inviteHash, key []byte) {
+	if id == "" {
 		return
 	}
-	e.st.Pairings = append(e.st.Pairings, &pairing{ID: id, Role: role, Name: name, Since: since, InviteHash: inviteHash})
+	if p := e.pairing(id); p != nil {
+		if len(p.PairingKey) == 0 && len(key) > 0 {
+			p.PairingKey = key
+		}
+		return
+	}
+	e.st.Pairings = append(e.st.Pairings, &pairing{ID: id, Role: role, Name: name, Since: since,
+		InviteHash: inviteHash, PairingKey: key})
 }
 
 // inviterPairings is the set of pairings in which this device is helped.
@@ -140,7 +148,7 @@ func (e *Engine) view() View {
 			Provisional: c.Provisional})
 	}
 	for _, p := range e.st.Pairings {
-		pv := PairingView{PairingID: p.ID, Name: p.Name, SinceUnix: p.Since.Unix()}
+		pv := PairingView{PairingID: p.ID, Name: p.Name, SinceUnix: p.Since.Unix(), HasPairingKey: len(p.PairingKey) > 0}
 		if p.Nickname != "" {
 			pv.Name = p.Nickname
 		}
@@ -254,7 +262,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 				}
 				return nil, badAnswer()
 			}
-			e.addPairing(st.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil)
+			e.addPairing(st.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil, helperinvite.PairingKey(inv.Secret))
 			e.dropInvite(inv.ID)
 			changed = true
 		case "rejected":
@@ -370,12 +378,12 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 			continue
 		}
 		name := ""
-		var hash []byte
+		var hash, key []byte
 		if lp.Role == RoleVolunteer {
 			e.newHelpingPending = true
-			name, hash = e.claimName(lp.InviterBlob)
+			name, hash, key = e.claimName(lp.InviterBlob)
 		}
-		e.addPairing(lp.PairingID, lp.Role, name, time.Unix(int64(lp.CreatedUnix), 0), hash)
+		e.addPairing(lp.PairingID, lp.Role, name, time.Unix(int64(lp.CreatedUnix), 0), hash, key)
 		changed = true
 	}
 	if !complete {
@@ -398,19 +406,19 @@ func (e *Engine) mergePairings(listed []listedPairing) (changed bool) {
 	return changed || n != len(e.st.Pairings)
 }
 
-// claimName returns the inviter's name and the invite hash of the pending
-// claim whose key opens blob, and drops that claim.
-func (e *Engine) claimName(blob []byte) (string, []byte) {
+// claimName returns the inviter's name, the invite hash and the pairing key
+// of the pending claim whose key opens blob, and drops that claim.
+func (e *Engine) claimName(blob []byte) (name string, hash, key []byte) {
 	if len(blob) == 0 {
-		return "", nil
+		return "", nil, nil
 	}
 	for _, c := range e.st.Claims {
-		if name, err := helperinvite.OpenName(helperinvite.InviterNameKey(c.Secret), blob); err == nil {
+		if n, err := helperinvite.OpenName(helperinvite.InviterNameKey(c.Secret), blob); err == nil {
 			e.dropClaim(c.ID)
-			return name, helperinvite.InviteHash(c.Secret)
+			return n, helperinvite.InviteHash(c.Secret), helperinvite.PairingKey(c.Secret)
 		}
 	}
-	return "", nil
+	return "", nil, nil
 }
 
 func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
@@ -458,7 +466,7 @@ func (e *Engine) decide(ctx context.Context, args []byte) (any, error) {
 			// next refresh reads the approval with its pairing.
 			return nil, badAnswer()
 		}
-		e.addPairing(resp.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil)
+		e.addPairing(resp.PairingID, RoleInviter, inv.VolunteerName, e.now(), nil, helperinvite.PairingKey(inv.Secret))
 		e.dropInvite(inv.ID)
 	}
 	if err := e.save(); err != nil {
@@ -649,8 +657,8 @@ func (e *Engine) renameHelper(args []byte) (any, error) {
 // endAllHelpers is "remove all helpers": it ends every pairing in which this
 // device is helped, rejects claimed invites, and turns unclaimed ones into
 // tombstones without names, so a seized phone holds no helper names. It
-// blanks the names before any request, and saves after each step, so a
-// failure part way keeps what was done.
+// blanks the names and pairing keys before any request, and saves after each
+// step, so a failure part way keeps what was done.
 func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
 	// Names go first, and are saved before any request, so they are gone
 	// even when lantern-cloud cannot be reached.
@@ -658,6 +666,7 @@ func (e *Engine) endAllHelpers(ctx context.Context) (any, error) {
 		if p.Role == RoleInviter {
 			p.Name = ""
 			p.Nickname = ""
+			p.PairingKey = nil
 		}
 	}
 	for _, c := range e.st.Claims {

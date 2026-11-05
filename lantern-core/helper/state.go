@@ -80,6 +80,10 @@ type pairing struct {
 	// re-opening that link is told apart from a link someone else used.
 	// State only; empty for pairings saved before it was kept.
 	InviteHash []byte `json:"invite_hash,omitempty"`
+	// PairingKey is K_pair, derived from the invite secret when the pairing
+	// was made on this device. Empty for a pairing saved before it was kept,
+	// or one this device learned of only from lantern-cloud. Never logged.
+	PairingKey []byte `json:"pairing_key,omitempty"`
 }
 
 const (
