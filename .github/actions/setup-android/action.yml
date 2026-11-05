@@ -27,9 +27,9 @@ runs:
       uses: gradle/actions/setup-gradle@v4
       with:
         gradle-version: ${{ inputs.gradle-version }}
-        # Manual branch benchmarks must be able to warm their own caches.
-        # PRs only read caches; configuration caches/secrets are not persisted.
-        cache-read-only: ${{ github.event_name == 'pull_request' }}
+        # Same policy as .github/actions/cache: only main saves. Configuration
+        # caches/secrets are not persisted.
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
         cache-cleanup: on-success
         dependency-graph: disabled
         build-scan-publish: false

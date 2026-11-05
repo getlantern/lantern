@@ -2199,7 +2199,7 @@ msgid "help_friend_form_title"
 msgstr "วางลิงก์จากคนที่คุณกำลังช่วย"
 
 msgid "help_friend_link_hint"
-msgstr "หากคุณเปิดลิงก์บนอุปกรณ์นี้ ช่องนี้จะถูกกรอกให้อัตโนมัติ"
+msgstr "แตะลิงก์บนอุปกรณ์นี้เพื่อกรอกช่องนี้"
 
 msgid "help_friend_name_label"
 msgstr "ชื่อของคุณที่เพื่อนรู้จัก"
@@ -2266,3 +2266,30 @@ msgstr "ใช้งาน %s"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "ไม่สามารถติดต่อ %s ได้ในขณะนี้ เปลี่ยนเป็นตำแหน่งอัจฉริยะแล้ว"
+
+msgid "help_friend_form_title_from_link"
+msgstr "เพื่อนเชิญคุณให้เป็นพร็อกซีส่วนตัวของเขา"
+
+msgid "help_friend_paste_button"
+msgstr "วางลิงก์"
+
+msgid "help_friend_no_link"
+msgstr "ยังไม่มีลิงก์?"
+
+msgid "help_friend_ask_invite"
+msgstr "ขอให้เพื่อนส่งคำเชิญให้คุณ"
+
+msgid "help_friend_ask_invite_message"
+msgstr "ฉันเป็นพร็อกซีส่วนตัวของคุณใน Lantern ได้ เพื่อให้คุณออนไลน์ผ่านการเชื่อมต่อของฉัน ใน Lantern ให้เปิด \"การเลือกเซิร์ฟเวอร์\" แตะเมนู ⋮ ด้านบน เลือก \"เชิญพร็อกซีส่วนตัว\" แล้วส่งลิงก์มาให้ฉัน"
+
+msgid "add_executable"
+msgstr "เพิ่มไฟล์ปฏิบัติการ"
+
+msgid "windows_executable_bypass_hint"
+msgstr "เลือกไฟล์ .exe ของเกมหรือแอปตัวจริงเพื่อข้าม VPN การเลือกตัวเปิดเกมจะไม่รวมโปรแกรมที่ตัวเปิดนั้นเรียกใช้"
+
+msgid "select_windows_executable"
+msgstr "เลือกไฟล์ .exe ของแอปในคอมพิวเตอร์นี้ที่ไม่ใช่ Lantern"
+
+msgid "unable_to_add_executable"
+msgstr "ไม่สามารถเพิ่มไฟล์ปฏิบัติการได้ เลือกไฟล์ .exe ที่มีอยู่ในคอมพิวเตอร์นี้แล้วลองอีกครั้ง"

@@ -313,6 +313,18 @@ msgstr "Enter URL or IP Address"
 msgid "installed_apps"
 msgstr "Installed Apps"
 
+msgid "add_executable"
+msgstr "Add executable"
+
+msgid "windows_executable_bypass_hint"
+msgstr "Choose the actual game or app .exe to bypass the VPN. Selecting a launcher does not include programs it starts."
+
+msgid "select_windows_executable"
+msgstr "Select an app's .exe file, other than Lantern, on this computer."
+
+msgid "unable_to_add_executable"
+msgstr "Couldn't add the executable. Choose an existing .exe file on this computer and try again."
+
 msgid "search_apps"
 msgstr "Search Apps"
 
@@ -2062,9 +2074,14 @@ msgstr "Remove the connection any time."
 msgid "help_friend_form_title"
 msgstr "Paste the link from the person you're helping"
 
+# Title of the same card when the invite link opened the app. The inviter's
+# name is not known yet.
+msgid "help_friend_form_title_from_link"
+msgstr "A friend invited you to be their personal proxy"
+
 # Under the invite link field.
 msgid "help_friend_link_hint"
-msgstr "If you opened the link on this device, this is filled in for you"
+msgstr "Tapping the link on this device fills this in"
 
 msgid "help_friend_name_label"
 msgstr "Your name, as they know you"
@@ -2098,6 +2115,10 @@ msgstr "Paste the link your friend sent"
 msgid "help_friend_scan"
 msgstr "Scan your friend's QR code"
 
+# Button under the invite link field: fills it from the clipboard.
+msgid "help_friend_paste_button"
+msgstr "Paste link"
+
 # %s is the friend's name.
 msgid "help_friend_approved"
 msgstr "You're now helping %s."
@@ -2125,6 +2146,21 @@ msgstr "This isn't a Personal Proxy invite link."
 
 msgid "help_friend_own_invite"
 msgstr "This is your own invite. Send it to the friend you'd like help from."
+
+# Above a button for someone abroad who has no invite link yet.
+msgid "help_friend_no_link"
+msgstr "Don't have a link yet?"
+
+# Button: shares help_friend_ask_invite_message to a friend.
+msgid "help_friend_ask_invite"
+msgstr "Ask your friend to invite you"
+
+# Sent to a friend in a censored country, who will read it in their own
+# Lantern. "Server Selection" must match server_selection and "Invite a
+# Personal Proxy" must match invite_personal_proxy, as the friend's app shows
+# them in this language.
+msgid "help_friend_ask_invite_message"
+msgstr "I can be your personal proxy on Lantern, so you can get online through my connection. In Lantern, open Server Selection, tap the ⋮ menu at the top, choose \"Invite a Personal Proxy\" and send me the link."
 
 # Action Mode card for someone abroad, before they help any friend. Opens the screen for an invite link.
 msgid "become_personal_proxy"
