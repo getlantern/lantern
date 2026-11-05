@@ -629,8 +629,9 @@ open class LanternVpnService :
         for (pkg in BYPASS_PACKAGES) {
             try {
                 builder.addDisallowedApplication(pkg)
+                AppLogger.i(TAG, "Excluded $pkg from the tunnel")
             } catch (_: PackageManager.NameNotFoundException) {
-                // Not installed; nothing to exclude.
+                AppLogger.d(TAG, "$pkg not installed; nothing to exclude")
             }
         }
 
