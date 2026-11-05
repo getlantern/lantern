@@ -2229,7 +2229,7 @@ msgid "help_friend_form_title"
 msgstr "जिसकी आप मदद कर रहे हैं, उसका लिंक पेस्ट करें"
 
 msgid "help_friend_link_hint"
-msgstr "अगर आपने इस डिवाइस पर लिंक खोला है, तो यह अपने आप भर जाता है"
+msgstr "इस डिवाइस पर लिंक पर टैप करने से यह भर जाएगा"
 
 msgid "help_friend_name_label"
 msgstr "आपका नाम, जिससे वे आपको जानते हैं"
@@ -2296,3 +2296,30 @@ msgstr "सक्रिय: %s"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "अभी %s तक नहीं पहुंच पा रहे। स्मार्ट लोकेशन पर स्विच किया गया।"
+
+msgid "help_friend_form_title_from_link"
+msgstr "एक दोस्त ने आपको अपना निजी प्रॉक्सी बनने के लिए आमंत्रित किया है"
+
+msgid "help_friend_paste_button"
+msgstr "लिंक पेस्ट करें"
+
+msgid "help_friend_no_link"
+msgstr "अभी तक लिंक नहीं मिला?"
+
+msgid "help_friend_ask_invite"
+msgstr "अपने दोस्त से आमंत्रण भेजने को कहें"
+
+msgid "help_friend_ask_invite_message"
+msgstr "Lantern पर आप मुझे अपने निजी प्रॉक्सी के रूप में इस्तेमाल कर सकते हैं, ताकि आप मेरे कनेक्शन से ऑनलाइन हो सकें। Lantern में \"सर्वर चयन\" खोलें, ऊपर ⋮ मेनू पर टैप करें, \"निजी प्रॉक्सी आमंत्रित करें\" चुनें और मुझे लिंक भेजें।"
+
+msgid "add_executable"
+msgstr "एक्ज़ीक्यूटेबल जोड़ें"
+
+msgid "windows_executable_bypass_hint"
+msgstr "VPN को बायपास करने के लिए असली गेम या ऐप की .exe चुनें। लॉन्चर चुनने पर उससे शुरू होने वाले प्रोग्राम शामिल नहीं होते।"
+
+msgid "select_windows_executable"
+msgstr "इस कंप्यूटर पर Lantern के अलावा किसी ऐप की .exe फ़ाइल चुनें।"
+
+msgid "unable_to_add_executable"
+msgstr "एक्ज़ीक्यूटेबल नहीं जोड़ा जा सका। इस कंप्यूटर पर मौजूद कोई .exe फ़ाइल चुनें और फिर से कोशिश करें।"

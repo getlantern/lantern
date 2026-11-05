@@ -2244,7 +2244,7 @@ msgid "help_friend_form_title"
 msgstr "Вставьте ссылку от человека, которому вы помогаете"
 
 msgid "help_friend_link_hint"
-msgstr "Если вы открыли ссылку на этом устройстве, поле заполнено автоматически"
+msgstr "Нажмите ссылку на этом устройстве, и поле заполнится"
 
 msgid "help_friend_name_label"
 msgstr "Ваше имя, под которым вас знают"
@@ -2308,3 +2308,30 @@ msgstr "Передано данных сегодня"
 
 msgid "helping_active_today"
 msgstr "Активно: %s"
+
+msgid "help_friend_form_title_from_link"
+msgstr "Вас приглашают стать личным прокси для друга"
+
+msgid "help_friend_paste_button"
+msgstr "Вставить ссылку"
+
+msgid "help_friend_no_link"
+msgstr "Ещё нет ссылки?"
+
+msgid "help_friend_ask_invite"
+msgstr "Попросить друга пригласить вас"
+
+msgid "help_friend_ask_invite_message"
+msgstr "Я могу стать вашим личным прокси в Lantern, чтобы вы выходили в интернет через моё подключение. В Lantern откройте «Выбор сервера», нажмите меню ⋮ вверху, выберите «Пригласить личный прокси» и отправьте мне ссылку."
+
+msgid "add_executable"
+msgstr "Добавить исполняемый файл"
+
+msgid "windows_executable_bypass_hint"
+msgstr "Выберите сам .exe игры или приложения, чтобы обойти VPN. Выбор лаунчера не распространяется на запускаемые им программы."
+
+msgid "select_windows_executable"
+msgstr "Выберите файл .exe приложения на этом компьютере, кроме Lantern."
+
+msgid "unable_to_add_executable"
+msgstr "Не удалось добавить исполняемый файл. Выберите существующий файл .exe на этом компьютере и повторите попытку."

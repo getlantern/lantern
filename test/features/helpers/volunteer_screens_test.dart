@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,8 +16,10 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/help_friend.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_friends.dart';
+import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:share_plus/share_plus.dart';
 
 class _Helpers extends HelpersNotifier {
   _Helpers(
@@ -131,6 +134,39 @@ Future<void> _claim(WidgetTester tester) async {
   await tester
       .pump(); // pumpAndSettle would never settle: the waiting view spins
 }
+
+/// Serves [text] as the clipboard, counting reads.
+class _Clipboard {
+  _Clipboard(WidgetTester tester, this.text) {
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method != 'Clipboard.getData') return null;
+      reads++;
+      return text == null ? null : {'text': text};
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+  }
+
+  final String? text;
+  int reads = 0;
+}
+
+void _desktop(bool desktop) {
+  PlatformUtils.debugIsDesktop = desktop;
+  addTearDown(() => PlatformUtils.debugIsDesktop = null);
+}
+
+String _linkField(WidgetTester tester) => tester
+    .widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('help_friend.link')),
+        matching: find.byType(TextField),
+      ),
+    )
+    .controller!
+    .text;
 
 const _link =
     'https://lantern.io/help/#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
@@ -354,13 +390,17 @@ void main() {
     );
     helpers.holdLink('https://lantern.io/help/#broken');
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
-    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
     await _claim(tester);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(find.text('help_friend_form_title'.i18n), findsOneWidget);
     expect(
       tester.widget<Text>(find.byKey(const Key('help_friend.link_error'))).data,
       helperErrorText('bad_link'),
     );
     expect(find.byKey(const Key('help_friend.error')), findsNothing);
+    // Refused, the link is no use: a new one can be asked for.
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsOneWidget);
     await tester.enterText(find.byKey(const Key('help_friend.link')), _link);
     await tester.pump();
     expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
@@ -369,6 +409,25 @@ void main() {
     await tester.pump();
     expect(helpers.claims.last, (_link, 'Ali'));
     expect(find.text('2562'), findsOneWidget);
+  });
+
+  testWidgets('a link that opened HelpFriend and the engine reports as the '
+      'volunteer\'s own invite shows the error on the field, without asking '
+      'for an invite', (tester) async {
+    final helpers = _Helpers(
+      const HelpersState(),
+      claimAnswers: ['{"error":"own_invite"}'],
+    );
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    await _claim(tester);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('help_friend.link_error'))).data,
+      helperErrorText('own_invite'),
+    );
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsNothing);
   });
 
   testWidgets('the button waits for a valid link; a bad one is flagged on '
@@ -409,21 +468,13 @@ void main() {
     expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
   });
 
-  testWidgets('opening HelpFriend refreshes only if used, fills in the held '
-      'link, and caps the name at 60', (tester) async {
+  testWidgets('opening HelpFriend refreshes only if used, takes the held '
+      'link once, and caps the name at 60', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     expect(helpers.refreshes, 1);
-    // The link was taken once, and fills the field.
     expect(helpers.takeLink(), isNull);
-    final link = tester.widget<TextField>(
-      find.descendant(
-        of: find.byKey(const Key('help_friend.link')),
-        matching: find.byType(TextField),
-      ),
-    );
-    expect(link.controller!.text, _link);
     final field = tester.widget<TextField>(
       find.descendant(
         of: find.byKey(const Key('help_friend.name')),
@@ -487,6 +538,131 @@ void main() {
     );
     await _claim(tester);
     expect(helpers.claims.single.$1, _link);
+  });
+
+  testWidgets('a link that opened HelpFriend is not shown: only the name is '
+      'asked, and the link is claimed', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    expect(find.byKey(const Key('help_friend.scan')), findsNothing);
+    expect(find.byKey(const Key('help_friend.paste_button')), findsNothing);
+    expect(find.text('help_friend_link_hint'.i18n), findsNothing);
+    expect(find.text('help_friend_form_title'.i18n), findsNothing);
+    expect(find.text('help_friend_form_title_from_link'.i18n), findsOneWidget);
+    expect(
+      tester
+          .widget<PrimaryButton>(
+            find.descendant(
+              of: find.byKey(const Key('help_friend.accept')),
+              matching: find.byType(PrimaryButton),
+            ),
+          )
+          .enabled,
+      isTrue,
+    );
+    await _claim(tester);
+    expect(helpers.claims, [(_link, 'Ali')]);
+  });
+
+  testWidgets('without a link, the volunteer can ask a friend for an invite '
+      'through the share sheet', (tester) async {
+    final shared = <ShareParams>[];
+    debugShareInvite = (p) async => shared.add(p);
+    addTearDown(() => debugShareInvite = null);
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    final ask = find.byKey(const Key('help_friend.ask_invite'));
+    expect(ask, findsOneWidget);
+    expect(find.text('help_friend_no_link'.i18n), findsOneWidget);
+    expect(find.text('help_friend_ask_invite'.i18n), findsOneWidget);
+    final form = find.byKey(const Key('help_friend.form'));
+    expect(
+      tester.getTopLeft(ask).dy,
+      greaterThan(tester.getBottomLeft(form).dy),
+    );
+    await tester.tap(ask);
+    await tester.pump();
+    expect(shared.single.text, 'help_friend_ask_invite_message'.i18n);
+    expect(shared.single.text, contains('"${'invite_personal_proxy'.i18n}"'));
+    expect(shared.single.text, contains('server_selection'.i18n));
+    expect(shared.single.sharePositionOrigin!.isEmpty, isFalse);
+    expect(helpers.claims, isEmpty);
+  });
+
+  testWidgets('a link that opened HelpFriend offers no ask for an invite', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.byKey(const Key('help_friend.form')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsNothing);
+    expect(find.text('help_friend_no_link'.i18n), findsNothing);
+  });
+
+  testWidgets('Paste fills the link field from the clipboard; mobile reads '
+      'it only on the tap', (tester) async {
+    _desktop(false);
+    final clipboard = _Clipboard(tester, '  $_link\n');
+    final helpers = _Helpers(const HelpersState());
+    await _pump(tester, helpers, const HelpFriend());
+    await tester.pump();
+    expect(clipboard.reads, 0);
+    expect(_linkField(tester), isEmpty);
+    await tester.tap(find.byKey(const Key('help_friend.paste_button')));
+    await tester.pump();
+    expect(clipboard.reads, 1);
+    expect(_linkField(tester), _link);
+    await _claim(tester);
+    expect(helpers.claims, [(_link, 'Ali')]);
+  });
+
+  testWidgets('Paste with nothing on the clipboard leaves the field', (
+    tester,
+  ) async {
+    _desktop(false);
+    _Clipboard(tester, null);
+    await _pump(tester, _Helpers(const HelpersState()), const HelpFriend());
+    await tester.enterText(find.byKey(const Key('help_friend.link')), 'abc');
+    await tester.tap(find.byKey(const Key('help_friend.paste_button')));
+    await tester.pump();
+    expect(_linkField(tester), 'abc');
+  });
+
+  testWidgets('on desktop, an invite on the clipboard is filled in', (
+    tester,
+  ) async {
+    _desktop(true);
+    final clipboard = _Clipboard(tester, 'Sara wants your help. $_link');
+    await _pump(tester, _Helpers(const HelpersState()), const HelpFriend());
+    await tester.pump();
+    expect(clipboard.reads, 1);
+    expect(_linkField(tester), 'Sara wants your help. $_link');
+    expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
+  });
+
+  testWidgets('on desktop, clipboard text that is not an invite is dropped', (
+    tester,
+  ) async {
+    _desktop(true);
+    final clipboard = _Clipboard(tester, 'https://example.com/help#AAAA');
+    await _pump(tester, _Helpers(const HelpersState()), const HelpFriend());
+    await tester.pump();
+    expect(clipboard.reads, 1);
+    expect(_linkField(tester), isEmpty);
+  });
+
+  testWidgets('a link that opened HelpFriend is not overridden by the '
+      'clipboard', (tester) async {
+    _desktop(true);
+    final clipboard = _Clipboard(tester, _link);
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink('https://lantern.io/help/#BBBB');
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await tester.pump();
+    expect(clipboard.reads, 0);
   });
 
   testWidgets('approval after the claim says so', (tester) async {
@@ -611,6 +787,7 @@ void main() {
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     await _claim(tester);
     expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.link')), findsNothing);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
     await tester.pump();
     await tester

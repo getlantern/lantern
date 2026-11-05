@@ -21,7 +21,9 @@ runs:
       with:
         channel: stable
         flutter-version: ${{ steps.version.outputs.version }}
-        cache: true
+        # The SDK cache is 1.5-2 GB per OS and saves under a minute, so it
+        # crowded compiled caches out of the repo's 10 GB limit.
+        cache: false
         # One owner for pub caching, with fallback across lockfile updates.
         pub-cache: false
 
@@ -29,7 +31,7 @@ runs:
     # source-install path, but cache it instead of bootstrapping on every run.
     - name: Cache Linux ARM64 Flutter SDK
       if: runner.os == 'Linux' && runner.arch == 'ARM64'
-      uses: actions/cache@v4
+      uses: ./.github/actions/cache
       continue-on-error: true
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"
@@ -63,7 +65,7 @@ runs:
         printf 'PUB_CACHE=%s\n' "$pub_cache" >> "$GITHUB_ENV"
 
     - name: Cache pub dependencies
-      uses: actions/cache@v4
+      uses: ./.github/actions/cache
       continue-on-error: true
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MINS: "5"

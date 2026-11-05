@@ -90,6 +90,7 @@ class SignInEmail extends HookConsumerWidget {
                 SizedBox(height: defaultSize),
                 OAuthLogin(
                   methodType: SignUpMethodType.apple,
+                  foregroundColor: context.textPrimary,
                   onResult: (token) => onOAuthResult(
                     token,
                     context,

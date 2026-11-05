@@ -367,10 +367,10 @@ msgid "invalid_deep_link"
 msgstr "این لینک نامعتبر است. لطفاً لینک جدیدی درخواست کنید."
 
 msgid "apps_bypassing_vpn"
-msgstr "برنامه‌هایی که از VPN دور می‌زنند (%d)"
+msgstr "برنامه‌هایی که از VPN رد نمی‌شوند (%d)"
 
 msgid "websites_bypassing_vpn"
-msgstr "وب‌سایت‌هایی که از VPN دور می‌زنند (%d)"
+msgstr "وب‌سایت‌هایی که از VPN رد نمی‌شوند (%d)"
 
 msgid "logs_share_message"
 msgstr "این لاگ‌های تشخیصی من از Lantern است."
@@ -491,14 +491,13 @@ msgstr ""
 " پروکسی ارسال می‌شوند."
 
 msgid "unblocked_sites_bypass"
-msgstr "اکثر وب‌سایت‌های مسدودنشده برای مرور سریع‌تر VPN را دور می‌زنند."
+msgstr "اکثر وب‌سایت‌های مسدودنشده برای مرور سریع‌تر از VPN عبور نمی‌کنند."
 
 msgid "uncensored_regions"
 msgstr "در مناطق سانسورنشده:"
 
 msgid "trusted_sites_bypass"
-msgstr ""
-"تنها وب‌سایت‌ها و خدمات مورد اعتماد به طور پیش‌فرض از VPN دور می‌زنند."
+msgstr "به‌طور پیش‌فرض فقط وب‌سایت‌ها و سرویس‌های مورد اعتماد از VPN عبور نمی‌کنند."
 
 msgid "examples_of_bypassed_sites"
 msgstr ""
@@ -1420,7 +1419,7 @@ msgstr ""
 "قابلیت اطمینان مستقیماً منتقل می‌شود."
 
 msgid "add_apps_websites_bypass_vpn"
-msgstr "برنامه‌ها و وب‌سایت‌ها را برای دور زدن VPN اضافه کنید"
+msgstr "افزودن برنامه‌ها و وب‌سایت‌هایی که نمی‌خواهید از VPN عبور کنند"
 
 msgid "lantern_pro_license_applied"
 msgstr "مجوز Lantern Pro شما به حساب موجود شما اعمال خواهد شد"
@@ -1722,7 +1721,7 @@ msgid "share_consent_accept"
 msgstr "روشن کردن اشتراک‌گذاری"
 
 msgid "bypass_browser_warning_title"
-msgstr "%s به فهرست عبور اضافه شود؟"
+msgstr "آیا %s به فهرست رد نشدن از VPN افزوده شود؟"
 
 msgid "bypass_browser_warning_body"
 msgstr ""
@@ -1733,13 +1732,10 @@ msgid "add_anyway"
 msgstr "در هر صورت اضافه شود"
 
 msgid "bypass_all_warning_title"
-msgstr "همه برنامه‌ها به فهرست عبور اضافه شوند؟"
+msgstr "آیا همه برنامه‌ها به فهرست رد نشدن از VPN افزوده شوند؟"
 
 msgid "bypass_all_warning_body"
-msgstr ""
-"این شامل مرورگرهایی مانند %s نیز می‌شود. برنامه‌های فهرست عبور مستقیماً و "
-"بدون محافظت Lantern متصل می‌شوند. در کشورهایی که وب‌سایت‌های خاصی را مسدود "
-"می‌کنند، برخی سایت‌ها دیگر بارگیری نمی‌شوند."
+msgstr "این شامل مرورگرهایی مانند %s نیز می‌شود. برنامه‌های این فهرست بدون محافظت Lantern و به‌صورت مستقیم متصل می‌شوند. در کشورهایی که برخی وب‌سایت‌ها را مسدود می‌کنند، بعضی سایت‌ها دیگر باز نمی‌شوند."
 
 msgid "add_all_except_browsers"
 msgstr "افزودن همه به‌جز مرورگرها"
@@ -1748,7 +1744,7 @@ msgid "add_all_anyway"
 msgstr "در هر صورت همه اضافه شوند"
 
 msgid "bypass_app_first_time_title"
-msgstr "VPN برای این برنامه دور زده شود؟"
+msgstr "آیا VPN از این برنامه رد نشود؟"
 
 msgid "bypass_app_first_time_body"
 msgstr ""
@@ -1756,7 +1752,7 @@ msgstr ""
 "ممکن است از کار بیفتد."
 
 msgid "bypass_website_first_time_title"
-msgstr "VPN برای این وب‌سایت دور زده شود؟"
+msgstr "آیا VPN از این وب‌سایت رد نشود؟"
 
 msgid "bypass_website_first_time_body"
 msgstr ""
@@ -2230,7 +2226,7 @@ msgid "help_friend_form_title"
 msgstr "لینک فردی را که به او کمک می‌کنید جای‌گذاری کنید"
 
 msgid "help_friend_link_hint"
-msgstr "اگر لینک را در این دستگاه باز کرده باشید، این قسمت خودکار پر می‌شود"
+msgstr "با زدن روی لینک در این دستگاه، این قسمت پر می‌شود"
 
 msgid "help_friend_name_label"
 msgstr "نام شما، همان‌طور که شما را می‌شناسند"
@@ -2294,3 +2290,30 @@ msgstr "داده‌های بازپخش‌شده امروز"
 
 msgid "helping_active_today"
 msgstr "فعال: %s"
+
+msgid "help_friend_form_title_from_link"
+msgstr "یکی از دوستانتان از شما دعوت کرده پروکسی شخصی او باشید"
+
+msgid "help_friend_paste_button"
+msgstr "جای‌گذاری لینک"
+
+msgid "help_friend_no_link"
+msgstr "هنوز لینک ندارید؟"
+
+msgid "help_friend_ask_invite"
+msgstr "درخواست دعوت از دوست"
+
+msgid "help_friend_ask_invite_message"
+msgstr "من می‌توانم پروکسی شخصی شما در Lantern باشم تا از طریق اتصال من آنلاین شوید. در Lantern، «انتخاب سرور» را باز کنید، روی منوی ⋮ در بالا بزنید، «دعوت از پروکسی شخصی» را انتخاب کنید و پیوند را برایم بفرستید."
+
+msgid "add_executable"
+msgstr "افزودن فایل اجرایی"
+
+msgid "windows_executable_bypass_hint"
+msgstr "برای عبور از VPN، فایل .exe اصلی بازی یا برنامه را انتخاب کنید. انتخاب لانچر شامل برنامه‌هایی که اجرا می‌کند نمی‌شود."
+
+msgid "select_windows_executable"
+msgstr "فایل .exe یک برنامه، به‌جز Lantern، را در این رایانه انتخاب کنید."
+
+msgid "unable_to_add_executable"
+msgstr "افزودن فایل اجرایی ممکن نشد. یک فایل .exe موجود در این رایانه انتخاب کنید و دوباره تلاش کنید."

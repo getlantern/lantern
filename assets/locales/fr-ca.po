@@ -2044,7 +2044,7 @@ msgid "help_friend_form_title"
 msgstr "Collez le lien de la personne que vous aidez"
 
 msgid "help_friend_link_hint"
-msgstr "Si vous avez ouvert le lien sur cet appareil, ce champ est déjà rempli"
+msgstr "Touchez le lien sur cet appareil pour remplir ce champ"
 
 msgid "help_friend_name_label"
 msgstr "Votre nom, tel que la personne vous connaît"
@@ -2111,3 +2111,30 @@ msgstr "%s souhaite devenir votre proxy personnel"
 
 msgid "become_personal_proxy"
 msgstr "Devenir un proxy personnel"
+
+msgid "help_friend_form_title_from_link"
+msgstr "Un proche vous invite à devenir son proxy personnel"
+
+msgid "help_friend_paste_button"
+msgstr "Coller le lien"
+
+msgid "help_friend_no_link"
+msgstr "Pas encore de lien?"
+
+msgid "help_friend_ask_invite"
+msgstr "Demander une invitation à un proche"
+
+msgid "help_friend_ask_invite_message"
+msgstr "Je peux être votre proxy personnel sur Lantern, pour que vous puissiez accéder à Internet par ma connexion. Dans Lantern, ouvrez « Sélection du serveur », touchez le menu ⋮ en haut, choisissez « Inviter un proxy personnel » et envoyez-moi le lien."
+
+msgid "add_executable"
+msgstr "Ajouter un exécutable"
+
+msgid "windows_executable_bypass_hint"
+msgstr "Choisissez le .exe réel du jeu ou de l'application pour contourner le VPN. Sélectionner un lanceur n'inclut pas les programmes qu'il démarre."
+
+msgid "select_windows_executable"
+msgstr "Sélectionnez le fichier .exe d'une application de cet ordinateur, autre que Lantern."
+
+msgid "unable_to_add_executable"
+msgstr "Impossible d'ajouter l'exécutable. Choisissez un fichier .exe existant sur cet ordinateur et réessayez."
