@@ -35,6 +35,12 @@ FTL_ENVIRONMENT_VARIABLES="${FTL_ENVIRONMENT_VARIABLES:-}"
 #   FTL_DEVICES="model=MediumPhone.arm,version=33,locale=en,orientation=portrait"
 FTL_DEVICES="${FTL_DEVICES:-model=shiba,version=34,locale=en,orientation=portrait;model=MediumPhone.arm,version=33,locale=en,orientation=portrait}"
 
+# Lets the build pick the device that runs the shared-account tests.
+if [[ "${1:-}" == "--print-devices" ]]; then
+  echo "$FTL_DEVICES"
+  exit 0
+fi
+
 command -v gcloud >/dev/null || {
   echo "error: gcloud CLI not found — install the Google Cloud SDK" >&2
   exit 1

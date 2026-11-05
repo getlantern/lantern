@@ -366,9 +366,21 @@ func TestDeliveryFallsBackOnRejectionButPreservesOriginResults(t *testing.T) {
 func TestFeedURLValidation(t *testing.T) {
 	for _, input := range []string{"http://update.getlantern.org/update/lantern/appcast.xml?channel=beta",
 		"https://evil.example/update/lantern/appcast.xml?channel=beta", "https://update.getlantern.org/update/lantern/appcast.xml?channel=other",
-		"https://user@update.getlantern.org/update/lantern/appcast.xml?channel=beta"} {
+		"https://user@update.getlantern.org/update/lantern/appcast.xml?channel=beta",
+		"https://update.getlantern.org/update/lantern/appcast.xml?channel=nightly",
+		"https://update.getlantern.org/update/lantern/appcast.xml?channel=nightly&platform=linux",
+		"https://update.getlantern.org/update/lantern/appcast.xml?platform=windows&channel=nightly"} {
 		if _, err := parseFeedURL(input); err == nil {
 			t.Errorf("accepted %s", input)
+		}
+	}
+	for _, input := range []string{"https://update.getlantern.org/update/lantern/appcast.xml?channel=stable",
+		"https://update.getlantern.org/update/lantern/appcast.xml?channel=beta",
+		"https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta",
+		"https://update.getlantern.org/update/lantern/appcast.xml?channel=nightly&platform=windows",
+		"https://update.getlantern.org/update/lantern/appcast.xml?channel=nightly&platform=macos"} {
+		if _, err := parseFeedURL(input); err != nil {
+			t.Errorf("rejected %s: %v", input, err)
 		}
 	}
 }

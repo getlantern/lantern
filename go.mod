@@ -8,7 +8,7 @@ go 1.26.10
 
 // replace github.com/sagernet/sing => github.com/getlantern/sing v0.7.18-lantern
 
-replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.14.2-lantern.2
+replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.14.2-lantern.3
 
 // replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
 
@@ -31,9 +31,9 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/broflake v0.0.0-20261104021032-cb53ceff4301
 	github.com/getlantern/common v1.2.1-0.20261103194836-0116c50c68ff
-	github.com/getlantern/lantern-box v0.0.199-0.20261105024054-717e14d4f4ba
+	github.com/getlantern/lantern-box v0.0.200-0.20261105224216-5b44eecba604
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261105024541-992d0a770249
+	github.com/getlantern/radiance v0.0.0-20261105224410-230ce0abaf00
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
