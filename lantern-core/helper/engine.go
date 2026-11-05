@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"io"
 	"maps"
+	"slices"
 	"sync"
 	"time"
 
@@ -82,6 +83,45 @@ type Engine struct {
 	liveMu    sync.Mutex
 	live      map[string]bool
 	liveKnown bool
+
+	// keysMu guards keys, the snapshot PairingKeys reads, so a reader never
+	// waits on an op. It is a leaf lock: Call takes it under mu.
+	keysMu sync.Mutex
+	keys   map[string]PairingKey
+}
+
+// PairingKey is one pairing's K_pair and this device's side of it.
+type PairingKey struct {
+	Key  []byte
+	Role string
+}
+
+// PairingKeys returns the key of each pairing that has one, by pairing ID:
+// copies, and none while locked. The keys are never logged.
+func (e *Engine) PairingKeys() map[string]PairingKey {
+	e.keysMu.Lock()
+	defer e.keysMu.Unlock()
+	out := make(map[string]PairingKey, len(e.keys))
+	for id, k := range e.keys {
+		out[id] = PairingKey{Key: slices.Clone(k.Key), Role: k.Role}
+	}
+	return out
+}
+
+// snapshotKeys refreshes what PairingKeys returns from the state. Called
+// under mu.
+func (e *Engine) snapshotKeys() {
+	keys := map[string]PairingKey{}
+	if e.key != nil {
+		for _, p := range e.st.Pairings {
+			if len(p.PairingKey) > 0 {
+				keys[p.ID] = PairingKey{Key: slices.Clone(p.PairingKey), Role: p.Role}
+			}
+		}
+	}
+	e.keysMu.Lock()
+	e.keys = keys
+	e.keysMu.Unlock()
 }
 
 // NewEngine returns an engine that keeps its state in dir.
@@ -95,6 +135,8 @@ func NewEngine(dir string, relay Relay, activity ActivityFunc) *Engine {
 func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	// Runs before the unlock: after every op, failed ones and unlock too.
+	defer e.snapshotKeys()
 	if len(args) == 0 || string(args) == "null" {
 		args = []byte("{}")
 	}
@@ -263,4 +305,8 @@ type PairingView struct {
 	// Connected is set on a pairing this device helps, while radiance can
 	// say whether that friend routes through this device right now.
 	Connected *bool `json:"connected,omitempty"`
+	// HasPairingKey says whether this device keeps the pairing's key. A
+	// pairing saved before keys were kept, or known only from lantern-cloud,
+	// has none.
+	HasPairingKey bool `json:"has_pairing_key"`
 }
