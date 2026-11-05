@@ -152,7 +152,9 @@ class ShareNotifier extends _$ShareNotifier {
 
   /// Toggles sharing. Shows the consent dialog inline when needed, then
   /// picks the mode from the network. [widgetRef] is unused; the tray has none.
-  Future<void> toggle(BuildContext context, [WidgetRef? widgetRef]) async {
+  /// [context] is only needed to show the consent dialog: with consent
+  /// acknowledged a null one (the tray before the first route builds) is fine.
+  Future<void> toggle(BuildContext? context, [WidgetRef? widgetRef]) async {
     if (_changing) return;
     // The user has chosen, on or off: a held-back helper start must not
     // override that later.
@@ -487,15 +489,18 @@ class ShareNotifier extends _$ShareNotifier {
     }
   }
 
-  Future<void> _toggle(BuildContext context) async {
+  Future<void> _toggle(BuildContext? context) async {
     if (state.active || state.probing) {
       await _stop();
       return;
     }
-    if (!await ensureConsent(context)) return;
-    if (!ref.mounted) return;
-    // Another surface may have started sharing while the dialog was up.
-    if (state.active || state.probing) return;
+    if (!_consentAcked) {
+      if (context == null || !context.mounted) return;
+      if (!await ensureConsent(context)) return;
+      if (!ref.mounted) return;
+      // Another surface may have started sharing while the dialog was up.
+      if (state.active || state.probing) return;
+    }
 
     state = state.copyWith(probing: true);
 

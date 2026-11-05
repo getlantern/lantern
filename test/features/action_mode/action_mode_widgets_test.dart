@@ -49,7 +49,7 @@ class _Share extends ShareNotifier {
   @override
   Future<bool> ensureConsent(BuildContext context) async => consent;
   @override
-  Future<void> toggle(BuildContext context, [WidgetRef? widgetRef]) async {
+  Future<void> toggle(BuildContext? context, [WidgetRef? widgetRef]) async {
     toggles++;
   }
 
