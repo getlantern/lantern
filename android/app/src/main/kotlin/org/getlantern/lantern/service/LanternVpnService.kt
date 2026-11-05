@@ -54,6 +54,9 @@ open class LanternVpnService :
     PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "LanternVpnService"
+
+        // Alipay and WeChat are domestic and never need circumvention.
+        private val BYPASS_PACKAGES = listOf("com.eg.android.AlipayGphone", "com.tencent.mm")
         private val sessionName = BuildConfig.VPN_SESSION_NAME
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
@@ -621,6 +624,15 @@ open class LanternVpnService :
 
         // Disallow traffic from our own app to the VPN.
         builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
+
+        // Keep domestic payment apps off-tunnel so checkout handoffs don't exit from a foreign IP.
+        for (pkg in BYPASS_PACKAGES) {
+            try {
+                builder.addDisallowedApplication(pkg)
+            } catch (_: PackageManager.NameNotFoundException) {
+                // Not installed; nothing to exclude.
+            }
+        }
 
         if (options.autoRoute) {
             builder.addDnsServer(options.dnsServerAddress.value)
