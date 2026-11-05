@@ -29,11 +29,11 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
-	github.com/getlantern/broflake v0.0.0-20261103013533-7904ee7e70b5
+	github.com/getlantern/broflake v0.0.0-20261104021032-cb53ceff4301
 	github.com/getlantern/common v1.2.1-0.20261103194836-0116c50c68ff
-	github.com/getlantern/lantern-box v0.0.192-0.20261103194955-3dc0500e5d0f
+	github.com/getlantern/lantern-box v0.0.199-0.20261105024054-717e14d4f4ba
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261103195555-0adec54638fb
+	github.com/getlantern/radiance v0.0.0-20261105024541-992d0a770249
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
@@ -195,7 +195,7 @@ require (
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
 	github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b // indirect
 	github.com/getlantern/samizdat v0.0.3-0.20261031023545-1248df926631 // indirect
-	github.com/getlantern/semconv v0.0.0-20261028170058-373fcfda8972 // indirect
+	github.com/getlantern/semconv v0.0.0-20261103162524-c0c2ac0e0a3e // indirect
 	github.com/getlantern/soar v0.2.4 // indirect
 	github.com/getlantern/twiddle v0.0.0-20260914204124-f698a0d67d2f // indirect
 	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
@@ -206,7 +206,7 @@ require (
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/goccy/go-yaml v1.19.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
-	github.com/gofrs/flock v0.12.1 // indirect
+	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/certificate-transparency-go v1.3.2 // indirect

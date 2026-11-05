@@ -27,10 +27,9 @@ runs:
       uses: gradle/actions/setup-gradle@v4
       with:
         gradle-version: ${{ inputs.gradle-version }}
-        # Same policy as .github/actions/cache: only main and manual branch
-        # runs (benchmarks warming their own caches) save. Configuration
+        # Same policy as .github/actions/cache: only main saves. Configuration
         # caches/secrets are not persisted.
-        cache-read-only: ${{ !(github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/'))) }}
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
         cache-cleanup: on-success
         dependency-graph: disabled
         build-scan-publish: false
