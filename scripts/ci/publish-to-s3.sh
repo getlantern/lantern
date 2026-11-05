@@ -78,18 +78,30 @@ upload_file() {
   aws s3 cp "$filepath" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}" \
     --acl public-read --metadata "sha256=${checksum}"
 
-  # Branch builds publish versioned downloads without replacing the main nightly.
-  # Stable and beta aliases move only after the GitHub release is verified.
-  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
-    aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" \
-      --acl public-read --metadata "sha256=${checksum}"
-  fi
-
   echo "✓ Uploaded $filename"
   echo "  - https://s3.amazonaws.com/${BUCKET}/${VERSION_PREFIX}/${filename}"
-  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
-    echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
+
+  # Branch builds publish versioned downloads without replacing the main nightly.
+  # Stable and beta aliases move only after the GitHub release is verified.
+  # Signed desktop installers move with their feed below.
+  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]] && ! has_signed_update "$filepath"; then
+    promote_latest "$filepath" "$checksum"
   fi
+}
+
+has_signed_update() {
+  local filepath="$1" extension
+  extension="${filepath##*.}"
+  [[ ( "$extension" == dmg || "$extension" == exe ) &&
+     -f "lantern-installer-${extension}-signature/$(basename "$filepath").sparkle-signature" ]]
+}
+
+promote_latest() {
+  local filepath="$1" checksum="$2" filename
+  filename="$(basename "$filepath")"
+  aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" \
+    --acl public-read --metadata "sha256=${checksum}"
+  echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
 }
 
 artifact_path() {
@@ -183,7 +195,7 @@ if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
     case "$extension" in dmg|exe) ;; *) continue ;; esac
     filename="$(basename "$file")"
     signature_dir="lantern-installer-${extension}-signature"
-    if [[ ! -f "$signature_dir/$filename.sparkle-signature" ]]; then
+    if ! has_signed_update "$file"; then
       echo "No signed update for $filename; preserving the previous nightly feed."
       continue
     fi
@@ -205,6 +217,7 @@ if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
       exit 1
     fi
     aws s3 cp "$metadata" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}.update.json" --acl public-read
+    promote_latest "$file" "$(sha256sum "$file" | awk '{print $1}')"
     aws s3 cp "$metadata" "$latest" --acl public-read --cache-control 'max-age=300'
   done
 fi

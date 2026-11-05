@@ -336,15 +336,23 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
                     PREVIOUS_NIGHTLY_BUILD=previous, NIGHTLY_FETCH_ERROR=fetch_error,
                 )
                 self.assertEqual(result.returncode == 0, success, result.stderr)
-                published = [c for c in self.commands() if c[:3] == ["aws", "s3", "cp"]
-                             and c[4].endswith(".update.json")]
-                self.assertEqual(len(published), 2 if promote else 0)
+                versioned = f"s3://release-test/releases/nightly/9.2.0/{filename}"
+                latest = f"s3://release-test/releases/nightly/latest/{filename}"
+                if promote:
+                    # Installer alias waits for the feed check.
+                    expected = [versioned, f"{versioned}.update.json", latest, f"{latest}.update.json"]
+                elif not signed and is_test_run == "false":
+                    expected = [versioned, latest]
+                else:
+                    expected = [versioned]
+                published = [c[4] for c in self.commands() if c[:3] == ["aws", "s3", "cp"]
+                             and c[4].startswith("s3://")]
+                self.assertEqual(published, expected)
                 if promote:
                     metadata = json.loads((self.work / "commands.metadata").read_text())
                     self.assertEqual(metadata["channel"], "nightly")
                     self.assertEqual(metadata["sparkle_version"], "886")
                     self.assertEqual(metadata["url"], f"https://s3.amazonaws.com/release-test/releases/nightly/9.2.0/{filename}")
-                    self.assertEqual(published[-1][4], f"s3://release-test/releases/nightly/latest/{filename}.update.json")
 
     def test_nightly_reruns_preserve_versioned_desktop_installer_bytes(self) -> None:
         checksum = hashlib.sha256(b"installer").hexdigest()
