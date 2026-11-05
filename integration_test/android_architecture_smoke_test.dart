@@ -22,7 +22,7 @@ void main() {
     tester,
   ) async {
     await app.main();
-    await runAndroidConnectSmoke(tester, enableIpCheck: true);
+    await runAndroidConnectSmoke(tester, checkPublicIp: true);
   });
 
   testWidgets('VPN reconnects after disconnect on the selected ABI', (
