@@ -49,7 +49,7 @@ class PlansNotifier extends _$PlansNotifier {
       appLogger.info('Found cached plans, refreshing in background');
       unawaited(_refreshInBackground());
       await _storeProductsReady;
-      state = AsyncData(cached);
+      if (ref.mounted) state = AsyncData(cached);
       return cached;
     }
 
@@ -68,6 +68,8 @@ class PlansNotifier extends _$PlansNotifier {
     appLogger.info(
       '[PlansNotifier] _fetchPlansWithRetry(fromBackground: $fromBackground, attempt: $attempt)',
     );
+    // A retry can fire after the provider is disposed.
+    if (!ref.mounted) throw Exception('Plans fetch failed');
     if (!fromBackground && attempt == 0) {
       state = const AsyncLoading();
       // Retry / code removal must publish with the base SKUs, not offers.
@@ -79,6 +81,9 @@ class PlansNotifier extends _$PlansNotifier {
         appLogger.error(
           '[PlansNotifier] Plans fetch error: $error (fromBackground: $fromBackground, attempt: $attempt)',
         );
+        // The provider can be disposed while the fetch is in flight, e.g. when
+        // the plans screen closes; its state is unusable from then on.
+        if (!ref.mounted) throw Exception('Plans fetch failed');
         if (fromBackground) {
           return state.value ?? (throw Exception('Plans fetch failed'));
         }
@@ -153,13 +158,19 @@ class PlansNotifier extends _$PlansNotifier {
     }
   }
 
+  /// Unawaited by build(), so a failure is logged here instead of surfacing
+  /// as an uncaught error; the cached plans stay in place.
   Future<void> _refreshInBackground() async {
     appLogger.info('[PlansNotifier] _refreshInBackground started');
-    final remotePlans = await fetchPlans(fromBackground: true);
-    appLogger.info(
-      '[PlansNotifier] Background refresh complete, updating state',
-    );
-    if (ref.mounted) state = AsyncData(remotePlans);
+    try {
+      final remotePlans = await fetchPlans(fromBackground: true);
+      appLogger.info(
+        '[PlansNotifier] Background refresh complete, updating state',
+      );
+      if (ref.mounted) state = AsyncData(remotePlans);
+    } catch (e) {
+      appLogger.warning('[PlansNotifier] Background refresh failed: $e');
+    }
   }
 
   /// Publishes the discounted [plans] from an applied affiliate code, after
