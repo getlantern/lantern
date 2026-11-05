@@ -289,7 +289,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
             email: email,
             authFlow: AuthFlow.bindLegacyEmail,
             code: '',
-            bindingOrigin: widget.authFlow,
+            resumeFlow: widget.authFlow,
             licenseKey: widget.licenseKey,
           ),
         );

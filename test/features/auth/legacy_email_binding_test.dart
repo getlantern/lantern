@@ -435,7 +435,7 @@ void main() {
         final args = router.pushed.single.args as pages.CreatePasswordArgs;
         expect(args.email, _email);
         expect(args.authFlow, AuthFlow.bindLegacyEmail);
-        expect(args.bindingOrigin, AuthFlow.signUp);
+        expect(args.resumeFlow, AuthFlow.signUp);
         expect(service.starts, isEmpty);
         expect(service.recoveries, isEmpty);
         expect(
@@ -638,7 +638,7 @@ void main() {
       await tester.tap(find.byKey(AuthKeys.signUpContinueButton));
       await tester.pumpAndSettle();
       final create = router.pushed.last.args as pages.CreatePasswordArgs;
-      expect(create.bindingOrigin, origin);
+      expect(create.resumeFlow, origin);
       expect(create.licenseKey, licenseKey);
       await mount(
         tester,
@@ -646,7 +646,7 @@ void main() {
           email: create.email,
           authFlow: create.authFlow,
           code: create.code,
-          bindingOrigin: create.bindingOrigin,
+          resumeFlow: create.resumeFlow,
           licenseKey: create.licenseKey,
         ),
       );
@@ -655,7 +655,7 @@ void main() {
       await tester.tap(find.byKey(AuthKeys.createPasswordContinueButton));
       await tester.pumpAndSettle();
       final confirm = router.pushed.last.args as pages.ConfirmEmailArgs;
-      expect(confirm.bindingOrigin, origin);
+      expect(confirm.resumeFlow, origin);
       expect(confirm.licenseKey, licenseKey);
       await mount(
         tester,
@@ -663,7 +663,7 @@ void main() {
           email: confirm.email,
           password: confirm.password,
           authFlow: confirm.authFlow,
-          bindingOrigin: confirm.bindingOrigin,
+          resumeFlow: confirm.resumeFlow,
           licenseKey: confirm.licenseKey,
         ),
       );

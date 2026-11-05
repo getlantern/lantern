@@ -31,13 +31,12 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 // replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
 
 require (
-	github.com/1Password/srp v0.2.0
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/broflake v0.0.0-20261104021032-cb53ceff4301
 	github.com/getlantern/common v1.2.1-0.20261031143256-3923eab754d6
 	github.com/getlantern/lantern-box v0.0.189
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261105070546-93fb2bafb65e
+	github.com/getlantern/radiance v0.0.0-20261105073256-104bc6676838
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb
@@ -122,6 +121,7 @@ require (
 require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/1Password/srp v0.2.0 // indirect
 	github.com/Jigsaw-Code/outline-sdk v0.0.19 // indirect
 	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect

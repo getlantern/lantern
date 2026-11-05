@@ -16,7 +16,7 @@ class CreatePassword extends HookConsumerWidget {
   final String email;
   final String code;
   final AuthFlow authFlow;
-  final AuthFlow bindingOrigin;
+  final AuthFlow resumeFlow;
   final String licenseKey;
 
   const CreatePassword({
@@ -24,7 +24,7 @@ class CreatePassword extends HookConsumerWidget {
     required this.email,
     required this.authFlow,
     required this.code,
-    this.bindingOrigin = AuthFlow.bindLegacyEmail,
+    this.resumeFlow = AuthFlow.bindLegacyEmail,
     this.licenseKey = '',
   });
 
@@ -129,7 +129,7 @@ class CreatePassword extends HookConsumerWidget {
               email: email,
               password: password,
               authFlow: authFlow,
-              bindingOrigin: bindingOrigin,
+              resumeFlow: resumeFlow,
               licenseKey: licenseKey,
             ),
           );

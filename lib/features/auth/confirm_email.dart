@@ -21,8 +21,8 @@ class ConfirmEmail extends HookConsumerWidget {
   final String? password;
   final AuthFlow authFlow;
 
-  /// The action to resume after a legacy account has its email bound.
-  final AuthFlow bindingOrigin;
+  /// The flow to resume after a legacy account has its email bound.
+  final AuthFlow resumeFlow;
 
   /// Web-licensing key to pre-fill on the license screen.
   final String licenseKey;
@@ -32,7 +32,7 @@ class ConfirmEmail extends HookConsumerWidget {
     required this.email,
     this.password,
     this.authFlow = AuthFlow.signUp,
-    this.bindingOrigin = AuthFlow.bindLegacyEmail,
+    this.resumeFlow = AuthFlow.bindLegacyEmail,
     this.licenseKey = '',
   });
 
@@ -209,7 +209,7 @@ class ConfirmEmail extends HookConsumerWidget {
             body: 'email_updated'.i18n,
             primaryLabel: 'ok'.i18n,
             onPrimaryPressed: () {
-              if (context.mounted) resumeAfterBinding(context, ref);
+              if (context.mounted) navigateRoute(context, ref, code);
             },
           );
           return;
@@ -228,7 +228,7 @@ class ConfirmEmail extends HookConsumerWidget {
   }
 
   void resumeAfterBinding(BuildContext context, WidgetRef ref) {
-    if (bindingOrigin == AuthFlow.signUp && ref.read(isUserProProvider)) {
+    if (resumeFlow == AuthFlow.signUp && ref.read(isUserProProvider)) {
       AppDialog.showLanternProDialog(
         context: context,
         onPressed: appRouter.popUntilRoot,
@@ -236,7 +236,7 @@ class ConfirmEmail extends HookConsumerWidget {
       return;
     }
     appRouter.popUntilRoot();
-    switch (bindingOrigin) {
+    switch (resumeFlow) {
       case AuthFlow.signUp:
         if (isStoreVersion()) {
           appRouter.push(Plans());
@@ -276,12 +276,12 @@ class ConfirmEmail extends HookConsumerWidget {
       },
       (_) {
         context.hideLoadingDialog();
-        navigateRoute(ref, code);
+        navigateRoute(context, ref, code);
       },
     );
   }
 
-  void navigateRoute(WidgetRef ref, String code) {
+  void navigateRoute(BuildContext context, WidgetRef ref, String code) {
     switch (authFlow) {
       case AuthFlow.resetPassword:
         appRouter.push(ResetPassword(email: email, code: code));
@@ -316,8 +316,9 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.oauth:
         // TODO: Handle this case.
         throw UnimplementedError();
-      case AuthFlow.changeEmail:
       case AuthFlow.bindLegacyEmail:
+        resumeAfterBinding(context, ref);
+      case AuthFlow.changeEmail:
         // TODO: Handle this case.
         throw UnimplementedError();
       case AuthFlow.renewSubscription:
@@ -337,8 +338,10 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.oauth:
         throw Exception('OAuth flow should not reach this point');
       case AuthFlow.changeEmail:
-      case AuthFlow.bindLegacyEmail:
         resendChangeEmail(context, ref);
+        break;
+      case AuthFlow.bindLegacyEmail:
+        resendBindingEmail(context, ref);
         break;
       case AuthFlow.renewSubscription:
         // TODO: Handle this case.
@@ -348,10 +351,9 @@ class ConfirmEmail extends HookConsumerWidget {
 
   Future<void> resendChangeEmail(BuildContext context, WidgetRef ref) async {
     context.showLoadingDialog();
-    final auth = ref.read(authProvider.notifier);
-    final result = authFlow == AuthFlow.bindLegacyEmail
-        ? await auth.startBindLegacyEmail(email)
-        : await auth.startChangeEmail(email, password!);
+    final result = await ref
+        .read(authProvider.notifier)
+        .startChangeEmail(email, password!);
     if (!context.mounted) return;
     result.fold(
       (failure) {
@@ -359,6 +361,24 @@ class ConfirmEmail extends HookConsumerWidget {
         context.showSnackBar(failure.localizedErrorMessage);
       },
       (newEmail) {
+        context.hideLoadingDialog();
+        context.showSnackBar('email_resend_message'.i18n);
+      },
+    );
+  }
+
+  Future<void> resendBindingEmail(BuildContext context, WidgetRef ref) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authProvider.notifier)
+        .startBindLegacyEmail(email);
+    if (!context.mounted) return;
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (_) {
         context.hideLoadingDialog();
         context.showSnackBar('email_resend_message'.i18n);
       },

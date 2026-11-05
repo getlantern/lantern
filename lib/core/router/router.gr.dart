@@ -377,7 +377,7 @@ class ConfirmEmail extends _i47.PageRouteInfo<ConfirmEmailArgs> {
     required String email,
     String? password,
     _i49.AuthFlow authFlow = _i49.AuthFlow.signUp,
-    _i49.AuthFlow bindingOrigin = _i49.AuthFlow.bindLegacyEmail,
+    _i49.AuthFlow resumeFlow = _i49.AuthFlow.bindLegacyEmail,
     String licenseKey = '',
     List<_i47.PageRouteInfo>? children,
   }) : super(
@@ -387,7 +387,7 @@ class ConfirmEmail extends _i47.PageRouteInfo<ConfirmEmailArgs> {
            email: email,
            password: password,
            authFlow: authFlow,
-           bindingOrigin: bindingOrigin,
+           resumeFlow: resumeFlow,
            licenseKey: licenseKey,
          ),
          initialChildren: children,
@@ -404,7 +404,7 @@ class ConfirmEmail extends _i47.PageRouteInfo<ConfirmEmailArgs> {
         email: args.email,
         password: args.password,
         authFlow: args.authFlow,
-        bindingOrigin: args.bindingOrigin,
+        resumeFlow: args.resumeFlow,
         licenseKey: args.licenseKey,
       );
     },
@@ -417,7 +417,7 @@ class ConfirmEmailArgs {
     required this.email,
     this.password,
     this.authFlow = _i49.AuthFlow.signUp,
-    this.bindingOrigin = _i49.AuthFlow.bindLegacyEmail,
+    this.resumeFlow = _i49.AuthFlow.bindLegacyEmail,
     this.licenseKey = '',
   });
 
@@ -429,13 +429,13 @@ class ConfirmEmailArgs {
 
   final _i49.AuthFlow authFlow;
 
-  final _i49.AuthFlow bindingOrigin;
+  final _i49.AuthFlow resumeFlow;
 
   final String licenseKey;
 
   @override
   String toString() {
-    return 'ConfirmEmailArgs{key: $key, email: $email, password: $password, authFlow: $authFlow, bindingOrigin: $bindingOrigin, licenseKey: $licenseKey}';
+    return 'ConfirmEmailArgs{key: $key, email: $email, password: $password, authFlow: $authFlow, resumeFlow: $resumeFlow, licenseKey: $licenseKey}';
   }
 
   @override
@@ -446,7 +446,7 @@ class ConfirmEmailArgs {
         email == other.email &&
         password == other.password &&
         authFlow == other.authFlow &&
-        bindingOrigin == other.bindingOrigin &&
+        resumeFlow == other.resumeFlow &&
         licenseKey == other.licenseKey;
   }
 
@@ -456,7 +456,7 @@ class ConfirmEmailArgs {
       email.hashCode ^
       password.hashCode ^
       authFlow.hashCode ^
-      bindingOrigin.hashCode ^
+      resumeFlow.hashCode ^
       licenseKey.hashCode;
 }
 
@@ -468,7 +468,7 @@ class CreatePassword extends _i47.PageRouteInfo<CreatePasswordArgs> {
     required String email,
     required _i49.AuthFlow authFlow,
     required String code,
-    _i49.AuthFlow bindingOrigin = _i49.AuthFlow.bindLegacyEmail,
+    _i49.AuthFlow resumeFlow = _i49.AuthFlow.bindLegacyEmail,
     String licenseKey = '',
     List<_i47.PageRouteInfo>? children,
   }) : super(
@@ -478,7 +478,7 @@ class CreatePassword extends _i47.PageRouteInfo<CreatePasswordArgs> {
            email: email,
            authFlow: authFlow,
            code: code,
-           bindingOrigin: bindingOrigin,
+           resumeFlow: resumeFlow,
            licenseKey: licenseKey,
          ),
          initialChildren: children,
@@ -495,7 +495,7 @@ class CreatePassword extends _i47.PageRouteInfo<CreatePasswordArgs> {
         email: args.email,
         authFlow: args.authFlow,
         code: args.code,
-        bindingOrigin: args.bindingOrigin,
+        resumeFlow: args.resumeFlow,
         licenseKey: args.licenseKey,
       );
     },
@@ -508,7 +508,7 @@ class CreatePasswordArgs {
     required this.email,
     required this.authFlow,
     required this.code,
-    this.bindingOrigin = _i49.AuthFlow.bindLegacyEmail,
+    this.resumeFlow = _i49.AuthFlow.bindLegacyEmail,
     this.licenseKey = '',
   });
 
@@ -520,13 +520,13 @@ class CreatePasswordArgs {
 
   final String code;
 
-  final _i49.AuthFlow bindingOrigin;
+  final _i49.AuthFlow resumeFlow;
 
   final String licenseKey;
 
   @override
   String toString() {
-    return 'CreatePasswordArgs{key: $key, email: $email, authFlow: $authFlow, code: $code, bindingOrigin: $bindingOrigin, licenseKey: $licenseKey}';
+    return 'CreatePasswordArgs{key: $key, email: $email, authFlow: $authFlow, code: $code, resumeFlow: $resumeFlow, licenseKey: $licenseKey}';
   }
 
   @override
@@ -537,7 +537,7 @@ class CreatePasswordArgs {
         email == other.email &&
         authFlow == other.authFlow &&
         code == other.code &&
-        bindingOrigin == other.bindingOrigin &&
+        resumeFlow == other.resumeFlow &&
         licenseKey == other.licenseKey;
   }
 
@@ -547,7 +547,7 @@ class CreatePasswordArgs {
       email.hashCode ^
       authFlow.hashCode ^
       code.hashCode ^
-      bindingOrigin.hashCode ^
+      resumeFlow.hashCode ^
       licenseKey.hashCode;
 }
 
