@@ -1,8 +1,16 @@
 package lanterncore
 
 import (
+	"bytes"
 	"context"
+	"log/slog"
+	"maps"
+	"sync"
 	"time"
+
+	rhelper "github.com/getlantern/radiance/helper"
+
+	"github.com/getlantern/lantern/lantern-core/helper"
 )
 
 // EventTypeHelperLive tells the app that the connected status of the friends
@@ -20,7 +28,7 @@ const EventTypeHelperLive EventType = "helper-live"
 func (lc *LanternCore) listenHelperLive() {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-	pollHelperLive(lc.ctx, ticker.C, lc.readHelperLive, lc.helpers.SetLive, lc.notifyFlutter)
+	pollHelperLive(lc.ctx, ticker.C, lc.pairingKeys.tick, lc.readHelperLive, lc.helpers.SetLive, lc.notifyFlutter)
 }
 
 // readHelperLive returns which pairings radiance reports connected. A
@@ -40,8 +48,10 @@ func (lc *LanternCore) readHelperLive(ctx context.Context) (map[string]bool, err
 // pollHelperLive reads live status on every tick and hands it to set, which
 // reports whether the view changed; a failed read makes the status unknown.
 // The app hears only of changes, and never a pairing ID. Nothing is logged.
-func pollHelperLive(ctx context.Context, ticks <-chan time.Time, read func(context.Context) (map[string]bool, error), set func(known bool, connected map[string]bool) bool, notify func(string, string)) {
+// every runs first on each pass, whatever the read does.
+func pollHelperLive(ctx context.Context, ticks <-chan time.Time, every func(), read func(context.Context) (map[string]bool, error), set func(known bool, connected map[string]bool) bool, notify func(string, string)) {
 	for {
+		every()
 		requestCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 		connected, err := read(requestCtx)
 		cancel()
@@ -57,4 +67,131 @@ func pollHelperLive(ctx context.Context, ticks <-chan time.Time, read func(conte
 		case <-ticks:
 		}
 	}
+}
+
+const (
+	// pairingKeyPushTimeout bounds one push of the pairing keys to radiance.
+	pairingKeyPushTimeout = 5 * time.Second
+	// pairingKeyRepushInterval is how often the keys are pushed again even
+	// though nothing changed, so a radiance daemon that restarted, and so
+	// lost them, gets them back.
+	pairingKeyRepushInterval = 5 * time.Minute
+)
+
+// pairingKeyPusher keeps radiance's copy of the helper pairing keys in step
+// with the engine's. A push happens on its own goroutine, one at a time, and
+// always sends what the engine holds when it starts, so a later set never
+// loses to an earlier one. An empty set is pushed too: radiance then drops
+// its copy. Keys and pairing IDs are never logged.
+//
+// Methods on a nil pairingKeyPusher do nothing.
+type pairingKeyPusher struct {
+	ctx  context.Context
+	keys func() map[string]helper.PairingKey
+	push func(context.Context, map[string]rhelper.PairingKey) error
+	now  func() time.Time
+
+	mu sync.Mutex
+	// pushed is the set radiance last accepted, nil when it never accepted
+	// one or the last push failed.
+	pushed     map[string]helper.PairingKey
+	lastPushed time.Time
+	failing    bool
+	running    bool
+	// again asks the running push to go once more when it is done, because
+	// keys may have changed meanwhile; againForce to go even if they match.
+	again      bool
+	againForce bool
+}
+
+func newPairingKeyPusher(ctx context.Context, keys func() map[string]helper.PairingKey, push func(context.Context, map[string]rhelper.PairingKey) error) *pairingKeyPusher {
+	return &pairingKeyPusher{ctx: ctx, keys: keys, push: push, now: time.Now}
+}
+
+// changed pushes the keys if they differ from those radiance last accepted.
+// It never waits on the push.
+func (p *pairingKeyPusher) changed() {
+	p.kick(false)
+}
+
+// tick pushes the keys again if the last push failed or the last accepted
+// one is older than pairingKeyRepushInterval, else as changed does. It
+// never waits on the push.
+func (p *pairingKeyPusher) tick() {
+	if p == nil {
+		return
+	}
+	p.mu.Lock()
+	force := p.failing || p.pushed == nil || p.now().Sub(p.lastPushed) >= pairingKeyRepushInterval
+	p.mu.Unlock()
+	p.kick(force)
+}
+
+func (p *pairingKeyPusher) kick(force bool) {
+	if p == nil || p.ctx.Err() != nil {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.running {
+		p.again = true
+		p.againForce = p.againForce || force
+		return
+	}
+	keys := p.keys()
+	if !force && p.pushed != nil && samePairingKeys(keys, p.pushed) {
+		return
+	}
+	p.running = true
+	go p.run(keys)
+}
+
+func (p *pairingKeyPusher) run(keys map[string]helper.PairingKey) {
+	for {
+		ctx, cancel := context.WithTimeout(p.ctx, pairingKeyPushTimeout)
+		err := p.push(ctx, toRadiancePairingKeys(keys))
+		cancel()
+
+		p.mu.Lock()
+		if err != nil {
+			if !p.failing && p.ctx.Err() == nil {
+				// Only the error: never a key or a pairing ID.
+				slog.Warn("Pushing helper pairing keys to radiance failed, will retry", "error", err)
+			}
+			p.failing = true
+			p.pushed = nil
+		} else {
+			p.failing = false
+			p.pushed = keys
+			p.lastPushed = p.now()
+		}
+		if !p.again || p.ctx.Err() != nil {
+			p.running = false
+			p.mu.Unlock()
+			return
+		}
+		force := p.againForce
+		p.again, p.againForce = false, false
+		keys = p.keys()
+		if !force && p.pushed != nil && samePairingKeys(keys, p.pushed) {
+			p.running = false
+			p.mu.Unlock()
+			return
+		}
+		p.mu.Unlock()
+	}
+}
+
+func samePairingKeys(a, b map[string]helper.PairingKey) bool {
+	return maps.EqualFunc(a, b, func(x, y helper.PairingKey) bool {
+		return x.Role == y.Role && bytes.Equal(x.Key, y.Key)
+	})
+}
+
+func toRadiancePairingKeys(keys map[string]helper.PairingKey) map[string]rhelper.PairingKey {
+	out := make(map[string]rhelper.PairingKey, len(keys))
+	for id, k := range keys {
+		out[id] = rhelper.PairingKey{Key: k.Key, Role: k.Role}
+	}
+	return out
 }
