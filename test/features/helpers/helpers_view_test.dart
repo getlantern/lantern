@@ -103,6 +103,22 @@ void main() {
     expect(v.waitingClaims(100).map((c) => c.id), ['live']);
   });
 
+  test('has_pairing_key: only an explicit false says the pairing has none', () {
+    final v = HelpersView.fromJson({
+      'helpers': [
+        {'pairing_id': 'p1', 'has_pairing_key': true},
+        {'pairing_id': 'p2', 'has_pairing_key': false},
+        {'pairing_id': 'p3'},
+      ],
+      'helping': [
+        {'pairing_id': 'p4', 'has_pairing_key': false},
+      ],
+    });
+    expect(v.helpers.map((h) => h.hasPairingKey), [true, false, true]);
+    expect(v.helping.single.hasPairingKey, isFalse);
+    expect(const HelperPairingView(pairingId: 'p5').hasPairingKey, isTrue);
+  });
+
   group('per-friend selection', () {
     const tag = 'helper-0123456789ab';
 

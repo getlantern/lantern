@@ -128,6 +128,7 @@ class HelperPairingView {
     this.sinceUnix = 0,
     this.connected,
     this.outboundTag = '',
+    this.hasPairingKey = true,
   });
 
   final String pairingId;
@@ -143,6 +144,11 @@ class HelperPairingView {
   /// device right now. Null until the engine reports it, and then nothing
   /// may claim either way.
   final bool? connected;
+
+  /// Whether this device keeps the pairing's key, which faster connections
+  /// need. Pairings made before they existed have none until re-paired. An
+  /// engine that does not report it counts as having one.
+  final bool hasPairingKey;
 
   /// Whether this friend can be selected on their own: lantern-cloud gave
   /// their outbound tag and says they are online, and radiance has a live
@@ -163,6 +169,7 @@ class HelperPairingView {
         sinceUnix: _int(j['since_unix']),
         connected: j['connected'] is bool ? j['connected'] as bool : null,
         outboundTag: _str(j['outbound_tag']),
+        hasPairingKey: j['has_pairing_key'] != false,
       );
 }
 
