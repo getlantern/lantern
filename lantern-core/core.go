@@ -343,7 +343,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
 	lc.helpers = helper.NewEngine(filepath.Join(opts.DataDir, "helper"), lc.relayHelper, lc.helperActivity)
-	lc.pairingKeys = newPairingKeyPusher(ctx, lc.helpers.PairingKeys, client.SetHelperPairingKeys)
+	lc.pairingKeys = newPairingKeyPusher(ctx, lc.helpers.UnlockedPairingKeys, client.SetHelperPairingKeys)
 
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()

@@ -81,13 +81,18 @@ const (
 // pairingKeyPusher keeps radiance's copy of the helper pairing keys in step
 // with the engine's. A push happens on its own goroutine, one at a time, and
 // always sends what the engine holds when it starts, so a later set never
-// loses to an earlier one. An empty set is pushed too: radiance then drops
-// its copy. Keys and pairing IDs are never logged.
+// loses to an earlier one. An empty set is pushed too, radiance then drops
+// its copy, but only from an unlocked engine: a locked one's empty set
+// means only that its state is unread, and pushing it would make radiance
+// forget the friends, and maybe the selected server, of a VPN that lanternd
+// kept up across an app restart. Nothing is pushed until the first unlock.
+// Keys and pairing IDs are never logged.
 //
 // Methods on a nil pairingKeyPusher do nothing.
 type pairingKeyPusher struct {
-	ctx  context.Context
-	keys func() map[string]helper.PairingKey
+	ctx context.Context
+	// keys returns the engine's keys and whether it is unlocked.
+	keys func() (map[string]helper.PairingKey, bool)
 	push func(context.Context, map[string]rhelper.PairingKey) error
 	now  func() time.Time
 
@@ -104,7 +109,7 @@ type pairingKeyPusher struct {
 	againForce bool
 }
 
-func newPairingKeyPusher(ctx context.Context, keys func() map[string]helper.PairingKey, push func(context.Context, map[string]rhelper.PairingKey) error) *pairingKeyPusher {
+func newPairingKeyPusher(ctx context.Context, keys func() (map[string]helper.PairingKey, bool), push func(context.Context, map[string]rhelper.PairingKey) error) *pairingKeyPusher {
 	return &pairingKeyPusher{ctx: ctx, keys: keys, push: push, now: time.Now}
 }
 
@@ -138,8 +143,8 @@ func (p *pairingKeyPusher) kick(force bool) {
 		p.againForce = p.againForce || force
 		return
 	}
-	keys := p.keys()
-	if !force && p.pushed != nil && samePairingKeys(keys, p.pushed) {
+	keys, unlocked := p.keys()
+	if !unlocked || (!force && p.pushed != nil && samePairingKeys(keys, p.pushed)) {
 		return
 	}
 	p.running = true
@@ -172,8 +177,9 @@ func (p *pairingKeyPusher) run(keys map[string]helper.PairingKey) {
 		}
 		force := p.againForce
 		p.again, p.againForce = false, false
-		keys = p.keys()
-		if !force && p.pushed != nil && samePairingKeys(keys, p.pushed) {
+		var unlocked bool
+		keys, unlocked = p.keys()
+		if !unlocked || (!force && p.pushed != nil && samePairingKeys(keys, p.pushed)) {
 			p.running = false
 			p.mu.Unlock()
 			return

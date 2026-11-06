@@ -1155,8 +1155,14 @@ func TestPairingKeySurvivesARestartSealed(t *testing.T) {
 
 		locked := NewEngine(dir, cloud.relay("x"), nil)
 		assert.Empty(t, locked.PairingKeys(), "nothing while locked")
+		lockedKeys, unlocked := locked.UnlockedPairingKeys()
+		assert.Empty(t, lockedKeys)
+		assert.False(t, unlocked, "a locked engine says so")
 		again := newTestEngine(t, cloud, "x", dir)
 		assert.Equal(t, key, again.PairingKeys()[id].Key, "the key survives a restart")
+		againKeys, unlocked := again.UnlockedPairingKeys()
+		assert.True(t, unlocked)
+		assert.Equal(t, key, againKeys[id].Key)
 	}
 }
 
