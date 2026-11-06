@@ -2061,10 +2061,9 @@ msgid "approved_title"
 msgstr "%s is now your Personal Proxy"
 
 # Under approved_title. %s is the name the friend typed. "Private Locations"
-# must match private_locations, "Server Selection" server_selection and
-# "Smart Location" smart_location.
+# must match private_locations and "Server Selection" server_selection.
 msgid "approved_body"
-msgstr "When %s is online, you can select them under Private Locations in Server Selection. Smart Location may use them automatically."
+msgstr "When %s is online, you can select them under Private Locations in Server Selection."
 
 # Button under approved_body: selects the new Personal Proxy and turns the
 # VPN on.
