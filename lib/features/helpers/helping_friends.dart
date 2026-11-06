@@ -79,7 +79,8 @@ String? connectedRightNow(List<HelperPairingView> helping) {
 
 /// The friends this device helps, in the app's bottom sheet: each with since
 /// when, Connected or Not connected once known, and remove; "Paste another
-/// invite link"; today's data relayed; and "Help others too".
+/// invite link"; who else this device helps, with Change; and today's data
+/// relayed.
 void showHelpingFriendsSheet(BuildContext context) {
   showAppBottomSheet(
     context: context,
@@ -205,6 +206,8 @@ class HelpingFriendsSheet extends HookConsumerWidget {
             ],
           ),
         ),
+        const SizedBox(height: 8),
+        _ScopeLine(helpOthers: helpers.helpOthers),
         const SizedBox(height: defaultSize),
         AppCard(
           padding: EdgeInsets.zero,
@@ -218,41 +221,6 @@ class HelpingFriendsSheet extends HookConsumerWidget {
             subtitleColor: context.textTertiary,
             icon: AppImagePaths.dataUsage,
             actions: const [],
-          ),
-        ),
-        const SizedBox(height: defaultSize),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppTile(
-                label: 'help_others_too'.i18n,
-                subtitle: Text(
-                  'help_others_too_body'.i18n,
-                  style: textTheme.labelMedium?.copyWith(
-                    color: context.textTertiary,
-                  ),
-                ),
-                trailing: Switch(
-                  key: const Key('helping.help_others_switch'),
-                  value: helpers.helpOthers,
-                  onChanged: notifier.setHelpOthers,
-                ),
-                onPressed: () => notifier.setHelpOthers(!helpers.helpOthers),
-              ),
-              // Changing it rebuilds the sharing session, so the people
-              // helped reconnect after a few seconds.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Text(
-                  'help_others_too_note'.i18n,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: context.textTertiary,
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
       ],
@@ -275,6 +243,146 @@ class HelpingFriendsSheet extends HookConsumerWidget {
       primaryLabel: 'helping_remove'.i18n,
       onPrimaryPressed: () => notifier.endPairing(pairingId),
       secondaryLabel: 'cancel'.i18n,
+    );
+  }
+}
+
+/// "Also helping people in all countries · Change", or "Only helping your
+/// friends · Change", under the friends card. Change opens
+/// [showWhoYoureHelpingSheet].
+class _ScopeLine extends StatelessWidget {
+  const _ScopeLine({required this.helpOthers});
+
+  final bool helpOthers;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(
+      context,
+    ).textTheme.labelLarge!.copyWith(color: context.textTertiary);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            '${helpOthers ? 'helping_scope_line_all'.i18n : 'helping_scope_line_friends'.i18n} · ',
+            key: const Key('helping.scope'),
+            style: style,
+          ),
+          Semantics(
+            button: true,
+            child: InkWell(
+              key: const Key('helping.scope.change'),
+              onTap: () => showWhoYoureHelpingSheet(context),
+              child: Text(
+                'helping_scope_change'.i18n,
+                style: style.copyWith(
+                  color: context.textLink,
+                  decoration: TextDecoration.underline,
+                  decorationColor: context.textLink,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Who you're helping": only the friends this device is the Personal Proxy
+/// for, or people in all countries as well. It writes radiance's
+/// peer_serve_pool, the one scope setting; the Action Mode switch stays the
+/// only on/off.
+void showWhoYoureHelpingSheet(BuildContext context) {
+  showAppBottomSheet(
+    context: context,
+    title: 'helping_scope_title'.i18n,
+    subtitle: Text(
+      'helping_scope_subtitle'.i18n,
+      style: Theme.of(
+        context,
+      ).textTheme.labelMedium!.copyWith(color: context.textSecondary),
+    ),
+    scrollControlDisabledMaxHeightRatio: .5,
+    builder: (sheetContext, scrollController) => Flexible(
+      child: WhoYoureHelpingSheet(scrollController: scrollController),
+    ),
+  );
+}
+
+class WhoYoureHelpingSheet extends HookConsumerWidget {
+  const WhoYoureHelpingSheet({super.key, this.scrollController});
+
+  final ScrollController? scrollController;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final helpOthers = ref.watch(helpersProvider.select((s) => s.helpOthers));
+    final notifier = ref.read(helpersProvider.notifier);
+    final textTheme = Theme.of(context).textTheme;
+
+    useEffect(() {
+      unawaited(notifier.loadHelpOthers());
+      return null;
+    }, const []);
+
+    void choose(bool all) {
+      if (all != helpOthers) unawaited(notifier.setHelpOthers(all));
+    }
+
+    Widget option({
+      required Key key,
+      required Object icon,
+      required String label,
+      required bool all,
+    }) => AppTile(
+      tileKey: key,
+      icon: icon,
+      label: label,
+      trailing: AppRadioButton<bool>(
+        value: all,
+        groupValue: helpOthers,
+        onChanged: (_) => choose(all),
+      ),
+      onPressed: () => choose(all),
+    );
+
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.all(defaultSize),
+      children: [
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              option(
+                key: const Key('helping.scope.friends'),
+                icon: AppImagePaths.personAdd,
+                label: 'helping_scope_only_friends'.i18n,
+                all: false,
+              ),
+              const DividerSpace(),
+              option(
+                key: const Key('helping.scope.all'),
+                icon: AppImagePaths.world,
+                label: 'helping_scope_all_countries'.i18n,
+                all: true,
+              ),
+            ],
+          ),
+        ),
+        // Changing it rebuilds the sharing session, so the people helped
+        // reconnect after a few seconds.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Text(
+            'help_others_too_note'.i18n,
+            style: textTheme.labelSmall?.copyWith(color: context.textTertiary),
+          ),
+        ),
+      ],
     );
   }
 }

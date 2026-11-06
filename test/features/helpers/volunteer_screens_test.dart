@@ -1136,8 +1136,8 @@ void main() {
     );
   });
 
-  testWidgets('the friends sheet: rows, paste another, data relayed, and '
-      'help others too', (tester) async {
+  testWidgets('the friends sheet: rows, paste another, who else is helped, '
+      'and data relayed, with no help-others switch', (tester) async {
     final helpers = _Helpers(_helping());
     await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
     expect(find.text('helping_your_friends'.i18n), findsOneWidget);
@@ -1163,9 +1163,88 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('helping.sharing_off')), findsNothing);
-    await tester.tap(find.byKey(const Key('helping.help_others_switch')));
+    expect(find.byType(Switch), findsNothing);
+    expect(find.text('help_others_too_note'.i18n), findsNothing);
+  });
+
+  testWidgets('the friends sheet says who else is helped under the friends '
+      'card, and Change opens Who you\'re helping', (tester) async {
+    final helpers = _Helpers(_helping());
+    await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
+    final line = find.byKey(const Key('helping.scope'));
+    expect(
+      tester.widget<Text>(line).data,
+      '${'helping_scope_line_all'.i18n} · ',
+    );
+    expect(find.text('helping_scope_change'.i18n), findsOneWidget);
+    expect(
+      tester.getTopLeft(line).dy,
+      greaterThan(
+        tester.getBottomLeft(find.byKey(const Key('helping.paste_another'))).dy,
+      ),
+    );
+    expect(
+      tester.getBottomLeft(line).dy,
+      lessThan(
+        tester.getTopLeft(find.byKey(const Key('helping.data_relayed'))).dy,
+      ),
+    );
+
+    helpers.state = helpers.state.copyWith(helpOthers: false);
+    await tester.pump();
+    expect(
+      tester.widget<Text>(line).data,
+      '${'helping_scope_line_friends'.i18n} · ',
+    );
+
+    await tester.tap(find.byKey(const Key('helping.scope.change')));
+    await tester.pumpAndSettle();
+    expect(find.text('helping_scope_title'.i18n), findsOneWidget);
+    expect(find.byKey(const Key('helping.scope.friends')), findsOneWidget);
+  });
+
+  testWidgets('Who you\'re helping: Only my friends first, then All '
+      'countries; each drives help-others', (tester) async {
+    final helpers = _Helpers(_helping());
+    await _pump(tester, helpers, const WhoYoureHelpingSheet());
+    final friends = find.byKey(const Key('helping.scope.friends'));
+    final all = find.byKey(const Key('helping.scope.all'));
+    expect(
+      find.descendant(
+        of: friends,
+        matching: find.text('helping_scope_only_friends'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: all,
+        matching: find.text('helping_scope_all_countries'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.getTopLeft(friends).dy, lessThan(tester.getTopLeft(all).dy));
+    bool? radio(Finder row) => tester
+        .widget<AppRadioButton<bool>>(
+          find.descendant(of: row, matching: find.byType(AppRadioButton<bool>)),
+        )
+        .groupValue;
+    expect(radio(all), isTrue, reason: 'All countries is the default');
+
+    // Choosing what is already chosen writes nothing.
+    await tester.tap(all);
+    await tester.pump();
+    expect(helpers.helpOthers, isEmpty);
+
+    await tester.tap(friends);
     await tester.pump();
     expect(helpers.helpOthers, [false]);
+
+    helpers.state = helpers.state.copyWith(helpOthers: false);
+    await tester.pump();
+    await tester.tap(all);
+    await tester.pump();
+    expect(helpers.helpOthers, [false, true]);
   });
 
   testWidgets('the friends sheet shows Connected and Not connected once '
