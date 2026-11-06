@@ -8,6 +8,7 @@ import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/private_server/manage_private_server.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 
 class _Servers extends AvailableServersNotifier {
   @override
@@ -17,6 +18,15 @@ class _Servers extends AvailableServersNotifier {
 class _FailingServers extends AvailableServersNotifier {
   @override
   Future<AvailableServers> build() async => throw Exception('offline');
+}
+
+/// The real notifier follows the VPN, which these tests do not run.
+class _Status extends PersonalProxyStatusNotifier {
+  @override
+  Map<String, PersonalProxyStatus>? build() => null;
+
+  @override
+  Future<void> poll() async {}
 }
 
 class _Helpers extends HelpersNotifier {
@@ -50,6 +60,7 @@ Future<void> _pump(
           serversFail ? _FailingServers.new : _Servers.new,
         ),
         helpersProvider.overrideWith(() => helpers ?? _Helpers()),
+        personalProxyStatusProvider.overrideWith(_Status.new),
         personalProxiesTabVisibleProvider.overrideWithValue(tab),
       ],
       child: ScreenUtilInit(
@@ -98,6 +109,7 @@ void main() {
           availableServersProvider.overrideWith(_Servers.new),
           helpersProvider.overrideWith(() => helpers),
           helperInvitesAvailableProvider.overrideWithValue(false),
+          personalProxyStatusProvider.overrideWith(_Status.new),
         ],
         child: ScreenUtilInit(
           designSize: const Size(393, 852),
