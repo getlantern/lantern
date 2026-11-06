@@ -2311,3 +2311,15 @@ msgstr "Nhờ bạn bè mời bạn"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Mình có thể làm proxy cá nhân của bạn trên Lantern để bạn truy cập mạng qua kết nối của mình. Trong Lantern, mở \"Chọn máy chủ\", nhấn menu ⋮ ở trên cùng, chọn \"Mời proxy cá nhân\" và gửi liên kết cho mình."
+
+msgid "add_executable"
+msgstr "Thêm tệp thực thi"
+
+msgid "windows_executable_bypass_hint"
+msgstr "Chọn đúng tệp .exe của trò chơi hoặc ứng dụng để bỏ qua VPN. Chọn trình khởi chạy sẽ không bao gồm các chương trình mà nó mở."
+
+msgid "select_windows_executable"
+msgstr "Chọn tệp .exe của một ứng dụng trên máy tính này, ngoài Lantern."
+
+msgid "unable_to_add_executable"
+msgstr "Không thể thêm tệp thực thi. Hãy chọn một tệp .exe có sẵn trên máy tính này và thử lại."

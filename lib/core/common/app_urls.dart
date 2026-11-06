@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 
 class AppUrls {
@@ -28,8 +29,6 @@ class AppUrls {
   static const directDownloadMac = '$_s3ReleasesLatest/lantern-installer.dmg';
   static const updateServiceLantern =
       'https://update.getlantern.org/update/lantern';
-  static const appcastProd = '$updateServiceLantern/appcast.xml?channel=stable';
-  static const appcastBeta = '$updateServiceLantern/appcast.xml?channel=beta';
   static const appcastE2E =
       'https://update.staging.iantem.io/update/lantern/appcast.xml?channel=beta';
   static String manuallyServerSetupURL =
@@ -41,15 +40,28 @@ class AppUrls {
   static String appcastFor(
     String buildType, {
     bool autoUpdateE2E = AppBuildInfo.autoUpdateE2E,
+    TargetPlatform? platform,
   }) {
     if (autoUpdateE2E) return appcastE2E;
-    switch (buildType) {
-      case 'production':
-        return appcastProd;
-      case 'beta':
-        return appcastBeta;
-      default:
-        return appcastProd;
-    }
+    final channel = UpdateChannel.forBuildType(buildType);
+    final url = '$updateServiceLantern/appcast.xml?channel=${channel.name}';
+    // Nightly feeds are signed per platform, so the server needs to know which.
+    if (channel != UpdateChannel.nightly) return url;
+    final target = platform ?? defaultTargetPlatform;
+    return '$url&platform=${target.name.toLowerCase()}';
   }
+}
+
+/// Desktop update feed channels, named as the update server's `channel` values.
+enum UpdateChannel {
+  stable,
+  beta,
+  nightly;
+
+  /// Unknown build types get the stable feed.
+  static UpdateChannel forBuildType(String buildType) => switch (buildType) {
+    'beta' => beta,
+    'nightly' => nightly,
+    _ => stable,
+  };
 }

@@ -2277,3 +2277,15 @@ msgstr "طلب دعوة من صديقك"
 
 msgid "help_friend_ask_invite_message"
 msgstr "يمكنني أن أكون الوكيل الشخصي لك على Lantern، لتتصل بالإنترنت عبر اتصالي. في Lantern، افتح \"اختيار الخادم\"، واضغط على قائمة ⋮ في الأعلى، واختر \"دعوة وكيل شخصي\" وأرسل إليّ الرابط."
+
+msgid "add_executable"
+msgstr "إضافة ملف تنفيذي"
+
+msgid "windows_executable_bypass_hint"
+msgstr "اختر ملف .exe الفعلي للعبة أو التطبيق لتجاوز VPN. اختيار المشغّل لا يشمل البرامج التي يفتحها."
+
+msgid "select_windows_executable"
+msgstr "اختر ملف .exe لتطبيق على هذا الكمبيوتر، غير Lantern."
+
+msgid "unable_to_add_executable"
+msgstr "تعذّرت إضافة الملف التنفيذي. اختر ملف .exe موجودًا على هذا الكمبيوتر وحاول مرة أخرى."

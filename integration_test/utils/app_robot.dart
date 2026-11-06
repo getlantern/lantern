@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lantern/core/common/common.dart' show appRouter;
+import 'package:lantern/core/common/common.dart' show Onboarding, appRouter;
 import 'package:lantern/core/utils/storage_utils.dart';
 
 import 'widget_wait_utils.dart';
@@ -46,7 +46,7 @@ class AppRobot {
 
   /// Captures the current Flutter surface without failing the smoke when the
   /// platform does not expose a capturable root layer.
-  Future<void> captureScreenshot(String name) async {
+  Future<void> captureScreenshot(String name, {String? outputDirectory}) async {
     try {
       final renderView = tester.binding.renderViews.first;
       final layer = renderView.debugLayer;
@@ -62,7 +62,8 @@ class AppRobot {
           return;
         }
         final directory = Directory(
-          '${await AppStorageUtils.getAppLogDirectory()}/screenshots',
+          outputDirectory ??
+              '${await AppStorageUtils.getAppLogDirectory()}/screenshots',
         );
         await directory.create(recursive: true);
         final file = File('${directory.path}/$name.png');
@@ -200,12 +201,16 @@ class AppRobot {
     e2eLog('Keyboard inset still ${tester.view.viewInsets.bottom} after 5s');
   }
 
-  /// Pops every route back to the root (home). Hides the keyboard first —
-  /// see [hideKeyboard]. The standard cleanup at the end of a test.
+  /// Pops every route back to the root (home), stopping at onboarding: popping
+  /// it would skip the handler that marks onboarding complete. Hides the
+  /// keyboard first — see [hideKeyboard]. The standard cleanup at the end of a
+  /// test.
   Future<void> resetToRoot() async {
     e2eLog('Resetting navigation to root');
     await hideKeyboard();
-    appRouter.popUntilRoot();
+    appRouter.popUntil(
+      (route) => route.isFirst || route.settings.name == Onboarding.name,
+    );
     await tester.pumpAndSettle();
   }
 
@@ -242,11 +247,24 @@ class AppRobot {
     }
   }
 
-  /// Waits for the home screen after launch. Does not touch onboarding.
+  /// Waits for the home screen after launch, or for onboarding over it on a
+  /// first launch. Does not dismiss onboarding; [waitForControlReady] does.
   Future<void> launchToHome() async {
-    await WidgetWaitUtils.waitForFinder(
+    // app.main() rebuilds the app on the same router, which still holds any
+    // routes and dialogs a failed scenario left over home; waiting for home
+    // underneath them would just burn the full timeout. The navigator mounts a
+    // few frames after app.main(), so reset once it has.
+    final deadline = DateTime.now().add(const Duration(seconds: 10));
+    while (appRouter.navigatorKey.currentState == null &&
+        DateTime.now().isBefore(deadline)) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    if (appRouter.navigatorKey.currentState != null) {
+      await resetToRoot();
+    }
+    await WidgetWaitUtils.waitForAnyFinder(
       tester,
-      homeScreen,
+      [homeScreen, onboardingScreen],
       timeout: const Duration(seconds: 90),
       reason: 'Home screen did not load',
     );

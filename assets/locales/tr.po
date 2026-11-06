@@ -2310,3 +2310,18 @@ msgstr "Henüz bağlantınız yok mu?"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Lantern'de kişisel proxy'niz olabilirim, böylece benim bağlantım üzerinden internete erişebilirsiniz. Lantern'de \"Sunucu Seçimi\" ekranını açın, üstteki ⋮ menüsüne dokunun, \"Kişisel Proxy Davet Et\" seçeneğini seçin ve bağlantıyı bana gönderin."
+
+msgid "add_executable"
+msgstr "Yürütülebilir Dosya Ekle"
+
+msgid "windows_executable_bypass_hint"
+msgstr "VPN'i atlamak için oyunun veya uygulamanın asıl .exe dosyasını seçin. Bir başlatıcı seçmek, onun açtığı programları kapsamaz."
+
+msgid "select_windows_executable"
+msgstr "Bu bilgisayarda Lantern dışında bir uygulamanın .exe dosyasını seçin."
+
+msgid "unable_to_add_executable"
+msgstr "Yürütülebilir dosya eklenemedi. Bu bilgisayarda bulunan bir .exe dosyası seçin ve tekrar deneyin."
+
+msgid "help_friend_ask_invite"
+msgstr "Arkadaşınızdan Davet İsteyin"

@@ -2320,3 +2320,15 @@ msgstr "Minta rakan anda menjemput anda"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Saya boleh menjadi proksi peribadi anda di Lantern, supaya anda boleh mengakses internet melalui sambungan saya. Dalam Lantern, buka \"Pemilihan Pelayan\", ketik menu ⋮ di bahagian atas, pilih \"Jemput Proksi Peribadi\" dan hantar pautan kepada saya."
+
+msgid "add_executable"
+msgstr "Tambah fail boleh laku"
+
+msgid "windows_executable_bypass_hint"
+msgstr "Pilih .exe sebenar permainan atau aplikasi untuk memintas VPN. Memilih pelancar tidak termasuk program yang dimulakannya."
+
+msgid "select_windows_executable"
+msgstr "Pilih fail .exe aplikasi selain Lantern pada komputer ini."
+
+msgid "unable_to_add_executable"
+msgstr "Tidak dapat menambah fail boleh laku. Pilih fail .exe yang wujud pada komputer ini dan cuba lagi."

@@ -91,11 +91,17 @@ func parseFeedURL(raw string) (*url.URL, error) {
 	}
 	if u.Scheme != "https" || u.User != nil || u.Fragment != "" || u.RawPath != "" ||
 		(u.Host != "update.getlantern.org" && u.Host != "update.staging.iantem.io") ||
-		u.Path != "/update/lantern/appcast.xml" ||
-		(u.RawQuery != "channel=stable" && u.RawQuery != "channel=beta") {
+		u.Path != "/update/lantern/appcast.xml" || !feedQueries[u.RawQuery] {
 		return nil, errors.New("unsupported update feed")
 	}
 	return u, nil
+}
+
+var feedQueries = map[string]bool{
+	"channel=stable":                   true,
+	"channel=beta":                     true,
+	"channel=nightly&platform=windows": true,
+	"channel=nightly&platform=macos":   true,
 }
 
 // startRelay starts the loopback server without taking ownership of transport.

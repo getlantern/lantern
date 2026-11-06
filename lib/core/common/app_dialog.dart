@@ -290,24 +290,6 @@ class AppDialog {
     );
   }
 
-  /// Show warning dialog when the user tries to add any browser.
-  static Future<void> browserBypassWarningDialog({
-    required BuildContext context,
-    required String browserName,
-    required VoidCallback onAddAnyway,
-  }) {
-    return show(
-      context: context,
-      header: Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
-      centeredTitle: true,
-      title: 'bypass_browser_warning_title'.i18n.fill([browserName]),
-      body: 'bypass_browser_warning_body'.i18n.fill([browserName]),
-      primaryLabel: 'cancel'.i18n,
-      secondaryLabel: 'add_anyway'.i18n,
-      onSecondaryPressed: onAddAnyway,
-    );
-  }
-
   /// Warns that diagnostic logs are shared unencrypted and may contain
   /// account data. Resolves true only when the user chooses to share.
   static Future<bool> shareLogsWarningDialog({
