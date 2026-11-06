@@ -117,15 +117,18 @@ Future<bool> showApproveHelperDialog(
 }
 
 /// "[name] is now your Personal Proxy": where to pick them, with Connect Now,
-/// which selects them and turns the VPN on, and Done.
+/// which selects them and turns the VPN on, and Done. It returns once a
+/// connection Connect Now started has finished, so the caller's route, whose
+/// context and ref the connection uses, stays until then.
 Future<void> _showApprovedDialog(
   BuildContext context,
   WidgetRef ref,
   String name,
   String? friendTag,
-) {
+) async {
   final navigator = Navigator.of(context, rootNavigator: true);
-  return AppDialog.show(
+  Future<void>? connecting;
+  await AppDialog.show(
     context: context,
     centered: true,
     scrollable: true,
@@ -139,14 +142,13 @@ Future<void> _showApprovedDialog(
     onPrimaryPressed: () {
       navigator.pop();
       final connect = debugConnectPersonalProxy;
-      unawaited(
-        connect != null
-            ? connect(friendTag)
-            : connectPersonalProxy(context, ref, friendTag: friendTag),
-      );
+      connecting = connect != null
+          ? connect(friendTag)
+          : connectPersonalProxy(context, ref, friendTag: friendTag);
     },
     secondaryLabel: 'help_friend_done'.i18n,
   );
+  await connecting;
 }
 
 /// Spells a matching code digit by digit, so a screen reader does not read

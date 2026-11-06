@@ -94,6 +94,12 @@ class _Router extends AppRouter {
     pops++;
     return true;
   }
+
+  // pop, unlike maybePop, is not vetoed by a PopScope.
+  int forcedPops = 0;
+
+  @override
+  void pop<T extends Object?>([T? result]) => forcedPops++;
 }
 
 class _Share extends ShareNotifier {
@@ -809,7 +815,11 @@ void main() {
     await tester.pump();
     expect(share.helperStarts, 1);
     expect(share.autoEnable, [true]);
-    expect(router.pops, 1);
+    expect(
+      router.forcedPops,
+      1,
+      reason: 'the screen\'s PopScope vetoes maybePop',
+    );
     await tester.tap(find.byKey(const Key('help_friend.done')));
     await tester.pump();
     expect(share.helperStarts, 1, reason: 'Done acts once');
@@ -832,7 +842,11 @@ void main() {
     await tester.pump();
     expect(share.helperStarts, 0);
     expect(share.autoEnable, isEmpty);
-    expect(router.pops, 1);
+    expect(
+      router.forcedPops,
+      1,
+      reason: 'the screen\'s PopScope vetoes maybePop',
+    );
   });
 
   testWidgets('HelpFriend holds the approval start only while it waits on '
