@@ -610,9 +610,6 @@ open class LanternVpnService :
             builder.addAddress(address.address(), address.prefix())
         }
 
-        // Disallow traffic from our own app to the VPN.
-        builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
-
         if (options.autoRoute) {
             if (options.dnsMode.value != Libbox.DNSModeDisabled) {
                 val dnsServerAddress = options.dnsServerAddress
