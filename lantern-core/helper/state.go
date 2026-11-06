@@ -162,6 +162,9 @@ func (e *Engine) open(data []byte) (state, bool) {
 // failure marks the state dirty, so the next op saves it again even when it
 // changes nothing itself.
 func (e *Engine) save() error {
+	// What is saved is what the pairings now are, so the keys follow at
+	// once, before any request the op makes next.
+	e.snapshotKeys()
 	err := e.write()
 	e.dirty = err != nil
 	return err

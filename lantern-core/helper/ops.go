@@ -298,6 +298,7 @@ func (e *Engine) refresh(ctx context.Context) (any, error) {
 	}
 	changed = changed || merged
 	if merged {
+		e.snapshotKeys()
 		// New or ended pairings: ticket sources fetch at their next read,
 		// so a new pairing's rooms work within seconds.
 		_ = e.post(ctx, opRefreshTickets, struct{}{}, nil)
@@ -748,6 +749,7 @@ func (e *Engine) endRemoteHelpers(ctx context.Context) error {
 	}
 	merged := e.mergePairings(kept)
 	if merged {
+		e.snapshotKeys()
 		_ = e.post(ctx, opRefreshTickets, struct{}{}, nil)
 	}
 	if err := e.save(); err != nil {
