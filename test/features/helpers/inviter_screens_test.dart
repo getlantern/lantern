@@ -544,47 +544,6 @@ void main() {
     expect(find.byKey(const Key('helpers.nudge')), findsNothing);
   });
 
-  testWidgets('a helper paired before faster connections is asked to '
-      're-pair', (tester) async {
-    final fake = _Helpers(
-      const HelpersState(
-        view: HelpersView(
-          unlocked: true,
-          helpers: [
-            HelperPairingView(
-              pairingId: 'p1',
-              name: 'Ali',
-              online: true,
-              sinceUnix: 1700000000,
-            ),
-            HelperPairingView(
-              pairingId: 'p2',
-              name: 'Bo',
-              online: true,
-              sinceUnix: 1700000000,
-              hasPairingKey: false,
-            ),
-          ],
-        ),
-      ),
-    );
-    await _pump(tester, fake, const PersonalProxiesTab());
-    expect(
-      'pairing_repair_for_faster'.i18n,
-      'Re-pair to enable faster connections',
-    );
-    final since = helperSinceLabel(1700000000);
-    expect(
-      tester.widget<Text>(find.byKey(const Key('helpers.online.0'))).data,
-      '${'helper_online'.i18n} · $since',
-    );
-    expect(
-      tester.widget<Text>(find.byKey(const Key('helpers.online.1'))).data,
-      '${'helper_online'.i18n} · $since · '
-      '${'pairing_repair_for_faster'.i18n}',
-    );
-  });
-
   testWidgets('a helper offline by presence but with a live reverse route '
       'is shown online', (tester) async {
     final fake = _Helpers(

@@ -1933,10 +1933,6 @@ msgstr "Offline"
 msgid "helper_unnamed"
 msgstr "Your helper"
 
-# Shown under a personal proxy paired before faster connections existed.
-msgid "pairing_repair_for_faster"
-msgstr "Re-pair to enable faster connections"
-
 # %s is the helper's name.
 msgid "helper_remove_confirm_title"
 msgstr "Remove %s?"
@@ -2082,7 +2078,7 @@ msgid "become_means_title"
 msgstr "What being a Personal Proxy means"
 
 msgid "become_means_traffic"
-msgstr "A friend asked for your help. While Action Mode runs, they can reach the open internet through your connection. Their traffic may leave from your network or be relayed through Lantern's servers. Lantern doesn't show you what they do online."
+msgstr "A friend asked for your help. While Action Mode runs, they can reach the open internet through your connection. Lantern does not show you what sites they access."
 
 msgid "become_means_seen"
 msgstr "They can see when you're connected. Only accept invites from people you know."
