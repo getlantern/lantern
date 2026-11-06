@@ -265,11 +265,14 @@ const _oneHelper = HelpersState(
 class _Status extends PersonalProxyStatusNotifier {
   _Status(this.initial);
   final Map<String, PersonalProxyStatus>? initial;
+  int polls = 0;
   @override
   Map<String, PersonalProxyStatus>? build() => initial;
   @override
-  Future<void> poll() async {}
+  Future<void> poll() async => polls++;
 }
+
+late _Status _status;
 
 Future<void> _pump(
   WidgetTester tester,
@@ -281,7 +284,9 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         helpersProvider.overrideWith(() => fake),
-        personalProxyStatusProvider.overrideWith(() => _Status(status)),
+        personalProxyStatusProvider.overrideWith(
+          () => _status = _Status(status),
+        ),
       ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852),
@@ -576,6 +581,50 @@ void main() {
     );
     expect(find.byKey(const Key('helpers.online.0')), findsOneWidget);
     expect(find.byKey(const Key('helpers.offline.1')), findsOneWidget);
+  });
+
+  testWidgets("radiance's friend status is read on opening and on its "
+      'interval, only while the tab shows friends and the app is resumed', (
+    tester,
+  ) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          helpers: [HelperPairingView(pairingId: 'p1', name: 'Ali')],
+        ),
+      ),
+    );
+    await _pump(tester, fake, const PersonalProxiesTab());
+    expect(_status.polls, 1, reason: 'read once on opening');
+    await tester.pump(personalProxyStatusInterval);
+    expect(_status.polls, 2);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(personalProxyStatusInterval * 3);
+    expect(_status.polls, 2);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(personalProxyStatusInterval);
+    expect(_status.polls, 3);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(personalProxyStatusInterval * 3);
+    expect(_status.polls, 3, reason: 'closing the tab stops the poll');
+  });
+
+  testWidgets('no status poll without helpers', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(view: HelpersView(unlocked: true)),
+    );
+    await _pump(tester, fake, const PersonalProxiesTab());
+    await tester.pump(personalProxyStatusInterval * 3);
+    expect(_status.polls, 0);
   });
 
   testWidgets('a claimed invite is surfaced above the helpers', (tester) async {
