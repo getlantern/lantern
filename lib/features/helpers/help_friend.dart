@@ -197,7 +197,8 @@ class HelpFriend extends HookConsumerWidget {
           unawaited(share.startForHelper(ref));
           unawaited(share.setAutoEnable(context, true));
         }
-        appRouter.maybePop();
+        // pop, not maybePop: this screen's own PopScope would veto it.
+        appRouter.pop();
       }
 
       return PopScope(

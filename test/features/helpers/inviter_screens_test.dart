@@ -428,6 +428,28 @@ void main() {
     expect(connects, [null]);
   });
 
+  testWidgets('the approval returns only once Connect Now has finished '
+      'connecting, so its caller stays while the connection runs', (
+    tester,
+  ) async {
+    final connecting = Completer<void>();
+    debugConnectPersonalProxy = (tag) => connecting.future;
+    addTearDown(() => debugConnectPersonalProxy = null);
+    final fake = _Helpers(const HelpersState());
+    final result = await _openApproval(tester, fake);
+    var returned = false;
+    unawaited(result.then((_) => returned = true));
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    await tester.tap(_approvedConnect);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(returned, isFalse);
+    connecting.complete();
+    await tester.pumpAndSettle();
+    expect(returned, isTrue);
+  });
+
   testWidgets('Done after approving connects nothing', (tester) async {
     final connects = <String?>[];
     debugConnectPersonalProxy = (tag) async => connects.add(tag);
