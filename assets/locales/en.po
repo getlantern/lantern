@@ -2110,6 +2110,24 @@ msgstr "They will check it matches the code on their phone, then approve you."
 msgid "help_friend_waiting_approval"
 msgstr "Waiting for approval"
 
+# Title of the success screen once the friend approved the volunteer. %s is
+# the friend's name.
+msgid "help_friend_success_title"
+msgstr "You're now %s's Personal Proxy"
+
+# Under help_friend_success_title. %s is the friend's name.
+msgid "help_friend_success_body"
+msgstr "%s approved you. When Action Mode is on, they can reach the open internet through your connection."
+
+# Checkbox on the success screen, checked by default. Checked, Done turns
+# Action Mode on now and sets Auto-enable Action Mode.
+msgid "help_friend_keep_on"
+msgstr "Keep Action Mode on"
+
+# Under help_friend_keep_on. %s is the friend's name.
+msgid "help_friend_keep_on_body"
+msgstr "Turns on now and whenever Lantern is open, so %s stays connected."
+
 # Note under the code a volunteer reads to the friend who invited them.
 msgid "help_friend_code_note"
 msgstr "Say the code over a call or in a different app than the one the invite link arrived in. Anyone who saw the link should not also see the code."
@@ -2127,10 +2145,6 @@ msgstr "Scan your friend's QR code"
 # clipboard.
 msgid "help_friend_paste_button"
 msgstr "Paste link"
-
-# %s is the friend's name.
-msgid "help_friend_approved"
-msgstr "You're now helping %s."
 
 msgid "help_friend_no_longer_pending"
 msgstr "This request is no longer pending. Ask your friend for a new invite."

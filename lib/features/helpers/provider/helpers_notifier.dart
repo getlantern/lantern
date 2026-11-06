@@ -190,6 +190,20 @@ class HelpersNotifier extends _$HelpersNotifier {
   bool approvalPrompted(String inviteId) =>
       _approvalPrompted.contains(inviteId);
 
+  /// HelpFriend screens waiting on their own claim. Memory only.
+  int _approvalStartHolds = 0;
+
+  /// While a HelpFriend screen waits on its claim, its success screen asks
+  /// whether to keep Action Mode on, so Home does not start sharing for the
+  /// approval itself. Each hold is released once.
+  void holdApprovalStart() => _approvalStartHolds++;
+
+  void releaseApprovalStart() {
+    if (_approvalStartHolds > 0) _approvalStartHolds--;
+  }
+
+  bool get approvalStartHeld => _approvalStartHolds > 0;
+
   /// Holds an invite link that opened the app, for HelpFriend to take, so
   /// the secret never travels in route arguments. Memory only.
   void holdLink(String link) => _heldLink = link;

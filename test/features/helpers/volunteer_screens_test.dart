@@ -86,15 +86,30 @@ class _Router extends AppRouter {
     pushed.add(route);
     return null;
   }
+
+  int pops = 0;
+
+  @override
+  Future<bool> maybePop<T extends Object?>([T? result]) async {
+    pops++;
+    return true;
+  }
 }
 
 class _Share extends ShareNotifier {
   _Share({this.active = false});
   final bool active;
+  int helperStarts = 0;
+  final autoEnable = <bool>[];
   @override
   ShareState build() => ShareState(active: active);
   @override
   Future<bool> ensureConsent(BuildContext context) async => true;
+  @override
+  Future<void> startForHelper(WidgetRef widgetRef) async => helperStarts++;
+  @override
+  Future<void> setAutoEnable(BuildContext context, bool enabled) async =>
+      autoEnable.add(enabled);
 }
 
 Future<void> _pump(
@@ -102,6 +117,7 @@ Future<void> _pump(
   _Helpers helpers,
   Widget child, {
   bool sharing = false,
+  _Share? share,
 }) async {
   // Tall enough that HelpFriend's whole form, below the "what helping
   // means" card, is built without scrolling.
@@ -113,7 +129,7 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         helpersProvider.overrideWith(() => helpers),
-        shareProvider.overrideWith(() => _Share(active: sharing)),
+        shareProvider.overrideWith(() => share ?? _Share(active: sharing)),
       ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852),
@@ -321,7 +337,7 @@ void main() {
     );
     await tester.pump();
     expect(
-      find.text('help_friend_approved'.i18n.fill(['Reza'])),
+      find.text('help_friend_success_title'.i18n.fill(['Reza'])),
       findsOneWidget,
     );
   });
@@ -731,9 +747,114 @@ void main() {
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
     await tester.pump();
     expect(
-      find.text('help_friend_approved'.i18n.fill(['Sara'])),
+      find.text('help_friend_success_title'.i18n.fill(['Sara'])),
       findsOneWidget,
     );
+  });
+
+  Future<(_Share, _Router)> approvedScreen(WidgetTester tester) async {
+    await sl.reset();
+    final router = _Router();
+    sl.registerSingleton<AppRouter>(router);
+    addTearDown(sl.reset);
+    final share = _Share();
+    final helpers = _Helpers(waitingOnC1());
+    helpers.holdLink(_link);
+    await _pump(
+      tester,
+      helpers,
+      const HelpFriend(fromLink: true),
+      share: share,
+    );
+    await _claim(tester);
+    expect(helpers.approvalStartHeld, isTrue);
+    helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
+    await tester.pump();
+    // The approval is the success screen's to act on, not Home's.
+    expect(helpers.approvalStartHeld, isTrue);
+    return (share, router);
+  }
+
+  testWidgets('the success screen names the friend and asks to keep Action '
+      'Mode on, checked by default, with no back arrow', (tester) async {
+    await approvedScreen(tester);
+    expect(
+      find.text('help_friend_success_title'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+    expect(
+      find.text('help_friend_success_body'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+    expect(find.text('help_friend_keep_on'.i18n), findsOneWidget);
+    expect(
+      find.text('help_friend_keep_on_body'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<Checkbox>(
+            find.byKey(const Key('help_friend.keep_on.checkbox')),
+          )
+          .value,
+      isTrue,
+    );
+    expect(find.byTooltip('Back'), findsNothing);
+  });
+
+  testWidgets('Done with the box checked turns Action Mode on and sets '
+      'auto-enable', (tester) async {
+    final (share, router) = await approvedScreen(tester);
+    await tester.tap(find.byKey(const Key('help_friend.done')));
+    await tester.pump();
+    expect(share.helperStarts, 1);
+    expect(share.autoEnable, [true]);
+    expect(router.pops, 1);
+    await tester.tap(find.byKey(const Key('help_friend.done')));
+    await tester.pump();
+    expect(share.helperStarts, 1, reason: 'Done acts once');
+  });
+
+  testWidgets('Done with the box unchecked pairs without turning Action Mode '
+      'on or touching auto-enable', (tester) async {
+    final (share, router) = await approvedScreen(tester);
+    await tester.tap(find.byKey(const Key('help_friend.keep_on')));
+    await tester.pump();
+    expect(
+      tester
+          .widget<Checkbox>(
+            find.byKey(const Key('help_friend.keep_on.checkbox')),
+          )
+          .value,
+      isFalse,
+    );
+    await tester.tap(find.byKey(const Key('help_friend.done')));
+    await tester.pump();
+    expect(share.helperStarts, 0);
+    expect(share.autoEnable, isEmpty);
+    expect(router.pops, 1);
+  });
+
+  testWidgets('HelpFriend holds the approval start only while it waits on '
+      'its claim', (tester) async {
+    final helpers = _Helpers(waitingOnC1());
+    helpers.holdLink(_link);
+    final show = ValueNotifier(true);
+    await _pump(
+      tester,
+      helpers,
+      ValueListenableBuilder<bool>(
+        valueListenable: show,
+        builder: (_, on, _) =>
+            on ? const HelpFriend(fromLink: true) : const SizedBox(),
+      ),
+    );
+    expect(helpers.approvalStartHeld, isFalse);
+    await _claim(tester);
+    expect(helpers.approvalStartHeld, isTrue);
+    show.value = false;
+    await tester.pump();
+    expect(helpers.approvalStartHeld, isFalse);
   });
 
   testWidgets('this claim leaving without a pairing ends the wait', (
@@ -827,7 +948,7 @@ void main() {
     await tester.pump();
     expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
     expect(
-      find.text('help_friend_approved'.i18n.fill(['Reza'])),
+      find.text('help_friend_success_title'.i18n.fill(['Reza'])),
       findsOneWidget,
     );
   });
@@ -842,7 +963,9 @@ void main() {
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara, _reza]));
     await tester.pump();
     expect(
-      find.text('help_friend_approved'.i18n.fill(['helping_unnamed'.i18n])),
+      find.text(
+        'help_friend_success_title'.i18n.fill(['helping_unnamed'.i18n]),
+      ),
       findsOneWidget,
     );
   });
