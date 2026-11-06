@@ -5,7 +5,11 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 
 class ActionModeAutoEnable extends ConsumerWidget {
-  const ActionModeAutoEnable({super.key});
+  const ActionModeAutoEnable({super.key, this.card = true});
+
+  /// Whether the row sits in its own card, as in Settings. The Welcome to
+  /// Action Mode dialog shows it bare.
+  final bool card;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,26 +22,25 @@ class ActionModeAutoEnable extends ConsumerWidget {
       }
     }
 
-    return AppCard(
-      padding: EdgeInsets.zero,
-      child: AppTile(
-        label: 'auto_enable_unbounded'.i18n,
-        subtitle: Text(
-          'auto_enable_unbounded_subtitle'.i18n,
-          style: Theme.of(
-            context,
-          ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
-        ),
-        icon: AppImagePaths.actionModeAuto,
-        trailing: Checkbox(
-          key: const Key('action-mode.auto-enable'),
-          value: enabled,
-          activeColor: context.textLink,
-          checkColor: context.bgElevated,
-          onChanged: change,
-        ),
-        onPressed: () => change(!enabled),
+    final tile = AppTile(
+      label: 'auto_enable_unbounded'.i18n,
+      subtitle: Text(
+        'auto_enable_unbounded_subtitle'.i18n,
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
       ),
+      icon: AppImagePaths.actionModeAuto,
+      trailing: Checkbox(
+        key: const Key('action-mode.auto-enable'),
+        value: enabled,
+        activeColor: context.textLink,
+        checkColor: context.bgElevated,
+        onChanged: change,
+      ),
+      onPressed: () => change(!enabled),
     );
+    if (!card) return tile;
+    return AppCard(padding: EdgeInsets.zero, child: tile);
   }
 }
