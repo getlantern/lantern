@@ -1944,9 +1944,6 @@ msgstr "Coller le lien envoyé par votre ami"
 msgid "help_friend_scan"
 msgstr "Balayer le code QR de votre ami"
 
-msgid "help_friend_approved"
-msgstr "Vous aidez maintenant %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "Cette demande n'est plus en attente. Demandez une nouvelle invitation à votre ami."
 
@@ -1985,12 +1982,6 @@ msgstr "Arrêter d’aider"
 
 msgid "helping_remove_confirm"
 msgstr "Arrêter d’aider %s? Une nouvelle invitation sera nécessaire pour se connecter à nouveau par votre intermédiaire."
-
-msgid "help_others_too"
-msgstr "Aidez aussi les autres"
-
-msgid "help_others_too_body"
-msgstr "Partagez votre capacité inutilisée avec d’autres personnes confrontées à la censure; Lantern ne leur permet d’accéder qu’aux sites autorisés, ce qui protège votre connexion contre les abus."
 
 msgid "help_others_too_note"
 msgstr "Modifier ce paramètre reconnecte brièvement les personnes que vous aidez."
@@ -2043,14 +2034,8 @@ msgstr "Supprimez la connexion en tout temps."
 msgid "help_friend_form_title"
 msgstr "Collez le lien de la personne que vous aidez"
 
-msgid "help_friend_link_hint"
-msgstr "Touchez le lien sur cet appareil pour remplir ce champ"
-
 msgid "help_friend_name_label"
 msgstr "Votre nom, tel que la personne vous connaît"
-
-msgid "help_friend_name_hint"
-msgstr "C'est ainsi que vous apparaîtrez dans son Lantern"
 
 msgid "help_friend_become"
 msgstr "Devenir son proxy personnel"
@@ -2112,17 +2097,8 @@ msgstr "%s souhaite devenir votre proxy personnel"
 msgid "become_personal_proxy"
 msgstr "Devenir un proxy personnel"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Un proche vous invite à devenir son proxy personnel"
-
 msgid "help_friend_paste_button"
 msgstr "Coller le lien"
-
-msgid "help_friend_no_link"
-msgstr "Pas encore de lien?"
-
-msgid "help_friend_ask_invite"
-msgstr "Demander une invitation à un proche"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Je peux être votre proxy personnel sur Lantern, pour que vous puissiez accéder à Internet par ma connexion. Dans Lantern, ouvrez « Sélection du serveur », touchez le menu ⋮ en haut, choisissez « Inviter un proxy personnel » et envoyez-moi le lien."

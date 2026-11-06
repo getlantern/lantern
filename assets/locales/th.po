@@ -2094,9 +2094,6 @@ msgstr "วางลิงก์ที่เพื่อนของคุณส
 msgid "help_friend_scan"
 msgstr "สแกนคิวอาร์โค้ดของเพื่อน"
 
-msgid "help_friend_approved"
-msgstr "ตอนนี้คุณกำลังช่วย %s"
-
 msgid "help_friend_no_longer_pending"
 msgstr "คำขอนี้ไม่ได้รอดำเนินการอีกต่อไป ขอคำเชิญใหม่จากเพื่อนของคุณ"
 
@@ -2135,12 +2132,6 @@ msgstr "หยุดช่วยเหลือ"
 
 msgid "helping_remove_confirm"
 msgstr "หยุดช่วยเหลือ %s ? ผู้นั้นจะต้องได้รับคำเชิญใหม่เพื่อเชื่อมต่อผ่านคุณอีกครั้ง"
-
-msgid "help_others_too"
-msgstr "ช่วยเหลือผู้อื่นด้วย"
-
-msgid "help_others_too_body"
-msgstr "แบ่งปันความจุที่เหลือให้ผู้อื่นที่เผชิญการเซ็นเซอร์ Lantern อนุญาตให้พวกเขาเข้าถึงเฉพาะเว็บไซต์ที่อนุญาตเท่านั้น ซึ่งช่วยปกป้องการเชื่อมต่อของคุณจากการใช้งานในทางที่ผิด"
 
 msgid "help_others_too_note"
 msgstr "การเปลี่ยนตัวเลือกนี้จะทำให้ผู้ที่คุณช่วยเหลือเชื่อมต่อใหม่ชั่วครู่"
@@ -2193,14 +2184,8 @@ msgstr "ลบการเชื่อมต่อได้ทุกเมื่
 msgid "help_friend_form_title"
 msgstr "วางลิงก์จากคนที่คุณกำลังช่วย"
 
-msgid "help_friend_link_hint"
-msgstr "แตะลิงก์บนอุปกรณ์นี้เพื่อกรอกช่องนี้"
-
 msgid "help_friend_name_label"
 msgstr "ชื่อของคุณที่เพื่อนรู้จัก"
-
-msgid "help_friend_name_hint"
-msgstr "นี่คือชื่อที่จะแสดงใน Lantern ของเพื่อน"
 
 msgid "help_friend_become"
 msgstr "เป็นพร็อกซีส่วนตัวของเพื่อน"
@@ -2262,17 +2247,8 @@ msgstr "ใช้งาน %s"
 msgid "personal_proxy_fallback_auto"
 msgstr "ไม่สามารถติดต่อ %s ได้ในขณะนี้ เปลี่ยนเป็นตำแหน่งอัจฉริยะแล้ว"
 
-msgid "help_friend_form_title_from_link"
-msgstr "เพื่อนเชิญคุณให้เป็นพร็อกซีส่วนตัวของเขา"
-
 msgid "help_friend_paste_button"
 msgstr "วางลิงก์"
-
-msgid "help_friend_no_link"
-msgstr "ยังไม่มีลิงก์?"
-
-msgid "help_friend_ask_invite"
-msgstr "ขอให้เพื่อนส่งคำเชิญให้คุณ"
 
 msgid "help_friend_ask_invite_message"
 msgstr "ฉันเป็นพร็อกซีส่วนตัวของคุณใน Lantern ได้ เพื่อให้คุณออนไลน์ผ่านการเชื่อมต่อของฉัน ใน Lantern ให้เปิด \"การเลือกเซิร์ฟเวอร์\" แตะเมนู ⋮ ด้านบน เลือก \"เชิญพร็อกซีส่วนตัว\" แล้วส่งลิงก์มาให้ฉัน"

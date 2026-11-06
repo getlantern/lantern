@@ -2091,9 +2091,6 @@ msgstr "لصق الرابط الذي أرسله صديقك"
 msgid "help_friend_scan"
 msgstr "مسح رمز QR الخاص بصديقك"
 
-msgid "help_friend_approved"
-msgstr "أنت الآن تساعد %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "لم يعد هذا الطلب قيد الانتظار. اطلب من صديقك دعوة جديدة."
 
@@ -2132,12 +2129,6 @@ msgstr "إيقاف المساعدة"
 
 msgid "helping_remove_confirm"
 msgstr "إيقاف مساعدة %s؟ ستكون هناك حاجة إلى دعوة جديدة للاتصال عبرك مرة أخرى."
-
-msgid "help_others_too"
-msgstr "مساعدة الآخرين أيضًا"
-
-msgid "help_others_too_body"
-msgstr "شارك السعة الفائضة مع أشخاص آخرين يواجهون الرقابة؛ لا يسمح لهم Lantern إلا بالوصول إلى المواقع المسموح بها، ما يحمي اتصالك من إساءة الاستخدام."
 
 msgid "help_others_too_note"
 msgstr "يؤدي تغيير هذا الإعداد إلى إعادة اتصال الأشخاص الذين تساعدهم لفترة وجيزة."
@@ -2190,14 +2181,8 @@ msgstr "يمكنك إزالة الاتصال في أي وقت."
 msgid "help_friend_form_title"
 msgstr "الصق الرابط من الشخص الذي تساعده"
 
-msgid "help_friend_link_hint"
-msgstr "يُملأ هذا الحقل تلقائيًا عند النقر على الرابط على هذا الجهاز"
-
 msgid "help_friend_name_label"
 msgstr "اسمك كما يعرفك صديقك"
-
-msgid "help_friend_name_hint"
-msgstr "هكذا يظهر اسمك في Lantern لدى صديقك"
 
 msgid "help_friend_become"
 msgstr "كن الوكيل الشخصي لصديقك"
@@ -2259,17 +2244,8 @@ msgstr "تعذر الوصول إلى %s حاليًا. تم التبديل إلى
 msgid "become_personal_proxy"
 msgstr "أن تصبح وكيلًا شخصيًا"
 
-msgid "help_friend_form_title_from_link"
-msgstr "دعاك صديق لتكون الوكيل الشخصي له"
-
 msgid "help_friend_paste_button"
 msgstr "لصق الرابط"
-
-msgid "help_friend_no_link"
-msgstr "ألا تملك رابطًا بعد؟"
-
-msgid "help_friend_ask_invite"
-msgstr "طلب دعوة من صديقك"
 
 msgid "help_friend_ask_invite_message"
 msgstr "يمكنني أن أكون الوكيل الشخصي لك على Lantern، لتتصل بالإنترنت عبر اتصالي. في Lantern، افتح \"اختيار الخادم\"، واضغط على قائمة ⋮ في الأعلى، واختر \"دعوة وكيل شخصي\" وأرسل إليّ الرابط."

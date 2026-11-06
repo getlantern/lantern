@@ -2141,9 +2141,6 @@ msgstr "Pegar el enlace que te envió tu amigo"
 msgid "help_friend_scan"
 msgstr "Escanea el código QR de tu amigo"
 
-msgid "help_friend_approved"
-msgstr "Ahora estás ayudando a %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "Esta solicitud ya no está pendiente. Pídele a tu amigo una nueva invitación."
 
@@ -2182,12 +2179,6 @@ msgstr "Dejar de ayudar"
 
 msgid "helping_remove_confirm"
 msgstr "¿Dejar de ayudar a %s? Necesitará una nueva invitación para volver a conectarse a través de ti."
-
-msgid "help_others_too"
-msgstr "Ayuda también a otros"
-
-msgid "help_others_too_body"
-msgstr "Comparte tu capacidad sobrante con otras personas que enfrentan censura; Lantern solo les permite acceder a sitios autorizados, lo que protege tu conexión de usos indebidos."
 
 msgid "help_others_too_note"
 msgstr "Cambiar esto reconecta brevemente a las personas que ayudas."
@@ -2243,14 +2234,8 @@ msgstr "Elimina la conexión cuando quieras."
 msgid "help_friend_form_title"
 msgstr "Pega el enlace de la persona a quien ayudas"
 
-msgid "help_friend_link_hint"
-msgstr "Al tocar el enlace en este dispositivo, se completa automáticamente"
-
 msgid "help_friend_name_label"
 msgstr "Tu nombre, como te conocen"
-
-msgid "help_friend_name_hint"
-msgstr "Así aparecerás en su Lantern"
 
 msgid "help_friend_become"
 msgstr "Sé su proxy personal"
@@ -2309,17 +2294,8 @@ msgstr "Datos retransmitidos hoy"
 msgid "helping_active_today"
 msgstr "Activo: %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Un amigo te invitó a ser su proxy personal"
-
 msgid "help_friend_paste_button"
 msgstr "Pegar enlace"
-
-msgid "help_friend_no_link"
-msgstr "¿Aún no tienes un enlace?"
-
-msgid "help_friend_ask_invite"
-msgstr "Pedirle a tu amigo que te invite"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Puedo ser tu proxy personal en Lantern para que te conectes a internet a través de mi conexión. En Lantern, abre \"Selección de servidor\", toca el menú ⋮ de arriba, elige \"Invitar a un proxy personal\" y envíame el enlace."

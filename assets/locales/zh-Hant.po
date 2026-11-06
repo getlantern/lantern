@@ -1978,9 +1978,6 @@ msgstr "貼上朋友傳來的連結"
 msgid "help_friend_scan"
 msgstr "掃描朋友的 QR 碼"
 
-msgid "help_friend_approved"
-msgstr "你現在正在幫助 %s。"
-
 msgid "help_friend_no_longer_pending"
 msgstr "此請求已不再等待處理。向你的朋友索取新的邀請。"
 
@@ -2019,12 +2016,6 @@ msgstr "停止幫助"
 
 msgid "helping_remove_confirm"
 msgstr "停止幫助 %s？對方需要新的邀請才能再次透過你連線。"
-
-msgid "help_others_too"
-msgstr "也幫助他人"
-
-msgid "help_others_too_body"
-msgstr "將閒置容量借給其他面臨審查的人；Lantern 只允許他們連上許可的網站，藉此保護你的連線不被濫用。"
 
 msgid "help_others_too_note"
 msgstr "變更此設定會讓你幫助的人短暫重新連線。"
@@ -2080,14 +2071,8 @@ msgstr "你可以隨時移除此連線。"
 msgid "help_friend_form_title"
 msgstr "貼上你所協助的人傳來的連結"
 
-msgid "help_friend_link_hint"
-msgstr "在此裝置上輕觸連結即可自動填入"
-
 msgid "help_friend_name_label"
 msgstr "朋友所認識的你的名字"
-
-msgid "help_friend_name_hint"
-msgstr "你在朋友的 Lantern 中會顯示為這個名稱"
 
 msgid "help_friend_become"
 msgstr "成為朋友的專屬代理"
@@ -2146,17 +2131,8 @@ msgstr "今日中繼資料"
 msgid "helping_active_today"
 msgstr "已活躍 %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "一位朋友邀請你成為其個人代理"
-
 msgid "help_friend_paste_button"
 msgstr "貼上連結"
-
-msgid "help_friend_no_link"
-msgstr "還沒有連結？"
-
-msgid "help_friend_ask_invite"
-msgstr "請朋友邀請你"
 
 msgid "help_friend_ask_invite_message"
 msgstr "我可以在 Lantern 上當你的個人代理，讓你透過我的連線上網。在 Lantern 中開啟「伺服器選擇」，點選頂端的 ⋮ 選單，選擇「邀請個人代理」，然後把連結傳給我。"

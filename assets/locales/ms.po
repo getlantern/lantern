@@ -2134,9 +2134,6 @@ msgstr "Tampal pautan yang dihantar oleh rakan anda"
 msgid "help_friend_scan"
 msgstr "Imbas kod QR rakan anda"
 
-msgid "help_friend_approved"
-msgstr "Anda kini membantu %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "Permintaan ini tidak lagi menunggu. Minta jemputan baharu daripada rakan anda."
 
@@ -2175,12 +2172,6 @@ msgstr "Berhenti membantu"
 
 msgid "helping_remove_confirm"
 msgstr "Berhenti membantu %s? Mereka memerlukan jemputan baharu untuk menyambung semula melalui anda."
-
-msgid "help_others_too"
-msgstr "Bantu orang lain juga"
-
-msgid "help_others_too_body"
-msgstr "Pinjamkan kapasiti lebihan anda kepada orang lain yang berdepan penapisan; Lantern hanya membenarkan mereka mengakses laman yang dibenarkan, yang melindungi sambungan anda daripada disalah guna."
 
 msgid "help_others_too_note"
 msgstr "Menukar tetapan ini akan menyambung semula orang yang anda bantu buat seketika."
@@ -2236,14 +2227,8 @@ msgstr "Alih keluar sambungan pada bila-bila masa."
 msgid "help_friend_form_title"
 msgstr "Tampal pautan daripada orang yang anda bantu"
 
-msgid "help_friend_link_hint"
-msgstr "Ketik pautan pada peranti ini untuk mengisi ruangan ini"
-
 msgid "help_friend_name_label"
 msgstr "Nama anda, seperti yang mereka kenali"
-
-msgid "help_friend_name_hint"
-msgstr "Beginilah anda dipaparkan dalam Lantern mereka"
 
 msgid "help_friend_become"
 msgstr "Jadi Proksi Peribadi Mereka"
@@ -2302,17 +2287,8 @@ msgstr "Data dipancarkan hari ini"
 msgid "helping_active_today"
 msgstr "Aktif %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Seorang rakan menjemput anda menjadi proksi peribadinya"
-
 msgid "help_friend_paste_button"
 msgstr "Tampal pautan"
-
-msgid "help_friend_no_link"
-msgstr "Belum ada pautan?"
-
-msgid "help_friend_ask_invite"
-msgstr "Minta rakan anda menjemput anda"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Saya boleh menjadi proksi peribadi anda di Lantern, supaya anda boleh mengakses internet melalui sambungan saya. Dalam Lantern, buka \"Pemilihan Pelayan\", ketik menu ⋮ di bahagian atas, pilih \"Jemput Proksi Peribadi\" dan hantar pautan kepada saya."

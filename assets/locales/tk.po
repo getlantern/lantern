@@ -2107,9 +2107,6 @@ msgstr "Dostuňyzyň iberen salgysyny goýuň"
 msgid "help_friend_scan"
 msgstr "Dostuňyzyň QR koduny skanirläň"
 
-msgid "help_friend_approved"
-msgstr "Siz indi kömek edýärsiňiz: %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "Bu haýyş indi garaşylmaýar. Dostuňyzdan täze çakylyk soraň."
 
@@ -2148,12 +2145,6 @@ msgstr "Kömegi bes et"
 
 msgid "helping_remove_confirm"
 msgstr "Kömegi bes etmelimi: %s? Siziň üstüňizden täzeden birikmek üçin täze çakylyk gerek bolar."
-
-msgid "help_others_too"
-msgstr "Başgalara-da kömek et"
-
-msgid "help_others_too_body"
-msgstr "Senzura bilen ýüzbe-ýüz bolýan beýleki adamlara artykmaç kuwwatyňyzy beriň; Lantern olara diňe rugsat berlen saýtlara girmäge ýol berýär, bu bolsa baglanyşygyňyzy hyýanatçylykly ulanylyşdan goraýar."
 
 msgid "help_others_too_note"
 msgstr "Muny üýtgetmek kömek edýän adamlaryňyzy gysga wagtlaýyn täzeden birikdirýär."
@@ -2196,12 +2187,6 @@ msgstr "Baglanyşygy islän wagtyňyz aýryň."
 
 msgid "help_friend_form_title"
 msgstr "Kömek edýän adamyňyzdan gelen salgyny goýuň"
-
-msgid "help_friend_link_hint"
-msgstr "Bu enjamda salga basylanda bu ýer doldurylýar"
-
-msgid "help_friend_name_hint"
-msgstr "Dostuňyzyň Lantern programmasynda siz şeýle görünersiňiz"
 
 msgid "help_friend_become"
 msgstr "Dostuňyzyň şahsy proksisi boluň"
@@ -2275,17 +2260,8 @@ msgstr "Başga çakylyk baglanyşygyny goýuň"
 msgid "invite_share_title"
 msgstr "Bu baglanyşygy ýurduňyzyň daşyndaky ynanýan adamyňyz bilen paýlaşyň"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Bir dostuňyz sizi şahsy proksisi bolmaga çagyrdy"
-
 msgid "help_friend_paste_button"
 msgstr "Salgyny goý"
-
-msgid "help_friend_no_link"
-msgstr "Entek salgyňyz ýokmy?"
-
-msgid "help_friend_ask_invite"
-msgstr "Dostuňyzdan sizi çagyrmagyny haýyş ediň"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Men Lantern-de siziň şahsy proksiňiz bolup bilerin, şonda siz meniň baglanyşygym arkaly internete girip bilersiňiz. Lantern-de \"Serwer saýlamak\" bölümini açyň, ýokardaky ⋮ menýusyna basyň, \"Şahsy proksini çagyr\" saýlaň we maňa baglanyşygy iberiň."
