@@ -150,12 +150,24 @@ class HelperPairingView {
   /// engine that does not report it counts as having one.
   final bool hasPairingKey;
 
+  /// Whether this friend is shown online: lantern-cloud says so, or
+  /// radiance has the reverse session the friend dialed in, which can come
+  /// up after lantern-cloud's last presence. [status] is as for
+  /// [selectable].
+  bool reachable(Map<String, PersonalProxyStatus>? status) =>
+      online || _reverse(status);
+
+  bool _reverse(Map<String, PersonalProxyStatus>? status) =>
+      outboundTag.isNotEmpty && (status?[outboundTag]?.reverse ?? false);
+
   /// Whether this friend can be selected on their own: lantern-cloud gave
   /// their outbound tag and says they are online, and radiance has a live
-  /// route to them. [status] is radiance's status by outbound tag, null while
-  /// unknown (the VPN is off, or radiance did not answer): online then
+  /// route to them, or radiance has their reverse session whatever
+  /// lantern-cloud says. [status] is radiance's status by outbound tag, null
+  /// while unknown (the VPN is off, or radiance did not answer): online then
   /// decides alone.
   bool selectable(Map<String, PersonalProxyStatus>? status) {
+    if (_reverse(status)) return true;
     if (outboundTag.isEmpty || !online) return false;
     if (status == null) return true;
     return status[outboundTag]?.live ?? false;

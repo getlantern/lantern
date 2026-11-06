@@ -168,6 +168,33 @@ void main() {
       expect(noTag.selectable(null), isFalse);
     });
 
+    test('a live reverse route is reachable and selectable while presence '
+        'says offline', () {
+      const bo = HelperPairingView(pairingId: 'p2', outboundTag: tag);
+      const reverse = {tag: PersonalProxyStatus(reverse: true)};
+      const direct = {tag: PersonalProxyStatus(direct: true)};
+      const rooms = {tag: PersonalProxyStatus(rooms: true)};
+      expect(bo.reachable(reverse), isTrue);
+      expect(bo.selectable(reverse), isTrue);
+      expect(bo.reachable(direct), isFalse);
+      expect(bo.selectable(direct), isFalse);
+      expect(bo.reachable(rooms), isFalse);
+      expect(bo.selectable(rooms), isFalse);
+      expect(bo.reachable(null), isFalse);
+      expect(bo.reachable(const {}), isFalse);
+      const noTag = HelperPairingView(pairingId: 'p3');
+      expect(
+        noTag.reachable(const {'': PersonalProxyStatus(reverse: true)}),
+        isFalse,
+      );
+      expect(
+        noTag.selectable(const {'': PersonalProxyStatus(reverse: true)}),
+        isFalse,
+      );
+      const ali = HelperPairingView(pairingId: 'p1', online: true);
+      expect(ali.reachable(null), isTrue);
+    });
+
     test('with no status from radiance (VPN off), online decides alone', () {
       const ali = HelperPairingView(
         pairingId: 'p1',

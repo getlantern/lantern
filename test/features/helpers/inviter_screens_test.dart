@@ -33,6 +33,7 @@ import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/setting.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -261,10 +262,27 @@ const _oneHelper = HelpersState(
   ),
 );
 
-Future<void> _pump(WidgetTester tester, _Helpers fake, Widget child) async {
+class _Status extends PersonalProxyStatusNotifier {
+  _Status(this.initial);
+  final Map<String, PersonalProxyStatus>? initial;
+  @override
+  Map<String, PersonalProxyStatus>? build() => initial;
+  @override
+  Future<void> poll() async {}
+}
+
+Future<void> _pump(
+  WidgetTester tester,
+  _Helpers fake,
+  Widget child, {
+  Map<String, PersonalProxyStatus>? status,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [helpersProvider.overrideWith(() => fake)],
+      overrides: [
+        helpersProvider.overrideWith(() => fake),
+        personalProxyStatusProvider.overrideWith(() => _Status(status)),
+      ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852),
         child: MaterialApp(
@@ -565,6 +583,40 @@ void main() {
       '${'helper_online'.i18n} · $since · '
       '${'pairing_repair_for_faster'.i18n}',
     );
+  });
+
+  testWidgets('a helper offline by presence but with a live reverse route '
+      'is shown online', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          helpers: [
+            HelperPairingView(
+              pairingId: 'p1',
+              name: 'Ali',
+              outboundTag: 'helper-0123456789ab',
+            ),
+            HelperPairingView(
+              pairingId: 'p2',
+              name: 'Bo',
+              outboundTag: 'helper-ba9876543210',
+            ),
+          ],
+        ),
+      ),
+    );
+    await _pump(
+      tester,
+      fake,
+      const PersonalProxiesTab(),
+      status: const {
+        'helper-0123456789ab': PersonalProxyStatus(reverse: true),
+        'helper-ba9876543210': PersonalProxyStatus(direct: true),
+      },
+    );
+    expect(find.byKey(const Key('helpers.online.0')), findsOneWidget);
+    expect(find.byKey(const Key('helpers.offline.1')), findsOneWidget);
   });
 
   testWidgets('a claimed invite is surfaced above the helpers', (tester) async {
