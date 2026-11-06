@@ -41,12 +41,13 @@ func TestHelperCallAnswersJSONAndNeverARawError(t *testing.T) {
 
 // fakePairingKeyIPC stands in for radiance's pairing-key endpoint.
 type fakePairingKeyIPC struct {
-	mu    sync.Mutex
-	keys  map[string]helper.PairingKey
-	fail  bool
-	block chan struct{}
-	calls []map[string]rhelper.PairingKey
-	done  chan struct{}
+	mu     sync.Mutex
+	keys   map[string]helper.PairingKey
+	locked bool
+	fail   bool
+	block  chan struct{}
+	calls  []map[string]rhelper.PairingKey
+	done   chan struct{}
 }
 
 func newFakePairingKeyIPC() *fakePairingKeyIPC {
@@ -65,10 +66,19 @@ func (f *fakePairingKeyIPC) setFail(fail bool) {
 	f.fail = fail
 }
 
-func (f *fakePairingKeyIPC) PairingKeys() map[string]helper.PairingKey {
+func (f *fakePairingKeyIPC) setLocked(locked bool) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	return maps.Clone(f.keys)
+	f.locked = locked
+}
+
+func (f *fakePairingKeyIPC) PairingKeys() (map[string]helper.PairingKey, bool) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.locked {
+		return map[string]helper.PairingKey{}, false
+	}
+	return maps.Clone(f.keys), true
 }
 
 func (f *fakePairingKeyIPC) SetHelperPairingKeys(ctx context.Context, keys map[string]rhelper.PairingKey) error {
@@ -257,4 +267,52 @@ func TestPairingKeyNilPusherIsHarmless(t *testing.T) {
 	var p *pairingKeyPusher
 	p.changed()
 	p.tick()
+}
+
+func TestPairingKeyNothingIsPushedBeforeTheFirstUnlock(t *testing.T) {
+	f := newFakePairingKeyIPC()
+	relay := func(context.Context, string, []byte) (int, []byte, string, error) {
+		return 200, []byte(`{"pairings":[]}`), "", nil
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	engine := helper.NewEngine(t.TempDir(), relay, nil)
+	lc := &LanternCore{
+		ctx:         ctx,
+		helpers:     engine,
+		pairingKeys: newPairingKeyPusher(ctx, engine.UnlockedPairingKeys, f.SetHelperPairingKeys),
+	}
+	now := time.Now()
+	lc.pairingKeys.now = func() time.Time { return now }
+
+	// A locked engine's empty set is not "no pairings": the live loop, the
+	// 5-minute repush and every op leave radiance's keys alone.
+	assert.JSONEq(t, `{"error":"locked"}`, lc.HelperCall("view", "{}"))
+	lc.pairingKeys.tick()
+	now = now.Add(2 * pairingKeyRepushInterval)
+	lc.pairingKeys.tick()
+	lc.HelperCall("unlock", `{"key":"not base64"}`)
+	f.noMorePushes(t)
+	assert.Empty(t, f.pushes())
+
+	key := base64.StdEncoding.EncodeToString([]byte(strings.Repeat("k", 32)))
+	lc.HelperCall("unlock", `{"key":"`+key+`"}`)
+	f.settle(t, lc.pairingKeys, 1)
+	assert.Equal(t, []map[string]rhelper.PairingKey{{}}, f.pushes(), "once unlocked, an empty set is a real \"no pairings\"")
+}
+
+func TestPairingKeyLockedKeysWaitForTheUnlock(t *testing.T) {
+	f := newFakePairingKeyIPC()
+	f.setKeys(map[string]helper.PairingKey{"p1": {Key: pairingKeyA, Role: "inviter"}})
+	f.setLocked(true)
+	lc := pairingKeyCore(t, f)
+
+	lc.HelperCall("view", "{}")
+	lc.pairingKeys.tick()
+	f.noMorePushes(t)
+
+	f.setLocked(false)
+	lc.HelperCall("view", "{}")
+	f.settle(t, lc.pairingKeys, 1)
+	assert.Equal(t, []map[string]rhelper.PairingKey{{"p1": {Key: pairingKeyA, Role: "inviter"}}}, f.pushes())
 }

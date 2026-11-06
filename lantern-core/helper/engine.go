@@ -84,10 +84,12 @@ type Engine struct {
 	live      map[string]bool
 	liveKnown bool
 
-	// keysMu guards keys, the snapshot PairingKeys reads, so a reader never
-	// waits on an op. It is a leaf lock: Call takes it under mu.
-	keysMu sync.Mutex
-	keys   map[string]PairingKey
+	// keysMu guards keys and keysUnlocked, the snapshot PairingKeys reads,
+	// so a reader never waits on an op. It is a leaf lock: Call takes it
+	// under mu.
+	keysMu       sync.Mutex
+	keys         map[string]PairingKey
+	keysUnlocked bool
 }
 
 // PairingKey is one pairing's K_pair and this device's side of it.
@@ -99,13 +101,21 @@ type PairingKey struct {
 // PairingKeys returns the key of each pairing that has one, by pairing ID:
 // copies, and none while locked. The keys are never logged.
 func (e *Engine) PairingKeys() map[string]PairingKey {
+	keys, _ := e.UnlockedPairingKeys()
+	return keys
+}
+
+// UnlockedPairingKeys is PairingKeys, plus whether the engine is unlocked.
+// While it is locked the empty set says nothing about the pairings, so it
+// must not be taken for "no pairings". The keys are never logged.
+func (e *Engine) UnlockedPairingKeys() (map[string]PairingKey, bool) {
 	e.keysMu.Lock()
 	defer e.keysMu.Unlock()
 	out := make(map[string]PairingKey, len(e.keys))
 	for id, k := range e.keys {
 		out[id] = PairingKey{Key: slices.Clone(k.Key), Role: k.Role}
 	}
-	return out
+	return out, e.keysUnlocked
 }
 
 // snapshotKeys refreshes what PairingKeys returns from the state. Called
@@ -121,6 +131,7 @@ func (e *Engine) snapshotKeys() {
 	}
 	e.keysMu.Lock()
 	e.keys = keys
+	e.keysUnlocked = e.key != nil
 	e.keysMu.Unlock()
 }
 
