@@ -2090,21 +2090,13 @@ msgstr "Remove the connection any time."
 msgid "help_friend_form_title"
 msgstr "Paste the link from the person you're helping"
 
-# Title of the same card when the invite link opened the app. The inviter's
-# name is not known yet.
-msgid "help_friend_form_title_from_link"
-msgstr "A friend invited you to be their personal proxy"
-
-# Under the invite link field.
-msgid "help_friend_link_hint"
-msgstr "Tapping the link on this device fills this in"
-
 msgid "help_friend_name_label"
 msgstr "Your name, as they know you"
 
-# Under the name field.
-msgid "help_friend_name_hint"
-msgstr "This is how you appear in their Lantern"
+# Under the name field. "Server list" is the friend's Server Selection screen,
+# where this name appears.
+msgid "help_friend_name_hint_server_list"
+msgstr "This is how you appear in their server list."
 
 msgid "help_friend_become"
 msgstr "Become Their Personal Proxy"
@@ -2131,7 +2123,8 @@ msgstr "Paste the link your friend sent"
 msgid "help_friend_scan"
 msgstr "Scan your friend's QR code"
 
-# Button under the invite link field: fills it from the clipboard.
+# Tooltip of the paste icon in the invite link field: fills it from the
+# clipboard.
 msgid "help_friend_paste_button"
 msgstr "Paste link"
 
@@ -2163,13 +2156,15 @@ msgstr "This isn't a Personal Proxy invite link."
 msgid "help_friend_own_invite"
 msgstr "This is your own invite. Send it to the friend you'd like help from."
 
-# Above a button for someone abroad who has no invite link yet.
-msgid "help_friend_no_link"
-msgstr "Don't have a link yet?"
+# Under the invite link field, followed by help_friend_ask_send_link, which
+# is a link.
+msgid "help_friend_no_link_yet"
+msgstr "No link yet?"
 
-# Button: shares help_friend_ask_invite_message to a friend.
-msgid "help_friend_ask_invite"
-msgstr "Ask your friend to invite you"
+# Link under the invite link field, after help_friend_no_link_yet: opens the
+# share sheet with help_friend_ask_invite_message for a friend.
+msgid "help_friend_ask_send_link"
+msgstr "Ask them to send you one."
 
 # Sent to a friend in a censored country, who will read it in their own
 # Lantern. "Server Selection" must match server_selection and "Invite a
