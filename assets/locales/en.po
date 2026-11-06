@@ -1455,6 +1455,19 @@ msgstr "More protocols than other VPNs for maximum reliability. AnyTLS, Hysteria
 msgid "private_servers_description"
 msgstr "Connect your own servers for full control over your connection."
 
+# Onboarding, What makes Lantern different, shown only where Personal
+# Proxies are offered (censored regions). A feature name: keep it capitalized.
+msgid "onboarding_personal_proxies"
+msgstr "Personal Proxies"
+
+# Under onboarding_personal_proxies.
+msgid "onboarding_personal_proxies_description"
+msgstr "Ask someone you trust outside your country to be your proxy when Lantern is blocked."
+
+# Small badge beside a feature onboarding introduces as new.
+msgid "onboarding_new_badge"
+msgstr "New"
+
 msgid "nonprofit_mission"
 msgstr "Nonprofit Mission"
 
