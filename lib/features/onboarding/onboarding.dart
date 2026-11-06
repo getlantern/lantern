@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 
+import '../helpers/provider/helpers_notifier.dart';
 import '../home/provider/app_setting_notifier.dart';
 import '../home/provider/radiance_settings_providers.dart';
 
@@ -154,109 +155,145 @@ class _OnboardingState extends ConsumerState<Onboarding> {
 
   Widget slide2(BuildContext context) {
     final textTheme = TextTheme.of(context);
-    return Column(
-      children: <Widget>[
-        SizedBox(height: 24.0),
-        Text(
-          'what_makes_lantern_different'.i18n,
-          style: textTheme.headlineSmall!.copyWith(
-            color: context.textSecondary,
-          ),
-        ),
-        SizedBox(height: 8.0),
-        Text(
-          'built_for_privacy_speed_freedom'.i18n,
-          style: textTheme.bodyLarge!.copyWith(
-            color: context.textSecondary,
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-              path: AppImagePaths.smartRouteMode,
-              useThemeColor: false,
-            ),
-          ),
-          label: '',
-          labelWidget: Text(
-            'smart_routing_mode'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'region_specific_routing_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
+    // Scrolls rather than overflows on a short window, now that censored
+    // regions get a fifth row.
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          SizedBox(height: 24.0),
+          Text(
+            'what_makes_lantern_different'.i18n,
+            style: textTheme.headlineSmall!.copyWith(
               color: context.textSecondary,
             ),
           ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-                path: AppImagePaths.advanceProtocol, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'advanced_protocols'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'advanced_protocols_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
+          SizedBox(height: 8.0),
+          Text(
+            'built_for_privacy_speed_freedom'.i18n,
+            style: textTheme.bodyLarge!.copyWith(
               color: context.textSecondary,
             ),
           ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-                path: AppImagePaths.privateServerIntro, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'private_servers'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
+          SizedBox(height: 24.0),
+          AppTile(
+            icon: Padding(
+              padding: const EdgeInsets.only(top: 5.0),
+              child: AppImage(
+                path: AppImagePaths.smartRouteMode,
+                useThemeColor: false,
+              ),
+            ),
+            label: '',
+            labelWidget: Text(
+              'smart_routing_mode'.i18n,
+              style: textTheme.titleMedium!.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+            subtitle: Text(
+              'region_specific_routing_description'.i18n,
+              style: textTheme.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
             ),
           ),
-          subtitle: Text(
-            'private_servers_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
+          SizedBox(height: 24.0),
+          AppTile(
+            icon: Padding(
+              padding: const EdgeInsets.only(top: 5.0),
+              child: AppImage(
+                  path: AppImagePaths.advanceProtocol, useThemeColor: false),
+            ),
+            label: '',
+            labelWidget: Text(
+              'advanced_protocols'.i18n,
+              style: textTheme.titleMedium!.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+            subtitle: Text(
+              'advanced_protocols_description'.i18n,
+              style: textTheme.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
             ),
           ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child:
-                AppImage(path: AppImagePaths.nonProfit, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'nonprofit_mission'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
+          SizedBox(height: 24.0),
+          AppTile(
+            icon: Padding(
+              padding: const EdgeInsets.only(top: 5.0),
+              child: AppImage(
+                  path: AppImagePaths.privateServerIntro, useThemeColor: false),
+            ),
+            label: '',
+            labelWidget: Text(
+              'private_servers'.i18n,
+              style: textTheme.titleMedium!.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+            subtitle: Text(
+              'private_servers_description'.i18n,
+              style: textTheme.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
             ),
           ),
-          subtitle: Text(
-            'built_by_nonprofit'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
+          // Where helper invites are offered (censored regions).
+          if (ref.watch(helperInvitesAvailableProvider)) ...[
+            SizedBox(height: 24.0),
+            AppTile(
+              tileKey: const Key('onboarding.personal_proxies'),
+              icon: Padding(
+                padding: const EdgeInsets.only(top: 5.0),
+                child: AppImage(path: AppImagePaths.personAdd),
+              ),
+              label: '',
+              labelWidget: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      'onboarding_personal_proxies'.i18n,
+                      style: textTheme.titleMedium!.copyWith(
+                        color: context.textPrimary,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8.0),
+                  NewBadge(),
+                ],
+              ),
+              subtitle: Text(
+                'onboarding_personal_proxies_description'.i18n,
+                style: textTheme.bodyMedium!.copyWith(
+                  color: context.textSecondary,
+                ),
+              ),
+            ),
+          ],
+          SizedBox(height: 24.0),
+          AppTile(
+            icon: Padding(
+              padding: const EdgeInsets.only(top: 5.0),
+              child:
+                  AppImage(path: AppImagePaths.nonProfit, useThemeColor: false),
+            ),
+            label: '',
+            labelWidget: Text(
+              'nonprofit_mission'.i18n,
+              style: textTheme.titleMedium!.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+            subtitle: Text(
+              'built_by_nonprofit'.i18n,
+              style: textTheme.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -344,19 +381,7 @@ class RouteModeContainer extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8.0),
-              Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: context.statusInfoBorder),
-                    color: context.statusInfoBg,
-                  ),
-                  child: Text(
-                    tags(),
-                    style: textTheme.labelMedium!
-                        .copyWith(color: context.statusInfoText),
-                  ))
+              _Tag(tags())
             ],
           ),
           SizedBox(height: 4.0),
@@ -394,4 +419,39 @@ class RouteModeContainer extends StatelessWidget {
       return 'traditional_vpn_mode'.i18n;
     }
   }
+}
+
+/// The routing modes' tag pill.
+class _Tag extends StatelessWidget {
+  const _Tag(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: context.statusInfoBorder),
+        color: context.statusInfoBg,
+      ),
+      child: Text(
+        text,
+        style: TextTheme.of(context)
+            .labelMedium!
+            .copyWith(color: context.statusInfoText),
+      ),
+    );
+  }
+}
+
+/// "New", in the routing modes' tag pill, beside a feature onboarding
+/// introduces.
+class NewBadge extends StatelessWidget {
+  const NewBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) =>
+      _Tag('onboarding_new_badge'.i18n, key: const Key('onboarding.new_badge'));
 }
