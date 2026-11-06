@@ -37,13 +37,14 @@ const personalProxyStatusTimeout = 3 * time.Second
 
 // personalProxyStatus is one friend's entry in the status op's answer.
 type personalProxyStatus struct {
-	Tag    string `json:"tag"`
-	Direct bool   `json:"direct"`
-	Rooms  bool   `json:"rooms"`
+	Tag     string `json:"tag"`
+	Direct  bool   `json:"direct"`
+	Reverse bool   `json:"reverse"`
+	Rooms   bool   `json:"rooms"`
 }
 
 // personalProxyStatusJSON reads the status of each friend this device invited
-// and answers {"statuses": [{tag, direct, rooms}]}, or the helper engine's
+// and answers {"statuses": [{tag, direct, reverse, rooms}]}, or the helper engine's
 // unavailable error when radiance does not answer (the app then treats every
 // friend's status as unknown). Nothing is logged: the tags name the friends.
 func personalProxyStatusJSON(ctx context.Context, read func(context.Context) ([]vpn.PersonalProxyStatus, error)) string {
@@ -57,7 +58,7 @@ func personalProxyStatusJSON(ctx context.Context, read func(context.Context) ([]
 		Statuses []personalProxyStatus `json:"statuses"`
 	}{Statuses: make([]personalProxyStatus, 0, len(statuses))}
 	for _, s := range statuses {
-		out.Statuses = append(out.Statuses, personalProxyStatus{Tag: s.Tag, Direct: s.Direct, Rooms: s.Rooms})
+		out.Statuses = append(out.Statuses, personalProxyStatus{Tag: s.Tag, Direct: s.Direct, Reverse: s.Reverse, Rooms: s.Rooms})
 	}
 	b, err := json.Marshal(out)
 	if err != nil {

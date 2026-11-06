@@ -149,9 +149,11 @@ void main() {
       );
       const direct = {tag: PersonalProxyStatus(direct: true)};
       const rooms = {tag: PersonalProxyStatus(rooms: true)};
+      const reverse = {tag: PersonalProxyStatus(reverse: true)};
       const dead = {tag: PersonalProxyStatus()};
       expect(ali.selectable(direct), isTrue);
       expect(ali.selectable(rooms), isTrue);
+      expect(ali.selectable(reverse), isTrue);
       expect(ali.selectable(dead), isFalse);
       expect(
         ali.selectable(const {}),
@@ -182,13 +184,17 @@ void main() {
         'statuses': [
           {'tag': tag, 'direct': true, 'rooms': false},
           {'tag': 'helper-ba9876543210', 'rooms': true},
+          {'tag': 'helper-112233445566', 'reverse': true},
           {'direct': true},
           'junk',
         ],
       });
-      expect(all.keys, [tag, 'helper-ba9876543210']);
+      expect(all.keys, [tag, 'helper-ba9876543210', 'helper-112233445566']);
       expect(all[tag]!.direct, isTrue);
+      expect(all[tag]!.reverse, isFalse);
       expect(all['helper-ba9876543210']!.live, isTrue);
+      expect(all['helper-112233445566']!.reverse, isTrue);
+      expect(all['helper-112233445566']!.live, isTrue);
       expect(PersonalProxyStatus.parseAll(const {}), isEmpty);
     });
   });

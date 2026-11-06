@@ -176,16 +176,24 @@ class HelperPairingView {
 /// radiance's status of one friend this device invited (lantern-core's
 /// personal_proxy_status op).
 class PersonalProxyStatus {
-  const PersonalProxyStatus({this.direct = false, this.rooms = false});
+  const PersonalProxyStatus({
+    this.direct = false,
+    this.reverse = false,
+    this.rooms = false,
+  });
 
   /// The config carries the friend's direct outbound.
   final bool direct;
+
+  /// The VPN keeps the friend's reverse outbound, which carries traffic over
+  /// the session the friend dials in.
+  final bool reverse;
 
   /// This device can reach the friend through Unbounded's rooms.
   final bool rooms;
 
   /// The friend's group has a member to route through.
-  bool get live => direct || rooms;
+  bool get live => direct || reverse || rooms;
 
   /// The op's answer, by outbound tag. Entries without a tag are skipped.
   static Map<String, PersonalProxyStatus> parseAll(Map<String, dynamic> j) {
@@ -198,6 +206,7 @@ class PersonalProxyStatus {
       if (tag.isEmpty) continue;
       out[tag] = PersonalProxyStatus(
         direct: e['direct'] == true,
+        reverse: e['reverse'] == true,
         rooms: e['rooms'] == true,
       );
     }
