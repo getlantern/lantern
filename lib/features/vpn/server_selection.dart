@@ -787,26 +787,60 @@ class _PrivateServerLocationListViewState
     String tag,
     ServerLocation location, {
     String? connectedMessage,
-  }) async {
-    if (!_macOSExtensionReady(ref)) return;
+  }) => _selectLocation(
+    context,
+    ref,
+    type,
+    tag,
+    location,
+    connectedMessage: connectedMessage,
+  );
+}
 
-    final locationNotifier = ref.read(serverLocationProvider.notifier);
-    final since = locationNotifier.readsStarted;
-    await _connectAndReturnHome(
-      context,
-      ref,
-      attempt: (skipConflictCheck) => ref
-          .read(vpnProvider.notifier)
-          .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
-      save: () {
-        if (!locationNotifier.confirmedSince(since)) {
-          locationNotifier.updateServerLocation(location);
-        }
-        return locationNotifier.syncSelection();
-      },
-      connectedMessage: connectedMessage,
-    );
-  }
+/// Connects through the personal proxy whose outbound tag is [friendTag], or
+/// through every personal proxy at once without one, and makes it the
+/// selection, as picking it under Private Locations does. "Connect Now"
+/// after approving a friend.
+Future<void> connectPersonalProxy(
+  BuildContext context,
+  WidgetRef ref, {
+  String? friendTag,
+}) => _selectLocation(
+  context,
+  ref,
+  ServerLocationType.personalProxy,
+  friendTag == null ? personalProxiesTag : personalProxySelection(friendTag),
+  ServerLocation.personalProxy(friendTag: friendTag),
+);
+
+/// [_PrivateServerLocationListViewState._select] for any caller: connects to
+/// [tag] and, once connected, makes [location] the selection.
+Future<void> _selectLocation(
+  BuildContext context,
+  WidgetRef ref,
+  ServerLocationType type,
+  String tag,
+  ServerLocation location, {
+  String? connectedMessage,
+}) async {
+  if (!_macOSExtensionReady(ref)) return;
+
+  final locationNotifier = ref.read(serverLocationProvider.notifier);
+  final since = locationNotifier.readsStarted;
+  await _connectAndReturnHome(
+    context,
+    ref,
+    attempt: (skipConflictCheck) => ref
+        .read(vpnProvider.notifier)
+        .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
+    save: () {
+      if (!locationNotifier.confirmedSince(since)) {
+        locationNotifier.updateServerLocation(location);
+      }
+      return locationNotifier.syncSelection();
+    },
+    connectedMessage: connectedMessage,
+  );
 }
 
 /// On macOS the system extension must be approved before anything can

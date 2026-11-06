@@ -72,7 +72,7 @@ class PersonalProxiesTab extends HookConsumerWidget {
                     : inv.volunteerName,
               ),
               trailing: const Icon(Icons.chevron_right),
-              onPressed: () => showApproveHelperDialog(context, inv),
+              onPressed: () => showApproveHelperDialog(context, ref, inv),
             ),
           ),
           const SizedBox(height: defaultSize),

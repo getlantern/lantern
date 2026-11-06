@@ -2042,6 +2042,22 @@ msgstr "%s wants to be your Personal Proxy"
 msgid "approve_body"
 msgstr "Ask %s for the 4-digit code Lantern shows them, on a call or in a different app from the one you sent the link in. Approve only if it matches."
 
+# Title of the same dialog once the user approved the friend. %s is the name
+# the friend typed.
+msgid "approved_title"
+msgstr "%s is now your Personal Proxy"
+
+# Under approved_title. %s is the name the friend typed. "Private Locations"
+# must match private_locations, "Server Selection" server_selection and
+# "Smart Location" smart_location.
+msgid "approved_body"
+msgstr "When %s is online, you can select them under Private Locations in Server Selection. Smart Location may use them automatically."
+
+# Button under approved_body: selects the new Personal Proxy and turns the
+# VPN on.
+msgid "approved_connect_now"
+msgstr "Connect Now"
+
 msgid "approve_codes_match"
 msgstr "Codes Match, Approve"
 
