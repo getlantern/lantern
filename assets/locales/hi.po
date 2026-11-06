@@ -2323,3 +2323,18 @@ msgstr "इस कंप्यूटर पर Lantern के अलावा �
 
 msgid "unable_to_add_executable"
 msgstr "एक्ज़ीक्यूटेबल नहीं जोड़ा जा सका। इस कंप्यूटर पर मौजूद कोई .exe फ़ाइल चुनें और फिर से कोशिश करें।"
+
+msgid "unable_to_connect"
+msgstr "कनेक्ट नहीं हो सका"
+
+msgid "enable_action_mode"
+msgstr "Action Mode चालू करें"
+
+msgid "disable_action_mode"
+msgstr "Action Mode बंद करें"
+
+msgid "helping_one_person"
+msgstr "1 व्यक्ति की मदद कर रहे हैं"
+
+msgid "helping_people"
+msgstr "%s लोगों की मदद कर रहे हैं"

@@ -2174,3 +2174,18 @@ msgstr "選擇這台電腦上 Lantern 以外應用程式的 .exe 檔案。"
 
 msgid "unable_to_add_executable"
 msgstr "無法新增執行檔。選擇這台電腦上現有的 .exe 檔案，然後再試一次。"
+
+msgid "unable_to_connect"
+msgstr "無法連線"
+
+msgid "enable_action_mode"
+msgstr "啟用 Action Mode"
+
+msgid "disable_action_mode"
+msgstr "停用 Action Mode"
+
+msgid "helping_one_person"
+msgstr "正在幫助 1 個人"
+
+msgid "helping_people"
+msgstr "正在幫助 %s 個人"

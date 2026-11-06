@@ -2335,3 +2335,18 @@ msgstr "Выберите файл .exe приложения на этом ком
 
 msgid "unable_to_add_executable"
 msgstr "Не удалось добавить исполняемый файл. Выберите существующий файл .exe на этом компьютере и повторите попытку."
+
+msgid "unable_to_connect"
+msgstr "Не удалось подключиться"
+
+msgid "enable_action_mode"
+msgstr "Включить Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Отключить Action Mode"
+
+msgid "helping_one_person"
+msgstr "Вы помогаете 1 человеку"
+
+msgid "helping_people"
+msgstr "Людей, которым вы помогаете: %s"

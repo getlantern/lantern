@@ -2344,3 +2344,18 @@ msgstr "پر دې کمپیوټر د Lantern پرته د یوې اپ .exe فای�
 
 msgid "unable_to_add_executable"
 msgstr "اجرايي فایل اضافه نه شو. پر دې کمپیوټر یو موجود .exe فایل وټاکئ او بیا هڅه وکړئ."
+
+msgid "unable_to_connect"
+msgstr "وصل نشو"
+
+msgid "enable_action_mode"
+msgstr "Action Mode فعال کړئ"
+
+msgid "disable_action_mode"
+msgstr "Action Mode غیرفعال کړئ"
+
+msgid "helping_one_person"
+msgstr "له 1 کس سره مرسته"
+
+msgid "helping_people"
+msgstr "له %s کسانو سره مرسته"

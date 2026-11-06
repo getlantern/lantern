@@ -2319,3 +2319,18 @@ msgstr "এই কম্পিউটারে Lantern ছাড়া অন্�
 
 msgid "unable_to_add_executable"
 msgstr "এক্সিকিউটেবল যোগ করা যায়নি। এই কম্পিউটারে থাকা একটি .exe ফাইল বেছে নিয়ে আবার চেষ্টা করুন।"
+
+msgid "unable_to_connect"
+msgstr "সংযোগ করা যাচ্ছে না"
+
+msgid "enable_action_mode"
+msgstr "Action Mode চালু করুন"
+
+msgid "disable_action_mode"
+msgstr "Action Mode বন্ধ করুন"
+
+msgid "helping_one_person"
+msgstr "১ জনকে সাহায্য করছেন"
+
+msgid "helping_people"
+msgstr "%s জনকে সাহায্য করছেন"

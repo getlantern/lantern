@@ -2317,3 +2317,18 @@ msgstr "فایل .exe یک برنامه، به‌جز Lantern، را در این
 
 msgid "unable_to_add_executable"
 msgstr "افزودن فایل اجرایی ممکن نشد. یک فایل .exe موجود در این رایانه انتخاب کنید و دوباره تلاش کنید."
+
+msgid "unable_to_connect"
+msgstr "اتصال برقرار نشد"
+
+msgid "enable_action_mode"
+msgstr "فعال کردن Action Mode"
+
+msgid "disable_action_mode"
+msgstr "غیرفعال کردن Action Mode"
+
+msgid "helping_one_person"
+msgstr "در حال کمک به ۱ نفر"
+
+msgid "helping_people"
+msgstr "در حال کمک به %s نفر"

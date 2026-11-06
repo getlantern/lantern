@@ -2335,3 +2335,18 @@ msgstr "Selecione o arquivo .exe de um aplicativo neste computador, exceto o Lan
 
 msgid "unable_to_add_executable"
 msgstr "Não foi possível adicionar o executável. Escolha um arquivo .exe existente neste computador e tente novamente."
+
+msgid "unable_to_connect"
+msgstr "Não foi possível conectar"
+
+msgid "enable_action_mode"
+msgstr "Ativar Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Desativar Action Mode"
+
+msgid "helping_one_person"
+msgstr "Ajudando 1 pessoa"
+
+msgid "helping_people"
+msgstr "Ajudando %s pessoas"

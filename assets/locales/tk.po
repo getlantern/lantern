@@ -2305,3 +2305,18 @@ msgstr "Bu kompýuterde Lantern-den başga bir programmanyň .exe faýlyny saýl
 
 msgid "unable_to_add_executable"
 msgstr "Ýerine ýetiriji faýly goşup bolmady. Bu kompýuterdäki bar bolan .exe faýly saýlaň we täzeden synanyşyň."
+
+msgid "unable_to_connect"
+msgstr "Birikip bolmady"
+
+msgid "enable_action_mode"
+msgstr "Action Mode-y işlet"
+
+msgid "disable_action_mode"
+msgstr "Action Mode-y öçür"
+
+msgid "helping_one_person"
+msgstr "1 adama kömek edýärsiňiz"
+
+msgid "helping_people"
+msgstr "Kömek edýän adamlaryňyz: %s"

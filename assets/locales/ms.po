@@ -2332,3 +2332,18 @@ msgstr "Pilih fail .exe aplikasi selain Lantern pada komputer ini."
 
 msgid "unable_to_add_executable"
 msgstr "Tidak dapat menambah fail boleh laku. Pilih fail .exe yang wujud pada komputer ini dan cuba lagi."
+
+msgid "unable_to_connect"
+msgstr "Tidak Dapat Menyambung"
+
+msgid "enable_action_mode"
+msgstr "Dayakan Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Nyahdayakan Action Mode"
+
+msgid "helping_one_person"
+msgstr "Membantu 1 orang"
+
+msgid "helping_people"
+msgstr "Membantu %s orang"

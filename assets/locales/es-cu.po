@@ -2333,3 +2333,18 @@ msgstr "Selecciona el archivo .exe de una aplicación de esta computadora, que n
 
 msgid "unable_to_add_executable"
 msgstr "No se pudo agregar el ejecutable. Escoge un archivo .exe que esté en esta computadora y vuelve a intentarlo."
+
+msgid "unable_to_connect"
+msgstr "No se pudo conectar"
+
+msgid "enable_action_mode"
+msgstr "Activar Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Desactivar Action Mode"
+
+msgid "helping_one_person"
+msgstr "Ayudando a 1 persona"
+
+msgid "helping_people"
+msgstr "Ayudando a %s personas"

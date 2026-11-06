@@ -2325,3 +2325,18 @@ msgstr "Yürütülebilir dosya eklenemedi. Bu bilgisayarda bulunan bir .exe dosy
 
 msgid "help_friend_ask_invite"
 msgstr "Arkadaşınızdan Davet İsteyin"
+
+msgid "unable_to_connect"
+msgstr "Bağlanılamıyor"
+
+msgid "enable_action_mode"
+msgstr "Action Mode'u Aç"
+
+msgid "disable_action_mode"
+msgstr "Action Mode'u Kapat"
+
+msgid "helping_one_person"
+msgstr "1 kişiye yardım ediyorsunuz"
+
+msgid "helping_people"
+msgstr "Yardım edilen kişi: %s"

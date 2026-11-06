@@ -2361,3 +2361,18 @@ msgstr "ဤကွန်ပျူတာရှိ Lantern မဟုတ်သော
 
 msgid "unable_to_add_executable"
 msgstr "executable ဖိုင်ကို ထည့်၍မရပါ။ ဤကွန်ပျူတာရှိ .exe ဖိုင်တစ်ခုကို ရွေးပြီး ထပ်စမ်းကြည့်ပါ။"
+
+msgid "unable_to_connect"
+msgstr "ချိတ်ဆက်၍ မရပါ"
+
+msgid "enable_action_mode"
+msgstr "Action Mode ဖွင့်ရန်"
+
+msgid "disable_action_mode"
+msgstr "Action Mode ပိတ်ရန်"
+
+msgid "helping_one_person"
+msgstr "1 ဦးကို ကူညီနေသည်"
+
+msgid "helping_people"
+msgstr "%s ဦးကို ကူညီနေသည်"

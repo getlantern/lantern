@@ -2169,3 +2169,18 @@ msgstr "选择此电脑上除 Lantern 以外的应用的 .exe 文件。"
 
 msgid "unable_to_add_executable"
 msgstr "无法添加可执行文件。选择此电脑上已有的 .exe 文件，然后重试。"
+
+msgid "unable_to_connect"
+msgstr "无法连接"
+
+msgid "enable_action_mode"
+msgstr "启用 Action Mode"
+
+msgid "disable_action_mode"
+msgstr "停用 Action Mode"
+
+msgid "helping_one_person"
+msgstr "正在帮助 1 个人"
+
+msgid "helping_people"
+msgstr "正在帮助 %s 个人"

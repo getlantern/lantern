@@ -2289,3 +2289,18 @@ msgstr "اختر ملف .exe لتطبيق على هذا الكمبيوتر، غ�
 
 msgid "unable_to_add_executable"
 msgstr "تعذّرت إضافة الملف التنفيذي. اختر ملف .exe موجودًا على هذا الكمبيوتر وحاول مرة أخرى."
+
+msgid "unable_to_connect"
+msgstr "تعذر الاتصال"
+
+msgid "enable_action_mode"
+msgstr "تفعيل Action Mode"
+
+msgid "disable_action_mode"
+msgstr "تعطيل Action Mode"
+
+msgid "helping_one_person"
+msgstr "مساعدة شخص واحد"
+
+msgid "helping_people"
+msgstr "عدد الأشخاص الذين تساعدهم: %s"

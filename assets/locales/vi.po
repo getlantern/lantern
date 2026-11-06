@@ -2323,3 +2323,18 @@ msgstr "Chọn tệp .exe của một ứng dụng trên máy tính này, ngoài
 
 msgid "unable_to_add_executable"
 msgstr "Không thể thêm tệp thực thi. Hãy chọn một tệp .exe có sẵn trên máy tính này và thử lại."
+
+msgid "unable_to_connect"
+msgstr "Không thể kết nối"
+
+msgid "enable_action_mode"
+msgstr "Bật Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Tắt Action Mode"
+
+msgid "helping_one_person"
+msgstr "Đang giúp 1 người"
+
+msgid "helping_people"
+msgstr "Đang giúp %s người"

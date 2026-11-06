@@ -2148,3 +2148,18 @@ msgstr "اس کمپیوٹر پر Lantern کے علاوہ کسی ایپ کی .exe
 
 msgid "unable_to_add_executable"
 msgstr "ایگزیکیوٹیبل شامل نہیں ہو سکا۔ اس کمپیوٹر پر موجود کوئی .exe فائل منتخب کریں اور دوبارہ کوشش کریں۔"
+
+msgid "unable_to_connect"
+msgstr "منسلک نہیں ہو سکا"
+
+msgid "enable_action_mode"
+msgstr "Action Mode آن کریں"
+
+msgid "disable_action_mode"
+msgstr "Action Mode بند کریں"
+
+msgid "helping_one_person"
+msgstr "1 شخص کی مدد کر رہے ہیں"
+
+msgid "helping_people"
+msgstr "%s لوگوں کی مدد کر رہے ہیں"

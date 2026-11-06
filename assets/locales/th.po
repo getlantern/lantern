@@ -2293,3 +2293,18 @@ msgstr "เลือกไฟล์ .exe ของแอปในคอมพิ
 
 msgid "unable_to_add_executable"
 msgstr "ไม่สามารถเพิ่มไฟล์ปฏิบัติการได้ เลือกไฟล์ .exe ที่มีอยู่ในคอมพิวเตอร์นี้แล้วลองอีกครั้ง"
+
+msgid "unable_to_connect"
+msgstr "ไม่สามารถเชื่อมต่อได้"
+
+msgid "enable_action_mode"
+msgstr "เปิด Action Mode"
+
+msgid "disable_action_mode"
+msgstr "ปิด Action Mode"
+
+msgid "helping_one_person"
+msgstr "กำลังช่วย 1 คน"
+
+msgid "helping_people"
+msgstr "กำลังช่วย %s คน"
