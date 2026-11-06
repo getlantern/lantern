@@ -287,7 +287,7 @@ func TestPairingKeyNothingIsPushedBeforeTheFirstUnlock(t *testing.T) {
 	lc.pairingKeys.now = func() time.Time { return now }
 
 	// A locked engine's empty set is not "no pairings": the live loop, the
-	// 5-minute repush and every op leave radiance's keys alone.
+	// periodic repush and every op leave radiance's keys alone.
 	assert.JSONEq(t, `{"error":"locked"}`, lc.HelperCall("view", "{}"))
 	lc.pairingKeys.tick()
 	now = now.Add(2 * pairingKeyRepushInterval)
@@ -375,4 +375,31 @@ func TestPairingKeyBackendChangeWhileLockedPushesNothing(t *testing.T) {
 	f.noMorePushes(t)
 	var p *pairingKeyPusher
 	p.backendChanged()
+}
+
+// TestPairingKeyUnchangedKeysArePushedAgainEvery30Seconds: a backend can lose
+// the keys with no event at all (an Apple network extension killed, after
+// which the client answers from a fresh fallback backend), so the live loop
+// pushes the same keys again every 30 seconds.
+func TestPairingKeyUnchangedKeysArePushedAgainEvery30Seconds(t *testing.T) {
+	require.Equal(t, 30*time.Second, pairingKeyRepushInterval)
+	f := newFakePairingKeyIPC()
+	want := map[string]helper.PairingKey{"p1": {Key: pairingKeyA, Role: "inviter"}}
+	f.setKeys(want)
+	lc := pairingKeyCore(t, f)
+	now := time.Now()
+	lc.pairingKeys.now = func() time.Time { return now }
+
+	lc.HelperCall("view", "{}")
+	f.settle(t, lc.pairingKeys, 1)
+	for range 29 {
+		now = now.Add(time.Second)
+		lc.pairingKeys.tick()
+	}
+	f.noMorePushes(t)
+	now = now.Add(time.Second)
+	lc.pairingKeys.tick()
+	f.settle(t, lc.pairingKeys, 1)
+	require.Len(t, f.pushes(), 2)
+	assert.Equal(t, f.pushes()[0], f.pushes()[1], "the same set again")
 }

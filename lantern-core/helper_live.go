@@ -73,9 +73,13 @@ const (
 	// pairingKeyPushTimeout bounds one push of the pairing keys to radiance.
 	pairingKeyPushTimeout = 5 * time.Second
 	// pairingKeyRepushInterval is how often the keys are pushed again even
-	// though nothing changed, so a radiance daemon that restarted, and so
-	// lost them, gets them back.
-	pairingKeyRepushInterval = 5 * time.Minute
+	// though nothing changed, so a backend that lost them gets them back
+	// without any event saying so: a lanternd that restarted, or on Apple
+	// builds a network extension that was killed, after which the IPC
+	// client quietly answers from a fresh in-process fallback backend. The
+	// push is a local IPC call and radiance ignores an identical set, so
+	// it is cheap to do often.
+	pairingKeyRepushInterval = 30 * time.Second
 )
 
 // pairingKeyPusher keeps radiance's copy of the helper pairing keys in step
