@@ -39,6 +39,14 @@ class ActionModeAutoEnable extends ConsumerWidget {
         onChanged: change,
       ),
       onPressed: () => change(!enabled),
+      // Bare, it has the dialog's width only: no inset, and the dialog's
+      // body size, so the label fits.
+      contentPadding: card ? null : EdgeInsets.zero,
+      tileTextStyle: card
+          ? null
+          : Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: context.textPrimary),
     );
     if (!card) return tile;
     return AppCard(padding: EdgeInsets.zero, child: tile);
