@@ -1917,6 +1917,10 @@ msgstr "Offline"
 msgid "helper_unnamed"
 msgstr "Your helper"
 
+# Shown under a personal proxy paired before faster connections existed.
+msgid "pairing_repair_for_faster"
+msgstr "Re-pair to enable faster connections"
+
 # %s is the helper's name.
 msgid "helper_remove_confirm_title"
 msgstr "Remove %s?"

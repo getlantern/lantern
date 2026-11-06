@@ -1057,6 +1057,40 @@ void main() {
     expect(reza.enabled, isTrue);
   });
 
+  testWidgets('a friend paired before faster connections is asked to '
+      're-pair', (tester) async {
+    final helpers = _Helpers(
+      _helping(
+        helping: const [
+          HelperPairingView(
+            pairingId: 'p1',
+            name: 'Sara',
+            sinceUnix: 1700000000,
+          ),
+          HelperPairingView(
+            pairingId: 'p2',
+            name: 'Reza',
+            sinceUnix: 1700000000,
+            hasPairingKey: false,
+          ),
+          HelperPairingView(pairingId: 'p3', name: 'Bo', hasPairingKey: false),
+        ],
+      ),
+    );
+    await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
+    final since = helperSinceLabel(1700000000);
+    final hint = 'pairing_repair_for_faster'.i18n;
+    expect(hint, 'Re-pair to enable faster connections');
+    Finder inRow(String id, String text) => find.descendant(
+      of: find.byKey(Key('helping.friend.$id')),
+      matching: find.text(text),
+    );
+    expect(inRow('p1', since), findsOneWidget);
+    expect(inRow('p2', '$since · $hint'), findsOneWidget);
+    expect(inRow('p3', hint), findsOneWidget);
+    expect(find.textContaining(hint), findsNWidgets(2));
+  });
+
   testWidgets('the sheet title says how many are connected only once known', (
     tester,
   ) async {
