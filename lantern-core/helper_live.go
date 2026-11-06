@@ -132,6 +132,39 @@ func (p *pairingKeyPusher) tick() {
 	p.kick(force)
 }
 
+// backendChanged forgets what radiance accepted and pushes the keys again.
+// On Apple builds the IPC client answers from an in-process fallback backend
+// while the network extension is down and switches to the extension once it
+// is up, so keys the fallback accepted never reached the extension, and the
+// reverse; on desktop a lanternd restart loses them too. The client does not
+// say which backend answered, so this runs on the signals that the backend
+// may have changed. It never waits on the push.
+func (p *pairingKeyPusher) backendChanged() {
+	if p == nil {
+		return
+	}
+	p.mu.Lock()
+	p.pushed = nil
+	p.mu.Unlock()
+	p.kick(true)
+}
+
+// repushPairingKeysOn runs p.backendChanged on every event subscribe
+// delivers. Blocks until ctx is cancelled.
+func repushPairingKeysOn[T any](ctx context.Context, subscribe func(context.Context, func(T)) error, p *pairingKeyPusher) {
+	err := subscribe(ctx, func(T) { p.backendChanged() })
+	if err != nil && ctx.Err() == nil {
+		slog.Warn("Event stream for re-pushing helper pairing keys exited", "error", err)
+	}
+}
+
+// listenVPNStatusForPairingKeys pushes the pairing keys again on every VPN
+// status change: on Apple builds the network extension coming up or going
+// down moves the IPC client between it and the in-process fallback backend.
+func (lc *LanternCore) listenVPNStatusForPairingKeys() {
+	repushPairingKeysOn(lc.ctx, lc.client.VPNStatusEvents, lc.pairingKeys)
+}
+
 func (p *pairingKeyPusher) kick(force bool) {
 	if p == nil || p.ctx.Err() != nil {
 		return

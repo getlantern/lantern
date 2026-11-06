@@ -163,8 +163,16 @@ const EventTypeSelectionChanged EventType = "selection-changed"
 
 // listenSelectionSavedEvents forwards radiance's selection-saved events to the
 // app. Blocks until lc.ctx is cancelled.
+//
+// The stream also delivers one event each time it connects to radiance's IPC
+// server, which on Apple builds is the switch from the in-process fallback
+// backend to the network extension, and on desktop a lanternd (re)start, so
+// it pushes the helper pairing keys again too.
 func (lc *LanternCore) listenSelectionSavedEvents() {
-	forwardSelectionSaved(lc.ctx, lc.client.SelectionSavedEvents, lc.notifyFlutter)
+	forwardSelectionSaved(lc.ctx, lc.client.SelectionSavedEvents, func(name EventType, data string) {
+		lc.pairingKeys.backendChanged()
+		lc.notifyFlutter(name, data)
+	})
 }
 
 // forwardSelectionSaved subscribes and sends the app one selection-changed
