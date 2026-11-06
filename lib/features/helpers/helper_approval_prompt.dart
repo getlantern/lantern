@@ -56,7 +56,7 @@ void useHelperApprovalPrompt(
       }
       notifier.markApprovalPrompted(invite.id);
       showing.value = true;
-      await showApproveHelperDialog(context, invite);
+      await showApproveHelperDialog(context, ref, invite);
       showing.value = false;
     }
 

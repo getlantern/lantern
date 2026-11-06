@@ -77,8 +77,12 @@ class _Helpers extends HelpersNotifier {
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
     decisions.add((inviteId, approve));
     await decideGate?.future;
+    if (onDecide != null) state = onDecide!;
     return decideResult ?? HelperResult.parse('{"unlocked":true}');
   }
+
+  /// The state a successful decide leaves, as the engine's view would.
+  HelpersState? onDecide;
 
   int endAll = 0;
   final ended = <String>[];
@@ -318,6 +322,14 @@ final _approveYes = find.widgetWithText(
   'approve_codes_match'.i18n,
 );
 final _approveNo = find.widgetWithText(SecondaryButton, 'approve_reject'.i18n);
+final _approvedConnect = find.widgetWithText(
+  PrimaryButton,
+  'approved_connect_now'.i18n,
+);
+final _approvedDone = find.widgetWithText(
+  SecondaryButton,
+  'help_friend_done'.i18n,
+);
 
 /// Opens the approval dialog for [_claimed]; completes with its result.
 Future<Future<bool>> _openApproval(WidgetTester tester, _Helpers fake) async {
@@ -325,10 +337,11 @@ Future<Future<bool>> _openApproval(WidgetTester tester, _Helpers fake) async {
   await _pump(
     tester,
     fake,
-    Builder(
-      builder: (context) => TextButton(
-        onPressed: () async =>
-            result.complete(await showApproveHelperDialog(context, _claimed)),
+    Consumer(
+      builder: (context, ref, _) => TextButton(
+        onPressed: () async => result.complete(
+          await showApproveHelperDialog(context, ref, _claimed),
+        ),
         child: const Text('approve'),
       ),
     ),
@@ -359,8 +372,74 @@ void main() {
     await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
+    expect(find.text('approve_title'.i18n.fill(['Ali'])), findsNothing);
+    // The success dialog follows; Done closes it.
+    expect(find.text('approved_title'.i18n.fill(['Ali'])), findsOneWidget);
+    await tester.tap(_approvedDone);
+    await tester.pumpAndSettle();
     expect(dialog, findsNothing);
     expect(await result, isTrue);
+  });
+
+  testWidgets('after approving: "[Name] is now your Personal Proxy", where to '
+      'pick them, Connect Now and Done', (tester) async {
+    final connects = <String?>[];
+    debugConnectPersonalProxy = (tag) async => connects.add(tag);
+    addTearDown(() => debugConnectPersonalProxy = null);
+    final fake = _Helpers(const HelpersState())
+      ..onDecide = const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          helpers: [
+            HelperPairingView(
+              pairingId: 'p1',
+              name: 'Ali',
+              outboundTag: 'helper-p1',
+            ),
+          ],
+        ),
+      );
+    final result = await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    expect(find.text('approved_title'.i18n.fill(['Ali'])), findsOneWidget);
+    expect(find.text('approved_body'.i18n.fill(['Ali'])), findsOneWidget);
+    expect(_approvedConnect, findsOneWidget);
+    expect(_approvedDone, findsOneWidget);
+    await tester.tap(_approvedConnect);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    // The new friend alone, by their outbound tag.
+    expect(connects, ['helper-p1']);
+    expect(await result, isTrue);
+  });
+
+  testWidgets('Connect Now uses the personal proxies group when the new '
+      'friend cannot be told', (tester) async {
+    final connects = <String?>[];
+    debugConnectPersonalProxy = (tag) async => connects.add(tag);
+    addTearDown(() => debugConnectPersonalProxy = null);
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    await tester.tap(_approvedConnect);
+    await tester.pumpAndSettle();
+    expect(connects, [null]);
+  });
+
+  testWidgets('Done after approving connects nothing', (tester) async {
+    final connects = <String?>[];
+    debugConnectPersonalProxy = (tag) async => connects.add(tag);
+    addTearDown(() => debugConnectPersonalProxy = null);
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    await tester.tap(_approvedDone);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(connects, isEmpty);
   });
 
   testWidgets('rejecting decides with reject, which burns the invite', (
@@ -1404,6 +1483,8 @@ void main() {
     await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
+    await tester.tap(_approvedDone);
+    await tester.pumpAndSettle();
     expect(find.byType(InviteShare), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
