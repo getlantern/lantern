@@ -190,7 +190,6 @@ class _ProxyRow extends StatelessWidget {
         [
           status,
           if (helper.sinceUnix > 0) helperSinceLabel(helper.sinceUnix),
-          if (!helper.hasPairingKey) 'pairing_repair_for_faster'.i18n,
         ].join(' · '),
         key: Key(online ? 'helpers.online.$index' : 'helpers.offline.$index'),
         style: Theme.of(

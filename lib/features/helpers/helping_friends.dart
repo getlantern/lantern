@@ -158,13 +158,9 @@ class HelpingFriendsSheet extends HookConsumerWidget {
                   tileKey: Key('helping.friend.${p.pairingId}'),
                   icon: AppImagePaths.person,
                   label: _name(p),
-                  subtitle: p.sinceUnix > 0 || !p.hasPairingKey
+                  subtitle: p.sinceUnix > 0
                       ? Text(
-                          [
-                            if (p.sinceUnix > 0) helperSinceLabel(p.sinceUnix),
-                            if (!p.hasPairingKey)
-                              'pairing_repair_for_faster'.i18n,
-                          ].join(' · '),
+                          helperSinceLabel(p.sinceUnix),
                           style: textTheme.labelMedium!.copyWith(
                             color: context.textTertiary,
                           ),
