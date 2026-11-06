@@ -972,6 +972,22 @@ msgstr "Connected"
 msgid "status_off"
 msgstr "Disconnected"
 
+msgid "unable_to_connect"
+msgstr "Unable to Connect"
+
+msgid "enable_action_mode"
+msgstr "Enable Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Disable Action Mode"
+
+msgid "helping_one_person"
+msgstr "Helping 1 person"
+
+# %s is a number greater than one.
+msgid "helping_people"
+msgstr "Helping %s people"
+
 msgid "select_location"
 msgstr "Select Location"
 
