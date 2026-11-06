@@ -118,9 +118,8 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             height: 35.h,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TabBar(
               indicatorSize: TabBarIndicatorSize.tab,
               splashBorderRadius: BorderRadius.circular(40),
