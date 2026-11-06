@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -1254,4 +1255,62 @@ func TestAddPairingFillsAMissingKey(t *testing.T) {
 	assert.Equal(t, []byte{1, 2}, e.pairing("p").PairingKey)
 	e.addPairing("p", RoleInviter, "Ali", time.Now(), nil, []byte{3})
 	assert.Equal(t, []byte{1, 2}, e.pairing("p").PairingKey, "a kept key is not replaced")
+}
+
+// TestRemoveAllRevokesKeysBeforeTheEndRequest: remove all erases the keys
+// before it asks lantern-cloud to end anything, and the change is published
+// then, so a stalled pairings/end does not keep a revoked key in radiance
+// for the length of the op.
+func TestRemoveAllRevokesKeysBeforeTheEndRequest(t *testing.T) {
+	cloud := newFakeCloud()
+	sara, _, id, _ := pairedWithSecret(t, cloud, t.TempDir(), t.TempDir())
+	require.Contains(t, sara.PairingKeys(), id)
+
+	stalled, release := make(chan struct{}), make(chan struct{})
+	inner := sara.relay
+	sara.relay = func(ctx context.Context, op string, body []byte) (int, []byte, string, error) {
+		if op == "pairings/end" {
+			close(stalled)
+			<-release
+		}
+		return inner(ctx, op, body)
+	}
+	var mu sync.Mutex
+	var seen []map[string]PairingKey
+	sara.SetKeysChanged(func() {
+		keys, unlocked := sara.UnlockedPairingKeys()
+		assert.True(t, unlocked)
+		mu.Lock()
+		seen = append(seen, keys)
+		mu.Unlock()
+	})
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		_, err := sara.Call(context.Background(), "end_all_helpers", nil)
+		assert.NoError(t, err)
+	}()
+	<-stalled
+	mu.Lock()
+	require.NotEmpty(t, seen, "the change is published while pairings/end hangs")
+	assert.NotContains(t, seen[len(seen)-1], id)
+	mu.Unlock()
+	keys, _ := sara.UnlockedPairingKeys()
+	assert.NotContains(t, keys, id, "and a reader sees the reduced set")
+	close(release)
+	<-done
+	assert.Empty(t, sara.PairingKeys())
+}
+
+func TestKeysChangedRunsOnlyOnAChange(t *testing.T) {
+	cloud := newFakeCloud()
+	e := NewEngine(t.TempDir(), cloud.relay("x"), nil)
+	n := 0
+	e.SetKeysChanged(func() { n++ })
+	call(t, e, "unlock", map[string]any{"key": testKey})
+	assert.Equal(t, 1, n, "the unlock is a change")
+	call(t, e, "view", nil)
+	call(t, e, "refresh", nil)
+	assert.Equal(t, 1, n, "ops that change no key are not")
 }

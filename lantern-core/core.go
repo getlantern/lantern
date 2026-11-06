@@ -344,6 +344,8 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.eventEmitter = eventEmitter
 	lc.helpers = helper.NewEngine(filepath.Join(opts.DataDir, "helper"), lc.relayHelper, lc.helperActivity)
 	lc.pairingKeys = newPairingKeyPusher(ctx, lc.helpers.UnlockedPairingKeys, client.SetHelperPairingKeys)
+	// A key an op erases before a slow request reaches radiance at once.
+	lc.helpers.SetKeysChanged(lc.pairingKeys.changed)
 
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()

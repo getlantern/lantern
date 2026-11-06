@@ -10,6 +10,7 @@
 package helper
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
@@ -90,6 +91,7 @@ type Engine struct {
 	keysMu       sync.Mutex
 	keys         map[string]PairingKey
 	keysUnlocked bool
+	keysChanged  func()
 }
 
 // PairingKey is one pairing's K_pair and this device's side of it.
@@ -118,8 +120,20 @@ func (e *Engine) UnlockedPairingKeys() (map[string]PairingKey, bool) {
 	return out, e.keysUnlocked
 }
 
+// SetKeysChanged sets fn to run each time what UnlockedPairingKeys returns
+// changes, including part way through an op, so a key an op erased before a
+// slow request is revoked at once rather than when the op returns. fn runs
+// with the engine's op lock held, so it must not call Call; reading the keys
+// is fine.
+func (e *Engine) SetKeysChanged(fn func()) {
+	e.keysMu.Lock()
+	defer e.keysMu.Unlock()
+	e.keysChanged = fn
+}
+
 // snapshotKeys refreshes what PairingKeys returns from the state. Called
-// under mu.
+// under mu: by Call after every op, by save, and by any op that changes the
+// pairings before a request.
 func (e *Engine) snapshotKeys() {
 	keys := map[string]PairingKey{}
 	if e.key != nil {
@@ -129,10 +143,18 @@ func (e *Engine) snapshotKeys() {
 			}
 		}
 	}
+	unlocked := e.key != nil
 	e.keysMu.Lock()
+	changed := unlocked != e.keysUnlocked || !maps.EqualFunc(keys, e.keys, func(a, b PairingKey) bool {
+		return a.Role == b.Role && bytes.Equal(a.Key, b.Key)
+	})
 	e.keys = keys
-	e.keysUnlocked = e.key != nil
+	e.keysUnlocked = unlocked
+	notify := e.keysChanged
 	e.keysMu.Unlock()
+	if changed && notify != nil {
+		notify()
+	}
 }
 
 // NewEngine returns an engine that keeps its state in dir.
