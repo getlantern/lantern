@@ -1,5 +1,9 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/common/common.dart'
+    show AppTheme, PlatformUtils, mobileSize;
 import 'package:lantern/core/models/user_message.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/router/router.gr.dart';
@@ -78,5 +82,39 @@ void main() {
     }
 
     expect(urls, isEmpty);
+  });
+
+  testWidgets('on TV an HTTPS action shows the link as a QR code', (
+    tester,
+  ) async {
+    sl.pushNewScope();
+    final router = _RecordingRouter();
+    sl.registerSingleton<AppRouter>(router);
+    PlatformUtils.isTv = true;
+    addTearDown(() async {
+      PlatformUtils.isTv = false;
+      await sl.popScope();
+      router.dispose();
+    });
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: mobileSize,
+        child: MaterialApp(
+          navigatorKey: router.navigatorKey,
+          theme: AppTheme.appTheme(),
+          home: const Scaffold(body: Text('host')),
+        ),
+      ),
+    );
+
+    UserMessageActionDispatcher.application().dispatch(
+      UserMessageAction(
+        type: UserMessageActionType.openHttpsUrl,
+        url: Uri.parse('https://getlantern.org/plans'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('tv.link.qr')), findsOneWidget);
   });
 }
