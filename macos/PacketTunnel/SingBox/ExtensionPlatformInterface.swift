@@ -588,6 +588,7 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
       try applyNetworkSettings(networkSettings)
     } catch {
       appLogger.error("clearDNSCache: restore network settings: \(error.localizedDescription)")
+      tunnel.cancelTunnel(error)
     }
   }
 
