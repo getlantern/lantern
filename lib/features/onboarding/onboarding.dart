@@ -246,7 +246,22 @@ class _OnboardingState extends ConsumerState<Onboarding> {
               tileKey: const Key('onboarding.personal_proxies'),
               icon: Padding(
                 padding: const EdgeInsets.only(top: 5.0),
-                child: AppImage(path: AppImagePaths.personAdd),
+                // The other rows' icon tile, around the app's person-add
+                // icon.
+                child: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: context.bgHover,
+                    border: Border.all(color: context.statusInfoBorder),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: AppImage(
+                    path: AppImagePaths.personAdd,
+                    width: 22,
+                    height: 22,
+                    color: context.statusInfoText,
+                  ),
+                ),
               ),
               label: '',
               labelWidget: Row(
@@ -381,7 +396,19 @@ class RouteModeContainer extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8.0),
-              _Tag(tags())
+              Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: context.statusInfoBorder),
+                    color: context.statusInfoBg,
+                  ),
+                  child: Text(
+                    tags(),
+                    style: textTheme.labelMedium!
+                        .copyWith(color: context.statusInfoText),
+                  ))
             ],
           ),
           SizedBox(height: 4.0),
@@ -421,37 +448,26 @@ class RouteModeContainer extends StatelessWidget {
   }
 }
 
-/// The routing modes' tag pill.
-class _Tag extends StatelessWidget {
-  const _Tag(this.text, {super.key});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: context.statusInfoBorder),
-        color: context.statusInfoBg,
-      ),
-      child: Text(
-        text,
-        style: TextTheme.of(context)
-            .labelMedium!
-            .copyWith(color: context.statusInfoText),
-      ),
-    );
-  }
-}
-
-/// "New", in the routing modes' tag pill, beside a feature onboarding
-/// introduces.
+/// "New", beside a feature onboarding introduces.
 class NewBadge extends StatelessWidget {
   const NewBadge({super.key});
 
   @override
-  Widget build(BuildContext context) =>
-      _Tag('onboarding_new_badge'.i18n, key: const Key('onboarding.new_badge'));
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('onboarding.new_badge'),
+      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: context.statusSuccessBorder),
+        color: context.statusSuccessBg,
+      ),
+      child: Text(
+        'onboarding_new_badge'.i18n,
+        style: TextTheme.of(context)
+            .labelMedium!
+            .copyWith(color: context.statusSuccessText),
+      ),
+    );
+  }
 }
