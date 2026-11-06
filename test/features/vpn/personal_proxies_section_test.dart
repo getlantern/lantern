@@ -230,6 +230,66 @@ void main() {
       expect(radio(), findsOneWidget);
     });
 
+    testWidgets('a friend offline by presence but with a live reverse route '
+        'is shown online and can be selected', (tester) async {
+      const reza = HelperPairingView(
+        pairingId: 'p4',
+        name: 'Reza',
+        outboundTag: 'helper-ba9876543210',
+      );
+      final taps = await _pump(
+        tester,
+        _with([reza, bo]),
+        status: const {
+          'helper-ba9876543210': PersonalProxyStatus(reverse: true),
+        },
+        selectFriends: true,
+      );
+      expect(
+        find.byKey(const Key('server_selection.personal_proxy.offline.p4')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('server_selection.personal_proxy.offline.p2')),
+        findsOneWidget,
+      );
+      expect(find.text('helper_online'.i18n), findsOneWidget);
+      final rezaRow = find.byKey(
+        const Key('server_selection.personal_proxy.p4'),
+      );
+      await tester.tap(
+        find.descendant(of: rezaRow, matching: find.byType(Radio<String>)),
+      );
+      expect(_friendTaps, ['helper-ba9876543210']);
+      await tester.tap(
+        find.byKey(const Key('server_selection.personal_proxies')),
+      );
+      expect(taps, hasLength(1), reason: 'the group has a reachable friend');
+    });
+
+    testWidgets('direct or rooms alone do not override offline presence', (
+      tester,
+    ) async {
+      const reza = HelperPairingView(
+        pairingId: 'p4',
+        name: 'Reza',
+        outboundTag: 'helper-ba9876543210',
+      );
+      await _pump(
+        tester,
+        _with([reza]),
+        status: const {
+          'helper-ba9876543210': PersonalProxyStatus(direct: true, rooms: true),
+        },
+        selectFriends: true,
+      );
+      expect(
+        find.byKey(const Key('server_selection.personal_proxy.offline.p4')),
+        findsOneWidget,
+      );
+      expect(find.byType(Radio<String>), findsNothing);
+    });
+
     testWidgets('selecting a friend leaves the group row unselected but '
         'selectable', (tester) async {
       final taps = await _pump(

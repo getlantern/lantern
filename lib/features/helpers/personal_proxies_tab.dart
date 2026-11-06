@@ -11,6 +11,7 @@ import 'package:lantern/features/helpers/helping_friends.dart'
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 
 /// Manage Private Locations' "Personal Proxies": each friend with Rename and
 /// Remove, invites waiting on a friend (Cancel) or on the user (compare
@@ -22,6 +23,7 @@ class PersonalProxiesTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(helpersProvider);
     final view = state.view;
+    final status = ref.watch(personalProxyStatusProvider);
     final notifier = ref.read(helpersProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
 
@@ -77,7 +79,12 @@ class PersonalProxiesTab extends HookConsumerWidget {
             if (i > 0) const SizedBox(height: 8),
             AppCard(
               padding: EdgeInsets.zero,
-              child: _ProxyRow(index: i, helper: h, notifier: notifier),
+              child: _ProxyRow(
+                index: i,
+                helper: h,
+                online: h.reachable(status),
+                notifier: notifier,
+              ),
             ),
           ],
           if (view.helpers.length == 1) ...[
@@ -159,11 +166,15 @@ class _ProxyRow extends StatelessWidget {
   const _ProxyRow({
     required this.index,
     required this.helper,
+    required this.online,
     required this.notifier,
   });
 
   final int index;
   final HelperPairingView helper;
+
+  /// [HelperPairingView.reachable]: online, or a live reverse route.
+  final bool online;
 
   /// Held rather than read from a ref: see [PersonalProxiesTab._removeAll].
   final HelpersNotifier notifier;
@@ -171,7 +182,7 @@ class _ProxyRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = helper.name.isEmpty ? 'helper_unnamed'.i18n : helper.name;
-    final status = helper.online ? 'helper_online'.i18n : 'helper_offline'.i18n;
+    final status = online ? 'helper_online'.i18n : 'helper_offline'.i18n;
     return AppTile(
       icon: AppImagePaths.person,
       label: name,
@@ -181,9 +192,7 @@ class _ProxyRow extends StatelessWidget {
           if (helper.sinceUnix > 0) helperSinceLabel(helper.sinceUnix),
           if (!helper.hasPairingKey) 'pairing_repair_for_faster'.i18n,
         ].join(' · '),
-        key: Key(
-          helper.online ? 'helpers.online.$index' : 'helpers.offline.$index',
-        ),
+        key: Key(online ? 'helpers.online.$index' : 'helpers.offline.$index'),
         style: Theme.of(
           context,
         ).textTheme.labelMedium!.copyWith(color: context.textTertiary),
