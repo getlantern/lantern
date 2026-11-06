@@ -1715,11 +1715,7 @@ msgstr ""
 "través de tu conexión para llegar al internet abierto."
 
 msgid "share_consent_body_ip"
-msgstr ""
-"Si tu router admite reenvío de puertos, tu conexión doméstica se usa como "
-"salida y tu dirección IP aparecerá en los registros del destino mientras "
-"compartes. De lo contrario, ese tráfico se retransmite a través de los "
-"servidores de Lantern y tu IP no queda expuesta de esa manera."
+msgstr "Si tu router admite reenvío de puertos, la conexión de tu casa se usa como salida y tu dirección IP aparecerá en los registros del destino mientras compartes. Si no, ese tráfico pasa por los servidores de Lantern y tu IP no queda expuesta de esa forma. El tráfico de un amigo para quien eres proxy personal también puede salir por tu conexión, incluso sin reenvío de puertos."
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2230,7 +2226,7 @@ msgid "become_means_title"
 msgstr "Qué significa ser un proxy personal"
 
 msgid "become_means_traffic"
-msgstr "Una persona amiga te pidió ayuda. Mientras Action Mode esté activo, podrá navegar por el internet abierto a través de tu conexión. Según tu router, su tráfico sale desde tu red o pasa por los servidores de Lantern. Lantern no te muestra lo que hace en internet."
+msgstr "Un amigo te pidió ayuda. Mientras Action Mode está activo, puede llegar al internet abierto a través de tu conexión. Lantern no te muestra qué sitios visita."
 
 msgid "become_means_seen"
 msgstr "Pueden ver cuándo tienes conexión. Acepta invitaciones solo de gente que conoces."
@@ -2333,3 +2329,18 @@ msgstr "Selecciona el archivo .exe de una aplicación de esta computadora, que n
 
 msgid "unable_to_add_executable"
 msgstr "No se pudo agregar el ejecutable. Escoge un archivo .exe que esté en esta computadora y vuelve a intentarlo."
+
+msgid "unable_to_connect"
+msgstr "No se pudo conectar"
+
+msgid "enable_action_mode"
+msgstr "Activar Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Desactivar Action Mode"
+
+msgid "helping_one_person"
+msgstr "Ayudando a 1 persona"
+
+msgid "helping_people"
+msgstr "Ayudando a %s personas"

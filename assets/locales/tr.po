@@ -1706,11 +1706,7 @@ msgstr ""
 "trafiklerini bağlantınız üzerinden yönlendirir."
 
 msgid "share_consent_body_ip"
-msgstr ""
-"Yönlendiriciniz bağlantı noktası yönlendirmeyi destekliyorsa, ev bağlantınız"
-" çıkış olarak kullanılır ve paylaşım sırasında IP adresiniz hedefin "
-"günlüklerinde görünür. Aksi halde bu trafik Lantern'in sunucuları üzerinden "
-"aktarılır ve IP'niz bu şekilde açığa çıkmaz."
+msgstr "Yönlendiriciniz bağlantı noktası yönlendirmeyi destekliyorsa, ev bağlantınız çıkış noktası olarak kullanılır ve paylaşım yaparken IP adresiniz hedefin kayıtlarında görünür. Aksi halde bu trafik Lantern sunucuları üzerinden aktarılır ve IP adresiniz bu şekilde açığa çıkmaz. Kişisel Proxy'si olduğunuz bir arkadaşınızın trafiği de bağlantı noktası yönlendirme olmadan bile bağlantınızdan çıkabilir."
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2222,7 +2218,7 @@ msgid "become_means_title"
 msgstr "Kişisel Proxy olmak ne demek"
 
 msgid "become_means_traffic"
-msgstr "Bir arkadaşınız sizden yardım istedi. Action Mode çalışırken bağlantınız üzerinden açık internete erişebilir. Yönlendiricinize bağlı olarak trafiği ağınızdan çıkar veya Lantern sunucuları üzerinden aktarılır. Lantern, çevrimiçi ne yaptığını size göstermez."
+msgstr "Bir arkadaşınız sizden yardım istedi. Action Mode çalışırken, bağlantınız üzerinden açık internete ulaşabilir. Lantern size hangi sitelere eriştiğini göstermez."
 
 msgid "become_means_seen"
 msgstr "Ne zaman bağlı olduğunuzu görebilirler. Yalnızca tanıdığınız kişilerden gelen davetleri kabul edin."
@@ -2325,3 +2321,18 @@ msgstr "Yürütülebilir dosya eklenemedi. Bu bilgisayarda bulunan bir .exe dosy
 
 msgid "help_friend_ask_invite"
 msgstr "Arkadaşınızdan Davet İsteyin"
+
+msgid "unable_to_connect"
+msgstr "Bağlanılamıyor"
+
+msgid "enable_action_mode"
+msgstr "Action Mode'u Aç"
+
+msgid "disable_action_mode"
+msgstr "Action Mode'u Kapat"
+
+msgid "helping_one_person"
+msgstr "1 kişiye yardım ediyorsunuz"
+
+msgid "helping_people"
+msgstr "Yardım edilen kişi: %s"

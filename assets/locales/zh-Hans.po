@@ -1567,9 +1567,7 @@ msgid "share_consent_body_what"
 msgstr "共享开启期间，受审查国家/地区的人们会通过您的连接路由其流量，以访问开放互联网。"
 
 msgid "share_consent_body_ip"
-msgstr ""
-"如果您的路由器支持端口转发，您的家庭连接将被用作出口，共享期间您的 IP 地址会出现在目标网站的日志中。否则，该流量将改经蓝灯的服务器中转，您的 IP "
-"不会以这种方式暴露。"
+msgstr "如果您的路由器支持端口转发，您的家庭连接将用作出口，共享期间您的 IP 地址会出现在目标网站的日志中。否则，这些流量将改由蓝灯的服务器中转，您的 IP 不会以这种方式暴露。即使没有端口转发，您担任其个人代理的朋友的流量也可能从您的连接出去。"
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2066,7 +2064,7 @@ msgid "become_means_title"
 msgstr "成为个人代理意味着什么"
 
 msgid "become_means_traffic"
-msgstr "一位朋友向您求助。Action Mode 运行期间，对方可以通过您的连接访问开放的互联网。根据您的路由器情况，对方的流量会从您的网络发出，或经由蓝灯的服务器中转。蓝灯不会向您显示对方的网上活动。"
+msgstr "一位朋友向您求助。Action Mode 运行期间，对方可以通过您的连接访问开放互联网。蓝灯不会向您显示对方访问了哪些网站。"
 
 msgid "become_means_seen"
 msgstr "对方可以看到您何时在线连接。只接受认识的人发来的邀请。"
@@ -2169,3 +2167,18 @@ msgstr "选择此电脑上除 Lantern 以外的应用的 .exe 文件。"
 
 msgid "unable_to_add_executable"
 msgstr "无法添加可执行文件。选择此电脑上已有的 .exe 文件，然后重试。"
+
+msgid "unable_to_connect"
+msgstr "无法连接"
+
+msgid "enable_action_mode"
+msgstr "启用 Action Mode"
+
+msgid "disable_action_mode"
+msgstr "停用 Action Mode"
+
+msgid "helping_one_person"
+msgstr "正在帮助 1 个人"
+
+msgid "helping_people"
+msgstr "正在帮助 %s 个人"

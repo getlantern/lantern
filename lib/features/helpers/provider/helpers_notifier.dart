@@ -491,6 +491,7 @@ class HelpersNotifier extends _$HelpersNotifier {
           pairingId: h.pairingId,
           online: h.online,
           sinceUnix: h.sinceUnix,
+          hasPairingKey: h.hasPairingKey,
         ),
     ],
     helping: view.helping,

@@ -777,6 +777,26 @@ void main() {
     expect(c.read(helpersProvider).error, 'unavailable');
   });
 
+  test('remove all keeps whether each pairing has a key', () async {
+    svc.answers = {
+      'unlock': _view(),
+      'refresh': _view(
+        helpers:
+            '[{"pairing_id":"p1","name":"Ali","has_pairing_key":false},'
+            '{"pairing_id":"p2","name":"Bo"}]',
+      ),
+      'end_all_helpers': '{"error":"unavailable"}',
+      'view': '{"error":"unavailable"}',
+    };
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    await n.refresh();
+    await n.endAllHelpers();
+    final helpers = c.read(helpersProvider).view.helpers;
+    expect(helpers.map((h) => h.name), ['', '']);
+    expect(helpers.map((h) => h.hasPairingKey), [false, true]);
+  });
+
   test('an older view never restores the names remove all erased', () async {
     const named = '[{"pairing_id":"p1","name":"Ali","since_unix":1}]';
     svc.answers = {

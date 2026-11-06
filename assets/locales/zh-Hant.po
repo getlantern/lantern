@@ -1572,9 +1572,7 @@ msgid "share_consent_body_what"
 msgstr "分享開啟期間，受審查國家/地區的人們會透過你的連線路由其流量，以連上開放網際網路。"
 
 msgid "share_consent_body_ip"
-msgstr ""
-"如果你的路由器支援連接埠轉發，你的家用連線將被用作出口，分享期間你的 IP 位址會出現在目的地的記錄中。否則，該流量將改經 Lantern "
-"的伺服器中繼，你的 IP 不會以這種方式暴露。"
+msgstr "如果你的路由器支援連接埠轉送，你的家用連線會作為出口，分享期間你的 IP 位址會出現在目的地的記錄中。否則，這些流量會改由 Lantern 的伺服器轉送，你的 IP 不會以這種方式曝光。即使沒有連接埠轉送，你擔任其個人代理的朋友的流量也可能從你的連線送出。"
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2071,7 +2069,7 @@ msgid "become_means_title"
 msgstr "擔任個人代理的意義"
 
 msgid "become_means_traffic"
-msgstr "一位朋友向你求助。Action Mode 執行期間，對方可以透過你的連線存取開放的網際網路。視你的路由器而定，對方的流量會從你的網路送出，或經由 Lantern 的伺服器轉送。Lantern 不會向你顯示對方的網路活動。"
+msgstr "一位朋友向你求助。Action Mode 執行期間，對方可以透過你的連線連上開放網際網路。Lantern 不會向你顯示對方造訪了哪些網站。"
 
 msgid "become_means_seen"
 msgstr "對方可以看到你何時連線。只接受認識的人傳來的邀請。"
@@ -2174,3 +2172,18 @@ msgstr "選擇這台電腦上 Lantern 以外應用程式的 .exe 檔案。"
 
 msgid "unable_to_add_executable"
 msgstr "無法新增執行檔。選擇這台電腦上現有的 .exe 檔案，然後再試一次。"
+
+msgid "unable_to_connect"
+msgstr "無法連線"
+
+msgid "enable_action_mode"
+msgstr "啟用 Action Mode"
+
+msgid "disable_action_mode"
+msgstr "停用 Action Mode"
+
+msgid "helping_one_person"
+msgstr "正在幫助 1 個人"
+
+msgid "helping_people"
+msgstr "正在幫助 %s 個人"

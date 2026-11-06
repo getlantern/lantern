@@ -1686,11 +1686,7 @@ msgstr ""
 "öz trafigini siziň birikmäňizden geçirýärler."
 
 msgid "share_consent_body_ip"
-msgstr ""
-"Routeriňiz port ugrukdyrmasyny goldaýan bolsa, öý birikmäňiz çykalga "
-"hökmünde ulanylýar we paýlaşýan wagtyňyz IP salgyňyz barylýan ýeriň "
-"ýazgylarynda görüner. Ýogsa, ol trafik Lantern-iň serwerlerinden geçirilýär "
-"we IP-iňiz şeýle ýol bilen açylmaýar."
+msgstr "Eger routeriňiz port ugrukdyrmany goldaýan bolsa, öý birikmäňiz çykyş hökmünde ulanylýar we paýlaşýan wagtyňyz IP salgyňyz barylýan ýeriň žurnallarynda görüner. Beýle bolmasa, ol trafik Lantern serwerleri arkaly geçirilýär we IP salgyňyz bu ýol bilen açylmaýar. Şahsy proksisi bolýan dostuňyzyň trafigi hem port ugrukdyrma bolmasa-da birikmäňizden çykyp biler."
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2190,7 +2186,7 @@ msgid "become_means_title"
 msgstr "Şahsy proksi bolmak näme diýmek"
 
 msgid "become_means_traffic"
-msgstr "Bir dostuňyz sizden kömek sorady. Action Mode işleýän wagty ol siziň baglanyşygyňyz arkaly açyk internete girip bilýär. Routeriňize baglylykda, onuň trafigi siziň toruňyzdan çykýar ýa-da Lantern serwerleri arkaly geçirilýär. Lantern onuň onlaýn näme edýändigini size görkezmeýär."
+msgstr "Bir dostuňyz sizden kömek sorady. Action Mode işleýän wagty, ol siziň birikmäňiz arkaly açyk internete ýetip biler. Lantern onuň haýsy saýtlara girýändigini size görkezmeýär."
 
 msgid "become_means_seen"
 msgstr "Olar siziň haçan birikendigiňizi görüp bilýär. Diňe tanaýan adamlaryňyzyň çakylyklaryny kabul ediň."
@@ -2305,3 +2301,18 @@ msgstr "Bu kompýuterde Lantern-den başga bir programmanyň .exe faýlyny saýl
 
 msgid "unable_to_add_executable"
 msgstr "Ýerine ýetiriji faýly goşup bolmady. Bu kompýuterdäki bar bolan .exe faýly saýlaň we täzeden synanyşyň."
+
+msgid "unable_to_connect"
+msgstr "Birikip bolmady"
+
+msgid "enable_action_mode"
+msgstr "Action Mode-y işlet"
+
+msgid "disable_action_mode"
+msgstr "Action Mode-y öçür"
+
+msgid "helping_one_person"
+msgstr "1 adama kömek edýärsiňiz"
+
+msgid "helping_people"
+msgstr "Kömek edýän adamlaryňyz: %s"

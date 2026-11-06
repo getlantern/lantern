@@ -1758,7 +1758,7 @@ msgid "share_consent_body_what"
 msgstr "Lorsque le partage est activé, des personnes dans des pays censurés font passer leur trafic par votre connexion pour accéder à l'internet libre."
 
 msgid "share_consent_body_ip"
-msgstr "Si votre routeur prend en charge la redirection de port, votre connexion domestique sert de sortie et votre adresse IP apparaîtra dans les journaux de la destination pendant le partage. Sinon, ce trafic est relayé par les serveurs de Lantern et votre IP n'est pas exposée de cette façon."
+msgstr "Si votre routeur prend en charge la redirection de ports, votre connexion domestique sert de point de sortie et votre adresse IP apparaîtra dans les journaux de la destination pendant le partage. Sinon, ce trafic est relayé par les serveurs de Lantern et votre IP n'est pas exposée de cette façon. Le trafic d'un proche pour qui vous êtes proxy personnel peut aussi sortir par votre connexion, même sans redirection de ports."
 
 msgid "share_consent_body_safety"
 msgstr "Dans les deux cas, Lantern bloque les destinations abusives connues, les plages de réseaux privés et les ports propices aux abus, renouvelle régulièrement les identifiants et agit en tant que « simple intermédiaire » au sens de la DMCA § 512(a)."
@@ -2199,7 +2199,7 @@ msgid "become_means_title"
 msgstr "Être un proxy personnel : ce que cela implique"
 
 msgid "become_means_traffic"
-msgstr "Un proche vous a demandé de l'aide. Tant que Action Mode est actif, il peut accéder à l'internet libre via votre connexion. Selon votre routeur, son trafic sort de votre réseau ou transite par les serveurs de Lantern. Lantern ne vous montre pas ce qu'il fait en ligne."
+msgstr "Une personne de votre entourage vous a demandé de l'aide. Tant que Action Mode est actif, elle peut accéder à l'internet libre via votre connexion. Lantern ne vous montre pas les sites qu'elle consulte."
 
 msgid "become_means_seen"
 msgstr "Ces personnes voient quand votre connexion est active. N'acceptez que les invitations de personnes que vous connaissez."
@@ -2302,3 +2302,18 @@ msgstr "Sélectionnez le fichier .exe d'une application de cet ordinateur, autre
 
 msgid "unable_to_add_executable"
 msgstr "Impossible d'ajouter l'exécutable. Choisissez un fichier .exe existant sur cet ordinateur et réessayez."
+
+msgid "unable_to_connect"
+msgstr "Connexion impossible"
+
+msgid "enable_action_mode"
+msgstr "Activer Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Désactiver Action Mode"
+
+msgid "helping_one_person"
+msgstr "1 personne aidée"
+
+msgid "helping_people"
+msgstr "Personnes aidées : %s"

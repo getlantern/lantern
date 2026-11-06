@@ -1713,11 +1713,7 @@ msgstr ""
 "trafik mereka melalui sambungan anda untuk mencapai internet terbuka."
 
 msgid "share_consent_body_ip"
-msgstr ""
-"Jika penghala anda menyokong pemajuan port, sambungan rumah anda digunakan "
-"sebagai laluan keluar dan alamat IP anda akan muncul dalam log destinasi "
-"semasa anda berkongsi. Jika tidak, trafik itu disampaikan melalui pelayan "
-"Lantern, dan IP anda tidak terdedah dengan cara itu."
+msgstr "Jika penghala anda menyokong pemajuan port, sambungan rumah anda digunakan sebagai titik keluar dan alamat IP anda akan muncul dalam log destinasi semasa anda berkongsi. Jika tidak, trafik itu disalurkan melalui pelayan Lantern, dan IP anda tidak terdedah dengan cara itu. Trafik daripada rakan yang menggunakan anda sebagai Proksi Peribadi juga boleh keluar dari sambungan anda, walaupun tanpa pemajuan port."
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2229,7 +2225,7 @@ msgid "become_means_title"
 msgstr "Maksud menjadi Proksi Peribadi"
 
 msgid "become_means_traffic"
-msgstr "Seorang rakan meminta bantuan anda. Semasa Action Mode berjalan, mereka boleh mengakses internet terbuka melalui sambungan anda. Bergantung pada penghala anda, trafik mereka keluar dari rangkaian anda atau disalurkan melalui pelayan Lantern. Lantern tidak menunjukkan kepada anda apa yang mereka lakukan dalam talian."
+msgstr "Seorang rakan meminta bantuan anda. Semasa Action Mode berjalan, mereka boleh mencapai internet terbuka melalui sambungan anda. Lantern tidak menunjukkan kepada anda laman yang mereka akses."
 
 msgid "become_means_seen"
 msgstr "Mereka boleh melihat bila anda bersambung. Terima jemputan daripada orang yang anda kenali sahaja."
@@ -2332,3 +2328,18 @@ msgstr "Pilih fail .exe aplikasi selain Lantern pada komputer ini."
 
 msgid "unable_to_add_executable"
 msgstr "Tidak dapat menambah fail boleh laku. Pilih fail .exe yang wujud pada komputer ini dan cuba lagi."
+
+msgid "unable_to_connect"
+msgstr "Tidak Dapat Menyambung"
+
+msgid "enable_action_mode"
+msgstr "Dayakan Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Nyahdayakan Action Mode"
+
+msgid "helping_one_person"
+msgstr "Membantu 1 orang"
+
+msgid "helping_people"
+msgstr "Membantu %s orang"

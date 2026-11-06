@@ -30,6 +30,7 @@ import lantern.io.mobile.Mobile
 import lantern.io.utils.Opts
 import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
+import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
@@ -608,6 +609,16 @@ open class LanternVpnService :
         while (inet6Address.hasNext()) {
             val address = inet6Address.next()
             builder.addAddress(address.address(), address.prefix())
+        }
+
+        // Keep domestic payment apps off-tunnel so checkout handoffs don't exit from a foreign IP.
+        for (pkg in AppFilters.TUNNEL_BYPASS) {
+            try {
+                builder.addDisallowedApplication(pkg)
+                AppLogger.i(TAG, "Excluded $pkg from the tunnel")
+            } catch (_: PackageManager.NameNotFoundException) {
+                AppLogger.d(TAG, "$pkg not installed; nothing to exclude")
+            }
         }
 
         if (options.autoRoute) {

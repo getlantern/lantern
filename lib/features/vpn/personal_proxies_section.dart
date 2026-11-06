@@ -36,7 +36,7 @@ class PersonalProxiesSection extends ConsumerWidget {
     final helpers = ref.watch(helpersProvider.select((s) => s.view.helpers));
     if (helpers.isEmpty) return const SizedBox.shrink();
     final status = ref.watch(personalProxyStatusProvider);
-    final anyOnline = helpers.any((h) => h.online);
+    final anyOnline = helpers.any((h) => h.reachable(status));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -62,6 +62,7 @@ class PersonalProxiesSection extends ConsumerWidget {
                 const DividerSpace(),
                 _FriendRow(
                   helper: h,
+                  online: h.reachable(status),
                   selectable: h.selectable(status),
                   selected:
                       h.outboundTag.isNotEmpty &&
@@ -81,12 +82,16 @@ class PersonalProxiesSection extends ConsumerWidget {
 class _FriendRow extends StatelessWidget {
   const _FriendRow({
     required this.helper,
+    required this.online,
     required this.selectable,
     required this.selected,
     required this.onSelect,
   });
 
   final HelperPairingView helper;
+
+  /// [HelperPairingView.reachable]: online, or a live reverse route.
+  final bool online;
   final bool selectable;
   final bool selected;
   final ValueChanged<HelperPairingView>? onSelect;
@@ -100,7 +105,7 @@ class _FriendRow extends StatelessWidget {
       icon: AppImagePaths.person,
       label: helper.name.isEmpty ? 'helper_unnamed'.i18n : helper.name,
       subtitle: Text(
-        helper.online ? 'helper_online'.i18n : 'helper_offline'.i18n,
+        online ? 'helper_online'.i18n : 'helper_offline'.i18n,
         style: Theme.of(
           context,
         ).textTheme.labelMedium!.copyWith(color: context.textTertiary),
@@ -120,7 +125,7 @@ class _FriendRow extends StatelessWidget {
           : null,
       onPressed: selectable && !selected ? () => select(helper) : null,
     );
-    if (helper.online) return row;
+    if (online) return row;
     // The same veil as the Pro locations a free user cannot pick.
     return Stack(
       key: Key('server_selection.personal_proxy.offline.${helper.pairingId}'),
