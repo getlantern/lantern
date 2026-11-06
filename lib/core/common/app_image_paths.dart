@@ -70,6 +70,10 @@ class AppImagePaths {
   static const lanternDarkDisconnected =
       'assets/images/tray_dark_disconnected.png';
   static const lanternDarkConnected = 'assets/images/tray_dark_connected.png';
+  // Shown while something blocks the tray from connecting.
+  static const lanternAlertIco = 'assets/images/lantern_alert.ico';
+  static const lanternAlert = 'assets/images/lantern_alert.png';
+  static const lanternDarkAlert = 'assets/images/tray_dark_alert.png';
   static const adBlock = 'assets/images/ad_block.svg';
   static const connectDevice = 'assets/images/connect_device.svg';
   static const eyeHide = 'assets/images/eye_hide.svg';
