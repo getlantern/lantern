@@ -88,6 +88,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final hasPersonalProxies = ref.watch(
       helpersProvider.select((s) => s.view.helpers.isNotEmpty),
     );
+    // Where helper invites are offered, until the first personal proxy: it
+    // then moves into the Personal Proxies group under Private Locations.
+    final inviteRow = ref.watch(personalProxyBannerVisibleProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -102,6 +105,19 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             ).textTheme.bodyMedium!.copyWith(color: context.textSecondary),
           ),
         ),
+        if (inviteRow) ...[
+          const SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              tileKey: const Key('server_selection.invite_row'),
+              icon: AppImagePaths.personAdd,
+              label: 'invite_personal_proxy'.i18n,
+              trailing: const AppImage(path: AppImagePaths.arrowForward),
+              onPressed: () => startPersonalProxyInvite(context, ref),
+            ),
+          ),
+        ],
         const SizedBox(height: size24),
         Expanded(
           child: servers.hasUserServers || hasPersonalProxies
@@ -707,6 +723,7 @@ class _PrivateServerLocationListViewState
             ServerLocation.personalProxy(),
           ),
           selectedFriend: selectedFriend,
+          onInvite: () => startPersonalProxyInvite(context, ref),
           onSelectFriend: (h) => _select(
             ServerLocationType.personalProxy,
             personalProxySelection(h.outboundTag),

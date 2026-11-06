@@ -132,6 +132,7 @@ Future<void> _pump(WidgetTester tester, List<HelperPairingView> helpers) async {
     ProviderScope(
       overrides: [
         availableServersProvider.overrideWith(_NoServers.new),
+        helperInvitesAvailableProvider.overrideWithValue(false),
         helpersProvider.overrideWith(() => _notifier),
         personalProxyStatusProvider.overrideWith(() => _status),
         serverLocationProvider.overrideWithValue(
@@ -163,6 +164,7 @@ ProviderContainer _selectionContainer(
       service ?? _Service('personal-proxy:helper-0123456789ab'),
     ),
     availableServersProvider.overrideWith(_NoServers.new),
+    helperInvitesAvailableProvider.overrideWithValue(false),
     helpersProvider.overrideWith(
       () => _Helpers(
         const HelpersState(
@@ -315,6 +317,7 @@ void main() {
         overrides: [
           lanternServiceProvider.overrideWithValue(service),
           availableServersProvider.overrideWith(_NoServers.new),
+          helperInvitesAvailableProvider.overrideWithValue(false),
           helpersProvider.overrideWith(
             () => _Helpers(
               const HelpersState(
