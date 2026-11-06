@@ -655,30 +655,9 @@ class _PrivateServerLocationListViewState
     }, [hasPersonalProxies]);
 
     // Whether each friend can be selected on their own also needs radiance's
-    // status. It is local IPC, read only while this tab shows friends, so
-    // nothing polls it otherwise; the fallback when a selected friend goes
-    // away comes as an event, not from this poll.
-    useEffect(() {
-      if (!hasPersonalProxies) return null;
-      final status = ref.read(personalProxyStatusProvider.notifier);
-      // The first read waits for the frame: the effect runs during build,
-      // when no provider may change.
-      var active = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (active) unawaited(status.poll());
-      });
-      final timer = Timer.periodic(personalProxyStatusInterval, (_) {
-        if (WidgetsBinding.instance.lifecycleState !=
-            AppLifecycleState.resumed) {
-          return;
-        }
-        unawaited(status.poll());
-      });
-      return () {
-        active = false;
-        timer.cancel();
-      };
-    }, [hasPersonalProxies]);
+    // status; the fallback when a selected friend goes away comes as an
+    // event, not from this poll.
+    usePersonalProxyStatusPoll(ref, enabled: hasPersonalProxies);
 
     if (availableServers.isLoading) {
       return const Center(child: Spinner());

@@ -44,6 +44,10 @@ class PersonalProxiesTab extends HookConsumerWidget {
       return timer.cancel;
     }, const []);
 
+    // A friend reachable only by reverse is shown online from radiance's
+    // status, so it is read while this tab shows friends.
+    usePersonalProxyStatusPoll(ref, enabled: view.helpers.isNotEmpty);
+
     final claimed = view.invites.where((i) => i.claimed).toList();
     final pending = view.invites
         .where((i) => !i.claimed && !i.expired)
