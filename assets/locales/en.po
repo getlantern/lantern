@@ -2255,14 +2255,42 @@ msgstr "Stop helping"
 msgid "helping_remove_confirm"
 msgstr "Stop helping %s? They'll need a new invite to connect through you again."
 
-msgid "help_others_too"
-msgstr "Help others too"
-
-msgid "help_others_too_body"
-msgstr "Lend spare capacity to other people facing censorship; Lantern only lets them reach allowed sites, which protects your connection from misuse."
-
 msgid "help_others_too_note"
 msgstr "Changing this briefly reconnects the friends you help."
+
+# Under the friends card in the Friends you're helping sheet, when Action Mode
+# also helps the general pool. Followed by " · " and helping_scope_change.
+msgid "helping_scope_line_all"
+msgstr "Also helping people in all countries"
+
+# Same line when Action Mode helps only the friends this device is the
+# Personal Proxy for.
+msgid "helping_scope_line_friends"
+msgstr "Only helping your friends"
+
+# Link after helping_scope_line_all or helping_scope_line_friends: opens the
+# Who you're helping sheet.
+msgid "helping_scope_change"
+msgstr "Change"
+
+# Title of the sheet that chooses who Action Mode helps: only the user's
+# friends, or people in all countries too.
+msgid "helping_scope_title"
+msgstr "Who you're helping"
+
+# Under helping_scope_title.
+msgid "helping_scope_subtitle"
+msgstr "Share with your friends only, or with people in all countries."
+
+# Option in the Who you're helping sheet: help only the friends this device
+# is the Personal Proxy for.
+msgid "helping_scope_only_friends"
+msgstr "Only my friends"
+
+# Option in the Who you're helping sheet: also help people anywhere who
+# connect through Action Mode. The default.
+msgid "helping_scope_all_countries"
+msgstr "All countries"
 
 # %s %s are hours and minutes, as numbers.
 msgid "helping_duration_hm"
