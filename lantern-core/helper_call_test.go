@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	rhelper "github.com/getlantern/radiance/helper"
+	"github.com/getlantern/radiance/vpn"
 
 	"github.com/getlantern/lantern/lantern-core/helper"
 )
@@ -315,4 +316,63 @@ func TestPairingKeyLockedKeysWaitForTheUnlock(t *testing.T) {
 	lc.HelperCall("view", "{}")
 	f.settle(t, lc.pairingKeys, 1)
 	assert.Equal(t, []map[string]rhelper.PairingKey{{"p1": {Key: pairingKeyA, Role: "inviter"}}}, f.pushes())
+}
+
+// TestPairingKeyBackendChangeRepushesTheSameKeys: on Apple builds a push can
+// land in the in-process fallback backend, and the network extension that
+// takes over next has none. A backend change pushes again though nothing
+// changed.
+func TestPairingKeyBackendChangeRepushesTheSameKeys(t *testing.T) {
+	f := newFakePairingKeyIPC()
+	want := map[string]helper.PairingKey{"p1": {Key: pairingKeyA, Role: "inviter"}}
+	f.setKeys(want)
+	lc := pairingKeyCore(t, f)
+
+	lc.HelperCall("view", "{}")
+	f.settle(t, lc.pairingKeys, 1)
+	lc.pairingKeys.tick()
+	f.noMorePushes(t)
+
+	events := make(chan vpn.StatusUpdateEvent)
+	go repushPairingKeysOn(lc.ctx, func(ctx context.Context, h func(vpn.StatusUpdateEvent)) error {
+		for {
+			select {
+			case e := <-events:
+				h(e)
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	}, lc.pairingKeys)
+	events <- vpn.StatusUpdateEvent{}
+	f.settle(t, lc.pairingKeys, 1)
+	assert.Len(t, f.pushes(), 2)
+	assert.Equal(t, toRadiancePairingKeys(want), f.pushes()[1])
+}
+
+// TestPairingKeyBackendChangeDuringAPushPushesAgain: a push still on its way
+// to the old backend when the backend changes is followed by one more.
+func TestPairingKeyBackendChangeDuringAPushPushesAgain(t *testing.T) {
+	f := newFakePairingKeyIPC()
+	f.setKeys(map[string]helper.PairingKey{"p1": {Key: pairingKeyA, Role: "volunteer"}})
+	f.block = make(chan struct{})
+	lc := pairingKeyCore(t, f)
+
+	lc.HelperCall("view", "{}")
+	lc.pairingKeys.backendChanged()
+	close(f.block)
+	f.settle(t, lc.pairingKeys, 2)
+	assert.Len(t, f.pushes(), 2)
+}
+
+// TestPairingKeyBackendChangeWhileLockedPushesNothing: the backend signals
+// arrive from startup on, before any unlock.
+func TestPairingKeyBackendChangeWhileLockedPushesNothing(t *testing.T) {
+	f := newFakePairingKeyIPC()
+	f.setLocked(true)
+	lc := pairingKeyCore(t, f)
+	lc.pairingKeys.backendChanged()
+	f.noMorePushes(t)
+	var p *pairingKeyPusher
+	p.backendChanged()
 }
