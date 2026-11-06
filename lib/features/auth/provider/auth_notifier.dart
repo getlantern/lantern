@@ -93,6 +93,20 @@ class AuthNotifier extends _$AuthNotifier {
         .startChangeEmail(newEmail, password);
   }
 
+  Future<Either<Failure, Unit>> startBindLegacyEmail(String email) {
+    return ref.read(lanternServiceProvider).startBindLegacyEmail(email);
+  }
+
+  Future<Either<Failure, Unit>> completeBindLegacyEmail({
+    required String email,
+    required String password,
+    required String code,
+  }) {
+    return ref
+        .read(lanternServiceProvider)
+        .completeBindLegacyEmail(email: email, password: password, code: code);
+  }
+
   Future<Either<Failure, String>> completeChangeEmail(
     String newEmail,
     String password,

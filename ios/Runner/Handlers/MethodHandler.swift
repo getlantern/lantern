@@ -170,6 +170,34 @@ class MethodHandler {
           data: call.arguments as? [String: Any] ?? [:]
         )
 
+      case "startBindLegacyEmail":
+        guard let email: String = requireArg(call: call, name: "email", result: result)
+        else { return }
+        Task.detached {
+          var error: NSError?
+          MobileStartBindLegacyEmail(email, &error)
+          if let error {
+            await self.handleFlutterError(error, result: result, code: "START_BIND_LEGACY_EMAIL_FAILED")
+            return
+          }
+          await self.replyOK(result)
+        }
+
+      case "completeBindLegacyEmail":
+        guard let email: String = requireArg(call: call, name: "email", result: result),
+          let password: String = requireArg(call: call, name: "password", result: result),
+          let code: String = requireArg(call: call, name: "code", result: result)
+        else { return }
+        Task.detached {
+          var error: NSError?
+          MobileCompleteBindLegacyEmail(email, password, code, &error)
+          if let error {
+            await self.handleFlutterError(error, result: result, code: "COMPLETE_BIND_LEGACY_EMAIL_FAILED")
+            return
+          }
+          await self.replyOK(result)
+        }
+
       case "removeDevice":
         let data = call.arguments as? [String: Any]
         let deviceId = data?["deviceId"] as? String ?? ""

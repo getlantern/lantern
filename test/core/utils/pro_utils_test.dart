@@ -7,6 +7,7 @@ void main() {
     UserResponseModel user({
       String userLevel = 'pro',
       bool unpassRegistered = false,
+      String email = 'person@example.com',
     }) {
       return UserResponseModel(
         legacyID: 1,
@@ -14,7 +15,7 @@ void main() {
         emailConfirmed: true,
         success: true,
         legacyUserData: UserDataModel(
-          email: 'person@example.com',
+          email: email,
           userLevel: userLevel,
           unpassRegistered: unpassRegistered,
         ),
@@ -50,5 +51,25 @@ void main() {
         isFalse,
       );
     });
+
+    test(
+      'placeholder Pro accounts need a usable email regardless of login flags',
+      () {
+        for (final registered in [false, true]) {
+          for (final loggedIn in [false, true]) {
+            expect(
+              shouldShowProAccountSetupDialog(
+                user: user(
+                  email: 'support+1@getlantern.org',
+                  unpassRegistered: registered,
+                ),
+                userLoggedIn: loggedIn,
+              ),
+              isTrue,
+            );
+          }
+        }
+      },
+    );
   });
 }
