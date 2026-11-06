@@ -6,9 +6,11 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/ipc"
+	"github.com/sagernet/sing-box/experimental/libbox"
 )
 
 func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
@@ -258,5 +260,55 @@ func TestIsTagAvailableFailsOpenWithoutAnyClient(t *testing.T) {
 	})
 	if !IsTagAvailable("personal-proxies") {
 		t.Fatal("IsTagAvailable = false with no backend; want fail-open true")
+	}
+}
+
+func TestFindConnectionOwnerDelegatesAndSanitizesErrors(t *testing.T) {
+	prev := findConnectionOwner
+	t.Cleanup(func() {
+		findConnectionOwner = prev
+	})
+
+	want := &libbox.ConnectionOwner{
+		UserId:      501,
+		UserName:    "tester",
+		ProcessPath: "/Applications/DingTalk.app/Contents/MacOS/DingTalk",
+	}
+	findConnectionOwner = func(
+		ipProtocol int32,
+		sourceAddress string,
+		sourcePort int32,
+		destinationAddress string,
+		destinationPort int32,
+	) (*libbox.ConnectionOwner, error) {
+		if ipProtocol != 6 || sourceAddress != "10.10.1.1" || sourcePort != 54321 ||
+			destinationAddress != "1.1.1.1" || destinationPort != 443 {
+			t.Fatalf(
+				"unexpected args: proto=%d src=%s:%d dst=%s:%d",
+				ipProtocol, sourceAddress, sourcePort, destinationAddress, destinationPort,
+			)
+		}
+		return want, nil
+	}
+
+	got, err := FindConnectionOwner(6, "10.10.1.1", 54321, "1.1.1.1", 443)
+	if err != nil {
+		t.Fatalf("FindConnectionOwner() error = %v", err)
+	}
+	if got != want {
+		t.Fatalf("FindConnectionOwner() = %+v, want %+v", got, want)
+	}
+
+	rawErr := errors.New("bad utf8: \xff\xfe")
+	findConnectionOwner = func(int32, string, int32, string, int32) (*libbox.ConnectionOwner, error) {
+		return nil, rawErr
+	}
+
+	_, err = FindConnectionOwner(6, "10.10.1.1", 54321, "1.1.1.1", 443)
+	if !errors.Is(err, rawErr) {
+		t.Fatalf("FindConnectionOwner() error = %v, want errors.Is(_, rawErr)", err)
+	}
+	if !utf8.ValidString(err.Error()) {
+		t.Fatalf("FindConnectionOwner() error message is not valid UTF-8: %q", err.Error())
 	}
 }
