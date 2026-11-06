@@ -1717,11 +1717,7 @@ msgstr ""
 " o tráfego delas pela sua conexão para alcançar a internet aberta."
 
 msgid "share_consent_body_ip"
-msgstr ""
-"Se o seu roteador suporta encaminhamento de porta, sua conexão doméstica é "
-"usada como saída e seu endereço IP aparecerá nos registros do destino "
-"enquanto você compartilha. Caso contrário, esse tráfego é retransmitido "
-"pelos servidores do Lantern, e seu IP não fica exposto dessa forma."
+msgstr "Se o seu roteador suporta encaminhamento de portas, sua conexão doméstica é usada como saída e seu endereço IP aparecerá nos registros do destino enquanto você compartilha. Caso contrário, esse tráfego é retransmitido pelos servidores do Lantern, e seu IP não fica exposto dessa forma. O tráfego de um amigo para quem você é proxy pessoal também pode sair pela sua conexão, mesmo sem encaminhamento de portas."
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2232,7 +2228,7 @@ msgid "become_means_title"
 msgstr "O que significa ser um proxy pessoal"
 
 msgid "become_means_traffic"
-msgstr "Uma pessoa amiga pediu sua ajuda. Enquanto o Action Mode estiver ativo, ela pode acessar a internet aberta pela sua conexão. Dependendo do seu roteador, o tráfego dela sai da sua rede ou passa pelos servidores do Lantern. O Lantern não mostra o que ela faz on-line."
+msgstr "Um amigo pediu sua ajuda. Enquanto o Action Mode está ativo, ele pode acessar a internet aberta pela sua conexão. O Lantern não mostra quais sites ele acessa."
 
 msgid "become_means_seen"
 msgstr "Essas pessoas podem ver quando sua conexão está ativa. Aceite convites apenas de quem você conhece."
