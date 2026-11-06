@@ -390,7 +390,7 @@ void main() {
     );
     helpers.holdLink('https://lantern.io/help/#broken');
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
-    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    expect(_linkField(tester), 'https://lantern.io/help/#broken');
     await _claim(tester);
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
     expect(find.text('help_friend_form_title'.i18n), findsOneWidget);
@@ -399,11 +399,13 @@ void main() {
       helperErrorText('bad_link'),
     );
     expect(find.byKey(const Key('help_friend.error')), findsNothing);
-    // Refused, the link is no use: a new one can be asked for.
-    expect(find.byKey(const Key('help_friend.ask_invite')), findsOneWidget);
+    // The error takes the helper line's place; correcting the link brings
+    // it back.
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsNothing);
     await tester.enterText(find.byKey(const Key('help_friend.link')), _link);
     await tester.pump();
     expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsOneWidget);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
     await tester.pump();
     await tester.pump();
@@ -420,7 +422,6 @@ void main() {
     );
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
-    expect(find.byKey(const Key('help_friend.link')), findsNothing);
     await _claim(tester);
     expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
     expect(
@@ -442,7 +443,7 @@ void main() {
     );
     expect(button().enabled, isFalse);
     expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
-    expect(find.text('help_friend_link_hint'.i18n), findsOneWidget);
+    expect(find.text('help_friend_no_link_yet'.i18n), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const Key('help_friend.link')),
@@ -508,9 +509,10 @@ void main() {
     for (final text in [
       'help_friend_form_title'.i18n,
       'help_friend_link_label'.i18n,
-      'help_friend_link_hint'.i18n,
+      'help_friend_no_link_yet'.i18n,
+      'help_friend_ask_send_link'.i18n,
       'help_friend_name_label'.i18n,
-      'help_friend_name_hint'.i18n,
+      'help_friend_name_hint_server_list'.i18n,
       'help_friend_become'.i18n,
     ]) {
       expect(
@@ -540,17 +542,28 @@ void main() {
     expect(helpers.claims.single.$1, _link);
   });
 
-  testWidgets('a link that opened HelpFriend is not shown: only the name is '
-      'asked, and the link is claimed', (tester) async {
+  testWidgets('a link that opened HelpFriend stays in its field, filled in, '
+      'with the paste icon, and is claimed', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
-    expect(find.byKey(const Key('help_friend.link')), findsNothing);
-    expect(find.byKey(const Key('help_friend.scan')), findsNothing);
-    expect(find.byKey(const Key('help_friend.paste_button')), findsNothing);
-    expect(find.text('help_friend_link_hint'.i18n), findsNothing);
-    expect(find.text('help_friend_form_title'.i18n), findsNothing);
-    expect(find.text('help_friend_form_title_from_link'.i18n), findsOneWidget);
+    expect(find.byKey(const Key('help_friend.link')), findsOneWidget);
+    expect(_linkField(tester), _link);
+    final paste = find.byKey(const Key('help_friend.paste_button'));
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('help_friend.link')),
+        matching: paste,
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<IconButton>(paste).tooltip,
+      'help_friend_paste_button'.i18n,
+    );
+    // No separate "Paste link" text button any more.
+    expect(find.text('help_friend_paste_button'.i18n), findsNothing);
+    expect(find.text('help_friend_form_title'.i18n), findsOneWidget);
     expect(
       tester
           .widget<PrimaryButton>(
@@ -575,12 +588,18 @@ void main() {
     await _pump(tester, helpers, const HelpFriend());
     final ask = find.byKey(const Key('help_friend.ask_invite'));
     expect(ask, findsOneWidget);
-    expect(find.text('help_friend_no_link'.i18n), findsOneWidget);
-    expect(find.text('help_friend_ask_invite'.i18n), findsOneWidget);
-    final form = find.byKey(const Key('help_friend.form'));
+    expect(find.text('help_friend_no_link_yet'.i18n), findsOneWidget);
+    expect(find.text('help_friend_ask_send_link'.i18n), findsOneWidget);
+    // The link field's helper line, between the link and the name.
     expect(
       tester.getTopLeft(ask).dy,
-      greaterThan(tester.getBottomLeft(form).dy),
+      greaterThan(
+        tester.getBottomLeft(find.byKey(const Key('help_friend.link'))).dy,
+      ),
+    );
+    expect(
+      tester.getBottomLeft(ask).dy,
+      lessThan(tester.getTopLeft(find.byKey(const Key('help_friend.name'))).dy),
     );
     await tester.tap(ask);
     await tester.pump();
@@ -591,15 +610,13 @@ void main() {
     expect(helpers.claims, isEmpty);
   });
 
-  testWidgets('a link that opened HelpFriend offers no ask for an invite', (
-    tester,
-  ) async {
+  testWidgets('a link that opened HelpFriend still offers the ask for an '
+      'invite under its field', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
-    expect(find.byKey(const Key('help_friend.form')), findsOneWidget);
-    expect(find.byKey(const Key('help_friend.ask_invite')), findsNothing);
-    expect(find.text('help_friend_no_link'.i18n), findsNothing);
+    expect(find.byKey(const Key('help_friend.ask_invite')), findsOneWidget);
+    expect(find.text('help_friend_no_link_yet'.i18n), findsOneWidget);
   });
 
   testWidgets('Paste fills the link field from the clipboard; mobile reads '
@@ -787,7 +804,7 @@ void main() {
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     await _claim(tester);
     expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
-    expect(find.byKey(const Key('help_friend.link')), findsNothing);
+    expect(_linkField(tester), _link);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
     await tester.pump();
     await tester
