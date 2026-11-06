@@ -46,7 +46,7 @@ func TestHelperLiveNotifiesOnlyOnChangeAndCarriesNoPairing(t *testing.T) {
 	}
 	var events []string
 	i := 0
-	pollHelperLive(ctx, ticks, func(context.Context) (map[string]bool, error) {
+	pollHelperLive(ctx, ticks, func() {}, func(context.Context) (map[string]bool, error) {
 		r := reads[i]
 		i++
 		return r.connected, r.err
@@ -77,7 +77,7 @@ func TestHelperLiveNotifiesOnlyOnChangeAndCarriesNoPairing(t *testing.T) {
 func TestHelperLiveCancellationLeavesStatusAlone(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	pollHelperLive(ctx, nil, func(ctx context.Context) (map[string]bool, error) {
+	pollHelperLive(ctx, nil, func() {}, func(ctx context.Context) (map[string]bool, error) {
 		return nil, ctx.Err()
 	}, func(bool, map[string]bool) bool {
 		t.Fatal("set after cancellation")
