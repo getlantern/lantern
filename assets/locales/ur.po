@@ -1954,9 +1954,6 @@ msgstr "اپنے دوست کا بھیجا ہوا لنک پیسٹ کریں"
 msgid "help_friend_scan"
 msgstr "اپنے دوست کا QR کوڈ اسکین کریں"
 
-msgid "help_friend_approved"
-msgstr "اب آپ %s کی مدد کر رہے ہیں۔"
-
 msgid "help_friend_no_longer_pending"
 msgstr "یہ درخواست اب زیر التوا نہیں ہے۔ اپنے دوست سے نئی دعوت مانگیں۔"
 
@@ -1995,12 +1992,6 @@ msgstr "مدد بند کریں"
 
 msgid "helping_remove_confirm"
 msgstr "%s کی مدد بند کریں؟ آپ کے ذریعے دوبارہ منسلک ہونے کے لیے انہیں نئے دعوت نامے کی ضرورت ہوگی۔"
-
-msgid "help_others_too"
-msgstr "دوسروں کی بھی مدد کریں"
-
-msgid "help_others_too_body"
-msgstr "سنسرشپ کا سامنا کرنے والے دوسرے لوگوں کو اپنی اضافی گنجائش دیں؛ Lantern انہیں صرف اجازت یافتہ سائٹس تک رسائی دیتا ہے، جس سے آپ کا کنکشن غلط استعمال سے محفوظ رہتا ہے۔"
 
 msgid "help_others_too_note"
 msgstr "اسے تبدیل کرنے سے آپ جن کی مدد کر رہے ہیں وہ مختصر وقت کے لیے دوبارہ منسلک ہوں گے۔"
@@ -2053,14 +2044,8 @@ msgstr "کنکشن کسی بھی وقت ہٹا دیں۔"
 msgid "help_friend_form_title"
 msgstr "جس کی آپ مدد کر رہے ہیں اس کا لنک پیسٹ کریں"
 
-msgid "help_friend_link_hint"
-msgstr "اس ڈیوائس پر لنک پر ٹیپ کرنے سے یہ پُر ہو جائے گا"
-
 msgid "help_friend_name_label"
 msgstr "آپ کا نام، جس سے وہ آپ کو جانتے ہیں"
-
-msgid "help_friend_name_hint"
-msgstr "ان کے Lantern میں آپ اسی طرح نظر آئیں گے"
 
 msgid "help_friend_become"
 msgstr "ان کی ذاتی پراکسی بنیں"
@@ -2122,17 +2107,8 @@ msgstr "فعال: %s"
 msgid "personal_proxy_fallback_auto"
 msgstr "ابھی %s تک رسائی نہیں ہو رہی۔ اسمارٹ لوکیشن پر منتقل کر دیا گیا۔"
 
-msgid "help_friend_form_title_from_link"
-msgstr "ایک دوست نے آپ کو اپنی ذاتی پراکسی بننے کی دعوت دی ہے"
-
 msgid "help_friend_paste_button"
 msgstr "لنک پیسٹ کریں"
-
-msgid "help_friend_no_link"
-msgstr "ابھی تک لنک نہیں ملا؟"
-
-msgid "help_friend_ask_invite"
-msgstr "اپنے دوست سے دعوت بھیجنے کو کہیں"
 
 msgid "help_friend_ask_invite_message"
 msgstr "میں Lantern پر آپ کی ذاتی پراکسی بن سکتا ہوں، تاکہ آپ میرے کنکشن کے ذریعے آن لائن ہو سکیں۔ Lantern میں \"سرور کا انتخاب\" کھولیں، اوپر ⋮ مینو پر ٹیپ کریں، \"ذاتی پراکسی کو مدعو کریں\" منتخب کریں اور مجھے لنک بھیجیں۔"

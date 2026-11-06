@@ -2146,9 +2146,6 @@ msgstr "هغه لینک پیسټ کړئ چې ملګري مو لېږلی"
 msgid "help_friend_scan"
 msgstr "د خپل ملګري QR کوډ سکین کړئ"
 
-msgid "help_friend_approved"
-msgstr "تاسو اوس له %s سره مرسته کوئ."
-
 msgid "help_friend_no_longer_pending"
 msgstr "دا غوښتنه نور په تمه کې نه ده. له خپل ملګري څخه نوې بلنه وغواړئ."
 
@@ -2187,12 +2184,6 @@ msgstr "مرسته بنده کړئ"
 
 msgid "helping_remove_confirm"
 msgstr "له %s سره مرسته بنده کړئ؟ هغوی به ستاسو له لارې د بیا وصلېدو لپاره نوې بلنې ته اړتیا ولري."
-
-msgid "help_others_too"
-msgstr "له نورو سره هم مرسته وکړئ"
-
-msgid "help_others_too_body"
-msgstr "خپل اضافي ظرفیت له هغو نورو خلکو سره شریک کړئ چې له سانسور سره مخ دي. Lantern یوازې اجازه لرونکو سایټونو ته د هغوی لاسرسی ورکوي، چې ستاسو اتصال له ناوړه ګټې اخیستنې ساتي."
 
 msgid "help_others_too_note"
 msgstr "د دې بدلول هغه خلک چې تاسو ورسره مرسته کوئ، د لنډ وخت لپاره بیا وصلوي."
@@ -2245,14 +2236,8 @@ msgstr "اتصال هر وخت لرې کولی شئ."
 msgid "help_friend_form_title"
 msgstr "د هغه چا لینک دلته کېږدئ چې مرسته یې کوئ"
 
-msgid "help_friend_link_hint"
-msgstr "په دې وسیله د لینک په کېکاږلو دا ډکیږي"
-
 msgid "help_friend_name_label"
 msgstr "ستاسو نوم، لکه څنګه چې تاسو پېژني"
-
-msgid "help_friend_name_hint"
-msgstr "تاسو د هغوی په Lantern کې داسې ښکارئ"
 
 msgid "help_friend_become"
 msgstr "د هغوی شخصي پراکسي شئ"
@@ -2314,17 +2299,8 @@ msgstr "اوس مهال %s ته رسېدل نه کېږي. هوښيار موقع�
 msgid "become_personal_proxy_body"
 msgstr "له یو پېژندل شوي کس سره مرسته وکړئ چې انټرنېټ ته لاسرسی ومومي"
 
-msgid "help_friend_form_title_from_link"
-msgstr "یو ملګري تاسو ته بلنه درکړې چې د هغه شخصي پراکسي شئ"
-
 msgid "help_friend_paste_button"
 msgstr "لینک پیسټ کړئ"
-
-msgid "help_friend_no_link"
-msgstr "تر اوسه لینک نه لرئ؟"
-
-msgid "help_friend_ask_invite"
-msgstr "له خپل ملګري وغواړئ چې تاسو ته بلنه درکړي"
 
 msgid "help_friend_ask_invite_message"
 msgstr "زه په Lantern کې ستاسو شخصي پراکسي کېدای شم، څو تاسو زما د اتصال له لارې آنلاین شئ. په Lantern کې \"د سرور انتخاب\" پرانیزئ، په سر کې ⋮ مینو کېکاږئ، \"شخصي پراکسي ته بلنه\" وټاکئ او لینک ماته راولېږئ."

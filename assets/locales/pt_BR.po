@@ -2137,9 +2137,6 @@ msgstr "Colar o link que seu amigo enviou"
 msgid "help_friend_scan"
 msgstr "Escaneie o código QR do seu amigo"
 
-msgid "help_friend_approved"
-msgstr "Agora você está ajudando %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "Esta solicitação não está mais pendente. Peça um novo convite ao seu amigo."
 
@@ -2178,12 +2175,6 @@ msgstr "Parar de ajudar"
 
 msgid "helping_remove_confirm"
 msgstr "Parar de ajudar %s? Será necessário um novo convite para se conectar por meio de você novamente."
-
-msgid "help_others_too"
-msgstr "Ajude outras pessoas também"
-
-msgid "help_others_too_body"
-msgstr "Empreste sua capacidade ociosa a outras pessoas que enfrentam censura; o Lantern só permite que elas acessem sites autorizados, o que protege sua conexão contra uso indevido."
 
 msgid "help_others_too_note"
 msgstr "Alterar isso reconecta brevemente as pessoas que você ajuda."
@@ -2239,14 +2230,8 @@ msgstr "Remova a conexão quando quiser."
 msgid "help_friend_form_title"
 msgstr "Cole o link da pessoa que você está ajudando"
 
-msgid "help_friend_link_hint"
-msgstr "Tocar no link neste dispositivo preenche este campo"
-
 msgid "help_friend_name_label"
 msgstr "Seu nome, como a pessoa conhece você"
-
-msgid "help_friend_name_hint"
-msgstr "É assim que você aparece no Lantern dessa pessoa"
 
 msgid "help_friend_become"
 msgstr "Seja o proxy pessoal dessa pessoa"
@@ -2305,17 +2290,8 @@ msgstr "Dados retransmitidos hoje"
 msgid "helping_active_today"
 msgstr "Ativo: %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Você recebeu um convite para ser o proxy pessoal de um amigo"
-
 msgid "help_friend_paste_button"
 msgstr "Colar link"
-
-msgid "help_friend_no_link"
-msgstr "Ainda não tem um link?"
-
-msgid "help_friend_ask_invite"
-msgstr "Pedir um convite a um amigo"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Posso ser seu proxy pessoal no Lantern, para que você fique on-line pela minha conexão. No Lantern, abra \"Seleção de servidor\", toque no menu ⋮ no topo, escolha \"Convidar um proxy pessoal\" e me envie o link."

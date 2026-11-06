@@ -2127,9 +2127,6 @@ msgstr "Arkadaşınızın gönderdiği bağlantıyı yapıştırın"
 msgid "help_friend_scan"
 msgstr "Arkadaşınızın QR Kodunu Tarayın"
 
-msgid "help_friend_approved"
-msgstr "Artık şu kişiye yardım ediyorsunuz: %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "Bu istek artık beklemede değil. Arkadaşınızdan yeni bir davet isteyin."
 
@@ -2168,12 +2165,6 @@ msgstr "Yardımı Durdur"
 
 msgid "helping_remove_confirm"
 msgstr "Yardım durdurulsun mu: %s? Sizin üzerinizden tekrar bağlanmak için yeni bir davet gerekecek."
-
-msgid "help_others_too"
-msgstr "Başkalarına da yardım edin"
-
-msgid "help_others_too_body"
-msgstr "Sansürle karşılaşan diğer kişilere boş kapasitenizi ödünç verin; Lantern onların yalnızca izin verilen sitelere erişmesine izin verir, bu da bağlantınızı kötüye kullanıma karşı korur."
 
 msgid "help_others_too_note"
 msgstr "Bunu değiştirmek, yardım ettiğiniz kişilerin bağlantısını kısa süreliğine yeniler."
@@ -2229,14 +2220,8 @@ msgstr "Bağlantıyı istediğiniz zaman kaldırın."
 msgid "help_friend_form_title"
 msgstr "Yardım ettiğiniz kişiden gelen bağlantıyı yapıştırın"
 
-msgid "help_friend_link_hint"
-msgstr "Bu cihazda bağlantıya dokunduğunuzda burası doldurulur"
-
 msgid "help_friend_name_label"
 msgstr "Sizi tanıdıkları adınız"
-
-msgid "help_friend_name_hint"
-msgstr "Arkadaşınızın Lantern uygulamasında bu şekilde görünürsünüz"
 
 msgid "help_friend_become"
 msgstr "Arkadaşınızın Kişisel Proxy'si Olun"
@@ -2295,14 +2280,8 @@ msgstr "Bugün aktarılan veri"
 msgid "helping_active_today"
 msgstr "Etkin: %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Bir arkadaşınız sizi kişisel proxy'si olmaya davet etti"
-
 msgid "help_friend_paste_button"
 msgstr "Bağlantıyı Yapıştır"
-
-msgid "help_friend_no_link"
-msgstr "Henüz bağlantınız yok mu?"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Lantern'de kişisel proxy'niz olabilirim, böylece benim bağlantım üzerinden internete erişebilirsiniz. Lantern'de \"Sunucu Seçimi\" ekranını açın, üstteki ⋮ menüsüne dokunun, \"Kişisel Proxy Davet Et\" seçeneğini seçin ve bağlantıyı bana gönderin."
@@ -2318,9 +2297,6 @@ msgstr "Bu bilgisayarda Lantern dışında bir uygulamanın .exe dosyasını se�
 
 msgid "unable_to_add_executable"
 msgstr "Yürütülebilir dosya eklenemedi. Bu bilgisayarda bulunan bir .exe dosyası seçin ve tekrar deneyin."
-
-msgid "help_friend_ask_invite"
-msgstr "Arkadaşınızdan Davet İsteyin"
 
 msgid "unable_to_connect"
 msgstr "Bağlanılamıyor"

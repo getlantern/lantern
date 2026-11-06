@@ -2137,9 +2137,6 @@ msgstr "Вставьте ссылку, которую прислал друг"
 msgid "help_friend_scan"
 msgstr "Отсканируйте QR-код друга"
 
-msgid "help_friend_approved"
-msgstr "Теперь вы помогаете: %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "Этот запрос больше не ожидает ответа. Попросите друга прислать новое приглашение."
 
@@ -2178,12 +2175,6 @@ msgstr "Прекратить помощь"
 
 msgid "helping_remove_confirm"
 msgstr "Прекратить помощь: %s? Для повторного подключения через вас понадобится новое приглашение."
-
-msgid "help_others_too"
-msgstr "Помогайте и другим"
-
-msgid "help_others_too_body"
-msgstr "Делитесь свободной пропускной способностью с людьми, столкнувшимися с цензурой; Lantern открывает им только разрешённые сайты, что защищает ваше подключение от злоупотреблений."
 
 msgid "help_others_too_note"
 msgstr "При изменении этой настройки люди, которым вы помогаете, ненадолго переподключатся."
@@ -2239,14 +2230,8 @@ msgstr "Подключение можно удалить в любой моме�
 msgid "help_friend_form_title"
 msgstr "Вставьте ссылку от человека, которому вы помогаете"
 
-msgid "help_friend_link_hint"
-msgstr "Нажмите ссылку на этом устройстве, и поле заполнится"
-
 msgid "help_friend_name_label"
 msgstr "Ваше имя, под которым вас знают"
-
-msgid "help_friend_name_hint"
-msgstr "Так вас будет видно в Lantern друга"
 
 msgid "help_friend_become"
 msgstr "Станьте личным прокси для друга"
@@ -2305,17 +2290,8 @@ msgstr "Передано данных сегодня"
 msgid "helping_active_today"
 msgstr "Активно: %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Вас приглашают стать личным прокси для друга"
-
 msgid "help_friend_paste_button"
 msgstr "Вставить ссылку"
-
-msgid "help_friend_no_link"
-msgstr "Ещё нет ссылки?"
-
-msgid "help_friend_ask_invite"
-msgstr "Попросить друга пригласить вас"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Я могу стать вашим личным прокси в Lantern, чтобы вы выходили в интернет через моё подключение. В Lantern откройте «Выбор сервера», нажмите меню ⋮ вверху, выберите «Пригласить личный прокси» и отправьте мне ссылку."

@@ -2125,9 +2125,6 @@ msgstr "आपके दोस्त का भेजा गया लिंक 
 msgid "help_friend_scan"
 msgstr "अपने दोस्त का QR कोड स्कैन करें"
 
-msgid "help_friend_approved"
-msgstr "अब आप %s की मदद कर रहे हैं।"
-
 msgid "help_friend_no_longer_pending"
 msgstr "यह अनुरोध अब लंबित नहीं है। अपने दोस्त से नया आमंत्रण मांगें।"
 
@@ -2166,12 +2163,6 @@ msgstr "मदद बंद करें"
 
 msgid "helping_remove_confirm"
 msgstr "%s की मदद बंद करें? आपके ज़रिए फिर से कनेक्ट करने के लिए उन्हें नए आमंत्रण की ज़रूरत होगी।"
-
-msgid "help_others_too"
-msgstr "दूसरों की भी मदद करें"
-
-msgid "help_others_too_body"
-msgstr "सेंसरशिप झेल रहे दूसरे लोगों को अपनी अतिरिक्त क्षमता दें; Lantern उन्हें केवल अनुमति वाली साइटों तक पहुंचने देता है, जिससे आपका कनेक्शन दुरुपयोग से सुरक्षित रहता है।"
 
 msgid "help_others_too_note"
 msgstr "इसे बदलने पर आप जिनकी मदद कर रहे हैं, वे कुछ पल के लिए फिर से कनेक्ट होंगे।"
@@ -2224,14 +2215,8 @@ msgstr "कनेक्शन को कभी भी हटाएं।"
 msgid "help_friend_form_title"
 msgstr "जिसकी आप मदद कर रहे हैं, उसका लिंक पेस्ट करें"
 
-msgid "help_friend_link_hint"
-msgstr "इस डिवाइस पर लिंक पर टैप करने से यह भर जाएगा"
-
 msgid "help_friend_name_label"
 msgstr "आपका नाम, जिससे वे आपको जानते हैं"
-
-msgid "help_friend_name_hint"
-msgstr "उनके Lantern में आप इसी तरह दिखेंगे"
 
 msgid "help_friend_become"
 msgstr "उनका निजी प्रॉक्सी बनें"
@@ -2293,17 +2278,8 @@ msgstr "सक्रिय: %s"
 msgid "personal_proxy_fallback_auto"
 msgstr "अभी %s तक नहीं पहुंच पा रहे। स्मार्ट लोकेशन पर स्विच किया गया।"
 
-msgid "help_friend_form_title_from_link"
-msgstr "एक दोस्त ने आपको अपना निजी प्रॉक्सी बनने के लिए आमंत्रित किया है"
-
 msgid "help_friend_paste_button"
 msgstr "लिंक पेस्ट करें"
-
-msgid "help_friend_no_link"
-msgstr "अभी तक लिंक नहीं मिला?"
-
-msgid "help_friend_ask_invite"
-msgstr "अपने दोस्त से आमंत्रण भेजने को कहें"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Lantern पर आप मुझे अपने निजी प्रॉक्सी के रूप में इस्तेमाल कर सकते हैं, ताकि आप मेरे कनेक्शन से ऑनलाइन हो सकें। Lantern में \"सर्वर चयन\" खोलें, ऊपर ⋮ मेनू पर टैप करें, \"निजी प्रॉक्सी आमंत्रित करें\" चुनें और मुझे लिंक भेजें।"

@@ -2119,9 +2119,6 @@ msgstr "لینکی را که دوستتان فرستاده جای‌گذاری �
 msgid "help_friend_scan"
 msgstr "کد QR دوستتان را اسکن کنید"
 
-msgid "help_friend_approved"
-msgstr "اکنون به %s کمک می‌کنید."
-
 msgid "help_friend_no_longer_pending"
 msgstr "این درخواست دیگر در انتظار نیست. از دوستتان دعوت جدیدی بخواهید."
 
@@ -2160,12 +2157,6 @@ msgstr "توقف کمک"
 
 msgid "helping_remove_confirm"
 msgstr "کمک به %s متوقف شود؟ برای اتصال دوباره از طریق شما به دعوت جدید نیاز خواهد داشت."
-
-msgid "help_others_too"
-msgstr "به دیگران هم کمک کنید"
-
-msgid "help_others_too_body"
-msgstr "ظرفیت اضافی خود را در اختیار افراد دیگری بگذارید که با سانسور روبه‌رو هستند؛ Lantern فقط اجازه دسترسی به سایت‌های مجاز را به آن‌ها می‌دهد و از اتصال شما در برابر سوءاستفاده محافظت می‌کند."
 
 msgid "help_others_too_note"
 msgstr "تغییر این گزینه، اتصال افرادی را که به آن‌ها کمک می‌کنید برای مدت کوتاهی دوباره برقرار می‌کند."
@@ -2221,14 +2212,8 @@ msgstr "هر زمان بخواهید می‌توانید اتصال را حذف 
 msgid "help_friend_form_title"
 msgstr "لینک فردی را که به او کمک می‌کنید جای‌گذاری کنید"
 
-msgid "help_friend_link_hint"
-msgstr "با زدن روی لینک در این دستگاه، این قسمت پر می‌شود"
-
 msgid "help_friend_name_label"
 msgstr "نام شما، همان‌طور که شما را می‌شناسند"
-
-msgid "help_friend_name_hint"
-msgstr "در Lantern دوستتان با این نام نمایش داده می‌شوید"
 
 msgid "help_friend_become"
 msgstr "پروکسی شخصی دوستتان شوید"
@@ -2287,17 +2272,8 @@ msgstr "داده‌های بازپخش‌شده امروز"
 msgid "helping_active_today"
 msgstr "فعال: %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "یکی از دوستانتان از شما دعوت کرده پروکسی شخصی او باشید"
-
 msgid "help_friend_paste_button"
 msgstr "جای‌گذاری لینک"
-
-msgid "help_friend_no_link"
-msgstr "هنوز لینک ندارید؟"
-
-msgid "help_friend_ask_invite"
-msgstr "درخواست دعوت از دوست"
 
 msgid "help_friend_ask_invite_message"
 msgstr "من می‌توانم پروکسی شخصی شما در Lantern باشم تا از طریق اتصال من آنلاین شوید. در Lantern، «انتخاب سرور» را باز کنید، روی منوی ⋮ در بالا بزنید، «دعوت از پروکسی شخصی» را انتخاب کنید و پیوند را برایم بفرستید."
