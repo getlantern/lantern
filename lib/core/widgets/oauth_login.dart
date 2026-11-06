@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/utils/country_code.dart';
@@ -105,7 +106,9 @@ class OAuthLogin extends HookConsumerWidget {
       (url) async {
         context.hideLoadingDialog();
         appLogger.debug('OAuth URL: $url');
-        if (PlatformUtils.isMobile) {
+        if (PlatformUtils.isIOS) {
+          await _signInInApp(type, ref, context, url);
+        } else if (PlatformUtils.isMobile) {
           // listen to handle the deep link
           sl<DeepLinkCallbackManager>().registerHandler((result) {
             appLogger.debug('DeepLink result received: ${result != null}');
@@ -135,6 +138,32 @@ class OAuthLogin extends HookConsumerWidget {
           );
         }
       },
+    );
+  }
+
+  Future<void> _signInInApp(
+    SignUpMethodType type,
+    WidgetRef ref,
+    BuildContext context,
+    String url,
+  ) async {
+    final Uri? callback;
+    try {
+      callback = await UrlUtils.authenticateInApp(url);
+    } on PlatformException catch (e, st) {
+      appLogger.error('In-app OAuth sign-in failed', e, st);
+      if (context.mounted) {
+        context.showSnackBarError(oAuthSignInFailedKey.i18n);
+      }
+      return;
+    }
+    if (callback == null || !isOAuthCallbackResult(callback)) return;
+    if (!context.mounted) return;
+    await _handleOAuthPayload(
+      type,
+      ref,
+      context,
+      Map<String, dynamic>.from(callback.queryParameters),
     );
   }
 
