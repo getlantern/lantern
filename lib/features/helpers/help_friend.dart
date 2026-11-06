@@ -60,6 +60,18 @@ class HelpFriend extends HookConsumerWidget {
     final error = useState<String?>(null);
     final busy = useState(false);
     final resumed = useRef(false);
+    // "Keep Action Mode on" on the success screen, checked by default.
+    final keepOn = useState(true);
+    final finished = useRef(false);
+    final waitingOnClaim = code.value != null;
+
+    useEffect(() {
+      // While this screen waits on its claim, its success screen asks before
+      // Action Mode starts for the approval, rather than Home starting it.
+      if (!waitingOnClaim) return null;
+      notifier.holdApprovalStart();
+      return notifier.releaseApprovalStart;
+    }, [waitingOnClaim]);
 
     useEffect(() {
       // refreshIfUsed, not refresh: opening this screen must not touch the
@@ -175,21 +187,37 @@ class HelpFriend extends HookConsumerWidget {
     final Widget body;
     if (approved) {
       final name = _approvedName(helpers, claimId.value, helpingAtClaim.value);
-      body = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: defaultSize),
-          Text(
-            'help_friend_approved'.i18n.fill([name]),
-            key: const Key('help_friend.approved'),
-            style: textTheme.titleLarge,
+      // Done, or Back: Action Mode turns on, and stays on at launch, only
+      // with the box checked. Unchecked, the pairing stands and nothing
+      // else changes.
+      void done() {
+        if (finished.value) return;
+        finished.value = true;
+        if (keepOn.value) {
+          unawaited(share.startForHelper(ref));
+          unawaited(share.setAutoEnable(context, true));
+        }
+        appRouter.maybePop();
+      }
+
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) done();
+        },
+        child: BaseScreen(
+          title: 'become_personal_proxy'.i18n,
+          appBar: CustomAppBar(
+            title: Text('become_personal_proxy'.i18n),
+            leading: const SizedBox.shrink(),
           ),
-          const SizedBox(height: defaultSize),
-          PrimaryButton(
-            label: 'help_friend_done'.i18n,
-            onPressed: () => appRouter.maybePop(),
+          body: _PairedBody(
+            name: name,
+            keepOn: keepOn.value,
+            onKeepOn: (value) => keepOn.value = value,
+            onDone: done,
           ),
-        ],
+        ),
       );
     } else if (outcome == _ClaimOutcome.gone) {
       body = Column(
@@ -482,6 +510,87 @@ class HelpFriend extends HookConsumerWidget {
       );
     }
     return BaseScreen(title: 'become_personal_proxy'.i18n, body: body);
+  }
+}
+
+/// The success screen once the friend approved this claim: who the volunteer
+/// now helps, what that means, and the "Keep Action Mode on" consent.
+class _PairedBody extends StatelessWidget {
+  const _PairedBody({
+    required this.name,
+    required this.keepOn,
+    required this.onKeepOn,
+    required this.onDone,
+  });
+
+  final String name;
+  final bool keepOn;
+  final ValueChanged<bool> onKeepOn;
+  final VoidCallback onDone;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return ListView(
+      key: const Key('help_friend.approved'),
+      padding: const EdgeInsets.symmetric(vertical: defaultSize),
+      children: [
+        const SizedBox(height: 32),
+        ExcludeSemantics(
+          child: Icon(
+            Icons.check_circle_outline,
+            size: 96,
+            color: context.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'help_friend_success_title'.i18n.fill([name]),
+          key: const Key('help_friend.approved.title'),
+          textAlign: TextAlign.center,
+          style: textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            'help_friend_success_body'.i18n.fill([name]),
+            style: textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+          ),
+        ),
+        const SizedBox(height: defaultSize),
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: AppTile(
+            tileKey: const Key('help_friend.keep_on'),
+            label: 'help_friend_keep_on'.i18n,
+            subtitle: Text(
+              'help_friend_keep_on_body'.i18n.fill([name]),
+              style: textTheme.labelMedium!.copyWith(
+                color: context.textTertiary,
+              ),
+            ),
+            trailing: Checkbox(
+              key: const Key('help_friend.keep_on.checkbox'),
+              value: keepOn,
+              activeColor: context.textLink,
+              checkColor: context.bgElevated,
+              onChanged: (value) => onKeepOn(value ?? false),
+            ),
+            onPressed: () => onKeepOn(!keepOn),
+          ),
+        ),
+        const SizedBox(height: defaultSize),
+        KeyedSubtree(
+          key: const Key('help_friend.done'),
+          child: PrimaryButton(
+            label: 'help_friend_done'.i18n,
+            isTaller: true,
+            onPressed: onDone,
+          ),
+        ),
+      ],
+    );
   }
 }
 
