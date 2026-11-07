@@ -1,5 +1,4 @@
 import 'package:auto_route/annotations.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -12,6 +11,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../helpers/provider/helpers_notifier.dart';
 import '../home/provider/app_setting_notifier.dart';
 import '../home/provider/feature_flag_notifier.dart';
+import '../home/startup_presentations.dart';
 import 'action_mode_page.dart';
 import 'onboarding.dart';
 
@@ -42,17 +42,19 @@ PersonalProxiesIntroPages personalProxiesIntroPages(Ref ref) => (
 /// Opens the Personal Proxies introduction over Home once, for a user who
 /// finished onboarding without it, while the personal_proxies_intro flag is
 /// on. Flags can land after the first frame, so it watches them rather than
-/// looking once. It waits while anything covers Home ([routes] says when
-/// that changes) and until [ready] says Home's own startup popups have had
-/// their turn, and leaves alone a launch that shows onboarding or opens
+/// looking once. It takes its turn in [presentations], so Home's startup
+/// popups wait for it to close and it waits for them, and looks again when
+/// its turn comes. It waits while anything covers Home ([routes] says when
+/// that changes), and leaves alone a launch that shows onboarding or opens
 /// the macOS system extension dialog: the next launch shows it.
 void usePersonalProxiesIntro(
   BuildContext context,
   WidgetRef ref,
   UserMessageRouteObserver routes, {
-  required ValueListenable<bool> ready,
+  required StartupPresentations presentations,
 }) {
   final route = ModalRoute.of(context);
+  final queued = useRef(false);
   final pushed = useRef(false);
   // As Home's first frame finds them: onboarding is pushed while it is not
   // done, and the extension dialog while the splash flag is set on macOS.
@@ -66,23 +68,29 @@ void usePersonalProxiesIntro(
     if (otherScreensThisLaunch) return null;
     var scheduled = false;
 
-    void open() {
-      if (!context.mounted || pushed.value) return;
+    PersonalProxiesIntroPages? due() {
+      if (!context.mounted || pushed.value) return null;
       final setting = ref.read(appSettingProvider);
       if (!setting.onboardingCompleted || setting.personalProxiesIntroSeen) {
-        return;
+        return null;
       }
       final flags = ref.read(featureFlagProvider);
-      if (!flags.getBool(FeatureFlag.personalProxiesIntro)) return;
+      if (!flags.getBool(FeatureFlag.personalProxiesIntro)) return null;
       final pages = ref.read(personalProxiesIntroPagesProvider);
-      if (!pages.invites && !pages.actionMode) return;
-      if (!ready.value) return;
-      if (!(route?.isCurrent ?? false)) return;
+      if (!pages.invites && !pages.actionMode) return null;
+      if (!(route?.isCurrent ?? false)) return null;
+      return pages;
+    }
+
+    Future<void> open() async {
+      queued.value = false;
+      final pages = due();
+      if (pages == null) return;
       pushed.value = true;
       // Seen once opened, so a crash or a kill does not bring it back.
       ref.read(appSettingProvider.notifier).setPersonalProxiesIntroSeen(true);
       appLogger.info('Showing the Personal Proxies introduction');
-      appRouter.push(
+      await appRouter.push(
         PersonalProxiesIntro(
           invites: pages.invites,
           actionMode: pages.actionMode,
@@ -95,7 +103,9 @@ void usePersonalProxiesIntro(
       scheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         scheduled = false;
-        open();
+        if (queued.value || due() == null) return;
+        queued.value = true;
+        presentations.add(open);
       });
       WidgetsBinding.instance.ensureVisualUpdate();
     }
@@ -115,15 +125,13 @@ void usePersonalProxiesIntro(
       ),
     ];
     routes.changes.addListener(schedule);
-    ready.addListener(schedule);
     return () {
-      ready.removeListener(schedule);
       for (final sub in subs) {
         sub.close();
       }
       routes.changes.removeListener(schedule);
     };
-  }, [routes, ready]);
+  }, [routes, presentations]);
 }
 
 /// Introduces Personal Proxies to a user who finished onboarding before it

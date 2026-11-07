@@ -3,10 +3,10 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -20,6 +20,7 @@ import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
+import 'package:lantern/features/home/startup_presentations.dart';
 import 'package:lantern/features/onboarding/personal_proxies_intro.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
 
@@ -91,15 +92,17 @@ class _Helpers extends HelpersNotifier {
   }
 }
 
-/// Stands in for Home: runs the hook, and can open another screen over it.
+/// Stands in for Home: runs the hook, and closes its startup presentations
+/// when it goes away, as Home does.
 class _Host extends HookConsumerWidget {
-  const _Host(this.routes, this.ready);
+  const _Host(this.routes, this.presentations);
   final UserMessageRouteObserver routes;
-  final ValueListenable<bool> ready;
+  final StartupPresentations presentations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    usePersonalProxiesIntro(context, ref, routes, ready: ready);
+    useEffect(() => presentations.close, const []);
+    usePersonalProxiesIntro(context, ref, routes, presentations: presentations);
     return const Scaffold(body: Text('home'));
   }
 }
@@ -109,15 +112,18 @@ Widget _otherPage(RouteData _) => const Scaffold(body: Text('other'));
 /// A real AppRouter with the host as home, the introduction, and one other
 /// screen.
 class _RealRouter extends AppRouter {
-  _RealRouter(this.routesObserver, this.ready);
+  _RealRouter(this.routesObserver, this.presentations);
   final UserMessageRouteObserver routesObserver;
-  final ValueListenable<bool> ready;
+  final StartupPresentations presentations;
 
   @override
   List<AutoRoute> get routes => [
     AutoRoute(
       path: '/',
-      page: PageInfo('Host', builder: (_) => _Host(routesObserver, ready)),
+      page: PageInfo(
+        'Host',
+        builder: (_) => _Host(routesObserver, presentations),
+      ),
     ),
     AutoRoute(path: '/personal-proxies-intro', page: PersonalProxiesIntro.page),
     AutoRoute(
@@ -128,9 +134,15 @@ class _RealRouter extends AppRouter {
 }
 
 class _Harness {
-  _Harness(this.container, this.router, this.share, this.helpers, this.ready);
+  _Harness(
+    this.container,
+    this.router,
+    this.share,
+    this.helpers,
+    this.presentations,
+  );
   final ProviderContainer container;
-  final ValueNotifier<bool> ready;
+  final StartupPresentations presentations;
   final _RealRouter router;
   final _Share share;
   final _Helpers helpers;
@@ -156,16 +168,14 @@ Future<_Harness> _launch(
   Map<String, dynamic> flags = const {},
   ThemeData? theme,
   Size size = const Size(600, 1400),
-  bool startupPopupsDone = true,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
   addTearDown(tester.view.reset);
   await sl.reset();
   final observer = UserMessageRouteObserver();
-  final ready = ValueNotifier(startupPopupsDone);
-  addTearDown(ready.dispose);
-  final router = _RealRouter(observer, ready);
+  final presentations = StartupPresentations();
+  final router = _RealRouter(observer, presentations);
   sl.registerSingleton<AppRouter>(router);
   addTearDown(sl.reset);
   final share = _Share();
@@ -200,7 +210,7 @@ Future<_Harness> _launch(
     ),
   );
   await tester.pumpAndSettle();
-  return _Harness(container, router, share, helpers, ready);
+  return _Harness(container, router, share, helpers, presentations);
 }
 
 final _intro = find.byKey(const Key('personal_proxies_intro.screen'));
@@ -367,20 +377,85 @@ void main() {
     expect(h.settings.personalProxiesIntroSeen, isTrue);
   });
 
-  testWidgets('it waits for Home\'s startup popups, and opens once they '
-      'are done', (tester) async {
-    final h = await _launch(
-      tester,
-      flags: _actionMode,
-      startupPopupsDone: false,
+  group('with Home\'s startup popups', () {
+    /// A startup popup, queued as Home queues its referral and renewal
+    /// dialogs.
+    Future<void> popup(_Harness h, String text) => showDialog<void>(
+      context: h.router.navigatorKey.currentContext!,
+      builder: (context) => AlertDialog(
+        content: Text(text),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('close $text'),
+          ),
+        ],
+      ),
     );
-    expect(_intro, findsNothing);
-    expect(h.settings.personalProxiesIntroSeen, isFalse);
 
-    h.ready.value = true;
-    await tester.pumpAndSettle();
-    expect(_intro, findsOneWidget);
-    expect(h.settings.personalProxiesIntroSeen, isTrue);
+    testWidgets('a popup that comes while it is open waits until it closes', (
+      tester,
+    ) async {
+      final h = await _launch(tester, flags: _actionMode);
+      expect(_intro, findsOneWidget);
+      h.presentations.add(() => popup(h, 'referral'));
+      await tester.pumpAndSettle();
+      expect(find.text('referral'), findsNothing);
+
+      await tester.tap(_primary);
+      await tester.pumpAndSettle();
+      expect(_intro, findsNothing);
+      expect(find.text('referral'), findsOneWidget);
+    });
+
+    testWidgets('it waits for a chain of popups to finish, gaps and all, '
+        'then opens', (tester) async {
+      final h = await _launch(tester);
+      h.presentations.add(() async {
+        await popup(h, 'referral');
+        // A pause between the two, with nothing on screen.
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        await popup(h, 'renewal');
+      });
+      await tester.pumpAndSettle();
+      expect(find.text('referral'), findsOneWidget);
+      h.flags.set(_actionMode);
+      await tester.pumpAndSettle();
+      expect(_intro, findsNothing);
+
+      await tester.tap(find.text('close referral'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(_intro, findsNothing);
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+      expect(find.text('renewal'), findsOneWidget);
+      expect(_intro, findsNothing);
+      expect(h.settings.personalProxiesIntroSeen, isFalse);
+
+      await tester.tap(find.text('close renewal'));
+      await tester.pumpAndSettle();
+      expect(_intro, findsOneWidget);
+      expect(h.settings.personalProxiesIntroSeen, isTrue);
+    });
+
+    testWidgets('Home going away mid-chain runs nothing after it, without '
+        'an error', (tester) async {
+      final h = await _launch(tester);
+      final held = Completer<void>();
+      var after = false;
+      h.presentations.add(() => held.future);
+      h.flags.set(_actionMode);
+      await tester.pumpAndSettle();
+      h.presentations.add(() async => after = true);
+
+      await tester.pumpWidget(const SizedBox());
+      held.complete();
+      await tester.pumpAndSettle();
+      expect(after, isFalse);
+      expect(h.settings.personalProxiesIntroSeen, isFalse);
+      expect(tester.takeException(), isNull);
+    });
   });
 
   testWidgets('it waits while another screen covers home, and opens once '

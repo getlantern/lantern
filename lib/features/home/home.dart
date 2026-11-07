@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +15,7 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/pro_renewal_popup.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/home/startup_presentations.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
 import 'package:lantern/features/onboarding/personal_proxies_intro.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
@@ -28,10 +27,6 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern_app.dart' show userMessageRouteObserver;
 
 import '../../core/common/common.dart';
-
-/// How long Home's startup popups may wait on user data before the Personal
-/// Proxies introduction stops waiting for them.
-const _startupPopupsBound = Duration(seconds: 20);
 
 /// Root tab shell hosting the VPN and Unbounded tabs. Tab strip lives in
 /// the AppBar so the chrome (Lantern logo + settings menu + account
@@ -53,45 +48,29 @@ class Home extends HookConsumerWidget {
     // torn down explicitly; the empty dep list keeps it to one
     // subscription for the widget's lifetime rather than one per build.
     //
-    // startupPopupsDone turns true once the first of these chains has run, so
-    // the Personal Proxies introduction does not open between its dialogs.
-    // A chain that cannot run (no onboarding yet, or user data that fails
-    // or takes too long) counts as done.
-    final startupPopupsDone = useValueNotifier(false);
+    // Each chain is a step in [presentations], so it never opens over the
+    // Personal Proxies introduction, nor that over it.
+    final presentations = useMemoized(StartupPresentations.new);
+    useEffect(() => presentations.close, const []);
     useEffect(() {
-      final bound = Timer(
-        _startupPopupsBound,
-        () => startupPopupsDone.value = true,
-      );
       final sub = ref.listenManual(homeProvider, fireImmediately: true, (
         previous,
         next,
       ) {
         final user = next.value;
-        if (user == null) {
-          if (next.hasError) startupPopupsDone.value = true;
-          return;
-        }
-        if (!ref.read(appSettingProvider).onboardingCompleted) {
-          startupPopupsDone.value = true;
-          return;
-        }
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          try {
+        if (user == null) return;
+        if (!ref.read(appSettingProvider).onboardingCompleted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          presentations.add(() async {
             if (!context.mounted) return;
             await checkAndShowReferralReward(context, user);
             // Day-of renewal popup, chained so the dialogs never stack.
             if (!context.mounted) return;
             await checkAndShowProRenewalPopup(context, ref);
-          } finally {
-            startupPopupsDone.value = true;
-          }
+          });
         });
       });
-      return () {
-        bound.cancel();
-        sub.close();
-      };
+      return sub.close;
     }, const []);
 
     final tabController = useTabController(initialLength: 2);
@@ -315,7 +294,7 @@ class Home extends HookConsumerWidget {
       context,
       ref,
       userMessageRouteObserver,
-      ready: startupPopupsDone,
+      presentations: presentations,
     );
 
     // A newly approved pairing this device helps: start sharing, picking the
