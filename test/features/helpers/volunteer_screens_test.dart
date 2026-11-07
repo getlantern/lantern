@@ -1342,6 +1342,49 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('Who you\'re helping: a choice still being saved survives '
+      'closing and reopening the sheet', (tester) async {
+    final pending = <Completer<void>>[];
+    final helpers = _Helpers(_helping().copyWith(helpOthers: false))
+      ..helpOthersPending = pending;
+    final show = ValueNotifier(true);
+    await _pump(
+      tester,
+      helpers,
+      ValueListenableBuilder<bool>(
+        valueListenable: show,
+        builder: (_, on, _) =>
+            on ? const WhoYoureHelpingSheet() : const SizedBox(),
+      ),
+    );
+    final friends = find.byKey(const Key('helping.scope.friends'));
+    final all = find.byKey(const Key('helping.scope.all'));
+    await tester.tap(all);
+    await tester.pump();
+    expect(helpers.helpOthers, [true]);
+    show.value = false;
+    await tester.pump();
+    show.value = true;
+    await tester.pump();
+    bool? radio(Finder row) => tester
+        .widget<AppRadioButton<bool>>(
+          find.descendant(of: row, matching: find.byType(AppRadioButton<bool>)),
+        )
+        .groupValue;
+    expect(radio(all), isTrue, reason: 'All countries is being saved');
+    await tester.tap(friends);
+    await tester.pump();
+    expect(helpers.helpOthers, [
+      true,
+      false,
+    ], reason: 'Only my friends, chosen last, must be written');
+    for (final write in pending) {
+      write.complete();
+    }
+    await tester.pump();
+    expect(helpers.state.requestedHelpOthers, isNull);
+  });
+
   testWidgets('Who you\'re helping: Only my friends first, then All '
       'countries; each drives help-others', (tester) async {
     final helpers = _Helpers(_helping());

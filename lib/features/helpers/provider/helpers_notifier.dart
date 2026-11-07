@@ -97,6 +97,7 @@ class HelpersState {
     this.view = const HelpersView(),
     this.error,
     this.helpOthers = true,
+    this.requestedHelpOthers,
     this.helpingApprovals = 0,
     this.keystoreReset = false,
     this.viewLoaded = false,
@@ -109,6 +110,13 @@ class HelpersState {
 
   /// "Help others too" (radiance peer_serve_pool; unset means on).
   final bool helpOthers;
+
+  /// The latest "help others too" choice not yet saved, if any.
+  final bool? requestedHelpOthers;
+
+  /// What "Who you're helping" shows: the choice being saved, else the
+  /// saved one.
+  bool get chosenHelpOthers => requestedHelpOthers ?? helpOthers;
 
   /// Counts refreshes that found a new pairing this device helps. Home starts
   /// sharing when it grows.
@@ -127,6 +135,8 @@ class HelpersState {
     String? error,
     bool clearError = false,
     bool? helpOthers,
+    bool? requestedHelpOthers,
+    bool clearRequestedHelpOthers = false,
     int? helpingApprovals,
     bool? keystoreReset,
     bool? viewLoaded,
@@ -134,6 +144,9 @@ class HelpersState {
     view: view ?? this.view,
     error: clearError ? null : (error ?? this.error),
     helpOthers: helpOthers ?? this.helpOthers,
+    requestedHelpOthers: clearRequestedHelpOthers
+        ? null
+        : (requestedHelpOthers ?? this.requestedHelpOthers),
     helpingApprovals: helpingApprovals ?? this.helpingApprovals,
     keystoreReset: keystoreReset ?? this.keystoreReset,
     viewLoaded: viewLoaded ?? this.viewLoaded,
@@ -523,6 +536,24 @@ class HelpersNotifier extends _$HelpersNotifier {
     res.fold((_) {}, (s) {
       final v = s['peer_serve_pool'];
       state = state.copyWith(helpOthers: v is bool ? v : true);
+    });
+  }
+
+  /// Numbers each choice from "Who you're helping", so only the latest one's
+  /// completion clears [HelpersState.requestedHelpOthers].
+  int _helpOthersRequests = 0;
+
+  /// A choice from "Who you're helping". It is compared with the latest
+  /// choice not yet saved, else the saved value, and written only when it
+  /// differs. Kept here rather than in the sheet, which can be closed and
+  /// reopened while a write is in flight.
+  Future<void> chooseHelpOthers(bool value) {
+    if (value == state.chosenHelpOthers) return Future.value();
+    state = state.copyWith(requestedHelpOthers: value);
+    final request = ++_helpOthersRequests;
+    return setHelpOthers(value).whenComplete(() {
+      if (!ref.mounted || request != _helpOthersRequests) return;
+      state = state.copyWith(clearRequestedHelpOthers: true);
     });
   }
 
