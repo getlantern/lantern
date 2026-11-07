@@ -67,20 +67,19 @@ class HelpFriend extends HookConsumerWidget {
     // While this screen submits, resumes or waits on its claim, its success
     // screen asks before Action Mode starts for the approval, rather than
     // Home starting it. Taken before the claim is sent: the claim's own
-    // refresh can bring the approval before it answers. Released before the
-    // success screen asked, Home gets the approvals that landed under it.
-    final holdingSince = useRef<int?>(null);
+    // refresh can bring the approval before it answers. Released without
+    // the success screen having asked, nothing starts.
+    final holding = useRef(false);
     void holdApproval() {
-      holdingSince.value ??= notifier.holdApprovalStart();
+      if (holding.value) return;
+      holding.value = true;
+      notifier.holdApprovalStart();
     }
 
     void releaseApproval() {
-      final since = holdingSince.value;
-      if (since == null) return;
-      holdingSince.value = null;
-      notifier.releaseApprovalStart(
-        undecidedSince: settled.value == _ClaimOutcome.approved ? null : since,
-      );
+      if (!holding.value) return;
+      holding.value = false;
+      notifier.releaseApprovalStart();
     }
 
     useEffect(() => releaseApproval, const []);
