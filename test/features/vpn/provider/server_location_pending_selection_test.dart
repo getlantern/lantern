@@ -9,6 +9,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
@@ -102,6 +103,13 @@ class _PrivateServers extends AvailableServersNotifier {
       ),
     ),
   ]);
+}
+
+class _Router extends AppRouter {
+  int popsToRoot = 0;
+
+  @override
+  void popUntilRoot() => popsToRoot++;
 }
 
 ServerLocation _location(String tag) => ServerLocation(
@@ -297,4 +305,57 @@ void main() {
       },
     );
   }
+
+  testWidgets('Connect Now completes only once the connection has settled '
+      'and returned home', (tester) async {
+    final router = _Router();
+    sl.registerSingleton<AppRouter>(router);
+    final subscription = container.listen(serverLocationProvider, (_, _) {});
+    addTearDown(subscription.close);
+    Future<void>? connecting;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: ScreenUtilInit(
+          designSize: const Size(393, 852),
+          child: GlobalLoaderOverlay(
+            child: MaterialApp(
+              theme: AppTheme.appTheme(),
+              home: Scaffold(
+                body: Consumer(
+                  builder: (context, ref, _) => TextButton(
+                    onPressed: () =>
+                        connecting = connectPersonalProxy(context, ref),
+                    child: const Text('connect'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('connect'));
+    await tester.pump();
+    var done = false;
+    unawaited(connecting!.then((_) => done = true));
+
+    // The connect answers while the VPN is still connecting.
+    vpn().connection.complete(const Right('ok'));
+    await tester.runAsync(_pump);
+    await tester.pump();
+    expect(container.read(vpnProvider), VPNStatus.connecting);
+    expect(
+      done,
+      isFalse,
+      reason: 'the caller must stay until the selection is saved',
+    );
+    expect(router.popsToRoot, 0);
+
+    vpn().set(VPNStatus.connected);
+    await tester.runAsync(_pump);
+    await tester.pump();
+    expect(done, isTrue);
+    expect(router.popsToRoot, 1);
+  });
 }

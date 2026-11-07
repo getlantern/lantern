@@ -872,7 +872,9 @@ bool _macOSExtensionReady(WidgetRef ref) {
 /// The connect flow shared by every row on this screen. Runs [attempt] behind
 /// the loading overlay, offers the conflict dialog and a retry when another
 /// VPN is active, then hands [save] to the location notifier to run once the
-/// VPN reports connected, and returns to the home screen.
+/// VPN reports connected, and returns to the home screen. It completes once
+/// that save has run or been dropped, so a caller that keeps [context] until
+/// then is still there to return home from.
 Future<void> _connectAndReturnHome(
   BuildContext context,
   WidgetRef ref, {
@@ -893,8 +895,8 @@ Future<void> _connectAndReturnHome(
   } finally {
     overlay.hide();
   }
-  result.fold(
-    (failure) {
+  await result.fold(
+    (failure) async {
       if (!context.mounted) return;
       if (failure is VpnConflictFailure && !skipConflictCheck) {
         AppDialog.vpnConflictDialog(
@@ -917,9 +919,8 @@ Future<void> _connectAndReturnHome(
       }
       context.showSnackBar(failure.localizedErrorMessage);
     },
-    (_) => unawaited(
-      _returnHomeOnceSaved(context, locationNotifier, save, connectedMessage),
-    ),
+    (_) =>
+        _returnHomeOnceSaved(context, locationNotifier, save, connectedMessage),
   );
 }
 
