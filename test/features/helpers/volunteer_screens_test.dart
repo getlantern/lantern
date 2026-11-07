@@ -46,12 +46,17 @@ class _Helpers extends HelpersNotifier {
   Future<void> refreshIfUsed() async => refreshes++;
   @override
   Future<void> loadHelpOthers() async {}
-  // When set, writes of help-others stay pending until it completes.
-  Completer<void>? helpOthersPending;
+  // When set, each write of help-others stays pending until its own
+  // completer here completes.
+  List<Completer<void>>? helpOthersPending;
   @override
   Future<void> setHelpOthers(bool value) async {
     helpOthers.add(value);
-    await helpOthersPending?.future;
+    final pending = helpOthersPending;
+    if (pending == null) return;
+    final write = Completer<void>();
+    pending.add(write);
+    await write.future;
   }
 
   @override
@@ -1241,14 +1246,49 @@ void main() {
 
   testWidgets('Who you\'re helping: a choice reversed while the first is '
       'still being saved is written too', (tester) async {
-    final helpers = _Helpers(_helping())..helpOthersPending = Completer<void>();
+    final pending = <Completer<void>>[];
+    final helpers = _Helpers(_helping())..helpOthersPending = pending;
     await _pump(tester, helpers, const WhoYoureHelpingSheet());
     await tester.tap(find.byKey(const Key('helping.scope.friends')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('helping.scope.all')));
     await tester.pump();
     expect(helpers.helpOthers, [false, true]);
-    helpers.helpOthersPending!.complete();
+    for (final write in pending) {
+      write.complete();
+    }
+    await tester.pump();
+  });
+
+  testWidgets('Who you\'re helping: an older write finishing does not '
+      'forget a newer choice', (tester) async {
+    final pending = <Completer<void>>[];
+    final helpers = _Helpers(_helping().copyWith(helpOthers: false))
+      ..helpOthersPending = pending;
+    await _pump(tester, helpers, const WhoYoureHelpingSheet());
+    final friends = find.byKey(const Key('helping.scope.friends'));
+    final all = find.byKey(const Key('helping.scope.all'));
+    // All, Friends, All, all still being written.
+    for (final row in [all, friends, all]) {
+      await tester.tap(row);
+      await tester.pump();
+    }
+    expect(helpers.helpOthers, [true, false, true]);
+    // The first two finish; the last All is still being written.
+    pending[0].complete();
+    pending[1].complete();
+    await tester.pump();
+    await tester.tap(friends);
+    await tester.pump();
+    expect(helpers.helpOthers, [
+      true,
+      false,
+      true,
+      false,
+    ], reason: 'Only my friends, chosen last, must be written');
+    for (final write in pending.skip(2)) {
+      write.complete();
+    }
     await tester.pump();
   });
 
