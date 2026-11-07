@@ -1702,11 +1702,7 @@ msgstr ""
 "طریق اتصال شما به اینترنت آزاد می‌رسانند."
 
 msgid "share_consent_body_ip"
-msgstr ""
-"اگر روتر شما از هدایت پورت پشتیبانی کند، اتصال خانگی شما به عنوان خروجی "
-"استفاده می‌شود و در مدت اشتراک‌گذاری، آدرس IP شما در گزارش‌های مقصد دیده "
-"خواهد شد. در غیر این صورت، آن ترافیک از طریق سرورهای Lantern منتقل می‌شود و "
-"IP شما از آن طریق افشا نمی‌شود."
+msgstr "اگر روتر شما از هدایت پورت پشتیبانی کند، اتصال خانگی شما به عنوان خروجی استفاده می‌شود و هنگام اشتراک‌گذاری، نشانی IP شما در گزارش‌های مقصد دیده می‌شود. در غیر این صورت، آن ترافیک از طریق سرورهای Lantern منتقل می‌شود و IP شما از این راه افشا نمی‌شود. ترافیک دوستی که پروکسی شخصی او هستید نیز می‌تواند حتی بدون هدایت پورت از اتصال شما خارج شود."
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2123,9 +2119,6 @@ msgstr "لینکی را که دوستتان فرستاده جای‌گذاری �
 msgid "help_friend_scan"
 msgstr "کد QR دوستتان را اسکن کنید"
 
-msgid "help_friend_approved"
-msgstr "اکنون به %s کمک می‌کنید."
-
 msgid "help_friend_no_longer_pending"
 msgstr "این درخواست دیگر در انتظار نیست. از دوستتان دعوت جدیدی بخواهید."
 
@@ -2164,12 +2157,6 @@ msgstr "توقف کمک"
 
 msgid "helping_remove_confirm"
 msgstr "کمک به %s متوقف شود؟ برای اتصال دوباره از طریق شما به دعوت جدید نیاز خواهد داشت."
-
-msgid "help_others_too"
-msgstr "به دیگران هم کمک کنید"
-
-msgid "help_others_too_body"
-msgstr "ظرفیت اضافی خود را در اختیار افراد دیگری بگذارید که با سانسور روبه‌رو هستند؛ Lantern فقط اجازه دسترسی به سایت‌های مجاز را به آن‌ها می‌دهد و از اتصال شما در برابر سوءاستفاده محافظت می‌کند."
 
 msgid "help_others_too_note"
 msgstr "تغییر این گزینه، اتصال افرادی را که به آن‌ها کمک می‌کنید برای مدت کوتاهی دوباره برقرار می‌کند."
@@ -2214,7 +2201,7 @@ msgid "become_means_title"
 msgstr "پروکسی شخصی بودن یعنی چه"
 
 msgid "become_means_traffic"
-msgstr "یکی از دوستانتان از شما کمک خواسته است. تا زمانی که Action Mode فعال است، او می‌تواند از طریق اتصال شما به اینترنت آزاد دسترسی داشته باشد. بسته به روتر شما، ترافیک او از شبکه شما خارج می‌شود یا از طریق سرورهای Lantern منتقل می‌شود. Lantern فعالیت آنلاین او را به شما نشان نمی‌دهد."
+msgstr "دوستی از شما کمک خواسته است. تا وقتی Action Mode فعال است، او می‌تواند از طریق اتصال شما به اینترنت آزاد دسترسی داشته باشد. Lantern سایت‌هایی را که او باز می‌کند به شما نشان نمی‌دهد."
 
 msgid "become_means_seen"
 msgstr "آن‌ها می‌توانند ببینند چه زمانی متصل هستید. فقط دعوت افرادی را که می‌شناسید بپذیرید."
@@ -2225,14 +2212,8 @@ msgstr "هر زمان بخواهید می‌توانید اتصال را حذف 
 msgid "help_friend_form_title"
 msgstr "لینک فردی را که به او کمک می‌کنید جای‌گذاری کنید"
 
-msgid "help_friend_link_hint"
-msgstr "با زدن روی لینک در این دستگاه، این قسمت پر می‌شود"
-
 msgid "help_friend_name_label"
 msgstr "نام شما، همان‌طور که شما را می‌شناسند"
-
-msgid "help_friend_name_hint"
-msgstr "در Lantern دوستتان با این نام نمایش داده می‌شوید"
 
 msgid "help_friend_become"
 msgstr "پروکسی شخصی دوستتان شوید"
@@ -2291,17 +2272,8 @@ msgstr "داده‌های بازپخش‌شده امروز"
 msgid "helping_active_today"
 msgstr "فعال: %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "یکی از دوستانتان از شما دعوت کرده پروکسی شخصی او باشید"
-
 msgid "help_friend_paste_button"
 msgstr "جای‌گذاری لینک"
-
-msgid "help_friend_no_link"
-msgstr "هنوز لینک ندارید؟"
-
-msgid "help_friend_ask_invite"
-msgstr "درخواست دعوت از دوست"
 
 msgid "help_friend_ask_invite_message"
 msgstr "من می‌توانم پروکسی شخصی شما در Lantern باشم تا از طریق اتصال من آنلاین شوید. در Lantern، «انتخاب سرور» را باز کنید، روی منوی ⋮ در بالا بزنید، «دعوت از پروکسی شخصی» را انتخاب کنید و پیوند را برایم بفرستید."
@@ -2332,3 +2304,90 @@ msgstr "در حال کمک به ۱ نفر"
 
 msgid "helping_people"
 msgstr "در حال کمک به %s نفر"
+
+msgid "onboarding_personal_proxies"
+msgstr "پراکسی‌های شخصی"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "وقتی Lantern مسدود است، از فردی مورد اعتماد در خارج از کشور بخواهید پراکسی شما باشد."
+
+msgid "onboarding_new_badge"
+msgstr "جدید"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "به دیگران برای دسترسی به اینترنت آزاد کمک کنید"
+
+msgid "onboarding_action_mode_share"
+msgstr "اشتراک‌گذاری اتصال شما"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "داوطلبانه بخش کوچکی از اتصال خود را در اختیار دیگران بگذارید تا از محدودیت‌های اینترنت عبور کنند."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "به آشنایان خود کمک کنید"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "اگر دوستی در کشوری با سانسور برای شما دعوت‌نامه بفرستد، می‌توانید Personal Proxy او باشید."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "حریم خصوصی شما محافظت می‌شود"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "اطلاعات شخصی و فعالیت مرور شما هرگز به اشتراک گذاشته یا افشا نمی‌شود."
+
+msgid "onboarding_action_mode_control"
+msgstr "کنترل در دست شماست"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "هر زمان از زبانه Action Mode می‌توانید Action Mode را روشن یا خاموش کنید."
+
+msgid "approved_title"
+msgstr "%s اکنون پراکسی شخصی شماست"
+
+msgid "approved_body"
+msgstr "وقتی %s آنلاین باشد، می‌توانید آن را از بخش مکان‌های خصوصی در انتخاب سرور انتخاب کنید."
+
+msgid "approved_connect_now"
+msgstr "اتصال اکنون"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "شما با این نام در فهرست سرورهای او نمایش داده می‌شوید."
+
+msgid "help_friend_success_title"
+msgstr "اکنون پروکسی شخصی %s هستید"
+
+msgid "help_friend_success_body"
+msgstr "%s شما را تأیید کرد. وقتی Action Mode روشن باشد، او می‌تواند از طریق اتصال شما به اینترنت آزاد دسترسی داشته باشد."
+
+msgid "help_friend_keep_on"
+msgstr "روشن نگه داشتن Action Mode"
+
+msgid "help_friend_keep_on_body"
+msgstr "اکنون و هر زمان که Lantern باز باشد روشن می‌شود تا %s متصل بماند."
+
+msgid "help_friend_no_link_yet"
+msgstr "هنوز لینکی ندارید؟"
+
+msgid "help_friend_ask_send_link"
+msgstr "از او بخواهید یکی برایتان بفرستد."
+
+msgid "helping_scope_line_all"
+msgstr "به افراد در همه کشورها هم کمک می‌کنید"
+
+msgid "helping_scope_line_friends"
+msgstr "فقط به دوستانتان کمک می‌کنید"
+
+msgid "helping_scope_change"
+msgstr "تغییر"
+
+msgid "helping_scope_title"
+msgstr "به چه کسانی کمک می‌کنید"
+
+msgid "helping_scope_subtitle"
+msgstr "فقط با دوستانتان یا با مردم همه کشورها به اشتراک بگذارید."
+
+msgid "helping_scope_only_friends"
+msgstr "فقط دوستانم"
+
+msgid "helping_scope_all_countries"
+msgstr "همه کشورها"

@@ -103,6 +103,22 @@ void main() {
     expect(v.waitingClaims(100).map((c) => c.id), ['live']);
   });
 
+  test('has_pairing_key: only an explicit false says the pairing has none', () {
+    final v = HelpersView.fromJson({
+      'helpers': [
+        {'pairing_id': 'p1', 'has_pairing_key': true},
+        {'pairing_id': 'p2', 'has_pairing_key': false},
+        {'pairing_id': 'p3'},
+      ],
+      'helping': [
+        {'pairing_id': 'p4', 'has_pairing_key': false},
+      ],
+    });
+    expect(v.helpers.map((h) => h.hasPairingKey), [true, false, true]);
+    expect(v.helping.single.hasPairingKey, isFalse);
+    expect(const HelperPairingView(pairingId: 'p5').hasPairingKey, isTrue);
+  });
+
   group('per-friend selection', () {
     const tag = 'helper-0123456789ab';
 
@@ -133,9 +149,11 @@ void main() {
       );
       const direct = {tag: PersonalProxyStatus(direct: true)};
       const rooms = {tag: PersonalProxyStatus(rooms: true)};
+      const reverse = {tag: PersonalProxyStatus(reverse: true)};
       const dead = {tag: PersonalProxyStatus()};
       expect(ali.selectable(direct), isTrue);
       expect(ali.selectable(rooms), isTrue);
+      expect(ali.selectable(reverse), isTrue);
       expect(ali.selectable(dead), isFalse);
       expect(
         ali.selectable(const {}),
@@ -148,6 +166,33 @@ void main() {
       const noTag = HelperPairingView(pairingId: 'p1', online: true);
       expect(noTag.selectable(direct), isFalse);
       expect(noTag.selectable(null), isFalse);
+    });
+
+    test('a live reverse route is reachable and selectable while presence '
+        'says offline', () {
+      const bo = HelperPairingView(pairingId: 'p2', outboundTag: tag);
+      const reverse = {tag: PersonalProxyStatus(reverse: true)};
+      const direct = {tag: PersonalProxyStatus(direct: true)};
+      const rooms = {tag: PersonalProxyStatus(rooms: true)};
+      expect(bo.reachable(reverse), isTrue);
+      expect(bo.selectable(reverse), isTrue);
+      expect(bo.reachable(direct), isFalse);
+      expect(bo.selectable(direct), isFalse);
+      expect(bo.reachable(rooms), isFalse);
+      expect(bo.selectable(rooms), isFalse);
+      expect(bo.reachable(null), isFalse);
+      expect(bo.reachable(const {}), isFalse);
+      const noTag = HelperPairingView(pairingId: 'p3');
+      expect(
+        noTag.reachable(const {'': PersonalProxyStatus(reverse: true)}),
+        isFalse,
+      );
+      expect(
+        noTag.selectable(const {'': PersonalProxyStatus(reverse: true)}),
+        isFalse,
+      );
+      const ali = HelperPairingView(pairingId: 'p1', online: true);
+      expect(ali.reachable(null), isTrue);
     });
 
     test('with no status from radiance (VPN off), online decides alone', () {
@@ -166,13 +211,17 @@ void main() {
         'statuses': [
           {'tag': tag, 'direct': true, 'rooms': false},
           {'tag': 'helper-ba9876543210', 'rooms': true},
+          {'tag': 'helper-112233445566', 'reverse': true},
           {'direct': true},
           'junk',
         ],
       });
-      expect(all.keys, [tag, 'helper-ba9876543210']);
+      expect(all.keys, [tag, 'helper-ba9876543210', 'helper-112233445566']);
       expect(all[tag]!.direct, isTrue);
+      expect(all[tag]!.reverse, isFalse);
       expect(all['helper-ba9876543210']!.live, isTrue);
+      expect(all['helper-112233445566']!.reverse, isTrue);
+      expect(all['helper-112233445566']!.live, isTrue);
       expect(PersonalProxyStatus.parseAll(const {}), isEmpty);
     });
   });

@@ -51,6 +51,7 @@ Future<void> _pump(WidgetTester tester, ServerLocation selected) async {
     ProviderScope(
       overrides: [
         availableServersProvider.overrideWith(_Servers.new),
+        helperInvitesAvailableProvider.overrideWithValue(false),
         helpersProvider.overrideWith(_Helpers.new),
         personalProxyStatusProvider.overrideWith(_Status.new),
         serverLocationProvider.overrideWithValue(selected),

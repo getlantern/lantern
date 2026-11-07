@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -6,26 +8,34 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/vpn/server_selection.dart';
+
+/// Lets a test see "Connect Now" without connecting.
+@visibleForTesting
+Future<void> Function(String? friendTag)? debugConnectPersonalProxy;
 
 /// Shows the matching code of a claimed invite in a modal dialog, and lets
 /// the inviter approve or reject the person who claimed it. Tapping outside
 /// does not close it. Rejecting burns the invite: its link no longer works.
-/// Completes with true once the engine accepted a decision.
+/// An approval is followed by "[Name] is now your Personal Proxy", with
+/// Connect Now and Done. Completes with true once the engine accepted a
+/// decision.
 Future<bool> showApproveHelperDialog(
   BuildContext context,
+  WidgetRef ref,
   HelperInviteView invite,
 ) async {
   // Read once: the notifier is keepAlive and outlives this dialog.
-  final notifier = ProviderScope.containerOf(
-    context,
-    listen: false,
-  ).read(helpersProvider.notifier);
+  final container = ProviderScope.containerOf(context, listen: false);
+  final notifier = container.read(helpersProvider.notifier);
   final navigator = Navigator.of(context, rootNavigator: true);
   final textTheme = Theme.of(context).textTheme;
   final name = invite.volunteerName.isEmpty
       ? 'helper_unnamed'.i18n
       : invite.volunteerName;
   var decided = false;
+  var approved = false;
+  String? newFriendTag;
   var busy = false;
   // Back can close the dialog while a decision is in flight; popping then
   // would close whatever is under it.
@@ -35,10 +45,24 @@ Future<bool> showApproveHelperDialog(
   Future<void> decide(bool approve) async {
     if (busy) return;
     busy = true;
+    final before = {
+      for (final h in container.read(helpersProvider).view.helpers) h.pairingId,
+    };
     final r = await notifier.decide(invite.id, approve: approve);
     busy = false;
     if (r.ok) {
       decided = true;
+      // The friend this approval added, to connect through them alone; the
+      // group when that cannot be told.
+      final added = [
+        for (final h in container.read(helpersProvider).view.helpers)
+          if (!before.contains(h.pairingId)) h,
+      ];
+      if (added.length == 1 && added.single.outboundTag.isNotEmpty) {
+        newFriendTag = added.single.outboundTag;
+      }
+      // Closed by Back first, the user has moved on: no success dialog.
+      approved = approve && open;
       if (open) navigator.pop();
       return;
     }
@@ -86,7 +110,45 @@ Future<bool> showApproveHelperDialog(
   open = false;
   // Closed by Back mid-decision: answer with how the decision went.
   await inflight;
+  if (approved && context.mounted) {
+    await _showApprovedDialog(context, ref, name, newFriendTag);
+  }
   return decided;
+}
+
+/// "[name] is now your Personal Proxy": where to pick them, with Connect Now,
+/// which selects them and turns the VPN on, and Done. It returns once a
+/// connection Connect Now started has finished, so the caller's route, whose
+/// context and ref the connection uses, stays until then.
+Future<void> _showApprovedDialog(
+  BuildContext context,
+  WidgetRef ref,
+  String name,
+  String? friendTag,
+) async {
+  final navigator = Navigator.of(context, rootNavigator: true);
+  Future<void>? connecting;
+  await AppDialog.show(
+    context: context,
+    centered: true,
+    scrollable: true,
+    header: const Icon(Icons.check_circle_outline, size: 48),
+    title: 'approved_title'.i18n.fill([name]),
+    body: 'approved_body'.i18n.fill([name]),
+    primaryLabel: 'approved_connect_now'.i18n,
+    // Connect while the caller is still there: AppDialog would run a
+    // dismissing callback 400 ms after the pop.
+    dismissOnPrimary: false,
+    onPrimaryPressed: () {
+      navigator.pop();
+      final connect = debugConnectPersonalProxy;
+      connecting = connect != null
+          ? connect(friendTag)
+          : connectPersonalProxy(context, ref, friendTag: friendTag);
+    },
+    secondaryLabel: 'help_friend_done'.i18n,
+  );
+  await connecting;
 }
 
 /// Spells a matching code digit by digit, so a screen reader does not read
