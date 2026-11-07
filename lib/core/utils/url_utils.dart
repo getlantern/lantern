@@ -92,16 +92,6 @@ class UrlUtils {
     }
   }
 
-  /// Runs sign-in at [url] in an in-app browser sheet (iOS only) and returns
-  /// its `lantern://` callback, or null if the user closed the sheet.
-  static Future<Uri?> authenticateInApp(String url) async {
-    final callback = await _methodChannel.invokeMethod<String>(
-      'authenticateInApp',
-      url,
-    );
-    return callback == null ? null : Uri.parse(callback);
-  }
-
   // openWithSystemBrowser opens a URL in the browser
   static Future<void> openWithSystemBrowser(String url) async {
     switch (Platform.operatingSystem) {

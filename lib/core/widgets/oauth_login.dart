@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show PlatformException;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/utils/country_code.dart';
@@ -147,16 +146,13 @@ class OAuthLogin extends HookConsumerWidget {
     BuildContext context,
     String url,
   ) async {
-    final Uri? callback;
-    try {
-      callback = await UrlUtils.authenticateInApp(url);
-    } on PlatformException catch (e, st) {
-      appLogger.error('In-app OAuth sign-in failed', e, st);
+    final result = await ref.read(authProvider.notifier).authenticateInApp(url);
+    final callback = result.getOrElse((_) {
       if (context.mounted) {
         context.showSnackBarError(oAuthSignInFailedKey.i18n);
       }
-      return;
-    }
+      return null;
+    });
     if (callback == null || !isOAuthCallbackResult(callback)) return;
     if (!context.mounted) return;
     await _handleOAuthPayload(

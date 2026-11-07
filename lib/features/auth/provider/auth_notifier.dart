@@ -17,6 +17,10 @@ class AuthNotifier extends _$AuthNotifier {
     return ref.read(lanternServiceProvider).getOAuthLoginUrl(provider);
   }
 
+  Future<Either<Failure, Uri?>> authenticateInApp(String url) async {
+    return ref.read(lanternServiceProvider).authenticateInApp(url);
+  }
+
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
     String authToken,
   ) async {

@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/utils/url_utils.dart';
 
@@ -59,39 +58,6 @@ void main() {
         ),
         isFalse,
       );
-    });
-  });
-
-  group('UrlUtils.authenticateInApp', () {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    const channel = MethodChannel('org.getlantern.lantern/method');
-    final messenger =
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-
-    void respondWith(String? callback) {
-      messenger.setMockMethodCallHandler(channel, (call) async {
-        expect(call.method, 'authenticateInApp');
-        expect(call.arguments, 'https://df.iantem.io/users/oauth2/google');
-        return callback;
-      });
-    }
-
-    tearDown(() => messenger.setMockMethodCallHandler(channel, null));
-
-    test('returns the callback URL', () async {
-      respondWith('lantern://auth?token=abc');
-      final uri = await UrlUtils.authenticateInApp(
-        'https://df.iantem.io/users/oauth2/google',
-      );
-      expect(uri?.queryParameters, {'token': 'abc'});
-    });
-
-    test('returns null when the user closes the sheet', () async {
-      respondWith(null);
-      final uri = await UrlUtils.authenticateInApp(
-        'https://df.iantem.io/users/oauth2/google',
-      );
-      expect(uri, isNull);
     });
   });
 }
