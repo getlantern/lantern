@@ -319,7 +319,9 @@ class WhoYoureHelpingSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final helpOthers = ref.watch(helpersProvider.select((s) => s.helpOthers));
+    final helpOthers = ref.watch(
+      helpersProvider.select((s) => s.chosenHelpOthers),
+    );
     final notifier = ref.read(helpersProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
 
@@ -328,21 +330,7 @@ class WhoYoureHelpingSheet extends HookConsumerWidget {
       return null;
     }, const []);
 
-    // The latest choice not yet saved: a choice made while an earlier one
-    // is still being written compares against it, not the saved value.
-    // Only the latest write's completion clears it.
-    final requested = useRef<bool?>(null);
-    final requests = useRef(0);
-    void choose(bool all) {
-      if (all == (requested.value ?? helpOthers)) return;
-      requested.value = all;
-      final request = ++requests.value;
-      unawaited(
-        notifier.setHelpOthers(all).whenComplete(() {
-          if (requests.value == request) requested.value = null;
-        }),
-      );
-    }
+    void choose(bool all) => unawaited(notifier.chooseHelpOthers(all));
 
     Widget option({
       required Key key,
