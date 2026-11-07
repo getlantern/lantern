@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +29,10 @@ import 'package:lantern/lantern_app.dart' show userMessageRouteObserver;
 
 import '../../core/common/common.dart';
 
+/// How long Home's startup popups may wait on user data before the Personal
+/// Proxies introduction stops waiting for them.
+const _startupPopupsBound = Duration(seconds: 20);
+
 /// Root tab shell hosting the VPN and Unbounded tabs. Tab strip lives in
 /// the AppBar so the chrome (Lantern logo + settings menu + account
 /// actions) is shared across tabs and lines up with the Figma spec at
@@ -46,23 +52,46 @@ class Home extends HookConsumerWidget {
     // ref.listen) because the subscription must outlive a rebuild and is
     // torn down explicitly; the empty dep list keeps it to one
     // subscription for the widget's lifetime rather than one per build.
+    //
+    // startupPopupsDone turns true once the first of these chains has run, so
+    // the Personal Proxies introduction does not open between its dialogs.
+    // A chain that cannot run (no onboarding yet, or user data that fails
+    // or takes too long) counts as done.
+    final startupPopupsDone = useValueNotifier(false);
     useEffect(() {
+      final bound = Timer(
+        _startupPopupsBound,
+        () => startupPopupsDone.value = true,
+      );
       final sub = ref.listenManual(homeProvider, fireImmediately: true, (
         previous,
         next,
       ) {
         final user = next.value;
-        if (user == null) return;
-        if (!ref.read(appSettingProvider).onboardingCompleted) return;
+        if (user == null) {
+          if (next.hasError) startupPopupsDone.value = true;
+          return;
+        }
+        if (!ref.read(appSettingProvider).onboardingCompleted) {
+          startupPopupsDone.value = true;
+          return;
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!context.mounted) return;
-          await checkAndShowReferralReward(context, user);
-          // Day-of renewal popup, chained so the dialogs never stack.
-          if (!context.mounted) return;
-          await checkAndShowProRenewalPopup(context, ref);
+          try {
+            if (!context.mounted) return;
+            await checkAndShowReferralReward(context, user);
+            // Day-of renewal popup, chained so the dialogs never stack.
+            if (!context.mounted) return;
+            await checkAndShowProRenewalPopup(context, ref);
+          } finally {
+            startupPopupsDone.value = true;
+          }
         });
       });
-      return sub.close;
+      return () {
+        bound.cancel();
+        sub.close();
+      };
     }, const []);
 
     final tabController = useTabController(initialLength: 2);
@@ -282,7 +311,12 @@ class Home extends HookConsumerWidget {
 
     // Introduces Personal Proxies to a user who finished onboarding before
     // it did, once its flag and the user's flags allow.
-    usePersonalProxiesIntro(context, ref, userMessageRouteObserver);
+    usePersonalProxiesIntro(
+      context,
+      ref,
+      userMessageRouteObserver,
+      ready: startupPopupsDone,
+    );
 
     // A newly approved pairing this device helps: start sharing, picking the
     // mode as the toggle does. Not gated on the Unbounded tab being visible:

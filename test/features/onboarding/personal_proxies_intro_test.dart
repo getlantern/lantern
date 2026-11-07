@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -92,12 +93,13 @@ class _Helpers extends HelpersNotifier {
 
 /// Stands in for Home: runs the hook, and can open another screen over it.
 class _Host extends HookConsumerWidget {
-  const _Host(this.routes);
+  const _Host(this.routes, this.ready);
   final UserMessageRouteObserver routes;
+  final ValueListenable<bool> ready;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    usePersonalProxiesIntro(context, ref, routes);
+    usePersonalProxiesIntro(context, ref, routes, ready: ready);
     return const Scaffold(body: Text('home'));
   }
 }
@@ -107,14 +109,15 @@ Widget _otherPage(RouteData _) => const Scaffold(body: Text('other'));
 /// A real AppRouter with the host as home, the introduction, and one other
 /// screen.
 class _RealRouter extends AppRouter {
-  _RealRouter(this.routesObserver);
+  _RealRouter(this.routesObserver, this.ready);
   final UserMessageRouteObserver routesObserver;
+  final ValueListenable<bool> ready;
 
   @override
   List<AutoRoute> get routes => [
     AutoRoute(
       path: '/',
-      page: PageInfo('Host', builder: (_) => _Host(routesObserver)),
+      page: PageInfo('Host', builder: (_) => _Host(routesObserver, ready)),
     ),
     AutoRoute(path: '/personal-proxies-intro', page: PersonalProxiesIntro.page),
     AutoRoute(
@@ -125,8 +128,9 @@ class _RealRouter extends AppRouter {
 }
 
 class _Harness {
-  _Harness(this.container, this.router, this.share, this.helpers);
+  _Harness(this.container, this.router, this.share, this.helpers, this.ready);
   final ProviderContainer container;
+  final ValueNotifier<bool> ready;
   final _RealRouter router;
   final _Share share;
   final _Helpers helpers;
@@ -152,13 +156,16 @@ Future<_Harness> _launch(
   Map<String, dynamic> flags = const {},
   ThemeData? theme,
   Size size = const Size(600, 1400),
+  bool startupPopupsDone = true,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
   addTearDown(tester.view.reset);
   await sl.reset();
   final observer = UserMessageRouteObserver();
-  final router = _RealRouter(observer);
+  final ready = ValueNotifier(startupPopupsDone);
+  addTearDown(ready.dispose);
+  final router = _RealRouter(observer, ready);
   sl.registerSingleton<AppRouter>(router);
   addTearDown(sl.reset);
   final share = _Share();
@@ -193,7 +200,7 @@ Future<_Harness> _launch(
     ),
   );
   await tester.pumpAndSettle();
-  return _Harness(container, router, share, helpers);
+  return _Harness(container, router, share, helpers, ready);
 }
 
 final _intro = find.byKey(const Key('personal_proxies_intro.screen'));
@@ -357,6 +364,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(_intro, findsOneWidget);
     expect(_actionModePage, findsOneWidget);
+    expect(h.settings.personalProxiesIntroSeen, isTrue);
+  });
+
+  testWidgets('it waits for Home\'s startup popups, and opens once they '
+      'are done', (tester) async {
+    final h = await _launch(
+      tester,
+      flags: _actionMode,
+      startupPopupsDone: false,
+    );
+    expect(_intro, findsNothing);
+    expect(h.settings.personalProxiesIntroSeen, isFalse);
+
+    h.ready.value = true;
+    await tester.pumpAndSettle();
+    expect(_intro, findsOneWidget);
     expect(h.settings.personalProxiesIntroSeen, isTrue);
   });
 
