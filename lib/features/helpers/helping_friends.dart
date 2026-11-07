@@ -328,8 +328,17 @@ class WhoYoureHelpingSheet extends HookConsumerWidget {
       return null;
     }, const []);
 
+    // The latest choice not yet saved: a choice made while an earlier one
+    // is still being written compares against it, not the saved value.
+    final requested = useRef<bool?>(null);
     void choose(bool all) {
-      if (all != helpOthers) unawaited(notifier.setHelpOthers(all));
+      if (all == (requested.value ?? helpOthers)) return;
+      requested.value = all;
+      unawaited(
+        notifier.setHelpOthers(all).whenComplete(() {
+          if (requested.value == all) requested.value = null;
+        }),
+      );
     }
 
     Widget option({

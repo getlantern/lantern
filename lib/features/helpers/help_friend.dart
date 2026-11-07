@@ -187,13 +187,13 @@ class HelpFriend extends HookConsumerWidget {
     final Widget body;
     if (approved) {
       final name = _approvedName(helpers, claimId.value, helpingAtClaim.value);
-      // Done, or Back: Action Mode turns on, and stays on at launch, only
-      // with the box checked. Unchecked, the pairing stands and nothing
-      // else changes.
-      void done() {
+      // Done: Action Mode turns on, and stays on at launch, only with the
+      // box checked. Unchecked, or left with Back, the pairing stands and
+      // nothing else changes.
+      void done({bool confirmed = true}) {
         if (finished.value) return;
         finished.value = true;
-        if (keepOn.value) {
+        if (confirmed && keepOn.value) {
           unawaited(share.startForHelper(ref));
           unawaited(share.setAutoEnable(context, true));
         }
@@ -204,7 +204,7 @@ class HelpFriend extends HookConsumerWidget {
       return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) done();
+          if (!didPop) done(confirmed: false);
         },
         child: BaseScreen(
           title: 'become_personal_proxy'.i18n,

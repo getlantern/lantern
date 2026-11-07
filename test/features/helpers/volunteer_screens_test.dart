@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -44,8 +46,14 @@ class _Helpers extends HelpersNotifier {
   Future<void> refreshIfUsed() async => refreshes++;
   @override
   Future<void> loadHelpOthers() async {}
+  // When set, writes of help-others stay pending until it completes.
+  Completer<void>? helpOthersPending;
   @override
-  Future<void> setHelpOthers(bool value) async => helpOthers.add(value);
+  Future<void> setHelpOthers(bool value) async {
+    helpOthers.add(value);
+    await helpOthersPending?.future;
+  }
+
   @override
   Future<HelperResult> claim(String link, String name) async {
     claims.add((link, name));
@@ -825,6 +833,20 @@ void main() {
     expect(share.helperStarts, 1, reason: 'Done acts once');
   });
 
+  testWidgets('Back leaves the success screen without turning Action Mode '
+      'on, even with the box checked', (tester) async {
+    final (share, router) = await approvedScreen(tester);
+    tester
+        .widget<PopScope<Object?>>(
+          find.byWidgetPredicate((w) => w is PopScope<Object?>).last,
+        )
+        .onPopInvokedWithResult!(false, null);
+    await tester.pump();
+    expect(share.helperStarts, 0);
+    expect(share.autoEnable, isEmpty);
+    expect(router.forcedPops, 1);
+  });
+
   testWidgets('Done with the box unchecked pairs without turning Action Mode '
       'on or touching auto-enable', (tester) async {
     final (share, router) = await approvedScreen(tester);
@@ -1215,6 +1237,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('helping_scope_title'.i18n), findsOneWidget);
     expect(find.byKey(const Key('helping.scope.friends')), findsOneWidget);
+  });
+
+  testWidgets('Who you\'re helping: a choice reversed while the first is '
+      'still being saved is written too', (tester) async {
+    final helpers = _Helpers(_helping())..helpOthersPending = Completer<void>();
+    await _pump(tester, helpers, const WhoYoureHelpingSheet());
+    await tester.tap(find.byKey(const Key('helping.scope.friends')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('helping.scope.all')));
+    await tester.pump();
+    expect(helpers.helpOthers, [false, true]);
+    helpers.helpOthersPending!.complete();
+    await tester.pump();
   });
 
   testWidgets('Who you\'re helping: Only my friends first, then All '
