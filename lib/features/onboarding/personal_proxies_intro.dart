@@ -42,8 +42,8 @@ PersonalProxiesIntroPages personalProxiesIntroPages(Ref ref) => (
 /// finished onboarding without it, while the personal_proxies_intro flag is
 /// on. Flags can land after the first frame, so it watches them rather than
 /// looking once. It waits while anything covers Home ([routes] says when
-/// that changes), and leaves a launch that opens the macOS system extension
-/// dialog alone: the next launch shows it.
+/// that changes), and leaves alone a launch that shows onboarding or opens
+/// the macOS system extension dialog: the next launch shows it.
 void usePersonalProxiesIntro(
   BuildContext context,
   WidgetRef ref,
@@ -51,13 +51,16 @@ void usePersonalProxiesIntro(
 ) {
   final route = ModalRoute.of(context);
   final pushed = useRef(false);
-  final extensionDialogLaunch = useMemoized(
-    () =>
-        PlatformUtils.isMacOS && ref.read(appSettingProvider).showSplashScreen,
-  );
+  // As Home's first frame finds them: onboarding is pushed while it is not
+  // done, and the extension dialog while the splash flag is set on macOS.
+  final otherScreensThisLaunch = useMemoized(() {
+    final setting = ref.read(appSettingProvider);
+    return !setting.onboardingCompleted ||
+        (PlatformUtils.isMacOS && setting.showSplashScreen);
+  });
 
   useEffect(() {
-    if (extensionDialogLaunch) return null;
+    if (otherScreensThisLaunch) return null;
     var scheduled = false;
 
     void open() {
