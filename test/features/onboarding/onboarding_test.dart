@@ -140,9 +140,14 @@ Future<_Harness> _pump(
   final container = ProviderContainer(
     overrides: [
       appSettingProvider.overrideWith(() => _Settings(settings)),
-      helperInvitesAvailableProvider.overrideWithValue(invites),
+      helperInvitesAvailableProvider.overrideWith(
+        (ref) => ref.watch(featureFlagProvider)['helper_invites'] == true,
+      ),
       featureFlagProvider.overrideWith(
-        () => _Flags({if (actionMode) 'unbounded': true}),
+        () => _Flags({
+          if (actionMode) 'unbounded': true,
+          if (invites) 'helper_invites': true,
+        }),
       ),
       radianceSettingsProvider.overrideWith(() => radiance),
       shareProvider.overrideWith(() => share),
@@ -391,6 +396,34 @@ void main() {
       await _pastRoutingMode(tester);
       expect(h.settings.onboardingCompleted, isTrue);
       expect(h.settings.personalProxiesIntroSeen, isTrue);
+    });
+
+    testWidgets('skipping from the first page leaves it unseen, though both '
+        'were offered', (tester) async {
+      HelpersNotifier.debugBuildEnabled = true;
+      final h = await _pump(
+        tester,
+        invites: true,
+        actionMode: true,
+        size: _flowSize,
+      );
+      await tester.tap(find.byKey(const Key('onboarding.skip')));
+      await tester.pumpAndSettle();
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.settings.personalProxiesIntroSeen, isFalse);
+    });
+
+    testWidgets('helper invites that arrive after What makes Lantern '
+        'different do not count as the row seen', (tester) async {
+      final h = await _pump(tester, size: _flowSize);
+      await _continue(tester);
+      await _continue(tester);
+      expect(find.text('choose_your_routing_mode'.i18n), findsOneWidget);
+      h.flags.set({'helper_invites': true});
+      await tester.pumpAndSettle();
+      await _continue(tester);
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.settings.personalProxiesIntroSeen, isFalse);
     });
 
     testWidgets('finishing without either leaves it unseen, for the '
