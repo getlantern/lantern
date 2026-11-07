@@ -63,15 +63,25 @@ class HelpFriend extends HookConsumerWidget {
     // "Keep Action Mode on" on the success screen, checked by default.
     final keepOn = useState(true);
     final finished = useRef(false);
-    final waitingOnClaim = code.value != null;
 
-    useEffect(() {
-      // While this screen waits on its claim, its success screen asks before
-      // Action Mode starts for the approval, rather than Home starting it.
-      if (!waitingOnClaim) return null;
+    // While this screen submits, resumes or waits on its claim, its success
+    // screen asks before Action Mode starts for the approval, rather than
+    // Home starting it. Taken before the claim is sent: the claim's own
+    // refresh can bring the approval before it answers.
+    final holding = useRef(false);
+    void holdApproval() {
+      if (holding.value) return;
+      holding.value = true;
       notifier.holdApprovalStart();
-      return notifier.releaseApprovalStart;
-    }, [waitingOnClaim]);
+    }
+
+    void releaseApproval() {
+      if (!holding.value) return;
+      holding.value = false;
+      notifier.releaseApprovalStart();
+    }
+
+    useEffect(() => releaseApproval, const []);
 
     useEffect(() {
       // refreshIfUsed, not refresh: opening this screen must not touch the
@@ -96,6 +106,7 @@ class HelpFriend extends HookConsumerWidget {
         return null;
       }
       resumed.value = true;
+      holdApproval();
       final latest = pending.reduce(
         (a, b) => b.expiresUnix >= a.expiresUnix ? b : a,
       );
@@ -139,6 +150,7 @@ class HelpFriend extends HookConsumerWidget {
         busy.value = false;
         return;
       }
+      holdApproval();
       final r = await notifier.claim(
         normalizeHelperInviteInput(linkCtl.text),
         nameCtl.text,
@@ -146,11 +158,13 @@ class HelpFriend extends HookConsumerWidget {
       if (!context.mounted) return;
       busy.value = false;
       if (!r.ok) {
+        releaseApproval();
         error.value = r.error;
         return;
       }
       final claimed = r.data['code'];
       if (claimed is! String || claimed.isEmpty) {
+        releaseApproval();
         error.value = 'unavailable';
         return;
       }
