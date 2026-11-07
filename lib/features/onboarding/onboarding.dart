@@ -34,17 +34,29 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final showActionMode = useRef(false);
     if (actionModeOffered) showActionMode.value = true;
     final personalProxies = ref.watch(helperInvitesAvailableProvider);
-    final personalProxiesOffered = useRef(false);
-    if (personalProxies) personalProxiesOffered.value = true;
+    // The pages this run has put in front of the user, for the Personal
+    // Proxies introduction: the row counts only if it was there when What
+    // makes Lantern different (page 1) showed.
+    final furthestPage = useRef(0);
+    if (pageIndex.value > furthestPage.value) {
+      furthestPage.value = pageIndex.value;
+    }
+    final personalProxiesSeen = useRef(false);
+    if (personalProxies && pageIndex.value == 1) {
+      personalProxiesSeen.value = true;
+    }
+    final actionModePage = PlatformUtils.isIOS ? 2 : 3;
 
     Future<void> onboardingCompleted() async {
       await ref
           .read(radianceSettingsProvider.notifier)
           .setRoutingMode(selectedRouteMode.value);
       ref.read(appSettingProvider.notifier).setOnboardingCompleted(true);
-      // A user onboarding introduced them to needs no introduction later. One
-      // whose flags came too late for these pages still gets it.
-      if (showActionMode.value || personalProxiesOffered.value) {
+      // A user who saw them here needs no introduction later. One who
+      // skipped past them, or whose flags came too late, still gets it.
+      final actionModeSeen =
+          showActionMode.value && furthestPage.value >= actionModePage;
+      if (actionModeSeen || personalProxiesSeen.value) {
         ref.read(appSettingProvider.notifier).setPersonalProxiesIntroSeen(true);
       }
       final shouldShowExtensionDialog =
