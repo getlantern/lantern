@@ -370,6 +370,38 @@ void main() {
     });
   });
 
+  group('Personal Proxies introduction', () {
+    testWidgets('finishing with the Action Mode page marks it seen', (
+      tester,
+    ) async {
+      HelpersNotifier.debugBuildEnabled = true;
+      final h = await _pump(tester, actionMode: true, size: _flowSize);
+      await _pastRoutingMode(tester);
+      expect(_actionModePage, findsOneWidget);
+      expect(h.settings.personalProxiesIntroSeen, isFalse);
+      await _continue(tester);
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.settings.personalProxiesIntroSeen, isTrue);
+    });
+
+    testWidgets('finishing with the Personal Proxies row marks it seen', (
+      tester,
+    ) async {
+      final h = await _pump(tester, invites: true, size: _flowSize);
+      await _pastRoutingMode(tester);
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.settings.personalProxiesIntroSeen, isTrue);
+    });
+
+    testWidgets('finishing without either leaves it unseen, for the '
+        'introduction to catch flags that came late', (tester) async {
+      final h = await _pump(tester, size: _flowSize);
+      await _pastRoutingMode(tester);
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.settings.personalProxiesIntroSeen, isFalse);
+    });
+  });
+
   // Renders the page to a PNG to compare with the design. Runs only with
   // --dart-define=ONBOARDING_SHOTS=<dir> and ONBOARDING_FONTS=<a directory
   // holding Urbanist-*.ttf>.
