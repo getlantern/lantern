@@ -181,7 +181,7 @@ class Provider {
   factory Provider.fromJson(Map<String, dynamic> json) => Provider(
     name: json["name"],
     data: ProviderData.fromJson(json["data"]),
-    icons: List<String>.from(json["icons"].map((x) => x)),
+    icons: List<String>.from(json["icons"] ?? const []),
     supportSubscription: json["supportsSubscription"] ?? false,
   );
 
