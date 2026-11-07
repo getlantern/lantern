@@ -922,6 +922,13 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Uri?>> authenticateInApp(String url) {
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
+  }
+
+  @override
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
     String token,
   ) async {

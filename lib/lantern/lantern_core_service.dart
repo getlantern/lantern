@@ -262,6 +262,10 @@ abstract class LanternCoreService {
   ///OAuth methods
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
 
+  /// Runs sign-in at [url] in an in-app browser sheet and returns its
+  /// `lantern://` callback, or null if the user closed the sheet. iOS only.
+  Future<Either<Failure, Uri?>> authenticateInApp(String url);
+
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token);
 
   /// Loads the account identity from a device-limit OAuth callback token so
