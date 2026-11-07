@@ -907,22 +907,24 @@ Future<void> _connectAndReturnHome(
     (failure) async {
       if (!context.mounted) return;
       if (failure is VpnConflictFailure && !skipConflictCheck) {
-        AppDialog.vpnConflictDialog(
+        // Settles once the user chooses and, on Connect Anyway, once the
+        // retry has.
+        Future<void>? retry;
+        await AppDialog.vpnConflictDialog(
           context: context,
           onConnectAnyway: () {
             appRouter.maybePop();
-            unawaited(
-              _connectAndReturnHome(
-                context,
-                ref,
-                attempt: attempt,
-                save: save,
-                connectedMessage: connectedMessage,
-                skipConflictCheck: true,
-              ),
+            retry = _connectAndReturnHome(
+              context,
+              ref,
+              attempt: attempt,
+              save: save,
+              connectedMessage: connectedMessage,
+              skipConflictCheck: true,
             );
           },
         );
+        await retry;
         return;
       }
       context.showSnackBar(failure.localizedErrorMessage);
