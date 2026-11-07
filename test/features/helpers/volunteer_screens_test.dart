@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 // screens' names.
 import 'package:lantern/core/common/common.dart' hide HelpFriend;
 import 'package:lantern/core/common/common.dart' as routes show HelpFriend;
+import 'package:lantern/core/common/common.dart' as routes_ show HelpFriend;
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/models/share_state.dart';
@@ -125,6 +126,21 @@ class _Router extends AppRouter {
 
   @override
   void pop<T extends Object?>([T? result]) => forcedPops++;
+}
+
+Widget _blankPage(RouteData _) => const Scaffold(body: Text('blank'));
+
+/// A real AppRouter with only a blank home and HelpFriend, so system Back
+/// and pops go through auto_route as in the app.
+class _RealRouter extends AppRouter {
+  @override
+  List<AutoRoute> get routes => [
+    AutoRoute(
+      path: '/',
+      page: const PageInfo('Blank', builder: _blankPage),
+    ),
+    AutoRoute(path: '/help-friend', page: routes_.HelpFriend.page),
+  ];
 }
 
 class _Share extends ShareNotifier {
@@ -880,6 +896,72 @@ void main() {
     expect(share.helperStarts, 0);
     expect(share.autoEnable, isEmpty);
     expect(router.forcedPops, 1);
+  });
+
+  /// The success screen pushed through a real AppRouter over a blank home.
+  Future<(_Share, _RealRouter)> approvedThroughRouter(
+    WidgetTester tester,
+  ) async {
+    await sl.reset();
+    final router = _RealRouter();
+    sl.registerSingleton<AppRouter>(router);
+    addTearDown(sl.reset);
+    final share = _Share();
+    final helpers = _Helpers(waitingOnC1());
+    helpers.holdLink(_link);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 2000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          helpersProvider.overrideWith(() => helpers),
+          shareProvider.overrideWith(() => share),
+        ],
+        child: ScreenUtilInit(
+          designSize: const Size(393, 852),
+          child: MaterialApp.router(
+            theme: AppTheme.appTheme(),
+            routerConfig: router.config(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('blank'), findsOneWidget);
+    unawaited(router.push(routes_.HelpFriend(fromLink: true)));
+    await tester.pumpAndSettle();
+    await _claim(tester);
+    helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
+    return (share, router);
+  }
+
+  testWidgets('system Back through the real router closes the success '
+      'screen without turning Action Mode on', (tester) async {
+    final (share, router) = await approvedThroughRouter(tester);
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(HelpFriend), findsNothing);
+    expect(find.text('blank'), findsOneWidget);
+    expect(router.stack, hasLength(1));
+    expect(share.helperStarts, 0);
+    expect(share.autoEnable, isEmpty);
+  });
+
+  testWidgets('Done through the real router closes the success screen and '
+      'turns Action Mode on', (tester) async {
+    final (share, router) = await approvedThroughRouter(tester);
+    await tester.tap(find.byKey(const Key('help_friend.done')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(HelpFriend), findsNothing);
+    expect(router.stack, hasLength(1));
+    expect(share.helperStarts, 1);
+    expect(share.autoEnable, [true]);
   });
 
   testWidgets('Done with the box unchecked pairs without turning Action Mode '
