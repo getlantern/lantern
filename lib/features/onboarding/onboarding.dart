@@ -4,14 +4,13 @@ import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 
 import '../helpers/provider/helpers_notifier.dart';
 import '../home/provider/app_setting_notifier.dart';
-import '../home/provider/feature_flag_notifier.dart';
 import '../home/provider/radiance_settings_providers.dart';
 import 'action_mode_page.dart';
+import 'personal_proxies_intro.dart';
 
 @RoutePage(name: 'Onboarding')
 class Onboarding extends StatefulHookConsumerWidget {
@@ -29,22 +28,25 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final pageIndex = useState(0);
     final selectedRouteMode = useState(RoutingMode.smart);
     final appSetting = ref.read(appSettingProvider);
-    // Where the Action Mode tab is, as Home decides it. Once shown, the page
-    // stays for this run, so a flag that changes cannot pull it out from
-    // under the user.
-    final actionModeOffered =
-        ref.watch(
-          featureFlagProvider.select((f) => f.getBool(FeatureFlag.unbounded)),
-        ) &&
-        !ref.watch(appSettingProvider.select((s) => s.unboundedHidden));
+    // Once shown, the page stays for this run, so a flag that changes cannot
+    // pull it out from under the user.
+    final actionModeOffered = ref.watch(actionModeOfferedProvider);
     final showActionMode = useRef(false);
     if (actionModeOffered) showActionMode.value = true;
+    final personalProxies = ref.watch(helperInvitesAvailableProvider);
+    final personalProxiesOffered = useRef(false);
+    if (personalProxies) personalProxiesOffered.value = true;
 
     Future<void> onboardingCompleted() async {
       await ref
           .read(radianceSettingsProvider.notifier)
           .setRoutingMode(selectedRouteMode.value);
       ref.read(appSettingProvider.notifier).setOnboardingCompleted(true);
+      // A user onboarding introduced them to needs no introduction later. One
+      // whose flags came too late for these pages still gets it.
+      if (showActionMode.value || personalProxiesOffered.value) {
+        ref.read(appSettingProvider.notifier).setPersonalProxiesIntroSeen(true);
+      }
       final shouldShowExtensionDialog =
           appSetting.showSplashScreen && PlatformUtils.isMacOS;
       appRouter.pop();
@@ -124,7 +126,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                         Text('lantern_pro_tagline'.i18n)
                       ],
                     ),
-                    slide2(context),
+                    OnboardingDifferentPage(personalProxies: personalProxies),
                     if (!PlatformUtils.isIOS)
                       slide3(context, selectedRouteMode),
                     if (showActionMode.value) const OnboardingActionModePage(),
@@ -166,7 +168,60 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     );
   }
 
-  Widget slide2(BuildContext context) {
+  Widget slide3(
+    BuildContext context,
+    ValueNotifier<RoutingMode> selectedMode,
+  ) {
+    final textTheme = TextTheme.of(context);
+
+    return Column(
+      children: <Widget>[
+        SizedBox(height: 24.0),
+        Text(
+          'choose_your_routing_mode'.i18n,
+          style: textTheme.headlineSmall!.copyWith(
+            color: context.textSecondary,
+          ),
+        ),
+        SizedBox(height: 24.0),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => selectedMode.value = RoutingMode.smart,
+          child: RouteModeContainer(
+            mode: RoutingMode.smart,
+            isSelected: selectedMode.value == RoutingMode.smart,
+          ),
+        ),
+        SizedBox(height: 16.0),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => selectedMode.value = RoutingMode.full,
+          child: RouteModeContainer(
+            mode: RoutingMode.full,
+            isSelected: selectedMode.value == RoutingMode.full,
+          ),
+        ),
+        Spacer(),
+        InfoRow(
+          minTileHeight: 35,
+          text: 'change_anytime_in_routing_mode_settings'.i18n,
+        ),
+        SizedBox(height: 40),
+      ],
+    );
+  }
+}
+
+/// Onboarding's "What makes Lantern different" page. [personalProxies] adds
+/// the Personal Proxies row, where helper invites are offered (censored
+/// regions).
+class OnboardingDifferentPage extends StatelessWidget {
+  const OnboardingDifferentPage({super.key, required this.personalProxies});
+
+  final bool personalProxies;
+
+  @override
+  Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
     // Scrolls rather than overflows on a short window, now that censored
     // regions get a fifth row.
@@ -252,8 +307,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
               ),
             ),
           ),
-          // Where helper invites are offered (censored regions).
-          if (ref.watch(helperInvitesAvailableProvider)) ...[
+          if (personalProxies) ...[
             SizedBox(height: 24.0),
             AppTile(
               tileKey: const Key('onboarding.personal_proxies'),
@@ -307,49 +361,6 @@ class _OnboardingState extends ConsumerState<Onboarding> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget slide3(
-    BuildContext context,
-    ValueNotifier<RoutingMode> selectedMode,
-  ) {
-    final textTheme = TextTheme.of(context);
-
-    return Column(
-      children: <Widget>[
-        SizedBox(height: 24.0),
-        Text(
-          'choose_your_routing_mode'.i18n,
-          style: textTheme.headlineSmall!.copyWith(
-            color: context.textSecondary,
-          ),
-        ),
-        SizedBox(height: 24.0),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => selectedMode.value = RoutingMode.smart,
-          child: RouteModeContainer(
-            mode: RoutingMode.smart,
-            isSelected: selectedMode.value == RoutingMode.smart,
-          ),
-        ),
-        SizedBox(height: 16.0),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => selectedMode.value = RoutingMode.full,
-          child: RouteModeContainer(
-            mode: RoutingMode.full,
-            isSelected: selectedMode.value == RoutingMode.full,
-          ),
-        ),
-        Spacer(),
-        InfoRow(
-          minTileHeight: 35,
-          text: 'change_anytime_in_routing_mode_settings'.i18n,
-        ),
-        SizedBox(height: 40),
-      ],
     );
   }
 }

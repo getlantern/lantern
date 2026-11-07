@@ -16,6 +16,7 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/pro_renewal_popup.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
+import 'package:lantern/features/onboarding/personal_proxies_intro.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
@@ -278,6 +279,10 @@ class Home extends HookConsumerWidget {
     // A friend who claimed an invite waits on approval: open the code sheet
     // over whatever shows, once per claim.
     useHelperApprovalPrompt(context, ref, userMessageRouteObserver);
+
+    // Introduces Personal Proxies to a user who finished onboarding before
+    // it did, once its flag and the user's flags allow.
+    usePersonalProxiesIntro(context, ref, userMessageRouteObserver);
 
     // A newly approved pairing this device helps: start sharing, picking the
     // mode as the toggle does. Not gated on the Unbounded tab being visible:
