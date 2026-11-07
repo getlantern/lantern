@@ -2292,3 +2292,90 @@ msgstr "1 adama kömek edýärsiňiz"
 
 msgid "helping_people"
 msgstr "Kömek edýän adamlaryňyz: %s"
+
+msgid "onboarding_personal_proxies"
+msgstr "Şahsy proksiler"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Lantern petiklenende, ýurduňyzyň daşyndaky ynanýan adamyňyzdan proksiňiz bolmagyny haýyş ediň."
+
+msgid "onboarding_new_badge"
+msgstr "Täze"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "Başgalara açyk internete girmäge kömek ediň"
+
+msgid "onboarding_action_mode_share"
+msgstr "Baglanyşygyňyzy paýlaşyň"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "Başgalara internet çäklendirmelerini aýlanyp geçmäge kömek etmek üçin baglanyşygyňyzyň az bölegini paýlaşyň."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "Tanyşyňyza kömek ediň"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Senzura bar ýurtdaky dostuňyz size çakylyk iberse, onuň Personal Proxy-si bolup bilersiňiz."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "Şahsy maglumatlaryňyz goralýar"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Şahsy maglumatlaryňyz we brauzer işjeňligiňiz hiç haçan paýlaşylmaýar we açylmaýar."
+
+msgid "onboarding_action_mode_control"
+msgstr "Dolandyryş sizde"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Action Mode bölüminden Action Mode-y islän wagtyňyz açyň ýa-da öçüriň."
+
+msgid "approved_title"
+msgstr "Şahsy proksiňiz: %s"
+
+msgid "approved_body"
+msgstr "%s onlaýn bolanda, ony Serwer saýlamakda Hususy ýerler bölüminden saýlap bilersiňiz."
+
+msgid "approved_connect_now"
+msgstr "Häzir birikdir"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "Olaryň serwer sanawynda siz şeýle görünersiňiz."
+
+msgid "help_friend_success_title"
+msgstr "Siz indi şu ulanyjynyň şahsy proksisi: %s"
+
+msgid "help_friend_success_body"
+msgstr "%s sizi tassyklady. Action Mode açyk wagty ol siziň baglanyşygyňyz arkaly açyk internete girip biler."
+
+msgid "help_friend_keep_on"
+msgstr "Action Mode açyk saklansyn"
+
+msgid "help_friend_keep_on_body"
+msgstr "Häzir we Lantern açyk wagty hemişe açylýar, şeýdip %s baglanyşykda galýar."
+
+msgid "help_friend_no_link_yet"
+msgstr "Heniz salgy ýokmy?"
+
+msgid "help_friend_ask_send_link"
+msgstr "Size birini ibermegini haýyş ediň."
+
+msgid "helping_scope_line_all"
+msgstr "Ähli ýurtlardaky adamlara hem kömek edýärsiňiz"
+
+msgid "helping_scope_line_friends"
+msgstr "Diňe dostlaryňyza kömek edýärsiňiz"
+
+msgid "helping_scope_change"
+msgstr "Üýtget"
+
+msgid "helping_scope_title"
+msgstr "Kime kömek edýärsiňiz"
+
+msgid "helping_scope_subtitle"
+msgstr "Diňe dostlaryňyz bilen ýa-da ähli ýurtlardaky adamlar bilen paýlaşyň."
+
+msgid "helping_scope_only_friends"
+msgstr "Diňe dostlarym"
+
+msgid "helping_scope_all_countries"
+msgstr "Ähli ýurtlar"

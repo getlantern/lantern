@@ -2306,3 +2306,90 @@ msgstr "১ জনকে সাহায্য করছেন"
 
 msgid "helping_people"
 msgstr "%s জনকে সাহায্য করছেন"
+
+msgid "onboarding_personal_proxies"
+msgstr "ব্যক্তিগত প্রক্সি"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Lantern ব্লক হলে আপনার দেশের বাইরের বিশ্বস্ত কাউকে আপনার প্রক্সি হতে বলুন।"
+
+msgid "onboarding_new_badge"
+msgstr "নতুন"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "অন্যদের মুক্ত ইন্টারনেটে প্রবেশে সাহায্য করুন"
+
+msgid "onboarding_action_mode_share"
+msgstr "আপনার সংযোগ শেয়ার করুন"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "অন্যদের ইন্টারনেট বিধিনিষেধ এড়াতে সাহায্য করতে আপনার সংযোগের সামান্য অংশ স্বেচ্ছায় দিন।"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "পরিচিত কাউকে সাহায্য করুন"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "সেন্সরযুক্ত দেশের কোনো বন্ধু আপনাকে আমন্ত্রণ পাঠালে, আপনি তার Personal Proxy হতে পারেন।"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "আপনার গোপনীয়তা সুরক্ষিত"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "আপনার ব্যক্তিগত তথ্য ও ব্রাউজিং কার্যকলাপ কখনো শেয়ার বা প্রকাশ করা হয় না।"
+
+msgid "onboarding_action_mode_control"
+msgstr "নিয়ন্ত্রণ আপনার হাতে"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Action Mode ট্যাব থেকে যেকোনো সময় Action Mode চালু বা বন্ধ করুন।"
+
+msgid "approved_title"
+msgstr "%s এখন আপনার পার্সোনাল প্রক্সি"
+
+msgid "approved_body"
+msgstr "%s অনলাইনে থাকলে, সার্ভার নির্বাচনের প্রাইভেট লোকেশন থেকে তাকে বেছে নিতে পারবেন।"
+
+msgid "approved_connect_now"
+msgstr "এখনই সংযোগ করুন"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "তাদের সার্ভার তালিকায় আপনাকে এভাবেই দেখা যাবে।"
+
+msgid "help_friend_success_title"
+msgstr "আপনি এখন %s এর ব্যক্তিগত প্রক্সি"
+
+msgid "help_friend_success_body"
+msgstr "%s আপনাকে অনুমোদন দিয়েছেন। Action Mode চালু থাকলে তারা আপনার সংযোগের মাধ্যমে মুক্ত ইন্টারনেটে যেতে পারবেন।"
+
+msgid "help_friend_keep_on"
+msgstr "Action Mode চালু রাখুন"
+
+msgid "help_friend_keep_on_body"
+msgstr "এখন এবং যখনই Lantern খোলা থাকবে তখন চালু হবে, যাতে %s সংযুক্ত থাকেন।"
+
+msgid "help_friend_no_link_yet"
+msgstr "এখনো লিংক পাননি?"
+
+msgid "help_friend_ask_send_link"
+msgstr "তাদের একটি পাঠাতে বলুন।"
+
+msgid "helping_scope_line_all"
+msgstr "সব দেশের মানুষকেও সাহায্য করছেন"
+
+msgid "helping_scope_line_friends"
+msgstr "শুধু আপনার বন্ধুদের সাহায্য করছেন"
+
+msgid "helping_scope_change"
+msgstr "পরিবর্তন করুন"
+
+msgid "helping_scope_title"
+msgstr "আপনি যাদের সাহায্য করছেন"
+
+msgid "helping_scope_subtitle"
+msgstr "শুধু আপনার বন্ধুদের সাথে, অথবা সব দেশের মানুষের সাথে শেয়ার করুন।"
+
+msgid "helping_scope_only_friends"
+msgstr "শুধু আমার বন্ধুরা"
+
+msgid "helping_scope_all_countries"
+msgstr "সব দেশ"

@@ -2310,3 +2310,90 @@ msgstr "Đang giúp 1 người"
 
 msgid "helping_people"
 msgstr "Đang giúp %s người"
+
+msgid "onboarding_personal_proxies"
+msgstr "Proxy cá nhân"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Nhờ một người bạn tin tưởng ở nước ngoài làm proxy cho bạn khi Lantern bị chặn."
+
+msgid "onboarding_new_badge"
+msgstr "Mới"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "Giúp người khác truy cập internet mở"
+
+msgid "onboarding_action_mode_share"
+msgstr "Chia sẻ kết nối của bạn"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "Chia sẻ một phần nhỏ kết nối của bạn để giúp người khác vượt qua các hạn chế internet."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "Giúp một người quen"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Nếu một người bạn ở quốc gia bị kiểm duyệt gửi lời mời cho bạn, bạn có thể trở thành Personal Proxy của họ."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "Quyền riêng tư của bạn được bảo vệ"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Dữ liệu cá nhân và hoạt động duyệt web của bạn không bao giờ bị chia sẻ hay tiết lộ."
+
+msgid "onboarding_action_mode_control"
+msgstr "Bạn nắm quyền kiểm soát"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Bật hoặc tắt Action Mode bất cứ lúc nào từ thẻ Action Mode."
+
+msgid "approved_title"
+msgstr "%s giờ là proxy cá nhân của bạn"
+
+msgid "approved_body"
+msgstr "Khi %s trực tuyến, bạn có thể chọn họ trong Vị trí riêng tư ở mục Chọn máy chủ."
+
+msgid "approved_connect_now"
+msgstr "Kết nối ngay"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "Đây là cách bạn hiển thị trong danh sách máy chủ của họ."
+
+msgid "help_friend_success_title"
+msgstr "Bạn giờ là proxy cá nhân của %s"
+
+msgid "help_friend_success_body"
+msgstr "%s đã chấp thuận bạn. Khi Action Mode bật, họ có thể truy cập internet mở qua kết nối của bạn."
+
+msgid "help_friend_keep_on"
+msgstr "Luôn bật Action Mode"
+
+msgid "help_friend_keep_on_body"
+msgstr "Bật ngay bây giờ và mỗi khi Lantern mở, để %s luôn được kết nối."
+
+msgid "help_friend_no_link_yet"
+msgstr "Chưa có liên kết?"
+
+msgid "help_friend_ask_send_link"
+msgstr "Hãy nhờ họ gửi cho bạn một liên kết."
+
+msgid "helping_scope_line_all"
+msgstr "Đồng thời giúp mọi người ở tất cả quốc gia"
+
+msgid "helping_scope_line_friends"
+msgstr "Chỉ giúp bạn bè của bạn"
+
+msgid "helping_scope_change"
+msgstr "Thay đổi"
+
+msgid "helping_scope_title"
+msgstr "Bạn đang giúp ai"
+
+msgid "helping_scope_subtitle"
+msgstr "Chỉ chia sẻ với bạn bè của bạn, hoặc với mọi người ở tất cả quốc gia."
+
+msgid "helping_scope_only_friends"
+msgstr "Chỉ bạn bè của tôi"
+
+msgid "helping_scope_all_countries"
+msgstr "Tất cả quốc gia"

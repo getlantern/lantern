@@ -2158,3 +2158,90 @@ msgstr "正在帮助 1 个人"
 
 msgid "helping_people"
 msgstr "正在帮助 %s 个人"
+
+msgid "onboarding_personal_proxies"
+msgstr "个人代理"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "蓝灯被封锁时，请一位您信任的国外人士担任您的代理。"
+
+msgid "onboarding_new_badge"
+msgstr "新"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "帮助他人访问开放的互联网"
+
+msgid "onboarding_action_mode_share"
+msgstr "共享您的连接"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "贡献一小部分连接，帮助他人突破网络限制。"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "帮助您认识的人"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "如果身处审查国家的朋友向您发送邀请，您可以成为他们的 Personal Proxy。"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "您的隐私受到保护"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "您的个人数据和浏览活动绝不会被共享或泄露。"
+
+msgid "onboarding_action_mode_control"
+msgstr "一切由您掌控"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "随时在 Action Mode 标签页中开启或关闭 Action Mode。"
+
+msgid "approved_title"
+msgstr "%s 现在是您的个人代理"
+
+msgid "approved_body"
+msgstr "当 %s 在线时，您可以在“服务器选择”的“私人位置”中选择。"
+
+msgid "approved_connect_now"
+msgstr "立即连接"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "对方的服务器列表中将这样显示您。"
+
+msgid "help_friend_success_title"
+msgstr "您现在是 %s 的个人代理"
+
+msgid "help_friend_success_body"
+msgstr "%s 已批准您。开启 Action Mode 后，对方可通过您的连接访问开放的互联网。"
+
+msgid "help_friend_keep_on"
+msgstr "保持 Action Mode 开启"
+
+msgid "help_friend_keep_on_body"
+msgstr "立即开启，并在蓝灯打开时自动开启，让 %s 保持连接。"
+
+msgid "help_friend_no_link_yet"
+msgstr "还没有链接？"
+
+msgid "help_friend_ask_send_link"
+msgstr "请对方发给您一个。"
+
+msgid "helping_scope_line_all"
+msgstr "同时帮助所有国家的用户"
+
+msgid "helping_scope_line_friends"
+msgstr "仅帮助您的好友"
+
+msgid "helping_scope_change"
+msgstr "更改"
+
+msgid "helping_scope_title"
+msgstr "您在帮助谁"
+
+msgid "helping_scope_subtitle"
+msgstr "仅与您的朋友分享，或与所有国家的人分享。"
+
+msgid "helping_scope_only_friends"
+msgstr "仅限我的朋友"
+
+msgid "helping_scope_all_countries"
+msgstr "所有国家"

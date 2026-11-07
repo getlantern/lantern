@@ -2276,3 +2276,90 @@ msgstr "مساعدة شخص واحد"
 
 msgid "helping_people"
 msgstr "عدد الأشخاص الذين تساعدهم: %s"
+
+msgid "onboarding_personal_proxies"
+msgstr "الوكلاء الشخصيون"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "اطلب من شخص تثق به خارج بلدك أن يكون وكيلك عند حظر Lantern."
+
+msgid "onboarding_new_badge"
+msgstr "جديد"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "ساعد الآخرين على الوصول إلى الإنترنت المفتوح"
+
+msgid "onboarding_action_mode_share"
+msgstr "مشاركة اتصالك"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "تطوع بجزء صغير من اتصالك لمساعدة الآخرين على تجاوز قيود الإنترنت."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "ساعد شخصًا تعرفه"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "إذا أرسل إليك صديق في بلد خاضع للرقابة دعوة، يمكنك أن تكون Personal Proxy الخاص به."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "خصوصيتك محمية"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "لا تتم مشاركة بياناتك الشخصية ونشاط تصفحك أو كشفها أبدًا."
+
+msgid "onboarding_action_mode_control"
+msgstr "التحكم بيدك"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "يمكنك تشغيل Action Mode أو إيقافه في أي وقت من علامة تبويب Action Mode."
+
+msgid "approved_title"
+msgstr "أصبح %s الوكيل الشخصي الخاص بك"
+
+msgid "approved_body"
+msgstr "عندما يكون %s متصلاً، يمكنك اختياره ضمن المواقع الخاصة في اختيار الخادم."
+
+msgid "approved_connect_now"
+msgstr "الاتصال الآن"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "هكذا يظهر اسمك في قائمة الخوادم لديهم."
+
+msgid "help_friend_success_title"
+msgstr "أصبحت الآن الوكيل الشخصي لـ %s"
+
+msgid "help_friend_success_body"
+msgstr "وافق %s على طلبك. عند تشغيل Action Mode، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك."
+
+msgid "help_friend_keep_on"
+msgstr "إبقاء Action Mode قيد التشغيل"
+
+msgid "help_friend_keep_on_body"
+msgstr "يعمل الآن وكلما كان Lantern مفتوحًا، ليبقى %s متصلًا."
+
+msgid "help_friend_no_link_yet"
+msgstr "ألا يوجد رابط بعد؟"
+
+msgid "help_friend_ask_send_link"
+msgstr "اطلب منهم إرسال رابط إليك."
+
+msgid "helping_scope_line_all"
+msgstr "تساعد أيضًا أشخاصًا في جميع البلدان"
+
+msgid "helping_scope_line_friends"
+msgstr "تساعد أصدقاءك فقط"
+
+msgid "helping_scope_change"
+msgstr "تغيير"
+
+msgid "helping_scope_title"
+msgstr "من تساعد"
+
+msgid "helping_scope_subtitle"
+msgstr "المشاركة مع أصدقائك فقط، أو مع الناس في جميع الدول."
+
+msgid "helping_scope_only_friends"
+msgstr "أصدقائي فقط"
+
+msgid "helping_scope_all_countries"
+msgstr "جميع الدول"

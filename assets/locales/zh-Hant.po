@@ -2163,3 +2163,90 @@ msgstr "正在幫助 1 個人"
 
 msgid "helping_people"
 msgstr "正在幫助 %s 個人"
+
+msgid "onboarding_personal_proxies"
+msgstr "個人代理"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Lantern 遭到封鎖時，請一位你信任的國外人士擔任你的代理。"
+
+msgid "onboarding_new_badge"
+msgstr "新"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "協助他人存取開放的網路"
+
+msgid "onboarding_action_mode_share"
+msgstr "分享你的連線"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "貢獻一小部分連線，幫助他人突破網路限制。"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "幫助你認識的人"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "如果身處審查國家的朋友傳送邀請給你，你可以成為他們的 Personal Proxy。"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "你的隱私受到保護"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "你的個人資料和瀏覽活動絕不會被分享或洩露。"
+
+msgid "onboarding_action_mode_control"
+msgstr "一切由你掌控"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "隨時在 Action Mode 分頁中開啟或關閉 Action Mode。"
+
+msgid "approved_title"
+msgstr "%s 現在是你的個人代理"
+
+msgid "approved_body"
+msgstr "當 %s 上線時，你可以在「伺服器選擇」的「私人位置」中選擇。"
+
+msgid "approved_connect_now"
+msgstr "立即連線"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "對方的伺服器清單中會這樣顯示你。"
+
+msgid "help_friend_success_title"
+msgstr "你現在是 %s 的個人代理"
+
+msgid "help_friend_success_body"
+msgstr "%s 已核准你。開啟 Action Mode 後，對方可透過你的連線存取開放的網際網路。"
+
+msgid "help_friend_keep_on"
+msgstr "保持 Action Mode 開啟"
+
+msgid "help_friend_keep_on_body"
+msgstr "立即開啟，並在 Lantern 開啟時自動啟用，讓 %s 保持連線。"
+
+msgid "help_friend_no_link_yet"
+msgstr "還沒有連結？"
+
+msgid "help_friend_ask_send_link"
+msgstr "請對方傳一個給你。"
+
+msgid "helping_scope_line_all"
+msgstr "同時協助所有國家的使用者"
+
+msgid "helping_scope_line_friends"
+msgstr "僅協助你的朋友"
+
+msgid "helping_scope_change"
+msgstr "變更"
+
+msgid "helping_scope_title"
+msgstr "你在幫助誰"
+
+msgid "helping_scope_subtitle"
+msgstr "僅與你的朋友分享，或與所有國家的人分享。"
+
+msgid "helping_scope_only_friends"
+msgstr "僅限我的朋友"
+
+msgid "helping_scope_all_countries"
+msgstr "所有國家"

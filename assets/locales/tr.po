@@ -2312,3 +2312,90 @@ msgstr "1 kişiye yardım ediyorsunuz"
 
 msgid "helping_people"
 msgstr "Yardım edilen kişi: %s"
+
+msgid "onboarding_personal_proxies"
+msgstr "Kişisel Proxy'ler"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Lantern engellendiğinde, ülkeniz dışında güvendiğiniz birinden proxy'niz olmasını isteyin."
+
+msgid "onboarding_new_badge"
+msgstr "Yeni"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "Başkalarının açık internete erişmesine yardım edin"
+
+msgid "onboarding_action_mode_share"
+msgstr "Bağlantınızı paylaşın"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "Başkalarının internet kısıtlamalarını aşmasına yardımcı olmak için bağlantınızın küçük bir kısmını gönüllü olarak paylaşın."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "Tanıdığınız birine yardım edin"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Sansürlü bir ülkedeki bir arkadaşınız size davet gönderirse, onun Personal Proxy'si olabilirsiniz."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "Gizliliğiniz korunur"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Kişisel verileriniz ve gezinme etkinliğiniz asla paylaşılmaz veya ifşa edilmez."
+
+msgid "onboarding_action_mode_control"
+msgstr "Kontrol sizde"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Action Mode sekmesinden Action Mode özelliğini istediğiniz zaman açıp kapatın."
+
+msgid "approved_title"
+msgstr "Kişisel Proxy'niz artık %s"
+
+msgid "approved_body"
+msgstr "%s çevrimiçi olduğunda, Sunucu Seçimi içindeki Özel Konumlar altından seçebilirsiniz."
+
+msgid "approved_connect_now"
+msgstr "Şimdi Bağlan"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "Onların sunucu listesinde bu şekilde görünürsünüz."
+
+msgid "help_friend_success_title"
+msgstr "Artık %s için Kişisel Proxy'siniz"
+
+msgid "help_friend_success_body"
+msgstr "%s sizi onayladı. Action Mode açıkken sizin bağlantınız üzerinden açık internete erişebilir."
+
+msgid "help_friend_keep_on"
+msgstr "Action Mode Açık Kalsın"
+
+msgid "help_friend_keep_on_body"
+msgstr "Şimdi ve Lantern her açık olduğunda devreye girer, böylece %s bağlı kalır."
+
+msgid "help_friend_no_link_yet"
+msgstr "Henüz bağlantı yok mu?"
+
+msgid "help_friend_ask_send_link"
+msgstr "Size bir tane göndermesini isteyin."
+
+msgid "helping_scope_line_all"
+msgstr "Tüm ülkelerdeki insanlara da yardım ediliyor"
+
+msgid "helping_scope_line_friends"
+msgstr "Yalnızca arkadaşlarınıza yardım ediliyor"
+
+msgid "helping_scope_change"
+msgstr "Değiştir"
+
+msgid "helping_scope_title"
+msgstr "Kime yardım ediyorsunuz"
+
+msgid "helping_scope_subtitle"
+msgstr "Yalnızca arkadaşlarınızla veya tüm ülkelerdeki insanlarla paylaşın."
+
+msgid "helping_scope_only_friends"
+msgstr "Yalnızca arkadaşlarım"
+
+msgid "helping_scope_all_countries"
+msgstr "Tüm ülkeler"

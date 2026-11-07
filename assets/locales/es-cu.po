@@ -2320,3 +2320,90 @@ msgstr "Ayudando a 1 persona"
 
 msgid "helping_people"
 msgstr "Ayudando a %s personas"
+
+msgid "onboarding_personal_proxies"
+msgstr "Proxies personales"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Pídele a alguien de confianza fuera de tu país que sea tu proxy cuando Lantern esté bloqueado."
+
+msgid "onboarding_new_badge"
+msgstr "Nuevo"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "Ayuda a otros a acceder al internet libre"
+
+msgid "onboarding_action_mode_share"
+msgstr "Comparte tu conexión"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "Comparte un poquito de tu conexión para ayudar a otros a saltarse las restricciones de internet."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "Ayuda a alguien que conoces"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Si un amigo en un país con censura te manda una invitación, puedes ser su Personal Proxy."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "Tu privacidad está protegida"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Tus datos personales y tu navegación nunca se comparten ni se exponen."
+
+msgid "onboarding_action_mode_control"
+msgstr "Tú tienes el control"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Activa o desactiva Action Mode cuando quieras desde la pestaña Action Mode."
+
+msgid "approved_title"
+msgstr "%s ahora es tu proxy personal"
+
+msgid "approved_body"
+msgstr "Cuando %s esté conectado, podrás seleccionarlo en Ubicaciones privadas, dentro de Selección de servidor."
+
+msgid "approved_connect_now"
+msgstr "Conectar ahora"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "Así aparecerás en su lista de servidores."
+
+msgid "help_friend_success_title"
+msgstr "Ahora eres el proxy personal de %s"
+
+msgid "help_friend_success_body"
+msgstr "%s te aprobó. Cuando Action Mode esté activado, podrá navegar por internet libre a través de tu conexión."
+
+msgid "help_friend_keep_on"
+msgstr "Mantener Action Mode activado"
+
+msgid "help_friend_keep_on_body"
+msgstr "Se activa ahora y siempre que Lantern esté abierto, para que %s mantenga la conexión."
+
+msgid "help_friend_no_link_yet"
+msgstr "¿Todavía no tienes enlace?"
+
+msgid "help_friend_ask_send_link"
+msgstr "Pídele que te mande uno."
+
+msgid "helping_scope_line_all"
+msgstr "También ayudas a personas de todos los países"
+
+msgid "helping_scope_line_friends"
+msgstr "Solo ayudas a tus amigos"
+
+msgid "helping_scope_change"
+msgstr "Cambiar"
+
+msgid "helping_scope_title"
+msgstr "A quién ayudas"
+
+msgid "helping_scope_subtitle"
+msgstr "Comparte solo con tus amigos o con personas de todos los países."
+
+msgid "helping_scope_only_friends"
+msgstr "Solo mis amigos"
+
+msgid "helping_scope_all_countries"
+msgstr "Todos los países"
