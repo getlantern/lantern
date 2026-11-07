@@ -1345,6 +1345,35 @@ void main() {
       expect(approveCode, findsOneWidget);
     });
 
+    testWidgets('a claim that comes while Connect Now runs prompts once it '
+        'finishes', (tester) async {
+      final connecting = Completer<void>();
+      debugConnectPersonalProxy = (tag) => connecting.future;
+      addTearDown(() => debugConnectPersonalProxy = null);
+      final fake = _Helpers(_withInvites(const []));
+      await _pumpPromptHost(tester, fake);
+      fake.emit(_withInvites(const [_claimed]));
+      await tester.pumpAndSettle();
+      await tester.tap(_approveYes);
+      await tester.pumpAndSettle();
+      await tester.tap(_approvedConnect);
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+
+      fake.emit(
+        _withInvites(const [
+          _claimed,
+          HelperInviteView(id: 'i3', state: 'claimed', code: '7181'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('7181'), findsNothing, reason: 'Connect Now still runs');
+
+      connecting.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('7181'), findsOneWidget);
+    });
+
     testWidgets('waits for checkout to end', (tester) async {
       final fake = _Helpers(_withInvites(const []));
       await _pumpPromptHost(tester, fake);
