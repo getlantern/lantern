@@ -67,18 +67,20 @@ class HelpFriend extends HookConsumerWidget {
     // While this screen submits, resumes or waits on its claim, its success
     // screen asks before Action Mode starts for the approval, rather than
     // Home starting it. Taken before the claim is sent: the claim's own
-    // refresh can bring the approval before it answers.
-    final holding = useRef(false);
+    // refresh can bring the approval before it answers. Released before the
+    // success screen asked, Home gets the approvals that landed under it.
+    final holdingSince = useRef<int?>(null);
     void holdApproval() {
-      if (holding.value) return;
-      holding.value = true;
-      notifier.holdApprovalStart();
+      holdingSince.value ??= notifier.holdApprovalStart();
     }
 
     void releaseApproval() {
-      if (!holding.value) return;
-      holding.value = false;
-      notifier.releaseApprovalStart();
+      final since = holdingSince.value;
+      if (since == null) return;
+      holdingSince.value = null;
+      notifier.releaseApprovalStart(
+        undecidedSince: settled.value == _ClaimOutcome.approved ? null : since,
+      );
     }
 
     useEffect(() => releaseApproval, const []);
@@ -151,6 +153,11 @@ class HelpFriend extends HookConsumerWidget {
         return;
       }
       holdApproval();
+      // Taken with the hold: a pairing that arrives while the claim is sent
+      // may be this claim's.
+      final helpingBefore = {
+        for (final p in ref.read(helpersProvider).view.helping) p.pairingId,
+      };
       final r = await notifier.claim(
         normalizeHelperInviteInput(linkCtl.text),
         nameCtl.text,
@@ -170,7 +177,7 @@ class HelpFriend extends HookConsumerWidget {
       }
       final now = ref.read(helpersProvider);
       claimId.value = r.data['claim_id'] as String?;
-      helpingAtClaim.value = {for (final p in now.view.helping) p.pairingId};
+      helpingAtClaim.value = helpingBefore;
       viewAtClaim.value = now.view;
       code.value = claimed;
     }

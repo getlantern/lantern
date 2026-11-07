@@ -143,6 +143,24 @@ class _Share extends ShareNotifier {
       autoEnable.add(enabled);
 }
 
+/// Home's approval listener, as in home.dart.
+class _HomeApprovals extends ConsumerWidget {
+  const _HomeApprovals();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
+      prev,
+      next,
+    ) {
+      if (next <= (prev ?? 0)) return;
+      if (ref.read(helpersProvider.notifier).approvalStartHeld) return;
+      ref.read(shareProvider.notifier).startForHelper(ref);
+    });
+    return const SizedBox();
+  }
+}
+
 Future<void> _pump(
   WidgetTester tester,
   _Helpers helpers,
@@ -910,6 +928,37 @@ void main() {
     expect(helpers.approvalStartHeld, isFalse);
   });
 
+  /// HelpFriend over Home's approval listener (home.dart), which starts
+  /// sharing for a new approval unless a HelpFriend holds the start.
+  Future<(_Helpers, _Share, ValueNotifier<bool>)> overHome(
+    WidgetTester tester,
+    _Helpers helpers,
+    HelpFriend screen,
+  ) async {
+    await sl.reset();
+    sl.registerSingleton<AppRouter>(_Router());
+    addTearDown(sl.reset);
+    final share = _Share();
+    final show = ValueNotifier(true);
+    await _pump(
+      tester,
+      helpers,
+      Column(
+        children: [
+          const _HomeApprovals(),
+          Expanded(
+            child: ValueListenableBuilder<bool>(
+              valueListenable: show,
+              builder: (_, on, _) => on ? screen : const SizedBox(),
+            ),
+          ),
+        ],
+      ),
+      share: share,
+    );
+    return (helpers, share, show);
+  }
+
   for (final ok in [true, false]) {
     testWidgets('an approval arriving before the claim answers is held '
         '(claim ${ok ? 'succeeds' : 'fails'})', (tester) async {
@@ -920,10 +969,14 @@ void main() {
             : '{"error":"unavailable"}',
       )..claimGate = Completer<void>();
       helpers.holdLink(_link);
-      await _pump(tester, helpers, const HelpFriend(fromLink: true));
+      final (_, share, _) = await overHome(
+        tester,
+        helpers,
+        const HelpFriend(fromLink: true),
+      );
       await _claim(tester);
       expect(helpers.claims, hasLength(1));
-      // The claim's refresh, or a poll, brings an approval before the
+      // The claim's refresh, or a poll, brings the approval before the
       // claim answers.
       helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
       expect(helpers.heldAtApproval, [true]);
@@ -931,21 +984,89 @@ void main() {
       await tester.pump();
       await tester.pump();
       if (ok) {
-        expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
-        expect(helpers.approvalStartHeld, isTrue);
+        expect(
+          find.text('help_friend_success_title'.i18n.fill(['Sara'])),
+          findsOneWidget,
+        );
+        expect(share.helperStarts, 0, reason: 'the success screen asks');
+        await tester.tap(find.byKey(const Key('help_friend.done')));
+        await tester.pump();
+        expect(share.helperStarts, 1);
       } else {
         expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
         expect(helpers.approvalStartHeld, isFalse);
+        expect(
+          share.helperStarts,
+          1,
+          reason: 'no success screen asked, so Home starts it',
+        );
       }
     });
   }
 
-  testWidgets('a resumed claim holds the approval start from the first '
-      'frame', (tester) async {
+  testWidgets('an approval held while waiting goes to Home when the screen '
+      'closes without asking', (tester) async {
     final helpers = _Helpers(waitingOnC1());
-    await _pump(tester, helpers, const HelpFriend());
+    helpers.holdLink(_link);
+    final (_, share, show) = await overHome(
+      tester,
+      helpers,
+      const HelpFriend(fromLink: true),
+    );
+    await _claim(tester);
+    // Another claim's approval: this one still waits.
+    helpers.approve(
+      const HelpersView(
+        unlocked: true,
+        helping: [_reza],
+        claims: [HelperClaimView(id: 'c1', code: '2562', expiresUnix: _future)],
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
+    expect(share.helperStarts, 0);
+    show.value = false;
+    await tester.pump();
+    expect(share.helperStarts, 1);
+  });
+
+  testWidgets('a success screen closed without Done starts nothing', (
+    tester,
+  ) async {
+    final helpers = _Helpers(waitingOnC1());
+    helpers.holdLink(_link);
+    final (_, share, show) = await overHome(
+      tester,
+      helpers,
+      const HelpFriend(fromLink: true),
+    );
+    await _claim(tester);
+    helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
+    await tester.pump();
+    expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
+    show.value = false;
+    await tester.pump();
+    await tester.pump();
+    expect(share.helperStarts, 0);
+    expect(helpers.approvalStartHeld, isFalse);
+  });
+
+  testWidgets('a resumed claim holds the approval start from the first '
+      'frame, and its approval reaches the success screen', (tester) async {
+    final helpers = _Helpers(waitingOnC1());
+    final (_, share, _) = await overHome(tester, helpers, const HelpFriend());
     expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
     expect(helpers.approvalStartHeld, isTrue);
+    helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
+    await tester.pump();
+    expect(
+      find.text('help_friend_success_title'.i18n.fill(['Sara'])),
+      findsOneWidget,
+    );
+    expect(share.helperStarts, 0);
+    await tester.tap(find.byKey(const Key('help_friend.done')));
+    await tester.pump();
+    expect(share.helperStarts, 1);
   });
 
   testWidgets('this claim leaving without a pairing ends the wait', (
