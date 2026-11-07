@@ -869,12 +869,17 @@ bool _macOSExtensionReady(WidgetRef ref) {
   return false;
 }
 
+/// How long a connect flow's future waits for the VPN to settle. The save
+/// and the return home still happen after it, while the caller is there.
+@visibleForTesting
+Duration returnHomeWait = const Duration(seconds: 60);
+
 /// The connect flow shared by every row on this screen. Runs [attempt] behind
 /// the loading overlay, offers the conflict dialog and a retry when another
 /// VPN is active, then hands [save] to the location notifier to run once the
 /// VPN reports connected, and returns to the home screen. It completes once
-/// that save has run or been dropped, so a caller that keeps [context] until
-/// then is still there to return home from.
+/// that save has run or been dropped, or after [returnHomeWait], so a caller
+/// that keeps [context] until then is still there to return home from.
 Future<void> _connectAndReturnHome(
   BuildContext context,
   WidgetRef ref, {
@@ -885,6 +890,9 @@ Future<void> _connectAndReturnHome(
   bool skipConflictCheck = false,
 }) async {
   final locationNotifier = ref.read(serverLocationProvider.notifier);
+  // A stop the VPN reports before the attempt answers is still this
+  // attempt's outcome.
+  final stops = locationNotifier.vpnStops;
   // The overlay is app-wide, so hide it through its controller rather than
   // this context, which may be gone by the time the attempt returns.
   final overlay = context.loaderOverlay;
@@ -919,8 +927,13 @@ Future<void> _connectAndReturnHome(
       }
       context.showSnackBar(failure.localizedErrorMessage);
     },
-    (_) =>
-        _returnHomeOnceSaved(context, locationNotifier, save, connectedMessage),
+    (_) => _returnHomeOnceSaved(
+      context,
+      locationNotifier,
+      save,
+      connectedMessage,
+      stops,
+    ).timeout(returnHomeWait, onTimeout: () {}),
   );
 }
 
@@ -931,8 +944,12 @@ Future<void> _returnHomeOnceSaved(
   ServerLocationNotifier locationNotifier,
   FutureOr<void> Function() save,
   String? connectedMessage,
+  int stopsSince,
 ) async {
-  final saved = await locationNotifier.saveOnceConnected(save);
+  final saved = await locationNotifier.saveOnceConnected(
+    save,
+    stopsSince: stopsSince,
+  );
   if (!saved || !context.mounted) return;
   if (connectedMessage != null) context.showSnackBar(connectedMessage);
   appRouter.popUntilRoot();
