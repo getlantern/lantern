@@ -206,37 +206,15 @@ class HelpersNotifier extends _$HelpersNotifier {
   /// HelpFriend screens waiting on their own claim. Memory only.
   int _approvalStartHolds = 0;
 
-  /// An approval landed under a hold that ended without its success screen
-  /// asking, so Home still owes it a start.
-  bool _approvalHeldBack = false;
-
   /// While a HelpFriend screen waits on its claim, its success screen asks
   /// whether to keep Action Mode on, so Home does not start sharing for the
-  /// approval itself. Each hold is released once. Returns the approval
-  /// count at the hold, for [releaseApprovalStart].
-  int holdApprovalStart() {
-    _approvalStartHolds++;
-    return state.helpingApprovals;
-  }
+  /// approval itself. Each hold is released once. One released before its
+  /// success screen asked starts nothing: the pairing stands, and sharing
+  /// waits for the user to turn Action Mode on.
+  void holdApprovalStart() => _approvalStartHolds++;
 
-  /// Ends a hold. One that ends before its success screen asked passes
-  /// [undecidedSince], its count from [holdApprovalStart]: approvals that
-  /// landed under it go to Home once no screen holds the start, rather than
-  /// being dropped.
-  void releaseApprovalStart({int? undecidedSince}) {
+  void releaseApprovalStart() {
     if (_approvalStartHolds > 0) _approvalStartHolds--;
-    if (undecidedSince != null && state.helpingApprovals > undecidedSince) {
-      _approvalHeldBack = true;
-    }
-    if (_approvalStartHolds > 0 || !_approvalHeldBack) return;
-    // Not now: a screen releases while it is being disposed.
-    scheduleMicrotask(() {
-      if (!ref.mounted || _approvalStartHolds > 0 || !_approvalHeldBack) {
-        return;
-      }
-      _approvalHeldBack = false;
-      state = state.copyWith(helpingApprovals: state.helpingApprovals + 1);
-    });
   }
 
   bool get approvalStartHeld => _approvalStartHolds > 0;

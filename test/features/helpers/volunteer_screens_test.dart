@@ -995,17 +995,18 @@ void main() {
       } else {
         expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
         expect(helpers.approvalStartHeld, isFalse);
+        await tester.pump();
         expect(
           share.helperStarts,
-          1,
-          reason: 'no success screen asked, so Home starts it',
+          0,
+          reason: 'no success screen asked: sharing waits for the user',
         );
       }
     });
   }
 
-  testWidgets('an approval held while waiting goes to Home when the screen '
-      'closes without asking', (tester) async {
+  testWidgets('an approval held while waiting starts nothing when the '
+      'screen closes without asking', (tester) async {
     final helpers = _Helpers(waitingOnC1());
     helpers.holdLink(_link);
     final (_, share, show) = await overHome(
@@ -1027,7 +1028,9 @@ void main() {
     expect(share.helperStarts, 0);
     show.value = false;
     await tester.pump();
-    expect(share.helperStarts, 1);
+    await tester.pump();
+    expect(helpers.approvalStartHeld, isFalse);
+    expect(share.helperStarts, 0);
   });
 
   testWidgets('a success screen closed without Done starts nothing', (
