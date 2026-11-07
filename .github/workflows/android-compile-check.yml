@@ -26,6 +26,7 @@ on:
       - "pubspec.lock"
       - "integration_test/**"
       - "scripts/ci/verify_android_abis*"
+      - "scripts/ci/verify_android_hardening*"
       - "scripts/android/test-runtime-seccomp.py"
       - "scripts/android/runtime-seccomp/**"
       - "lantern-core/vpn_tunnel/**"
@@ -169,3 +170,4 @@ jobs:
             --aar bin/android/liblantern.aar --aar android/app/libs/liblantern.aar \
             --apk build/app/outputs/flutter-apk/app-debug.apk \
             --apk build/app/outputs/apk/debug/app-debug.apk
+          python3 scripts/ci/verify_android_hardening.py bin/android/liblantern.aar build/app/outputs/flutter-apk/app-debug.apk
