@@ -76,7 +76,10 @@ class _Location extends ServerLocationNotifier {
   @override
   // Saves, then reports the request retired, so the screen stays put and no
   // router is needed.
-  Future<bool> saveOnceConnected(FutureOr<void> Function() save) async {
+  Future<bool> saveOnceConnected(
+    FutureOr<void> Function() save, {
+    int? stopsSince,
+  }) async {
     await save();
     return false;
   }

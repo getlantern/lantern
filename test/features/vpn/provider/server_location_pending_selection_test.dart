@@ -71,6 +71,10 @@ class _FakeStorage extends LocalStorageService {
 class _FakeVpn extends VpnNotifier {
   final connection = Completer<Either<Failure, String>>();
 
+  /// Whether the connect reports connecting at once; off, the status stays
+  /// as it was until the test sets it.
+  bool announce = true;
+
   @override
   VPNStatus build() => VPNStatus.disconnected;
 
@@ -80,7 +84,7 @@ class _FakeVpn extends VpnNotifier {
     String tag, {
     bool skipConflictCheck = false,
   }) {
-    state = VPNStatus.connecting;
+    if (announce) state = VPNStatus.connecting;
     return connection.future;
   }
 
@@ -306,8 +310,9 @@ void main() {
     );
   }
 
-  testWidgets('Connect Now completes only once the connection has settled '
-      'and returned home', (tester) async {
+  /// Taps a button that runs Connect Now; returns the router and whether
+  /// its future has completed.
+  Future<(_Router, bool Function())> connectNow(WidgetTester tester) async {
     final router = _Router();
     sl.registerSingleton<AppRouter>(router);
     final subscription = container.listen(serverLocationProvider, (_, _) {});
@@ -339,23 +344,84 @@ void main() {
     await tester.pump();
     var done = false;
     unawaited(connecting!.then((_) => done = true));
+    return (router, () => done);
+  }
+
+  Future<void> settle(WidgetTester tester) async {
+    await tester.runAsync(_pump);
+    await tester.pump();
+  }
+
+  testWidgets('Connect Now completes only once the connection has settled '
+      'and returned home', (tester) async {
+    final (router, done) = await connectNow(tester);
 
     // The connect answers while the VPN is still connecting.
     vpn().connection.complete(const Right('ok'));
-    await tester.runAsync(_pump);
-    await tester.pump();
+    await settle(tester);
     expect(container.read(vpnProvider), VPNStatus.connecting);
     expect(
-      done,
+      done(),
       isFalse,
       reason: 'the caller must stay until the selection is saved',
     );
     expect(router.popsToRoot, 0);
 
     vpn().set(VPNStatus.connected);
-    await tester.runAsync(_pump);
-    await tester.pump();
-    expect(done, isTrue);
+    await settle(tester);
+    expect(done(), isTrue);
+    expect(router.popsToRoot, 1);
+  });
+
+  for (final stop in [VPNStatus.error, VPNStatus.disconnected]) {
+    testWidgets('Connect Now settles when the VPN reports ${stop.name} '
+        'before the connect answers', (tester) async {
+      final (router, done) = await connectNow(tester);
+      vpn().set(stop);
+      vpn().connection.complete(const Right('ok'));
+      await settle(tester);
+      expect(done(), isTrue, reason: 'no later status would settle it');
+      expect(router.popsToRoot, 0);
+      expect(storage.getServerLocation(), isNull, reason: 'nothing saved');
+
+      // A later connection does not resurrect it.
+      vpn().set(VPNStatus.connected);
+      await settle(tester);
+      expect(router.popsToRoot, 0);
+      expect(storage.getServerLocation(), isNull);
+    });
+  }
+
+  testWidgets('Connect Now still waits while the VPN shows disconnected '
+      'only because the connection has not started', (tester) async {
+    vpn().announce = false;
+    final (router, done) = await connectNow(tester);
+    expect(container.read(vpnProvider), VPNStatus.disconnected);
+    vpn().connection.complete(const Right('ok'));
+    await settle(tester);
+    expect(done(), isFalse);
+
+    vpn().set(VPNStatus.connecting);
+    vpn().set(VPNStatus.connected);
+    await settle(tester);
+    expect(done(), isTrue);
+    expect(router.popsToRoot, 1);
+  });
+
+  testWidgets('Connect Now stops waiting after a while; the save and the '
+      'return home still follow', (tester) async {
+    returnHomeWait = const Duration(seconds: 5);
+    addTearDown(() => returnHomeWait = const Duration(seconds: 60));
+    final (router, done) = await connectNow(tester);
+    vpn().connection.complete(const Right('ok'));
+    await settle(tester);
+    expect(done(), isFalse);
+    await tester.pump(const Duration(seconds: 6));
+    expect(done(), isTrue);
+    expect(router.popsToRoot, 0);
+
+    vpn().set(VPNStatus.connected);
+    await settle(tester);
     expect(router.popsToRoot, 1);
   });
 }
