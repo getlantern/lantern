@@ -59,10 +59,15 @@ class _Helpers extends HelpersNotifier {
     await write.future;
   }
 
+  /// When set, each claim answers only once it completes, as the real one
+  /// does after its refresh.
+  Completer<void>? claimGate;
+
   @override
   Future<HelperResult> claim(String link, String name) async {
     claims.add((link, name));
     final i = claims.length - 1;
+    await claimGate?.future;
     return HelperResult.parse(
       claimAnswers[i < claimAnswers.length ? i : claimAnswers.length - 1],
     );
@@ -80,10 +85,17 @@ class _Helpers extends HelpersNotifier {
     super.acknowledgeKeystoreReset();
   }
 
-  void approve(HelpersView view) => state = state.copyWith(
-    view: view,
-    helpingApprovals: state.helpingApprovals + 1,
-  );
+  /// Whether the approval start was held as each approval landed, as Home
+  /// reads it.
+  final heldAtApproval = <bool>[];
+
+  void approve(HelpersView view) {
+    heldAtApproval.add(approvalStartHeld);
+    state = state.copyWith(
+      view: view,
+      helpingApprovals: state.helpingApprovals + 1,
+    );
+  }
 
   void setView(HelpersView view) => state = state.copyWith(view: view);
 }
@@ -896,6 +908,44 @@ void main() {
     show.value = false;
     await tester.pump();
     expect(helpers.approvalStartHeld, isFalse);
+  });
+
+  for (final ok in [true, false]) {
+    testWidgets('an approval arriving before the claim answers is held '
+        '(claim ${ok ? 'succeeds' : 'fails'})', (tester) async {
+      final helpers = _Helpers(
+        waitingOnC1(),
+        claimAnswer: ok
+            ? '{"claim_id":"c1","code":"2562"}'
+            : '{"error":"unavailable"}',
+      )..claimGate = Completer<void>();
+      helpers.holdLink(_link);
+      await _pump(tester, helpers, const HelpFriend(fromLink: true));
+      await _claim(tester);
+      expect(helpers.claims, hasLength(1));
+      // The claim's refresh, or a poll, brings an approval before the
+      // claim answers.
+      helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
+      expect(helpers.heldAtApproval, [true]);
+      helpers.claimGate!.complete();
+      await tester.pump();
+      await tester.pump();
+      if (ok) {
+        expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
+        expect(helpers.approvalStartHeld, isTrue);
+      } else {
+        expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
+        expect(helpers.approvalStartHeld, isFalse);
+      }
+    });
+  }
+
+  testWidgets('a resumed claim holds the approval start from the first '
+      'frame', (tester) async {
+    final helpers = _Helpers(waitingOnC1());
+    await _pump(tester, helpers, const HelpFriend());
+    expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
+    expect(helpers.approvalStartHeld, isTrue);
   });
 
   testWidgets('this claim leaving without a pairing ends the wait', (
