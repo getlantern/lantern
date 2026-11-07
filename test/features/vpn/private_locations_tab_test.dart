@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:fpdart/fpdart.dart' show Either, Right;
+import 'package:fpdart/fpdart.dart' show Either, Left, Right;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,6 +12,7 @@ import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/personal_proxies_section.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
+import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -48,6 +49,9 @@ class _Vpn extends VpnNotifier {
 
   /// Runs while the connect is in flight, before it answers.
   Future<void> Function()? beforeReply;
+
+  /// Answers a connect that checks for conflicts with another VPN's.
+  bool conflict = false;
   @override
   VPNStatus build() => status;
   @override
@@ -57,6 +61,7 @@ class _Vpn extends VpnNotifier {
     bool skipConflictCheck = false,
   }) async {
     connects.add((location, tag));
+    if (conflict && !skipConflictCheck) return Left(VpnConflictFailure());
     await beforeReply?.call();
     return const Right('ok');
   }
@@ -194,6 +199,61 @@ ProviderContainer _selectionContainer(
     ),
   ],
 );
+
+/// Pops through [navigator], as the app's router pops the conflict dialog.
+class _DialogRouter extends AppRouter {
+  _DialogRouter(this.navigator);
+  final GlobalKey<NavigatorState> navigator;
+
+  @override
+  Future<bool> maybePop<T extends Object?>([T? result]) =>
+      navigator.currentState!.maybePop(result);
+}
+
+/// Starts [connectPersonalProxy] from a blank screen and returns whether its
+/// future has completed.
+Future<bool Function()> _connectNow(
+  WidgetTester tester,
+  ProviderContainer container,
+) async {
+  final navigator = GlobalKey<NavigatorState>();
+  sl.registerSingleton<AppRouter>(_DialogRouter(navigator));
+  late BuildContext context;
+  late WidgetRef ref;
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: ScreenUtilInit(
+        designSize: const Size(393, 852),
+        child: GlobalLoaderOverlay(
+          child: MaterialApp(
+            navigatorKey: navigator,
+            theme: AppTheme.appTheme(),
+            home: Scaffold(
+              body: Consumer(
+                builder: (c, r, _) {
+                  context = c;
+                  ref = r;
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  var done = false;
+  unawaited(
+    connectPersonalProxy(
+      context,
+      ref,
+      friendTag: 'helper-0123456789ab',
+    ).then((_) => done = true),
+  );
+  await tester.pumpAndSettle();
+  return () => done;
+}
 
 Future<void> _pumpSelection(
   WidgetTester tester,
@@ -514,5 +574,43 @@ void main() {
     final saved = container.read(serverLocationProvider);
     expect(saved.personalProxyFriendTag, 'helper-0123456789ab');
     expect(saved.countryCode, isEmpty);
+  });
+  testWidgets('Connect Now on a VPN conflict settles only once Connect '
+      'Anyway has been chosen and its retry has settled', (tester) async {
+    await sl.reset();
+    final vpn = _Vpn()..conflict = true;
+    final container = _selectionContainer(vpn, _Location());
+    addTearDown(container.dispose);
+    final done = await _connectNow(tester, container);
+    expect(find.text('vpn_conflict_connect_anyway'.i18n), findsOneWidget);
+    expect(done(), isFalse);
+    final retry = Completer<void>();
+    vpn.beforeReply = () => retry.future;
+    await tester.tap(find.text('vpn_conflict_connect_anyway'.i18n));
+    // The loading overlay spins while the retry is in flight.
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('vpn_conflict_connect_anyway'.i18n), findsNothing);
+    expect(vpn.connects, hasLength(2));
+    expect(done(), isFalse);
+    retry.complete();
+    await tester.pumpAndSettle();
+    expect(done(), isTrue);
+  });
+
+  testWidgets('Connect Now on a VPN conflict settles when the user declines', (
+    tester,
+  ) async {
+    await sl.reset();
+    final vpn = _Vpn()..conflict = true;
+    final container = _selectionContainer(vpn, _Location());
+    addTearDown(container.dispose);
+    final done = await _connectNow(tester, container);
+    expect(done(), isFalse);
+    await tester.tap(find.text('vpn_conflict_dismiss'.i18n));
+    await tester.pumpAndSettle();
+    expect(done(), isTrue);
+    expect(vpn.connects, hasLength(1));
   });
 }
