@@ -196,18 +196,18 @@ class _OnboardingState extends ConsumerState<Onboarding> {
           ),
         ),
         SizedBox(height: 24.0),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => selectedMode.value = RoutingMode.smart,
+        AppFocusable(
+          onActivate: () => selectedMode.value = RoutingMode.smart,
+          borderRadius: BorderRadius.circular(16.0),
           child: RouteModeContainer(
             mode: RoutingMode.smart,
             isSelected: selectedMode.value == RoutingMode.smart,
           ),
         ),
         SizedBox(height: 16.0),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => selectedMode.value = RoutingMode.full,
+        AppFocusable(
+          onActivate: () => selectedMode.value = RoutingMode.full,
+          borderRadius: BorderRadius.circular(16.0),
           child: RouteModeContainer(
             mode: RoutingMode.full,
             isSelected: selectedMode.value == RoutingMode.full,

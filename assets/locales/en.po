@@ -2367,3 +2367,9 @@ msgstr "%sh %sm"
 # %s is minutes, as a number.
 msgid "helping_duration_m"
 msgstr "%sm"
+
+msgid "open_on_another_device"
+msgstr "Open on another device"
+
+msgid "open_on_another_device_hint"
+msgstr "This TV has no web browser. Scan the code or type the address on your phone or computer."

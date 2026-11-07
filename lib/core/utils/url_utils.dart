@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlUtils {
@@ -83,7 +84,46 @@ class UrlUtils {
     }
   }
 
+  /// A TV has no browser, so the link is shown as a QR code and text to open
+  /// on a phone. Returns false off TV so the caller launches it as usual.
+  static Future<bool> showLinkOnTv(BuildContext? context, String url) async {
+    if (!PlatformUtils.isTv) return false;
+    context ??= appRouter.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return false;
+    final textTheme = Theme.of(context).textTheme;
+    await AppDialog.show(
+      context: context,
+      title: 'open_on_another_device'.i18n,
+      body: 'open_on_another_device_hint'.i18n,
+      content: Column(
+        children: [
+          const SizedBox(height: 16),
+          // Fixed box: the scrollable dialog needs an intrinsic height, which
+          // the QR's internal LayoutBuilder cannot provide.
+          Center(
+            child: SizedBox(
+              width: 160,
+              height: 160,
+              child: QrImageView(
+                key: const Key('tv.link.qr'),
+                data: url,
+                backgroundColor: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(url, textAlign: TextAlign.center, style: textTheme.labelMedium),
+        ],
+      ),
+      primaryLabel: 'close'.i18n,
+      barrierDismissible: true,
+      scrollable: true,
+    );
+    return true;
+  }
+
   static Future<void> openUrl(String url) async {
+    if (await showLinkOnTv(null, url)) return;
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -94,6 +134,7 @@ class UrlUtils {
 
   // openWithSystemBrowser opens a URL in the browser
   static Future<void> openWithSystemBrowser(String url) async {
+    if (await showLinkOnTv(null, url)) return;
     switch (Platform.operatingSystem) {
       case 'linux':
         final webview = await WebviewWindow.create();
@@ -108,6 +149,7 @@ class UrlUtils {
     BuildContext context,
     Uri uri,
   ) async {
+    if (await showLinkOnTv(context, uri.toString())) return;
     try {
       if (!await canLaunchUrl(uri)) {
         throw 'Cannot open ${uri.toString()}';
