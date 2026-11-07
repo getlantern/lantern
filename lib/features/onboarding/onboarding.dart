@@ -4,11 +4,14 @@ import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 
 import '../helpers/provider/helpers_notifier.dart';
 import '../home/provider/app_setting_notifier.dart';
+import '../home/provider/feature_flag_notifier.dart';
 import '../home/provider/radiance_settings_providers.dart';
+import 'action_mode_page.dart';
 
 @RoutePage(name: 'Onboarding')
 class Onboarding extends StatefulHookConsumerWidget {
@@ -26,6 +29,16 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final pageIndex = useState(0);
     final selectedRouteMode = useState(RoutingMode.smart);
     final appSetting = ref.read(appSettingProvider);
+    // Where the Action Mode tab is, as Home decides it. Once shown, the page
+    // stays for this run, so a flag that changes cannot pull it out from
+    // under the user.
+    final actionModeOffered =
+        ref.watch(
+          featureFlagProvider.select((f) => f.getBool(FeatureFlag.unbounded)),
+        ) &&
+        !ref.watch(appSettingProvider.select((s) => s.unboundedHidden));
+    final showActionMode = useRef(false);
+    if (actionModeOffered) showActionMode.value = true;
 
     Future<void> onboardingCompleted() async {
       await ref
@@ -114,6 +127,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                     slide2(context),
                     if (!PlatformUtils.isIOS)
                       slide3(context, selectedRouteMode),
+                    if (showActionMode.value) const OnboardingActionModePage(),
                   ],
                 ),
               ),
@@ -123,11 +137,10 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                     pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
                 isTaller: true,
                 onPressed: () {
-                  if (PlatformUtils.isIOS && pageIndex.value == 1) {
-                    onboardingCompleted();
-                    return;
-                  }
-                  if (pageIndex.value == 2) {
+                  final lastPage =
+                      (PlatformUtils.isIOS ? 1 : 2) +
+                      (showActionMode.value ? 1 : 0);
+                  if (pageIndex.value >= lastPage) {
                     onboardingCompleted();
                     return;
                   }
@@ -246,22 +259,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
               tileKey: const Key('onboarding.personal_proxies'),
               icon: Padding(
                 padding: const EdgeInsets.only(top: 5.0),
-                // The other rows' icon tile, around the app's person-add
-                // icon.
-                child: Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: context.bgHover,
-                    border: Border.all(color: context.statusInfoBorder),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: AppImage(
-                    path: AppImagePaths.personAdd,
-                    width: 22,
-                    height: 22,
-                    color: context.statusInfoText,
-                  ),
-                ),
+                child: OnboardingIconTile(path: AppImagePaths.personAdd),
               ),
               label: '',
               labelWidget: Row(
@@ -467,6 +465,32 @@ class NewBadge extends StatelessWidget {
         style: TextTheme.of(context)
             .labelMedium!
             .copyWith(color: context.statusSuccessText),
+      ),
+    );
+  }
+}
+
+/// The tile the older rows' icons have drawn in, around one of the app's
+/// icons.
+class OnboardingIconTile extends StatelessWidget {
+  const OnboardingIconTile({super.key, required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: context.bgHover,
+        border: Border.all(color: context.statusInfoBorder),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: AppImage(
+        path: path,
+        width: 22,
+        height: 22,
+        color: context.statusInfoText,
       ),
     );
   }
