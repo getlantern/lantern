@@ -31,6 +31,10 @@ class _Settings extends AppSettingNotifier {
 
   @override
   Future<void> update(AppSetting updated) async => state = updated;
+
+  @override
+  void setOnboardingCompleted(bool value) =>
+      update(state.copyWith(onboardingCompleted: value));
 }
 
 class _Flags extends FeatureFlagNotifier {
@@ -312,6 +316,25 @@ void main() {
     );
     expect(_intro, findsNothing);
     expect(h.settings.personalProxiesIntroSeen, isFalse);
+  });
+
+  testWidgets('a run that showed onboarding leaves it for the next launch, '
+      'even when the flags come after onboarding finished', (tester) async {
+    final h = await _launch(
+      tester,
+      settings: const AppSetting(showSplashScreen: false),
+    );
+    h.container.read(appSettingProvider.notifier).setOnboardingCompleted(true);
+    await tester.pumpAndSettle();
+    h.flags.set(_actionMode);
+    await tester.pumpAndSettle();
+    expect(_intro, findsNothing);
+    expect(h.settings.personalProxiesIntroSeen, isFalse);
+
+    final saved = h.settings;
+    await tester.pumpWidget(const SizedBox());
+    await _launch(tester, settings: saved, flags: _actionMode);
+    expect(_intro, findsOneWidget);
   });
 
   testWidgets('a macOS launch that opens the system extension dialog leaves '
