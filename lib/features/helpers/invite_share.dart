@@ -197,6 +197,21 @@ class InviteShare extends HookConsumerWidget {
       return timer.cancel;
     }, [decided]);
 
+    // Show the gone state when the open invite runs out, not at the next
+    // refresh.
+    final expiresUnix = invite == null || invite.claimed
+        ? 0
+        : invite.expiresUnix;
+    useEffect(() {
+      if (expiresUnix <= 0) return null;
+      final left = expiresUnix - DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      if (left < 0) return null;
+      final timer = Timer(Duration(seconds: left + 1), () {
+        if (context.mounted) expiryChecks.value++;
+      });
+      return timer.cancel;
+    }, [expiresUnix]);
+
     if (id.value != null && (invite == null || invite.expired)) {
       return BaseScreen(
         title: 'invite_personal_proxy'.i18n,
