@@ -1438,6 +1438,46 @@ void main() {
     expect(find.byKey(const Key('helping.status.p2')), findsNothing);
   });
 
+  testWidgets('a friend\'s status at large text on a narrow phone leaves '
+      'room for the name and Remove', (tester) async {
+    final helpers = _Helpers(
+      _helping(
+        helping: const [
+          HelperPairingView(
+            pairingId: 'p1',
+            name: 'Sara',
+            sinceUnix: 1700000000,
+            connected: false,
+          ),
+        ],
+      ),
+    );
+    await _pump(
+      tester,
+      helpers,
+      const MediaQuery(
+        data: MediaQueryData(
+          size: Size(320, 2000),
+          textScaler: TextScaler.linear(2),
+        ),
+        child: Center(
+          child: SizedBox(width: 320, child: HelpingFriendsSheet()),
+        ),
+      ),
+      sharing: true,
+    );
+    expect(tester.takeException(), isNull);
+    final name = find.text('Sara');
+    expect(tester.getSize(name).width, greaterThan(40));
+    final remove = find.byKey(const Key('helping.remove.p1'));
+    final row = find.byKey(const Key('helping.friend.p1'));
+    expect(
+      tester.getRect(remove).right,
+      lessThanOrEqualTo(tester.getRect(row).right),
+    );
+    expect(tester.getSize(remove).width, greaterThanOrEqualTo(40));
+  });
+
   test('connectedRightNow: unknown, one by name, else a count', () {
     const known = HelperPairingView(pairingId: 'a', name: 'A', connected: true);
     const off = HelperPairingView(pairingId: 'b', name: 'B', connected: false);
@@ -1544,6 +1584,18 @@ void main() {
     await tester.pump();
     expect(
       tester.widget<Text>(line).data,
+      '${'helping_scope_line_friends'.i18n} · ',
+    );
+  });
+
+  testWidgets('the friends sheet shows a scope still being saved, as Action '
+      'Mode does', (tester) async {
+    final helpers = _Helpers(
+      _helping().copyWith(helpOthers: true, requestedHelpOthers: false),
+    );
+    await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('helping.scope'))).data,
       '${'helping_scope_line_friends'.i18n} · ',
     );
   });

@@ -118,6 +118,10 @@ class _Helpers extends HelpersNotifier {
 
   final renamedInvites = <(String, String)>[];
 
+  /// When set, a renamed invite expires then, as one that ran out while
+  /// the rename was saved.
+  int? renameExpiresUnix;
+
   @override
   Future<HelperResult> renameInvite(String inviteId, String name) async {
     renamedInvites.add((inviteId, name));
@@ -132,7 +136,7 @@ class _Helpers extends HelpersNotifier {
                     id: i.id,
                     state: i.state,
                     link: i.link,
-                    expiresUnix: i.expiresUnix,
+                    expiresUnix: renameExpiresUnix ?? i.expiresUnix,
                     inviterName: name,
                   )
                 : i,
@@ -1037,6 +1041,71 @@ void main() {
     expect(find.byKey(const Key('invite.waiting')), findsOneWidget);
   });
 
+  testWidgets('a name loaded after the screen opened fills the field and '
+      'makes the invite', (tester) async {
+    final fake = _Helpers(const HelpersState())..addCreated = true;
+    await _pump(tester, fake, const InviteShare());
+    await tester.pump();
+    expect(fake.created, isEmpty);
+    fake.emit(
+      const HelpersState(
+        viewLoaded: true,
+        view: HelpersView(unlocked: true, myName: 'Sara'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(fake.created, ['Sara']);
+    expect(find.text('Sara'), findsOneWidget);
+    expect(find.text('https://lantern.io/help/#SECRET'), findsOneWidget);
+  });
+
+  testWidgets('a name loaded after the screen opened does not replace one '
+      'typed', (tester) async {
+    final fake = _Helpers(const HelpersState())..addCreated = true;
+    await _pump(tester, fake, const InviteShare());
+    await tester.enterText(find.byKey(const Key('invite.name')), 'Ali');
+    fake.emit(
+      const HelpersState(
+        viewLoaded: true,
+        view: HelpersView(unlocked: true, myName: 'Sara'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(fake.created, isEmpty);
+    expect(find.text('Ali'), findsOneWidget);
+  });
+
+  testWidgets('an invite that expires while its new name is saved shows as '
+      'gone, and its link does not go out', (tester) async {
+    final fake = _Helpers(
+      HelpersState(
+        viewLoaded: true,
+        view: HelpersView(
+          unlocked: true,
+          invites: [
+            HelperInviteView(
+              id: 'i1',
+              state: 'pending',
+              link: 'https://lantern.io/help/#AAAA',
+              expiresUnix: _now() + 3600,
+              inviterName: 'Sara',
+            ),
+          ],
+        ),
+      ),
+    )..renameExpiresUnix = _now() - 1;
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.enterText(find.byKey(const Key('invite.name')), 'Sara K');
+    await tester.tap(find.byKey(const Key('invite.show_qr')));
+    await tester.pump();
+    await tester.pump();
+    expect(fake.renamedInvites, [('i1', 'Sara K')]);
+    expect(find.byKey(const Key('invite.qr')), findsNothing);
+    expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+  });
+
   testWidgets('without a name, Share asks for one on the screen; the name '
       'typed makes the invite, capitalized', (tester) async {
     final shared = <ShareParams>[];
@@ -1215,10 +1284,16 @@ void main() {
     await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
     expect(find.byKey(const Key('invite.share')), findsNothing);
     expect(find.byKey(const Key('invite.waiting')), findsNothing);
+    // No link is left to copy or show, and nothing renames the invite.
+    expect(find.byKey(const Key('invite.copy')), findsNothing);
+    expect(find.byKey(const Key('invite.show_qr')), findsNothing);
     await tester.tap(find.byKey(const Key('invite.compare')));
     await tester.pumpAndSettle();
     expect(_approveYes, findsOneWidget);
     expect(find.text('2562'), findsOneWidget);
+    // The app-wide prompt does not open it again after Back.
+    expect(fake.approvalPrompted('i1'), isTrue);
+    expect(fake.renamedInvites, isEmpty);
   });
 
   group('with sl', () {

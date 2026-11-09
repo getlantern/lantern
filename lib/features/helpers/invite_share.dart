@@ -91,6 +91,11 @@ class InviteShare extends HookConsumerWidget {
     final link = invite != null && !invite.expired ? invite.link : '';
     final linkCtl = useTextEditingController(text: link);
     final nameError = useState(false);
+    // The user typed in the name field, so a name loaded later is not put
+    // over theirs.
+    final nameTyped = useRef(false);
+    // An invite found expired when its link was about to go out.
+    final expiredSeen = useState(false);
     final copied = useState(false);
     final sawClaimed = useRef(false);
     // The approval this screen reopened, which completes only after its
@@ -136,7 +141,7 @@ class InviteShare extends HookConsumerWidget {
     }
 
     /// The invite with the name typed, made or renamed as needed; null, with
-    /// the reason shown, when there is none.
+    /// the reason shown, when there is none or it has expired.
     Future<HelperInviteView?> ready() async {
       while (inflight.value != null) {
         await inflight.value;
@@ -149,22 +154,31 @@ class InviteShare extends HookConsumerWidget {
       }
       final f = makeOrRename(name);
       inflight.value = f;
+      final HelperInviteView? inv;
       try {
-        return await f;
+        inv = await f;
       } finally {
         if (inflight.value == f) inflight.value = null;
       }
+      if (inv == null || !inv.expired) return inv;
+      if (context.mounted) expiredSeen.value = true;
+      return null;
     }
 
-    // A name known already makes the link at once.
+    // A name known already, or loaded with the view after this screen
+    // opened, makes the link at once.
     useEffect(() {
-      if (id.value == null && nameCtl.text.trim().isNotEmpty) {
+      if (id.value != null || nameTyped.value) return null;
+      if (nameCtl.text.trim().isEmpty && view.myName.isNotEmpty) {
+        nameCtl.text = view.myName;
+      }
+      if (nameCtl.text.trim().isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) unawaited(ready());
         });
       }
       return null;
-    }, const []);
+    }, [view.myName]);
 
     // Decided from the approval prompt: nothing is left to share. Leave
     // once nothing covers this screen, such as the success dialog.
@@ -182,7 +196,8 @@ class InviteShare extends HookConsumerWidget {
       return timer.cancel;
     }, [decided]);
 
-    if (id.value != null && (invite == null || invite.expired)) {
+    if (id.value != null &&
+        (invite == null || invite.expired || expiredSeen.value)) {
       return BaseScreen(
         title: 'invite_personal_proxy'.i18n,
         body: Center(
@@ -227,6 +242,8 @@ class InviteShare extends HookConsumerWidget {
       color: context.textTertiary,
     );
     final pending = invite != null && !invite.claimed;
+    // A claimed invite has no link left to copy or show.
+    final claimed = invite != null && invite.claimed;
 
     return BaseScreen(
       title: 'invite_personal_proxy'.i18n,
@@ -256,7 +273,10 @@ class InviteShare extends HookConsumerWidget {
                   prefixIcon: Icons.person_outline,
                   maxLength: 60,
                   textCapitalization: TextCapitalization.words,
-                  onChanged: (_) => nameError.value = false,
+                  onChanged: (_) {
+                    nameTyped.value = true;
+                    nameError.value = false;
+                  },
                   onSubmitted: (_) => unawaited(ready()),
                 ),
                 if (nameError.value)
@@ -283,62 +303,71 @@ class InviteShare extends HookConsumerWidget {
                   enableIMEPersonalizedLearning: false,
                   autocorrect: false,
                   enableInteractiveSelection: false,
-                  onTap: copy,
-                  suffixIcon: IconButton(
-                    key: const Key('invite.copy'),
-                    tooltip: 'invite_copy_link'.i18n,
-                    icon: AnimatedCrossFade(
-                      duration: const Duration(milliseconds: 400),
-                      firstCurve: Curves.bounceOut,
-                      crossFadeState: copied.value
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
-                      firstChild: const AppImage(path: AppImagePaths.copy),
-                      secondChild: Icon(
-                        Icons.check_circle,
-                        key: const Key('invite.copied'),
-                        color: context.statusSuccessBg,
-                      ),
-                    ),
-                    onPressed: copy,
-                  ),
+                  onTap: claimed ? null : copy,
+                  suffixIcon: claimed
+                      ? null
+                      : IconButton(
+                          key: const Key('invite.copy'),
+                          tooltip: 'invite_copy_link'.i18n,
+                          icon: AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 400),
+                            firstCurve: Curves.bounceOut,
+                            crossFadeState: copied.value
+                                ? CrossFadeState.showSecond
+                                : CrossFadeState.showFirst,
+                            firstChild: const AppImage(
+                              path: AppImagePaths.copy,
+                            ),
+                            secondChild: Icon(
+                              Icons.check_circle,
+                              key: const Key('invite.copied'),
+                              color: context.statusSuccessBg,
+                            ),
+                          ),
+                          onPressed: copy,
+                        ),
                 ),
-                const SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        '${'invite_link_expiry'.i18n} · ',
-                        style: helperStyle,
-                      ),
-                      Semantics(
-                        button: true,
-                        child: InkWell(
-                          key: const Key('invite.show_qr'),
-                          onTap: showQr,
-                          child: Text(
-                            'invite_show_qr'.i18n,
-                            style: helperStyle.copyWith(
-                              color: context.textLink,
-                              decoration: TextDecoration.underline,
-                              decorationColor: context.textLink,
+                if (!claimed) ...[
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          '${'invite_link_expiry'.i18n} · ',
+                          style: helperStyle,
+                        ),
+                        Semantics(
+                          button: true,
+                          child: InkWell(
+                            key: const Key('invite.show_qr'),
+                            onTap: showQr,
+                            child: Text(
+                              'invite_show_qr'.i18n,
+                              style: helperStyle.copyWith(
+                                color: context.textLink,
+                                decoration: TextDecoration.underline,
+                                decorationColor: context.textLink,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 12),
                 // A claimed invite has no link left to share. If the
                 // approval dialog was dismissed undecided, this reopens it.
-                if (invite != null && invite.claimed)
+                if (claimed)
                   PrimaryButton(
                     key: const Key('invite.compare'),
                     label: 'invite_compare_codes'.i18n,
                     onPressed: () async {
+                      // The app-wide prompt need not open it again after
+                      // Back leaves it undecided.
+                      notifier.markApprovalPrompted(invite.id);
                       final f = showApproveHelperDialog(context, ref, invite);
                       approving.value = f;
                       try {

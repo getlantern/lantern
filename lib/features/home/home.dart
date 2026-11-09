@@ -360,7 +360,9 @@ class Home extends HookConsumerWidget {
                 );
               },
             )
-          else if (!userLoggedIn)
+          // Not for Pro on the Action Mode tab either: a Pro user signs in
+          // through account setup, from the VPN tab's account icon.
+          else if (!userLoggedIn && !isUserPro)
             AppTextButton(
               label: 'sign_in'.i18n,
               onPressed: () => appRouter.push(const SignInEmail()),
