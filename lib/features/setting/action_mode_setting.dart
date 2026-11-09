@@ -9,9 +9,11 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 import '../../core/common/common.dart';
 import '../action_mode/auto_enable_mode.dart';
+import '../helpers/helping_friends.dart';
+import '../helpers/provider/helpers_notifier.dart';
 
-/// Action Mode settings: auto-enable, hide the tab, and (desktop/Android)
-/// the manual port forward for routers without UPnP.
+/// Action Mode settings: auto-enable, who it helps, hide the tab, and
+/// (desktop/Android) the manual port forward for routers without UPnP.
 @RoutePage(name: 'ActionModeSetting')
 class ActionModeSetting extends ConsumerWidget {
   const ActionModeSetting({super.key});
@@ -29,7 +31,11 @@ class ActionModeSetting extends ConsumerWidget {
       body: ListView(
         children: [
           const SizedBox(height: 16),
-          const ActionModeAutoEnable(),
+          ActionModeAutoEnable(
+            below: HelpersNotifier.buildEnabled
+                ? const WhoYoureHelpingTile()
+                : null,
+          ),
           const SizedBox(height: 16),
           AppCard(
             padding: EdgeInsets.zero,

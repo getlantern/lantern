@@ -655,6 +655,33 @@ func (e *Engine) renameHelper(args []byte) (any, error) {
 	return e.view(), nil
 }
 
+// renameInvite sets the name this user gives in one of their invites not yet
+// decided, as typed on the invite screen after the link was made. It stays
+// on this device until the approval seals it for the friend.
+func (e *Engine) renameInvite(args []byte) (any, error) {
+	var a struct {
+		InviteID string `json:"invite_id"`
+		Name     string `json:"name"`
+	}
+	if err := decodeArgs(args, &a); err != nil {
+		return nil, err
+	}
+	inv := e.invite(a.InviteID)
+	if inv == nil || (inv.State != "pending" && inv.State != "claimed") {
+		return nil, errCode(CodeNotFound)
+	}
+	name, err := helperinvite.CleanName(a.Name)
+	if err != nil {
+		return nil, errCode(CodeBadName)
+	}
+	inv.InviterName = name
+	e.st.MyName = name
+	if err := e.save(); err != nil {
+		return nil, err
+	}
+	return e.view(), nil
+}
+
 // endAllHelpers is "remove all helpers": it ends every pairing in which this
 // device is helped, rejects claimed invites, and turns unclaimed ones into
 // tombstones without names, so a seized phone holds no helper names. It

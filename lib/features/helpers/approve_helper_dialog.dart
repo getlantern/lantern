@@ -80,7 +80,8 @@ Future<bool> showApproveHelperDialog(
     centered: true,
     // Small phones with large text: keep both buttons reachable.
     scrollable: true,
-    header: const Icon(Icons.check_circle_outline, size: 40),
+    backgroundColor: context.bgSurface,
+    header: const AppImage(path: AppImagePaths.keypad, width: 40, height: 40),
     title: 'approve_title'.i18n.fill([name]),
     body: 'approve_body'.i18n.fill([name]),
     content: Padding(
@@ -132,6 +133,7 @@ Future<void> _showApprovedDialog(
     context: context,
     centered: true,
     scrollable: true,
+    backgroundColor: context.bgSurface,
     header: const Icon(Icons.check_circle_outline, size: 48),
     title: 'approved_title'.i18n.fill([name]),
     body: 'approved_body'.i18n.fill([name]),
@@ -233,6 +235,7 @@ class _HelperNameField extends HookWidget {
           hintText: 'helpers_your_name_hint'.i18n,
           maxLength: 60,
           autofocus: true,
+          textCapitalization: TextCapitalization.words,
           onChanged: onChanged,
         ),
         if (showError)

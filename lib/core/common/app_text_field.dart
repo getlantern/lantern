@@ -37,6 +37,10 @@ class AppTextField extends StatelessWidget {
   final bool expands;
   final double? labelLeftPadding;
 
+  /// Asks the keyboard to capitalize; anything but none also capitalizes
+  /// the first letter as typed, which hardware keyboards ignore otherwise.
+  final TextCapitalization textCapitalization;
+
   const AppTextField({
     super.key,
     this.fieldKey,
@@ -68,6 +72,7 @@ class AppTextField extends StatelessWidget {
     this.autofocus,
     this.expands = false,
     this.labelLeftPadding,
+    this.textCapitalization = TextCapitalization.none,
   });
 
   @override
@@ -90,7 +95,10 @@ class AppTextField extends StatelessWidget {
       maxLength: maxLength,
       enabled: enable,
       initialValue: initialValue,
-      inputFormatters: inputFormatters,
+      inputFormatters: textCapitalization == TextCapitalization.none
+          ? inputFormatters
+          : [...inputFormatters, const CapitalizeFirstLetterFormatter()],
+      textCapitalization: textCapitalization,
       obscureText: obscureText,
       enableInteractiveSelection: enableInteractiveSelection,
       onChanged: onChanged,
@@ -202,5 +210,24 @@ class AppTextField extends StatelessWidget {
     }
     final approxLineHeight = 24.h;
     return BoxConstraints(minWidth: 48, minHeight: approxLineHeight * maxLines);
+  }
+}
+
+/// Capitalizes the first letter of the text as it is typed or pasted. A
+/// letter whose capital is more than one character (ß) is left alone.
+class CapitalizeFirstLetterFormatter extends TextInputFormatter {
+  const CapitalizeFirstLetterFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    if (text.isEmpty || !newValue.composing.isCollapsed) return newValue;
+    final first = text.characters.first;
+    final upper = first.toUpperCase();
+    if (upper == first || upper.length != first.length) return newValue;
+    return newValue.copyWith(text: upper + text.substring(first.length));
   }
 }

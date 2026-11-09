@@ -1903,10 +1903,10 @@ msgid "invite_link_copied"
 msgstr "Lien copié"
 
 msgid "invite_qr_hint"
-msgstr "Votre ami peut balayer ce code avec Lantern."
+msgstr "Si la personne est avec vous, elle peut balayer ce code dans Lantern au lieu d'utiliser le lien."
 
 msgid "invite_waiting"
-msgstr "En attente de l'ouverture du lien par votre ami"
+msgstr "En attente de l'ouverture du lien"
 
 msgid "invite_trust_warning"
 msgstr "La personne que vous invitez saura que vous utilisez Lantern et pourra voir quand vous vous connectez par son intermédiaire. Votre trafic passe par sa connexion Internet : elle pourrait donc savoir quels sites vous visitez, mais pas ce que vous faites sur les sites sécurisés (https). N'invitez qu'une personne de confiance."
@@ -2002,7 +2002,7 @@ msgid "invite_link_label"
 msgstr "Votre lien d'invitation"
 
 msgid "invite_link_expiry"
-msgstr "Utilisable une seule fois, expire dans 48 heures."
+msgstr "Utilisable une fois, expire dans 48 heures"
 
 msgid "approve_body"
 msgstr "Demandez à %s le code à 4 chiffres affiché par Lantern, par appel ou dans une autre application que celle utilisée pour envoyer le lien. N'approuvez que s'il correspond."
@@ -2134,7 +2134,7 @@ msgid "onboarding_personal_proxies"
 msgstr "Serveurs mandataires personnels"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "Demandez à une personne de confiance hors de votre pays d'être votre mandataire lorsque Lantern est bloqué."
+msgstr "Connectez-vous directement par l'intermédiaire d'une personne de confiance hors de votre pays."
 
 msgid "onboarding_new_badge"
 msgstr "Nouveau"
@@ -2152,7 +2152,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "Aidez un proche"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "Si un ami dans un pays soumis à la censure vous envoie une invitation, vous pouvez devenir son Personal Proxy."
+msgstr "Aidez un proche en devenant son Proxy Personnel pour qu'il se connecte directement par votre intermédiaire."
 
 msgid "onboarding_action_mode_privacy"
 msgstr "Votre vie privée est protégée"
@@ -2209,10 +2209,22 @@ msgid "helping_scope_subtitle"
 msgstr "Partagez uniquement avec vos amis, ou avec des personnes de tous les pays."
 
 msgid "helping_scope_only_friends"
-msgstr "Mes amis uniquement"
+msgstr "Uniquement mes connexions de proxy personnel"
 
 msgid "helping_scope_all_countries"
 msgstr "Tous les pays"
 
 msgid "approved_title"
 msgstr "%s est maintenant votre proxy personnel"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Partagez votre connexion en toute sécurité pour aider d'autres personnes à accéder à l'Internet libre."
+
+msgid "invite_show_qr"
+msgstr "Afficher le code QR"
+
+msgid "invite_link_hint"
+msgstr "Entrez votre nom pour obtenir votre lien"
+
+msgid "invite_qr_title"
+msgstr "Balayer avec l'appareil photo"

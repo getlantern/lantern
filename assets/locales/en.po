@@ -1462,7 +1462,12 @@ msgstr "Personal Proxies"
 
 # Under onboarding_personal_proxies.
 msgid "onboarding_personal_proxies_description"
-msgstr "Ask someone you trust outside your country to be your proxy when Lantern is blocked."
+msgstr "Connect directly through someone you trust outside your country."
+
+# Onboarding, "What makes Lantern different": under the Action Mode row,
+# shown outside censored regions.
+msgid "onboarding_action_mode_row_description"
+msgstr "Choose to securely share your connection to help others access the open internet."
 
 # Small badge beside a feature onboarding introduces as new.
 msgid "onboarding_new_badge"
@@ -1489,7 +1494,7 @@ msgstr "Help someone you know"
 # Under onboarding_action_mode_help_someone. "Personal Proxy" is a feature
 # name: keep it capitalized.
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "If a friend in a censored country sends you an invite, you can be their Personal Proxy."
+msgstr "Help a friend by becoming their Personal Proxy so they can connect directly through you."
 
 # Onboarding, the Action Mode page: a row title.
 msgid "onboarding_action_mode_privacy"
@@ -2048,8 +2053,18 @@ msgstr "They open the link, install Lantern if needed, and enter their name. You
 msgid "invite_link_label"
 msgstr "Your invite link"
 
+# Under the invite link, followed by " · " and invite_show_qr.
 msgid "invite_link_expiry"
-msgstr "Works once and expires in 48 hours."
+msgstr "Works once and expires in 48 hours"
+
+# Link after invite_link_expiry: opens the invite's QR code in a dialog.
+msgid "invite_show_qr"
+msgstr "Show QR code"
+
+# Hint in the empty invite link field, before the user has typed a name and
+# the link is made.
+msgid "invite_link_hint"
+msgstr "Enter your name to get your link"
 
 # The text shared with the link. The first %s is the user's name; the second is the link.
 msgid "invite_share_message"
@@ -2064,13 +2079,20 @@ msgstr "Copy link"
 msgid "invite_link_copied"
 msgstr "Link copied"
 
+# Title of the dialog that shows the invite's QR code.
+msgid "invite_qr_title"
+msgstr "Scan with Camera"
+
+# Under the QR code in that dialog.
 msgid "invite_qr_hint"
-msgstr "Your friend can scan this with Lantern."
+msgstr "If they are with you, they can scan this in Lantern instead of using the link."
 
+# Status line under the invite screen's Share button, and on a pending invite
+# in the Manage tab.
 msgid "invite_waiting"
-msgstr "Waiting for your friend to open the link"
+msgstr "Waiting for them to open the link"
 
-# Warning below the invite link and Share button, above the QR code.
+# Warning below the invite link and Share button.
 msgid "invite_trust_warning"
 msgstr "The person you invite will know you use Lantern and can see when you're connected through them. Your traffic passes through their internet connection, so they could learn which sites you visit, though not what you do on secure (https) sites. Only invite someone you trust."
 
@@ -2351,12 +2373,14 @@ msgid "helping_scope_subtitle"
 msgstr "Share with your friends only, or with people in all countries."
 
 # Option in the Who you're helping sheet: help only the friends this device
-# is the Personal Proxy for.
+# is the Personal Proxy for. Also the line under "Helping right now" on the
+# Action Mode tab and under Who you're helping in Settings.
 msgid "helping_scope_only_friends"
-msgstr "Only my friends"
+msgstr "Only my Personal Proxy connections"
 
 # Option in the Who you're helping sheet: also help people anywhere who
-# connect through Action Mode. The default.
+# connect through Action Mode. The default. Also the line under "Helping
+# right now" on the Action Mode tab and under Who you're helping in Settings.
 msgid "helping_scope_all_countries"
 msgstr "All countries"
 

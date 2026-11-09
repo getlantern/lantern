@@ -688,10 +688,6 @@ class _PrivateServerLocationListViewState
     final userLocations = availableServers.requireValue.userServers;
     final selectedTag = selected.serverName;
     final selectedFriend = selected.personalProxyFriendTag;
-    final personalSelected =
-        selected.serverType.toServerLocationType ==
-            ServerLocationType.personalProxy &&
-        selectedFriend == null;
 
     if (userLocations.isEmpty && !hasPersonalProxies) {
       return Column(
@@ -716,12 +712,6 @@ class _PrivateServerLocationListViewState
       children: [
         const SizedBox(height: 16),
         PersonalProxiesSection(
-          selected: personalSelected,
-          onSelect: () => _select(
-            ServerLocationType.personalProxy,
-            personalProxiesTag,
-            ServerLocation.personalProxy(),
-          ),
           selectedFriend: selectedFriend,
           onInvite: () => startPersonalProxyInvite(context, ref),
           onSelectFriend: (h) => _select(

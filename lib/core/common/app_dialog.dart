@@ -26,6 +26,8 @@ class AppDialog {
     // When false the primary callback is responsible for dismissing the
     // dialog itself (e.g. vpnConflictDialog callers already pop).
     bool dismissOnPrimary = true,
+    // Overrides dialogTheme's bg.elevated.
+    Color? backgroundColor,
   }) {
     return showDialog<void>(
       context: context,
@@ -34,7 +36,9 @@ class AppDialog {
         final textTheme = Theme.of(context).textTheme;
         return AlertDialog(
           scrollable: scrollable,
-          // backgroundColor and shape come from dialogTheme in app_theme.dart
+          // backgroundColor (unless given) and shape come from dialogTheme
+          // in app_theme.dart
+          backgroundColor: backgroundColor,
           contentPadding: EdgeInsets.all(24),
           // Buttons live inside content (not `actions`) so they can stretch
           // full-width and stack vertically per the design.

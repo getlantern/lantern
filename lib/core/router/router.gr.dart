@@ -745,7 +745,7 @@ class InviteFriends extends _i48.PageRouteInfo<void> {
 class InviteShare extends _i48.PageRouteInfo<InviteShareArgs> {
   InviteShare({
     _i49.Key? key,
-    required String inviteId,
+    String? inviteId,
     List<_i48.PageRouteInfo>? children,
   }) : super(
          InviteShare.name,
@@ -758,18 +758,20 @@ class InviteShare extends _i48.PageRouteInfo<InviteShareArgs> {
   static _i48.PageInfo page = _i48.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<InviteShareArgs>();
+      final args = data.argsAs<InviteShareArgs>(
+        orElse: () => const InviteShareArgs(),
+      );
       return _i18.InviteShare(key: args.key, inviteId: args.inviteId);
     },
   );
 }
 
 class InviteShareArgs {
-  const InviteShareArgs({this.key, required this.inviteId});
+  const InviteShareArgs({this.key, this.inviteId});
 
   final _i49.Key? key;
 
-  final String inviteId;
+  final String? inviteId;
 
   @override
   String toString() {

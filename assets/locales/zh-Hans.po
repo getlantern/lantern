@@ -1932,10 +1932,10 @@ msgid "invite_link_copied"
 msgstr "链接已复制"
 
 msgid "invite_qr_hint"
-msgstr "您的好友可以用蓝灯扫描此码。"
+msgstr "如果对方在您身边，可以在蓝灯中扫描此码，无需使用链接。"
 
 msgid "invite_waiting"
-msgstr "正在等待好友打开链接"
+msgstr "等待对方打开链接"
 
 msgid "invite_trust_warning"
 msgstr "您邀请的人会知道您在使用蓝灯，并能看到您何时通过其网络连接。您的流量经过对方的互联网连接，因此对方可能得知您访问了哪些网站，但无法得知您在安全（https）网站上的操作。只邀请您信任的人。"
@@ -2031,7 +2031,7 @@ msgid "invite_link_label"
 msgstr "您的邀请链接"
 
 msgid "invite_link_expiry"
-msgstr "仅可使用一次，48 小时后失效。"
+msgstr "仅限使用一次，48 小时后失效"
 
 msgid "approve_title"
 msgstr "%s 想成为您的个人代理"
@@ -2163,7 +2163,7 @@ msgid "onboarding_personal_proxies"
 msgstr "个人代理"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "蓝灯被封锁时，请一位您信任的国外人士担任您的代理。"
+msgstr "通过您信任的境外人士直接连接。"
 
 msgid "onboarding_new_badge"
 msgstr "新"
@@ -2181,7 +2181,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "帮助您认识的人"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "如果身处审查国家的朋友向您发送邀请，您可以成为他们的 Personal Proxy。"
+msgstr "成为朋友的个人代理，帮助他们直接通过您连接。"
 
 msgid "onboarding_action_mode_privacy"
 msgstr "您的隐私受到保护"
@@ -2241,7 +2241,19 @@ msgid "helping_scope_subtitle"
 msgstr "仅与您的朋友分享，或与所有国家的人分享。"
 
 msgid "helping_scope_only_friends"
-msgstr "仅限我的朋友"
+msgstr "仅我的个人代理连接"
 
 msgid "helping_scope_all_countries"
 msgstr "所有国家"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "选择安全地共享您的连接，帮助他人访问开放的互联网。"
+
+msgid "invite_show_qr"
+msgstr "显示二维码"
+
+msgid "invite_link_hint"
+msgstr "输入您的名字以获取链接"
+
+msgid "invite_qr_title"
+msgstr "使用相机扫描"

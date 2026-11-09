@@ -285,7 +285,7 @@ void main() {
     ]);
     expect(find.byType(PersonalProxiesSection), findsOneWidget);
     expect(
-      find.byKey(const Key('server_selection.personal_proxies')),
+      find.byKey(const Key('server_selection.personal_proxy.p1')),
       findsOneWidget,
     );
     expect(find.text('no_private_server_setup_yet'.i18n), findsNothing);
@@ -296,10 +296,7 @@ void main() {
   ) async {
     await _pump(tester, const []);
     expect(find.text('no_private_server_setup_yet'.i18n), findsOneWidget);
-    expect(
-      find.byKey(const Key('server_selection.personal_proxies')),
-      findsNothing,
-    );
+    expect(find.byType(PersonalProxiesSection), findsNothing);
   });
 
   testWidgets('helper presence refreshes on the interval only while resumed', (
@@ -473,35 +470,6 @@ void main() {
       expect(shown.serverType, ServerLocationType.personalProxy.name);
     });
   }
-
-  testWidgets('a fallback saved before the group connect answers stays shown', (
-    tester,
-  ) async {
-    await sl.reset();
-    final vpn = _Vpn();
-    final location = _Location();
-    // radiance replaced the group, gone during the connect, with auto, and
-    // its event arrived before the connect answered.
-    final service = _Service('auto');
-    final container = _selectionContainer(vpn, location, service);
-    addTearDown(container.dispose);
-    await _pumpSelection(tester, container);
-    vpn.beforeReply = location.syncSelection;
-    await tester.tap(
-      find.byKey(const Key('server_selection.personal_proxies')),
-    );
-    await tester.pump();
-    await tester.pump();
-    expect(vpn.connects, [
-      (ServerLocationType.personalProxy, 'personal-proxies'),
-    ]);
-    // The group asked for is saved first, so switching to auto keeps its
-    // tag as serverName; the type is what every reader checks.
-    expect(
-      container.read(serverLocationProvider).serverType,
-      ServerLocationType.auto.name,
-    );
-  });
 
   testWidgets('a read started before the tap does not stop the save of the '
       'friend asked for', (tester) async {
