@@ -224,7 +224,7 @@ class CapitalizeFirstLetterFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     final text = newValue.text;
-    if (text.isEmpty) return newValue;
+    if (text.isEmpty || !newValue.composing.isCollapsed) return newValue;
     final first = text.characters.first;
     final upper = first.toUpperCase();
     if (upper == first || upper.length != first.length) return newValue;
