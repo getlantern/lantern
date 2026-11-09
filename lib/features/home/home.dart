@@ -338,10 +338,16 @@ class Home extends HookConsumerWidget {
           onPressed: () {
             appRouter.push(Setting());
           },
-          icon: const AppImage(path: AppImagePaths.menu),
+          // The Action Mode tab's header shows the account icon there.
+          icon: AppImage(
+            path: showUnboundedTab && onUnboundedTab.value
+                ? AppImagePaths.accountCircle
+                : AppImagePaths.menu,
+          ),
         ),
         actions: [
-          if (isUserPro)
+          // Not twice on the Action Mode tab, whose menu button has it.
+          if (isUserPro && !(showUnboundedTab && onUnboundedTab.value))
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {

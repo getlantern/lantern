@@ -280,6 +280,59 @@ const _future = 4102444800;
 void main() {
   setUpAll(Localization.loadTranslations);
 
+  testWidgets('the name field capitalizes its first letter as typed', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    final name = find.byKey(const Key('help_friend.name'));
+    await tester.enterText(name, 'ali');
+    await tester.pump();
+    expect(
+      tester
+          .widget<EditableText>(
+            find.descendant(of: name, matching: find.byType(EditableText)),
+          )
+          .controller
+          .text,
+      'Ali',
+    );
+    expect(
+      tester
+          .widget<TextField>(
+            find.descendant(of: name, matching: find.byType(TextField)),
+          )
+          .textCapitalization,
+      TextCapitalization.words,
+    );
+    await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await tester.pump();
+    await tester.pump();
+    expect(helpers.claims, [(_link, 'Ali')]);
+  });
+
+  testWidgets('the Keep Action Mode on card has room below its text', (
+    tester,
+  ) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await _claim(tester);
+    helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
+    await tester.pump();
+    final card = find.ancestor(
+      of: find.byKey(const Key('help_friend.keep_on')),
+      matching: find.byType(AppCard),
+    );
+    final body = find.text('help_friend_keep_on_body'.i18n.fill(['Sara']));
+    expect(body, findsOneWidget);
+    expect(
+      tester.getRect(card).bottom - tester.getRect(body).bottom,
+      greaterThanOrEqualTo(12),
+    );
+  });
+
   testWidgets('claiming shows the code', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);

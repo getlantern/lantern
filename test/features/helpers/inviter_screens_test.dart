@@ -364,6 +364,22 @@ void main() {
     expect(find.text('approve_body'.i18n.fill(['Ali'])), findsOneWidget);
     expect(find.byKey(const Key('approve.code')), findsOneWidget);
     expect(find.text('2562'), findsOneWidget);
+    // The pin pad, as in the design; the check belongs to the success
+    // dialog. On the surface grey, not white.
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.byWidgetPredicate(
+          (w) => w is AppImage && w.path == AppImagePaths.keypad,
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.check_circle_outline), findsNothing);
+    expect(
+      tester.widget<AlertDialog>(dialog).backgroundColor,
+      tester.element(dialog).bgSurface,
+    );
     final code = tester.widget<Text>(find.byKey(const Key('approve.code')));
     expect(
       code.style?.fontSize,
@@ -373,8 +389,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
     expect(find.text('approve_title'.i18n.fill(['Ali'])), findsNothing);
-    // The success dialog follows; Done closes it.
+    // The success dialog follows, with the check; Done closes it.
     expect(find.text('approved_title'.i18n.fill(['Ali'])), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
     await tester.tap(_approvedDone);
     await tester.pumpAndSettle();
     expect(dialog, findsNothing);
