@@ -12,6 +12,7 @@ import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
+import 'package:lantern/features/plans/provider/plans_notifier.dart';
 
 @RoutePage(name: 'ConfirmEmail')
 class ConfirmEmail extends HookConsumerWidget {
@@ -241,12 +242,19 @@ class ConfirmEmail extends HookConsumerWidget {
         if (isStoreVersion()) {
           appRouter.push(Plans());
         } else {
-          appRouter.push(
-            ChoosePaymentMethod(
-              email: email,
-              authFlow: AuthFlow.renewSubscription,
-            ),
-          );
+          // Plans was just popped, and it was the only listener keeping the
+          // selected plan alive.
+          final keepPlan = ProviderScope.containerOf(
+            context,
+          ).listen(plansProvider, (_, _) {});
+          appRouter
+              .push(
+                ChoosePaymentMethod(
+                  email: email,
+                  authFlow: AuthFlow.renewSubscription,
+                ),
+              )
+              .whenComplete(keepPlan.close);
         }
         break;
       case AuthFlow.lanternProLicense:
