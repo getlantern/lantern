@@ -49,7 +49,7 @@ class _Share extends ShareNotifier {
   @override
   Future<bool> ensureConsent(BuildContext context) async => consent;
   @override
-  Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
+  Future<void> toggle(BuildContext? context, [WidgetRef? widgetRef]) async {
     toggles++;
   }
 
@@ -523,6 +523,43 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
+
+  testWidgets('the Welcome to Action Mode dialog offers Auto-enable Action '
+      'Mode, off until checked, and checking it saves the setting', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const ActionModeTab(),
+      size: const Size(360, 640),
+      scale: 2,
+      animated: true,
+    );
+    await tester.tap(find.byKey(const Key('action-mode.info')));
+    await tester.pump(const Duration(milliseconds: 300));
+    final dialog = find.byType(AlertDialog);
+    final box = find.descendant(
+      of: dialog,
+      matching: find.byKey(const Key('action-mode.auto-enable')),
+    );
+    expect(box, findsOneWidget);
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.text('auto_enable_unbounded'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.widget<Checkbox>(box).value, isFalse);
+    await tester.ensureVisible(box);
+    await tester.tap(box);
+    await tester.pump();
+    expect(tester.widget<Checkbox>(box).value, isTrue);
+    await tester.ensureVisible(find.text('Got It'));
+    await tester.tap(find.text('Got It'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpWidget(const SizedBox());
+  });
 
   testWidgets('both auto-enable controls edit the same saved preference', (
     tester,

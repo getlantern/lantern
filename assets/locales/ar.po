@@ -1673,11 +1673,7 @@ msgstr ""
 "عبر اتصالك للوصول إلى الإنترنت المفتوح."
 
 msgid "share_consent_body_ip"
-msgstr ""
-"إذا كان جهاز التوجيه لديك يدعم إعادة توجيه المنافذ، فسيُستخدم اتصالك المنزلي"
-" كنقطة خروج وسيظهر عنوان IP الخاص بك في سجلات الوجهة أثناء المشاركة. وإلا، "
-"فسيتم تمرير تلك الحركة عبر خوادم Lantern بدلاً من ذلك، ولن يُكشف عنوان IP "
-"الخاص بك بهذه الطريقة."
+msgstr "إذا كان جهاز التوجيه لديك يدعم إعادة توجيه المنافذ، فسيُستخدم اتصالك المنزلي كنقطة خروج وسيظهر عنوان IP الخاص بك في سجلات الوجهة أثناء المشاركة. وإلا فستُمرَّر حركة البيانات هذه عبر خوادم Lantern بدلًا من ذلك، ولن يُكشف عنوان IP الخاص بك بهذه الطريقة. كما يمكن لحركة بيانات صديق تعمل وكيلًا شخصيًا له أن تخرج من اتصالك، حتى دون إعادة توجيه المنافذ."
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2095,9 +2091,6 @@ msgstr "لصق الرابط الذي أرسله صديقك"
 msgid "help_friend_scan"
 msgstr "مسح رمز QR الخاص بصديقك"
 
-msgid "help_friend_approved"
-msgstr "أنت الآن تساعد %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "لم يعد هذا الطلب قيد الانتظار. اطلب من صديقك دعوة جديدة."
 
@@ -2136,12 +2129,6 @@ msgstr "إيقاف المساعدة"
 
 msgid "helping_remove_confirm"
 msgstr "إيقاف مساعدة %s؟ ستكون هناك حاجة إلى دعوة جديدة للاتصال عبرك مرة أخرى."
-
-msgid "help_others_too"
-msgstr "مساعدة الآخرين أيضًا"
-
-msgid "help_others_too_body"
-msgstr "شارك السعة الفائضة مع أشخاص آخرين يواجهون الرقابة؛ لا يسمح لهم Lantern إلا بالوصول إلى المواقع المسموح بها، ما يحمي اتصالك من إساءة الاستخدام."
 
 msgid "help_others_too_note"
 msgstr "يؤدي تغيير هذا الإعداد إلى إعادة اتصال الأشخاص الذين تساعدهم لفترة وجيزة."
@@ -2183,7 +2170,7 @@ msgid "become_means_title"
 msgstr "ماذا يعني أن تكون وكيلا شخصيا"
 
 msgid "become_means_traffic"
-msgstr "طلب منك صديق المساعدة. أثناء تشغيل Action Mode، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك. حسب جهاز التوجيه لديك، تخرج حركة بياناته من شبكتك أو تمر عبر خوادم Lantern. لا يعرض لك Lantern ما يفعله على الإنترنت."
+msgstr "طلب منك صديق المساعدة. أثناء تشغيل Action Mode، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك. لا يعرض لك Lantern المواقع التي يزورها."
 
 msgid "become_means_seen"
 msgstr "يمكنه رؤية وقت اتصالك. لا تقبل الدعوات إلا من أشخاص تعرفهم."
@@ -2194,14 +2181,8 @@ msgstr "يمكنك إزالة الاتصال في أي وقت."
 msgid "help_friend_form_title"
 msgstr "الصق الرابط من الشخص الذي تساعده"
 
-msgid "help_friend_link_hint"
-msgstr "يُملأ هذا الحقل تلقائيًا عند النقر على الرابط على هذا الجهاز"
-
 msgid "help_friend_name_label"
 msgstr "اسمك كما يعرفك صديقك"
-
-msgid "help_friend_name_hint"
-msgstr "هكذا يظهر اسمك في Lantern لدى صديقك"
 
 msgid "help_friend_become"
 msgstr "كن الوكيل الشخصي لصديقك"
@@ -2263,17 +2244,8 @@ msgstr "تعذر الوصول إلى %s حاليًا. تم التبديل إلى
 msgid "become_personal_proxy"
 msgstr "أن تصبح وكيلًا شخصيًا"
 
-msgid "help_friend_form_title_from_link"
-msgstr "دعاك صديق لتكون الوكيل الشخصي له"
-
 msgid "help_friend_paste_button"
 msgstr "لصق الرابط"
-
-msgid "help_friend_no_link"
-msgstr "ألا تملك رابطًا بعد؟"
-
-msgid "help_friend_ask_invite"
-msgstr "طلب دعوة من صديقك"
 
 msgid "help_friend_ask_invite_message"
 msgstr "يمكنني أن أكون الوكيل الشخصي لك على Lantern، لتتصل بالإنترنت عبر اتصالي. في Lantern، افتح \"اختيار الخادم\"، واضغط على قائمة ⋮ في الأعلى، واختر \"دعوة وكيل شخصي\" وأرسل إليّ الرابط."
@@ -2289,3 +2261,105 @@ msgstr "اختر ملف .exe لتطبيق على هذا الكمبيوتر، غ�
 
 msgid "unable_to_add_executable"
 msgstr "تعذّرت إضافة الملف التنفيذي. اختر ملف .exe موجودًا على هذا الكمبيوتر وحاول مرة أخرى."
+
+msgid "unable_to_connect"
+msgstr "تعذر الاتصال"
+
+msgid "enable_action_mode"
+msgstr "تفعيل Action Mode"
+
+msgid "disable_action_mode"
+msgstr "تعطيل Action Mode"
+
+msgid "helping_one_person"
+msgstr "مساعدة شخص واحد"
+
+msgid "helping_people"
+msgstr "عدد الأشخاص الذين تساعدهم: %s"
+
+msgid "onboarding_personal_proxies"
+msgstr "الوكلاء الشخصيون"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "اطلب من شخص تثق به خارج بلدك أن يكون وكيلك عند حظر Lantern."
+
+msgid "onboarding_new_badge"
+msgstr "جديد"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "ساعد الآخرين على الوصول إلى الإنترنت المفتوح"
+
+msgid "onboarding_action_mode_share"
+msgstr "مشاركة اتصالك"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "تطوع بجزء صغير من اتصالك لمساعدة الآخرين على تجاوز قيود الإنترنت."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "ساعد شخصًا تعرفه"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "إذا أرسل إليك صديق في بلد خاضع للرقابة دعوة، يمكنك أن تكون Personal Proxy الخاص به."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "خصوصيتك محمية"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "لا تتم مشاركة بياناتك الشخصية ونشاط تصفحك أو كشفها أبدًا."
+
+msgid "onboarding_action_mode_control"
+msgstr "التحكم بيدك"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "يمكنك تشغيل Action Mode أو إيقافه في أي وقت من علامة تبويب Action Mode."
+
+msgid "approved_title"
+msgstr "أصبح %s الوكيل الشخصي الخاص بك"
+
+msgid "approved_body"
+msgstr "عندما يكون %s متصلاً، يمكنك اختياره ضمن المواقع الخاصة في اختيار الخادم."
+
+msgid "approved_connect_now"
+msgstr "الاتصال الآن"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "هكذا يظهر اسمك في قائمة الخوادم لديهم."
+
+msgid "help_friend_success_title"
+msgstr "أصبحت الآن الوكيل الشخصي لـ %s"
+
+msgid "help_friend_success_body"
+msgstr "وافق %s على طلبك. عند تشغيل Action Mode، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك."
+
+msgid "help_friend_keep_on"
+msgstr "إبقاء Action Mode قيد التشغيل"
+
+msgid "help_friend_keep_on_body"
+msgstr "يعمل الآن وكلما كان Lantern مفتوحًا، ليبقى %s متصلًا."
+
+msgid "help_friend_no_link_yet"
+msgstr "ألا يوجد رابط بعد؟"
+
+msgid "help_friend_ask_send_link"
+msgstr "اطلب منهم إرسال رابط إليك."
+
+msgid "helping_scope_line_all"
+msgstr "تساعد أيضًا أشخاصًا في جميع البلدان"
+
+msgid "helping_scope_line_friends"
+msgstr "تساعد أصدقاءك فقط"
+
+msgid "helping_scope_change"
+msgstr "تغيير"
+
+msgid "helping_scope_title"
+msgstr "من تساعد"
+
+msgid "helping_scope_subtitle"
+msgstr "المشاركة مع أصدقائك فقط، أو مع الناس في جميع الدول."
+
+msgid "helping_scope_only_friends"
+msgstr "أصدقائي فقط"
+
+msgid "helping_scope_all_countries"
+msgstr "جميع الدول"

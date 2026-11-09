@@ -9,6 +9,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
@@ -70,6 +71,10 @@ class _FakeStorage extends LocalStorageService {
 class _FakeVpn extends VpnNotifier {
   final connection = Completer<Either<Failure, String>>();
 
+  /// Whether the connect reports connecting at once; off, the status stays
+  /// as it was until the test sets it.
+  bool announce = true;
+
   @override
   VPNStatus build() => VPNStatus.disconnected;
 
@@ -79,7 +84,7 @@ class _FakeVpn extends VpnNotifier {
     String tag, {
     bool skipConflictCheck = false,
   }) {
-    state = VPNStatus.connecting;
+    if (announce) state = VPNStatus.connecting;
     return connection.future;
   }
 
@@ -102,6 +107,13 @@ class _PrivateServers extends AvailableServersNotifier {
       ),
     ),
   ]);
+}
+
+class _Router extends AppRouter {
+  int popsToRoot = 0;
+
+  @override
+  void popUntilRoot() => popsToRoot++;
 }
 
 ServerLocation _location(String tag) => ServerLocation(
@@ -297,4 +309,119 @@ void main() {
       },
     );
   }
+
+  /// Taps a button that runs Connect Now; returns the router and whether
+  /// its future has completed.
+  Future<(_Router, bool Function())> connectNow(WidgetTester tester) async {
+    final router = _Router();
+    sl.registerSingleton<AppRouter>(router);
+    final subscription = container.listen(serverLocationProvider, (_, _) {});
+    addTearDown(subscription.close);
+    Future<void>? connecting;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: ScreenUtilInit(
+          designSize: const Size(393, 852),
+          child: GlobalLoaderOverlay(
+            child: MaterialApp(
+              theme: AppTheme.appTheme(),
+              home: Scaffold(
+                body: Consumer(
+                  builder: (context, ref, _) => TextButton(
+                    onPressed: () =>
+                        connecting = connectPersonalProxy(context, ref),
+                    child: const Text('connect'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('connect'));
+    await tester.pump();
+    var done = false;
+    unawaited(connecting!.then((_) => done = true));
+    return (router, () => done);
+  }
+
+  Future<void> settle(WidgetTester tester) async {
+    await tester.runAsync(_pump);
+    await tester.pump();
+  }
+
+  testWidgets('Connect Now completes only once the connection has settled '
+      'and returned home', (tester) async {
+    final (router, done) = await connectNow(tester);
+
+    // The connect answers while the VPN is still connecting.
+    vpn().connection.complete(const Right('ok'));
+    await settle(tester);
+    expect(container.read(vpnProvider), VPNStatus.connecting);
+    expect(
+      done(),
+      isFalse,
+      reason: 'the caller must stay until the selection is saved',
+    );
+    expect(router.popsToRoot, 0);
+
+    vpn().set(VPNStatus.connected);
+    await settle(tester);
+    expect(done(), isTrue);
+    expect(router.popsToRoot, 1);
+  });
+
+  for (final stop in [VPNStatus.error, VPNStatus.disconnected]) {
+    testWidgets('Connect Now settles when the VPN reports ${stop.name} '
+        'before the connect answers', (tester) async {
+      final (router, done) = await connectNow(tester);
+      vpn().set(stop);
+      vpn().connection.complete(const Right('ok'));
+      await settle(tester);
+      expect(done(), isTrue, reason: 'no later status would settle it');
+      expect(router.popsToRoot, 0);
+      expect(storage.getServerLocation(), isNull, reason: 'nothing saved');
+
+      // A later connection does not resurrect it.
+      vpn().set(VPNStatus.connected);
+      await settle(tester);
+      expect(router.popsToRoot, 0);
+      expect(storage.getServerLocation(), isNull);
+    });
+  }
+
+  testWidgets('Connect Now still waits while the VPN shows disconnected '
+      'only because the connection has not started', (tester) async {
+    vpn().announce = false;
+    final (router, done) = await connectNow(tester);
+    expect(container.read(vpnProvider), VPNStatus.disconnected);
+    vpn().connection.complete(const Right('ok'));
+    await settle(tester);
+    expect(done(), isFalse);
+
+    vpn().set(VPNStatus.connecting);
+    vpn().set(VPNStatus.connected);
+    await settle(tester);
+    expect(done(), isTrue);
+    expect(router.popsToRoot, 1);
+  });
+
+  testWidgets('Connect Now stops waiting after a while; the save and the '
+      'return home still follow', (tester) async {
+    returnHomeWait = const Duration(seconds: 5);
+    addTearDown(() => returnHomeWait = const Duration(seconds: 60));
+    final (router, done) = await connectNow(tester);
+    vpn().connection.complete(const Right('ok'));
+    await settle(tester);
+    expect(done(), isFalse);
+    await tester.pump(const Duration(seconds: 6));
+    expect(done(), isTrue);
+    expect(router.popsToRoot, 0);
+
+    vpn().set(VPNStatus.connected);
+    await settle(tester);
+    expect(router.popsToRoot, 1);
+  });
 }

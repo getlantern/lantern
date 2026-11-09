@@ -147,6 +147,7 @@ jobs:
         shell: bash
         env:
           ANDROID_INTEGRATION_TARGET: ${{ inputs.test_target || 'integration_test/android_all_e2e_test.dart' }}
+          FTL_DEVICES: ${{ inputs.devices }}
         run: |
           set -euo pipefail
           if [[ ! "$ANDROID_INTEGRATION_TARGET" =~ ^integration_test/[A-Za-z0-9_./-]+_test\.dart$ ]] ||
@@ -155,8 +156,50 @@ jobs:
             echo "::error::Invalid Android integration-test target: $ANDROID_INTEGRATION_TARGET"
             exit 1
           fi
+          # Test Lab runs its devices in parallel against the same smoke
+          # accounts, so with several devices exactly one runs the auth suite:
+          # the first physical one, identified by its model id (Build.DEVICE)
+          # and API level.
+          IFS=';' read -ra devices <<<"$(scripts/android/ftl-run.sh --print-devices)"
+          dart_defines=""
+          if (( ${#devices[@]} > 1 )); then
+            auth_model=""
+            auth_version=""
+            for device in "${devices[@]}"; do
+              model=$(sed -n 's/.*model=\([^,]*\).*/\1/p' <<<"$device")
+              version=$(sed -n 's/.*version=\([^,]*\).*/\1/p' <<<"$device")
+              if [[ -n "$model" && "$model" != *.arm ]]; then
+                auth_model="$model"
+                auth_version="$version"
+                break
+              fi
+            done
+            if [[ -z "$auth_model" ]]; then
+              echo "::error::Several devices share the auth smoke accounts; include one physical device so only it runs the auth suite."
+              exit 1
+            fi
+            auth_device="$auth_model${auth_version:+@$auth_version}"
+            # Another entry of the same model matches too unless both name
+            # different API levels; a missing version could be any level.
+            matches=0
+            for device in "${devices[@]}"; do
+              model=$(sed -n 's/.*model=\([^,]*\).*/\1/p' <<<"$device")
+              version=$(sed -n 's/.*version=\([^,]*\).*/\1/p' <<<"$device")
+              if [[ "$model" == "$auth_model" &&
+                    ( -z "$auth_version" || -z "$version" || "$version" == "$auth_version" ) ]]; then
+                matches=$((matches + 1))
+              fi
+            done
+            if (( matches > 1 )); then
+              echo "::error::$auth_device matches $matches devices; the auth suite would run on each at once."
+              exit 1
+            fi
+            echo "Auth smoke suite runs on $auth_device"
+            dart_defines="-Pdart-defines=$(printf 'AUTH_SMOKE_DEVICE=%s' "$auth_device" | base64 | tr -d '\n')"
+          fi
           make android-integration-apks ANDROID_GRADLE=gradle \
-            "ANDROID_INTEGRATION_TARGET=$ANDROID_INTEGRATION_TARGET"
+            "ANDROID_INTEGRATION_TARGET=$ANDROID_INTEGRATION_TARGET" \
+            "ANDROID_INTEGRATION_DART_DEFINES=$dart_defines"
 
       - name: Verify integration APK version
         shell: bash

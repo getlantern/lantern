@@ -18,6 +18,7 @@ set -euo pipefail
 #   AWS_SECRET_ACCESS_KEY:   AWS credentials (required)
 #   LINUX_ARCH:              amd64, arm64, or all (optional, defaults to all)
 #   IS_TEST_RUN:             true for branch builds; skips shared nightly aliases (default: false)
+#   SPARKLE_VERSION:         Monotonic desktop build number for signed main nightlies
 
 BUILD_TYPE="${1:?Build type required}"
 VERSION="${2:?Version required}"
@@ -61,22 +62,46 @@ upload_file() {
   filename="$(basename "$filepath")"
   local checksum
   checksum="$(sha256sum "$filepath" | awk '{print $1}')"
+  if [[ "$BUILD_TYPE" == "nightly" && ( "$filename" == *.exe || "$filename" == *.dmg ) ]]; then
+    local existing_checksum
+    if existing_checksum="$(aws s3api head-object --bucket "$BUCKET" --key "${VERSION_PREFIX}/${filename}" --query Metadata.sha256 --output text 2>&1)"; then
+      if [[ "$existing_checksum" != "$checksum" ]]; then
+        echo "Refusing to replace the immutable nightly installer: ${VERSION_PREFIX}/${filename}" >&2
+        exit 1
+      fi
+    elif ! grep -Eq '\(404\)|\(NoSuchKey\)' <<< "$existing_checksum"; then
+      printf '%s\n' "$existing_checksum" >&2
+      exit 1
+    fi
+  fi
   echo "↑ Uploading $filename"
   aws s3 cp "$filepath" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}" \
     --acl public-read --metadata "sha256=${checksum}"
 
-  # Branch builds publish versioned downloads without replacing the main nightly.
-  # Stable and beta aliases move only after the GitHub release is verified.
-  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
-    aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" \
-      --acl public-read --metadata "sha256=${checksum}"
-  fi
-
   echo "✓ Uploaded $filename"
   echo "  - https://s3.amazonaws.com/${BUCKET}/${VERSION_PREFIX}/${filename}"
-  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
-    echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
+
+  # Branch builds publish versioned downloads without replacing the main nightly.
+  # Stable and beta aliases move only after the GitHub release is verified.
+  # Signed desktop installers move with their feed below.
+  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]] && ! has_signed_update "$filepath"; then
+    promote_latest "$filepath" "$checksum"
   fi
+}
+
+has_signed_update() {
+  local filepath="$1" extension
+  extension="${filepath##*.}"
+  [[ ( "$extension" == dmg || "$extension" == exe ) &&
+     -f "lantern-installer-${extension}-signature/$(basename "$filepath").sparkle-signature" ]]
+}
+
+promote_latest() {
+  local filepath="$1" checksum="$2" filename
+  filename="$(basename "$filepath")"
+  aws s3 cp "$filepath" "s3://${BUCKET}/${LATEST_PREFIX}/${filename}" \
+    --acl public-read --metadata "sha256=${checksum}"
+  echo "  - https://s3.amazonaws.com/${BUCKET}/${LATEST_PREFIX}/${filename}"
 }
 
 artifact_path() {
@@ -159,5 +184,42 @@ fi
 for file in "${files[@]}"; do
   upload_file "$file"
 done
+
+# Nightly drafts are deleted from GitHub. Publish signed desktop sidecars for
+# the update service separately; their payload URLs always name immutable builds.
+if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]]; then
+  metadata_dir="$(mktemp -d)"
+  trap 'rm -rf "$metadata_dir"' EXIT
+  for file in "${files[@]}"; do
+    extension="${file##*.}"
+    case "$extension" in dmg|exe) ;; *) continue ;; esac
+    filename="$(basename "$file")"
+    signature_dir="lantern-installer-${extension}-signature"
+    if ! has_signed_update "$file"; then
+      echo "No signed update for $filename; preserving the previous nightly feed."
+      continue
+    fi
+    [[ "${SPARKLE_VERSION:-}" =~ ^[1-9][0-9]*$ ]] || { echo 'Missing numeric SPARKLE_VERSION' >&2; exit 1; }
+    python3 "$(dirname "${BASH_SOURCE[0]}")/generate_update_metadata.py" \
+      --build-type nightly --version "$VERSION" --sparkle-version "$SPARKLE_VERSION" \
+      --bucket "$BUCKET" --output-dir "$metadata_dir" \
+      --sparkle-signature-dir "$signature_dir" "$file"
+    metadata="$metadata_dir/$filename.update.json"
+    latest="s3://${BUCKET}/${LATEST_PREFIX}/${filename}.update.json"
+    if aws s3 cp "$latest" "$metadata_dir/previous.json" --only-show-errors 2>"$metadata_dir/fetch-error"; then
+      previous_build="$(jq -er '.sparkle_version | select(test("^[1-9][0-9]*$"))' "$metadata_dir/previous.json")"
+      if (( previous_build >= SPARKLE_VERSION )); then
+        echo "Preserving newer or identical nightly update build $previous_build for $filename."
+        continue
+      fi
+    elif ! grep -Eq '\(404\)|\(NoSuchKey\)' "$metadata_dir/fetch-error"; then
+      cat "$metadata_dir/fetch-error" >&2
+      exit 1
+    fi
+    aws s3 cp "$metadata" "s3://${BUCKET}/${VERSION_PREFIX}/${filename}.update.json" --acl public-read
+    promote_latest "$file" "$(sha256sum "$file" | awk '{print $1}')"
+    aws s3 cp "$metadata" "$latest" --acl public-read --cache-control 'max-age=300'
+  done
+fi
 
 echo "✓ Uploaded ${#files[@]} artifacts"

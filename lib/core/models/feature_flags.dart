@@ -16,7 +16,12 @@ enum FeatureFlag {
   // connection" UI that could draw attention to them on-device. Mirrors
   // radiance/unbounded/unbounded.go shouldRunUnbounded, which already
   // gates execution on the same Features[UNBOUNDED] flag.
-  unbounded('unbounded');
+  unbounded('unbounded'),
+  // Gates the Personal Proxies introduction for users who finished
+  // onboarding before it had these pages (Home pushes it once). New
+  // installs see the same pages in onboarding whatever this says. Remove
+  // the check to make the introduction fully live.
+  personalProxiesIntro('personal_proxies_intro');
 
   final String key;
 

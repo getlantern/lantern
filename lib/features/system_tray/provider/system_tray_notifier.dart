@@ -1,12 +1,22 @@
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/feature_flags.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/models/share_state.dart';
+import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
@@ -17,6 +27,13 @@ import '../../vpn/provider/server_location_notifier.dart';
 
 part 'system_tray_notifier.g.dart';
 
+/// What keeps the tray from connecting, shown as the "Unable to Connect" row.
+enum _Blocker { macosExtension, vpnConflict, other }
+
+/// A connect request the tray can repeat past the conflict check.
+typedef _ConnectAttempt =
+    Future<Either<Failure, String>> Function({bool skipConflictCheck});
+
 @Riverpod(keepAlive: true)
 class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   VPNStatus _currentStatus = VPNStatus.disconnected;
@@ -25,12 +42,38 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   List<Server> _locations = [];
   RoutingMode _currentRoutingMode = RoutingMode.full;
   ServerLocation? _serverLocation;
+  MacOSExtensionState _extensionState = const MacOSExtensionState(
+    SystemExtensionStatus.unknown,
+  );
+  // The last failed connect from the tray, or the conflict found when the
+  // menu opened. Cleared once a connection gets going.
+  Failure? _connectFailure;
+  bool _unboundedAvailable = false;
+  bool _unboundedHidden = false;
+  ShareState _share = const ShareState();
 
   bool get isConnected => _currentStatus == VPNStatus.connected;
 
   bool get _isAutoLocation =>
       _serverLocation?.serverType.toServerLocationType ==
       ServerLocationType.auto;
+
+  bool get _showActionMode => _unboundedAvailable && !_unboundedHidden;
+
+  _Blocker? get _blocker {
+    if (isConnected || _currentStatus == VPNStatus.connecting) return null;
+    // Unknown is the state before the first status arrives, not a blocker.
+    if (PlatformUtils.isMacOS &&
+        _extensionState.status != SystemExtensionStatus.unknown &&
+        !_extensionState.isReady) {
+      return _Blocker.macosExtension;
+    }
+    final failure = _connectFailure;
+    if (failure == null) return null;
+    return failure is VpnConflictFailure
+        ? _Blocker.vpnConflict
+        : _Blocker.other;
+  }
 
   @override
   Future<void> build() async {
@@ -53,6 +96,14 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     _canSelectServer = ref.read(canSelectServerProvider);
     _currentRoutingMode = ref.read(radianceSettingsProvider).routingMode;
     _serverLocation = ref.read(serverLocationProvider);
+    if (PlatformUtils.isMacOS) {
+      _extensionState = ref.read(macosExtensionProvider);
+    }
+    _unboundedAvailable = ref
+        .read(featureFlagProvider)
+        .getBool(FeatureFlag.unbounded);
+    _unboundedHidden = ref.read(appSettingProvider).unboundedHidden;
+    _share = ref.read(shareProvider);
   }
 
   void _setupListeners() {
@@ -61,11 +112,16 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     _listenToAvailableServers();
     _listenToServerLocation();
     _listenToRoutingMode();
+    _listenToMacOSExtension();
+    _listenToActionMode();
   }
 
   void _listenToVPNStatus() {
     ref.listen<VPNStatus>(vpnProvider, (previous, next) async {
       _currentStatus = next;
+      if (next == VPNStatus.connecting || next == VPNStatus.connected) {
+        _connectFailure = null;
+      }
       await updateTrayMenu();
     });
   }
@@ -112,13 +168,52 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     });
   }
 
+  void _listenToMacOSExtension() {
+    if (!PlatformUtils.isMacOS) return;
+    ref.listen<MacOSExtensionState>(macosExtensionProvider, (
+      previous,
+      next,
+    ) async {
+      _extensionState = next;
+      await updateTrayMenu();
+    });
+  }
+
+  void _listenToActionMode() {
+    ref.listen<bool>(
+      featureFlagProvider.select((f) => f.getBool(FeatureFlag.unbounded)),
+      (previous, next) async {
+        _unboundedAvailable = next;
+        await updateTrayMenu();
+      },
+    );
+    ref.listen<bool>(appSettingProvider.select((s) => s.unboundedHidden), (
+      previous,
+      next,
+    ) async {
+      _unboundedHidden = next;
+      await updateTrayMenu();
+    });
+    // Only the fields the menu shows; peer snapshots change the rest often.
+    ref.listen<(bool, bool, int)>(
+      shareProvider.select((s) => (s.active, s.probing, s.activeCount)),
+      (previous, next) async {
+        _share = ref.read(shareProvider);
+        await updateTrayMenu();
+      },
+    );
+  }
+
   Future<void> toggleVPN() async {
     final notifier = ref.read(vpnProvider.notifier);
     if (_currentStatus == VPNStatus.connected) {
       await notifier.stopVPN(userInitiated: true);
     } else if (_currentStatus == VPNStatus.disconnected) {
       if (!_checkMacOSExtension()) return;
-      await notifier.startVPN();
+      await _connect(
+        ({skipConflictCheck = false}) =>
+            notifier.startVPN(skipConflictCheck: skipConflictCheck),
+      );
     }
   }
 
@@ -126,18 +221,22 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   Future<void> _onLocationSelected(Server server) async {
     if (!_checkMacOSExtension()) return;
 
-    final result = await ref
-        .read(vpnProvider.notifier)
-        .connectToServer(ServerLocationType.lanternLocation, server.tag);
-    result.fold(
-      (failure) => appLogger.error(
-        'Failed to connect: ${failure.error}',
-      ),
-      (success) {
-        appLogger.info('Connecting to ${server.location.country} - ${server.location.city}');
+    await _connect(({skipConflictCheck = false}) async {
+      final result = await ref
+          .read(vpnProvider.notifier)
+          .connectToServer(
+            ServerLocationType.lanternLocation,
+            server.tag,
+            skipConflictCheck: skipConflictCheck,
+          );
+      if (result.isRight()) {
+        appLogger.info(
+          'Connecting to ${server.location.country} - ${server.location.city}',
+        );
         _saveServerLocation(server);
-      },
-    );
+      }
+      return result;
+    });
   }
 
   /// Handle smart location selection from tray menu
@@ -147,12 +246,115 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     ref
         .read(serverLocationProvider.notifier)
         .updateServerLocation(initialServerLocation());
-    await ref.read(vpnProvider.notifier).startVPN(force: true);
+    await _connect(
+      ({skipConflictCheck = false}) => ref
+          .read(vpnProvider.notifier)
+          .startVPN(force: true, skipConflictCheck: skipConflictCheck),
+    );
+  }
+
+  /// Runs a connect and surfaces its failure. Connect Anyway on a VPN
+  /// conflict repeats the same request past the check, so a location picked
+  /// from the tray is the one it connects to.
+  Future<void> _connect(_ConnectAttempt attempt) async {
+    await _handleConnectResult(
+      await attempt(),
+      connectAnyway: () => attempt(skipConflictCheck: true),
+    );
   }
 
   /// Handle routing mode selection from tray menu
   Future<void> _onRoutingModeSelected(RoutingMode mode) async {
     await ref.read(radianceSettingsProvider.notifier).setRoutingMode(mode);
+  }
+
+  Future<void> _toggleActionMode() async {
+    final notifier = ref.read(shareProvider.notifier);
+    // Consent is a dialog in the app window, so bring the window up first.
+    // Only that path needs the navigator; with consent acknowledged the
+    // toggle runs even before the first route has built.
+    if (!_share.active && !notifier.consentAcked) {
+      await ref.read(windowProvider.notifier).open(focus: true);
+    }
+    await notifier.toggle(_appContext);
+  }
+
+  /// Keeps a failed connect as the alert row and raises it in the app, as
+  /// the in-app switch would. A connect that got going clears the row.
+  Future<void> _handleConnectResult(
+    Either<Failure, String> result, {
+    Future<Either<Failure, String>> Function()? connectAnyway,
+  }) async {
+    await result.fold(
+      (failure) async {
+        appLogger.error('Failed to connect from tray: ${failure.error}');
+        _connectFailure = failure;
+        await updateTrayMenu();
+        await _showConnectFailure(failure, connectAnyway: connectAnyway);
+      },
+      (_) async {
+        _connectFailure = null;
+        await updateTrayMenu();
+      },
+    );
+  }
+
+  /// Opens the app on whatever blocks connecting.
+  Future<void> _onBlockerSelected() async {
+    switch (_blocker) {
+      case _Blocker.macosExtension:
+        _checkMacOSExtension();
+      case _Blocker.vpnConflict || _Blocker.other:
+        await _showConnectFailure(_connectFailure!);
+      case null:
+        return;
+    }
+  }
+
+  Future<void> _showConnectFailure(
+    Failure failure, {
+    Future<Either<Failure, String>> Function()? connectAnyway,
+  }) async {
+    await ref.read(windowProvider.notifier).open(focus: true);
+    final context = _appContext;
+    if (context == null || !context.mounted) return;
+    if (failure is VpnConflictFailure) {
+      // The alert row has no request to repeat: it starts the saved location.
+      final retry =
+          connectAnyway ??
+          () =>
+              ref.read(vpnProvider.notifier).startVPN(skipConflictCheck: true);
+      AppDialog.vpnConflictDialog(
+        context: context,
+        onConnectAnyway: () async {
+          appRouter.maybePop();
+          await _handleConnectResult(await retry());
+        },
+      );
+      return;
+    }
+    AppDialog.errorDialog(
+      context: context,
+      title: 'unable_to_connect'.i18n,
+      content: failure.localizedErrorMessage,
+    );
+  }
+
+  /// The router's navigator, which the tray's dialogs show under. Null until
+  /// the first route has built.
+  BuildContext? get _appContext => appRouter.navigatorKey.currentContext;
+
+  /// Re-checks for a conflicting VPN right before the menu shows, so the
+  /// alert row reflects the other VPN's state now, not the last attempt.
+  Future<void> _refreshVpnConflict() async {
+    if (!PlatformUtils.isMacOS) return;
+    if (_currentStatus != VPNStatus.disconnected) return;
+    final conflict = await ref.read(lanternServiceProvider).checkVpnConflict();
+    // A connect that started during the query already cleared the row.
+    if (_currentStatus != VPNStatus.disconnected) return;
+    if (conflict == _connectFailure is VpnConflictFailure) return;
+    _connectFailure = conflict ? VpnConflictFailure() : null;
+    await updateTrayMenu();
   }
 
   /// Returns true if OK to proceed, false if blocked by missing extension
@@ -170,7 +372,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
   void _saveServerLocation(Server server) {
     final serverLocation = ServerLocation.fromServer(server: server);
-    ref.read(serverLocationProvider.notifier).updateServerLocation(serverLocation);
+    ref
+        .read(serverLocationProvider.notifier)
+        .updateServerLocation(serverLocation);
   }
 
   /// Build the current location display string (flag emoji + city)
@@ -204,8 +408,15 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     }
   }
 
+  String get _helpingLabel => _share.activeCount == 1
+      ? 'helping_one_person'.i18n
+      : 'helping_people'.i18n.fill([_share.activeCount]);
+
   Future<void> updateTrayMenu() async {
     final locationDisplay = _currentLocationDisplay;
+    final busy =
+        _currentStatus == VPNStatus.connecting ||
+        _currentStatus == VPNStatus.disconnecting;
 
     final menu = Menu(
       items: [
@@ -225,6 +436,12 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
             disabled: true,
             label: locationDisplay,
           ),
+        if (_blocker != null)
+          MenuItem(
+            key: 'unable_to_connect',
+            label: '⚠ ${'unable_to_connect'.i18n}',
+            onClick: (_) => _onBlockerSelected(),
+          ),
         MenuItem.separator(),
 
         MenuItem(
@@ -232,20 +449,15 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
           label: _currentStatus == VPNStatus.connected
               ? 'disconnect'.i18n
               : 'connect'.i18n,
-          disabled:
-              _currentStatus == VPNStatus.connecting ||
-              _currentStatus == VPNStatus.disconnecting,
+          disabled: busy,
           onClick: (_) => toggleVPN(),
         ),
-        MenuItem.separator(),
 
         if (_canSelectServer && _locations.isNotEmpty)
           MenuItem.submenu(
             key: 'select_location',
             label: 'select_location'.i18n,
-            disabled:
-                _currentStatus == VPNStatus.connecting ||
-                _currentStatus == VPNStatus.disconnecting,
+            disabled: busy,
             submenu: Menu(
               items: [
                 // Smart Location as first option with checkmark
@@ -264,7 +476,9 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
                   return MenuItem(
                     key: 'location_${server.tag}',
                     label: displayName,
-                    icon: AppImagePaths.safeFlagPath(server.location.countryCode),
+                    icon: AppImagePaths.safeFlagPath(
+                      server.location.countryCode,
+                    ),
                     onClick: (_) => _onLocationSelected(server),
                   );
                 }),
@@ -301,6 +515,23 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
             },
           ),
         MenuItem.separator(),
+        if (_showActionMode) ...[
+          MenuItem(
+            key: 'action_mode_toggle',
+            label: _share.active
+                ? 'disable_action_mode'.i18n
+                : 'enable_action_mode'.i18n,
+            disabled: _share.probing,
+            onClick: (_) => _toggleActionMode(),
+          ),
+          if (_share.active)
+            MenuItem(
+              key: 'helping_count',
+              disabled: true,
+              label: _helpingLabel,
+            ),
+          MenuItem.separator(),
+        ],
         MenuItem(
           key: 'join_server',
           label: 'join_server'.i18n,
@@ -330,25 +561,26 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     );
 
     await trayManager.setContextMenu(menu);
-    trayManager.setIcon(
-      _trayIconPath(isConnected),
-      isTemplate: Platform.isMacOS,
-    );
+    trayManager.setIcon(_trayIconPath(), isTemplate: Platform.isMacOS);
     trayManager.setToolTip('app_name'.i18n);
   }
 
-  String _trayIconPath(bool connected) {
+  String _trayIconPath() {
+    final alert = _blocker != null;
     if (Platform.isWindows) {
-      return connected
-          ? AppImagePaths.lanternConnectedIco
+      if (isConnected) return AppImagePaths.lanternConnectedIco;
+      return alert
+          ? AppImagePaths.lanternAlertIco
           : AppImagePaths.lanternDisconnectedIco;
     } else if (Platform.isMacOS) {
-      return connected
-          ? AppImagePaths.lanternDarkConnected
+      if (isConnected) return AppImagePaths.lanternDarkConnected;
+      return alert
+          ? AppImagePaths.lanternDarkAlert
           : AppImagePaths.lanternDarkDisconnected;
     }
-    return connected
-        ? AppImagePaths.lanternConnected
+    if (isConnected) return AppImagePaths.lanternConnected;
+    return alert
+        ? AppImagePaths.lanternAlert
         : AppImagePaths.lanternDisconnected;
   }
 
@@ -356,6 +588,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   @override
   Future<void> onTrayIconMouseDown() async {
     if (Platform.isMacOS) {
+      await _refreshVpnConflict();
       await trayManager.popUpContextMenu();
     } else {
       ref.read(windowProvider.notifier).open();
@@ -364,6 +597,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
 
   @override
   Future<void> onTrayIconRightMouseDown() async {
+    await _refreshVpnConflict();
     await trayManager.popUpContextMenu();
   }
 }
