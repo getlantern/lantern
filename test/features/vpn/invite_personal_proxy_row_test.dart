@@ -165,7 +165,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(
-      find.byKey(const Key('server_selection.personal_proxies')),
+      find.byKey(const Key('server_selection.personal_proxy.p1')),
       findsOneWidget,
     );
     expect(groupRow, findsNothing);
