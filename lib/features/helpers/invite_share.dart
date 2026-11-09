@@ -94,8 +94,9 @@ class InviteShare extends HookConsumerWidget {
     // The user typed in the name field, so a name loaded later is not put
     // over theirs.
     final nameTyped = useRef(false);
-    // An invite found expired when its link was about to go out.
-    final expiredSeen = useState(false);
+    // Rebuilds when an invite was found expired as its link was about to go
+    // out, so the gone state shows. Expiry itself is read from the clock.
+    final expiryChecks = useState(0);
     final copied = useState(false);
     final sawClaimed = useRef(false);
     // The approval this screen reopened, which completes only after its
@@ -161,7 +162,7 @@ class InviteShare extends HookConsumerWidget {
         if (inflight.value == f) inflight.value = null;
       }
       if (inv == null || !inv.expired) return inv;
-      if (context.mounted) expiredSeen.value = true;
+      if (context.mounted) expiryChecks.value++;
       return null;
     }
 
@@ -196,8 +197,7 @@ class InviteShare extends HookConsumerWidget {
       return timer.cancel;
     }, [decided]);
 
-    if (id.value != null &&
-        (invite == null || invite.expired || expiredSeen.value)) {
+    if (id.value != null && (invite == null || invite.expired)) {
       return BaseScreen(
         title: 'invite_personal_proxy'.i18n,
         body: Center(
