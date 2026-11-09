@@ -76,6 +76,10 @@ class InviteShare extends HookConsumerWidget {
   @visibleForTesting
   static Duration copiedFor = const Duration(seconds: 1);
 
+  /// How often an open invite's expiry is checked against the clock.
+  @visibleForTesting
+  static Duration expiryCheckEvery = const Duration(seconds: 5);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(helpersProvider.select((s) => s.view));
@@ -198,21 +202,24 @@ class InviteShare extends HookConsumerWidget {
     }, [decided]);
 
     // Show the gone state when the open invite runs out, not at the next
-    // refresh.
+    // refresh. Expiry is read from the wall clock, which can move either
+    // way, so check it every few seconds and rebuild when it flips.
     final expiresUnix = invite == null || invite.claimed
         ? 0
         : invite.expiresUnix;
     useEffect(() {
       if (expiresUnix <= 0) return null;
-      final left = expiresUnix - DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      if (left < 0) return null;
-      final timer = Timer(Duration(seconds: left + 1), () {
-        if (context.mounted) expiryChecks.value++;
+      bool expiredNow() =>
+          expiresUnix <= DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      var wasExpired = expiredNow();
+      final timer = Timer.periodic(expiryCheckEvery, (_) {
+        final expired = expiredNow();
+        if (expired == wasExpired || !context.mounted) return;
+        wasExpired = expired;
+        expiryChecks.value++;
       });
       return timer.cancel;
-      // A callback that came early, as after the clock moved back, arms
-      // the next check.
-    }, [expiresUnix, expiryChecks.value]);
+    }, [expiresUnix]);
 
     if (id.value != null && (invite == null || invite.expired)) {
       return BaseScreen(

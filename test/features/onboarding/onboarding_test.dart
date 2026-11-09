@@ -267,6 +267,10 @@ void main() {
     final row = find.byKey(const Key('onboarding.action_mode_row'));
     expect(row, findsOneWidget);
     expect(
+      find.descendant(of: row, matching: find.text('unbounded'.i18n)),
+      findsOneWidget,
+    );
+    expect(
       find.descendant(
         of: row,
         matching: find.text('onboarding_action_mode_row_description'.i18n),

@@ -1131,7 +1131,59 @@ void main() {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 2100)),
     );
-    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(InviteShare.expiryCheckEvery);
+    expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+  });
+
+  testWidgets('an open invite that the clock moved back over shows again '
+      'without a refresh', (tester) async {
+    final fake = _Helpers(
+      HelpersState(
+        viewLoaded: true,
+        view: HelpersView(
+          unlocked: true,
+          invites: [
+            HelperInviteView(
+              id: 'i1',
+              state: 'pending',
+              link: 'https://lantern.io/help/#AAAA',
+              expiresUnix: _now() + 1,
+              inviterName: 'Sara',
+            ),
+          ],
+        ),
+      ),
+    );
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 2100)),
+    );
+    await tester.pump(InviteShare.expiryCheckEvery);
+    expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+    // The same invite, valid again, as after the clock was corrected.
+    fake.emit(
+      HelpersState(
+        viewLoaded: true,
+        view: HelpersView(
+          unlocked: true,
+          invites: [
+            HelperInviteView(
+              id: 'i1',
+              state: 'pending',
+              link: 'https://lantern.io/help/#AAAA',
+              expiresUnix: _now() + 2,
+              inviterName: 'Sara',
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('invite.gone')), findsNothing);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 3100)),
+    );
+    await tester.pump(InviteShare.expiryCheckEvery);
     expect(find.byKey(const Key('invite.gone')), findsOneWidget);
   });
 
@@ -1605,7 +1657,7 @@ void main() {
       await tester.tap(find.byKey(const Key('invite.copy')));
       await tester.pump();
       expect(platform.copied, [link]);
-      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(InviteShare.expiryCheckEvery);
     });
 
     testWidgets('Settings no longer offers "Get help from a friend"', (
