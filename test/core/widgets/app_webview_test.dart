@@ -76,6 +76,29 @@ void main() {
       );
     });
 
+    test('tolerates gateway params appended to the Shepherd return URL', () {
+      expect(
+        webViewPurchaseResult(
+          Uri.parse(
+            'https://lantern.io/?purchaseResult=true&payOrderId=P123&mchOrderNo=M456',
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        webViewPurchaseResult(
+          Uri.parse('https://lantern.io/?purchaseResult=true?payOrderId=P123'),
+        ),
+        isTrue,
+      );
+      expect(
+        webViewPurchaseResult(
+          Uri.parse('https://lantern.io/#/?purchaseResult=false?payOrderId=P1'),
+        ),
+        isFalse,
+      );
+    });
+
     test('ignores malformed purchase results', () {
       for (final value in ['', 'success', '1']) {
         expect(

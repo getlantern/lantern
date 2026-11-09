@@ -29,6 +29,7 @@ class UrlUtils {
     'alipays',
     'intent',
     'market',
+    'weixin',
   };
 
   static String normalizeWebviewUrl(String url) => url.trim();
