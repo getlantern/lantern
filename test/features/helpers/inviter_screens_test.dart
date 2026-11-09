@@ -1205,6 +1205,22 @@ void main() {
     expect(find.byKey(const Key('invite.gone')), findsOneWidget);
   });
 
+  testWidgets('a claimed invite offers Compare codes in place of Share, which '
+      'reopens the approval dialog', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 2000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final fake = _Helpers(_withInvites(const [_claimed]));
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    expect(find.byKey(const Key('invite.share')), findsNothing);
+    expect(find.byKey(const Key('invite.waiting')), findsNothing);
+    await tester.tap(find.byKey(const Key('invite.compare')));
+    await tester.pumpAndSettle();
+    expect(_approveYes, findsOneWidget);
+    expect(find.text('2562'), findsOneWidget);
+  });
+
   group('with sl', () {
     setUp(() async => sl.reset());
     tearDown(() async {
@@ -1769,7 +1785,7 @@ void main() {
       ),
     );
     await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
-    expect(find.byKey(const Key('invite.compare')), findsNothing);
+    expect(find.byKey(const Key('invite.share')), findsNothing);
     expect(find.text('invite_claimed_title'.i18n), findsNothing);
     expect(find.byKey(const Key('invite.waiting')), findsNothing);
     expect(find.text('https://lantern.io/help/#AAAA'), findsNothing);

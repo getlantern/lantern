@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
@@ -327,16 +328,26 @@ class InviteShare extends HookConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                KeyedSubtree(
-                  key: const Key('invite.share'),
-                  child: Builder(
-                    builder: (buttonContext) => PrimaryButton(
-                      label: 'invite_share_button'.i18n,
-                      icon: AppImagePaths.share,
-                      onPressed: () => share(buttonContext),
+                // A claimed invite has no link left to share. If the
+                // approval dialog was dismissed undecided, this reopens it.
+                if (invite != null && invite.claimed)
+                  PrimaryButton(
+                    key: const Key('invite.compare'),
+                    label: 'invite_compare_codes'.i18n,
+                    onPressed: () =>
+                        showApproveHelperDialog(context, ref, invite),
+                  )
+                else
+                  KeyedSubtree(
+                    key: const Key('invite.share'),
+                    child: Builder(
+                      builder: (buttonContext) => PrimaryButton(
+                        label: 'invite_share_button'.i18n,
+                        icon: AppImagePaths.share,
+                        onPressed: () => share(buttonContext),
+                      ),
                     ),
                   ),
-                ),
                 if (pending) ...[
                   const SizedBox(height: 12),
                   Row(
