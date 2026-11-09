@@ -1465,7 +1465,7 @@ void main() {
   });
 
   testWidgets('the friends sheet says who else is helped under the friends '
-      'card, and Change opens Who you\'re helping', (tester) async {
+      'card', (tester) async {
     final helpers = _Helpers(_helping());
     await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
     final line = find.byKey(const Key('helping.scope'));
@@ -1493,11 +1493,55 @@ void main() {
       tester.widget<Text>(line).data,
       '${'helping_scope_line_friends'.i18n} · ',
     );
+  });
+
+  testWidgets('Change swaps the friends sheet for Who you\'re helping, '
+      'not a second sheet on top', (tester) async {
+    final helpers = _Helpers(_helping());
+    await _pump(
+      tester,
+      helpers,
+      Builder(
+        builder: (context) => TextButton(
+          onPressed: () => showHelpingFriendsSheet(context),
+          child: const Text('open'),
+        ),
+      ),
+      sharing: true,
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byType(HelpingFriendsSheet), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('helping.scope.change')));
     await tester.pumpAndSettle();
-    expect(find.text('helping_scope_title'.i18n), findsOneWidget);
-    expect(find.byKey(const Key('helping.scope.friends')), findsOneWidget);
+    expect(find.byType(HelpingFriendsSheet), findsNothing);
+    expect(find.byType(WhoYoureHelpingSheet), findsOneWidget);
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('helping.scope.friends')),
+        matching: find.text('Only my Personal Proxy connections'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Settings\' Who you\'re helping row says whom and opens the '
+      'sheet', (tester) async {
+    final helpers = _Helpers(_helping().copyWith(helpOthers: false));
+    await _pump(tester, helpers, const WhoYoureHelpingTile());
+    final row = find.byKey(const Key('helping.scope.row'));
+    expect(
+      find.descendant(
+        of: row,
+        matching: find.text('helping_scope_only_friends'.i18n),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(find.byType(WhoYoureHelpingSheet), findsOneWidget);
   });
 
   testWidgets('Who you\'re helping: a choice reversed while the first is '
