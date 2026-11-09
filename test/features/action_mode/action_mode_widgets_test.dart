@@ -239,6 +239,33 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     });
 
+    for (final requested in [true, false]) {
+      testWidgets('"Helping right now" shows a choice still being saved '
+          '(requested $requested over saved ${!requested})', (tester) async {
+        await mount(
+          tester,
+          const ActionModeTab(),
+          animated: true,
+          helpers: HelpersState(
+            helpOthers: !requested,
+            requestedHelpOthers: requested,
+          ),
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('action-mode.helping-now')),
+            matching: find.text(
+              requested
+                  ? 'All countries'
+                  : 'Only my Personal Proxy connections',
+            ),
+          ),
+          findsOneWidget,
+        );
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+
     for (final helpOthers in [true, false]) {
       testWidgets('"Helping right now" says whom (helpOthers $helpOthers) and '
           'opens Who you\'re helping', (tester) async {

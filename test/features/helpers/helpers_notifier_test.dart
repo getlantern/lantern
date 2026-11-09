@@ -17,6 +17,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class _Service implements LanternService {
   final calls = <String>[];
+  final helperArgs = <Map<String, dynamic>>[];
   final patches = <Map<String, dynamic>>[];
   int configRequests = 0;
   Map<String, String> answers = {};
@@ -45,6 +46,7 @@ class _Service implements LanternService {
     Map<String, dynamic> args,
   ) async {
     calls.add(op);
+    helperArgs.add(Map.of(args));
     final q = queued[op];
     final answer = q != null && q.isNotEmpty ? q.removeAt(0) : answers[op];
     final gate = gates.remove(op);
@@ -462,6 +464,7 @@ void main() {
         .renameInvite('i1', 'Sara K');
     expect(r.ok, isTrue);
     expect(svc.calls, ['rename_invite']);
+    expect(svc.helperArgs.single, {'invite_id': 'i1', 'name': 'Sara K'});
     expect(c.read(helpersProvider).view.invites.single.inviterName, 'Sara K');
   });
 

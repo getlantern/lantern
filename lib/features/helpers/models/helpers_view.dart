@@ -80,10 +80,11 @@ class HelperInviteView {
 
   /// An unclaimed invite past its expiry. Its link no longer works, so it is
   /// not shown. A claimed invite stays, so the inviter can still decide it.
-  bool get expired =>
-      !claimed &&
-      expiresUnix > 0 &&
-      expiresUnix <= DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  bool get expired => !claimed && expiresUnix > 0 && expiresUnix <= nowUnix();
+
+  /// The wall clock in Unix seconds, which expiry is read against. Tests
+  /// replace it to move the clock.
+  static int Function() nowUnix = _wallClockUnix;
 
   factory HelperInviteView.fromJson(Map<String, dynamic> j) => HelperInviteView(
     id: _str(j['id']),
@@ -266,3 +267,5 @@ List<T> _list<T>(Object? v, T Function(Map<String, dynamic>) parse) {
   }
   return out;
 }
+
+int _wallClockUnix() => DateTime.now().millisecondsSinceEpoch ~/ 1000;

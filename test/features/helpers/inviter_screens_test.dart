@@ -1106,85 +1106,63 @@ void main() {
     expect(find.byKey(const Key('invite.gone')), findsOneWidget);
   });
 
-  testWidgets('an invite that runs out while the screen is open shows as gone '
-      'without a refresh', (tester) async {
-    final fake = _Helpers(
-      HelpersState(
-        viewLoaded: true,
-        view: HelpersView(
-          unlocked: true,
-          invites: [
-            HelperInviteView(
-              id: 'i1',
-              state: 'pending',
-              link: 'https://lantern.io/help/#AAAA',
-              expiresUnix: _now() + 1,
-              inviterName: 'Sara',
-            ),
-          ],
-        ),
-      ),
+  group('with a controlled clock', () {
+    var now = 1000000;
+    setUp(() {
+      now = 1000000;
+      HelperInviteView.nowUnix = () => now;
+    });
+    tearDown(
+      () =>
+          HelperInviteView.nowUnix = () =>
+              DateTime.now().millisecondsSinceEpoch ~/ 1000,
     );
-    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
-    expect(find.byKey(const Key('invite.gone')), findsNothing);
-    // expired reads the wall clock, the timer the test clock: move both.
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 2100)),
-    );
-    await tester.pump(InviteShare.expiryCheckEvery);
-    expect(find.byKey(const Key('invite.gone')), findsOneWidget);
-  });
 
-  testWidgets('an open invite that the clock moved back over shows again '
-      'without a refresh', (tester) async {
-    final fake = _Helpers(
-      HelpersState(
-        viewLoaded: true,
-        view: HelpersView(
-          unlocked: true,
-          invites: [
-            HelperInviteView(
-              id: 'i1',
-              state: 'pending',
-              link: 'https://lantern.io/help/#AAAA',
-              expiresUnix: _now() + 1,
-              inviterName: 'Sara',
-            ),
-          ],
-        ),
+    HelpersState expiringAt(int expiresUnix) => HelpersState(
+      viewLoaded: true,
+      view: HelpersView(
+        unlocked: true,
+        invites: [
+          HelperInviteView(
+            id: 'i1',
+            state: 'pending',
+            link: 'https://lantern.io/help/#AAAA',
+            expiresUnix: expiresUnix,
+            inviterName: 'Sara',
+          ),
+        ],
       ),
     );
-    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 2100)),
-    );
-    await tester.pump(InviteShare.expiryCheckEvery);
-    expect(find.byKey(const Key('invite.gone')), findsOneWidget);
-    // The same invite, valid again, as after the clock was corrected.
-    fake.emit(
-      HelpersState(
-        viewLoaded: true,
-        view: HelpersView(
-          unlocked: true,
-          invites: [
-            HelperInviteView(
-              id: 'i1',
-              state: 'pending',
-              link: 'https://lantern.io/help/#AAAA',
-              expiresUnix: _now() + 2,
-              inviterName: 'Sara',
-            ),
-          ],
-        ),
-      ),
-    );
-    await tester.pump();
-    expect(find.byKey(const Key('invite.gone')), findsNothing);
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 3100)),
-    );
-    await tester.pump(InviteShare.expiryCheckEvery);
-    expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+
+    testWidgets('an invite that runs out while the screen is open shows as '
+        'gone within one check, without a refresh', (tester) async {
+      final fake = _Helpers(expiringAt(now + 10));
+      await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+      expect(find.byKey(const Key('invite.gone')), findsNothing);
+      now += 10;
+      await tester.pump(InviteShare.expiryCheckEvery);
+      expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+    });
+
+    testWidgets('the clock moving back over an open invite shows it again, '
+        'and moving forward again shows it gone, with the same invite', (
+      tester,
+    ) async {
+      final fake = _Helpers(expiringAt(now + 10));
+      await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+      now += 20;
+      await tester.pump(InviteShare.expiryCheckEvery);
+      expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+
+      now -= 20;
+      await tester.pump(InviteShare.expiryCheckEvery);
+      expect(find.byKey(const Key('invite.gone')), findsNothing);
+      expect(find.byKey(const Key('invite.show_qr')), findsOneWidget);
+
+      now += 20;
+      await tester.pump(InviteShare.expiryCheckEvery);
+      expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+    });
   });
 
   testWidgets('an invite seen expired shows again once the view has it valid, '
