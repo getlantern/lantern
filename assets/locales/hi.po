@@ -2084,10 +2084,10 @@ msgid "invite_link_copied"
 msgstr "लिंक कॉपी हो गया"
 
 msgid "invite_qr_hint"
-msgstr "आपका दोस्त इसे Lantern से स्कैन कर सकता है।"
+msgstr "अगर वे आपके साथ हैं, तो लिंक के बजाय वे इसे Lantern में स्कैन कर सकते हैं।"
 
 msgid "invite_waiting"
-msgstr "आपके दोस्त के लिंक खोलने का इंतज़ार है"
+msgstr "उनके लिंक खोलने का इंतज़ार है"
 
 msgid "invite_trust_warning"
 msgstr "आप जिसे आमंत्रित करेंगे, उसे पता चलेगा कि आप Lantern इस्तेमाल करते हैं और वह देख सकेगा कि आप कब उसके ज़रिए कनेक्ट हैं। आपका ट्रैफ़िक उसके इंटरनेट कनेक्शन से होकर जाता है, इसलिए वह जान सकता है कि आप कौन-सी साइटें देखते हैं, लेकिन सुरक्षित (https) साइटों पर आप क्या करते हैं, यह नहीं। केवल किसी भरोसेमंद व्यक्ति को ही आमंत्रित करें।"
@@ -2183,7 +2183,7 @@ msgid "invite_link_label"
 msgstr "आपका आमंत्रण लिंक"
 
 msgid "invite_link_expiry"
-msgstr "यह एक बार काम करता है और 48 घंटे में समाप्त हो जाता है।"
+msgstr "एक बार काम करता है और 48 घंटे में समाप्त हो जाता है"
 
 msgid "approve_title"
 msgstr "%s आपका पर्सनल प्रॉक्सी बनना चाहते हैं"
@@ -2315,7 +2315,7 @@ msgid "onboarding_personal_proxies"
 msgstr "पर्सनल प्रॉक्सी"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "Lantern ब्लॉक होने पर अपने देश के बाहर किसी भरोसेमंद व्यक्ति से अपना प्रॉक्सी बनने के लिए कहें।"
+msgstr "अपने देश के बाहर किसी भरोसेमंद व्यक्ति के ज़रिए सीधे कनेक्ट करें।"
 
 msgid "onboarding_new_badge"
 msgstr "नया"
@@ -2333,7 +2333,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "किसी परिचित की मदद करें"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "अगर सेंसरशिप वाले देश का कोई दोस्त आपको आमंत्रण भेजता है, तो आप उसके Personal Proxy बन सकते हैं।"
+msgstr "किसी दोस्त का Personal Proxy बनकर उसकी मदद करें, ताकि वह सीधे आपके ज़रिए कनेक्ट कर सके।"
 
 msgid "onboarding_action_mode_privacy"
 msgstr "आपकी गोपनीयता सुरक्षित है"
@@ -2393,7 +2393,19 @@ msgid "helping_scope_subtitle"
 msgstr "केवल अपने दोस्तों के साथ, या सभी देशों के लोगों के साथ साझा करें।"
 
 msgid "helping_scope_only_friends"
-msgstr "केवल मेरे दोस्त"
+msgstr "केवल मेरे पर्सनल प्रॉक्सी कनेक्शन"
 
 msgid "helping_scope_all_countries"
 msgstr "सभी देश"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "दूसरों को खुले इंटरनेट तक पहुंचने में मदद के लिए अपना कनेक्शन सुरक्षित रूप से साझा करें।"
+
+msgid "invite_show_qr"
+msgstr "QR कोड दिखाएं"
+
+msgid "invite_link_hint"
+msgstr "अपना लिंक पाने के लिए अपना नाम दर्ज करें"
+
+msgid "invite_qr_title"
+msgstr "कैमरे से स्कैन करें"

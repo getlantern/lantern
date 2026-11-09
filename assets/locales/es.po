@@ -2100,10 +2100,10 @@ msgid "invite_link_copied"
 msgstr "Enlace copiado"
 
 msgid "invite_qr_hint"
-msgstr "Tu amigo puede escanear esto con Lantern."
+msgstr "Si está contigo, puede escanear esto en Lantern en lugar de usar el enlace."
 
 msgid "invite_waiting"
-msgstr "Esperando a que tu amigo abra el enlace"
+msgstr "Esperando a que abra el enlace"
 
 msgid "invite_trust_warning"
 msgstr "La persona que invites sabrá que usas Lantern y podrá ver cuándo te conectas a través de ella. Tu tráfico pasa por su conexión a internet, así que podría saber qué sitios visitas, aunque no lo que haces en sitios seguros (https). Invita solo a alguien de confianza."
@@ -2199,7 +2199,7 @@ msgid "invite_link_label"
 msgstr "Tu enlace de invitación"
 
 msgid "invite_link_expiry"
-msgstr "Funciona una sola vez y vence en 48 horas."
+msgstr "Funciona una vez y vence en 48 horas"
 
 msgid "approve_title"
 msgstr "%s quiere ser tu proxy personal"
@@ -2331,7 +2331,7 @@ msgid "onboarding_personal_proxies"
 msgstr "Proxies personales"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "Pide a alguien de confianza fuera de tu país que sea tu proxy cuando Lantern esté bloqueado."
+msgstr "Conéctate directamente a través de alguien de confianza fuera de tu país."
 
 msgid "onboarding_new_badge"
 msgstr "Nuevo"
@@ -2349,7 +2349,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "Ayuda a alguien que conoces"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "Si un amigo en un país con censura te envía una invitación, puedes ser su Personal Proxy."
+msgstr "Ayuda a un amigo convirtiéndote en su Proxy Personal para que se conecte directamente a través de ti."
 
 msgid "onboarding_action_mode_privacy"
 msgstr "Tu privacidad está protegida"
@@ -2409,7 +2409,19 @@ msgid "helping_scope_subtitle"
 msgstr "Comparte solo con tus amigos o con personas de todos los países."
 
 msgid "helping_scope_only_friends"
-msgstr "Solo mis amigos"
+msgstr "Solo mis conexiones de proxy personal"
 
 msgid "helping_scope_all_countries"
 msgstr "Todos los países"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Elige compartir tu conexión de forma segura para ayudar a otros a acceder a internet libre."
+
+msgid "invite_show_qr"
+msgstr "Mostrar código QR"
+
+msgid "invite_link_hint"
+msgstr "Ingresa tu nombre para obtener tu enlace"
+
+msgid "invite_qr_title"
+msgstr "Escanear con la cámara"

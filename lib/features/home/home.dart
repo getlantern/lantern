@@ -338,10 +338,16 @@ class Home extends HookConsumerWidget {
           onPressed: () {
             appRouter.push(Setting());
           },
-          icon: const AppImage(path: AppImagePaths.menu),
+          // The Action Mode tab's header shows the account icon there.
+          icon: AppImage(
+            path: showUnboundedTab && onUnboundedTab.value
+                ? AppImagePaths.accountCircle
+                : AppImagePaths.menu,
+          ),
         ),
         actions: [
-          if (isUserPro)
+          // Not twice on the Action Mode tab, whose menu button has it.
+          if (isUserPro && !(showUnboundedTab && onUnboundedTab.value))
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {
@@ -354,7 +360,9 @@ class Home extends HookConsumerWidget {
                 );
               },
             )
-          else if (!userLoggedIn)
+          // Not for Pro on the Action Mode tab either: a Pro user signs in
+          // through account setup, from the VPN tab's account icon.
+          else if (!userLoggedIn && !isUserPro)
             AppTextButton(
               label: 'sign_in'.i18n,
               onPressed: () => appRouter.push(const SignInEmail()),

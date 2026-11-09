@@ -2086,10 +2086,10 @@ msgid "invite_link_copied"
 msgstr "Bağlantı kopyalandı"
 
 msgid "invite_qr_hint"
-msgstr "Arkadaşınız bunu Lantern ile tarayabilir."
+msgstr "Yanınızdaysa bağlantı yerine bunu Lantern'de tarayabilir."
 
 msgid "invite_waiting"
-msgstr "Arkadaşınızın bağlantıyı açması bekleniyor"
+msgstr "Bağlantının açılması bekleniyor"
 
 msgid "invite_trust_warning"
 msgstr "Davet ettiğiniz kişi Lantern kullandığınızı bilecek ve onun üzerinden ne zaman bağlı olduğunuzu görebilecek. Trafiğiniz onun internet bağlantısından geçer, bu yüzden hangi siteleri ziyaret ettiğinizi öğrenebilir, ancak güvenli (https) sitelerde ne yaptığınızı öğrenemez. Yalnızca güvendiğiniz birini davet edin."
@@ -2185,7 +2185,7 @@ msgid "invite_link_label"
 msgstr "Davet bağlantınız"
 
 msgid "invite_link_expiry"
-msgstr "Yalnızca bir kez çalışır ve 48 saat içinde sona erer."
+msgstr "Bir kez kullanılabilir ve 48 saat içinde sona erer"
 
 msgid "approve_title"
 msgstr "%s Kişisel Proxy'niz olmak istiyor"
@@ -2317,7 +2317,7 @@ msgid "onboarding_personal_proxies"
 msgstr "Kişisel Proxy'ler"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "Lantern engellendiğinde, ülkeniz dışında güvendiğiniz birinden proxy'niz olmasını isteyin."
+msgstr "Ülkeniz dışında güvendiğiniz biri üzerinden doğrudan bağlanın."
 
 msgid "onboarding_new_badge"
 msgstr "Yeni"
@@ -2335,7 +2335,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "Tanıdığınız birine yardım edin"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "Sansürlü bir ülkedeki bir arkadaşınız size davet gönderirse, onun Personal Proxy'si olabilirsiniz."
+msgstr "Bir arkadaşınızın Kişisel Proxy'si olarak ona yardım edin, böylece doğrudan sizin üzerinizden bağlanabilir."
 
 msgid "onboarding_action_mode_privacy"
 msgstr "Gizliliğiniz korunur"
@@ -2395,7 +2395,19 @@ msgid "helping_scope_subtitle"
 msgstr "Yalnızca arkadaşlarınızla veya tüm ülkelerdeki insanlarla paylaşın."
 
 msgid "helping_scope_only_friends"
-msgstr "Yalnızca arkadaşlarım"
+msgstr "Yalnızca Kişisel Proxy bağlantılarım"
 
 msgid "helping_scope_all_countries"
 msgstr "Tüm ülkeler"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Başkalarının açık internete erişmesine yardımcı olmak için bağlantınızı güvenle paylaşmayı seçin."
+
+msgid "invite_show_qr"
+msgstr "QR Kodunu Göster"
+
+msgid "invite_link_hint"
+msgstr "Bağlantınızı almak için adınızı girin"
+
+msgid "invite_qr_title"
+msgstr "Kamerayla Tara"

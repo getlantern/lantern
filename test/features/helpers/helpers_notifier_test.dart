@@ -17,6 +17,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class _Service implements LanternService {
   final calls = <String>[];
+  final helperArgs = <Map<String, dynamic>>[];
   final patches = <Map<String, dynamic>>[];
   int configRequests = 0;
   Map<String, String> answers = {};
@@ -45,6 +46,7 @@ class _Service implements LanternService {
     Map<String, dynamic> args,
   ) async {
     calls.add(op);
+    helperArgs.add(Map.of(args));
     final q = queued[op];
     final answer = q != null && q.isNotEmpty ? q.removeAt(0) : answers[op];
     final gate = gates.remove(op);
@@ -447,6 +449,23 @@ void main() {
       await settle();
       expect(svc.configRequests, 1);
     });
+  });
+
+  test('renameInvite sends rename_invite and applies the view', () async {
+    svc.answers = {
+      'rename_invite': _view(
+        invites:
+            '[{"id":"i1","state":"pending","link":"x","inviter_name":"Sara K"}]',
+      ),
+    };
+    final c = container();
+    final r = await c
+        .read(helpersProvider.notifier)
+        .renameInvite('i1', 'Sara K');
+    expect(r.ok, isTrue);
+    expect(svc.calls, ['rename_invite']);
+    expect(svc.helperArgs.single, {'invite_id': 'i1', 'name': 'Sara K'});
+    expect(c.read(helpersProvider).view.invites.single.inviterName, 'Sara K');
   });
 
   test('renameHelper sends rename_helper and applies the view', () async {

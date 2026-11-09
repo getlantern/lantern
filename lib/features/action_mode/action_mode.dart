@@ -25,6 +25,10 @@ const _minGlobeHeight = 140.0;
 /// The status card and the tab's padding, below the globe.
 const _belowGlobeHeight = 264.0;
 
+/// "All countries" or "Only my Personal Proxy connections" under the
+/// "Helping right now" count.
+const _helpingScopeHeight = 20.0;
+
 /// "Become a Personal Proxy" or "Your Personal Proxy connections", with the
 /// gap above it.
 const _personalProxyCardHeight = 96.0;
@@ -62,6 +66,11 @@ class ActionModeTab extends HookConsumerWidget {
         AppBuildInfo.enableHelperInvites &&
         !helpsSomeone &&
         (waiting || helperAutoStartAllowed(ref.watch(countryCodeProvider)));
+    // "Helping right now" opens Who you're helping, and says whom.
+    final scopeShown = HelpersNotifier.buildEnabled;
+    final helpOthers = ref.watch(
+      helpersProvider.select((s) => s.chosenHelpOthers),
+    );
 
     useEffect(() {
       // refreshIfUsed, never refresh: showing the tab must not touch the
@@ -70,6 +79,13 @@ class ActionModeTab extends HookConsumerWidget {
         final helpers = ref.read(helpersProvider.notifier);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           unawaited(helpers.refreshIfUsed());
+        });
+      }
+      // A settings read, not the keystore.
+      if (visible && scopeShown) {
+        final helpers = ref.read(helpersProvider.notifier);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          unawaited(helpers.loadHelpOthers());
         });
       }
       return null;
@@ -103,6 +119,7 @@ class ActionModeTab extends HookConsumerWidget {
                           _minGlobeHeight,
                           constraints.maxHeight -
                               _belowGlobeHeight -
+                              (scopeShown ? _helpingScopeHeight : 0) -
                               (connectionsCard || becomeRow
                                   ? _personalProxyCardHeight
                                   : 0),
@@ -125,6 +142,12 @@ class ActionModeTab extends HookConsumerWidget {
                       onToggle: () =>
                           ref.read(shareProvider.notifier).toggle(context, ref),
                       onInfo: () => showActionModeWelcomeDialog(context, ref),
+                      helpingScope: scopeShown
+                          ? helpingScopeLabel(helpOthers)
+                          : null,
+                      onHelpingTap: scopeShown
+                          ? () => showWhoYoureHelpingSheet(context)
+                          : null,
                     ),
                     // A volunteer who never opens the friends sheet must
                     // still learn that the keystore lost the old names.
@@ -174,11 +197,15 @@ class _StatusCard extends StatelessWidget {
   final ShareState state;
   final VoidCallback onToggle;
   final VoidCallback onInfo;
+  final String? helpingScope;
+  final VoidCallback? onHelpingTap;
 
   const _StatusCard({
     required this.state,
     required this.onToggle,
     required this.onInfo,
+    this.helpingScope,
+    this.onHelpingTap,
   });
 
   @override
@@ -223,6 +250,8 @@ class _StatusCard extends StatelessWidget {
       onToggle: onToggle,
       onInfo: onInfo,
       onTotalTap: () => showAdvancedStatsSheet(context),
+      helpingScope: helpingScope,
+      onHelpingTap: onHelpingTap,
     );
   }
 }

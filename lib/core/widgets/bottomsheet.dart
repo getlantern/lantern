@@ -11,10 +11,13 @@ void showAppBottomSheet(
     required BottomSheetBuilder builder,
     required String title,
     Widget? subtitle,
-    double scrollControlDisabledMaxHeightRatio = .75}) {
-  // backgroundColor and shape come from bottomSheetTheme in app_theme.dart
+    double scrollControlDisabledMaxHeightRatio = .75,
+    Color? backgroundColor}) {
+  // backgroundColor (unless given) and shape come from bottomSheetTheme in
+  // app_theme.dart
   showModalBottomSheet(
     context: context,
+    backgroundColor: backgroundColor,
     isDismissible: true,
     enableDrag: true,
     showDragHandle: true,

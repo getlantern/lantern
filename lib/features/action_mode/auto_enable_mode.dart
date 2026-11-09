@@ -5,11 +5,14 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 
 class ActionModeAutoEnable extends ConsumerWidget {
-  const ActionModeAutoEnable({super.key, this.card = true});
+  const ActionModeAutoEnable({super.key, this.card = true, this.below});
 
   /// Whether the row sits in its own card, as in Settings. The Welcome to
   /// Action Mode dialog shows it bare.
   final bool card;
+
+  /// A row sharing the card, under a divider.
+  final Widget? below;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,6 +52,12 @@ class ActionModeAutoEnable extends ConsumerWidget {
             ).textTheme.bodyMedium?.copyWith(color: context.textPrimary),
     );
     if (!card) return tile;
-    return AppCard(padding: EdgeInsets.zero, child: tile);
+    final next = below;
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: next == null
+          ? tile
+          : Column(children: [tile, const DividerSpace(), next]),
+    );
   }
 }
