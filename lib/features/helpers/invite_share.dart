@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/widgets/info_row.dart';
-import 'package:lantern/features/helpers/approve_helper_dialog.dart';
+import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
@@ -53,22 +56,128 @@ Future<void> shareInvite(BuildContext anchor, String message) async {
   await SharePlus.instance.share(params);
 }
 
-/// One invite: share it as a link or a QR code, then compare codes once a
-/// friend opens it. It reads the invite from the engine's view by ID, so the
-/// link never travels in route arguments.
+/// "Invite a Personal Proxy": the name the friend knows the user by, then
+/// the link to share, with a QR code a tap away for sharing in person. The
+/// invite is made with the name, at once when the name is known already,
+/// else at the first Share, copy or QR code; a name changed later is saved
+/// to the invite before the link next goes out. It reads the invite from the
+/// engine's view by ID, so the link never travels in route arguments. Once a
+/// friend opens the link, the app-wide prompt asks to approve them, and this
+/// screen closes once that is decided.
 @RoutePage(name: 'InviteShare')
-class InviteShare extends ConsumerWidget {
-  const InviteShare({super.key, required this.inviteId});
+class InviteShare extends HookConsumerWidget {
+  const InviteShare({super.key, this.inviteId});
 
-  final String inviteId;
+  /// The invite to show, or null to make one here.
+  final String? inviteId;
+
+  /// How long the copy icon shows its check.
+  @visibleForTesting
+  static Duration copiedFor = const Duration(seconds: 1);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(helpersProvider.select((s) => s.view));
-    final invite = view.invites.where((i) => i.id == inviteId).firstOrNull;
+    final notifier = ref.read(helpersProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
+    final id = useState(inviteId);
+    final invite = view.invites.where((i) => i.id == id.value).firstOrNull;
+    final nameCtl = useTextEditingController(
+      text: invite != null && invite.inviterName.isNotEmpty
+          ? invite.inviterName
+          : view.myName,
+    );
+    final link = invite != null && !invite.expired ? invite.link : '';
+    final linkCtl = useTextEditingController(text: link);
+    final nameError = useState(false);
+    final copied = useState(false);
+    final sawClaimed = useRef(false);
+    if (invite?.claimed ?? false) sawClaimed.value = true;
+    useEffect(() {
+      linkCtl.text = link;
+      return null;
+    }, [link]);
+    // One make or rename at a time; another waits for it, then checks again.
+    final inflight = useRef<Future<HelperInviteView?>?>(null);
 
-    if (invite == null || invite.expired) {
+    HelperInviteView? current() => ref
+        .read(helpersProvider)
+        .view
+        .invites
+        .where((i) => i.id == id.value)
+        .firstOrNull;
+
+    Future<HelperInviteView?> makeOrRename(String name) async {
+      final inv = current();
+      final HelperResult r;
+      if (id.value == null) {
+        r = await notifier.createInvite(name);
+        final made = r.data['invite_id'];
+        if (r.ok && made is String && context.mounted) id.value = made;
+      } else if (inv != null && inv.inviterName != name) {
+        r = await notifier.renameInvite(inv.id, name);
+      } else {
+        return inv;
+      }
+      if (!context.mounted) return null;
+      if (!r.ok || id.value == null) {
+        if (r.error == 'bad_name') {
+          nameError.value = true;
+        } else {
+          context.showSnackBarError(helperErrorText(r.error ?? 'unavailable'));
+        }
+        return null;
+      }
+      return current();
+    }
+
+    /// The invite with the name typed, made or renamed as needed; null, with
+    /// the reason shown, when there is none.
+    Future<HelperInviteView?> ready() async {
+      while (inflight.value != null) {
+        await inflight.value;
+        if (!context.mounted) return null;
+      }
+      final name = nameCtl.text.trim();
+      if (name.isEmpty) {
+        nameError.value = true;
+        return null;
+      }
+      final f = makeOrRename(name);
+      inflight.value = f;
+      try {
+        return await f;
+      } finally {
+        if (inflight.value == f) inflight.value = null;
+      }
+    }
+
+    // A name known already makes the link at once.
+    useEffect(() {
+      if (id.value == null && nameCtl.text.trim().isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) unawaited(ready());
+        });
+      }
+      return null;
+    }, const []);
+
+    // Decided from the approval prompt: nothing is left to share. Leave
+    // once nothing covers this screen, such as the success dialog.
+    final decided = sawClaimed.value && invite == null;
+    useEffect(() {
+      if (!decided) return null;
+      final timer = Timer.periodic(const Duration(milliseconds: 250), (t) {
+        if (!context.mounted) return t.cancel();
+        if (ModalRoute.of(context)?.isCurrent ?? false) {
+          t.cancel();
+          unawaited(Navigator.of(context).maybePop());
+        }
+      });
+      return timer.cancel;
+    }, [decided]);
+
+    if (id.value != null && (invite == null || invite.expired)) {
       return BaseScreen(
         title: 'invite_personal_proxy'.i18n,
         body: Center(
@@ -76,58 +185,43 @@ class InviteShare extends ConsumerWidget {
         ),
       );
     }
-    if (invite.claimed) {
-      // This screen offers the codes itself: the app-wide prompt need not,
-      // unless another screen covers it.
-      if (ModalRoute.of(context)?.isCurrent ?? true) {
-        ref.read(helpersProvider.notifier).markApprovalPrompted(invite.id);
-      }
-      return BaseScreen(
-        title: 'invite_personal_proxy'.i18n,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: defaultSize),
-            Text('invite_claimed_title'.i18n, style: textTheme.titleLarge),
-            const SizedBox(height: defaultSize),
-            KeyedSubtree(
-              key: const Key('invite.compare'),
-              child: PrimaryButton(
-                label: 'invite_compare_codes'.i18n,
-                onPressed: () async {
-                  final decided = await showApproveHelperDialog(
-                    context,
-                    ref,
-                    invite,
-                  );
-                  // The invite is used now; go back to the helpers list
-                  // rather than staying on "used or expired". Only while
-                  // this screen is on top: a decision that lands after Back
-                  // closed its dialog must not close a newer one.
-                  if (decided &&
-                      context.mounted &&
-                      (ModalRoute.of(context)?.isCurrent ?? false)) {
-                    await Navigator.of(context).maybePop();
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-      );
-    }
 
-    final message = inviteShareMessage(view, invite);
     Future<void> copy() async {
+      final inv = await ready();
+      if (inv == null || inv.link.isEmpty || !context.mounted) return;
       try {
-        await copySensitiveText(invite.link);
-        if (context.mounted) context.showSnackBar('invite_link_copied'.i18n);
+        await copySensitiveText(inv.link);
       } catch (_) {
         if (context.mounted) {
           context.showSnackBarError('helper_error_copy'.i18n);
         }
+        return;
       }
+      if (!context.mounted) return;
+      copied.value = true;
+      await Future<void>.delayed(copiedFor);
+      if (context.mounted) copied.value = false;
     }
+
+    Future<void> share(BuildContext anchor) async {
+      final inv = await ready();
+      if (inv == null || inv.link.isEmpty || !anchor.mounted) return;
+      await shareInvite(
+        anchor,
+        inviteShareMessage(ref.read(helpersProvider).view, inv),
+      );
+    }
+
+    Future<void> showQr() async {
+      final inv = await ready();
+      if (inv == null || inv.link.isEmpty || !context.mounted) return;
+      await showInviteQrDialog(context, inv.link);
+    }
+
+    final helperStyle = textTheme.labelMedium!.copyWith(
+      color: context.textTertiary,
+    );
+    final pending = invite != null && !invite.claimed;
 
     return BaseScreen(
       title: 'invite_personal_proxy'.i18n,
@@ -149,13 +243,36 @@ class InviteShare extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                AppTextField(
+                  fieldKey: const Key('invite.name'),
+                  controller: nameCtl,
+                  label: 'helpers_your_name_label'.i18n,
+                  hintText: 'helpers_your_name_hint'.i18n,
+                  prefixIcon: Icons.person_outline,
+                  maxLength: 60,
+                  textCapitalization: TextCapitalization.words,
+                  onChanged: (_) => nameError.value = false,
+                  onSubmitted: (_) => unawaited(ready()),
+                ),
+                if (nameError.value)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Text(
+                      helperErrorText('bad_name'),
+                      key: const Key('invite.name.error'),
+                      style: textTheme.bodySmall!.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 4),
                 // Read-only: a tap copies it, as does the copy icon. No
                 // selection menu, whose Copy would skip copySensitiveText.
                 AppTextField(
                   fieldKey: const Key('invite.link'),
-                  initialValue: invite.link,
+                  controller: linkCtl,
                   label: 'invite_link_label'.i18n,
-                  hintText: '',
+                  hintText: 'invite_link_hint'.i18n,
                   prefixIcon: Icons.link,
                   enableSuggestions: false,
                   enableIMEPersonalizedLearning: false,
@@ -165,18 +282,48 @@ class InviteShare extends ConsumerWidget {
                   suffixIcon: IconButton(
                     key: const Key('invite.copy'),
                     tooltip: 'invite_copy_link'.i18n,
-                    icon: const AppImage(path: AppImagePaths.copy),
+                    icon: AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 400),
+                      firstCurve: Curves.bounceOut,
+                      crossFadeState: copied.value
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                      firstChild: const AppImage(path: AppImagePaths.copy),
+                      secondChild: Icon(
+                        Icons.check_circle,
+                        key: const Key('invite.copied'),
+                        color: context.statusSuccessBg,
+                      ),
+                    ),
                     onPressed: copy,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
-                  child: Text(
-                    'invite_link_expiry'.i18n,
-                    style: textTheme.labelMedium!.copyWith(
-                      color: context.textTertiary,
-                    ),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        '${'invite_link_expiry'.i18n} · ',
+                        style: helperStyle,
+                      ),
+                      Semantics(
+                        button: true,
+                        child: InkWell(
+                          key: const Key('invite.show_qr'),
+                          onTap: showQr,
+                          child: Text(
+                            'invite_show_qr'.i18n,
+                            style: helperStyle.copyWith(
+                              color: context.textLink,
+                              decoration: TextDecoration.underline,
+                              decorationColor: context.textLink,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -186,15 +333,33 @@ class InviteShare extends ConsumerWidget {
                     builder: (buttonContext) => PrimaryButton(
                       label: 'invite_share_button'.i18n,
                       icon: AppImagePaths.share,
-                      onPressed: () => shareInvite(buttonContext, message),
+                      onPressed: () => share(buttonContext),
                     ),
                   ),
                 ),
+                if (pending) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    key: const Key('invite.waiting'),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.sync, size: 20, color: context.textSecondary),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'invite_waiting'.i18n,
+                          style: textTheme.bodyMedium!.copyWith(
+                            color: context.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
           const SizedBox(height: defaultSize),
-          // Small type, so the QR code below still fits without scrolling.
           InfoRow(
             key: const Key('invite.trust_warning'),
             backgroundColor: context.bgPromo,
@@ -204,34 +369,46 @@ class InviteShare extends ConsumerWidget {
               color: context.textSecondary,
             ),
           ),
-          const SizedBox(height: defaultSize),
-          Center(
-            child: QrImageView(
-              key: const Key('invite.qr'),
-              data: invite.link,
-              version: QrVersions.auto,
-              size: 112,
-              backgroundColor: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Center(
-            child: Text('invite_qr_hint'.i18n, style: textTheme.labelMedium),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 8),
-              Expanded(child: Text('invite_waiting'.i18n)),
-            ],
-          ),
         ],
       ),
     );
   }
 }
+
+/// The invite's QR code, for a friend who is with the user to scan in
+/// Lantern instead of opening the link.
+Future<void> showInviteQrDialog(BuildContext context, String link) =>
+    AppDialog.show(
+      context: context,
+      centered: true,
+      scrollable: true,
+      backgroundColor: context.bgSurface,
+      title: 'invite_qr_title'.i18n,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 8),
+          // A painter, not QrImageView: the dialog measures its content's
+          // intrinsic width, which QrImageView's LayoutBuilder cannot give.
+          Container(
+            key: const Key('invite.qr'),
+            width: 160,
+            height: 160,
+            color: Colors.white,
+            padding: const EdgeInsets.all(10),
+            child: CustomPaint(
+              painter: QrPainter(data: link, version: QrVersions.auto),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'invite_qr_hint'.i18n,
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: context.textSecondary),
+          ),
+        ],
+      ),
+      primaryLabel: 'done'.i18n,
+    );

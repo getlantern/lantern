@@ -35,6 +35,7 @@ import 'package:lantern/features/setting/setting.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
 import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 class _Helpers extends HelpersNotifier {
@@ -115,9 +116,55 @@ class _Helpers extends HelpersNotifier {
     return HelperResult.parse('{}');
   }
 
+  final renamedInvites = <(String, String)>[];
+
+  @override
+  Future<HelperResult> renameInvite(String inviteId, String name) async {
+    renamedInvites.add((inviteId, name));
+    state = state.copyWith(
+      view: HelpersView(
+        unlocked: true,
+        myName: name,
+        invites: [
+          for (final i in state.view.invites)
+            i.id == inviteId
+                ? HelperInviteView(
+                    id: i.id,
+                    state: i.state,
+                    link: i.link,
+                    expiresUnix: i.expiresUnix,
+                    inviterName: name,
+                  )
+                : i,
+        ],
+      ),
+    );
+    return HelperResult.parse('{"unlocked":true}');
+  }
+
+  /// When set, a created invite joins the view, as the engine's would.
+  bool addCreated = false;
+
   @override
   Future<HelperResult> createInvite(String name) async {
     created.add(name);
+    if (addCreated) {
+      state = state.copyWith(
+        view: HelpersView(
+          unlocked: true,
+          myName: name,
+          invites: [
+            ...state.view.invites,
+            HelperInviteView(
+              id: 'i9',
+              state: 'pending',
+              link: 'https://lantern.io/help/#SECRET',
+              inviterName: name,
+            ),
+          ],
+        ),
+      );
+    }
     return HelperResult.parse(
       '{"invite_id":"i9","link":"https://lantern.io/help/#SECRET"}',
     );
@@ -308,6 +355,7 @@ const _pendingI1 = HelperInviteView(
   id: 'i1',
   state: 'pending',
   link: 'https://lantern.io/help/#AAAA',
+  inviterName: 'Sara',
 );
 
 const _claimed = HelperInviteView(
@@ -566,14 +614,23 @@ void main() {
   });
 
   testWidgets('a decision that lands after Back does not close a newer '
-      'dialog from InviteShare', (tester) async {
+      'dialog', (tester) async {
     final fake = _Helpers(
       const HelpersState(
         view: HelpersView(unlocked: true, invites: [_claimed]),
       ),
     )..decideGate = Completer();
-    await _pumpPushed(tester, fake, const InviteShare(inviteId: 'i1'));
-    await tester.tap(find.byKey(const Key('invite.compare')));
+    await _pump(
+      tester,
+      fake,
+      Consumer(
+        builder: (context, ref, _) => TextButton(
+          onPressed: () => showApproveHelperDialog(context, ref, _claimed),
+          child: const Text('approve'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('approve'));
     await tester.pumpAndSettle();
     await tester.tap(_approveYes);
     await tester.pump();
@@ -581,15 +638,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
 
-    // Compare codes again while the first decision is still in flight.
-    await tester.tap(find.byKey(const Key('invite.compare')));
+    // Open it again while the first decision is still in flight.
+    await tester.tap(find.text('approve'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsOneWidget);
 
     fake.decideGate!.complete();
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsOneWidget);
-    expect(find.byType(InviteShare), findsOneWidget);
   });
 
   testWidgets('one helper: status shown', (tester) async {
@@ -811,7 +867,8 @@ void main() {
     expect(got, isNull);
   });
 
-  testWidgets('the invite screen shows a pending invite as a QR code', (
+  testWidgets('the invite screen: the name above the link, Show QR code '
+      'beside the expiry, the waiting line under Share, and no QR code', (
     tester,
   ) async {
     // Tall enough to build the whole list in the test font.
@@ -829,28 +886,47 @@ void main() {
               id: 'i2',
               state: 'pending',
               link: 'https://lantern.io/help/#AAAA',
+              inviterName: 'Sara',
             ),
           ],
         ),
       ),
     );
     await _pump(tester, fake, const InviteShare(inviteId: 'i2'));
-    expect(find.byKey(const Key('invite.qr')), findsOneWidget);
+    expect(find.byKey(const Key('invite.qr')), findsNothing);
     expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
     final card = find.byKey(const Key('invite.card'));
     for (final text in [
       'invite_share_title'.i18n,
       'invite_share_steps'.i18n,
+      'helpers_your_name_label'.i18n,
       'invite_link_label'.i18n,
-      'invite_link_expiry'.i18n,
+      '${'invite_link_expiry'.i18n} · ',
+      'invite_show_qr'.i18n,
+      'invite_waiting'.i18n,
       'https://lantern.io/help/#AAAA',
+      'Sara',
     ]) {
       expect(
         find.descendant(of: card, matching: find.text(text)),
         findsOneWidget,
+        reason: text,
       );
     }
-    for (final key in ['invite.link', 'invite.copy', 'invite.share']) {
+    final name = find.byKey(const Key('invite.name'));
+    final link = find.byKey(const Key('invite.link'));
+    final share = find.byKey(const Key('invite.share'));
+    final waiting = find.byKey(const Key('invite.waiting'));
+    expect(tester.getTopLeft(name).dy, lessThan(tester.getTopLeft(link).dy));
+    expect(
+      tester.getTopLeft(waiting).dy,
+      greaterThan(tester.getBottomLeft(share).dy),
+    );
+    expect(
+      find.descendant(of: waiting, matching: find.byIcon(Icons.sync)),
+      findsOneWidget,
+    );
+    for (final key in ['invite.copy', 'invite.show_qr']) {
       expect(
         find.descendant(of: card, matching: find.byKey(Key(key))),
         findsOneWidget,
@@ -864,14 +940,151 @@ void main() {
       ),
       findsOneWidget,
     );
-    // The Note sits below the card, and the QR code below the Note.
     expect(
       tester.getTopLeft(warning).dy,
       greaterThan(tester.getBottomLeft(card).dy),
     );
+    expect(fake.created, isEmpty);
+    expect(fake.renamedInvites, isEmpty);
+  });
+
+  testWidgets('Show QR code opens the code in a dialog, which Done closes', (
+    tester,
+  ) async {
+    final fake = _Helpers(_withInvites(const [_pendingI1]));
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.tap(find.byKey(const Key('invite.show_qr')));
+    await tester.pumpAndSettle();
+    final dialog = find.byType(AlertDialog);
+    expect(dialog, findsOneWidget);
+    for (final text in ['invite_qr_title'.i18n, 'invite_qr_hint'.i18n]) {
+      expect(
+        find.descendant(of: dialog, matching: find.text(text)),
+        findsOneWidget,
+      );
+    }
     expect(
-      tester.getTopLeft(find.byKey(const Key('invite.qr'))).dy,
-      greaterThan(tester.getBottomLeft(warning).dy),
+      tester.getSize(find.byKey(const Key('invite.qr'))),
+      const Size(160, 160),
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('invite.qr')),
+        matching: find.byWidgetPredicate(
+          (w) => w is CustomPaint && w.painter is QrPainter,
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<AlertDialog>(dialog).backgroundColor,
+      tester.element(dialog).bgSurface,
+    );
+    await tester.tap(find.text('done'.i18n));
+    await tester.pumpAndSettle();
+    expect(dialog, findsNothing);
+    expect(find.byKey(const Key('invite.qr')), findsNothing);
+  });
+
+  testWidgets('the copy icon shows the check after copying, then the copy '
+      'icon again', (tester) async {
+    debugCopyAsAndroid = false;
+    addTearDown(() => debugCopyAsAndroid = null);
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async => null,
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final fake = _Helpers(_withInvites(const [_pendingI1]));
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    CrossFadeState fade() => tester
+        .widget<AnimatedCrossFade>(
+          find.descendant(
+            of: find.byKey(const Key('invite.copy')),
+            matching: find.byType(AnimatedCrossFade),
+          ),
+        )
+        .crossFadeState;
+    expect(fade(), CrossFadeState.showFirst);
+    await tester.tap(find.byKey(const Key('invite.copy')));
+    await tester.pump();
+    expect(fade(), CrossFadeState.showSecond);
+    final check = tester.widget<Icon>(find.byKey(const Key('invite.copied')));
+    expect(check.icon, Icons.check_circle);
+    expect(
+      check.color,
+      tester.element(find.byType(InviteShare)).statusSuccessBg,
+    );
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+    expect(fade(), CrossFadeState.showFirst);
+  });
+
+  testWidgets('a new invite is made at once with the name known already', (
+    tester,
+  ) async {
+    final fake = _Helpers(
+      const HelpersState(view: HelpersView(unlocked: true, myName: 'Sara')),
+    )..addCreated = true;
+    await _pump(tester, fake, const InviteShare());
+    await tester.pump();
+    expect(fake.created, ['Sara']);
+    expect(find.text('https://lantern.io/help/#SECRET'), findsOneWidget);
+    expect(find.byKey(const Key('invite.waiting')), findsOneWidget);
+  });
+
+  testWidgets('without a name, Share asks for one on the screen; the name '
+      'typed makes the invite, capitalized', (tester) async {
+    final shared = <ShareParams>[];
+    debugShareInvite = (p) async => shared.add(p);
+    addTearDown(() => debugShareInvite = null);
+    final fake = _Helpers(const HelpersState(view: HelpersView(unlocked: true)))
+      ..addCreated = true;
+    await _pump(tester, fake, const InviteShare());
+    await tester.pump();
+    expect(fake.created, isEmpty);
+    expect(find.byType(AlertDialog), findsNothing, reason: 'no name dialog');
+    expect(find.text('invite_link_hint'.i18n), findsOneWidget);
+    await tester.tap(find.byKey(const Key('invite.share')));
+    await tester.pump();
+    expect(find.byKey(const Key('invite.name.error')), findsOneWidget);
+    expect(fake.created, isEmpty);
+    expect(shared, isEmpty);
+
+    await tester.enterText(find.byKey(const Key('invite.name')), 'sara');
+    await tester.pump();
+    expect(find.byKey(const Key('invite.name.error')), findsNothing);
+    expect(find.text('Sara'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('invite.share')));
+    await tester.pump();
+    await tester.pump();
+    expect(fake.created, ['Sara']);
+    expect(shared.single.text, contains('https://lantern.io/help/#SECRET'));
+  });
+
+  testWidgets('a name changed after the link was made is saved to the invite '
+      'before it is shared', (tester) async {
+    final shared = <ShareParams>[];
+    debugShareInvite = (p) async => shared.add(p);
+    addTearDown(() => debugShareInvite = null);
+    final fake = _Helpers(_withInvites(const [_pendingI1]));
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.enterText(find.byKey(const Key('invite.name')), 'Sara K');
+    await tester.tap(find.byKey(const Key('invite.share')));
+    await tester.pump();
+    await tester.pump();
+    expect(fake.renamedInvites, [('i1', 'Sara K')]);
+    expect(fake.created, isEmpty);
+    expect(
+      shared.single.text,
+      'invite_share_message'.i18n.fill([
+        'Sara K',
+        'https://lantern.io/help/#AAAA',
+      ]),
     );
   });
 
@@ -903,6 +1116,8 @@ void main() {
     await tester.tap(find.byKey(const Key('invite.link')));
     await tester.pump();
     expect(copied, ['https://lantern.io/help/#AAAA']);
+    // Past the check icon's time.
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('the invite link has no selection menu to copy it around '
@@ -965,6 +1180,7 @@ void main() {
               state: 'pending',
               link: 'https://lantern.io/help/#SECRET',
               expiresUnix: _now() + 3600,
+              inviterName: 'Sara',
             ),
           ],
         ),
@@ -1028,23 +1244,21 @@ void main() {
       expect('${route.args}', isNot(contains('SECRET')));
     });
 
-    testWidgets('inviting asks for a name, then opens the new invite by ID', (
-      tester,
-    ) async {
+    testWidgets('inviting opens the invite screen, with no name dialog '
+        'before it', (tester) async {
       final router = _Router();
       sl.registerSingleton<AppRouter>(router);
       final fake = _Helpers(const HelpersState());
       await _pump(tester, fake, const PersonalProxiesTab());
       await tester.tap(find.byKey(const Key('personal_proxies.invite')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextFormField), 'Sara');
-      await tester.tap(find.text('continue'.i18n));
-      await tester.pumpAndSettle();
-      expect(fake.created, ['Sara']);
-      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(fake.created, isEmpty);
+      expect(router.pushed.single.routeName, 'InviteShare');
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, isNull);
     });
 
-    testWidgets('startPersonalProxyInvite names the invite, then opens it', (
+    testWidgets('startPersonalProxyInvite opens the invite screen', (
       tester,
     ) async {
       final router = _Router();
@@ -1062,12 +1276,9 @@ void main() {
       );
       await tester.tap(find.text('go'));
       await tester.pumpAndSettle();
-      expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
-      await tester.enterText(find.byType(TextFormField), 'Sara');
-      await tester.tap(find.text('continue'.i18n));
-      await tester.pumpAndSettle();
-      expect(fake.created, ['Sara']);
-      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(fake.created, isEmpty);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, isNull);
     });
 
     Future<void> tapStart(WidgetTester tester, _Helpers fake) async {
@@ -1087,8 +1298,8 @@ void main() {
 
     const pendingInvite = HelperInviteView(id: 'i2', state: 'pending');
 
-    testWidgets('startPersonalProxyInvite opens an invite awaiting approval '
-        'instead of creating one', (tester) async {
+    testWidgets('startPersonalProxyInvite opens the approval of an invite '
+        'awaiting it instead of creating one', (tester) async {
       final router = _Router();
       sl.registerSingleton<AppRouter>(router);
       final fake = _Helpers(
@@ -1100,7 +1311,9 @@ void main() {
       await tapStart(tester, fake);
       expect(find.byType(TextFormField), findsNothing, reason: 'no name asked');
       expect(fake.created, isEmpty);
-      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+      expect(router.pushed, isEmpty);
+      expect(find.text('approve_title'.i18n.fill(['Ali'])), findsOneWidget);
+      expect(fake.approvalPrompted('i1'), isTrue);
     });
 
     testWidgets('an invite no one has opened does not stop another', (
@@ -1115,11 +1328,7 @@ void main() {
         ),
       );
       await tapStart(tester, fake);
-      await tester.enterText(find.byType(TextFormField), 'Sara');
-      await tester.tap(find.text('continue'.i18n));
-      await tester.pumpAndSettle();
-      expect(fake.created, ['Sara']);
-      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i9');
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, isNull);
     });
 
     testWidgets('a used device loads its view before deciding', (tester) async {
@@ -1134,7 +1343,8 @@ void main() {
       await tapStart(tester, fake);
       expect(fake.fullRefreshes, 1);
       expect(fake.created, isEmpty);
-      expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+      expect(router.pushed, isEmpty);
+      expect(find.byKey(const Key('approve.code')), findsOneWidget);
     });
 
     testWidgets('a used device whose view fails to load creates no invite', (
@@ -1166,15 +1376,13 @@ void main() {
       await _pump(tester, fake, const PersonalProxiesTab());
       await tester.tap(find.byKey(const Key('personal_proxies.invite')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextFormField), 'Sara');
-      await tester.tap(find.text('continue'.i18n));
-      await tester.pumpAndSettle();
-      expect(fake.created, ['Sara']);
+      expect(find.byKey(const Key('approve.code')), findsNothing);
+      expect((router.pushed.single.args as InviteShareArgs).inviteId, isNull);
     });
 
     for (final small in [false, true]) {
       testWidgets('the ${small ? 'compact ' : ''}banner says a friend is '
-          'waiting and opens their invite', (tester) async {
+          'waiting and opens their approval', (tester) async {
         tester.view.devicePixelRatio = 1;
         tester.view.physicalSize = small
             ? const Size(393, 560)
@@ -1217,7 +1425,8 @@ void main() {
         await tester.tap(find.byKey(const Key('vpn.personal_proxy_banner')));
         await tester.pumpAndSettle();
         expect(fake.created, isEmpty);
-        expect((router.pushed.single.args as InviteShareArgs).inviteId, 'i1');
+        expect(router.pushed, isEmpty);
+        expect(find.byKey(const Key('approve.code')), findsOneWidget);
       });
     }
 
@@ -1230,7 +1439,14 @@ void main() {
         const HelpersState(
           view: HelpersView(
             unlocked: true,
-            invites: [HelperInviteView(id: 'i2', state: 'pending', link: link)],
+            invites: [
+              HelperInviteView(
+                id: 'i2',
+                state: 'pending',
+                link: link,
+                inviterName: 'Sara',
+              ),
+            ],
           ),
         ),
       );
@@ -1333,7 +1549,8 @@ void main() {
       expect(approveCode, findsOneWidget);
     });
 
-    testWidgets('does not open over the invite screen\'s own codes', (
+    testWidgets('the friend opening the link goes straight to the approval '
+        'dialog over the invite screen, with no screen between', (
       tester,
     ) async {
       final fake = _Helpers(_withInvites(const [_pendingI1]));
@@ -1341,9 +1558,28 @@ void main() {
       await _pushOverHost(tester, const InviteShare(inviteId: 'i1'));
       fake.emit(_withInvites(const [_claimed]));
       await _pumpPast(tester);
-      expect(find.byKey(const Key('invite.compare')), findsOneWidget);
-      expect(approveCode, findsNothing);
+      expect(approveCode, findsOneWidget);
+      expect(find.text('approve_title'.i18n.fill(['Ali'])), findsOneWidget);
       expect(fake.approvalPrompted('i1'), isTrue);
+    });
+
+    testWidgets('approving from the prompt over the invite screen closes '
+        'that screen once the success dialog is done', (tester) async {
+      final fake = _Helpers(_withInvites(const [_pendingI1]))
+        ..onDecide = _withInvites(const []);
+      await _pumpPromptHost(tester, fake);
+      await _pushOverHost(tester, const InviteShare(inviteId: 'i1'));
+      fake.emit(_withInvites(const [_claimed]));
+      await _pumpPast(tester);
+      await tester.tap(_approveYes);
+      await _pumpPast(tester);
+      expect(fake.decisions, [('i1', true)]);
+      expect(find.byType(InviteShare), findsOneWidget, reason: 'under it');
+      await tester.tap(_approvedDone);
+      await _pumpPast(tester);
+      await _pumpPast(tester);
+      expect(find.byType(InviteShare), findsNothing);
+      expect(find.text('home'), findsOneWidget);
     });
 
     testWidgets('opens over another screen that covers the invite screen', (
@@ -1524,7 +1760,7 @@ void main() {
     expect(find.byKey(const Key('invite.qr')), findsNothing);
   });
 
-  testWidgets('a claimed invite offers codes, never the link or QR', (
+  testWidgets('a claimed invite offers no Share, copy or QR code', (
     tester,
   ) async {
     final fake = _Helpers(
@@ -1533,28 +1769,10 @@ void main() {
       ),
     );
     await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
-    expect(find.byKey(const Key('invite.compare')), findsOneWidget);
-    expect(find.byKey(const Key('invite.qr')), findsNothing);
-    expect(find.byKey(const Key('invite.share')), findsNothing);
-    expect(find.byKey(const Key('invite.copy')), findsNothing);
-  });
-
-  testWidgets('approving from InviteShare goes back', (tester) async {
-    final fake = _Helpers(
-      const HelpersState(
-        view: HelpersView(unlocked: true, invites: [_claimed]),
-      ),
-    );
-    await _pumpPushed(tester, fake, const InviteShare(inviteId: 'i1'));
-    await tester.tap(find.byKey(const Key('invite.compare')));
-    await tester.pumpAndSettle();
-    await tester.tap(_approveYes);
-    await tester.pumpAndSettle();
-    expect(fake.decisions, [('i1', true)]);
-    await tester.tap(_approvedDone);
-    await tester.pumpAndSettle();
-    expect(find.byType(InviteShare), findsNothing);
-    expect(find.text('open'), findsOneWidget);
+    expect(find.byKey(const Key('invite.compare')), findsNothing);
+    expect(find.text('invite_claimed_title'.i18n), findsNothing);
+    expect(find.byKey(const Key('invite.waiting')), findsNothing);
+    expect(find.text('https://lantern.io/help/#AAAA'), findsNothing);
   });
 
   testWidgets('the code is read out digit by digit', (tester) async {
