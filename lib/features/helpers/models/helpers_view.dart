@@ -128,6 +128,7 @@ class HelperPairingView {
     this.sinceUnix = 0,
     this.connected,
     this.outboundTag = '',
+    this.hasPairingKey = true,
   });
 
   final String pairingId;
@@ -144,12 +145,29 @@ class HelperPairingView {
   /// may claim either way.
   final bool? connected;
 
+  /// Whether this device keeps the pairing's key, which faster connections
+  /// need. Pairings made before they existed have none until re-paired. An
+  /// engine that does not report it counts as having one.
+  final bool hasPairingKey;
+
+  /// Whether this friend is shown online: lantern-cloud says so, or
+  /// radiance has the reverse session the friend dialed in, which can come
+  /// up after lantern-cloud's last presence. [status] is as for
+  /// [selectable].
+  bool reachable(Map<String, PersonalProxyStatus>? status) =>
+      online || _reverse(status);
+
+  bool _reverse(Map<String, PersonalProxyStatus>? status) =>
+      outboundTag.isNotEmpty && (status?[outboundTag]?.reverse ?? false);
+
   /// Whether this friend can be selected on their own: lantern-cloud gave
   /// their outbound tag and says they are online, and radiance has a live
-  /// route to them. [status] is radiance's status by outbound tag, null while
-  /// unknown (the VPN is off, or radiance did not answer): online then
+  /// route to them, or radiance has their reverse session whatever
+  /// lantern-cloud says. [status] is radiance's status by outbound tag, null
+  /// while unknown (the VPN is off, or radiance did not answer): online then
   /// decides alone.
   bool selectable(Map<String, PersonalProxyStatus>? status) {
+    if (_reverse(status)) return true;
     if (outboundTag.isEmpty || !online) return false;
     if (status == null) return true;
     return status[outboundTag]?.live ?? false;
@@ -163,22 +181,31 @@ class HelperPairingView {
         sinceUnix: _int(j['since_unix']),
         connected: j['connected'] is bool ? j['connected'] as bool : null,
         outboundTag: _str(j['outbound_tag']),
+        hasPairingKey: j['has_pairing_key'] != false,
       );
 }
 
 /// radiance's status of one friend this device invited (lantern-core's
 /// personal_proxy_status op).
 class PersonalProxyStatus {
-  const PersonalProxyStatus({this.direct = false, this.rooms = false});
+  const PersonalProxyStatus({
+    this.direct = false,
+    this.reverse = false,
+    this.rooms = false,
+  });
 
   /// The config carries the friend's direct outbound.
   final bool direct;
+
+  /// The VPN keeps the friend's reverse outbound, which carries traffic over
+  /// the session the friend dials in.
+  final bool reverse;
 
   /// This device can reach the friend through Unbounded's rooms.
   final bool rooms;
 
   /// The friend's group has a member to route through.
-  bool get live => direct || rooms;
+  bool get live => direct || reverse || rooms;
 
   /// The op's answer, by outbound tag. Entries without a tag are skipped.
   static Map<String, PersonalProxyStatus> parseAll(Map<String, dynamic> j) {
@@ -191,6 +218,7 @@ class PersonalProxyStatus {
       if (tag.isEmpty) continue;
       out[tag] = PersonalProxyStatus(
         direct: e['direct'] == true,
+        reverse: e['reverse'] == true,
         rooms: e['rooms'] == true,
       );
     }

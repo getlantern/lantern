@@ -1704,11 +1704,7 @@ msgstr ""
 "के लिए अपना ट्रैफ़िक आपके कनेक्शन से रूट करते हैं।"
 
 msgid "share_consent_body_ip"
-msgstr ""
-"यदि आपका राउटर पोर्ट फ़ॉरवर्डिंग का समर्थन करता है, तो आपका घरेलू कनेक्शन "
-"निकास के रूप में उपयोग होता है और साझा करते समय आपका IP पता गंतव्य के लॉग "
-"में दिखाई देगा। अन्यथा वह ट्रैफ़िक Lantern के सर्वरों के माध्यम से रिले किया"
-" जाता है, और उस तरह आपका IP उजागर नहीं होता।"
+msgstr "अगर आपका राउटर पोर्ट फ़ॉरवर्डिंग सपोर्ट करता है, तो आपका घरेलू कनेक्शन एग्ज़िट के रूप में इस्तेमाल होता है और साझा करते समय आपका IP पता गंतव्य के लॉग में दिखेगा। अन्यथा वह ट्रैफ़िक Lantern के सर्वर के ज़रिए रिले होता है, और इस तरह आपका IP उजागर नहीं होता। जिस दोस्त के आप पर्सनल प्रॉक्सी हैं, उसका ट्रैफ़िक भी पोर्ट फ़ॉरवर्डिंग के बिना आपके कनेक्शन से निकल सकता है।"
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2129,9 +2125,6 @@ msgstr "आपके दोस्त का भेजा गया लिंक 
 msgid "help_friend_scan"
 msgstr "अपने दोस्त का QR कोड स्कैन करें"
 
-msgid "help_friend_approved"
-msgstr "अब आप %s की मदद कर रहे हैं।"
-
 msgid "help_friend_no_longer_pending"
 msgstr "यह अनुरोध अब लंबित नहीं है। अपने दोस्त से नया आमंत्रण मांगें।"
 
@@ -2170,12 +2163,6 @@ msgstr "मदद बंद करें"
 
 msgid "helping_remove_confirm"
 msgstr "%s की मदद बंद करें? आपके ज़रिए फिर से कनेक्ट करने के लिए उन्हें नए आमंत्रण की ज़रूरत होगी।"
-
-msgid "help_others_too"
-msgstr "दूसरों की भी मदद करें"
-
-msgid "help_others_too_body"
-msgstr "सेंसरशिप झेल रहे दूसरे लोगों को अपनी अतिरिक्त क्षमता दें; Lantern उन्हें केवल अनुमति वाली साइटों तक पहुंचने देता है, जिससे आपका कनेक्शन दुरुपयोग से सुरक्षित रहता है।"
 
 msgid "help_others_too_note"
 msgstr "इसे बदलने पर आप जिनकी मदद कर रहे हैं, वे कुछ पल के लिए फिर से कनेक्ट होंगे।"
@@ -2217,7 +2204,7 @@ msgid "become_means_title"
 msgstr "पर्सनल प्रॉक्सी होने का क्या मतलब है"
 
 msgid "become_means_traffic"
-msgstr "एक दोस्त ने आपसे मदद मांगी है। जब तक Action Mode चल रहा है, वे आपके कनेक्शन के ज़रिए खुले इंटरनेट तक पहुंच सकते हैं। आपके राउटर के अनुसार, उनका ट्रैफ़िक आपके नेटवर्क से निकलता है या Lantern के सर्वर से होकर जाता है। वे ऑनलाइन क्या करते हैं, Lantern आपको नहीं दिखाता।"
+msgstr "एक दोस्त ने आपसे मदद मांगी है। Action Mode चलने के दौरान, वे आपके कनेक्शन से खुले इंटरनेट तक पहुँच सकते हैं। Lantern आपको नहीं दिखाता कि वे कौन-सी साइटें खोलते हैं।"
 
 msgid "become_means_seen"
 msgstr "वे देख सकते हैं कि आप कब कनेक्ट हैं। केवल उन्हीं लोगों के आमंत्रण स्वीकार करें जिन्हें आप जानते हैं।"
@@ -2228,14 +2215,8 @@ msgstr "कनेक्शन को कभी भी हटाएं।"
 msgid "help_friend_form_title"
 msgstr "जिसकी आप मदद कर रहे हैं, उसका लिंक पेस्ट करें"
 
-msgid "help_friend_link_hint"
-msgstr "इस डिवाइस पर लिंक पर टैप करने से यह भर जाएगा"
-
 msgid "help_friend_name_label"
 msgstr "आपका नाम, जिससे वे आपको जानते हैं"
-
-msgid "help_friend_name_hint"
-msgstr "उनके Lantern में आप इसी तरह दिखेंगे"
 
 msgid "help_friend_become"
 msgstr "उनका निजी प्रॉक्सी बनें"
@@ -2297,17 +2278,8 @@ msgstr "सक्रिय: %s"
 msgid "personal_proxy_fallback_auto"
 msgstr "अभी %s तक नहीं पहुंच पा रहे। स्मार्ट लोकेशन पर स्विच किया गया।"
 
-msgid "help_friend_form_title_from_link"
-msgstr "एक दोस्त ने आपको अपना निजी प्रॉक्सी बनने के लिए आमंत्रित किया है"
-
 msgid "help_friend_paste_button"
 msgstr "लिंक पेस्ट करें"
-
-msgid "help_friend_no_link"
-msgstr "अभी तक लिंक नहीं मिला?"
-
-msgid "help_friend_ask_invite"
-msgstr "अपने दोस्त से आमंत्रण भेजने को कहें"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Lantern पर आप मुझे अपने निजी प्रॉक्सी के रूप में इस्तेमाल कर सकते हैं, ताकि आप मेरे कनेक्शन से ऑनलाइन हो सकें। Lantern में \"सर्वर चयन\" खोलें, ऊपर ⋮ मेनू पर टैप करें, \"निजी प्रॉक्सी आमंत्रित करें\" चुनें और मुझे लिंक भेजें।"
@@ -2323,3 +2295,105 @@ msgstr "इस कंप्यूटर पर Lantern के अलावा �
 
 msgid "unable_to_add_executable"
 msgstr "एक्ज़ीक्यूटेबल नहीं जोड़ा जा सका। इस कंप्यूटर पर मौजूद कोई .exe फ़ाइल चुनें और फिर से कोशिश करें।"
+
+msgid "unable_to_connect"
+msgstr "कनेक्ट नहीं हो सका"
+
+msgid "enable_action_mode"
+msgstr "Action Mode चालू करें"
+
+msgid "disable_action_mode"
+msgstr "Action Mode बंद करें"
+
+msgid "helping_one_person"
+msgstr "1 व्यक्ति की मदद कर रहे हैं"
+
+msgid "helping_people"
+msgstr "%s लोगों की मदद कर रहे हैं"
+
+msgid "onboarding_personal_proxies"
+msgstr "पर्सनल प्रॉक्सी"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Lantern ब्लॉक होने पर अपने देश के बाहर किसी भरोसेमंद व्यक्ति से अपना प्रॉक्सी बनने के लिए कहें।"
+
+msgid "onboarding_new_badge"
+msgstr "नया"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "दूसरों को खुले इंटरनेट तक पहुंचने में मदद करें"
+
+msgid "onboarding_action_mode_share"
+msgstr "अपना कनेक्शन साझा करें"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "दूसरों को इंटरनेट प्रतिबंधों से बचने में मदद के लिए अपने कनेक्शन का थोड़ा हिस्सा स्वेच्छा से दें।"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "किसी परिचित की मदद करें"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "अगर सेंसरशिप वाले देश का कोई दोस्त आपको आमंत्रण भेजता है, तो आप उसके Personal Proxy बन सकते हैं।"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "आपकी गोपनीयता सुरक्षित है"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "आपका निजी डेटा और ब्राउज़िंग गतिविधि कभी साझा या उजागर नहीं की जाती।"
+
+msgid "onboarding_action_mode_control"
+msgstr "नियंत्रण आपके हाथ में है"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Action Mode टैब से कभी भी Action Mode चालू या बंद करें।"
+
+msgid "approved_title"
+msgstr "%s अब आपका पर्सनल प्रॉक्सी है"
+
+msgid "approved_body"
+msgstr "जब %s ऑनलाइन हों, तो आप उन्हें सर्वर चयन में प्राइवेट लोकेशन के अंतर्गत चुन सकते हैं।"
+
+msgid "approved_connect_now"
+msgstr "अभी कनेक्ट करें"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "उनकी सर्वर सूची में आप इसी नाम से दिखेंगे।"
+
+msgid "help_friend_success_title"
+msgstr "अब आप %s के पर्सनल प्रॉक्सी हैं"
+
+msgid "help_friend_success_body"
+msgstr "%s ने आपको मंज़ूरी दे दी है। Action Mode चालू होने पर वे आपके कनेक्शन के ज़रिए खुले इंटरनेट तक पहुंच सकते हैं।"
+
+msgid "help_friend_keep_on"
+msgstr "Action Mode चालू रखें"
+
+msgid "help_friend_keep_on_body"
+msgstr "अभी और जब भी Lantern खुला हो, चालू हो जाता है, ताकि %s कनेक्टेड रहें।"
+
+msgid "help_friend_no_link_yet"
+msgstr "अभी तक लिंक नहीं मिला?"
+
+msgid "help_friend_ask_send_link"
+msgstr "उनसे एक लिंक भेजने को कहें।"
+
+msgid "helping_scope_line_all"
+msgstr "सभी देशों के लोगों की भी मदद कर रहे हैं"
+
+msgid "helping_scope_line_friends"
+msgstr "केवल अपने दोस्तों की मदद कर रहे हैं"
+
+msgid "helping_scope_change"
+msgstr "बदलें"
+
+msgid "helping_scope_title"
+msgstr "आप किसकी मदद कर रहे हैं"
+
+msgid "helping_scope_subtitle"
+msgstr "केवल अपने दोस्तों के साथ, या सभी देशों के लोगों के साथ साझा करें।"
+
+msgid "helping_scope_only_friends"
+msgstr "केवल मेरे दोस्त"
+
+msgid "helping_scope_all_countries"
+msgstr "सभी देश"

@@ -27,10 +27,10 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     // Listened through the container: a ref.listen would make this provider
     // a dependent of vpnProvider, and the VPN notifier reading it back on
     // connect then throws a CircularDependencyError in debug builds.
-    final vpnSub = ref.container.listen(
-      vpnProvider,
-      (_, next) => _settlePendingSelection(next),
-    );
+    final vpnSub = ref.container.listen(vpnProvider, (prev, next) {
+      if (prev != next && _stopped(next)) _vpnStops++;
+      _settlePendingSelection(next);
+    });
     ref.onDispose(vpnSub.close);
     // radiance drops the personal proxies group with the last pairing and
     // connects through auto, but sends no server-location event for it.
@@ -289,15 +289,36 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
 
   _PendingSelection? _pending;
 
+  static bool _stopped(VPNStatus status) =>
+      status == VPNStatus.disconnected || status == VPNStatus.error;
+
+  // Counts the VPN reporting disconnected or error.
+  int _vpnStops = 0;
+
+  /// The VPN stops reported so far, to pass to [saveOnceConnected] from
+  /// before a connection attempt.
+  int get vpnStops => _vpnStops;
+
   /// Runs [save] once the VPN reports connected, so the stored selection never
   /// gets ahead of the status the home screen shows. Owned here rather than by
   /// the selection screen so leaving that screen doesn't drop the save. A newer
   /// request, disconnect, or VPN error retires a pending one. Resolves true once
   /// the VPN connected and [save] ran, false if the request was retired.
-  Future<bool> saveOnceConnected(FutureOr<void> Function() save) {
+  /// Given [stopsSince], [vpnStops] from before the attempt, a stop reported
+  /// during the attempt that still stands retires it at once: no later
+  /// status would. A status still disconnected with no stop reported is a
+  /// connection not yet started, and is waited on.
+  Future<bool> saveOnceConnected(
+    FutureOr<void> Function() save, {
+    int? stopsSince,
+  }) {
     _retirePendingSelection();
-    if (ref.read(vpnProvider) == VPNStatus.connected) {
+    final status = ref.read(vpnProvider);
+    if (status == VPNStatus.connected) {
       return _runSave(save).then((_) => true);
+    }
+    if (stopsSince != null && _vpnStops > stopsSince && _stopped(status)) {
+      return Future.value(false);
     }
     final pending = _PendingSelection(save);
     _pending = pending;
@@ -312,7 +333,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
       unawaited(
         _runSave(pending.save).then((_) => pending.completer.complete(true)),
       );
-    } else if (status == VPNStatus.disconnected || status == VPNStatus.error) {
+    } else if (_stopped(status)) {
       _retirePendingSelection();
     }
   }

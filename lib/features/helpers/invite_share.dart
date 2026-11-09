@@ -97,6 +97,7 @@ class InviteShare extends ConsumerWidget {
                 onPressed: () async {
                   final decided = await showApproveHelperDialog(
                     context,
+                    ref,
                     invite,
                   );
                   // The invite is used now; go back to the helpers list
