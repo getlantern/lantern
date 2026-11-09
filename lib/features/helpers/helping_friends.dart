@@ -270,7 +270,12 @@ class _ScopeLine extends StatelessWidget {
             button: true,
             child: InkWell(
               key: const Key('helping.scope.change'),
-              onTap: () => showWhoYoureHelpingSheet(context),
+              // Swaps this sheet for that one rather than stacking them.
+              onTap: () {
+                final navigator = Navigator.of(context);
+                navigator.pop();
+                showWhoYoureHelpingSheet(navigator.context);
+              },
               child: Text(
                 'helping_scope_change'.i18n,
                 style: style.copyWith(
@@ -283,6 +288,43 @@ class _ScopeLine extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Whom Action Mode helps, in a word: "All countries" or "Only my Personal
+/// Proxy connections".
+String helpingScopeLabel(bool helpOthers) => helpOthers
+    ? 'helping_scope_all_countries'.i18n
+    : 'helping_scope_only_friends'.i18n;
+
+/// Settings' "Who you're helping" row: whom Action Mode helps, opening
+/// [showWhoYoureHelpingSheet].
+class WhoYoureHelpingTile extends HookConsumerWidget {
+  const WhoYoureHelpingTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final helpOthers = ref.watch(
+      helpersProvider.select((s) => s.chosenHelpOthers),
+    );
+    final notifier = ref.read(helpersProvider.notifier);
+    useEffect(() {
+      unawaited(notifier.loadHelpOthers());
+      return null;
+    }, const []);
+    return AppTile(
+      tileKey: const Key('helping.scope.row'),
+      icon: AppImagePaths.world,
+      label: 'helping_scope_title'.i18n,
+      subtitle: Text(
+        helpingScopeLabel(helpOthers),
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
+      ),
+      trailing: const AppImage(path: AppImagePaths.arrowForward),
+      onPressed: () => showWhoYoureHelpingSheet(context),
     );
   }
 }

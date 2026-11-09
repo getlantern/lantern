@@ -2351,12 +2351,14 @@ msgid "helping_scope_subtitle"
 msgstr "Share with your friends only, or with people in all countries."
 
 # Option in the Who you're helping sheet: help only the friends this device
-# is the Personal Proxy for.
+# is the Personal Proxy for. Also the line under "Helping right now" on the
+# Action Mode tab and under Who you're helping in Settings.
 msgid "helping_scope_only_friends"
-msgstr "Only my friends"
+msgstr "Only my Personal Proxy connections"
 
 # Option in the Who you're helping sheet: also help people anywhere who
-# connect through Action Mode. The default.
+# connect through Action Mode. The default. Also the line under "Helping
+# right now" on the Action Mode tab and under Who you're helping in Settings.
 msgid "helping_scope_all_countries"
 msgstr "All countries"
 

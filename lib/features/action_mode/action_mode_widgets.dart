@@ -19,6 +19,8 @@ class ActionModeStatusCard extends StatelessWidget {
     required this.onToggle,
     this.onInfo,
     this.onTotalTap,
+    this.helpingScope,
+    this.onHelpingTap,
   });
 
   final String status;
@@ -31,6 +33,12 @@ class ActionModeStatusCard extends StatelessWidget {
 
   /// Makes the total row tappable, with a chevron.
   final VoidCallback? onTotalTap;
+
+  /// Who sharing helps, under the "Helping right now" count.
+  final String? helpingScope;
+
+  /// Makes the "Helping right now" row tappable, with a chevron.
+  final VoidCallback? onHelpingTap;
 
   @override
   Widget build(BuildContext context) {
@@ -118,10 +126,17 @@ class ActionModeStatusCard extends StatelessWidget {
           ),
           const DividerSpace(),
           SettingTile(
+            tileKey: const Key('action-mode.helping-now'),
             label: 'action_mode_helping_now'.i18n,
+            subtitle: helpingScope,
+            subtitleColor: context.textTertiary,
             value: peopleCountLabel(activeCount),
             icon: AppImagePaths.actionModePerson,
-            actions: const [],
+            onTap: onHelpingTap,
+            actions: [
+              if (onHelpingTap != null)
+                const AppImage(path: AppImagePaths.arrowForward),
+            ],
           ),
           const DividerSpace(),
           SettingTile(
