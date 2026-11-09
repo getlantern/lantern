@@ -498,6 +498,7 @@ class HelpFriend extends HookConsumerWidget {
                   hintText: 'helpers_your_name_hint'.i18n,
                   prefixIcon: Icons.person_outline,
                   maxLength: 60,
+                  textCapitalization: TextCapitalization.words,
                 ),
                 below(
                   Text(
@@ -584,6 +585,12 @@ class _PairedBody extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: AppTile(
             tileKey: const Key('help_friend.keep_on'),
+            // Its body wraps to two lines: room above and below, as the
+            // one-line Auto-enable row in Settings has.
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
             label: 'help_friend_keep_on'.i18n,
             subtitle: Text(
               'help_friend_keep_on_body'.i18n.fill([name]),
