@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
+import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/core/widgets/divider_space.dart';
 
 typedef BottomSheetBuilder = Function(
@@ -22,6 +23,7 @@ void showAppBottomSheet(
     showDragHandle: true,
     scrollControlDisabledMaxHeightRatio: scrollControlDisabledMaxHeightRatio,
     builder: (context) {
+      focusFirstOnTv(context);
       return DraggableScrollableSheet(
         expand: true,
         initialChildSize: 1,

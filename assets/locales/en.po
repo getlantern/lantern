@@ -1576,6 +1576,9 @@ msgstr "Lantern Email"
 msgid "confirm_with_account"
 msgstr "To confirm deletion please verify with your %s account below:"
 
+msgid "delete_sso_account_on_other_device"
+msgstr "This account signs in with %s, which can't be verified on a TV. To delete it, open Lantern on your phone or computer and delete it there."
+
 msgid "oauth_different_account"
 msgstr "The account you are trying to sign in with does not match the account associated with this email. Please sign in with the correct account or choose a different email."
 
@@ -2391,3 +2394,9 @@ msgstr "%sh %sm"
 # %s is minutes, as a number.
 msgid "helping_duration_m"
 msgstr "%sm"
+
+msgid "open_on_another_device"
+msgstr "Open on another device"
+
+msgid "open_on_another_device_hint"
+msgstr "This TV has no web browser. Scan the code or type the address on your phone or computer."

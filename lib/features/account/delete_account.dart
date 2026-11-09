@@ -41,6 +41,8 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
     final isSSOUser = ref.watch(isSSOUserProvider).value ?? false;
     final oAuthProviderName = ref.watch(oAuthProviderProvider).value ?? '';
     final oAuthMethodType = _resolveOAuthMethodType(oAuthProviderName);
+    // Verifying with the provider finishes in a browser, which a TV does not have.
+    final verifyOnOtherDevice = isSSOUser && PlatformUtils.isTv;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,7 +74,9 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             padding: const EdgeInsets.only(left: 16),
             child: Text(
               isSSOUser
-                  ? 'confirm_with_account'
+                  ? (verifyOnOtherDevice
+                          ? 'delete_sso_account_on_other_device'
+                          : 'confirm_with_account')
                       .i18n
                       .fill([oAuthProviderName.capitalize])
                   : 'delete_account_message_two'.i18n,
@@ -96,7 +100,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
             ),
           ],
           SizedBox(height: size24),
-          if (isSSOUser)
+          if (isSSOUser && !verifyOnOtherDevice)
             OAuthLogin(
               label: 'verify_with'
                   .i18n
@@ -107,7 +111,7 @@ class _DeleteAccountState extends ConsumerState<DeleteAccount> {
               removeBorder: true,
               onResult: (payload) => processOAuthResult(payload),
             )
-          else
+          else if (!isSSOUser)
             PrimaryButton(
               key: AuthKeys.deleteAccountConfirmButton,
               label: 'confirm_deletion'.i18n,
