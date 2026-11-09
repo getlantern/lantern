@@ -53,7 +53,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
               height: 35.h,
               child: TabBar(
                 indicatorSize: TabBarIndicatorSize.tab,
-                indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
                 splashBorderRadius: BorderRadius.circular(40),
                 labelColor: context.actionTabbarSelectedText,
                 dividerHeight: 0,
@@ -67,12 +66,12 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                       color: context.actionTabbarBorder, width: 1),
                 ),
                 tabs: [
-                  Tab(child: Text('my_servers'.i18n)),
-                  Tab(child: Text('joined_servers'.i18n)),
+                  Tab(child: _TabLabel('my_servers'.i18n)),
+                  Tab(child: _TabLabel('joined_servers'.i18n)),
                   if (showProxies)
                     Tab(
                       key: const Key('manage.personal_proxies_tab'),
-                      child: Text('personal_proxies_tab'.i18n),
+                      child: _TabLabel('personal_proxies_tab'.i18n),
                     ),
                 ],
               ),
@@ -403,4 +402,18 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       },
     );
   }
+}
+
+/// A tab's label on one line, shrunk to fit when three tabs leave it too
+/// little width: the bar's fixed height has no room for a second line.
+class _TabLabel extends StatelessWidget {
+  const _TabLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(text, maxLines: 1, softWrap: false),
+      );
 }
