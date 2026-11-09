@@ -165,10 +165,6 @@ class PersonalProxiesIntroScreen extends HookWidget {
         leading: const SizedBox.shrink(),
         backgroundColor: context.bgElevated,
         title: LanternLogo(color: context.textPrimary),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(0),
-          child: DividerSpace(padding: EdgeInsets.zero),
-        ),
       ),
       body: Container(
         color: context.bgElevated,
