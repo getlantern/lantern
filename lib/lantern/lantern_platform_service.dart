@@ -1104,6 +1104,20 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Uri?>> authenticateInApp(String url) async {
+    try {
+      final callback = await _methodChannel.invokeMethod<String>(
+        'authenticateInApp',
+        url,
+      );
+      return Right(callback == null ? null : Uri.parse(callback));
+    } catch (e, stackTrace) {
+      appLogger.error('In-app OAuth sign-in failed', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
     String token,
   ) async {

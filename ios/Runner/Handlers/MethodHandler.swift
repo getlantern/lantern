@@ -3,6 +3,7 @@
 //  Lantern
 //
 
+import AuthenticationServices
 import Flutter
 import Foundation
 import Liblantern
@@ -14,6 +15,8 @@ class MethodHandler {
 
   private var channel: FlutterMethodChannel
   private var vpnManager: VPNManager
+  private var authSession: ASWebAuthenticationSession?
+  private let authAnchor = AuthPresentationAnchor()
 
   init(channel: FlutterMethodChannel, vpnManager: VPNManager = VPNManager.shared) {
     self.channel = channel
@@ -56,6 +59,12 @@ class MethodHandler {
           return
         }
         self.oauthLoginUrl(result: result, provider: provider)
+
+      case "authenticateInApp":
+        guard let url: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.authenticateInApp(result: result, url: url)
 
       case "oauthLoginCallback":
         guard let token: String = self.decodeValue(from: call.arguments, result: result) else {
@@ -613,6 +622,37 @@ class MethodHandler {
       await MainActor.run {
         result(data)
       }
+    }
+  }
+
+  /// App Store review rejects sign-in that leaves the app for Safari.
+  private func authenticateInApp(result: @escaping FlutterResult, url: String) {
+    guard let authURL = URL(string: url) else {
+      result(FlutterError(code: "INVALID_URL", message: "Invalid sign-in URL", details: nil))
+      return
+    }
+    authSession?.cancel()
+    // Matches the returnTo radiance sets on the OAuth URL.
+    let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "lantern") {
+      [weak self] callbackURL, error in
+      DispatchQueue.main.async {
+        self?.authSession = nil
+        if let callbackURL {
+          result(callbackURL.absoluteString)
+        } else if (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin {
+          result(nil)
+        } else {
+          result(
+            FlutterError(
+              code: "AUTH_SESSION", message: error?.localizedDescription, details: nil))
+        }
+      }
+    }
+    session.presentationContextProvider = authAnchor
+    authSession = session
+    if !session.start() {
+      authSession = nil
+      result(FlutterError(code: "AUTH_SESSION", message: "Unable to start sign-in", details: nil))
     }
   }
 
@@ -1651,4 +1691,15 @@ class MethodHandler {
     result("ok")
   }
 
+}
+
+private final class AuthPresentationAnchor: NSObject,
+  ASWebAuthenticationPresentationContextProviding
+{
+  func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+    UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .flatMap(\.windows)
+      .first(where: \.isKeyWindow) ?? ASPresentationAnchor()
+  }
 }

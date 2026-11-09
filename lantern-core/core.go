@@ -94,6 +94,7 @@ type LanternCore struct {
 	initOnce       sync.Once
 	eventEmitter   utils.FlutterEventEmitter
 	helpers        *helper.Engine
+	pairingKeys    *pairingKeyPusher
 }
 
 var (
@@ -344,6 +345,9 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
 	lc.helpers = helper.NewEngine(filepath.Join(opts.DataDir, "helper"), lc.relayHelper, lc.helperActivity)
+	lc.pairingKeys = newPairingKeyPusher(ctx, lc.helpers.UnlockedPairingKeys, client.SetHelperPairingKeys)
+	// A key an op erases before a slow request reaches radiance at once.
+	lc.helpers.SetKeysChanged(lc.pairingKeys.changed)
 
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
@@ -352,6 +356,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenUnboundedSnapshots()
 	go lc.listenPeerSnapshots()
 	go lc.listenHelperLive()
+	go lc.listenVPNStatusForPairingKeys()
 	go lc.listenPersonalProxyFallbackEvents()
 	go lc.listenSelectionSavedEvents()
 	go lc.listenPeerStatusEvents()
@@ -1664,6 +1669,9 @@ func (lc *LanternCore) HelperCall(op, argsJSON string) string {
 	ctx, cancel := context.WithTimeout(lc.ctx, helperCallTimeout)
 	defer cancel()
 	out, err := lc.helpers.Call(ctx, op, []byte(argsJSON))
+	// Any op may have changed the pairing keys: an unlock or a lock, a
+	// pairing made or ended, a refresh that heard of one.
+	lc.pairingKeys.changed()
 	if err != nil {
 		// Only the op, code and status: the arguments and the rest of the
 		// error can carry invite secrets or names.

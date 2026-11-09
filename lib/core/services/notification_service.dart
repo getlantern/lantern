@@ -265,7 +265,7 @@ class NotificationService {
         presentSound: true,
       ),
       linux: LinuxNotificationDetails(
-        urgency: LinuxNotificationUrgency.critical,
+        urgency: LinuxNotificationUrgency.normal,
         defaultActionName: 'View',
       ),
       windows: WindowsNotificationDetails(

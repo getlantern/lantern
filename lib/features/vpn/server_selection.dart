@@ -88,6 +88,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final hasPersonalProxies = ref.watch(
       helpersProvider.select((s) => s.view.helpers.isNotEmpty),
     );
+    // Where helper invites are offered, until the first personal proxy: it
+    // then moves into the Personal Proxies group under Private Locations.
+    final inviteRow = ref.watch(personalProxyBannerVisibleProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -102,6 +105,19 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             ).textTheme.bodyMedium!.copyWith(color: context.textSecondary),
           ),
         ),
+        if (inviteRow) ...[
+          const SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              tileKey: const Key('server_selection.invite_row'),
+              icon: AppImagePaths.personAdd,
+              label: 'invite_personal_proxy'.i18n,
+              trailing: const AppImage(path: AppImagePaths.arrowForward),
+              onPressed: () => startPersonalProxyInvite(context, ref),
+            ),
+          ),
+        ],
         const SizedBox(height: size24),
         Expanded(
           child: servers.hasUserServers || hasPersonalProxies
@@ -122,7 +138,6 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             height: 35.h,
             child: TabBar(
               indicatorSize: TabBarIndicatorSize.tab,
-              indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
               splashBorderRadius: BorderRadius.circular(40),
               labelColor: context.actionTabbarSelectedText,
               dividerHeight: 0,
@@ -655,30 +670,9 @@ class _PrivateServerLocationListViewState
     }, [hasPersonalProxies]);
 
     // Whether each friend can be selected on their own also needs radiance's
-    // status. It is local IPC, read only while this tab shows friends, so
-    // nothing polls it otherwise; the fallback when a selected friend goes
-    // away comes as an event, not from this poll.
-    useEffect(() {
-      if (!hasPersonalProxies) return null;
-      final status = ref.read(personalProxyStatusProvider.notifier);
-      // The first read waits for the frame: the effect runs during build,
-      // when no provider may change.
-      var active = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (active) unawaited(status.poll());
-      });
-      final timer = Timer.periodic(personalProxyStatusInterval, (_) {
-        if (WidgetsBinding.instance.lifecycleState !=
-            AppLifecycleState.resumed) {
-          return;
-        }
-        unawaited(status.poll());
-      });
-      return () {
-        active = false;
-        timer.cancel();
-      };
-    }, [hasPersonalProxies]);
+    // status; the fallback when a selected friend goes away comes as an
+    // event, not from this poll.
+    usePersonalProxyStatusPoll(ref, enabled: hasPersonalProxies);
 
     if (availableServers.isLoading) {
       return const Center(child: Spinner());
@@ -729,6 +723,7 @@ class _PrivateServerLocationListViewState
             ServerLocation.personalProxy(),
           ),
           selectedFriend: selectedFriend,
+          onInvite: () => startPersonalProxyInvite(context, ref),
           onSelectFriend: (h) => _select(
             ServerLocationType.personalProxy,
             personalProxySelection(h.outboundTag),
@@ -809,26 +804,60 @@ class _PrivateServerLocationListViewState
     String tag,
     ServerLocation location, {
     String? connectedMessage,
-  }) async {
-    if (!_macOSExtensionReady(ref)) return;
+  }) => _selectLocation(
+    context,
+    ref,
+    type,
+    tag,
+    location,
+    connectedMessage: connectedMessage,
+  );
+}
 
-    final locationNotifier = ref.read(serverLocationProvider.notifier);
-    final since = locationNotifier.readsStarted;
-    await _connectAndReturnHome(
-      context,
-      ref,
-      attempt: (skipConflictCheck) => ref
-          .read(vpnProvider.notifier)
-          .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
-      save: () {
-        if (!locationNotifier.confirmedSince(since)) {
-          locationNotifier.updateServerLocation(location);
-        }
-        return locationNotifier.syncSelection();
-      },
-      connectedMessage: connectedMessage,
-    );
-  }
+/// Connects through the personal proxy whose outbound tag is [friendTag], or
+/// through every personal proxy at once without one, and makes it the
+/// selection, as picking it under Private Locations does. "Connect Now"
+/// after approving a friend.
+Future<void> connectPersonalProxy(
+  BuildContext context,
+  WidgetRef ref, {
+  String? friendTag,
+}) => _selectLocation(
+  context,
+  ref,
+  ServerLocationType.personalProxy,
+  friendTag == null ? personalProxiesTag : personalProxySelection(friendTag),
+  ServerLocation.personalProxy(friendTag: friendTag),
+);
+
+/// [_PrivateServerLocationListViewState._select] for any caller: connects to
+/// [tag] and, once connected, makes [location] the selection.
+Future<void> _selectLocation(
+  BuildContext context,
+  WidgetRef ref,
+  ServerLocationType type,
+  String tag,
+  ServerLocation location, {
+  String? connectedMessage,
+}) async {
+  if (!_macOSExtensionReady(ref)) return;
+
+  final locationNotifier = ref.read(serverLocationProvider.notifier);
+  final since = locationNotifier.readsStarted;
+  await _connectAndReturnHome(
+    context,
+    ref,
+    attempt: (skipConflictCheck) => ref
+        .read(vpnProvider.notifier)
+        .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
+    save: () {
+      if (!locationNotifier.confirmedSince(since)) {
+        locationNotifier.updateServerLocation(location);
+      }
+      return locationNotifier.syncSelection();
+    },
+    connectedMessage: connectedMessage,
+  );
 }
 
 /// On macOS the system extension must be approved before anything can
@@ -840,10 +869,17 @@ bool _macOSExtensionReady(WidgetRef ref) {
   return false;
 }
 
+/// How long a connect flow's future waits for the VPN to settle. The save
+/// and the return home still happen after it, while the caller is there.
+@visibleForTesting
+Duration returnHomeWait = const Duration(seconds: 60);
+
 /// The connect flow shared by every row on this screen. Runs [attempt] behind
 /// the loading overlay, offers the conflict dialog and a retry when another
 /// VPN is active, then hands [save] to the location notifier to run once the
-/// VPN reports connected, and returns to the home screen.
+/// VPN reports connected, and returns to the home screen. It completes once
+/// that save has run or been dropped, or after [returnHomeWait], so a caller
+/// that keeps [context] until then is still there to return home from.
 Future<void> _connectAndReturnHome(
   BuildContext context,
   WidgetRef ref, {
@@ -854,6 +890,9 @@ Future<void> _connectAndReturnHome(
   bool skipConflictCheck = false,
 }) async {
   final locationNotifier = ref.read(serverLocationProvider.notifier);
+  // A stop the VPN reports before the attempt answers is still this
+  // attempt's outcome.
+  final stops = locationNotifier.vpnStops;
   // The overlay is app-wide, so hide it through its controller rather than
   // this context, which may be gone by the time the attempt returns.
   final overlay = context.loaderOverlay;
@@ -864,33 +903,39 @@ Future<void> _connectAndReturnHome(
   } finally {
     overlay.hide();
   }
-  result.fold(
-    (failure) {
+  await result.fold(
+    (failure) async {
       if (!context.mounted) return;
       if (failure is VpnConflictFailure && !skipConflictCheck) {
-        AppDialog.vpnConflictDialog(
+        // Settles once the user chooses and, on Connect Anyway, once the
+        // retry has.
+        Future<void>? retry;
+        await AppDialog.vpnConflictDialog(
           context: context,
           onConnectAnyway: () {
             appRouter.maybePop();
-            unawaited(
-              _connectAndReturnHome(
-                context,
-                ref,
-                attempt: attempt,
-                save: save,
-                connectedMessage: connectedMessage,
-                skipConflictCheck: true,
-              ),
+            retry = _connectAndReturnHome(
+              context,
+              ref,
+              attempt: attempt,
+              save: save,
+              connectedMessage: connectedMessage,
+              skipConflictCheck: true,
             );
           },
         );
+        await retry;
         return;
       }
       context.showSnackBar(failure.localizedErrorMessage);
     },
-    (_) => unawaited(
-      _returnHomeOnceSaved(context, locationNotifier, save, connectedMessage),
-    ),
+    (_) => _returnHomeOnceSaved(
+      context,
+      locationNotifier,
+      save,
+      connectedMessage,
+      stops,
+    ).timeout(returnHomeWait, onTimeout: () {}),
   );
 }
 
@@ -901,8 +946,12 @@ Future<void> _returnHomeOnceSaved(
   ServerLocationNotifier locationNotifier,
   FutureOr<void> Function() save,
   String? connectedMessage,
+  int stopsSince,
 ) async {
-  final saved = await locationNotifier.saveOnceConnected(save);
+  final saved = await locationNotifier.saveOnceConnected(
+    save,
+    stopsSince: stopsSince,
+  );
   if (!saved || !context.mounted) return;
   if (connectedMessage != null) context.showSnackBar(connectedMessage);
   appRouter.popUntilRoot();

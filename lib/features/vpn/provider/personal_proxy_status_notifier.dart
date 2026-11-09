@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
@@ -7,9 +9,36 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
-/// How often the Private Locations tab reads radiance's status of the
-/// friends this device invited, while it is shown.
+/// How often a screen showing the friends this device invited reads
+/// radiance's status of them, while it is shown.
 const personalProxyStatusInterval = Duration(seconds: 5);
+
+/// Reads [personalProxyStatusProvider] after the first frame and then every
+/// [personalProxyStatusInterval] while the app is resumed, for as long as the
+/// calling widget is built with [enabled]. It is local IPC, read only while a
+/// screen shows friends, so nothing polls it otherwise.
+void usePersonalProxyStatusPoll(WidgetRef ref, {required bool enabled}) {
+  useEffect(() {
+    if (!enabled) return null;
+    final status = ref.read(personalProxyStatusProvider.notifier);
+    // The first read waits for the frame: the effect runs during build,
+    // when no provider may change.
+    var active = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (active) unawaited(status.poll());
+    });
+    final timer = Timer.periodic(personalProxyStatusInterval, (_) {
+      if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        return;
+      }
+      unawaited(status.poll());
+    });
+    return () {
+      active = false;
+      timer.cancel();
+    };
+  }, [enabled]);
+}
 
 /// radiance's status of each friend this device invited, by outbound tag,
 /// which decides whether a friend can be selected on their own (see
