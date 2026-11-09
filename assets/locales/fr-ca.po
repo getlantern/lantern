@@ -2213,3 +2213,6 @@ msgstr "Mes amis uniquement"
 
 msgid "helping_scope_all_countries"
 msgstr "Tous les pays"
+
+msgid "approved_title"
+msgstr "%s est maintenant votre proxy personnel"

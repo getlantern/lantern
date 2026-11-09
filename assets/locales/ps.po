@@ -2415,3 +2415,6 @@ msgstr "یوازې زما ملګري"
 
 msgid "helping_scope_all_countries"
 msgstr "ټول هېوادونه"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "کله چې Lantern بند وي، له هغه چا چې پر هغه باور لرئ او له خپل هېواد بهر دی وغواړئ چې ستاسو پراکسي شي."
