@@ -1106,6 +1106,37 @@ void main() {
     expect(find.byKey(const Key('invite.gone')), findsOneWidget);
   });
 
+  testWidgets('an invite seen expired shows again once the view has it valid, '
+      'as after the clock moved back', (tester) async {
+    HelpersState withExpiry(int expiresUnix) => HelpersState(
+      viewLoaded: true,
+      view: HelpersView(
+        unlocked: true,
+        invites: [
+          HelperInviteView(
+            id: 'i1',
+            state: 'pending',
+            link: 'https://lantern.io/help/#AAAA',
+            expiresUnix: expiresUnix,
+            inviterName: 'Sara',
+          ),
+        ],
+      ),
+    );
+    final fake = _Helpers(withExpiry(_now() + 3600))
+      ..renameExpiresUnix = _now() - 1;
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    await tester.enterText(find.byKey(const Key('invite.name')), 'Sara K');
+    await tester.tap(find.byKey(const Key('invite.show_qr')));
+    await tester.pump();
+    await tester.pump();
+    expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+    fake.emit(withExpiry(_now() + 3600));
+    await tester.pump();
+    expect(find.byKey(const Key('invite.gone')), findsNothing);
+    expect(find.byKey(const Key('invite.show_qr')), findsOneWidget);
+  });
+
   testWidgets('without a name, Share asks for one on the screen; the name '
       'typed makes the invite, capitalized', (tester) async {
     final shared = <ShareParams>[];
