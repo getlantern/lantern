@@ -209,8 +209,7 @@ class InviteShare extends HookConsumerWidget {
         : invite.expiresUnix;
     useEffect(() {
       if (expiresUnix <= 0) return null;
-      bool expiredNow() =>
-          expiresUnix <= DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      bool expiredNow() => expiresUnix <= HelperInviteView.nowUnix();
       var wasExpired = expiredNow();
       final timer = Timer.periodic(expiryCheckEvery, (_) {
         final expired = expiredNow();
