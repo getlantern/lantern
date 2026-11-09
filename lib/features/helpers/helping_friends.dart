@@ -85,6 +85,7 @@ void showHelpingFriendsSheet(BuildContext context) {
   showAppBottomSheet(
     context: context,
     title: 'helping_sheet_title'.i18n,
+    backgroundColor: context.bgSurface,
     subtitle: Consumer(
       builder: (context, ref, _) {
         final line = connectedRightNow(
@@ -127,9 +128,6 @@ class HelpingFriendsSheet extends HookConsumerWidget {
 
     final helping = helpers.view.helping;
     final activity = helpers.view.activity;
-    final connectedColor = Theme.of(context).brightness == Brightness.dark
-        ? AppColors.green3
-        : AppColors.green6;
 
     return ListView(
       controller: scrollController,
@@ -176,10 +174,8 @@ class HelpingFriendsSheet extends HookConsumerWidget {
                               ? 'helping_connected'.i18n
                               : 'helping_not_connected'.i18n,
                           key: Key('helping.status.${p.pairingId}'),
-                          style: textTheme.labelLarge!.copyWith(
-                            color: p.connected!
-                                ? connectedColor
-                                : context.textSecondary,
+                          style: textTheme.titleMedium!.copyWith(
+                            color: context.textLink,
                           ),
                         ),
                       IconButton(
@@ -299,6 +295,7 @@ void showWhoYoureHelpingSheet(BuildContext context) {
   showAppBottomSheet(
     context: context,
     title: 'helping_scope_title'.i18n,
+    backgroundColor: context.bgSurface,
     subtitle: Text(
       'helping_scope_subtitle'.i18n,
       style: Theme.of(

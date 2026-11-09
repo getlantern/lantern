@@ -22,6 +22,7 @@ void showAdvancedStatsSheet(BuildContext context) {
     context: context,
     title: 'people_helped_title'.i18n,
     scrollControlDisabledMaxHeightRatio: 0.8,
+    backgroundColor: context.bgSurface,
     subtitle: Consumer(
       builder: (context, ref, _) {
         final state = ref.watch(shareProvider);
@@ -73,7 +74,6 @@ class AdvancedStatsView extends ConsumerWidget {
       children: [
         _SectionTitle('advanced_stats_by_country'.i18n),
         AppCard(
-          bgColor: context.bgSurface,
           padding: _cardPadding,
           child: countries.isEmpty
               ? Padding(
@@ -98,7 +98,6 @@ class AdvancedStatsView extends ConsumerWidget {
         _SectionTitle('advanced_stats_data_relayed'.i18n),
         AppCard(
           padding: _cardPadding,
-          bgColor: context.bgSurface,
           child: Column(
             children: [
               if (showSession) ...[
@@ -218,7 +217,7 @@ class _StatRow extends StatelessWidget {
               child: Text(
                 value!,
                 textAlign: TextAlign.end,
-                style: textTheme.bodyLarge!.copyWith(color: context.textLink),
+                style: textTheme.titleMedium!.copyWith(color: context.textLink),
               ),
             ),
         ],
