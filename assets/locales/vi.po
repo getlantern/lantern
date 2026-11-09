@@ -336,9 +336,6 @@ msgstr "Chế độ tự động"
 msgid "manual"
 msgstr "Thủ công"
 
-msgid "enter_url_or_ip"
-msgstr "Nhập URL hoặc địa chỉ IP"
-
 msgid "installed_apps"
 msgstr "Ứng dụng đã cài đặt"
 
@@ -350,9 +347,6 @@ msgstr "Tìm kiếm trang web"
 
 msgid "mode"
 msgstr "Chế độ"
-
-msgid "use_commas"
-msgstr "Sử dụng dấu phẩy để phân tách nhiều URL"
 
 msgid "deep_link_expired"
 msgstr "Liên kết này đã hết hạn. Vui lòng yêu cầu liên kết mới."
@@ -1135,12 +1129,6 @@ msgstr "Cảm ơn phản hồi của bạn!"
 msgid "no_apps_selected"
 msgstr "Chưa chọn ứng dụng nào"
 
-msgid "deselect_all"
-msgstr "Bỏ chọn tất cả"
-
-msgid "select_all"
-msgstr "Chọn tất cả"
-
 msgid "no_websites_selected"
 msgstr "Chưa chọn trang web nào"
 
@@ -1418,9 +1406,6 @@ msgstr ""
 "Định tuyến Thông minh sử dụng các quy tắc cụ thể theo khu vực để tự động gửi"
 " lưu lượng cần VPN qua Lantern. Tất cả lưu lượng khác sẽ kết nối trực tiếp "
 "để có tốc độ và độ tin cậy cao hơn."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Thêm ứng dụng và trang web để bỏ qua VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr ""
@@ -1729,21 +1714,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Vẫn thêm"
-
-msgid "bypass_all_warning_title"
-msgstr "Thêm tất cả ứng dụng vào danh sách bỏ qua?"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"Bao gồm cả các trình duyệt như %s. Ứng dụng trong danh sách bỏ qua kết nối "
-"trực tiếp, không có sự bảo vệ của Lantern. Ở các quốc gia chặn một số trang "
-"web nhất định, một số trang sẽ không tải được nữa."
-
-msgid "add_all_except_browsers"
-msgstr "Thêm tất cả trừ trình duyệt"
-
-msgid "add_all_anyway"
-msgstr "Vẫn thêm tất cả"
 
 msgid "bypass_app_first_time_title"
 msgstr "Bỏ qua VPN cho ứng dụng này?"
@@ -2286,9 +2256,6 @@ msgstr "Mình có thể làm proxy cá nhân của bạn trên Lantern để b�
 
 msgid "add_executable"
 msgstr "Thêm tệp thực thi"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Chọn đúng tệp .exe của trò chơi hoặc ứng dụng để bỏ qua VPN. Chọn trình khởi chạy sẽ không bao gồm các chương trình mà nó mở."
 
 msgid "select_windows_executable"
 msgstr "Chọn tệp .exe của một ứng dụng trên máy tính này, ngoài Lantern."

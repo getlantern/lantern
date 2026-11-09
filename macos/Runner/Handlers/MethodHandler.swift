@@ -266,7 +266,24 @@ class MethodHandler {
         self.getSplitTunnelItems(result: result, filterType: filterType)
 
       case "getSplitTunnelState":
-        self.getSplitTunnelState(result: result)
+        self.splitTunnelCall(result: result) { MobileGetSplitTunnelStateJSON($0) }
+
+      case "switchSplitTunnelPolicy":
+        guard let arguments = call.arguments as? [String: Any], let policy = arguments["policy"] as? String else {
+          result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing policy", details: nil))
+          return
+        }
+        self.splitTunnelCall(result: result) { MobileSwitchSplitTunnelPolicy(policy, $0) }
+
+      case "clearSplitTunnelApps":
+        self.splitTunnelCall(result: result) { MobileClearSplitTunnelApps($0) }
+
+      case "normalizeSplitTunnelWebsite":
+        guard let arguments = call.arguments as? [String: Any], let input = arguments["input"] as? String else {
+          result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing website", details: nil))
+          return
+        }
+        self.splitTunnelCall(result: result) { MobileNormalizeSplitTunnelWebsite(input, $0) }
 
       // Server Selection
       case "getLanternAvailableServers":
@@ -431,12 +448,6 @@ class MethodHandler {
       case "installedApps":
         self.installedApps(result: result)
 
-      case "isSplitTunnelingEnabled":
-        Task.detached {
-          let enabled = MobileIsSplitTunnelingEnabled()
-          await MainActor.run { result(enabled) }
-        }
-
       case "disableSplitTunneling":
         self.disableSplitTunneling(result: result)
 
@@ -453,14 +464,6 @@ class MethodHandler {
         let filterType: String = requireArg(call: call, name: "filterType", result: result)!
         let value: String = requireArg(call: call, name: "value", result: result)!
         self.removeSplitTunnelItem(result: result, filterType: filterType, value: value)
-
-      case "addAllItems":
-        let value: String = requireArg(call: call, name: "value", result: result)!
-        self.addAllItemsToSplitTunnel(result: result, value: value)
-
-      case "removeAllItems":
-        let value: String = requireArg(call: call, name: "value", result: result)!
-        self.removeItemsToSplitTunnel(result: result, value: value)
 
       // Smart routing
       case "setRoutingMode":
@@ -1300,15 +1303,15 @@ class MethodHandler {
     }
   }
 
-  func getSplitTunnelState(result: @escaping FlutterResult) {
+  private func splitTunnelCall<T>(result: @escaping FlutterResult, _ call: @escaping (NSErrorPointer) -> T) {
     Task {
       var error: NSError?
-      let json = MobileGetSplitTunnelStateJSON(&error)
+      let response = call(&error)
       if let error {
-        await self.handleFlutterError(error, result: result, code: "GET_SPLIT_TUNNEL_STATE_ERROR")
+        await self.handleFlutterError(error, result: result, code: "SPLIT_TUNNEL_ERROR")
         return
       }
-      await MainActor.run { result(json) }
+      await MainActor.run { result(response) }
     }
   }
 
@@ -1803,33 +1806,6 @@ class MethodHandler {
       await MainActor.run {
         result("ok")
       }
-    }
-  }
-
-  func addAllItemsToSplitTunnel(result: @escaping FlutterResult, value: String) {
-    Task.detached {
-      var error: NSError?
-      MobileAddSplitTunnelItems(value, &error)
-      if let err = error {
-        await self.handleFlutterError(
-          err, result: result, code: "ADD_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
-        return
-      }
-      await MainActor.run { result("ok") }
-
-    }
-  }
-
-  func removeItemsToSplitTunnel(result: @escaping FlutterResult, value: String) {
-    Task.detached {
-      var error: NSError?
-      MobileRemoveSplitTunnelItems(value, &error)
-      if let err = error {
-        await self.handleFlutterError(
-          err, result: result, code: "REMOVE_ALL_SPLIT_TUNNEL_ITEMS_FAILED")
-        return
-      }
-      await MainActor.run { result("ok") }
     }
   }
 

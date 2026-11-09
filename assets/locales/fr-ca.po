@@ -507,9 +507,6 @@ msgstr "Mode automatique"
 msgid "manual"
 msgstr "Manuel"
 
-msgid "enter_url_or_ip"
-msgstr "Saisir une URL ou une adresse IP"
-
 msgid "installed_apps"
 msgstr "Applications installées"
 
@@ -518,9 +515,6 @@ msgstr "Rechercher des sites Web"
 
 msgid "mode"
 msgstr "Mode"
-
-msgid "use_commas"
-msgstr "Séparez les URL par des virgules"
 
 msgid "deep_link_expired"
 msgstr "Ce lien a expiré. Veuillez en demander un nouveau."
@@ -1107,12 +1101,6 @@ msgstr "Merci de vos commentaires!"
 msgid "no_apps_selected"
 msgstr "Aucune application sélectionnée"
 
-msgid "deselect_all"
-msgstr "Tout désélectionner"
-
-msgid "select_all"
-msgstr "Tout sélectionner"
-
 msgid "no_websites_selected"
 msgstr "Aucun site Web sélectionné"
 
@@ -1349,9 +1337,6 @@ msgstr "Tout le trafic passe par le VPN"
 
 msgid "smart_routing_description"
 msgstr "Le routage intelligent utilise des règles propres à votre région pour acheminer automatiquement par Lantern le trafic qui a besoin du VPN. Le reste du trafic passe directement, pour plus de vitesse et de fiabilité."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Ajouter des applis et des sites Web qui contournent le VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "Votre licence Lantern Pro sera appliquée à votre compte existant"
@@ -1592,18 +1577,6 @@ msgstr "Ces journaux peuvent contenir votre courriel, votre adresse IP, les iden
 
 msgid "share_logs_anyway"
 msgstr "Partager les journaux"
-
-msgid "bypass_all_warning_title"
-msgstr "Ajouter toutes les applications à la liste de contournement?"
-
-msgid "bypass_all_warning_body"
-msgstr "Cela inclut des navigateurs comme %s. Les applications de la liste de contournement se connectent directement, sans la protection de Lantern. Dans les pays qui bloquent certains sites Web, certains sites ne se chargeront plus."
-
-msgid "add_all_except_browsers"
-msgstr "Tout ajouter sauf les navigateurs"
-
-msgid "add_all_anyway"
-msgstr "Tout ajouter quand même"
 
 msgid "bypass_app_first_time_title"
 msgstr "Contourner le VPN pour cette application?"
@@ -2105,9 +2078,6 @@ msgstr "Je peux être votre proxy personnel sur Lantern, pour que vous puissiez 
 
 msgid "add_executable"
 msgstr "Ajouter un exécutable"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Choisissez le .exe réel du jeu ou de l'application pour contourner le VPN. Sélectionner un lanceur n'inclut pas les programmes qu'il démarre."
 
 msgid "select_windows_executable"
 msgstr "Sélectionnez le fichier .exe d'une application de cet ordinateur, autre que Lantern."

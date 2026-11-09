@@ -339,9 +339,6 @@ msgstr "Modo automático"
 msgid "manual"
 msgstr "Manual"
 
-msgid "enter_url_or_ip"
-msgstr "Digite URL ou Endereço IP"
-
 msgid "installed_apps"
 msgstr "Apps Instalados"
 
@@ -353,9 +350,6 @@ msgstr "Buscar Sites"
 
 msgid "mode"
 msgstr "Modo"
-
-msgid "use_commas"
-msgstr "Use vírgulas para separar múltiplas URLs"
 
 msgid "deep_link_expired"
 msgstr "Este link expirou. Por favor, solicite um novo."
@@ -1141,12 +1135,6 @@ msgstr "Obrigado pelo seu feedback!"
 msgid "no_apps_selected"
 msgstr "Nenhum app selecionado"
 
-msgid "deselect_all"
-msgstr "Desmarcar Todos"
-
-msgid "select_all"
-msgstr "Selecionar Todos"
-
 msgid "no_websites_selected"
 msgstr "Nenhum site selecionado"
 
@@ -1428,9 +1416,6 @@ msgstr ""
 "O Roteamento Inteligente usa regras específicas da região para enviar "
 "automaticamente o tráfego que precisa da VPN através do Lantern. Todo o "
 "outro tráfego vai direto para velocidade e confiabilidade."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Adicione aplicativos e sites para ignorar a VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "Sua licença do Lantern Pro será aplicada à sua conta existente"
@@ -1741,21 +1726,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Adicionar Mesmo Assim"
-
-msgid "bypass_all_warning_title"
-msgstr "Adicionar todos os apps à lista de exceções?"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"Isso inclui navegadores como o %s. Os apps na lista de exceções se conectam "
-"diretamente, sem a proteção do Lantern. Em países que bloqueiam certos "
-"sites, alguns sites deixarão de carregar."
-
-msgid "add_all_except_browsers"
-msgstr "Adicionar Todos Exceto Navegadores"
-
-msgid "add_all_anyway"
-msgstr "Adicionar Todos Mesmo Assim"
 
 msgid "bypass_app_first_time_title"
 msgstr "Ignorar a VPN para este app?"
@@ -2298,9 +2268,6 @@ msgstr "Posso ser seu proxy pessoal no Lantern, para que você fique on-line pel
 
 msgid "add_executable"
 msgstr "Adicionar executável"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Escolha o .exe real do jogo ou aplicativo para ignorar a VPN. Selecionar um inicializador não inclui os programas que ele abre."
 
 msgid "select_windows_executable"
 msgstr "Selecione o arquivo .exe de um aplicativo neste computador, exceto o Lantern."

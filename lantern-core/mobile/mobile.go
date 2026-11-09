@@ -913,8 +913,28 @@ func GetSplitTunnelItems(filterType string) (string, error) {
 
 func GetSplitTunnelStateJSON() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) {
-		return c.GetSplitTunnelItems()
+		return c.GetSplitTunnelState()
 	})
+}
+
+// SwitchSplitTunnelPolicy changes the policy, clearing both lists if it differs.
+func SwitchSplitTunnelPolicy(policy string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.SwitchSplitTunnelPolicy(policy) })
+}
+
+// ClearSplitTunnelApps removes all selected apps but keeps websites.
+func ClearSplitTunnelApps() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.ClearSplitTunnelApps() })
+}
+
+// NormalizeSplitTunnelWebsite validates a website and returns its stored form.
+func NormalizeSplitTunnelWebsite(input string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.NormalizeSplitTunnelWebsite(input) })
+}
+
+// RestartVPN restarts the active tunnel.
+func RestartVPN() error {
+	return withCore(func(c lanterncore.Core) error { return c.RestartVPN() })
 }
 
 // Developer-mode bindings.

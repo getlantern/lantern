@@ -333,9 +333,6 @@ msgstr "အလိုအလျောက် မုဒ်"
 msgid "manual"
 msgstr "လက်ဖြင့်"
 
-msgid "enter_url_or_ip"
-msgstr "URL သို့မဟုတ် IP လိပ်စာ ထည့်ပါ"
-
 msgid "installed_apps"
 msgstr "ထည့်သွင်းပြီး အက်ပ်များ"
 
@@ -347,9 +344,6 @@ msgstr "ဝက်ဘ်ဆိုက်များ ရှာပါ"
 
 msgid "mode"
 msgstr "မုဒ်"
-
-msgid "use_commas"
-msgstr "URL များစွာကို ခွဲခြားရန် ကော်မာ အသုံးပြုပါ"
 
 msgid "deep_link_expired"
 msgstr "ဤလင့်ခ်သည် သက်တမ်းကုန်သွားပါပြီ။ ကျေးဇူးပြု၍ အသစ်တစ်ခု တောင်းဆိုပါ။"
@@ -1148,12 +1142,6 @@ msgstr "သင့်အကြံပြုချက်အတွက် ကျေ�
 msgid "no_apps_selected"
 msgstr "အက်ပ်များ မရွေးထားပါ"
 
-msgid "deselect_all"
-msgstr "အားလုံး ဖယ်ထုတ်ပါ"
-
-msgid "select_all"
-msgstr "အားလုံး ရွေးပါ"
-
 msgid "no_websites_selected"
 msgstr "ဝက်ဘ်ဆိုက်များ မရွေးထားပါ"
 
@@ -1440,9 +1428,6 @@ msgstr ""
 "လိုအပ်သော ဒေတာအား Lantern မှတစ်ဆင့် အလိုအလျောက် ပို့ပေးပါသည်။ အခြား "
 "ဒေတာများမှာ မြန်ဆန်မှုနှင့် ယုံကြည်စိတ်ချရမှုအတွက် တိုက်ရိုက် "
 "ချိတ်ဆက်သွားပါသည်။"
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "VPN ကို ကျော်သွားရန် အက်ပ်များနှင့် ဝဘ်ဆိုဒ်များကို ထည့်ပါ"
 
 msgid "lantern_pro_license_applied"
 msgstr "သင်၏ Lantern Pro လိုင်စင်ကို သင်၏ လက်ရှိအကောင့်သို့ သက်ရောက်စေမည်"
@@ -1764,22 +1749,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "မည်သို့ပင်ဖြစ်စေ ထည့်ရန်"
-
-msgid "bypass_all_warning_title"
-msgstr "အက်ပ်အားလုံးကို ကျော်လွှားစာရင်းထဲ ထည့်မလား။"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"၎င်းတွင် %s ကဲ့သို့သော ဘရောက်ဇာများ ပါဝင်သည်။ ကျော်လွှားစာရင်းရှိ "
-"အက်ပ်များသည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ကြသည်။ "
-"အချို့ဝဘ်ဆိုက်များကို ပိတ်ဆို့ထားသည့် နိုင်ငံများတွင် အချို့ဆိုက်များ "
-"တင်၍မရတော့ပါ။"
-
-msgid "add_all_except_browsers"
-msgstr "ဘရောက်ဇာများမှလွဲ၍ အားလုံးထည့်ရန်"
-
-msgid "add_all_anyway"
-msgstr "မည်သို့ပင်ဖြစ်စေ အားလုံးထည့်ရန်"
 
 msgid "bypass_app_first_time_title"
 msgstr "ဤအက်ပ်အတွက် VPN ကို ကျော်လွှားမလား။"
@@ -2323,9 +2292,6 @@ msgstr "ကျွန်ုပ်၏ ချိတ်ဆက်မှုမှတ�
 
 msgid "add_executable"
 msgstr "executable ဖိုင် ထည့်ရန်"
-
-msgid "windows_executable_bypass_hint"
-msgstr "VPN ကို ကျော်ရန် ဂိမ်း သို့မဟုတ် အက်ပ်၏ တကယ့် .exe ကို ရွေးပါ။ launcher ကို ရွေးလျှင် ၎င်းဖွင့်သော ပရိုဂရမ်များ မပါဝင်ပါ။"
 
 msgid "select_windows_executable"
 msgstr "ဤကွန်ပျူတာရှိ Lantern မဟုတ်သော အက်ပ်တစ်ခု၏ .exe ဖိုင်ကို ရွေးပါ။"

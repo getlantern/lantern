@@ -197,6 +197,10 @@ type SplitTunnel interface {
 	AddSplitTunnelItems(items string) error
 	RemoveSplitTunnelItem(filterType, item string) error
 	RemoveSplitTunnelItems(items string) error
+	GetSplitTunnelState() (string, error)
+	SwitchSplitTunnelPolicy(policy string) (string, error)
+	ClearSplitTunnelApps() (string, error)
+	NormalizeSplitTunnelWebsite(input string) (string, error)
 	GetSplitTunnelItems() (string, error)
 	GetSplitTunnelItemsFor(filterType string) (string, error)
 }
@@ -245,6 +249,7 @@ type PeerShare interface {
 
 type VPN interface {
 	ConnectVPN(tag string) error
+	RestartVPN() error
 	SelectServer(tag string) error
 	DisconnectVPN() error
 	VPNStatus() (vpn.VPNStatus, error)
@@ -626,10 +631,15 @@ const (
 func (lc *LanternCore) ConnectVPN(tag string) error {
 	ctx, cancel := context.WithTimeout(lc.ctx, ipcConnectTimeout)
 	defer cancel()
-	if err := lc.prepareSplitTunnel(ctx); err != nil {
-		return fmt.Errorf("preparing split-tunnel paths: %w", err)
-	}
+	lc.prepareSplitTunnel(ctx)
 	return vpn_tunnel.ConnectToServer(ctx, lc.client, tag)
+}
+
+// RestartVPN restarts the active tunnel.
+func (lc *LanternCore) RestartVPN() error {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	return lc.client.RestartVPN(ctx)
 }
 
 func (lc *LanternCore) SelectServer(tag string) error {
@@ -934,12 +944,16 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 }
 
 func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) error {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	lc.splitTunnel.mu.Lock()
+	defer lc.splitTunnel.mu.Unlock()
 	if enabled && runtime.GOOS == "windows" {
-		if _, err := lc.splitTunnelFilters(lc.ctx); err != nil {
+		if _, err := lc.splitTunnel.migrateLocked(ctx); err != nil {
 			return err
 		}
 	}
-	return lc.client.EnableSplitTunneling(lc.ctx, enabled)
+	return lc.client.EnableSplitTunneling(ctx, enabled)
 }
 
 func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
@@ -948,6 +962,13 @@ func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
 }
 
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
+	if filterType == vpn.TypeDomainSuffix {
+		var err error
+		item, err = splitTunnelDomain(item)
+		if err != nil {
+			return err
+		}
+	}
 	filter := filterFromTypeAndItems(filterType, []string{item})
 	return lc.updateSplitTunnelItems(filter, false)
 }
@@ -976,7 +997,7 @@ func (lc *LanternCore) GetSplitTunnelItems() (string, error) {
 	}
 	b, err := json.Marshal(filter)
 	if err != nil {
-		return "{}", nil
+		return "", err
 	}
 	return string(b), nil
 }
@@ -987,6 +1008,9 @@ func (lc *LanternCore) GetSplitTunnelItemsFor(filterType string) (string, error)
 		return "", err
 	}
 	items := itemsForType(filter, filterType)
+	if items == nil {
+		items = []string{}
+	}
 	b, err := json.Marshal(items)
 	if err != nil {
 		return "", err
@@ -1005,6 +1029,7 @@ func (lc *LanternCore) GetEnabledApps() (string, error) {
 	// cause of "Failed to fetch installed apps" empty list in
 	// Freshdesk #173774 / #173778 / #173826.
 	enabledApps := []string{}
+	enabledApps = append(enabledApps, filter.ProcessName...)
 	enabledApps = append(enabledApps, filter.ProcessPath...)
 	enabledApps = append(enabledApps, filter.ProcessPathRegex...)
 	enabledApps = append(enabledApps, filter.PackageName...)

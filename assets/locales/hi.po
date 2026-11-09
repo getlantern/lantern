@@ -334,9 +334,6 @@ msgstr "स्वचालित मोड"
 msgid "manual"
 msgstr "मैनुअल"
 
-msgid "enter_url_or_ip"
-msgstr "URL या IP पता दर्ज करें"
-
 msgid "installed_apps"
 msgstr "इंस्टॉल किए गए ऐप"
 
@@ -348,9 +345,6 @@ msgstr "वेबसाइट खोजें"
 
 msgid "mode"
 msgstr "मोड"
-
-msgid "use_commas"
-msgstr "कई URL को अलग करने के लिए कॉमा का उपयोग करें"
 
 msgid "deep_link_expired"
 msgstr "इस लिंक की समय सीमा समाप्त हो गई है। कृपया नया लिंक अनुरोध करें।"
@@ -1136,12 +1130,6 @@ msgstr "आपके फीडबैक के लिए धन्यवाद!"
 msgid "no_apps_selected"
 msgstr "कोई ऐप चयनित नहीं"
 
-msgid "deselect_all"
-msgstr "सभी को अचयनित करें"
-
-msgid "select_all"
-msgstr "सभी चुनें"
-
 msgid "no_websites_selected"
 msgstr "कोई वेबसाइट चयनित नहीं"
 
@@ -1419,9 +1407,6 @@ msgstr ""
 "स्मार्ट रूटिंग क्षेत्र-विशिष्ट नियमों का उपयोग करके स्वचालित रूप से VPN की "
 "आवश्यकता वाले ट्रैफ़िक को Lantern के माध्यम से भेजती है। अन्य सभी ट्रैफ़िक "
 "गति और विश्वसनीयता के लिए सीधे जाते हैं।"
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "VPN बायपास करने के लिए ऐप्स और वेबसाइट जोड़ें"
 
 msgid "lantern_pro_license_applied"
 msgstr "आपका Lantern Pro लाइसेंस आपके मौजूदा खाते पर लागू किया जाएगा"
@@ -1729,21 +1714,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "फिर भी जोड़ें"
-
-msgid "bypass_all_warning_title"
-msgstr "सभी ऐप्स को बाईपास सूची में जोड़ें?"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"इसमें %s जैसे ब्राउज़र शामिल हैं। बाईपास सूची के ऐप्स सीधे कनेक्ट होते हैं, "
-"Lantern की सुरक्षा के बिना। जिन देशों में कुछ वेबसाइटें अवरुद्ध हैं, वहाँ "
-"कुछ साइटें लोड होना बंद हो जाएँगी।"
-
-msgid "add_all_except_browsers"
-msgstr "ब्राउज़र छोड़कर सभी जोड़ें"
-
-msgid "add_all_anyway"
-msgstr "फिर भी सभी जोड़ें"
 
 msgid "bypass_app_first_time_title"
 msgstr "इस ऐप के लिए VPN बाईपास करें?"
@@ -2286,9 +2256,6 @@ msgstr "Lantern पर आप मुझे अपने निजी प्र�
 
 msgid "add_executable"
 msgstr "एक्ज़ीक्यूटेबल जोड़ें"
-
-msgid "windows_executable_bypass_hint"
-msgstr "VPN को बायपास करने के लिए असली गेम या ऐप की .exe चुनें। लॉन्चर चुनने पर उससे शुरू होने वाले प्रोग्राम शामिल नहीं होते।"
 
 msgid "select_windows_executable"
 msgstr "इस कंप्यूटर पर Lantern के अलावा किसी ऐप की .exe फ़ाइल चुनें।"

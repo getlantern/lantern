@@ -7,6 +7,7 @@ import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 
 @RoutePage(name: 'VPNSetting')
 class VPNSetting extends HookConsumerWidget {
@@ -24,10 +25,11 @@ class VPNSetting extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
     final isPrivateServerFound = ref.watch(isPrivateServerFoundProvider);
+    final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
+    final splitTunnel = showSplitTunneling
+        ? ref.watch(splitTunnelProvider).value
+        : null;
     final personalProxies = ref.watch(personalProxiesTabVisibleProvider);
-    final splitTunnelingEnabled = ref.watch(
-      radianceSettingsProvider.select((s) => s.splitTunneling),
-    );
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
@@ -68,14 +70,14 @@ class VPNSetting extends HookConsumerWidget {
                 ),
               ],
               DividerSpace(),
-              if (PlatformUtils.isAndroid ||
-                  PlatformUtils.isMacOS ||
-                  PlatformUtils.isWindows) ...[
+              if (showSplitTunneling) ...[
                 SplitTunnelingTile(
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
                   actionText:
-                      splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+                      (splitTunnel?.statusLabelKey ??
+                              'split_tunnel_unavailable')
+                          .i18n,
                   onPressed: () => appRouter.push(const SplitTunneling()),
                 ),
                 DividerSpace(),
@@ -185,9 +187,7 @@ class VPNSetting extends HookConsumerWidget {
               value: telemetryConsent,
               onChanged: (value) {
                 appLogger.info('Anonymous usage data consent changed: $value');
-                ref
-                    .read(radianceSettingsProvider.notifier)
-                    .setTelemetry(value);
+                ref.read(radianceSettingsProvider.notifier).setTelemetry(value);
               },
             ),
           ),

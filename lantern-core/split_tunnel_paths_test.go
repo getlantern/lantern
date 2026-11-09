@@ -5,12 +5,12 @@ package lanterncore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"reflect"
-	"slices"
 	"sync"
 	"testing"
 
@@ -43,7 +43,7 @@ func (c *splitTunnelTestClient) SplitTunnelFilters(ctx context.Context) (vpn.Spl
 	if err := c.record(ctx, "read"); err != nil {
 		return vpn.SplitTunnelFilter{}, err
 	}
-	return c.handler.Filters(), nil
+	return c.handler.State().Filters, nil
 }
 
 func (c *splitTunnelTestClient) AddSplitTunnelItems(ctx context.Context, filter vpn.SplitTunnelFilter) error {
@@ -61,6 +61,24 @@ func (c *splitTunnelTestClient) RemoveSplitTunnelItems(ctx context.Context, filt
 		c.beforeRemove()
 	}
 	return c.handler.RemoveItems(filter)
+}
+
+func (c *splitTunnelTestClient) SplitTunnelState(context.Context) (vpn.SplitTunnelState, error) {
+	return c.handler.State(), nil
+}
+
+func (c *splitTunnelTestClient) SwitchSplitTunnelPolicy(_ context.Context, policy vpn.SplitTunnelPolicy) (vpn.SplitTunnelState, error) {
+	err := c.handler.SwitchPolicy(policy)
+	return c.handler.State(), err
+}
+
+func (c *splitTunnelTestClient) ClearSplitTunnelApps(context.Context) (vpn.SplitTunnelState, error) {
+	err := c.handler.ClearApps()
+	return c.handler.State(), err
+}
+
+func (c *splitTunnelTestClient) setEnabled(on bool) error {
+	return c.handler.Configure(&on, nil)
 }
 
 func newSplitTunnelTestClient(t *testing.T, dir string) *splitTunnelTestClient {
@@ -96,11 +114,7 @@ func blockSplitTunnelSave(t *testing.T, dir string) func() {
 
 func TestSplitTunnelPathsRetriesFailedSave(t *testing.T) {
 	for _, remove := range []bool{false, true} {
-		name := "add"
-		if remove {
-			name = "remove"
-		}
-		t.Run(name, func(t *testing.T) {
+		t.Run(fmt.Sprint(remove), func(t *testing.T) {
 			dir := t.TempDir()
 			client := newSplitTunnelTestClient(t, dir)
 			initial := vpn.SplitTunnelFilter{Domain: []string{"example.com"}}
@@ -111,36 +125,27 @@ func TestSplitTunnelPathsRetriesFailedSave(t *testing.T) {
 				t.Fatal(err)
 			}
 			paths := splitTunnelPaths{client: client}
+			change := vpn.SplitTunnelFilter{ProcessPath: []string{"game.exe"}}
 			unblock := blockSplitTunnelSave(t, dir)
-			if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{"game.exe"}}, remove); err == nil {
-				t.Fatal("update succeeded while saving was blocked")
+			if err := paths.update(t.Context(), change, remove); err == nil {
+				t.Fatal("save unexpectedly succeeded")
 			}
-			if !paths.pendingSave {
-				t.Fatal("failed save was not retained for retry")
+			if !reflect.DeepEqual(client.handler.State().Filters, initial) {
+				t.Fatal("failed save changed memory")
+			}
+			unblock()
+			if !reflect.DeepEqual(newSplitTunnelTestClient(t, dir).handler.State().Filters, initial) {
+				t.Fatal("failed save changed disk")
+			}
+			if err := paths.update(t.Context(), change, remove); err != nil {
+				t.Fatal(err)
 			}
 			want := vpn.SplitTunnelFilter{Domain: initial.Domain}
 			if !remove {
-				want.ProcessPath = []string{"game.exe"}
+				want.ProcessPath = change.ProcessPath
 			}
-			if got := client.handler.Filters(); !slices.Equal(got.ProcessPath, want.ProcessPath) || !slices.Equal(got.Domain, want.Domain) {
-				t.Fatalf("in-memory filters = %#v, want %#v", got, want)
-			}
-			unblock()
-			if got := newSplitTunnelTestClient(t, dir).handler.Filters(); !reflect.DeepEqual(got, initial) {
-				t.Fatalf("saved filters changed after failure: %#v", got)
-			}
-			client.calls = nil
-			if _, err := paths.filters(t.Context()); err != nil {
-				t.Fatal(err)
-			}
-			if paths.pendingSave {
-				t.Fatal("successful retry left a pending save")
-			}
-			if !reflect.DeepEqual(client.calls, []string{"read", "remove", "read"}) {
-				t.Fatalf("retry calls = %v", client.calls)
-			}
-			if got := newSplitTunnelTestClient(t, dir).handler.Filters(); !reflect.DeepEqual(got, want) {
-				t.Fatalf("saved filters = %#v, want %#v", got, want)
+			if !reflect.DeepEqual(newSplitTunnelTestClient(t, dir).handler.State().Filters, want) {
+				t.Fatal("retry did not persist update")
 			}
 		})
 	}
@@ -148,38 +153,29 @@ func TestSplitTunnelPathsRetriesFailedSave(t *testing.T) {
 
 func TestSplitTunnelPathsPreparesEnabledConnections(t *testing.T) {
 	for _, enabled := range []bool{false, true} {
-		name := "disabled"
-		if enabled {
-			name = "enabled"
-		}
-		t.Run(name, func(t *testing.T) {
+		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
 			dir := t.TempDir()
 			client := newSplitTunnelTestClient(t, dir)
-			if err := client.handler.SetEnabled(enabled); err != nil {
+			if err := client.handler.AddItems(vpn.SplitTunnelFilter{ProcessPathRegex: []string{`(?i)^(?P<lantern_windows_executable>)C:\\Old\\Game\.exe$`}}); err != nil {
 				t.Fatal(err)
 			}
-			paths := splitTunnelPaths{client: client, pendingSave: true}
+			if err := client.setEnabled(enabled); err != nil {
+				t.Fatal(err)
+			}
+			paths := splitTunnelPaths{client: client}
 			unblock := blockSplitTunnelSave(t, dir)
-			err := paths.prepareConnect(t.Context())
-			if (err != nil) != enabled {
-				t.Fatalf("prepareConnect with enabled=%v: %v", enabled, err)
-			}
-			wantCalls := []string{"settings"}
-			if enabled {
-				wantCalls = append(wantCalls, "read", "remove")
-			}
-			if !reflect.DeepEqual(client.calls, wantCalls) || !paths.pendingSave {
-				t.Fatalf("prepare calls=%v, pendingSave=%v", client.calls, paths.pendingSave)
+			if err := paths.prepareConnect(t.Context()); (err != nil) != enabled {
+				t.Fatalf("enabled=%v error=%v", enabled, err)
 			}
 			unblock()
-			if err := client.handler.SetEnabled(true); err != nil {
+			if err := client.setEnabled(true); err != nil {
 				t.Fatal(err)
 			}
 			if err := paths.prepareConnect(t.Context()); err != nil {
 				t.Fatal(err)
 			}
-			if paths.pendingSave {
-				t.Fatal("enabled connection did not retry the pending save")
+			if len(client.handler.State().Filters.ProcessPathRegex) != 0 {
+				t.Fatal("orphan alias was retained")
 			}
 		})
 	}
@@ -196,7 +192,7 @@ func TestSplitTunnelPathsCanceled(t *testing.T) {
 	if !reflect.DeepEqual(client.calls, []string{"read"}) {
 		t.Fatalf("canceled update calls = %v", client.calls)
 	}
-	if paths.pendingSave || len(client.handler.Filters().ProcessPath) != 0 {
+	if len(client.handler.State().Filters.ProcessPath) != 0 {
 		t.Fatal("canceled update changed the filter")
 	}
 }
@@ -216,7 +212,7 @@ func TestSplitTunnelPathsSerializesUpdates(t *testing.T) {
 	}
 	close(start)
 	workers.Wait()
-	if got := client.handler.Filters().ProcessPath; !reflect.DeepEqual(got, []string{"game.exe"}) {
+	if got := client.handler.State().Filters.ProcessPath; !reflect.DeepEqual(got, []string{"game.exe"}) {
 		t.Fatalf("concurrent updates saved duplicate paths: %v", got)
 	}
 }
@@ -235,7 +231,7 @@ func TestSplitTunnelPathsRemovesOrphanAliases(t *testing.T) {
 	if _, err := paths.filters(t.Context()); err != nil {
 		t.Fatal(err)
 	}
-	if got := newSplitTunnelTestClient(t, dir).handler.Filters().ProcessPathRegex; !reflect.DeepEqual(got, []string{userPattern}) {
+	if got := newSplitTunnelTestClient(t, dir).handler.State().Filters.ProcessPathRegex; !reflect.DeepEqual(got, []string{userPattern}) {
 		t.Fatalf("orphan cleanup changed user rules or left a bypass: %v", got)
 	}
 }

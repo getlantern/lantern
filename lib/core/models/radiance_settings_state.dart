@@ -10,7 +10,6 @@ import 'package:lantern/core/common/app_eum.dart';
 class RadianceSettingsState {
   final bool blockAds;
   final RoutingMode routingMode;
-  final bool splitTunneling;
   final bool telemetry;
   final bool peerProxy;
   // Local opt-in for the broflake / Unbounded widget proxy. Separate
@@ -24,7 +23,6 @@ class RadianceSettingsState {
   const RadianceSettingsState({
     this.blockAds = false,
     this.routingMode = RoutingMode.full,
-    this.splitTunneling = false,
     this.telemetry = false,
     this.peerProxy = false,
     this.unboundedEnabled = false,
@@ -33,7 +31,6 @@ class RadianceSettingsState {
   RadianceSettingsState copyWith({
     bool? blockAds,
     RoutingMode? routingMode,
-    bool? splitTunneling,
     bool? telemetry,
     bool? peerProxy,
     bool? unboundedEnabled,
@@ -41,7 +38,6 @@ class RadianceSettingsState {
     return RadianceSettingsState(
       blockAds: blockAds ?? this.blockAds,
       routingMode: routingMode ?? this.routingMode,
-      splitTunneling: splitTunneling ?? this.splitTunneling,
       telemetry: telemetry ?? this.telemetry,
       peerProxy: peerProxy ?? this.peerProxy,
       unboundedEnabled: unboundedEnabled ?? this.unboundedEnabled,
@@ -54,7 +50,6 @@ class RadianceSettingsState {
       other is RadianceSettingsState &&
           blockAds == other.blockAds &&
           routingMode == other.routingMode &&
-          splitTunneling == other.splitTunneling &&
           telemetry == other.telemetry &&
           peerProxy == other.peerProxy &&
           unboundedEnabled == other.unboundedEnabled;
@@ -63,7 +58,6 @@ class RadianceSettingsState {
   int get hashCode => Object.hash(
         blockAds,
         routingMode,
-        splitTunneling,
         telemetry,
         peerProxy,
         unboundedEnabled,

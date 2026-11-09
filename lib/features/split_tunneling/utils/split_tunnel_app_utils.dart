@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:lantern/core/common/app_secrets.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:path/path.dart' as p;
 
 String stableAppId(AppData app) {
@@ -9,6 +11,66 @@ String stableAppId(AppData app) {
     return app.appPath;
   }
   return app.bundleId;
+}
+
+class StoredSplitTunnelApp extends AppData {
+  StoredSplitTunnelApp(this.selectorType, this.selector, AppData metadata)
+    : super(
+        name: metadata.name,
+        bundleId: metadata.bundleId,
+        appPath: metadata.appPath,
+        iconPath: metadata.iconPath,
+        iconBytes: metadata.iconBytes,
+        isBrowser: metadata.isBrowser,
+        wrappedBundle: metadata.wrappedBundle,
+        isEnabled: true,
+      );
+
+  final SplitTunnelFilterType selectorType;
+  final String selector;
+}
+
+String splitTunnelAppRowId(AppData app) => app is StoredSplitTunnelApp
+    ? '${app.selectorType.value}:${app.selector}'
+    : normalizedAppId(app);
+
+List<AppData> storedSplitTunnelApps(
+  SplitTunnelState snapshot,
+  Iterable<AppData> installed,
+) {
+  final result = <AppData>[];
+  for (final type in SplitTunnelState.appTypes) {
+    for (final selector in snapshot.appSelectors(type)) {
+      AppData? metadata;
+      for (final app in installed) {
+        final matches = switch (type) {
+          SplitTunnelFilterType.packageName => app.bundleId == selector,
+          SplitTunnelFilterType.processPath =>
+            Platform.isWindows
+                ? windowsAppPathId(app.appPath) == windowsAppPathId(selector)
+                : app.appPath == selector,
+          SplitTunnelFilterType.processPathRegex =>
+            macOSSplitTunnelRule(app) == selector,
+          SplitTunnelFilterType.processName =>
+            app.appPath.split(RegExp(r'[\\/]+')).last == selector,
+          _ => false,
+        };
+        if (matches) metadata = pickPreferredAppEntry(metadata, app);
+      }
+      final name = selector
+          .replaceFirst(RegExp(r'/Contents/\.\*$'), '')
+          .split(RegExp(r'[\\/]+'))
+          .last;
+      metadata ??= AppData(
+        name: name.isEmpty ? selector : name,
+        bundleId: type == SplitTunnelFilterType.packageName ? selector : '',
+        appPath: type == SplitTunnelFilterType.packageName ? '' : selector,
+      );
+      result.add(StoredSplitTunnelApp(type, selector, metadata));
+    }
+  }
+  return result
+    ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 }
 
 String normalizedAppId(AppData app) {
@@ -31,28 +93,16 @@ bool isWindowsExecutablePath(String path) =>
     !RegExp(r'[\x00-\x1f:<>"|?*]').hasMatch(path.substring(2)) &&
     p.windows.extension(path).toLowerCase() == '.exe';
 
-/// Keep saved executable rules visible even when app discovery misses them.
-List<AppData> windowsEnabledApps(
-  Iterable<AppData> installed,
-  Iterable<String> paths,
-) {
-  final byPath = <String, AppData>{};
+AppData windowsExecutableApp(String path, Iterable<AppData> installed) {
+  final id = windowsAppPathId(path);
+  AppData? metadata;
   for (final app in installed) {
-    if (app.appPath.trim().isEmpty) continue;
-    final id = windowsAppPathId(app.appPath);
-    byPath[id] = pickPreferredAppEntry(byPath[id], app);
+    if (windowsAppPathId(app.appPath) == id) {
+      metadata = pickPreferredAppEntry(metadata, app);
+    }
   }
-  final enabled = <String, AppData>{};
-  for (final path in paths) {
-    if (path.trim().isEmpty) continue;
-    final id = windowsAppPathId(path);
-    final app =
-        byPath[id] ??
-        AppData(name: p.windows.basename(path), bundleId: '', appPath: path);
-    // Use the stored path for removal, including any native normalization.
-    enabled[id] = app.copyWith(appPath: path, isEnabled: true);
-  }
-  return enabled.values.toList()..sort(_compareAppsByDisplayName);
+  return metadata ??
+      AppData(name: p.windows.basename(path), bundleId: '', appPath: path);
 }
 
 bool isLanternApp(AppData app) {

@@ -2,12 +2,17 @@ package lanterncore
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"runtime"
 	"sync"
 
 	"github.com/getlantern/lantern/lantern-core/internal/processpath"
 	"github.com/getlantern/radiance/common/settings"
+	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/vpn"
 )
 
@@ -16,12 +21,103 @@ type splitTunnelClient interface {
 	SplitTunnelFilters(context.Context) (vpn.SplitTunnelFilter, error)
 	AddSplitTunnelItems(context.Context, vpn.SplitTunnelFilter) error
 	RemoveSplitTunnelItems(context.Context, vpn.SplitTunnelFilter) error
+	SplitTunnelState(context.Context) (vpn.SplitTunnelState, error)
+	SwitchSplitTunnelPolicy(context.Context, vpn.SplitTunnelPolicy) (vpn.SplitTunnelState, error)
+	ClearSplitTunnelApps(context.Context) (vpn.SplitTunnelState, error)
+}
+
+type splitTunnelSnapshot struct {
+	vpn.SplitTunnelState
+	Supported bool `json:"supported"`
+}
+
+func encodeSplitTunnelState(state vpn.SplitTunnelState, supported bool) (string, error) {
+	b, err := json.Marshal(splitTunnelSnapshot{SplitTunnelState: state, Supported: supported})
+	return string(b), err
+}
+
+// unsupportedSplitTunnelAPI reports whether the daemon predates the state API.
+func unsupportedSplitTunnelAPI(err error) bool {
+	var response *ipc.Error
+	return errors.As(err, &response) && (response.Status == http.StatusNotFound || response.Status == http.StatusMethodNotAllowed)
+}
+
+// GetSplitTunnelState returns the state as JSON. An older daemon's state is
+// rebuilt from its settings and filters and marked unsupported.
+func (lc *LanternCore) GetSplitTunnelState() (string, error) {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	lc.splitTunnel.mu.Lock()
+	defer lc.splitTunnel.mu.Unlock()
+	return lc.splitTunnel.stateJSONLocked(ctx)
+}
+
+func (s *splitTunnelPaths) stateJSONLocked(ctx context.Context) (string, error) {
+	state, err := s.client.SplitTunnelState(ctx)
+	supported := err == nil
+	if unsupportedSplitTunnelAPI(err) {
+		config, configErr := s.client.Settings(ctx)
+		if configErr != nil {
+			return "", configErr
+		}
+		state.Enabled, _ = config[settings.SplitTunnelKey].(bool)
+		policy, _ := config[settings.SplitTunnelPolicyKey].(string)
+		state.Policy = vpn.SplitTunnelPolicy(policy)
+		if !state.Policy.Valid() {
+			state.Policy = vpn.SplitTunnelPolicyExclude
+		}
+		state.Filters, err = s.client.SplitTunnelFilters(ctx)
+	}
+	if err != nil {
+		return "", err
+	}
+	return encodeSplitTunnelState(state, supported)
+}
+
+// SwitchSplitTunnelPolicy changes the policy, clearing both lists if it differs.
+func (lc *LanternCore) SwitchSplitTunnelPolicy(policy string) (string, error) {
+	p := vpn.SplitTunnelPolicy(policy)
+	if !p.Valid() {
+		return "", fmt.Errorf("invalid split-tunnel policy: %q", policy)
+	}
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	lc.splitTunnel.mu.Lock()
+	defer lc.splitTunnel.mu.Unlock()
+	state, err := lc.splitTunnel.client.SwitchSplitTunnelPolicy(ctx, p)
+	if err != nil {
+		return "", err
+	}
+	return encodeSplitTunnelState(state, true)
+}
+
+// ClearSplitTunnelApps removes all selected apps but keeps websites.
+func (lc *LanternCore) ClearSplitTunnelApps() (string, error) {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	lc.splitTunnel.mu.Lock()
+	defer lc.splitTunnel.mu.Unlock()
+	state, err := lc.splitTunnel.client.ClearSplitTunnelApps(ctx)
+	if unsupportedSplitTunnelAPI(err) {
+		filter, err := lc.splitTunnel.client.SplitTunnelFilters(ctx)
+		if err != nil {
+			return "", err
+		}
+		filter.Domain, filter.DomainSuffix, filter.DomainKeyword, filter.DomainRegex = nil, nil, nil, nil
+		if err := lc.splitTunnel.client.RemoveSplitTunnelItems(ctx, filter); err != nil {
+			return "", err
+		}
+		return lc.splitTunnel.stateJSONLocked(ctx)
+	}
+	if err != nil {
+		return "", err
+	}
+	return encodeSplitTunnelState(state, true)
 }
 
 type splitTunnelPaths struct {
-	mu          sync.Mutex
-	client      splitTunnelClient
-	pendingSave bool
+	mu     sync.Mutex
+	client splitTunnelClient
 }
 
 func (s *splitTunnelPaths) prepareConnect(ctx context.Context) error {
@@ -38,13 +134,17 @@ func (s *splitTunnelPaths) prepareConnect(ctx context.Context) error {
 	return err
 }
 
-func (lc *LanternCore) prepareSplitTunnel(ctx context.Context) error {
+// prepareSplitTunnel migrates saved Windows paths. Unmigrated rules still
+// match, just less completely, so a failure here doesn't block connecting.
+func (lc *LanternCore) prepareSplitTunnel(ctx context.Context) {
 	if runtime.GOOS != "windows" {
-		return nil
+		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, ipcStatusTimeout)
 	defer cancel()
-	return lc.splitTunnel.prepareConnect(ctx)
+	if err := lc.splitTunnel.prepareConnect(ctx); err != nil {
+		slog.Warn("Could not migrate split-tunnel executable paths", "error", err)
+	}
 }
 
 func (s *splitTunnelPaths) filters(ctx context.Context) (vpn.SplitTunnelFilter, error) {
@@ -77,22 +177,20 @@ func (s *splitTunnelPaths) migrateLocked(ctx context.Context) (vpn.SplitTunnelFi
 		}
 	}
 	added.ProcessPathRegex, removed.ProcessPathRegex = splitTunnelAliasChanges(normalizedPaths, filter.ProcessPathRegex)
+	if len(added.ProcessPath)+len(added.ProcessPathRegex)+len(removed.ProcessPath)+len(removed.ProcessPathRegex) == 0 {
+		return filter, nil
+	}
 	// Persist replacements before removing the old paths and aliases.
 	if len(added.ProcessPath)+len(added.ProcessPathRegex) > 0 {
-		s.pendingSave = true
 		if err := s.client.AddSplitTunnelItems(ctx, added); err != nil {
 			return filter, fmt.Errorf("saving executable path rules: %w", err)
 		}
 	}
-	if len(removed.ProcessPath)+len(removed.ProcessPathRegex) == 0 && !s.pendingSave {
-		return filter, nil
+	if len(removed.ProcessPath)+len(removed.ProcessPathRegex) > 0 {
+		if err := s.client.RemoveSplitTunnelItems(ctx, removed); err != nil {
+			return filter, fmt.Errorf("saving migrated executable paths: %w", err)
+		}
 	}
-	// Radiance can change memory before a failed save; an empty removal retries it.
-	s.pendingSave = true
-	if err := s.client.RemoveSplitTunnelItems(ctx, removed); err != nil {
-		return filter, fmt.Errorf("saving migrated executable paths: %w", err)
-	}
-	s.pendingSave = false
 	return s.client.SplitTunnelFilters(ctx)
 }
 
@@ -127,18 +225,11 @@ func (s *splitTunnelPaths) update(ctx context.Context, filter vpn.SplitTunnelFil
 		}
 		_, aliases := splitTunnelAliasChanges(remaining, current.ProcessPathRegex)
 		filter.ProcessPathRegex = append(filter.ProcessPathRegex, aliases...)
-	} else {
-		aliases, _ := splitTunnelAliasChanges(paths, current.ProcessPathRegex)
-		filter.ProcessPathRegex = append(filter.ProcessPathRegex, aliases...)
+		return s.client.RemoveSplitTunnelItems(ctx, filter)
 	}
-	s.pendingSave = true
-	if remove {
-		err = s.client.RemoveSplitTunnelItems(ctx, filter)
-	} else {
-		err = s.client.AddSplitTunnelItems(ctx, filter)
-	}
-	s.pendingSave = err != nil
-	return err
+	aliases, _ := splitTunnelAliasChanges(paths, current.ProcessPathRegex)
+	filter.ProcessPathRegex = append(filter.ProcessPathRegex, aliases...)
+	return s.client.AddSplitTunnelItems(ctx, filter)
 }
 
 // splitTunnelAliasChanges reconciles generated rules against the selected executables.
@@ -173,17 +264,19 @@ func (lc *LanternCore) splitTunnelFilters(ctx context.Context) (vpn.SplitTunnelF
 	if runtime.GOOS == "windows" {
 		return lc.splitTunnel.filters(ctx)
 	}
-	return lc.client.SplitTunnelFilters(ctx)
+	return lc.splitTunnel.client.SplitTunnelFilters(ctx)
 }
 
 func (lc *LanternCore) updateSplitTunnelItems(filter vpn.SplitTunnelFilter, remove bool) error {
-	ctx, cancel := context.WithTimeout(lc.ctx, ipcStatusTimeout)
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
 	defer cancel()
 	if runtime.GOOS == "windows" {
 		return lc.splitTunnel.update(ctx, filter, remove)
 	}
+	lc.splitTunnel.mu.Lock()
+	defer lc.splitTunnel.mu.Unlock()
 	if remove {
-		return lc.client.RemoveSplitTunnelItems(ctx, filter)
+		return lc.splitTunnel.client.RemoveSplitTunnelItems(ctx, filter)
 	}
-	return lc.client.AddSplitTunnelItems(ctx, filter)
+	return lc.splitTunnel.client.AddSplitTunnelItems(ctx, filter)
 }

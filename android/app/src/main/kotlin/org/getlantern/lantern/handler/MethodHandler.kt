@@ -121,13 +121,13 @@ enum class Methods(val method: String) {
 
     //Split Tunnel methods
     SetSplitTunnelingEnabled("setSplitTunnelingEnabled"),
-    IsSplitTunnelingEnabled("isSplitTunnelingEnabled"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
-    AddAllItems("addAllItems"),
-    RemoveAllItems("removeAllItems"),
     GetSplitTunnelItems("getSplitTunnelItems"),
     GetSplitTunnelState("getSplitTunnelState"),
+    SwitchSplitTunnelPolicy("switchSplitTunnelPolicy"),
+    ClearSplitTunnelApps("clearSplitTunnelApps"),
+    NormalizeSplitTunnelWebsite("normalizeSplitTunnelWebsite"),
     InstalledApps("installedApps"),
     GetAppIcon("getAppIcon"),
 
@@ -304,21 +304,6 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.IsSplitTunnelingEnabled.method -> {
-                scope.launch {
-                    runCatching {
-                        val on = Mobile.isSplitTunnelingEnabled()
-                        withContext(Dispatchers.Main) { result.success(on) }
-                    }.onFailure { e ->
-                        result.error(
-                            "is_split_tunneling_enabled",
-                            e.localizedMessage ?: "Failed",
-                            e
-                        )
-                    }
-                }
-            }
-
             Methods.AddSplitTunnelItem.method -> {
                 scope.launch {
                     result.runCatching {
@@ -349,38 +334,6 @@ class MethodHandler : FlutterPlugin,
                         result.error(
                             "remove_split_tunnel_item",
                             e.localizedMessage ?: "Failed to remove split tunnel item",
-                            e
-                        )
-                    }
-                }
-            }
-
-            Methods.AddAllItems.method -> {
-                scope.launch {
-                    result.runCatching {
-                        val items = call.argument<String>("value")
-                        Mobile.addSplitTunnelItems(items)
-                        success("All items added")
-                    }.onFailure { e ->
-                        result.error(
-                            "add_all_split_tunnel_items",
-                            e.localizedMessage ?: "Failed to add all split tunnel items",
-                            e
-                        )
-                    }
-                }
-            }
-
-            Methods.RemoveAllItems.method -> {
-                scope.launch {
-                    result.runCatching {
-                        val items = call.argument<String>("value")
-                        Mobile.removeSplitTunnelItems(items)
-                        success("All items removed")
-                    }.onFailure { e ->
-                        result.error(
-                            "remove_all_split_tunnel_items",
-                            e.localizedMessage ?: "Failed to remove all split tunnel items",
                             e
                         )
                     }
@@ -1221,19 +1174,20 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
-            Methods.GetSplitTunnelState.method -> {
-                scope.launch {
-                    result.runCatching {
-                        val json = Mobile.getSplitTunnelStateJSON()
-                        withContext(Dispatchers.Main) { success(json) }
-                    }.onFailure { e ->
-                        result.error(
-                            "GET_SPLIT_TUNNEL_STATE_ERROR",
-                            e.localizedMessage ?: "Failed to get split tunnel state",
-                            e
-                        )
-                    }
-                }
+            Methods.GetSplitTunnelState.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
+                Mobile.getSplitTunnelStateJSON()
+            }
+
+            Methods.SwitchSplitTunnelPolicy.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
+                Mobile.switchSplitTunnelPolicy(requireNotNull(call.argument<String>("policy")))
+            }
+
+            Methods.ClearSplitTunnelApps.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
+                Mobile.clearSplitTunnelApps()
+            }
+
+            Methods.NormalizeSplitTunnelWebsite.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
+                Mobile.normalizeSplitTunnelWebsite(requireNotNull(call.argument<String>("input")))
             }
 
             Methods.FeatureFlag.method -> {

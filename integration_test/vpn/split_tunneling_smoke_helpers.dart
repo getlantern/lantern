@@ -3,12 +3,51 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/app_buttons.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:path/path.dart' as p;
 
 import '../utils/widget_wait_utils.dart';
+
+T requireSplitTunnelResult<T>(Either<Failure, T> result, String operation) =>
+    result.fold(
+      (failure) => fail('$operation: ${failure.error}'),
+      (value) => value,
+    );
+
+Future<void> restoreSplitTunnelSnapshot(
+  LanternService service,
+  SplitTunnelState saved,
+) async {
+  final opposite = saved.policy == SplitTunnelPolicy.bypass
+      ? 'include'
+      : 'exclude';
+  requireSplitTunnelResult(
+    await service.switchSplitTunnelPolicy(opposite),
+    'Reset smoke selections',
+  );
+  requireSplitTunnelResult(
+    await service.switchSplitTunnelPolicy(saved.policy.wireValue),
+    'Restore split-tunnel mode',
+  );
+  for (final entry in saved.filters.entries) {
+    for (final selector in entry.value) {
+      requireSplitTunnelResult(
+        await service.addSplitTunnelItem(entry.key, selector),
+        'Restore split-tunnel selection',
+      );
+    }
+  }
+  requireSplitTunnelResult(
+    await service.setSplitTunnelingEnabled(saved.enabled),
+    'Restore split-tunnel enabled state',
+  );
+}
 
 Future<void> expectInstalledApp(
   WidgetTester tester, {

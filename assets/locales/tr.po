@@ -340,9 +340,6 @@ msgstr "Otomatik Mod"
 msgid "manual"
 msgstr "Manuel"
 
-msgid "enter_url_or_ip"
-msgstr "URL veya IP Adresi Girin"
-
 msgid "installed_apps"
 msgstr "Yüklü Uygulamalar"
 
@@ -354,9 +351,6 @@ msgstr "Web Sitelerinde Ara"
 
 msgid "mode"
 msgstr "Mod"
-
-msgid "use_commas"
-msgstr "Birden fazla URL'yi ayırmak için virgül kullanın"
 
 msgid "deep_link_expired"
 msgstr "Bu bağlantının süresi doldu. Lütfen yeni bir tane talep edin."
@@ -1135,12 +1129,6 @@ msgstr "Geri bildiriminiz için teşekkürler!"
 msgid "no_apps_selected"
 msgstr "Hiç uygulama seçilmedi"
 
-msgid "deselect_all"
-msgstr "Tümünün Seçimini Kaldır"
-
-msgid "select_all"
-msgstr "Tümünü Seç"
-
 msgid "no_websites_selected"
 msgstr "Hiç web sitesi seçilmedi"
 
@@ -1419,9 +1407,6 @@ msgstr ""
 "Akıllı Yönlendirme, VPN'e ihtiyaç duyan trafiği otomatik olarak Lantern "
 "üzerinden göndermek için bölgeye özel kurallar kullanır. Diğer tüm trafik "
 "hız ve güvenilirlik için doğrudan gider."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "VPN'i atlamak için uygulama ve web siteleri ekle"
 
 msgid "lantern_pro_license_applied"
 msgstr "Lantern Pro Lisansınız mevcut hesabınıza uygulanacak"
@@ -1731,21 +1716,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Yine de Ekle"
-
-msgid "bypass_all_warning_title"
-msgstr "Tüm uygulamalar atlama listesine eklensin mi?"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"Buna %s gibi tarayıcılar da dahildir. Atlama listesindeki uygulamalar, "
-"Lantern'in koruması olmadan doğrudan bağlanır. Belirli web sitelerini "
-"engelleyen ülkelerde bazı siteler yüklenmeyi durduracak."
-
-msgid "add_all_except_browsers"
-msgstr "Tarayıcılar Hariç Tümünü Ekle"
-
-msgid "add_all_anyway"
-msgstr "Yine de Tümünü Ekle"
 
 msgid "bypass_app_first_time_title"
 msgstr "Bu uygulama için VPN atlansın mı?"
@@ -2288,9 +2258,6 @@ msgstr "Lantern'de kişisel proxy'niz olabilirim, böylece benim bağlantım üz
 
 msgid "add_executable"
 msgstr "Yürütülebilir Dosya Ekle"
-
-msgid "windows_executable_bypass_hint"
-msgstr "VPN'i atlamak için oyunun veya uygulamanın asıl .exe dosyasını seçin. Bir başlatıcı seçmek, onun açtığı programları kapsamaz."
 
 msgid "select_windows_executable"
 msgstr "Bu bilgisayarda Lantern dışında bir uygulamanın .exe dosyasını seçin."

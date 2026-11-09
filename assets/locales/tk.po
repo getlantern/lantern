@@ -328,9 +328,6 @@ msgstr "Awtomatik tertip"
 msgid "manual"
 msgstr "El bilen"
 
-msgid "enter_url_or_ip"
-msgstr "URL ýa-da IP salgy giriziň"
-
 msgid "installed_apps"
 msgstr "Gurlan programmalar"
 
@@ -342,9 +339,6 @@ msgstr "Web saýtlary gözle"
 
 msgid "mode"
 msgstr "Tertip"
-
-msgid "use_commas"
-msgstr "Birnäçe URL-leri bölmek üçin vergül ulanyň"
 
 msgid "deep_link_expired"
 msgstr "Bu baglanyşygyň möhleti gutardy. Täzesini haýyş ediň."
@@ -1117,12 +1111,6 @@ msgstr "Pikirleriňiz üçin sag boluň!"
 msgid "no_apps_selected"
 msgstr "Hiç bir programma saýlanmady"
 
-msgid "deselect_all"
-msgstr "Hemmesini saýlama"
-
-msgid "select_all"
-msgstr "Hemmesini saýla"
-
 msgid "no_websites_selected"
 msgstr "Hiç bir web saýt saýlanmady"
 
@@ -1401,9 +1389,6 @@ msgstr ""
 "Akylly marşrutlaşdyryş sebite mahsus düzgünleri ulanyp, VPN talap edýän "
 "trafigi Lantern arkaly awtomatiki ugradýar. Beýleki trafikleriň hemmesi "
 "tizlik we ygtybarlylyk üçin göni gidýär."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "VPN-dan aýlanyp geçmek üçin programmalar we web sahypalar goşuň"
 
 msgid "lantern_pro_license_applied"
 msgstr "Lantern Pro ygtyýarnamaňyz bar bolan hasabyňyza ulanylar"
@@ -1711,21 +1696,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Barybir goş"
-
-msgid "bypass_all_warning_title"
-msgstr "Ähli programmalar aýlanyp geçme sanawyna goşulsynmy?"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"Muňa %s ýaly brauzerler hem girýär. Aýlanyp geçme sanawyndaky programmalar "
-"Lantern-iň goragy bolmazdan göni birigýär. Käbir web sahypalaryny petikleýän"
-" ýurtlarda käbir sahypalar açylmaz."
-
-msgid "add_all_except_browsers"
-msgstr "Brauzerlerden başga ählisini goş"
-
-msgid "add_all_anyway"
-msgstr "Barybir ählisini goş"
 
 msgid "bypass_app_first_time_title"
 msgstr "Bu programma üçin VPN aýlanyp geçilsinmi?"
@@ -2268,9 +2238,6 @@ msgstr "Men Lantern-de siziň şahsy proksiňiz bolup bilerin, şonda siz meniň
 
 msgid "add_executable"
 msgstr "Ýerine ýetiriji faýl goş"
-
-msgid "windows_executable_bypass_hint"
-msgstr "VPN-i aýlanyp geçmek üçin oýnuň ýa-da programmanyň hakyky .exe faýlyny saýlaň. Işe giriziji saýlansa, onuň açýan programmalary goşulmaýar."
 
 msgid "select_windows_executable"
 msgstr "Bu kompýuterde Lantern-den başga bir programmanyň .exe faýlyny saýlaň."

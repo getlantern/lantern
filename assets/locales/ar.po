@@ -341,9 +341,6 @@ msgstr "الوضع التلقائي"
 msgid "manual"
 msgstr "يدوي"
 
-msgid "enter_url_or_ip"
-msgstr "أدخل الرابط أو عنوان IP"
-
 msgid "installed_apps"
 msgstr "التطبيقات المثبتة"
 
@@ -355,9 +352,6 @@ msgstr "البحث عن المواقع"
 
 msgid "mode"
 msgstr "الوضع"
-
-msgid "use_commas"
-msgstr "استخدم الفواصل لفصل روابط متعددة"
 
 msgid "deep_link_expired"
 msgstr "انتهت صلاحية هذا الرابط. يرجى طلب رابط جديد."
@@ -1121,12 +1115,6 @@ msgstr "شكرًا لملاحظاتك!"
 msgid "no_apps_selected"
 msgstr "لم يتم تحديد أي تطبيقات"
 
-msgid "deselect_all"
-msgstr "إلغاء تحديد الكل"
-
-msgid "select_all"
-msgstr "تحديد الكل"
-
 msgid "no_websites_selected"
 msgstr "لم يتم تحديد أي مواقع"
 
@@ -1398,9 +1386,6 @@ msgstr ""
 "يستخدم التوجيه الذكي قواعد خاصة بالمنطقة لإرسال حركة المرور التي تحتاج إلى "
 "VPN عبر Lantern تلقائياً. يتم توجيه جميع حركة المرور الأخرى مباشرة للحصول "
 "على السرعة والموثوقية."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "أضف التطبيقات والمواقع لتجاوز VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "سيتم تطبيق ترخيص Lantern Pro الخاص بك على حسابك الحالي"
@@ -1697,21 +1682,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "الإضافة على أي حال"
-
-msgid "bypass_all_warning_title"
-msgstr "هل تريد إضافة جميع التطبيقات إلى قائمة التجاوز؟"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"يشمل ذلك متصفحات مثل %s. تتصل التطبيقات الموجودة في قائمة التجاوز مباشرة، "
-"بدون حماية Lantern. في البلدان التي تحجب مواقع معينة، ستتوقف بعض المواقع عن "
-"التحميل."
-
-msgid "add_all_except_browsers"
-msgstr "إضافة الكل باستثناء المتصفحات"
-
-msgid "add_all_anyway"
-msgstr "إضافة الكل على أي حال"
 
 msgid "bypass_app_first_time_title"
 msgstr "هل تريد تجاوز VPN لهذا التطبيق؟"
@@ -2252,9 +2222,6 @@ msgstr "يمكنني أن أكون الوكيل الشخصي لك على Lantern
 
 msgid "add_executable"
 msgstr "إضافة ملف تنفيذي"
-
-msgid "windows_executable_bypass_hint"
-msgstr "اختر ملف .exe الفعلي للعبة أو التطبيق لتجاوز VPN. اختيار المشغّل لا يشمل البرامج التي يفتحها."
 
 msgid "select_windows_executable"
 msgstr "اختر ملف .exe لتطبيق على هذا الكمبيوتر، غير Lantern."

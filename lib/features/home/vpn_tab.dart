@@ -6,6 +6,7 @@ import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/helpers/personal_proxy_banner.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
@@ -78,9 +79,6 @@ class _SettingCard extends ConsumerWidget {
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
-    final isSplitTunnelingOn = ref.watch(
-      radianceSettingsProvider.select((s) => s.splitTunneling),
-    );
     final isUserPro = ref.watch(isUserProProvider);
     final serverType = ref
         .watch(serverLocationProvider)
@@ -96,10 +94,10 @@ class _SettingCard extends ConsumerWidget {
         !isUserPro &&
         serverType != ServerLocationType.privateServer;
     final showRoutingMode = !PlatformUtils.isIOS;
-    final showSplitTunneling =
-        PlatformUtils.isAndroid ||
-        PlatformUtils.isMacOS ||
-        PlatformUtils.isWindows;
+    final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
+    final splitTunnel = showSplitTunneling
+        ? ref.watch(splitTunnelProvider).value
+        : null;
 
     // Small screens drop the > chevrons; rows stay tappable via onTap.
     final chevronActions = smallScreen
@@ -117,7 +115,7 @@ class _SettingCard extends ConsumerWidget {
       tileKey: const Key('home.split_tunneling_setting'),
       label: 'split_tunneling'.i18n,
       icon: AppImagePaths.callSpilt,
-      value: isSplitTunnelingOn ? 'enabled'.i18n : 'disabled'.i18n,
+      value: (splitTunnel?.statusLabelKey ?? 'split_tunnel_unavailable').i18n,
       actions: chevronActions,
       onTap: () => appRouter.push(const SplitTunneling()),
     );

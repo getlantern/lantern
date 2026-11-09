@@ -23,6 +23,44 @@ import org.junit.Test
 
 class VpnStartGateTest {
     @Test(timeout = 10_000)
+    fun idleWaitIncludesStartCleanupAndReleasesGate() = runBlocking {
+        val gate = VpnStartGate()
+        val finish = CompletableDeferred<Unit>()
+        val start = launch(start = CoroutineStart.UNDISPATCHED) { gate.run { finish.await() } }
+        val waiting = async(start = CoroutineStart.UNDISPATCHED) { gate.awaitIdle(5_000) }
+        assertFalse(waiting.isCompleted)
+        finish.complete(Unit)
+        start.join()
+        assertTrue(waiting.await())
+        assertTrue(gate.run {})
+    }
+
+    @Test(timeout = 10_000)
+    fun stopSupersedesIdleWait() = runBlocking {
+        val gate = VpnStartGate()
+        val start = launch(start = CoroutineStart.UNDISPATCHED) {
+            gate.run { CompletableDeferred<Unit>().await() }
+        }
+        val waiting = async(start = CoroutineStart.UNDISPATCHED) { gate.awaitIdle(5_000) }
+        gate.stop {}
+        start.join()
+        assertFalse(waiting.await())
+    }
+
+    @Test(timeout = 10_000)
+    fun idleWaitTimeoutDoesNotCancelStartOrReleaseGate() = runBlocking {
+        val gate = VpnStartGate()
+        val finish = CompletableDeferred<Unit>()
+        val start = launch(start = CoroutineStart.UNDISPATCHED) { gate.run { finish.await() } }
+        assertFalse(gate.awaitIdle(10))
+        assertTrue(start.isActive)
+        assertFalse(gate.run {})
+        finish.complete(Unit)
+        start.join()
+        assertTrue(gate.awaitIdle(10))
+    }
+
+    @Test(timeout = 10_000)
     fun duplicatesCannotEnterPreparation() = runBlocking {
         val gate = VpnStartGate()
         val prepared = CompletableDeferred<Unit>()

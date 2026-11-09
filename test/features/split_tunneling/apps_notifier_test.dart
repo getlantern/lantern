@@ -1,80 +1,65 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
-import 'package:lantern/lantern/lantern_service.dart';
-import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
+import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
 class _WindowsApps extends SplitTunnelingApps {
   @override
   SplitTunnelFilterType getFilterType() => SplitTunnelFilterType.processPath;
 }
 
-class _FakeService implements LanternService {
-  List<String> paths = [];
+SplitTunnelState _state(List<String> paths) => SplitTunnelState(
+  enabled: true,
+  policy: SplitTunnelPolicy.bypass,
+  supported: true,
+  filters: {SplitTunnelFilterType.processPath: paths},
+);
+
+class _Core extends SplitTunnel {
+  _Core(this.paths);
+
+  final List<String> paths;
   final added = <String>[];
   final removed = <String>[];
-  String? normalizedPath;
-  Failure? addFailure;
-  Failure? readFailure;
-  Completer<void>? addGate;
-  Completer<Either<Failure, List<String>>>? nextRead;
-  Completer<void>? blockedRead;
+  Failure? failure;
 
   @override
-  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+  Future<SplitTunnelState> build() async => _state(paths);
+
+  @override
+  Future<Failure?> setSelector(
     SplitTunnelFilterType type,
-  ) async {
+    String value, {
+    bool? selected,
+  }) async {
     expect(type, SplitTunnelFilterType.processPath);
-    if (nextRead case final pending?) {
-      nextRead = null;
-      blockedRead?.complete();
-      return pending.future;
-    }
-    return readFailure == null ? right([...paths]) : left(readFailure!);
+    (selected == false ? removed : added).add(value);
+    if (failure != null) return failure;
+    final current = state.requireValue.selectors(type);
+    state = AsyncData(
+      _state(
+        selected == false
+            ? current.where((path) => path != value).toList()
+            : [...current, value],
+      ),
+    );
+    return null;
   }
-
-  @override
-  Future<Either<Failure, Unit>> addSplitTunnelItem(
-    SplitTunnelFilterType type,
-    String path,
-  ) async {
-    expect(type, SplitTunnelFilterType.processPath);
-    added.add(path);
-    if (addFailure != null) return left(addFailure!);
-    if (addGate case final gate?) await gate.future;
-    paths.add(normalizedPath ?? path);
-    return right(unit);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> removeSplitTunnelItem(
-    SplitTunnelFilterType type,
-    String path,
-  ) async {
-    expect(type, SplitTunnelFilterType.processPath);
-    removed.add(path);
-    paths.remove(path);
-    return right(unit);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 Future<ProviderContainer> _container(
-  _FakeService service, {
+  _Core core, {
   List<AppData> installed = const [],
 }) async {
   final container = ProviderContainer(
     overrides: [
-      lanternServiceProvider.overrideWithValue(service),
+      splitTunnelProvider.overrideWith(() => core),
       appsDataProvider.overrideWith((ref) => Stream.value(installed)),
       splitTunnelingAppsProvider.overrideWith(_WindowsApps.new),
     ],
@@ -87,114 +72,45 @@ Future<ProviderContainer> _container(
 }
 
 void main() {
-  test('undiscovered saved executable can be reloaded and removed', () async {
+  test('undiscovered saved executable can be removed', () async {
     const path = r'C:\Games\Game.exe';
-    final service = _FakeService()..paths = [path];
-    final container = await _container(service);
+    final core = _Core([path]);
+    final container = await _container(core);
     final app = container.read(splitTunnelingAppsProvider).requireValue.single;
     expect(app.name, 'Game.exe');
-    expect(app.appPath, path);
+    expect(app, isA<StoredSplitTunnelApp>());
 
     await container.read(splitTunnelingAppsProvider.notifier).toggleApp(app);
-    expect(service.removed, [path]);
+    expect(core.removed, [path]);
     expect(await container.read(splitTunnelingAppsProvider.future), isEmpty);
   });
 
-  test('matching is case-insensitive and keeps stored removal path', () async {
-    const saved = r'c:\games\game.exe';
-    final service = _FakeService()..paths = [saved];
-    final container = await _container(
-      service,
-      installed: [
-        const AppData(
-          name: 'Example Game',
-          bundleId: '',
-          appPath: r'C:\Games\Game.exe',
-        ),
-      ],
-    );
-    final app = container.read(splitTunnelingAppsProvider).requireValue.single;
-    expect(app.name, 'Example Game');
-    expect(app.appPath, saved);
+  test('a saved executable is not added again in another case', () async {
+    final core = _Core([r'c:\games\game.exe']);
+    final container = await _container(core);
     final notifier = container.read(splitTunnelingAppsProvider.notifier);
+
     expect(await notifier.addExecutable(r'C:\Games\GAME.EXE'), isNull);
-    expect(service.added, isEmpty);
-    expect(service.removed, isEmpty);
+    expect(core.added, isEmpty);
   });
 
-  test('adding an executable reads back native normalized identity', () async {
-    const short = r'C:\PROGRA~1\Game\Game.exe';
-    const long = r'C:\Program Files\Game\Game.exe';
-    final service = _FakeService()..normalizedPath = long;
-    final container = await _container(service);
+  test('a new executable is saved as selected', () async {
+    final core = _Core([]);
+    final container = await _container(core);
     final notifier = container.read(splitTunnelingAppsProvider.notifier);
 
-    expect(await notifier.addExecutable(short), isNull);
-    expect(service.added, [short]);
+    expect(await notifier.addExecutable(r'C:\Games\Game.exe'), isNull);
+    expect(core.added, [r'C:\Games\Game.exe']);
     expect(
-      container.read(splitTunnelingAppsProvider).requireValue.single.appPath,
-      long,
-    );
-    container.invalidate(splitTunnelingAppsProvider);
-    expect(
-      (await container.read(splitTunnelingAppsProvider.future)).single.appPath,
-      long,
+      (await container.read(splitTunnelingAppsProvider.future)).single.name,
+      'Game.exe',
     );
   });
-
-  test(
-    'discovery refresh cannot overwrite a completed executable addition',
-    () async {
-      const path = r'C:\Games\Game.exe';
-      final service = _FakeService();
-      final installed = StreamController<List<AppData>>();
-      addTearDown(installed.close);
-      final container = ProviderContainer(
-        overrides: [
-          lanternServiceProvider.overrideWithValue(service),
-          appsDataProvider.overrideWith((ref) => installed.stream),
-          splitTunnelingAppsProvider.overrideWith(_WindowsApps.new),
-        ],
-      );
-      addTearDown(container.dispose);
-      container.listen(splitTunnelingAppsProvider, (_, _) {});
-      await container.read(splitTunnelingAppsProvider.future);
-
-      service.addGate = Completer<void>();
-      final notifier = container.read(splitTunnelingAppsProvider.notifier);
-      final addition = notifier.addExecutable(path);
-      expect(service.added, [path]);
-
-      final staleRead = Completer<Either<Failure, List<String>>>();
-      service.nextRead = staleRead;
-      service.blockedRead = Completer<void>();
-      installed.add(const []);
-      await service.blockedRead!.future;
-
-      service.addGate!.complete();
-      expect(await addition, isNull);
-      expect(
-        (await container.read(
-          splitTunnelingAppsProvider.future,
-        )).single.appPath,
-        path,
-      );
-
-      staleRead.complete(right([]));
-      await Future<void>.delayed(Duration.zero);
-      expect(
-        container.read(splitTunnelingAppsProvider).requireValue.single.appPath,
-        path,
-      );
-    },
-  );
 
   test('failed additions leave saved selections unchanged', () async {
     final failure = Failure(error: 'offline', localizedErrorMessage: 'Offline');
-    final service = _FakeService()
-      ..paths = [r'C:\Games\existing.exe']
-      ..addFailure = failure;
-    final container = await _container(service);
+    final core = _Core([r'C:\Games\existing.exe'])..failure = failure;
+    final container = await _container(core);
     final notifier = container.read(splitTunnelingAppsProvider.notifier);
 
     expect(await notifier.addExecutable(r'C:\Games\new.exe'), same(failure));
@@ -204,29 +120,9 @@ void main() {
     );
   });
 
-  test(
-    'failed readback reports failure without inventing a saved identity',
-    () async {
-      final failure = Failure(
-        error: 'offline',
-        localizedErrorMessage: 'Offline',
-      );
-      final service = _FakeService()..paths = [r'C:\Games\existing.exe'];
-      final container = await _container(service);
-      service.readFailure = failure;
-      final notifier = container.read(splitTunnelingAppsProvider.notifier);
-
-      expect(await notifier.addExecutable(r'C:\Games\new.exe'), same(failure));
-      expect(
-        container.read(splitTunnelingAppsProvider).requireValue.single.appPath,
-        r'C:\Games\existing.exe',
-      );
-    },
-  );
-
   test('invalid and Lantern paths never reach the core', () async {
-    final service = _FakeService();
-    final container = await _container(service);
+    final core = _Core([]);
+    final container = await _container(core);
     final notifier = container.read(splitTunnelingAppsProvider.notifier);
 
     for (final path in [
@@ -237,6 +133,6 @@ void main() {
     ]) {
       expect(await notifier.addExecutable(path), isA<Failure>());
     }
-    expect(service.added, isEmpty);
+    expect(core.added, isEmpty);
   });
 }

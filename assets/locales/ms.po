@@ -335,9 +335,6 @@ msgstr "Mod automatik"
 msgid "manual"
 msgstr "Manual"
 
-msgid "enter_url_or_ip"
-msgstr "Masukkan URL atau Alamat IP"
-
 msgid "installed_apps"
 msgstr "Aplikasi Terpasang"
 
@@ -349,9 +346,6 @@ msgstr "Cari Laman Web"
 
 msgid "mode"
 msgstr "Mod"
-
-msgid "use_commas"
-msgstr "Gunakan koma untuk memisahkan berbilang URL"
 
 msgid "deep_link_expired"
 msgstr "Pautan ini telah tamat tempoh. Sila minta pautan baru."
@@ -1140,12 +1134,6 @@ msgstr "Terima kasih atas maklum balas anda!"
 msgid "no_apps_selected"
 msgstr "Tiada aplikasi dipilih"
 
-msgid "deselect_all"
-msgstr "Nyahpilih Semua"
-
-msgid "select_all"
-msgstr "Pilih Semua"
-
 msgid "no_websites_selected"
 msgstr "Tiada laman web dipilih"
 
@@ -1425,9 +1413,6 @@ msgstr ""
 "Penghalaan Pintar menggunakan peraturan khusus wilayah untuk menghantar "
 "trafik yang memerlukan VPN melalui Lantern secara automatik. Semua trafik "
 "lain pergi terus untuk kelajuan dan kebolehpercayaan."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Tambah apl & laman web untuk memintas VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "Lesen Lantern Pro anda akan digunakan pada akaun sedia ada anda"
@@ -1738,21 +1723,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Tambah Juga"
-
-msgid "bypass_all_warning_title"
-msgstr "Tambah semua aplikasi ke senarai pintasan?"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"Ini termasuk pelayar seperti %s. Aplikasi dalam senarai pintasan bersambung "
-"terus, tanpa perlindungan Lantern. Di negara yang menyekat laman web "
-"tertentu, sesetengah laman akan berhenti dimuatkan."
-
-msgid "add_all_except_browsers"
-msgstr "Tambah Semua Kecuali Pelayar"
-
-msgid "add_all_anyway"
-msgstr "Tambah Semua Juga"
 
 msgid "bypass_app_first_time_title"
 msgstr "Pintaskan VPN untuk aplikasi ini?"
@@ -2295,9 +2265,6 @@ msgstr "Saya boleh menjadi proksi peribadi anda di Lantern, supaya anda boleh me
 
 msgid "add_executable"
 msgstr "Tambah fail boleh laku"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Pilih .exe sebenar permainan atau aplikasi untuk memintas VPN. Memilih pelancar tidak termasuk program yang dimulakannya."
 
 msgid "select_windows_executable"
 msgstr "Pilih fail .exe aplikasi selain Lantern pada komputer ini."

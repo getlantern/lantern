@@ -331,9 +331,6 @@ msgstr "اتوماتیک حالت"
 msgid "manual"
 msgstr "لاسي"
 
-msgid "enter_url_or_ip"
-msgstr "URL یا IP پته دننه کړئ"
-
 msgid "installed_apps"
 msgstr "نصب شوي اپلیکیشنونه"
 
@@ -345,9 +342,6 @@ msgstr "ویب سایټونه ولټوئ"
 
 msgid "mode"
 msgstr "حالت"
-
-msgid "use_commas"
-msgstr "د ډیرو URLونو د جلا کولو لپاره کاما وکاروئ"
 
 msgid "deep_link_expired"
 msgstr "د دې لینک مهلت پای ته رسیدلې ده. مهرباني وکړئ نوی یو غوښتنه وکړئ."
@@ -1149,12 +1143,6 @@ msgstr "ستاسو د نظر لپاره مننه!"
 msgid "no_apps_selected"
 msgstr "هیڅ اپلیکیشن غوره شوی نه دی"
 
-msgid "deselect_all"
-msgstr "ټول غوره نه کړئ"
-
-msgid "select_all"
-msgstr "ټول غوره کړئ"
-
 msgid "no_websites_selected"
 msgstr "هیڅ ویب سایټ غوره شوی نه دی"
 
@@ -1441,9 +1429,6 @@ msgstr ""
 "سمارټ روټینګ د سیمې ځانګړي مقررات کاروي ترڅو هغه ترافیک چې VPN ته اړتیا لري "
 "په اوتومات ډول د Lantern له لارې واستوي. نور ترافیک د چټکتیا او اعتبار لپاره"
 " مستقیم ځي."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "د VPN څخه د تیریدو لپاره اپلیکیشنونه او ویبپاڼې اضافه کړئ"
 
 msgid "lantern_pro_license_applied"
 msgstr "ستاسو د Lantern Pro جواز به ستاسو موجوده حساب ته تطبیق شي"
@@ -1750,21 +1735,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "په هر حال اضافه کړئ"
-
-msgid "bypass_all_warning_title"
-msgstr "ټول اپونه د تېرېدو لیست ته اضافه شي؟"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"پدې کې د %s په څېر بروزرونه شامل دي. د تېرېدو لیست اپونه مستقیم وصل کیږي، د "
-"Lantern له ساتنې پرته. په هغو هېوادونو کې چې ځینې ویب پاڼې بندوي، ځینې پاڼې "
-"به نور نه پرانیستل کیږي."
-
-msgid "add_all_except_browsers"
-msgstr "له بروزرونو پرته ټول اضافه کړئ"
-
-msgid "add_all_anyway"
-msgstr "په هر حال ټول اضافه کړئ"
 
 msgid "bypass_app_first_time_title"
 msgstr "د دې اپ لپاره له VPN تېر شئ؟"
@@ -2307,9 +2277,6 @@ msgstr "زه په Lantern کې ستاسو شخصي پراکسي کېدای شم�
 
 msgid "add_executable"
 msgstr "اجرايي فایل اضافه کړئ"
-
-msgid "windows_executable_bypass_hint"
-msgstr "د VPN څخه د تېرېدو لپاره د لوبې یا اپ اصلي .exe وټاکئ. د لانچر ټاکل هغه پروګرامونه نه شاملوي چې دا یې پیلوي."
 
 msgid "select_windows_executable"
 msgstr "پر دې کمپیوټر د Lantern پرته د یوې اپ .exe فایل وټاکئ."

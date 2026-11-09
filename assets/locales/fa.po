@@ -342,9 +342,6 @@ msgstr "حالت خودکار"
 msgid "manual"
 msgstr "دستی"
 
-msgid "enter_url_or_ip"
-msgstr "آدرس وب یا IP را وارد کنید"
-
 msgid "installed_apps"
 msgstr "برنامه‌های نصب‌شده"
 
@@ -356,9 +353,6 @@ msgstr "جستجوی وب‌سایت"
 
 msgid "mode"
 msgstr "حالت"
-
-msgid "use_commas"
-msgstr "برای جدا کردن چند آدرس، از ویرگول یا کاما استفاده کنید"
 
 msgid "deep_link_expired"
 msgstr "این لینک منقضی شده است. لطفاً لینک جدیدی درخواست کنید."
@@ -1133,12 +1127,6 @@ msgstr "سپاس از بازخورد شما!"
 msgid "no_apps_selected"
 msgstr "هیچ برنامه‌ای انتخاب نشده"
 
-msgid "deselect_all"
-msgstr "لغو همه گزینه‌ها"
-
-msgid "select_all"
-msgstr "انتخاب همه"
-
 msgid "no_websites_selected"
 msgstr "هیچ وب‌سایتی انتخاب نشده"
 
@@ -1417,9 +1405,6 @@ msgstr ""
 "مسیریابی هوشمند از قوانین خاص منطقه استفاده می‌کند تا به‌طور خودکار ترافیکی "
 "که نیاز به VPN دارد را از طریق Lantern ارسال کند. سایر ترافیک برای سرعت و "
 "قابلیت اطمینان مستقیماً منتقل می‌شود."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "افزودن برنامه‌ها و وب‌سایت‌هایی که نمی‌خواهید از VPN عبور کنند"
 
 msgid "lantern_pro_license_applied"
 msgstr "مجوز Lantern Pro شما به حساب موجود شما اعمال خواهد شد"
@@ -1726,18 +1711,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "در هر صورت اضافه شود"
-
-msgid "bypass_all_warning_title"
-msgstr "آیا همه برنامه‌ها به فهرست رد نشدن از VPN افزوده شوند؟"
-
-msgid "bypass_all_warning_body"
-msgstr "این شامل مرورگرهایی مانند %s نیز می‌شود. برنامه‌های این فهرست بدون محافظت Lantern و به‌صورت مستقیم متصل می‌شوند. در کشورهایی که برخی وب‌سایت‌ها را مسدود می‌کنند، بعضی سایت‌ها دیگر باز نمی‌شوند."
-
-msgid "add_all_except_browsers"
-msgstr "افزودن همه به‌جز مرورگرها"
-
-msgid "add_all_anyway"
-msgstr "در هر صورت همه اضافه شوند"
 
 msgid "bypass_app_first_time_title"
 msgstr "آیا VPN از این برنامه رد نشود؟"
@@ -2280,9 +2253,6 @@ msgstr "من می‌توانم پروکسی شخصی شما در Lantern باش�
 
 msgid "add_executable"
 msgstr "افزودن فایل اجرایی"
-
-msgid "windows_executable_bypass_hint"
-msgstr "برای عبور از VPN، فایل .exe اصلی بازی یا برنامه را انتخاب کنید. انتخاب لانچر شامل برنامه‌هایی که اجرا می‌کند نمی‌شود."
 
 msgid "select_windows_executable"
 msgstr "فایل .exe یک برنامه، به‌جز Lantern، را در این رایانه انتخاب کنید."

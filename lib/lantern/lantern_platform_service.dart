@@ -17,6 +17,7 @@ import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/models/user_message.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -803,6 +804,57 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() =>
+      _readSplitTunnelState('getSplitTunnelState');
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(
+    String policy,
+  ) => _readSplitTunnelState('switchSplitTunnelPolicy', {'policy': policy});
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps() =>
+      _readSplitTunnelState('clearSplitTunnelApps');
+
+  Future<Either<Failure, SplitTunnelState>> _readSplitTunnelState(
+    String method, [
+    Map<String, String>? arguments,
+  ]) async {
+    try {
+      final payload = await _methodChannel.invokeMethod<String>(
+        method,
+        arguments,
+      );
+      if (payload == null) {
+        throw const FormatException('Missing split-tunnel state');
+      }
+      return right(
+        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> normalizeSplitTunnelWebsite(
+    String input,
+  ) async {
+    try {
+      final value = await _methodChannel.invokeMethod<String>(
+        'normalizeSplitTunnelWebsite',
+        {'input': input},
+      );
+      if (value == null || value.isEmpty) {
+        throw const FormatException('Missing website selector');
+      }
+      return right(value);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
     try {
       await _methodChannel.invokeMethod('setSplitTunnelingEnabled', {
@@ -811,55 +863,6 @@ class LanternPlatformService implements LanternCoreService {
       return Right(unit);
     } catch (e, st) {
       appLogger.error('setSplitTunnelingEnabled failed', e, st);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, bool>> isSplitTunnelingEnabled() async {
-    try {
-      final enabled = await _methodChannel.invokeMethod<bool>(
-        'isSplitTunnelingEnabled',
-      );
-      return Right(enabled ?? false);
-    } catch (e) {
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, Unit>> addAllItems(
-    SplitTunnelFilterType type,
-    List<String> items,
-  ) async {
-    try {
-      await _methodChannel.invokeMethod('addAllItems', {
-        'filterType': type.value,
-        'value': items.join(','),
-      });
-      appLogger.debug('Added all items');
-      return right(unit);
-    } catch (e) {
-      appLogger.error('Error adding all items', e);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, Unit>> removeAllItems(
-    SplitTunnelFilterType type,
-    List<String> value,
-  ) async {
-    try {
-      appLogger.debug('Removing all items: ${value.length} items');
-      await _methodChannel.invokeMethod('removeAllItems', {
-        'filterType': type.value,
-        'value': value.join(','),
-      });
-      appLogger.debug('Removed all items');
-      return right(unit);
-    } catch (e) {
-      appLogger.error('Error removing all items', e);
       return Left(e.toFailure());
     }
   }
@@ -1857,12 +1860,12 @@ class LanternPlatformService implements LanternCoreService {
       );
 
       if (itemsJson == null || itemsJson.trim().isEmpty) {
-        return right(<String>[]);
+        throw const FormatException('Missing split-tunnel items');
       }
 
       final decoded = jsonDecode(itemsJson);
       if (decoded is! List) {
-        return right(<String>[]);
+        throw const FormatException('Invalid split-tunnel items');
       }
 
       final list = decoded
