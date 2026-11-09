@@ -2405,3 +2405,12 @@ msgstr "আপনার লিংক পেতে আপনার নাম ল�
 
 msgid "invite_qr_title"
 msgstr "ক্যামেরা দিয়ে স্ক্যান করুন"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "এই অ্যাকাউন্টটি %s দিয়ে সাইন ইন করে, যা টিভিতে যাচাই করা যায় না। এটি মুছতে আপনার ফোন বা কম্পিউটারে Lantern খুলুন এবং সেখান থেকে মুছুন।"
+
+msgid "open_on_another_device"
+msgstr "অন্য ডিভাইসে খুলুন"
+
+msgid "open_on_another_device_hint"
+msgstr "এই টিভিতে কোনো ওয়েব ব্রাউজার নেই। আপনার ফোন বা কম্পিউটারে কোডটি স্ক্যান করুন অথবা ঠিকানাটি লিখুন।"

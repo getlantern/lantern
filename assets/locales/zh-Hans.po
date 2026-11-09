@@ -2257,3 +2257,9 @@ msgstr "输入您的名字以获取链接"
 
 msgid "invite_qr_title"
 msgstr "使用相机扫描"
+
+msgid "open_on_another_device"
+msgstr "在其他设备上打开"
+
+msgid "open_on_another_device_hint"
+msgstr "此电视没有网页浏览器。请在手机或电脑上扫描二维码或输入网址。"

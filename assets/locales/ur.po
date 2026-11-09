@@ -2238,3 +2238,12 @@ msgstr "اپنا لنک حاصل کرنے کے لیے اپنا نام درج ک�
 
 msgid "invite_qr_title"
 msgstr "کیمرے سے اسکین کریں"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "یہ اکاؤنٹ %s کے ذریعے سائن ان ہوتا ہے، جس کی تصدیق ٹی وی پر نہیں ہو سکتی۔ اسے حذف کرنے کے لیے اپنے فون یا کمپیوٹر پر Lantern کھولیں اور وہاں سے حذف کریں۔"
+
+msgid "open_on_another_device"
+msgstr "دوسرے آلے پر کھولیں"
+
+msgid "open_on_another_device_hint"
+msgstr "اس ٹی وی میں ویب براؤزر نہیں ہے۔ اپنے فون یا کمپیوٹر پر کوڈ اسکین کریں یا پتہ ٹائپ کریں۔"

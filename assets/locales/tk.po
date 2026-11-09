@@ -2388,3 +2388,15 @@ msgstr "QR kody görkez"
 
 msgid "invite_qr_title"
 msgstr "Kamera bilen skanirle"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Bu hasap %s arkaly içeri girýär we ony telewizorda tassyklap bolmaýar. Ony pozmak üçin telefonyňyzda ýa-da kompýuteriňizde Lantern-i açyň we şol ýerde pozuň."
+
+msgid "invite_link_hint"
+msgstr "Baglanyşygyňyzy almak üçin adyňyzy giriziň"
+
+msgid "open_on_another_device"
+msgstr "Başga enjamda aç"
+
+msgid "open_on_another_device_hint"
+msgstr "Bu telewizorda web brauzer ýok. Telefonyňyzda ýa-da kompýuteriňizde kody skanirläň ýa-da salgyny ýazyň."

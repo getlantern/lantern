@@ -2403,3 +2403,12 @@ msgstr "برای دریافت پیوند، نام خود را وارد کنید"
 
 msgid "invite_qr_title"
 msgstr "اسکن با دوربین"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "این حساب کاربری با %s وارد می‌شود که روی تلویزیون قابل تأیید نیست. برای حذف آن، Lantern را روی تلفن یا رایانه خود باز کنید و از آنجا حذفش کنید."
+
+msgid "open_on_another_device"
+msgstr "باز کردن در دستگاه دیگر"
+
+msgid "open_on_another_device_hint"
+msgstr "این تلویزیون مرورگر وب ندارد. کد را اسکن کنید یا نشانی را در تلفن یا رایانه خود وارد کنید."

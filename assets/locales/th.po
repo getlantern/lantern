@@ -2378,3 +2378,12 @@ msgstr "ป้อนชื่อของคุณเพื่อรับลิ
 
 msgid "invite_qr_title"
 msgstr "สแกนด้วยกล้อง"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "บัญชีนี้ลงชื่อเข้าใช้ด้วย %s ซึ่งไม่สามารถยืนยันบนทีวีได้ หากต้องการลบ ให้เปิด Lantern บนโทรศัพท์หรือคอมพิวเตอร์ของคุณแล้วลบจากที่นั่น"
+
+msgid "open_on_another_device"
+msgstr "เปิดบนอุปกรณ์อื่น"
+
+msgid "open_on_another_device_hint"
+msgstr "ทีวีเครื่องนี้ไม่มีเว็บเบราว์เซอร์ สแกนโค้ดหรือพิมพ์ที่อยู่บนโทรศัพท์หรือคอมพิวเตอร์ของคุณ"

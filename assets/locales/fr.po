@@ -2392,3 +2392,12 @@ msgstr "Saisissez votre nom pour obtenir votre lien"
 
 msgid "invite_qr_title"
 msgstr "Scanner avec l'appareil photo"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Ce compte se connecte avec %s, qui ne peut pas être vérifié sur un téléviseur. Pour le supprimer, ouvrez Lantern sur votre téléphone ou votre ordinateur et supprimez-le depuis cet appareil."
+
+msgid "open_on_another_device"
+msgstr "Ouvrir sur un autre appareil"
+
+msgid "open_on_another_device_hint"
+msgstr "Ce téléviseur n'a pas de navigateur web. Scannez le code ou saisissez l'adresse sur votre téléphone ou ordinateur."

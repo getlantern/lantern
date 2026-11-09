@@ -2409,3 +2409,12 @@ msgstr "Nhập tên của bạn để nhận liên kết"
 
 msgid "invite_qr_title"
 msgstr "Quét bằng camera"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Tài khoản này đăng nhập bằng %s, không thể xác minh trên TV. Để xóa, hãy mở Lantern trên điện thoại hoặc máy tính của bạn và xóa tại đó."
+
+msgid "open_on_another_device"
+msgstr "Mở trên thiết bị khác"
+
+msgid "open_on_another_device_hint"
+msgstr "TV này không có trình duyệt web. Hãy quét mã hoặc nhập địa chỉ trên điện thoại hoặc máy tính của bạn."

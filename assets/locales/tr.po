@@ -2411,3 +2411,12 @@ msgstr "Bağlantınızı almak için adınızı girin"
 
 msgid "invite_qr_title"
 msgstr "Kamerayla Tara"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Bu hesap %s ile giriş yapıyor ve bu bir TV'de doğrulanamıyor. Hesabı silmek için telefonunuzda veya bilgisayarınızda Lantern'i açın ve oradan silin."
+
+msgid "open_on_another_device"
+msgstr "Başka Bir Cihazda Aç"
+
+msgid "open_on_another_device_hint"
+msgstr "Bu TV'de web tarayıcısı yok. Kodu tarayın veya adresi telefonunuza ya da bilgisayarınıza yazın."

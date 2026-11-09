@@ -2375,3 +2375,12 @@ msgstr "أدخل اسمك للحصول على رابطك"
 
 msgid "invite_qr_title"
 msgstr "المسح بالكاميرا"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "يسجّل هذا الحساب الدخول عبر %s، ولا يمكن التحقق منه على التلفاز. لحذفه، افتح Lantern على هاتفك أو حاسوبك واحذفه من هناك."
+
+msgid "open_on_another_device"
+msgstr "فتح على جهاز آخر"
+
+msgid "open_on_another_device_hint"
+msgstr "لا يحتوي هذا التلفاز على متصفح ويب. امسح الرمز أو اكتب العنوان على هاتفك أو حاسوبك."

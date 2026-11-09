@@ -2430,3 +2430,12 @@ msgstr "د خپل لینک ترلاسه کولو لپاره خپل نوم ولی
 
 msgid "invite_qr_title"
 msgstr "په کمرې سکین کړئ"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "دا حساب د %s له لارې ننوځي، چې په تلویزیون کې تایید نشي کېدای. د ړنګولو لپاره، Lantern په خپل تلیفون یا کمپیوټر کې پرانیزئ او هلته یې ړنګ کړئ."
+
+msgid "open_on_another_device"
+msgstr "په بل وسیله کې پرانیزئ"
+
+msgid "open_on_another_device_hint"
+msgstr "دا تلویزیون ویب براوزر نه لري. کوډ سکین کړئ یا پته په خپل تلیفون یا کمپیوټر کې ولیکئ."

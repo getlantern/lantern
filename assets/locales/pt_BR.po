@@ -2421,3 +2421,12 @@ msgstr "Digite seu nome para obter seu link"
 
 msgid "invite_qr_title"
 msgstr "Escanear com a câmera"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Esta conta entra com %s, que não pode ser verificado em uma TV. Para excluí-la, abra o Lantern no seu celular ou computador e exclua por lá."
+
+msgid "open_on_another_device"
+msgstr "Abrir em outro dispositivo"
+
+msgid "open_on_another_device_hint"
+msgstr "Esta TV não tem navegador. Escaneie o código ou digite o endereço no seu celular ou computador."

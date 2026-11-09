@@ -2262,3 +2262,12 @@ msgstr "輸入你的名字以取得連結"
 
 msgid "invite_qr_title"
 msgstr "使用相機掃描"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "此帳號透過 %s 登入，無法在電視上驗證。若要刪除，請在手機或電腦上開啟 Lantern 並在該處刪除。"
+
+msgid "open_on_another_device"
+msgstr "在其他裝置上開啟"
+
+msgid "open_on_another_device_hint"
+msgstr "這台電視沒有網頁瀏覽器。請在手機或電腦上掃描 QR 碼或輸入網址。"

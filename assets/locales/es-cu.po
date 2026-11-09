@@ -2419,3 +2419,12 @@ msgstr "Escribe tu nombre para obtener tu enlace"
 
 msgid "invite_qr_title"
 msgstr "Escanear con la cámara"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Esta cuenta inicia sesión con %s, que no se puede verificar en un televisor. Para eliminarla, abre Lantern en tu celular o computadora y elimínala desde ahí."
+
+msgid "open_on_another_device"
+msgstr "Abrir en otro dispositivo"
+
+msgid "open_on_another_device_hint"
+msgstr "Este televisor no tiene navegador. Escanea el código o escribe la dirección en tu celular o computadora."

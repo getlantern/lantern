@@ -2409,3 +2409,12 @@ msgstr "अपना लिंक पाने के लिए अपना न
 
 msgid "invite_qr_title"
 msgstr "कैमरे से स्कैन करें"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "यह अकाउंट %s से साइन इन करता है, जिसे टीवी पर सत्यापित नहीं किया जा सकता। इसे हटाने के लिए अपने फ़ोन या कंप्यूटर पर Lantern खोलें और वहीं से हटाएं।"
+
+msgid "open_on_another_device"
+msgstr "दूसरे डिवाइस पर खोलें"
+
+msgid "open_on_another_device_hint"
+msgstr "इस टीवी में कोई वेब ब्राउज़र नहीं है। अपने फ़ोन या कंप्यूटर पर कोड स्कैन करें या पता टाइप करें।"

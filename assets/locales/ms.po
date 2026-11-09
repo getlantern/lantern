@@ -2418,3 +2418,12 @@ msgstr "Masukkan nama anda untuk mendapatkan pautan"
 
 msgid "invite_qr_title"
 msgstr "Imbas dengan Kamera"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Akaun ini log masuk dengan %s, yang tidak boleh disahkan pada TV. Untuk memadamnya, buka Lantern pada telefon atau komputer anda dan padamkannya di sana."
+
+msgid "open_on_another_device"
+msgstr "Buka pada peranti lain"
+
+msgid "open_on_another_device_hint"
+msgstr "TV ini tiada pelayar web. Imbas kod atau taip alamat pada telefon atau komputer anda."
