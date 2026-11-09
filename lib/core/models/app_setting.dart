@@ -10,6 +10,10 @@ class AppSetting {
   final bool successfulConnection;
   final String dataCapThreshold;
   final bool onboardingCompleted;
+  // Whether this user has seen Personal Proxies introduced, in onboarding
+  // or in the introduction Home shows to users who finished onboarding
+  // before it had those pages.
+  final bool personalProxiesIntroSeen;
   // Unbounded preferences. autoEnable: turn the peer share on whenever
   // the VPN connects (defaults on per the Figma spec). hideTab: hide
   // the Unbounded tab + collapse the tab bar when the user doesn't
@@ -53,6 +57,7 @@ class AppSetting {
     this.successfulConnection = false,
     this.dataCapThreshold = '',
     this.onboardingCompleted = false,
+    this.personalProxiesIntroSeen = false,
     this.unboundedAutoEnable = false,
     this.unboundedHidden = false,
     this.unboundedWelcomeSeen = false,
@@ -83,6 +88,7 @@ class AppSetting {
     bool? successfulConnection,
     String? dataCapThreshold,
     bool? onboardingCompleted,
+    bool? personalProxiesIntroSeen,
     bool? unboundedAutoEnable,
     bool? unboundedHidden,
     bool? unboundedWelcomeSeen,
@@ -108,6 +114,8 @@ class AppSetting {
       successfulConnection: successfulConnection ?? this.successfulConnection,
       dataCapThreshold: dataCapThreshold ?? this.dataCapThreshold,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      personalProxiesIntroSeen:
+          personalProxiesIntroSeen ?? this.personalProxiesIntroSeen,
       unboundedAutoEnable: unboundedAutoEnable ?? this.unboundedAutoEnable,
       unboundedHidden: unboundedHidden ?? this.unboundedHidden,
       unboundedWelcomeSeen: unboundedWelcomeSeen ?? this.unboundedWelcomeSeen,
@@ -139,6 +147,7 @@ class AppSetting {
         'successfulConnection': successfulConnection,
         'dataCapThreshold': dataCapThreshold,
         'onboardingCompleted': onboardingCompleted,
+        'personalProxiesIntroSeen': personalProxiesIntroSeen,
         'unboundedAutoEnable': unboundedAutoEnable,
         'unboundedHidden': unboundedHidden,
         'unboundedWelcomeSeen': unboundedWelcomeSeen,
@@ -166,6 +175,7 @@ class AppSetting {
         successfulConnection: json['successfulConnection'] == true,
         dataCapThreshold: (json['dataCapThreshold'] ?? '').toString(),
         onboardingCompleted: json['onboardingCompleted'] == true,
+        personalProxiesIntroSeen: json['personalProxiesIntroSeen'] == true,
         // Opt-in: auto-enable only when the user explicitly turned it on.
         // Missing/unset means manual — Unbounded does not start on its own
         // until the user enables it (toggle) or opts into auto-enable.

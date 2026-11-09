@@ -105,7 +105,9 @@ class OAuthLogin extends HookConsumerWidget {
       (url) async {
         context.hideLoadingDialog();
         appLogger.debug('OAuth URL: $url');
-        if (PlatformUtils.isMobile) {
+        if (PlatformUtils.isIOS) {
+          await _signInInApp(type, ref, context, url);
+        } else if (PlatformUtils.isMobile) {
           // listen to handle the deep link
           sl<DeepLinkCallbackManager>().registerHandler((result) {
             appLogger.debug('DeepLink result received: ${result != null}');
@@ -135,6 +137,29 @@ class OAuthLogin extends HookConsumerWidget {
           );
         }
       },
+    );
+  }
+
+  Future<void> _signInInApp(
+    SignUpMethodType type,
+    WidgetRef ref,
+    BuildContext context,
+    String url,
+  ) async {
+    final result = await ref.read(authProvider.notifier).authenticateInApp(url);
+    final callback = result.getOrElse((_) {
+      if (context.mounted) {
+        context.showSnackBarError(oAuthSignInFailedKey.i18n);
+      }
+      return null;
+    });
+    if (callback == null || !isOAuthCallbackResult(callback)) return;
+    if (!context.mounted) return;
+    await _handleOAuthPayload(
+      type,
+      ref,
+      context,
+      Map<String, dynamic>.from(callback.queryParameters),
     );
   }
 

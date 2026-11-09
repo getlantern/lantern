@@ -118,6 +118,10 @@ class AppImagePaths {
   static const nonProfit = 'assets/images/non_profit.svg';
   static const privateServerIntro = 'assets/images/private_server_intro.svg';
   static const smartRouteMode = 'assets/images/smart_route_mode.svg';
+  static const onboardingActionModeGlobe =
+      'assets/images/onboarding_action_mode_globe.webp';
+  static const verifiedUser = 'assets/images/verified_user.svg';
+  static const toggleOn = 'assets/images/toggle_on.svg';
   static const automatic = 'assets/images/automatic.svg';
   static const lightMode = 'assets/images/light_mode.svg';
   static const darkMode = 'assets/images/dark_mode.svg';

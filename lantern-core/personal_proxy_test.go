@@ -20,11 +20,13 @@ func TestPersonalProxyStatusAnswersEachFriend(t *testing.T) {
 		return []vpn.PersonalProxyStatus{
 			{Tag: "helper-0123456789ab", Direct: true, DirectDelayMs: 42},
 			{Tag: "helper-ba9876543210", Rooms: true},
+			{Tag: "helper-112233445566", Reverse: true},
 		}, nil
 	}
 	assert.JSONEq(t, `{"statuses":[
-		{"tag":"helper-0123456789ab","direct":true,"rooms":false},
-		{"tag":"helper-ba9876543210","direct":false,"rooms":true}]}`,
+		{"tag":"helper-0123456789ab","direct":true,"reverse":false,"rooms":false},
+		{"tag":"helper-ba9876543210","direct":false,"reverse":false,"rooms":true},
+		{"tag":"helper-112233445566","direct":false,"reverse":true,"rooms":false}]}`,
 		personalProxyStatusJSON(context.Background(), read))
 }
 

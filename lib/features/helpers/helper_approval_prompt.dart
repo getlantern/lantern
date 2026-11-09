@@ -56,8 +56,11 @@ void useHelperApprovalPrompt(
       }
       notifier.markApprovalPrompted(invite.id);
       showing.value = true;
-      await showApproveHelperDialog(context, invite);
+      await showApproveHelperDialog(context, ref, invite);
       showing.value = false;
+      // A claim that came while this one was open, or while its Connect Now
+      // ran, may have nothing else to bring it up.
+      if (context.mounted) schedule();
     }
 
     // After the frame, so a screen that offers the codes itself (InviteShare)

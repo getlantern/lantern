@@ -269,12 +269,13 @@ class AppDialog {
     );
   }
 
-  static void vpnConflictDialog({
+  /// Completes when the dialog closes.
+  static Future<void> vpnConflictDialog({
     required BuildContext context,
     required VoidCallback onConnectAnyway,
   }) {
     appLogger.info('Showing VPN conflict dialog');
-    show(
+    return show(
       context: context,
       title: 'vpn_conflict_title'.i18n,
       body: 'vpn_conflict_body'.i18n,
