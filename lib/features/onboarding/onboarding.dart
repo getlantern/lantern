@@ -134,7 +134,10 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                         Text('lantern_pro_tagline'.i18n)
                       ],
                     ),
-                    OnboardingDifferentPage(personalProxies: personalProxies),
+                    OnboardingDifferentPage(
+                      personalProxies: personalProxies,
+                      actionMode: showActionMode.value,
+                    ),
                     if (!PlatformUtils.isIOS)
                       slide3(context, selectedRouteMode),
                     if (showActionMode.value) const OnboardingActionModePage(),
@@ -224,9 +227,17 @@ class _OnboardingState extends ConsumerState<Onboarding> {
 /// the Personal Proxies row, where helper invites are offered (censored
 /// regions).
 class OnboardingDifferentPage extends StatelessWidget {
-  const OnboardingDifferentPage({super.key, required this.personalProxies});
+  const OnboardingDifferentPage({
+    super.key,
+    required this.personalProxies,
+    this.actionMode = false,
+  });
 
   final bool personalProxies;
+
+  /// Whether Action Mode is offered. Its row shows only where Personal
+  /// Proxies doesn't, which takes its place in censored regions.
+  final bool actionMode;
 
   @override
   Widget build(BuildContext context) {
@@ -340,6 +351,28 @@ class OnboardingDifferentPage extends StatelessWidget {
               ),
               subtitle: Text(
                 'onboarding_personal_proxies_description'.i18n,
+                style: textTheme.bodyMedium!.copyWith(
+                  color: context.textSecondary,
+                ),
+              ),
+            ),
+          ] else if (actionMode) ...[
+            SizedBox(height: 24.0),
+            AppTile(
+              tileKey: const Key('onboarding.action_mode_row'),
+              icon: Padding(
+                padding: const EdgeInsets.only(top: 5.0),
+                child: OnboardingIconTile(path: AppImagePaths.unbounded),
+              ),
+              label: '',
+              labelWidget: Text(
+                'unbounded'.i18n,
+                style: textTheme.titleMedium!.copyWith(
+                  color: context.textPrimary,
+                ),
+              ),
+              subtitle: Text(
+                'onboarding_action_mode_row_description'.i18n,
                 style: textTheme.bodyMedium!.copyWith(
                   color: context.textSecondary,
                 ),
