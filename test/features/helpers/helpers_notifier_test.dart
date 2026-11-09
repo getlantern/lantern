@@ -449,6 +449,22 @@ void main() {
     });
   });
 
+  test('renameInvite sends rename_invite and applies the view', () async {
+    svc.answers = {
+      'rename_invite': _view(
+        invites:
+            '[{"id":"i1","state":"pending","link":"x","inviter_name":"Sara K"}]',
+      ),
+    };
+    final c = container();
+    final r = await c
+        .read(helpersProvider.notifier)
+        .renameInvite('i1', 'Sara K');
+    expect(r.ok, isTrue);
+    expect(svc.calls, ['rename_invite']);
+    expect(c.read(helpersProvider).view.invites.single.inviterName, 'Sara K');
+  });
+
   test('renameHelper sends rename_helper and applies the view', () async {
     svc.answers = {
       'rename_helper': _view(

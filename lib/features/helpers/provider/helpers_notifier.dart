@@ -436,6 +436,14 @@ class HelpersNotifier extends _$HelpersNotifier {
     return v.ok ? r : v;
   }
 
+  /// Sets the name the user gives in an invite not yet decided, as typed on
+  /// the invite screen after its link was made. It stays on this device
+  /// until the approval.
+  Future<HelperResult> renameInvite(String inviteId, String name) async =>
+      _apply(
+        await _call('rename_invite', {'invite_id': inviteId, 'name': name}),
+      );
+
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
     // The new helper's route comes with the config: fetch it now rather
     // than at the next poll.

@@ -2048,8 +2048,18 @@ msgstr "They open the link, install Lantern if needed, and enter their name. You
 msgid "invite_link_label"
 msgstr "Your invite link"
 
+# Under the invite link, followed by " · " and invite_show_qr.
 msgid "invite_link_expiry"
-msgstr "Works once and expires in 48 hours."
+msgstr "Works once and expires in 48 hours"
+
+# Link after invite_link_expiry: opens the invite's QR code in a dialog.
+msgid "invite_show_qr"
+msgstr "Show QR code"
+
+# Hint in the empty invite link field, before the user has typed a name and
+# the link is made.
+msgid "invite_link_hint"
+msgstr "Enter your name to get your link"
 
 # The text shared with the link. The first %s is the user's name; the second is the link.
 msgid "invite_share_message"
@@ -2064,13 +2074,20 @@ msgstr "Copy link"
 msgid "invite_link_copied"
 msgstr "Link copied"
 
+# Title of the dialog that shows the invite's QR code.
+msgid "invite_qr_title"
+msgstr "Scan with Camera"
+
+# Under the QR code in that dialog.
 msgid "invite_qr_hint"
-msgstr "Your friend can scan this with Lantern."
+msgstr "If they are with you, they can scan this in Lantern instead of using the link."
 
+# Status line under the invite screen's Share button, and on a pending invite
+# in the Manage tab.
 msgid "invite_waiting"
-msgstr "Waiting for your friend to open the link"
+msgstr "Waiting for them to open the link"
 
-# Warning below the invite link and Share button, above the QR code.
+# Warning below the invite link and Share button.
 msgid "invite_trust_warning"
 msgstr "The person you invite will know you use Lantern and can see when you're connected through them. Your traffic passes through their internet connection, so they could learn which sites you visit, though not what you do on secure (https) sites. Only invite someone you trust."
 

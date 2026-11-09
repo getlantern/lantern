@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +6,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart' hide ServerSelection;
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -22,6 +25,19 @@ class _Helpers extends HelpersNotifier {
   );
   @override
   Future<void> refreshIfUsed() async {}
+}
+
+class _Router extends AppRouter {
+  final pushed = <PageRouteInfo>[];
+
+  @override
+  Future<T?> push<T extends Object?>(
+    PageRouteInfo route, {
+    OnNavigationFailure? onFailure,
+  }) async {
+    pushed.add(route);
+    return null;
+  }
 }
 
 class _Servers extends AvailableServersNotifier {
@@ -116,17 +132,15 @@ void main() {
       tester.getBottomLeft(row).dy,
       lessThan(tester.getTopLeft(find.byType(ProBanner)).dy),
     );
+    await sl.reset();
+    addTearDown(sl.reset);
+    final router = _Router();
+    sl.registerSingleton<AppRouter>(router);
     await tester.tap(row);
     await tester.pumpAndSettle();
-    // The invite starts by asking the name the friend knows the user by.
-    expect(find.byType(AlertDialog), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.text('invite_personal_proxy'.i18n),
-      ),
-      findsOneWidget,
-    );
+    // The invite screen asks the name itself: no dialog before it.
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(router.pushed.single.routeName, 'InviteShare');
   });
 
   testWidgets('where helper invites are not offered there is no row', (
