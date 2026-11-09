@@ -93,6 +93,9 @@ class InviteShare extends HookConsumerWidget {
     final nameError = useState(false);
     final copied = useState(false);
     final sawClaimed = useRef(false);
+    // The approval this screen reopened, which completes only after its
+    // Connect Now has finished with this screen's context.
+    final approving = useRef<Future<bool>?>(null);
     if (invite?.claimed ?? false) sawClaimed.value = true;
     useEffect(() {
       linkCtl.text = link;
@@ -170,6 +173,7 @@ class InviteShare extends HookConsumerWidget {
       if (!decided) return null;
       final timer = Timer.periodic(const Duration(milliseconds: 250), (t) {
         if (!context.mounted) return t.cancel();
+        if (approving.value != null) return;
         if (ModalRoute.of(context)?.isCurrent ?? false) {
           t.cancel();
           unawaited(Navigator.of(context).maybePop());
@@ -334,8 +338,15 @@ class InviteShare extends HookConsumerWidget {
                   PrimaryButton(
                     key: const Key('invite.compare'),
                     label: 'invite_compare_codes'.i18n,
-                    onPressed: () =>
-                        showApproveHelperDialog(context, ref, invite),
+                    onPressed: () async {
+                      final f = showApproveHelperDialog(context, ref, invite);
+                      approving.value = f;
+                      try {
+                        await f;
+                      } finally {
+                        if (approving.value == f) approving.value = null;
+                      }
+                    },
                   )
                 else
                   KeyedSubtree(

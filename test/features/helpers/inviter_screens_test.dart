@@ -1598,6 +1598,35 @@ void main() {
       expect(find.text('home'), findsOneWidget);
     });
 
+    testWidgets('Connect Now from an approval reopened by Compare codes keeps '
+        'the invite screen until the connection finishes', (tester) async {
+      final connecting = Completer<void>();
+      debugConnectPersonalProxy = (tag) => connecting.future;
+      addTearDown(() => debugConnectPersonalProxy = null);
+      final fake = _Helpers(_withInvites(const [_pendingI1]))
+        ..onDecide = _withInvites(const []);
+      await _pumpPromptHost(tester, fake);
+      await _pushOverHost(tester, const InviteShare(inviteId: 'i1'));
+      // Prompted already and dismissed undecided.
+      fake.markApprovalPrompted('i1');
+      fake.emit(_withInvites(const [_claimed]));
+      await _pumpPast(tester);
+      expect(approveCode, findsNothing);
+      await tester.tap(find.byKey(const Key('invite.compare')));
+      await _pumpPast(tester);
+      await tester.tap(_approveYes);
+      await _pumpPast(tester);
+      await tester.tap(_approvedConnect);
+      await _pumpPast(tester);
+      await _pumpPast(tester);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(InviteShare), findsOneWidget, reason: 'connecting');
+      connecting.complete();
+      await _pumpPast(tester);
+      await _pumpPast(tester);
+      expect(find.byType(InviteShare), findsNothing);
+    });
+
     testWidgets('opens over another screen that covers the invite screen', (
       tester,
     ) async {
