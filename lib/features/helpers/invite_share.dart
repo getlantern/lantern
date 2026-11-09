@@ -210,7 +210,9 @@ class InviteShare extends HookConsumerWidget {
         if (context.mounted) expiryChecks.value++;
       });
       return timer.cancel;
-    }, [expiresUnix]);
+      // A callback that came early, as after the clock moved back, arms
+      // the next check.
+    }, [expiresUnix, expiryChecks.value]);
 
     if (id.value != null && (invite == null || invite.expired)) {
       return BaseScreen(

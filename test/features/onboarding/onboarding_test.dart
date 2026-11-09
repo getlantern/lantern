@@ -257,6 +257,51 @@ void main() {
     expect(find.byKey(const Key('onboarding.personal_proxies')), findsNothing);
   });
 
+  testWidgets('outside censored regions, an Action Mode row sits between '
+      'Private Servers and Nonprofit Mission where Action Mode is offered', (
+    tester,
+  ) async {
+    HelpersNotifier.debugBuildEnabled = true;
+    await _pump(tester, actionMode: true);
+    await _continue(tester);
+    final row = find.byKey(const Key('onboarding.action_mode_row'));
+    expect(row, findsOneWidget);
+    expect(
+      find.descendant(
+        of: row,
+        matching: find.text('onboarding_action_mode_row_description'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(row).dy,
+      greaterThan(tester.getTopLeft(find.text('private_servers'.i18n)).dy),
+    );
+    expect(
+      tester.getTopLeft(row).dy,
+      lessThan(tester.getTopLeft(find.text('nonprofit_mission'.i18n)).dy),
+    );
+  });
+
+  testWidgets('in censored regions Personal Proxies takes the Action Mode '
+      "row's place", (tester) async {
+    HelpersNotifier.debugBuildEnabled = true;
+    await _pump(tester, actionMode: true, invites: true);
+    await _continue(tester);
+    expect(
+      find.byKey(const Key('onboarding.personal_proxies')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('onboarding.action_mode_row')), findsNothing);
+  });
+
+  testWidgets('without Action Mode there is no Action Mode row', (
+    tester,
+  ) async {
+    await _whatMakesLanternDifferent(tester, invites: false);
+    expect(find.byKey(const Key('onboarding.action_mode_row')), findsNothing);
+  });
+
   group('Action Mode page', () {
     testWidgets('where Action Mode is offered, it follows routing mode with '
         'its four rows, Help someone you know marked New', (tester) async {
