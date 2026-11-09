@@ -168,14 +168,24 @@ class HelpingFriendsSheet extends HookConsumerWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // At most a third of the width, so large text still
+                      // leaves room for the name and Remove.
                       if (p.connected != null)
-                        Text(
-                          p.connected!
-                              ? 'helping_connected'.i18n
-                              : 'helping_not_connected'.i18n,
-                          key: Key('helping.status.${p.pairingId}'),
-                          style: textTheme.titleMedium!.copyWith(
-                            color: context.textLink,
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.sizeOf(context).width / 3,
+                          ),
+                          child: Text(
+                            p.connected!
+                                ? 'helping_connected'.i18n
+                                : 'helping_not_connected'.i18n,
+                            key: Key('helping.status.${p.pairingId}'),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                            style: textTheme.titleMedium!.copyWith(
+                              color: context.textLink,
+                            ),
                           ),
                         ),
                       IconButton(
@@ -203,7 +213,7 @@ class HelpingFriendsSheet extends HookConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-        _ScopeLine(helpOthers: helpers.helpOthers),
+        _ScopeLine(helpOthers: helpers.chosenHelpOthers),
         const SizedBox(height: defaultSize),
         AppCard(
           padding: EdgeInsets.zero,
