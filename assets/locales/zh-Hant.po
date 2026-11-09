@@ -1572,9 +1572,7 @@ msgid "share_consent_body_what"
 msgstr "分享開啟期間，受審查國家/地區的人們會透過你的連線路由其流量，以連上開放網際網路。"
 
 msgid "share_consent_body_ip"
-msgstr ""
-"如果你的路由器支援連接埠轉發，你的家用連線將被用作出口，分享期間你的 IP 位址會出現在目的地的記錄中。否則，該流量將改經 Lantern "
-"的伺服器中繼，你的 IP 不會以這種方式暴露。"
+msgstr "如果你的路由器支援連接埠轉送，你的家用連線會作為出口，分享期間你的 IP 位址會出現在目的地的記錄中。否則，這些流量會改由 Lantern 的伺服器轉送，你的 IP 不會以這種方式曝光。即使沒有連接埠轉送，你擔任其個人代理的朋友的流量也可能從你的連線送出。"
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -1980,9 +1978,6 @@ msgstr "貼上朋友傳來的連結"
 msgid "help_friend_scan"
 msgstr "掃描朋友的 QR 碼"
 
-msgid "help_friend_approved"
-msgstr "你現在正在幫助 %s。"
-
 msgid "help_friend_no_longer_pending"
 msgstr "此請求已不再等待處理。向你的朋友索取新的邀請。"
 
@@ -2021,12 +2016,6 @@ msgstr "停止幫助"
 
 msgid "helping_remove_confirm"
 msgstr "停止幫助 %s？對方需要新的邀請才能再次透過你連線。"
-
-msgid "help_others_too"
-msgstr "也幫助他人"
-
-msgid "help_others_too_body"
-msgstr "將閒置容量借給其他面臨審查的人；Lantern 只允許他們連上許可的網站，藉此保護你的連線不被濫用。"
 
 msgid "help_others_too_note"
 msgstr "變更此設定會讓你幫助的人短暫重新連線。"
@@ -2071,7 +2060,7 @@ msgid "become_means_title"
 msgstr "擔任個人代理的意義"
 
 msgid "become_means_traffic"
-msgstr "一位朋友向你求助。Action Mode 執行期間，對方可以透過你的連線存取開放的網際網路。視你的路由器而定，對方的流量會從你的網路送出，或經由 Lantern 的伺服器轉送。Lantern 不會向你顯示對方的網路活動。"
+msgstr "一位朋友向你求助。Action Mode 執行期間，對方可以透過你的連線連上開放網際網路。Lantern 不會向你顯示對方造訪了哪些網站。"
 
 msgid "become_means_seen"
 msgstr "對方可以看到你何時連線。只接受認識的人傳來的邀請。"
@@ -2082,14 +2071,8 @@ msgstr "你可以隨時移除此連線。"
 msgid "help_friend_form_title"
 msgstr "貼上你所協助的人傳來的連結"
 
-msgid "help_friend_link_hint"
-msgstr "在此裝置上輕觸連結即可自動填入"
-
 msgid "help_friend_name_label"
 msgstr "朋友所認識的你的名字"
-
-msgid "help_friend_name_hint"
-msgstr "你在朋友的 Lantern 中會顯示為這個名稱"
 
 msgid "help_friend_become"
 msgstr "成為朋友的專屬代理"
@@ -2148,17 +2131,8 @@ msgstr "今日中繼資料"
 msgid "helping_active_today"
 msgstr "已活躍 %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "一位朋友邀請你成為其個人代理"
-
 msgid "help_friend_paste_button"
 msgstr "貼上連結"
-
-msgid "help_friend_no_link"
-msgstr "還沒有連結？"
-
-msgid "help_friend_ask_invite"
-msgstr "請朋友邀請你"
 
 msgid "help_friend_ask_invite_message"
 msgstr "我可以在 Lantern 上當你的個人代理，讓你透過我的連線上網。在 Lantern 中開啟「伺服器選擇」，點選頂端的 ⋮ 選單，選擇「邀請個人代理」，然後把連結傳給我。"
@@ -2174,3 +2148,105 @@ msgstr "選擇這台電腦上 Lantern 以外應用程式的 .exe 檔案。"
 
 msgid "unable_to_add_executable"
 msgstr "無法新增執行檔。選擇這台電腦上現有的 .exe 檔案，然後再試一次。"
+
+msgid "unable_to_connect"
+msgstr "無法連線"
+
+msgid "enable_action_mode"
+msgstr "啟用 Action Mode"
+
+msgid "disable_action_mode"
+msgstr "停用 Action Mode"
+
+msgid "helping_one_person"
+msgstr "正在幫助 1 個人"
+
+msgid "helping_people"
+msgstr "正在幫助 %s 個人"
+
+msgid "onboarding_personal_proxies"
+msgstr "個人代理"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Lantern 遭到封鎖時，請一位你信任的國外人士擔任你的代理。"
+
+msgid "onboarding_new_badge"
+msgstr "新"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "協助他人存取開放的網路"
+
+msgid "onboarding_action_mode_share"
+msgstr "分享你的連線"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "貢獻一小部分連線，幫助他人突破網路限制。"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "幫助你認識的人"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "如果身處審查國家的朋友傳送邀請給你，你可以成為他們的 Personal Proxy。"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "你的隱私受到保護"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "你的個人資料和瀏覽活動絕不會被分享或洩露。"
+
+msgid "onboarding_action_mode_control"
+msgstr "一切由你掌控"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "隨時在 Action Mode 分頁中開啟或關閉 Action Mode。"
+
+msgid "approved_title"
+msgstr "%s 現在是你的個人代理"
+
+msgid "approved_body"
+msgstr "當 %s 上線時，你可以在「伺服器選擇」的「私人位置」中選擇。"
+
+msgid "approved_connect_now"
+msgstr "立即連線"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "對方的伺服器清單中會這樣顯示你。"
+
+msgid "help_friend_success_title"
+msgstr "你現在是 %s 的個人代理"
+
+msgid "help_friend_success_body"
+msgstr "%s 已核准你。開啟 Action Mode 後，對方可透過你的連線存取開放的網際網路。"
+
+msgid "help_friend_keep_on"
+msgstr "保持 Action Mode 開啟"
+
+msgid "help_friend_keep_on_body"
+msgstr "立即開啟，並在 Lantern 開啟時自動啟用，讓 %s 保持連線。"
+
+msgid "help_friend_no_link_yet"
+msgstr "還沒有連結？"
+
+msgid "help_friend_ask_send_link"
+msgstr "請對方傳一個給你。"
+
+msgid "helping_scope_line_all"
+msgstr "同時協助所有國家的使用者"
+
+msgid "helping_scope_line_friends"
+msgstr "僅協助你的朋友"
+
+msgid "helping_scope_change"
+msgstr "變更"
+
+msgid "helping_scope_title"
+msgstr "你在幫助誰"
+
+msgid "helping_scope_subtitle"
+msgstr "僅與你的朋友分享，或與所有國家的人分享。"
+
+msgid "helping_scope_only_friends"
+msgstr "僅限我的朋友"
+
+msgid "helping_scope_all_countries"
+msgstr "所有國家"

@@ -33,6 +33,7 @@ import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/setting/setting.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -76,8 +77,12 @@ class _Helpers extends HelpersNotifier {
   Future<HelperResult> decide(String inviteId, {required bool approve}) async {
     decisions.add((inviteId, approve));
     await decideGate?.future;
+    if (onDecide != null) state = onDecide!;
     return decideResult ?? HelperResult.parse('{"unlocked":true}');
   }
+
+  /// The state a successful decide leaves, as the engine's view would.
+  HelpersState? onDecide;
 
   int endAll = 0;
   final ended = <String>[];
@@ -261,10 +266,32 @@ const _oneHelper = HelpersState(
   ),
 );
 
-Future<void> _pump(WidgetTester tester, _Helpers fake, Widget child) async {
+class _Status extends PersonalProxyStatusNotifier {
+  _Status(this.initial);
+  final Map<String, PersonalProxyStatus>? initial;
+  int polls = 0;
+  @override
+  Map<String, PersonalProxyStatus>? build() => initial;
+  @override
+  Future<void> poll() async => polls++;
+}
+
+late _Status _status;
+
+Future<void> _pump(
+  WidgetTester tester,
+  _Helpers fake,
+  Widget child, {
+  Map<String, PersonalProxyStatus>? status,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [helpersProvider.overrideWith(() => fake)],
+      overrides: [
+        helpersProvider.overrideWith(() => fake),
+        personalProxyStatusProvider.overrideWith(
+          () => _status = _Status(status),
+        ),
+      ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852),
         child: MaterialApp(
@@ -295,6 +322,14 @@ final _approveYes = find.widgetWithText(
   'approve_codes_match'.i18n,
 );
 final _approveNo = find.widgetWithText(SecondaryButton, 'approve_reject'.i18n);
+final _approvedConnect = find.widgetWithText(
+  PrimaryButton,
+  'approved_connect_now'.i18n,
+);
+final _approvedDone = find.widgetWithText(
+  SecondaryButton,
+  'help_friend_done'.i18n,
+);
 
 /// Opens the approval dialog for [_claimed]; completes with its result.
 Future<Future<bool>> _openApproval(WidgetTester tester, _Helpers fake) async {
@@ -302,10 +337,11 @@ Future<Future<bool>> _openApproval(WidgetTester tester, _Helpers fake) async {
   await _pump(
     tester,
     fake,
-    Builder(
-      builder: (context) => TextButton(
-        onPressed: () async =>
-            result.complete(await showApproveHelperDialog(context, _claimed)),
+    Consumer(
+      builder: (context, ref, _) => TextButton(
+        onPressed: () async => result.complete(
+          await showApproveHelperDialog(context, ref, _claimed),
+        ),
         child: const Text('approve'),
       ),
     ),
@@ -336,8 +372,96 @@ void main() {
     await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
+    expect(find.text('approve_title'.i18n.fill(['Ali'])), findsNothing);
+    // The success dialog follows; Done closes it.
+    expect(find.text('approved_title'.i18n.fill(['Ali'])), findsOneWidget);
+    await tester.tap(_approvedDone);
+    await tester.pumpAndSettle();
     expect(dialog, findsNothing);
     expect(await result, isTrue);
+  });
+
+  testWidgets('after approving: "[Name] is now your Personal Proxy", where to '
+      'pick them, Connect Now and Done', (tester) async {
+    final connects = <String?>[];
+    debugConnectPersonalProxy = (tag) async => connects.add(tag);
+    addTearDown(() => debugConnectPersonalProxy = null);
+    final fake = _Helpers(const HelpersState())
+      ..onDecide = const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          helpers: [
+            HelperPairingView(
+              pairingId: 'p1',
+              name: 'Ali',
+              outboundTag: 'helper-p1',
+            ),
+          ],
+        ),
+      );
+    final result = await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    expect(find.text('approved_title'.i18n.fill(['Ali'])), findsOneWidget);
+    expect(find.text('approved_body'.i18n.fill(['Ali'])), findsOneWidget);
+    expect(_approvedConnect, findsOneWidget);
+    expect(_approvedDone, findsOneWidget);
+    await tester.tap(_approvedConnect);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    // The new friend alone, by their outbound tag.
+    expect(connects, ['helper-p1']);
+    expect(await result, isTrue);
+  });
+
+  testWidgets('Connect Now uses the personal proxies group when the new '
+      'friend cannot be told', (tester) async {
+    final connects = <String?>[];
+    debugConnectPersonalProxy = (tag) async => connects.add(tag);
+    addTearDown(() => debugConnectPersonalProxy = null);
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    await tester.tap(_approvedConnect);
+    await tester.pumpAndSettle();
+    expect(connects, [null]);
+  });
+
+  testWidgets('the approval returns only once Connect Now has finished '
+      'connecting, so its caller stays while the connection runs', (
+    tester,
+  ) async {
+    final connecting = Completer<void>();
+    debugConnectPersonalProxy = (tag) => connecting.future;
+    addTearDown(() => debugConnectPersonalProxy = null);
+    final fake = _Helpers(const HelpersState());
+    final result = await _openApproval(tester, fake);
+    var returned = false;
+    unawaited(result.then((_) => returned = true));
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    await tester.tap(_approvedConnect);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(returned, isFalse);
+    connecting.complete();
+    await tester.pumpAndSettle();
+    expect(returned, isTrue);
+  });
+
+  testWidgets('Done after approving connects nothing', (tester) async {
+    final connects = <String?>[];
+    debugConnectPersonalProxy = (tag) async => connects.add(tag);
+    addTearDown(() => debugConnectPersonalProxy = null);
+    final fake = _Helpers(const HelpersState());
+    await _openApproval(tester, fake);
+    await tester.tap(_approveYes);
+    await tester.pumpAndSettle();
+    await tester.tap(_approvedDone);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(connects, isEmpty);
   });
 
   testWidgets('rejecting decides with reject, which burns the invite', (
@@ -524,6 +648,84 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('helpers.nudge')), findsNothing);
+  });
+
+  testWidgets('a helper offline by presence but with a live reverse route '
+      'is shown online', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          helpers: [
+            HelperPairingView(
+              pairingId: 'p1',
+              name: 'Ali',
+              outboundTag: 'helper-0123456789ab',
+            ),
+            HelperPairingView(
+              pairingId: 'p2',
+              name: 'Bo',
+              outboundTag: 'helper-ba9876543210',
+            ),
+          ],
+        ),
+      ),
+    );
+    await _pump(
+      tester,
+      fake,
+      const PersonalProxiesTab(),
+      status: const {
+        'helper-0123456789ab': PersonalProxyStatus(reverse: true),
+        'helper-ba9876543210': PersonalProxyStatus(direct: true),
+      },
+    );
+    expect(find.byKey(const Key('helpers.online.0')), findsOneWidget);
+    expect(find.byKey(const Key('helpers.offline.1')), findsOneWidget);
+  });
+
+  testWidgets("radiance's friend status is read on opening and on its "
+      'interval, only while the tab shows friends and the app is resumed', (
+    tester,
+  ) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+    final fake = _Helpers(
+      const HelpersState(
+        view: HelpersView(
+          unlocked: true,
+          helpers: [HelperPairingView(pairingId: 'p1', name: 'Ali')],
+        ),
+      ),
+    );
+    await _pump(tester, fake, const PersonalProxiesTab());
+    expect(_status.polls, 1, reason: 'read once on opening');
+    await tester.pump(personalProxyStatusInterval);
+    expect(_status.polls, 2);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(personalProxyStatusInterval * 3);
+    expect(_status.polls, 2);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(personalProxyStatusInterval);
+    expect(_status.polls, 3);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(personalProxyStatusInterval * 3);
+    expect(_status.polls, 3, reason: 'closing the tab stops the poll');
+  });
+
+  testWidgets('no status poll without helpers', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(view: HelpersView(unlocked: true)),
+    );
+    await _pump(tester, fake, const PersonalProxiesTab());
+    await tester.pump(personalProxyStatusInterval * 3);
+    expect(_status.polls, 0);
   });
 
   testWidgets('a claimed invite is surfaced above the helpers', (tester) async {
@@ -1143,6 +1345,35 @@ void main() {
       expect(approveCode, findsOneWidget);
     });
 
+    testWidgets('a claim that comes while Connect Now runs prompts once it '
+        'finishes', (tester) async {
+      final connecting = Completer<void>();
+      debugConnectPersonalProxy = (tag) => connecting.future;
+      addTearDown(() => debugConnectPersonalProxy = null);
+      final fake = _Helpers(_withInvites(const []));
+      await _pumpPromptHost(tester, fake);
+      fake.emit(_withInvites(const [_claimed]));
+      await tester.pumpAndSettle();
+      await tester.tap(_approveYes);
+      await tester.pumpAndSettle();
+      await tester.tap(_approvedConnect);
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+
+      fake.emit(
+        _withInvites(const [
+          _claimed,
+          HelperInviteView(id: 'i3', state: 'claimed', code: '7181'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('7181'), findsNothing, reason: 'Connect Now still runs');
+
+      connecting.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('7181'), findsOneWidget);
+    });
+
     testWidgets('waits for checkout to end', (tester) async {
       final fake = _Helpers(_withInvites(const []));
       await _pumpPromptHost(tester, fake);
@@ -1303,6 +1534,8 @@ void main() {
     await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
+    await tester.tap(_approvedDone);
+    await tester.pumpAndSettle();
     expect(find.byType(InviteShare), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });

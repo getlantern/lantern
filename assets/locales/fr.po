@@ -1758,7 +1758,7 @@ msgid "share_consent_body_what"
 msgstr "Lorsque le partage est activé, des personnes dans des pays censurés font passer leur trafic par votre connexion pour accéder à l'internet libre."
 
 msgid "share_consent_body_ip"
-msgstr "Si votre routeur prend en charge la redirection de port, votre connexion domestique sert de sortie et votre adresse IP apparaîtra dans les journaux de la destination pendant le partage. Sinon, ce trafic est relayé par les serveurs de Lantern et votre IP n'est pas exposée de cette façon."
+msgstr "Si votre routeur prend en charge la redirection de ports, votre connexion domestique sert de point de sortie et votre adresse IP apparaîtra dans les journaux de la destination pendant le partage. Sinon, ce trafic est relayé par les serveurs de Lantern et votre IP n'est pas exposée de cette façon. Le trafic d'un proche pour qui vous êtes proxy personnel peut aussi sortir par votre connexion, même sans redirection de ports."
 
 msgid "share_consent_body_safety"
 msgstr "Dans les deux cas, Lantern bloque les destinations abusives connues, les plages de réseaux privés et les ports propices aux abus, renouvelle régulièrement les identifiants et agit en tant que « simple intermédiaire » au sens de la DMCA § 512(a)."
@@ -2108,9 +2108,6 @@ msgstr "Coller le lien envoyé par votre ami"
 msgid "help_friend_scan"
 msgstr "Scanner le code QR de votre ami"
 
-msgid "help_friend_approved"
-msgstr "Vous aidez maintenant %s."
-
 msgid "help_friend_no_longer_pending"
 msgstr "Cette demande n'est plus en attente. Demandez une nouvelle invitation à votre ami."
 
@@ -2149,12 +2146,6 @@ msgstr "Arrêter d’aider"
 
 msgid "helping_remove_confirm"
 msgstr "Arrêter d’aider %s ? Une nouvelle invitation sera nécessaire pour se connecter à nouveau via vous."
-
-msgid "help_others_too"
-msgstr "Aidez aussi les autres"
-
-msgid "help_others_too_body"
-msgstr "Partagez votre capacité inutilisée avec d’autres personnes confrontées à la censure ; Lantern ne leur permet d’accéder qu’aux sites autorisés, ce qui protège votre connexion contre les abus."
 
 msgid "help_others_too_note"
 msgstr "Modifier ce paramètre reconnecte brièvement les personnes que vous aidez."
@@ -2199,7 +2190,7 @@ msgid "become_means_title"
 msgstr "Être un proxy personnel : ce que cela implique"
 
 msgid "become_means_traffic"
-msgstr "Un proche vous a demandé de l'aide. Tant que Action Mode est actif, il peut accéder à l'internet libre via votre connexion. Selon votre routeur, son trafic sort de votre réseau ou transite par les serveurs de Lantern. Lantern ne vous montre pas ce qu'il fait en ligne."
+msgstr "Une personne de votre entourage vous a demandé de l'aide. Tant que Action Mode est actif, elle peut accéder à l'internet libre via votre connexion. Lantern ne vous montre pas les sites qu'elle consulte."
 
 msgid "become_means_seen"
 msgstr "Ces personnes voient quand votre connexion est active. N'acceptez que les invitations de personnes que vous connaissez."
@@ -2210,14 +2201,8 @@ msgstr "Supprimez la connexion à tout moment."
 msgid "help_friend_form_title"
 msgstr "Collez le lien de la personne que vous aidez"
 
-msgid "help_friend_link_hint"
-msgstr "Touchez le lien sur cet appareil pour remplir ce champ"
-
 msgid "help_friend_name_label"
 msgstr "Votre nom, tel que la personne vous connaît"
-
-msgid "help_friend_name_hint"
-msgstr "C'est ainsi que vous apparaîtrez dans son Lantern"
 
 msgid "help_friend_become"
 msgstr "Devenir son proxy personnel"
@@ -2276,17 +2261,8 @@ msgstr "Données relayées aujourd'hui"
 msgid "helping_active_today"
 msgstr "Actif : %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Un proche vous invite à devenir son proxy personnel"
-
 msgid "help_friend_paste_button"
 msgstr "Coller le lien"
-
-msgid "help_friend_no_link"
-msgstr "Pas encore de lien ?"
-
-msgid "help_friend_ask_invite"
-msgstr "Demander une invitation à un proche"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Je peux être votre proxy personnel sur Lantern, pour que vous puissiez accéder à Internet via ma connexion. Dans Lantern, ouvrez « Sélection du serveur », appuyez sur le menu ⋮ en haut, choisissez « Inviter un proxy personnel » et envoyez-moi le lien."
@@ -2302,3 +2278,105 @@ msgstr "Sélectionnez le fichier .exe d'une application de cet ordinateur, autre
 
 msgid "unable_to_add_executable"
 msgstr "Impossible d'ajouter l'exécutable. Choisissez un fichier .exe existant sur cet ordinateur et réessayez."
+
+msgid "unable_to_connect"
+msgstr "Connexion impossible"
+
+msgid "enable_action_mode"
+msgstr "Activer Action Mode"
+
+msgid "disable_action_mode"
+msgstr "Désactiver Action Mode"
+
+msgid "helping_one_person"
+msgstr "1 personne aidée"
+
+msgid "helping_people"
+msgstr "Personnes aidées : %s"
+
+msgid "onboarding_personal_proxies"
+msgstr "Proxys personnels"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Demandez à une personne de confiance hors de votre pays d'être votre proxy lorsque Lantern est bloqué."
+
+msgid "onboarding_new_badge"
+msgstr "Nouveau"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "Aidez d'autres personnes à accéder à l'Internet libre"
+
+msgid "onboarding_action_mode_share"
+msgstr "Partager votre connexion"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "Offrez une petite partie de votre connexion pour aider d'autres personnes à contourner les restrictions d'Internet."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "Aidez un proche"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Si un ami dans un pays censuré vous envoie une invitation, vous pouvez devenir son Personal Proxy."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "Votre vie privée est protégée"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Vos données personnelles et votre activité de navigation ne sont jamais partagées ni exposées."
+
+msgid "onboarding_action_mode_control"
+msgstr "Vous gardez le contrôle"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Activez ou désactivez Action Mode à tout moment depuis l'onglet Action Mode."
+
+msgid "approved_title"
+msgstr "%s est désormais votre proxy personnel"
+
+msgid "approved_body"
+msgstr "Lorsque %s est en ligne, vous pouvez le sélectionner sous Emplacements privés dans Sélection du serveur."
+
+msgid "approved_connect_now"
+msgstr "Se connecter maintenant"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "C'est ainsi que vous apparaissez dans sa liste de serveurs."
+
+msgid "help_friend_success_title"
+msgstr "Vous êtes désormais le proxy personnel de %s"
+
+msgid "help_friend_success_body"
+msgstr "%s a accepté votre demande. Lorsque Action Mode est activé, cette personne peut accéder à l'Internet libre via votre connexion."
+
+msgid "help_friend_keep_on"
+msgstr "Garder Action Mode activé"
+
+msgid "help_friend_keep_on_body"
+msgstr "S'active maintenant et chaque fois que Lantern est ouvert, pour que la connexion de %s soit maintenue."
+
+msgid "help_friend_no_link_yet"
+msgstr "Pas encore de lien ?"
+
+msgid "help_friend_ask_send_link"
+msgstr "Demandez-lui de vous en envoyer un."
+
+msgid "helping_scope_line_all"
+msgstr "Aide aussi des personnes dans tous les pays"
+
+msgid "helping_scope_line_friends"
+msgstr "Aide uniquement vos amis"
+
+msgid "helping_scope_change"
+msgstr "Modifier"
+
+msgid "helping_scope_title"
+msgstr "Les personnes que vous aidez"
+
+msgid "helping_scope_subtitle"
+msgstr "Partagez uniquement avec vos amis, ou avec des personnes de tous les pays."
+
+msgid "helping_scope_only_friends"
+msgstr "Mes amis uniquement"
+
+msgid "helping_scope_all_countries"
+msgstr "Tous les pays"
