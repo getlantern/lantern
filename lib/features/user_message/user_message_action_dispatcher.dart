@@ -1,4 +1,4 @@
-import 'package:lantern/core/common/common.dart' show appRouter;
+import 'package:lantern/core/common/common.dart' show UrlUtils, appRouter;
 import 'package:lantern/core/models/user_message.dart';
 import 'package:lantern/core/router/router.gr.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -16,6 +16,7 @@ class UserMessageActionDispatcher {
   factory UserMessageActionDispatcher.application() {
     return UserMessageActionDispatcher(
       openHttpsUrl: (uri) async {
+        if (await UrlUtils.showLinkOnTv(null, uri.toString())) return;
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       },
       openPlans: () async {

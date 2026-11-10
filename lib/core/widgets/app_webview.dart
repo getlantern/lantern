@@ -48,6 +48,8 @@ bool? webViewPurchaseResult(Uri uri) {
     }
   }
   if (value == null) return null;
+  // Gateways may append their own params after a stray '?' (Shepherd returnUrl).
+  value = value.split('?').first;
   return switch (value.toLowerCase()) {
     'true' => true,
     'false' => false,

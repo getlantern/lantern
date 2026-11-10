@@ -204,6 +204,8 @@ func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, erro
 		out, err = e.endAllHelpers(ctx)
 	case "rename_helper":
 		out, err = e.renameHelper(args)
+	case "rename_invite":
+		out, err = e.renameInvite(args)
 	default:
 		return nil, errCode(CodeInternal)
 	}

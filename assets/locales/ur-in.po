@@ -2057,10 +2057,10 @@ msgid "invite_link_copied"
 msgstr "لنک کاپی ہو گیا"
 
 msgid "invite_qr_hint"
-msgstr "آپ کا دوست اسے Lantern سے اسکین کر سکتا ہے۔"
+msgstr "اگر وہ آپ کے ساتھ ہیں تو لنک کے بجائے Lantern میں اسے اسکین کر سکتے ہیں۔"
 
 msgid "invite_waiting"
-msgstr "آپ کے دوست کے لنک کھولنے کا انتظار ہے"
+msgstr "ان کے لنک کھولنے کا انتظار ہے"
 
 msgid "invite_trust_warning"
 msgstr "جسے آپ مدعو کریں گے اسے معلوم ہوگا کہ آپ Lantern استعمال کرتے ہیں اور وہ دیکھ سکے گا کہ آپ کب اس کے ذریعے منسلک ہیں۔ آپ کا ٹریفک اس کے انٹرنیٹ کنکشن سے گزرتا ہے، اس لیے وہ جان سکتا ہے کہ آپ کون سی سائٹس دیکھتے ہیں، لیکن یہ نہیں کہ آپ محفوظ (https) سائٹس پر کیا کرتے ہیں۔ صرف کسی بھروسے مند شخص کو مدعو کریں۔"
@@ -2156,7 +2156,7 @@ msgid "invite_link_label"
 msgstr "آپ کا دعوتی لنک"
 
 msgid "invite_link_expiry"
-msgstr "یہ ایک بار کام کرتا ہے اور 48 گھنٹے میں ختم ہو جاتا ہے۔"
+msgstr "ایک بار کام کرتا ہے اور 48 گھنٹوں میں ختم ہو جاتا ہے"
 
 msgid "approve_title"
 msgstr "%s آپ کا ذاتی پراکسی بننا چاہتے ہیں"
@@ -2285,7 +2285,7 @@ msgid "onboarding_personal_proxies"
 msgstr "ذاتی پراکسیز"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "جب Lantern بلاک ہو تو اپنے ملک سے باہر کسی بھروسہ مند شخص سے اپنی پراکسی بننے کو کہیں۔"
+msgstr "اپنے ملک سے باہر کسی بھروسے مند شخص کے ذریعے سیدھے منسلک ہوں۔"
 
 msgid "onboarding_new_badge"
 msgstr "نیا"
@@ -2303,7 +2303,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "کسی جاننے والے کی مدد کریں"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "اگر سنسرشپ والے ملک میں کوئی دوست آپ کو دعوت بھیجے تو آپ اس کے Personal Proxy بن سکتے ہیں۔"
+msgstr "کسی دوست کا Personal Proxy بن کر اس کی مدد کریں تاکہ وہ سیدھے آپ کے ذریعے منسلک ہو سکے۔"
 
 msgid "onboarding_action_mode_privacy"
 msgstr "آپ کی پرائیویسی محفوظ ہے"
@@ -2363,7 +2363,28 @@ msgid "helping_scope_subtitle"
 msgstr "صرف اپنے دوستوں کے ساتھ، یا تمام ممالک کے لوگوں کے ساتھ شیئر کریں۔"
 
 msgid "helping_scope_only_friends"
-msgstr "صرف میرے دوست"
+msgstr "صرف میرے پرسنل پراکسی کنکشنز"
 
 msgid "helping_scope_all_countries"
 msgstr "تمام ممالک"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "دوسروں کو کھلے انٹرنیٹ تک پہنچنے میں مدد کے لیے اپنا کنکشن محفوظ طریقے سے شیئر کریں۔"
+
+msgid "invite_show_qr"
+msgstr "QR کوڈ دکھائیں"
+
+msgid "invite_link_hint"
+msgstr "اپنا لنک پانے کے لیے اپنا نام درج کریں"
+
+msgid "invite_qr_title"
+msgstr "کیمرے سے اسکین کریں"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "یہ اکاؤنٹ %s کے ذریعے سائن ان ہوتا ہے، جس کی تصدیق ٹی وی پر نہیں ہو سکتی۔ اسے ہٹانے کے لیے اپنے فون یا کمپیوٹر پر Lantern کھولیں اور وہاں سے ہٹائیں۔"
+
+msgid "open_on_another_device"
+msgstr "دوسرے ڈیوائس پر کھولیں"
+
+msgid "open_on_another_device_hint"
+msgstr "اس ٹی وی میں ویب براؤزر نہیں ہے۔ اپنے فون یا کمپیوٹر پر کوڈ اسکین کریں یا پتہ ٹائپ کریں۔"

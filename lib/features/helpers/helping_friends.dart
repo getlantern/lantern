@@ -85,6 +85,7 @@ void showHelpingFriendsSheet(BuildContext context) {
   showAppBottomSheet(
     context: context,
     title: 'helping_sheet_title'.i18n,
+    backgroundColor: context.bgSurface,
     subtitle: Consumer(
       builder: (context, ref, _) {
         final line = connectedRightNow(
@@ -127,9 +128,6 @@ class HelpingFriendsSheet extends HookConsumerWidget {
 
     final helping = helpers.view.helping;
     final activity = helpers.view.activity;
-    final connectedColor = Theme.of(context).brightness == Brightness.dark
-        ? AppColors.green3
-        : AppColors.green6;
 
     return ListView(
       controller: scrollController,
@@ -170,16 +168,24 @@ class HelpingFriendsSheet extends HookConsumerWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // At most a third of the width, so large text still
+                      // leaves room for the name and Remove.
                       if (p.connected != null)
-                        Text(
-                          p.connected!
-                              ? 'helping_connected'.i18n
-                              : 'helping_not_connected'.i18n,
-                          key: Key('helping.status.${p.pairingId}'),
-                          style: textTheme.labelLarge!.copyWith(
-                            color: p.connected!
-                                ? connectedColor
-                                : context.textSecondary,
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.sizeOf(context).width / 3,
+                          ),
+                          child: Text(
+                            p.connected!
+                                ? 'helping_connected'.i18n
+                                : 'helping_not_connected'.i18n,
+                            key: Key('helping.status.${p.pairingId}'),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                            style: textTheme.titleMedium!.copyWith(
+                              color: context.textLink,
+                            ),
                           ),
                         ),
                       IconButton(
@@ -207,7 +213,7 @@ class HelpingFriendsSheet extends HookConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-        _ScopeLine(helpOthers: helpers.helpOthers),
+        _ScopeLine(helpOthers: helpers.chosenHelpOthers),
         const SizedBox(height: defaultSize),
         AppCard(
           padding: EdgeInsets.zero,
@@ -274,7 +280,12 @@ class _ScopeLine extends StatelessWidget {
             button: true,
             child: InkWell(
               key: const Key('helping.scope.change'),
-              onTap: () => showWhoYoureHelpingSheet(context),
+              // Swaps this sheet for that one rather than stacking them.
+              onTap: () {
+                final navigator = Navigator.of(context);
+                navigator.pop();
+                showWhoYoureHelpingSheet(navigator.context);
+              },
               child: Text(
                 'helping_scope_change'.i18n,
                 style: style.copyWith(
@@ -291,6 +302,43 @@ class _ScopeLine extends StatelessWidget {
   }
 }
 
+/// Whom Action Mode helps, in a word: "All countries" or "Only my Personal
+/// Proxy connections".
+String helpingScopeLabel(bool helpOthers) => helpOthers
+    ? 'helping_scope_all_countries'.i18n
+    : 'helping_scope_only_friends'.i18n;
+
+/// Settings' "Who you're helping" row: whom Action Mode helps, opening
+/// [showWhoYoureHelpingSheet].
+class WhoYoureHelpingTile extends HookConsumerWidget {
+  const WhoYoureHelpingTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final helpOthers = ref.watch(
+      helpersProvider.select((s) => s.chosenHelpOthers),
+    );
+    final notifier = ref.read(helpersProvider.notifier);
+    useEffect(() {
+      unawaited(notifier.loadHelpOthers());
+      return null;
+    }, const []);
+    return AppTile(
+      tileKey: const Key('helping.scope.row'),
+      icon: AppImagePaths.world,
+      label: 'helping_scope_title'.i18n,
+      subtitle: Text(
+        helpingScopeLabel(helpOthers),
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
+      ),
+      trailing: const AppImage(path: AppImagePaths.arrowForward),
+      onPressed: () => showWhoYoureHelpingSheet(context),
+    );
+  }
+}
+
 /// "Who you're helping": only the friends this device is the Personal Proxy
 /// for, or people in all countries as well. It writes radiance's
 /// peer_serve_pool, the one scope setting; the Action Mode switch stays the
@@ -299,6 +347,7 @@ void showWhoYoureHelpingSheet(BuildContext context) {
   showAppBottomSheet(
     context: context,
     title: 'helping_scope_title'.i18n,
+    backgroundColor: context.bgSurface,
     subtitle: Text(
       'helping_scope_subtitle'.i18n,
       style: Theme.of(

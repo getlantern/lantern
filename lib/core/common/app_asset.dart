@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lantern/core/common/app_buttons.dart';
+import 'package:lantern/core/widgets/app_focusable.dart';
 
 export 'package:flutter_svg/flutter_svg.dart';
 
-enum AssetType {
-  svg,
-  png,
-}
+enum AssetType { svg, png }
 
 class AppImage extends StatelessWidget {
   final String path;
@@ -35,34 +33,32 @@ class AppImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    switch (type) {
-      case AssetType.svg:
+    final image = switch (type) {
+      AssetType.svg => SvgPicture.asset(
+        path,
+        height: height,
+        width: width,
+        fit: fit ?? BoxFit.contain,
         // Use explicit color > theme icon color > no filter (when opted out)
-        final effectiveColor =
-            color ?? (useThemeColor ? Theme.of(context).iconTheme.color : null);
-        return GestureDetector(
-          onTap: onPressed,
-          child: SvgPicture.asset(
-            path,
-            height: height,
-            width: width,
-            fit: fit ?? BoxFit.contain,
-            colorFilter: effectiveColor != null
-                ? ColorFilter.mode(effectiveColor, BlendMode.srcIn)
-                : null,
-          ),
-        );
-      case AssetType.png:
-        return GestureDetector(
-          onTap: onPressed,
-          child: Image.asset(
-            path,
-            color: color,
-            height: height,
-            width: width,
-            fit: fit ?? BoxFit.cover,
-          ),
-        );
-    }
+        colorFilter: switch (color ??
+            (useThemeColor ? Theme.of(context).iconTheme.color : null)) {
+          final c? => ColorFilter.mode(c, BlendMode.srcIn),
+          null => null,
+        },
+      ),
+      AssetType.png => Image.asset(
+        path,
+        color: color,
+        height: height,
+        width: width,
+        fit: fit ?? BoxFit.cover,
+      ),
+    };
+    if (onPressed == null) return image;
+    return AppFocusable(
+      onActivate: onPressed,
+      borderRadius: BorderRadius.circular(8),
+      child: image,
+    );
   }
 }
