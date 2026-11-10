@@ -127,6 +127,7 @@ jobs:
       test_target: lib/main.dart
       devices: model=MediumPhone.arm,version=33,locale=en,orientation=portrait
       instrumentation_args: class=org.getlantern.lantern.SplitTunnelCaptureTest
+      results_name: split-tunnel
 
   prepare:
     needs: validate-inputs
