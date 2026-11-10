@@ -10,8 +10,9 @@ go 1.26.10
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.13.20-0.20261019115333-624aa48e0252
 
-// Backport gVisor reader shutdown fix (upstream be4ce8d320a5).
-replace github.com/sagernet/sing-tun => github.com/getlantern/sing-tun v0.0.0-20261017114032-5448fbd8b70b
+// Fork: backports the gVisor reader shutdown fix (upstream be4ce8d320a5) and
+// relistens when Android destroys the system stack's TCP forwarder listener.
+replace github.com/sagernet/sing-tun => github.com/getlantern/sing-tun v0.0.0-20261110183216-6f029c274d26
 
 // replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
 

@@ -270,8 +270,8 @@ github.com/getlantern/semconv v0.0.0-20261103162524-c0c2ac0e0a3e h1:YuyL8jSRYD78
 github.com/getlantern/semconv v0.0.0-20261103162524-c0c2ac0e0a3e/go.mod h1:GkPT5P9JoOTIRXRmFWxYgu1hhXgTFFTNc2hoG7WQc3g=
 github.com/getlantern/sing-box-minimal v1.13.20-0.20261019115333-624aa48e0252 h1:p6tbxiX1SHqo1FwO9l1uYerSSaMLt/R78QtLIScpP54=
 github.com/getlantern/sing-box-minimal v1.13.20-0.20261019115333-624aa48e0252/go.mod h1:4E8WvF7Vi60N1NtPw1CeG994J/yiJZZkty5dKKwG+V0=
-github.com/getlantern/sing-tun v0.0.0-20261017114032-5448fbd8b70b h1:e5AdmeQNZZlDB0t7RtglDFZWBULfDCFzR7vkuPwEvbs=
-github.com/getlantern/sing-tun v0.0.0-20261017114032-5448fbd8b70b/go.mod h1:QvarqUtHfj1ULaRR+6kZOS/OoCE+pYGq67A5tyIy+dQ=
+github.com/getlantern/sing-tun v0.0.0-20261110183216-6f029c274d26 h1:Ibihurhu0G/cktcMBBhxTeCBxqdzU2z54+GnBK0gq1I=
+github.com/getlantern/sing-tun v0.0.0-20261110183216-6f029c274d26/go.mod h1:QvarqUtHfj1ULaRR+6kZOS/OoCE+pYGq67A5tyIy+dQ=
 github.com/getlantern/soar v0.2.4 h1:SD1QN+wzjkIKOBZn+1ERXPqwIZAm0mrYgrH52BudIrQ=
 github.com/getlantern/soar v0.2.4/go.mod h1:6T2+Kbx0GVqYIHqfEaUqlYI5ZRRVZYYhuoMWcxHC+xA=
 github.com/getlantern/twiddle v0.0.0-20260914204124-f698a0d67d2f h1:8WL/o8hKl27jpHunB4nO5dJZKSTfyMwvS7J72ix6vqQ=
