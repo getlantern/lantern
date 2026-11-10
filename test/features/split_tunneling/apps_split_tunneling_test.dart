@@ -25,7 +25,6 @@ class _Snapshot extends SplitTunnel {
   Future<SplitTunnelState> build() async => const SplitTunnelState(
     enabled: true,
     policy: SplitTunnelPolicy.bypass,
-    supported: true,
   );
 }
 

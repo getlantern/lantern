@@ -31,7 +31,6 @@ void main() {
       },
     });
     expect(state.policy, SplitTunnelPolicy.includeOnly);
-    expect(state.supported, isFalse);
     expect(state.statusLabelKey, 'split_tunnel_include_only');
     expect(state.appCount, 1);
     expect(state.websiteCount, 1);
@@ -43,7 +42,6 @@ void main() {
       const state = SplitTunnelState(
         enabled: true,
         policy: SplitTunnelPolicy.bypass,
-        supported: true,
         filters: {
           SplitTunnelFilterType.packageName: ['found.app', 'missing.app'],
           SplitTunnelFilterType.processName: ['invisible.exe'],
@@ -82,7 +80,6 @@ void main() {
       const state = SplitTunnelState(
         enabled: true,
         policy: SplitTunnelPolicy.bypass,
-        supported: true,
         filters: {
           SplitTunnelFilterType.processPath: [
             r'C:\Program Files\Sample\sample.exe',

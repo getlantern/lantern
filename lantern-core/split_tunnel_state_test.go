@@ -6,30 +6,34 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/http"
 	"testing"
 
 	"github.com/getlantern/radiance/common/settings"
-	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/vpn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-type splitStateTestClient struct {
-	*splitTunnelTestClient
-	stateErr, filtersErr, settingsErr, mutationErr error
+func (c *splitTunnelTestClient) SetSplitTunnelPolicy(ctx context.Context, policy vpn.SplitTunnelPolicy) error {
+	if err := c.record(ctx, "policy"); err != nil {
+		return err
+	}
+	return c.handler.SetPolicy(policy)
 }
 
-func (c *splitStateTestClient) SplitTunnelState(context.Context) (vpn.SplitTunnelState, error) {
-	return c.handler.State(), c.stateErr
+type splitStateTestClient struct {
+	*splitTunnelTestClient
+	filtersErr, settingsErr, policyErr error
 }
 
 func (c *splitStateTestClient) Settings(ctx context.Context) (settings.Settings, error) {
 	if c.settingsErr != nil {
 		return nil, c.settingsErr
 	}
-	return settings.Settings{settings.SplitTunnelKey: c.handler.IsEnabled(), settings.SplitTunnelPolicyKey: string(c.handler.State().Policy)}, nil
+	return settings.Settings{
+		settings.SplitTunnelKey:       c.handler.IsEnabled(),
+		settings.SplitTunnelPolicyKey: string(c.handler.Policy()),
+	}, nil
 }
 
 func (c *splitStateTestClient) SplitTunnelFilters(ctx context.Context) (vpn.SplitTunnelFilter, error) {
@@ -39,18 +43,11 @@ func (c *splitStateTestClient) SplitTunnelFilters(ctx context.Context) (vpn.Spli
 	return c.splitTunnelTestClient.SplitTunnelFilters(ctx)
 }
 
-func (c *splitStateTestClient) SwitchSplitTunnelPolicy(ctx context.Context, policy vpn.SplitTunnelPolicy) (vpn.SplitTunnelState, error) {
-	if c.mutationErr != nil {
-		return vpn.SplitTunnelState{}, c.mutationErr
+func (c *splitStateTestClient) SetSplitTunnelPolicy(ctx context.Context, policy vpn.SplitTunnelPolicy) error {
+	if c.policyErr != nil {
+		return c.policyErr
 	}
-	return c.splitTunnelTestClient.SwitchSplitTunnelPolicy(ctx, policy)
-}
-
-func (c *splitStateTestClient) ClearSplitTunnelApps(ctx context.Context) (vpn.SplitTunnelState, error) {
-	if c.mutationErr != nil {
-		return vpn.SplitTunnelState{}, c.mutationErr
-	}
-	return c.splitTunnelTestClient.ClearSplitTunnelApps(ctx)
+	return c.splitTunnelTestClient.SetSplitTunnelPolicy(ctx, policy)
 }
 
 func splitStateCore(t *testing.T) (*LanternCore, *splitStateTestClient) {
@@ -59,30 +56,26 @@ func splitStateCore(t *testing.T) (*LanternCore, *splitStateTestClient) {
 	return &LanternCore{ctx: t.Context(), splitTunnel: splitTunnelPaths{client: c}}, c
 }
 
-func decodeSplitState(t *testing.T, payload string) splitTunnelSnapshot {
+func decodeSplitState(t *testing.T, payload string) splitTunnelState {
 	t.Helper()
-	var state splitTunnelSnapshot
+	var state splitTunnelState
 	require.NoError(t, json.Unmarshal([]byte(payload), &state))
 	return state
 }
 
-func TestSplitTunnelStateCapabilitiesAndFailures(t *testing.T) {
+func TestSplitTunnelStateReadsSettingsAndFilters(t *testing.T) {
 	lc, c := splitStateCore(t)
-	require.NoError(t, c.setEnabled(true))
-	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{ProcessPath: []string{"missing.exe"}}))
+	require.NoError(t, c.handler.SetEnabled(true))
+	require.NoError(t, c.handler.SetPolicy(vpn.SplitTunnelPolicyInclude))
+	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"site.test"}}))
 	stateJSON, err := lc.GetSplitTunnelState()
 	require.NoError(t, err)
-	state := decodeSplitState(t, stateJSON)
-	assert.True(t, state.Supported)
-	assert.Equal(t, c.handler.State(), state.SplitTunnelState)
-	for _, status := range []int{http.StatusNotFound, http.StatusMethodNotAllowed} {
-		c.stateErr = &ipc.Error{Status: status}
-		stateJSON, err = lc.GetSplitTunnelState()
-		require.NoError(t, err)
-		state = decodeSplitState(t, stateJSON)
-		assert.False(t, state.Supported)
-		assert.Equal(t, c.handler.State(), state.SplitTunnelState)
-	}
+	assert.Equal(t, splitTunnelState{
+		Enabled: true,
+		Policy:  vpn.SplitTunnelPolicyInclude,
+		Filters: c.handler.Filters(),
+	}, decodeSplitState(t, stateJSON))
+
 	c.settingsErr = errors.New("settings unavailable")
 	_, err = lc.GetSplitTunnelState()
 	assert.ErrorIs(t, err, c.settingsErr)
@@ -93,44 +86,38 @@ func TestSplitTunnelStateCapabilitiesAndFailures(t *testing.T) {
 	payload, err := lc.GetSplitTunnelItems()
 	assert.ErrorIs(t, err, c.filtersErr)
 	assert.Empty(t, payload)
-	c.filtersErr = nil
-	c.stateErr = &ipc.Error{Status: http.StatusInternalServerError, Message: "read failed"}
-	_, err = lc.GetSplitTunnelState()
-	assert.ErrorIs(t, err, c.stateErr)
 }
 
-func TestSplitTunnelSwitchAndClearReturnAuthoritativeState(t *testing.T) {
+func TestSplitTunnelSwitchClearsListsAndClearKeepsWebsites(t *testing.T) {
 	lc, c := splitStateCore(t)
 	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"site.test"}, ProcessName: []string{"app"}}))
 	payload, err := lc.SwitchSplitTunnelPolicy("include")
 	require.NoError(t, err)
 	state := decodeSplitState(t, payload)
+	assert.Equal(t, vpn.SplitTunnelPolicyInclude, state.Policy)
 	assert.Empty(t, state.Filters.DomainSuffix)
 	assert.Empty(t, state.Filters.ProcessName)
+
+	// Selecting the current policy keeps the lists.
 	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{
-		DomainSuffix: []string{"site.test"}, ProcessName: []string{"hidden"}, ProcessPath: []string{"gone.exe"},
-		ProcessPathRegex: []string{"missing.*"}, PackageName: []string{"uninstalled.app"},
+		DomainSuffix: []string{"site.test"}, ProcessName: []string{"app"}, PackageName: []string{"some.app"},
 	}))
 	_, err = lc.SwitchSplitTunnelPolicy("include")
 	require.NoError(t, err)
-	assert.NotEmpty(t, c.handler.State().Filters.ProcessPath)
-	for _, legacy := range []bool{false, true} {
-		if legacy {
-			require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{PackageName: []string{"uninstalled.app"}}))
-			c.mutationErr = &ipc.Error{Status: http.StatusNotFound}
-			c.stateErr = c.mutationErr
-		}
-		payload, err = lc.ClearSplitTunnelApps()
-		require.NoError(t, err)
-		state = decodeSplitState(t, payload)
-		assert.Equal(t, vpn.SplitTunnelFilter{DomainSuffix: []string{"site.test"}}, state.Filters)
-		assert.Equal(t, !legacy, state.Supported)
-	}
-	c.mutationErr = errors.New("saved but apply failed")
+	assert.NotEmpty(t, c.handler.Filters().ProcessName)
+
+	payload, err = lc.ClearSplitTunnelApps()
+	require.NoError(t, err)
+	assert.Equal(t, []string{"site.test"}, decodeSplitState(t, payload).Filters.DomainSuffix)
+	assert.Empty(t, c.handler.Filters().ProcessName)
+	assert.Empty(t, c.handler.Filters().PackageName)
+
+	_, err = lc.SwitchSplitTunnelPolicy("bogus")
+	assert.Error(t, err)
+	c.policyErr = errors.New("policy write failed")
 	_, err = lc.SwitchSplitTunnelPolicy("exclude")
-	assert.ErrorIs(t, err, c.mutationErr)
-	_, err = lc.ClearSplitTunnelApps()
-	assert.ErrorIs(t, err, c.mutationErr)
+	assert.ErrorIs(t, err, c.policyErr)
+	assert.Equal(t, vpn.SplitTunnelPolicyInclude, c.handler.Policy())
 }
 
 func TestSplitTunnelWebsiteWritesAreValidatedAndDeduplicated(t *testing.T) {
@@ -138,15 +125,15 @@ func TestSplitTunnelWebsiteWritesAreValidatedAndDeduplicated(t *testing.T) {
 	for _, invalid := range []string{"*", "*ir", "127.0.0.1", "foo..com"} {
 		require.Error(t, lc.AddSplitTunnelItem(vpn.TypeDomainSuffix, invalid))
 	}
-	assert.Empty(t, c.handler.State().Filters.DomainSuffix)
+	assert.Empty(t, c.handler.Filters().DomainSuffix)
 	require.NoError(t, lc.AddSplitTunnelItem(vpn.TypeDomainSuffix, "*.BÜCHER.de."))
 	require.NoError(t, lc.AddSplitTunnelItem(vpn.TypeDomainSuffix, ".xn--bcher-kva.de"))
-	assert.Equal(t, []string{".xn--bcher-kva.de"}, c.handler.State().Filters.DomainSuffix)
+	assert.Equal(t, []string{".xn--bcher-kva.de"}, c.handler.Filters().DomainSuffix)
 	require.NoError(t, lc.RemoveSplitTunnelItem(vpn.TypeDomainSuffix, "*.BÜCHER.de"))
-	assert.Empty(t, c.handler.State().Filters.DomainSuffix)
+	assert.Empty(t, c.handler.Filters().DomainSuffix)
 
 	// A rule saved before normalization is removed by its saved value.
 	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"*.Legacy.com"}}))
 	require.NoError(t, lc.RemoveSplitTunnelItem(vpn.TypeDomainSuffix, "*.Legacy.com"))
-	assert.Empty(t, c.handler.State().Filters.DomainSuffix)
+	assert.Empty(t, c.handler.Filters().DomainSuffix)
 }

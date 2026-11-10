@@ -14,13 +14,11 @@ class SplitTunnelState {
   const SplitTunnelState({
     required this.enabled,
     required this.policy,
-    required this.supported,
     this.filters = const {},
   });
 
   final bool enabled;
   final SplitTunnelPolicy policy;
-  final bool supported;
   final Map<SplitTunnelFilterType, List<String>> filters;
 
   static const appTypes = [
@@ -50,7 +48,6 @@ class SplitTunnelState {
       policy: json['policy'] == 'include'
           ? SplitTunnelPolicy.includeOnly
           : SplitTunnelPolicy.bypass,
-      supported: json['supported'] == true,
       filters: Map.unmodifiable(filters),
     );
   }

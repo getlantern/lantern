@@ -9,20 +9,19 @@ import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.
 import 'package:lantern/features/split_tunneling/split_tunneling.dart';
 
 class _Snapshot extends SplitTunnel {
-  _Snapshot({this.supported = true, this.policy = SplitTunnelPolicy.bypass});
-  final bool supported;
+  _Snapshot({this.policy = SplitTunnelPolicy.bypass});
   final SplitTunnelPolicy policy;
   final switches = <SplitTunnelPolicy>[];
   Failure? failure;
   @override
   Future<SplitTunnelState> build() async =>
-      SplitTunnelState(enabled: true, policy: policy, supported: supported);
+      SplitTunnelState(enabled: true, policy: policy);
   @override
   Future<Failure?> switchPolicy(SplitTunnelPolicy next) async {
     switches.add(next);
     if (failure == null) {
       state = AsyncData(
-        SplitTunnelState(enabled: true, policy: next, supported: true),
+        SplitTunnelState(enabled: true, policy: next),
       );
     }
     return failure;
@@ -46,17 +45,6 @@ Future<void> _pump(WidgetTester tester, _Snapshot notifier) async {
 }
 
 void main() {
-  testWidgets('older daemon disables Include only', (tester) async {
-    final notifier = _Snapshot(supported: false);
-    await _pump(tester, notifier);
-    final tile = find.byKey(const Key('split_tunneling.mode.include'));
-    expect(tester.widget<ListTile>(tile).enabled, isFalse);
-    await tester.tap(tile);
-    await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
-    expect(notifier.switches, isEmpty);
-  });
-
   for (final policy in SplitTunnelPolicy.values) {
     testWidgets(
       '${policy.name} switch requires confirmation and can be cancelled',

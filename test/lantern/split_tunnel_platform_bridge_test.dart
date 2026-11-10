@@ -25,7 +25,6 @@ void main() {
       return jsonEncode({
         'enabled': true,
         'policy': 'include',
-        'supported': true,
         'filters': {
           'DomainSuffix': ['.example.com'],
           'ProcessPath': ['missing.exe'],
@@ -40,7 +39,6 @@ void main() {
       final result = await operation;
       result.fold((failure) => fail('$failure'), (state) {
         expect(state.enabled, isTrue);
-        expect(state.supported, isTrue);
         expect(state.policy, SplitTunnelPolicy.includeOnly);
         expect(state.selectors(SplitTunnelFilterType.processPath), [
           'missing.exe',
@@ -95,13 +93,11 @@ void main() {
         (call) async => jsonEncode({
           'enabled': true,
           'policy': 'include',
-          'supported': false,
           'filters': {},
         }),
       );
       final result = await service.getSplitTunnelState();
       result.fold((failure) => fail('$failure'), (state) {
-        expect(state.supported, isFalse);
         expect(state.policy, SplitTunnelPolicy.includeOnly);
       });
     },

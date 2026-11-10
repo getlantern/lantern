@@ -12,7 +12,6 @@ import androidx.test.runner.AndroidJUnit4
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.service.LanternVpnService
 import org.junit.After
-import org.junit.Assert.assertNotEquals
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -65,52 +64,55 @@ class SplitTunnelCaptureTest {
         }
     }
 
+    // Every app enters the tunnel, so the exit IP shows whether the rules sent it direct or through a proxy.
     @Test(timeout = 300_000)
-    fun appCaptureAndWebsiteTransitions() {
-        val directIP = assertProbe(vpn = false)[PublicIpProbeService.IP] as String
+    fun appAndWebsiteRouting() {
+        directIP = probe("direct IP before connecting") { _, vpn -> !vpn }
         Mobile.addSplitTunnelItem("packageName", probePackage)
         Mobile.setSplitTunnelingEnabled(true)
         context.startService(Intent(context, LanternVpnService::class.java).setAction(LanternVpnService.ACTION_START_VPN))
         await("VPN connected") { Mobile.isVPNConnected() }
-        assertProbe(vpn = false, ip = directIP)
+        assertDirect()
 
         Mobile.switchSplitTunnelPolicy("include")
+        assertProxied() // nothing selected yet
         Mobile.addSplitTunnelItem("packageName", probePackage)
-        val included = assertProbe(vpn = true)
-        assertNotEquals("Selected app must use a proxy exit", directIP, included[PublicIpProbeService.IP])
-
+        assertProxied()
         Mobile.clearSplitTunnelApps()
-        assertProbe(vpn = false, ip = directIP)
         Mobile.addSplitTunnelItem("packageName", "org.getlantern.split.smoke.missing")
-        assertProbe(vpn = false, ip = directIP)
+        assertDirect()
 
         Mobile.addSplitTunnelItem("domainSuffix", "api.ipify.org")
-        val mixed = assertProbe(vpn = true)
-        assertNotEquals("A selected website in an unselected app must use the proxy", directIP, mixed[PublicIpProbeService.IP])
+        assertProxied()
         Mobile.addSplitTunnelItem("domainSuffix", "example.com")
         Mobile.removeSplitTunnelItem("domainSuffix", "example.com")
-        assertProbe(vpn = true)
+        assertProxied()
         Mobile.removeSplitTunnelItem("domainSuffix", "api.ipify.org")
-        assertProbe(vpn = false, ip = directIP)
+        assertDirect()
 
         Mobile.switchSplitTunnelPolicy("exclude")
+        assertProxied()
         Mobile.addSplitTunnelItem("domainSuffix", "api.ipify.org")
-        assertProbe(vpn = true, ip = directIP)
-        Mobile.addSplitTunnelItem("packageName", probePackage)
-        assertProbe(vpn = false, ip = directIP)
+        assertDirect()
     }
 
+    private lateinit var directIP: String
+
+    private fun assertDirect() = probe("direct exit $directIP") { ip, vpn -> vpn && ip == directIP }
+
+    private fun assertProxied() = probe("proxy exit") { ip, vpn -> vpn && ip != directIP }
+
     // Retries until the probe agrees; a probe error during a VPN transition is not a result.
-    private fun assertProbe(vpn: Boolean, ip: String? = null): Map<String, Any?> {
+    private fun probe(description: String, expected: (ip: String, vpn: Boolean) -> Boolean): String {
         var result = emptyMap<String, Any?>()
-        await("probe VPN=$vpn, IP=$ip", { "last probe: $result" }) {
+        var exit = ""
+        await(description, { "last probe: $result" }) {
             result = probePublicIp(context, probePackage)
-            val exit = result[PublicIpProbeService.IP] as? String
-            result[PublicIpProbeService.ERROR] == null && exit != null &&
-                Patterns.IP_ADDRESS.matcher(exit).matches() &&
-                result[PublicIpProbeService.VPN] == vpn && (ip == null || exit == ip)
+            exit = result[PublicIpProbeService.IP] as? String ?: ""
+            result[PublicIpProbeService.ERROR] == null && Patterns.IP_ADDRESS.matcher(exit).matches() &&
+                expected(exit, result[PublicIpProbeService.VPN] == true)
         }
-        return result
+        return exit
     }
 
     private fun await(description: String, detail: () -> String = { "" }, condition: () -> Boolean) {

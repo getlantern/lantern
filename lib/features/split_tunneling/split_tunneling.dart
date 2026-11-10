@@ -83,10 +83,7 @@ class SplitTunneling extends HookConsumerWidget {
                   for (final policy in SplitTunnelPolicy.values)
                     ListTile(
                       key: Key('split_tunneling.mode.${policy.wireValue}'),
-                      enabled:
-                          !busy.value &&
-                          (snapshot.supported ||
-                              policy == SplitTunnelPolicy.bypass),
+                      enabled: !busy.value,
                       title: Text(policy.labelKey.i18n),
                       subtitle: Text(
                         (policy == SplitTunnelPolicy.bypass
@@ -104,14 +101,6 @@ class SplitTunneling extends HookConsumerWidget {
                 ],
               ),
             ),
-            if (!snapshot.supported)
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  'split_tunnel_update_required'.i18n,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
             if (snapshot.enabled) ...[
               SizedBox(height: defaultSize),
               AppCard(
@@ -140,15 +129,6 @@ class SplitTunneling extends HookConsumerWidget {
                   ],
                 ),
               ),
-              if (PlatformUtils.isAndroid &&
-                  snapshot.policy == SplitTunnelPolicy.includeOnly)
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(
-                    'split_tunnel_android_mixed_note'.i18n,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
             ],
           ],
         ],

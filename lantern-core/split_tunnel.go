@@ -3,16 +3,14 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"runtime"
+	"slices"
 	"sync"
 
 	"github.com/getlantern/lantern/lantern-core/internal/processpath"
 	"github.com/getlantern/radiance/common/settings"
-	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/vpn"
 )
 
@@ -21,29 +19,16 @@ type splitTunnelClient interface {
 	SplitTunnelFilters(context.Context) (vpn.SplitTunnelFilter, error)
 	AddSplitTunnelItems(context.Context, vpn.SplitTunnelFilter) error
 	RemoveSplitTunnelItems(context.Context, vpn.SplitTunnelFilter) error
-	SplitTunnelState(context.Context) (vpn.SplitTunnelState, error)
-	SwitchSplitTunnelPolicy(context.Context, vpn.SplitTunnelPolicy) (vpn.SplitTunnelState, error)
-	ClearSplitTunnelApps(context.Context) (vpn.SplitTunnelState, error)
+	SetSplitTunnelPolicy(context.Context, vpn.SplitTunnelPolicy) error
 }
 
-type splitTunnelSnapshot struct {
-	vpn.SplitTunnelState
-	Supported bool `json:"supported"`
+type splitTunnelState struct {
+	Enabled bool                  `json:"enabled"`
+	Policy  vpn.SplitTunnelPolicy `json:"policy"`
+	Filters vpn.SplitTunnelFilter `json:"filters"`
 }
 
-func encodeSplitTunnelState(state vpn.SplitTunnelState, supported bool) (string, error) {
-	b, err := json.Marshal(splitTunnelSnapshot{SplitTunnelState: state, Supported: supported})
-	return string(b), err
-}
-
-// unsupportedSplitTunnelAPI reports whether the daemon predates the state API.
-func unsupportedSplitTunnelAPI(err error) bool {
-	var response *ipc.Error
-	return errors.As(err, &response) && (response.Status == http.StatusNotFound || response.Status == http.StatusMethodNotAllowed)
-}
-
-// GetSplitTunnelState returns the state as JSON. An older daemon's state is
-// rebuilt from its settings and filters and marked unsupported.
+// GetSplitTunnelState returns the enabled flag, policy and filters as JSON.
 func (lc *LanternCore) GetSplitTunnelState() (string, error) {
 	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
 	defer cancel()
@@ -53,28 +38,34 @@ func (lc *LanternCore) GetSplitTunnelState() (string, error) {
 }
 
 func (s *splitTunnelPaths) stateJSONLocked(ctx context.Context) (string, error) {
-	state, err := s.client.SplitTunnelState(ctx)
-	supported := err == nil
-	if unsupportedSplitTunnelAPI(err) {
-		config, configErr := s.client.Settings(ctx)
-		if configErr != nil {
-			return "", configErr
-		}
-		state.Enabled, _ = config[settings.SplitTunnelKey].(bool)
-		policy, _ := config[settings.SplitTunnelPolicyKey].(string)
-		state.Policy = vpn.SplitTunnelPolicy(policy)
-		if !state.Policy.Valid() {
-			state.Policy = vpn.SplitTunnelPolicyExclude
-		}
+	config, err := s.client.Settings(ctx)
+	if err != nil {
+		return "", err
+	}
+	state := splitTunnelState{Policy: splitTunnelPolicy(config)}
+	state.Enabled, _ = config[settings.SplitTunnelKey].(bool)
+	if runtime.GOOS == "windows" {
 		state.Filters, err = s.migrateLocked(ctx)
+	} else {
+		state.Filters, err = s.client.SplitTunnelFilters(ctx)
 	}
 	if err != nil {
 		return "", err
 	}
-	return encodeSplitTunnelState(state, supported)
+	b, err := json.Marshal(state)
+	return string(b), err
 }
 
-// SwitchSplitTunnelPolicy changes the policy, clearing both lists if it differs.
+func splitTunnelPolicy(config settings.Settings) vpn.SplitTunnelPolicy {
+	policy, _ := config[settings.SplitTunnelPolicyKey].(string)
+	if p := vpn.SplitTunnelPolicy(policy); p.Valid() {
+		return p
+	}
+	return vpn.SplitTunnelPolicyExclude
+}
+
+// SwitchSplitTunnelPolicy changes the policy. A changed policy clears both
+// lists first, since a bypass list means the opposite under Include only.
 func (lc *LanternCore) SwitchSplitTunnelPolicy(policy string) (string, error) {
 	p := vpn.SplitTunnelPolicy(policy)
 	if !p.Valid() {
@@ -84,11 +75,23 @@ func (lc *LanternCore) SwitchSplitTunnelPolicy(policy string) (string, error) {
 	defer cancel()
 	lc.splitTunnel.mu.Lock()
 	defer lc.splitTunnel.mu.Unlock()
-	state, err := lc.splitTunnel.client.SwitchSplitTunnelPolicy(ctx, p)
+	config, err := lc.splitTunnel.client.Settings(ctx)
 	if err != nil {
 		return "", err
 	}
-	return encodeSplitTunnelState(state, true)
+	if splitTunnelPolicy(config) != p {
+		filter, err := lc.splitTunnel.client.SplitTunnelFilters(ctx)
+		if err != nil {
+			return "", err
+		}
+		if err := lc.splitTunnel.removeLocked(ctx, filter); err != nil {
+			return "", err
+		}
+		if err := lc.splitTunnel.client.SetSplitTunnelPolicy(ctx, p); err != nil {
+			return "", err
+		}
+	}
+	return lc.splitTunnel.stateJSONLocked(ctx)
 }
 
 // ClearSplitTunnelApps removes all selected apps but keeps websites.
@@ -97,30 +100,31 @@ func (lc *LanternCore) ClearSplitTunnelApps() (string, error) {
 	defer cancel()
 	lc.splitTunnel.mu.Lock()
 	defer lc.splitTunnel.mu.Unlock()
-	state, err := lc.splitTunnel.client.ClearSplitTunnelApps(ctx)
-	if unsupportedSplitTunnelAPI(err) {
-		filter, err := lc.splitTunnel.client.SplitTunnelFilters(ctx)
-		if err != nil {
-			return "", err
-		}
-		filter.Domain, filter.DomainSuffix, filter.DomainKeyword, filter.DomainRegex = nil, nil, nil, nil
-		lc.splitTunnel.pendingSave = true
-		if err := lc.splitTunnel.client.RemoveSplitTunnelItems(ctx, filter); err != nil {
-			return "", err
-		}
-		lc.splitTunnel.pendingSave = false
-		return lc.splitTunnel.stateJSONLocked(ctx)
-	}
+	filter, err := lc.splitTunnel.client.SplitTunnelFilters(ctx)
 	if err != nil {
 		return "", err
 	}
-	return encodeSplitTunnelState(state, true)
+	filter.Domain, filter.DomainSuffix, filter.DomainKeyword, filter.DomainRegex = nil, nil, nil, nil
+	if err := lc.splitTunnel.removeLocked(ctx, filter); err != nil {
+		return "", err
+	}
+	return lc.splitTunnel.stateJSONLocked(ctx)
 }
 
 type splitTunnelPaths struct {
 	mu          sync.Mutex
 	client      splitTunnelClient
 	pendingSave bool
+}
+
+// removeLocked removes filter, leaving a failed save for the next read to retry.
+func (s *splitTunnelPaths) removeLocked(ctx context.Context, filter vpn.SplitTunnelFilter) error {
+	s.pendingSave = true
+	if err := s.client.RemoveSplitTunnelItems(ctx, filter); err != nil {
+		return err
+	}
+	s.pendingSave = false
+	return nil
 }
 
 func (s *splitTunnelPaths) prepareConnect(ctx context.Context) error {
@@ -206,6 +210,9 @@ func (s *splitTunnelPaths) update(ctx context.Context, filter vpn.SplitTunnelFil
 	if err != nil {
 		return err
 	}
+	if !remove {
+		filter = withoutSaved(filter, current)
+	}
 	seen := make(map[string]bool)
 	if !remove {
 		for _, path := range current.ProcessPath {
@@ -290,5 +297,31 @@ func (lc *LanternCore) updateSplitTunnelItems(filter vpn.SplitTunnelFilter, remo
 	if remove {
 		return lc.splitTunnel.client.RemoveSplitTunnelItems(ctx, filter)
 	}
-	return lc.splitTunnel.client.AddSplitTunnelItems(ctx, filter)
+	saved, err := lc.splitTunnel.client.SplitTunnelFilters(ctx)
+	if err != nil {
+		return err
+	}
+	return lc.splitTunnel.client.AddSplitTunnelItems(ctx, withoutSaved(filter, saved))
+}
+
+// withoutSaved drops selectors that are already saved, since radiance appends duplicates.
+func withoutSaved(filter, saved vpn.SplitTunnelFilter) vpn.SplitTunnelFilter {
+	for _, f := range []struct {
+		items *[]string
+		saved []string
+	}{
+		{&filter.Domain, saved.Domain},
+		{&filter.DomainSuffix, saved.DomainSuffix},
+		{&filter.DomainKeyword, saved.DomainKeyword},
+		{&filter.DomainRegex, saved.DomainRegex},
+		{&filter.ProcessName, saved.ProcessName},
+		{&filter.ProcessPath, saved.ProcessPath},
+		{&filter.ProcessPathRegex, saved.ProcessPathRegex},
+		{&filter.PackageName, saved.PackageName},
+	} {
+		*f.items = slices.DeleteFunc(slices.Clone(*f.items), func(item string) bool {
+			return slices.Contains(f.saved, item)
+		})
+	}
+	return filter
 }

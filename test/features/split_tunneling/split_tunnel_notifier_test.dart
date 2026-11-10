@@ -13,7 +13,6 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 const _initial = SplitTunnelState(
   enabled: true,
   policy: SplitTunnelPolicy.bypass,
-  supported: true,
 );
 final _failure = Failure(
   error: 'apply failed',
@@ -38,7 +37,6 @@ class _Service implements LanternService {
     snapshot = SplitTunnelState(
       enabled: enabled,
       policy: snapshot.policy,
-      supported: snapshot.supported,
       filters: snapshot.filters,
     );
     return mutationFailure == null ? right(unit) : left(mutationFailure!);
@@ -55,7 +53,6 @@ class _Service implements LanternService {
       policy: policy == 'include'
           ? SplitTunnelPolicy.includeOnly
           : SplitTunnelPolicy.bypass,
-      supported: true,
     );
     return right(snapshot);
   }
@@ -66,7 +63,6 @@ class _Service implements LanternService {
     snapshot = SplitTunnelState(
       enabled: snapshot.enabled,
       policy: snapshot.policy,
-      supported: snapshot.supported,
       filters: {
         for (final entry in snapshot.filters.entries)
           if (!SplitTunnelState.appTypes.contains(entry.key))
@@ -85,7 +81,6 @@ class _Service implements LanternService {
     snapshot = SplitTunnelState(
       enabled: snapshot.enabled,
       policy: snapshot.policy,
-      supported: snapshot.supported,
       filters: {
         ...snapshot.filters,
         type: [...snapshot.selectors(type), value],
@@ -103,7 +98,6 @@ class _Service implements LanternService {
     snapshot = SplitTunnelState(
       enabled: snapshot.enabled,
       policy: snapshot.policy,
-      supported: snapshot.supported,
       filters: {
         ...snapshot.filters,
         type: snapshot.selectors(type).where((s) => s != value).toList(),
@@ -213,7 +207,6 @@ void main() {
       service.snapshot = const SplitTunnelState(
         enabled: false,
         policy: SplitTunnelPolicy.includeOnly,
-        supported: true,
       );
       service.read = null;
       delayed.complete(right(_initial));
@@ -237,12 +230,11 @@ void main() {
   );
 
   test(
-    'same-mode retry keeps selections and old daemons cannot switch',
+    'same-mode retry keeps selections',
     () async {
       service.snapshot = const SplitTunnelState(
         enabled: true,
         policy: SplitTunnelPolicy.bypass,
-        supported: false,
         filters: {
           SplitTunnelFilterType.packageName: ['missing.app'],
         },
@@ -250,10 +242,6 @@ void main() {
       await container.read(splitTunnelProvider.future);
       final notifier = container.read(splitTunnelProvider.notifier);
       expect(await notifier.switchPolicy(SplitTunnelPolicy.bypass), isNull);
-      expect(
-        await notifier.switchPolicy(SplitTunnelPolicy.includeOnly),
-        isA<Failure>(),
-      );
       expect(service.calls, ['read']);
       expect(container.read(splitTunnelProvider).requireValue.appCount, 1);
     },
@@ -278,7 +266,6 @@ void main() {
     service.snapshot = const SplitTunnelState(
       enabled: true,
       policy: SplitTunnelPolicy.includeOnly,
-      supported: true,
       filters: {
         SplitTunnelFilterType.processName: ['hidden.exe'],
         SplitTunnelFilterType.processPath: [r'C:\Removed\removed.exe'],
@@ -303,7 +290,6 @@ void main() {
     service.snapshot = const SplitTunnelState(
       enabled: true,
       policy: SplitTunnelPolicy.bypass,
-      supported: true,
       filters: {
         SplitTunnelFilterType.packageName: ['selected.app'],
         SplitTunnelFilterType.domainSuffix: ['example.com'],

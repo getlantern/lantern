@@ -1890,7 +1890,7 @@ msgid "split_tunnel_bypass_description"
 msgstr "Selected apps and sites skip Lantern"
 
 msgid "split_tunnel_include_description"
-msgstr "Only selected apps and sites use Lantern"
+msgstr "Only selected apps and sites use Lantern. Until you pick one, everything does."
 
 msgid "split_tunnel_switch_include"
 msgstr "Switch to Include only?"
@@ -1899,7 +1899,7 @@ msgid "split_tunnel_switch_bypass"
 msgstr "Switch to Bypass?"
 
 msgid "split_tunnel_switch_include_body"
-msgstr "Your lists will be cleared. Only the apps and sites you add will use Lantern. Everything else, including your browser, will connect directly without protection."
+msgstr "Your lists will be cleared. Everything will use Lantern until you add apps or sites. Then only those will, and everything else, including your browser, will connect directly without protection."
 
 msgid "split_tunnel_switch_bypass_body"
 msgstr "Your lists will be cleared. Everything will use Lantern until you add apps or sites to bypass."
@@ -1918,12 +1918,6 @@ msgstr "Apps using the VPN (%d)"
 
 msgid "websites_using_vpn"
 msgstr "Websites using the VPN (%d)"
-
-msgid "split_tunnel_update_required"
-msgstr "Update Lantern and its VPN service to use Include only."
-
-msgid "split_tunnel_android_mixed_note"
-msgstr "For banking apps to stay outside Android’s VPN, select apps only. Adding websites requires other apps to enter the VPN so matching websites can use Lantern."
 
 msgid "split_tunnel_load_failed"
 msgstr "Could not load split tunneling. Please try again."

@@ -22,7 +22,7 @@ class _Snapshot extends SplitTunnel {
   final SplitTunnelPolicy policy;
   @override
   Future<SplitTunnelState> build() async =>
-      SplitTunnelState(enabled: true, policy: policy, supported: true);
+      SplitTunnelState(enabled: true, policy: policy);
 }
 
 class _Websites extends SplitTunnelingWebsites {

@@ -262,11 +262,6 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     'Read authoritative split-tunnel state',
   );
   final original = await readState();
-  expect(
-    original.supported,
-    isTrue,
-    reason: 'The smoke requires the new daemon state API',
-  );
   final wasSmart = requireSplitTunnelResult(
     await service.isSmartRoutingEnabled(),
     'Read routing mode',
@@ -455,7 +450,6 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     const SplitTunnelState(
       enabled: false,
       policy: SplitTunnelPolicy.bypass,
-      supported: true,
     ),
   );
   expect(await container.read(splitTunnelProvider.notifier).refresh(), isNull);

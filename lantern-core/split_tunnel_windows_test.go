@@ -37,17 +37,17 @@ func TestSplitTunnelWindowsProcessLookup(t *testing.T) {
 		for _, policy := range []vpn.SplitTunnelPolicy{vpn.SplitTunnelPolicyExclude, vpn.SplitTunnelPolicyInclude} {
 			dir := t.TempDir()
 			client := newSplitTunnelTestClient(t, dir)
-			if err := client.setEnabled(true); err != nil {
+			if err := client.handler.SetEnabled(true); err != nil {
 				t.Fatal(err)
 			}
-			if err := client.handler.Configure(nil, &policy); err != nil {
+			if err := client.handler.SetPolicy(policy); err != nil {
 				t.Fatal(err)
 			}
 			paths := splitTunnelPaths{client: client}
 			if err := paths.update(t.Context(), vpn.SplitTunnelFilter{ProcessPath: []string{configured}}, false); err != nil {
 				t.Fatal(err)
 			}
-			saved := newSplitTunnelTestClient(t, dir).handler.State().Filters
+			saved := newSplitTunnelTestClient(t, dir).handler.Filters()
 			if len(saved.ProcessPath) != 1 || saved.ProcessPath[0] != path || len(saved.ProcessPathRegex) != 1 {
 				t.Fatalf("expected one canonical path and its alias rule, got %#v", saved)
 			}

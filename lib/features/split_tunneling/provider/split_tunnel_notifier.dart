@@ -112,12 +112,6 @@ class SplitTunnel extends _$SplitTunnel {
       _serialize(() async {
         final current = state.requireValue;
         if (current.policy == policy) return null;
-        if (!current.supported) {
-          return Failure(
-            error: 'split_tunnel_unsupported',
-            localizedErrorMessage: 'split_tunnel_update_required'.i18n,
-          );
-        }
         return _writeSnapshot(
           () => ref
               .read(lanternServiceProvider)

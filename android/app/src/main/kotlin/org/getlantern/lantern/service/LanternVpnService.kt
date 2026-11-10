@@ -1,16 +1,12 @@
 package org.getlantern.lantern.service
 
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.os.Process
-import androidx.core.content.ContextCompat
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -19,8 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -113,59 +107,6 @@ open class LanternVpnService :
     private val flutterEventListener = FlutterEventListener()
 
     private var mInterface: ParcelFileDescriptor? = null
-
-    @Volatile
-    private var appCapture: VpnAppCapture? = null
-
-    private val changedPackages = mutableSetOf<String>()
-    private val packageRebuilds = Channel<Unit>(Channel.CONFLATED)
-
-    private val packageChanges = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            // Updates keep the app's uid and a removed uid carries no traffic,
-            // so only a fresh install of a selected app needs a rebuild.
-            if (intent == null || intent.action != Intent.ACTION_PACKAGE_ADDED) return
-            if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return
-            val pkg = intent.data?.schemeSpecificPart ?: return
-            if (appCapture?.contains(pkg) != true) return
-            synchronized(changedPackages) { changedPackages.add(pkg) }
-            packageRebuilds.trySend(Unit)
-        }
-    }
-
-    // Don't hold the gate here: restartVPN calls back into restartService, which takes it.
-    // No deadline: a slow start must not drop the rebuild, and a stop makes it unnecessary.
-    private suspend fun reconcilePackageChanges() {
-        if (!vpnStartGate.awaitIdle(Long.MAX_VALUE)) return
-        val changed = synchronized(changedPackages) { changedPackages.toList().also { changedPackages.clear() } }
-        if (changed.none { appCapture?.contains(it) == true }) return
-        repeat(3) { attempt ->
-            if (!vpnStartGate.awaitIdle(Long.MAX_VALUE) || !Mobile.isVPNConnected()) return
-            try {
-                Mobile.restartVPN()
-                return
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                if (attempt == 2 || !Mobile.isVPNConnected()) {
-                    AppLogger.e(TAG, "Could not rebuild VPN capture after package change", e)
-                    return
-                }
-            }
-            delay(1_000L * (attempt + 1))
-        }
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-        ContextCompat.registerReceiver(this, packageChanges, IntentFilter().apply {
-            addAction(Intent.ACTION_PACKAGE_ADDED)
-            addDataScheme("package")
-        }, ContextCompat.RECEIVER_NOT_EXPORTED)
-        serviceScope.launch {
-            packageRebuilds.consumeEach { reconcilePackageChanges() }
-        }
-    }
 
     /**
      * Safely close the TUN interface file descriptor.
@@ -270,10 +211,6 @@ open class LanternVpnService :
 
     override fun onDestroy() {
         try {
-            runCatching { unregisterReceiver(packageChanges) }
-                .onFailure { e -> AppLogger.e(TAG, "Could not unregister package receiver", e) }
-            packageRebuilds.close()
-            appCapture = null
             AppLogger.d(TAG, "destroying LanternVpnService")
             // Only the TUN fd close stays synchronous on the main thread — it's
             // cheap and the OS should release the interface promptly.
@@ -665,14 +602,6 @@ open class LanternVpnService :
         MainActivity.receiverRegistered = false
     }
 
-    private inline fun installed(add: () -> Unit): Boolean =
-        try {
-            add()
-            true
-        } catch (_: PackageManager.NameNotFoundException) {
-            false
-        }
-
     private fun createVPNBuilder(options: TunOptions): Builder {
         val builder = Builder().setSession(sessionName).setMtu(options.mtu)
 
@@ -691,33 +620,16 @@ open class LanternVpnService :
             builder.addAddress(address.address(), address.prefix())
         }
 
-        val capture = VpnAppCapture(options.includePackage.toList(), options.excludePackage.toList())
-        capture.apply(
-            packageName,
-            Process.myUid(),
-            uidOf = { pkg ->
-                try {
-                    @Suppress("DEPRECATION")
-                    packageManager.getApplicationInfo(pkg, 0).uid
-                } catch (_: PackageManager.NameNotFoundException) {
-                    null
-                }
-            },
-            allow = { pkg -> installed { builder.addAllowedApplication(pkg) } },
-            disallow = { pkg -> installed { builder.addDisallowedApplication(pkg) } },
-        )
-        appCapture = capture
+        // Disallow traffic from our own app to the VPN.
+        builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
 
         // Keep domestic payment apps off-tunnel so checkout handoffs don't exit from a foreign IP.
-        // An allowlist already leaves them out, and Android can't mix it with disallowed apps.
-        if (!capture.includeOnly) {
-            for (pkg in AppFilters.TUNNEL_BYPASS) {
-                try {
-                    builder.addDisallowedApplication(pkg)
-                    AppLogger.i(TAG, "Excluded $pkg from the tunnel")
-                } catch (_: PackageManager.NameNotFoundException) {
-                    AppLogger.d(TAG, "$pkg not installed; nothing to exclude")
-                }
+        for (pkg in AppFilters.TUNNEL_BYPASS) {
+            try {
+                builder.addDisallowedApplication(pkg)
+                AppLogger.i(TAG, "Excluded $pkg from the tunnel")
+            } catch (_: PackageManager.NameNotFoundException) {
+                AppLogger.d(TAG, "$pkg not installed; nothing to exclude")
             }
         }
 
@@ -771,10 +683,6 @@ open class LanternVpnService :
             }
         }
         return builder
-    }
-
-    private fun StringIterator.toList(): List<String> = buildList {
-        while (hasNext()) add(next())
     }
 
     fun opts(): Opts {

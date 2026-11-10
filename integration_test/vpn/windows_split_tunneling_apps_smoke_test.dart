@@ -421,7 +421,6 @@ void main() {
         await service.getSplitTunnelState(),
         'Read split-tunnel state',
       );
-      expect(original.supported, isTrue);
       final wasSmart = requireSplitTunnelResult(
         await service.isSmartRoutingEnabled(),
         'Read routing mode',
@@ -456,7 +455,6 @@ void main() {
           const SplitTunnelState(
             enabled: true,
             policy: SplitTunnelPolicy.bypass,
-            supported: true,
           ),
         );
         expect(

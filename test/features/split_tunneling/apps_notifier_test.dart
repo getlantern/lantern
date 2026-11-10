@@ -17,7 +17,6 @@ class _WindowsApps extends SplitTunnelingApps {
 SplitTunnelState _state(List<String> paths) => SplitTunnelState(
   enabled: true,
   policy: SplitTunnelPolicy.bypass,
-  supported: true,
   filters: {SplitTunnelFilterType.processPath: paths},
 );
 
