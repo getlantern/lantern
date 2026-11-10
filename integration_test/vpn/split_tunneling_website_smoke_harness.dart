@@ -13,6 +13,8 @@ import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/core/widgets/custom_app_bar.dart' as lantern_widgets;
 
+import '../utils/app_robot.dart';
+import '../utils/vpn_robot.dart';
 import '../utils/widget_wait_utils.dart';
 import 'split_tunneling_smoke_helpers.dart';
 import 'vpn_smoke_helpers.dart';
@@ -248,12 +250,20 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
   final finders = VpnSmokeFinders();
   final states = VpnStateFinders(textLabels: _vpnStateLabels);
   final service = sl<LanternService>();
-  await prepareVpnStartsDisconnectedForSmoke(
-    tester,
-    finders: finders,
-    vpnStateFinders: states,
-    scenario: 'split tunneling modes and websites',
-  );
+  // Android drives the VPN like its other e2e suites do.
+  final vpn = Platform.isAndroid ? VpnRobot(tester, AppRobot(tester)) : null;
+  if (vpn != null) {
+    await vpn.app.launchToHome();
+    await vpn.app.waitForControlReady(vpn.vpnToggle, controlName: 'VPN toggle');
+    await vpn.ensureDisconnected();
+  } else {
+    await prepareVpnStartsDisconnectedForSmoke(
+      tester,
+      finders: finders,
+      vpnStateFinders: states,
+      scenario: 'split tunneling modes and websites',
+    );
+  }
   final container = ProviderScope.containerOf(
     tester.element(finders.homeScreen),
   );
@@ -447,10 +457,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
   );
   await restoreSplitTunnelSnapshot(
     service,
-    const SplitTunnelState(
-      enabled: false,
-      policy: SplitTunnelPolicy.bypass,
-    ),
+    const SplitTunnelState(enabled: false, policy: SplitTunnelPolicy.bypass),
   );
   expect(await container.read(splitTunnelProvider.notifier).refresh(), isNull);
   await openSplit();
@@ -487,18 +494,22 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     homeScreen: finders.homeScreen,
     vpnToggle: finders.vpnToggle,
   );
-  await _tapFinder(
-    tester,
-    finders.vpnToggle,
-    timeout: const Duration(seconds: 20),
-    reason: 'Connect VPN',
-  );
-  await states.waitFor(
-    tester,
-    expected: const [VPNStatus.connected],
-    timeout: const Duration(seconds: 60),
-    reason: 'VPN did not connect',
-  );
+  if (vpn != null) {
+    await vpn.connect();
+  } else {
+    await _tapFinder(
+      tester,
+      finders.vpnToggle,
+      timeout: const Duration(seconds: 20),
+      reason: 'Connect VPN',
+    );
+    await states.waitFor(
+      tester,
+      expected: const [VPNStatus.connected],
+      timeout: const Duration(seconds: 60),
+      reason: 'VPN did not connect',
+    );
+  }
   if (enableIpCheck) {
     await expectRouting(
       selectedUsesVPN: false,
@@ -547,9 +558,13 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     homeScreen: finders.homeScreen,
     vpnToggle: finders.vpnToggle,
   );
-  await _disconnectVpnIfNeeded(
-    tester,
-    vpnToggle: finders.vpnToggle,
-    vpnStateFinders: states,
-  );
+  if (vpn != null) {
+    await vpn.disconnectIfNeeded();
+  } else {
+    await _disconnectVpnIfNeeded(
+      tester,
+      vpnToggle: finders.vpnToggle,
+      vpnStateFinders: states,
+    );
+  }
 }

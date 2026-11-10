@@ -11,7 +11,12 @@ const _enableIpCheck = bool.fromEnvironment(
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  registerSplitTunnelingWebsiteSmokeTests();
+}
 
+/// Also run by the Android e2e suite, without the IP checks: Lantern is off
+/// its own VPN there, so SplitTunnelCaptureTest checks routing instead.
+void registerSplitTunnelingWebsiteSmokeTests() {
   testWidgets(
     'Website split tunneling modes, cancellation and wildcards',
     (tester) async {
