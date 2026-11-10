@@ -26,10 +26,13 @@ class WebsiteDomainInput extends HookConsumerWidget {
       if (busy.value || snapshot == null) return;
       busy.value = true;
       try {
-        final input = controller.text.trim();
-        if (input.isEmpty) throw const FormatException('Empty website input');
-        final added = <Website>{};
-        for (final part in input.split(',')) {
+        // Canonical website to what the user typed for it.
+        final added = <Website, String>{};
+        final parts = controller.text
+            .split(',')
+            .map((part) => part.trim())
+            .where((part) => part.isNotEmpty);
+        for (final part in parts) {
           final result = await ref
               .read(lanternServiceProvider)
               .normalizeSplitTunnelWebsite(part);
@@ -38,7 +41,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
             (value) => value,
           );
           final website = Website(domain: canonical);
-          if (websites.contains(website) || !added.add(website)) {
+          if (websites.contains(website) || added.containsKey(website)) {
             throw Failure(
               error: 'Duplicate website',
               localizedErrorMessage: 'split_tunnel_website_duplicate'.i18n.fill(
@@ -46,7 +49,9 @@ class WebsiteDomainInput extends HookConsumerWidget {
               ),
             );
           }
+          added[website] = part;
         }
+        if (added.isEmpty) throw const FormatException('Empty website input');
         if (!context.mounted) return;
         if (snapshot.policy == SplitTunnelPolicy.bypass) {
           final storage = sl<LocalStorageService>();
@@ -61,7 +66,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
               centeredTitle: true,
               title: 'bypass_website_first_time_title'.i18n,
               body: 'bypass_website_first_time_body'.i18n.fill([
-                added.map((website) => website.displayDomain).join(', '),
+                added.keys.map((website) => website.displayDomain).join(', '),
               ]),
               primaryLabel: 'add'.i18n,
               dismissOnPrimary: false,
@@ -78,13 +83,17 @@ class WebsiteDomainInput extends HookConsumerWidget {
         if (!context.mounted) return;
         final failures = await ref
             .read(splitTunnelingWebsitesProvider.notifier)
-            .addWebsites(added.toList());
+            .addWebsites(added.keys.toList());
         if (!context.mounted) return;
-        if (failures.isEmpty) {
-          controller.clear();
-        } else {
+        // Keep only what didn't save, so Add retries just those.
+        controller.text = failures.keys
+            .map((website) => added[website])
+            .join(', ');
+        if (failures.isNotEmpty) {
           context.showSnackBarError(
-            failures.map((failure) => failure.localizedErrorMessage).join('\n'),
+            failures.values
+                .map((failure) => failure.localizedErrorMessage)
+                .join('\n'),
           );
         }
       } catch (error) {

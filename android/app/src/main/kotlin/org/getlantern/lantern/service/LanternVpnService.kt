@@ -134,12 +134,13 @@ open class LanternVpnService :
     }
 
     // Don't hold the gate here: restartVPN calls back into restartService, which takes it.
+    // No deadline: a slow start must not drop the rebuild, and a stop makes it unnecessary.
     private suspend fun reconcilePackageChanges() {
-        if (!vpnStartGate.awaitIdle(VPN_START_TIMEOUT_MS)) return
+        if (!vpnStartGate.awaitIdle(Long.MAX_VALUE)) return
         val changed = synchronized(changedPackages) { changedPackages.toList().also { changedPackages.clear() } }
         if (changed.none { appCapture?.contains(it) == true }) return
         repeat(3) { attempt ->
-            if (!vpnStartGate.awaitIdle(VPN_START_TIMEOUT_MS) || !Mobile.isVPNConnected()) return
+            if (!vpnStartGate.awaitIdle(Long.MAX_VALUE) || !Mobile.isVPNConnected()) return
             try {
                 Mobile.restartVPN()
                 return

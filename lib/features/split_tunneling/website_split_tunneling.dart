@@ -73,7 +73,7 @@ class WebsiteSplitTunneling extends HookConsumerWidget {
                       padding: const EdgeInsets.all(16),
                       child: Text('split_tunnel_load_failed'.i18n),
                     )
-                  : websites.isLoading
+                  : websites.isLoading && !websites.hasValue
                   ? const Center(child: CircularProgressIndicator())
                   : enabledList.isEmpty
                   ? Padding(

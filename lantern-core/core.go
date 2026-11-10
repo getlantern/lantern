@@ -980,7 +980,14 @@ func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
-	filter := filterFromTypeAndItems(filterType, []string{item})
+	items := []string{item}
+	// Keep the raw value too, so rules saved before normalization stay removable.
+	if filterType == vpn.TypeDomainSuffix {
+		if canonical, err := splitTunnelDomain(item); err == nil && canonical != item {
+			items = append(items, canonical)
+		}
+	}
+	filter := filterFromTypeAndItems(filterType, items)
 	return lc.updateSplitTunnelItems(filter, true)
 }
 

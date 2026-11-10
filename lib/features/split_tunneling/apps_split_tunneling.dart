@@ -355,7 +355,7 @@ class _SelectedApps extends ConsumerWidget {
         onRetry: () => ref.read(splitTunnelProvider.notifier).refresh(),
       );
     }
-    if (selected.isLoading) {
+    if (selected.isLoading && !selected.hasValue) {
       return const Center(child: CircularProgressIndicator());
     }
     if (selected.value?.isEmpty ?? true) {

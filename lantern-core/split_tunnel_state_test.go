@@ -142,4 +142,11 @@ func TestSplitTunnelWebsiteWritesAreValidatedAndDeduplicated(t *testing.T) {
 	require.NoError(t, lc.AddSplitTunnelItem(vpn.TypeDomainSuffix, "*.BÜCHER.de."))
 	require.NoError(t, lc.AddSplitTunnelItem(vpn.TypeDomainSuffix, ".xn--bcher-kva.de"))
 	assert.Equal(t, []string{".xn--bcher-kva.de"}, c.handler.State().Filters.DomainSuffix)
+	require.NoError(t, lc.RemoveSplitTunnelItem(vpn.TypeDomainSuffix, "*.BÜCHER.de"))
+	assert.Empty(t, c.handler.State().Filters.DomainSuffix)
+
+	// A rule saved before normalization is removed by its saved value.
+	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"*.Legacy.com"}}))
+	require.NoError(t, lc.RemoveSplitTunnelItem(vpn.TypeDomainSuffix, "*.Legacy.com"))
+	assert.Empty(t, c.handler.State().Filters.DomainSuffix)
 }

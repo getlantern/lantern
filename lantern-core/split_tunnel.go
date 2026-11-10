@@ -66,7 +66,7 @@ func (s *splitTunnelPaths) stateJSONLocked(ctx context.Context) (string, error) 
 		if !state.Policy.Valid() {
 			state.Policy = vpn.SplitTunnelPolicyExclude
 		}
-		state.Filters, err = s.client.SplitTunnelFilters(ctx)
+		state.Filters, err = s.migrateLocked(ctx)
 	}
 	if err != nil {
 		return "", err
@@ -104,9 +104,11 @@ func (lc *LanternCore) ClearSplitTunnelApps() (string, error) {
 			return "", err
 		}
 		filter.Domain, filter.DomainSuffix, filter.DomainKeyword, filter.DomainRegex = nil, nil, nil, nil
+		lc.splitTunnel.pendingSave = true
 		if err := lc.splitTunnel.client.RemoveSplitTunnelItems(ctx, filter); err != nil {
 			return "", err
 		}
+		lc.splitTunnel.pendingSave = false
 		return lc.splitTunnel.stateJSONLocked(ctx)
 	}
 	if err != nil {
@@ -116,8 +118,9 @@ func (lc *LanternCore) ClearSplitTunnelApps() (string, error) {
 }
 
 type splitTunnelPaths struct {
-	mu     sync.Mutex
-	client splitTunnelClient
+	mu          sync.Mutex
+	client      splitTunnelClient
+	pendingSave bool
 }
 
 func (s *splitTunnelPaths) prepareConnect(ctx context.Context) error {
@@ -177,20 +180,22 @@ func (s *splitTunnelPaths) migrateLocked(ctx context.Context) (vpn.SplitTunnelFi
 		}
 	}
 	added.ProcessPathRegex, removed.ProcessPathRegex = splitTunnelAliasChanges(normalizedPaths, filter.ProcessPathRegex)
-	if len(added.ProcessPath)+len(added.ProcessPathRegex)+len(removed.ProcessPath)+len(removed.ProcessPathRegex) == 0 {
-		return filter, nil
-	}
 	// Persist replacements before removing the old paths and aliases.
 	if len(added.ProcessPath)+len(added.ProcessPathRegex) > 0 {
+		s.pendingSave = true
 		if err := s.client.AddSplitTunnelItems(ctx, added); err != nil {
 			return filter, fmt.Errorf("saving executable path rules: %w", err)
 		}
 	}
-	if len(removed.ProcessPath)+len(removed.ProcessPathRegex) > 0 {
-		if err := s.client.RemoveSplitTunnelItems(ctx, removed); err != nil {
-			return filter, fmt.Errorf("saving migrated executable paths: %w", err)
-		}
+	if len(removed.ProcessPath)+len(removed.ProcessPathRegex) == 0 && !s.pendingSave {
+		return filter, nil
 	}
+	// Radiance can change memory before a failed save; an empty removal retries it.
+	s.pendingSave = true
+	if err := s.client.RemoveSplitTunnelItems(ctx, removed); err != nil {
+		return filter, fmt.Errorf("saving migrated executable paths: %w", err)
+	}
+	s.pendingSave = false
 	return s.client.SplitTunnelFilters(ctx)
 }
 
@@ -225,11 +230,18 @@ func (s *splitTunnelPaths) update(ctx context.Context, filter vpn.SplitTunnelFil
 		}
 		_, aliases := splitTunnelAliasChanges(remaining, current.ProcessPathRegex)
 		filter.ProcessPathRegex = append(filter.ProcessPathRegex, aliases...)
-		return s.client.RemoveSplitTunnelItems(ctx, filter)
+	} else {
+		aliases, _ := splitTunnelAliasChanges(paths, current.ProcessPathRegex)
+		filter.ProcessPathRegex = append(filter.ProcessPathRegex, aliases...)
 	}
-	aliases, _ := splitTunnelAliasChanges(paths, current.ProcessPathRegex)
-	filter.ProcessPathRegex = append(filter.ProcessPathRegex, aliases...)
-	return s.client.AddSplitTunnelItems(ctx, filter)
+	s.pendingSave = true
+	if remove {
+		err = s.client.RemoveSplitTunnelItems(ctx, filter)
+	} else {
+		err = s.client.AddSplitTunnelItems(ctx, filter)
+	}
+	s.pendingSave = err != nil
+	return err
 }
 
 // splitTunnelAliasChanges reconciles generated rules against the selected executables.

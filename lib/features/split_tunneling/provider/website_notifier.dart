@@ -17,8 +17,8 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
         .toSet();
   }
 
-  Future<List<Failure>> addWebsites(List<Website> websites) async {
-    final failures = <Failure>[];
+  Future<Map<Website, Failure>> addWebsites(List<Website> websites) async {
+    final failures = <Website, Failure>{};
     for (final website in websites.toSet()) {
       final failure = await ref
           .read(splitTunnelProvider.notifier)
@@ -27,7 +27,7 @@ class SplitTunnelingWebsites extends _$SplitTunnelingWebsites {
             website.domain,
             selected: true,
           );
-      if (failure != null) failures.add(failure);
+      if (failure != null) failures[website] = failure;
     }
     return failures;
   }

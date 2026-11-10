@@ -11,9 +11,11 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"sync"
 	"testing"
 
+	"github.com/getlantern/lantern/lantern-core/internal/processpath"
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/vpn"
 )
@@ -233,5 +235,50 @@ func TestSplitTunnelPathsRemovesOrphanAliases(t *testing.T) {
 	}
 	if got := newSplitTunnelTestClient(t, dir).handler.State().Filters.ProcessPathRegex; !reflect.DeepEqual(got, []string{userPattern}) {
 		t.Fatalf("orphan cleanup changed user rules or left a bypass: %v", got)
+	}
+}
+
+// legacySaveClient models an older daemon, which changes memory before a save that can fail.
+type legacySaveClient struct {
+	splitTunnelClient
+	memory, saved []string
+	failSave      bool
+}
+
+func (c *legacySaveClient) SplitTunnelFilters(context.Context) (vpn.SplitTunnelFilter, error) {
+	return vpn.SplitTunnelFilter{ProcessPath: slices.Clone(c.memory)}, nil
+}
+
+func (c *legacySaveClient) AddSplitTunnelItems(_ context.Context, filter vpn.SplitTunnelFilter) error {
+	c.memory = append(c.memory, filter.ProcessPath...)
+	return c.save()
+}
+
+func (c *legacySaveClient) RemoveSplitTunnelItems(_ context.Context, filter vpn.SplitTunnelFilter) error {
+	c.memory = slices.DeleteFunc(c.memory, func(path string) bool { return slices.Contains(filter.ProcessPath, path) })
+	return c.save()
+}
+
+func (c *legacySaveClient) save() error {
+	if c.failSave {
+		return errors.New("save failed")
+	}
+	c.saved = slices.Clone(c.memory)
+	return nil
+}
+
+func TestSplitTunnelPathsRetriesLegacyFailedSave(t *testing.T) {
+	client := &legacySaveClient{failSave: true}
+	paths := splitTunnelPaths{client: client}
+	change := vpn.SplitTunnelFilter{ProcessPath: []string{processpath.Normalize("game.exe")}}
+	if err := paths.update(t.Context(), change, false); err == nil {
+		t.Fatal("save unexpectedly succeeded")
+	}
+	client.failSave = false
+	if _, err := paths.filters(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(client.saved, client.memory) {
+		t.Fatalf("saved %v, memory %v", client.saved, client.memory)
 	}
 }

@@ -28,11 +28,11 @@ class _Snapshot extends SplitTunnel {
 class _Websites extends SplitTunnelingWebsites {
   Set<Website> initial = {};
   List<Website> added = [];
-  List<Failure> failures = [];
+  Map<Website, Failure> failures = {};
   @override
   FutureOr<Set<Website>> build() => initial;
   @override
-  Future<List<Failure>> addWebsites(List<Website> websites) async {
+  Future<Map<Website, Failure>> addWebsites(List<Website> websites) async {
     added.addAll(websites);
     return failures;
   }
@@ -40,6 +40,7 @@ class _Websites extends SplitTunnelingWebsites {
 
 class _Normalizer implements LanternService {
   String canonical = '.xn--bcher-kva.example';
+  String Function(String)? canonicalFor;
   final inputs = <String>[];
   Failure? failure;
   @override
@@ -47,7 +48,8 @@ class _Normalizer implements LanternService {
     String input,
   ) async {
     inputs.add(input);
-    return failure == null ? right(canonical) : left(failure!);
+    if (failure != null) return left(failure!);
+    return right(canonicalFor?.call(input) ?? canonical);
   }
 
   @override
@@ -163,14 +165,44 @@ void main() {
     await tester.pumpAndSettle();
     normalizer.failure = null;
     normalizer.canonical = 'example.com';
-    websites.failures = [
-      Failure(error: 'save', localizedErrorMessage: 'Could not save'),
-    ];
+    websites.failures = {
+      const Website(domain: 'example.com'): Failure(
+        error: 'save',
+        localizedErrorMessage: 'Could not save',
+      ),
+    };
     await add(tester, 'example.com');
     expect(find.text('Could not save'), findsOneWidget);
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       'example.com',
+    );
+  });
+
+  testWidgets('empty comma-separated parts are skipped', (tester) async {
+    normalizer.canonicalFor = (input) => input;
+    await pump(tester);
+    await add(tester, 'a.com,, b.com,');
+    expect(normalizer.inputs, ['a.com', 'b.com']);
+    expect(websites.added.map((website) => website.domain), ['a.com', 'b.com']);
+  });
+
+  testWidgets('a partial failure keeps only the unsaved websites', (
+    tester,
+  ) async {
+    normalizer.canonicalFor = (input) => input.toLowerCase();
+    websites.failures = {
+      const Website(domain: 'b.com'): Failure(
+        error: 'save',
+        localizedErrorMessage: 'Could not save',
+      ),
+    };
+    await pump(tester);
+    await add(tester, 'a.com, B.com');
+    expect(find.text('Could not save'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'B.com',
     );
   });
 
