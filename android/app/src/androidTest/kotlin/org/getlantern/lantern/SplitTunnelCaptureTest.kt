@@ -1,35 +1,18 @@
 package org.getlantern.lantern
 
 import android.Manifest
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.IBinder
-import android.os.Looper
-import android.os.Message
-import android.os.Messenger
 import android.os.ParcelFileDescriptor
-import android.os.Process
-import android.os.ResultReceiver
 import android.os.SystemClock
 import android.util.Patterns
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.TimeUnit
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.service.LanternVpnService
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -84,9 +67,7 @@ class SplitTunnelCaptureTest {
 
     @Test(timeout = 300_000)
     fun appCaptureAndWebsiteTransitions() {
-        val baseline = probe()
-        assertFalse(baseline.getBoolean("vpn"))
-        val directIP = baseline.getString("ip")
+        val directIP = assertProbe(vpn = false)[PublicIpProbeService.IP] as String
         Mobile.addSplitTunnelItem("packageName", probePackage)
         Mobile.setSplitTunnelingEnabled(true)
         context.startService(Intent(context, LanternVpnService::class.java).setAction(LanternVpnService.ACTION_START_VPN))
@@ -96,7 +77,7 @@ class SplitTunnelCaptureTest {
         Mobile.switchSplitTunnelPolicy("include")
         Mobile.addSplitTunnelItem("packageName", probePackage)
         val included = assertProbe(vpn = true)
-        assertNotEquals("Selected app must use a proxy exit", directIP, included.getString("ip"))
+        assertNotEquals("Selected app must use a proxy exit", directIP, included[PublicIpProbeService.IP])
 
         Mobile.clearSplitTunnelApps()
         assertProbe(vpn = false, ip = directIP)
@@ -105,7 +86,7 @@ class SplitTunnelCaptureTest {
 
         Mobile.addSplitTunnelItem("domainSuffix", "api.ipify.org")
         val mixed = assertProbe(vpn = true)
-        assertNotEquals("A selected website in an unselected app must use the proxy", directIP, mixed.getString("ip"))
+        assertNotEquals("A selected website in an unselected app must use the proxy", directIP, mixed[PublicIpProbeService.IP])
         Mobile.addSplitTunnelItem("domainSuffix", "example.com")
         Mobile.removeSplitTunnelItem("domainSuffix", "example.com")
         assertProbe(vpn = true)
@@ -119,59 +100,25 @@ class SplitTunnelCaptureTest {
         assertProbe(vpn = false, ip = directIP)
     }
 
-    private fun assertProbe(vpn: Boolean, ip: String? = null): Bundle {
-        var result = Bundle()
-        await("probe VPN=$vpn, IP=$ip") {
-            result = probe()
-            result.getBoolean("vpn") == vpn && (ip == null || result.getString("ip") == ip)
+    // Retries until the probe agrees; a probe error during a VPN transition is not a result.
+    private fun assertProbe(vpn: Boolean, ip: String? = null): Map<String, Any?> {
+        var result = emptyMap<String, Any?>()
+        await("probe VPN=$vpn, IP=$ip", { "last probe: $result" }) {
+            result = probePublicIp(context, probePackage)
+            val exit = result[PublicIpProbeService.IP] as? String
+            result[PublicIpProbeService.ERROR] == null && exit != null &&
+                Patterns.IP_ADDRESS.matcher(exit).matches() &&
+                result[PublicIpProbeService.VPN] == vpn && (ip == null || exit == ip)
         }
-        assertEquals(vpn, result.getBoolean("vpn"))
         return result
     }
 
-    private fun probe(): Bundle {
-        val received = ArrayBlockingQueue<Bundle>(1)
-        val reply = object : ResultReceiver(Handler(Looper.getMainLooper())) {
-            override fun onReceiveResult(resultCode: Int, data: Bundle) {
-                received.offer(data)
-            }
-        }
-        // The test APK's service runs under its own UID, unlike instrumentation in the target process.
-        val connected = ArrayBlockingQueue<Messenger>(1)
-        val connection = object : ServiceConnection {
-            override fun onServiceConnected(name: ComponentName, binder: IBinder) {
-                connected.offer(Messenger(binder))
-            }
-
-            override fun onServiceDisconnected(name: ComponentName) = Unit
-        }
-        val intent = Intent().setComponent(ComponentName(probePackage, SplitTunnelProbeService::class.java.name))
-        val bound = context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
-        try {
-            assertTrue("Could not bind probe service", bound)
-            val messenger = connected.poll(10, TimeUnit.SECONDS)
-            assertNotNull("Probe service did not connect", messenger)
-            requireNotNull(messenger).send(Message.obtain().apply {
-                data = Bundle().apply { putParcelable("reply", reply) }
-            })
-            val result = received.poll(25, TimeUnit.SECONDS)
-            assertNotNull("Probe service did not reply", result)
-            requireNotNull(result)
-            assertNotEquals("Probe must run outside Lantern's UID", Process.myUid(), result.getInt("uid"))
-            assertFalse(result.getString("error"), result.containsKey("error"))
-            assertTrue("Invalid public IP: ${result.getString("ip")}", Patterns.IP_ADDRESS.matcher(result.getString("ip") ?: "").matches())
-            return result
-        } finally {
-            context.unbindService(connection)
-        }
-    }
-
-    private fun await(description: String, condition: () -> Boolean) {
+    private fun await(description: String, detail: () -> String = { "" }, condition: () -> Boolean) {
         val deadline = SystemClock.elapsedRealtime() + 60_000
         while (SystemClock.elapsedRealtime() < deadline) {
             if (condition()) return
             SystemClock.sleep(250)
         }
-        throw AssertionError("Timed out waiting for $description")
+        throw AssertionError("Timed out waiting for $description ${detail()}".trim())
     }
 }

@@ -3,9 +3,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application>
         <service
-            android:name="org.getlantern.lantern.SplitTunnelProbeService"
-            android:exported="true" />
-        <service
             android:name="org.getlantern.lantern.PublicIpProbeService"
             android:exported="true" />
     </application>
