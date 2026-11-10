@@ -27,7 +27,7 @@ class VPNSetting extends HookConsumerWidget {
     final isPrivateServerFound = ref.watch(isPrivateServerFoundProvider);
     final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
     final splitTunnel = showSplitTunneling
-        ? ref.watch(splitTunnelProvider).value
+        ? ref.watch(splitTunnelProvider)
         : null;
     final personalProxies = ref.watch(personalProxiesTabVisibleProvider);
     final routingMode = ref.watch(
@@ -74,10 +74,7 @@ class VPNSetting extends HookConsumerWidget {
                 SplitTunnelingTile(
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
-                  actionText:
-                      (splitTunnel?.statusLabelKey ??
-                              'split_tunnel_unavailable')
-                          .i18n,
+                  actionText: splitTunnelLabel(splitTunnel),
                   onPressed: () => appRouter.push(const SplitTunneling()),
                 ),
                 DividerSpace(),

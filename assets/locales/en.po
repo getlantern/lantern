@@ -1890,7 +1890,7 @@ msgid "split_tunnel_bypass_description"
 msgstr "Selected apps and sites skip Lantern"
 
 msgid "split_tunnel_include_description"
-msgstr "Only selected apps and sites use Lantern. Until you pick one, everything does."
+msgstr "Only selected apps and sites use Lantern"
 
 msgid "split_tunnel_switch_include"
 msgstr "Switch to Include only?"
@@ -1910,8 +1910,17 @@ msgstr "Switch"
 msgid "split_tunnel_clear"
 msgstr "Clear"
 
-msgid "split_tunnel_added"
-msgstr "%d Added"
+msgid "split_tunnel_app_count_one"
+msgstr "1 App"
+
+msgid "split_tunnel_app_count"
+msgstr "%d Apps"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 Site"
+
+msgid "split_tunnel_site_count"
+msgstr "%d Sites"
 
 msgid "apps_using_vpn"
 msgstr "Apps using the VPN (%d)"
@@ -1931,8 +1940,11 @@ msgstr "Unavailable"
 msgid "split_tunnel_enter_website"
 msgstr "Enter a website or URL"
 
+msgid "split_tunnel_website_placeholder"
+msgstr "Enter URL or *.ir"
+
 msgid "split_tunnel_wildcard_hint"
-msgstr "Use commas to separate websites. Use *.example.com for subdomains only, or *.ir for all .ir sites. IP addresses are not supported."
+msgstr "Add *.ir to match every .ir site at once. Works for *.cn, *.ru, etc. Separate multiple sites with commas."
 
 msgid "split_tunnel_invalid_website"
 msgstr "Enter a valid website or URL. Wildcards must start with *. and IP addresses are not supported."

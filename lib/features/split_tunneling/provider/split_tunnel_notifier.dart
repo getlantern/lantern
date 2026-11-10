@@ -8,6 +8,16 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'split_tunnel_notifier.g.dart';
 
+/// The Off / Bypass / Include only value shown on settings rows. Blank while
+/// the state loads.
+String splitTunnelLabel(AsyncValue<SplitTunnelState>? state) {
+  if (state == null) return '';
+  final key =
+      state.value?.statusLabelKey ??
+      (state.hasError ? 'split_tunnel_unavailable' : null);
+  return key?.i18n ?? '';
+}
+
 @Riverpod(keepAlive: true)
 class SplitTunnel extends _$SplitTunnel {
   Future<void> _pending = Future.value();

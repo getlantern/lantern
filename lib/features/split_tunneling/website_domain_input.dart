@@ -130,7 +130,7 @@ class WebsiteDomainInput extends HookConsumerWidget {
                 fieldKey: const Key('split_tunneling.website.input'),
                 prefixIcon: AppImagePaths.web,
                 controller: controller,
-                hintText: '',
+                hintText: 'split_tunnel_website_placeholder'.i18n,
               ),
             ),
             AppTextButton(

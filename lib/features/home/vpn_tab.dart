@@ -96,7 +96,7 @@ class _SettingCard extends ConsumerWidget {
     final showRoutingMode = !PlatformUtils.isIOS;
     final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
     final splitTunnel = showSplitTunneling
-        ? ref.watch(splitTunnelProvider).value
+        ? ref.watch(splitTunnelProvider)
         : null;
 
     // Small screens drop the > chevrons; rows stay tappable via onTap.
@@ -115,7 +115,7 @@ class _SettingCard extends ConsumerWidget {
       tileKey: const Key('home.split_tunneling_setting'),
       label: 'split_tunneling'.i18n,
       icon: AppImagePaths.callSpilt,
-      value: (splitTunnel?.statusLabelKey ?? 'split_tunnel_unavailable').i18n,
+      value: splitTunnelLabel(splitTunnel),
       actions: chevronActions,
       onTap: () => appRouter.push(const SplitTunneling()),
     );
