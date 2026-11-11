@@ -33,15 +33,13 @@ HelpersState _with(List<HelperPairingView> helpers) => HelpersState(
 
 final _friendTaps = <String>[];
 
-Future<List<int>> _pump(
+Future<void> _pump(
   WidgetTester tester,
   HelpersState state, {
-  bool selected = false,
   Map<String, PersonalProxyStatus>? status,
   String? selectedFriend,
   bool selectFriends = false,
 }) async {
-  final taps = <int>[];
   _friendTaps.clear();
   await tester.pumpWidget(
     ProviderScope(
@@ -55,8 +53,6 @@ Future<List<int>> _pump(
           theme: AppTheme.appTheme(),
           home: Scaffold(
             body: PersonalProxiesSection(
-              selected: selected,
-              onSelect: () => taps.add(1),
               selectedFriend: selectedFriend,
               onSelectFriend: selectFriends
                   ? (h) => _friendTaps.add(h.outboundTag)
@@ -68,19 +64,27 @@ Future<List<int>> _pump(
     ),
   );
   await tester.pump();
-  return taps;
 }
 
 void main() {
   const ali = HelperPairingView(pairingId: 'p1', name: 'Ali', online: true);
   const bo = HelperPairingView(pairingId: 'p2', name: 'Bo');
 
-  testWidgets('one selectable row, then each friend for information', (
-    tester,
-  ) async {
-    final taps = await _pump(tester, _with([ali, bo]));
+  testWidgets('under the overline the group starts at the first friend, '
+      'each for information', (tester) async {
+    await _pump(tester, _with([ali, bo]));
     expect(find.text('personal_proxies'.i18n), findsOneWidget);
-    expect(find.text('your_personal_proxies'.i18n), findsOneWidget);
+    expect(find.text('your_personal_proxies'.i18n), findsNothing);
+    expect(
+      find.byKey(const Key('server_selection.personal_proxies')),
+      findsNothing,
+    );
+    final card = find.byType(AppCard);
+    expect(
+      tester.getTopLeft(find.text('Ali')).dy - tester.getTopLeft(card).dy,
+      lessThan(56),
+      reason: 'no row above the first friend',
+    );
     expect(find.text('Ali'), findsOneWidget);
     expect(find.text('Bo'), findsOneWidget);
     expect(find.text('helper_online'.i18n), findsOneWidget);
@@ -89,11 +93,7 @@ void main() {
     await tester.tap(
       find.byKey(const Key('server_selection.personal_proxy.p1')),
     );
-    expect(taps, isEmpty, reason: 'friend rows are not tappable');
-    await tester.tap(
-      find.byKey(const Key('server_selection.personal_proxies')),
-    );
-    expect(taps, hasLength(1));
+    expect(_friendTaps, isEmpty, reason: 'friend rows are not tappable');
   });
 
   testWidgets('an offline friend is veiled like a locked Pro location: no '
@@ -138,29 +138,10 @@ void main() {
     expect(tile.onTap, isNull);
   });
 
-  testWidgets('the row is disabled while no friend is online', (tester) async {
-    final taps = await _pump(tester, _with([bo]));
-    await tester.tap(
-      find.byKey(const Key('server_selection.personal_proxies')),
-    );
-    expect(taps, isEmpty);
-  });
-
   testWidgets('absent without pairings', (tester) async {
     await _pump(tester, _with(const []));
     expect(find.text('personal_proxies'.i18n), findsNothing);
-    expect(
-      find.byKey(const Key('server_selection.personal_proxies')),
-      findsNothing,
-    );
-  });
-
-  testWidgets('selecting the selected row does nothing', (tester) async {
-    final taps = await _pump(tester, _with([ali]), selected: true);
-    await tester.tap(
-      find.byKey(const Key('server_selection.personal_proxies')),
-    );
-    expect(taps, isEmpty);
+    expect(find.byType(AppCard), findsNothing);
   });
 
   group('one friend selected', () {
@@ -237,7 +218,7 @@ void main() {
         name: 'Reza',
         outboundTag: 'helper-ba9876543210',
       );
-      final taps = await _pump(
+      await _pump(
         tester,
         _with([reza, bo]),
         status: const {
@@ -261,10 +242,6 @@ void main() {
         find.descendant(of: rezaRow, matching: find.byType(Radio<String>)),
       );
       expect(_friendTaps, ['helper-ba9876543210']);
-      await tester.tap(
-        find.byKey(const Key('server_selection.personal_proxies')),
-      );
-      expect(taps, hasLength(1), reason: 'the group has a reachable friend');
     });
 
     testWidgets('direct or rooms alone do not override offline presence', (
@@ -288,21 +265,6 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(Radio<String>), findsNothing);
-    });
-
-    testWidgets('selecting a friend leaves the group row unselected but '
-        'selectable', (tester) async {
-      final taps = await _pump(
-        tester,
-        _with([sara]),
-        status: live,
-        selectFriends: true,
-        selectedFriend: 'helper-0123456789ab',
-      );
-      await tester.tap(
-        find.byKey(const Key('server_selection.personal_proxies')),
-      );
-      expect(taps, hasLength(1));
     });
   });
 }

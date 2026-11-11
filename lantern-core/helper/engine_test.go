@@ -1026,6 +1026,32 @@ func TestRenameHelperIsLocalAndSurvivesRestarts(t *testing.T) {
 		"only the user's own personal proxies are renamed")
 }
 
+func TestRenameInviteNamesTheInviterAtApproval(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+
+	inv := call(t, sara, "create_invite", map[string]any{"name": "Sara"})
+	id := inv["invite_id"].(string)
+	before := relayCalls(cloud)
+	v := call(t, sara, "rename_invite", map[string]any{"invite_id": id, "name": "  Sara K "})
+	assert.Equal(t, "Sara K", list(v, "invites")[0]["inviter_name"])
+	assert.Equal(t, "Sara K", v["my_name"], "prefills the next invite")
+	assert.Equal(t, before, relayCalls(cloud), "the name stays local until the approval")
+
+	assert.Equal(t, CodeBadName, callErr(t, sara, "rename_invite", map[string]any{"invite_id": id, "name": " "}))
+	assert.Equal(t, CodeBadName, callErr(t, sara, "rename_invite", map[string]any{"invite_id": id, "name": "a‮b"}))
+	assert.Equal(t, CodeNotFound, callErr(t, sara, "rename_invite", map[string]any{"invite_id": "nope", "name": "X"}))
+
+	call(t, ali, "claim", map[string]any{"link": inv["link"], "name": "Ali"})
+	call(t, sara, "refresh", nil)
+	call(t, sara, "decide", map[string]any{"invite_id": id, "approve": true})
+	assert.Equal(t, "Sara K", list(call(t, ali, "refresh", nil), "helping")[0]["name"],
+		"the friend sees the name as renamed")
+	assert.Equal(t, CodeNotFound, callErr(t, sara, "rename_invite", map[string]any{"invite_id": id, "name": "X"}),
+		"a decided invite is gone")
+}
+
 func TestEndAllHelpersErasesNicknames(t *testing.T) {
 	cloud := newFakeCloud()
 	dir := t.TempDir()

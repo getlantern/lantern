@@ -2084,10 +2084,10 @@ msgid "invite_link_copied"
 msgstr "Đã sao chép liên kết"
 
 msgid "invite_qr_hint"
-msgstr "Bạn của bạn có thể quét mã này bằng Lantern."
+msgstr "Nếu họ đang ở cùng bạn, họ có thể quét mã này trong Lantern thay vì dùng liên kết."
 
 msgid "invite_waiting"
-msgstr "Đang chờ bạn của bạn mở liên kết"
+msgstr "Đang chờ họ mở liên kết"
 
 msgid "invite_trust_warning"
 msgstr "Người bạn mời sẽ biết bạn dùng Lantern và có thể thấy khi nào bạn kết nối qua họ. Lưu lượng của bạn đi qua kết nối internet của họ, nên họ có thể biết bạn truy cập những trang nào, nhưng không biết bạn làm gì trên các trang bảo mật (https). Chỉ mời người bạn tin tưởng."
@@ -2124,9 +2124,6 @@ msgstr "Dán liên kết bạn bè đã gửi"
 
 msgid "help_friend_scan"
 msgstr "Quét mã QR của bạn bè"
-
-msgid "help_friend_approved"
-msgstr "Bạn hiện đang giúp đỡ %s."
 
 msgid "help_friend_no_longer_pending"
 msgstr "Yêu cầu này không còn chờ xử lý. Hãy xin bạn bè của bạn một lời mời mới."
@@ -2167,12 +2164,6 @@ msgstr "Ngừng giúp"
 msgid "helping_remove_confirm"
 msgstr "Ngừng giúp %s ? Họ sẽ cần lời mời mới để kết nối lại qua bạn."
 
-msgid "help_others_too"
-msgstr "Giúp cả người khác"
-
-msgid "help_others_too_body"
-msgstr "Chia sẻ dung lượng dư cho những người khác đang bị kiểm duyệt; Lantern chỉ cho họ truy cập các trang được phép, giúp bảo vệ kết nối của bạn khỏi bị lạm dụng."
-
 msgid "help_others_too_note"
 msgstr "Thay đổi tùy chọn này sẽ khiến những người bạn đang giúp kết nối lại trong giây lát."
 
@@ -2192,7 +2183,7 @@ msgid "invite_link_label"
 msgstr "Liên kết mời của bạn"
 
 msgid "invite_link_expiry"
-msgstr "Chỉ dùng được một lần và hết hạn sau 48 giờ."
+msgstr "Dùng một lần và hết hạn sau 48 giờ"
 
 msgid "approve_title"
 msgstr "%s muốn làm proxy cá nhân của bạn"
@@ -2227,14 +2218,8 @@ msgstr "Gỡ kết nối bất cứ lúc nào."
 msgid "help_friend_form_title"
 msgstr "Dán liên kết từ người mà bạn đang giúp"
 
-msgid "help_friend_link_hint"
-msgstr "Nhấn vào liên kết trên thiết bị này để tự động điền"
-
 msgid "help_friend_name_label"
 msgstr "Tên của bạn mà bạn bè biết"
-
-msgid "help_friend_name_hint"
-msgstr "Đây là cách bạn hiển thị trong Lantern của bạn bè"
 
 msgid "help_friend_become"
 msgstr "Trở thành proxy cá nhân của bạn bè"
@@ -2293,17 +2278,8 @@ msgstr "Dữ liệu đã chuyển tiếp hôm nay"
 msgid "helping_active_today"
 msgstr "Hoạt động %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Một người bạn đã mời bạn làm proxy cá nhân của họ"
-
 msgid "help_friend_paste_button"
 msgstr "Dán liên kết"
-
-msgid "help_friend_no_link"
-msgstr "Chưa có liên kết?"
-
-msgid "help_friend_ask_invite"
-msgstr "Nhờ bạn bè mời bạn"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Mình có thể làm proxy cá nhân của bạn trên Lantern để bạn truy cập mạng qua kết nối của mình. Trong Lantern, mở \"Chọn máy chủ\", nhấn menu ⋮ ở trên cùng, chọn \"Mời proxy cá nhân\" và gửi liên kết cho mình."
@@ -2334,3 +2310,111 @@ msgstr "Đang giúp 1 người"
 
 msgid "helping_people"
 msgstr "Đang giúp %s người"
+
+msgid "onboarding_personal_proxies"
+msgstr "Proxy cá nhân"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Kết nối trực tiếp qua người bạn tin tưởng ở ngoài quốc gia của bạn."
+
+msgid "onboarding_new_badge"
+msgstr "Mới"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "Giúp người khác truy cập internet mở"
+
+msgid "onboarding_action_mode_share"
+msgstr "Chia sẻ kết nối của bạn"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "Chia sẻ một phần nhỏ kết nối của bạn để giúp người khác vượt qua các hạn chế internet."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "Giúp một người quen"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Giúp bạn bè bằng cách trở thành Proxy Cá Nhân của họ để họ kết nối trực tiếp qua bạn."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "Quyền riêng tư của bạn được bảo vệ"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Dữ liệu cá nhân và hoạt động duyệt web của bạn không bao giờ bị chia sẻ hay tiết lộ."
+
+msgid "onboarding_action_mode_control"
+msgstr "Bạn nắm quyền kiểm soát"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Bật hoặc tắt Action Mode bất cứ lúc nào từ thẻ Action Mode."
+
+msgid "approved_title"
+msgstr "%s giờ là proxy cá nhân của bạn"
+
+msgid "approved_body"
+msgstr "Khi %s trực tuyến, bạn có thể chọn họ trong Vị trí riêng tư ở mục Chọn máy chủ."
+
+msgid "approved_connect_now"
+msgstr "Kết nối ngay"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "Đây là cách bạn hiển thị trong danh sách máy chủ của họ."
+
+msgid "help_friend_success_title"
+msgstr "Bạn giờ là proxy cá nhân của %s"
+
+msgid "help_friend_success_body"
+msgstr "%s đã chấp thuận bạn. Khi Action Mode bật, họ có thể truy cập internet mở qua kết nối của bạn."
+
+msgid "help_friend_keep_on"
+msgstr "Luôn bật Action Mode"
+
+msgid "help_friend_keep_on_body"
+msgstr "Bật ngay bây giờ và mỗi khi Lantern mở, để %s luôn được kết nối."
+
+msgid "help_friend_no_link_yet"
+msgstr "Chưa có liên kết?"
+
+msgid "help_friend_ask_send_link"
+msgstr "Hãy nhờ họ gửi cho bạn một liên kết."
+
+msgid "helping_scope_line_all"
+msgstr "Đồng thời giúp mọi người ở tất cả quốc gia"
+
+msgid "helping_scope_line_friends"
+msgstr "Chỉ giúp bạn bè của bạn"
+
+msgid "helping_scope_change"
+msgstr "Thay đổi"
+
+msgid "helping_scope_title"
+msgstr "Bạn đang giúp ai"
+
+msgid "helping_scope_subtitle"
+msgstr "Chỉ chia sẻ với bạn bè của bạn, hoặc với mọi người ở tất cả quốc gia."
+
+msgid "helping_scope_only_friends"
+msgstr "Chỉ các kết nối proxy cá nhân của tôi"
+
+msgid "helping_scope_all_countries"
+msgstr "Tất cả quốc gia"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Chọn chia sẻ kết nối của bạn một cách an toàn để giúp người khác truy cập internet mở."
+
+msgid "invite_show_qr"
+msgstr "Hiện mã QR"
+
+msgid "invite_link_hint"
+msgstr "Nhập tên của bạn để nhận liên kết"
+
+msgid "invite_qr_title"
+msgstr "Quét bằng camera"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Tài khoản này đăng nhập bằng %s, không thể xác minh trên TV. Để xóa, hãy mở Lantern trên điện thoại hoặc máy tính của bạn và xóa tại đó."
+
+msgid "open_on_another_device"
+msgstr "Mở trên thiết bị khác"
+
+msgid "open_on_another_device_hint"
+msgstr "TV này không có trình duyệt web. Hãy quét mã hoặc nhập địa chỉ trên điện thoại hoặc máy tính của bạn."

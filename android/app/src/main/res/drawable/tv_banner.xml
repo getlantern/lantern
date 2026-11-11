@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android TV home-screen banner (320x180dp); same artwork as the launch screen. -->
+<!-- Android TV home-screen banner (320x180dp): launch-screen logo over the wordmark,
+     which Play's TV review requires on the banner. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
@@ -9,8 +10,15 @@
     </item>
     <!-- Sized explicitly: splash_logo is 250dp and would otherwise stretch the banner. -->
     <item
-        android:width="120dp"
-        android:height="120dp"
-        android:drawable="@drawable/splash_logo"
-        android:gravity="center" />
+        android:width="104dp"
+        android:height="104dp"
+        android:top="16dp"
+        android:gravity="center_horizontal|top"
+        android:drawable="@drawable/splash_logo" />
+    <item
+        android:width="150dp"
+        android:height="28dp"
+        android:bottom="26dp"
+        android:gravity="center_horizontal|bottom"
+        android:drawable="@drawable/lantern_wordmark" />
 </layer-list>

@@ -48,75 +48,82 @@ class PlanItem extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
       badgeContent: Text('best_value'.i18n, style: textTheme.labelMedium!),
-      child: GestureDetector(
-        onTap: () {
-          onPressed.call(plan);
-        },
-        child: AnimatedContainer(
-          margin: EdgeInsets.only(top: 14),
-          padding: EdgeInsets.symmetric(horizontal: defaultSize, vertical: 12),
-          duration: Duration(milliseconds: 300),
-          decoration: getPlanDecoration(planSelected, context),
-          child: Row(
-            children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    plan.description.toTitleCase(),
-                    style: textTheme.titleMedium!.copyWith(
-                      color: context.textPrimary,
-                    ),
-                  ),
-                  if (referralMessage.isNotEmpty)
-                    Text(referralMessage, style: textTheme.labelMedium),
-                ],
-              ),
-              Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        plan.displayPrice,
-                        style: textTheme.titleMedium!.copyWith(
-                          color: context.textLink,
-                        ),
+      child: Padding(
+        padding: EdgeInsets.only(top: 14),
+        child: AppFocusable(
+          onActivate: () => onPressed.call(plan),
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            padding: EdgeInsets.symmetric(
+              horizontal: defaultSize,
+              vertical: 12,
+            ),
+            duration: Duration(milliseconds: 300),
+            decoration: getPlanDecoration(planSelected, context),
+            child: Row(
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      plan.description.toTitleCase(),
+                      style: textTheme.titleMedium!.copyWith(
+                        color: context.textPrimary,
                       ),
-                      if (showOriginalPrice) ...[
-                        SizedBox(width: 6),
+                    ),
+                    if (referralMessage.isNotEmpty)
+                      Text(referralMessage, style: textTheme.labelMedium),
+                  ],
+                ),
+                Spacer(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Text(
-                          originalPrice,
-                          style: textTheme.labelMedium!.copyWith(
-                            color: context.textTertiary,
-                            decoration: TextDecoration.lineThrough,
-                            decorationColor: context.textTertiary,
-                            decorationThickness: 4,
+                          plan.displayPrice,
+                          style: textTheme.titleMedium!.copyWith(
+                            color: context.textLink,
                           ),
                         ),
+                        if (showOriginalPrice) ...[
+                          SizedBox(width: 6),
+                          Text(
+                            originalPrice,
+                            style: textTheme.labelMedium!.copyWith(
+                              color: context.textTertiary,
+                              decoration: TextDecoration.lineThrough,
+                              decorationColor: context.textTertiary,
+                              decorationThickness: 4,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                  if (monthlyPrice.isNotEmpty)
-                    Text(
-                      '$monthlyPrice/month',
-                      style: textTheme.labelMedium!.copyWith(
-                        color: context.textTertiary,
-                      ),
                     ),
-                ],
-              ),
-              Radio(
-                value: true,
-                groupValue: planSelected,
-                fillColor: WidgetStatePropertyAll(context.textPrimary),
-                onChanged: (value) {
-                  onPressed.call(plan);
-                },
-              ),
-            ],
+                    if (monthlyPrice.isNotEmpty)
+                      Text(
+                        '$monthlyPrice/month',
+                        style: textTheme.labelMedium!.copyWith(
+                          color: context.textTertiary,
+                        ),
+                      ),
+                  ],
+                ),
+                // The card is the focus stop; the radio stays tappable.
+                ExcludeFocus(
+                  child: Radio(
+                    value: true,
+                    groupValue: planSelected,
+                    fillColor: WidgetStatePropertyAll(context.textPrimary),
+                    onChanged: (value) {
+                      onPressed.call(plan);
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

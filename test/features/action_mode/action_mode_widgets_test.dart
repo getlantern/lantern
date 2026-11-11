@@ -22,6 +22,7 @@ import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/auto_enable_mode.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
+import 'package:lantern/features/helpers/helping_friends.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
@@ -237,6 +238,70 @@ void main() {
       expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
+
+    for (final requested in [true, false]) {
+      testWidgets('"Helping right now" shows a choice still being saved '
+          '(requested $requested over saved ${!requested})', (tester) async {
+        await mount(
+          tester,
+          const ActionModeTab(),
+          animated: true,
+          helpers: HelpersState(
+            helpOthers: !requested,
+            requestedHelpOthers: requested,
+          ),
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('action-mode.helping-now')),
+            matching: find.text(
+              requested
+                  ? 'All countries'
+                  : 'Only my Personal Proxy connections',
+            ),
+          ),
+          findsOneWidget,
+        );
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+
+    for (final helpOthers in [true, false]) {
+      testWidgets('"Helping right now" says whom (helpOthers $helpOthers) and '
+          'opens Who you\'re helping', (tester) async {
+        await mount(
+          tester,
+          const ActionModeTab(),
+          animated: true,
+          helpers: HelpersState(helpOthers: helpOthers),
+        );
+        final row = find.byKey(const Key('action-mode.helping-now'));
+        expect(
+          find.descendant(
+            of: row,
+            matching: find.text(
+              helpOthers
+                  ? 'All countries'
+                  : 'Only my Personal Proxy connections',
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find
+              .descendant(of: row, matching: find.byType(AppImage))
+              .evaluate()
+              .length,
+          2,
+          reason: 'the row icon and its chevron',
+        );
+        await tester.tap(row);
+        // The globe keeps turning: pumpAndSettle would not return.
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(find.byType(WhoYoureHelpingSheet), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
 
     for (final helping in [false, true]) {
       testWidgets(
@@ -523,6 +588,43 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
+
+  testWidgets('the Welcome to Action Mode dialog offers Auto-enable Action '
+      'Mode, off until checked, and checking it saves the setting', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const ActionModeTab(),
+      size: const Size(360, 640),
+      scale: 2,
+      animated: true,
+    );
+    await tester.tap(find.byKey(const Key('action-mode.info')));
+    await tester.pump(const Duration(milliseconds: 300));
+    final dialog = find.byType(AlertDialog);
+    final box = find.descendant(
+      of: dialog,
+      matching: find.byKey(const Key('action-mode.auto-enable')),
+    );
+    expect(box, findsOneWidget);
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.text('auto_enable_unbounded'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.widget<Checkbox>(box).value, isFalse);
+    await tester.ensureVisible(box);
+    await tester.tap(box);
+    await tester.pump();
+    expect(tester.widget<Checkbox>(box).value, isTrue);
+    await tester.ensureVisible(find.text('Got It'));
+    await tester.tap(find.text('Got It'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpWidget(const SizedBox());
+  });
 
   testWidgets('both auto-enable controls edit the same saved preference', (
     tester,

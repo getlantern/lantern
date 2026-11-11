@@ -1932,10 +1932,10 @@ msgid "invite_link_copied"
 msgstr "链接已复制"
 
 msgid "invite_qr_hint"
-msgstr "您的好友可以用蓝灯扫描此码。"
+msgstr "如果对方在您身边，可以在蓝灯中扫描此码，无需使用链接。"
 
 msgid "invite_waiting"
-msgstr "正在等待好友打开链接"
+msgstr "等待对方打开链接"
 
 msgid "invite_trust_warning"
 msgstr "您邀请的人会知道您在使用蓝灯，并能看到您何时通过其网络连接。您的流量经过对方的互联网连接，因此对方可能得知您访问了哪些网站，但无法得知您在安全（https）网站上的操作。只邀请您信任的人。"
@@ -1972,9 +1972,6 @@ msgstr "粘贴朋友发来的链接"
 
 msgid "help_friend_scan"
 msgstr "扫描朋友的二维码"
-
-msgid "help_friend_approved"
-msgstr "您现在正在帮助 %s。"
 
 msgid "help_friend_no_longer_pending"
 msgstr "此请求已不再待处理。向您的朋友索取新的邀请。"
@@ -2015,12 +2012,6 @@ msgstr "停止帮助"
 msgid "helping_remove_confirm"
 msgstr "停止帮助 %s？对方需要新的邀请才能再次通过您连接。"
 
-msgid "help_others_too"
-msgstr "也帮助他人"
-
-msgid "help_others_too_body"
-msgstr "将闲置容量借给其他面临审查的人；蓝灯只允许他们访问许可的网站，从而保护您的连接不被滥用。"
-
 msgid "help_others_too_note"
 msgstr "更改此项会使您帮助的人短暂重新连接。"
 
@@ -2040,7 +2031,7 @@ msgid "invite_link_label"
 msgstr "您的邀请链接"
 
 msgid "invite_link_expiry"
-msgstr "仅可使用一次，48 小时后失效。"
+msgstr "仅限使用一次，48 小时后失效"
 
 msgid "approve_title"
 msgstr "%s 想成为您的个人代理"
@@ -2075,14 +2066,8 @@ msgstr "您可以随时移除此连接。"
 msgid "help_friend_form_title"
 msgstr "粘贴您所帮助之人发来的链接"
 
-msgid "help_friend_link_hint"
-msgstr "在此设备上点击链接即可自动填写"
-
 msgid "help_friend_name_label"
 msgstr "朋友所知道的您的名字"
-
-msgid "help_friend_name_hint"
-msgstr "您在朋友的蓝灯中将显示为此名称"
 
 msgid "help_friend_become"
 msgstr "成为朋友的专属代理"
@@ -2141,17 +2126,8 @@ msgstr "今日中继数据"
 msgid "helping_active_today"
 msgstr "已活跃 %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "一位朋友邀请您成为其个人代理"
-
 msgid "help_friend_paste_button"
 msgstr "粘贴链接"
-
-msgid "help_friend_no_link"
-msgstr "还没有链接？"
-
-msgid "help_friend_ask_invite"
-msgstr "请朋友邀请您"
 
 msgid "help_friend_ask_invite_message"
 msgstr "我可以在蓝灯上做您的个人代理，让您通过我的连接上网。在蓝灯中打开“服务器选择”，点击顶部的 ⋮ 菜单，选择“邀请个人代理”，然后把链接发给我。"
@@ -2182,3 +2158,108 @@ msgstr "正在帮助 1 个人"
 
 msgid "helping_people"
 msgstr "正在帮助 %s 个人"
+
+msgid "onboarding_personal_proxies"
+msgstr "个人代理"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "通过您信任的境外人士直接连接。"
+
+msgid "onboarding_new_badge"
+msgstr "新"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "帮助他人访问开放的互联网"
+
+msgid "onboarding_action_mode_share"
+msgstr "共享您的连接"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "贡献一小部分连接，帮助他人突破网络限制。"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "帮助您认识的人"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "成为朋友的个人代理，帮助他们直接通过您连接。"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "您的隐私受到保护"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "您的个人数据和浏览活动绝不会被共享或泄露。"
+
+msgid "onboarding_action_mode_control"
+msgstr "一切由您掌控"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "随时在 Action Mode 标签页中开启或关闭 Action Mode。"
+
+msgid "approved_title"
+msgstr "%s 现在是您的个人代理"
+
+msgid "approved_body"
+msgstr "当 %s 在线时，您可以在“服务器选择”的“私人位置”中选择。"
+
+msgid "approved_connect_now"
+msgstr "立即连接"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "对方的服务器列表中将这样显示您。"
+
+msgid "help_friend_success_title"
+msgstr "您现在是 %s 的个人代理"
+
+msgid "help_friend_success_body"
+msgstr "%s 已批准您。开启 Action Mode 后，对方可通过您的连接访问开放的互联网。"
+
+msgid "help_friend_keep_on"
+msgstr "保持 Action Mode 开启"
+
+msgid "help_friend_keep_on_body"
+msgstr "立即开启，并在蓝灯打开时自动开启，让 %s 保持连接。"
+
+msgid "help_friend_no_link_yet"
+msgstr "还没有链接？"
+
+msgid "help_friend_ask_send_link"
+msgstr "请对方发给您一个。"
+
+msgid "helping_scope_line_all"
+msgstr "同时帮助所有国家的用户"
+
+msgid "helping_scope_line_friends"
+msgstr "仅帮助您的好友"
+
+msgid "helping_scope_change"
+msgstr "更改"
+
+msgid "helping_scope_title"
+msgstr "您在帮助谁"
+
+msgid "helping_scope_subtitle"
+msgstr "仅与您的朋友分享，或与所有国家的人分享。"
+
+msgid "helping_scope_only_friends"
+msgstr "仅我的个人代理连接"
+
+msgid "helping_scope_all_countries"
+msgstr "所有国家"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "选择安全地共享您的连接，帮助他人访问开放的互联网。"
+
+msgid "invite_show_qr"
+msgstr "显示二维码"
+
+msgid "invite_link_hint"
+msgstr "输入您的名字以获取链接"
+
+msgid "invite_qr_title"
+msgstr "使用相机扫描"
+
+msgid "open_on_another_device"
+msgstr "在其他设备上打开"
+
+msgid "open_on_another_device_hint"
+msgstr "此电视没有网页浏览器。请在手机或电脑上扫描二维码或输入网址。"

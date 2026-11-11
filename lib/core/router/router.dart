@@ -200,5 +200,9 @@ class AppRouter extends RootStackRouter {
       path: '/intro',
       page: Onboarding.page,
     ),
+    AutoRoute(
+      path: '/personal-proxies-intro',
+      page: PersonalProxiesIntro.page,
+    ),
   ];
 }

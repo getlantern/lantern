@@ -7,36 +7,36 @@ import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 
-/// The Private Locations tab's "Personal Proxies": one selectable row that
-/// connects through every friend at once, then each friend by name with
+/// The Private Locations tab's "Personal Proxies": each friend by name with
 /// Online or Offline, and never where they are. An offline friend looks like
 /// a locked Pro location: greyed out, no radio, not tappable. A friend's row
 /// has a radio and selects that friend alone while
 /// [HelperPairingView.selectable] says so; until then it is for information.
-/// Nothing shows without a pairing; the group row is disabled while no
-/// friend is online.
+/// Nothing shows without a pairing. Where helper invites are offered,
+/// "Invite a Personal Proxy" is the group's last row.
 class PersonalProxiesSection extends ConsumerWidget {
   const PersonalProxiesSection({
     super.key,
-    required this.selected,
-    required this.onSelect,
     this.selectedFriend,
     this.onSelectFriend,
+    this.onInvite,
   });
-
-  final bool selected;
-  final VoidCallback onSelect;
 
   /// The outbound tag of the friend selected on their own, if any.
   final String? selectedFriend;
   final ValueChanged<HelperPairingView>? onSelectFriend;
+
+  /// "Invite a Personal Proxy", shown while helper invites are available.
+  final VoidCallback? onInvite;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final helpers = ref.watch(helpersProvider.select((s) => s.view.helpers));
     if (helpers.isEmpty) return const SizedBox.shrink();
     final status = ref.watch(personalProxyStatusProvider);
-    final anyOnline = helpers.any((h) => h.reachable(status));
+    final invite = onInvite;
+    final showInvite =
+        invite != null && ref.watch(helperInvitesAvailableProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -50,16 +50,8 @@ class PersonalProxiesSection extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AppTile(
-                tileKey: const Key('server_selection.personal_proxies'),
-                icon: AppImagePaths.location,
-                label: 'your_personal_proxies'.i18n,
-                enabled: anyOnline,
-                onPressed: anyOnline && !selected ? onSelect : null,
-                trailing: selected ? AppImage(path: AppImagePaths.blot) : null,
-              ),
-              for (final h in helpers) ...[
-                const DividerSpace(),
+              for (final (i, h) in helpers.indexed) ...[
+                if (i > 0) const DividerSpace(),
                 _FriendRow(
                   helper: h,
                   online: h.reachable(status),
@@ -68,6 +60,18 @@ class PersonalProxiesSection extends ConsumerWidget {
                       h.outboundTag.isNotEmpty &&
                       selectedFriend == h.outboundTag,
                   onSelect: onSelectFriend,
+                ),
+              ],
+              if (showInvite) ...[
+                const DividerSpace(),
+                AppTile(
+                  tileKey: const Key(
+                    'server_selection.personal_proxies.invite',
+                  ),
+                  icon: AppImagePaths.personAdd,
+                  label: 'invite_personal_proxy'.i18n,
+                  trailing: const AppImage(path: AppImagePaths.arrowForward),
+                  onPressed: invite,
                 ),
               ],
             ],

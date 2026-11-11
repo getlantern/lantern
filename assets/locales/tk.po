@@ -2066,10 +2066,10 @@ msgid "invite_link_copied"
 msgstr "Baglanyşyk göçürildi"
 
 msgid "invite_qr_hint"
-msgstr "Dostuňyz muny Lantern bilen skanirläp biler."
+msgstr "Eger olar siziň bilen bolsa, baglanyşygyň ýerine muny Lantern-de skanirläp bilerler."
 
 msgid "invite_waiting"
-msgstr "Dostuňyzyň baglanyşygy açmagyna garaşylýar"
+msgstr "Olaryň baglanyşygy açmagyna garaşylýar"
 
 msgid "invite_trust_warning"
 msgstr "Çagyrýan adamyňyz siziň Lantern ulanýandygyňyzy biler we siziň haçan onuň üsti bilen birikýändigiňizi görüp biler. Siziň trafigiňiz onuň internet baglanyşygyndan geçýär, şonuň üçin ol haýsy saýtlara girýändigiňizi bilip biler, ýöne howpsuz (https) saýtlarda näme edýändigiňizi bilip bilmez. Diňe ynanýan adamyňyzy çagyryň."
@@ -2106,9 +2106,6 @@ msgstr "Dostuňyzyň iberen salgysyny goýuň"
 
 msgid "help_friend_scan"
 msgstr "Dostuňyzyň QR koduny skanirläň"
-
-msgid "help_friend_approved"
-msgstr "Siz indi kömek edýärsiňiz: %s."
 
 msgid "help_friend_no_longer_pending"
 msgstr "Bu haýyş indi garaşylmaýar. Dostuňyzdan täze çakylyk soraň."
@@ -2149,12 +2146,6 @@ msgstr "Kömegi bes et"
 msgid "helping_remove_confirm"
 msgstr "Kömegi bes etmelimi: %s? Siziň üstüňizden täzeden birikmek üçin täze çakylyk gerek bolar."
 
-msgid "help_others_too"
-msgstr "Başgalara-da kömek et"
-
-msgid "help_others_too_body"
-msgstr "Senzura bilen ýüzbe-ýüz bolýan beýleki adamlara artykmaç kuwwatyňyzy beriň; Lantern olara diňe rugsat berlen saýtlara girmäge ýol berýär, bu bolsa baglanyşygyňyzy hyýanatçylykly ulanylyşdan goraýar."
-
 msgid "help_others_too_note"
 msgstr "Muny üýtgetmek kömek edýän adamlaryňyzy gysga wagtlaýyn täzeden birikdirýär."
 
@@ -2165,7 +2156,7 @@ msgid "helping_duration_m"
 msgstr "%s min"
 
 msgid "invite_link_expiry"
-msgstr "Diňe bir gezek işleýär we 48 sagadyň dowamynda möhleti gutarýar."
+msgstr "Bir gezek işleýär we 48 sagatdan soň möhleti gutarýar"
 
 msgid "approve_title"
 msgstr "%s siziň şahsy proksiňiz bolmak isleýär"
@@ -2196,12 +2187,6 @@ msgstr "Baglanyşygy islän wagtyňyz aýryň."
 
 msgid "help_friend_form_title"
 msgstr "Kömek edýän adamyňyzdan gelen salgyny goýuň"
-
-msgid "help_friend_link_hint"
-msgstr "Bu enjamda salga basylanda bu ýer doldurylýar"
-
-msgid "help_friend_name_hint"
-msgstr "Dostuňyzyň Lantern programmasynda siz şeýle görünersiňiz"
 
 msgid "help_friend_become"
 msgstr "Dostuňyzyň şahsy proksisi boluň"
@@ -2275,17 +2260,8 @@ msgstr "Başga çakylyk baglanyşygyny goýuň"
 msgid "invite_share_title"
 msgstr "Bu baglanyşygy ýurduňyzyň daşyndaky ynanýan adamyňyz bilen paýlaşyň"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Bir dostuňyz sizi şahsy proksisi bolmaga çagyrdy"
-
 msgid "help_friend_paste_button"
 msgstr "Salgyny goý"
-
-msgid "help_friend_no_link"
-msgstr "Entek salgyňyz ýokmy?"
-
-msgid "help_friend_ask_invite"
-msgstr "Dostuňyzdan sizi çagyrmagyny haýyş ediň"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Men Lantern-de siziň şahsy proksiňiz bolup bilerin, şonda siz meniň baglanyşygym arkaly internete girip bilersiňiz. Lantern-de \"Serwer saýlamak\" bölümini açyň, ýokardaky ⋮ menýusyna basyň, \"Şahsy proksini çagyr\" saýlaň we maňa baglanyşygy iberiň."
@@ -2316,3 +2292,111 @@ msgstr "1 adama kömek edýärsiňiz"
 
 msgid "helping_people"
 msgstr "Kömek edýän adamlaryňyz: %s"
+
+msgid "onboarding_personal_proxies"
+msgstr "Şahsy proksiler"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Ýurduňyzyň daşyndaky ynanýan adamyňyzyň üsti bilen göni birigiň."
+
+msgid "onboarding_new_badge"
+msgstr "Täze"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "Başgalara açyk internete girmäge kömek ediň"
+
+msgid "onboarding_action_mode_share"
+msgstr "Baglanyşygyňyzy paýlaşyň"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "Başgalara internet çäklendirmelerini aýlanyp geçmäge kömek etmek üçin baglanyşygyňyzyň az bölegini paýlaşyň."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "Tanyşyňyza kömek ediň"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Dostuňyzyň Şahsy Proksisi bolup oňa kömek ediň, şonda ol göni siziň üstüňiz bilen birigip biler."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "Şahsy maglumatlaryňyz goralýar"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Şahsy maglumatlaryňyz we brauzer işjeňligiňiz hiç haçan paýlaşylmaýar we açylmaýar."
+
+msgid "onboarding_action_mode_control"
+msgstr "Dolandyryş sizde"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Action Mode bölüminden Action Mode-y islän wagtyňyz açyň ýa-da öçüriň."
+
+msgid "approved_title"
+msgstr "Şahsy proksiňiz: %s"
+
+msgid "approved_body"
+msgstr "%s onlaýn bolanda, ony Serwer saýlamakda Hususy ýerler bölüminden saýlap bilersiňiz."
+
+msgid "approved_connect_now"
+msgstr "Häzir birikdir"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "Olaryň serwer sanawynda siz şeýle görünersiňiz."
+
+msgid "help_friend_success_title"
+msgstr "Siz indi şu ulanyjynyň şahsy proksisi: %s"
+
+msgid "help_friend_success_body"
+msgstr "%s sizi tassyklady. Action Mode açyk wagty ol siziň baglanyşygyňyz arkaly açyk internete girip biler."
+
+msgid "help_friend_keep_on"
+msgstr "Action Mode açyk saklansyn"
+
+msgid "help_friend_keep_on_body"
+msgstr "Häzir we Lantern açyk wagty hemişe açylýar, şeýdip %s baglanyşykda galýar."
+
+msgid "help_friend_no_link_yet"
+msgstr "Heniz salgy ýokmy?"
+
+msgid "help_friend_ask_send_link"
+msgstr "Size birini ibermegini haýyş ediň."
+
+msgid "helping_scope_line_all"
+msgstr "Ähli ýurtlardaky adamlara hem kömek edýärsiňiz"
+
+msgid "helping_scope_line_friends"
+msgstr "Diňe dostlaryňyza kömek edýärsiňiz"
+
+msgid "helping_scope_change"
+msgstr "Üýtget"
+
+msgid "helping_scope_title"
+msgstr "Kime kömek edýärsiňiz"
+
+msgid "helping_scope_subtitle"
+msgstr "Diňe dostlaryňyz bilen ýa-da ähli ýurtlardaky adamlar bilen paýlaşyň."
+
+msgid "helping_scope_only_friends"
+msgstr "Diňe meniň şahsy proksi baglanyşyklarym"
+
+msgid "helping_scope_all_countries"
+msgstr "Ähli ýurtlar"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Başgalaryň açyk internete girmegine kömek etmek üçin baglanyşygyňyzy howpsuz paýlaşyň."
+
+msgid "invite_show_qr"
+msgstr "QR kody görkez"
+
+msgid "invite_qr_title"
+msgstr "Kamera bilen skanirle"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Bu hasap %s arkaly içeri girýär we ony telewizorda tassyklap bolmaýar. Ony pozmak üçin telefonyňyzda ýa-da kompýuteriňizde Lantern-i açyň we şol ýerde pozuň."
+
+msgid "invite_link_hint"
+msgstr "Baglanyşygyňyzy almak üçin adyňyzy giriziň"
+
+msgid "open_on_another_device"
+msgstr "Başga enjamda aç"
+
+msgid "open_on_another_device_hint"
+msgstr "Bu telewizorda web brauzer ýok. Telefonyňyzda ýa-da kompýuteriňizde kody skanirläň ýa-da salgyny ýazyň."

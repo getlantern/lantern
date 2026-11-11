@@ -1455,6 +1455,64 @@ msgstr "More protocols than other VPNs for maximum reliability. AnyTLS, Hysteria
 msgid "private_servers_description"
 msgstr "Connect your own servers for full control over your connection."
 
+# Onboarding, What makes Lantern different, shown only where Personal
+# Proxies are offered (censored regions). A feature name: keep it capitalized.
+msgid "onboarding_personal_proxies"
+msgstr "Personal Proxies"
+
+# Under onboarding_personal_proxies.
+msgid "onboarding_personal_proxies_description"
+msgstr "Connect directly through someone you trust outside your country."
+
+# Onboarding, "What makes Lantern different": under the Action Mode row,
+# shown outside censored regions.
+msgid "onboarding_action_mode_row_description"
+msgstr "Choose to securely share your connection to help others access the open internet."
+
+# Small badge beside a feature onboarding introduces as new.
+msgid "onboarding_new_badge"
+msgstr "New"
+
+# Onboarding, the Action Mode page, shown only where Action Mode is offered.
+# Under its title, "Action Mode".
+msgid "onboarding_action_mode_subtitle"
+msgstr "Help others access the open internet"
+
+# Onboarding, the Action Mode page: a row title.
+msgid "onboarding_action_mode_share"
+msgstr "Share your connection"
+
+# Under onboarding_action_mode_share.
+msgid "onboarding_action_mode_share_description"
+msgstr "Volunteer a small amount of your connection to help others bypass internet restrictions."
+
+# Onboarding, the Action Mode page: a row title, marked New. Being someone's
+# Personal Proxy, for a friend in a censored country.
+msgid "onboarding_action_mode_help_someone"
+msgstr "Help someone you know"
+
+# Under onboarding_action_mode_help_someone. "Personal Proxy" is a feature
+# name: keep it capitalized.
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Help a friend by becoming their Personal Proxy so they can connect directly through you."
+
+# Onboarding, the Action Mode page: a row title.
+msgid "onboarding_action_mode_privacy"
+msgstr "Your privacy is protected"
+
+# Under onboarding_action_mode_privacy.
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Your personal data and browsing activity are never shared or exposed."
+
+# Onboarding, the Action Mode page: a row title.
+msgid "onboarding_action_mode_control"
+msgstr "You're in control"
+
+# Under onboarding_action_mode_control. "Action Mode tab" is the Home tab of
+# that name.
+msgid "onboarding_action_mode_control_description"
+msgstr "Turn Action Mode on or off anytime from the Action Mode tab."
+
 msgid "nonprofit_mission"
 msgstr "Nonprofit Mission"
 
@@ -1517,6 +1575,9 @@ msgstr "Lantern Email"
 
 msgid "confirm_with_account"
 msgstr "To confirm deletion please verify with your %s account below:"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "This account signs in with %s, which can't be verified on a TV. To delete it, open Lantern on your phone or computer and delete it there."
 
 msgid "oauth_different_account"
 msgstr "The account you are trying to sign in with does not match the account associated with this email. Please sign in with the correct account or choose a different email."
@@ -1995,8 +2056,18 @@ msgstr "They open the link, install Lantern if needed, and enter their name. You
 msgid "invite_link_label"
 msgstr "Your invite link"
 
+# Under the invite link, followed by " · " and invite_show_qr.
 msgid "invite_link_expiry"
-msgstr "Works once and expires in 48 hours."
+msgstr "Works once and expires in 48 hours"
+
+# Link after invite_link_expiry: opens the invite's QR code in a dialog.
+msgid "invite_show_qr"
+msgstr "Show QR code"
+
+# Hint in the empty invite link field, before the user has typed a name and
+# the link is made.
+msgid "invite_link_hint"
+msgstr "Enter your name to get your link"
 
 # The text shared with the link. The first %s is the user's name; the second is the link.
 msgid "invite_share_message"
@@ -2011,13 +2082,20 @@ msgstr "Copy link"
 msgid "invite_link_copied"
 msgstr "Link copied"
 
+# Title of the dialog that shows the invite's QR code.
+msgid "invite_qr_title"
+msgstr "Scan with Camera"
+
+# Under the QR code in that dialog.
 msgid "invite_qr_hint"
-msgstr "Your friend can scan this with Lantern."
+msgstr "If they are with you, they can scan this in Lantern instead of using the link."
 
+# Status line under the invite screen's Share button, and on a pending invite
+# in the Manage tab.
 msgid "invite_waiting"
-msgstr "Waiting for your friend to open the link"
+msgstr "Waiting for them to open the link"
 
-# Warning below the invite link and Share button, above the QR code.
+# Warning below the invite link and Share button.
 msgid "invite_trust_warning"
 msgstr "The person you invite will know you use Lantern and can see when you're connected through them. Your traffic passes through their internet connection, so they could learn which sites you visit, though not what you do on secure (https) sites. Only invite someone you trust."
 
@@ -2041,6 +2119,21 @@ msgstr "%s wants to be your Personal Proxy"
 # %s is the name the friend typed. Comparing the code over a different channel from the link is what stops someone who intercepted the link.
 msgid "approve_body"
 msgstr "Ask %s for the 4-digit code Lantern shows them, on a call or in a different app from the one you sent the link in. Approve only if it matches."
+
+# Title of the same dialog once the user approved the friend. %s is the name
+# the friend typed.
+msgid "approved_title"
+msgstr "%s is now your Personal Proxy"
+
+# Under approved_title. %s is the name the friend typed. "Private Locations"
+# must match private_locations and "Server Selection" server_selection.
+msgid "approved_body"
+msgstr "When %s is online, you can select them under Private Locations in Server Selection."
+
+# Button under approved_body: selects the new Personal Proxy and turns the
+# VPN on.
+msgid "approved_connect_now"
+msgstr "Connect Now"
 
 msgid "approve_codes_match"
 msgstr "Codes Match, Approve"
@@ -2090,21 +2183,13 @@ msgstr "Remove the connection any time."
 msgid "help_friend_form_title"
 msgstr "Paste the link from the person you're helping"
 
-# Title of the same card when the invite link opened the app. The inviter's
-# name is not known yet.
-msgid "help_friend_form_title_from_link"
-msgstr "A friend invited you to be their personal proxy"
-
-# Under the invite link field.
-msgid "help_friend_link_hint"
-msgstr "Tapping the link on this device fills this in"
-
 msgid "help_friend_name_label"
 msgstr "Your name, as they know you"
 
-# Under the name field.
-msgid "help_friend_name_hint"
-msgstr "This is how you appear in their Lantern"
+# Under the name field. "Server list" is the friend's Server Selection screen,
+# where this name appears.
+msgid "help_friend_name_hint_server_list"
+msgstr "This is how you appear in their server list."
 
 msgid "help_friend_become"
 msgstr "Become Their Personal Proxy"
@@ -2117,6 +2202,24 @@ msgstr "They will check it matches the code on their phone, then approve you."
 
 msgid "help_friend_waiting_approval"
 msgstr "Waiting for approval"
+
+# Title of the success screen once the friend approved the volunteer. %s is
+# the friend's name.
+msgid "help_friend_success_title"
+msgstr "You're now %s's Personal Proxy"
+
+# Under help_friend_success_title. %s is the friend's name.
+msgid "help_friend_success_body"
+msgstr "%s approved you. When Action Mode is on, they can reach the open internet through your connection."
+
+# Checkbox on the success screen, checked by default. Checked, Done turns
+# Action Mode on now and sets Auto-enable Action Mode.
+msgid "help_friend_keep_on"
+msgstr "Keep Action Mode on"
+
+# Under help_friend_keep_on. %s is the friend's name.
+msgid "help_friend_keep_on_body"
+msgstr "Turns on now and whenever Lantern is open, so %s stays connected."
 
 # Note under the code a volunteer reads to the friend who invited them.
 msgid "help_friend_code_note"
@@ -2131,13 +2234,10 @@ msgstr "Paste the link your friend sent"
 msgid "help_friend_scan"
 msgstr "Scan your friend's QR code"
 
-# Button under the invite link field: fills it from the clipboard.
+# Tooltip of the paste icon in the invite link field: fills it from the
+# clipboard.
 msgid "help_friend_paste_button"
 msgstr "Paste link"
-
-# %s is the friend's name.
-msgid "help_friend_approved"
-msgstr "You're now helping %s."
 
 msgid "help_friend_no_longer_pending"
 msgstr "This request is no longer pending. Ask your friend for a new invite."
@@ -2163,13 +2263,15 @@ msgstr "This isn't a Personal Proxy invite link."
 msgid "help_friend_own_invite"
 msgstr "This is your own invite. Send it to the friend you'd like help from."
 
-# Above a button for someone abroad who has no invite link yet.
-msgid "help_friend_no_link"
-msgstr "Don't have a link yet?"
+# Under the invite link field, followed by help_friend_ask_send_link, which
+# is a link.
+msgid "help_friend_no_link_yet"
+msgstr "No link yet?"
 
-# Button: shares help_friend_ask_invite_message to a friend.
-msgid "help_friend_ask_invite"
-msgstr "Ask your friend to invite you"
+# Link under the invite link field, after help_friend_no_link_yet: opens the
+# share sheet with help_friend_ask_invite_message for a friend.
+msgid "help_friend_ask_send_link"
+msgstr "Ask them to send you one."
 
 # Sent to a friend in a censored country, who will read it in their own
 # Lantern. "Server Selection" must match server_selection and "Invite a
@@ -2246,14 +2348,44 @@ msgstr "Stop helping"
 msgid "helping_remove_confirm"
 msgstr "Stop helping %s? They'll need a new invite to connect through you again."
 
-msgid "help_others_too"
-msgstr "Help others too"
-
-msgid "help_others_too_body"
-msgstr "Lend spare capacity to other people facing censorship; Lantern only lets them reach allowed sites, which protects your connection from misuse."
-
 msgid "help_others_too_note"
 msgstr "Changing this briefly reconnects the friends you help."
+
+# Under the friends card in the Friends you're helping sheet, when Action Mode
+# also helps the general pool. Followed by " · " and helping_scope_change.
+msgid "helping_scope_line_all"
+msgstr "Also helping people in all countries"
+
+# Same line when Action Mode helps only the friends this device is the
+# Personal Proxy for.
+msgid "helping_scope_line_friends"
+msgstr "Only helping your friends"
+
+# Link after helping_scope_line_all or helping_scope_line_friends: opens the
+# Who you're helping sheet.
+msgid "helping_scope_change"
+msgstr "Change"
+
+# Title of the sheet that chooses who Action Mode helps: only the user's
+# friends, or people in all countries too.
+msgid "helping_scope_title"
+msgstr "Who you're helping"
+
+# Under helping_scope_title.
+msgid "helping_scope_subtitle"
+msgstr "Share with your friends only, or with people in all countries."
+
+# Option in the Who you're helping sheet: help only the friends this device
+# is the Personal Proxy for. Also the line under "Helping right now" on the
+# Action Mode tab and under Who you're helping in Settings.
+msgid "helping_scope_only_friends"
+msgstr "Only my Personal Proxy connections"
+
+# Option in the Who you're helping sheet: also help people anywhere who
+# connect through Action Mode. The default. Also the line under "Helping
+# right now" on the Action Mode tab and under Who you're helping in Settings.
+msgid "helping_scope_all_countries"
+msgstr "All countries"
 
 # %s %s are hours and minutes, as numbers.
 msgid "helping_duration_hm"
@@ -2262,3 +2394,9 @@ msgstr "%sh %sm"
 # %s is minutes, as a number.
 msgid "helping_duration_m"
 msgstr "%sm"
+
+msgid "open_on_another_device"
+msgstr "Open on another device"
+
+msgid "open_on_another_device_hint"
+msgstr "This TV has no web browser. Scan the code or type the address on your phone or computer."

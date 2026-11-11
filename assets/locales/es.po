@@ -2100,10 +2100,10 @@ msgid "invite_link_copied"
 msgstr "Enlace copiado"
 
 msgid "invite_qr_hint"
-msgstr "Tu amigo puede escanear esto con Lantern."
+msgstr "Si está contigo, puede escanear esto en Lantern en lugar de usar el enlace."
 
 msgid "invite_waiting"
-msgstr "Esperando a que tu amigo abra el enlace"
+msgstr "Esperando a que abra el enlace"
 
 msgid "invite_trust_warning"
 msgstr "La persona que invites sabrá que usas Lantern y podrá ver cuándo te conectas a través de ella. Tu tráfico pasa por su conexión a internet, así que podría saber qué sitios visitas, aunque no lo que haces en sitios seguros (https). Invita solo a alguien de confianza."
@@ -2140,9 +2140,6 @@ msgstr "Pegar el enlace que te envió tu amigo"
 
 msgid "help_friend_scan"
 msgstr "Escanea el código QR de tu amigo"
-
-msgid "help_friend_approved"
-msgstr "Ahora estás ayudando a %s."
 
 msgid "help_friend_no_longer_pending"
 msgstr "Esta solicitud ya no está pendiente. Pídele a tu amigo una nueva invitación."
@@ -2183,12 +2180,6 @@ msgstr "Dejar de ayudar"
 msgid "helping_remove_confirm"
 msgstr "¿Dejar de ayudar a %s? Necesitará una nueva invitación para volver a conectarse a través de ti."
 
-msgid "help_others_too"
-msgstr "Ayuda también a otros"
-
-msgid "help_others_too_body"
-msgstr "Comparte tu capacidad sobrante con otras personas que enfrentan censura; Lantern solo les permite acceder a sitios autorizados, lo que protege tu conexión de usos indebidos."
-
 msgid "help_others_too_note"
 msgstr "Cambiar esto reconecta brevemente a las personas que ayudas."
 
@@ -2208,7 +2199,7 @@ msgid "invite_link_label"
 msgstr "Tu enlace de invitación"
 
 msgid "invite_link_expiry"
-msgstr "Funciona una sola vez y vence en 48 horas."
+msgstr "Funciona una vez y vence en 48 horas"
 
 msgid "approve_title"
 msgstr "%s quiere ser tu proxy personal"
@@ -2243,14 +2234,8 @@ msgstr "Elimina la conexión cuando quieras."
 msgid "help_friend_form_title"
 msgstr "Pega el enlace de la persona a quien ayudas"
 
-msgid "help_friend_link_hint"
-msgstr "Al tocar el enlace en este dispositivo, se completa automáticamente"
-
 msgid "help_friend_name_label"
 msgstr "Tu nombre, como te conocen"
-
-msgid "help_friend_name_hint"
-msgstr "Así aparecerás en su Lantern"
 
 msgid "help_friend_become"
 msgstr "Sé su proxy personal"
@@ -2309,17 +2294,8 @@ msgstr "Datos retransmitidos hoy"
 msgid "helping_active_today"
 msgstr "Activo: %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "Un amigo te invitó a ser su proxy personal"
-
 msgid "help_friend_paste_button"
 msgstr "Pegar enlace"
-
-msgid "help_friend_no_link"
-msgstr "¿Aún no tienes un enlace?"
-
-msgid "help_friend_ask_invite"
-msgstr "Pedirle a tu amigo que te invite"
 
 msgid "help_friend_ask_invite_message"
 msgstr "Puedo ser tu proxy personal en Lantern para que te conectes a internet a través de mi conexión. En Lantern, abre \"Selección de servidor\", toca el menú ⋮ de arriba, elige \"Invitar a un proxy personal\" y envíame el enlace."
@@ -2350,3 +2326,111 @@ msgstr "Ayudando a 1 persona"
 
 msgid "helping_people"
 msgstr "Ayudando a %s personas"
+
+msgid "onboarding_personal_proxies"
+msgstr "Proxies personales"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "Conéctate directamente a través de alguien de confianza fuera de tu país."
+
+msgid "onboarding_new_badge"
+msgstr "Nuevo"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "Ayuda a otros a acceder al internet libre"
+
+msgid "onboarding_action_mode_share"
+msgstr "Comparte tu conexión"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "Comparte una pequeña parte de tu conexión para ayudar a otros a evadir las restricciones de internet."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "Ayuda a alguien que conoces"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "Ayuda a un amigo convirtiéndote en su Proxy Personal para que se conecte directamente a través de ti."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "Tu privacidad está protegida"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "Tus datos personales y tu actividad de navegación nunca se comparten ni se exponen."
+
+msgid "onboarding_action_mode_control"
+msgstr "Tú tienes el control"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Activa o desactiva Action Mode cuando quieras desde la pestaña Action Mode."
+
+msgid "approved_title"
+msgstr "%s ahora es tu proxy personal"
+
+msgid "approved_body"
+msgstr "Cuando %s esté en línea, podrás seleccionarlo en Ubicaciones privadas, dentro de Selección de servidor."
+
+msgid "approved_connect_now"
+msgstr "Conectar ahora"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "Así aparecerás en su lista de servidores."
+
+msgid "help_friend_success_title"
+msgstr "Ahora eres el proxy personal de %s"
+
+msgid "help_friend_success_body"
+msgstr "%s te aprobó. Cuando Action Mode esté activado, podrá acceder al internet abierto a través de tu conexión."
+
+msgid "help_friend_keep_on"
+msgstr "Mantener Action Mode activado"
+
+msgid "help_friend_keep_on_body"
+msgstr "Se activa ahora y siempre que Lantern esté abierto, para que %s mantenga la conexión."
+
+msgid "help_friend_no_link_yet"
+msgstr "¿Aún no tienes enlace?"
+
+msgid "help_friend_ask_send_link"
+msgstr "Pídele que te envíe uno."
+
+msgid "helping_scope_line_all"
+msgstr "También ayudas a personas de todos los países"
+
+msgid "helping_scope_line_friends"
+msgstr "Solo ayudas a tus amigos"
+
+msgid "helping_scope_change"
+msgstr "Cambiar"
+
+msgid "helping_scope_title"
+msgstr "A quién ayudas"
+
+msgid "helping_scope_subtitle"
+msgstr "Comparte solo con tus amigos o con personas de todos los países."
+
+msgid "helping_scope_only_friends"
+msgstr "Solo mis conexiones de proxy personal"
+
+msgid "helping_scope_all_countries"
+msgstr "Todos los países"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Elige compartir tu conexión de forma segura para ayudar a otros a acceder a internet libre."
+
+msgid "invite_show_qr"
+msgstr "Mostrar código QR"
+
+msgid "invite_link_hint"
+msgstr "Ingresa tu nombre para obtener tu enlace"
+
+msgid "invite_qr_title"
+msgstr "Escanear con la cámara"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Esta cuenta inicia sesión con %s, que no se puede verificar en un televisor. Para eliminarla, abre Lantern en tu celular o computadora y elimínala desde allí."
+
+msgid "open_on_another_device"
+msgstr "Abrir en otro dispositivo"
+
+msgid "open_on_another_device_hint"
+msgstr "Este televisor no tiene navegador web. Escanea el código o escribe la dirección en tu celular o computadora."

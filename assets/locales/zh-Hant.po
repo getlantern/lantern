@@ -1937,10 +1937,10 @@ msgid "invite_link_copied"
 msgstr "已複製連結"
 
 msgid "invite_qr_hint"
-msgstr "你的朋友可以用 Lantern 掃描這個 QR 碼。"
+msgstr "如果對方在你身邊，可以在 Lantern 中掃描此 QR 碼，不必使用連結。"
 
 msgid "invite_waiting"
-msgstr "正在等待朋友開啟連結"
+msgstr "等待對方開啟連結"
 
 msgid "invite_trust_warning"
 msgstr "你邀請的人會知道你在使用 Lantern，並能看到你何時透過對方連線。你的流量會經過對方的網路連線，因此對方可能得知你造訪了哪些網站，但無法得知你在安全（https）網站上的操作。只邀請你信任的人。"
@@ -1977,9 +1977,6 @@ msgstr "貼上朋友傳來的連結"
 
 msgid "help_friend_scan"
 msgstr "掃描朋友的 QR 碼"
-
-msgid "help_friend_approved"
-msgstr "你現在正在幫助 %s。"
 
 msgid "help_friend_no_longer_pending"
 msgstr "此請求已不再等待處理。向你的朋友索取新的邀請。"
@@ -2020,12 +2017,6 @@ msgstr "停止幫助"
 msgid "helping_remove_confirm"
 msgstr "停止幫助 %s？對方需要新的邀請才能再次透過你連線。"
 
-msgid "help_others_too"
-msgstr "也幫助他人"
-
-msgid "help_others_too_body"
-msgstr "將閒置容量借給其他面臨審查的人；Lantern 只允許他們連上許可的網站，藉此保護你的連線不被濫用。"
-
 msgid "help_others_too_note"
 msgstr "變更此設定會讓你幫助的人短暫重新連線。"
 
@@ -2045,7 +2036,7 @@ msgid "invite_link_label"
 msgstr "你的邀請連結"
 
 msgid "invite_link_expiry"
-msgstr "僅能使用一次，48 小時後失效。"
+msgstr "僅限使用一次，48 小時後失效"
 
 msgid "approve_title"
 msgstr "%s 想成為你的個人代理"
@@ -2080,14 +2071,8 @@ msgstr "你可以隨時移除此連線。"
 msgid "help_friend_form_title"
 msgstr "貼上你所協助的人傳來的連結"
 
-msgid "help_friend_link_hint"
-msgstr "在此裝置上輕觸連結即可自動填入"
-
 msgid "help_friend_name_label"
 msgstr "朋友所認識的你的名字"
-
-msgid "help_friend_name_hint"
-msgstr "你在朋友的 Lantern 中會顯示為這個名稱"
 
 msgid "help_friend_become"
 msgstr "成為朋友的專屬代理"
@@ -2146,17 +2131,8 @@ msgstr "今日中繼資料"
 msgid "helping_active_today"
 msgstr "已活躍 %s"
 
-msgid "help_friend_form_title_from_link"
-msgstr "一位朋友邀請你成為其個人代理"
-
 msgid "help_friend_paste_button"
 msgstr "貼上連結"
-
-msgid "help_friend_no_link"
-msgstr "還沒有連結？"
-
-msgid "help_friend_ask_invite"
-msgstr "請朋友邀請你"
 
 msgid "help_friend_ask_invite_message"
 msgstr "我可以在 Lantern 上當你的個人代理，讓你透過我的連線上網。在 Lantern 中開啟「伺服器選擇」，點選頂端的 ⋮ 選單，選擇「邀請個人代理」，然後把連結傳給我。"
@@ -2187,3 +2163,111 @@ msgstr "正在幫助 1 個人"
 
 msgid "helping_people"
 msgstr "正在幫助 %s 個人"
+
+msgid "onboarding_personal_proxies"
+msgstr "個人代理"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "透過你信任的海外人士直接連線。"
+
+msgid "onboarding_new_badge"
+msgstr "新"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "協助他人存取開放的網路"
+
+msgid "onboarding_action_mode_share"
+msgstr "分享你的連線"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "貢獻一小部分連線，幫助他人突破網路限制。"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "幫助你認識的人"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "成為朋友的個人代理，讓他們直接透過你連線。"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "你的隱私受到保護"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "你的個人資料和瀏覽活動絕不會被分享或洩露。"
+
+msgid "onboarding_action_mode_control"
+msgstr "一切由你掌控"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "隨時在 Action Mode 分頁中開啟或關閉 Action Mode。"
+
+msgid "approved_title"
+msgstr "%s 現在是你的個人代理"
+
+msgid "approved_body"
+msgstr "當 %s 上線時，你可以在「伺服器選擇」的「私人位置」中選擇。"
+
+msgid "approved_connect_now"
+msgstr "立即連線"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "對方的伺服器清單中會這樣顯示你。"
+
+msgid "help_friend_success_title"
+msgstr "你現在是 %s 的個人代理"
+
+msgid "help_friend_success_body"
+msgstr "%s 已核准你。開啟 Action Mode 後，對方可透過你的連線存取開放的網際網路。"
+
+msgid "help_friend_keep_on"
+msgstr "保持 Action Mode 開啟"
+
+msgid "help_friend_keep_on_body"
+msgstr "立即開啟，並在 Lantern 開啟時自動啟用，讓 %s 保持連線。"
+
+msgid "help_friend_no_link_yet"
+msgstr "還沒有連結？"
+
+msgid "help_friend_ask_send_link"
+msgstr "請對方傳一個給你。"
+
+msgid "helping_scope_line_all"
+msgstr "同時協助所有國家的使用者"
+
+msgid "helping_scope_line_friends"
+msgstr "僅協助你的朋友"
+
+msgid "helping_scope_change"
+msgstr "變更"
+
+msgid "helping_scope_title"
+msgstr "你在幫助誰"
+
+msgid "helping_scope_subtitle"
+msgstr "僅與你的朋友分享，或與所有國家的人分享。"
+
+msgid "helping_scope_only_friends"
+msgstr "僅限我的個人代理連線"
+
+msgid "helping_scope_all_countries"
+msgstr "所有國家"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "選擇安全地分享你的連線，協助他人存取開放的網路。"
+
+msgid "invite_show_qr"
+msgstr "顯示 QR 碼"
+
+msgid "invite_link_hint"
+msgstr "輸入你的名字以取得連結"
+
+msgid "invite_qr_title"
+msgstr "使用相機掃描"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "此帳號透過 %s 登入，無法在電視上驗證。若要刪除，請在手機或電腦上開啟 Lantern 並在該處刪除。"
+
+msgid "open_on_another_device"
+msgstr "在其他裝置上開啟"
+
+msgid "open_on_another_device_hint"
+msgstr "這台電視沒有網頁瀏覽器。請在手機或電腦上掃描 QR 碼或輸入網址。"
