@@ -2265,12 +2265,6 @@ msgstr "সংযুক্ত নয়"
 msgid "helping_paste_another"
 msgstr "আরেকটি আমন্ত্রণ লিংক পেস্ট করুন"
 
-msgid "helping_data_relayed"
-msgstr "আজ রিলে করা ডেটা"
-
-msgid "helping_active_today"
-msgstr "সক্রিয়: %s"
-
 msgid "personal_proxy_fallback_auto"
 msgstr "এই মুহূর্তে %s এর সাথে সংযোগ করা যাচ্ছে না। স্মার্ট লোকেশনে পরিবর্তন করা হয়েছে।"
 
@@ -2360,12 +2354,6 @@ msgstr "আপনি এখন %s এর ব্যক্তিগত প্র�
 
 msgid "help_friend_success_body"
 msgstr "%s আপনাকে অনুমোদন দিয়েছেন। Action Mode চালু থাকলে তারা আপনার সংযোগের মাধ্যমে মুক্ত ইন্টারনেটে যেতে পারবেন।"
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode চালু রাখুন"
-
-msgid "help_friend_keep_on_body"
-msgstr "এখন এবং যখনই Lantern খোলা থাকবে তখন চালু হবে, যাতে %s সংযুক্ত থাকেন।"
 
 msgid "help_friend_no_link_yet"
 msgstr "এখনো লিংক পাননি?"

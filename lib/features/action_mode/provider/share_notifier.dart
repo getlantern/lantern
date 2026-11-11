@@ -468,15 +468,18 @@ class ShareNotifier extends _$ShareNotifier {
   /// Persists the auto-start preference, collecting consent first when
   /// enabling. autoStart refuses to run without an ack, so a preference
   /// written without one would read as enabled and never start.
-  Future<void> setAutoEnable(BuildContext context, bool enabled) async {
+  /// Returns whether Auto-enable is on afterwards: turning it on needs the
+  /// sharing consent, which the user may refuse.
+  Future<bool> setAutoEnable(BuildContext context, bool enabled) async {
     final settings = ref.read(appSettingProvider.notifier);
     if (!enabled) {
       settings.setUnboundedAutoEnable(false);
-      return;
+      return false;
     }
-    if (!await ensureConsent(context)) return;
-    if (!ref.mounted) return;
+    if (!await ensureConsent(context)) return false;
+    if (!ref.mounted) return false;
     settings.setUnboundedAutoEnable(true);
+    return true;
   }
 
   /// Re-emits a +1 for every geo-resolved active peer so a globe that mounts

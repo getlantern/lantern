@@ -15,6 +15,7 @@ import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_approval_prompt.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
@@ -378,9 +379,10 @@ final _approvedConnect = find.widgetWithText(
   PrimaryButton,
   'approved_connect_now'.i18n,
 );
-final _approvedDone = find.widgetWithText(
-  SecondaryButton,
-  'help_friend_done'.i18n,
+final _approvedClose = find.widgetWithText(SecondaryButton, 'close'.i18n);
+// The app's success dialogs' green check.
+final _approvedCheck = find.byWidgetPredicate(
+  (w) => w is AppImage && w.path == AppImagePaths.greenCheck,
 );
 
 /// Opens the approval dialog for [_claimed]; completes with its result.
@@ -427,7 +429,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.byIcon(Icons.check_circle_outline), findsNothing);
+    expect(_approvedCheck, findsNothing);
     expect(
       tester.widget<AlertDialog>(dialog).backgroundColor,
       tester.element(dialog).bgSurface,
@@ -441,17 +443,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(fake.decisions, [('i1', true)]);
     expect(find.text('approve_title'.i18n.fill(['Ali'])), findsNothing);
-    // The success dialog follows, with the check; Done closes it.
+    // The success dialog follows, with the check; Close closes it.
     expect(find.text('approved_title'.i18n.fill(['Ali'])), findsOneWidget);
-    expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
-    await tester.tap(_approvedDone);
+    expect(_approvedCheck, findsOneWidget);
+    await tester.tap(_approvedClose);
     await tester.pumpAndSettle();
     expect(dialog, findsNothing);
     expect(await result, isTrue);
   });
 
   testWidgets('after approving: "[Name] is now your Personal Proxy", where to '
-      'pick them, Connect Now and Done', (tester) async {
+      'pick them, Connect Now and Close', (tester) async {
     final connects = <String?>[];
     debugConnectPersonalProxy = (tag) async => connects.add(tag);
     addTearDown(() => debugConnectPersonalProxy = null);
@@ -474,7 +476,7 @@ void main() {
     expect(find.text('approved_title'.i18n.fill(['Ali'])), findsOneWidget);
     expect(find.text('approved_body'.i18n.fill(['Ali'])), findsOneWidget);
     expect(_approvedConnect, findsOneWidget);
-    expect(_approvedDone, findsOneWidget);
+    expect(_approvedClose, findsOneWidget);
     await tester.tap(_approvedConnect);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
@@ -527,7 +529,7 @@ void main() {
     await _openApproval(tester, fake);
     await tester.tap(_approveYes);
     await tester.pumpAndSettle();
-    await tester.tap(_approvedDone);
+    await tester.tap(_approvedClose);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
     expect(connects, isEmpty);
@@ -871,8 +873,23 @@ void main() {
     expect(got, isNull);
   });
 
+  testWidgets('the daily invite limit is never written on the Personal '
+      'Proxies tab: the empty state stays', (tester) async {
+    final fake = _Helpers(
+      const HelpersState(
+        viewLoaded: true,
+        view: HelpersView(unlocked: true),
+        error: 'too_many_invites',
+      ),
+    );
+    await _pump(tester, fake, const PersonalProxiesTab());
+    expect(find.byKey(const Key('helpers.error')), findsNothing);
+    expect(find.text(helperErrorText('too_many_invites')), findsNothing);
+    expect(find.byKey(const Key('personal_proxies.empty')), findsOneWidget);
+  });
+
   testWidgets('the invite screen: the name above the link, Show QR code '
-      'beside the expiry, the waiting line under Share, and no QR code', (
+      'beside the expiry, no waiting line, the note on top, and no QR code', (
     tester,
   ) async {
     // Tall enough to build the whole list in the test font.
@@ -898,6 +915,10 @@ void main() {
     );
     await _pump(tester, fake, const InviteShare(inviteId: 'i2'));
     expect(find.byKey(const Key('invite.qr')), findsNothing);
+    // The approval prompt opens wherever the user is, so nothing on this
+    // screen says to wait here.
+    expect(find.byKey(const Key('invite.waiting')), findsNothing);
+    expect(find.text('invite_waiting'.i18n), findsNothing);
     expect(find.text('invite_personal_proxy'.i18n), findsOneWidget);
     final card = find.byKey(const Key('invite.card'));
     for (final text in [
@@ -907,7 +928,6 @@ void main() {
       'invite_link_label'.i18n,
       '${'invite_link_expiry'.i18n} · ',
       'invite_show_qr'.i18n,
-      'invite_waiting'.i18n,
       'https://lantern.io/help/#AAAA',
       'Sara',
     ]) {
@@ -920,34 +940,43 @@ void main() {
     final name = find.byKey(const Key('invite.name'));
     final link = find.byKey(const Key('invite.link'));
     final share = find.byKey(const Key('invite.share'));
-    final waiting = find.byKey(const Key('invite.waiting'));
     expect(tester.getTopLeft(name).dy, lessThan(tester.getTopLeft(link).dy));
-    expect(
-      tester.getTopLeft(waiting).dy,
-      greaterThan(tester.getBottomLeft(share).dy),
-    );
-    expect(
-      find.descendant(of: waiting, matching: find.byIcon(Icons.sync)),
-      findsOneWidget,
-    );
+    expect(tester.getTopLeft(share).dy, greaterThan(tester.getTopLeft(link).dy));
     for (final key in ['invite.copy', 'invite.show_qr']) {
       expect(
         find.descendant(of: card, matching: find.byKey(Key(key))),
         findsOneWidget,
       );
     }
+    // The note is one line above the card; the rest is behind Learn more.
     final warning = find.byKey(const Key('invite.trust_warning'));
-    expect(
-      find.descendant(
-        of: warning,
-        matching: find.text('invite_trust_warning'.i18n),
-      ),
-      findsOneWidget,
+    final note = tester.widget<AppRichText>(
+      find.descendant(of: warning, matching: find.byType(AppRichText)),
     );
+    expect(note.texts, '${'invite_trust_warning'.i18n} ');
+    expect(note.boldTexts, 'invite_trust_learn_more'.i18n);
     expect(
-      tester.getTopLeft(warning).dy,
-      greaterThan(tester.getBottomLeft(card).dy),
+      tester.getBottomLeft(warning).dy,
+      lessThan(tester.getTopLeft(card).dy),
     );
+    note.boldOnPressed!();
+    await tester.pumpAndSettle();
+    final dialog = find.byKey(const Key('invite.trust_dialog'));
+    for (final text in [
+      'invite_trust_title'.i18n,
+      'invite_trust_message_one'.i18n,
+      'invite_trust_message_two'.i18n,
+      'invite_trust_message_three'.i18n,
+    ]) {
+      expect(
+        find.descendant(of: dialog, matching: find.text(text)),
+        findsOneWidget,
+        reason: text,
+      );
+    }
+    await tester.tap(find.text('got_it'.i18n));
+    await tester.pumpAndSettle();
+    expect(dialog, findsNothing);
     expect(fake.created, isEmpty);
     expect(fake.renamedInvites, isEmpty);
   });
@@ -1022,15 +1051,26 @@ void main() {
     expect(check.icon, Icons.check_circle);
     expect(
       check.color,
-      tester.element(find.byType(InviteShare)).statusSuccessBg,
+      tester.element(find.byType(InviteShare)).statusSuccessText,
     );
     await tester.pumpAndSettle(const Duration(seconds: 2));
     expect(fade(), CrossFadeState.showFirst);
   });
 
-  testWidgets('a new invite is made at once with the name known already', (
-    tester,
-  ) async {
+  testWidgets('a new invite is made at once with the name known already, '
+      'and copying shows no waiting line', (tester) async {
+    debugCopyAsAndroid = false;
+    addTearDown(() => debugCopyAsAndroid = null);
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async => null,
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
     final fake = _Helpers(
       const HelpersState(view: HelpersView(unlocked: true, myName: 'Sara')),
     )..addCreated = true;
@@ -1038,7 +1078,12 @@ void main() {
     await tester.pump();
     expect(fake.created, ['Sara']);
     expect(find.text('https://lantern.io/help/#SECRET'), findsOneWidget);
-    expect(find.byKey(const Key('invite.waiting')), findsOneWidget);
+    expect(find.byKey(const Key('invite.waiting')), findsNothing);
+    await tester.tap(find.byKey(const Key('invite.copy')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('invite.waiting')), findsNothing);
+    // Lets the copy icon's check time out.
+    await tester.pump(InviteShare.copiedFor);
   });
 
   testWidgets('a name loaded after the screen opened fills the field and '
@@ -1756,7 +1801,7 @@ void main() {
       await _pumpPast(tester);
       expect(fake.decisions, [('i1', true)]);
       expect(find.byType(InviteShare), findsOneWidget, reason: 'under it');
-      await tester.tap(_approvedDone);
+      await tester.tap(_approvedClose);
       await _pumpPast(tester);
       await _pumpPast(tester);
       expect(find.byType(InviteShare), findsNothing);

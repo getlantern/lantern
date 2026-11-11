@@ -2120,12 +2120,6 @@ msgstr "未连接"
 msgid "helping_paste_another"
 msgstr "粘贴另一个邀请链接"
 
-msgid "helping_data_relayed"
-msgstr "今日中继数据"
-
-msgid "helping_active_today"
-msgstr "已活跃 %s"
-
 msgid "help_friend_paste_button"
 msgstr "粘贴链接"
 
@@ -2212,12 +2206,6 @@ msgstr "您现在是 %s 的个人代理"
 
 msgid "help_friend_success_body"
 msgstr "%s 已批准您。开启 Action Mode 后，对方可通过您的连接访问开放的互联网。"
-
-msgid "help_friend_keep_on"
-msgstr "保持 Action Mode 开启"
-
-msgid "help_friend_keep_on_body"
-msgstr "立即开启，并在蓝灯打开时自动开启，让 %s 保持连接。"
 
 msgid "help_friend_no_link_yet"
 msgstr "还没有链接？"

@@ -2269,12 +2269,6 @@ msgstr "कनेक्ट नहीं है"
 msgid "helping_paste_another"
 msgstr "दूसरा आमंत्रण लिंक पेस्ट करें"
 
-msgid "helping_data_relayed"
-msgstr "आज रिले किया गया डेटा"
-
-msgid "helping_active_today"
-msgstr "सक्रिय: %s"
-
 msgid "personal_proxy_fallback_auto"
 msgstr "अभी %s तक नहीं पहुंच पा रहे। स्मार्ट लोकेशन पर स्विच किया गया।"
 
@@ -2364,12 +2358,6 @@ msgstr "अब आप %s के पर्सनल प्रॉक्सी ह�
 
 msgid "help_friend_success_body"
 msgstr "%s ने आपको मंज़ूरी दे दी है। Action Mode चालू होने पर वे आपके कनेक्शन के ज़रिए खुले इंटरनेट तक पहुंच सकते हैं।"
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode चालू रखें"
-
-msgid "help_friend_keep_on_body"
-msgstr "अभी और जब भी Lantern खुला हो, चालू हो जाता है, ताकि %s कनेक्टेड रहें।"
 
 msgid "help_friend_no_link_yet"
 msgstr "अभी तक लिंक नहीं मिला?"

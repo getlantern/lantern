@@ -2085,12 +2085,6 @@ msgstr "Non connecté"
 msgid "helping_paste_another"
 msgstr "Coller un autre lien d’invitation"
 
-msgid "helping_data_relayed"
-msgstr "Données relayées aujourd'hui"
-
-msgid "helping_active_today"
-msgstr "Actif : %s"
-
 msgid "approve_title"
 msgstr "%s souhaite devenir votre proxy personnel"
 
@@ -2180,12 +2174,6 @@ msgstr "Vous êtes maintenant le mandataire personnel de %s"
 
 msgid "help_friend_success_body"
 msgstr "%s a accepté votre demande. Lorsque Action Mode est activé, cette personne peut accéder à l'Internet libre par votre connexion."
-
-msgid "help_friend_keep_on"
-msgstr "Garder Action Mode activé"
-
-msgid "help_friend_keep_on_body"
-msgstr "S'active maintenant et chaque fois que Lantern est ouvert, pour que la connexion de %s soit maintenue."
 
 msgid "help_friend_no_link_yet"
 msgstr "Pas encore de lien?"

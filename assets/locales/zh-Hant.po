@@ -2125,12 +2125,6 @@ msgstr "未連線"
 msgid "helping_paste_another"
 msgstr "貼上另一個邀請連結"
 
-msgid "helping_data_relayed"
-msgstr "今日中繼資料"
-
-msgid "helping_active_today"
-msgstr "已活躍 %s"
-
 msgid "help_friend_paste_button"
 msgstr "貼上連結"
 
@@ -2217,12 +2211,6 @@ msgstr "你現在是 %s 的個人代理"
 
 msgid "help_friend_success_body"
 msgstr "%s 已核准你。開啟 Action Mode 後，對方可透過你的連線存取開放的網際網路。"
-
-msgid "help_friend_keep_on"
-msgstr "保持 Action Mode 開啟"
-
-msgid "help_friend_keep_on_body"
-msgstr "立即開啟，並在 Lantern 開啟時自動啟用，讓 %s 保持連線。"
 
 msgid "help_friend_no_link_yet"
 msgstr "還沒有連結？"

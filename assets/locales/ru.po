@@ -2284,12 +2284,6 @@ msgstr "Не подключено"
 msgid "helping_paste_another"
 msgstr "Вставить ещё одну ссылку-приглашение"
 
-msgid "helping_data_relayed"
-msgstr "Передано данных сегодня"
-
-msgid "helping_active_today"
-msgstr "Активно: %s"
-
 msgid "help_friend_paste_button"
 msgstr "Вставить ссылку"
 
@@ -2376,12 +2370,6 @@ msgstr "Теперь вы личный прокси для: %s"
 
 msgid "help_friend_success_body"
 msgstr "Пользователь %s одобрил запрос. Когда Action Mode включён, этот пользователь может выходить в открытый интернет через ваше подключение."
-
-msgid "help_friend_keep_on"
-msgstr "Не выключать Action Mode"
-
-msgid "help_friend_keep_on_body"
-msgstr "Включается сейчас и всякий раз, когда Lantern открыт, чтобы у пользователя %s сохранялось подключение."
 
 msgid "help_friend_no_link_yet"
 msgstr "Ещё нет ссылки?"

@@ -11,6 +11,7 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/approve_helper_dialog.dart'
     show spokenCode;
+import 'package:lantern/features/helpers/helper_approved_dialog.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_friends.dart'
     show HelperKeystoreResetNotice;
@@ -60,8 +61,7 @@ class HelpFriend extends HookConsumerWidget {
     final error = useState<String?>(null);
     final busy = useState(false);
     final resumed = useRef(false);
-    // "Keep Action Mode on" on the success screen, checked by default.
-    final keepOn = useState(true);
+    // The approval has been handed to its dialog, once.
     final finished = useRef(false);
 
     // While this screen submits, resumes or waits on its claim, its success
@@ -165,6 +165,13 @@ class HelpFriend extends HookConsumerWidget {
       busy.value = false;
       if (!r.ok) {
         releaseApproval();
+        if (r.error == 'already_claimed') {
+          // A dialog, not a state of this screen: Close returns to the form
+          // with the link gone, since it is spent.
+          await _showInviteUsedDialog(context);
+          if (context.mounted) linkCtl.clear();
+          return;
+        }
         error.value = r.error;
         return;
       }
@@ -206,38 +213,44 @@ class HelpFriend extends HookConsumerWidget {
 
     final Widget body;
     if (approved) {
-      final name = _approvedName(helpers, claimId.value, helpingAtClaim.value);
-      // Done: Action Mode turns on, and stays on at launch, only with the
-      // box checked. Unchecked, or left with Back, the pairing stands and
-      // nothing else changes.
-      void done({bool confirmed = true}) {
-        if (finished.value) return;
+      if (!finished.value) {
         finished.value = true;
-        if (confirmed && keepOn.value) {
-          unawaited(share.startForHelper(ref));
-          unawaited(share.setAutoEnable(context, true));
-        }
-        // pop, not maybePop: this screen's own PopScope would veto it.
-        appRouter.pop();
+        final name = _approvedName(
+          helpers,
+          claimId.value,
+          helpingAtClaim.value,
+        );
+        // The hold passes to the dialog: Home must not start Action Mode
+        // for this approval until the user has answered its checkbox. This
+        // screen's own release (on dispose) is thereby disarmed.
+        final held = holding.value;
+        holding.value = false;
+        // Shown on the root navigator after this screen is gone: the dialog
+        // is "not a full screen", and pop would otherwise close the dialog.
+        final rootNavigator = Navigator.of(context, rootNavigator: true);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // pop, not maybePop: this screen's own PopScope would veto it.
+          appRouter.pop();
+          unawaited(
+            showHelperApprovedDialog(
+              rootNavigator.context,
+              name: name,
+            ).whenComplete(() {
+              if (held) notifier.releaseApprovalStart();
+            }),
+          );
+        });
       }
-
+      // The frame between the approval and the pop.
       return PopScope(
         canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) done(confirmed: false);
-        },
         child: BaseScreen(
           title: 'become_personal_proxy'.i18n,
           appBar: CustomAppBar(
             title: Text('become_personal_proxy'.i18n),
             leading: const SizedBox.shrink(),
           ),
-          body: _PairedBody(
-            name: name,
-            keepOn: keepOn.value,
-            onKeepOn: (value) => keepOn.value = value,
-            onDone: done,
-          ),
+          body: const SizedBox.shrink(),
         ),
       );
     } else if (outcome == _ClaimOutcome.gone) {
@@ -259,7 +272,7 @@ class HelpFriend extends HookConsumerWidget {
       );
     } else if (code.value != null) {
       body = ListView(
-        padding: const EdgeInsets.symmetric(vertical: defaultSize),
+        padding: EdgeInsets.zero,
         children: [
           AppCard(
             key: const Key('help_friend.waiting'),
@@ -316,11 +329,17 @@ class HelpFriend extends HookConsumerWidget {
             ),
           ),
           const SizedBox(height: defaultSize),
+          // The app's note spec, as on Invite a Personal Proxy.
           InfoRow(
             key: const Key('help_friend.code_note'),
             backgroundColor: context.bgPromo,
             imagePath: AppImagePaths.warning,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            minTileHeight: 40,
             text: 'help_friend_code_note'.i18n,
+            textStyle: textTheme.labelLarge!.copyWith(
+              color: context.textSecondary,
+            ),
           ),
         ],
       );
@@ -353,29 +372,6 @@ class HelpFriend extends HookConsumerWidget {
           ),
         ],
       );
-    } else if (error.value == 'already_claimed') {
-      body = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: defaultSize),
-          Icon(
-            Icons.warning_amber_rounded,
-            size: 48,
-            color: Theme.of(context).colorScheme.error,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'help_friend_already_claimed_title'.i18n,
-            key: const Key('help_friend.already_claimed'),
-            style: textTheme.titleLarge,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'help_friend_already_claimed_body'.i18n,
-            style: textTheme.bodyMedium,
-          ),
-        ],
-      );
     } else {
       final linkValid = isHelperInviteInput(linkText);
       // A link that cannot be an invite, as typed, or as the engine refused.
@@ -387,12 +383,8 @@ class HelpFriend extends HookConsumerWidget {
       final hintStyle = textTheme.labelMedium!.copyWith(
         color: context.textTertiary,
       );
-      Widget below(Widget child) => Padding(
-        padding: const EdgeInsets.only(left: 8, top: 4),
-        child: child,
-      );
       body = ListView(
-        padding: const EdgeInsets.symmetric(vertical: defaultSize),
+        padding: EdgeInsets.zero,
         children: [
           if (helpers.keystoreReset) ...[
             HelperKeystoreResetNotice(notifier: notifier),
@@ -433,49 +425,38 @@ class HelpFriend extends HookConsumerWidget {
                   onChanged: (_) {
                     if (_linkErrors.contains(error.value)) error.value = null;
                   },
-                ),
-                if (linkError != null)
-                  below(
-                    Text(
-                      linkError,
-                      key: const Key('help_friend.link_error'),
-                      style: hintStyle.copyWith(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  )
-                else
+                  errorKey: const Key('help_friend.link_error'),
+                  errorText: linkError,
                   // Invites start with the friend: one who wants help
                   // offered can be asked to send one.
-                  below(
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 4,
-                      children: [
-                        Text('help_friend_no_link_yet'.i18n, style: hintStyle),
-                        Builder(
-                          builder: (linkContext) => Semantics(
-                            link: true,
-                            child: InkWell(
-                              key: const Key('help_friend.ask_invite'),
-                              onTap: () => shareInvite(
-                                linkContext,
-                                'help_friend_ask_invite_message'.i18n,
-                              ),
-                              child: Text(
-                                'help_friend_ask_send_link'.i18n,
-                                style: hintStyle.copyWith(
-                                  color: context.textLink,
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: context.textLink,
-                                ),
+                  helper: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 4,
+                    children: [
+                      Text('help_friend_no_link_yet'.i18n),
+                      Builder(
+                        builder: (linkContext) => Semantics(
+                          link: true,
+                          child: InkWell(
+                            key: const Key('help_friend.ask_invite'),
+                            onTap: () => shareInvite(
+                              linkContext,
+                              'help_friend_ask_invite_message'.i18n,
+                            ),
+                            child: Text(
+                              'help_friend_ask_send_link'.i18n,
+                              style: hintStyle.copyWith(
+                                color: context.textLink,
+                                decoration: TextDecoration.underline,
+                                decorationColor: context.textLink,
                               ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
                 if (AppBuildInfo.enableQrScanner && PlatformUtils.isMobile)
                   Align(
                     alignment: AlignmentDirectional.centerStart,
@@ -499,12 +480,7 @@ class HelpFriend extends HookConsumerWidget {
                   prefixIcon: Icons.person_outline,
                   maxLength: 60,
                   textCapitalization: TextCapitalization.words,
-                ),
-                below(
-                  Text(
-                    'help_friend_name_hint_server_list'.i18n,
-                    style: hintStyle,
-                  ),
+                  helperText: 'help_friend_name_hint_server_list'.i18n,
                 ),
                 if (error.value != null && linkError == null) ...[
                   const SizedBox(height: 8),
@@ -532,93 +508,6 @@ class HelpFriend extends HookConsumerWidget {
       );
     }
     return BaseScreen(title: 'become_personal_proxy'.i18n, body: body);
-  }
-}
-
-/// The success screen once the friend approved this claim: who the volunteer
-/// now helps, what that means, and the "Keep Action Mode on" consent.
-class _PairedBody extends StatelessWidget {
-  const _PairedBody({
-    required this.name,
-    required this.keepOn,
-    required this.onKeepOn,
-    required this.onDone,
-  });
-
-  final String name;
-  final bool keepOn;
-  final ValueChanged<bool> onKeepOn;
-  final VoidCallback onDone;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return ListView(
-      key: const Key('help_friend.approved'),
-      padding: const EdgeInsets.symmetric(vertical: defaultSize),
-      children: [
-        const SizedBox(height: 32),
-        ExcludeSemantics(
-          child: Icon(
-            Icons.check_circle_outline,
-            size: 96,
-            color: context.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'help_friend_success_title'.i18n.fill([name]),
-          key: const Key('help_friend.approved.title'),
-          textAlign: TextAlign.center,
-          style: textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 6),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            'help_friend_success_body'.i18n.fill([name]),
-            style: textTheme.bodyMedium!.copyWith(color: context.textSecondary),
-          ),
-        ),
-        const SizedBox(height: defaultSize),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: AppTile(
-            tileKey: const Key('help_friend.keep_on'),
-            // Its body wraps to two lines: room above and below, as the
-            // one-line Auto-enable row in Settings has.
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            label: 'help_friend_keep_on'.i18n,
-            subtitle: Text(
-              'help_friend_keep_on_body'.i18n.fill([name]),
-              style: textTheme.labelMedium!.copyWith(
-                color: context.textTertiary,
-              ),
-            ),
-            trailing: Checkbox(
-              key: const Key('help_friend.keep_on.checkbox'),
-              value: keepOn,
-              activeColor: context.textLink,
-              checkColor: context.bgElevated,
-              onChanged: (value) => onKeepOn(value ?? false),
-            ),
-            onPressed: () => onKeepOn(!keepOn),
-          ),
-        ),
-        const SizedBox(height: defaultSize),
-        KeyedSubtree(
-          key: const Key('help_friend.done'),
-          child: PrimaryButton(
-            label: 'help_friend_done'.i18n,
-            isTaller: true,
-            onPressed: onDone,
-          ),
-        ),
-      ],
-    );
   }
 }
 
@@ -685,6 +574,24 @@ Future<String> _readClipboard() async {
 
 /// Engine errors about the link itself, shown on the link field.
 const _linkErrors = {'bad_link', 'own_invite'};
+
+/// "This Invite Was Already Used": the app's error dialog, the red mark and
+/// one Close, for a link someone else opened first or that expired.
+Future<void> _showInviteUsedDialog(BuildContext context) => AppDialog.show(
+  context: context,
+  centeredTitle: true,
+  header: const Center(
+    key: Key('help_friend.already_claimed'),
+    child: AppImage(
+      path: AppImagePaths.errorIcon,
+      height: 48,
+      useThemeColor: false,
+    ),
+  ),
+  title: 'help_friend_already_claimed_title'.i18n,
+  body: 'help_friend_already_claimed_body'.i18n,
+  primaryLabel: 'close'.i18n,
+);
 
 enum _ClaimOutcome { waiting, approved, gone }
 

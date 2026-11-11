@@ -77,11 +77,14 @@ Future<bool> showApproveHelperDialog(
 
   await AppDialog.show(
     context: context,
-    centered: true,
+    // Icon, title and code centred; the body reads start-aligned.
+    centeredTitle: true,
     // Small phones with large text: keep both buttons reachable.
     scrollable: true,
     backgroundColor: context.bgSurface,
-    header: const AppImage(path: AppImagePaths.keypad, width: 40, height: 40),
+    header: const Center(
+      child: AppImage(path: AppImagePaths.keypad, width: 40, height: 40),
+    ),
     title: 'approve_title'.i18n.fill([name]),
     body: 'approve_body'.i18n.fill([name]),
     content: Padding(
@@ -118,7 +121,7 @@ Future<bool> showApproveHelperDialog(
 }
 
 /// "[name] is now your Personal Proxy": where to pick them, with Connect Now,
-/// which selects them and turns the VPN on, and Done. It returns once a
+/// which selects them and turns the VPN on, and Close. It returns once a
 /// connection Connect Now started has finished, so the caller's route, whose
 /// context and ref the connection uses, stays until then.
 Future<void> _showApprovedDialog(
@@ -131,10 +134,18 @@ Future<void> _showApprovedDialog(
   Future<void>? connecting;
   await AppDialog.show(
     context: context,
-    centered: true,
+    // The Private Server is Ready layout: centred green check and title, body
+    // start-aligned.
+    centeredTitle: true,
     scrollable: true,
     backgroundColor: context.bgSurface,
-    header: const Icon(Icons.check_circle_outline, size: 48),
+    header: Center(
+      child: AppImage(
+        path: AppImagePaths.greenCheck,
+        height: 48,
+        color: context.statusSuccessBgDot,
+      ),
+    ),
     title: 'approved_title'.i18n.fill([name]),
     body: 'approved_body'.i18n.fill([name]),
     primaryLabel: 'approved_connect_now'.i18n,
@@ -148,7 +159,7 @@ Future<void> _showApprovedDialog(
           ? connect(friendTag)
           : connectPersonalProxy(context, ref, friendTag: friendTag);
     },
-    secondaryLabel: 'help_friend_done'.i18n,
+    secondaryLabel: 'close'.i18n,
   );
   await connecting;
 }

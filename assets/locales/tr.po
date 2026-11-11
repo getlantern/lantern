@@ -2274,12 +2274,6 @@ msgstr "Bağlı değil"
 msgid "helping_paste_another"
 msgstr "Başka Bir Davet Bağlantısı Yapıştır"
 
-msgid "helping_data_relayed"
-msgstr "Bugün aktarılan veri"
-
-msgid "helping_active_today"
-msgstr "Etkin: %s"
-
 msgid "help_friend_paste_button"
 msgstr "Bağlantıyı Yapıştır"
 
@@ -2366,12 +2360,6 @@ msgstr "Artık %s için Kişisel Proxy'siniz"
 
 msgid "help_friend_success_body"
 msgstr "%s sizi onayladı. Action Mode açıkken sizin bağlantınız üzerinden açık internete erişebilir."
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode Açık Kalsın"
-
-msgid "help_friend_keep_on_body"
-msgstr "Şimdi ve Lantern her açık olduğunda devreye girer, böylece %s bağlı kalır."
 
 msgid "help_friend_no_link_yet"
 msgstr "Henüz bağlantı yok mu?"

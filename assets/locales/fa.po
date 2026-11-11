@@ -2266,12 +2266,6 @@ msgstr "متصل نیست"
 msgid "helping_paste_another"
 msgstr "جای‌گذاری پیوند دعوت دیگر"
 
-msgid "helping_data_relayed"
-msgstr "داده‌های بازپخش‌شده امروز"
-
-msgid "helping_active_today"
-msgstr "فعال: %s"
-
 msgid "help_friend_paste_button"
 msgstr "جای‌گذاری لینک"
 
@@ -2358,12 +2352,6 @@ msgstr "اکنون پروکسی شخصی %s هستید"
 
 msgid "help_friend_success_body"
 msgstr "%s شما را تأیید کرد. وقتی Action Mode روشن باشد، او می‌تواند از طریق اتصال شما به اینترنت آزاد دسترسی داشته باشد."
-
-msgid "help_friend_keep_on"
-msgstr "روشن نگه داشتن Action Mode"
-
-msgid "help_friend_keep_on_body"
-msgstr "اکنون و هر زمان که Lantern باز باشد روشن می‌شود تا %s متصل بماند."
 
 msgid "help_friend_no_link_yet"
 msgstr "هنوز لینکی ندارید؟"

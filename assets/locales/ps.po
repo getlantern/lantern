@@ -2287,12 +2287,6 @@ msgstr "وصل نه دی"
 msgid "helping_paste_another"
 msgstr "بل د بلنې لینک پیسټ کړئ"
 
-msgid "helping_data_relayed"
-msgstr "نن ورځ لېږدول شوي ډېټا"
-
-msgid "helping_active_today"
-msgstr "فعال: %s"
-
 msgid "personal_proxy_fallback_auto"
 msgstr "اوس مهال %s ته رسېدل نه کېږي. هوښيار موقعیت ته واوښتل."
 
@@ -2382,12 +2376,6 @@ msgstr "تاسو اوس د %s شخصي پراکسي یاست"
 
 msgid "help_friend_success_body"
 msgstr "%s تاسو تایید کړئ. کله چې Action Mode روښانه وي، دوی ستاسو د اتصال له لارې خلاص انټرنیټ ته لاسرسی موندلی شي."
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode روښانه وساتئ"
-
-msgid "help_friend_keep_on_body"
-msgstr "اوس او هر کله چې Lantern خلاص وي روښانه کېږي، ترڅو %s وصل پاتې شي."
 
 msgid "help_friend_no_link_yet"
 msgstr "لا تر اوسه لینک نلرئ؟"

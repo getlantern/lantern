@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -5,7 +7,12 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 
 class ActionModeAutoEnable extends ConsumerWidget {
-  const ActionModeAutoEnable({super.key, this.card = true, this.below});
+  const ActionModeAutoEnable({
+    super.key,
+    this.card = true,
+    this.below,
+    this.startNow = false,
+  });
 
   /// Whether the row sits in its own card, as in Settings. The Welcome to
   /// Action Mode dialog shows it bare.
@@ -14,15 +21,20 @@ class ActionModeAutoEnable extends ConsumerWidget {
   /// A row sharing the card, under a divider.
   final Widget? below;
 
+  /// Checking the box also turns Action Mode on now, for the friend just
+  /// paired: the volunteer's success dialog.
+  final bool startNow;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final enabled = ref.watch(
       appSettingProvider.select((s) => s.unboundedAutoEnable),
     );
-    void change(bool? value) {
-      if (value != null) {
-        ref.read(shareProvider.notifier).setAutoEnable(context, value);
-      }
+    Future<void> change(bool? value) async {
+      if (value == null) return;
+      final share = ref.read(shareProvider.notifier);
+      final on = await share.setAutoEnable(context, value);
+      if (on && startNow && context.mounted) await share.startForHelper(ref);
     }
 
     final tile = AppTile(
@@ -41,7 +53,7 @@ class ActionModeAutoEnable extends ConsumerWidget {
         checkColor: context.bgElevated,
         onChanged: change,
       ),
-      onPressed: () => change(!enabled),
+      onPressed: () => unawaited(change(!enabled)),
       // Bare, it has the dialog's width only: no inset, and the dialog's
       // body size, so the label fits.
       contentPadding: card ? null : EdgeInsets.zero,

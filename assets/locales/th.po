@@ -2238,12 +2238,6 @@ msgstr "ไม่ได้เชื่อมต่อ"
 msgid "helping_paste_another"
 msgstr "วางลิงก์คำเชิญอื่น"
 
-msgid "helping_data_relayed"
-msgstr "ข้อมูลที่ส่งต่อวันนี้"
-
-msgid "helping_active_today"
-msgstr "ใช้งาน %s"
-
 msgid "personal_proxy_fallback_auto"
 msgstr "ไม่สามารถติดต่อ %s ได้ในขณะนี้ เปลี่ยนเป็นตำแหน่งอัจฉริยะแล้ว"
 
@@ -2333,12 +2327,6 @@ msgstr "ตอนนี้คุณเป็นพร็อกซีส่วน
 
 msgid "help_friend_success_body"
 msgstr "%s อนุมัติคุณแล้ว เมื่อเปิด Action Mode เขาจะเข้าถึงอินเทอร์เน็ตเสรีผ่านการเชื่อมต่อของคุณได้"
-
-msgid "help_friend_keep_on"
-msgstr "เปิด Action Mode ไว้"
-
-msgid "help_friend_keep_on_body"
-msgstr "เปิดตอนนี้และทุกครั้งที่ Lantern เปิดอยู่ เพื่อให้ %s เชื่อมต่ออยู่เสมอ"
 
 msgid "help_friend_no_link_yet"
 msgstr "ยังไม่มีลิงก์?"

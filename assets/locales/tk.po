@@ -2236,12 +2236,6 @@ msgstr "Birikdirildi"
 msgid "helping_not_connected"
 msgstr "Birikdirilmedik"
 
-msgid "helping_data_relayed"
-msgstr "Şu gün geçirilen maglumat"
-
-msgid "helping_active_today"
-msgstr "Işjeň: %s"
-
 msgid "invite_share_steps"
 msgstr "Ol baglanyşygy açýar, gerek bolsa Lantern-i gurnaýar we adyny girizýär. Siz 4 sanly kody barlap ony tassyklarsyňyz, soňra onuň üsti bilen birigip bilersiňiz."
 
@@ -2346,12 +2340,6 @@ msgstr "Siz indi şu ulanyjynyň şahsy proksisi: %s"
 
 msgid "help_friend_success_body"
 msgstr "%s sizi tassyklady. Action Mode açyk wagty ol siziň baglanyşygyňyz arkaly açyk internete girip biler."
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode açyk saklansyn"
-
-msgid "help_friend_keep_on_body"
-msgstr "Häzir we Lantern açyk wagty hemişe açylýar, şeýdip %s baglanyşykda galýar."
 
 msgid "help_friend_no_link_yet"
 msgstr "Heniz salgy ýokmy?"

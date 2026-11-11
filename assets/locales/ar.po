@@ -2232,12 +2232,6 @@ msgstr "غير متصل"
 msgid "helping_paste_another"
 msgstr "لصق رابط دعوة آخر"
 
-msgid "helping_data_relayed"
-msgstr "البيانات المُرحّلة اليوم"
-
-msgid "helping_active_today"
-msgstr "نشط: %s"
-
 msgid "personal_proxy_fallback_auto"
 msgstr "تعذر الوصول إلى %s حاليًا. تم التبديل إلى الموقع الذكي."
 
@@ -2330,12 +2324,6 @@ msgstr "أصبحت الآن الوكيل الشخصي لـ %s"
 
 msgid "help_friend_success_body"
 msgstr "وافق %s على طلبك. عند تشغيل Action Mode، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك."
-
-msgid "help_friend_keep_on"
-msgstr "إبقاء Action Mode قيد التشغيل"
-
-msgid "help_friend_keep_on_body"
-msgstr "يعمل الآن وكلما كان Lantern مفتوحًا، ليبقى %s متصلًا."
 
 msgid "help_friend_no_link_yet"
 msgstr "ألا يوجد رابط بعد؟"

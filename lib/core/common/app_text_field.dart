@@ -13,6 +13,7 @@ class AppTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final VoidCallback? onEditingComplete;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final bool enable;
   final String hintText;
   final String? label;
@@ -37,6 +38,19 @@ class AppTextField extends StatelessWidget {
   final bool expands;
   final double? labelLeftPadding;
 
+  /// The read-only variant: a grey fill, no outline, and no editing. A tap
+  /// still reaches [onTap].
+  final bool readOnly;
+
+  /// The line under the box: [helperText], or [helper] for one with a link
+  /// in it. [errorText] takes the line in the error color while set.
+  final String? helperText;
+  final Widget? helper;
+  final String? errorText;
+
+  /// For tests to find the error line.
+  final Key? errorKey;
+
   /// Asks the keyboard to capitalize; anything but none also capitalizes
   /// the first letter as typed, which hardware keyboards ignore otherwise.
   final TextCapitalization textCapitalization;
@@ -52,6 +66,7 @@ class AppTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.controller,
+    this.focusNode,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     this.enable = true,
     this.enableSuggestions = true,
@@ -72,6 +87,11 @@ class AppTextField extends StatelessWidget {
     this.autofocus,
     this.expands = false,
     this.labelLeftPadding,
+    this.readOnly = false,
+    this.helperText,
+    this.helper,
+    this.errorText,
+    this.errorKey,
     this.textCapitalization = TextCapitalization.none,
   });
 
@@ -92,6 +112,7 @@ class AppTextField extends StatelessWidget {
       enableSuggestions: enableSuggestions,
       enableIMEPersonalizedLearning: enableIMEPersonalizedLearning,
       controller: controller,
+      focusNode: focusNode,
       maxLength: maxLength,
       enabled: enable,
       initialValue: initialValue,
@@ -104,8 +125,9 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       onFieldSubmitted: onSubmitted,
       onEditingComplete: onEditingComplete,
-      readOnly: onTap != null,
+      readOnly: readOnly || onTap != null,
       onTap: onTap,
+      mouseCursor: readOnly ? SystemMouseCursors.basic : null,
       // cursorColor from textSelectionTheme
       autovalidateMode: autovalidateMode,
       validator: validator,
@@ -129,11 +151,14 @@ class AppTextField extends StatelessWidget {
       decoration: InputDecoration(
         // borders, hintStyle, contentPadding come from inputDecorationTheme
         filled: true,
-        fillColor: enable
-            ? context
-                  .bgElevated // bg.input = bg.elevated
-            : context.bgCallout,
-        // bg.callout for disabled
+        // bg.input = bg.elevated; bg.callout for disabled and read-only
+        fillColor: enable && !readOnly ? context.bgElevated : context.bgCallout,
+        // Read-only draws no outline; the fill alone marks it.
+        enabledBorder: readOnly ? _noBorder : null,
+        focusedBorder: readOnly ? _noBorder : null,
+        // Read-only neither tints on hover nor shows the text cursor; only
+        // its icons react to the pointer.
+        hoverColor: readOnly ? Colors.transparent : null,
         hintText: hintText,
         prefixIcon: prefixIcon != null
             ? _buildFix(
@@ -153,6 +178,7 @@ class AppTextField extends StatelessWidget {
       ),
     );
 
+    final under = _under(context);
     // If a label is provided, wrap the input field in a Column with a Text widget above.
     if (label != null) {
       final double resolvedLabelLeftPadding =
@@ -172,11 +198,33 @@ class AppTextField extends StatelessWidget {
           ),
           const SizedBox(height: 4.0),
           inputField,
+          ?under,
         ],
       );
     }
 
-    return inputField;
+    if (under == null) return inputField;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [inputField, under],
+    );
+  }
+
+  /// The design's helper line: 16px in from the box, 4px above and below,
+  /// label/medium in text/tertiary, or the error color for an error.
+  Widget? _under(BuildContext context) {
+    final error = errorText;
+    final style = Theme.of(context).textTheme.labelMedium!.copyWith(
+      color: error != null ? context.statusErrorText : context.textTertiary,
+    );
+    final Widget? line = error != null
+        ? Text(error, key: errorKey)
+        : helper ?? (helperText != null ? Text(helperText!) : null);
+    if (line == null) return null;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: DefaultTextStyle.merge(style: style, child: line),
+    );
   }
 
   Widget _buildFix(
@@ -186,15 +234,37 @@ class AppTextField extends StatelessWidget {
   }) {
     final isMultiline = maxLines > 1;
     Widget? appAsset;
+    // An icon's 24px with 16px above and below: the field's standard height.
+    var inset = 16.h;
     if (iconPath is IconData) {
       appAsset = Icon(iconPath, color: iconColor);
     } else if (iconPath is String) {
       appAsset = AppImage(path: iconPath, color: iconColor);
     } else if (iconPath is Widget) {
-      appAsset = iconPath;
+      // A widget, such as an IconButton or a text button, keeps that same
+      // height: its tap target is held to 32px, in 12px above and below.
+      inset = 12.h;
+      appAsset = IconButtonTheme(
+        data: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(32, 32),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+        child: TextButtonTheme(
+          data: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+          child: iconPath,
+        ),
+      );
     }
     return Padding(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 16.h, bottom: 16.h),
+      padding: EdgeInsets.only(left: 16, right: 16, top: inset, bottom: inset),
       child: Align(
         alignment: isMultiline ? multilineAlignment : Alignment.center,
         widthFactor: 1.0,
@@ -203,6 +273,11 @@ class AppTextField extends StatelessWidget {
       ),
     );
   }
+
+  static final _noBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(16),
+    borderSide: BorderSide.none,
+  );
 
   BoxConstraints? _multilineIconConstraints() {
     if (maxLines <= 1) {

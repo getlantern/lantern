@@ -2306,12 +2306,6 @@ msgstr "ချိတ်ဆက်မထားပါ"
 msgid "helping_paste_another"
 msgstr "နောက်ထပ် ဖိတ်ကြားလင့်ခ် ကူးထည့်ရန်"
 
-msgid "helping_data_relayed"
-msgstr "ယနေ့ ထပ်ဆင့်ပို့ခဲ့သော ဒေတာ"
-
-msgid "helping_active_today"
-msgstr "အသုံးပြုချိန် %s"
-
 msgid "personal_proxy_fallback_auto"
 msgstr "ယခု %s ထံ မချိတ်ဆက်နိုင်ပါ။ Smart Location သို့ ပြောင်းထားသည်။"
 
@@ -2401,12 +2395,6 @@ msgstr "သင်သည် ယခု %s ၏ ကိုယ်ပိုင် Proxy
 
 msgid "help_friend_success_body"
 msgstr "%s က သင့်ကို အတည်ပြုပြီးပါပြီ။ Action Mode ဖွင့်ထားချိန်တွင် ၎င်းတို့သည် သင့်ချိတ်ဆက်မှုမှတစ်ဆင့် လွတ်လပ်သော အင်တာနက်ကို အသုံးပြုနိုင်ပါသည်။"
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode ကို ဖွင့်ထားပါ"
-
-msgid "help_friend_keep_on_body"
-msgstr "ယခုနှင့် Lantern ဖွင့်ထားချိန်တိုင်း ဖွင့်ပေးမည်ဖြစ်၍ %s ချိတ်ဆက်ထားနိုင်မည်။"
 
 msgid "help_friend_no_link_yet"
 msgstr "လင့်ခ် မရသေးဘူးလား?"

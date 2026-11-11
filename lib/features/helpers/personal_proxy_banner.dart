@@ -5,10 +5,11 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
-/// The VPN tab's "Get a personal proxy", in the Pro banner's slot. While a
-/// friend who claimed an invite waits on the user's approval, it says so, and
-/// a tap opens that invite (startPersonalProxyInvite), even for a user who
-/// already has a personal proxy.
+/// The personal proxy banner for the Pro banner's slot. The VPN tab shows it
+/// only while a friend who claimed an invite waits on the user's approval:
+/// it says so, and a tap opens that invite (startPersonalProxyInvite), even
+/// for a user who already has a personal proxy. Its "Get a Personal Proxy"
+/// form is no longer placed on the VPN tab.
 class PersonalProxyBanner extends ConsumerWidget {
   const PersonalProxyBanner({super.key, this.topMargin = 16});
 

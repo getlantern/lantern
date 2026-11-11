@@ -2272,12 +2272,6 @@ msgstr "Chưa kết nối"
 msgid "helping_paste_another"
 msgstr "Dán liên kết mời khác"
 
-msgid "helping_data_relayed"
-msgstr "Dữ liệu đã chuyển tiếp hôm nay"
-
-msgid "helping_active_today"
-msgstr "Hoạt động %s"
-
 msgid "help_friend_paste_button"
 msgstr "Dán liên kết"
 
@@ -2364,12 +2358,6 @@ msgstr "Bạn giờ là proxy cá nhân của %s"
 
 msgid "help_friend_success_body"
 msgstr "%s đã chấp thuận bạn. Khi Action Mode bật, họ có thể truy cập internet mở qua kết nối của bạn."
-
-msgid "help_friend_keep_on"
-msgstr "Luôn bật Action Mode"
-
-msgid "help_friend_keep_on_body"
-msgstr "Bật ngay bây giờ và mỗi khi Lantern mở, để %s luôn được kết nối."
 
 msgid "help_friend_no_link_yet"
 msgstr "Chưa có liên kết?"

@@ -47,6 +47,7 @@ class PersonalProxyConnectionsCard extends HookConsumerWidget {
 
     return AppCard(
       padding: EdgeInsets.zero,
+      shadow: true,
       child: SettingTile(
         tileKey: const Key('action_mode.personal_proxy_connections'),
         label: 'helping_connections_title'.i18n,
@@ -82,10 +83,12 @@ String? connectedRightNow(List<HelperPairingView> helping) {
 /// invite link"; who else this device helps, with Change; and today's data
 /// relayed.
 void showHelpingFriendsSheet(BuildContext context) {
+  // The theme's bg.elevated sheet; the friends card is bg.surface on it. As
+  // tall as its few rows, not a fixed share of the screen.
   showAppBottomSheet(
     context: context,
     title: 'helping_sheet_title'.i18n,
-    backgroundColor: context.bgSurface,
+    fitContent: true,
     subtitle: Consumer(
       builder: (context, ref, _) {
         final line = connectedRightNow(
@@ -127,11 +130,17 @@ class HelpingFriendsSheet extends HookConsumerWidget {
     }, const []);
 
     final helping = helpers.view.helping;
-    final activity = helpers.view.activity;
 
     return ListView(
       controller: scrollController,
-      padding: const EdgeInsets.all(defaultSize),
+      // Only as tall as its rows; it scrolls once the sheet's maximum is hit.
+      shrinkWrap: true,
+      padding: const EdgeInsets.fromLTRB(
+        defaultSize,
+        defaultSize,
+        defaultSize,
+        32,
+      ),
       children: [
         if (!sharing) ...[
           Text(
@@ -150,6 +159,7 @@ class HelpingFriendsSheet extends HookConsumerWidget {
         const SizedBox(height: 8),
         AppCard(
           padding: EdgeInsets.zero,
+          bgColor: context.bgSurface,
           child: Column(
             children: [
               for (final p in helping) ...[
@@ -214,21 +224,6 @@ class HelpingFriendsSheet extends HookConsumerWidget {
         ),
         const SizedBox(height: 8),
         _ScopeLine(helpOthers: helpers.chosenHelpOthers),
-        const SizedBox(height: defaultSize),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: SettingTile(
-            tileKey: const Key('helping.data_relayed'),
-            label: 'helping_data_relayed'.i18n,
-            value: (activity?.relayedBytes ?? 0).siBytes,
-            subtitle: 'helping_active_today'.i18n.fill([
-              helpingDuration(activity?.activeSeconds ?? 0),
-            ]),
-            subtitleColor: context.textTertiary,
-            icon: AppImagePaths.dataUsage,
-            actions: const [],
-          ),
-        ),
       ],
     );
   }

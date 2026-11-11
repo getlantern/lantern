@@ -2288,12 +2288,6 @@ msgstr "Sin conexión"
 msgid "helping_paste_another"
 msgstr "Pegar otro enlace de invitación"
 
-msgid "helping_data_relayed"
-msgstr "Datos retransmitidos hoy"
-
-msgid "helping_active_today"
-msgstr "Activo: %s"
-
 msgid "help_friend_paste_button"
 msgstr "Pegar enlace"
 
@@ -2380,12 +2374,6 @@ msgstr "Ahora eres el proxy personal de %s"
 
 msgid "help_friend_success_body"
 msgstr "%s te aprobó. Cuando Action Mode esté activado, podrá acceder al internet abierto a través de tu conexión."
-
-msgid "help_friend_keep_on"
-msgstr "Mantener Action Mode activado"
-
-msgid "help_friend_keep_on_body"
-msgstr "Se activa ahora y siempre que Lantern esté abierto, para que %s mantenga la conexión."
 
 msgid "help_friend_no_link_yet"
 msgstr "¿Aún no tienes enlace?"

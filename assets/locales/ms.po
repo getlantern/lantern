@@ -2281,12 +2281,6 @@ msgstr "Tidak disambungkan"
 msgid "helping_paste_another"
 msgstr "Tampal pautan jemputan lain"
 
-msgid "helping_data_relayed"
-msgstr "Data dipancarkan hari ini"
-
-msgid "helping_active_today"
-msgstr "Aktif %s"
-
 msgid "help_friend_paste_button"
 msgstr "Tampal pautan"
 
@@ -2373,12 +2367,6 @@ msgstr "Anda Kini Proksi Peribadi untuk %s"
 
 msgid "help_friend_success_body"
 msgstr "%s telah meluluskan anda. Apabila Action Mode hidup, mereka boleh mengakses internet terbuka melalui sambungan anda."
-
-msgid "help_friend_keep_on"
-msgstr "Kekalkan Action Mode Hidup"
-
-msgid "help_friend_keep_on_body"
-msgstr "Dihidupkan sekarang dan setiap kali Lantern dibuka, supaya %s kekal bersambung."
 
 msgid "help_friend_no_link_yet"
 msgstr "Belum ada pautan?"
