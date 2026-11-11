@@ -2,37 +2,51 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/globe_column.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 import 'onboarding.dart';
 
 /// Onboarding's Action Mode page, where Action Mode is offered. It only
 /// explains: Action Mode starts from its tab, through the consent dialog.
-/// The rows always fit above the button, never scrolling: the globe shrinks
-/// to make room, then goes.
+/// The rows fit above the button without scrolling where they can: the
+/// globe shrinks to make room, then goes. Only text too tall for the page
+/// on its own, as with a short window and large system text, scrolls.
 class OnboardingActionModePage extends StatelessWidget {
   const OnboardingActionModePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
-    return Column(
+    return LayoutBuilder(
       key: const Key('onboarding.action_mode'),
-      children: <Widget>[
-        const SizedBox(height: 24.0),
-        Text(
-          'unbounded'.i18n,
-          textAlign: TextAlign.center,
-          style: textTheme.headlineSmall!.copyWith(color: context.textPrimary),
-        ),
-        const SizedBox(height: 8.0),
-        Text(
-          'onboarding_action_mode_subtitle'.i18n,
-          textAlign: TextAlign.center,
-          style: textTheme.bodyLarge!.copyWith(color: context.textSecondary),
-        ),
-        const Flexible(child: _Globe()),
-        _row(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: GlobeColumn(
+          viewportHeight: constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : 0,
+          minGlobeHeight: 0,
+          // The globe's place in the children below.
+          globeIndex: 4,
+          children: <Widget>[
+            const SizedBox(height: 24.0),
+            Text(
+              'unbounded'.i18n,
+              textAlign: TextAlign.center,
+              style: textTheme.headlineSmall!.copyWith(
+                color: context.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              'onboarding_action_mode_subtitle'.i18n,
+              textAlign: TextAlign.center,
+              style: textTheme.bodyLarge!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+            const _Globe(),
+            _row(
           icon: AppImagePaths.shareV2,
           title: 'onboarding_action_mode_share'.i18n,
           description: 'onboarding_action_mode_share_description'.i18n,
@@ -60,8 +74,10 @@ class OnboardingActionModePage extends StatelessWidget {
           title: 'onboarding_action_mode_control'.i18n,
           description: 'onboarding_action_mode_control_description'.i18n,
         ),
-        const SizedBox(height: onboardingIndicatorSpace),
-      ],
+            const SizedBox(height: onboardingIndicatorSpace),
+          ],
+        ),
+      ),
     );
   }
 

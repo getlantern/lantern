@@ -65,8 +65,13 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         (showActionMode.value ? 1 : 0) +
         (extensionPage ? 1 : 0);
     final onExtensionPage = extensionPage && pageIndex.value == lastPage;
+    final completing = useRef(false);
 
     Future<void> onboardingCompleted() async {
+      // Once: Close and the extension's ready callback can both arrive, and
+      // a second pop would take Home with it.
+      if (completing.value) return;
+      completing.value = true;
       await ref
           .read(radianceSettingsProvider.notifier)
           .setRoutingMode(selectedRouteMode.value);
@@ -95,6 +100,17 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         });
       }
     }
+
+    // Reached with the extension already ready: the watcher's callback was
+    // ignored while the page was not selected, so finish here.
+    useEffect(() {
+      if (onExtensionPage && (extensionState?.isReady ?? false)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) onboardingCompleted();
+        });
+      }
+      return null;
+    }, [onExtensionPage, extensionState?.isReady]);
 
     return Scaffold(
       key: const Key('onboarding.screen'),
@@ -181,7 +197,12 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                     if (extensionPage)
                       OnboardingExtensionPage(
                         state: extensionState!,
-                        onReady: onboardingCompleted,
+                        // A partial swipe mounts this page before it is
+                        // selected: a ready extension must not end
+                        // onboarding yet.
+                        onReady: () {
+                          if (onExtensionPage) onboardingCompleted();
+                        },
                       ),
                   ],
                 ),

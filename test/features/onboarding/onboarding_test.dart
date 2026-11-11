@@ -585,6 +585,9 @@ void main() {
 
   group('Network Extension page', () {
     final page = find.byKey(const Key('onboarding.network_extension'));
+    // The page exists on macOS only; CI runs these on Linux.
+    setUp(() => PlatformUtils.debugIsMacOS = true);
+    tearDown(() => PlatformUtils.debugIsMacOS = null);
 
     testWidgets('on a first run it is the last page, and onboarding finishes '
         'once the extension is ready, without the dialog', (tester) async {

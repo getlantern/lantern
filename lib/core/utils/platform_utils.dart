@@ -25,7 +25,10 @@ class PlatformUtils {
       debugIsDesktop ??
       (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
-  static bool get isMacOS => Platform.isMacOS;
+  /// Lets a test play a macOS host on another platform.
+  static bool? debugIsMacOS;
+
+  static bool get isMacOS => debugIsMacOS ?? Platform.isMacOS;
 
   static bool get isWindows => Platform.isWindows;
 

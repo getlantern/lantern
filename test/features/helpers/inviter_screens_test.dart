@@ -343,6 +343,8 @@ Future<void> _pump(
         personalProxyStatusProvider.overrideWith(
           () => _status = _Status(status),
         ),
+        // The empty Personal Proxies tab offers Invite only with these.
+        helperInvitesAvailableProvider.overrideWithValue(true),
       ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852),

@@ -64,9 +64,6 @@ Future<void> _pump(
   HelpersNotifier Function()? helpers,
   bool serversFail = false,
 }) async {
-  // The tab is there in every build with helper invites, empty or not.
-  HelpersNotifier.debugBuildEnabled = tab;
-  addTearDown(() => HelpersNotifier.debugBuildEnabled = null);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -75,6 +72,8 @@ Future<void> _pump(
         ),
         helpersProvider.overrideWith(helpers ?? _Helpers.new),
         personalProxyStatusProvider.overrideWith(_Status.new),
+        personalProxiesTabVisibleProvider.overrideWithValue(tab),
+        helperInvitesAvailableProvider.overrideWithValue(tab),
       ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852),
@@ -140,9 +139,77 @@ void main() {
     }
   });
 
-  testWidgets('two tabs in a build without helper invites', (tester) async {
+  testWidgets('two tabs otherwise', (tester) async {
     await _pump(tester, tab: false);
     expect(find.byKey(const Key('manage.personal_proxies_tab')), findsNothing);
+  });
+
+  testWidgets('the tab going away while shown selects Joined Servers', (
+    tester,
+  ) async {
+    final helpers = _Helpers();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          availableServersProvider.overrideWith(_Servers.new),
+          helpersProvider.overrideWith(() => helpers),
+          helperInvitesAvailableProvider.overrideWithValue(false),
+          personalProxyStatusProvider.overrideWith(_Status.new),
+        ],
+        child: ScreenUtilInit(
+          designSize: const Size(393, 852),
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: const ManagePrivateServer(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('manage.personal_proxies_tab')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ali'), findsOneWidget);
+
+    // Flag off and the last proxy gone: the tab goes with it.
+    helpers.state = const HelpersState(
+      viewLoaded: true,
+      view: HelpersView(unlocked: true),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('manage.personal_proxies_tab')), findsNothing);
+    final controller = DefaultTabController.of(
+      tester.element(find.byType(TabBar)),
+    );
+    expect(controller.length, 2);
+    expect(controller.index, 1);
+  });
+
+  testWidgets('the empty state has no Invite button where invites are not '
+      'available', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          availableServersProvider.overrideWith(_Servers.new),
+          helpersProvider.overrideWith(_NoHelpers.new),
+          personalProxyStatusProvider.overrideWith(_Status.new),
+          personalProxiesTabVisibleProvider.overrideWithValue(true),
+          helperInvitesAvailableProvider.overrideWithValue(false),
+        ],
+        child: ScreenUtilInit(
+          designSize: const Size(393, 852),
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: const ManagePrivateServer(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('manage.personal_proxies_tab')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('personal_proxies.empty')), findsOneWidget);
+    expect(find.byKey(const Key('personal_proxies.invite')), findsNothing);
   });
 
   testWidgets('the Personal Proxies tab stays while there is nothing to '

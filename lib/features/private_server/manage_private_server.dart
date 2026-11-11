@@ -34,9 +34,9 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     final serversAsync = ref.watch(availableServersProvider);
-    // All three tabs, empty or not; only a build without helper invites
-    // (stealth) has no Personal Proxies tab.
-    final showProxies = HelpersNotifier.buildEnabled;
+    // The tab stays while helper invites are available, empty or not, and
+    // while there is something left to manage after they stop being.
+    final showProxies = ref.watch(personalProxiesTabVisibleProvider);
 
     // Personal proxies come from the helpers engine, not the server list,
     // so their tab stays usable while the list loads or fails.

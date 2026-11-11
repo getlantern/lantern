@@ -63,6 +63,8 @@ class HelpFriend extends HookConsumerWidget {
     final resumed = useRef(false);
     // The approval has been handed to its dialog, once.
     final finished = useRef(false);
+    // Bumped to try the handoff again while a dialog covers this screen.
+    final handoffRetry = useState(0);
 
     // While this screen submits, resumes or waits on its claim, its success
     // screen asks before Action Mode starts for the approval, rather than
@@ -213,7 +215,14 @@ class HelpFriend extends HookConsumerWidget {
 
     final Widget body;
     if (approved) {
-      if (!finished.value) {
+      final route = ModalRoute.of(context);
+      if (!finished.value && route != null && !route.isCurrent) {
+        // A dialog covers this screen, such as the app-wide approval
+        // prompt: pop would close that instead. Ask again shortly.
+        Future<void>.delayed(const Duration(milliseconds: 250), () {
+          if (context.mounted) handoffRetry.value++;
+        });
+      } else if (!finished.value) {
         finished.value = true;
         final name = _approvedName(
           helpers,
@@ -580,6 +589,8 @@ const _linkErrors = {'bad_link', 'own_invite'};
 Future<void> _showInviteUsedDialog(BuildContext context) => AppDialog.show(
   context: context,
   centeredTitle: true,
+  // Small phones with large text: keep Close reachable.
+  scrollable: true,
   header: const Center(
     key: Key('help_friend.already_claimed'),
     child: AppImage(

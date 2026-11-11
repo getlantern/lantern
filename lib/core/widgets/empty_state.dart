@@ -3,7 +3,8 @@ import 'package:lantern/core/common/common.dart';
 
 /// An empty tab or list: an icon, a heading (Heading/Small), one line of
 /// body (Body/Large, text/tertiary), all centred, and one full-width primary
-/// button that leads to the screen where the first item is made.
+/// button that leads to the screen where the first item is made. Without
+/// [onPressed] there is no button: the action is not available here.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
@@ -11,7 +12,7 @@ class EmptyState extends StatelessWidget {
     required this.title,
     required this.body,
     required this.buttonLabel,
-    required this.onPressed,
+    this.onPressed,
     this.buttonKey,
   });
 
@@ -20,7 +21,7 @@ class EmptyState extends StatelessWidget {
   final String title;
   final String body;
   final String buttonLabel;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Key? buttonKey;
 
   @override
@@ -54,12 +55,14 @@ class EmptyState extends StatelessWidget {
             textAlign: TextAlign.center,
             style: textTheme.bodyLarge!.copyWith(color: context.textTertiary),
           ),
-          const SizedBox(height: size24),
-          PrimaryButton(
-            buttonKey: buttonKey,
-            label: buttonLabel,
-            onPressed: onPressed,
-          ),
+          if (onPressed case final onPressed?) ...[
+            const SizedBox(height: size24),
+            PrimaryButton(
+              buttonKey: buttonKey,
+              label: buttonLabel,
+              onPressed: onPressed,
+            ),
+          ],
         ],
       ),
     );

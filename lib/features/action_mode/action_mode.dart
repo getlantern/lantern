@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/globe_column.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -99,7 +98,7 @@ class ActionModeTab extends HookConsumerWidget {
             SliverPadding(
               padding: const EdgeInsets.all(defaultSize),
               sliver: SliverToBoxAdapter(
-                child: _GlobeColumn(
+                child: GlobeColumn(
                   // The window's height less the tab's padding: what the
                   // content fills, with the padding under the last card,
                   // when it fits.
@@ -184,107 +183,6 @@ class ActionModeTab extends HookConsumerWidget {
 
 /// The gap between the tab's cards, as between the VPN tab's.
 const _cardGap = 8.0;
-
-/// A column whose first child, the globe, gets the height [viewportHeight]
-/// leaves after the others, and never less than [minGlobeHeight]: the
-/// content fills the window when it fits, and scrolls when it does not. A
-/// plain Column cannot do this in a scroll view, and measuring the cards
-/// first is not possible either, as the globe sizes itself from its
-/// constraints alone.
-class _GlobeColumn extends MultiChildRenderObjectWidget {
-  const _GlobeColumn({
-    required this.viewportHeight,
-    required this.minGlobeHeight,
-    required super.children,
-  });
-
-  final double viewportHeight;
-  final double minGlobeHeight;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderGlobeColumn(viewportHeight, minGlobeHeight);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderGlobeColumn renderObject,
-  ) {
-    renderObject
-      ..viewportHeight = viewportHeight
-      ..minGlobeHeight = minGlobeHeight;
-  }
-}
-
-class _GlobeColumnParentData extends ContainerBoxParentData<RenderBox> {}
-
-class _RenderGlobeColumn extends RenderBox
-    with
-        ContainerRenderObjectMixin<RenderBox, _GlobeColumnParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox, _GlobeColumnParentData> {
-  _RenderGlobeColumn(this._viewportHeight, this._minGlobeHeight);
-
-  double _viewportHeight;
-  set viewportHeight(double value) {
-    if (value == _viewportHeight) return;
-    _viewportHeight = value;
-    markNeedsLayout();
-  }
-
-  double _minGlobeHeight;
-  set minGlobeHeight(double value) {
-    if (value == _minGlobeHeight) return;
-    _minGlobeHeight = value;
-    markNeedsLayout();
-  }
-
-  @override
-  void setupParentData(RenderBox child) {
-    if (child.parentData is! _GlobeColumnParentData) {
-      child.parentData = _GlobeColumnParentData();
-    }
-  }
-
-  @override
-  void performLayout() {
-    final width = constraints.maxWidth;
-    final globe = firstChild;
-    if (globe == null) {
-      size = constraints.smallest;
-      return;
-    }
-    // The cards size themselves, as wide as the column.
-    final column = BoxConstraints(minWidth: width, maxWidth: width);
-    var rest = 0.0;
-    for (
-      var child = childAfter(globe);
-      child != null;
-      child = childAfter(child)
-    ) {
-      child.layout(column, parentUsesSize: true);
-      rest += child.size.height;
-    }
-    final globeHeight = math.max(_minGlobeHeight, _viewportHeight - rest);
-    globe.layout(
-      BoxConstraints.tightFor(width: width, height: globeHeight),
-      parentUsesSize: true,
-    );
-    var top = 0.0;
-    for (RenderBox? child = globe; child != null; child = childAfter(child)) {
-      (child.parentData! as _GlobeColumnParentData).offset = Offset(0, top);
-      top += child.size.height;
-    }
-    size = constraints.constrain(Size(width, top));
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) =>
-      defaultPaint(context, offset);
-
-  @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
-      defaultHitTestChildren(result, position: position);
-}
 
 class _StatusCard extends StatelessWidget {
   final ShareState state;

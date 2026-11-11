@@ -66,6 +66,9 @@ class PersonalProxiesTab extends HookConsumerWidget {
       if (!state.viewLoaded && notifier.used) {
         return const Center(child: CircularProgressIndicator());
       }
+      // No button where invites are not available to this device: the
+      // engine would only refuse.
+      final invites = ref.watch(helperInvitesAvailableProvider);
       return EmptyState(
         key: const Key('personal_proxies.empty'),
         icon: AppImagePaths.personAdd,
@@ -73,8 +76,10 @@ class PersonalProxiesTab extends HookConsumerWidget {
         body: 'manage_empty_proxies_body'.i18n,
         buttonLabel: 'invite_personal_proxy'.i18n,
         buttonKey: const Key('personal_proxies.invite'),
-        onPressed: () =>
-            startPersonalProxyInvite(context, ref, resumeWaiting: false),
+        onPressed: invites
+            ? () =>
+                  startPersonalProxyInvite(context, ref, resumeWaiting: false)
+            : null,
       );
     }
 
