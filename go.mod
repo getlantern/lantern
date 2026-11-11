@@ -37,7 +37,7 @@ require (
 	github.com/getlantern/common v1.2.1-0.20261110200038-39e654c051a8
 	github.com/getlantern/lantern-box v0.0.223
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261111181803-b52b30f8aa82
+	github.com/getlantern/radiance v0.0.0-20261111194526-0680f0aee604
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.13.19
 	github.com/sagernet/sing-tun v0.8.12-0.20260810140523-7c73233bd0fb
@@ -183,14 +183,14 @@ require (
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
 	github.com/getlantern/domainfront v0.0.0-20261026202828-9727b2f2a34a // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20261009194109-22f33eaeac6e // indirect
-	github.com/getlantern/kindling v0.0.0-20261026211804-dac6d561f52e // indirect
+	github.com/getlantern/kindling v0.0.0-20261111193957-924b15fffbf0 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
 	github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b // indirect
 	github.com/getlantern/samizdat v0.0.3-0.20261107182626-9bcbf6ccba7c // indirect
 	github.com/getlantern/semconv v0.0.0-20261103162524-c0c2ac0e0a3e // indirect
-	github.com/getlantern/soar v0.2.4 // indirect
+	github.com/getlantern/soar v0.2.5 // indirect
 	github.com/getlantern/twiddle v0.0.0-20260914204124-f698a0d67d2f // indirect
 	github.com/go-json-experiment/json v0.0.0-20250813024750-ebf49471dced // indirect
 	github.com/go-llsqlite/adapter v0.0.0-20230927005056-7f5ce7f0c916 // indirect
