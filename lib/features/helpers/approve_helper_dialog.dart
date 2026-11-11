@@ -143,7 +143,7 @@ Future<void> _showApprovedDialog(
       child: AppImage(
         path: AppImagePaths.greenCheck,
         height: 48,
-        color: context.statusSuccessBgDot,
+        color: context.statusSuccessText,
       ),
     ),
     title: 'approved_title'.i18n.fill([name]),

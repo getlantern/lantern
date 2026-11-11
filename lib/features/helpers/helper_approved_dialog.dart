@@ -17,7 +17,7 @@ Future<void> showHelperApprovedDialog(
     child: AppImage(
       path: AppImagePaths.greenCheck,
       height: 48,
-      color: context.statusSuccessBgDot,
+      color: context.statusSuccessText,
     ),
   ),
   centeredTitle: true,
