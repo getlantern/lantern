@@ -63,8 +63,10 @@ class HelpFriend extends HookConsumerWidget {
     final resumed = useRef(false);
     // The approval has been handed to its dialog, once.
     final finished = useRef(false);
-    // Bumped to try the handoff again while a dialog covers this screen.
+    // Bumped to try the handoff again while a dialog covers this screen;
+    // one retry is pending at a time, whatever else rebuilds meanwhile.
     final handoffRetry = useState(0);
+    final retryPending = useRef(false);
 
     // While this screen submits, resumes or waits on its claim, its success
     // screen asks before Action Mode starts for the approval, rather than
@@ -219,9 +221,13 @@ class HelpFriend extends HookConsumerWidget {
       if (!finished.value && route != null && !route.isCurrent) {
         // A dialog covers this screen, such as the app-wide approval
         // prompt: pop would close that instead. Ask again shortly.
-        Future<void>.delayed(const Duration(milliseconds: 250), () {
-          if (context.mounted) handoffRetry.value++;
-        });
+        if (!retryPending.value) {
+          retryPending.value = true;
+          Future<void>.delayed(const Duration(milliseconds: 250), () {
+            retryPending.value = false;
+            if (context.mounted) handoffRetry.value++;
+          });
+        }
       } else if (!finished.value) {
         finished.value = true;
         final name = _approvedName(

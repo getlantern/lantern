@@ -198,8 +198,19 @@ Future<void> installMacOSExtension(
   appLogger.info("Current System Extension Status: $state");
   if (state.status == SystemExtensionStatus.requiresApproval ||
       state.status == SystemExtensionStatus.requiresEnable) {
-    ref.read(macosExtensionProvider.notifier).openSystemExtension();
     appLogger.info("Opening System Settings for ${state.status.name}");
+    final opened = await ref
+        .read(macosExtensionProvider.notifier)
+        .openSystemExtension();
+    opened.fold((failure) {
+      appLogger.error("Failed to open System Settings: ${failure.error}");
+      if (!context.mounted) return;
+      AppDialog.errorDialog(
+        context: context,
+        title: 'error'.i18n,
+        content: failure.localizedErrorMessage,
+      );
+    }, (_) {});
     return;
   }
 

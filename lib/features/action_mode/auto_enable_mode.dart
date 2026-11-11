@@ -34,7 +34,10 @@ class ActionModeAutoEnable extends ConsumerWidget {
       if (value == null) return;
       final share = ref.read(shareProvider.notifier);
       final on = await share.setAutoEnable(context, value);
-      if (on && startNow && context.mounted) await share.startForHelper(ref);
+      if (on && startNow && context.mounted) {
+        // Unchecked again while the start's checks run: nothing starts.
+        await share.startForHelper(ref, requireAutoEnable: true);
+      }
     }
 
     final tile = AppTile(

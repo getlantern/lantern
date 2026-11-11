@@ -155,7 +155,10 @@ class _Share extends ShareNotifier {
   @override
   Future<bool> ensureConsent(BuildContext context) async => true;
   @override
-  Future<void> startForHelper(WidgetRef widgetRef) async => helperStarts++;
+  Future<void> startForHelper(
+    WidgetRef widgetRef, {
+    bool requireAutoEnable = false,
+  }) async => helperStarts++;
   @override
   Future<bool> setAutoEnable(BuildContext context, bool enabled) async {
     autoEnable.add(enabled);

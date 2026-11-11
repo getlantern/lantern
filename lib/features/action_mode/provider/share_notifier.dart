@@ -564,14 +564,25 @@ class ShareNotifier extends _$ShareNotifier {
   /// lantern-cloud's guard relies on IP geolocation and can fail open. The
   /// approval is then kept, and [retryPendingHelperStart] starts it once the
   /// country is known and allowed. The user can still turn sharing on.
-  Future<void> startForHelper(WidgetRef widgetRef) async {
-    if (!_helperStartAllowed()) return;
+  ///
+  /// [requireAutoEnable] ties the start to the Auto-enable preference: asked
+  /// again before the backend starts, so a box unchecked while the port and
+  /// UPnP checks ran starts nothing.
+  Future<void> startForHelper(
+    WidgetRef widgetRef, {
+    bool requireAutoEnable = false,
+  }) async {
+    bool allowed() =>
+        _helperStartAllowed() &&
+        (!requireAutoEnable ||
+            ref.read(appSettingProvider).unboundedAutoEnable);
+    if (!allowed()) return;
     // Held until a start actually proceeds: one skipped because another
     // change is in flight or sharing is already up is retried later.
     _helperStartPending = true;
     await _autoStartWith(() {
       _helperStartPending = false;
-      return _startAuto(mayStart: _helperStartAllowed);
+      return _startAuto(mayStart: allowed);
     });
   }
 
