@@ -12,6 +12,11 @@ replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v
 
 // replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
 
+// Fork of upstream ddaa4ca (v0.9.6): relistens when Android destroys the
+// system stack's TCP forwarder listener. Rebase it when the required
+// sing-tun moves past ddaa4ca.
+replace github.com/sagernet/sing-tun => github.com/getlantern/sing-tun v0.0.0-20261110195139-053600b0af9b
+
 // sing-box/sing-tun/tailscale need gvisor's v0.0.0-20260727.0-sing-box-mod.1
 // API (WritePacketDirect, the new udp.NewForwarder signature). That tag's first
 // pre-release identifier is purely numeric, which semver ranks below the

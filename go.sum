@@ -297,6 +297,8 @@ github.com/getlantern/semconv v0.0.0-20261103162524-c0c2ac0e0a3e h1:YuyL8jSRYD78
 github.com/getlantern/semconv v0.0.0-20261103162524-c0c2ac0e0a3e/go.mod h1:GkPT5P9JoOTIRXRmFWxYgu1hhXgTFFTNc2hoG7WQc3g=
 github.com/getlantern/sing-box-minimal v1.14.2-lantern.3 h1:CrMSBbhyQxUAk9+8TWIJwezP+LABfEQ65xpCCyQg7FM=
 github.com/getlantern/sing-box-minimal v1.14.2-lantern.3/go.mod h1:O4q0spxb+xwV/p9HYR+Es1cMjK3bBvYl6k08V9rSpwU=
+github.com/getlantern/sing-tun v0.0.0-20261110195139-053600b0af9b h1:aSWXEkUR/IU28RWwDKOGjC6io4CrsISg0RIe0MkrPW4=
+github.com/getlantern/sing-tun v0.0.0-20261110195139-053600b0af9b/go.mod h1:3EgPst7agntRO7D6GOsiZ1l9FoqdLeuWmKT5TnWkmf0=
 github.com/getlantern/soar v0.2.5 h1:3p7+Z5r98K+Y6h8e1a6MzuBhEPx5Nekj4XUZg8TTRYE=
 github.com/getlantern/soar v0.2.5/go.mod h1:6T2+Kbx0GVqYIHqfEaUqlYI5ZRRVZYYhuoMWcxHC+xA=
 github.com/getlantern/twiddle v0.0.0-20260914204124-f698a0d67d2f h1:8WL/o8hKl27jpHunB4nO5dJZKSTfyMwvS7J72ix6vqQ=
@@ -773,8 +775,6 @@ github.com/sagernet/sing-shadowtls v0.2.1 h1:ZiHZdnEnP+YS73NMsxiZmIFCwNd0M4k7PkG
 github.com/sagernet/sing-shadowtls v0.2.1/go.mod h1:sWqKnGlMipCHaGsw1sTTlimyUpgzP4WP3pjhCsYt9oA=
 github.com/sagernet/sing-snell v0.0.0-20260829071736-20f2eaec77c3 h1:wjEw0lmCSC+oqh7GD4rbMB/dk7+hZ2VopUj4xM5/Jrc=
 github.com/sagernet/sing-snell v0.0.0-20260829071736-20f2eaec77c3/go.mod h1:et8Lws4f5QbOrY65DmjevHGup3mijJkhswkto6cwciM=
-github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b h1:tjQUA4fQi0OWDMMYfRigzvNlBTYyP/01e+P9BT/RZ4g=
-github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b/go.mod h1:3EgPst7agntRO7D6GOsiZ1l9FoqdLeuWmKT5TnWkmf0=
 github.com/sagernet/sing-usbip v0.0.0-20260817040617-28bd42667eca h1:5wA+IE0Fq1CGVLOgSpm0gKKZ03HzugcJ2JyhmDqeX6A=
 github.com/sagernet/sing-usbip v0.0.0-20260817040617-28bd42667eca/go.mod h1:ADAZZU85MnM91XNhd2TdZRTaIbA7RjTZuQ1KCHcUbNg=
 github.com/sagernet/sing-vmess v0.2.9-0.20260929152519-9b95ab8c9478 h1:q2eQn4nq8oWGxRm9zXesXSlPr9GEgPrOGzf4iPtzG9A=
