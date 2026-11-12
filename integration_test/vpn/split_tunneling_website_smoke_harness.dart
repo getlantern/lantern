@@ -521,9 +521,10 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
 
   await switchMode(SplitTunnelPolicy.includeOnly);
   if (enableIpCheck) {
+    // An empty Include only list keeps everything on the VPN.
     await expectRouting(
-      selectedUsesVPN: false,
-      otherUsesVPN: false,
+      selectedUsesVPN: true,
+      otherUsesVPN: true,
       selectedBaseline: selectedBaseline,
       otherBaseline: otherBaseline,
     );
