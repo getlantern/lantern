@@ -18,6 +18,7 @@ import 'package:lantern/features/helpers/helping_friends.dart'
 import 'package:lantern/features/helpers/invite_share.dart' show shareInvite;
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 /// "Become a Personal Proxy": a volunteer accepts an invite, from a link that
 /// opened the app (filled in), a scanned QR code, or a pasted link. It shows
@@ -243,7 +244,20 @@ class HelpFriend extends HookConsumerWidget {
         // Shown on the root navigator after this screen is gone: the dialog
         // is "not a full screen", and pop would otherwise close the dialog.
         final rootNavigator = Navigator.of(context, rootNavigator: true);
+        // The dialog outlives this screen, so it reads through the container.
+        final container = ProviderScope.containerOf(context, listen: false);
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          // A dialog pushed since the build, such as the app-wide approval
+          // prompt: pop would close it undecided. Hand the hold back and
+          // ask again.
+          final now = ModalRoute.of(context);
+          if (now != null && !now.isCurrent) {
+            finished.value = false;
+            holding.value = held;
+            handoffRetry.value++;
+            return;
+          }
           // pop, not maybePop: this screen's own PopScope would veto it.
           appRouter.pop();
           unawaited(
@@ -251,7 +265,19 @@ class HelpFriend extends HookConsumerWidget {
               rootNavigator.context,
               name: name,
             ).whenComplete(() {
-              if (held) notifier.releaseApprovalStart();
+              if (!held) return;
+              // Auto-enable already on: the box opened checked, so no
+              // change of it started Action Mode for this friend. Start it
+              // now, as Home would have without the hold, and only while
+              // the box is still checked.
+              if (container.read(appSettingProvider).unboundedAutoEnable) {
+                unawaited(
+                  container
+                      .read(shareProvider.notifier)
+                      .startForHelper(ref, requireAutoEnable: true),
+                );
+              }
+              notifier.releaseApprovalStart();
             }),
           );
         });
@@ -490,7 +516,7 @@ class HelpFriend extends HookConsumerWidget {
                 AppTextField(
                   fieldKey: const Key('help_friend.name'),
                   controller: nameCtl,
-                  label: 'help_friend_name_label'.i18n,
+                  label: 'help_friend_your_name_label'.i18n,
                   hintText: 'helpers_your_name_hint'.i18n,
                   prefixIcon: Icons.person_outline,
                   maxLength: 60,
@@ -561,7 +587,7 @@ class _HelpingMeansCard extends StatelessWidget {
           Text('become_means_title'.i18n, style: textTheme.titleMedium),
           row(
             const AppImage(path: AppImagePaths.lock, width: 24, height: 24),
-            'become_means_traffic'.i18n,
+            'become_means_traffic_seen'.i18n,
           ),
           row(
             const AppImage(path: AppImagePaths.eye, width: 24, height: 24),

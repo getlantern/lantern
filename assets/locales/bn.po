@@ -2010,9 +2010,6 @@ msgstr "এই ডিভাইসের নিরাপদ স্টোরেজ
 msgid "helper_error_copy"
 msgstr "লিংক কপি করা যায়নি। এর বদলে \"লিংক শেয়ার করুন\" ব্যবহার করুন।"
 
-msgid "helpers_your_name_label"
-msgstr "আপনার নাম, যে নামে আপনার বন্ধু আপনাকে চেনেন"
-
 msgid "helpers_your_name_hint"
 msgstr "যেমন, সারা"
 
@@ -2079,14 +2076,8 @@ msgstr "লিংক কপি করুন"
 msgid "invite_link_copied"
 msgstr "লিংক কপি করা হয়েছে"
 
-msgid "invite_qr_hint"
-msgstr "তারা আপনার সাথে থাকলে লিংক ব্যবহারের বদলে Lantern-এ এটি স্ক্যান করতে পারেন।"
-
 msgid "invite_waiting"
 msgstr "তাদের লিংক খোলার অপেক্ষায়"
-
-msgid "invite_trust_warning"
-msgstr "আপনি যাকে আমন্ত্রণ জানাবেন তিনি জানবেন যে আপনি Lantern ব্যবহার করেন এবং আপনি কখন তার মাধ্যমে সংযুক্ত আছেন তা দেখতে পারবেন। আপনার ট্রাফিক তার ইন্টারনেট সংযোগের মধ্য দিয়ে যায়, তাই তিনি জানতে পারেন আপনি কোন সাইটে যান, তবে নিরাপদ (https) সাইটে আপনি কী করেন তা নয়। শুধু বিশ্বস্ত কাউকে আমন্ত্রণ জানান।"
 
 msgid "invite_expires"
 msgstr "%s ঘণ্টার মধ্যে মেয়াদ শেষ হবে"
@@ -2172,9 +2163,6 @@ msgstr "%s মিনিট"
 msgid "invite_share_title"
 msgstr "দেশের বাইরে আপনার বিশ্বস্ত কারও সাথে এই লিংক শেয়ার করুন"
 
-msgid "invite_share_steps"
-msgstr "তিনি লিংকটি খুলবেন, প্রয়োজনে Lantern ইনস্টল করবেন এবং নিজের নাম লিখবেন। একটি ৪ সংখ্যার কোড মিলিয়ে আপনি তাঁকে অনুমোদন করবেন, তারপর তাঁর মাধ্যমে সংযোগ করতে পারবেন।"
-
 msgid "invite_link_label"
 msgstr "আপনার আমন্ত্রণ লিংক"
 
@@ -2199,9 +2187,6 @@ msgstr "এই মুহূর্তে %s এর সাথে সংযোগ �
 msgid "become_means_title"
 msgstr "পার্সোনাল প্রক্সি হওয়ার অর্থ কী"
 
-msgid "become_means_traffic"
-msgstr "একজন বন্ধু আপনার সাহায্য চেয়েছেন। Action Mode চালু থাকাকালীন, তিনি আপনার সংযোগের মাধ্যমে উন্মুক্ত ইন্টারনেটে পৌঁছাতে পারেন। তিনি কোন সাইটে যান তা Lantern আপনাকে দেখায় না।"
-
 msgid "become_means_seen"
 msgstr "আপনি কখন সংযুক্ত আছেন তা তারা দেখতে পারেন। শুধু পরিচিত মানুষের আমন্ত্রণ গ্রহণ করুন।"
 
@@ -2210,9 +2195,6 @@ msgstr "যেকোনো সময় সংযোগটি সরিয়ে
 
 msgid "help_friend_form_title"
 msgstr "যাকে সাহায্য করছেন তার পাঠানো লিংকটি পেস্ট করুন"
-
-msgid "help_friend_name_label"
-msgstr "আপনার নাম, যে নামে তারা আপনাকে চেনে"
 
 msgid "help_friend_become"
 msgstr "তাদের ব্যক্তিগত প্রক্সি হন"
@@ -2339,9 +2321,6 @@ msgstr "Action Mode ট্যাব থেকে যেকোনো সময়
 
 msgid "approved_title"
 msgstr "%s এখন আপনার পার্সোনাল প্রক্সি"
-
-msgid "approved_body"
-msgstr "%s অনলাইনে থাকলে, সার্ভার নির্বাচনের প্রাইভেট লোকেশন থেকে তাকে বেছে নিতে পারবেন।"
 
 msgid "approved_connect_now"
 msgstr "এখনই সংযোগ করুন"

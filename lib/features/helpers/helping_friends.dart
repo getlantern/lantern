@@ -80,8 +80,7 @@ String? connectedRightNow(List<HelperPairingView> helping) {
 
 /// The friends this device helps, in the app's bottom sheet: each with since
 /// when, Connected or Not connected once known, and remove; "Paste another
-/// invite link"; who else this device helps, with Change; and today's data
-/// relayed.
+/// invite link"; and who else this device helps, with Change.
 void showHelpingFriendsSheet(BuildContext context) {
   // The theme's bg.elevated sheet; the friends card is bg.surface on it. As
   // tall as its few rows, not a fixed share of the screen.

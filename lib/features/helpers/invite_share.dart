@@ -265,16 +265,16 @@ class InviteShare extends HookConsumerWidget {
     }
 
     // A name typed is saved when the field is left, as on Return; the link
-    // stays the same. An empty field is left alone until the link goes out.
+    // stays the same. Without an invite yet, nothing is saved: the name goes
+    // out with the link, and backing out of this screen creates no invite.
     useEffect(() {
       void onFocus() {
         if (nameFocus.hasFocus) return;
         final name = nameCtl.text.trim();
         if (name.isEmpty) return;
         final inv = current();
-        final applied = inv == null
-            ? ''
-            : inv.inviterName.isNotEmpty
+        if (inv == null) return;
+        final applied = inv.inviterName.isNotEmpty
             ? inv.inviterName
             : ref.read(helpersProvider).view.myName;
         if (name != applied) unawaited(ready());
@@ -305,7 +305,7 @@ class InviteShare extends HookConsumerWidget {
             text: '',
             child: AppRichText(
               key: const Key('invite.learn_more'),
-              texts: '${'invite_trust_warning'.i18n} ',
+              texts: '${'invite_trust_warning_short'.i18n} ',
               boldTexts: 'invite_trust_learn_more'.i18n,
               boldUnderline: true,
               boldColor: context.textLink,
@@ -333,7 +333,7 @@ class InviteShare extends HookConsumerWidget {
                 Text('invite_share_title'.i18n, style: textTheme.titleMedium),
                 const SizedBox(height: defaultSize),
                 Text(
-                  'invite_share_steps'.i18n,
+                  'invite_share_steps_short'.i18n,
                   style: textTheme.bodyMedium!.copyWith(
                     color: context.textSecondary,
                   ),
@@ -343,7 +343,7 @@ class InviteShare extends HookConsumerWidget {
                   fieldKey: const Key('invite.name'),
                   controller: nameCtl,
                   focusNode: nameFocus,
-                  label: 'helpers_your_name_label'.i18n,
+                  label: 'helpers_name_label'.i18n,
                   hintText: 'helpers_your_name_hint'.i18n,
                   prefixIcon: Icons.person_outline,
                   maxLength: 60,
@@ -487,7 +487,7 @@ Future<void> showInviteQrDialog(BuildContext context, String link) =>
           ),
           const SizedBox(height: 16),
           Text(
-            'invite_qr_hint'.i18n,
+            'invite_qr_hint_camera'.i18n,
             textAlign: TextAlign.center,
             style: Theme.of(
               context,

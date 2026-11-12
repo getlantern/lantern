@@ -47,33 +47,34 @@ class OnboardingActionModePage extends StatelessWidget {
             ),
             const _Globe(),
             _row(
-          icon: AppImagePaths.shareV2,
-          title: 'onboarding_action_mode_share'.i18n,
-          description: 'onboarding_action_mode_share_description'.i18n,
-        ),
-        // Being a Personal Proxy needs a build with helper invites.
-        if (HelpersNotifier.buildEnabled) ...[
-          const SizedBox(height: 16.0),
-          _row(
-            key: const Key('onboarding.action_mode.help_someone'),
-            icon: AppImagePaths.personAdd,
-            title: 'onboarding_action_mode_help_someone'.i18n,
-            description: 'onboarding_action_mode_help_someone_description'.i18n,
-            isNew: true,
-          ),
-        ],
-        const SizedBox(height: 16.0),
-        _row(
-          icon: AppImagePaths.verifiedUser,
-          title: 'onboarding_action_mode_privacy'.i18n,
-          description: 'onboarding_action_mode_privacy_description'.i18n,
-        ),
-        const SizedBox(height: 16.0),
-        _row(
-          icon: AppImagePaths.toggleOn,
-          title: 'onboarding_action_mode_control'.i18n,
-          description: 'onboarding_action_mode_control_description'.i18n,
-        ),
+              icon: AppImagePaths.shareV2,
+              title: 'onboarding_action_mode_share'.i18n,
+              description: 'onboarding_action_mode_share_description'.i18n,
+            ),
+            // Being a Personal Proxy needs a build with helper invites.
+            if (HelpersNotifier.buildEnabled) ...[
+              const SizedBox(height: 16.0),
+              _row(
+                key: const Key('onboarding.action_mode.help_someone'),
+                icon: AppImagePaths.personAdd,
+                title: 'onboarding_action_mode_help_someone'.i18n,
+                description:
+                    'onboarding_action_mode_help_someone_description'.i18n,
+                isNew: true,
+              ),
+            ],
+            const SizedBox(height: 16.0),
+            _row(
+              icon: AppImagePaths.verifiedUser,
+              title: 'onboarding_action_mode_privacy'.i18n,
+              description: 'onboarding_action_mode_privacy_description'.i18n,
+            ),
+            const SizedBox(height: 16.0),
+            _row(
+              icon: AppImagePaths.toggleOn,
+              title: 'onboarding_action_mode_control'.i18n,
+              description: 'onboarding_action_mode_control_description'.i18n,
+            ),
             const SizedBox(height: onboardingIndicatorSpace),
           ],
         ),

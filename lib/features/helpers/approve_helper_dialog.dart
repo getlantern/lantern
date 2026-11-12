@@ -147,7 +147,7 @@ Future<void> _showApprovedDialog(
       ),
     ),
     title: 'approved_title'.i18n.fill([name]),
-    body: 'approved_body'.i18n.fill([name]),
+    body: 'approved_body_locations'.i18n.fill([name]),
     primaryLabel: 'approved_connect_now'.i18n,
     // Connect while the caller is still there: AppDialog would run a
     // dismissing callback 400 ms after the pop.
@@ -242,7 +242,7 @@ class _HelperNameField extends HookWidget {
       children: [
         AppTextField(
           controller: controller,
-          label: label ?? 'helpers_your_name_label'.i18n,
+          label: label ?? 'helpers_name_label'.i18n,
           hintText: 'helpers_your_name_hint'.i18n,
           maxLength: 60,
           autofocus: true,

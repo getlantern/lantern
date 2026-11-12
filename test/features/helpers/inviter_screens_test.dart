@@ -476,7 +476,7 @@ void main() {
     await tester.tap(_approveYes);
     await tester.pumpAndSettle();
     expect(find.text('approved_title'.i18n.fill(['Ali'])), findsOneWidget);
-    expect(find.text('approved_body'.i18n.fill(['Ali'])), findsOneWidget);
+    expect(find.text('approved_body_locations'.i18n.fill(['Ali'])), findsOneWidget);
     expect(_approvedConnect, findsOneWidget);
     expect(_approvedClose, findsOneWidget);
     await tester.tap(_approvedConnect);
@@ -925,8 +925,8 @@ void main() {
     final card = find.byKey(const Key('invite.card'));
     for (final text in [
       'invite_share_title'.i18n,
-      'invite_share_steps'.i18n,
-      'helpers_your_name_label'.i18n,
+      'invite_share_steps_short'.i18n,
+      'helpers_name_label'.i18n,
       'invite_link_label'.i18n,
       '${'invite_link_expiry'.i18n} · ',
       'invite_show_qr'.i18n,
@@ -955,7 +955,7 @@ void main() {
     final note = tester.widget<AppRichText>(
       find.descendant(of: warning, matching: find.byType(AppRichText)),
     );
-    expect(note.texts, '${'invite_trust_warning'.i18n} ');
+    expect(note.texts, '${'invite_trust_warning_short'.i18n} ');
     expect(note.boldTexts, 'invite_trust_learn_more'.i18n);
     expect(
       tester.getBottomLeft(warning).dy,
@@ -992,7 +992,7 @@ void main() {
     await tester.pumpAndSettle();
     final dialog = find.byType(AlertDialog);
     expect(dialog, findsOneWidget);
-    for (final text in ['invite_qr_title'.i18n, 'invite_qr_hint'.i18n]) {
+    for (final text in ['invite_qr_title'.i18n, 'invite_qr_hint_camera'.i18n]) {
       expect(
         find.descendant(of: dialog, matching: find.text(text)),
         findsOneWidget,

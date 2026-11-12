@@ -302,8 +302,8 @@ class Home extends HookConsumerWidget {
     // a paired volunteer's widget is turned on server-side (Features[unbounded]).
     // startForHelper holds the start back while this device's country is
     // unknown or censored; a later country-code event retries it. Not while
-    // a HelpFriend screen waits on its claim: its success screen's "Keep
-    // Action Mode on" decides.
+    // a HelpFriend screen waits on its claim: its success dialog's
+    // Auto-enable row decides.
     ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
       prev,
       next,

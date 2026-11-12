@@ -2026,9 +2026,6 @@ msgstr "O armazenamento seguro deste dispositivo foi redefinido, então os nomes
 msgid "helper_error_copy"
 msgstr "Não foi possível copiar o link. Use Compartilhar link."
 
-msgid "helpers_your_name_label"
-msgstr "Seu nome, como seu amigo conhece você"
-
 msgid "helpers_your_name_hint"
 msgstr "Por exemplo, Sara"
 
@@ -2095,14 +2092,8 @@ msgstr "Copiar link"
 msgid "invite_link_copied"
 msgstr "Link copiado"
 
-msgid "invite_qr_hint"
-msgstr "Se a pessoa estiver com você, ela pode escanear isto no Lantern em vez de usar o link."
-
 msgid "invite_waiting"
 msgstr "Aguardando a pessoa abrir o link"
-
-msgid "invite_trust_warning"
-msgstr "A pessoa que você convidar saberá que você usa o Lantern e poderá ver quando você se conecta por meio dela. Seu tráfego passa pela conexão de internet dela, então ela poderia saber quais sites você visita, mas não o que você faz em sites seguros (https). Convide apenas alguém de confiança."
 
 msgid "invite_expires"
 msgstr "Expira em %s horas"
@@ -2188,9 +2179,6 @@ msgstr "%s min"
 msgid "invite_share_title"
 msgstr "Compartilhe este link com alguém de confiança fora do seu país"
 
-msgid "invite_share_steps"
-msgstr "A pessoa abre o link, instala o Lantern se necessário e informa o nome. Você a aprova conferindo um código de 4 dígitos e depois pode se conectar por meio dela."
-
 msgid "invite_link_label"
 msgstr "Seu link de convite"
 
@@ -2218,9 +2206,6 @@ msgstr "Não foi possível acessar %s agora. Mudamos para Localização intelige
 msgid "become_means_title"
 msgstr "O que significa ser um proxy pessoal"
 
-msgid "become_means_traffic"
-msgstr "Um amigo pediu sua ajuda. Enquanto o Action Mode está ativo, ele pode acessar a internet aberta pela sua conexão. O Lantern não mostra quais sites ele acessa."
-
 msgid "become_means_seen"
 msgstr "Essas pessoas podem ver quando sua conexão está ativa. Aceite convites apenas de quem você conhece."
 
@@ -2229,9 +2214,6 @@ msgstr "Remova a conexão quando quiser."
 
 msgid "help_friend_form_title"
 msgstr "Cole o link da pessoa que você está ajudando"
-
-msgid "help_friend_name_label"
-msgstr "Seu nome, como a pessoa conhece você"
 
 msgid "help_friend_become"
 msgstr "Seja o proxy pessoal dessa pessoa"
@@ -2355,9 +2337,6 @@ msgstr "Ative ou desative o Action Mode quando quiser na aba Action Mode."
 
 msgid "approved_title"
 msgstr "%s agora é seu proxy pessoal"
-
-msgid "approved_body"
-msgstr "Quando %s estiver online, você poderá selecioná-lo em Locais privados, na Seleção de servidor."
 
 msgid "approved_connect_now"
 msgstr "Conectar agora"

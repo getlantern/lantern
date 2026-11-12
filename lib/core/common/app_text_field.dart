@@ -236,27 +236,31 @@ class AppTextField extends StatelessWidget {
     Widget? appAsset;
     // An icon's 24px with 16px above and below: the field's standard height.
     var inset = 16.h;
+    var side = 16.0;
     if (iconPath is IconData) {
       appAsset = Icon(iconPath, color: iconColor);
     } else if (iconPath is String) {
       appAsset = AppImage(path: iconPath, color: iconColor);
     } else if (iconPath is Widget) {
       // A widget, such as an IconButton or a text button, keeps that same
-      // height: its tap target is held to 32px, in 12px above and below.
-      inset = 12.h;
+      // height and its icon in the same place: its visible button is 32px,
+      // inside the 48px tap target Material keeps, in 4px above and below
+      // and 8px at the sides.
+      inset = 4.h;
+      side = 8.0;
       appAsset = IconButtonTheme(
         data: IconButtonThemeData(
           style: IconButton.styleFrom(
             padding: EdgeInsets.zero,
             minimumSize: const Size(32, 32),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            tapTargetSize: MaterialTapTargetSize.padded,
           ),
         ),
         child: TextButtonTheme(
           data: TextButtonThemeData(
             style: TextButton.styleFrom(
               minimumSize: const Size(0, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              tapTargetSize: MaterialTapTargetSize.padded,
             ),
           ),
           child: iconPath,
@@ -264,7 +268,12 @@ class AppTextField extends StatelessWidget {
       );
     }
     return Padding(
-      padding: EdgeInsets.only(left: 16, right: 16, top: inset, bottom: inset),
+      padding: EdgeInsets.only(
+        left: side,
+        right: side,
+        top: inset,
+        bottom: inset,
+      ),
       child: Align(
         alignment: isMultiline ? multilineAlignment : Alignment.center,
         widthFactor: 1.0,

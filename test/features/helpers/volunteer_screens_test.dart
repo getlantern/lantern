@@ -149,16 +149,24 @@ class _Share extends ShareNotifier {
   _Share({this.active = false});
   final bool active;
   int helperStarts = 0;
+  final startsRequiredAutoEnable = <bool>[];
   final autoEnable = <bool>[];
   @override
   ShareState build() => ShareState(active: active);
   @override
   Future<bool> ensureConsent(BuildContext context) async => true;
+  // As the real one: a start while sharing is up is skipped.
   @override
   Future<void> startForHelper(
     WidgetRef widgetRef, {
     bool requireAutoEnable = false,
-  }) async => helperStarts++;
+  }) async {
+    if (state.active) return;
+    helperStarts++;
+    startsRequiredAutoEnable.add(requireAutoEnable);
+    state = state.copyWith(active: true);
+  }
+
   @override
   Future<bool> setAutoEnable(BuildContext context, bool enabled) async {
     autoEnable.add(enabled);
@@ -168,10 +176,12 @@ class _Share extends ShareNotifier {
   }
 }
 
-/// Auto-enable Action Mode off, as for a new volunteer.
+/// Auto-enable Action Mode off, as for a new volunteer, unless asked.
 class _Settings extends AppSettingNotifier {
+  _Settings({this.autoEnable = false});
+  final bool autoEnable;
   @override
-  AppSetting build() => const AppSetting(unboundedAutoEnable: false);
+  AppSetting build() => AppSetting(unboundedAutoEnable: autoEnable);
 
   @override
   void setUnboundedAutoEnable(bool value) {
@@ -203,6 +213,7 @@ Future<void> _pump(
   Widget child, {
   bool sharing = false,
   _Share? share,
+  bool autoEnable = false,
 }) async {
   // Tall enough that HelpFriend's whole form, below the "what helping
   // means" card, is built without scrolling.
@@ -220,7 +231,9 @@ Future<void> _pump(
       overrides: [
         helpersProvider.overrideWith(() => helpers),
         shareProvider.overrideWith(() => share ?? _Share(active: sharing)),
-        appSettingProvider.overrideWith(_Settings.new),
+        appSettingProvider.overrideWith(
+          () => _Settings(autoEnable: autoEnable),
+        ),
       ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852),
@@ -640,7 +653,7 @@ void main() {
     expect(card, findsOneWidget);
     for (final key in [
       'become_means_title',
-      'become_means_traffic',
+      'become_means_traffic_seen',
       'become_means_seen',
       'become_means_remove',
     ]) {
@@ -657,7 +670,7 @@ void main() {
       'help_friend_link_label'.i18n,
       'help_friend_no_link_yet'.i18n,
       'help_friend_ask_send_link'.i18n,
-      'help_friend_name_label'.i18n,
+      'help_friend_your_name_label'.i18n,
       'help_friend_name_hint_server_list'.i18n,
       'help_friend_become'.i18n,
     ]) {
@@ -883,8 +896,9 @@ void main() {
   });
 
   Future<(_Share, _Router, _Helpers)> approvedScreen(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    bool autoEnable = false,
+  }) async {
     await sl.reset();
     final router = _Router();
     sl.registerSingleton<AppRouter>(router);
@@ -897,6 +911,7 @@ void main() {
       helpers,
       const HelpFriend(fromLink: true),
       share: share,
+      autoEnable: autoEnable,
     );
     await _claim(tester);
     expect(helpers.approvalStartHeld, isTrue);
@@ -953,6 +968,33 @@ void main() {
     expect(find.byKey(const Key('help_friend.approved')), findsNothing);
     expect(share.helperStarts, 0);
     expect(share.autoEnable, isEmpty);
+    expect(helpers.approvalStartHeld, isFalse);
+  });
+
+  testWidgets('with Auto-enable already on, the box opens checked and Done '
+      'turns Action Mode on for the friend', (tester) async {
+    final (share, _, helpers) = await approvedScreen(tester, autoEnable: true);
+    expect(tester.widget<Checkbox>(autoEnableBox).value, isTrue);
+    expect(share.helperStarts, 0, reason: 'the dialog asks first');
+    await tester.tap(done());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
+    expect(share.helperStarts, 1);
+    expect(share.startsRequiredAutoEnable, [true]);
+    expect(share.autoEnable, isEmpty, reason: 'the setting is left as is');
+    expect(helpers.approvalStartHeld, isFalse);
+  });
+
+  testWidgets('with Auto-enable already on, unchecking the box then Done '
+      'pairs without turning Action Mode on', (tester) async {
+    final (share, _, helpers) = await approvedScreen(tester, autoEnable: true);
+    await tester.tap(autoEnableBox);
+    await tester.pumpAndSettle();
+    expect(share.autoEnable, [false]);
+    expect(tester.widget<Checkbox>(autoEnableBox).value, isFalse);
+    await tester.tap(done());
+    await tester.pumpAndSettle();
+    expect(share.helperStarts, 0);
     expect(helpers.approvalStartHeld, isFalse);
   });
 

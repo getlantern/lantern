@@ -1979,7 +1979,7 @@ msgstr "Couldn't copy the link. Use Share instead."
 
 # Helper invites: the inviter's side. A "helper" is a friend abroad whose
 # internet connection this user borrows through Lantern.
-msgid "helpers_your_name_label"
+msgid "helpers_name_label"
 msgstr "Your name"
 
 # Under the name field on the invite screen.
@@ -2073,7 +2073,7 @@ msgstr "Name on this device"
 msgid "invite_share_title"
 msgstr "Share this link with someone you trust outside your country"
 
-msgid "invite_share_steps"
+msgid "invite_share_steps_short"
 msgstr "They open the link and enter their name. You approve them with a 4-digit code."
 
 # Label of the read-only field that shows the invite link.
@@ -2111,7 +2111,7 @@ msgid "invite_qr_title"
 msgstr "Scan with Camera"
 
 # Under the QR code in that dialog.
-msgid "invite_qr_hint"
+msgid "invite_qr_hint_camera"
 msgstr "If your friend is with you, they can scan this code instead of using the link."
 
 # Status line under the invite screen's Share button, and on a pending invite
@@ -2120,7 +2120,7 @@ msgid "invite_waiting"
 msgstr "Waiting for your friend to open the link"
 
 # One-line note above the invite card; "Learn more." follows it.
-msgid "invite_trust_warning"
+msgid "invite_trust_warning_short"
 msgstr "Only invite someone you trust."
 
 msgid "invite_trust_learn_more"
@@ -2167,7 +2167,7 @@ msgstr "%s is now your Personal Proxy"
 
 # Under approved_title. %s is the name the friend typed. "Private Locations"
 # must match private_locations.
-msgid "approved_body"
+msgid "approved_body_locations"
 msgstr "When %s is online, you can select them under Private Locations in Server Locations menu. Smart Location may use them automatically."
 
 # Button under approved_body: selects the new Personal Proxy and turns the
@@ -2210,7 +2210,7 @@ msgstr "Can't reach %s right now. Switched to Smart Location."
 msgid "become_means_title"
 msgstr "What being a Personal Proxy means"
 
-msgid "become_means_traffic"
+msgid "become_means_traffic_seen"
 msgstr "A friend asked for your help. When Action Mode is on, they reach the open internet through your connection. You could see which sites they visit, but not what they do on them."
 
 msgid "become_means_seen"
@@ -2223,7 +2223,7 @@ msgstr "Remove the connection any time."
 msgid "help_friend_form_title"
 msgstr "Paste the link from the person you're helping"
 
-msgid "help_friend_name_label"
+msgid "help_friend_your_name_label"
 msgstr "Your name"
 
 # Under the name field. "Server list" is the friend's Server Selection screen,

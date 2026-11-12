@@ -2017,9 +2017,6 @@ msgstr "اس ڈیوائس کا محفوظ اسٹوریج ری سیٹ ہو گیا
 msgid "helper_error_copy"
 msgstr "لنک کاپی نہیں ہو سکا۔ اس کے بجائے \"لنک شیئر کریں\" استعمال کریں۔"
 
-msgid "helpers_your_name_label"
-msgstr "آپ کا نام، جس نام سے آپ کا دوست آپ کو جانتا ہے"
-
 msgid "helpers_your_name_hint"
 msgstr "مثال کے طور پر، سارہ"
 
@@ -2086,14 +2083,8 @@ msgstr "لنک کاپی کریں"
 msgid "invite_link_copied"
 msgstr "لنک کاپی ہو گیا"
 
-msgid "invite_qr_hint"
-msgstr "اگر وہ آپ کے ساتھ ہیں تو لنک کے بجائے Lantern میں اسے اسکین کر سکتے ہیں۔"
-
 msgid "invite_waiting"
 msgstr "ان کے لنک کھولنے کا انتظار ہے"
-
-msgid "invite_trust_warning"
-msgstr "جسے آپ مدعو کریں گے اسے معلوم ہوگا کہ آپ Lantern استعمال کرتے ہیں اور وہ دیکھ سکے گا کہ آپ کب اس کے ذریعے منسلک ہیں۔ آپ کا ٹریفک اس کے انٹرنیٹ کنکشن سے گزرتا ہے، اس لیے وہ جان سکتا ہے کہ آپ کون سی سائٹس دیکھتے ہیں، لیکن یہ نہیں کہ آپ محفوظ (https) سائٹس پر کیا کرتے ہیں۔ صرف کسی بھروسے مند شخص کو مدعو کریں۔"
 
 msgid "invite_expires"
 msgstr "%s گھنٹوں میں ختم ہو جائے گا"
@@ -2179,9 +2170,6 @@ msgstr "%s منٹ"
 msgid "invite_share_title"
 msgstr "یہ لنک اپنے ملک سے باہر کسی بھروسے مند شخص کے ساتھ شیئر کریں"
 
-msgid "invite_share_steps"
-msgstr "وہ لنک کھولیں گے، ضرورت ہو تو Lantern انسٹال کریں گے اور اپنا نام درج کریں گے۔ آپ 4 ہندسوں کا کوڈ چیک کر کے انہیں منظور کریں گے، پھر ان کے ذریعے منسلک ہو سکیں گے۔"
-
 msgid "invite_link_label"
 msgstr "آپ کا دعوتی لنک"
 
@@ -2206,9 +2194,6 @@ msgstr "ابھی %s تک رسائی نہیں ہو رہی۔ آپ کی ذاتی پ
 msgid "become_means_title"
 msgstr "پرسنل پراکسی ہونے کا کیا مطلب ہے"
 
-msgid "become_means_traffic"
-msgstr "ایک دوست نے آپ سے مدد مانگی ہے۔ Action Mode چلنے کے دوران، وہ آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچ سکتے ہیں۔ Lantern آپ کو نہیں دکھاتا کہ وہ کون سی سائٹس کھولتے ہیں۔"
-
 msgid "become_means_seen"
 msgstr "وہ دیکھ سکتے ہیں کہ آپ کب منسلک ہیں۔ صرف جاننے والے لوگوں کے دعوت نامے قبول کریں۔"
 
@@ -2217,9 +2202,6 @@ msgstr "کنکشن کسی بھی وقت ہٹا دیں۔"
 
 msgid "help_friend_form_title"
 msgstr "جس کی آپ مدد کر رہے ہیں اس کا لنک پیسٹ کریں"
-
-msgid "help_friend_name_label"
-msgstr "آپ کا نام، جس سے وہ آپ کو جانتے ہیں"
 
 msgid "help_friend_become"
 msgstr "ان کی ذاتی پراکسی بنیں"
@@ -2346,9 +2328,6 @@ msgstr "Action Mode ٹیب سے کسی بھی وقت Action Mode آن یا آف 
 
 msgid "approved_title"
 msgstr "%s اب آپ کی ذاتی پراکسی ہے"
-
-msgid "approved_body"
-msgstr "جب %s آن لائن ہوں تو آپ انہیں سرور کے انتخاب میں نجی مقامات کے تحت منتخب کر سکتے ہیں۔"
 
 msgid "approved_connect_now"
 msgstr "ابھی منسلک کریں"

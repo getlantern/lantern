@@ -1983,9 +1983,6 @@ msgstr "ที่เก็บข้อมูลที่ปลอดภัยข
 msgid "helper_error_copy"
 msgstr "คัดลอกลิงก์ไม่ได้ ใช้แชร์ลิงก์แทน"
 
-msgid "helpers_your_name_label"
-msgstr "ชื่อของคุณที่เพื่อนรู้จัก"
-
 msgid "helpers_your_name_hint"
 msgstr "เช่น ซารา"
 
@@ -2052,14 +2049,8 @@ msgstr "คัดลอกลิงก์"
 msgid "invite_link_copied"
 msgstr "คัดลอกลิงก์แล้ว"
 
-msgid "invite_qr_hint"
-msgstr "หากอีกฝ่ายอยู่กับคุณ สามารถสแกนสิ่งนี้ใน Lantern แทนการใช้ลิงก์ได้"
-
 msgid "invite_waiting"
 msgstr "กำลังรออีกฝ่ายเปิดลิงก์"
-
-msgid "invite_trust_warning"
-msgstr "ผู้ที่คุณเชิญจะรู้ว่าคุณใช้ Lantern และเห็นได้ว่าคุณเชื่อมต่อผ่านเขาเมื่อใด การรับส่งข้อมูลของคุณผ่านการเชื่อมต่ออินเทอร์เน็ตของเขา เขาจึงอาจรู้ว่าคุณเข้าเว็บไซต์ใดบ้าง แต่ไม่รู้ว่าคุณทำอะไรบนเว็บไซต์ที่ปลอดภัย (https) เชิญเฉพาะคนที่คุณไว้ใจ"
 
 msgid "invite_expires"
 msgstr "หมดอายุใน %s ชั่วโมง"
@@ -2145,9 +2136,6 @@ msgstr "%s นาที"
 msgid "invite_share_title"
 msgstr "แชร์ลิงก์นี้กับคนที่คุณไว้ใจซึ่งอยู่นอกประเทศของคุณ"
 
-msgid "invite_share_steps"
-msgstr "ผู้รับเปิดลิงก์ ติดตั้ง Lantern หากจำเป็น และใส่ชื่อของตน คุณจะอนุมัติโดยตรวจสอบรหัส 4 หลัก จากนั้นจึงเชื่อมต่อผ่านผู้นั้นได้"
-
 msgid "invite_link_label"
 msgstr "ลิงก์คำเชิญของคุณ"
 
@@ -2172,9 +2160,6 @@ msgstr "ไม่สามารถติดต่อ %s ได้ในขณ�
 msgid "become_means_title"
 msgstr "การเป็นพร็อกซีส่วนตัวหมายถึงอะไร"
 
-msgid "become_means_traffic"
-msgstr "เพื่อนขอความช่วยเหลือจากคุณ ขณะที่ Action Mode ทำงาน เพื่อนจะเข้าถึงอินเทอร์เน็ตเสรีผ่านการเชื่อมต่อของคุณได้ Lantern จะไม่แสดงให้คุณเห็นว่าเพื่อนเข้าเว็บไซต์ใด"
-
 msgid "become_means_seen"
 msgstr "พวกเขาเห็นได้ว่าคุณเชื่อมต่ออยู่เมื่อใด ยอมรับคำเชิญจากคนที่คุณรู้จักเท่านั้น"
 
@@ -2183,9 +2168,6 @@ msgstr "ลบการเชื่อมต่อได้ทุกเมื่
 
 msgid "help_friend_form_title"
 msgstr "วางลิงก์จากคนที่คุณกำลังช่วย"
-
-msgid "help_friend_name_label"
-msgstr "ชื่อของคุณที่เพื่อนรู้จัก"
 
 msgid "help_friend_become"
 msgstr "เป็นพร็อกซีส่วนตัวของเพื่อน"
@@ -2312,9 +2294,6 @@ msgstr "เปิดหรือปิด Action Mode ได้ทุกเม�
 
 msgid "approved_title"
 msgstr "%s เป็นพร็อกซีส่วนตัวของคุณแล้ว"
-
-msgid "approved_body"
-msgstr "เมื่อ %s ออนไลน์ คุณสามารถเลือกได้ในตำแหน่งส่วนตัวในการเลือกเซิร์ฟเวอร์"
 
 msgid "approved_connect_now"
 msgstr "เชื่อมต่อตอนนี้"
