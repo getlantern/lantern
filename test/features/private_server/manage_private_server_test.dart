@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/private_server/manage_private_server.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 
 class _Servers extends AvailableServersNotifier {
   @override
@@ -17,6 +19,15 @@ class _Servers extends AvailableServersNotifier {
 class _FailingServers extends AvailableServersNotifier {
   @override
   Future<AvailableServers> build() async => throw Exception('offline');
+}
+
+/// The real notifier follows the VPN, which these tests do not run.
+class _Status extends PersonalProxyStatusNotifier {
+  @override
+  Map<String, PersonalProxyStatus>? build() => null;
+
+  @override
+  Future<void> poll() async {}
 }
 
 class _Helpers extends HelpersNotifier {
@@ -50,6 +61,7 @@ Future<void> _pump(
           serversFail ? _FailingServers.new : _Servers.new,
         ),
         helpersProvider.overrideWith(() => helpers ?? _Helpers()),
+        personalProxyStatusProvider.overrideWith(_Status.new),
         personalProxiesTabVisibleProvider.overrideWithValue(tab),
       ],
       child: ScreenUtilInit(
@@ -98,6 +110,7 @@ void main() {
           availableServersProvider.overrideWith(_Servers.new),
           helpersProvider.overrideWith(() => helpers),
           helperInvitesAvailableProvider.overrideWithValue(false),
+          personalProxyStatusProvider.overrideWith(_Status.new),
         ],
         child: ScreenUtilInit(
           designSize: const Size(393, 852),
@@ -126,6 +139,34 @@ void main() {
     );
     expect(controller.length, 2);
     expect(controller.index, 1);
+  });
+
+  testWidgets('three tab labels each fit on one line in a narrow window', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await _pump(tester, tab: true);
+    final bar = tester.getRect(find.byType(TabBar));
+    for (final label in [
+      'my_servers'.i18n,
+      'joined_servers'.i18n,
+      'personal_proxies_tab'.i18n,
+    ]) {
+      final text = tester.renderObject<RenderParagraph>(find.text(label));
+      expect(
+        text.size.width,
+        greaterThanOrEqualTo(text.getMaxIntrinsicWidth(double.infinity)),
+        reason: '"$label" wraps',
+      );
+      final rect = tester.getRect(find.text(label));
+      expect(
+        rect.top >= bar.top && rect.bottom <= bar.bottom,
+        isTrue,
+        reason: '"$label" is cut off',
+      );
+    }
   });
 
   testWidgets('two tabs otherwise', (tester) async {

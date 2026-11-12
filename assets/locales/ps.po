@@ -1726,11 +1726,7 @@ msgstr ""
 "رسېدو لپاره خپل ترافیک ستاسو د اتصال له لارې لېږي."
 
 msgid "share_consent_body_ip"
-msgstr ""
-"که ستاسو روټر د پورټ فارورډینګ ملاتړ کوي، ستاسو کورنی اتصال د وتلو په توګه "
-"کارول کیږي او د شریکولو پر مهال به ستاسو IP پته د مقصد په سوابقو کې ښکاره "
-"شي. که نه، هغه ترافیک د Lantern د سرورونو له لارې لېږدول کیږي، او ستاسو IP "
-"په دې ډول نه ښکاره کیږي."
+msgstr "که ستاسو روټر د پورټ فارورډینګ ملاتړ کوي، ستاسو د کور اتصال د وتلو ځای په توګه کارول کېږي او د شریکولو پر مهال به ستاسو IP پته د مقصد په لاګونو کې ښکاره شي. که نه، هغه ترافیک د Lantern د سرورونو له لارې لېږدول کېږي او ستاسو IP په دې ډول نه ښکاره کېږي. د هغه ملګري ترافیک چې تاسو یې شخصي پراکسي یاست هم کولی شي ستاسو له اتصال څخه ووځي، حتی د پورټ فارورډینګ پرته."
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2109,10 +2105,10 @@ msgid "invite_link_copied"
 msgstr "لینک کاپي شو"
 
 msgid "invite_qr_hint"
-msgstr "ستاسو ملګری کولی شي دا د Lantern په مرسته سکن کړي."
+msgstr "که دوی ستاسو سره وي، کولی شي د لینک پر ځای دا په Lantern کې سکین کړي."
 
 msgid "invite_waiting"
-msgstr "ستاسو ملګري ته انتظار چې لینک پرانیزي"
+msgstr "د لینک پرانیستلو ته انتظار"
 
 msgid "invite_trust_warning"
 msgstr "هغه څوک چې تاسو یې رابولئ پوهېږي چې تاسو Lantern کاروئ او لیدلی شي چې تاسو کله د هغه له لارې وصل یاست. ستاسو ټرافیک د هغه د انټرنیټ اتصال له لارې تېرېږي. نو هغه کولی شي پوه شي چې تاسو کومې پاڼې ګورئ، خو دا نه چې په خوندي (https) پاڼو کې څه کوئ. یوازې هغه څوک راوبلئ چې باور پرې لرئ."
@@ -2149,9 +2145,6 @@ msgstr "هغه لینک پیسټ کړئ چې ملګري مو لېږلی"
 
 msgid "help_friend_scan"
 msgstr "د خپل ملګري QR کوډ سکین کړئ"
-
-msgid "help_friend_approved"
-msgstr "تاسو اوس له %s سره مرسته کوئ."
 
 msgid "help_friend_no_longer_pending"
 msgstr "دا غوښتنه نور په تمه کې نه ده. له خپل ملګري څخه نوې بلنه وغواړئ."
@@ -2192,12 +2185,6 @@ msgstr "مرسته بنده کړئ"
 msgid "helping_remove_confirm"
 msgstr "له %s سره مرسته بنده کړئ؟ هغوی به ستاسو له لارې د بیا وصلېدو لپاره نوې بلنې ته اړتیا ولري."
 
-msgid "help_others_too"
-msgstr "له نورو سره هم مرسته وکړئ"
-
-msgid "help_others_too_body"
-msgstr "خپل اضافي ظرفیت له هغو نورو خلکو سره شریک کړئ چې له سانسور سره مخ دي. Lantern یوازې اجازه لرونکو سایټونو ته د هغوی لاسرسی ورکوي، چې ستاسو اتصال له ناوړه ګټې اخیستنې ساتي."
-
 msgid "help_others_too_note"
 msgstr "د دې بدلول هغه خلک چې تاسو ورسره مرسته کوئ، د لنډ وخت لپاره بیا وصلوي."
 
@@ -2217,7 +2204,7 @@ msgid "invite_link_label"
 msgstr "ستاسو د بلنې لینک"
 
 msgid "invite_link_expiry"
-msgstr "یوازې یو ځل کار کوي او په 48 ساعتونو کې پای ته رسېږي."
+msgstr "یو ځل کار کوي او په 48 ساعتونو کې پای ته رسېږي"
 
 msgid "approve_title"
 msgstr "%s غواړي ستاسو شخصي پراکسي شي"
@@ -2238,7 +2225,7 @@ msgid "become_means_title"
 msgstr "شخصي پراکسي کېدل څه معنا لري"
 
 msgid "become_means_traffic"
-msgstr "یوه ملګري ستاسو مرسته غوښتې ده. کله چې Action Mode روان وي، هغه ستاسو د اتصال له لارې آزاد انټرنېټ ته لاسرسی لري. ستاسو د روټر پورې اړه لري چې د هغه ټرافیک ستاسو له شبکې وځي یا د Lantern له سرورونو تېرېږي. Lantern تاسو ته نه ښيي چې هغه آنلاین څه کوي."
+msgstr "یو ملګري ستاسو مرسته غوښتې ده. کله چې Action Mode چلېږي، هغه ستاسو د اتصال له لارې خلاص انټرنیټ ته رسېدای شي. Lantern تاسو ته نه ښيي چې هغه کومې پاڼې ګوري."
 
 msgid "become_means_seen"
 msgstr "دوی لیدلی شي چې تاسو کله وصل یاست. یوازې د هغو کسانو بلنې ومنئ چې پېژنئ یې."
@@ -2249,14 +2236,8 @@ msgstr "اتصال هر وخت لرې کولی شئ."
 msgid "help_friend_form_title"
 msgstr "د هغه چا لینک دلته کېږدئ چې مرسته یې کوئ"
 
-msgid "help_friend_link_hint"
-msgstr "په دې وسیله د لینک په کېکاږلو دا ډکیږي"
-
 msgid "help_friend_name_label"
 msgstr "ستاسو نوم، لکه څنګه چې تاسو پېژني"
-
-msgid "help_friend_name_hint"
-msgstr "تاسو د هغوی په Lantern کې داسې ښکارئ"
 
 msgid "help_friend_become"
 msgstr "د هغوی شخصي پراکسي شئ"
@@ -2318,17 +2299,8 @@ msgstr "اوس مهال %s ته رسېدل نه کېږي. هوښيار موقع�
 msgid "become_personal_proxy_body"
 msgstr "له یو پېژندل شوي کس سره مرسته وکړئ چې انټرنېټ ته لاسرسی ومومي"
 
-msgid "help_friend_form_title_from_link"
-msgstr "یو ملګري تاسو ته بلنه درکړې چې د هغه شخصي پراکسي شئ"
-
 msgid "help_friend_paste_button"
 msgstr "لینک پیسټ کړئ"
-
-msgid "help_friend_no_link"
-msgstr "تر اوسه لینک نه لرئ؟"
-
-msgid "help_friend_ask_invite"
-msgstr "له خپل ملګري وغواړئ چې تاسو ته بلنه درکړي"
 
 msgid "help_friend_ask_invite_message"
 msgstr "زه په Lantern کې ستاسو شخصي پراکسي کېدای شم، څو تاسو زما د اتصال له لارې آنلاین شئ. په Lantern کې \"د سرور انتخاب\" پرانیزئ، په سر کې ⋮ مینو کېکاږئ، \"شخصي پراکسي ته بلنه\" وټاکئ او لینک ماته راولېږئ."
@@ -2344,3 +2316,126 @@ msgstr "پر دې کمپیوټر د Lantern پرته د یوې اپ .exe فای�
 
 msgid "unable_to_add_executable"
 msgstr "اجرايي فایل اضافه نه شو. پر دې کمپیوټر یو موجود .exe فایل وټاکئ او بیا هڅه وکړئ."
+
+msgid "unable_to_connect"
+msgstr "وصل نشو"
+
+msgid "enable_action_mode"
+msgstr "Action Mode فعال کړئ"
+
+msgid "disable_action_mode"
+msgstr "Action Mode غیرفعال کړئ"
+
+msgid "helping_one_person"
+msgstr "له 1 کس سره مرسته"
+
+msgid "helping_people"
+msgstr "له %s کسانو سره مرسته"
+
+msgid "onboarding_personal_proxies"
+msgstr "شخصي پراکسي ګانې"
+
+msgid "onboarding_new_badge"
+msgstr "نوی"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "له نورو سره د آزاد انټرنېټ لاسرسي کې مرسته وکړئ"
+
+msgid "onboarding_action_mode_share"
+msgstr "خپل اتصال شریک کړئ"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "د خپل اتصال یوه کوچنۍ برخه په خپله خوښه ورکړئ. په دې سره نور د انټرنیټ له محدودیتونو تېرېږي."
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "له یو پېژندل شوي کس سره مرسته وکړئ"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "د خپل ملګري Personal Proxy شئ او مرسته ورسره وکړئ، څو هغه مستقیم ستاسو له لارې وصل شي."
+
+msgid "onboarding_action_mode_privacy"
+msgstr "ستاسو محرمیت خوندي دی"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "ستاسو شخصي معلومات او د لټون فعالیت هېڅکله نه شریکېږي او نه ښکاره کېږي."
+
+msgid "onboarding_action_mode_control"
+msgstr "کنټرول ستاسو په لاس کې دی"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Action Mode هر وخت د Action Mode ټب څخه چالان یا بند کړئ."
+
+msgid "approved_title"
+msgstr "%s اوس ستاسو شخصي پراکسي ده"
+
+msgid "approved_body"
+msgstr "کله چې %s آنلاین وي، تاسو کولی شئ د سرور انتخاب کې د شخصي ځایونو لاندې غوره کړئ."
+
+msgid "approved_connect_now"
+msgstr "اوس وصل کړئ"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "تاسو د دوی د سرورونو په لست کې داسې ښکارئ."
+
+msgid "help_friend_success_title"
+msgstr "تاسو اوس د %s شخصي پراکسي یاست"
+
+msgid "help_friend_success_body"
+msgstr "%s تاسو تایید کړئ. کله چې Action Mode روښانه وي، دوی ستاسو د اتصال له لارې خلاص انټرنیټ ته لاسرسی موندلی شي."
+
+msgid "help_friend_keep_on"
+msgstr "Action Mode روښانه وساتئ"
+
+msgid "help_friend_keep_on_body"
+msgstr "اوس او هر کله چې Lantern خلاص وي روښانه کېږي، ترڅو %s وصل پاتې شي."
+
+msgid "help_friend_no_link_yet"
+msgstr "لا تر اوسه لینک نلرئ؟"
+
+msgid "help_friend_ask_send_link"
+msgstr "له هغوی وغواړئ چې یو درته ولېږي."
+
+msgid "helping_scope_line_all"
+msgstr "د ټولو هېوادونو له خلکو سره هم مرسته کوئ"
+
+msgid "helping_scope_line_friends"
+msgstr "یوازې له خپلو ملګرو سره مرسته کوئ"
+
+msgid "helping_scope_change"
+msgstr "بدل کړئ"
+
+msgid "helping_scope_title"
+msgstr "تاسو له چا سره مرسته کوئ"
+
+msgid "helping_scope_subtitle"
+msgstr "یوازې له خپلو ملګرو سره، یا د ټولو هېوادونو له خلکو سره شریک کړئ."
+
+msgid "helping_scope_only_friends"
+msgstr "یوازې زما د شخصي پراکسي اتصالونه"
+
+msgid "helping_scope_all_countries"
+msgstr "ټول هېوادونه"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "د خپل هېواد بهر د یو باوري کس له لارې مستقیم وصل شئ."
+
+msgid "onboarding_action_mode_row_description"
+msgstr "خپل اتصال په خوندي ډول شریک کړئ څو نور خلک خلاص انټرنېټ ته لاسرسی ومومي."
+
+msgid "invite_show_qr"
+msgstr "QR کوډ وښایاست"
+
+msgid "invite_link_hint"
+msgstr "د خپل لینک ترلاسه کولو لپاره خپل نوم ولیکئ"
+
+msgid "invite_qr_title"
+msgstr "په کمرې سکین کړئ"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "دا حساب د %s له لارې ننوځي، چې په تلویزیون کې تایید نشي کېدای. د ړنګولو لپاره، Lantern په خپل تلیفون یا کمپیوټر کې پرانیزئ او هلته یې ړنګ کړئ."
+
+msgid "open_on_another_device"
+msgstr "په بل وسیله کې پرانیزئ"
+
+msgid "open_on_another_device_hint"
+msgstr "دا تلویزیون ویب براوزر نه لري. کوډ سکین کړئ یا پته په خپل تلیفون یا کمپیوټر کې ولیکئ."

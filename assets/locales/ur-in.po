@@ -1708,11 +1708,7 @@ msgstr ""
 " اپنا ٹریفک آپ کے کنکشن سے روٹ کرتے ہیں۔"
 
 msgid "share_consent_body_ip"
-msgstr ""
-"اگر آپ کا راؤٹر پورٹ فارورڈنگ کو سپورٹ کرتا ہے، تو آپ کا گھریلو کنکشن بطور "
-"خروج استعمال ہوتا ہے اور شیئرنگ کے دوران آپ کا IP ایڈریس منزل کے لاگز میں "
-"نظر آئے گا۔ بصورت دیگر وہ ٹریفک Lantern کے سرورز کے ذریعے ریلے کیا جاتا ہے، "
-"اور اس طرح آپ کا IP ظاہر نہیں ہوتا۔"
+msgstr "اگر آپ کا راؤٹر پورٹ فارورڈنگ سپورٹ کرتا ہے تو آپ کا گھریلو کنکشن ایگزٹ کے طور پر استعمال ہوتا ہے اور شیئرنگ کے دوران آپ کا IP ایڈریس منزل کے لاگز میں دکھائی دے گا۔ ورنہ وہ ٹریفک Lantern کے سرورز کے ذریعے ریلے ہوتا ہے، اور اس طرح آپ کا IP ظاہر نہیں ہوتا۔ جس دوست کے آپ پرسنل پراکسی ہیں، اس کا ٹریفک بھی پورٹ فارورڈنگ کے بغیر آپ کے کنکشن سے نکل سکتا ہے۔"
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2091,10 +2087,10 @@ msgid "invite_link_copied"
 msgstr "لنک کاپی ہو گیا"
 
 msgid "invite_qr_hint"
-msgstr "آپ کا دوست اسے Lantern سے اسکین کر سکتا ہے۔"
+msgstr "اگر وہ آپ کے ساتھ ہیں تو لنک کے بجائے Lantern میں اسے اسکین کر سکتے ہیں۔"
 
 msgid "invite_waiting"
-msgstr "آپ کے دوست کے لنک کھولنے کا انتظار ہے"
+msgstr "ان کے لنک کھولنے کا انتظار ہے"
 
 msgid "invite_trust_warning"
 msgstr "جسے آپ مدعو کریں گے اسے معلوم ہوگا کہ آپ Lantern استعمال کرتے ہیں اور وہ دیکھ سکے گا کہ آپ کب اس کے ذریعے منسلک ہیں۔ آپ کا ٹریفک اس کے انٹرنیٹ کنکشن سے گزرتا ہے، اس لیے وہ جان سکتا ہے کہ آپ کون سی سائٹس دیکھتے ہیں، لیکن یہ نہیں کہ آپ محفوظ (https) سائٹس پر کیا کرتے ہیں۔ صرف کسی بھروسے مند شخص کو مدعو کریں۔"
@@ -2131,9 +2127,6 @@ msgstr "اپنے دوست کا بھیجا ہوا لنک پیسٹ کریں"
 
 msgid "help_friend_scan"
 msgstr "اپنے دوست کا QR کوڈ اسکین کریں"
-
-msgid "help_friend_approved"
-msgstr "اب آپ %s کی مدد کر رہے ہیں۔"
 
 msgid "help_friend_no_longer_pending"
 msgstr "یہ درخواست اب زیر التوا نہیں ہے۔ اپنے دوست سے نئی دعوت مانگیں۔"
@@ -2174,12 +2167,6 @@ msgstr "مدد بند کریں"
 msgid "helping_remove_confirm"
 msgstr "%s کی مدد بند کریں؟ آپ کے ذریعے دوبارہ منسلک ہونے کے لیے انہیں نئے دعوت نامے کی ضرورت ہوگی۔"
 
-msgid "help_others_too"
-msgstr "دوسروں کی بھی مدد کریں"
-
-msgid "help_others_too_body"
-msgstr "سنسرشپ کا سامنا کرنے والے دوسرے لوگوں کو اپنی اضافی گنجائش دیں؛ Lantern انہیں صرف اجازت والی سائٹس تک پہنچنے دیتا ہے، جس سے آپ کا کنکشن غلط استعمال سے محفوظ رہتا ہے۔"
-
 msgid "help_others_too_note"
 msgstr "اسے بدلنے سے آپ جن کی مدد کر رہے ہیں وہ تھوڑی دیر کے لیے دوبارہ منسلک ہوں گے۔"
 
@@ -2199,7 +2186,7 @@ msgid "invite_link_label"
 msgstr "آپ کا دعوتی لنک"
 
 msgid "invite_link_expiry"
-msgstr "یہ ایک بار کام کرتا ہے اور 48 گھنٹے میں ختم ہو جاتا ہے۔"
+msgstr "ایک بار کام کرتا ہے اور 48 گھنٹوں میں ختم ہو جاتا ہے"
 
 msgid "approve_title"
 msgstr "%s آپ کا ذاتی پراکسی بننا چاہتے ہیں"
@@ -2220,7 +2207,7 @@ msgid "become_means_title"
 msgstr "پرسنل پراکسی ہونے کا کیا مطلب ہے"
 
 msgid "become_means_traffic"
-msgstr "ایک دوست نے آپ سے مدد مانگی ہے۔ جب تک Action Mode چل رہا ہے، وہ آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچ سکتے ہیں۔ آپ کے راؤٹر کے مطابق، ان کا ٹریفک آپ کے نیٹ ورک سے نکلتا ہے یا Lantern کے سرورز سے ہو کر جاتا ہے۔ وہ آن لائن کیا کرتے ہیں، Lantern آپ کو نہیں دکھاتا۔"
+msgstr "ایک دوست نے آپ سے مدد مانگی ہے۔ Action Mode چلنے کے دوران، وہ آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچ سکتے ہیں۔ Lantern آپ کو نہیں دکھاتا کہ وہ کون سی سائٹس کھولتے ہیں۔"
 
 msgid "become_means_seen"
 msgstr "وہ دیکھ سکتے ہیں کہ آپ کب منسلک ہیں۔ صرف جاننے والے لوگوں کے دعوت نامے قبول کریں۔"
@@ -2231,14 +2218,8 @@ msgstr "کنکشن کسی بھی وقت ہٹا دیں۔"
 msgid "help_friend_form_title"
 msgstr "جس کی آپ مدد کر رہے ہیں اس کا لنک پیسٹ کریں"
 
-msgid "help_friend_link_hint"
-msgstr "اس ڈیوائس پر لنک پر ٹیپ کرنے سے یہ بھر جائے گا"
-
 msgid "help_friend_name_label"
 msgstr "آپ کا نام، جس سے وہ آپ کو جانتے ہیں"
-
-msgid "help_friend_name_hint"
-msgstr "ان کے Lantern میں آپ اسی طرح نظر آئیں گے"
 
 msgid "help_friend_become"
 msgstr "ان کی ذاتی پراکسی بنیں"
@@ -2300,17 +2281,8 @@ msgstr "فعال: %s"
 msgid "personal_proxy_fallback_auto"
 msgstr "ابھی %s تک رسائی نہیں ہو رہی۔ اسمارٹ لوکیشن پر منتقل کر دیا گیا۔"
 
-msgid "help_friend_form_title_from_link"
-msgstr "ایک دوست نے آپ کو اپنی ذاتی پراکسی بننے کی دعوت دی ہے"
-
 msgid "help_friend_paste_button"
 msgstr "لنک پیسٹ کریں"
-
-msgid "help_friend_no_link"
-msgstr "ابھی تک لنک نہیں ملا؟"
-
-msgid "help_friend_ask_invite"
-msgstr "اپنے دوست سے دعوت بھیجنے کو کہیں"
 
 msgid "help_friend_ask_invite_message"
 msgstr "میں Lantern پر آپ کی ذاتی پراکسی بن سکتا ہوں، تاکہ آپ میرے کنکشن کے ذریعے آن لائن ہو سکیں۔ Lantern میں \"سرور کا انتخاب\" کھولیں، اوپر ⋮ مینو پر ٹیپ کریں، \"ذاتی پراکسی کو مدعو کریں\" منتخب کریں اور مجھے لنک بھیجیں۔"
@@ -2326,3 +2298,126 @@ msgstr "اس کمپیوٹر پر Lantern کے علاوہ کسی ایپ کی .exe
 
 msgid "unable_to_add_executable"
 msgstr "ایگزیکیوٹیبل شامل نہیں ہو سکا۔ اس کمپیوٹر پر موجود کوئی .exe فائل منتخب کریں اور دوبارہ کوشش کریں۔"
+
+msgid "unable_to_connect"
+msgstr "منسلک نہیں ہو سکا"
+
+msgid "enable_action_mode"
+msgstr "Action Mode آن کریں"
+
+msgid "disable_action_mode"
+msgstr "Action Mode بند کریں"
+
+msgid "helping_one_person"
+msgstr "1 شخص کی مدد کر رہے ہیں"
+
+msgid "helping_people"
+msgstr "%s لوگوں کی مدد کر رہے ہیں"
+
+msgid "onboarding_personal_proxies"
+msgstr "ذاتی پراکسیز"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "اپنے ملک سے باہر کسی بھروسے مند شخص کے ذریعے سیدھے منسلک ہوں۔"
+
+msgid "onboarding_new_badge"
+msgstr "نیا"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "کھلے انٹرنیٹ تک رسائی میں دوسروں کی مدد کریں"
+
+msgid "onboarding_action_mode_share"
+msgstr "اپنا کنکشن شیئر کریں"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "دوسروں کو انٹرنیٹ پابندیوں سے بچنے میں مدد کے لیے اپنے کنکشن کا تھوڑا سا حصہ رضاکارانہ طور پر دیں۔"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "کسی جاننے والے کی مدد کریں"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "کسی دوست کا Personal Proxy بن کر اس کی مدد کریں تاکہ وہ سیدھے آپ کے ذریعے منسلک ہو سکے۔"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "آپ کی پرائیویسی محفوظ ہے"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "آپ کا ذاتی ڈیٹا اور براؤزنگ سرگرمی کبھی شیئر یا ظاہر نہیں کی جاتی۔"
+
+msgid "onboarding_action_mode_control"
+msgstr "کنٹرول آپ کے ہاتھ میں ہے"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Action Mode ٹیب سے کسی بھی وقت Action Mode آن یا آف کریں۔"
+
+msgid "approved_title"
+msgstr "%s اب آپ کی ذاتی پراکسی ہے"
+
+msgid "approved_body"
+msgstr "جب %s آن لائن ہوں تو آپ انہیں سرور کے انتخاب میں نجی مقامات کے تحت منتخب کر سکتے ہیں۔"
+
+msgid "approved_connect_now"
+msgstr "ابھی منسلک کریں"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "ان کی سرور لسٹ میں آپ اسی طرح دکھائی دیں گے۔"
+
+msgid "help_friend_success_title"
+msgstr "اب آپ %s کی پرسنل پراکسی ہیں"
+
+msgid "help_friend_success_body"
+msgstr "%s نے آپ کو منظوری دے دی۔ Action Mode آن ہونے پر وہ آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچ سکتے ہیں۔"
+
+msgid "help_friend_keep_on"
+msgstr "Action Mode آن رکھیں"
+
+msgid "help_friend_keep_on_body"
+msgstr "ابھی اور جب بھی Lantern کھلا ہو آن ہو جاتا ہے، تاکہ %s کنیکٹ رہیں۔"
+
+msgid "help_friend_no_link_yet"
+msgstr "ابھی تک لنک نہیں ملا؟"
+
+msgid "help_friend_ask_send_link"
+msgstr "ان سے کہیں کہ آپ کو ایک لنک بھیجیں۔"
+
+msgid "helping_scope_line_all"
+msgstr "تمام ممالک کے لوگوں کی بھی مدد کر رہے ہیں"
+
+msgid "helping_scope_line_friends"
+msgstr "صرف اپنے دوستوں کی مدد کر رہے ہیں"
+
+msgid "helping_scope_change"
+msgstr "بدلیں"
+
+msgid "helping_scope_title"
+msgstr "آپ کس کی مدد کر رہے ہیں"
+
+msgid "helping_scope_subtitle"
+msgstr "صرف اپنے دوستوں کے ساتھ، یا تمام ممالک کے لوگوں کے ساتھ شیئر کریں۔"
+
+msgid "helping_scope_only_friends"
+msgstr "صرف میرے پرسنل پراکسی کنکشنز"
+
+msgid "helping_scope_all_countries"
+msgstr "تمام ممالک"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "دوسروں کو کھلے انٹرنیٹ تک پہنچنے میں مدد کے لیے اپنا کنکشن محفوظ طریقے سے شیئر کریں۔"
+
+msgid "invite_show_qr"
+msgstr "QR کوڈ دکھائیں"
+
+msgid "invite_link_hint"
+msgstr "اپنا لنک پانے کے لیے اپنا نام درج کریں"
+
+msgid "invite_qr_title"
+msgstr "کیمرے سے اسکین کریں"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "یہ اکاؤنٹ %s کے ذریعے سائن ان ہوتا ہے، جس کی تصدیق ٹی وی پر نہیں ہو سکتی۔ اسے ہٹانے کے لیے اپنے فون یا کمپیوٹر پر Lantern کھولیں اور وہاں سے ہٹائیں۔"
+
+msgid "open_on_another_device"
+msgstr "دوسرے ڈیوائس پر کھولیں"
+
+msgid "open_on_another_device_hint"
+msgstr "اس ٹی وی میں ویب براؤزر نہیں ہے۔ اپنے فون یا کمپیوٹر پر کوڈ اسکین کریں یا پتہ ٹائپ کریں۔"

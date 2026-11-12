@@ -1701,11 +1701,7 @@ msgstr ""
 "তাদের ট্র্যাফিক আপনার সংযোগের মাধ্যমে রুট করে।"
 
 msgid "share_consent_body_ip"
-msgstr ""
-"আপনার রাউটার পোর্ট ফরওয়ার্ডিং সমর্থন করলে, আপনার বাড়ির সংযোগ এক্সিট হিসেবে"
-" ব্যবহৃত হয় এবং শেয়ার করার সময় গন্তব্যের লগে আপনার IP ঠিকানা দেখা যাবে। "
-"অন্যথায় সেই ট্র্যাফিক Lantern-এর সার্ভারের মাধ্যমে রিলে করা হয়, এবং সেভাবে"
-" আপনার IP প্রকাশ পায় না।"
+msgstr "আপনার রাউটার পোর্ট ফরওয়ার্ডিং সমর্থন করলে, আপনার বাসার সংযোগ এক্সিট হিসেবে ব্যবহৃত হয় এবং শেয়ার করার সময় আপনার IP ঠিকানা গন্তব্যের লগে দেখা যাবে। অন্যথায় সেই ট্র্যাফিক Lantern-এর সার্ভারের মাধ্যমে রিলে করা হয়, এবং এভাবে আপনার IP প্রকাশ পায় না। আপনি যে বন্ধুর পার্সোনাল প্রক্সি, তার ট্র্যাফিকও পোর্ট ফরওয়ার্ডিং ছাড়াই আপনার সংযোগ থেকে বের হতে পারে।"
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2084,10 +2080,10 @@ msgid "invite_link_copied"
 msgstr "লিংক কপি করা হয়েছে"
 
 msgid "invite_qr_hint"
-msgstr "আপনার বন্ধু Lantern দিয়ে এটি স্ক্যান করতে পারবেন।"
+msgstr "তারা আপনার সাথে থাকলে লিংক ব্যবহারের বদলে Lantern-এ এটি স্ক্যান করতে পারেন।"
 
 msgid "invite_waiting"
-msgstr "আপনার বন্ধুর লিংক খোলার অপেক্ষায়"
+msgstr "তাদের লিংক খোলার অপেক্ষায়"
 
 msgid "invite_trust_warning"
 msgstr "আপনি যাকে আমন্ত্রণ জানাবেন তিনি জানবেন যে আপনি Lantern ব্যবহার করেন এবং আপনি কখন তার মাধ্যমে সংযুক্ত আছেন তা দেখতে পারবেন। আপনার ট্রাফিক তার ইন্টারনেট সংযোগের মধ্য দিয়ে যায়, তাই তিনি জানতে পারেন আপনি কোন সাইটে যান, তবে নিরাপদ (https) সাইটে আপনি কী করেন তা নয়। শুধু বিশ্বস্ত কাউকে আমন্ত্রণ জানান।"
@@ -2124,9 +2120,6 @@ msgstr "আপনার বন্ধুর পাঠানো লিংকটি
 
 msgid "help_friend_scan"
 msgstr "আপনার বন্ধুর QR কোড স্ক্যান করুন"
-
-msgid "help_friend_approved"
-msgstr "আপনি এখন %s কে সাহায্য করছেন।"
 
 msgid "help_friend_no_longer_pending"
 msgstr "এই অনুরোধটি আর অপেক্ষমাণ নেই। আপনার বন্ধুর কাছে নতুন আমন্ত্রণ চান।"
@@ -2167,12 +2160,6 @@ msgstr "সাহায্য বন্ধ করুন"
 msgid "helping_remove_confirm"
 msgstr "%s কে সাহায্য করা বন্ধ করবেন? আপনার মাধ্যমে আবার সংযোগ করতে তাদের নতুন আমন্ত্রণ লাগবে।"
 
-msgid "help_others_too"
-msgstr "অন্যদেরও সাহায্য করুন"
-
-msgid "help_others_too_body"
-msgstr "সেন্সরশিপের মুখোমুখি অন্য মানুষদের সাথে আপনার অতিরিক্ত সক্ষমতা ভাগ করুন; Lantern তাদের শুধু অনুমোদিত সাইটে যেতে দেয়, যা আপনার সংযোগকে অপব্যবহার থেকে রক্ষা করে।"
-
 msgid "help_others_too_note"
 msgstr "এটি পরিবর্তন করলে আপনি যাদের সাহায্য করছেন তাদের সংযোগ কিছুক্ষণের জন্য পুনরায় স্থাপিত হবে।"
 
@@ -2192,7 +2179,7 @@ msgid "invite_link_label"
 msgstr "আপনার আমন্ত্রণ লিংক"
 
 msgid "invite_link_expiry"
-msgstr "একবারই কাজ করে এবং ৪৮ ঘণ্টায় মেয়াদ শেষ হয়।"
+msgstr "একবার কাজ করে এবং ৪৮ ঘণ্টায় মেয়াদ শেষ হয়"
 
 msgid "approve_title"
 msgstr "%s আপনার পার্সোনাল প্রক্সি হতে চান"
@@ -2213,7 +2200,7 @@ msgid "become_means_title"
 msgstr "পার্সোনাল প্রক্সি হওয়ার অর্থ কী"
 
 msgid "become_means_traffic"
-msgstr "একজন বন্ধু আপনার সাহায্য চেয়েছেন। Action Mode চালু থাকার সময় তারা আপনার সংযোগের মাধ্যমে মুক্ত ইন্টারনেটে যেতে পারেন। আপনার রাউটারের ওপর নির্ভর করে, তাদের ট্রাফিক আপনার নেটওয়ার্ক থেকে বের হয় অথবা Lantern এর সার্ভারের মাধ্যমে পাঠানো হয়। তারা অনলাইনে কী করেন, Lantern তা আপনাকে দেখায় না।"
+msgstr "একজন বন্ধু আপনার সাহায্য চেয়েছেন। Action Mode চালু থাকাকালীন, তিনি আপনার সংযোগের মাধ্যমে উন্মুক্ত ইন্টারনেটে পৌঁছাতে পারেন। তিনি কোন সাইটে যান তা Lantern আপনাকে দেখায় না।"
 
 msgid "become_means_seen"
 msgstr "আপনি কখন সংযুক্ত আছেন তা তারা দেখতে পারেন। শুধু পরিচিত মানুষের আমন্ত্রণ গ্রহণ করুন।"
@@ -2224,14 +2211,8 @@ msgstr "যেকোনো সময় সংযোগটি সরিয়ে
 msgid "help_friend_form_title"
 msgstr "যাকে সাহায্য করছেন তার পাঠানো লিংকটি পেস্ট করুন"
 
-msgid "help_friend_link_hint"
-msgstr "এই ডিভাইসে লিংকে ট্যাপ করলে এটি পূরণ হয়ে যাবে"
-
 msgid "help_friend_name_label"
 msgstr "আপনার নাম, যে নামে তারা আপনাকে চেনে"
-
-msgid "help_friend_name_hint"
-msgstr "তাদের Lantern-এ আপনাকে এভাবেই দেখাবে"
 
 msgid "help_friend_become"
 msgstr "তাদের ব্যক্তিগত প্রক্সি হন"
@@ -2293,17 +2274,8 @@ msgstr "সক্রিয়: %s"
 msgid "personal_proxy_fallback_auto"
 msgstr "এই মুহূর্তে %s এর সাথে সংযোগ করা যাচ্ছে না। স্মার্ট লোকেশনে পরিবর্তন করা হয়েছে।"
 
-msgid "help_friend_form_title_from_link"
-msgstr "একজন বন্ধু আপনাকে তার ব্যক্তিগত প্রক্সি হতে আমন্ত্রণ জানিয়েছেন"
-
 msgid "help_friend_paste_button"
 msgstr "লিংক পেস্ট করুন"
-
-msgid "help_friend_no_link"
-msgstr "এখনও লিংক পাননি?"
-
-msgid "help_friend_ask_invite"
-msgstr "আপনার বন্ধুকে আমন্ত্রণ জানাতে বলুন"
 
 msgid "help_friend_ask_invite_message"
 msgstr "আমি Lantern-এ আপনার ব্যক্তিগত প্রক্সি হতে পারি, যাতে আপনি আমার সংযোগের মাধ্যমে অনলাইনে যেতে পারেন। Lantern-এ \"সার্ভার নির্বাচন\" খুলুন, উপরের ⋮ মেনুতে ট্যাপ করুন, \"একটি ব্যক্তিগত প্রক্সি আমন্ত্রণ জানান\" বেছে নিন এবং লিঙ্কটি আমাকে পাঠান।"
@@ -2319,3 +2291,126 @@ msgstr "এই কম্পিউটারে Lantern ছাড়া অন্�
 
 msgid "unable_to_add_executable"
 msgstr "এক্সিকিউটেবল যোগ করা যায়নি। এই কম্পিউটারে থাকা একটি .exe ফাইল বেছে নিয়ে আবার চেষ্টা করুন।"
+
+msgid "unable_to_connect"
+msgstr "সংযোগ করা যাচ্ছে না"
+
+msgid "enable_action_mode"
+msgstr "Action Mode চালু করুন"
+
+msgid "disable_action_mode"
+msgstr "Action Mode বন্ধ করুন"
+
+msgid "helping_one_person"
+msgstr "১ জনকে সাহায্য করছেন"
+
+msgid "helping_people"
+msgstr "%s জনকে সাহায্য করছেন"
+
+msgid "onboarding_personal_proxies"
+msgstr "ব্যক্তিগত প্রক্সি"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "আপনার দেশের বাইরে বিশ্বস্ত কারও মাধ্যমে সরাসরি সংযোগ করুন।"
+
+msgid "onboarding_new_badge"
+msgstr "নতুন"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "অন্যদের মুক্ত ইন্টারনেটে প্রবেশে সাহায্য করুন"
+
+msgid "onboarding_action_mode_share"
+msgstr "আপনার সংযোগ শেয়ার করুন"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "অন্যদের ইন্টারনেট বিধিনিষেধ এড়াতে সাহায্য করতে আপনার সংযোগের সামান্য অংশ স্বেচ্ছায় দিন।"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "পরিচিত কাউকে সাহায্য করুন"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "বন্ধুর Personal Proxy হয়ে তাকে সাহায্য করুন, যাতে সে সরাসরি আপনার মাধ্যমে সংযোগ করতে পারে।"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "আপনার গোপনীয়তা সুরক্ষিত"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "আপনার ব্যক্তিগত তথ্য ও ব্রাউজিং কার্যকলাপ কখনো শেয়ার বা প্রকাশ করা হয় না।"
+
+msgid "onboarding_action_mode_control"
+msgstr "নিয়ন্ত্রণ আপনার হাতে"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "Action Mode ট্যাব থেকে যেকোনো সময় Action Mode চালু বা বন্ধ করুন।"
+
+msgid "approved_title"
+msgstr "%s এখন আপনার পার্সোনাল প্রক্সি"
+
+msgid "approved_body"
+msgstr "%s অনলাইনে থাকলে, সার্ভার নির্বাচনের প্রাইভেট লোকেশন থেকে তাকে বেছে নিতে পারবেন।"
+
+msgid "approved_connect_now"
+msgstr "এখনই সংযোগ করুন"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "তাদের সার্ভার তালিকায় আপনাকে এভাবেই দেখা যাবে।"
+
+msgid "help_friend_success_title"
+msgstr "আপনি এখন %s এর ব্যক্তিগত প্রক্সি"
+
+msgid "help_friend_success_body"
+msgstr "%s আপনাকে অনুমোদন দিয়েছেন। Action Mode চালু থাকলে তারা আপনার সংযোগের মাধ্যমে মুক্ত ইন্টারনেটে যেতে পারবেন।"
+
+msgid "help_friend_keep_on"
+msgstr "Action Mode চালু রাখুন"
+
+msgid "help_friend_keep_on_body"
+msgstr "এখন এবং যখনই Lantern খোলা থাকবে তখন চালু হবে, যাতে %s সংযুক্ত থাকেন।"
+
+msgid "help_friend_no_link_yet"
+msgstr "এখনো লিংক পাননি?"
+
+msgid "help_friend_ask_send_link"
+msgstr "তাদের একটি পাঠাতে বলুন।"
+
+msgid "helping_scope_line_all"
+msgstr "সব দেশের মানুষকেও সাহায্য করছেন"
+
+msgid "helping_scope_line_friends"
+msgstr "শুধু আপনার বন্ধুদের সাহায্য করছেন"
+
+msgid "helping_scope_change"
+msgstr "পরিবর্তন করুন"
+
+msgid "helping_scope_title"
+msgstr "আপনি যাদের সাহায্য করছেন"
+
+msgid "helping_scope_subtitle"
+msgstr "শুধু আপনার বন্ধুদের সাথে, অথবা সব দেশের মানুষের সাথে শেয়ার করুন।"
+
+msgid "helping_scope_only_friends"
+msgstr "শুধু আমার পার্সোনাল প্রক্সি সংযোগগুলো"
+
+msgid "helping_scope_all_countries"
+msgstr "সব দেশ"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "অন্যদের মুক্ত ইন্টারনেটে প্রবেশে সাহায্য করতে নিরাপদে আপনার সংযোগ শেয়ার করা বেছে নিন।"
+
+msgid "invite_show_qr"
+msgstr "QR কোড দেখান"
+
+msgid "invite_link_hint"
+msgstr "আপনার লিংক পেতে আপনার নাম লিখুন"
+
+msgid "invite_qr_title"
+msgstr "ক্যামেরা দিয়ে স্ক্যান করুন"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "এই অ্যাকাউন্টটি %s দিয়ে সাইন ইন করে, যা টিভিতে যাচাই করা যায় না। এটি মুছতে আপনার ফোন বা কম্পিউটারে Lantern খুলুন এবং সেখান থেকে মুছুন।"
+
+msgid "open_on_another_device"
+msgstr "অন্য ডিভাইসে খুলুন"
+
+msgid "open_on_another_device_hint"
+msgstr "এই টিভিতে কোনো ওয়েব ব্রাউজার নেই। আপনার ফোন বা কম্পিউটারে কোডটি স্ক্যান করুন অথবা ঠিকানাটি লিখুন।"

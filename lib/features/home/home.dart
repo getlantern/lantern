@@ -15,7 +15,9 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/pro_renewal_popup.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/home/startup_presentations.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
+import 'package:lantern/features/onboarding/personal_proxies_intro.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
@@ -45,6 +47,11 @@ class Home extends HookConsumerWidget {
     // ref.listen) because the subscription must outlive a rebuild and is
     // torn down explicitly; the empty dep list keeps it to one
     // subscription for the widget's lifetime rather than one per build.
+    //
+    // Each chain is a step in [presentations], so it never opens over the
+    // Personal Proxies introduction, nor that over it.
+    final presentations = useMemoized(StartupPresentations.new);
+    useEffect(() => presentations.close, const []);
     useEffect(() {
       final sub = ref.listenManual(homeProvider, fireImmediately: true, (
         previous,
@@ -53,12 +60,14 @@ class Home extends HookConsumerWidget {
         final user = next.value;
         if (user == null) return;
         if (!ref.read(appSettingProvider).onboardingCompleted) return;
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!context.mounted) return;
-          await checkAndShowReferralReward(context, user);
-          // Day-of renewal popup, chained so the dialogs never stack.
-          if (!context.mounted) return;
-          await checkAndShowProRenewalPopup(context, ref);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          presentations.add(() async {
+            if (!context.mounted) return;
+            await checkAndShowReferralReward(context, user);
+            // Day-of renewal popup, chained so the dialogs never stack.
+            if (!context.mounted) return;
+            await checkAndShowProRenewalPopup(context, ref);
+          });
         });
       });
       return sub.close;
@@ -279,16 +288,28 @@ class Home extends HookConsumerWidget {
     // over whatever shows, once per claim.
     useHelperApprovalPrompt(context, ref, userMessageRouteObserver);
 
+    // Introduces Personal Proxies to a user who finished onboarding before
+    // it did, once its flag and the user's flags allow.
+    usePersonalProxiesIntro(
+      context,
+      ref,
+      userMessageRouteObserver,
+      presentations: presentations,
+    );
+
     // A newly approved pairing this device helps: start sharing, picking the
     // mode as the toggle does. Not gated on the Unbounded tab being visible:
     // a paired volunteer's widget is turned on server-side (Features[unbounded]).
     // startForHelper holds the start back while this device's country is
-    // unknown or censored; a later country-code event retries it.
+    // unknown or censored; a later country-code event retries it. Not while
+    // a HelpFriend screen waits on its claim: its success screen's "Keep
+    // Action Mode on" decides.
     ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
       prev,
       next,
     ) {
       if (next <= (prev ?? 0)) return;
+      if (ref.read(helpersProvider.notifier).approvalStartHeld) return;
       ref.read(shareProvider.notifier).startForHelper(ref);
     });
     ref.listen<String>(countryCodeProvider, (prev, next) {
@@ -317,10 +338,16 @@ class Home extends HookConsumerWidget {
           onPressed: () {
             appRouter.push(Setting());
           },
-          icon: const AppImage(path: AppImagePaths.menu),
+          // The Action Mode tab's header shows the account icon there.
+          icon: AppImage(
+            path: showUnboundedTab && onUnboundedTab.value
+                ? AppImagePaths.accountCircle
+                : AppImagePaths.menu,
+          ),
         ),
         actions: [
-          if (isUserPro)
+          // Not twice on the Action Mode tab, whose menu button has it.
+          if (isUserPro && !(showUnboundedTab && onUnboundedTab.value))
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {
@@ -333,7 +360,9 @@ class Home extends HookConsumerWidget {
                 );
               },
             )
-          else if (!userLoggedIn)
+          // Not for Pro on the Action Mode tab either: a Pro user signs in
+          // through account setup, from the VPN tab's account icon.
+          else if (!userLoggedIn && !isUserPro)
             AppTextButton(
               label: 'sign_in'.i18n,
               onPressed: () => appRouter.push(const SignInEmail()),

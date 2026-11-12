@@ -17,6 +17,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class _Service implements LanternService {
   final calls = <String>[];
+  final helperArgs = <Map<String, dynamic>>[];
   final patches = <Map<String, dynamic>>[];
   int configRequests = 0;
   Map<String, String> answers = {};
@@ -45,6 +46,7 @@ class _Service implements LanternService {
     Map<String, dynamic> args,
   ) async {
     calls.add(op);
+    helperArgs.add(Map.of(args));
     final q = queued[op];
     final answer = q != null && q.isNotEmpty ? q.removeAt(0) : answers[op];
     final gate = gates.remove(op);
@@ -449,6 +451,23 @@ void main() {
     });
   });
 
+  test('renameInvite sends rename_invite and applies the view', () async {
+    svc.answers = {
+      'rename_invite': _view(
+        invites:
+            '[{"id":"i1","state":"pending","link":"x","inviter_name":"Sara K"}]',
+      ),
+    };
+    final c = container();
+    final r = await c
+        .read(helpersProvider.notifier)
+        .renameInvite('i1', 'Sara K');
+    expect(r.ok, isTrue);
+    expect(svc.calls, ['rename_invite']);
+    expect(svc.helperArgs.single, {'invite_id': 'i1', 'name': 'Sara K'});
+    expect(c.read(helpersProvider).view.invites.single.inviterName, 'Sara K');
+  });
+
   test('renameHelper sends rename_helper and applies the view', () async {
     svc.answers = {
       'rename_helper': _view(
@@ -775,6 +794,26 @@ void main() {
     expect(view.invites.single.volunteerName, isEmpty);
     expect(view.invites.single.code, '1234');
     expect(c.read(helpersProvider).error, 'unavailable');
+  });
+
+  test('remove all keeps whether each pairing has a key', () async {
+    svc.answers = {
+      'unlock': _view(),
+      'refresh': _view(
+        helpers:
+            '[{"pairing_id":"p1","name":"Ali","has_pairing_key":false},'
+            '{"pairing_id":"p2","name":"Bo"}]',
+      ),
+      'end_all_helpers': '{"error":"unavailable"}',
+      'view': '{"error":"unavailable"}',
+    };
+    final c = container();
+    final n = c.read(helpersProvider.notifier);
+    await n.refresh();
+    await n.endAllHelpers();
+    final helpers = c.read(helpersProvider).view.helpers;
+    expect(helpers.map((h) => h.name), ['', '']);
+    expect(helpers.map((h) => h.hasPairingKey), [false, true]);
   });
 
   test('an older view never restores the names remove all erased', () async {

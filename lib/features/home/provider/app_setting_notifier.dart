@@ -107,6 +107,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     if (value) unawaited(_writeInitMarker());
   }
 
+  void setPersonalProxiesIntroSeen(bool value) =>
+      update(state.copyWith(personalProxiesIntroSeen: value));
+
   void setUnboundedAutoEnable(bool value) =>
       update(state.copyWith(unboundedAutoEnable: value));
 
@@ -219,5 +222,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     'successfulConnection': setting.successfulConnection,
     'dataCapThreshold': setting.dataCapThreshold,
     'onboardingCompleted': setting.onboardingCompleted,
+    'personalProxiesIntroSeen': setting.personalProxiesIntroSeen,
   };
 }

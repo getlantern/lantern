@@ -10,6 +10,7 @@
 package helper
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
@@ -17,6 +18,7 @@ import (
 	"encoding/json"
 	"io"
 	"maps"
+	"slices"
 	"sync"
 	"time"
 
@@ -82,6 +84,77 @@ type Engine struct {
 	liveMu    sync.Mutex
 	live      map[string]bool
 	liveKnown bool
+
+	// keysMu guards keys and keysUnlocked, the snapshot PairingKeys reads,
+	// so a reader never waits on an op. It is a leaf lock: Call takes it
+	// under mu.
+	keysMu       sync.Mutex
+	keys         map[string]PairingKey
+	keysUnlocked bool
+	keysChanged  func()
+}
+
+// PairingKey is one pairing's K_pair and this device's side of it.
+type PairingKey struct {
+	Key  []byte
+	Role string
+}
+
+// PairingKeys returns the key of each pairing that has one, by pairing ID:
+// copies, and none while locked. The keys are never logged.
+func (e *Engine) PairingKeys() map[string]PairingKey {
+	keys, _ := e.UnlockedPairingKeys()
+	return keys
+}
+
+// UnlockedPairingKeys is PairingKeys, plus whether the engine is unlocked.
+// While it is locked the empty set says nothing about the pairings, so it
+// must not be taken for "no pairings". The keys are never logged.
+func (e *Engine) UnlockedPairingKeys() (map[string]PairingKey, bool) {
+	e.keysMu.Lock()
+	defer e.keysMu.Unlock()
+	out := make(map[string]PairingKey, len(e.keys))
+	for id, k := range e.keys {
+		out[id] = PairingKey{Key: slices.Clone(k.Key), Role: k.Role}
+	}
+	return out, e.keysUnlocked
+}
+
+// SetKeysChanged sets fn to run each time what UnlockedPairingKeys returns
+// changes, including part way through an op, so a key an op erased before a
+// slow request is revoked at once rather than when the op returns. fn runs
+// with the engine's op lock held, so it must not call Call; reading the keys
+// is fine.
+func (e *Engine) SetKeysChanged(fn func()) {
+	e.keysMu.Lock()
+	defer e.keysMu.Unlock()
+	e.keysChanged = fn
+}
+
+// snapshotKeys refreshes what PairingKeys returns from the state. Called
+// under mu: by Call after every op, by save, and by any op that changes the
+// pairings before a request.
+func (e *Engine) snapshotKeys() {
+	keys := map[string]PairingKey{}
+	if e.key != nil {
+		for _, p := range e.st.Pairings {
+			if len(p.PairingKey) > 0 {
+				keys[p.ID] = PairingKey{Key: slices.Clone(p.PairingKey), Role: p.Role}
+			}
+		}
+	}
+	unlocked := e.key != nil
+	e.keysMu.Lock()
+	changed := unlocked != e.keysUnlocked || !maps.EqualFunc(keys, e.keys, func(a, b PairingKey) bool {
+		return a.Role == b.Role && bytes.Equal(a.Key, b.Key)
+	})
+	e.keys = keys
+	e.keysUnlocked = unlocked
+	notify := e.keysChanged
+	e.keysMu.Unlock()
+	if changed && notify != nil {
+		notify()
+	}
 }
 
 // NewEngine returns an engine that keeps its state in dir.
@@ -95,6 +168,8 @@ func NewEngine(dir string, relay Relay, activity ActivityFunc) *Engine {
 func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	// Runs before the unlock: after every op, failed ones and unlock too.
+	defer e.snapshotKeys()
 	if len(args) == 0 || string(args) == "null" {
 		args = []byte("{}")
 	}
@@ -129,6 +204,8 @@ func (e *Engine) Call(ctx context.Context, op string, args []byte) ([]byte, erro
 		out, err = e.endAllHelpers(ctx)
 	case "rename_helper":
 		out, err = e.renameHelper(args)
+	case "rename_invite":
+		out, err = e.renameInvite(args)
 	default:
 		return nil, errCode(CodeInternal)
 	}
@@ -263,4 +340,8 @@ type PairingView struct {
 	// Connected is set on a pairing this device helps, while radiance can
 	// say whether that friend routes through this device right now.
 	Connected *bool `json:"connected,omitempty"`
+	// HasPairingKey says whether this device keeps the pairing's key. A
+	// pairing saved before keys were kept, or known only from lantern-cloud,
+	// has none.
+	HasPairingKey bool `json:"has_pairing_key"`
 }

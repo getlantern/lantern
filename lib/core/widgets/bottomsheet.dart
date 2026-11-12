@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
+import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/core/widgets/divider_space.dart';
 
 typedef BottomSheetBuilder = Function(
@@ -10,15 +11,19 @@ void showAppBottomSheet(
     required BottomSheetBuilder builder,
     required String title,
     Widget? subtitle,
-    double scrollControlDisabledMaxHeightRatio = .75}) {
-  // backgroundColor and shape come from bottomSheetTheme in app_theme.dart
+    double scrollControlDisabledMaxHeightRatio = .75,
+    Color? backgroundColor}) {
+  // backgroundColor (unless given) and shape come from bottomSheetTheme in
+  // app_theme.dart
   showModalBottomSheet(
     context: context,
+    backgroundColor: backgroundColor,
     isDismissible: true,
     enableDrag: true,
     showDragHandle: true,
     scrollControlDisabledMaxHeightRatio: scrollControlDisabledMaxHeightRatio,
     builder: (context) {
+      focusFirstOnTv(context);
       return DraggableScrollableSheet(
         expand: true,
         initialChildSize: 1,

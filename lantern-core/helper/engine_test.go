@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -888,7 +889,7 @@ func TestAFailedSaveIsRetriedByTheNextOp(t *testing.T) {
 // is dropped; the valid entries still merge.
 func TestABlankListedIDDropsNothing(t *testing.T) {
 	e := newTestEngine(t, newFakeCloud(), "ali", t.TempDir())
-	e.addPairing("p1", RoleVolunteer, "Sara", time.Unix(1, 0), nil)
+	e.addPairing("p1", RoleVolunteer, "Sara", time.Unix(1, 0), nil, nil)
 	changed := e.mergePairings([]listedPairing{{Role: RoleVolunteer}, {PairingID: "p2", Role: RoleInviter}})
 	assert.True(t, changed)
 	require.Len(t, e.st.Pairings, 2)
@@ -992,7 +993,7 @@ func TestANullOrEmptyListingIsEmpty(t *testing.T) {
 		}
 		e := NewEngine(t.TempDir(), relay, nil)
 		call(t, e, "unlock", map[string]any{"key": testKey})
-		e.addPairing("p1", RoleVolunteer, "Sara", time.Unix(1, 0), nil)
+		e.addPairing("p1", RoleVolunteer, "Sara", time.Unix(1, 0), nil, nil)
 		call(t, e, "refresh", nil)
 		assert.Empty(t, e.st.Pairings, body)
 		call(t, e, "end_all_helpers", nil)
@@ -1023,6 +1024,32 @@ func TestRenameHelperIsLocalAndSurvivesRestarts(t *testing.T) {
 	helping := list(call(t, ali, "refresh", nil), "helping")[0]["pairing_id"]
 	assert.Equal(t, CodeNotFound, callErr(t, ali, "rename_helper", map[string]any{"pairing_id": helping, "name": "X"}),
 		"only the user's own personal proxies are renamed")
+}
+
+func TestRenameInviteNamesTheInviterAtApproval(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+
+	inv := call(t, sara, "create_invite", map[string]any{"name": "Sara"})
+	id := inv["invite_id"].(string)
+	before := relayCalls(cloud)
+	v := call(t, sara, "rename_invite", map[string]any{"invite_id": id, "name": "  Sara K "})
+	assert.Equal(t, "Sara K", list(v, "invites")[0]["inviter_name"])
+	assert.Equal(t, "Sara K", v["my_name"], "prefills the next invite")
+	assert.Equal(t, before, relayCalls(cloud), "the name stays local until the approval")
+
+	assert.Equal(t, CodeBadName, callErr(t, sara, "rename_invite", map[string]any{"invite_id": id, "name": " "}))
+	assert.Equal(t, CodeBadName, callErr(t, sara, "rename_invite", map[string]any{"invite_id": id, "name": "a‮b"}))
+	assert.Equal(t, CodeNotFound, callErr(t, sara, "rename_invite", map[string]any{"invite_id": "nope", "name": "X"}))
+
+	call(t, ali, "claim", map[string]any{"link": inv["link"], "name": "Ali"})
+	call(t, sara, "refresh", nil)
+	call(t, sara, "decide", map[string]any{"invite_id": id, "approve": true})
+	assert.Equal(t, "Sara K", list(call(t, ali, "refresh", nil), "helping")[0]["name"],
+		"the friend sees the name as renamed")
+	assert.Equal(t, CodeNotFound, callErr(t, sara, "rename_invite", map[string]any{"invite_id": id, "name": "X"}),
+		"a decided invite is gone")
 }
 
 func TestEndAllHelpersErasesNicknames(t *testing.T) {
@@ -1084,4 +1111,232 @@ func TestInviterRowsCarryTheFriendsOutboundTag(t *testing.T) {
 		helpers = list(call(t, sara, "refresh", nil), "helpers")
 		assert.Nil(t, helpers[0]["outbound_tag"], "%q is not a helper tag", bad)
 	}
+}
+
+// pairedWithSecret is pairedPair that also returns the invite secret, read
+// from the link before approval.
+func pairedWithSecret(t *testing.T, cloud *fakeCloud, inviterDir, volunteerDir string) (inviter, volunteer *Engine, pairingID string, secret []byte) {
+	t.Helper()
+	inviter = newTestEngine(t, cloud, "sara", inviterDir)
+	volunteer = newTestEngine(t, cloud, "ali", volunteerDir)
+	link := call(t, inviter, "create_invite", map[string]any{"name": "Sara"})["link"].(string)
+	secret, err := helperinvite.ParseLink(link)
+	require.NoError(t, err)
+	call(t, volunteer, "claim", map[string]any{"link": link, "name": "Ali"})
+	id := list(call(t, inviter, "refresh", nil), "invites")[0]["id"]
+	call(t, inviter, "decide", map[string]any{"invite_id": id, "approve": true})
+	helping := list(call(t, volunteer, "refresh", nil), "helping")
+	require.Len(t, helping, 1)
+	return inviter, volunteer, helping[0]["pairing_id"].(string), secret
+}
+
+func TestBothSidesKeepThePairingKey(t *testing.T) {
+	cloud := newFakeCloud()
+	sara, ali, id, secret := pairedWithSecret(t, cloud, t.TempDir(), t.TempDir())
+	want := helperinvite.PairingKey(secret)
+	require.Len(t, want, 32)
+
+	sk, ak := sara.PairingKeys(), ali.PairingKeys()
+	require.Contains(t, sk, id)
+	require.Contains(t, ak, id)
+	assert.Equal(t, want, sk[id].Key)
+	assert.Equal(t, want, ak[id].Key)
+	assert.Equal(t, RoleInviter, sk[id].Role)
+	assert.Equal(t, RoleVolunteer, ak[id].Role)
+
+	assert.Equal(t, true, list(call(t, sara, "view", nil), "helpers")[0]["has_pairing_key"])
+	assert.Equal(t, true, list(call(t, ali, "view", nil), "helping")[0]["has_pairing_key"])
+}
+
+func TestPairingKeyAfterALostApproval(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"].(string)
+	secret, err := helperinvite.ParseLink(link)
+	require.NoError(t, err)
+	call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	id := list(call(t, sara, "refresh", nil), "invites")[0]["id"]
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "decide", map[string]any{"invite_id": id, "approve": true}))
+	assert.Empty(t, sara.PairingKeys())
+
+	helpers := list(call(t, sara, "refresh", nil), "helpers")
+	require.Len(t, helpers, 1)
+	assert.Equal(t, true, helpers[0]["has_pairing_key"])
+	keys := sara.PairingKeys()
+	require.Len(t, keys, 1)
+	assert.Equal(t, helperinvite.PairingKey(secret), keys[helpers[0]["pairing_id"].(string)].Key)
+}
+
+func TestPairingKeySurvivesARestartSealed(t *testing.T) {
+	cloud := newFakeCloud()
+	saraDir, aliDir := t.TempDir(), t.TempDir()
+	_, _, id, secret := pairedWithSecret(t, cloud, saraDir, aliDir)
+	key := helperinvite.PairingKey(secret)
+	for _, dir := range []string{saraDir, aliDir} {
+		data, err := os.ReadFile(filepath.Join(dir, stateFile))
+		require.NoError(t, err)
+		assert.False(t, bytes.Contains(data, key), "the key is not in the file in the clear")
+		assert.NotContains(t, string(data), base64.StdEncoding.EncodeToString(key))
+
+		locked := NewEngine(dir, cloud.relay("x"), nil)
+		assert.Empty(t, locked.PairingKeys(), "nothing while locked")
+		lockedKeys, unlocked := locked.UnlockedPairingKeys()
+		assert.Empty(t, lockedKeys)
+		assert.False(t, unlocked, "a locked engine says so")
+		again := newTestEngine(t, cloud, "x", dir)
+		assert.Equal(t, key, again.PairingKeys()[id].Key, "the key survives a restart")
+		againKeys, unlocked := again.UnlockedPairingKeys()
+		assert.True(t, unlocked)
+		assert.Equal(t, key, againKeys[id].Key)
+	}
+}
+
+func TestEndPairingDropsTheKeyOnBothSides(t *testing.T) {
+	cloud := newFakeCloud()
+	sara, ali, id, _ := pairedWithSecret(t, cloud, t.TempDir(), t.TempDir())
+	call(t, sara, "end_pairing", map[string]any{"pairing_id": id})
+	assert.Empty(t, sara.PairingKeys())
+	assert.NotEmpty(t, ali.PairingKeys(), "until the other side refreshes")
+	call(t, ali, "refresh", nil)
+	assert.Empty(t, ali.PairingKeys(), "a server-side end drops it at the next refresh")
+
+	cloud = newFakeCloud()
+	sara, ali, id, _ = pairedWithSecret(t, cloud, t.TempDir(), t.TempDir())
+	call(t, ali, "end_pairing", map[string]any{"pairing_id": id})
+	assert.Empty(t, ali.PairingKeys())
+	call(t, sara, "refresh", nil)
+	assert.Empty(t, sara.PairingKeys())
+}
+
+func TestPairingKeysAreCopies(t *testing.T) {
+	cloud := newFakeCloud()
+	sara, _, id, secret := pairedWithSecret(t, cloud, t.TempDir(), t.TempDir())
+	keys := sara.PairingKeys()
+	keys[id].Key[0] ^= 0xff
+	delete(keys, id)
+	assert.Equal(t, helperinvite.PairingKey(secret), sara.PairingKeys()[id].Key)
+	assert.Equal(t, helperinvite.PairingKey(secret), sara.pairing(id).PairingKey)
+}
+
+func TestOldStateHasNoPairingKey(t *testing.T) {
+	cloud := newFakeCloud()
+	dir := t.TempDir()
+	key := bytes.Repeat([]byte{1}, 32)
+	aead, err := chacha20poly1305.New(key)
+	require.NoError(t, err)
+	old := `{"v":1,"my_name":"Ali","pairings":[{"id":"p1","role":"volunteer","name":"Sara","since":"2026-10-01T00:00:00Z"},` +
+		`{"id":"p2","role":"inviter","name":"Bo","since":"2026-10-01T00:00:00Z"}]}`
+	nonce := make([]byte, chacha20poly1305.NonceSize)
+	require.NoError(t, os.WriteFile(filepath.Join(dir, stateFile),
+		aead.Seal(nonce, nonce, []byte(old), []byte(stateAD)), 0o600))
+
+	ali := NewEngine(dir, cloud.relay("ali"), nil)
+	out := call(t, ali, "unlock", map[string]any{"key": testKey})
+	helping, helpers := list(out, "helping"), list(out, "helpers")
+	require.Len(t, helping, 1)
+	require.Len(t, helpers, 1)
+	assert.Equal(t, false, helping[0]["has_pairing_key"])
+	assert.Equal(t, false, helpers[0]["has_pairing_key"])
+	assert.Empty(t, ali.PairingKeys())
+}
+
+func TestARemoteOnlyPairingHasNoKey(t *testing.T) {
+	cloud := newFakeCloud()
+	sara := newTestEngine(t, cloud, "sara", t.TempDir())
+	ali := newTestEngine(t, cloud, "ali", t.TempDir())
+	link := call(t, sara, "create_invite", map[string]any{"name": "Sara"})["link"]
+	call(t, ali, "claim", map[string]any{"link": link, "name": "Ali"})
+	id := list(call(t, sara, "refresh", nil), "invites")[0]["id"]
+	cloud.loseAnswer["invites/decide"] = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "decide", map[string]any{"invite_id": id, "approve": true}))
+	cloud.fail["pairings/end"] = 503
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "end_all_helpers", nil))
+	helpers := list(call(t, sara, "view", nil), "helpers")
+	require.Len(t, helpers, 1)
+	assert.Equal(t, false, helpers[0]["has_pairing_key"])
+	assert.Empty(t, sara.PairingKeys())
+}
+
+func TestEndAllHelpersErasesPairingKeys(t *testing.T) {
+	cloud := newFakeCloud()
+	dir := t.TempDir()
+	sara := newTestEngine(t, cloud, "sara", dir)
+	pair(t, cloud, sara, t.TempDir())
+	require.Len(t, sara.PairingKeys(), 1)
+	cloud.down = true
+	assert.Equal(t, CodeUnavailable, callErr(t, sara, "end_all_helpers", nil))
+	assert.Empty(t, sara.PairingKeys(), "the keys go with the names, before any request")
+	for _, p := range newTestEngine(t, cloud, "sara", dir).st.Pairings {
+		assert.Empty(t, p.PairingKey)
+	}
+}
+
+func TestAddPairingFillsAMissingKey(t *testing.T) {
+	e := NewEngine(t.TempDir(), nil, nil)
+	e.addPairing("p", RoleInviter, "Ali", time.Now(), nil, nil)
+	assert.Empty(t, e.pairing("p").PairingKey)
+	e.addPairing("p", RoleInviter, "Ali", time.Now(), nil, []byte{1, 2})
+	assert.Equal(t, []byte{1, 2}, e.pairing("p").PairingKey)
+	e.addPairing("p", RoleInviter, "Ali", time.Now(), nil, []byte{3})
+	assert.Equal(t, []byte{1, 2}, e.pairing("p").PairingKey, "a kept key is not replaced")
+}
+
+// TestRemoveAllRevokesKeysBeforeTheEndRequest: remove all erases the keys
+// before it asks lantern-cloud to end anything, and the change is published
+// then, so a stalled pairings/end does not keep a revoked key in radiance
+// for the length of the op.
+func TestRemoveAllRevokesKeysBeforeTheEndRequest(t *testing.T) {
+	cloud := newFakeCloud()
+	sara, _, id, _ := pairedWithSecret(t, cloud, t.TempDir(), t.TempDir())
+	require.Contains(t, sara.PairingKeys(), id)
+
+	stalled, release := make(chan struct{}), make(chan struct{})
+	inner := sara.relay
+	sara.relay = func(ctx context.Context, op string, body []byte) (int, []byte, string, error) {
+		if op == "pairings/end" {
+			close(stalled)
+			<-release
+		}
+		return inner(ctx, op, body)
+	}
+	var mu sync.Mutex
+	var seen []map[string]PairingKey
+	sara.SetKeysChanged(func() {
+		keys, unlocked := sara.UnlockedPairingKeys()
+		assert.True(t, unlocked)
+		mu.Lock()
+		seen = append(seen, keys)
+		mu.Unlock()
+	})
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		_, err := sara.Call(context.Background(), "end_all_helpers", nil)
+		assert.NoError(t, err)
+	}()
+	<-stalled
+	mu.Lock()
+	require.NotEmpty(t, seen, "the change is published while pairings/end hangs")
+	assert.NotContains(t, seen[len(seen)-1], id)
+	mu.Unlock()
+	keys, _ := sara.UnlockedPairingKeys()
+	assert.NotContains(t, keys, id, "and a reader sees the reduced set")
+	close(release)
+	<-done
+	assert.Empty(t, sara.PairingKeys())
+}
+
+func TestKeysChangedRunsOnlyOnAChange(t *testing.T) {
+	cloud := newFakeCloud()
+	e := NewEngine(t.TempDir(), cloud.relay("x"), nil)
+	n := 0
+	e.SetKeysChanged(func() { n++ })
+	call(t, e, "unlock", map[string]any{"key": testKey})
+	assert.Equal(t, 1, n, "the unlock is a change")
+	call(t, e, "view", nil)
+	call(t, e, "refresh", nil)
+	assert.Equal(t, 1, n, "ops that change no key are not")
 }

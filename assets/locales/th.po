@@ -1677,12 +1677,7 @@ msgstr ""
 "ผู้คนในประเทศที่ถูกเซ็นเซอร์จะส่งทราฟฟิกผ่านการเชื่อมต่อของคุณเพื่อเข้าถึงอินเทอร์เน็ตเสรี"
 
 msgid "share_consent_body_ip"
-msgstr ""
-"หากเราเตอร์ของคุณรองรับการส่งต่อพอร์ต "
-"การเชื่อมต่อที่บ้านของคุณจะถูกใช้เป็นทางออก และที่อยู่ IP "
-"ของคุณจะปรากฏในบันทึกของปลายทางขณะที่คุณแชร์ "
-"มิฉะนั้นทราฟฟิกนั้นจะถูกส่งผ่านเซิร์ฟเวอร์ของ Lantern แทน และ IP "
-"ของคุณจะไม่ถูกเปิดเผยด้วยวิธีนั้น"
+msgstr "หากเราเตอร์ของคุณรองรับการส่งต่อพอร์ต การเชื่อมต่อที่บ้านของคุณจะถูกใช้เป็นทางออก และที่อยู่ IP ของคุณจะปรากฏในบันทึกของปลายทางขณะที่คุณแชร์ มิฉะนั้นทราฟฟิกนั้นจะถูกส่งต่อผ่านเซิร์ฟเวอร์ของ Lantern แทน และ IP ของคุณจะไม่ถูกเปิดเผยในลักษณะนั้น ทราฟฟิกจากเพื่อนที่คุณเป็นพร็อกซีส่วนตัวให้ก็ออกจากการเชื่อมต่อของคุณได้เช่นกัน แม้ไม่มีการส่งต่อพอร์ต"
 
 msgid "share_consent_body_safety"
 msgstr ""
@@ -2058,10 +2053,10 @@ msgid "invite_link_copied"
 msgstr "คัดลอกลิงก์แล้ว"
 
 msgid "invite_qr_hint"
-msgstr "เพื่อนของคุณสามารถสแกนรหัสนี้ด้วย Lantern"
+msgstr "หากอีกฝ่ายอยู่กับคุณ สามารถสแกนสิ่งนี้ใน Lantern แทนการใช้ลิงก์ได้"
 
 msgid "invite_waiting"
-msgstr "กำลังรอให้เพื่อนของคุณเปิดลิงก์"
+msgstr "กำลังรออีกฝ่ายเปิดลิงก์"
 
 msgid "invite_trust_warning"
 msgstr "ผู้ที่คุณเชิญจะรู้ว่าคุณใช้ Lantern และเห็นได้ว่าคุณเชื่อมต่อผ่านเขาเมื่อใด การรับส่งข้อมูลของคุณผ่านการเชื่อมต่ออินเทอร์เน็ตของเขา เขาจึงอาจรู้ว่าคุณเข้าเว็บไซต์ใดบ้าง แต่ไม่รู้ว่าคุณทำอะไรบนเว็บไซต์ที่ปลอดภัย (https) เชิญเฉพาะคนที่คุณไว้ใจ"
@@ -2098,9 +2093,6 @@ msgstr "วางลิงก์ที่เพื่อนของคุณส
 
 msgid "help_friend_scan"
 msgstr "สแกนคิวอาร์โค้ดของเพื่อน"
-
-msgid "help_friend_approved"
-msgstr "ตอนนี้คุณกำลังช่วย %s"
 
 msgid "help_friend_no_longer_pending"
 msgstr "คำขอนี้ไม่ได้รอดำเนินการอีกต่อไป ขอคำเชิญใหม่จากเพื่อนของคุณ"
@@ -2140,12 +2132,6 @@ msgstr "หยุดช่วยเหลือ"
 
 msgid "helping_remove_confirm"
 msgstr "หยุดช่วยเหลือ %s ? ผู้นั้นจะต้องได้รับคำเชิญใหม่เพื่อเชื่อมต่อผ่านคุณอีกครั้ง"
-
-msgid "help_others_too"
-msgstr "ช่วยเหลือผู้อื่นด้วย"
-
-msgid "help_others_too_body"
-msgstr "แบ่งปันความจุที่เหลือให้ผู้อื่นที่เผชิญการเซ็นเซอร์ Lantern อนุญาตให้พวกเขาเข้าถึงเฉพาะเว็บไซต์ที่อนุญาตเท่านั้น ซึ่งช่วยปกป้องการเชื่อมต่อของคุณจากการใช้งานในทางที่ผิด"
 
 msgid "help_others_too_note"
 msgstr "การเปลี่ยนตัวเลือกนี้จะทำให้ผู้ที่คุณช่วยเหลือเชื่อมต่อใหม่ชั่วครู่"
@@ -2187,7 +2173,7 @@ msgid "become_means_title"
 msgstr "การเป็นพร็อกซีส่วนตัวหมายถึงอะไร"
 
 msgid "become_means_traffic"
-msgstr "เพื่อนขอความช่วยเหลือจากคุณ ขณะที่ Action Mode ทำงาน เพื่อนจะเข้าถึงอินเทอร์เน็ตแบบเปิดผ่านการเชื่อมต่อของคุณได้ ทราฟฟิกของเพื่อนจะออกจากเครือข่ายของคุณหรือส่งต่อผ่านเซิร์ฟเวอร์ของ Lantern ขึ้นอยู่กับเราเตอร์ของคุณ Lantern ไม่แสดงให้คุณเห็นว่าเพื่อนทำอะไรทางออนไลน์"
+msgstr "เพื่อนขอความช่วยเหลือจากคุณ ขณะที่ Action Mode ทำงาน เพื่อนจะเข้าถึงอินเทอร์เน็ตเสรีผ่านการเชื่อมต่อของคุณได้ Lantern จะไม่แสดงให้คุณเห็นว่าเพื่อนเข้าเว็บไซต์ใด"
 
 msgid "become_means_seen"
 msgstr "พวกเขาเห็นได้ว่าคุณเชื่อมต่ออยู่เมื่อใด ยอมรับคำเชิญจากคนที่คุณรู้จักเท่านั้น"
@@ -2198,14 +2184,8 @@ msgstr "ลบการเชื่อมต่อได้ทุกเมื่
 msgid "help_friend_form_title"
 msgstr "วางลิงก์จากคนที่คุณกำลังช่วย"
 
-msgid "help_friend_link_hint"
-msgstr "แตะลิงก์บนอุปกรณ์นี้เพื่อกรอกช่องนี้"
-
 msgid "help_friend_name_label"
 msgstr "ชื่อของคุณที่เพื่อนรู้จัก"
-
-msgid "help_friend_name_hint"
-msgstr "นี่คือชื่อที่จะแสดงใน Lantern ของเพื่อน"
 
 msgid "help_friend_become"
 msgstr "เป็นพร็อกซีส่วนตัวของเพื่อน"
@@ -2267,17 +2247,8 @@ msgstr "ใช้งาน %s"
 msgid "personal_proxy_fallback_auto"
 msgstr "ไม่สามารถติดต่อ %s ได้ในขณะนี้ เปลี่ยนเป็นตำแหน่งอัจฉริยะแล้ว"
 
-msgid "help_friend_form_title_from_link"
-msgstr "เพื่อนเชิญคุณให้เป็นพร็อกซีส่วนตัวของเขา"
-
 msgid "help_friend_paste_button"
 msgstr "วางลิงก์"
-
-msgid "help_friend_no_link"
-msgstr "ยังไม่มีลิงก์?"
-
-msgid "help_friend_ask_invite"
-msgstr "ขอให้เพื่อนส่งคำเชิญให้คุณ"
 
 msgid "help_friend_ask_invite_message"
 msgstr "ฉันเป็นพร็อกซีส่วนตัวของคุณใน Lantern ได้ เพื่อให้คุณออนไลน์ผ่านการเชื่อมต่อของฉัน ใน Lantern ให้เปิด \"การเลือกเซิร์ฟเวอร์\" แตะเมนู ⋮ ด้านบน เลือก \"เชิญพร็อกซีส่วนตัว\" แล้วส่งลิงก์มาให้ฉัน"
@@ -2293,3 +2264,126 @@ msgstr "เลือกไฟล์ .exe ของแอปในคอมพิ
 
 msgid "unable_to_add_executable"
 msgstr "ไม่สามารถเพิ่มไฟล์ปฏิบัติการได้ เลือกไฟล์ .exe ที่มีอยู่ในคอมพิวเตอร์นี้แล้วลองอีกครั้ง"
+
+msgid "unable_to_connect"
+msgstr "ไม่สามารถเชื่อมต่อได้"
+
+msgid "enable_action_mode"
+msgstr "เปิด Action Mode"
+
+msgid "disable_action_mode"
+msgstr "ปิด Action Mode"
+
+msgid "helping_one_person"
+msgstr "กำลังช่วย 1 คน"
+
+msgid "helping_people"
+msgstr "กำลังช่วย %s คน"
+
+msgid "onboarding_personal_proxies"
+msgstr "พร็อกซีส่วนตัว"
+
+msgid "onboarding_personal_proxies_description"
+msgstr "เชื่อมต่อโดยตรงผ่านคนที่คุณไว้ใจซึ่งอยู่นอกประเทศของคุณ"
+
+msgid "onboarding_new_badge"
+msgstr "ใหม่"
+
+msgid "onboarding_action_mode_subtitle"
+msgstr "ช่วยให้ผู้อื่นเข้าถึงอินเทอร์เน็ตที่เปิดกว้าง"
+
+msgid "onboarding_action_mode_share"
+msgstr "แชร์การเชื่อมต่อของคุณ"
+
+msgid "onboarding_action_mode_share_description"
+msgstr "แบ่งปันการเชื่อมต่อของคุณเพียงเล็กน้อยเพื่อช่วยให้ผู้อื่นข้ามข้อจำกัดทางอินเทอร์เน็ต"
+
+msgid "onboarding_action_mode_help_someone"
+msgstr "ช่วยคนที่คุณรู้จัก"
+
+msgid "onboarding_action_mode_help_someone_description"
+msgstr "ช่วยเพื่อนโดยเป็น Personal Proxy ของเขา เพื่อให้เขาเชื่อมต่อโดยตรงผ่านคุณได้"
+
+msgid "onboarding_action_mode_privacy"
+msgstr "ความเป็นส่วนตัวของคุณได้รับการปกป้อง"
+
+msgid "onboarding_action_mode_privacy_description"
+msgstr "ข้อมูลส่วนตัวและกิจกรรมการท่องเว็บของคุณจะไม่มีวันถูกแชร์หรือเปิดเผย"
+
+msgid "onboarding_action_mode_control"
+msgstr "คุณควบคุมได้เอง"
+
+msgid "onboarding_action_mode_control_description"
+msgstr "เปิดหรือปิด Action Mode ได้ทุกเมื่อจากแท็บ Action Mode"
+
+msgid "approved_title"
+msgstr "%s เป็นพร็อกซีส่วนตัวของคุณแล้ว"
+
+msgid "approved_body"
+msgstr "เมื่อ %s ออนไลน์ คุณสามารถเลือกได้ในตำแหน่งส่วนตัวในการเลือกเซิร์ฟเวอร์"
+
+msgid "approved_connect_now"
+msgstr "เชื่อมต่อตอนนี้"
+
+msgid "help_friend_name_hint_server_list"
+msgstr "นี่คือชื่อที่จะแสดงในรายการเซิร์ฟเวอร์ของเขา"
+
+msgid "help_friend_success_title"
+msgstr "ตอนนี้คุณเป็นพร็อกซีส่วนตัวของ %s แล้ว"
+
+msgid "help_friend_success_body"
+msgstr "%s อนุมัติคุณแล้ว เมื่อเปิด Action Mode เขาจะเข้าถึงอินเทอร์เน็ตเสรีผ่านการเชื่อมต่อของคุณได้"
+
+msgid "help_friend_keep_on"
+msgstr "เปิด Action Mode ไว้"
+
+msgid "help_friend_keep_on_body"
+msgstr "เปิดตอนนี้และทุกครั้งที่ Lantern เปิดอยู่ เพื่อให้ %s เชื่อมต่ออยู่เสมอ"
+
+msgid "help_friend_no_link_yet"
+msgstr "ยังไม่มีลิงก์?"
+
+msgid "help_friend_ask_send_link"
+msgstr "ขอให้เพื่อนส่งลิงก์ให้คุณ"
+
+msgid "helping_scope_line_all"
+msgstr "ช่วยเหลือผู้คนในทุกประเทศด้วย"
+
+msgid "helping_scope_line_friends"
+msgstr "ช่วยเหลือเฉพาะเพื่อนของคุณ"
+
+msgid "helping_scope_change"
+msgstr "เปลี่ยน"
+
+msgid "helping_scope_title"
+msgstr "ผู้ที่คุณกำลังช่วยเหลือ"
+
+msgid "helping_scope_subtitle"
+msgstr "แชร์กับเพื่อนของคุณเท่านั้น หรือกับผู้คนในทุกประเทศ"
+
+msgid "helping_scope_only_friends"
+msgstr "เฉพาะการเชื่อมต่อพร็อกซีส่วนตัวของฉัน"
+
+msgid "helping_scope_all_countries"
+msgstr "ทุกประเทศ"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "เลือกแชร์การเชื่อมต่อของคุณอย่างปลอดภัยเพื่อช่วยให้ผู้อื่นเข้าถึงอินเทอร์เน็ตที่เปิดกว้าง"
+
+msgid "invite_show_qr"
+msgstr "แสดงคิวอาร์โค้ด"
+
+msgid "invite_link_hint"
+msgstr "ป้อนชื่อของคุณเพื่อรับลิงก์"
+
+msgid "invite_qr_title"
+msgstr "สแกนด้วยกล้อง"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "บัญชีนี้ลงชื่อเข้าใช้ด้วย %s ซึ่งไม่สามารถยืนยันบนทีวีได้ หากต้องการลบ ให้เปิด Lantern บนโทรศัพท์หรือคอมพิวเตอร์ของคุณแล้วลบจากที่นั่น"
+
+msgid "open_on_another_device"
+msgstr "เปิดบนอุปกรณ์อื่น"
+
+msgid "open_on_another_device_hint"
+msgstr "ทีวีเครื่องนี้ไม่มีเว็บเบราว์เซอร์ สแกนโค้ดหรือพิมพ์ที่อยู่บนโทรศัพท์หรือคอมพิวเตอร์ของคุณ"

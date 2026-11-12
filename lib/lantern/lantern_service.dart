@@ -402,6 +402,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Uri?>> authenticateInApp(String url) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.authenticateInApp(url);
+    }
+    return _platformService.authenticateInApp(url);
+  }
+
+  @override
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.oAuthLoginCallback(token);

@@ -1263,6 +1263,39 @@ void main() {
     });
   });
 
+  // The tray toggles without a navigator context before the first route has
+  // built; only the consent dialog needs one.
+  group('toggle without a context', () {
+    testWidgets('starts once consent is acknowledged', (tester) async {
+      final (notifier, _, service) = await _start(tester);
+      service.unboundedOk = true;
+      await notifier.toggle(null);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+      expect(notifier.state.active, isTrue);
+    });
+
+    testWidgets('does nothing without consent', (tester) async {
+      final (notifier, _, service) = await _start(tester, consent: false);
+      service.unboundedOk = true;
+      await notifier.toggle(null);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.probing, isFalse);
+    });
+
+    testWidgets('stops an active session', (tester) async {
+      final (notifier, _, service) = await _start(tester);
+      service.unboundedOk = true;
+      await notifier.toggle(null);
+      expect(notifier.state.active, isTrue);
+      service.calls.clear();
+      await notifier.toggle(null);
+      expect(service.calls, ['unbounded:false']);
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.mode, ShareMode.off);
+    });
+  });
+
   group('a stop wins over a fallback', () {
     const smcError = '{"phase":"error","error":"start failed"}';
 
