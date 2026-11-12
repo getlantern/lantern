@@ -978,7 +978,7 @@ jobs:
         needs.set-metadata.outputs.build_type == 'production' ||
         (needs.set-metadata.outputs.build_type == 'nightly' && needs.set-metadata.outputs.publish_mobile_stores == 'true')
       )
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Download iOS Artifact
         uses: actions/download-artifact@v4
