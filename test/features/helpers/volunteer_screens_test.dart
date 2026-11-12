@@ -1000,8 +1000,9 @@ void main() {
 
   /// The success screen pushed through a real AppRouter over a blank home.
   Future<(_Share, _RealRouter)> approvedThroughRouter(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    bool autoEnable = false,
+  }) async {
     await sl.reset();
     final router = _RealRouter();
     sl.registerSingleton<AppRouter>(router);
@@ -1018,7 +1019,9 @@ void main() {
         overrides: [
           helpersProvider.overrideWith(() => helpers),
           shareProvider.overrideWith(() => share),
-          appSettingProvider.overrideWith(_Settings.new),
+          appSettingProvider.overrideWith(
+            () => _Settings(autoEnable: autoEnable),
+          ),
         ],
         child: ScreenUtilInit(
           designSize: const Size(393, 852),
@@ -1051,6 +1054,25 @@ void main() {
     expect(find.text('blank'), findsOneWidget);
     expect(router.stack, hasLength(1));
     expect(share.helperStarts, 0);
+    expect(share.autoEnable, isEmpty);
+  });
+
+  testWidgets('with Auto-enable already on, system Back closes the success '
+      'dialog and still turns Action Mode on: only unchecking says no', (
+    tester,
+  ) async {
+    final (share, router) = await approvedThroughRouter(
+      tester,
+      autoEnable: true,
+    );
+    expect(tester.widget<Checkbox>(autoEnableBox).value, isTrue);
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
+    expect(router.stack, hasLength(1));
+    expect(share.helperStarts, 1);
+    expect(share.startsRequiredAutoEnable, [true]);
     expect(share.autoEnable, isEmpty);
   });
 

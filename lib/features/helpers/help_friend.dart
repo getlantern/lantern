@@ -247,7 +247,12 @@ class HelpFriend extends HookConsumerWidget {
         // The dialog outlives this screen, so it reads through the container.
         final container = ProviderScope.containerOf(context, listen: false);
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!context.mounted) return;
+          // Gone before the handoff: no dialog will ask, and the dispose
+          // release was disarmed above, so let go here.
+          if (!context.mounted) {
+            if (held) notifier.releaseApprovalStart();
+            return;
+          }
           // A dialog pushed since the build, such as the app-wide approval
           // prompt: pop would close it undecided. Hand the hold back and
           // ask again.
@@ -268,8 +273,9 @@ class HelpFriend extends HookConsumerWidget {
               if (!held) return;
               // Auto-enable already on: the box opened checked, so no
               // change of it started Action Mode for this friend. Start it
-              // now, as Home would have without the hold, and only while
-              // the box is still checked.
+              // once the dialog closes, by Done or Back alike, as Home
+              // would have without the hold: the box is the user's answer,
+              // and only unchecking it says no.
               if (container.read(appSettingProvider).unboundedAutoEnable) {
                 unawaited(
                   container
