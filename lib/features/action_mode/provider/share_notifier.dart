@@ -279,7 +279,10 @@ class ShareNotifier extends _$ShareNotifier {
         !_changing &&
         !state.active &&
         !state.probing) {
-      await startForHelper(widgetRef);
+      await startForHelper(
+        widgetRef,
+        requireAutoEnable: _helperStartNeedsAutoEnable,
+      );
     }
   }
 
@@ -468,15 +471,18 @@ class ShareNotifier extends _$ShareNotifier {
   /// Persists the auto-start preference, collecting consent first when
   /// enabling. autoStart refuses to run without an ack, so a preference
   /// written without one would read as enabled and never start.
-  Future<void> setAutoEnable(BuildContext context, bool enabled) async {
+  /// Returns whether Auto-enable is on afterwards: turning it on needs the
+  /// sharing consent, which the user may refuse.
+  Future<bool> setAutoEnable(BuildContext context, bool enabled) async {
     final settings = ref.read(appSettingProvider.notifier);
     if (!enabled) {
       settings.setUnboundedAutoEnable(false);
-      return;
+      return false;
     }
-    if (!await ensureConsent(context)) return;
-    if (!ref.mounted) return;
+    if (!await ensureConsent(context)) return false;
+    if (!ref.mounted) return false;
     settings.setUnboundedAutoEnable(true);
+    return true;
   }
 
   /// Re-emits a +1 for every geo-resolved active peer so a globe that mounts
@@ -553,6 +559,10 @@ class ShareNotifier extends _$ShareNotifier {
   /// country was unknown or censored. Memory only.
   bool _helperStartPending = false;
 
+  /// Whether the held-back start is tied to Auto-enable, as the success
+  /// dialog's checkbox asked. Set with [_helperStartPending], for its retry.
+  bool _helperStartNeedsAutoEnable = false;
+
   /// Starts sharing for a newly approved helper pairing, as the toggle would.
   /// The consent was collected when the user accepted the invite; without it
   /// this does nothing. A user who later turns sharing off stays off.
@@ -561,14 +571,30 @@ class ShareNotifier extends _$ShareNotifier {
   /// lantern-cloud's guard relies on IP geolocation and can fail open. The
   /// approval is then kept, and [retryPendingHelperStart] starts it once the
   /// country is known and allowed. The user can still turn sharing on.
-  Future<void> startForHelper(WidgetRef widgetRef) async {
-    if (!_helperStartAllowed()) return;
+  ///
+  /// [requireAutoEnable] ties the start to the Auto-enable preference: asked
+  /// again before the backend starts, so a box unchecked while the port and
+  /// UPnP checks ran starts nothing.
+  Future<void> startForHelper(
+    WidgetRef widgetRef, {
+    bool requireAutoEnable = false,
+  }) async {
+    // Kept with a start held back below, so its retry asks the same. A
+    // start already waiting without the tie is not tied after the fact.
+    final needsAutoEnable =
+        requireAutoEnable &&
+        (!_helperStartPending || _helperStartNeedsAutoEnable);
+    _helperStartNeedsAutoEnable = needsAutoEnable;
+    bool allowed() =>
+        _helperStartAllowed() &&
+        (!needsAutoEnable || ref.read(appSettingProvider).unboundedAutoEnable);
+    if (!allowed()) return;
     // Held until a start actually proceeds: one skipped because another
     // change is in flight or sharing is already up is retried later.
     _helperStartPending = true;
     await _autoStartWith(() {
       _helperStartPending = false;
-      return _startAuto(mayStart: _helperStartAllowed);
+      return _startAuto(mayStart: allowed);
     });
   }
 
@@ -591,7 +617,11 @@ class ShareNotifier extends _$ShareNotifier {
   /// Retries a helper start held back by [startForHelper]. Called when the
   /// country changes. Dropped if this device no longer helps anyone.
   Future<void> retryPendingHelperStart(WidgetRef widgetRef) async {
-    if (_helperStartPending) await startForHelper(widgetRef);
+    if (!_helperStartPending) return;
+    await startForHelper(
+      widgetRef,
+      requireAutoEnable: _helperStartNeedsAutoEnable,
+    );
   }
 
   /// The no-UI start shared by autoStart and startForHelper: skip while a
