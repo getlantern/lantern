@@ -9,8 +9,9 @@ import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/user_message/user_message_route_observer.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
-/// Opens the approval sheet on its own when a friend claims one of this
-/// user's invites, over whatever screen shows: once per claim, in the
+/// Opens the approval dialog on its own when a friend claims one of this
+/// user's invites, over whatever screen shows, the invite screen included:
+/// the friend opening the link leads straight to it. Once per claim, in the
 /// foreground, and never over a dialog, sheet or blocked flow ([routes]),
 /// a checkout in progress, or the loading overlay: the same rules as
 /// UserMessageHost. The claim arrives with the notifier's own poll; nothing
@@ -63,8 +64,8 @@ void useHelperApprovalPrompt(
       if (context.mounted) schedule();
     }
 
-    // After the frame, so a screen that offers the codes itself (InviteShare)
-    // has marked its invite first.
+    // After the frame, so a caller that opens the approval itself
+    // (startPersonalProxyInvite) has marked its invite first.
     schedule = () {
       if (scheduled.value) return;
       scheduled.value = true;

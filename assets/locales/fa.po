@@ -2078,10 +2078,10 @@ msgid "invite_link_copied"
 msgstr "پیوند کپی شد"
 
 msgid "invite_qr_hint"
-msgstr "دوست شما می‌تواند این را با Lantern اسکن کند."
+msgstr "اگر کنار شما هستند، می‌توانند به‌جای استفاده از پیوند، این را در Lantern اسکن کنند."
 
 msgid "invite_waiting"
-msgstr "در انتظار باز کردن پیوند توسط دوستتان"
+msgstr "در انتظار باز شدن پیوند"
 
 msgid "invite_trust_warning"
 msgstr "فردی که دعوت می‌کنید متوجه می‌شود که شما از Lantern استفاده می‌کنید و می‌تواند ببیند چه زمانی از طریق او متصل هستید. ترافیک شما از اتصال اینترنت او عبور می‌کند، بنابراین ممکن است بفهمد از چه سایت‌هایی بازدید می‌کنید، اما نه اینکه در سایت‌های امن (https) چه می‌کنید. فقط کسی را دعوت کنید که به او اعتماد دارید."
@@ -2177,7 +2177,7 @@ msgid "invite_link_label"
 msgstr "پیوند دعوت شما"
 
 msgid "invite_link_expiry"
-msgstr "فقط یک بار کار می‌کند و پس از ۴۸ ساعت منقضی می‌شود."
+msgstr "یک‌بار قابل استفاده است و پس از ۴۸ ساعت منقضی می‌شود"
 
 msgid "approve_title"
 msgstr "%s می‌خواهد پراکسی شخصی شما باشد"
@@ -2309,7 +2309,7 @@ msgid "onboarding_personal_proxies"
 msgstr "پراکسی‌های شخصی"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "وقتی Lantern مسدود است، از فردی مورد اعتماد در خارج از کشور بخواهید پراکسی شما باشد."
+msgstr "مستقیماً از طریق فردی مورد اعتماد در خارج از کشورتان متصل شوید."
 
 msgid "onboarding_new_badge"
 msgstr "جدید"
@@ -2327,7 +2327,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "به آشنایان خود کمک کنید"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "اگر دوستی در کشوری با سانسور برای شما دعوت‌نامه بفرستد، می‌توانید Personal Proxy او باشید."
+msgstr "با تبدیل شدن به Personal Proxy یک دوست، به او کمک کنید تا مستقیماً از طریق شما متصل شود."
 
 msgid "onboarding_action_mode_privacy"
 msgstr "حریم خصوصی شما محافظت می‌شود"
@@ -2387,7 +2387,28 @@ msgid "helping_scope_subtitle"
 msgstr "فقط با دوستانتان یا با مردم همه کشورها به اشتراک بگذارید."
 
 msgid "helping_scope_only_friends"
-msgstr "فقط دوستانم"
+msgstr "فقط اتصال‌های پروکسی شخصی من"
 
 msgid "helping_scope_all_countries"
 msgstr "همه کشورها"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "اتصال خود را به‌طور امن به اشتراک بگذارید تا دیگران به اینترنت آزاد دسترسی پیدا کنند."
+
+msgid "invite_show_qr"
+msgstr "نمایش کد QR"
+
+msgid "invite_link_hint"
+msgstr "برای دریافت پیوند، نام خود را وارد کنید"
+
+msgid "invite_qr_title"
+msgstr "اسکن با دوربین"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "این حساب کاربری با %s وارد می‌شود که روی تلویزیون قابل تأیید نیست. برای حذف آن، Lantern را روی تلفن یا رایانه خود باز کنید و از آنجا حذفش کنید."
+
+msgid "open_on_another_device"
+msgstr "باز کردن در دستگاه دیگر"
+
+msgid "open_on_another_device_hint"
+msgstr "این تلویزیون مرورگر وب ندارد. کد را اسکن کنید یا نشانی را در تلفن یا رایانه خود وارد کنید."

@@ -2093,10 +2093,10 @@ msgid "invite_link_copied"
 msgstr "Pautan disalin"
 
 msgid "invite_qr_hint"
-msgstr "Rakan anda boleh mengimbas ini dengan Lantern."
+msgstr "Jika mereka bersama anda, mereka boleh mengimbas ini dalam Lantern dan bukannya menggunakan pautan."
 
 msgid "invite_waiting"
-msgstr "Menunggu rakan anda membuka pautan"
+msgstr "Menunggu mereka membuka pautan"
 
 msgid "invite_trust_warning"
 msgstr "Orang yang anda jemput akan tahu anda menggunakan Lantern dan boleh melihat bila anda bersambung melalui mereka. Trafik anda melalui sambungan internet mereka, jadi mereka mungkin tahu laman yang anda lawati, tetapi bukan apa yang anda lakukan di laman selamat (https). Jemput hanya orang yang anda percayai."
@@ -2192,7 +2192,7 @@ msgid "invite_link_label"
 msgstr "Pautan jemputan anda"
 
 msgid "invite_link_expiry"
-msgstr "Berfungsi sekali sahaja dan tamat tempoh dalam 48 jam."
+msgstr "Berfungsi sekali dan tamat tempoh dalam 48 jam"
 
 msgid "approve_title"
 msgstr "%s mahu menjadi Proksi Peribadi anda"
@@ -2324,7 +2324,7 @@ msgid "onboarding_personal_proxies"
 msgstr "Proksi Peribadi"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "Minta seseorang yang anda percayai di luar negara anda menjadi proksi anda apabila Lantern disekat."
+msgstr "Bersambung terus melalui seseorang yang anda percayai di luar negara anda."
 
 msgid "onboarding_new_badge"
 msgstr "Baharu"
@@ -2342,7 +2342,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "Bantu orang yang anda kenali"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "Jika rakan di negara yang ditapis menghantar jemputan kepada anda, anda boleh menjadi Personal Proxy mereka."
+msgstr "Bantu rakan dengan menjadi Proksi Peribadi mereka supaya mereka boleh bersambung terus melalui anda."
 
 msgid "onboarding_action_mode_privacy"
 msgstr "Privasi anda dilindungi"
@@ -2402,7 +2402,28 @@ msgid "helping_scope_subtitle"
 msgstr "Kongsi dengan rakan anda sahaja, atau dengan orang di semua negara."
 
 msgid "helping_scope_only_friends"
-msgstr "Rakan saya sahaja"
+msgstr "Hanya sambungan Proksi Peribadi saya"
 
 msgid "helping_scope_all_countries"
 msgstr "Semua negara"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Pilih untuk berkongsi sambungan anda dengan selamat bagi membantu orang lain mengakses internet terbuka."
+
+msgid "invite_show_qr"
+msgstr "Tunjuk kod QR"
+
+msgid "invite_link_hint"
+msgstr "Masukkan nama anda untuk mendapatkan pautan"
+
+msgid "invite_qr_title"
+msgstr "Imbas dengan Kamera"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Akaun ini log masuk dengan %s, yang tidak boleh disahkan pada TV. Untuk memadamnya, buka Lantern pada telefon atau komputer anda dan padamkannya di sana."
+
+msgid "open_on_another_device"
+msgstr "Buka pada peranti lain"
+
+msgid "open_on_another_device_hint"
+msgstr "TV ini tiada pelayar web. Imbas kod atau taip alamat pada telefon atau komputer anda."

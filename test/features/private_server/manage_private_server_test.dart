@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -138,6 +139,34 @@ void main() {
     );
     expect(controller.length, 2);
     expect(controller.index, 1);
+  });
+
+  testWidgets('three tab labels each fit on one line in a narrow window', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await _pump(tester, tab: true);
+    final bar = tester.getRect(find.byType(TabBar));
+    for (final label in [
+      'my_servers'.i18n,
+      'joined_servers'.i18n,
+      'personal_proxies_tab'.i18n,
+    ]) {
+      final text = tester.renderObject<RenderParagraph>(find.text(label));
+      expect(
+        text.size.width,
+        greaterThanOrEqualTo(text.getMaxIntrinsicWidth(double.infinity)),
+        reason: '"$label" wraps',
+      );
+      final rect = tester.getRect(find.text(label));
+      expect(
+        rect.top >= bar.top && rect.bottom <= bar.bottom,
+        isTrue,
+        reason: '"$label" is cut off',
+      );
+    }
   });
 
   testWidgets('two tabs otherwise', (tester) async {

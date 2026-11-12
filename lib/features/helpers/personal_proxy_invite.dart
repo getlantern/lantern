@@ -5,12 +5,12 @@ import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
-/// "Invite a Personal Proxy": asks the name the friend knows the user by,
-/// creates the invite and opens it to share. The server-list menu, the VPN
-/// tab banner and the Manage tab all start here. While a friend has claimed
-/// an invite and waits on the user's approval, it opens that invite instead,
-/// unless [resumeWaiting] is false (the Manage tab lists it already). An
-/// invite no one has opened yet does not stop another.
+/// "Invite a Personal Proxy": opens the invite screen, which asks the name
+/// the friend knows the user by and makes the invite. The server-list menu,
+/// the VPN tab banner and the Manage tab all start here. While a friend has
+/// claimed an invite and waits on the user's approval, it opens that
+/// approval instead, unless [resumeWaiting] is false (the Manage tab lists
+/// it already). An invite no one has opened yet does not stop another.
 Future<void> startPersonalProxyInvite(
   BuildContext context,
   WidgetRef ref, {
@@ -32,22 +32,11 @@ Future<void> startPersonalProxyInvite(
     }
     final waiting = ref.read(helpersProvider).view.awaitingApproval;
     if (waiting != null) {
-      appRouter.push(InviteShare(inviteId: waiting.id));
+      // The app-wide prompt need not offer it as well.
+      notifier.markApprovalPrompted(waiting.id);
+      await showApproveHelperDialog(context, ref, waiting);
       return;
     }
   }
-  final name = await askHelperName(
-    context,
-    initial: ref.read(helpersProvider).view.myName,
-    title: 'invite_personal_proxy'.i18n,
-  );
-  if (name == null || !context.mounted) return;
-  final r = await notifier.createInvite(name);
-  if (!context.mounted) return;
-  final id = r.data['invite_id'];
-  if (!r.ok || id is! String) {
-    context.showSnackBarError(helperErrorText(r.error ?? 'unavailable'));
-    return;
-  }
-  appRouter.push(InviteShare(inviteId: id));
+  appRouter.push(InviteShare());
 }

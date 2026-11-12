@@ -2050,10 +2050,10 @@ msgid "invite_link_copied"
 msgstr "تم نسخ الرابط"
 
 msgid "invite_qr_hint"
-msgstr "يمكن لصديقك مسح هذا الرمز باستخدام Lantern."
+msgstr "إذا كانوا معك، يمكنهم مسح هذا الرمز في Lantern بدلًا من استخدام الرابط."
 
 msgid "invite_waiting"
-msgstr "في انتظار أن يفتح صديقك الرابط"
+msgstr "في انتظار فتح الرابط"
 
 msgid "invite_trust_warning"
 msgstr "سيعرف الشخص الذي تدعوه أنك تستخدم Lantern، ويمكنه رؤية متى تتصل عبره. تمر حركة بياناتك عبر اتصاله بالإنترنت، لذا قد يعرف المواقع التي تزورها، لكن ليس ما تفعله على المواقع الآمنة (https). لا تدعُ إلا شخصاً تثق به."
@@ -2149,7 +2149,7 @@ msgid "invite_link_label"
 msgstr "رابط الدعوة الخاص بك"
 
 msgid "invite_link_expiry"
-msgstr "يعمل مرة واحدة وتنتهي صلاحيته خلال 48 ساعة."
+msgstr "يعمل مرة واحدة وتنتهي صلاحيته خلال 48 ساعة"
 
 msgid "approve_title"
 msgstr "%s يريد أن يكون الوكيل الشخصي لك"
@@ -2281,7 +2281,7 @@ msgid "onboarding_personal_proxies"
 msgstr "الوكلاء الشخصيون"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "اطلب من شخص تثق به خارج بلدك أن يكون وكيلك عند حظر Lantern."
+msgstr "اتصال مباشر عبر شخص تثق به خارج بلدك."
 
 msgid "onboarding_new_badge"
 msgstr "جديد"
@@ -2299,7 +2299,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "ساعد شخصًا تعرفه"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "إذا أرسل إليك صديق في بلد خاضع للرقابة دعوة، يمكنك أن تكون Personal Proxy الخاص به."
+msgstr "ساعد صديقًا بأن تصبح الوكيل الشخصي له ليتمكن من الاتصال مباشرةً عبرك."
 
 msgid "onboarding_action_mode_privacy"
 msgstr "خصوصيتك محمية"
@@ -2359,7 +2359,28 @@ msgid "helping_scope_subtitle"
 msgstr "المشاركة مع أصدقائك فقط، أو مع الناس في جميع الدول."
 
 msgid "helping_scope_only_friends"
-msgstr "أصدقائي فقط"
+msgstr "اتصالات الوكيل الشخصي الخاصة بي فقط"
 
 msgid "helping_scope_all_countries"
 msgstr "جميع الدول"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "اختر مشاركة اتصالك بأمان لمساعدة الآخرين على الوصول إلى الإنترنت المفتوح."
+
+msgid "invite_show_qr"
+msgstr "عرض رمز QR"
+
+msgid "invite_link_hint"
+msgstr "أدخل اسمك للحصول على رابطك"
+
+msgid "invite_qr_title"
+msgstr "المسح بالكاميرا"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "يسجّل هذا الحساب الدخول عبر %s، ولا يمكن التحقق منه على التلفاز. لحذفه، افتح Lantern على هاتفك أو حاسوبك واحذفه من هناك."
+
+msgid "open_on_another_device"
+msgstr "فتح على جهاز آخر"
+
+msgid "open_on_another_device_hint"
+msgstr "لا يحتوي هذا التلفاز على متصفح ويب. امسح الرمز أو اكتب العنوان على هاتفك أو حاسوبك."

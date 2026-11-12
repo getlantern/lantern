@@ -2053,10 +2053,10 @@ msgid "invite_link_copied"
 msgstr "คัดลอกลิงก์แล้ว"
 
 msgid "invite_qr_hint"
-msgstr "เพื่อนของคุณสามารถสแกนรหัสนี้ด้วย Lantern"
+msgstr "หากอีกฝ่ายอยู่กับคุณ สามารถสแกนสิ่งนี้ใน Lantern แทนการใช้ลิงก์ได้"
 
 msgid "invite_waiting"
-msgstr "กำลังรอให้เพื่อนของคุณเปิดลิงก์"
+msgstr "กำลังรออีกฝ่ายเปิดลิงก์"
 
 msgid "invite_trust_warning"
 msgstr "ผู้ที่คุณเชิญจะรู้ว่าคุณใช้ Lantern และเห็นได้ว่าคุณเชื่อมต่อผ่านเขาเมื่อใด การรับส่งข้อมูลของคุณผ่านการเชื่อมต่ออินเทอร์เน็ตของเขา เขาจึงอาจรู้ว่าคุณเข้าเว็บไซต์ใดบ้าง แต่ไม่รู้ว่าคุณทำอะไรบนเว็บไซต์ที่ปลอดภัย (https) เชิญเฉพาะคนที่คุณไว้ใจ"
@@ -2284,7 +2284,7 @@ msgid "onboarding_personal_proxies"
 msgstr "พร็อกซีส่วนตัว"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "ขอให้คนที่คุณไว้ใจซึ่งอยู่นอกประเทศเป็นพร็อกซีให้คุณเมื่อ Lantern ถูกบล็อก"
+msgstr "เชื่อมต่อโดยตรงผ่านคนที่คุณไว้ใจซึ่งอยู่นอกประเทศของคุณ"
 
 msgid "onboarding_new_badge"
 msgstr "ใหม่"
@@ -2302,7 +2302,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "ช่วยคนที่คุณรู้จัก"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "หากเพื่อนในประเทศที่มีการเซ็นเซอร์ส่งคำเชิญถึงคุณ คุณสามารถเป็น Personal Proxy ของเขาได้"
+msgstr "ช่วยเพื่อนโดยเป็น Personal Proxy ของเขา เพื่อให้เขาเชื่อมต่อโดยตรงผ่านคุณได้"
 
 msgid "onboarding_action_mode_privacy"
 msgstr "ความเป็นส่วนตัวของคุณได้รับการปกป้อง"
@@ -2362,7 +2362,28 @@ msgid "helping_scope_subtitle"
 msgstr "แชร์กับเพื่อนของคุณเท่านั้น หรือกับผู้คนในทุกประเทศ"
 
 msgid "helping_scope_only_friends"
-msgstr "เฉพาะเพื่อนของฉัน"
+msgstr "เฉพาะการเชื่อมต่อพร็อกซีส่วนตัวของฉัน"
 
 msgid "helping_scope_all_countries"
 msgstr "ทุกประเทศ"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "เลือกแชร์การเชื่อมต่อของคุณอย่างปลอดภัยเพื่อช่วยให้ผู้อื่นเข้าถึงอินเทอร์เน็ตที่เปิดกว้าง"
+
+msgid "invite_show_qr"
+msgstr "แสดงคิวอาร์โค้ด"
+
+msgid "invite_link_hint"
+msgstr "ป้อนชื่อของคุณเพื่อรับลิงก์"
+
+msgid "invite_qr_title"
+msgstr "สแกนด้วยกล้อง"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "บัญชีนี้ลงชื่อเข้าใช้ด้วย %s ซึ่งไม่สามารถยืนยันบนทีวีได้ หากต้องการลบ ให้เปิด Lantern บนโทรศัพท์หรือคอมพิวเตอร์ของคุณแล้วลบจากที่นั่น"
+
+msgid "open_on_another_device"
+msgstr "เปิดบนอุปกรณ์อื่น"
+
+msgid "open_on_another_device_hint"
+msgstr "ทีวีเครื่องนี้ไม่มีเว็บเบราว์เซอร์ สแกนโค้ดหรือพิมพ์ที่อยู่บนโทรศัพท์หรือคอมพิวเตอร์ของคุณ"

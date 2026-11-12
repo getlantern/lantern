@@ -2121,10 +2121,10 @@ msgid "invite_link_copied"
 msgstr "လင့်ခ် ကူးယူပြီး"
 
 msgid "invite_qr_hint"
-msgstr "သင့်သူငယ်ချင်းက ၎င်းကို Lantern ဖြင့် စကင်ဖတ်နိုင်သည်။"
+msgstr "သူတို့ သင်နှင့်အတူရှိပါက လင့်ခ်အစား Lantern တွင် ဤကုဒ်ကို စကင်ဖတ်နိုင်သည်။"
 
 msgid "invite_waiting"
-msgstr "သင့်သူငယ်ချင်း လင့်ခ်ဖွင့်ရန် စောင့်နေသည်"
+msgstr "လင့်ခ်ဖွင့်ရန် စောင့်ဆိုင်းနေသည်"
 
 msgid "invite_trust_warning"
 msgstr "သင်ဖိတ်ခေါ်သူသည် သင် Lantern သုံးကြောင်း သိမည်ဖြစ်ပြီး သင် ၎င်းမှတစ်ဆင့် ချိတ်ဆက်ထားချိန်ကို မြင်နိုင်သည်။ သင့်ဒေတာများသည် ၎င်း၏ အင်တာနက်ချိတ်ဆက်မှုမှတစ်ဆင့် သွားသောကြောင့် သင်ဝင်ကြည့်သော ဆိုက်များကို သိနိုင်သည်။ သို့သော် လုံခြုံသော (https) ဆိုက်များတွင် သင်ဘာလုပ်သည်ကို မသိနိုင်ပါ။ သင်ယုံကြည်သူကိုသာ ဖိတ်ခေါ်ပါ။"
@@ -2220,7 +2220,7 @@ msgid "invite_link_label"
 msgstr "သင်၏ ဖိတ်ကြားလင့်ခ်"
 
 msgid "invite_link_expiry"
-msgstr "တစ်ကြိမ်သာ အသုံးပြုနိုင်ပြီး 48 နာရီအတွင်း သက်တမ်းကုန်ပါမည်။"
+msgstr "တစ်ကြိမ်သာ အသုံးပြုနိုင်ပြီး 48 နာရီအတွင်း သက်တမ်းကုန်မည်"
 
 msgid "approve_title"
 msgstr "%s သည် သင်၏ ကိုယ်ပိုင် Proxy ဖြစ်လိုပါသည်"
@@ -2352,7 +2352,7 @@ msgid "onboarding_personal_proxies"
 msgstr "ကိုယ်ပိုင် Proxy များ"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "Lantern ပိတ်ဆို့ခံရသောအခါ သင့်နိုင်ငံပြင်ပရှိ ယုံကြည်ရသူတစ်ဦးကို သင့် proxy ဖြစ်ပေးရန် တောင်းဆိုပါ။"
+msgstr "သင့်နိုင်ငံပြင်ပရှိ ယုံကြည်ရသူမှတစ်ဆင့် တိုက်ရိုက် ချိတ်ဆက်ပါ။"
 
 msgid "onboarding_new_badge"
 msgstr "အသစ်"
@@ -2370,7 +2370,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "သင်သိသူကို ကူညီပါ"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "ဆင်ဆာဖြတ်ထားသော နိုင်ငံရှိ သူငယ်ချင်းက သင့်ကို ဖိတ်ကြားချက် ပို့လျှင် သင်သည် ၎င်း၏ Personal Proxy ဖြစ်နိုင်သည်။"
+msgstr "သူငယ်ချင်း၏ Personal Proxy ဖြစ်လာခြင်းဖြင့် ကူညီပါ။ ထို့ကြောင့် သူတို့သည် သင့်မှတစ်ဆင့် တိုက်ရိုက် ချိတ်ဆက်နိုင်မည်။"
 
 msgid "onboarding_action_mode_privacy"
 msgstr "သင့်ကိုယ်ရေးလုံခြုံမှုကို ကာကွယ်ထားသည်"
@@ -2430,7 +2430,28 @@ msgid "helping_scope_subtitle"
 msgstr "သင့်သူငယ်ချင်းများနှင့်သာ သို့မဟုတ် နိုင်ငံအားလုံးရှိ လူများနှင့် မျှဝေပါ။"
 
 msgid "helping_scope_only_friends"
-msgstr "ကျွန်ုပ်၏ သူငယ်ချင်းများသာ"
+msgstr "ကျွန်ုပ်၏ Personal Proxy ချိတ်ဆက်မှုများသာ"
 
 msgid "helping_scope_all_countries"
 msgstr "နိုင်ငံအားလုံး"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "အခြားသူများ အင်တာနက်ကို လွတ်လပ်စွာ အသုံးပြုနိုင်ရန် သင့်ချိတ်ဆက်မှုကို လုံခြုံစွာ မျှဝေရန် ရွေးချယ်ပါ။"
+
+msgid "invite_show_qr"
+msgstr "QR ကုဒ် ပြရန်"
+
+msgid "invite_link_hint"
+msgstr "သင့်လင့်ခ်ရယူရန် အမည်ထည့်ပါ"
+
+msgid "invite_qr_title"
+msgstr "ကင်မရာဖြင့် စကင်ဖတ်ရန်"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "ဤအကောင့်သည် %s ဖြင့် ဝင်ရောက်ပြီး TV ပေါ်တွင် အတည်ပြု၍ မရပါ။ ဖျက်ရန် သင့်ဖုန်း သို့မဟုတ် ကွန်ပျူတာတွင် Lantern ကိုဖွင့်ပြီး ထိုနေရာမှ ဖျက်ပါ။"
+
+msgid "open_on_another_device"
+msgstr "အခြားစက်တွင် ဖွင့်ရန်"
+
+msgid "open_on_another_device_hint"
+msgstr "ဤ TV တွင် ဝဘ်ဘရောက်ဇာ မရှိပါ။ သင့်ဖုန်း သို့မဟုတ် ကွန်ပျူတာတွင် ကုဒ်ကို စကင်ဖတ်ပါ သို့မဟုတ် လိပ်စာကို ရိုက်ထည့်ပါ။"
