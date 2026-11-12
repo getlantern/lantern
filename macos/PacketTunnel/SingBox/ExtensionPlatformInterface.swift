@@ -308,10 +308,17 @@ public class ExtensionPlatformInterface: NSObject, UtilsPlatformInterfaceProtoco
   public func autoDetectControl(_: Int32) throws {}
 
   public func findConnectionOwner(
-    _: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?,
-    destinationPort _: Int32
+    _ ipProtocol: Int32, sourceAddress: String?, sourcePort: Int32, destinationAddress: String?,
+    destinationPort: Int32
   ) throws -> LibboxConnectionOwner {
-    throw NSError(domain: "not implemented", code: 0)
+    var error: NSError?
+    guard
+      let owner = MobileFindConnectionOwner(
+        ipProtocol, sourceAddress, sourcePort, destinationAddress, destinationPort, &error)
+    else {
+      throw error ?? NSError(domain: "MobileFindConnectionOwner", code: 1)
+    }
+    return owner
   }
 
   public func useProcFS() -> Bool {
