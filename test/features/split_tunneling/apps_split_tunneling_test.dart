@@ -16,16 +16,15 @@ import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dar
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
+import 'package:lantern/features/split_tunneling/split_tunnel_mode_picker.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 
 import '../../../integration_test/vpn/split_tunneling_smoke_helpers.dart';
 
 class _Snapshot extends SplitTunnel {
   @override
-  Future<SplitTunnelState> build() async => const SplitTunnelState(
-    enabled: true,
-    policy: SplitTunnelPolicy.bypass,
-  );
+  Future<SplitTunnelState> build() async =>
+      const SplitTunnelState(enabled: true, policy: SplitTunnelPolicy.bypass);
 }
 
 class _EnabledApps extends SplitTunnelingApps {
@@ -123,6 +122,11 @@ void main() {
     },
     skip: Platform.isWindows,
   );
+
+  testWidgets('the mode picker is on the Apps screen', (tester) async {
+    await _pumpApps(tester, size: const Size(800, 600), apps: []);
+    expect(find.byType(SplitTunnelModePicker), findsOneWidget);
+  });
 
   testWidgets('short viewports do not break index layout', (tester) async {
     await _pumpApps(

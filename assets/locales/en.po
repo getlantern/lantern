@@ -1886,11 +1886,17 @@ msgstr "Choose how apps and websites connect"
 msgid "split_tunnel_mode"
 msgstr "Split tunnel mode"
 
-msgid "split_tunnel_bypass_description"
-msgstr "Selected apps and sites skip Lantern"
+msgid "split_tunnel_apps_bypass"
+msgstr "Selected apps bypass Lantern"
 
-msgid "split_tunnel_include_description"
-msgstr "Only selected apps and sites use Lantern"
+msgid "split_tunnel_apps_bypass_description"
+msgstr "Everything else goes through Lantern"
+
+msgid "split_tunnel_apps_include"
+msgstr "Only selected apps use Lantern"
+
+msgid "split_tunnel_apps_include_description"
+msgstr "Everything else connects directly"
 
 msgid "split_tunnel_switch_include"
 msgstr "Switch to Include only?"

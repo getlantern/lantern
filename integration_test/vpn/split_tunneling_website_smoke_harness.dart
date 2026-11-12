@@ -329,6 +329,12 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     bool cancel = false,
   }) async {
     await openSplit();
+    await _tapFinder(
+      tester,
+      find.byKey(const Key('split_tunneling.apps_tile')),
+      timeout: const Duration(seconds: 20),
+      reason: 'Open app selections',
+    );
     final before = await readState();
     expect(before.policy, isNot(policy));
     await _tapFinder(

@@ -1,13 +1,22 @@
 import 'package:lantern/core/common/app_eum.dart';
 
 enum SplitTunnelPolicy {
-  bypass('exclude', 'split_tunnel_bypass'),
-  includeOnly('include', 'split_tunnel_include_only');
+  bypass('exclude', 'split_tunnel_bypass', 'split_tunnel_apps_bypass'),
+  includeOnly(
+    'include',
+    'split_tunnel_include_only',
+    'split_tunnel_apps_include',
+  );
 
-  const SplitTunnelPolicy(this.wireValue, this.labelKey);
+  const SplitTunnelPolicy(this.wireValue, this.labelKey, this.appsLabelKey);
 
   final String wireValue;
   final String labelKey;
+
+  /// The mode as the Apps screen words it.
+  final String appsLabelKey;
+
+  String get appsDescriptionKey => '${appsLabelKey}_description';
 }
 
 class SplitTunnelState {

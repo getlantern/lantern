@@ -594,6 +594,7 @@ void main() {
           tester,
           find.byKey(const Key('home.split_tunneling_setting')),
         );
+        await _tap(tester, find.byKey(const Key('split_tunneling.apps_tile')));
         await _tap(
           tester,
           find.byKey(const Key('split_tunneling.mode.include')),
@@ -622,7 +623,6 @@ void main() {
           accepts: (ip) => ip != baseline,
           reason: 'Empty Include only did not keep the child tunneled',
         );
-        await _tap(tester, find.byKey(const Key('split_tunneling.apps_tile')));
         await _addExecutable(tester, picker, child, bypass: false);
         await _waitForIP(
           tester,
