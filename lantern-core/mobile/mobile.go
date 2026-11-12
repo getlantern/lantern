@@ -437,6 +437,27 @@ func ResetNetworkForMonitor(listener libbox.InterfaceUpdateListener) error {
 	return err
 }
 
+// FindConnectionOwner resolves the local process that owns a TCP or UDP
+// socket on macOS. It runs off the CGo callback stack and sanitizes any error
+// before crossing the gomobile Objective-C bridge.
+func FindConnectionOwner(
+	ipProtocol int32,
+	sourceAddress string,
+	sourcePort int32,
+	destinationAddress string,
+	destinationPort int32,
+) (*libbox.ConnectionOwner, error) {
+	return utils.RunOffCgoStack(func() (*libbox.ConnectionOwner, error) {
+		return findConnectionOwner(
+			ipProtocol,
+			sourceAddress,
+			sourcePort,
+			destinationAddress,
+			destinationPort,
+		)
+	})
+}
+
 // IsTagAvailable checks if a server with the given tag exists in the server list.
 // Returns true if the tag is found. Returns true when the check cannot be performed
 // (fail-open: allows connection attempts to proceed normally).
