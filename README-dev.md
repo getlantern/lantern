@@ -24,6 +24,7 @@ Censorship circumvention tool available for free download on any operating syste
    - [Unit & Widget Tests](#71-unit--widget-tests)
    - [Integration Tests](#72-integration-tests)
    - [Linux VPN Smoke Test](#73-linux-vpn-smoke-test)
+   - [macOS App Split-Tunneling Smoke Test](#74-macos-app-split-tunneling-smoke-test)
 8. [Release & Publishing](#8-release--publishing)
    - [Tag format](#tag-format)
    - [How to release](#how-to-release)
@@ -518,6 +519,25 @@ flutter test integration_test/vpn/linux_connect_smoke_test.dart \
   --dart-define=DISABLE_SYSTEM_TRAY=true \
   --dart-define=ENABLE_IP_CHECK=true
 ```
+
+### 7.4 macOS App Split-Tunneling Smoke Test
+
+The signed extension test requires the dedicated `lantern-macos-smoke` runner
+and the repository variable `MACOS_STATEFUL_SMOKE_ENABLED=true`:
+
+```bash
+gh workflow run app-smoke-tests.yml --ref <branch> \
+  -f platforms=macos -f tests=app-split-tunneling
+```
+
+The workflow builds, signs, and installs a profile fixture, then drives that same
+app without rebuilding it. Use a test profile with no existing split-tunnel
+rules. The test checks that `curl` uses the VPN, goes direct when excluded, and
+uses the VPN again after the exclusion is removed. Requests from the app must
+stay on the VPN while `/usr/bin/curl` is excluded. Settings are restored and the
+VPN is stopped afterward.
+
+It requires access to `api.ipify.org`.
 
 ---
 
