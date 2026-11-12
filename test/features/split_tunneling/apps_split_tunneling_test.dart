@@ -32,6 +32,13 @@ class _EnabledApps extends SplitTunnelingApps {
 
   final Set<AppData> apps;
   int clearCalls = 0;
+  final selected = <List<String>>[];
+
+  @override
+  Future<Failure?> selectApps(Iterable<AppData> apps) async {
+    selected.add([for (final app in apps) app.name]);
+    return null;
+  }
 
   @override
   Future<Failure?> deselectAllApps() async {
@@ -104,7 +111,9 @@ void main() {
       container.read(searchQueryProvider.notifier).setQuery('nothing matches');
       await tester.pumpAndSettle();
       expect(find.text('Removed'), findsNothing);
-      await tester.tap(find.byKey(const Key('split_tunneling.apps.clear')));
+      await tester.tap(
+        find.byKey(const Key('split_tunneling.apps.deselect_all')),
+      );
       await tester.pumpAndSettle();
       expect(apps.clearCalls, 1);
       expect(container.read(splitTunnelingAppsProvider).requireValue, isEmpty);
@@ -122,6 +131,57 @@ void main() {
     },
     skip: Platform.isWindows,
   );
+
+  testWidgets('Select All adds every listed app', (tester) async {
+    final notifier = _EnabledApps({});
+    await _pumpApps(
+      tester,
+      size: const Size(800, 600),
+      apps: [_app('Alpha'), _app('Zulu')],
+      notifier: notifier,
+    );
+    await tester.tap(find.byKey(const Key('split_tunneling.apps.select_all')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(notifier.selected, [
+      ['Alpha', 'Zulu'],
+    ]);
+  });
+
+  for (final (button, expected) in [
+    (
+      'add_all_except_browsers',
+      [
+        ['Alpha'],
+      ],
+    ),
+    (
+      'add_all_anyway',
+      [
+        ['Alpha', 'Browser'],
+      ],
+    ),
+    ('cancel', <List<String>>[]),
+  ]) {
+    testWidgets('Select All warns about browsers: $button', (tester) async {
+      final notifier = _EnabledApps({});
+      await _pumpApps(
+        tester,
+        size: const Size(800, 600),
+        apps: [_app('Alpha'), _app('Browser').copyWith(isBrowser: true)],
+        notifier: notifier,
+      );
+      await tester.tap(
+        find.byKey(const Key('split_tunneling.apps.select_all')),
+      );
+      await tester.pumpAndSettle();
+      expect(notifier.selected, isEmpty);
+      await tester.tap(find.text(button));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(notifier.selected, expected);
+    });
+  }
 
   testWidgets('the mode picker is on the Apps screen', (tester) async {
     await _pumpApps(tester, size: const Size(800, 600), apps: []);

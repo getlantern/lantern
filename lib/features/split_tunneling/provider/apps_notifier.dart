@@ -46,6 +46,13 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
         .setSelector(getFilterType(), value, selected: true);
   }
 
+  Future<Failure?> selectApps(Iterable<AppData> apps) {
+    final values = {for (final app in apps) appPath(app).trim()}..remove('');
+    return ref
+        .read(splitTunnelProvider.notifier)
+        .addApps(getFilterType(), values);
+  }
+
   Future<Failure?> addExecutable(String path) {
     final app = AppData(
       name: p.windows.basename(path),

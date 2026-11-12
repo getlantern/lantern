@@ -135,6 +135,18 @@ class SplitTunnel extends _$SplitTunnel {
     ),
   );
 
+  Future<Failure?> addApps(
+    SplitTunnelFilterType type,
+    Iterable<String> values,
+  ) => _serialize(() {
+    final saved = state.requireValue.selectors(type);
+    final added = values.where((value) => !saved.contains(value)).toList();
+    if (added.isEmpty) return Future.value();
+    return _write(
+      () => ref.read(lanternServiceProvider).addSplitTunnelApps(type, added),
+    );
+  });
+
   Future<Failure?> setSelector(
     SplitTunnelFilterType type,
     String value, {

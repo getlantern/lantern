@@ -1138,6 +1138,12 @@ msgstr "Спасибо за отзыв!"
 msgid "no_apps_selected"
 msgstr "Приложения не выбраны"
 
+msgid "deselect_all"
+msgstr "Снять все"
+
+msgid "select_all"
+msgstr "Выбрать все"
+
 msgid "no_websites_selected"
 msgstr "Сайты не выбраны"
 
@@ -1726,6 +1732,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Всё равно добавить"
+
+msgid "bypass_all_warning_title"
+msgstr "Добавить все приложения в список обхода?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Это включает браузеры, такие как %s. Приложения из списка обхода "
+"подключаются напрямую, без защиты Lantern. В странах, где блокируются "
+"определённые сайты, некоторые сайты перестанут загружаться."
+
+msgid "add_all_except_browsers"
+msgstr "Добавить все, кроме браузеров"
+
+msgid "add_all_anyway"
+msgstr "Всё равно добавить все"
 
 msgid "bypass_app_first_time_title"
 msgstr "Обходить VPN для этого приложения?"

@@ -1051,6 +1051,12 @@ msgstr "感謝你的回饋!"
 msgid "no_apps_selected"
 msgstr "未選擇應用程式"
 
+msgid "deselect_all"
+msgstr "取消全選"
+
+msgid "select_all"
+msgstr "全選"
+
 msgid "no_websites_selected"
 msgstr "未選擇網站"
 
@@ -1578,6 +1584,18 @@ msgstr "%s 將直接連線，不受 Lantern 保護。在封鎖某些網站的國
 
 msgid "add_anyway"
 msgstr "仍要加入"
+
+msgid "bypass_all_warning_title"
+msgstr "將所有應用程式加入繞行清單？"
+
+msgid "bypass_all_warning_body"
+msgstr "其中包括 %s 等瀏覽器。繞行清單中的應用程式將直接連線，不受 Lantern 保護。在封鎖某些網站的國家/地區，部分網站將無法載入。"
+
+msgid "add_all_except_browsers"
+msgstr "加入除瀏覽器外的全部"
+
+msgid "add_all_anyway"
+msgstr "仍要全部加入"
 
 msgid "bypass_app_first_time_title"
 msgstr "為此應用程式繞過 VPN？"

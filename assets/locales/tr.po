@@ -1129,6 +1129,12 @@ msgstr "Geri bildiriminiz için teşekkürler!"
 msgid "no_apps_selected"
 msgstr "Hiç uygulama seçilmedi"
 
+msgid "deselect_all"
+msgstr "Tümünün Seçimini Kaldır"
+
+msgid "select_all"
+msgstr "Tümünü Seç"
+
 msgid "no_websites_selected"
 msgstr "Hiç web sitesi seçilmedi"
 
@@ -1716,6 +1722,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Yine de Ekle"
+
+msgid "bypass_all_warning_title"
+msgstr "Tüm uygulamalar atlama listesine eklensin mi?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Buna %s gibi tarayıcılar da dahildir. Atlama listesindeki uygulamalar, "
+"Lantern'in koruması olmadan doğrudan bağlanır. Belirli web sitelerini "
+"engelleyen ülkelerde bazı siteler yüklenmeyi durduracak."
+
+msgid "add_all_except_browsers"
+msgstr "Tarayıcılar Hariç Tümünü Ekle"
+
+msgid "add_all_anyway"
+msgstr "Yine de Tümünü Ekle"
 
 msgid "bypass_app_first_time_title"
 msgstr "Bu uygulama için VPN atlansın mı?"

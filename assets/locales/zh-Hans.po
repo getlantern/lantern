@@ -1048,6 +1048,12 @@ msgstr "感谢您的反馈!"
 msgid "no_apps_selected"
 msgstr "未选择应用"
 
+msgid "deselect_all"
+msgstr "取消全选"
+
+msgid "select_all"
+msgstr "全选"
+
 msgid "no_websites_selected"
 msgstr "未选择网站"
 
@@ -1573,6 +1579,18 @@ msgstr "%s 将直接连接，不受蓝灯保护。在封锁某些网站的国家
 
 msgid "add_anyway"
 msgstr "仍然添加"
+
+msgid "bypass_all_warning_title"
+msgstr "将所有应用添加到绕行列表？"
+
+msgid "bypass_all_warning_body"
+msgstr "其中包括 %s 等浏览器。绕行列表中的应用将直接连接，不受蓝灯保护。在封锁某些网站的国家/地区，部分网站将无法加载。"
+
+msgid "add_all_except_browsers"
+msgstr "添加除浏览器外的全部"
+
+msgid "add_all_anyway"
+msgstr "仍然全部添加"
 
 msgid "bypass_app_first_time_title"
 msgstr "为此应用绕过 VPN？"

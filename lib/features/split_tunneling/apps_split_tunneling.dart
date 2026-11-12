@@ -163,6 +163,18 @@ class AppsSplitTunneling extends HookConsumerWidget {
                       children: [
                         SectionLabel('installed_apps'.i18n),
                         const Spacer(),
+                        if (filteredDisabled.isNotEmpty)
+                          AppTextButton(
+                            key: const Key('split_tunneling.apps.select_all'),
+                            label: 'select_all'.i18n,
+                            fontSize: 14,
+                            onPressed: () => onTapSelectAll(
+                              context,
+                              notifier,
+                              filteredDisabled,
+                              bypass: bypass,
+                            ),
+                          ),
                         if (Platform.isWindows)
                           WindowsExecutablePicker(
                             confirmBypass: (context, app) async =>
@@ -334,6 +346,90 @@ class AppsSplitTunneling extends HookConsumerWidget {
       context.showSnackBarError(failure.localizedErrorMessage);
     }
   }
+
+  Future<void> onTapSelectAll(
+    BuildContext context,
+    SplitTunnelingApps notifier,
+    List<AppData> apps, {
+    required bool bypass,
+  }) async {
+    var selected = apps;
+    final browsers = apps.where((app) => app.isBrowser);
+    if (bypass && browsers.isNotEmpty) {
+      final withBrowsers = await _confirmSelectAll(
+        context,
+        browsers.first.name,
+      );
+      if (withBrowsers == null) return;
+      if (!withBrowsers) {
+        selected = apps.where((app) => !app.isBrowser).toList();
+      }
+    }
+    if (!context.mounted) return;
+    final failure = await notifier.selectApps(selected);
+    if (context.mounted && failure != null) {
+      context.showSnackBarError(failure.localizedErrorMessage);
+    }
+  }
+}
+
+/// Asks before Select All puts browsers on the bypass list. Returns whether
+/// to include them, or null if the user cancelled.
+Future<bool?> _confirmSelectAll(
+  BuildContext context,
+  String browserName,
+) async {
+  final textTheme = Theme.of(context).textTheme;
+  final navigator = Navigator.of(context, rootNavigator: true);
+  bool? withBrowsers;
+  void choose(bool? choice) {
+    withBrowsers = choice;
+    navigator.pop();
+  }
+
+  await AppDialog.customDialog(
+    context: context,
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: size24),
+        Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
+        SizedBox(height: size24),
+        Text(
+          'bypass_all_warning_title'.i18n,
+          style: textTheme.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'bypass_all_warning_body'.i18n.fill([browserName]),
+          style: textTheme.bodyMedium?.copyWith(
+            color: context.textSecondary,
+            height: 23 / 16,
+          ),
+        ),
+      ],
+    ),
+    action: [
+      PrimaryButton(
+        label: 'add_all_except_browsers'.i18n,
+        onPressed: () => choose(false),
+      ),
+      SecondaryButton(
+        label: 'add_all_anyway'.i18n,
+        onPressed: () => choose(true),
+      ),
+      Center(
+        child: AppTextButton(
+          label: 'cancel'.i18n,
+          textColor: context.textPrimary,
+          onPressed: () => choose(null),
+        ),
+      ),
+    ],
+  );
+  return withBrowsers;
 }
 
 class _SelectedApps extends ConsumerWidget {
@@ -382,8 +478,8 @@ class _SelectedApps extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               label: '',
               trailing: AppTextButton(
-                key: const Key('split_tunneling.apps.clear'),
-                label: 'split_tunnel_clear'.i18n,
+                key: const Key('split_tunneling.apps.deselect_all'),
+                label: 'deselect_all'.i18n,
                 fontSize: 14,
                 onPressed: () => run(notifier.deselectAllApps),
               ),

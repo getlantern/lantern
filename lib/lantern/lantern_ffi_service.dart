@@ -529,6 +529,18 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> addSplitTunnelApps(
+    SplitTunnelFilterType type,
+    List<String> values,
+  ) async {
+    for (final value in values) {
+      final result = await addSplitTunnelItem(type, value);
+      if (result.isLeft()) return result;
+    }
+    return right(unit);
+  }
+
+  @override
   Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() =>
       _splitTunnelState(() => _ffiService.getSplitTunnelState());
 

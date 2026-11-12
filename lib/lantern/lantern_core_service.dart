@@ -226,6 +226,12 @@ abstract class LanternCoreService {
     String value,
   );
 
+  /// Adds several apps at once. [type] is the platform's app filter type.
+  Future<Either<Failure, Unit>> addSplitTunnelApps(
+    SplitTunnelFilterType type,
+    List<String> values,
+  );
+
   Future<Either<Failure, SplitTunnelState>> getSplitTunnelState();
 
   Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(

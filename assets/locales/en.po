@@ -1086,6 +1086,12 @@ msgstr "Thanks for your feedback!"
 msgid "no_apps_selected"
 msgstr "No apps selected"
 
+msgid "deselect_all"
+msgstr "Deselect All"
+
+msgid "select_all"
+msgstr "Select All"
+
 msgid "no_websites_selected"
 msgstr "No websites selected"
 
@@ -1712,6 +1718,18 @@ msgstr "These logs may include your email, IP address, device identifiers, and t
 msgid "share_logs_anyway"
 msgstr "Share Logs"
 
+msgid "bypass_all_warning_title"
+msgstr "Add all apps to the bypass list?"
+
+msgid "bypass_all_warning_body"
+msgstr "This includes browsers like %s. Apps on the bypass list connect directly, without Lantern's protection. In countries that block certain websites, some sites will stop loading."
+
+msgid "add_all_except_browsers"
+msgstr "Add All Except Browsers"
+
+msgid "add_all_anyway"
+msgstr "Add All Anyway"
+
 msgid "bypass_app_first_time_title"
 msgstr "Bypass the VPN for this app?"
 
@@ -1912,9 +1930,6 @@ msgstr "Your lists will be cleared. Everything will use Lantern until you add ap
 
 msgid "split_tunnel_switch"
 msgstr "Switch"
-
-msgid "split_tunnel_clear"
-msgstr "Clear"
 
 msgid "split_tunnel_app_count_one"
 msgstr "1 App"

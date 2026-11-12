@@ -804,6 +804,33 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> addSplitTunnelApps(
+    SplitTunnelFilterType type,
+    List<String> values,
+  ) async {
+    try {
+      // The batch call takes a comma-separated list, so a value with a comma
+      // of its own is added separately.
+      final batch = values.where((value) => !value.contains(','));
+      if (batch.isNotEmpty) {
+        await _methodChannel.invokeMethod('addSplitTunnelApps', {
+          'value': batch.join(','),
+        });
+      }
+      for (final value in values.where((value) => value.contains(','))) {
+        await _methodChannel.invokeMethod('addSplitTunnelItem', {
+          'filterType': type.value,
+          'value': value,
+        });
+      }
+      await _refreshEnabledAppsSnapshot();
+      return right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() =>
       _readSplitTunnelState('getSplitTunnelState');
 
@@ -1581,11 +1608,7 @@ class LanternPlatformService implements LanternCoreService {
     try {
       final result = await _methodChannel.invokeMethod<String>(
         'addServerBasedOnURLs',
-        {
-          'urls': urls,
-          'skipValidation': false,
-          'serverName': '',
-        },
+        {'urls': urls, 'skipValidation': false, 'serverName': ''},
       );
       final tags = (jsonDecode(result ?? '[]') as List).cast<String>();
       return Right(tags);

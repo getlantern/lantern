@@ -1130,6 +1130,12 @@ msgstr "आपके फीडबैक के लिए धन्यवाद!"
 msgid "no_apps_selected"
 msgstr "कोई ऐप चयनित नहीं"
 
+msgid "deselect_all"
+msgstr "सभी को अचयनित करें"
+
+msgid "select_all"
+msgstr "सभी चुनें"
+
 msgid "no_websites_selected"
 msgstr "कोई वेबसाइट चयनित नहीं"
 
@@ -1714,6 +1720,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "फिर भी जोड़ें"
+
+msgid "bypass_all_warning_title"
+msgstr "सभी ऐप्स को बाईपास सूची में जोड़ें?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"इसमें %s जैसे ब्राउज़र शामिल हैं। बाईपास सूची के ऐप्स सीधे कनेक्ट होते हैं, "
+"Lantern की सुरक्षा के बिना। जिन देशों में कुछ वेबसाइटें अवरुद्ध हैं, वहाँ "
+"कुछ साइटें लोड होना बंद हो जाएँगी।"
+
+msgid "add_all_except_browsers"
+msgstr "ब्राउज़र छोड़कर सभी जोड़ें"
+
+msgid "add_all_anyway"
+msgstr "फिर भी सभी जोड़ें"
 
 msgid "bypass_app_first_time_title"
 msgstr "इस ऐप के लिए VPN बाईपास करें?"

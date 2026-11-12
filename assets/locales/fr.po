@@ -1012,6 +1012,12 @@ msgstr "Merci pour vos commentaires !"
 msgid "no_apps_selected"
 msgstr "Aucune application sélectionnée"
 
+msgid "deselect_all"
+msgstr "Tout désélectionner"
+
+msgid "select_all"
+msgstr "Tout sélectionner"
+
 msgid "no_websites_selected"
 msgstr "Aucun site web sélectionné"
 
@@ -1583,6 +1589,22 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Ajouter quand même"
+
+msgid "bypass_all_warning_title"
+msgstr "Ajouter toutes les applications à la liste de contournement ?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Cela inclut des navigateurs comme %s. Les applications de la liste de "
+"contournement se connectent directement, sans la protection de Lantern. Dans"
+" les pays qui bloquent certains sites web, certains sites cesseront de se "
+"charger."
+
+msgid "add_all_except_browsers"
+msgstr "Tout ajouter sauf les navigateurs"
+
+msgid "add_all_anyway"
+msgstr "Tout ajouter quand même"
 
 msgid "bypass_app_first_time_title"
 msgstr "Contourner le VPN pour cette application ?"

@@ -1142,6 +1142,12 @@ msgstr "သင့်အကြံပြုချက်အတွက် ကျေ�
 msgid "no_apps_selected"
 msgstr "အက်ပ်များ မရွေးထားပါ"
 
+msgid "deselect_all"
+msgstr "အားလုံး ဖယ်ထုတ်ပါ"
+
+msgid "select_all"
+msgstr "အားလုံး ရွေးပါ"
+
 msgid "no_websites_selected"
 msgstr "ဝက်ဘ်ဆိုက်များ မရွေးထားပါ"
 
@@ -1749,6 +1755,22 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "မည်သို့ပင်ဖြစ်စေ ထည့်ရန်"
+
+msgid "bypass_all_warning_title"
+msgstr "အက်ပ်အားလုံးကို ကျော်လွှားစာရင်းထဲ ထည့်မလား။"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"၎င်းတွင် %s ကဲ့သို့သော ဘရောက်ဇာများ ပါဝင်သည်။ ကျော်လွှားစာရင်းရှိ "
+"အက်ပ်များသည် Lantern ၏ ကာကွယ်မှုမပါဘဲ တိုက်ရိုက်ချိတ်ဆက်ကြသည်။ "
+"အချို့ဝဘ်ဆိုက်များကို ပိတ်ဆို့ထားသည့် နိုင်ငံများတွင် အချို့ဆိုက်များ "
+"တင်၍မရတော့ပါ။"
+
+msgid "add_all_except_browsers"
+msgstr "ဘရောက်ဇာများမှလွဲ၍ အားလုံးထည့်ရန်"
+
+msgid "add_all_anyway"
+msgstr "မည်သို့ပင်ဖြစ်စေ အားလုံးထည့်ရန်"
 
 msgid "bypass_app_first_time_title"
 msgstr "ဤအက်ပ်အတွက် VPN ကို ကျော်လွှားမလား။"

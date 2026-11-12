@@ -1111,6 +1111,12 @@ msgstr "Pikirleriňiz üçin sag boluň!"
 msgid "no_apps_selected"
 msgstr "Hiç bir programma saýlanmady"
 
+msgid "deselect_all"
+msgstr "Hemmesini saýlama"
+
+msgid "select_all"
+msgstr "Hemmesini saýla"
+
 msgid "no_websites_selected"
 msgstr "Hiç bir web saýt saýlanmady"
 
@@ -1696,6 +1702,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Barybir goş"
+
+msgid "bypass_all_warning_title"
+msgstr "Ähli programmalar aýlanyp geçme sanawyna goşulsynmy?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Muňa %s ýaly brauzerler hem girýär. Aýlanyp geçme sanawyndaky programmalar "
+"Lantern-iň goragy bolmazdan göni birigýär. Käbir web sahypalaryny petikleýän"
+" ýurtlarda käbir sahypalar açylmaz."
+
+msgid "add_all_except_browsers"
+msgstr "Brauzerlerden başga ählisini goş"
+
+msgid "add_all_anyway"
+msgstr "Barybir ählisini goş"
 
 msgid "bypass_app_first_time_title"
 msgstr "Bu programma üçin VPN aýlanyp geçilsinmi?"

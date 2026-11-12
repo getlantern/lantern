@@ -651,7 +651,7 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 300));
         expect(_appRow(childRule), findsNothing);
-        await _tap(tester, find.byKey(const Key('split_tunneling.apps.clear')));
+        await _tap(tester, find.byKey(const Key('split_tunneling.apps.deselect_all')));
         final clearDeadline = DateTime.now().add(const Duration(seconds: 30));
         while (true) {
           await tester.pump(const Duration(milliseconds: 200));

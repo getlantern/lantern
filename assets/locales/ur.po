@@ -1111,6 +1111,12 @@ msgstr "آپ کی رائے کا شکریہ!"
 msgid "no_apps_selected"
 msgstr "کوئی ایپ منتخب نہیں"
 
+msgid "deselect_all"
+msgstr "سب غیر منتخب کریں"
+
+msgid "select_all"
+msgstr "سب منتخب کریں"
+
 msgid "no_websites_selected"
 msgstr "کوئی ویب سائٹ منتخب نہیں"
 
@@ -1587,6 +1593,18 @@ msgstr "ان لاگز میں آپ کا ای میل، IP ایڈریس، ڈیوا�
 
 msgid "share_logs_anyway"
 msgstr "لاگز شیئر کریں"
+
+msgid "bypass_all_warning_title"
+msgstr "تمام ایپس کو بائی پاس فہرست میں شامل کریں؟"
+
+msgid "bypass_all_warning_body"
+msgstr "اس میں %s جیسے براؤزرز شامل ہیں۔ بائی پاس فہرست میں موجود ایپس Lantern کے تحفظ کے بغیر براہ راست منسلک ہوتی ہیں۔ جن ممالک میں کچھ ویب سائٹس بلاک ہیں، وہاں کچھ سائٹس لوڈ ہونا بند ہو جائیں گی۔"
+
+msgid "add_all_except_browsers"
+msgstr "براؤزرز کے سوا سب شامل کریں"
+
+msgid "add_all_anyway"
+msgstr "پھر بھی سب شامل کریں"
 
 msgid "bypass_app_first_time_title"
 msgstr "اس ایپ کے لیے VPN کو بائی پاس کریں؟"

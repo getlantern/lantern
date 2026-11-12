@@ -1115,6 +1115,12 @@ msgstr "شكرًا لملاحظاتك!"
 msgid "no_apps_selected"
 msgstr "لم يتم تحديد أي تطبيقات"
 
+msgid "deselect_all"
+msgstr "إلغاء تحديد الكل"
+
+msgid "select_all"
+msgstr "تحديد الكل"
+
 msgid "no_websites_selected"
 msgstr "لم يتم تحديد أي مواقع"
 
@@ -1682,6 +1688,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "الإضافة على أي حال"
+
+msgid "bypass_all_warning_title"
+msgstr "هل تريد إضافة جميع التطبيقات إلى قائمة التجاوز؟"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"يشمل ذلك متصفحات مثل %s. تتصل التطبيقات الموجودة في قائمة التجاوز مباشرة، "
+"بدون حماية Lantern. في البلدان التي تحجب مواقع معينة، ستتوقف بعض المواقع عن "
+"التحميل."
+
+msgid "add_all_except_browsers"
+msgstr "إضافة الكل باستثناء المتصفحات"
+
+msgid "add_all_anyway"
+msgstr "إضافة الكل على أي حال"
 
 msgid "bypass_app_first_time_title"
 msgstr "هل تريد تجاوز VPN لهذا التطبيق؟"

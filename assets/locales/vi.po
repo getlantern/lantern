@@ -1129,6 +1129,12 @@ msgstr "Cảm ơn phản hồi của bạn!"
 msgid "no_apps_selected"
 msgstr "Chưa chọn ứng dụng nào"
 
+msgid "deselect_all"
+msgstr "Bỏ chọn tất cả"
+
+msgid "select_all"
+msgstr "Chọn tất cả"
+
 msgid "no_websites_selected"
 msgstr "Chưa chọn trang web nào"
 
@@ -1714,6 +1720,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Vẫn thêm"
+
+msgid "bypass_all_warning_title"
+msgstr "Thêm tất cả ứng dụng vào danh sách bỏ qua?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Bao gồm cả các trình duyệt như %s. Ứng dụng trong danh sách bỏ qua kết nối "
+"trực tiếp, không có sự bảo vệ của Lantern. Ở các quốc gia chặn một số trang "
+"web nhất định, một số trang sẽ không tải được nữa."
+
+msgid "add_all_except_browsers"
+msgstr "Thêm tất cả trừ trình duyệt"
+
+msgid "add_all_anyway"
+msgstr "Vẫn thêm tất cả"
 
 msgid "bypass_app_first_time_title"
 msgstr "Bỏ qua VPN cho ứng dụng này?"

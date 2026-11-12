@@ -1129,6 +1129,12 @@ msgstr "آپ کے فیڈ بیک کا شکریہ!"
 msgid "no_apps_selected"
 msgstr "کوئی ایپ منتخب نہیں"
 
+msgid "deselect_all"
+msgstr "سب کو غیر منتخب کریں"
+
+msgid "select_all"
+msgstr "سب کو منتخب کریں"
+
 msgid "no_websites_selected"
 msgstr "کوئی ویب سائٹ منتخب نہیں"
 
@@ -1717,6 +1723,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "بہر حال شامل کریں"
+
+msgid "bypass_all_warning_title"
+msgstr "تمام ایپس کو بائی پاس فہرست میں شامل کریں؟"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"اس میں %s جیسے براؤزرز شامل ہیں۔ بائی پاس فہرست کی ایپس براہ راست جڑتی ہیں، "
+"Lantern کے تحفظ کے بغیر۔ جن ممالک میں کچھ ویب سائٹس بلاک ہیں، وہاں کچھ سائٹس"
+" لوڈ ہونا بند ہو جائیں گی۔"
+
+msgid "add_all_except_browsers"
+msgstr "براؤزرز کے علاوہ سب شامل کریں"
+
+msgid "add_all_anyway"
+msgstr "بہر حال سب شامل کریں"
 
 msgid "bypass_app_first_time_title"
 msgstr "اس ایپ کے لیے VPN بائی پاس کریں؟"

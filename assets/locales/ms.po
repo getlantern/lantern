@@ -1134,6 +1134,12 @@ msgstr "Terima kasih atas maklum balas anda!"
 msgid "no_apps_selected"
 msgstr "Tiada aplikasi dipilih"
 
+msgid "deselect_all"
+msgstr "Nyahpilih Semua"
+
+msgid "select_all"
+msgstr "Pilih Semua"
+
 msgid "no_websites_selected"
 msgstr "Tiada laman web dipilih"
 
@@ -1723,6 +1729,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Tambah Juga"
+
+msgid "bypass_all_warning_title"
+msgstr "Tambah semua aplikasi ke senarai pintasan?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Ini termasuk pelayar seperti %s. Aplikasi dalam senarai pintasan bersambung "
+"terus, tanpa perlindungan Lantern. Di negara yang menyekat laman web "
+"tertentu, sesetengah laman akan berhenti dimuatkan."
+
+msgid "add_all_except_browsers"
+msgstr "Tambah Semua Kecuali Pelayar"
+
+msgid "add_all_anyway"
+msgstr "Tambah Semua Juga"
 
 msgid "bypass_app_first_time_title"
 msgstr "Pintaskan VPN untuk aplikasi ini?"

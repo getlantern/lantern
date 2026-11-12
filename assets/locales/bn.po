@@ -1123,6 +1123,12 @@ msgstr "আপনার মতামতের জন্য ধন্যবাদ
 msgid "no_apps_selected"
 msgstr "কোনো অ্যাপ নির্বাচন করা হয়নি"
 
+msgid "deselect_all"
+msgstr "সব বাতিল করুন"
+
+msgid "select_all"
+msgstr "সব নির্বাচন করুন"
+
 msgid "no_websites_selected"
 msgstr "কোনো ওয়েবসাইট নির্বাচন করা হয়নি"
 
@@ -1710,6 +1716,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "তবুও যোগ করুন"
+
+msgid "bypass_all_warning_title"
+msgstr "সব অ্যাপ বাইপাস তালিকায় যোগ করবেন?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"এর মধ্যে %s-এর মতো ব্রাউজারও রয়েছে। বাইপাস তালিকার অ্যাপগুলি সরাসরি সংযোগ "
+"করে, Lantern-এর সুরক্ষা ছাড়া। যেসব দেশে নির্দিষ্ট ওয়েবসাইট ব্লক করা হয়, "
+"সেখানে কিছু সাইট লোড হওয়া বন্ধ হয়ে যাবে।"
+
+msgid "add_all_except_browsers"
+msgstr "ব্রাউজার ছাড়া সব যোগ করুন"
+
+msgid "add_all_anyway"
+msgstr "তবুও সব যোগ করুন"
 
 msgid "bypass_app_first_time_title"
 msgstr "এই অ্যাপের জন্য VPN বাইপাস করবেন?"

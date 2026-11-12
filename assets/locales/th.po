@@ -1113,6 +1113,12 @@ msgstr "ขอบคุณสำหรับความคิดเห็นข
 msgid "no_apps_selected"
 msgstr "ไม่ได้เลือกแอป"
 
+msgid "deselect_all"
+msgstr "ยกเลิกการเลือกทั้งหมด"
+
+msgid "select_all"
+msgstr "เลือกทั้งหมด"
+
 msgid "no_websites_selected"
 msgstr "ไม่ได้เลือกเว็บไซต์"
 
@@ -1686,6 +1692,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "เพิ่มต่อไป"
+
+msgid "bypass_all_warning_title"
+msgstr "เพิ่มแอปทั้งหมดในรายการข้าม VPN ใช่ไหม?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"ซึ่งรวมถึงเบราว์เซอร์อย่าง %s แอปในรายการข้าม VPN "
+"จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกันของ Lantern ในประเทศที่บล็อกบางเว็บไซต์ "
+"บางไซต์จะโหลดไม่ได้"
+
+msgid "add_all_except_browsers"
+msgstr "เพิ่มทั้งหมดยกเว้นเบราว์เซอร์"
+
+msgid "add_all_anyway"
+msgstr "เพิ่มทั้งหมดต่อไป"
 
 msgid "bypass_app_first_time_title"
 msgstr "ข้าม VPN สำหรับแอปนี้ใช่ไหม?"

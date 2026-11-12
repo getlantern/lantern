@@ -57,6 +57,29 @@ void main() {
     expect(calls[3].arguments, {'input': '*.bücher.de'});
   });
 
+  test('apps are added in one call, except a value with a comma', () async {
+    final calls = <MethodCall>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      if (call.method == 'getSplitTunnelItems') return '[]';
+      calls.add(call);
+      return 'ok';
+    });
+    final result = await service.addSplitTunnelApps(
+      SplitTunnelFilterType.processPathRegex,
+      ['a', 'b', 'c,d'],
+    );
+    expect(result.isRight(), isTrue);
+    expect(calls.map((call) => call.method), [
+      'addSplitTunnelApps',
+      'addSplitTunnelItem',
+    ]);
+    expect(calls[0].arguments, {'value': 'a,b'});
+    expect(calls[1].arguments, {
+      'filterType': 'processPathRegex',
+      'value': 'c,d',
+    });
+  });
+
   test(
     'read and mutation failures are not successful empty responses',
     () async {
@@ -90,11 +113,8 @@ void main() {
     () async {
       messenger.setMockMethodCallHandler(
         channel,
-        (call) async => jsonEncode({
-          'enabled': true,
-          'policy': 'include',
-          'filters': {},
-        }),
+        (call) async =>
+            jsonEncode({'enabled': true, 'policy': 'include', 'filters': {}}),
       );
       final result = await service.getSplitTunnelState();
       result.fold((failure) => fail('$failure'), (state) {

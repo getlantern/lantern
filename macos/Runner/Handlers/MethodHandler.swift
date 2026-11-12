@@ -465,6 +465,10 @@ class MethodHandler {
         let value: String = requireArg(call: call, name: "value", result: result)!
         self.removeSplitTunnelItem(result: result, filterType: filterType, value: value)
 
+      case "addSplitTunnelApps":
+        let value: String = requireArg(call: call, name: "value", result: result)!
+        self.addSplitTunnelApps(result: result, value: value)
+
       // Smart routing
       case "setRoutingMode":
         let enable = self.decodeValue(from: call.arguments, result: result) as Bool?
@@ -1777,6 +1781,20 @@ class MethodHandler {
       MobileAddSplitTunnelItem(filterType, value, &error)
       if let err = error {
         await self.handleFlutterError(err, result: result, code: "ADD_SPLIT_TUNNEL_ITEM_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func addSplitTunnelApps(result: @escaping FlutterResult, value: String) {
+    Task {
+      var error: NSError?
+      MobileAddSplitTunnelItems(value, &error)
+      if let err = error {
+        await self.handleFlutterError(err, result: result, code: "ADD_SPLIT_TUNNEL_APPS_FAILED")
         return
       }
       await MainActor.run {

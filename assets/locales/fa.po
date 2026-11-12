@@ -1127,6 +1127,12 @@ msgstr "سپاس از بازخورد شما!"
 msgid "no_apps_selected"
 msgstr "هیچ برنامه‌ای انتخاب نشده"
 
+msgid "deselect_all"
+msgstr "لغو همه گزینه‌ها"
+
+msgid "select_all"
+msgstr "انتخاب همه"
+
 msgid "no_websites_selected"
 msgstr "هیچ وب‌سایتی انتخاب نشده"
 
@@ -1711,6 +1717,18 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "در هر صورت اضافه شود"
+
+msgid "bypass_all_warning_title"
+msgstr "آیا همه برنامه‌ها به فهرست رد نشدن از VPN افزوده شوند؟"
+
+msgid "bypass_all_warning_body"
+msgstr "این شامل مرورگرهایی مانند %s نیز می‌شود. برنامه‌های این فهرست بدون محافظت Lantern و به‌صورت مستقیم متصل می‌شوند. در کشورهایی که برخی وب‌سایت‌ها را مسدود می‌کنند، بعضی سایت‌ها دیگر باز نمی‌شوند."
+
+msgid "add_all_except_browsers"
+msgstr "افزودن همه به‌جز مرورگرها"
+
+msgid "add_all_anyway"
+msgstr "در هر صورت همه اضافه شوند"
 
 msgid "bypass_app_first_time_title"
 msgstr "آیا VPN از این برنامه رد نشود؟"

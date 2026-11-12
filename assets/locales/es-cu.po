@@ -1132,6 +1132,12 @@ msgstr "¡Gracias por tus comentarios!"
 msgid "no_apps_selected"
 msgstr "No hay aplicaciones seleccionadas"
 
+msgid "deselect_all"
+msgstr "Deseleccionar Todas"
+
+msgid "select_all"
+msgstr "Seleccionar todo"
+
 msgid "no_websites_selected"
 msgstr "No hay sitios web seleccionados"
 
@@ -1724,6 +1730,21 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Añadir de todos modos"
+
+msgid "bypass_all_warning_title"
+msgstr "¿Añadir todas las aplicaciones a la lista de exclusión?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Esto incluye navegadores como %s. Las aplicaciones en la lista de exclusión "
+"se conectan directamente, sin la protección de Lantern. En países que "
+"bloquean ciertos sitios web, algunos sitios dejarán de cargar."
+
+msgid "add_all_except_browsers"
+msgstr "Añadir todo excepto navegadores"
+
+msgid "add_all_anyway"
+msgstr "Añadir todo de todos modos"
 
 msgid "bypass_app_first_time_title"
 msgstr "¿Excluir esta aplicación de la VPN?"
