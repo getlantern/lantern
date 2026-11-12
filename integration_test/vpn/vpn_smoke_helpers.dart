@@ -162,6 +162,12 @@ Future<void> waitForVpnToggleWithOnboardingHandling(
 }) async {
   final end = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(end)) {
+    // An intro that was already on its way in when it was marked seen.
+    if (_popPersonalProxiesIntro()) {
+      await tester.pump(const Duration(milliseconds: 400));
+      continue;
+    }
+
     if (onboardingScreen.evaluate().isNotEmpty) {
       // Gate on hitTestable: onboarding stays mounted while its route animates
       // out, and tapping the stale button centre falls through to the VPN tab
@@ -186,9 +192,22 @@ Future<void> waitForVpnToggleWithOnboardingHandling(
   fail('VPN toggle not visible');
 }
 
+/// Pops the Personal Proxies intro if it is on screen.
+bool _popPersonalProxiesIntro() {
+  final intro = find.byKey(const Key('personal_proxies_intro.screen'));
+  if (intro.evaluate().isEmpty) return false;
+  debugPrint('VPN smoke: closing the Personal Proxies introduction');
+  appRouter.popUntil(
+    (route) => route.settings.name != PersonalProxiesIntro.name,
+  );
+  return true;
+}
+
 /// The Personal Proxies intro opens over Home a couple of seconds into any
 /// launch after one that skipped onboarding. Mark it seen so it cannot open
-/// mid-test, and close it if it already has.
+/// mid-test, and close it if it already has. Does not pump unless it closes
+/// one: on a first launch onboarding covers Home within a few hundred
+/// milliseconds, and the caller has to see Home before that.
 Future<void> clearPersonalProxiesIntroForSmoke(
   WidgetTester tester, {
   required VpnSmokeFinders finders,
@@ -203,14 +222,7 @@ Future<void> clearPersonalProxiesIntroForSmoke(
         .setPersonalProxiesIntroSeen(true);
   }
 
-  // A push that had already started shows up on the next frame.
-  await tester.pump(const Duration(milliseconds: 300));
-  if (finders.personalProxiesIntro.evaluate().isEmpty) return;
-
-  debugPrint('VPN smoke: closing the Personal Proxies introduction');
-  appRouter.popUntil(
-    (route) => route.settings.name != PersonalProxiesIntro.name,
-  );
+  if (!_popPersonalProxiesIntro()) return;
   await WidgetWaitUtils.waitForFinderToDisappear(
     tester,
     finders.personalProxiesIntro,
