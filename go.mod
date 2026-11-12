@@ -34,7 +34,7 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
-	github.com/getlantern/broflake v0.0.0-20261112201448-4db891b9e096
+	github.com/getlantern/broflake v0.0.0-20261112211524-851e192b6f46
 	github.com/getlantern/common v1.2.1-0.20261110195018-962f63413c3f
 	github.com/getlantern/lantern-box v0.0.225
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
