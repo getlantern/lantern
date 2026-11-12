@@ -38,6 +38,35 @@ void main() {
     expect(_finders.homeScreen, findsOneWidget);
   });
 
+  testWidgets('intro cleanup does not wait when no intro is open', (
+    tester,
+  ) async {
+    await _launchApp(tester);
+    final before = tester.binding.clock.now();
+    await clearPersonalProxiesIntroForSmoke(tester, finders: _finders);
+    expect(tester.binding.clock.now(), before);
+  });
+
+  testWidgets('waiting for the VPN toggle closes an intro that opens late', (
+    tester,
+  ) async {
+    final app = await _launchApp(tester);
+    app.flags.set(_introFlags);
+    await tester.pumpAndSettle();
+    expect(_finders.personalProxiesIntro, findsOneWidget);
+
+    await waitForVpnToggleWithOnboardingHandling(
+      tester,
+      vpnToggle: _finders.vpnToggle,
+      onboardingScreen: _finders.onboardingScreen,
+      onboardingSkip: _finders.onboardingSkip,
+      onboardingPrimary: _finders.onboardingPrimary,
+      timeout: const Duration(seconds: 5),
+    );
+    expect(_finders.personalProxiesIntro, findsNothing);
+    expect(app.router.stack, hasLength(1));
+  });
+
   testWidgets('intro cleanup closes an open intro and leaves Home usable', (
     tester,
   ) async {
