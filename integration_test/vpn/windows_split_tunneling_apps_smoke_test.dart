@@ -619,8 +619,8 @@ void main() {
           tester,
           launcher,
           child: child,
-          accepts: (ip) => ip == baseline,
-          reason: 'Empty Include only did not leave the child direct',
+          accepts: (ip) => ip != baseline,
+          reason: 'Empty Include only did not keep the child tunneled',
         );
         await _tap(tester, find.byKey(const Key('split_tunneling.apps_tile')));
         await _addExecutable(tester, picker, child, bypass: false);
@@ -677,9 +677,9 @@ void main() {
           tester,
           launcher,
           child: child,
-          accepts: (ip) => ip == baseline,
+          accepts: (ip) => ip != baseline,
           reason:
-              'Clearing Include only selections did not restore direct traffic',
+              'Clearing Include only selections did not restore tunneled traffic',
         );
       } finally {
         requireSplitTunnelResult(

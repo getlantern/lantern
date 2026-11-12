@@ -29,11 +29,13 @@ class _Websites extends SplitTunnelingWebsites {
   Set<Website> initial = {};
   List<Website> added = [];
   Map<Website, Failure> failures = {};
+  Completer<void>? saving;
   @override
   FutureOr<Set<Website>> build() => initial;
   @override
   Future<Map<Website, Failure>> addWebsites(List<Website> websites) async {
     added.addAll(websites);
+    await saving?.future;
     return failures;
   }
 }
@@ -203,6 +205,25 @@ void main() {
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       'B.com',
+    );
+  });
+
+  testWidgets('text typed while a save is pending is kept', (tester) async {
+    websites.saving = Completer();
+    await pump(tester);
+    final input = find.byKey(const Key('split_tunneling.website.input'));
+    await tester.enterText(input, 'a.com');
+    await tester.tap(
+      find.byKey(const Key('split_tunneling.website.add_button')),
+    );
+    await tester.pump();
+    expect(websites.added, hasLength(1));
+    await tester.enterText(input, 'b.com');
+    websites.saving!.complete();
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'b.com',
     );
   });
 

@@ -25,10 +25,11 @@ class WebsiteDomainInput extends HookConsumerWidget {
     Future<void> add() async {
       if (busy.value || snapshot == null) return;
       busy.value = true;
+      final submitted = controller.text;
       try {
         // Canonical website to what the user typed for it.
         final added = <Website, String>{};
-        final parts = controller.text
+        final parts = submitted
             .split(',')
             .map((part) => part.trim())
             .where((part) => part.isNotEmpty);
@@ -85,10 +86,13 @@ class WebsiteDomainInput extends HookConsumerWidget {
             .read(splitTunnelingWebsitesProvider.notifier)
             .addWebsites(added.keys.toList());
         if (!context.mounted) return;
-        // Keep only what didn't save, so Add retries just those.
-        controller.text = failures.keys
-            .map((website) => added[website])
-            .join(', ');
+        // Keep only what didn't save, so Add retries just those. Leave the
+        // field alone if the user typed while saving.
+        if (controller.text == submitted) {
+          controller.text = failures.keys
+              .map((website) => added[website])
+              .join(', ');
+        }
         if (failures.isNotEmpty) {
           context.showSnackBarError(
             failures.values
