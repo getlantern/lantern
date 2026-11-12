@@ -6,7 +6,6 @@ import 'package:lantern/core/common/common.dart'
     show PersonalProxiesIntro, appRouter;
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-import 'package:lantern/lantern_app.dart';
 
 import '../utils/widget_wait_utils.dart';
 
@@ -195,7 +194,7 @@ Future<void> clearPersonalProxiesIntroForSmoke(
   required VpnSmokeFinders finders,
 }) async {
   final container = ProviderScope.containerOf(
-    tester.element(find.byType(LanternApp)),
+    tester.element(find.byType(MaterialApp).first),
     listen: false,
   );
   if (!container.read(appSettingProvider).personalProxiesIntroSeen) {
