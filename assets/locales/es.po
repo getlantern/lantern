@@ -598,7 +598,7 @@ msgid "smc_status_off"
 msgstr "Desactivado"
 
 msgid "smc_status_configuring"
-msgstr "Configurando la red"
+msgstr "Configurando"
 
 msgid "smc_status_error_with_message"
 msgstr "No se pudo compartir: %s"
@@ -2019,7 +2019,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "Ya se tomó una decisión sobre esta invitación."
 
 msgid "helper_error_bad_name"
-msgstr "Ingresa un nombre que tu amigo reconozca, de hasta 60 caracteres."
+msgstr "Ingresa un nombre que tu amigo reconozca."
 
 msgid "helper_error_keystore"
 msgstr "Este dispositivo no puede guardar nombres de forma segura, así que la ayuda a amigos está desactivada. En Linux, inicia un llavero como GNOME Keyring."
@@ -2097,7 +2097,7 @@ msgid "invite_link_copied"
 msgstr "Enlace copiado"
 
 msgid "invite_waiting"
-msgstr "Esperando a que abra el enlace"
+msgstr "Esperando a que tu amigo abra el enlace"
 
 msgid "invite_expires"
 msgstr "Vence en %s horas"
@@ -2139,10 +2139,10 @@ msgid "help_friend_done"
 msgstr "Listo"
 
 msgid "help_friend_already_claimed_title"
-msgstr "Esta invitación ya fue usada"
+msgstr "Esta invitación ya se usó"
 
 msgid "help_friend_already_claimed_body"
-msgstr "Otra persona abrió este enlace primero, o venció. Pídele a tu amigo una nueva invitación y dile que otra persona pudo haber visto esta."
+msgstr "Otra persona abrió este enlace primero, o venció. Pídele a tu amigo una nueva invitación y dile que alguien más pudo haber visto esta."
 
 msgid "help_friend_already_helping"
 msgstr "Ya estás ayudando a este amigo."
@@ -2232,7 +2232,7 @@ msgid "help_friend_waiting_approval"
 msgstr "Esperando aprobación"
 
 msgid "help_friend_code_note"
-msgstr "Dile el código en una llamada o en una app distinta a la que usaste para recibir el enlace de invitación. Quien haya visto el enlace no debe ver también el código."
+msgstr "Dile el código en una llamada o en una app distinta de la que usó para enviarte el enlace de invitación. Nadie más que tu amigo debería tener ambos."
 
 msgid "become_personal_proxy"
 msgstr "Conviértete en proxy personal"
@@ -2401,3 +2401,60 @@ msgstr "Abrir en otro dispositivo"
 
 msgid "open_on_another_device_hint"
 msgstr "Este televisor no tiene navegador web. Escanea el código o escribe la dirección en tu celular o computadora."
+
+msgid "helpers_name_label"
+msgstr "Tu nombre"
+
+msgid "helpers_your_name_helper"
+msgstr "Como te conoce tu amigo"
+
+msgid "manage_empty_my_server_title"
+msgstr "Aún no tienes un servidor privado"
+
+msgid "manage_empty_my_server_body"
+msgstr "Configura tu propio servidor para tener control total de tu conexión."
+
+msgid "manage_empty_joined_title"
+msgstr "Aún no te has unido a ningún servidor"
+
+msgid "manage_empty_joined_body"
+msgstr "Únete a un servidor administrado por alguien de confianza con la clave de acceso que te dé."
+
+msgid "manage_empty_proxies_title"
+msgstr "Aún no hay proxies personales"
+
+msgid "manage_empty_proxies_body"
+msgstr "Invita a alguien de confianza fuera de tu país para conectarte directamente a través de esa persona."
+
+msgid "invite_share_steps_short"
+msgstr "La persona abre el enlace e ingresa su nombre. Tú la apruebas con un código de 4 dígitos."
+
+msgid "invite_qr_hint_camera"
+msgstr "Si tu amigo está contigo, puede escanear este código en lugar de usar el enlace."
+
+msgid "invite_trust_warning_short"
+msgstr "Invita solo a alguien de confianza."
+
+msgid "invite_trust_learn_more"
+msgstr "Más información."
+
+msgid "invite_trust_title"
+msgstr "Confía en tu proxy personal"
+
+msgid "invite_trust_message_one"
+msgstr "Tu tráfico de internet pasará por la conexión de la persona que invites. Podrá ver cuándo te conectas y podría ver qué sitios visitas. Como la mayoría de los sitios usan HTTPS, que está cifrado, no podrá ver las páginas específicas que abres ni lo que haces en ellas."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern no administra ni supervisa los proxies personales. Invita solo a alguien que conozcas y en quien confíes."
+
+msgid "invite_trust_message_three"
+msgstr "Puedes eliminarlo en cualquier momento desde Administrar ubicaciones privadas."
+
+msgid "approved_body_locations"
+msgstr "Cuando %s esté en línea, podrás seleccionarlo en Ubicaciones privadas, en el menú Ubicaciones de servidor. Ubicación inteligente puede usarlo automáticamente."
+
+msgid "become_means_traffic_seen"
+msgstr "Un amigo te pidió ayuda. Cuando Action Mode está activado, accede a internet abierto a través de tu conexión. Podrías ver qué sitios visita, pero no lo que hace en ellos."
+
+msgid "help_friend_your_name_label"
+msgstr "Tu nombre"

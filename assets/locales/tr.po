@@ -596,7 +596,7 @@ msgid "smc_status_off"
 msgstr "Devre Dışı"
 
 msgid "smc_status_configuring"
-msgstr "Ağ yapılandırılıyor"
+msgstr "Yapılandırılıyor"
 
 msgid "smc_status_error_with_message"
 msgstr "Paylaşılamadı: %s"
@@ -2005,7 +2005,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "Bu davet hakkında zaten karar verildi."
 
 msgid "helper_error_bad_name"
-msgstr "Arkadaşınızın tanıyacağı bir ad girin, en fazla 60 karakter."
+msgstr "Arkadaşınızın tanıyacağı bir ad girin."
 
 msgid "helper_error_keystore"
 msgstr "Bu cihaz adları güvenli şekilde saklayamıyor, bu yüzden arkadaşlara yardım kapalı. Linux'ta GNOME Keyring gibi bir anahtarlık başlatın."
@@ -2083,7 +2083,7 @@ msgid "invite_link_copied"
 msgstr "Bağlantı kopyalandı"
 
 msgid "invite_waiting"
-msgstr "Bağlantının açılması bekleniyor"
+msgstr "Arkadaşınızın bağlantıyı açması bekleniyor"
 
 msgid "invite_expires"
 msgstr "%s saat içinde sona erer"
@@ -2125,7 +2125,7 @@ msgid "help_friend_done"
 msgstr "Bitti"
 
 msgid "help_friend_already_claimed_title"
-msgstr "Bu davet zaten kullanıldı"
+msgstr "Bu Davet Zaten Kullanıldı"
 
 msgid "help_friend_already_claimed_body"
 msgstr "Bu bağlantıyı önce başka biri açtı veya bağlantının süresi doldu. Arkadaşınızdan yeni bir davet isteyin ve bu davetin başka biri tarafından görülmüş olabileceğini söyleyin."
@@ -2218,7 +2218,7 @@ msgid "help_friend_waiting_approval"
 msgstr "Onay bekleniyor"
 
 msgid "help_friend_code_note"
-msgstr "Kodu bir aramada veya davet bağlantısının geldiği uygulamadan farklı bir uygulamada söyleyin. Bağlantıyı gören kişi kodu da görmemeli."
+msgstr "Kodu bir aramada veya davet bağlantısının geldiği uygulamadan farklı bir uygulamada söyleyin. Arkadaşınız dışında kimsede ikisi birden olmamalı."
 
 msgid "become_personal_proxy"
 msgstr "Kişisel Proxy Ol"
@@ -2387,3 +2387,60 @@ msgstr "Başka Bir Cihazda Aç"
 
 msgid "open_on_another_device_hint"
 msgstr "Bu TV'de web tarayıcısı yok. Kodu tarayın veya adresi telefonunuza ya da bilgisayarınıza yazın."
+
+msgid "helpers_name_label"
+msgstr "Adınız"
+
+msgid "helpers_your_name_helper"
+msgstr "Arkadaşınızın sizi tanıdığı şekilde"
+
+msgid "manage_empty_my_server_title"
+msgstr "Henüz Özel Sunucu Yok"
+
+msgid "manage_empty_my_server_body"
+msgstr "Bağlantınız üzerinde tam kontrol için kendi sunucunuzu kurun."
+
+msgid "manage_empty_joined_title"
+msgstr "Henüz katılınan sunucu yok"
+
+msgid "manage_empty_joined_body"
+msgstr "Güvendiğiniz birinin işlettiği bir sunucuya, size verdiği erişim anahtarıyla katılın."
+
+msgid "manage_empty_proxies_title"
+msgstr "Henüz Kişisel Proxy yok"
+
+msgid "manage_empty_proxies_body"
+msgstr "Doğrudan onun üzerinden bağlanmak için ülkeniz dışındaki güvendiğiniz birini davet edin."
+
+msgid "invite_share_steps_short"
+msgstr "Bağlantıyı açıp adını girer. Siz de 4 haneli bir kodla onaylarsınız."
+
+msgid "invite_qr_hint_camera"
+msgstr "Arkadaşınız yanınızdaysa bağlantı yerine bu kodu tarayabilir."
+
+msgid "invite_trust_warning_short"
+msgstr "Yalnızca güvendiğiniz birini davet edin."
+
+msgid "invite_trust_learn_more"
+msgstr "Daha fazla bilgi."
+
+msgid "invite_trust_title"
+msgstr "Kişisel Proxy'nize Güvenin"
+
+msgid "invite_trust_message_one"
+msgstr "İnternet trafiğiniz davet ettiğiniz kişinin bağlantısı üzerinden geçer. Bu kişi ne zaman bağlı olduğunuzu görebilir ve hangi siteleri ziyaret ettiğinizi görebilir. Çoğu site şifreli HTTPS kullandığından, açtığınız belirli sayfaları veya bu sayfalarda ne yaptığınızı göremez."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern Kişisel Proxy'leri yönetmez veya izlemez. Yalnızca tanıdığınız ve güvendiğiniz birini davet edin."
+
+msgid "invite_trust_message_three"
+msgstr "Bu kişiyi istediğiniz zaman Özel Konumları Yönet bölümünden kaldırabilirsiniz."
+
+msgid "approved_body_locations"
+msgstr "%s çevrimiçi olduğunda, Sunucu Konumları menüsündeki Özel Konumlar altından seçebilirsiniz. Akıllı Konum bunları otomatik olarak kullanabilir."
+
+msgid "become_means_traffic_seen"
+msgstr "Bir arkadaşınız yardımınızı istedi. Action Mode açıkken, sizin bağlantınız üzerinden açık internete erişir. Hangi siteleri ziyaret ettiğini görebilirsiniz ama bu sitelerde ne yaptığını göremezsiniz."
+
+msgid "help_friend_your_name_label"
+msgstr "Adınız"

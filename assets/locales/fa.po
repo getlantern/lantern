@@ -597,7 +597,7 @@ msgid "smc_status_off"
 msgstr "غیرفعال"
 
 msgid "smc_status_configuring"
-msgstr "در حال پیکربندی شبکه"
+msgstr "در حال پیکربندی"
 
 msgid "smc_status_error_with_message"
 msgstr "اشتراک‌گذاری ممکن نبود: %s"
@@ -1997,7 +1997,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "درباره این دعوت قبلاً تصمیم گرفته شده است."
 
 msgid "helper_error_bad_name"
-msgstr "نامی وارد کنید که دوستتان آن را بشناسد، حداکثر ۶۰ نویسه."
+msgstr "نامی وارد کنید که دوستتان آن را بشناسد."
 
 msgid "helper_error_keystore"
 msgstr "این دستگاه نمی‌تواند نام‌ها را به‌صورت امن ذخیره کند، بنابراین کمک به دوستان غیرفعال است. در Linux، یک کی‌رینگ مانند GNOME Keyring را اجرا کنید."
@@ -2075,7 +2075,7 @@ msgid "invite_link_copied"
 msgstr "پیوند کپی شد"
 
 msgid "invite_waiting"
-msgstr "در انتظار باز شدن پیوند"
+msgstr "در انتظار باز کردن پیوند توسط دوستتان"
 
 msgid "invite_expires"
 msgstr "تا %s ساعت دیگر منقضی می‌شود"
@@ -2117,10 +2117,10 @@ msgid "help_friend_done"
 msgstr "انجام شد"
 
 msgid "help_friend_already_claimed_title"
-msgstr "این دعوت قبلاً استفاده شده است"
+msgstr "این دعوت‌نامه قبلاً استفاده شده است"
 
 msgid "help_friend_already_claimed_body"
-msgstr "شخص دیگری زودتر این پیوند را باز کرده یا مهلت آن تمام شده است. از دوستتان یک دعوت‌نامه جدید بخواهید و به او بگویید ممکن است شخص دیگری این یکی را دیده باشد."
+msgstr "شخص دیگری زودتر این پیوند را باز کرده یا اعتبار آن تمام شده است. از دوستتان دعوت‌نامه جدیدی بخواهید و به او بگویید ممکن است شخص دیگری این یکی را دیده باشد."
 
 msgid "help_friend_already_helping"
 msgstr "شما از قبل به این دوست کمک می‌کنید."
@@ -2210,7 +2210,7 @@ msgid "help_friend_waiting_approval"
 msgstr "در انتظار تأیید"
 
 msgid "help_friend_code_note"
-msgstr "کد را در تماس یا در برنامه‌ای غیر از برنامه‌ای که لینک دعوت در آن رسید بگویید. کسی که لینک را دیده نباید کد را هم ببیند."
+msgstr "کد را در یک تماس یا در برنامه‌ای غیر از برنامه‌ای که پیوند دعوت در آن رسیده بگویید. هیچ‌کس جز دوستتان نباید هر دو را داشته باشد."
 
 msgid "become_personal_proxy"
 msgstr "پروکسی شخصی شوید"
@@ -2379,3 +2379,60 @@ msgstr "باز کردن در دستگاه دیگر"
 
 msgid "open_on_another_device_hint"
 msgstr "این تلویزیون مرورگر وب ندارد. کد را اسکن کنید یا نشانی را در تلفن یا رایانه خود وارد کنید."
+
+msgid "helpers_name_label"
+msgstr "نام شما"
+
+msgid "helpers_your_name_helper"
+msgstr "همان‌طور که دوستتان شما را می‌شناسد"
+
+msgid "manage_empty_my_server_title"
+msgstr "هنوز سرور خصوصی ندارید"
+
+msgid "manage_empty_my_server_body"
+msgstr "برای کنترل کامل بر اتصال خود، سرور شخصی‌تان را راه‌اندازی کنید."
+
+msgid "manage_empty_joined_title"
+msgstr "هنوز به هیچ سروری نپیوسته‌اید"
+
+msgid "manage_empty_joined_body"
+msgstr "با کلید دسترسی‌ای که فرد مورد اعتمادتان به شما می‌دهد، به سروری که او اداره می‌کند بپیوندید."
+
+msgid "manage_empty_proxies_title"
+msgstr "هنوز پروکسی شخصی ندارید"
+
+msgid "manage_empty_proxies_body"
+msgstr "از فردی مورد اعتماد خارج از کشورتان دعوت کنید تا مستقیماً از طریق او متصل شوید."
+
+msgid "invite_share_steps_short"
+msgstr "او پیوند را باز می‌کند و نامش را وارد می‌کند. شما با یک کد ۴ رقمی او را تأیید می‌کنید."
+
+msgid "invite_qr_hint_camera"
+msgstr "اگر دوستتان کنار شماست، می‌تواند به‌جای استفاده از پیوند، این کد را اسکن کند."
+
+msgid "invite_trust_warning_short"
+msgstr "فقط کسی را دعوت کنید که به او اعتماد دارید."
+
+msgid "invite_trust_learn_more"
+msgstr "بیشتر بدانید."
+
+msgid "invite_trust_title"
+msgstr "اعتماد به پراکسی شخصی"
+
+msgid "invite_trust_message_one"
+msgstr "ترافیک اینترنت شما از اتصال فردی که دعوت می‌کنید عبور می‌کند. او می‌تواند ببیند چه زمانی متصل هستید و ممکن است ببیند از چه سایت‌هایی بازدید می‌کنید. چون بیشتر سایت‌ها از HTTPS رمزگذاری‌شده استفاده می‌کنند، او نمی‌تواند صفحه‌های مشخصی را که باز می‌کنید یا کاری را که در آن‌ها انجام می‌دهید ببیند."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern پراکسی‌های شخصی را مدیریت یا نظارت نمی‌کند. فقط کسی را دعوت کنید که می‌شناسید و به او اعتماد دارید."
+
+msgid "invite_trust_message_three"
+msgstr "هر زمان بخواهید می‌توانید او را از مدیریت مکان‌های خصوصی حذف کنید."
+
+msgid "approved_body_locations"
+msgstr "وقتی %s آنلاین باشد، می‌توانید آن را در «مکان‌های خصوصی» در منوی مکان‌های سرور انتخاب کنید. مکان هوشمند ممکن است به‌طور خودکار از آن استفاده کند."
+
+msgid "become_means_traffic_seen"
+msgstr "یکی از دوستانتان از شما کمک خواسته است. وقتی Action Mode روشن است، او از طریق اتصال شما به اینترنت آزاد دسترسی پیدا می‌کند. شما می‌توانید ببینید از چه سایت‌هایی بازدید می‌کند، اما نه اینکه در آن‌ها چه می‌کند."
+
+msgid "help_friend_your_name_label"
+msgstr "نام شما"

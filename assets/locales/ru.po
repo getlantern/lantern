@@ -602,7 +602,7 @@ msgid "smc_status_off"
 msgstr "Отключено"
 
 msgid "smc_status_configuring"
-msgstr "Настройка сети"
+msgstr "Настройка"
 
 msgid "smc_status_error_with_message"
 msgstr "Не удалось поделиться: %s"
@@ -2015,7 +2015,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "По этому приглашению уже принято решение."
 
 msgid "helper_error_bad_name"
-msgstr "Введите имя, которое узнает ваш друг, — не более 60 символов."
+msgstr "Введите имя, по которому вас узнает друг."
 
 msgid "helper_error_keystore"
 msgstr "Это устройство не может надёжно хранить имена, поэтому помощь друзьям отключена. В Linux запустите хранилище ключей, например GNOME Keyring."
@@ -2093,7 +2093,7 @@ msgid "invite_link_copied"
 msgstr "Ссылка скопирована"
 
 msgid "invite_waiting"
-msgstr "Ожидание открытия ссылки"
+msgstr "Ожидание, пока друг откроет ссылку"
 
 msgid "invite_expires"
 msgstr "Истекает через %s ч"
@@ -2138,7 +2138,7 @@ msgid "help_friend_already_claimed_title"
 msgstr "Это приглашение уже использовано"
 
 msgid "help_friend_already_claimed_body"
-msgstr "Кто-то другой открыл эту ссылку раньше, или срок её действия истёк. Попросите у друга новое приглашение и предупредите, что это приглашение мог увидеть кто-то другой."
+msgstr "Кто-то другой открыл эту ссылку раньше, или срок её действия истёк. Попросите друга прислать новое приглашение и предупредите, что это приглашение мог увидеть кто-то ещё."
 
 msgid "help_friend_already_helping"
 msgstr "Вы уже помогаете этому другу."
@@ -2228,7 +2228,7 @@ msgid "help_friend_waiting_approval"
 msgstr "Ожидание подтверждения"
 
 msgid "help_friend_code_note"
-msgstr "Сообщите код по телефону или в другом приложении — не в том, куда пришла ссылка-приглашение. Тот, кто видел ссылку, не должен видеть и код."
+msgstr "Назовите код во время звонка или в другом приложении, а не в том, куда пришла ссылка-приглашение. Ни у кого, кроме вашего друга, не должно быть и того, и другого."
 
 msgid "become_personal_proxy"
 msgstr "Стать личным прокси"
@@ -2397,3 +2397,57 @@ msgstr "Открыть на другом устройстве"
 
 msgid "open_on_another_device_hint"
 msgstr "На этом телевизоре нет браузера. Отсканируйте код или введите адрес на телефоне или компьютере."
+
+msgid "helpers_name_label"
+msgstr "Ваше имя"
+
+msgid "helpers_your_name_helper"
+msgstr "Имя, под которым вас знает друг"
+
+msgid "manage_empty_my_server_title"
+msgstr "Частного сервера пока нет"
+
+msgid "manage_empty_my_server_body"
+msgstr "Настройте собственный сервер для полного контроля над подключением."
+
+msgid "manage_empty_joined_title"
+msgstr "Пока нет подключённых серверов"
+
+msgid "manage_empty_joined_body"
+msgstr "Присоединитесь к серверу человека, которому доверяете, с помощью ключа доступа от него."
+
+msgid "manage_empty_proxies_title"
+msgstr "Личных прокси пока нет"
+
+msgid "manage_empty_proxies_body"
+msgstr "Пригласите человека, которому доверяете, за пределами вашей страны, чтобы подключаться напрямую через него."
+
+msgid "invite_share_steps_short"
+msgstr "Друг открывает ссылку и вводит своё имя. Вы подтверждаете его 4-значным кодом."
+
+msgid "invite_qr_hint_camera"
+msgstr "Если друг рядом с вами, он может отсканировать этот код вместо ссылки."
+
+msgid "invite_trust_warning_short"
+msgstr "Приглашайте только тех, кому доверяете."
+
+msgid "invite_trust_learn_more"
+msgstr "Подробнее."
+
+msgid "invite_trust_title"
+msgstr "Доверие к личному прокси"
+
+msgid "invite_trust_message_one"
+msgstr "Ваш интернет-трафик будет проходить через подключение приглашённого человека. Он сможет видеть, когда вы подключены, и какие сайты вы посещаете. Поскольку большинство сайтов использует зашифрованный HTTPS, он не увидит, какие конкретно страницы вы открываете и что на них делаете."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern не управляет личными прокси и не отслеживает их. Приглашайте только тех, кого знаете и кому доверяете."
+
+msgid "invite_trust_message_three"
+msgstr "Удалить его можно в любой момент в разделе «Управление частными расположениями»."
+
+msgid "become_means_traffic_seen"
+msgstr "Друг попросил вас о помощи. Когда Action Mode включён, он выходит в открытый интернет через ваше подключение. Вы сможете видеть, какие сайты он посещает, но не то, что он на них делает."
+
+msgid "help_friend_your_name_label"
+msgstr "Ваше имя"

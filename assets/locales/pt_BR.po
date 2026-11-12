@@ -597,7 +597,7 @@ msgid "smc_status_off"
 msgstr "Desativado"
 
 msgid "smc_status_configuring"
-msgstr "Configurando a rede"
+msgstr "Configurando"
 
 msgid "smc_status_error_with_message"
 msgstr "Não foi possível compartilhar: %s"
@@ -2015,7 +2015,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "Este convite já foi decidido."
 
 msgid "helper_error_bad_name"
-msgstr "Digite um nome que seu amigo reconheça, com até 60 caracteres."
+msgstr "Digite um nome que seu amigo reconheça."
 
 msgid "helper_error_keystore"
 msgstr "Este dispositivo não consegue armazenar nomes com segurança, então a ajuda a amigos está desativada. No Linux, inicie um chaveiro como o GNOME Keyring."
@@ -2093,7 +2093,7 @@ msgid "invite_link_copied"
 msgstr "Link copiado"
 
 msgid "invite_waiting"
-msgstr "Aguardando a pessoa abrir o link"
+msgstr "Aguardando seu amigo abrir o link"
 
 msgid "invite_expires"
 msgstr "Expira em %s horas"
@@ -2228,7 +2228,7 @@ msgid "help_friend_waiting_approval"
 msgstr "Aguardando aprovação"
 
 msgid "help_friend_code_note"
-msgstr "Diga o código por uma ligação ou em um app diferente daquele em que o link de convite chegou. Quem viu o link não deve ver também o código."
+msgstr "Diga o código em uma ligação ou em um app diferente daquele em que o link do convite chegou. Ninguém além do seu amigo deve ter os dois."
 
 msgid "become_personal_proxy"
 msgstr "Seja um proxy pessoal"
@@ -2397,3 +2397,60 @@ msgstr "Abrir em outro dispositivo"
 
 msgid "open_on_another_device_hint"
 msgstr "Esta TV não tem navegador. Escaneie o código ou digite o endereço no seu celular ou computador."
+
+msgid "helpers_name_label"
+msgstr "Seu nome"
+
+msgid "helpers_your_name_helper"
+msgstr "Como seu amigo chama você"
+
+msgid "manage_empty_my_server_title"
+msgstr "Nenhum servidor privado ainda"
+
+msgid "manage_empty_my_server_body"
+msgstr "Configure seu próprio servidor para ter controle total da sua conexão."
+
+msgid "manage_empty_joined_title"
+msgstr "Nenhum servidor adicionado ainda"
+
+msgid "manage_empty_joined_body"
+msgstr "Entre em um servidor gerenciado por alguém de confiança usando a chave de acesso que essa pessoa der a você."
+
+msgid "manage_empty_proxies_title"
+msgstr "Nenhum proxy pessoal ainda"
+
+msgid "manage_empty_proxies_body"
+msgstr "Convide alguém de confiança fora do seu país para se conectar diretamente por meio dessa pessoa."
+
+msgid "invite_share_steps_short"
+msgstr "A pessoa abre o link e digita o nome. Você aprova com um código de 4 dígitos."
+
+msgid "invite_qr_hint_camera"
+msgstr "Se seu amigo estiver com você, ele pode escanear este código em vez de usar o link."
+
+msgid "invite_trust_warning_short"
+msgstr "Convide apenas alguém de confiança."
+
+msgid "invite_trust_learn_more"
+msgstr "Saiba mais."
+
+msgid "invite_trust_title"
+msgstr "Confie no seu proxy pessoal"
+
+msgid "invite_trust_message_one"
+msgstr "Seu tráfego de internet passará pela conexão da pessoa que você convidar. Ela pode ver quando você se conecta e poderia ver quais sites você visita. Como a maioria dos sites usa HTTPS, que é criptografado, ela não pode ver as páginas específicas que você abre nem o que você faz nelas."
+
+msgid "invite_trust_message_two"
+msgstr "O Lantern não gerencia nem monitora proxies pessoais. Convide apenas alguém que você conhece e em quem confia."
+
+msgid "invite_trust_message_three"
+msgstr "Você pode removê-la a qualquer momento em Gerenciar locais privados."
+
+msgid "approved_body_locations"
+msgstr "Quando %s estiver on-line, você poderá selecioná-lo em Locais privados, no menu Locais de servidor. A Localização inteligente pode usá-lo automaticamente."
+
+msgid "become_means_traffic_seen"
+msgstr "Um amigo pediu sua ajuda. Quando o Action Mode está ativado, ele acessa a internet aberta pela sua conexão. Você poderia ver quais sites ele visita, mas não o que ele faz neles."
+
+msgid "help_friend_your_name_label"
+msgstr "Seu nome"
