@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/common.dart'
+    show PersonalProxiesIntro, appRouter;
 import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/lantern_app.dart';
 
 import '../utils/widget_wait_utils.dart';
 
@@ -28,6 +33,9 @@ class VpnSmokeFinders {
   final Finder onboardingScreen = find.byKey(const Key('onboarding.screen'));
   final Finder onboardingSkip = find.byKey(const Key('onboarding.skip'));
   final Finder onboardingPrimary = find.byKey(const Key('onboarding.primary'));
+  final Finder personalProxiesIntro = find.byKey(
+    const Key('personal_proxies_intro.screen'),
+  );
   final Finder vpnToggle = find.byKey(const Key('vpn.toggle'));
 }
 
@@ -179,16 +187,55 @@ Future<void> waitForVpnToggleWithOnboardingHandling(
   fail('VPN toggle not visible');
 }
 
+/// The Personal Proxies intro opens over Home a couple of seconds into any
+/// launch after one that skipped onboarding. Mark it seen so it cannot open
+/// mid-test, and close it if it already has.
+Future<void> clearPersonalProxiesIntroForSmoke(
+  WidgetTester tester, {
+  required VpnSmokeFinders finders,
+}) async {
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(LanternApp)),
+    listen: false,
+  );
+  if (!container.read(appSettingProvider).personalProxiesIntroSeen) {
+    container
+        .read(appSettingProvider.notifier)
+        .setPersonalProxiesIntroSeen(true);
+  }
+
+  // A push that had already started shows up on the next frame.
+  await tester.pump(const Duration(milliseconds: 300));
+  if (finders.personalProxiesIntro.evaluate().isEmpty) return;
+
+  debugPrint('VPN smoke: closing the Personal Proxies introduction');
+  appRouter.popUntil(
+    (route) => route.settings.name != PersonalProxiesIntro.name,
+  );
+  await WidgetWaitUtils.waitForFinderToDisappear(
+    tester,
+    finders.personalProxiesIntro,
+    timeout: const Duration(seconds: 10),
+    reason: 'Personal Proxies introduction did not close',
+  );
+}
+
 Future<void> waitForHomeReadyForVpnSmoke(
   WidgetTester tester, {
   required VpnSmokeFinders finders,
 }) async {
   await WidgetWaitUtils.waitForAnyFinder(
     tester,
-    [finders.homeScreen, finders.onboardingScreen],
+    [
+      finders.homeScreen,
+      finders.onboardingScreen,
+      finders.personalProxiesIntro,
+    ],
     timeout: const Duration(seconds: 90),
     reason: 'Home or onboarding did not appear after launch',
   );
+
+  await clearPersonalProxiesIntroForSmoke(tester, finders: finders);
 
   await WidgetWaitUtils.waitForFinder(
     tester,
