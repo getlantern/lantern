@@ -2026,9 +2026,6 @@ msgstr "Защищённое хранилище этого устройства 
 msgid "helper_error_copy"
 msgstr "Не удалось скопировать ссылку. Используйте «Поделиться ссылкой»."
 
-msgid "helpers_your_name_label"
-msgstr "Ваше имя, под которым вас знает друг"
-
 msgid "helpers_your_name_hint"
 msgstr "Например, Сара"
 
@@ -2095,14 +2092,8 @@ msgstr "Копировать ссылку"
 msgid "invite_link_copied"
 msgstr "Ссылка скопирована"
 
-msgid "invite_qr_hint"
-msgstr "Если человек рядом, он может отсканировать этот код в Lantern вместо ссылки."
-
 msgid "invite_waiting"
 msgstr "Ожидание открытия ссылки"
-
-msgid "invite_trust_warning"
-msgstr "Приглашённый человек узнает, что вы используете Lantern, и сможет видеть, когда вы подключаетесь через него. Ваш трафик идёт через его интернет-подключение, поэтому он может узнать, какие сайты вы посещаете, но не то, что вы делаете на защищённых (https) сайтах. Приглашайте только тех, кому доверяете."
 
 msgid "invite_expires"
 msgstr "Истекает через %s ч"
@@ -2188,9 +2179,6 @@ msgstr "%s мин"
 msgid "invite_share_title"
 msgstr "Отправьте эту ссылку человеку, которому доверяете, за пределами вашей страны"
 
-msgid "invite_share_steps"
-msgstr "Получатель открывает ссылку, при необходимости устанавливает Lantern и вводит имя. Вы подтверждаете его, сверив 4-значный код, а затем сможете подключаться через него."
-
 msgid "invite_link_label"
 msgstr "Ваша ссылка-приглашение"
 
@@ -2218,9 +2206,6 @@ msgstr "Сейчас нет связи с %s. Выполнен переход н
 msgid "become_means_title"
 msgstr "Что значит быть личным прокси"
 
-msgid "become_means_traffic"
-msgstr "Друг попросил вас о помощи. Пока работает Action Mode, он может выходить в открытый интернет через ваше подключение. Lantern не показывает вам, какие сайты он посещает."
-
 msgid "become_means_seen"
 msgstr "Они видят, когда у вас активно подключение. Принимайте приглашения только от знакомых людей."
 
@@ -2229,9 +2214,6 @@ msgstr "Подключение можно удалить в любой моме�
 
 msgid "help_friend_form_title"
 msgstr "Вставьте ссылку от человека, которому вы помогаете"
-
-msgid "help_friend_name_label"
-msgstr "Ваше имя, под которым вас знают"
 
 msgid "help_friend_become"
 msgstr "Станьте личным прокси для друга"
@@ -2283,12 +2265,6 @@ msgstr "Не подключено"
 
 msgid "helping_paste_another"
 msgstr "Вставить ещё одну ссылку-приглашение"
-
-msgid "helping_data_relayed"
-msgstr "Передано данных сегодня"
-
-msgid "helping_active_today"
-msgstr "Активно: %s"
 
 msgid "help_friend_paste_button"
 msgstr "Вставить ссылку"
@@ -2362,9 +2338,6 @@ msgstr "Включайте и выключайте Action Mode в любое в�
 msgid "approved_title"
 msgstr "Ваш личный прокси: %s"
 
-msgid "approved_body"
-msgstr "Когда %s в сети, этот прокси можно выбрать в разделе «Частные расположения» в окне «Выбор сервера»."
-
 msgid "approved_connect_now"
 msgstr "Подключиться сейчас"
 
@@ -2376,12 +2349,6 @@ msgstr "Теперь вы личный прокси для: %s"
 
 msgid "help_friend_success_body"
 msgstr "Пользователь %s одобрил запрос. Когда Action Mode включён, этот пользователь может выходить в открытый интернет через ваше подключение."
-
-msgid "help_friend_keep_on"
-msgstr "Не выключать Action Mode"
-
-msgid "help_friend_keep_on_body"
-msgstr "Включается сейчас и всякий раз, когда Lantern открыт, чтобы у пользователя %s сохранялось подключение."
 
 msgid "help_friend_no_link_yet"
 msgstr "Ещё нет ссылки?"

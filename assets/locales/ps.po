@@ -2035,9 +2035,6 @@ msgstr "د دې وسیلې خوندي زېرمه بیا تنظیم شوه، نو
 msgid "helper_error_copy"
 msgstr "لینک کاپي نشو. پر ځای یې د لینک شریکول وکاروئ."
 
-msgid "helpers_your_name_label"
-msgstr "ستاسو نوم، لکه څنګه چې ستاسو ملګری تاسو پېژني"
-
 msgid "helpers_your_name_hint"
 msgstr "د بېلګې په توګه، سارا"
 
@@ -2104,14 +2101,8 @@ msgstr "لینک کاپي کړئ"
 msgid "invite_link_copied"
 msgstr "لینک کاپي شو"
 
-msgid "invite_qr_hint"
-msgstr "که دوی ستاسو سره وي، کولی شي د لینک پر ځای دا په Lantern کې سکین کړي."
-
 msgid "invite_waiting"
 msgstr "د لینک پرانیستلو ته انتظار"
-
-msgid "invite_trust_warning"
-msgstr "هغه څوک چې تاسو یې رابولئ پوهېږي چې تاسو Lantern کاروئ او لیدلی شي چې تاسو کله د هغه له لارې وصل یاست. ستاسو ټرافیک د هغه د انټرنیټ اتصال له لارې تېرېږي. نو هغه کولی شي پوه شي چې تاسو کومې پاڼې ګورئ، خو دا نه چې په خوندي (https) پاڼو کې څه کوئ. یوازې هغه څوک راوبلئ چې باور پرې لرئ."
 
 msgid "invite_expires"
 msgstr "په %s ساعتونو کې پای ته رسېږي"
@@ -2197,9 +2188,6 @@ msgstr "%s دقیقې"
 msgid "invite_share_title"
 msgstr "دا لینک له خپل هېواده بهر له یو باوري کس سره شریک کړئ"
 
-msgid "invite_share_steps"
-msgstr "هغوی لینک خلاصوي، که اړتیا وي Lantern نصبوي او خپل نوم لیکي. تاسو به د 4 عددي کوډ په کتلو سره هغوی تایید کړئ، بیا کولی شئ د هغوی له لارې وصل شئ."
-
 msgid "invite_link_label"
 msgstr "ستاسو د بلنې لینک"
 
@@ -2224,9 +2212,6 @@ msgstr "اوس مهال %s ته رسېدل نه کېږي. ستاسو شخصي پ
 msgid "become_means_title"
 msgstr "شخصي پراکسي کېدل څه معنا لري"
 
-msgid "become_means_traffic"
-msgstr "یو ملګري ستاسو مرسته غوښتې ده. کله چې Action Mode چلېږي، هغه ستاسو د اتصال له لارې خلاص انټرنیټ ته رسېدای شي. Lantern تاسو ته نه ښيي چې هغه کومې پاڼې ګوري."
-
 msgid "become_means_seen"
 msgstr "دوی لیدلی شي چې تاسو کله وصل یاست. یوازې د هغو کسانو بلنې ومنئ چې پېژنئ یې."
 
@@ -2235,9 +2220,6 @@ msgstr "اتصال هر وخت لرې کولی شئ."
 
 msgid "help_friend_form_title"
 msgstr "د هغه چا لینک دلته کېږدئ چې مرسته یې کوئ"
-
-msgid "help_friend_name_label"
-msgstr "ستاسو نوم، لکه څنګه چې تاسو پېژني"
 
 msgid "help_friend_become"
 msgstr "د هغوی شخصي پراکسي شئ"
@@ -2286,12 +2268,6 @@ msgstr "وصل نه دی"
 
 msgid "helping_paste_another"
 msgstr "بل د بلنې لینک پیسټ کړئ"
-
-msgid "helping_data_relayed"
-msgstr "نن ورځ لېږدول شوي ډېټا"
-
-msgid "helping_active_today"
-msgstr "فعال: %s"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "اوس مهال %s ته رسېدل نه کېږي. هوښيار موقعیت ته واوښتل."
@@ -2368,9 +2344,6 @@ msgstr "Action Mode هر وخت د Action Mode ټب څخه چالان یا بن�
 msgid "approved_title"
 msgstr "%s اوس ستاسو شخصي پراکسي ده"
 
-msgid "approved_body"
-msgstr "کله چې %s آنلاین وي، تاسو کولی شئ د سرور انتخاب کې د شخصي ځایونو لاندې غوره کړئ."
-
 msgid "approved_connect_now"
 msgstr "اوس وصل کړئ"
 
@@ -2382,12 +2355,6 @@ msgstr "تاسو اوس د %s شخصي پراکسي یاست"
 
 msgid "help_friend_success_body"
 msgstr "%s تاسو تایید کړئ. کله چې Action Mode روښانه وي، دوی ستاسو د اتصال له لارې خلاص انټرنیټ ته لاسرسی موندلی شي."
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode روښانه وساتئ"
-
-msgid "help_friend_keep_on_body"
-msgstr "اوس او هر کله چې Lantern خلاص وي روښانه کېږي، ترڅو %s وصل پاتې شي."
 
 msgid "help_friend_no_link_yet"
 msgstr "لا تر اوسه لینک نلرئ؟"

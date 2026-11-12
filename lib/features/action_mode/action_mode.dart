@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/globe_column.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -21,17 +21,6 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 
 /// The globe's least height before the content below it scrolls.
 const _minGlobeHeight = 140.0;
-
-/// The status card and the tab's padding, below the globe.
-const _belowGlobeHeight = 264.0;
-
-/// "All countries" or "Only my Personal Proxy connections" under the
-/// "Helping right now" count.
-const _helpingScopeHeight = 20.0;
-
-/// "Become a Personal Proxy" or "Your Personal Proxy connections", with the
-/// gap above it.
-const _personalProxyCardHeight = 96.0;
 
 /// Unbounded tab body, hosted by the Home tab shell.
 class ActionModeTab extends HookConsumerWidget {
@@ -109,33 +98,30 @@ class ActionModeTab extends HookConsumerWidget {
             SliverPadding(
               padding: const EdgeInsets.all(defaultSize),
               sliver: SliverToBoxAdapter(
-                child: Column(
+                child: GlobeColumn(
+                  // The window's height less the tab's padding: what the
+                  // content fills, with the padding under the last card,
+                  // when it fits.
+                  viewportHeight: constraints.maxHeight - 2 * defaultSize,
+                  minGlobeHeight: _minGlobeHeight,
                   children: [
-                    // Status, both counts and the Personal Proxy card stay
-                    // above the fold: the globe gives up the room first.
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: math.max(
-                          _minGlobeHeight,
-                          constraints.maxHeight -
-                              _belowGlobeHeight -
-                              (scopeShown ? _helpingScopeHeight : 0) -
-                              (connectionsCard || becomeRow
-                                  ? _personalProxyCardHeight
-                                  : 0),
-                        ),
-                      ),
-                      child: const Stack(
-                        alignment: Alignment.bottomCenter,
-                        clipBehavior: Clip.none,
-                        children: [
-                          Positioned.fill(child: ActionModeGlobe()),
-                          Padding(
+                    // Status, both counts and the Personal Proxy card stay above
+                    // the fold: the globe gives up the room first.
+                    const Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned.fill(child: ActionModeGlobe()),
+                        // Align, not Center: Center fills the slot and puts
+                        // the pill over the sphere's middle. The globe keeps
+                        // the slot's bottom clear for it.
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
                             padding: EdgeInsets.only(bottom: 8),
-                            child: Center(child: PeerStatusPill()),
+                            child: PeerStatusPill(),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                     _StatusCard(
                       state: state,
@@ -149,30 +135,32 @@ class ActionModeTab extends HookConsumerWidget {
                           ? () => showWhoYoureHelpingSheet(context)
                           : null,
                     ),
-                    // A volunteer who never opens the friends sheet must
-                    // still learn that the keystore lost the old names.
+                    // A volunteer who never opens the friends sheet must still
+                    // learn that the keystore lost the old names.
                     if (AppBuildInfo.enableHelperInvites && keystoreReset) ...[
-                      const SizedBox(height: defaultSize),
+                      const SizedBox(height: _cardGap),
                       HelperKeystoreResetNotice(
                         notifier: ref.read(helpersProvider.notifier),
                       ),
                     ],
                     if (connectionsCard) ...[
-                      const SizedBox(height: defaultSize),
+                      const SizedBox(height: _cardGap),
                       const PersonalProxyConnectionsCard(),
                     ] else if (becomeRow) ...[
-                      const SizedBox(height: defaultSize),
+                      const SizedBox(height: _cardGap),
                       AppCard(
                         padding: EdgeInsets.zero,
+                        shadow: true,
                         child: AppTile(
                           tileKey: const Key(
                             'action_mode.become_personal_proxy',
                           ),
                           icon: AppImagePaths.key,
                           label: 'become_personal_proxy'.i18n,
+                          // The same line as "View advanced stats" above it.
                           subtitle: Text(
                             'become_personal_proxy_body'.i18n,
-                            style: Theme.of(context).textTheme.labelMedium!
+                            style: Theme.of(context).textTheme.labelLarge!
                                 .copyWith(color: context.textTertiary),
                           ),
                           trailing: const AppImage(
@@ -192,6 +180,9 @@ class ActionModeTab extends HookConsumerWidget {
     );
   }
 }
+
+/// The gap between the tab's cards, as between the VPN tab's.
+const _cardGap = 8.0;
 
 class _StatusCard extends StatelessWidget {
   final ShareState state;

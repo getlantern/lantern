@@ -1980,9 +1980,6 @@ msgstr "تمت إعادة تعيين التخزين الآمن لهذا الجه
 msgid "helper_error_copy"
 msgstr "تعذّر نسخ الرابط. استخدم «مشاركة الرابط» بدلاً من ذلك."
 
-msgid "helpers_your_name_label"
-msgstr "اسمك كما يعرفك صديقك"
-
 msgid "helpers_your_name_hint"
 msgstr "مثلاً، سارة"
 
@@ -2049,14 +2046,8 @@ msgstr "نسخ الرابط"
 msgid "invite_link_copied"
 msgstr "تم نسخ الرابط"
 
-msgid "invite_qr_hint"
-msgstr "إذا كانوا معك، يمكنهم مسح هذا الرمز في Lantern بدلًا من استخدام الرابط."
-
 msgid "invite_waiting"
 msgstr "في انتظار فتح الرابط"
-
-msgid "invite_trust_warning"
-msgstr "سيعرف الشخص الذي تدعوه أنك تستخدم Lantern، ويمكنه رؤية متى تتصل عبره. تمر حركة بياناتك عبر اتصاله بالإنترنت، لذا قد يعرف المواقع التي تزورها، لكن ليس ما تفعله على المواقع الآمنة (https). لا تدعُ إلا شخصاً تثق به."
 
 msgid "invite_expires"
 msgstr "تنتهي الصلاحية خلال %s ساعة"
@@ -2142,9 +2133,6 @@ msgstr "%s د"
 msgid "invite_share_title"
 msgstr "شارك هذا الرابط مع شخص تثق به خارج بلدك"
 
-msgid "invite_share_steps"
-msgstr "يفتح الرابط، ويثبّت Lantern إذا لزم الأمر، ثم يدخل اسمه. ستوافق عليه بعد التحقق من رمز مكون من 4 أرقام، ثم يمكنك الاتصال من خلاله."
-
 msgid "invite_link_label"
 msgstr "رابط الدعوة الخاص بك"
 
@@ -2169,9 +2157,6 @@ msgstr "تعذّر الوصول إلى %s حاليًا. تم التبديل إل
 msgid "become_means_title"
 msgstr "ماذا يعني أن تكون وكيلا شخصيا"
 
-msgid "become_means_traffic"
-msgstr "طلب منك صديق المساعدة. أثناء تشغيل Action Mode، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك. لا يعرض لك Lantern المواقع التي يزورها."
-
 msgid "become_means_seen"
 msgstr "يمكنه رؤية وقت اتصالك. لا تقبل الدعوات إلا من أشخاص تعرفهم."
 
@@ -2180,9 +2165,6 @@ msgstr "يمكنك إزالة الاتصال في أي وقت."
 
 msgid "help_friend_form_title"
 msgstr "الصق الرابط من الشخص الذي تساعده"
-
-msgid "help_friend_name_label"
-msgstr "اسمك كما يعرفك صديقك"
 
 msgid "help_friend_become"
 msgstr "كن الوكيل الشخصي لصديقك"
@@ -2231,12 +2213,6 @@ msgstr "غير متصل"
 
 msgid "helping_paste_another"
 msgstr "لصق رابط دعوة آخر"
-
-msgid "helping_data_relayed"
-msgstr "البيانات المُرحّلة اليوم"
-
-msgid "helping_active_today"
-msgstr "نشط: %s"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "تعذر الوصول إلى %s حاليًا. تم التبديل إلى الموقع الذكي."
@@ -2316,9 +2292,6 @@ msgstr "يمكنك تشغيل Action Mode أو إيقافه في أي وقت م�
 msgid "approved_title"
 msgstr "أصبح %s الوكيل الشخصي الخاص بك"
 
-msgid "approved_body"
-msgstr "عندما يكون %s متصلاً، يمكنك اختياره ضمن المواقع الخاصة في اختيار الخادم."
-
 msgid "approved_connect_now"
 msgstr "الاتصال الآن"
 
@@ -2330,12 +2303,6 @@ msgstr "أصبحت الآن الوكيل الشخصي لـ %s"
 
 msgid "help_friend_success_body"
 msgstr "وافق %s على طلبك. عند تشغيل Action Mode، يمكنه الوصول إلى الإنترنت المفتوح عبر اتصالك."
-
-msgid "help_friend_keep_on"
-msgstr "إبقاء Action Mode قيد التشغيل"
-
-msgid "help_friend_keep_on_body"
-msgstr "يعمل الآن وكلما كان Lantern مفتوحًا، ليبقى %s متصلًا."
 
 msgid "help_friend_no_link_yet"
 msgstr "ألا يوجد رابط بعد؟"

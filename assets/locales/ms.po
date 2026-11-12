@@ -2023,9 +2023,6 @@ msgstr "Storan selamat peranti ini telah ditetapkan semula, jadi nama pembantu d
 msgid "helper_error_copy"
 msgstr "Tidak dapat menyalin pautan. Gunakan Kongsi pautan."
 
-msgid "helpers_your_name_label"
-msgstr "Nama anda, seperti yang dikenali oleh rakan anda"
-
 msgid "helpers_your_name_hint"
 msgstr "Contohnya, Sara"
 
@@ -2092,14 +2089,8 @@ msgstr "Salin pautan"
 msgid "invite_link_copied"
 msgstr "Pautan disalin"
 
-msgid "invite_qr_hint"
-msgstr "Jika mereka bersama anda, mereka boleh mengimbas ini dalam Lantern dan bukannya menggunakan pautan."
-
 msgid "invite_waiting"
 msgstr "Menunggu mereka membuka pautan"
-
-msgid "invite_trust_warning"
-msgstr "Orang yang anda jemput akan tahu anda menggunakan Lantern dan boleh melihat bila anda bersambung melalui mereka. Trafik anda melalui sambungan internet mereka, jadi mereka mungkin tahu laman yang anda lawati, tetapi bukan apa yang anda lakukan di laman selamat (https). Jemput hanya orang yang anda percayai."
 
 msgid "invite_expires"
 msgstr "Tamat tempoh dalam %s jam"
@@ -2185,9 +2176,6 @@ msgstr "%s m"
 msgid "invite_share_title"
 msgstr "Kongsi pautan ini dengan seseorang yang anda percayai di luar negara anda"
 
-msgid "invite_share_steps"
-msgstr "Mereka membuka pautan, memasang Lantern jika perlu dan memasukkan nama mereka. Anda akan meluluskan mereka dengan menyemak kod 4 digit, kemudian anda boleh bersambung melalui mereka."
-
 msgid "invite_link_label"
 msgstr "Pautan jemputan anda"
 
@@ -2215,9 +2203,6 @@ msgstr "Tidak dapat menghubungi %s sekarang. Ditukar ke Lokasi Pintar."
 msgid "become_means_title"
 msgstr "Maksud menjadi Proksi Peribadi"
 
-msgid "become_means_traffic"
-msgstr "Seorang rakan meminta bantuan anda. Semasa Action Mode berjalan, mereka boleh mencapai internet terbuka melalui sambungan anda. Lantern tidak menunjukkan kepada anda laman yang mereka akses."
-
 msgid "become_means_seen"
 msgstr "Mereka boleh melihat bila anda bersambung. Terima jemputan daripada orang yang anda kenali sahaja."
 
@@ -2226,9 +2211,6 @@ msgstr "Alih keluar sambungan pada bila-bila masa."
 
 msgid "help_friend_form_title"
 msgstr "Tampal pautan daripada orang yang anda bantu"
-
-msgid "help_friend_name_label"
-msgstr "Nama anda, seperti yang mereka kenali"
 
 msgid "help_friend_become"
 msgstr "Jadi Proksi Peribadi Mereka"
@@ -2280,12 +2262,6 @@ msgstr "Tidak disambungkan"
 
 msgid "helping_paste_another"
 msgstr "Tampal pautan jemputan lain"
-
-msgid "helping_data_relayed"
-msgstr "Data dipancarkan hari ini"
-
-msgid "helping_active_today"
-msgstr "Aktif %s"
 
 msgid "help_friend_paste_button"
 msgstr "Tampal pautan"
@@ -2359,9 +2335,6 @@ msgstr "Hidupkan atau matikan Action Mode bila-bila masa dari tab Action Mode."
 msgid "approved_title"
 msgstr "%s kini Proksi Peribadi anda"
 
-msgid "approved_body"
-msgstr "Apabila %s dalam talian, anda boleh memilihnya di bawah Lokasi Peribadi dalam Pemilihan Pelayan."
-
 msgid "approved_connect_now"
 msgstr "Sambung Sekarang"
 
@@ -2373,12 +2346,6 @@ msgstr "Anda Kini Proksi Peribadi untuk %s"
 
 msgid "help_friend_success_body"
 msgstr "%s telah meluluskan anda. Apabila Action Mode hidup, mereka boleh mengakses internet terbuka melalui sambungan anda."
-
-msgid "help_friend_keep_on"
-msgstr "Kekalkan Action Mode Hidup"
-
-msgid "help_friend_keep_on_body"
-msgstr "Dihidupkan sekarang dan setiap kali Lantern dibuka, supaya %s kekal bersambung."
 
 msgid "help_friend_no_link_yet"
 msgstr "Belum ada pautan?"

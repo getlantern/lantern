@@ -2014,9 +2014,6 @@ msgstr "इस डिवाइस का सुरक्षित स्टो�
 msgid "helper_error_copy"
 msgstr "लिंक कॉपी नहीं हो सका। इसके बजाय \"लिंक साझा करें\" का उपयोग करें।"
 
-msgid "helpers_your_name_label"
-msgstr "आपका नाम, जिस नाम से आपका दोस्त आपको जानता है"
-
 msgid "helpers_your_name_hint"
 msgstr "उदाहरण के लिए, सारा"
 
@@ -2083,14 +2080,8 @@ msgstr "लिंक कॉपी करें"
 msgid "invite_link_copied"
 msgstr "लिंक कॉपी हो गया"
 
-msgid "invite_qr_hint"
-msgstr "अगर वे आपके साथ हैं, तो लिंक के बजाय वे इसे Lantern में स्कैन कर सकते हैं।"
-
 msgid "invite_waiting"
 msgstr "उनके लिंक खोलने का इंतज़ार है"
-
-msgid "invite_trust_warning"
-msgstr "आप जिसे आमंत्रित करेंगे, उसे पता चलेगा कि आप Lantern इस्तेमाल करते हैं और वह देख सकेगा कि आप कब उसके ज़रिए कनेक्ट हैं। आपका ट्रैफ़िक उसके इंटरनेट कनेक्शन से होकर जाता है, इसलिए वह जान सकता है कि आप कौन-सी साइटें देखते हैं, लेकिन सुरक्षित (https) साइटों पर आप क्या करते हैं, यह नहीं। केवल किसी भरोसेमंद व्यक्ति को ही आमंत्रित करें।"
 
 msgid "invite_expires"
 msgstr "%s घंटे में समाप्त होगा"
@@ -2176,9 +2167,6 @@ msgstr "%s मि"
 msgid "invite_share_title"
 msgstr "यह लिंक अपने देश के बाहर किसी भरोसेमंद व्यक्ति के साथ साझा करें"
 
-msgid "invite_share_steps"
-msgstr "वे लिंक खोलेंगे, ज़रूरत हो तो Lantern इंस्टॉल करेंगे और अपना नाम डालेंगे। आप 4 अंकों का कोड जांचकर उन्हें स्वीकृत करेंगे, फिर उनके ज़रिए कनेक्ट कर सकेंगे।"
-
 msgid "invite_link_label"
 msgstr "आपका आमंत्रण लिंक"
 
@@ -2203,9 +2191,6 @@ msgstr "अभी %s तक नहीं पहुंच पा रहे। आ
 msgid "become_means_title"
 msgstr "पर्सनल प्रॉक्सी होने का क्या मतलब है"
 
-msgid "become_means_traffic"
-msgstr "एक दोस्त ने आपसे मदद मांगी है। Action Mode चलने के दौरान, वे आपके कनेक्शन से खुले इंटरनेट तक पहुँच सकते हैं। Lantern आपको नहीं दिखाता कि वे कौन-सी साइटें खोलते हैं।"
-
 msgid "become_means_seen"
 msgstr "वे देख सकते हैं कि आप कब कनेक्ट हैं। केवल उन्हीं लोगों के आमंत्रण स्वीकार करें जिन्हें आप जानते हैं।"
 
@@ -2214,9 +2199,6 @@ msgstr "कनेक्शन को कभी भी हटाएं।"
 
 msgid "help_friend_form_title"
 msgstr "जिसकी आप मदद कर रहे हैं, उसका लिंक पेस्ट करें"
-
-msgid "help_friend_name_label"
-msgstr "आपका नाम, जिससे वे आपको जानते हैं"
 
 msgid "help_friend_become"
 msgstr "उनका निजी प्रॉक्सी बनें"
@@ -2268,12 +2250,6 @@ msgstr "कनेक्ट नहीं है"
 
 msgid "helping_paste_another"
 msgstr "दूसरा आमंत्रण लिंक पेस्ट करें"
-
-msgid "helping_data_relayed"
-msgstr "आज रिले किया गया डेटा"
-
-msgid "helping_active_today"
-msgstr "सक्रिय: %s"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "अभी %s तक नहीं पहुंच पा रहे। स्मार्ट लोकेशन पर स्विच किया गया।"
@@ -2350,9 +2326,6 @@ msgstr "Action Mode टैब से कभी भी Action Mode चालू �
 msgid "approved_title"
 msgstr "%s अब आपका पर्सनल प्रॉक्सी है"
 
-msgid "approved_body"
-msgstr "जब %s ऑनलाइन हों, तो आप उन्हें सर्वर चयन में प्राइवेट लोकेशन के अंतर्गत चुन सकते हैं।"
-
 msgid "approved_connect_now"
 msgstr "अभी कनेक्ट करें"
 
@@ -2364,12 +2337,6 @@ msgstr "अब आप %s के पर्सनल प्रॉक्सी ह�
 
 msgid "help_friend_success_body"
 msgstr "%s ने आपको मंज़ूरी दे दी है। Action Mode चालू होने पर वे आपके कनेक्शन के ज़रिए खुले इंटरनेट तक पहुंच सकते हैं।"
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode चालू रखें"
-
-msgid "help_friend_keep_on_body"
-msgstr "अभी और जब भी Lantern खुला हो, चालू हो जाता है, ताकि %s कनेक्टेड रहें।"
 
 msgid "help_friend_no_link_yet"
 msgstr "अभी तक लिंक नहीं मिला?"

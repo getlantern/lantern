@@ -2030,9 +2030,6 @@ msgstr "Se restableció el almacenamiento seguro de este dispositivo, así que n
 msgid "helper_error_copy"
 msgstr "No se pudo copiar el enlace. Usa Compartir enlace."
 
-msgid "helpers_your_name_label"
-msgstr "Tu nombre, como te conoce tu amigo"
-
 msgid "helpers_your_name_hint"
 msgstr "Por ejemplo, Sara"
 
@@ -2099,14 +2096,8 @@ msgstr "Copiar enlace"
 msgid "invite_link_copied"
 msgstr "Enlace copiado"
 
-msgid "invite_qr_hint"
-msgstr "Si está contigo, puede escanear esto en Lantern en lugar de usar el enlace."
-
 msgid "invite_waiting"
 msgstr "Esperando a que abra el enlace"
-
-msgid "invite_trust_warning"
-msgstr "La persona que invites sabrá que usas Lantern y podrá ver cuándo te conectas a través de ella. Tu tráfico pasa por su conexión a internet, así que podría saber qué sitios visitas, aunque no lo que haces en sitios seguros (https). Invita solo a alguien de confianza."
 
 msgid "invite_expires"
 msgstr "Vence en %s horas"
@@ -2192,9 +2183,6 @@ msgstr "%s min"
 msgid "invite_share_title"
 msgstr "Comparte este enlace con alguien de confianza fuera de tu país"
 
-msgid "invite_share_steps"
-msgstr "La persona abre el enlace, instala Lantern si hace falta e ingresa su nombre. La apruebas verificando un código de 4 dígitos y luego puedes conectarte a través de ella."
-
 msgid "invite_link_label"
 msgstr "Tu enlace de invitación"
 
@@ -2222,9 +2210,6 @@ msgstr "No se puede contactar a %s ahora. Se cambió a Ubicación inteligente."
 msgid "become_means_title"
 msgstr "Qué significa ser un proxy personal"
 
-msgid "become_means_traffic"
-msgstr "Un amigo te pidió ayuda. Mientras Action Mode está activo, puede llegar al internet abierto a través de tu conexión. Lantern no te muestra qué sitios visita."
-
 msgid "become_means_seen"
 msgstr "Pueden ver cuándo tienes conexión. Acepta invitaciones solo de personas que conoces."
 
@@ -2233,9 +2218,6 @@ msgstr "Elimina la conexión cuando quieras."
 
 msgid "help_friend_form_title"
 msgstr "Pega el enlace de la persona a quien ayudas"
-
-msgid "help_friend_name_label"
-msgstr "Tu nombre, como te conocen"
 
 msgid "help_friend_become"
 msgstr "Sé su proxy personal"
@@ -2287,12 +2269,6 @@ msgstr "Sin conexión"
 
 msgid "helping_paste_another"
 msgstr "Pegar otro enlace de invitación"
-
-msgid "helping_data_relayed"
-msgstr "Datos retransmitidos hoy"
-
-msgid "helping_active_today"
-msgstr "Activo: %s"
 
 msgid "help_friend_paste_button"
 msgstr "Pegar enlace"
@@ -2366,9 +2342,6 @@ msgstr "Activa o desactiva Action Mode cuando quieras desde la pestaña Action M
 msgid "approved_title"
 msgstr "%s ahora es tu proxy personal"
 
-msgid "approved_body"
-msgstr "Cuando %s esté en línea, podrás seleccionarlo en Ubicaciones privadas, dentro de Selección de servidor."
-
 msgid "approved_connect_now"
 msgstr "Conectar ahora"
 
@@ -2380,12 +2353,6 @@ msgstr "Ahora eres el proxy personal de %s"
 
 msgid "help_friend_success_body"
 msgstr "%s te aprobó. Cuando Action Mode esté activado, podrá acceder al internet abierto a través de tu conexión."
-
-msgid "help_friend_keep_on"
-msgstr "Mantener Action Mode activado"
-
-msgid "help_friend_keep_on_body"
-msgstr "Se activa ahora y siempre que Lantern esté abierto, para que %s mantenga la conexión."
 
 msgid "help_friend_no_link_yet"
 msgstr "¿Aún no tienes enlace?"

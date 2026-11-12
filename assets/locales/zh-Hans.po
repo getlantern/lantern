@@ -1862,9 +1862,6 @@ msgstr "此设备的安全存储已被重置，因此无法读取您的帮助者
 msgid "helper_error_copy"
 msgstr "无法复制链接。可改用“分享链接”。"
 
-msgid "helpers_your_name_label"
-msgstr "您的名字（朋友对您的称呼）"
-
 msgid "helpers_your_name_hint"
 msgstr "例如：小雅"
 
@@ -1931,14 +1928,8 @@ msgstr "复制链接"
 msgid "invite_link_copied"
 msgstr "链接已复制"
 
-msgid "invite_qr_hint"
-msgstr "如果对方在您身边，可以在蓝灯中扫描此码，无需使用链接。"
-
 msgid "invite_waiting"
 msgstr "等待对方打开链接"
-
-msgid "invite_trust_warning"
-msgstr "您邀请的人会知道您在使用蓝灯，并能看到您何时通过其网络连接。您的流量经过对方的互联网连接，因此对方可能得知您访问了哪些网站，但无法得知您在安全（https）网站上的操作。只邀请您信任的人。"
 
 msgid "invite_expires"
 msgstr "%s 小时后过期"
@@ -2024,9 +2015,6 @@ msgstr "%s 分钟"
 msgid "invite_share_title"
 msgstr "将此链接分享给您信任的境外人士"
 
-msgid "invite_share_steps"
-msgstr "对方打开链接，如有需要安装 Lantern，然后输入名字。您核对 4 位数验证码后批准对方，即可通过对方连接。"
-
 msgid "invite_link_label"
 msgstr "您的邀请链接"
 
@@ -2054,9 +2042,6 @@ msgstr "暂时无法连接 %s。已切换到智能位置。"
 msgid "become_means_title"
 msgstr "成为个人代理意味着什么"
 
-msgid "become_means_traffic"
-msgstr "一位朋友向您求助。Action Mode 运行期间，对方可以通过您的连接访问开放互联网。蓝灯不会向您显示对方访问了哪些网站。"
-
 msgid "become_means_seen"
 msgstr "对方可以看到您何时在线连接。只接受认识的人发来的邀请。"
 
@@ -2065,9 +2050,6 @@ msgstr "您可以随时移除此连接。"
 
 msgid "help_friend_form_title"
 msgstr "粘贴您所帮助之人发来的链接"
-
-msgid "help_friend_name_label"
-msgstr "朋友所知道的您的名字"
 
 msgid "help_friend_become"
 msgstr "成为朋友的专属代理"
@@ -2119,12 +2101,6 @@ msgstr "未连接"
 
 msgid "helping_paste_another"
 msgstr "粘贴另一个邀请链接"
-
-msgid "helping_data_relayed"
-msgstr "今日中继数据"
-
-msgid "helping_active_today"
-msgstr "已活跃 %s"
 
 msgid "help_friend_paste_button"
 msgstr "粘贴链接"
@@ -2198,9 +2174,6 @@ msgstr "随时在 Action Mode 标签页中开启或关闭 Action Mode。"
 msgid "approved_title"
 msgstr "%s 现在是您的个人代理"
 
-msgid "approved_body"
-msgstr "当 %s 在线时，您可以在“服务器选择”的“私人位置”中选择。"
-
 msgid "approved_connect_now"
 msgstr "立即连接"
 
@@ -2212,12 +2185,6 @@ msgstr "您现在是 %s 的个人代理"
 
 msgid "help_friend_success_body"
 msgstr "%s 已批准您。开启 Action Mode 后，对方可通过您的连接访问开放的互联网。"
-
-msgid "help_friend_keep_on"
-msgstr "保持 Action Mode 开启"
-
-msgid "help_friend_keep_on_body"
-msgstr "立即开启，并在蓝灯打开时自动开启，让 %s 保持连接。"
 
 msgid "help_friend_no_link_yet"
 msgstr "还没有链接？"

@@ -1996,9 +1996,6 @@ msgstr "Bu enjamyň howpsuz ammary täzeden düzüldi, şonuň üçin kömekçil
 msgid "helper_error_copy"
 msgstr "Salgyny göçürip bolmady. Onuň ýerine Salgyny paýlaş ulanyň."
 
-msgid "helpers_your_name_label"
-msgstr "Dostuňyzyň sizi tanaýan adyňyz"
-
 msgid "helpers_your_name_hint"
 msgstr "Mysal üçin, Sara"
 
@@ -2065,14 +2062,8 @@ msgstr "Baglanyşygy göçür"
 msgid "invite_link_copied"
 msgstr "Baglanyşyk göçürildi"
 
-msgid "invite_qr_hint"
-msgstr "Eger olar siziň bilen bolsa, baglanyşygyň ýerine muny Lantern-de skanirläp bilerler."
-
 msgid "invite_waiting"
 msgstr "Olaryň baglanyşygy açmagyna garaşylýar"
-
-msgid "invite_trust_warning"
-msgstr "Çagyrýan adamyňyz siziň Lantern ulanýandygyňyzy biler we siziň haçan onuň üsti bilen birikýändigiňizi görüp biler. Siziň trafigiňiz onuň internet baglanyşygyndan geçýär, şonuň üçin ol haýsy saýtlara girýändigiňizi bilip biler, ýöne howpsuz (https) saýtlarda näme edýändigiňizi bilip bilmez. Diňe ynanýan adamyňyzy çagyryň."
 
 msgid "invite_expires"
 msgstr "Möhleti gutarýar, sagat: %s"
@@ -2176,9 +2167,6 @@ msgstr "Häzir %s bilen baglanyşyp bolmaýar. Şahsy proksileriňiz saýlandy."
 msgid "become_means_title"
 msgstr "Şahsy proksi bolmak näme diýmek"
 
-msgid "become_means_traffic"
-msgstr "Bir dostuňyz sizden kömek sorady. Action Mode işleýän wagty, ol siziň birikmäňiz arkaly açyk internete ýetip biler. Lantern onuň haýsy saýtlara girýändigini size görkezmeýär."
-
 msgid "become_means_seen"
 msgstr "Olar siziň haçan birikendigiňizi görüp bilýär. Diňe tanaýan adamlaryňyzyň çakylyklaryny kabul ediň."
 
@@ -2236,23 +2224,11 @@ msgstr "Birikdirildi"
 msgid "helping_not_connected"
 msgstr "Birikdirilmedik"
 
-msgid "helping_data_relayed"
-msgstr "Şu gün geçirilen maglumat"
-
-msgid "helping_active_today"
-msgstr "Işjeň: %s"
-
-msgid "invite_share_steps"
-msgstr "Ol baglanyşygy açýar, gerek bolsa Lantern-i gurnaýar we adyny girizýär. Siz 4 sanly kody barlap ony tassyklarsyňyz, soňra onuň üsti bilen birigip bilersiňiz."
-
 msgid "invite_link_label"
 msgstr "Çakylyk baglanyşygyňyz"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "Häzir %s bilen baglanyşyp bolmaýar. Akylly ýerleşiş saýlandy."
-
-msgid "help_friend_name_label"
-msgstr "Adyňyz, olaryň sizi tanaýşy ýaly"
 
 msgid "helping_paste_another"
 msgstr "Başga çakylyk baglanyşygyny goýuň"
@@ -2332,9 +2308,6 @@ msgstr "Action Mode bölüminden Action Mode-y islän wagtyňyz açyň ýa-da ö
 msgid "approved_title"
 msgstr "Şahsy proksiňiz: %s"
 
-msgid "approved_body"
-msgstr "%s onlaýn bolanda, ony Serwer saýlamakda Hususy ýerler bölüminden saýlap bilersiňiz."
-
 msgid "approved_connect_now"
 msgstr "Häzir birikdir"
 
@@ -2346,12 +2319,6 @@ msgstr "Siz indi şu ulanyjynyň şahsy proksisi: %s"
 
 msgid "help_friend_success_body"
 msgstr "%s sizi tassyklady. Action Mode açyk wagty ol siziň baglanyşygyňyz arkaly açyk internete girip biler."
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode açyk saklansyn"
-
-msgid "help_friend_keep_on_body"
-msgstr "Häzir we Lantern açyk wagty hemişe açylýar, şeýdip %s baglanyşykda galýar."
 
 msgid "help_friend_no_link_yet"
 msgstr "Heniz salgy ýokmy?"

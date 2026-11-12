@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
@@ -38,15 +37,19 @@ class VpnTab extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  // A friend waiting on approval wins the slot: the wait is
-                  // short and the invite expires. Otherwise the Pro upsell
-                  // wins it, and the personal proxy banner waits.
+                  // A friend waiting on approval takes the slot: the wait is
+                  // short and the invite expires. Otherwise it is the Pro
+                  // upsell's. "Get a Personal Proxy" has no card here: its
+                  // entry points are the Private Locations list and VPN
+                  // Settings.
                   if (ref.watch(personalProxyWaitingProvider))
                     const PersonalProxyBanner()
                   else if (proBannerShows(ref))
                     const ProBanner()
                   else
-                    const PersonalProxyBanner(),
+                    // Keeps the slot, so the switch stays centred between it
+                    // and the cards rather than rising to the top.
+                    const SizedBox.shrink(),
                   const VPNSwitch(),
                   Column(
                     mainAxisSize: MainAxisSize.min,
@@ -59,7 +62,7 @@ class VpnTab extends ConsumerWidget {
                       },
                       const SizedBox(height: 8),
                       _SettingCard(),
-                      SizedBox(height: 10.h),
+                      const SizedBox(height: defaultSize),
                     ],
                   ),
                 ],

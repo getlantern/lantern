@@ -2014,9 +2014,6 @@ msgstr "Bộ nhớ an toàn của thiết bị này đã bị đặt lại nên 
 msgid "helper_error_copy"
 msgstr "Không thể sao chép liên kết. Hãy dùng Chia sẻ liên kết."
 
-msgid "helpers_your_name_label"
-msgstr "Tên của bạn mà bạn bè biết"
-
 msgid "helpers_your_name_hint"
 msgstr "Ví dụ: Sara"
 
@@ -2083,14 +2080,8 @@ msgstr "Sao chép liên kết"
 msgid "invite_link_copied"
 msgstr "Đã sao chép liên kết"
 
-msgid "invite_qr_hint"
-msgstr "Nếu họ đang ở cùng bạn, họ có thể quét mã này trong Lantern thay vì dùng liên kết."
-
 msgid "invite_waiting"
 msgstr "Đang chờ họ mở liên kết"
-
-msgid "invite_trust_warning"
-msgstr "Người bạn mời sẽ biết bạn dùng Lantern và có thể thấy khi nào bạn kết nối qua họ. Lưu lượng của bạn đi qua kết nối internet của họ, nên họ có thể biết bạn truy cập những trang nào, nhưng không biết bạn làm gì trên các trang bảo mật (https). Chỉ mời người bạn tin tưởng."
 
 msgid "invite_expires"
 msgstr "Hết hạn sau %s giờ"
@@ -2176,9 +2167,6 @@ msgstr "%s phút"
 msgid "invite_share_title"
 msgstr "Chia sẻ liên kết này với người bạn tin tưởng ở ngoài nước"
 
-msgid "invite_share_steps"
-msgstr "Người đó mở liên kết, cài Lantern nếu cần và nhập tên. Bạn sẽ chấp thuận bằng cách kiểm tra mã 4 chữ số, sau đó có thể kết nối thông qua họ."
-
 msgid "invite_link_label"
 msgstr "Liên kết mời của bạn"
 
@@ -2206,9 +2194,6 @@ msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Vị trí t
 msgid "become_means_title"
 msgstr "Làm proxy cá nhân nghĩa là gì"
 
-msgid "become_means_traffic"
-msgstr "Một người bạn đã nhờ bạn giúp. Khi Action Mode đang chạy, họ có thể truy cập internet mở qua kết nối của bạn. Lantern không cho bạn thấy họ truy cập những trang nào."
-
 msgid "become_means_seen"
 msgstr "Họ có thể thấy khi nào bạn đang kết nối. Chỉ chấp nhận lời mời từ người bạn quen biết."
 
@@ -2217,9 +2202,6 @@ msgstr "Gỡ kết nối bất cứ lúc nào."
 
 msgid "help_friend_form_title"
 msgstr "Dán liên kết từ người mà bạn đang giúp"
-
-msgid "help_friend_name_label"
-msgstr "Tên của bạn mà bạn bè biết"
 
 msgid "help_friend_become"
 msgstr "Trở thành proxy cá nhân của bạn bè"
@@ -2271,12 +2253,6 @@ msgstr "Chưa kết nối"
 
 msgid "helping_paste_another"
 msgstr "Dán liên kết mời khác"
-
-msgid "helping_data_relayed"
-msgstr "Dữ liệu đã chuyển tiếp hôm nay"
-
-msgid "helping_active_today"
-msgstr "Hoạt động %s"
 
 msgid "help_friend_paste_button"
 msgstr "Dán liên kết"
@@ -2350,9 +2326,6 @@ msgstr "Bật hoặc tắt Action Mode bất cứ lúc nào từ thẻ Action Mo
 msgid "approved_title"
 msgstr "%s giờ là proxy cá nhân của bạn"
 
-msgid "approved_body"
-msgstr "Khi %s trực tuyến, bạn có thể chọn họ trong Vị trí riêng tư ở mục Chọn máy chủ."
-
 msgid "approved_connect_now"
 msgstr "Kết nối ngay"
 
@@ -2364,12 +2337,6 @@ msgstr "Bạn giờ là proxy cá nhân của %s"
 
 msgid "help_friend_success_body"
 msgstr "%s đã chấp thuận bạn. Khi Action Mode bật, họ có thể truy cập internet mở qua kết nối của bạn."
-
-msgid "help_friend_keep_on"
-msgstr "Luôn bật Action Mode"
-
-msgid "help_friend_keep_on_body"
-msgstr "Bật ngay bây giờ và mỗi khi Lantern mở, để %s luôn được kết nối."
 
 msgid "help_friend_no_link_yet"
 msgstr "Chưa có liên kết?"

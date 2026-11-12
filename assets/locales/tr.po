@@ -2016,9 +2016,6 @@ msgstr "Bu cihazın güvenli depolama alanı sıfırlandı, bu yüzden yardımc�
 msgid "helper_error_copy"
 msgstr "Bağlantı kopyalanamadı. Bunun yerine Bağlantıyı Paylaş seçeneğini kullanın."
 
-msgid "helpers_your_name_label"
-msgstr "Arkadaşınızın sizi tanıdığı adınız"
-
 msgid "helpers_your_name_hint"
 msgstr "Örneğin, Sara"
 
@@ -2085,14 +2082,8 @@ msgstr "Bağlantıyı Kopyala"
 msgid "invite_link_copied"
 msgstr "Bağlantı kopyalandı"
 
-msgid "invite_qr_hint"
-msgstr "Yanınızdaysa bağlantı yerine bunu Lantern'de tarayabilir."
-
 msgid "invite_waiting"
 msgstr "Bağlantının açılması bekleniyor"
-
-msgid "invite_trust_warning"
-msgstr "Davet ettiğiniz kişi Lantern kullandığınızı bilecek ve onun üzerinden ne zaman bağlı olduğunuzu görebilecek. Trafiğiniz onun internet bağlantısından geçer, bu yüzden hangi siteleri ziyaret ettiğinizi öğrenebilir, ancak güvenli (https) sitelerde ne yaptığınızı öğrenemez. Yalnızca güvendiğiniz birini davet edin."
 
 msgid "invite_expires"
 msgstr "%s saat içinde sona erer"
@@ -2178,9 +2169,6 @@ msgstr "%s dk"
 msgid "invite_share_title"
 msgstr "Bu bağlantıyı ülkeniz dışında güvendiğiniz biriyle paylaşın"
 
-msgid "invite_share_steps"
-msgstr "Kişi bağlantıyı açar, gerekirse Lantern'i yükler ve adını girer. 4 haneli bir kodu kontrol ederek onu onaylarsınız, ardından onun üzerinden bağlanabilirsiniz."
-
 msgid "invite_link_label"
 msgstr "Davet bağlantınız"
 
@@ -2208,9 +2196,6 @@ msgstr "Şu anda ulaşılamıyor: %s. Akıllı Konum'a geçildi."
 msgid "become_means_title"
 msgstr "Kişisel Proxy olmak ne demek"
 
-msgid "become_means_traffic"
-msgstr "Bir arkadaşınız sizden yardım istedi. Action Mode çalışırken, bağlantınız üzerinden açık internete ulaşabilir. Lantern size hangi sitelere eriştiğini göstermez."
-
 msgid "become_means_seen"
 msgstr "Ne zaman bağlı olduğunuzu görebilirler. Yalnızca tanıdığınız kişilerden gelen davetleri kabul edin."
 
@@ -2219,9 +2204,6 @@ msgstr "Bağlantıyı istediğiniz zaman kaldırın."
 
 msgid "help_friend_form_title"
 msgstr "Yardım ettiğiniz kişiden gelen bağlantıyı yapıştırın"
-
-msgid "help_friend_name_label"
-msgstr "Sizi tanıdıkları adınız"
 
 msgid "help_friend_become"
 msgstr "Arkadaşınızın Kişisel Proxy'si Olun"
@@ -2273,12 +2255,6 @@ msgstr "Bağlı değil"
 
 msgid "helping_paste_another"
 msgstr "Başka Bir Davet Bağlantısı Yapıştır"
-
-msgid "helping_data_relayed"
-msgstr "Bugün aktarılan veri"
-
-msgid "helping_active_today"
-msgstr "Etkin: %s"
 
 msgid "help_friend_paste_button"
 msgstr "Bağlantıyı Yapıştır"
@@ -2352,9 +2328,6 @@ msgstr "Action Mode sekmesinden Action Mode özelliğini istediğiniz zaman aç�
 msgid "approved_title"
 msgstr "Kişisel Proxy'niz artık %s"
 
-msgid "approved_body"
-msgstr "%s çevrimiçi olduğunda, Sunucu Seçimi içindeki Özel Konumlar altından seçebilirsiniz."
-
 msgid "approved_connect_now"
 msgstr "Şimdi Bağlan"
 
@@ -2366,12 +2339,6 @@ msgstr "Artık %s için Kişisel Proxy'siniz"
 
 msgid "help_friend_success_body"
 msgstr "%s sizi onayladı. Action Mode açıkken sizin bağlantınız üzerinden açık internete erişebilir."
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode Açık Kalsın"
-
-msgid "help_friend_keep_on_body"
-msgstr "Şimdi ve Lantern her açık olduğunda devreye girer, böylece %s bağlı kalır."
 
 msgid "help_friend_no_link_yet"
 msgstr "Henüz bağlantı yok mu?"
