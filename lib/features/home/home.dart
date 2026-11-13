@@ -302,8 +302,8 @@ class Home extends HookConsumerWidget {
     // a paired volunteer's widget is turned on server-side (Features[unbounded]).
     // startForHelper holds the start back while this device's country is
     // unknown or censored; a later country-code event retries it. Not while
-    // a HelpFriend screen waits on its claim: its success screen's "Keep
-    // Action Mode on" decides.
+    // a HelpFriend screen waits on its claim: its success dialog's
+    // Auto-enable row decides.
     ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
       prev,
       next,
@@ -332,6 +332,7 @@ class Home extends HookConsumerWidget {
         // bg/surface grey from AppTheme.appBarTheme.
         backgroundColor: context.bgElevated,
         elevation: 5,
+        // The same on both tabs: menu left, title centered, account right.
         leading: IconButton(
           key: const Key('home.menu_button'),
           tooltip: 'settings'.i18n,
@@ -354,6 +355,7 @@ class Home extends HookConsumerWidget {
                 );
               },
             )
+          // A Pro user signs in through account setup, from the account icon.
           else if (!userLoggedIn)
             AppTextButton(
               label: 'sign_in'.i18n,

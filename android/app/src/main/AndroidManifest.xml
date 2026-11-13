@@ -17,6 +17,8 @@
     <!-- Installable and launchable on Android TV, which has no touchscreen. -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!-- ACCESS_WIFI_STATE otherwise implies wifi, hiding the app from Ethernet-only boxes. -->
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
     <!-- CAMERA (QR scanning) otherwise implies a required autofocus camera. -->
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <!-- <uses-permission android:name="android.permission.USE_EXACT_ALARM" /> -->
@@ -217,7 +219,12 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="alipay" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="weixin" />
+        </intent>
         <package android:name="com.eg.android.AlipayGphone" />
+        <package android:name="com.tencent.mm" />
     </queries>
 
 

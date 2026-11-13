@@ -6,6 +6,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/core/widgets/empty_state.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/helpers/personal_proxies_tab.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
@@ -33,6 +34,8 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
     final serversAsync = ref.watch(availableServersProvider);
+    // The tab stays while helper invites are available, empty or not, and
+    // while there is something left to manage after they stop being.
     final showProxies = ref.watch(personalProxiesTabVisibleProvider);
 
     // Personal proxies come from the helpers engine, not the server list,
@@ -53,7 +56,6 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
               height: 35.h,
               child: TabBar(
                 indicatorSize: TabBarIndicatorSize.tab,
-                indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
                 splashBorderRadius: BorderRadius.circular(40),
                 labelColor: context.actionTabbarSelectedText,
                 dividerHeight: 0,
@@ -67,12 +69,12 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                       color: context.actionTabbarBorder, width: 1),
                 ),
                 tabs: [
-                  Tab(child: Text('my_servers'.i18n)),
-                  Tab(child: Text('joined_servers'.i18n)),
+                  Tab(child: _TabLabel('my_servers'.i18n)),
+                  Tab(child: _TabLabel('joined_servers'.i18n)),
                   if (showProxies)
                     Tab(
                       key: const Key('manage.personal_proxies_tab'),
-                      child: Text('personal_proxies_tab'.i18n),
+                      child: _TabLabel('personal_proxies_tab'.i18n),
                     ),
                 ],
               ),
@@ -89,17 +91,25 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
                           .toList(),
                     ),
                   ),
-                  servers(
-                    (all) => Padding(
+                  servers((all) {
+                    final joined = all
+                        .where((s) => s.credentials?.isJoined == true)
+                        .toList();
+                    if (joined.isEmpty) {
+                      return EmptyState(
+                        key: const Key('manage.joined.empty'),
+                        icon: AppImagePaths.joinServer,
+                        title: 'manage_empty_joined_title'.i18n,
+                        body: 'manage_empty_joined_body'.i18n,
+                        buttonLabel: 'join_a_private_server'.i18n,
+                        onPressed: () => context.pushRoute(JoinPrivateServer()),
+                      );
+                    }
+                    return Padding(
                       padding: const EdgeInsets.only(top: defaultSize),
-                      child: _buildListView(
-                        all
-                            .where((s) => s.credentials?.isJoined == true)
-                            .toList(),
-                        showShareAccessKey: false,
-                      ),
-                    ),
-                  ),
+                      child: _buildListView(joined, showShareAccessKey: false),
+                    );
+                  }),
                   if (showProxies) const PersonalProxiesTab(),
                 ],
               ),
@@ -111,6 +121,16 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
   }
 
   Widget buildMyServer(List<Server> myServers) {
+    if (myServers.isEmpty) {
+      return EmptyState(
+        key: const Key('manage.my_server.empty'),
+        icon: AppImagePaths.server,
+        title: 'manage_empty_my_server_title'.i18n,
+        body: 'manage_empty_my_server_body'.i18n,
+        buttonLabel: 'setup_a_private_server'.i18n,
+        onPressed: () => context.pushRoute(PrivateServerSetup()),
+      );
+    }
     return Column(
       children: <Widget>[
         const SizedBox(height: 8),
@@ -403,4 +423,18 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
       },
     );
   }
+}
+
+/// A tab's label on one line, shrunk to fit when three tabs leave it too
+/// little width: the bar's fixed height has no room for a second line.
+class _TabLabel extends StatelessWidget {
+  const _TabLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(text, maxLines: 1, softWrap: false),
+      );
 }

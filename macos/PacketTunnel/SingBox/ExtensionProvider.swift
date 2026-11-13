@@ -175,7 +175,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     closeTunnel()
   }
 
-  private func cancelTunnel(_ error: Error) {
+  func cancelTunnel(_ error: Error) {
     // Cancellation may skip stopTunnel. Close IPC so reconnect cannot reuse this
     // provider, and run teardown off the Go callback thread to avoid blocking it.
     DispatchQueue.global().async {

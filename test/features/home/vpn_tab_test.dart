@@ -196,10 +196,10 @@ void main() {
   const withinWeek = ProRenewalInfo(ProRenewalState.withinWeek, null, 3);
   for (final (name, pro, renewal, banner) in [
     (
-      'a Pro user sees the personal proxy banner',
+      'a Pro user gets no Get a Personal Proxy card at the top',
       true,
       ProRenewalInfo.none,
-      true,
+      false,
     ),
     ('the Pro upsell wins for a free user', false, ProRenewalInfo.none, false),
     ('the renewal card wins for a Pro user', true, withinWeek, false),

@@ -250,6 +250,12 @@ class NotificationHelper {
         notificationManager.notify(notification.typeID, builder.build())
     }
 
+    // Cancels a notification posted by sendNotification, which uses the type ID
+    // as the notification ID.
+    fun cancelNotification(typeID: Int) {
+        notificationManager.cancel(typeID)
+    }
+
     private fun resolveNotificationSmallIcon(): Int {
         val configured = BuildConfig.NOTIFICATION_SMALL_ICON.removePrefix("@")
         val parts = configured.split("/", limit = 2)

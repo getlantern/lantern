@@ -201,6 +201,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         break;
 
       case 'shepherd':
+      case 'shepherd-wechat':
         if (isDesktop || isAndroidSideload) {
           await paymentRedirectFlow(
             provider.providers.name,
@@ -445,7 +446,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               observer: checkoutObserver,
             );
             if (!context.mounted) return;
-            // Alipay may finish in its own app, without a webview redirect.
+            // Alipay/WeChat may finish in their own app, without a webview redirect.
             await onPurchaseResult(
               purchaseResult ?? true,
               context,

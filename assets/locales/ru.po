@@ -602,7 +602,7 @@ msgid "smc_status_off"
 msgstr "Отключено"
 
 msgid "smc_status_configuring"
-msgstr "Настройка сети"
+msgstr "Настройка"
 
 msgid "smc_status_error_with_message"
 msgstr "Не удалось поделиться: %s"
@@ -2015,7 +2015,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "По этому приглашению уже принято решение."
 
 msgid "helper_error_bad_name"
-msgstr "Введите имя, которое узнает ваш друг, — не более 60 символов."
+msgstr "Введите имя, по которому вас узнает друг."
 
 msgid "helper_error_keystore"
 msgstr "Это устройство не может надёжно хранить имена, поэтому помощь друзьям отключена. В Linux запустите хранилище ключей, например GNOME Keyring."
@@ -2025,9 +2025,6 @@ msgstr "Защищённое хранилище этого устройства 
 
 msgid "helper_error_copy"
 msgstr "Не удалось скопировать ссылку. Используйте «Поделиться ссылкой»."
-
-msgid "helpers_your_name_label"
-msgstr "Ваше имя, под которым вас знает друг"
 
 msgid "helpers_your_name_hint"
 msgstr "Например, Сара"
@@ -2095,14 +2092,8 @@ msgstr "Копировать ссылку"
 msgid "invite_link_copied"
 msgstr "Ссылка скопирована"
 
-msgid "invite_qr_hint"
-msgstr "Ваш друг может отсканировать этот код в Lantern."
-
 msgid "invite_waiting"
 msgstr "Ожидание, пока друг откроет ссылку"
-
-msgid "invite_trust_warning"
-msgstr "Приглашённый человек узнает, что вы используете Lantern, и сможет видеть, когда вы подключаетесь через него. Ваш трафик идёт через его интернет-подключение, поэтому он может узнать, какие сайты вы посещаете, но не то, что вы делаете на защищённых (https) сайтах. Приглашайте только тех, кому доверяете."
 
 msgid "invite_expires"
 msgstr "Истекает через %s ч"
@@ -2147,7 +2138,7 @@ msgid "help_friend_already_claimed_title"
 msgstr "Это приглашение уже использовано"
 
 msgid "help_friend_already_claimed_body"
-msgstr "Кто-то другой открыл эту ссылку раньше, или срок её действия истёк. Попросите у друга новое приглашение и предупредите, что это приглашение мог увидеть кто-то другой."
+msgstr "Кто-то другой открыл эту ссылку раньше, или срок её действия истёк. Попросите друга прислать новое приглашение и предупредите, что это приглашение мог увидеть кто-то ещё."
 
 msgid "help_friend_already_helping"
 msgstr "Вы уже помогаете этому другу."
@@ -2188,14 +2179,11 @@ msgstr "%s мин"
 msgid "invite_share_title"
 msgstr "Отправьте эту ссылку человеку, которому доверяете, за пределами вашей страны"
 
-msgid "invite_share_steps"
-msgstr "Получатель открывает ссылку, при необходимости устанавливает Lantern и вводит имя. Вы подтверждаете его, сверив 4-значный код, а затем сможете подключаться через него."
-
 msgid "invite_link_label"
 msgstr "Ваша ссылка-приглашение"
 
 msgid "invite_link_expiry"
-msgstr "Срабатывает один раз и действует 48 часов."
+msgstr "Одноразовая, действует 48 часов"
 
 msgid "approve_title"
 msgstr "%s хочет стать вашим личным прокси"
@@ -2218,9 +2206,6 @@ msgstr "Сейчас нет связи с %s. Выполнен переход н
 msgid "become_means_title"
 msgstr "Что значит быть личным прокси"
 
-msgid "become_means_traffic"
-msgstr "Друг попросил вас о помощи. Пока работает Action Mode, он может выходить в открытый интернет через ваше подключение. Lantern не показывает вам, какие сайты он посещает."
-
 msgid "become_means_seen"
 msgstr "Они видят, когда у вас активно подключение. Принимайте приглашения только от знакомых людей."
 
@@ -2229,9 +2214,6 @@ msgstr "Подключение можно удалить в любой моме�
 
 msgid "help_friend_form_title"
 msgstr "Вставьте ссылку от человека, которому вы помогаете"
-
-msgid "help_friend_name_label"
-msgstr "Ваше имя, под которым вас знают"
 
 msgid "help_friend_become"
 msgstr "Станьте личным прокси для друга"
@@ -2246,7 +2228,7 @@ msgid "help_friend_waiting_approval"
 msgstr "Ожидание подтверждения"
 
 msgid "help_friend_code_note"
-msgstr "Сообщите код по телефону или в другом приложении — не в том, куда пришла ссылка-приглашение. Тот, кто видел ссылку, не должен видеть и код."
+msgstr "Назовите код во время звонка или в другом приложении, а не в том, куда пришла ссылка-приглашение. Ни у кого, кроме вашего друга, не должно быть и того, и другого."
 
 msgid "become_personal_proxy"
 msgstr "Стать личным прокси"
@@ -2283,12 +2265,6 @@ msgstr "Не подключено"
 
 msgid "helping_paste_another"
 msgstr "Вставить ещё одну ссылку-приглашение"
-
-msgid "helping_data_relayed"
-msgstr "Передано данных сегодня"
-
-msgid "helping_active_today"
-msgstr "Активно: %s"
 
 msgid "help_friend_paste_button"
 msgstr "Вставить ссылку"
@@ -2327,7 +2303,7 @@ msgid "onboarding_personal_proxies"
 msgstr "Личные прокси"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "Если Lantern заблокирован, попросите доверенного человека за пределами вашей страны стать вашим прокси."
+msgstr "Подключайтесь напрямую через доверенного человека за пределами вашей страны."
 
 msgid "onboarding_new_badge"
 msgstr "Новое"
@@ -2345,7 +2321,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "Помогите знакомому"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "Если друг из страны с цензурой пришлёт вам приглашение, вы сможете стать его Personal Proxy."
+msgstr "Помогите другу, став его Личным прокси, чтобы он мог подключаться напрямую через вас."
 
 msgid "onboarding_action_mode_privacy"
 msgstr "Ваша конфиденциальность защищена"
@@ -2362,9 +2338,6 @@ msgstr "Включайте и выключайте Action Mode в любое в�
 msgid "approved_title"
 msgstr "Ваш личный прокси: %s"
 
-msgid "approved_body"
-msgstr "Когда %s в сети, этот прокси можно выбрать в разделе «Частные расположения» в окне «Выбор сервера»."
-
 msgid "approved_connect_now"
 msgstr "Подключиться сейчас"
 
@@ -2376,12 +2349,6 @@ msgstr "Теперь вы личный прокси для: %s"
 
 msgid "help_friend_success_body"
 msgstr "Пользователь %s одобрил запрос. Когда Action Mode включён, этот пользователь может выходить в открытый интернет через ваше подключение."
-
-msgid "help_friend_keep_on"
-msgstr "Не выключать Action Mode"
-
-msgid "help_friend_keep_on_body"
-msgstr "Включается сейчас и всякий раз, когда Lantern открыт, чтобы у пользователя %s сохранялось подключение."
 
 msgid "help_friend_no_link_yet"
 msgstr "Ещё нет ссылки?"
@@ -2405,7 +2372,82 @@ msgid "helping_scope_subtitle"
 msgstr "Делитесь только с друзьями или с людьми из всех стран."
 
 msgid "helping_scope_only_friends"
-msgstr "Только мои друзья"
+msgstr "Только мои подключения через личный прокси"
 
 msgid "helping_scope_all_countries"
 msgstr "Все страны"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Безопасно делитесь своим подключением, чтобы помочь другим получить доступ к открытому интернету."
+
+msgid "invite_show_qr"
+msgstr "Показать QR-код"
+
+msgid "invite_link_hint"
+msgstr "Введите имя, чтобы получить ссылку"
+
+msgid "invite_qr_title"
+msgstr "Сканировать камерой"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Вход в этот аккаунт выполняется через %s, а это нельзя подтвердить на телевизоре. Чтобы удалить аккаунт, откройте Lantern на телефоне или компьютере и удалите его там."
+
+msgid "open_on_another_device"
+msgstr "Открыть на другом устройстве"
+
+msgid "open_on_another_device_hint"
+msgstr "На этом телевизоре нет браузера. Отсканируйте код или введите адрес на телефоне или компьютере."
+
+msgid "helpers_name_label"
+msgstr "Ваше имя"
+
+msgid "helpers_your_name_helper"
+msgstr "Имя, под которым вас знает друг"
+
+msgid "manage_empty_my_server_title"
+msgstr "Частного сервера пока нет"
+
+msgid "manage_empty_my_server_body"
+msgstr "Настройте собственный сервер для полного контроля над подключением."
+
+msgid "manage_empty_joined_title"
+msgstr "Пока нет подключённых серверов"
+
+msgid "manage_empty_joined_body"
+msgstr "Присоединитесь к серверу человека, которому доверяете, с помощью ключа доступа от него."
+
+msgid "manage_empty_proxies_title"
+msgstr "Личных прокси пока нет"
+
+msgid "manage_empty_proxies_body"
+msgstr "Пригласите человека, которому доверяете, за пределами вашей страны, чтобы подключаться напрямую через него."
+
+msgid "invite_share_steps_short"
+msgstr "Друг открывает ссылку и вводит своё имя. Вы подтверждаете его 4-значным кодом."
+
+msgid "invite_qr_hint_camera"
+msgstr "Если друг рядом с вами, он может отсканировать этот код вместо ссылки."
+
+msgid "invite_trust_warning_short"
+msgstr "Приглашайте только тех, кому доверяете."
+
+msgid "invite_trust_learn_more"
+msgstr "Подробнее."
+
+msgid "invite_trust_title"
+msgstr "Доверие к личному прокси"
+
+msgid "invite_trust_message_one"
+msgstr "Ваш интернет-трафик будет проходить через подключение приглашённого человека. Он сможет видеть, когда вы подключены, и какие сайты вы посещаете. Поскольку большинство сайтов использует зашифрованный HTTPS, он не увидит, какие конкретно страницы вы открываете и что на них делаете."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern не управляет личными прокси и не отслеживает их. Приглашайте только тех, кого знаете и кому доверяете."
+
+msgid "invite_trust_message_three"
+msgstr "Удалить его можно в любой момент в разделе «Управление частными расположениями»."
+
+msgid "become_means_traffic_seen"
+msgstr "Друг попросил вас о помощи. Когда Action Mode включён, он выходит в открытый интернет через ваше подключение. Вы сможете видеть, какие сайты он посещает, но не то, что он на них делает."
+
+msgid "help_friend_your_name_label"
+msgstr "Ваше имя"

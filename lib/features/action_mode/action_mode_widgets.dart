@@ -19,6 +19,8 @@ class ActionModeStatusCard extends StatelessWidget {
     required this.onToggle,
     this.onInfo,
     this.onTotalTap,
+    this.helpingScope,
+    this.onHelpingTap,
   });
 
   final String status;
@@ -32,18 +34,26 @@ class ActionModeStatusCard extends StatelessWidget {
   /// Makes the total row tappable, with a chevron.
   final VoidCallback? onTotalTap;
 
+  /// Who sharing helps, under the "Helping right now" count.
+  final String? helpingScope;
+
+  /// Makes the "Helping right now" row tappable, with a chevron.
+  final VoidCallback? onHelpingTap;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    // Off and Configuring read like the counts below them.
     final statusColor = hasError
         ? context.statusErrorText
         : ready
         ? (Theme.of(context).brightness == Brightness.dark
               ? AppColors.green3
               : AppColors.green6)
-        : context.textTertiary;
+        : context.textPrimary;
     return AppCard(
       padding: EdgeInsets.zero,
+      shadow: true,
       child: Column(
         children: [
           // Status and switch on one line, like the VPN tab's header row.
@@ -83,9 +93,10 @@ class ActionModeStatusCard extends StatelessWidget {
                           tooltip: 'about_unbounded'.i18n,
                           onPressed: onInfo,
                           padding: EdgeInsets.zero,
+                          // The hover circle reaches 8 px past the 20 px icon.
                           constraints: const BoxConstraints(
-                            minWidth: 32,
-                            minHeight: 32,
+                            minWidth: 36,
+                            minHeight: 36,
                           ),
                           icon: AppImage(
                             path: AppImagePaths.info,
@@ -118,10 +129,17 @@ class ActionModeStatusCard extends StatelessWidget {
           ),
           const DividerSpace(),
           SettingTile(
+            tileKey: const Key('action-mode.helping-now'),
             label: 'action_mode_helping_now'.i18n,
+            subtitle: helpingScope,
+            subtitleColor: context.textTertiary,
             value: peopleCountLabel(activeCount),
             icon: AppImagePaths.actionModePerson,
-            actions: const [],
+            onTap: onHelpingTap,
+            actions: [
+              if (onHelpingTap != null)
+                const AppImage(path: AppImagePaths.arrowForward),
+            ],
           ),
           const DividerSpace(),
           SettingTile(

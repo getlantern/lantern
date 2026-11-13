@@ -58,6 +58,7 @@ export 'package:lantern/core/utils/failure.dart';
 export 'package:lantern/core/utils/platform_utils.dart';
 export 'package:lantern/core/utils/url_utils.dart';
 export 'package:lantern/core/widgets/app_card.dart';
+export 'package:lantern/core/widgets/app_focusable.dart';
 export 'package:lantern/core/widgets/app_tile.dart';
 export 'package:lantern/core/widgets/base_screen.dart';
 export 'package:lantern/core/widgets/bottomsheet.dart';

@@ -197,21 +197,24 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   SizedBox(height: defaultSize),
                   DividerSpace(),
                   SizedBox(height: defaultSize),
-                  OAuthLogin(
-                    methodType: SignUpMethodType.google,
-                    onResult: (token) =>
-                        onOAuthResult(token, SignUpMethodType.google),
-                  ),
-                  SizedBox(height: defaultSize),
-                  OAuthLogin(
-                    methodType: SignUpMethodType.apple,
-                    foregroundColor: context.textPrimary,
-                    onResult: (token) =>
-                        onOAuthResult(token, SignUpMethodType.apple),
-                  ),
-                  SizedBox(height: defaultSize),
-                  DividerSpace(),
-                  SizedBox(height: defaultSize),
+                  // OAuth finishes in a browser, which a TV does not have.
+                  if (!PlatformUtils.isTv) ...[
+                    OAuthLogin(
+                      methodType: SignUpMethodType.google,
+                      onResult: (token) =>
+                          onOAuthResult(token, SignUpMethodType.google),
+                    ),
+                    SizedBox(height: defaultSize),
+                    OAuthLogin(
+                      methodType: SignUpMethodType.apple,
+                      foregroundColor: context.textPrimary,
+                      onResult: (token) =>
+                          onOAuthResult(token, SignUpMethodType.apple),
+                    ),
+                    SizedBox(height: defaultSize),
+                    DividerSpace(),
+                    SizedBox(height: defaultSize),
+                  ],
                   if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
                     Center(
                       child: AppTextButton(

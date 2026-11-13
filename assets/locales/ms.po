@@ -597,7 +597,7 @@ msgid "smc_status_off"
 msgstr "Dilumpuhkan"
 
 msgid "smc_status_configuring"
-msgstr "Mengkonfigurasi rangkaian"
+msgstr "Mengkonfigurasi"
 
 msgid "smc_status_error_with_message"
 msgstr "Tidak dapat berkongsi: %s"
@@ -2012,7 +2012,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "Jemputan ini telah pun diputuskan."
 
 msgid "helper_error_bad_name"
-msgstr "Masukkan nama yang dikenali oleh rakan anda, sehingga 60 aksara."
+msgstr "Masukkan nama yang dikenali oleh rakan anda."
 
 msgid "helper_error_keystore"
 msgstr "Peranti ini tidak dapat menyimpan nama dengan selamat, jadi membantu rakan dimatikan. Pada Linux, mulakan keyring seperti GNOME Keyring."
@@ -2022,9 +2022,6 @@ msgstr "Storan selamat peranti ini telah ditetapkan semula, jadi nama pembantu d
 
 msgid "helper_error_copy"
 msgstr "Tidak dapat menyalin pautan. Gunakan Kongsi pautan."
-
-msgid "helpers_your_name_label"
-msgstr "Nama anda, seperti yang dikenali oleh rakan anda"
 
 msgid "helpers_your_name_hint"
 msgstr "Contohnya, Sara"
@@ -2092,14 +2089,8 @@ msgstr "Salin pautan"
 msgid "invite_link_copied"
 msgstr "Pautan disalin"
 
-msgid "invite_qr_hint"
-msgstr "Rakan anda boleh mengimbas ini dengan Lantern."
-
 msgid "invite_waiting"
 msgstr "Menunggu rakan anda membuka pautan"
-
-msgid "invite_trust_warning"
-msgstr "Orang yang anda jemput akan tahu anda menggunakan Lantern dan boleh melihat bila anda bersambung melalui mereka. Trafik anda melalui sambungan internet mereka, jadi mereka mungkin tahu laman yang anda lawati, tetapi bukan apa yang anda lakukan di laman selamat (https). Jemput hanya orang yang anda percayai."
 
 msgid "invite_expires"
 msgstr "Tamat tempoh dalam %s jam"
@@ -2141,10 +2132,10 @@ msgid "help_friend_done"
 msgstr "Selesai"
 
 msgid "help_friend_already_claimed_title"
-msgstr "Jemputan ini telah pun dituntut"
+msgstr "Jemputan Ini Telah Digunakan"
 
 msgid "help_friend_already_claimed_body"
-msgstr "Orang lain telah membuka pautan ini dahulu, atau ia telah tamat tempoh. Minta jemputan baharu daripada rakan anda, dan beritahu mereka bahawa jemputan ini mungkin telah dilihat oleh orang lain."
+msgstr "Orang lain telah membuka pautan ini terlebih dahulu, atau ia telah tamat tempoh. Minta jemputan baharu daripada rakan anda dan beritahu mereka bahawa jemputan ini mungkin telah dilihat oleh orang lain."
 
 msgid "help_friend_already_helping"
 msgstr "Anda sudah membantu rakan ini."
@@ -2185,14 +2176,11 @@ msgstr "%s m"
 msgid "invite_share_title"
 msgstr "Kongsi pautan ini dengan seseorang yang anda percayai di luar negara anda"
 
-msgid "invite_share_steps"
-msgstr "Mereka membuka pautan, memasang Lantern jika perlu dan memasukkan nama mereka. Anda akan meluluskan mereka dengan menyemak kod 4 digit, kemudian anda boleh bersambung melalui mereka."
-
 msgid "invite_link_label"
 msgstr "Pautan jemputan anda"
 
 msgid "invite_link_expiry"
-msgstr "Berfungsi sekali sahaja dan tamat tempoh dalam 48 jam."
+msgstr "Berfungsi sekali dan tamat tempoh dalam 48 jam"
 
 msgid "approve_title"
 msgstr "%s mahu menjadi Proksi Peribadi anda"
@@ -2215,9 +2203,6 @@ msgstr "Tidak dapat menghubungi %s sekarang. Ditukar ke Lokasi Pintar."
 msgid "become_means_title"
 msgstr "Maksud menjadi Proksi Peribadi"
 
-msgid "become_means_traffic"
-msgstr "Seorang rakan meminta bantuan anda. Semasa Action Mode berjalan, mereka boleh mencapai internet terbuka melalui sambungan anda. Lantern tidak menunjukkan kepada anda laman yang mereka akses."
-
 msgid "become_means_seen"
 msgstr "Mereka boleh melihat bila anda bersambung. Terima jemputan daripada orang yang anda kenali sahaja."
 
@@ -2226,9 +2211,6 @@ msgstr "Alih keluar sambungan pada bila-bila masa."
 
 msgid "help_friend_form_title"
 msgstr "Tampal pautan daripada orang yang anda bantu"
-
-msgid "help_friend_name_label"
-msgstr "Nama anda, seperti yang mereka kenali"
 
 msgid "help_friend_become"
 msgstr "Jadi Proksi Peribadi Mereka"
@@ -2243,7 +2225,7 @@ msgid "help_friend_waiting_approval"
 msgstr "Menunggu kelulusan"
 
 msgid "help_friend_code_note"
-msgstr "Sebutkan kod melalui panggilan atau dalam aplikasi lain daripada aplikasi yang menerima pautan jemputan. Sesiapa yang melihat pautan itu tidak boleh melihat kod juga."
+msgstr "Sebut kod melalui panggilan atau dalam aplikasi lain daripada aplikasi yang menerima pautan jemputan. Tiada sesiapa selain rakan anda patut memiliki kedua-duanya."
 
 msgid "become_personal_proxy"
 msgstr "Jadi Proksi Peribadi"
@@ -2280,12 +2262,6 @@ msgstr "Tidak disambungkan"
 
 msgid "helping_paste_another"
 msgstr "Tampal pautan jemputan lain"
-
-msgid "helping_data_relayed"
-msgstr "Data dipancarkan hari ini"
-
-msgid "helping_active_today"
-msgstr "Aktif %s"
 
 msgid "help_friend_paste_button"
 msgstr "Tampal pautan"
@@ -2324,7 +2300,7 @@ msgid "onboarding_personal_proxies"
 msgstr "Proksi Peribadi"
 
 msgid "onboarding_personal_proxies_description"
-msgstr "Minta seseorang yang anda percayai di luar negara anda menjadi proksi anda apabila Lantern disekat."
+msgstr "Bersambung terus melalui seseorang yang anda percayai di luar negara anda."
 
 msgid "onboarding_new_badge"
 msgstr "Baharu"
@@ -2342,7 +2318,7 @@ msgid "onboarding_action_mode_help_someone"
 msgstr "Bantu orang yang anda kenali"
 
 msgid "onboarding_action_mode_help_someone_description"
-msgstr "Jika rakan di negara yang ditapis menghantar jemputan kepada anda, anda boleh menjadi Personal Proxy mereka."
+msgstr "Bantu rakan dengan menjadi Proksi Peribadi mereka supaya mereka boleh bersambung terus melalui anda."
 
 msgid "onboarding_action_mode_privacy"
 msgstr "Privasi anda dilindungi"
@@ -2359,9 +2335,6 @@ msgstr "Hidupkan atau matikan Action Mode bila-bila masa dari tab Action Mode."
 msgid "approved_title"
 msgstr "%s kini Proksi Peribadi anda"
 
-msgid "approved_body"
-msgstr "Apabila %s dalam talian, anda boleh memilihnya di bawah Lokasi Peribadi dalam Pemilihan Pelayan."
-
 msgid "approved_connect_now"
 msgstr "Sambung Sekarang"
 
@@ -2373,12 +2346,6 @@ msgstr "Anda Kini Proksi Peribadi untuk %s"
 
 msgid "help_friend_success_body"
 msgstr "%s telah meluluskan anda. Apabila Action Mode hidup, mereka boleh mengakses internet terbuka melalui sambungan anda."
-
-msgid "help_friend_keep_on"
-msgstr "Kekalkan Action Mode Hidup"
-
-msgid "help_friend_keep_on_body"
-msgstr "Dihidupkan sekarang dan setiap kali Lantern dibuka, supaya %s kekal bersambung."
 
 msgid "help_friend_no_link_yet"
 msgstr "Belum ada pautan?"
@@ -2402,7 +2369,85 @@ msgid "helping_scope_subtitle"
 msgstr "Kongsi dengan rakan anda sahaja, atau dengan orang di semua negara."
 
 msgid "helping_scope_only_friends"
-msgstr "Rakan saya sahaja"
+msgstr "Hanya sambungan Proksi Peribadi saya"
 
 msgid "helping_scope_all_countries"
 msgstr "Semua negara"
+
+msgid "onboarding_action_mode_row_description"
+msgstr "Pilih untuk berkongsi sambungan anda dengan selamat bagi membantu orang lain mengakses internet terbuka."
+
+msgid "invite_show_qr"
+msgstr "Tunjuk kod QR"
+
+msgid "invite_link_hint"
+msgstr "Masukkan nama anda untuk mendapatkan pautan"
+
+msgid "invite_qr_title"
+msgstr "Imbas dengan Kamera"
+
+msgid "delete_sso_account_on_other_device"
+msgstr "Akaun ini log masuk dengan %s, yang tidak boleh disahkan pada TV. Untuk memadamnya, buka Lantern pada telefon atau komputer anda dan padamkannya di sana."
+
+msgid "open_on_another_device"
+msgstr "Buka pada peranti lain"
+
+msgid "open_on_another_device_hint"
+msgstr "TV ini tiada pelayar web. Imbas kod atau taip alamat pada telefon atau komputer anda."
+
+msgid "helpers_name_label"
+msgstr "Nama anda"
+
+msgid "helpers_your_name_helper"
+msgstr "Seperti yang dikenali oleh rakan anda"
+
+msgid "manage_empty_my_server_title"
+msgstr "Belum Ada Pelayan Peribadi"
+
+msgid "manage_empty_my_server_body"
+msgstr "Sediakan pelayan anda sendiri untuk kawalan penuh ke atas sambungan anda."
+
+msgid "manage_empty_joined_title"
+msgstr "Belum ada pelayan yang disertai"
+
+msgid "manage_empty_joined_body"
+msgstr "Sertai pelayan yang dikendalikan oleh orang yang anda percayai, menggunakan kunci akses yang diberikan."
+
+msgid "manage_empty_proxies_title"
+msgstr "Belum ada Proksi Peribadi"
+
+msgid "manage_empty_proxies_body"
+msgstr "Jemput orang yang anda percayai di luar negara anda supaya anda boleh menyambung terus melaluinya."
+
+msgid "invite_share_steps_short"
+msgstr "Mereka membuka pautan dan memasukkan nama. Anda meluluskan mereka dengan kod 4 digit."
+
+msgid "invite_qr_hint_camera"
+msgstr "Jika rakan anda bersama anda, mereka boleh mengimbas kod ini dan bukannya menggunakan pautan."
+
+msgid "invite_trust_warning_short"
+msgstr "Jemput hanya orang yang anda percayai."
+
+msgid "invite_trust_learn_more"
+msgstr "Ketahui lebih lanjut."
+
+msgid "invite_trust_title"
+msgstr "Percayai Proksi Peribadi Anda"
+
+msgid "invite_trust_message_one"
+msgstr "Trafik internet anda akan melalui sambungan orang yang anda jemput. Mereka boleh melihat bila anda bersambung dan mungkin melihat laman yang anda lawati. Oleh kerana kebanyakan laman menggunakan HTTPS yang disulitkan, mereka tidak dapat melihat halaman tertentu yang anda buka atau apa yang anda lakukan di situ."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern tidak mengurus atau memantau Proksi Peribadi. Hanya jemput orang yang anda kenali dan percayai."
+
+msgid "invite_trust_message_three"
+msgstr "Anda boleh membuang mereka pada bila-bila masa daripada Urus Lokasi Peribadi."
+
+msgid "approved_body_locations"
+msgstr "Apabila %s dalam talian, anda boleh memilihnya di bawah Lokasi Peribadi dalam menu Lokasi Pelayan. Lokasi Pintar mungkin menggunakannya secara automatik."
+
+msgid "become_means_traffic_seen"
+msgstr "Seorang rakan meminta bantuan anda. Apabila Action Mode dihidupkan, mereka mengakses internet terbuka melalui sambungan anda. Anda boleh melihat laman yang mereka lawati, tetapi bukan apa yang mereka lakukan di laman tersebut."
+
+msgid "help_friend_your_name_label"
+msgstr "Nama anda"

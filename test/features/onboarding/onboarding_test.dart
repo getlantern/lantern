@@ -11,6 +11,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart' hide Onboarding;
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/router/router.dart';
@@ -20,6 +21,7 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/onboarding/onboarding.dart';
 
 class _Settings extends AppSettingNotifier {
@@ -81,12 +83,45 @@ class _Share extends ShareNotifier {
   Future<void> autoStart(WidgetRef widgetRef) async => calls.add('autoStart');
 
   @override
-  Future<void> startForHelper(WidgetRef widgetRef) async =>
-      calls.add('startForHelper');
+  Future<void> startForHelper(
+    WidgetRef widgetRef, {
+    bool requireAutoEnable = false,
+  }) async => calls.add('startForHelper');
 
   @override
-  Future<void> setAutoEnable(BuildContext context, bool enabled) async =>
-      calls.add('setAutoEnable');
+  Future<bool> setAutoEnable(BuildContext context, bool enabled) async {
+    calls.add('setAutoEnable');
+    return enabled;
+  }
+}
+
+/// The extension's status, set by a test; nothing reaches the platform.
+class _Extension extends MacosExtensionNotifier {
+  final calls = <String>[];
+
+  @override
+  MacOSExtensionState build() =>
+      const MacOSExtensionState(SystemExtensionStatus.unknown);
+
+  void set(SystemExtensionStatus status) => state = MacOSExtensionState(status);
+
+  @override
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled() async {
+    calls.add('isSystemExtensionInstalled');
+    return right(unit);
+  }
+
+  @override
+  Future<Either<Failure, String>> triggerSystemExtensionInstallation() async {
+    calls.add('triggerSystemExtensionInstallation');
+    return right('ok');
+  }
+
+  @override
+  Future<Either<Failure, Unit>> openSystemExtension() async {
+    calls.add('openSystemExtension');
+    return right(unit);
+  }
 }
 
 class _Router extends AppRouter {
@@ -115,6 +150,9 @@ class _Harness {
 
   AppSetting get settings => container.read(appSettingProvider);
 
+  _Extension get extension =>
+      container.read(macosExtensionProvider.notifier) as _Extension;
+
   _Flags get flags => container.read(featureFlagProvider.notifier) as _Flags;
 }
 
@@ -125,9 +163,13 @@ Future<_Harness> _pump(
   bool invites = false,
   bool actionMode = false,
   AppSetting settings = const AppSetting(),
+  // The Network Extension page, which the host (a Mac) would otherwise add
+  // to every flow.
+  bool extension = false,
   ThemeData? theme,
   Size size = const Size(393, 852),
 }) async {
+  settings = settings.copyWith(showSplashScreen: extension);
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
   addTearDown(tester.view.reset);
@@ -151,6 +193,7 @@ Future<_Harness> _pump(
       ),
       radianceSettingsProvider.overrideWith(() => radiance),
       shareProvider.overrideWith(() => share),
+      macosExtensionProvider.overrideWith(_Extension.new),
     ],
   );
   addTearDown(container.dispose);
@@ -255,6 +298,55 @@ void main() {
   testWidgets('elsewhere the row is not shown', (tester) async {
     await _whatMakesLanternDifferent(tester, invites: false);
     expect(find.byKey(const Key('onboarding.personal_proxies')), findsNothing);
+  });
+
+  testWidgets('outside censored regions, an Action Mode row sits between '
+      'Private Servers and Nonprofit Mission where Action Mode is offered', (
+    tester,
+  ) async {
+    HelpersNotifier.debugBuildEnabled = true;
+    await _pump(tester, actionMode: true);
+    await _continue(tester);
+    final row = find.byKey(const Key('onboarding.action_mode_row'));
+    expect(row, findsOneWidget);
+    expect(
+      find.descendant(of: row, matching: find.text('unbounded'.i18n)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: row,
+        matching: find.text('onboarding_action_mode_row_description'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(row).dy,
+      greaterThan(tester.getTopLeft(find.text('private_servers'.i18n)).dy),
+    );
+    expect(
+      tester.getTopLeft(row).dy,
+      lessThan(tester.getTopLeft(find.text('nonprofit_mission'.i18n)).dy),
+    );
+  });
+
+  testWidgets('in censored regions Personal Proxies takes the Action Mode '
+      "row's place", (tester) async {
+    HelpersNotifier.debugBuildEnabled = true;
+    await _pump(tester, actionMode: true, invites: true);
+    await _continue(tester);
+    expect(
+      find.byKey(const Key('onboarding.personal_proxies')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('onboarding.action_mode_row')), findsNothing);
+  });
+
+  testWidgets('without Action Mode there is no Action Mode row', (
+    tester,
+  ) async {
+    await _whatMakesLanternDifferent(tester, invites: false);
+    expect(find.byKey(const Key('onboarding.action_mode_row')), findsNothing);
   });
 
   group('Action Mode page', () {
@@ -490,6 +582,76 @@ void main() {
       File(
         '$shotsDir/action_mode_light.png',
       ).writeAsBytesSync(data!.buffer.asUint8List());
+    });
+  });
+
+  group('Network Extension page', () {
+    final page = find.byKey(const Key('onboarding.network_extension'));
+    // The page exists on macOS only; CI runs these on Linux.
+    setUp(() => PlatformUtils.debugIsMacOS = true);
+    tearDown(() => PlatformUtils.debugIsMacOS = null);
+
+    testWidgets('on a first run it is the last page, and onboarding finishes '
+        'once the extension is ready, without the dialog', (tester) async {
+      HelpersNotifier.debugBuildEnabled = true;
+      final h = await _pump(
+        tester,
+        actionMode: true,
+        extension: true,
+        size: _flowSize,
+      );
+      await _pastRoutingMode(tester);
+      expect(_actionModePage, findsOneWidget);
+      expect(find.text('continue'.i18n), findsOneWidget);
+      await _continue(tester);
+
+      expect(page, findsOneWidget);
+      expect(find.text('enable_network_extension'.i18n), findsOneWidget);
+      expect(find.text('install_now'.i18n), findsOneWidget);
+      expect(h.settings.onboardingCompleted, isFalse);
+
+      await _continue(tester);
+      expect(h.extension.calls, contains('triggerSystemExtensionInstallation'));
+      expect(h.settings.onboardingCompleted, isFalse);
+
+      h.extension.set(SystemExtensionStatus.installed);
+      await tester.pumpAndSettle();
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.settings.personalProxiesIntroSeen, isTrue);
+      expect(h.settings.showSplashScreen, isFalse);
+      expect(h.router.pops, 1);
+      expect(h.router.pushed, isEmpty);
+    });
+
+    testWidgets('Close on it finishes onboarding without the dialog', (
+      tester,
+    ) async {
+      final h = await _pump(tester, extension: true, size: _flowSize);
+      await _pastRoutingMode(tester);
+      expect(page, findsOneWidget);
+      await tester.tap(find.byKey(const Key('onboarding.close')));
+      await tester.pumpAndSettle();
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.settings.showSplashScreen, isFalse);
+      expect(h.router.pops, 1);
+      expect(h.router.pushed, isEmpty);
+    });
+
+    testWidgets('skipping before it opens the dialog instead', (tester) async {
+      final h = await _pump(tester, extension: true, size: _flowSize);
+      await tester.tap(find.byKey(const Key('onboarding.skip')));
+      await tester.pumpAndSettle();
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.settings.showSplashScreen, isFalse);
+      expect(h.router.pushed, [isA<MacOSExtensionDialog>()]);
+    });
+
+    testWidgets('not shown once the first run is over', (tester) async {
+      final h = await _pump(tester, size: _flowSize);
+      await _pastRoutingMode(tester);
+      expect(page, findsNothing);
+      expect(h.settings.onboardingCompleted, isTrue);
+      expect(h.router.pushed, isEmpty);
     });
   });
 }

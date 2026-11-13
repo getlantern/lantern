@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/empty_state.dart';
 import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/helping_friends.dart'
@@ -52,6 +53,35 @@ class PersonalProxiesTab extends HookConsumerWidget {
     final pending = view.invites
         .where((i) => !i.claimed && !i.expired)
         .toList();
+    // The daily invite limit is a snackbar where the invite was asked for,
+    // whichever entry point that was; it is never a state of this tab.
+    final inlineError = state.error == 'too_many_invites' ? null : state.error;
+
+    if (view.helpers.isEmpty &&
+        claimed.isEmpty &&
+        pending.isEmpty &&
+        !state.keystoreReset &&
+        inlineError == null) {
+      // A device that used helper invites may still be loading its view.
+      if (!state.viewLoaded && notifier.used) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      // No button where invites are not available to this device: the
+      // engine would only refuse.
+      final invites = ref.watch(helperInvitesAvailableProvider);
+      return EmptyState(
+        key: const Key('personal_proxies.empty'),
+        icon: AppImagePaths.personAdd,
+        title: 'manage_empty_proxies_title'.i18n,
+        body: 'manage_empty_proxies_body'.i18n,
+        buttonLabel: 'invite_personal_proxy'.i18n,
+        buttonKey: const Key('personal_proxies.invite'),
+        onPressed: invites
+            ? () =>
+                  startPersonalProxyInvite(context, ref, resumeWaiting: false)
+            : null,
+      );
+    }
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: defaultSize),
@@ -133,10 +163,10 @@ class PersonalProxiesTab extends HookConsumerWidget {
             onPressed: () => _removeAll(context, notifier),
           ),
         ],
-        if (state.error != null) ...[
+        if (inlineError != null) ...[
           const SizedBox(height: defaultSize),
           Text(
-            helperErrorText(state.error!),
+            helperErrorText(inlineError),
             key: const Key('helpers.error'),
             style: textTheme.bodyMedium!.copyWith(
               color: Theme.of(context).colorScheme.error,
