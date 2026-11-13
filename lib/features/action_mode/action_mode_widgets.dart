@@ -43,15 +43,17 @@ class ActionModeStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    // Off and Configuring read like the counts below them.
     final statusColor = hasError
         ? context.statusErrorText
         : ready
         ? (Theme.of(context).brightness == Brightness.dark
               ? AppColors.green3
               : AppColors.green6)
-        : context.textTertiary;
+        : context.textPrimary;
     return AppCard(
       padding: EdgeInsets.zero,
+      shadow: true,
       child: Column(
         children: [
           // Status and switch on one line, like the VPN tab's header row.
@@ -91,9 +93,10 @@ class ActionModeStatusCard extends StatelessWidget {
                           tooltip: 'about_unbounded'.i18n,
                           onPressed: onInfo,
                           padding: EdgeInsets.zero,
+                          // The hover circle reaches 8 px past the 20 px icon.
                           constraints: const BoxConstraints(
-                            minWidth: 32,
-                            minHeight: 32,
+                            minWidth: 36,
+                            minHeight: 36,
                           ),
                           icon: AppImage(
                             path: AppImagePaths.info,

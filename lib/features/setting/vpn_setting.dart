@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/features/helpers/personal_proxy_invite.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
@@ -30,6 +31,7 @@ class VPNSetting extends HookConsumerWidget {
         ? ref.watch(splitTunnelProvider)
         : null;
     final personalProxies = ref.watch(personalProxiesTabVisibleProvider);
+    final invites = ref.watch(helperInvitesAvailableProvider);
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
@@ -128,6 +130,20 @@ class VPNSetting extends HookConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Where helper invites are offered (censored regions).
+              if (invites) ...[
+                AppTile(
+                  tileKey: const Key('vpn_setting.invite_personal_proxy'),
+                  label: 'invite_personal_proxy'.i18n,
+                  icon: AppImagePaths.personAdd,
+                  trailing: AppImage(
+                    path: AppImagePaths.arrowForward,
+                    height: 20,
+                  ),
+                  onPressed: () => startPersonalProxyInvite(context, ref),
+                ),
+                DividerSpace(),
+              ],
               AppTile(
                 label: 'setup_private_server'.i18n,
                 icon: AppImagePaths.server,

@@ -590,7 +590,7 @@ msgid "smc_status_off"
 msgstr "Devre Dışı"
 
 msgid "smc_status_configuring"
-msgstr "Ağ yapılandırılıyor"
+msgstr "Yapılandırılıyor"
 
 msgid "smc_status_error_with_message"
 msgstr "Paylaşılamadı: %s"
@@ -1996,7 +1996,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "Bu davet hakkında zaten karar verildi."
 
 msgid "helper_error_bad_name"
-msgstr "Arkadaşınızın tanıyacağı bir ad girin, en fazla 60 karakter."
+msgstr "Arkadaşınızın tanıyacağı bir ad girin."
 
 msgid "helper_error_keystore"
 msgstr "Bu cihaz adları güvenli şekilde saklayamıyor, bu yüzden arkadaşlara yardım kapalı. Linux'ta GNOME Keyring gibi bir anahtarlık başlatın."
@@ -2006,9 +2006,6 @@ msgstr "Bu cihazın güvenli depolama alanı sıfırlandı, bu yüzden yardımc�
 
 msgid "helper_error_copy"
 msgstr "Bağlantı kopyalanamadı. Bunun yerine Bağlantıyı Paylaş seçeneğini kullanın."
-
-msgid "helpers_your_name_label"
-msgstr "Arkadaşınızın sizi tanıdığı adınız"
 
 msgid "helpers_your_name_hint"
 msgstr "Örneğin, Sara"
@@ -2076,14 +2073,8 @@ msgstr "Bağlantıyı Kopyala"
 msgid "invite_link_copied"
 msgstr "Bağlantı kopyalandı"
 
-msgid "invite_qr_hint"
-msgstr "Yanınızdaysa bağlantı yerine bunu Lantern'de tarayabilir."
-
 msgid "invite_waiting"
-msgstr "Bağlantının açılması bekleniyor"
-
-msgid "invite_trust_warning"
-msgstr "Davet ettiğiniz kişi Lantern kullandığınızı bilecek ve onun üzerinden ne zaman bağlı olduğunuzu görebilecek. Trafiğiniz onun internet bağlantısından geçer, bu yüzden hangi siteleri ziyaret ettiğinizi öğrenebilir, ancak güvenli (https) sitelerde ne yaptığınızı öğrenemez. Yalnızca güvendiğiniz birini davet edin."
+msgstr "Arkadaşınızın bağlantıyı açması bekleniyor"
 
 msgid "invite_expires"
 msgstr "%s saat içinde sona erer"
@@ -2125,7 +2116,7 @@ msgid "help_friend_done"
 msgstr "Bitti"
 
 msgid "help_friend_already_claimed_title"
-msgstr "Bu davet zaten kullanıldı"
+msgstr "Bu Davet Zaten Kullanıldı"
 
 msgid "help_friend_already_claimed_body"
 msgstr "Bu bağlantıyı önce başka biri açtı veya bağlantının süresi doldu. Arkadaşınızdan yeni bir davet isteyin ve bu davetin başka biri tarafından görülmüş olabileceğini söyleyin."
@@ -2169,9 +2160,6 @@ msgstr "%s dk"
 msgid "invite_share_title"
 msgstr "Bu bağlantıyı ülkeniz dışında güvendiğiniz biriyle paylaşın"
 
-msgid "invite_share_steps"
-msgstr "Kişi bağlantıyı açar, gerekirse Lantern'i yükler ve adını girer. 4 haneli bir kodu kontrol ederek onu onaylarsınız, ardından onun üzerinden bağlanabilirsiniz."
-
 msgid "invite_link_label"
 msgstr "Davet bağlantınız"
 
@@ -2199,9 +2187,6 @@ msgstr "Şu anda ulaşılamıyor: %s. Akıllı Konum'a geçildi."
 msgid "become_means_title"
 msgstr "Kişisel Proxy olmak ne demek"
 
-msgid "become_means_traffic"
-msgstr "Bir arkadaşınız sizden yardım istedi. Action Mode çalışırken, bağlantınız üzerinden açık internete ulaşabilir. Lantern size hangi sitelere eriştiğini göstermez."
-
 msgid "become_means_seen"
 msgstr "Ne zaman bağlı olduğunuzu görebilirler. Yalnızca tanıdığınız kişilerden gelen davetleri kabul edin."
 
@@ -2210,9 +2195,6 @@ msgstr "Bağlantıyı istediğiniz zaman kaldırın."
 
 msgid "help_friend_form_title"
 msgstr "Yardım ettiğiniz kişiden gelen bağlantıyı yapıştırın"
-
-msgid "help_friend_name_label"
-msgstr "Sizi tanıdıkları adınız"
 
 msgid "help_friend_become"
 msgstr "Arkadaşınızın Kişisel Proxy'si Olun"
@@ -2227,7 +2209,7 @@ msgid "help_friend_waiting_approval"
 msgstr "Onay bekleniyor"
 
 msgid "help_friend_code_note"
-msgstr "Kodu bir aramada veya davet bağlantısının geldiği uygulamadan farklı bir uygulamada söyleyin. Bağlantıyı gören kişi kodu da görmemeli."
+msgstr "Kodu bir aramada veya davet bağlantısının geldiği uygulamadan farklı bir uygulamada söyleyin. Arkadaşınız dışında kimsede ikisi birden olmamalı."
 
 msgid "become_personal_proxy"
 msgstr "Kişisel Proxy Ol"
@@ -2264,12 +2246,6 @@ msgstr "Bağlı değil"
 
 msgid "helping_paste_another"
 msgstr "Başka Bir Davet Bağlantısı Yapıştır"
-
-msgid "helping_data_relayed"
-msgstr "Bugün aktarılan veri"
-
-msgid "helping_active_today"
-msgstr "Etkin: %s"
 
 msgid "help_friend_paste_button"
 msgstr "Bağlantıyı Yapıştır"
@@ -2340,9 +2316,6 @@ msgstr "Action Mode sekmesinden Action Mode özelliğini istediğiniz zaman aç�
 msgid "approved_title"
 msgstr "Kişisel Proxy'niz artık %s"
 
-msgid "approved_body"
-msgstr "%s çevrimiçi olduğunda, Sunucu Seçimi içindeki Özel Konumlar altından seçebilirsiniz."
-
 msgid "approved_connect_now"
 msgstr "Şimdi Bağlan"
 
@@ -2354,12 +2327,6 @@ msgstr "Artık %s için Kişisel Proxy'siniz"
 
 msgid "help_friend_success_body"
 msgstr "%s sizi onayladı. Action Mode açıkken sizin bağlantınız üzerinden açık internete erişebilir."
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode Açık Kalsın"
-
-msgid "help_friend_keep_on_body"
-msgstr "Şimdi ve Lantern her açık olduğunda devreye girer, böylece %s bağlı kalır."
 
 msgid "help_friend_no_link_yet"
 msgstr "Henüz bağlantı yok mu?"
@@ -2408,3 +2375,60 @@ msgstr "Başka Bir Cihazda Aç"
 
 msgid "open_on_another_device_hint"
 msgstr "Bu TV'de web tarayıcısı yok. Kodu tarayın veya adresi telefonunuza ya da bilgisayarınıza yazın."
+
+msgid "helpers_name_label"
+msgstr "Adınız"
+
+msgid "helpers_your_name_helper"
+msgstr "Arkadaşınızın sizi tanıdığı şekilde"
+
+msgid "manage_empty_my_server_title"
+msgstr "Henüz Özel Sunucu Yok"
+
+msgid "manage_empty_my_server_body"
+msgstr "Bağlantınız üzerinde tam kontrol için kendi sunucunuzu kurun."
+
+msgid "manage_empty_joined_title"
+msgstr "Henüz katılınan sunucu yok"
+
+msgid "manage_empty_joined_body"
+msgstr "Güvendiğiniz birinin işlettiği bir sunucuya, size verdiği erişim anahtarıyla katılın."
+
+msgid "manage_empty_proxies_title"
+msgstr "Henüz Kişisel Proxy yok"
+
+msgid "manage_empty_proxies_body"
+msgstr "Doğrudan onun üzerinden bağlanmak için ülkeniz dışındaki güvendiğiniz birini davet edin."
+
+msgid "invite_share_steps_short"
+msgstr "Bağlantıyı açıp adını girer. Siz de 4 haneli bir kodla onaylarsınız."
+
+msgid "invite_qr_hint_camera"
+msgstr "Arkadaşınız yanınızdaysa bağlantı yerine bu kodu tarayabilir."
+
+msgid "invite_trust_warning_short"
+msgstr "Yalnızca güvendiğiniz birini davet edin."
+
+msgid "invite_trust_learn_more"
+msgstr "Daha fazla bilgi."
+
+msgid "invite_trust_title"
+msgstr "Kişisel Proxy'nize Güvenin"
+
+msgid "invite_trust_message_one"
+msgstr "İnternet trafiğiniz davet ettiğiniz kişinin bağlantısı üzerinden geçer. Bu kişi ne zaman bağlı olduğunuzu görebilir ve hangi siteleri ziyaret ettiğinizi görebilir. Çoğu site şifreli HTTPS kullandığından, açtığınız belirli sayfaları veya bu sayfalarda ne yaptığınızı göremez."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern Kişisel Proxy'leri yönetmez veya izlemez. Yalnızca tanıdığınız ve güvendiğiniz birini davet edin."
+
+msgid "invite_trust_message_three"
+msgstr "Bu kişiyi istediğiniz zaman Özel Konumları Yönet bölümünden kaldırabilirsiniz."
+
+msgid "approved_body_locations"
+msgstr "%s çevrimiçi olduğunda, Sunucu Konumları menüsündeki Özel Konumlar altından seçebilirsiniz. Akıllı Konum bunları otomatik olarak kullanabilir."
+
+msgid "become_means_traffic_seen"
+msgstr "Bir arkadaşınız yardımınızı istedi. Action Mode açıkken, sizin bağlantınız üzerinden açık internete erişir. Hangi siteleri ziyaret ettiğini görebilirsiniz ama bu sitelerde ne yaptığını göremezsiniz."
+
+msgid "help_friend_your_name_label"
+msgstr "Adınız"

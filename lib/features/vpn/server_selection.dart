@@ -263,15 +263,19 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   void onOpenMoreOptions() {
+    // As tall as its rows: a fixed share of the screen cut the last one off
+    // with the invite entry added.
     showAppBottomSheet(
       context: context,
       title: 'private_server_options'.i18n,
-      scrollControlDisabledMaxHeightRatio: .4,
-      builder: (sheetContext, scrollController) => PrivateLocationsMenu(
-        onInvitePersonalProxy: () {
-          Navigator.of(sheetContext).pop();
-          startPersonalProxyInvite(context, ref);
-        },
+      fitContent: true,
+      builder: (sheetContext, scrollController) => Flexible(
+        child: PrivateLocationsMenu(
+          onInvitePersonalProxy: () {
+            Navigator.of(sheetContext).pop();
+            startPersonalProxyInvite(context, ref);
+          },
+        ),
       ),
     );
   }

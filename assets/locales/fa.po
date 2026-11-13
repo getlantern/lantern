@@ -591,7 +591,7 @@ msgid "smc_status_off"
 msgstr "غیرفعال"
 
 msgid "smc_status_configuring"
-msgstr "در حال پیکربندی شبکه"
+msgstr "در حال پیکربندی"
 
 msgid "smc_status_error_with_message"
 msgstr "اشتراک‌گذاری ممکن نبود: %s"
@@ -1988,7 +1988,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "درباره این دعوت قبلاً تصمیم گرفته شده است."
 
 msgid "helper_error_bad_name"
-msgstr "نامی وارد کنید که دوستتان آن را بشناسد، حداکثر ۶۰ نویسه."
+msgstr "نامی وارد کنید که دوستتان آن را بشناسد."
 
 msgid "helper_error_keystore"
 msgstr "این دستگاه نمی‌تواند نام‌ها را به‌صورت امن ذخیره کند، بنابراین کمک به دوستان غیرفعال است. در Linux، یک کی‌رینگ مانند GNOME Keyring را اجرا کنید."
@@ -1998,9 +1998,6 @@ msgstr "فضای ذخیره‌سازی امن این دستگاه بازنشان
 
 msgid "helper_error_copy"
 msgstr "کپی پیوند انجام نشد. به‌جای آن از «اشتراک‌گذاری پیوند» استفاده کنید."
-
-msgid "helpers_your_name_label"
-msgstr "نام شما، همان‌طور که دوستتان شما را می‌شناسد"
 
 msgid "helpers_your_name_hint"
 msgstr "برای مثال، سارا"
@@ -2068,14 +2065,8 @@ msgstr "کپی پیوند"
 msgid "invite_link_copied"
 msgstr "پیوند کپی شد"
 
-msgid "invite_qr_hint"
-msgstr "اگر کنار شما هستند، می‌توانند به‌جای استفاده از پیوند، این را در Lantern اسکن کنند."
-
 msgid "invite_waiting"
-msgstr "در انتظار باز شدن پیوند"
-
-msgid "invite_trust_warning"
-msgstr "فردی که دعوت می‌کنید متوجه می‌شود که شما از Lantern استفاده می‌کنید و می‌تواند ببیند چه زمانی از طریق او متصل هستید. ترافیک شما از اتصال اینترنت او عبور می‌کند، بنابراین ممکن است بفهمد از چه سایت‌هایی بازدید می‌کنید، اما نه اینکه در سایت‌های امن (https) چه می‌کنید. فقط کسی را دعوت کنید که به او اعتماد دارید."
+msgstr "در انتظار باز کردن پیوند توسط دوستتان"
 
 msgid "invite_expires"
 msgstr "تا %s ساعت دیگر منقضی می‌شود"
@@ -2117,10 +2108,10 @@ msgid "help_friend_done"
 msgstr "انجام شد"
 
 msgid "help_friend_already_claimed_title"
-msgstr "این دعوت قبلاً استفاده شده است"
+msgstr "این دعوت‌نامه قبلاً استفاده شده است"
 
 msgid "help_friend_already_claimed_body"
-msgstr "شخص دیگری زودتر این پیوند را باز کرده یا مهلت آن تمام شده است. از دوستتان یک دعوت‌نامه جدید بخواهید و به او بگویید ممکن است شخص دیگری این یکی را دیده باشد."
+msgstr "شخص دیگری زودتر این پیوند را باز کرده یا اعتبار آن تمام شده است. از دوستتان دعوت‌نامه جدیدی بخواهید و به او بگویید ممکن است شخص دیگری این یکی را دیده باشد."
 
 msgid "help_friend_already_helping"
 msgstr "شما از قبل به این دوست کمک می‌کنید."
@@ -2161,9 +2152,6 @@ msgstr "%s دقیقه"
 msgid "invite_share_title"
 msgstr "این پیوند را با فردی مورد اعتماد در خارج از کشور به اشتراک بگذارید"
 
-msgid "invite_share_steps"
-msgstr "او پیوند را باز می‌کند، در صورت نیاز Lantern را نصب می‌کند و نامش را وارد می‌کند. شما با بررسی یک کد ۴ رقمی او را تأیید می‌کنید و سپس می‌توانید از طریق او متصل شوید."
-
 msgid "invite_link_label"
 msgstr "پیوند دعوت شما"
 
@@ -2191,9 +2179,6 @@ msgstr "در حال حاضر دسترسی به %s ممکن نیست. به مکا
 msgid "become_means_title"
 msgstr "پروکسی شخصی بودن یعنی چه"
 
-msgid "become_means_traffic"
-msgstr "دوستی از شما کمک خواسته است. تا وقتی Action Mode فعال است، او می‌تواند از طریق اتصال شما به اینترنت آزاد دسترسی داشته باشد. Lantern سایت‌هایی را که او باز می‌کند به شما نشان نمی‌دهد."
-
 msgid "become_means_seen"
 msgstr "آن‌ها می‌توانند ببینند چه زمانی متصل هستید. فقط دعوت افرادی را که می‌شناسید بپذیرید."
 
@@ -2202,9 +2187,6 @@ msgstr "هر زمان بخواهید می‌توانید اتصال را حذف 
 
 msgid "help_friend_form_title"
 msgstr "لینک فردی را که به او کمک می‌کنید جای‌گذاری کنید"
-
-msgid "help_friend_name_label"
-msgstr "نام شما، همان‌طور که شما را می‌شناسند"
 
 msgid "help_friend_become"
 msgstr "پروکسی شخصی دوستتان شوید"
@@ -2219,7 +2201,7 @@ msgid "help_friend_waiting_approval"
 msgstr "در انتظار تأیید"
 
 msgid "help_friend_code_note"
-msgstr "کد را در تماس یا در برنامه‌ای غیر از برنامه‌ای که لینک دعوت در آن رسید بگویید. کسی که لینک را دیده نباید کد را هم ببیند."
+msgstr "کد را در یک تماس یا در برنامه‌ای غیر از برنامه‌ای که پیوند دعوت در آن رسیده بگویید. هیچ‌کس جز دوستتان نباید هر دو را داشته باشد."
 
 msgid "become_personal_proxy"
 msgstr "پروکسی شخصی شوید"
@@ -2256,12 +2238,6 @@ msgstr "متصل نیست"
 
 msgid "helping_paste_another"
 msgstr "جای‌گذاری پیوند دعوت دیگر"
-
-msgid "helping_data_relayed"
-msgstr "داده‌های بازپخش‌شده امروز"
-
-msgid "helping_active_today"
-msgstr "فعال: %s"
 
 msgid "help_friend_paste_button"
 msgstr "جای‌گذاری لینک"
@@ -2332,9 +2308,6 @@ msgstr "هر زمان از زبانه Action Mode می‌توانید Action Mod
 msgid "approved_title"
 msgstr "%s اکنون پراکسی شخصی شماست"
 
-msgid "approved_body"
-msgstr "وقتی %s آنلاین باشد، می‌توانید آن را از بخش مکان‌های خصوصی در انتخاب سرور انتخاب کنید."
-
 msgid "approved_connect_now"
 msgstr "اتصال اکنون"
 
@@ -2346,12 +2319,6 @@ msgstr "اکنون پروکسی شخصی %s هستید"
 
 msgid "help_friend_success_body"
 msgstr "%s شما را تأیید کرد. وقتی Action Mode روشن باشد، او می‌تواند از طریق اتصال شما به اینترنت آزاد دسترسی داشته باشد."
-
-msgid "help_friend_keep_on"
-msgstr "روشن نگه داشتن Action Mode"
-
-msgid "help_friend_keep_on_body"
-msgstr "اکنون و هر زمان که Lantern باز باشد روشن می‌شود تا %s متصل بماند."
 
 msgid "help_friend_no_link_yet"
 msgstr "هنوز لینکی ندارید؟"
@@ -2400,3 +2367,60 @@ msgstr "باز کردن در دستگاه دیگر"
 
 msgid "open_on_another_device_hint"
 msgstr "این تلویزیون مرورگر وب ندارد. کد را اسکن کنید یا نشانی را در تلفن یا رایانه خود وارد کنید."
+
+msgid "helpers_name_label"
+msgstr "نام شما"
+
+msgid "helpers_your_name_helper"
+msgstr "همان‌طور که دوستتان شما را می‌شناسد"
+
+msgid "manage_empty_my_server_title"
+msgstr "هنوز سرور خصوصی ندارید"
+
+msgid "manage_empty_my_server_body"
+msgstr "برای کنترل کامل بر اتصال خود، سرور شخصی‌تان را راه‌اندازی کنید."
+
+msgid "manage_empty_joined_title"
+msgstr "هنوز به هیچ سروری نپیوسته‌اید"
+
+msgid "manage_empty_joined_body"
+msgstr "با کلید دسترسی‌ای که فرد مورد اعتمادتان به شما می‌دهد، به سروری که او اداره می‌کند بپیوندید."
+
+msgid "manage_empty_proxies_title"
+msgstr "هنوز پروکسی شخصی ندارید"
+
+msgid "manage_empty_proxies_body"
+msgstr "از فردی مورد اعتماد خارج از کشورتان دعوت کنید تا مستقیماً از طریق او متصل شوید."
+
+msgid "invite_share_steps_short"
+msgstr "او پیوند را باز می‌کند و نامش را وارد می‌کند. شما با یک کد ۴ رقمی او را تأیید می‌کنید."
+
+msgid "invite_qr_hint_camera"
+msgstr "اگر دوستتان کنار شماست، می‌تواند به‌جای استفاده از پیوند، این کد را اسکن کند."
+
+msgid "invite_trust_warning_short"
+msgstr "فقط کسی را دعوت کنید که به او اعتماد دارید."
+
+msgid "invite_trust_learn_more"
+msgstr "بیشتر بدانید."
+
+msgid "invite_trust_title"
+msgstr "اعتماد به پراکسی شخصی"
+
+msgid "invite_trust_message_one"
+msgstr "ترافیک اینترنت شما از اتصال فردی که دعوت می‌کنید عبور می‌کند. او می‌تواند ببیند چه زمانی متصل هستید و ممکن است ببیند از چه سایت‌هایی بازدید می‌کنید. چون بیشتر سایت‌ها از HTTPS رمزگذاری‌شده استفاده می‌کنند، او نمی‌تواند صفحه‌های مشخصی را که باز می‌کنید یا کاری را که در آن‌ها انجام می‌دهید ببیند."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern پراکسی‌های شخصی را مدیریت یا نظارت نمی‌کند. فقط کسی را دعوت کنید که می‌شناسید و به او اعتماد دارید."
+
+msgid "invite_trust_message_three"
+msgstr "هر زمان بخواهید می‌توانید او را از مدیریت مکان‌های خصوصی حذف کنید."
+
+msgid "approved_body_locations"
+msgstr "وقتی %s آنلاین باشد، می‌توانید آن را در «مکان‌های خصوصی» در منوی مکان‌های سرور انتخاب کنید. مکان هوشمند ممکن است به‌طور خودکار از آن استفاده کند."
+
+msgid "become_means_traffic_seen"
+msgstr "یکی از دوستانتان از شما کمک خواسته است. وقتی Action Mode روشن است، او از طریق اتصال شما به اینترنت آزاد دسترسی پیدا می‌کند. شما می‌توانید ببینید از چه سایت‌هایی بازدید می‌کند، اما نه اینکه در آن‌ها چه می‌کند."
+
+msgid "help_friend_your_name_label"
+msgstr "نام شما"

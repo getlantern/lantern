@@ -7,7 +7,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/trust_dialog.dart';
 import 'package:lantern/features/helpers/approve_helper_dialog.dart';
 import 'package:lantern/features/helpers/helper_errors.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
@@ -95,6 +97,7 @@ class InviteShare extends HookConsumerWidget {
     final link = invite != null && !invite.expired ? invite.link : '';
     final linkCtl = useTextEditingController(text: link);
     final nameError = useState(false);
+    final nameFocus = useFocusNode();
     // The user typed in the name field, so a name loaded later is not put
     // over theirs.
     final nameTyped = useRef(false);
@@ -261,18 +264,66 @@ class InviteShare extends HookConsumerWidget {
       await showInviteQrDialog(context, inv.link);
     }
 
+    // A name typed is saved when the field is left, as on Return; the link
+    // stays the same. Without an invite yet, nothing is saved: the name goes
+    // out with the link, and backing out of this screen creates no invite.
+    useEffect(() {
+      void onFocus() {
+        if (nameFocus.hasFocus) return;
+        final name = nameCtl.text.trim();
+        if (name.isEmpty) return;
+        final inv = current();
+        if (inv == null) return;
+        final applied = inv.inviterName.isNotEmpty
+            ? inv.inviterName
+            : ref.read(helpersProvider).view.myName;
+        if (name != applied) unawaited(ready());
+      }
+
+      nameFocus.addListener(onFocus);
+      return () => nameFocus.removeListener(onFocus);
+    }, [nameFocus]);
+
     final helperStyle = textTheme.labelMedium!.copyWith(
       color: context.textTertiary,
     );
-    final pending = invite != null && !invite.claimed;
     // A claimed invite has no link left to copy or show.
     final claimed = invite != null && invite.claimed;
 
     return BaseScreen(
       title: 'invite_personal_proxy'.i18n,
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: defaultSize),
+        padding: EdgeInsets.zero,
         children: [
+          // One line; the rest is behind Learn more.
+          InfoRow(
+            key: const Key('invite.trust_warning'),
+            backgroundColor: context.bgPromo,
+            imagePath: AppImagePaths.warning,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            minTileHeight: 40,
+            text: '',
+            child: AppRichText(
+              key: const Key('invite.learn_more'),
+              texts: '${'invite_trust_warning_short'.i18n} ',
+              boldTexts: 'invite_trust_learn_more'.i18n,
+              boldUnderline: true,
+              boldColor: context.textLink,
+              boldOnPressed: () => unawaited(
+                showTrustDialog(
+                  context,
+                  key: const Key('invite.trust_dialog'),
+                  title: 'invite_trust_title'.i18n,
+                  paragraphs: [
+                    'invite_trust_message_one'.i18n,
+                    'invite_trust_message_two'.i18n,
+                    'invite_trust_message_three'.i18n,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: defaultSize),
           AppCard(
             key: const Key('invite.card'),
             padding: const EdgeInsets.all(defaultSize),
@@ -280,40 +331,35 @@ class InviteShare extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text('invite_share_title'.i18n, style: textTheme.titleMedium),
-                const SizedBox(height: 8),
+                const SizedBox(height: defaultSize),
                 Text(
-                  'invite_share_steps'.i18n,
+                  'invite_share_steps_short'.i18n,
                   style: textTheme.bodyMedium!.copyWith(
                     color: context.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: defaultSize),
                 AppTextField(
                   fieldKey: const Key('invite.name'),
                   controller: nameCtl,
-                  label: 'helpers_your_name_label'.i18n,
+                  focusNode: nameFocus,
+                  label: 'helpers_name_label'.i18n,
                   hintText: 'helpers_your_name_hint'.i18n,
                   prefixIcon: Icons.person_outline,
                   maxLength: 60,
                   textCapitalization: TextCapitalization.words,
+                  helperText: 'helpers_your_name_helper'.i18n,
+                  errorKey: const Key('invite.name.error'),
+                  errorText: nameError.value
+                      ? helperErrorText('bad_name')
+                      : null,
                   onChanged: (_) {
                     nameTyped.value = true;
                     nameError.value = false;
                   },
                   onSubmitted: (_) => unawaited(ready()),
                 ),
-                if (nameError.value)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Text(
-                      helperErrorText('bad_name'),
-                      key: const Key('invite.name.error'),
-                      style: textTheme.bodySmall!.copyWith(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 4),
+                const SizedBox(height: defaultSize),
                 // Read-only: a tap copies it, as does the copy icon. No
                 // selection menu, whose Copy would skip copySensitiveText.
                 AppTextField(
@@ -322,11 +368,35 @@ class InviteShare extends HookConsumerWidget {
                   label: 'invite_link_label'.i18n,
                   hintText: 'invite_link_hint'.i18n,
                   prefixIcon: Icons.link,
+                  readOnly: true,
                   enableSuggestions: false,
                   enableIMEPersonalizedLearning: false,
                   autocorrect: false,
                   enableInteractiveSelection: false,
                   onTap: claimed ? null : copy,
+                  helper: claimed
+                      ? null
+                      : Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text('${'invite_link_expiry'.i18n} · '),
+                            Semantics(
+                              button: true,
+                              child: InkWell(
+                                key: const Key('invite.show_qr'),
+                                onTap: showQr,
+                                child: Text(
+                                  'invite_show_qr'.i18n,
+                                  style: helperStyle.copyWith(
+                                    color: context.textLink,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: context.textLink,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                   suffixIcon: claimed
                       ? null
                       : IconButton(
@@ -344,43 +414,13 @@ class InviteShare extends HookConsumerWidget {
                             secondChild: Icon(
                               Icons.check_circle,
                               key: const Key('invite.copied'),
-                              color: context.statusSuccessBg,
+                              color: context.statusSuccessText,
                             ),
                           ),
                           onPressed: copy,
                         ),
                 ),
-                if (!claimed) ...[
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          '${'invite_link_expiry'.i18n} · ',
-                          style: helperStyle,
-                        ),
-                        Semantics(
-                          button: true,
-                          child: InkWell(
-                            key: const Key('invite.show_qr'),
-                            onTap: showQr,
-                            child: Text(
-                              'invite_show_qr'.i18n,
-                              style: helperStyle.copyWith(
-                                color: context.textLink,
-                                decoration: TextDecoration.underline,
-                                decorationColor: context.textLink,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 12),
+                const SizedBox(height: defaultSize),
                 // A claimed invite has no link left to share. If the
                 // approval dialog was dismissed undecided, this reopens it.
                 if (claimed)
@@ -411,36 +451,7 @@ class InviteShare extends HookConsumerWidget {
                       ),
                     ),
                   ),
-                if (pending) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    key: const Key('invite.waiting'),
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.sync, size: 20, color: context.textSecondary),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          'invite_waiting'.i18n,
-                          style: textTheme.bodyMedium!.copyWith(
-                            color: context.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ],
-            ),
-          ),
-          const SizedBox(height: defaultSize),
-          InfoRow(
-            key: const Key('invite.trust_warning'),
-            backgroundColor: context.bgPromo,
-            imagePath: AppImagePaths.warning,
-            text: 'invite_trust_warning'.i18n,
-            textStyle: textTheme.bodySmall!.copyWith(
-              color: context.textSecondary,
             ),
           ),
         ],
@@ -476,7 +487,7 @@ Future<void> showInviteQrDialog(BuildContext context, String link) =>
           ),
           const SizedBox(height: 16),
           Text(
-            'invite_qr_hint'.i18n,
+            'invite_qr_hint_camera'.i18n,
             textAlign: TextAlign.center,
             style: Theme.of(
               context,

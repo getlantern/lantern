@@ -577,7 +577,7 @@ msgid "smc_status_off"
 msgstr "Ýapyk"
 
 msgid "smc_status_configuring"
-msgstr "Tor sazlanýar"
+msgstr "Sazlanýar"
 
 msgid "smc_status_error_with_message"
 msgstr "Paýlaşyp bolmady: %s"
@@ -1976,7 +1976,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "Bu çakylyk boýunça eýýäm karar berildi."
 
 msgid "helper_error_bad_name"
-msgstr "Dostuňyzyň tanajak adyny giriziň, iň köp 60 nyşan."
+msgstr "Dostuňyzyň tanajak adyny giriziň."
 
 msgid "helper_error_keystore"
 msgstr "Bu enjam atlary howpsuz saklap bilmeýär, şonuň üçin dostlara kömek öçürildi. Linux-da GNOME Keyring ýaly açar ammaryny işlediň."
@@ -1986,9 +1986,6 @@ msgstr "Bu enjamyň howpsuz ammary täzeden düzüldi, şonuň üçin kömekçil
 
 msgid "helper_error_copy"
 msgstr "Salgyny göçürip bolmady. Onuň ýerine Salgyny paýlaş ulanyň."
-
-msgid "helpers_your_name_label"
-msgstr "Dostuňyzyň sizi tanaýan adyňyz"
 
 msgid "helpers_your_name_hint"
 msgstr "Mysal üçin, Sara"
@@ -2056,14 +2053,8 @@ msgstr "Baglanyşygy göçür"
 msgid "invite_link_copied"
 msgstr "Baglanyşyk göçürildi"
 
-msgid "invite_qr_hint"
-msgstr "Eger olar siziň bilen bolsa, baglanyşygyň ýerine muny Lantern-de skanirläp bilerler."
-
 msgid "invite_waiting"
-msgstr "Olaryň baglanyşygy açmagyna garaşylýar"
-
-msgid "invite_trust_warning"
-msgstr "Çagyrýan adamyňyz siziň Lantern ulanýandygyňyzy biler we siziň haçan onuň üsti bilen birikýändigiňizi görüp biler. Siziň trafigiňiz onuň internet baglanyşygyndan geçýär, şonuň üçin ol haýsy saýtlara girýändigiňizi bilip biler, ýöne howpsuz (https) saýtlarda näme edýändigiňizi bilip bilmez. Diňe ynanýan adamyňyzy çagyryň."
+msgstr "Dostuňyzyň salgylanmany açmagyna garaşylýar"
 
 msgid "invite_expires"
 msgstr "Möhleti gutarýar, sagat: %s"
@@ -2108,7 +2099,7 @@ msgid "help_friend_already_claimed_title"
 msgstr "Bu çakylyk eýýäm ulanyldy"
 
 msgid "help_friend_already_claimed_body"
-msgstr "Bu baglanyşygy öň başga biri açdy ýa-da onuň möhleti gutardy. Dostuňyzdan täze çakylyk soraň we bu çakylygy başga biriniň gören bolmagynyň mümkindigini oňa aýdyň."
+msgstr "Bu linki başga biri öň açdy ýa-da onuň möhleti gutardy. Dostuňyzdan täze çakylyk soraň we bu çakylygy başga biriniň gören bolmagynyň mümkindigini oňa aýdyň."
 
 msgid "help_friend_already_helping"
 msgstr "Siz eýýäm bu dostuňyza kömek edýärsiňiz."
@@ -2167,9 +2158,6 @@ msgstr "Häzir %s bilen baglanyşyp bolmaýar. Şahsy proksileriňiz saýlandy."
 msgid "become_means_title"
 msgstr "Şahsy proksi bolmak näme diýmek"
 
-msgid "become_means_traffic"
-msgstr "Bir dostuňyz sizden kömek sorady. Action Mode işleýän wagty, ol siziň birikmäňiz arkaly açyk internete ýetip biler. Lantern onuň haýsy saýtlara girýändigini size görkezmeýär."
-
 msgid "become_means_seen"
 msgstr "Olar siziň haçan birikendigiňizi görüp bilýär. Diňe tanaýan adamlaryňyzyň çakylyklaryny kabul ediň."
 
@@ -2192,7 +2180,7 @@ msgid "help_friend_waiting_approval"
 msgstr "Tassyklama garaşylýar"
 
 msgid "help_friend_code_note"
-msgstr "Kody jaň arkaly ýa-da çakylyk salgysy gelen programmadan başga programmada aýdyň. Salgyny gören adam kody hem görmeli däl."
+msgstr "Kody jaňda ýa-da çakylyk linki gelen programmadan başga programmada aýdyň. Dostuňyzdan başga hiç kimde ikisi hem bolmaly däl."
 
 msgid "become_personal_proxy"
 msgstr "Şahsy proksi bol"
@@ -2227,23 +2215,11 @@ msgstr "Birikdirildi"
 msgid "helping_not_connected"
 msgstr "Birikdirilmedik"
 
-msgid "helping_data_relayed"
-msgstr "Şu gün geçirilen maglumat"
-
-msgid "helping_active_today"
-msgstr "Işjeň: %s"
-
-msgid "invite_share_steps"
-msgstr "Ol baglanyşygy açýar, gerek bolsa Lantern-i gurnaýar we adyny girizýär. Siz 4 sanly kody barlap ony tassyklarsyňyz, soňra onuň üsti bilen birigip bilersiňiz."
-
 msgid "invite_link_label"
 msgstr "Çakylyk baglanyşygyňyz"
 
 msgid "personal_proxy_fallback_auto"
 msgstr "Häzir %s bilen baglanyşyp bolmaýar. Akylly ýerleşiş saýlandy."
-
-msgid "help_friend_name_label"
-msgstr "Adyňyz, olaryň sizi tanaýşy ýaly"
 
 msgid "helping_paste_another"
 msgstr "Başga çakylyk baglanyşygyny goýuň"
@@ -2320,9 +2296,6 @@ msgstr "Action Mode bölüminden Action Mode-y islän wagtyňyz açyň ýa-da ö
 msgid "approved_title"
 msgstr "Şahsy proksiňiz: %s"
 
-msgid "approved_body"
-msgstr "%s onlaýn bolanda, ony Serwer saýlamakda Hususy ýerler bölüminden saýlap bilersiňiz."
-
 msgid "approved_connect_now"
 msgstr "Häzir birikdir"
 
@@ -2334,12 +2307,6 @@ msgstr "Siz indi şu ulanyjynyň şahsy proksisi: %s"
 
 msgid "help_friend_success_body"
 msgstr "%s sizi tassyklady. Action Mode açyk wagty ol siziň baglanyşygyňyz arkaly açyk internete girip biler."
-
-msgid "help_friend_keep_on"
-msgstr "Action Mode açyk saklansyn"
-
-msgid "help_friend_keep_on_body"
-msgstr "Häzir we Lantern açyk wagty hemişe açylýar, şeýdip %s baglanyşykda galýar."
 
 msgid "help_friend_no_link_yet"
 msgstr "Heniz salgy ýokmy?"
@@ -2388,3 +2355,60 @@ msgstr "Başga enjamda aç"
 
 msgid "open_on_another_device_hint"
 msgstr "Bu telewizorda web brauzer ýok. Telefonyňyzda ýa-da kompýuteriňizde kody skanirläň ýa-da salgyny ýazyň."
+
+msgid "helpers_name_label"
+msgstr "Adyňyz"
+
+msgid "helpers_your_name_helper"
+msgstr "Dostuňyzyň sizi tanaýşy ýaly"
+
+msgid "manage_empty_my_server_title"
+msgstr "Entek şahsy serwer ýok"
+
+msgid "manage_empty_my_server_body"
+msgstr "Baglanyşygyňyzy doly dolandyrmak üçin öz serweriňizi guruň."
+
+msgid "manage_empty_joined_title"
+msgstr "Entek goşulan serwer ýok"
+
+msgid "manage_empty_joined_body"
+msgstr "Ynanýan adamyňyzyň işledýän serwerine onuň berýän giriş açary bilen goşulyň."
+
+msgid "manage_empty_proxies_title"
+msgstr "Entek şahsy proksi ýok"
+
+msgid "manage_empty_proxies_body"
+msgstr "Göni şonuň üsti bilen birikmek üçin ýurduňyzdan daşarda ýaşaýan ynanýan adamyňyzy çagyryň."
+
+msgid "invite_share_steps_short"
+msgstr "Ol salgylanmany açyp, adyny girizýär. Siz ony 4 sanly kod bilen tassyklaýarsyňyz."
+
+msgid "invite_qr_hint_camera"
+msgstr "Dostuňyz ýanyňyzda bolsa, salgylanmanyň ýerine bu kody skanerläp biler."
+
+msgid "invite_trust_warning_short"
+msgstr "Diňe ynanýan adamyňyzy çagyryň."
+
+msgid "invite_trust_learn_more"
+msgstr "Giňişleýin."
+
+msgid "invite_trust_title"
+msgstr "Şahsy proksiňize ynanyň"
+
+msgid "invite_trust_message_one"
+msgstr "Internet trafigiňiz çagyran adamyňyzyň baglanyşygy arkaly geçer. Ol siziň haçan birikendigiňizi görüp biler we haýsy saýtlara girýändigiňizi hem görüp biler. Saýtlaryň köpüsi şifrlenen HTTPS ulanýandygy sebäpli, ol siziň açýan anyk sahypalaryňyzy ýa-da olarda näme edýändigiňizi görüp bilmeýär."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern şahsy proksileri dolandyrmaýar we gözegçilik etmeýär. Diňe tanaýan we ynanýan adamyňyzy çagyryň."
+
+msgid "invite_trust_message_three"
+msgstr "Ony islendik wagt Hususy ýerleri dolandyr bölüminden aýyryp bilersiňiz."
+
+msgid "approved_body_locations"
+msgstr "%s onlaýn bolanda, ony Serwer ýerleri menýusyndaky Hususy ýerler bölüminden saýlap bilersiňiz. Akylly ýer ony awtomatik ulanyp biler."
+
+msgid "become_means_traffic_seen"
+msgstr "Bir dostuňyz sizden kömek sorady. Action Mode açyk wagty ol siziň baglanyşygyňyz arkaly açyk internete çykýar. Siz onuň haýsy saýtlara girýändigini görüp bilersiňiz, ýöne ol ýerde näme edýändigini görüp bilmersiňiz."
+
+msgid "help_friend_your_name_label"
+msgstr "Adyňyz"

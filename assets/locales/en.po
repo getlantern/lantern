@@ -556,7 +556,7 @@ msgid "smc_status_off"
 msgstr "Disabled"
 
 msgid "smc_status_configuring"
-msgstr "Configuring network"
+msgstr "Configuring"
 
 msgid "smc_status_error_with_message"
 msgstr "Couldn't share: %s"
@@ -2038,7 +2038,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "This invite has already been decided."
 
 msgid "helper_error_bad_name"
-msgstr "Enter a name your friend will recognise, up to 60 characters."
+msgstr "Enter a name your friend will recognize."
 
 msgid "helper_error_keystore"
 msgstr "This device can't store names securely, so helping friends is off. On Linux, start a keyring such as GNOME Keyring."
@@ -2051,8 +2051,12 @@ msgstr "Couldn't copy the link. Use Share instead."
 
 # Helper invites: the inviter's side. A "helper" is a friend abroad whose
 # internet connection this user borrows through Lantern.
-msgid "helpers_your_name_label"
-msgstr "Your name, as your friend knows you"
+msgid "helpers_name_label"
+msgstr "Your name"
+
+# Under the name field on the invite screen.
+msgid "helpers_your_name_helper"
+msgstr "As your friend knows you"
 
 msgid "helpers_your_name_hint"
 msgstr "For example, Sara"
@@ -2083,6 +2087,26 @@ msgstr "Every Personal Proxy stops helping you, and their names are erased from 
 # The screen and menu entry for the user's private servers and personal proxies.
 msgid "manage_private_locations"
 msgstr "Manage Private Locations"
+
+# Empty states of Manage Private Locations' three tabs. The buttons reuse
+# setup_a_private_server, join_a_private_server and invite_personal_proxy.
+msgid "manage_empty_my_server_title"
+msgstr "No Private Server yet"
+
+msgid "manage_empty_my_server_body"
+msgstr "Set up your own server for full control over your connection."
+
+msgid "manage_empty_joined_title"
+msgstr "No joined servers yet"
+
+msgid "manage_empty_joined_body"
+msgstr "Join a server someone you trust runs, using the access key they give you."
+
+msgid "manage_empty_proxies_title"
+msgstr "No Personal Proxies yet"
+
+msgid "manage_empty_proxies_body"
+msgstr "Invite someone you trust outside your country to connect directly through them."
 
 # Starts an invite to a friend abroad who will become the user's personal proxy.
 msgid "invite_personal_proxy"
@@ -2121,8 +2145,8 @@ msgstr "Name on this device"
 msgid "invite_share_title"
 msgstr "Share this link with someone you trust outside your country"
 
-msgid "invite_share_steps"
-msgstr "They open the link, install Lantern if needed, and enter their name. You will approve them by checking a 4-digit code, then you can connect through them."
+msgid "invite_share_steps_short"
+msgstr "They open the link and enter their name. You approve them with a 4-digit code."
 
 # Label of the read-only field that shows the invite link.
 msgid "invite_link_label"
@@ -2159,17 +2183,33 @@ msgid "invite_qr_title"
 msgstr "Scan with Camera"
 
 # Under the QR code in that dialog.
-msgid "invite_qr_hint"
-msgstr "If they are with you, they can scan this in Lantern instead of using the link."
+msgid "invite_qr_hint_camera"
+msgstr "If your friend is with you, they can scan this code instead of using the link."
 
 # Status line under the invite screen's Share button, and on a pending invite
 # in the Manage tab.
 msgid "invite_waiting"
-msgstr "Waiting for them to open the link"
+msgstr "Waiting for your friend to open the link"
 
-# Warning below the invite link and Share button.
-msgid "invite_trust_warning"
-msgstr "The person you invite will know you use Lantern and can see when you're connected through them. Your traffic passes through their internet connection, so they could learn which sites you visit, though not what you do on secure (https) sites. Only invite someone you trust."
+# One-line note above the invite card; "Learn more." follows it.
+msgid "invite_trust_warning_short"
+msgstr "Only invite someone you trust."
+
+msgid "invite_trust_learn_more"
+msgstr "Learn more."
+
+# The dialog behind "Learn more." on Invite a Personal Proxy.
+msgid "invite_trust_title"
+msgstr "Trust your Personal Proxy"
+
+msgid "invite_trust_message_one"
+msgstr "Your internet traffic will pass through the connection of the person you invite. They can see when you're connected and could see which sites you visit. Because most sites use HTTPS, which is encrypted, they cannot see the specific pages you open or what you do on them."
+
+msgid "invite_trust_message_two"
+msgstr "Lantern does not manage or monitor Personal Proxies. Only invite someone you know and trust."
+
+msgid "invite_trust_message_three"
+msgstr "You can remove them any time from Manage Private Locations."
 
 # %s is a number of hours.
 msgid "invite_expires"
@@ -2198,9 +2238,9 @@ msgid "approved_title"
 msgstr "%s is now your Personal Proxy"
 
 # Under approved_title. %s is the name the friend typed. "Private Locations"
-# must match private_locations and "Server Selection" server_selection.
-msgid "approved_body"
-msgstr "When %s is online, you can select them under Private Locations in Server Selection."
+# must match private_locations.
+msgid "approved_body_locations"
+msgstr "When %s is online, you can select them under Private Locations in Server Locations menu. Smart Location may use them automatically."
 
 # Button under approved_body: selects the new Personal Proxy and turns the
 # VPN on.
@@ -2242,8 +2282,8 @@ msgstr "Can't reach %s right now. Switched to Smart Location."
 msgid "become_means_title"
 msgstr "What being a Personal Proxy means"
 
-msgid "become_means_traffic"
-msgstr "A friend asked for your help. While Action Mode runs, they can reach the open internet through your connection. Lantern does not show you what sites they access."
+msgid "become_means_traffic_seen"
+msgstr "A friend asked for your help. When Action Mode is on, they reach the open internet through your connection. You could see which sites they visit, but not what they do on them."
 
 msgid "become_means_seen"
 msgstr "They can see when you're connected. Only accept invites from people you know."
@@ -2255,8 +2295,8 @@ msgstr "Remove the connection any time."
 msgid "help_friend_form_title"
 msgstr "Paste the link from the person you're helping"
 
-msgid "help_friend_name_label"
-msgstr "Your name, as they know you"
+msgid "help_friend_your_name_label"
+msgstr "Your name"
 
 # Under the name field. "Server list" is the friend's Server Selection screen,
 # where this name appears.
@@ -2275,8 +2315,8 @@ msgstr "They will check it matches the code on their phone, then approve you."
 msgid "help_friend_waiting_approval"
 msgstr "Waiting for approval"
 
-# Title of the success screen once the friend approved the volunteer. %s is
-# the friend's name.
+# Title of the success dialog once the friend approved the volunteer. %s is
+# the friend's name. Under it, the Auto-enable Action Mode row.
 msgid "help_friend_success_title"
 msgstr "You're now %s's Personal Proxy"
 
@@ -2284,18 +2324,9 @@ msgstr "You're now %s's Personal Proxy"
 msgid "help_friend_success_body"
 msgstr "%s approved you. When Action Mode is on, they can reach the open internet through your connection."
 
-# Checkbox on the success screen, checked by default. Checked, Done turns
-# Action Mode on now and sets Auto-enable Action Mode.
-msgid "help_friend_keep_on"
-msgstr "Keep Action Mode on"
-
-# Under help_friend_keep_on. %s is the friend's name.
-msgid "help_friend_keep_on_body"
-msgstr "Turns on now and whenever Lantern is open, so %s stays connected."
-
 # Note under the code a volunteer reads to the friend who invited them.
 msgid "help_friend_code_note"
-msgstr "Say the code over a call or in a different app than the one the invite link arrived in. Anyone who saw the link should not also see the code."
+msgstr "Say the code over a call or in a different app than the one the invite link arrived in. No one but your friend should have both."
 
 msgid "help_friend_link_label"
 msgstr "Invite link"
@@ -2317,11 +2348,12 @@ msgstr "This request is no longer pending. Ask your friend for a new invite."
 msgid "help_friend_done"
 msgstr "Done"
 
+# Error dialog for a link someone else opened first, or that expired.
 msgid "help_friend_already_claimed_title"
-msgstr "This invite was already claimed"
+msgstr "This Invite Was Already Used"
 
 msgid "help_friend_already_claimed_body"
-msgstr "Someone else opened this link first, or it expired. Ask your friend for a new invite, and tell them this one may have been seen by someone else."
+msgstr "Someone else opened this link first, or it expired. Ask your friend for a new invite and tell them this one may have been seen by someone else."
 
 msgid "help_friend_already_helping"
 msgstr "You're already helping this friend."
@@ -2394,14 +2426,6 @@ msgstr "Not connected"
 
 msgid "helping_paste_another"
 msgstr "Paste another invite link"
-
-# Card with today's totals for the data this device relayed for others.
-msgid "helping_data_relayed"
-msgstr "Data relayed today"
-
-# %s is a duration such as "3h 20m".
-msgid "helping_active_today"
-msgstr "Active %s"
 
 # %s is a date.
 msgid "helping_since"
