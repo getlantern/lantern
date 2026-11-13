@@ -40,23 +40,19 @@ List<AppData> storedSplitTunnelApps(
 ) {
   final result = <AppData>[];
   for (final type in SplitTunnelState.appTypes) {
-    for (final selector in snapshot.appSelectors(type)) {
-      AppData? metadata;
-      for (final app in installed) {
-        final matches = switch (type) {
-          SplitTunnelFilterType.packageName => app.bundleId == selector,
-          SplitTunnelFilterType.processPath =>
-            Platform.isWindows
-                ? windowsAppPathId(app.appPath) == windowsAppPathId(selector)
-                : app.appPath == selector,
-          SplitTunnelFilterType.processPathRegex =>
-            macOSSplitTunnelRule(app) == selector,
-          SplitTunnelFilterType.processName =>
-            app.appPath.split(RegExp(r'[\\/]+')).last == selector,
-          _ => false,
-        };
-        if (matches) metadata = pickPreferredAppEntry(metadata, app);
-      }
+    final selectors = snapshot.appSelectors(type);
+    if (selectors.isEmpty) continue;
+    final bySelector = <String, AppData>{};
+    for (final app in installed) {
+      final selector = _appSelector(type, app);
+      bySelector[selector] = pickPreferredAppEntry(bySelector[selector], app);
+    }
+    for (final selector in selectors) {
+      final key =
+          type == SplitTunnelFilterType.processPath && Platform.isWindows
+          ? windowsAppPathId(selector)
+          : selector;
+      var metadata = bySelector[key];
       final name = selector
           .replaceFirst(RegExp(r'/Contents/\.\*$'), '')
           .split(RegExp(r'[\\/]+'))
@@ -72,6 +68,15 @@ List<AppData> storedSplitTunnelApps(
   return result
     ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 }
+
+// What a saved selector of [type] looks like for [app].
+String _appSelector(SplitTunnelFilterType type, AppData app) => switch (type) {
+  SplitTunnelFilterType.packageName => app.bundleId,
+  SplitTunnelFilterType.processPath =>
+    Platform.isWindows ? windowsAppPathId(app.appPath) : app.appPath,
+  SplitTunnelFilterType.processPathRegex => macOSSplitTunnelRule(app),
+  _ => app.appPath.split(RegExp(r'[\\/]+')).last,
+};
 
 String normalizedAppId(AppData app) {
   final id = stableAppId(app).trim();

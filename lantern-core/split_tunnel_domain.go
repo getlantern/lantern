@@ -16,7 +16,7 @@ var splitTunnelDomainSeparators = strings.NewReplacer("\u3002", ".", "\uff0e", "
 // (*.example.com) comes back as .example.com, which matches subdomains only.
 func (lc *LanternCore) NormalizeSplitTunnelWebsite(input string) (string, error) {
 	if strings.HasPrefix(strings.TrimSpace(splitTunnelDomainSeparators.Replace(input)), ".") {
-		return "", fmt.Errorf("use *. for a website wildcard")
+		return "", fmt.Errorf("invalid split-tunnel website: %q: use *. for a wildcard", input)
 	}
 	return splitTunnelDomain(input)
 }

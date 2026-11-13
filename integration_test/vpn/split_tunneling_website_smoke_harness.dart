@@ -271,7 +271,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     await service.getSplitTunnelState(),
     'Read authoritative split-tunnel state',
   );
-  final original = await readState();
+  final original = await readSplitTunnelBackup(service);
   final wasSmart = requireSplitTunnelResult(
     await service.isSmartRoutingEnabled(),
     'Read routing mode',
@@ -281,7 +281,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
       await service.stopVPN(),
       'Disconnect after split-tunnel smoke',
     );
-    await restoreSplitTunnelSnapshot(service, original);
+    await restoreSplitTunnelBackup(service, original);
     requireSplitTunnelResult(
       await service.setRoutingMode(wasSmart),
       'Restore routing mode',
@@ -462,10 +462,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     await service.setRoutingMode(false),
     'Use full tunnel for routing assertions',
   );
-  await restoreSplitTunnelSnapshot(
-    service,
-    const SplitTunnelState(enabled: false, policy: SplitTunnelPolicy.bypass),
-  );
+  await resetSplitTunnel(service, enabled: false);
   expect(await container.read(splitTunnelProvider.notifier).refresh(), isNull);
   await openSplit();
   await _tapFinder(

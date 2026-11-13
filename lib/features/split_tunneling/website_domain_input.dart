@@ -37,8 +37,12 @@ class WebsiteDomainInput extends HookConsumerWidget {
           final result = await ref
               .read(lanternServiceProvider)
               .normalizeSplitTunnelWebsite(part);
+          // Anything else is the core failing, not the input.
           final canonical = result.fold(
-            (_) => throw const FormatException('Invalid website'),
+            (failure) =>
+                throw failure.error.contains('invalid split-tunnel website')
+                    ? const FormatException('Invalid website')
+                    : failure,
             (value) => value,
           );
           final website = Website(domain: canonical);

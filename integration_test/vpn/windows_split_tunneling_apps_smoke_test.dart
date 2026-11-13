@@ -417,10 +417,7 @@ void main() {
         tester.element(finders.homeScreen),
       );
       final service = sl<LanternService>();
-      final original = requireSplitTunnelResult(
-        await service.getSplitTunnelState(),
-        'Read split-tunnel state',
-      );
+      final original = await readSplitTunnelBackup(service);
       final wasSmart = requireSplitTunnelResult(
         await service.isSmartRoutingEnabled(),
         'Read routing mode',
@@ -432,7 +429,7 @@ void main() {
         );
       });
       addTearDown(() async {
-        await restoreSplitTunnelSnapshot(service, original);
+        await restoreSplitTunnelBackup(service, original);
       });
       for (final path in [launcher, childLong, legacyRule]) {
         addTearDown(() async {
@@ -450,13 +447,7 @@ void main() {
           await service.setRoutingMode(false),
           'Enable full tunnel',
         );
-        await restoreSplitTunnelSnapshot(
-          service,
-          const SplitTunnelState(
-            enabled: true,
-            policy: SplitTunnelPolicy.bypass,
-          ),
-        );
+        await resetSplitTunnel(service, enabled: true);
         expect(
           await container.read(splitTunnelProvider.notifier).refresh(),
           isNull,
@@ -651,7 +642,10 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 300));
         expect(_appRow(childRule), findsNothing);
-        await _tap(tester, find.byKey(const Key('split_tunneling.apps.deselect_all')));
+        await _tap(
+          tester,
+          find.byKey(const Key('split_tunneling.apps.deselect_all')),
+        );
         final clearDeadline = DateTime.now().add(const Duration(seconds: 30));
         while (true) {
           await tester.pump(const Duration(milliseconds: 200));

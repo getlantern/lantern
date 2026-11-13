@@ -181,6 +181,20 @@ void main() {
     );
   });
 
+  testWidgets('a core failure is not reported as an invalid website', (
+    tester,
+  ) async {
+    normalizer.failure = Failure(
+      error: 'not_initialized',
+      localizedErrorMessage: 'Lantern is not ready',
+    );
+    await pump(tester);
+    await add(tester, 'example.com');
+    expect(find.text('Lantern is not ready'), findsOneWidget);
+    expect(find.text('split_tunnel_invalid_website'), findsNothing);
+    expect(websites.added, isEmpty);
+  });
+
   testWidgets('empty comma-separated parts are skipped', (tester) async {
     normalizer.canonicalFor = (input) => input;
     await pump(tester);

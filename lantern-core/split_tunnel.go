@@ -48,16 +48,26 @@ func (s *splitTunnelPaths) stateJSONLocked(ctx context.Context) (string, error) 
 	}
 	state := splitTunnelState{Policy: splitTunnelPolicy(config)}
 	state.Enabled, _ = config[settings.SplitTunnelKey].(bool)
-	if runtime.GOOS == "windows" {
-		state.Filters, err = s.migrateLocked(ctx)
-	} else {
-		state.Filters, err = s.client.SplitTunnelFilters(ctx)
-	}
+	state.Filters, err = s.readLocked(ctx)
 	if err != nil {
 		return "", err
 	}
 	b, err := json.Marshal(state)
 	return string(b), err
+}
+
+// readLocked returns the lists, first retrying a save that failed.
+func (s *splitTunnelPaths) readLocked(ctx context.Context) (vpn.SplitTunnelFilter, error) {
+	if runtime.GOOS == "windows" {
+		return s.migrateLocked(ctx)
+	}
+	if s.pendingSave {
+		// Radiance can change memory before a failed save; an empty removal retries it.
+		if err := s.removeLocked(ctx, vpn.SplitTunnelFilter{}); err != nil {
+			return vpn.SplitTunnelFilter{}, err
+		}
+	}
+	return s.client.SplitTunnelFilters(ctx)
 }
 
 func splitTunnelPolicy(config settings.Settings) vpn.SplitTunnelPolicy {
@@ -85,35 +95,58 @@ func (lc *LanternCore) SwitchSplitTunnelPolicy(policy string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if old := splitTunnelPolicy(config); old != p {
-		if err := lc.splitTunnel.switchLocked(ctx, old, p); err != nil {
-			return "", err
-		}
+	if err := lc.splitTunnel.switchLocked(ctx, splitTunnelPolicy(config), p); err != nil {
+		return "", err
 	}
 	return lc.splitTunnel.stateJSONLocked(ctx)
 }
 
-func (s *splitTunnelPaths) switchLocked(ctx context.Context, old, next vpn.SplitTunnelPolicy) error {
+func (s *splitTunnelPaths) switchLocked(ctx context.Context, active, next vpn.SplitTunnelPolicy) error {
+	lists := s.savedLists()
+	// A saved copy of the active policy's lists is left by a switch that
+	// didn't finish. Radiance may have lost them, so they go back first.
+	if _, unfinished := lists[active]; unfinished {
+		if err := s.putBackLocked(ctx, lists, active); err != nil {
+			return err
+		}
+	}
+	if active == next {
+		return nil
+	}
 	filter, err := s.client.SplitTunnelFilters(ctx)
 	if err != nil {
 		return err
 	}
-	lists := s.savedLists()
-	lists[old] = filter
+	lists[active] = filter
 	if err := s.saveLists(lists); err != nil {
 		return fmt.Errorf("saving split-tunnel lists: %w", err)
 	}
 	if err := s.removeLocked(ctx, filter); err != nil {
-		return err
+		return errors.Join(err, s.putBackLocked(ctx, lists, active))
 	}
 	if err := s.client.SetSplitTunnelPolicy(ctx, next); err != nil {
 		// Still the old policy, so its lists go back.
-		return errors.Join(err, s.addLocked(ctx, filter))
+		return errors.Join(err, s.putBackLocked(ctx, lists, active))
 	}
-	return s.addLocked(ctx, lists[next])
+	return s.putBackLocked(ctx, lists, next)
 }
 
-// Lists of the policy that isn't active. Radiance stores one list.
+// putBackLocked gives radiance the saved lists of the active policy and drops
+// the saved copy. If it fails the copy stays for the next switch.
+func (s *splitTunnelPaths) putBackLocked(ctx context.Context, lists splitTunnelLists, policy vpn.SplitTunnelPolicy) error {
+	current, err := s.client.SplitTunnelFilters(ctx)
+	if err != nil {
+		return err
+	}
+	if err := s.addLocked(ctx, withoutSaved(lists[policy], current)); err != nil {
+		return err
+	}
+	delete(lists, policy)
+	return s.saveLists(lists)
+}
+
+// Lists of the policy that isn't active. Radiance stores one list. An entry
+// for the active policy means a switch didn't finish.
 const splitTunnelListsFile = "split-tunnel-lists.json"
 
 type splitTunnelLists map[vpn.SplitTunnelPolicy]vpn.SplitTunnelFilter
@@ -346,7 +379,9 @@ func (lc *LanternCore) splitTunnelFilters(ctx context.Context) (vpn.SplitTunnelF
 	if runtime.GOOS == "windows" {
 		return lc.splitTunnel.filters(ctx)
 	}
-	return lc.splitTunnel.client.SplitTunnelFilters(ctx)
+	lc.splitTunnel.mu.Lock()
+	defer lc.splitTunnel.mu.Unlock()
+	return lc.splitTunnel.readLocked(ctx)
 }
 
 func (lc *LanternCore) updateSplitTunnelItems(filter vpn.SplitTunnelFilter, remove bool) error {
@@ -358,13 +393,13 @@ func (lc *LanternCore) updateSplitTunnelItems(filter vpn.SplitTunnelFilter, remo
 	lc.splitTunnel.mu.Lock()
 	defer lc.splitTunnel.mu.Unlock()
 	if remove {
-		return lc.splitTunnel.client.RemoveSplitTunnelItems(ctx, filter)
+		return lc.splitTunnel.removeLocked(ctx, filter)
 	}
 	saved, err := lc.splitTunnel.client.SplitTunnelFilters(ctx)
 	if err != nil {
 		return err
 	}
-	return lc.splitTunnel.client.AddSplitTunnelItems(ctx, withoutSaved(filter, saved))
+	return lc.splitTunnel.addLocked(ctx, withoutSaved(filter, saved))
 }
 
 // withoutSaved drops selectors that are already saved, since radiance appends duplicates.

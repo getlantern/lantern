@@ -20,23 +20,69 @@ T requireSplitTunnelResult<T>(Either<Failure, T> result, String operation) =>
       (value) => value,
     );
 
-Future<void> restoreSplitTunnelSnapshot(
+/// The active mode's state and the other mode's saved lists.
+typedef SplitTunnelBackup = ({SplitTunnelState active, SplitTunnelState other});
+
+SplitTunnelPolicy _otherPolicy(SplitTunnelPolicy policy) =>
+    policy == SplitTunnelPolicy.bypass
+    ? SplitTunnelPolicy.includeOnly
+    : SplitTunnelPolicy.bypass;
+
+Future<SplitTunnelState> _switchTo(
   LanternService service,
-  SplitTunnelState saved,
-) async {
-  final opposite = saved.policy == SplitTunnelPolicy.bypass
-      ? 'include'
-      : 'exclude';
-  // Each mode keeps its own lists, so empty both.
-  for (final policy in [opposite, saved.policy.wireValue]) {
+  SplitTunnelPolicy policy,
+) async => requireSplitTunnelResult(
+  await service.switchSplitTunnelPolicy(policy.wireValue),
+  'Switch split-tunnel mode',
+);
+
+/// The other mode's lists can only be read by switching to it.
+Future<SplitTunnelBackup> readSplitTunnelBackup(LanternService service) async {
+  final active = requireSplitTunnelResult(
+    await service.getSplitTunnelState(),
+    'Read split-tunnel state',
+  );
+  final other = await _switchTo(service, _otherPolicy(active.policy));
+  await _switchTo(service, active.policy);
+  return (active: active, other: other);
+}
+
+/// Empties both modes and leaves [policy] active.
+Future<void> resetSplitTunnel(
+  LanternService service, {
+  required bool enabled,
+  SplitTunnelPolicy policy = SplitTunnelPolicy.bypass,
+}) async {
+  for (final next in [_otherPolicy(policy), policy]) {
     await _removeSelections(service);
-    requireSplitTunnelResult(
-      await service.switchSplitTunnelPolicy(policy),
-      'Reset split-tunnel mode',
-    );
+    await _switchTo(service, next);
   }
   await _removeSelections(service);
-  for (final entry in saved.filters.entries) {
+  requireSplitTunnelResult(
+    await service.setSplitTunnelingEnabled(enabled),
+    'Set split-tunnel enabled state',
+  );
+}
+
+Future<void> restoreSplitTunnelBackup(
+  LanternService service,
+  SplitTunnelBackup backup,
+) async {
+  await resetSplitTunnel(
+    service,
+    enabled: backup.active.enabled,
+    policy: backup.other.policy,
+  );
+  await _addSelections(service, backup.other);
+  await _switchTo(service, backup.active.policy);
+  await _addSelections(service, backup.active);
+}
+
+Future<void> _addSelections(
+  LanternService service,
+  SplitTunnelState state,
+) async {
+  for (final entry in state.filters.entries) {
     for (final selector in entry.value) {
       requireSplitTunnelResult(
         await service.addSplitTunnelItem(entry.key, selector),
@@ -44,10 +90,6 @@ Future<void> restoreSplitTunnelSnapshot(
       );
     }
   }
-  requireSplitTunnelResult(
-    await service.setSplitTunnelingEnabled(saved.enabled),
-    'Restore split-tunnel enabled state',
-  );
 }
 
 Future<void> _removeSelections(LanternService service) async {

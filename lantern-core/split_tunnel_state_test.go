@@ -25,7 +25,15 @@ func (c *splitTunnelTestClient) SetSplitTunnelPolicy(ctx context.Context, policy
 
 type splitStateTestClient struct {
 	*splitTunnelTestClient
-	filtersErr, settingsErr, policyErr error
+	dir                                        string
+	filtersErr, settingsErr, policyErr, addErr error
+}
+
+func (c *splitStateTestClient) AddSplitTunnelItems(ctx context.Context, filter vpn.SplitTunnelFilter) error {
+	if c.addErr != nil {
+		return c.addErr
+	}
+	return c.splitTunnelTestClient.AddSplitTunnelItems(ctx, filter)
 }
 
 func (c *splitStateTestClient) Settings(ctx context.Context) (settings.Settings, error) {
@@ -54,7 +62,8 @@ func (c *splitStateTestClient) SetSplitTunnelPolicy(ctx context.Context, policy 
 
 func splitStateCore(t *testing.T) (*LanternCore, *splitStateTestClient) {
 	t.Helper()
-	c := &splitStateTestClient{splitTunnelTestClient: newSplitTunnelTestClient(t, t.TempDir())}
+	dir := t.TempDir()
+	c := &splitStateTestClient{splitTunnelTestClient: newSplitTunnelTestClient(t, dir), dir: dir}
 	return &LanternCore{ctx: t.Context(), splitTunnel: splitTunnelPaths{client: c, dir: t.TempDir()}}, c
 }
 
@@ -158,6 +167,51 @@ func TestSplitTunnelSwitchFailureKeepsCurrentLists(t *testing.T) {
 	payload, err = lc.SwitchSplitTunnelPolicy("exclude")
 	require.NoError(t, err)
 	assert.Equal(t, []string{"site.test"}, decodeSplitState(t, payload).Filters.DomainSuffix)
+}
+
+func TestSplitTunnelSwitchRetryKeepsLists(t *testing.T) {
+	for _, retry := range []string{"exclude", "include"} {
+		t.Run(retry, func(t *testing.T) {
+			lc, c := splitStateCore(t)
+			require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"site.test"}}))
+
+			// The removal empties radiance's memory, then nothing can be saved or put back.
+			unblock := blockSplitTunnelSave(t, c.dir)
+			c.addErr = errors.New("add failed")
+			_, err := lc.SwitchSplitTunnelPolicy("include")
+			assert.ErrorIs(t, err, c.addErr)
+			assert.Equal(t, vpn.SplitTunnelPolicyExclude, c.handler.Policy())
+			assert.Empty(t, c.handler.Filters().DomainSuffix)
+			unblock()
+			c.addErr = nil
+
+			payload, err := lc.SwitchSplitTunnelPolicy(retry)
+			require.NoError(t, err)
+			if retry == "include" {
+				assert.Empty(t, decodeSplitState(t, payload).Filters.DomainSuffix)
+				payload, err = lc.SwitchSplitTunnelPolicy("exclude")
+				require.NoError(t, err)
+			}
+			assert.Equal(t, []string{"site.test"}, decodeSplitState(t, payload).Filters.DomainSuffix)
+			assert.Empty(t, lc.splitTunnel.savedLists()[vpn.SplitTunnelPolicyExclude].DomainSuffix)
+		})
+	}
+}
+
+func TestSplitTunnelStateRetriesFailedSave(t *testing.T) {
+	lc, c := splitStateCore(t)
+	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"site.test"}, PackageName: []string{"some.app"}}))
+	unblock := blockSplitTunnelSave(t, c.dir)
+	_, err := lc.ClearSplitTunnelApps()
+	require.Error(t, err)
+	unblock()
+
+	payload, err := lc.GetSplitTunnelState()
+	require.NoError(t, err)
+	assert.Empty(t, decodeSplitState(t, payload).Filters.PackageName)
+	saved := newSplitTunnelTestClient(t, c.dir).handler.Filters()
+	assert.Empty(t, saved.PackageName)
+	assert.Equal(t, []string{"site.test"}, saved.DomainSuffix)
 }
 
 func TestSplitTunnelWebsiteWritesAreValidatedAndDeduplicated(t *testing.T) {
