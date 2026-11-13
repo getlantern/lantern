@@ -327,6 +327,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
   Future<void> switchMode(
     SplitTunnelPolicy policy, {
     bool cancel = false,
+    int websites = 0,
   }) async {
     await openSplit();
     await _tapFinder(
@@ -360,7 +361,7 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
       }
       if (snapshot.policy == policy) {
         expect(snapshot.appCount, 0);
-        expect(snapshot.websiteCount, 0);
+        expect(snapshot.websiteCount, websites);
         return;
       }
       if (DateTime.now().isAfter(deadline)) {
@@ -551,10 +552,11 @@ Future<void> runSplitTunnelingWebsiteSmokeHarness(
     );
   }
   await switchMode(SplitTunnelPolicy.bypass, cancel: true);
-  await switchMode(SplitTunnelPolicy.bypass);
+  // Bypass gets back the site it had before the switch.
+  await switchMode(SplitTunnelPolicy.bypass, websites: 1);
   if (enableIpCheck) {
     await expectRouting(
-      selectedUsesVPN: true,
+      selectedUsesVPN: false,
       otherUsesVPN: true,
       selectedBaseline: selectedBaseline,
       otherBaseline: otherBaseline,

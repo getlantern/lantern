@@ -3,8 +3,12 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"runtime"
 	"slices"
 	"sync"
@@ -64,8 +68,10 @@ func splitTunnelPolicy(config settings.Settings) vpn.SplitTunnelPolicy {
 	return vpn.SplitTunnelPolicyExclude
 }
 
-// SwitchSplitTunnelPolicy changes the policy. A changed policy clears both
-// lists first, since a bypass list means the opposite under Include only.
+// SwitchSplitTunnelPolicy changes the policy. Each policy keeps its own lists:
+// the current ones are put away and the new policy's are brought back. The
+// lists are emptied in between, since a bypass list means the opposite under
+// Include only.
 func (lc *LanternCore) SwitchSplitTunnelPolicy(policy string) (string, error) {
 	p := vpn.SplitTunnelPolicy(policy)
 	if !p.Valid() {
@@ -79,19 +85,66 @@ func (lc *LanternCore) SwitchSplitTunnelPolicy(policy string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if splitTunnelPolicy(config) != p {
-		filter, err := lc.splitTunnel.client.SplitTunnelFilters(ctx)
-		if err != nil {
-			return "", err
-		}
-		if err := lc.splitTunnel.removeLocked(ctx, filter); err != nil {
-			return "", err
-		}
-		if err := lc.splitTunnel.client.SetSplitTunnelPolicy(ctx, p); err != nil {
+	if old := splitTunnelPolicy(config); old != p {
+		if err := lc.splitTunnel.switchLocked(ctx, old, p); err != nil {
 			return "", err
 		}
 	}
 	return lc.splitTunnel.stateJSONLocked(ctx)
+}
+
+func (s *splitTunnelPaths) switchLocked(ctx context.Context, old, next vpn.SplitTunnelPolicy) error {
+	filter, err := s.client.SplitTunnelFilters(ctx)
+	if err != nil {
+		return err
+	}
+	lists := s.savedLists()
+	lists[old] = filter
+	if err := s.saveLists(lists); err != nil {
+		return fmt.Errorf("saving split-tunnel lists: %w", err)
+	}
+	if err := s.removeLocked(ctx, filter); err != nil {
+		return err
+	}
+	if err := s.client.SetSplitTunnelPolicy(ctx, next); err != nil {
+		// Still the old policy, so its lists go back.
+		return errors.Join(err, s.addLocked(ctx, filter))
+	}
+	return s.addLocked(ctx, lists[next])
+}
+
+// Lists of the policy that isn't active. Radiance stores one list.
+const splitTunnelListsFile = "split-tunnel-lists.json"
+
+type splitTunnelLists map[vpn.SplitTunnelPolicy]vpn.SplitTunnelFilter
+
+// savedLists starts over when the file is missing or unreadable.
+func (s *splitTunnelPaths) savedLists() splitTunnelLists {
+	lists := splitTunnelLists{}
+	b, err := os.ReadFile(filepath.Join(s.dir, splitTunnelListsFile))
+	if err == nil {
+		err = json.Unmarshal(b, &lists)
+	}
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		slog.Warn("Could not read saved split-tunnel lists", "error", err)
+		return splitTunnelLists{}
+	}
+	return lists
+}
+
+func (s *splitTunnelPaths) saveLists(lists splitTunnelLists) error {
+	b, err := json.Marshal(lists)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(s.dir, 0o755); err != nil {
+		return err
+	}
+	path := filepath.Join(s.dir, splitTunnelListsFile)
+	if err := os.WriteFile(path+".tmp", b, 0o600); err != nil {
+		return err
+	}
+	return os.Rename(path+".tmp", path)
 }
 
 // ClearSplitTunnelApps removes all selected apps but keeps websites.
@@ -114,7 +167,17 @@ func (lc *LanternCore) ClearSplitTunnelApps() (string, error) {
 type splitTunnelPaths struct {
 	mu          sync.Mutex
 	client      splitTunnelClient
+	dir         string
 	pendingSave bool
+}
+
+func (s *splitTunnelPaths) addLocked(ctx context.Context, filter vpn.SplitTunnelFilter) error {
+	s.pendingSave = true
+	if err := s.client.AddSplitTunnelItems(ctx, filter); err != nil {
+		return err
+	}
+	s.pendingSave = false
+	return nil
 }
 
 // removeLocked removes filter, leaving a failed save for the next read to retry.

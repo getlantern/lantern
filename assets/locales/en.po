@@ -1929,10 +1929,10 @@ msgid "split_tunnel_switch_bypass"
 msgstr "Switch to Bypass?"
 
 msgid "split_tunnel_switch_include_body"
-msgstr "Your lists will be cleared. Everything will use Lantern until you add apps or sites. Then only those will, and everything else, including your browser, will connect directly without protection."
+msgstr "Only the apps and sites on your Include only lists will use Lantern. Everything else, including your browser, will connect directly without protection. While those lists are empty, everything uses Lantern. Your Bypass lists are kept for when you switch back."
 
 msgid "split_tunnel_switch_bypass_body"
-msgstr "Your lists will be cleared. Everything will use Lantern until you add apps or sites to bypass."
+msgstr "The apps and sites on your Bypass lists will connect directly. Everything else will use Lantern. Your Include only lists are kept for when you switch back."
 
 msgid "split_tunnel_switch"
 msgstr "Switch"

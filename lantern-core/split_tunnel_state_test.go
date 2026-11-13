@@ -6,6 +6,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/getlantern/radiance/common/settings"
@@ -53,7 +55,7 @@ func (c *splitStateTestClient) SetSplitTunnelPolicy(ctx context.Context, policy 
 func splitStateCore(t *testing.T) (*LanternCore, *splitStateTestClient) {
 	t.Helper()
 	c := &splitStateTestClient{splitTunnelTestClient: newSplitTunnelTestClient(t, t.TempDir())}
-	return &LanternCore{ctx: t.Context(), splitTunnel: splitTunnelPaths{client: c}}, c
+	return &LanternCore{ctx: t.Context(), splitTunnel: splitTunnelPaths{client: c, dir: t.TempDir()}}, c
 }
 
 func decodeSplitState(t *testing.T, payload string) splitTunnelState {
@@ -88,36 +90,74 @@ func TestSplitTunnelStateReadsSettingsAndFilters(t *testing.T) {
 	assert.Empty(t, payload)
 }
 
-func TestSplitTunnelSwitchClearsListsAndClearKeepsWebsites(t *testing.T) {
+func TestSplitTunnelSwitchKeepsListsPerPolicy(t *testing.T) {
 	lc, c := splitStateCore(t)
+	switchTo := func(policy string) vpn.SplitTunnelFilter {
+		t.Helper()
+		payload, err := lc.SwitchSplitTunnelPolicy(policy)
+		require.NoError(t, err)
+		state := decodeSplitState(t, payload)
+		assert.Equal(t, vpn.SplitTunnelPolicy(policy), state.Policy)
+		return state.Filters
+	}
 	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"site.test"}, ProcessName: []string{"app"}}))
-	payload, err := lc.SwitchSplitTunnelPolicy("include")
-	require.NoError(t, err)
-	state := decodeSplitState(t, payload)
-	assert.Equal(t, vpn.SplitTunnelPolicyInclude, state.Policy)
-	assert.Empty(t, state.Filters.DomainSuffix)
-	assert.Empty(t, state.Filters.ProcessName)
 
+	// The bypass lists never go live under Include only.
+	filters := switchTo("include")
+	assert.Empty(t, filters.DomainSuffix)
+	assert.Empty(t, filters.ProcessName)
+
+	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"only.test"}, PackageName: []string{"some.app"}}))
 	// Selecting the current policy keeps the lists.
-	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{
-		DomainSuffix: []string{"site.test"}, ProcessName: []string{"app"}, PackageName: []string{"some.app"},
-	}))
-	_, err = lc.SwitchSplitTunnelPolicy("include")
-	require.NoError(t, err)
-	assert.NotEmpty(t, c.handler.Filters().ProcessName)
+	assert.Equal(t, []string{"only.test"}, switchTo("include").DomainSuffix)
 
-	payload, err = lc.ClearSplitTunnelApps()
+	filters = switchTo("exclude")
+	assert.Equal(t, []string{"site.test"}, filters.DomainSuffix)
+	assert.Equal(t, []string{"app"}, filters.ProcessName)
+	assert.Empty(t, filters.PackageName)
+
+	filters = switchTo("include")
+	assert.Equal(t, []string{"only.test"}, filters.DomainSuffix)
+	assert.Equal(t, []string{"some.app"}, filters.PackageName)
+	assert.Empty(t, filters.ProcessName)
+
+	payload, err := lc.ClearSplitTunnelApps()
 	require.NoError(t, err)
-	assert.Equal(t, []string{"site.test"}, decodeSplitState(t, payload).Filters.DomainSuffix)
-	assert.Empty(t, c.handler.Filters().ProcessName)
+	assert.Equal(t, []string{"only.test"}, decodeSplitState(t, payload).Filters.DomainSuffix)
 	assert.Empty(t, c.handler.Filters().PackageName)
 
 	_, err = lc.SwitchSplitTunnelPolicy("bogus")
 	assert.Error(t, err)
+}
+
+func TestSplitTunnelSwitchFailureKeepsCurrentLists(t *testing.T) {
+	lc, c := splitStateCore(t)
+	require.NoError(t, c.handler.AddItems(vpn.SplitTunnelFilter{DomainSuffix: []string{"site.test"}}))
+
 	c.policyErr = errors.New("policy write failed")
-	_, err = lc.SwitchSplitTunnelPolicy("exclude")
+	_, err := lc.SwitchSplitTunnelPolicy("include")
 	assert.ErrorIs(t, err, c.policyErr)
-	assert.Equal(t, vpn.SplitTunnelPolicyInclude, c.handler.Policy())
+	assert.Equal(t, vpn.SplitTunnelPolicyExclude, c.handler.Policy())
+	assert.Equal(t, []string{"site.test"}, c.handler.Filters().DomainSuffix)
+	c.policyErr = nil
+
+	// Nothing changes when the lists can't be put away.
+	dir := lc.splitTunnel.dir
+	lc.splitTunnel.dir = filepath.Join(dir, splitTunnelListsFile, "blocked")
+	require.NoError(t, os.WriteFile(filepath.Join(dir, splitTunnelListsFile), []byte("not json"), 0o600))
+	_, err = lc.SwitchSplitTunnelPolicy("include")
+	assert.Error(t, err)
+	assert.Equal(t, vpn.SplitTunnelPolicyExclude, c.handler.Policy())
+	assert.Equal(t, []string{"site.test"}, c.handler.Filters().DomainSuffix)
+
+	// An unreadable file only loses the other policy's lists.
+	lc.splitTunnel.dir = dir
+	payload, err := lc.SwitchSplitTunnelPolicy("include")
+	require.NoError(t, err)
+	assert.Empty(t, decodeSplitState(t, payload).Filters.DomainSuffix)
+	payload, err = lc.SwitchSplitTunnelPolicy("exclude")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"site.test"}, decodeSplitState(t, payload).Filters.DomainSuffix)
 }
 
 func TestSplitTunnelWebsiteWritesAreValidatedAndDeduplicated(t *testing.T) {

@@ -938,7 +938,7 @@ func GetSplitTunnelStateJSON() (string, error) {
 	})
 }
 
-// SwitchSplitTunnelPolicy changes the policy, clearing both lists if it differs.
+// SwitchSplitTunnelPolicy changes the policy and brings back that policy's lists.
 func SwitchSplitTunnelPolicy(policy string) (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.SwitchSplitTunnelPolicy(policy) })
 }

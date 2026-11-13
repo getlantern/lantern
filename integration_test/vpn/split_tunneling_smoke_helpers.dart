@@ -27,14 +27,15 @@ Future<void> restoreSplitTunnelSnapshot(
   final opposite = saved.policy == SplitTunnelPolicy.bypass
       ? 'include'
       : 'exclude';
-  requireSplitTunnelResult(
-    await service.switchSplitTunnelPolicy(opposite),
-    'Reset smoke selections',
-  );
-  requireSplitTunnelResult(
-    await service.switchSplitTunnelPolicy(saved.policy.wireValue),
-    'Restore split-tunnel mode',
-  );
+  // Each mode keeps its own lists, so empty both.
+  for (final policy in [opposite, saved.policy.wireValue]) {
+    await _removeSelections(service);
+    requireSplitTunnelResult(
+      await service.switchSplitTunnelPolicy(policy),
+      'Reset split-tunnel mode',
+    );
+  }
+  await _removeSelections(service);
   for (final entry in saved.filters.entries) {
     for (final selector in entry.value) {
       requireSplitTunnelResult(
@@ -47,6 +48,21 @@ Future<void> restoreSplitTunnelSnapshot(
     await service.setSplitTunnelingEnabled(saved.enabled),
     'Restore split-tunnel enabled state',
   );
+}
+
+Future<void> _removeSelections(LanternService service) async {
+  final state = requireSplitTunnelResult(
+    await service.getSplitTunnelState(),
+    'Read smoke selections',
+  );
+  for (final entry in state.filters.entries) {
+    for (final selector in entry.value) {
+      requireSplitTunnelResult(
+        await service.removeSplitTunnelItem(entry.key, selector),
+        'Reset smoke selections',
+      );
+    }
+  }
 }
 
 Future<void> expectInstalledApp(

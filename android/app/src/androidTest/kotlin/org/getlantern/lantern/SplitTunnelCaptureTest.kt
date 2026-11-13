@@ -45,8 +45,7 @@ class SplitTunnelCaptureTest {
         smartRouting = Mobile.isSmartRoutingEnabled()
         Mobile.setSmartRoutingEnabled(false)
         Mobile.setSplitTunnelingEnabled(false)
-        Mobile.switchSplitTunnelPolicy("include")
-        Mobile.switchSplitTunnelPolicy("exclude")
+        resetSplitTunnel()
     }
 
     @After
@@ -58,8 +57,7 @@ class SplitTunnelCaptureTest {
             await("VPN disconnected") { !Mobile.isVPNConnected() }
         } finally {
             Mobile.setSplitTunnelingEnabled(false)
-            Mobile.switchSplitTunnelPolicy("include")
-            Mobile.switchSplitTunnelPolicy("exclude")
+            resetSplitTunnel()
             Mobile.setSmartRoutingEnabled(smartRouting)
         }
     }
@@ -91,9 +89,25 @@ class SplitTunnelCaptureTest {
         assertDirect()
 
         Mobile.switchSplitTunnelPolicy("exclude")
+        assertDirect() // the bypass list is back
+        Mobile.clearSplitTunnelApps()
         assertProxied()
         Mobile.addSplitTunnelItem("domainSuffix", "api.ipify.org")
         assertDirect()
+    }
+
+    // Each mode keeps its own lists, so this empties both and ends in bypass.
+    private fun resetSplitTunnel() {
+        for (policy in listOf("include", "exclude")) {
+            clearSelections()
+            Mobile.switchSplitTunnelPolicy(policy)
+        }
+        clearSelections()
+    }
+
+    private fun clearSelections() {
+        Mobile.clearSplitTunnelApps()
+        Mobile.removeSplitTunnelItem("domainSuffix", "api.ipify.org")
     }
 
     private lateinit var directIP: String

@@ -344,6 +344,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	lc.serverImporter = client
 	lc.serverStore = client
 	lc.splitTunnel.client = client
+	lc.splitTunnel.dir = opts.DataDir
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
