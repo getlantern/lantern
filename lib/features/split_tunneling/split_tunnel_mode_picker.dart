@@ -43,9 +43,9 @@ class SplitTunnelModePicker extends HookConsumerWidget {
                 AppTile(
                   tileKey: Key('split_tunneling.mode.${policy.wireValue}'),
                   enabled: !busy.value,
-                  label: policy.appsLabelKey.i18n,
+                  label: policy.labelKey.i18n,
                   subtitle: Text(
-                    policy.appsDescriptionKey.i18n,
+                    policy.descriptionKey.i18n,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: context.textTertiary,
                     ),

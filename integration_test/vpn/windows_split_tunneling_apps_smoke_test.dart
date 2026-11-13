@@ -585,7 +585,6 @@ void main() {
           tester,
           find.byKey(const Key('home.split_tunneling_setting')),
         );
-        await _tap(tester, find.byKey(const Key('split_tunneling.apps_tile')));
         await _tap(
           tester,
           find.byKey(const Key('split_tunneling.mode.include')),
@@ -599,6 +598,7 @@ void main() {
           find.byKey(const Key('split_tunneling.mode.confirm')),
           timeout: const Duration(seconds: 30),
         );
+        await _tap(tester, find.byKey(const Key('split_tunneling.apps_tile')));
         expect(
           await container.read(splitTunnelProvider.notifier).refresh(),
           isNull,

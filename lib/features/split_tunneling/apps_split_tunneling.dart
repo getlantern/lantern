@@ -22,7 +22,6 @@ import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dar
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
-import 'package:lantern/features/split_tunneling/split_tunnel_mode_picker.dart';
 import 'package:lantern/features/split_tunneling/split_tunneling.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 import 'package:lantern/features/split_tunneling/windows_executable_picker.dart';
@@ -136,8 +135,6 @@ class AppsSplitTunneling extends HookConsumerWidget {
               child: CustomScrollView(
                 key: scrollViewKey,
                 slivers: [
-                  const SliverToBoxAdapter(child: SplitTunnelModePicker()),
-                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
                   SliverToBoxAdapter(
                     child: Row(
                       children: [

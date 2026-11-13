@@ -183,9 +183,9 @@ void main() {
     });
   }
 
-  testWidgets('the mode picker is on the Apps screen', (tester) async {
+  testWidgets('the mode picker is not on the Apps screen', (tester) async {
     await _pumpApps(tester, size: const Size(800, 600), apps: []);
-    expect(find.byType(SplitTunnelModePicker), findsOneWidget);
+    expect(find.byType(SplitTunnelModePicker), findsNothing);
   });
 
   testWidgets('short viewports do not break index layout', (tester) async {

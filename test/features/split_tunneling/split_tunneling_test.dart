@@ -17,7 +17,7 @@ class _Snapshot extends SplitTunnel {
 
 void main() {
   for (final policy in SplitTunnelPolicy.values) {
-    testWidgets('${policy.name} is shown on both rows, with no picker', (
+    testWidgets('${policy.name} is selected in the mode picker', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -35,24 +35,32 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      for (final (tile, label) in [
-        ('split_tunneling.apps_tile', policy.appsLabelKey),
-        ('split_tunneling.websites_tile', policy.sitesLabelKey),
-      ]) {
+      for (final mode in SplitTunnelPolicy.values) {
+        final tile = find.byKey(Key('split_tunneling.mode.${mode.wireValue}'));
         expect(
-          find.descendant(
-            of: find.byKey(Key(tile)),
-            matching: find.text(label),
-          ),
+          find.descendant(of: tile, matching: find.text(mode.labelKey)),
           findsOneWidget,
         );
-      }
-      for (final mode in SplitTunnelPolicy.values) {
         expect(
-          find.byKey(Key('split_tunneling.mode.${mode.wireValue}')),
-          findsNothing,
+          find.descendant(of: tile, matching: find.text(mode.descriptionKey)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: tile,
+            matching: find.byIcon(Icons.radio_button_checked),
+          ),
+          mode == policy ? findsOneWidget : findsNothing,
         );
       }
+      expect(
+        find.byKey(const Key('split_tunneling.apps_tile')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('split_tunneling.websites_tile')),
+        findsOneWidget,
+      );
     });
   }
 }

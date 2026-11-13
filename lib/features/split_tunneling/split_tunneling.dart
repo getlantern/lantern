@@ -6,6 +6,7 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
+import 'package:lantern/features/split_tunneling/split_tunnel_mode_picker.dart';
 
 @RoutePage(name: 'SplitTunneling')
 class SplitTunneling extends HookConsumerWidget {
@@ -65,6 +66,8 @@ class SplitTunneling extends HookConsumerWidget {
                 ),
               ),
             ),
+            SizedBox(height: defaultSize),
+            const SplitTunnelModePicker(),
             if (snapshot.enabled) ...[
               SizedBox(height: defaultSize),
               AppCard(
@@ -75,7 +78,6 @@ class SplitTunneling extends HookConsumerWidget {
                       tileKey: const Key('split_tunneling.apps_tile'),
                       icon: AppImagePaths.keypad,
                       label: 'apps'.i18n,
-                      subtitle: snapshot.policy.appsLabelKey.i18n,
                       actionText: _count(
                         snapshot.appCount,
                         'split_tunnel_app_count_one',
@@ -89,7 +91,6 @@ class SplitTunneling extends HookConsumerWidget {
                       tileKey: const Key('split_tunneling.websites_tile'),
                       icon: AppImagePaths.world,
                       label: 'websites'.i18n,
-                      subtitle: snapshot.policy.sitesLabelKey.i18n,
                       actionText: _count(
                         snapshot.websiteCount,
                         'split_tunnel_site_count_one',
