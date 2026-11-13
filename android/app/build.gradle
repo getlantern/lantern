@@ -336,16 +336,9 @@ android {
                 res.srcDirs = [stealthGeneratedResDir]
             }
             jniLibs.srcDirs = ['libs']
-            jniLibs.srcDirs += ['src/main/jniLibs']
             if (stealthIconSeed) {
                 res.srcDirs += [generatedStealthIconResDir.get().asFile]
             }
-        }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path "cpp/CMakeLists.txt"
         }
     }
 
@@ -411,13 +404,6 @@ android {
         ndk {
             abiFilters = lanternAbis
             debugSymbolLevel 'FULL'
-        }
-
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++14 -fexceptions -frtti"
-                arguments "-DANDROID_ARM_NEON=TRUE", '-DANDROID_STL=c++_shared'
-            }
         }
         buildConfigField "String", "ANDROID_IDENTITY_LABEL", buildConfigString(androidIdentity.identityLabel)
         buildConfigField "String", "ANDROID_IDENTITY_PROFILE_ID", buildConfigString(androidIdentity.identityProfileId)
