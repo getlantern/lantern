@@ -1,3 +1,8 @@
+bool isLegacyPlaceholderEmail(String email) => RegExp(
+  r'^support\+[0-9]+@getlantern\.org$',
+  caseSensitive: false,
+).hasMatch(email.trim());
+
 class UserResponseModel {
   final String id;
   final int legacyID;
@@ -6,6 +11,11 @@ class UserResponseModel {
   final bool success;
   final UserDataModel legacyUserData;
   final List<DeviceModel> devices;
+
+  bool get hasLegacyPlaceholderEmail =>
+      legacyID > 0 &&
+      legacyUserData.email.trim().toLowerCase() ==
+          'support+$legacyID@getlantern.org';
 
   const UserResponseModel({
     this.id = '',
@@ -132,6 +142,9 @@ class UserDataModel {
   final String deviceID;
   final bool unpassRegistered;
   final int lastExpiredOn;
+
+  bool get hasUsableEmail =>
+      email.trim().isNotEmpty && !isLegacyPlaceholderEmail(email);
 
   const UserDataModel({
     this.userId = 0,

@@ -12,7 +12,9 @@ bool shouldShowProAccountSetupDialog({
   required bool userLoggedIn,
 }) {
   final userData = user.legacyUserData;
-  return userData.isPro && !userLoggedIn && !userData.unpassRegistered;
+  return userData.isPro &&
+      (user.hasLegacyPlaceholderEmail ||
+          (!userLoggedIn && !userData.unpassRegistered));
 }
 
 Future<void> openAccountOrProAccountSetup({
@@ -32,7 +34,10 @@ Future<void> openAccountOrProAccountSetup({
   if (shouldShowProAccountSetupDialog(user: user, userLoggedIn: userLoggedIn)) {
     await showProAccountFlowDialog(
       context: context,
-      hasEmail: userData.email.isNotEmpty,
+      hasEmail: userData.hasUsableEmail,
+      authFlow: user.hasLegacyPlaceholderEmail
+          ? AuthFlow.bindLegacyEmail
+          : AuthFlow.signUp,
     );
     return;
   }
@@ -43,6 +48,7 @@ Future<void> openAccountOrProAccountSetup({
 Future<void> showProAccountFlowDialog({
   required BuildContext context,
   required bool hasEmail,
+  AuthFlow authFlow = AuthFlow.signUp,
 }) async {
   return AppDialog.customDialog(
     context: context,
@@ -75,8 +81,7 @@ Future<void> showProAccountFlowDialog({
       ),
       AppTextButton(
         label: hasEmail ? 'set_password'.i18n : 'add_email'.i18n,
-        onPressed: () =>
-            appRouter.popAndPush(AddEmail(authFlow: AuthFlow.signUp)),
+        onPressed: () => appRouter.popAndPush(AddEmail(authFlow: authFlow)),
       ),
     ],
   );

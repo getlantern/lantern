@@ -85,6 +85,8 @@ enum class Methods(val method: String) {
     VerifyPassword("verifyPassword"),
     StartChangeEmail("startChangeEmail"),
     CompleteChangeEmail("completeChangeEmail"),
+    StartBindLegacyEmail("startBindLegacyEmail"),
+    CompleteBindLegacyEmail("completeBindLegacyEmail"),
 
     Logout("logout"),
     DeleteAccount("deleteAccount"),
@@ -1338,6 +1340,22 @@ class MethodHandler : FlutterPlugin,
                             e
                         )
                     }
+                }
+            }
+
+            Methods.StartBindLegacyEmail.method -> {
+                scope.handleResult(result, "StartBindLegacyEmail") {
+                    val email = call.argument<String>("email") ?: error("Missing email")
+                    Mobile.startBindLegacyEmail(email)
+                }
+            }
+
+            Methods.CompleteBindLegacyEmail.method -> {
+                scope.handleResult(result, "CompleteBindLegacyEmail") {
+                    val email = call.argument<String>("email") ?: error("Missing email")
+                    val password = call.argument<String>("password") ?: error("Missing password")
+                    val code = call.argument<String>("code") ?: error("Missing code")
+                    Mobile.completeBindLegacyEmail(email, password, code)
                 }
             }
 
