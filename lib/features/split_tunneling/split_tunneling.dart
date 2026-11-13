@@ -89,6 +89,7 @@ class SplitTunneling extends HookConsumerWidget {
                       tileKey: const Key('split_tunneling.websites_tile'),
                       icon: AppImagePaths.world,
                       label: 'websites'.i18n,
+                      subtitle: snapshot.policy.sitesLabelKey.i18n,
                       actionText: _count(
                         snapshot.websiteCount,
                         'split_tunnel_site_count_one',

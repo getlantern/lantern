@@ -264,6 +264,40 @@ void _macOSRuleTests() {
     expect(macOSSplitTunnelRule(app), '/Applications/Firefox.app/Contents/.*');
   });
 
+  test('macOSSplitTunnelRule covers the process that sends Safari traffic', () {
+    final rule = RegExp(
+      macOSSplitTunnelRule(
+        _app(
+          name: 'Safari',
+          bundleId: 'com.apple.Safari',
+          appPath:
+              '/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app',
+        ),
+      ),
+    );
+
+    // Paths observed on macOS 27.
+    const networking =
+        '/WebKit.framework/Versions/A/XPCServices/'
+        'com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking';
+    for (final path in [
+      '/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/Contents/MacOS/Safari',
+      '/System/Library/Frameworks$networking',
+      '/System/Volumes/Preboot/Cryptexes/Incoming/OS/System/Library/Frameworks$networking',
+    ]) {
+      expect(rule.hasMatch(path), isTrue, reason: path);
+    }
+    for (final path in [
+      // A browser that ships its own WebKit is matched by its own bundle.
+      '/Applications/Safari Technology Preview.app/Contents/Frameworks$networking',
+      '/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/'
+          'com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent',
+      '/System/Applications/Mail.app/Contents/MacOS/Mail',
+    ]) {
+      expect(rule.hasMatch(path), isFalse, reason: path);
+    }
+  });
+
   test('macOSSplitTunnelRule matches iPhone/iPad apps on the inner bundle', () {
     final app = _app(
       name: 'Stream',

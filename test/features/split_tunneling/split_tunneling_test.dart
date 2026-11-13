@@ -17,7 +17,7 @@ class _Snapshot extends SplitTunnel {
 
 void main() {
   for (final policy in SplitTunnelPolicy.values) {
-    testWidgets('${policy.name} is shown on the Apps row, with no picker', (
+    testWidgets('${policy.name} is shown on both rows, with no picker', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -35,13 +35,18 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('split_tunneling.apps_tile')),
-          matching: find.text(policy.appsLabelKey),
-        ),
-        findsOneWidget,
-      );
+      for (final (tile, label) in [
+        ('split_tunneling.apps_tile', policy.appsLabelKey),
+        ('split_tunneling.websites_tile', policy.sitesLabelKey),
+      ]) {
+        expect(
+          find.descendant(
+            of: find.byKey(Key(tile)),
+            matching: find.text(label),
+          ),
+          findsOneWidget,
+        );
+      }
       for (final mode in SplitTunnelPolicy.values) {
         expect(
           find.byKey(Key('split_tunneling.mode.${mode.wireValue}')),

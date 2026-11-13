@@ -321,3 +321,48 @@ func TestScanAppDirs_SeenBundleIsNotDescendedInto(t *testing.T) {
 		t.Fatalf("expected no apps (outer already seen, helper must not surface), got %+v", apps)
 	}
 }
+
+func TestScanAppDirs_FollowsLinkedBundle(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("test requires macOS .app bundle scanning")
+	}
+	tmp := t.TempDir()
+	root := filepath.Join(tmp, "Applications")
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// Safari's layout: the bundle lives elsewhere and /Applications links to it.
+	target := makeAppBundle(t, filepath.Join(tmp, "Cryptex"), "Safari", "com.apple.Safari", false)
+	if err := os.Symlink(target, filepath.Join(root, "Safari.app")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(tmp, "missing.app"), filepath.Join(root, "Broken.app")); err != nil {
+		t.Fatal(err)
+	}
+	// Sorts after the links, so it is missed if a link stops the walk.
+	makeAppBundle(t, root, "Zed", "dev.zed.Zed", false)
+
+	apps := scanAppDirs([]string{root}, map[string]bool{}, excludeDirs, nil)
+	if len(apps) != 2 {
+		t.Fatalf("expected Safari and Zed, got %+v", apps)
+	}
+	byID := map[string]*AppData{}
+	for _, a := range apps {
+		byID[a.BundleID] = a
+	}
+	safari := byID["com.apple.Safari"]
+	if safari == nil {
+		t.Fatalf("linked bundle missing: %+v", apps)
+	}
+	// Processes report the resolved path, so that is what a rule needs.
+	want, err := filepath.EvalSymlinks(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if safari.AppPath != want {
+		t.Errorf("app path: got %s want %s", safari.AppPath, want)
+	}
+	if byID["dev.zed.Zed"] == nil {
+		t.Errorf("bundle after the link missing: %+v", apps)
+	}
+}

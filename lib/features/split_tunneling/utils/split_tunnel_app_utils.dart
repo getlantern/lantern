@@ -198,12 +198,22 @@ int _compareAppsByDisplayName(AppData a, AppData b) {
 /// `.../Wrapper/<Inner>.app/<Inner>` from there, so the bundle path never
 /// appears in the process path. The `/Wrapper/<Inner>.app/` segment is the
 /// stable part, so that is what we match.
+///
+/// Safari's requests are sent by the system WebKit networking process, which
+/// runs outside Safari.app, so its rule covers that process too. Web views in
+/// other apps use the same process and follow Safari's rule.
 String macOSSplitTunnelRule(AppData app) {
   if (app.wrappedBundle.isNotEmpty) {
     return '/Wrapper/${RegExp.escape(app.wrappedBundle)}/.*';
   }
-  return '${app.appPath}/Contents/.*';
+  final bundle = '${app.appPath}/Contents/.*';
+  return app.bundleId == 'com.apple.Safari'
+      ? '$_webKitNetworking/Contents/.*|$bundle'
+      : bundle;
 }
+
+const _webKitNetworking =
+    r'/System/Library/Frameworks/WebKit\.framework/.*/com\.apple\.WebKit\.Networking\.xpc';
 
 /// Bucket used by the alphabet index for names that do not start with A-Z.
 const otherAppsIndexLetter = '#';
