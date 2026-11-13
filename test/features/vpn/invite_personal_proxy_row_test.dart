@@ -150,30 +150,27 @@ void main() {
     expect(row, findsNothing);
   });
 
-  testWidgets('once a personal proxy exists the row moves to the end of the '
-      'Personal Proxies group under Private Locations', (tester) async {
+  testWidgets('with a personal proxy the row stays under Smart Location, '
+      'above the tabs, and the Personal Proxies group has no invite row of '
+      'its own', (tester) async {
     await _pump(tester, helpers: const [_sara]);
-    expect(row, findsNothing);
-    await tester.tap(
-      find.byKey(const Key('server_selection.private_servers_tab')),
-    );
+    expect(row, findsOneWidget);
+    final tab = find.byKey(const Key('server_selection.private_servers_tab'));
+    expect(tester.getBottomLeft(row).dy, lessThan(tester.getTopLeft(tab).dy));
+    await tester.tap(tab);
     await tester.pumpAndSettle();
-    expect(groupRow, findsOneWidget);
+    expect(row, findsOneWidget);
     expect(
-      tester.getTopLeft(groupRow).dy,
-      greaterThan(
-        tester
-            .getBottomLeft(
-              find.byKey(const Key('server_selection.personal_proxy.p1')),
-            )
-            .dy,
-      ),
+      find.byKey(const Key('server_selection.personal_proxy.p1')),
+      findsOneWidget,
     );
+    expect(groupRow, findsNothing);
   });
 
-  testWidgets('the group has no invite row where helper invites are not '
-      'offered', (tester) async {
+  testWidgets('with a personal proxy and no helper invites offered there is '
+      'no row anywhere', (tester) async {
     await _pump(tester, helpers: const [_sara], invites: false);
+    expect(row, findsNothing);
     await tester.tap(
       find.byKey(const Key('server_selection.private_servers_tab')),
     );

@@ -88,9 +88,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final hasPersonalProxies = ref.watch(
       helpersProvider.select((s) => s.view.helpers.isNotEmpty),
     );
-    // Where helper invites are offered, until the first personal proxy: it
-    // then moves into the Personal Proxies group under Private Locations.
-    final inviteRow = ref.watch(personalProxyBannerVisibleProvider);
+    // Where helper invites are offered, before and after the first personal
+    // proxy: the row stays here, under Smart Location, and the Personal
+    // Proxies group under Private Locations has none of its own.
+    final inviteRow = ref.watch(helperInvitesAvailableProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -717,7 +718,6 @@ class _PrivateServerLocationListViewState
         const SizedBox(height: 16),
         PersonalProxiesSection(
           selectedFriend: selectedFriend,
-          onInvite: () => startPersonalProxyInvite(context, ref),
           onSelectFriend: (h) => _select(
             ServerLocationType.personalProxy,
             personalProxySelection(h.outboundTag),
