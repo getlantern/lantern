@@ -6,6 +6,7 @@ import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
@@ -225,19 +226,23 @@ abstract class LanternCoreService {
     String value,
   );
 
-  Future<Either<Failure, Unit>> addAllItems(
+  /// Adds several apps at once. [type] is the platform's app filter type.
+  Future<Either<Failure, Unit>> addSplitTunnelApps(
     SplitTunnelFilterType type,
-    List<String> value,
+    List<String> values,
   );
 
-  Future<Either<Failure, Unit>> removeAllItems(
-    SplitTunnelFilterType type,
-    List<String> value,
+  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState();
+
+  Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(
+    String policy,
   );
+
+  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps();
+
+  Future<Either<Failure, String>> normalizeSplitTunnelWebsite(String input);
 
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled);
-
-  Future<Either<Failure, bool>> isSplitTunnelingEnabled();
 
   Future<Either<Failure, Unit>> reportIssue(
     String email,
@@ -300,10 +305,7 @@ abstract class LanternCoreService {
   //Change email
   /// Verifies the account password without mutating anything. Used to gate
   /// the change-email flow before the user enters a new email.
-  Future<Either<Failure, String>> verifyPassword(
-    String email,
-    String password,
-  );
+  Future<Either<Failure, String>> verifyPassword(String email, String password);
 
   Future<Either<Failure, String>> startChangeEmail(
     String newEmail,

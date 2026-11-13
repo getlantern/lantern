@@ -16,6 +16,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/models/restore_subscription_response.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/utils/app_data_utils.dart';
 import 'package:lantern/core/utils/radiance_environment.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
@@ -528,28 +529,105 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> addSplitTunnelApps(
+    SplitTunnelFilterType type,
+    List<String> values,
+  ) async {
+    for (final value in values) {
+      final result = await addSplitTunnelItem(type, value);
+      if (result.isLeft()) return result;
+    }
+    return right(unit);
+  }
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() =>
+      _splitTunnelState(() => _ffiService.getSplitTunnelState());
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(
+    String policy,
+  ) => _splitTunnelState(
+    () => _withCString(policy, _ffiService.switchSplitTunnelPolicy),
+  );
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps() =>
+      _splitTunnelState(() => _ffiService.clearSplitTunnelApps());
+
+  static Future<Either<Failure, SplitTunnelState>> _splitTunnelState(
+    Pointer<Char> Function() call,
+  ) async {
+    try {
+      final payload = await runInBackground<String>(
+        () async => _takeSplitTunnelResult(call()),
+      );
+      checkAPIError(payload);
+      return right(
+        SplitTunnelState.fromJson(jsonDecode(payload) as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> normalizeSplitTunnelWebsite(
+    String input,
+  ) async {
+    try {
+      final value = await runInBackground<String>(
+        () async => _takeSplitTunnelResult(
+          _withCString(input, _ffiService.normalizeSplitTunnelWebsite),
+        ),
+      );
+      checkAPIError(value);
+      if (value.isEmpty) {
+        throw const FormatException('Missing website selector');
+      }
+      return right(value);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  static Pointer<Char> _withCString(
+    String value,
+    Pointer<Char> Function(Pointer<Char>) call,
+  ) {
+    final input = value.toNativeUtf8();
+    try {
+      return call(input.cast<Char>());
+    } finally {
+      malloc.free(input);
+    }
+  }
+
+  // Go allocates the result, so it must go back through freeCString;
+  // malloc.free crashes (0xC0000409).
+  static String _takeSplitTunnelResult(Pointer<Char> result) {
+    if (result == nullptr) {
+      throw const FormatException('Missing split-tunnel result');
+    }
+    try {
+      return result.cast<Utf8>().toDartString();
+    } finally {
+      _ffiService.freeCString(result);
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .setSplitTunnelingEnabled(enabled ? 1 : 0)
-            .toDartString();
+        return _takeSplitTunnelResult(
+          _ffiService.setSplitTunnelingEnabled(enabled ? 1 : 0),
+        );
       });
       checkAPIError(result);
       return Right(unit);
     } catch (e, stackTrace) {
       appLogger.error('Error setting split tunneling', e, stackTrace);
-      return Left(e.toFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, bool>> isSplitTunnelingEnabled() async {
-    try {
-      final enabledInt = _ffiService.isSplitTunnelingEnabled();
-      final enabled = enabledInt != 0;
-      return right(enabled);
-    } catch (e) {
       return Left(e.toFailure());
     }
   }
@@ -584,19 +662,9 @@ class LanternFFIService implements LanternCoreService {
           ? _ffiService.addSplitTunnelItem
           : _ffiService.removeSplitTunnelItem;
 
-      final result = fn(tPtr.cast<Char>(), vPtr.cast<Char>());
-      if (result == nullptr) {
-        return right(unit);
-      }
-      // `result` is a Go-allocated C string, so Dart's malloc.free would
-      // hard-crash (0xC0000409); hand it back to Go via freeCString after
-      // copying it into a Dart string.
-      final String resultStr;
-      try {
-        resultStr = result.cast<Utf8>().toDartString();
-      } finally {
-        _ffiService.freeCString(result);
-      }
+      final resultStr = _takeSplitTunnelResult(
+        fn(tPtr.cast<Char>(), vPtr.cast<Char>()),
+      );
       // The Go FFI returns a non-null C string like "ok" on success; only
       // treat unexpected payloads as errors.
       if (_ffiOkResults.contains(resultStr)) {
@@ -1949,66 +2017,20 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addAllItems(
-    SplitTunnelFilterType type,
-    List<String> value,
-  ) async {
-    final items = value
-        .map((v) => v.trim())
-        .where((v) => v.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
-
-    for (final item in items) {
-      final result = await addSplitTunnelItem(type, item);
-      if (result.isLeft()) {
-        return result;
-      }
-    }
-
-    return right(unit);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> removeAllItems(
-    SplitTunnelFilterType type,
-    List<String> value,
-  ) async {
-    final items = value
-        .map((v) => v.trim())
-        .where((v) => v.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
-
-    for (final item in items) {
-      final result = await removeSplitTunnelItem(type, item);
-      if (result.isLeft()) {
-        return result;
-      }
-    }
-
-    return right(unit);
-  }
-
-  @override
   Future<Either<Failure, List<String>>> getSplitTunnelItems(
     SplitTunnelFilterType type,
   ) async {
     try {
-      final result = await runInBackground<String>(() async {
-        return _ffiService
-            .getSplitTunnelItems(type.value.toCharPtr)
-            .toDartString();
-      });
+      final result = await runInBackground<String>(
+        () async => _takeSplitTunnelResult(
+          _withCString(type.value, _ffiService.getSplitTunnelItems),
+        ),
+      );
       checkAPIError(result);
-
-      if (result.trim().isEmpty) {
-        return right(<String>[]);
-      }
 
       final decoded = jsonDecode(result);
       if (decoded is! List) {
-        return right(<String>[]);
+        throw const FormatException('Invalid split-tunnel items');
       }
 
       final items = decoded

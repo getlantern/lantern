@@ -341,9 +341,6 @@ msgstr "الوضع التلقائي"
 msgid "manual"
 msgstr "يدوي"
 
-msgid "enter_url_or_ip"
-msgstr "أدخل الرابط أو عنوان IP"
-
 msgid "installed_apps"
 msgstr "التطبيقات المثبتة"
 
@@ -355,9 +352,6 @@ msgstr "البحث عن المواقع"
 
 msgid "mode"
 msgstr "الوضع"
-
-msgid "use_commas"
-msgstr "استخدم الفواصل لفصل روابط متعددة"
 
 msgid "deep_link_expired"
 msgstr "انتهت صلاحية هذا الرابط. يرجى طلب رابط جديد."
@@ -1399,9 +1393,6 @@ msgstr ""
 "VPN عبر Lantern تلقائياً. يتم توجيه جميع حركة المرور الأخرى مباشرة للحصول "
 "على السرعة والموثوقية."
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "أضف التطبيقات والمواقع لتجاوز VPN"
-
 msgid "lantern_pro_license_applied"
 msgstr "سيتم تطبيق ترخيص Lantern Pro الخاص بك على حسابك الحالي"
 
@@ -2228,9 +2219,6 @@ msgstr "يمكنني أن أكون الوكيل الشخصي لك على Lantern
 
 msgid "add_executable"
 msgstr "إضافة ملف تنفيذي"
-
-msgid "windows_executable_bypass_hint"
-msgstr "اختر ملف .exe الفعلي للعبة أو التطبيق لتجاوز VPN. اختيار المشغّل لا يشمل البرامج التي يفتحها."
 
 msgid "select_windows_executable"
 msgstr "اختر ملف .exe لتطبيق على هذا الكمبيوتر، غير Lantern."

@@ -335,9 +335,6 @@ msgstr "Mod automatik"
 msgid "manual"
 msgstr "Manual"
 
-msgid "enter_url_or_ip"
-msgstr "Masukkan URL atau Alamat IP"
-
 msgid "installed_apps"
 msgstr "Aplikasi Terpasang"
 
@@ -349,9 +346,6 @@ msgstr "Cari Laman Web"
 
 msgid "mode"
 msgstr "Mod"
-
-msgid "use_commas"
-msgstr "Gunakan koma untuk memisahkan berbilang URL"
 
 msgid "deep_link_expired"
 msgstr "Pautan ini telah tamat tempoh. Sila minta pautan baru."
@@ -1426,9 +1420,6 @@ msgstr ""
 "trafik yang memerlukan VPN melalui Lantern secara automatik. Semua trafik "
 "lain pergi terus untuk kelajuan dan kebolehpercayaan."
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Tambah apl & laman web untuk memintas VPN"
-
 msgid "lantern_pro_license_applied"
 msgstr "Lesen Lantern Pro anda akan digunakan pada akaun sedia ada anda"
 
@@ -2271,9 +2262,6 @@ msgstr "Saya boleh menjadi proksi peribadi anda di Lantern, supaya anda boleh me
 
 msgid "add_executable"
 msgstr "Tambah fail boleh laku"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Pilih .exe sebenar permainan atau aplikasi untuk memintas VPN. Memilih pelancar tidak termasuk program yang dimulakannya."
 
 msgid "select_windows_executable"
 msgstr "Pilih fail .exe aplikasi selain Lantern pada komputer ini."

@@ -334,9 +334,6 @@ msgstr "स्वचालित मोड"
 msgid "manual"
 msgstr "मैनुअल"
 
-msgid "enter_url_or_ip"
-msgstr "URL या IP पता दर्ज करें"
-
 msgid "installed_apps"
 msgstr "इंस्टॉल किए गए ऐप"
 
@@ -348,9 +345,6 @@ msgstr "वेबसाइट खोजें"
 
 msgid "mode"
 msgstr "मोड"
-
-msgid "use_commas"
-msgstr "कई URL को अलग करने के लिए कॉमा का उपयोग करें"
 
 msgid "deep_link_expired"
 msgstr "इस लिंक की समय सीमा समाप्त हो गई है। कृपया नया लिंक अनुरोध करें।"
@@ -1420,9 +1414,6 @@ msgstr ""
 "आवश्यकता वाले ट्रैफ़िक को Lantern के माध्यम से भेजती है। अन्य सभी ट्रैफ़िक "
 "गति और विश्वसनीयता के लिए सीधे जाते हैं।"
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "VPN बायपास करने के लिए ऐप्स और वेबसाइट जोड़ें"
-
 msgid "lantern_pro_license_applied"
 msgstr "आपका Lantern Pro लाइसेंस आपके मौजूदा खाते पर लागू किया जाएगा"
 
@@ -2262,9 +2253,6 @@ msgstr "Lantern पर आप मुझे अपने निजी प्र�
 
 msgid "add_executable"
 msgstr "एक्ज़ीक्यूटेबल जोड़ें"
-
-msgid "windows_executable_bypass_hint"
-msgstr "VPN को बायपास करने के लिए असली गेम या ऐप की .exe चुनें। लॉन्चर चुनने पर उससे शुरू होने वाले प्रोग्राम शामिल नहीं होते।"
 
 msgid "select_windows_executable"
 msgstr "इस कंप्यूटर पर Lantern के अलावा किसी ऐप की .exe फ़ाइल चुनें।"

@@ -47,6 +47,11 @@ on:
         required: false
         type: string
         default: ""
+      results_name:
+        description: "Suffix for the results dir and artifact, so callers in one run don't collide"
+        required: false
+        type: string
+        default: ""
     secrets:
       FIREBASE_SERVICE_ACCOUNT:
         required: true
@@ -74,7 +79,7 @@ jobs:
     env:
       AUTH_SMOKE_CREDENTIALS_AVAILABLE: ${{ secrets.AUTH_SMOKE_CREDENTIALS != '' }}
       FTL_RESULTS_BUCKET: lantern-android-ftl-results
-      FTL_RESULTS_DIR: ftl-${{ github.run_id }}-${{ github.run_attempt }}
+      FTL_RESULTS_DIR: ftl-${{ github.run_id }}-${{ github.run_attempt }}${{ inputs.results_name && format('-{0}', inputs.results_name) || '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -147,10 +152,16 @@ jobs:
         shell: bash
         env:
           ANDROID_INTEGRATION_TARGET: ${{ inputs.test_target || 'integration_test/android_all_e2e_test.dart' }}
+          INSTRUMENTATION_ARGS: ${{ inputs.instrumentation_args }}
           FTL_DEVICES: ${{ inputs.devices }}
         run: |
           set -euo pipefail
-          if [[ ! "$ANDROID_INTEGRATION_TARGET" =~ ^integration_test/[A-Za-z0-9_./-]+_test\.dart$ ]] ||
+          # The native capture test controls the VPN itself; a Dart test entry
+          # point would start a second test concurrently in the target app.
+          if [[ "$ANDROID_INTEGRATION_TARGET" == 'lib/main.dart' &&
+                "$INSTRUMENTATION_ARGS" == 'class=org.getlantern.lantern.SplitTunnelCaptureTest' ]]; then
+            :
+          elif [[ ! "$ANDROID_INTEGRATION_TARGET" =~ ^integration_test/[A-Za-z0-9_./-]+_test\.dart$ ]] ||
              [[ "$ANDROID_INTEGRATION_TARGET" == *".."* ]] ||
              [[ ! -f "$ANDROID_INTEGRATION_TARGET" ]]; then
             echo "::error::Invalid Android integration-test target: $ANDROID_INTEGRATION_TARGET"
@@ -340,7 +351,7 @@ jobs:
         if: always() && steps.ftl.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
-          name: ftl-results-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ftl-results-${{ github.run_id }}-${{ github.run_attempt }}${{ inputs.results_name && format('-{0}', inputs.results_name) || '' }}
           path: |
             ftl-results/
             ftl-output.log

@@ -307,17 +307,11 @@ msgstr "Automatic mode"
 msgid "manual"
 msgstr "Manual"
 
-msgid "enter_url_or_ip"
-msgstr "Enter URL or IP Address"
-
 msgid "installed_apps"
 msgstr "Installed Apps"
 
 msgid "add_executable"
-msgstr "Add executable"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Choose the actual game or app .exe to bypass the VPN. Selecting a launcher does not include programs it starts."
+msgstr "Add .exe"
 
 msgid "select_windows_executable"
 msgstr "Select an app's .exe file, other than Lantern, on this computer."
@@ -333,9 +327,6 @@ msgstr "Search Websites"
 
 msgid "mode"
 msgstr "Mode"
-
-msgid "use_commas"
-msgstr "Use commas to separate multiple URLs"
 
 msgid "deep_link_expired"
 msgstr "This link has expired. Please request a new one."
@@ -1368,9 +1359,6 @@ msgstr "All traffic through VPN"
 msgid "smart_routing_description"
 msgstr "Smart Routing uses region-specific rules to automatically send traffic that needs the VPN through Lantern. All other traffic goes direct for speed and reliability."
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Add apps & websites to bypass the VPN"
-
 msgid "lantern_pro_license_applied"
 msgstr "Your Lantern Pro License will be applied to your existing account"
 
@@ -1900,6 +1888,84 @@ msgstr "Direct connection unavailable: %s"
 
 msgid "view_advanced_stats"
 msgstr "View advanced stats"
+
+msgid "split_tunnel_off"
+msgstr "Off"
+
+msgid "split_tunnel_bypass"
+msgstr "Bypass"
+
+msgid "split_tunnel_include_only"
+msgstr "Include only"
+
+msgid "split_tunnel_description"
+msgstr "Choose how apps and websites connect"
+
+msgid "split_tunnel_mode"
+msgstr "Split tunnel mode:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Selected apps and sites skip Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "Only selected apps and sites use Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "Switch to Include only?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Switch to Bypass?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Only the apps and sites on your Include only lists will use Lantern. Everything else, including your browser, will connect directly without protection. While those lists are empty, everything uses Lantern. Your Bypass lists are kept for when you switch back."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "The apps and sites on your Bypass lists will connect directly. Everything else will use Lantern. Your Include only lists are kept for when you switch back."
+
+msgid "split_tunnel_switch"
+msgstr "Switch"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 App"
+
+msgid "split_tunnel_app_count"
+msgstr "%d Apps"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 Site"
+
+msgid "split_tunnel_site_count"
+msgstr "%d Sites"
+
+msgid "apps_using_vpn"
+msgstr "Apps using the VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "Websites using the VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Could not load split tunneling. Please try again."
+
+msgid "split_tunnel_update_failed"
+msgstr "Could not update split tunneling. Please try again."
+
+msgid "split_tunnel_unavailable"
+msgstr "Unavailable"
+
+msgid "split_tunnel_enter_website"
+msgstr "Enter a website or URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "Enter URL or *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Add *.ir to match every .ir site at once. Works for *.cn, *.ru, etc. Separate multiple sites with commas."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Enter a valid website or URL. Wildcards must start with *. and IP addresses are not supported."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s is already added."
 
 msgid "error_occurred"
 msgstr "An error occurred. Please try again."

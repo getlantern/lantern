@@ -331,9 +331,6 @@ msgstr "اتوماتیک حالت"
 msgid "manual"
 msgstr "لاسي"
 
-msgid "enter_url_or_ip"
-msgstr "URL یا IP پته دننه کړئ"
-
 msgid "installed_apps"
 msgstr "نصب شوي اپلیکیشنونه"
 
@@ -345,9 +342,6 @@ msgstr "ویب سایټونه ولټوئ"
 
 msgid "mode"
 msgstr "حالت"
-
-msgid "use_commas"
-msgstr "د ډیرو URLونو د جلا کولو لپاره کاما وکاروئ"
 
 msgid "deep_link_expired"
 msgstr "د دې لینک مهلت پای ته رسیدلې ده. مهرباني وکړئ نوی یو غوښتنه وکړئ."
@@ -1442,9 +1436,6 @@ msgstr ""
 "په اوتومات ډول د Lantern له لارې واستوي. نور ترافیک د چټکتیا او اعتبار لپاره"
 " مستقیم ځي."
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "د VPN څخه د تیریدو لپاره اپلیکیشنونه او ویبپاڼې اضافه کړئ"
-
 msgid "lantern_pro_license_applied"
 msgstr "ستاسو د Lantern Pro جواز به ستاسو موجوده حساب ته تطبیق شي"
 
@@ -2283,9 +2274,6 @@ msgstr "زه په Lantern کې ستاسو شخصي پراکسي کېدای شم�
 
 msgid "add_executable"
 msgstr "اجرايي فایل اضافه کړئ"
-
-msgid "windows_executable_bypass_hint"
-msgstr "د VPN څخه د تېرېدو لپاره د لوبې یا اپ اصلي .exe وټاکئ. د لانچر ټاکل هغه پروګرامونه نه شاملوي چې دا یې پیلوي."
 
 msgid "select_windows_executable"
 msgstr "پر دې کمپیوټر د Lantern پرته د یوې اپ .exe فایل وټاکئ."

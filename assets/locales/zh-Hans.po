@@ -319,9 +319,6 @@ msgstr "自动模式"
 msgid "manual"
 msgstr "手动"
 
-msgid "enter_url_or_ip"
-msgstr "输入 URL 或 IP 地址"
-
 msgid "installed_apps"
 msgstr "已安装的应用"
 
@@ -333,9 +330,6 @@ msgstr "搜索网站"
 
 msgid "mode"
 msgstr "模式"
-
-msgid "use_commas"
-msgstr "使用逗号分隔多个 URL"
 
 msgid "deep_link_expired"
 msgstr "此链接已过期，请重新获取。"
@@ -1315,9 +1309,6 @@ msgstr "所有流量通过 VPN"
 msgid "smart_routing_description"
 msgstr "智能路由使用特定地区的规则，自动将需要 VPN 的流量通过蓝灯发送。所有其他流量直连以提高速度和可靠性。"
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "添加应用和网站以绕过 VPN"
-
 msgid "lantern_pro_license_applied"
 msgstr "您的蓝灯 Pro 许可证将应用于您的现有账户"
 
@@ -2110,9 +2101,6 @@ msgstr "我可以在蓝灯上做您的个人代理，让您通过我的连接上
 
 msgid "add_executable"
 msgstr "添加可执行文件"
-
-msgid "windows_executable_bypass_hint"
-msgstr "选择游戏或应用本身的 .exe 以绕过 VPN。选择启动器不会包含它启动的程序。"
 
 msgid "select_windows_executable"
 msgstr "选择此电脑上除 Lantern 以外的应用的 .exe 文件。"

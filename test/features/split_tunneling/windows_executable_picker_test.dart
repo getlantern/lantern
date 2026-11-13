@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/common/common.dart' show AppTheme, SecondaryButton;
+import 'package:lantern/core/common/common.dart' show AppTheme, AppTextButton;
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -29,7 +29,10 @@ class _Apps extends SplitTunnelingApps {
   }
 
   @override
-  Future<void> toggleApp(AppData app) async => toggled.add(app);
+  Future<Failure?> toggleApp(AppData app) async {
+    toggled.add(app);
+    return failure;
+  }
 }
 
 class _Storage implements LocalStorageService {
@@ -91,6 +94,8 @@ Future<void> _pumpPicker(
 
 void main() {
   const button = ValueKey('add-windows-executable');
+  bool pickerEnabled(WidgetTester tester) =>
+      tester.widget<AppTextButton>(find.byKey(button)).onPressed != null;
   late _Storage storage;
 
   setUp(() async {
@@ -104,6 +109,26 @@ void main() {
   Finder dialogAction(String label) =>
       find.descendant(of: find.byType(AlertDialog), matching: find.text(label));
 
+  testWidgets('Include only adds browsers without a bypass warning', (
+    tester,
+  ) async {
+    storage.seen = false;
+    final apps = _Apps();
+    await _pumpPicker(tester, apps, () async => null);
+    final context = tester.element(find.byType(WindowsExecutablePicker));
+    const app = AppData(name: 'Browser', bundleId: 'browser', isBrowser: true);
+    await const AppsSplitTunneling().onTapAddApp(
+      context,
+      apps,
+      app,
+      bypass: false,
+    );
+    await tester.pumpAndSettle();
+    expect(apps.toggled, [app]);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(storage.confirmations, 0);
+  });
+
   testWidgets('cancellation changes nothing and re-enables the picker', (
     tester,
   ) async {
@@ -112,12 +137,12 @@ void main() {
     await _pumpPicker(tester, apps, () => selected.future);
     await tester.tap(find.byKey(button));
     await tester.pump();
-    expect(tester.widget<SecondaryButton>(find.byKey(button)).enabled, isFalse);
+    expect(pickerEnabled(tester), isFalse);
 
     selected.complete(null);
     await tester.pumpAndSettle();
     expect(apps.added, isEmpty);
-    expect(tester.widget<SecondaryButton>(find.byKey(button)).enabled, isTrue);
+    expect(pickerEnabled(tester), isTrue);
   });
 
   testWidgets('adds the selected executable exactly once', (tester) async {
@@ -145,7 +170,7 @@ void main() {
     await tester.tap(find.byKey(button));
     await tester.pumpAndSettle();
     expect(find.text('Try again'), findsOneWidget);
-    expect(tester.widget<SecondaryButton>(find.byKey(button)).enabled, isTrue);
+    expect(pickerEnabled(tester), isTrue);
   });
 
   testWidgets('picker exceptions are reported without adding a rule', (
@@ -234,10 +259,7 @@ void main() {
           await tester.pumpAndSettle();
           expect(apps.added, isEmpty);
           expect(storage.confirmations, 0);
-          expect(
-            tester.widget<SecondaryButton>(find.byKey(button)).enabled,
-            isFalse,
-          );
+          expect(pickerEnabled(tester), isFalse);
           expect(
             find.text(
               browser
@@ -253,10 +275,7 @@ void main() {
           expect(apps.added, confirm ? [path] : isEmpty);
           expect(storage.confirmations, confirm && !browser ? 1 : 0);
           expect(find.byType(AlertDialog), findsNothing);
-          expect(
-            tester.widget<SecondaryButton>(find.byKey(button)).enabled,
-            isTrue,
-          );
+          expect(pickerEnabled(tester), isTrue);
         },
       );
     }
@@ -353,10 +372,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(apps.added, isEmpty);
       expect(find.byType(AlertDialog), findsNothing);
-      expect(
-        tester.widget<SecondaryButton>(find.byKey(button)).enabled,
-        isFalse,
-      );
+      expect(pickerEnabled(tester), isFalse);
 
       catalog.complete(const [
         AppData(name: 'Browser', bundleId: '', appPath: path, isBrowser: true),
@@ -367,10 +383,7 @@ void main() {
       await tester.tap(dialogAction('cancel'));
       await tester.pumpAndSettle();
       expect(apps.added, isEmpty);
-      expect(
-        tester.widget<SecondaryButton>(find.byKey(button)).enabled,
-        isTrue,
-      );
+      expect(pickerEnabled(tester), isTrue);
     },
   );
 
@@ -391,7 +404,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(apps.added, isEmpty);
     expect(find.text('unable_to_add_executable'), findsOneWidget);
-    expect(tester.widget<SecondaryButton>(find.byKey(button)).enabled, isTrue);
+    expect(pickerEnabled(tester), isTrue);
     expect(tester.takeException(), isNull);
   });
 
@@ -466,7 +479,7 @@ void main() {
     expect(apps.added, isEmpty);
     expect(storage.seen, isFalse);
     expect(storage.confirmations, 0);
-    expect(tester.widget<SecondaryButton>(find.byKey(button)).enabled, isTrue);
+    expect(pickerEnabled(tester), isTrue);
   });
 
   testWidgets('disposing after confirmation does not add a rule', (

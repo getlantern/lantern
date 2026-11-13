@@ -328,9 +328,6 @@ msgstr "Awtomatik tertip"
 msgid "manual"
 msgstr "El bilen"
 
-msgid "enter_url_or_ip"
-msgstr "URL ýa-da IP salgy giriziň"
-
 msgid "installed_apps"
 msgstr "Gurlan programmalar"
 
@@ -342,9 +339,6 @@ msgstr "Web saýtlary gözle"
 
 msgid "mode"
 msgstr "Tertip"
-
-msgid "use_commas"
-msgstr "Birnäçe URL-leri bölmek üçin vergül ulanyň"
 
 msgid "deep_link_expired"
 msgstr "Bu baglanyşygyň möhleti gutardy. Täzesini haýyş ediň."
@@ -1402,9 +1396,6 @@ msgstr ""
 "trafigi Lantern arkaly awtomatiki ugradýar. Beýleki trafikleriň hemmesi "
 "tizlik we ygtybarlylyk üçin göni gidýär."
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "VPN-dan aýlanyp geçmek üçin programmalar we web sahypalar goşuň"
-
 msgid "lantern_pro_license_applied"
 msgstr "Lantern Pro ygtyýarnamaňyz bar bolan hasabyňyza ulanylar"
 
@@ -2244,9 +2235,6 @@ msgstr "Men Lantern-de siziň şahsy proksiňiz bolup bilerin, şonda siz meniň
 
 msgid "add_executable"
 msgstr "Ýerine ýetiriji faýl goş"
-
-msgid "windows_executable_bypass_hint"
-msgstr "VPN-i aýlanyp geçmek üçin oýnuň ýa-da programmanyň hakyky .exe faýlyny saýlaň. Işe giriziji saýlansa, onuň açýan programmalary goşulmaýar."
 
 msgid "select_windows_executable"
 msgstr "Bu kompýuterde Lantern-den başga bir programmanyň .exe faýlyny saýlaň."

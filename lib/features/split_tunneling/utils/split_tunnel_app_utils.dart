@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:lantern/core/common/app_secrets.dart';
+import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:path/path.dart' as p;
 
 String stableAppId(AppData app) {
@@ -10,6 +12,71 @@ String stableAppId(AppData app) {
   }
   return app.bundleId;
 }
+
+class StoredSplitTunnelApp extends AppData {
+  StoredSplitTunnelApp(this.selectorType, this.selector, AppData metadata)
+    : super(
+        name: metadata.name,
+        bundleId: metadata.bundleId,
+        appPath: metadata.appPath,
+        iconPath: metadata.iconPath,
+        iconBytes: metadata.iconBytes,
+        isBrowser: metadata.isBrowser,
+        wrappedBundle: metadata.wrappedBundle,
+        isEnabled: true,
+      );
+
+  final SplitTunnelFilterType selectorType;
+  final String selector;
+}
+
+String splitTunnelAppRowId(AppData app) => app is StoredSplitTunnelApp
+    ? '${app.selectorType.value}:${app.selector}'
+    : normalizedAppId(app);
+
+List<AppData> storedSplitTunnelApps(
+  SplitTunnelState snapshot,
+  Iterable<AppData> installed,
+) {
+  final result = <AppData>[];
+  for (final type in SplitTunnelState.appTypes) {
+    final selectors = snapshot.appSelectors(type);
+    if (selectors.isEmpty) continue;
+    final bySelector = <String, AppData>{};
+    for (final app in installed) {
+      final selector = _appSelector(type, app);
+      bySelector[selector] = pickPreferredAppEntry(bySelector[selector], app);
+    }
+    for (final selector in selectors) {
+      final key =
+          type == SplitTunnelFilterType.processPath && Platform.isWindows
+          ? windowsAppPathId(selector)
+          : selector;
+      var metadata = bySelector[key];
+      final name = selector
+          .replaceFirst(RegExp(r'/Contents/\.\*$'), '')
+          .split(RegExp(r'[\\/]+'))
+          .last;
+      metadata ??= AppData(
+        name: name.isEmpty ? selector : name,
+        bundleId: type == SplitTunnelFilterType.packageName ? selector : '',
+        appPath: type == SplitTunnelFilterType.packageName ? '' : selector,
+      );
+      result.add(StoredSplitTunnelApp(type, selector, metadata));
+    }
+  }
+  return result
+    ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+}
+
+// What a saved selector of [type] looks like for [app].
+String _appSelector(SplitTunnelFilterType type, AppData app) => switch (type) {
+  SplitTunnelFilterType.packageName => app.bundleId,
+  SplitTunnelFilterType.processPath =>
+    Platform.isWindows ? windowsAppPathId(app.appPath) : app.appPath,
+  SplitTunnelFilterType.processPathRegex => macOSSplitTunnelRule(app),
+  _ => app.appPath.split(RegExp(r'[\\/]+')).last,
+};
 
 String normalizedAppId(AppData app) {
   final id = stableAppId(app).trim();
@@ -31,28 +98,16 @@ bool isWindowsExecutablePath(String path) =>
     !RegExp(r'[\x00-\x1f:<>"|?*]').hasMatch(path.substring(2)) &&
     p.windows.extension(path).toLowerCase() == '.exe';
 
-/// Keep saved executable rules visible even when app discovery misses them.
-List<AppData> windowsEnabledApps(
-  Iterable<AppData> installed,
-  Iterable<String> paths,
-) {
-  final byPath = <String, AppData>{};
+AppData windowsExecutableApp(String path, Iterable<AppData> installed) {
+  final id = windowsAppPathId(path);
+  AppData? metadata;
   for (final app in installed) {
-    if (app.appPath.trim().isEmpty) continue;
-    final id = windowsAppPathId(app.appPath);
-    byPath[id] = pickPreferredAppEntry(byPath[id], app);
+    if (windowsAppPathId(app.appPath) == id) {
+      metadata = pickPreferredAppEntry(metadata, app);
+    }
   }
-  final enabled = <String, AppData>{};
-  for (final path in paths) {
-    if (path.trim().isEmpty) continue;
-    final id = windowsAppPathId(path);
-    final app =
-        byPath[id] ??
-        AppData(name: p.windows.basename(path), bundleId: '', appPath: path);
-    // Use the stored path for removal, including any native normalization.
-    enabled[id] = app.copyWith(appPath: path, isEnabled: true);
-  }
-  return enabled.values.toList()..sort(_compareAppsByDisplayName);
+  return metadata ??
+      AppData(name: p.windows.basename(path), bundleId: '', appPath: path);
 }
 
 bool isLanternApp(AppData app) {
@@ -148,12 +203,22 @@ int _compareAppsByDisplayName(AppData a, AppData b) {
 /// `.../Wrapper/<Inner>.app/<Inner>` from there, so the bundle path never
 /// appears in the process path. The `/Wrapper/<Inner>.app/` segment is the
 /// stable part, so that is what we match.
+///
+/// Safari's requests are sent by the system WebKit networking process, which
+/// runs outside Safari.app, so its rule covers that process too. Web views in
+/// other apps use the same process and follow Safari's rule.
 String macOSSplitTunnelRule(AppData app) {
   if (app.wrappedBundle.isNotEmpty) {
     return '/Wrapper/${RegExp.escape(app.wrappedBundle)}/.*';
   }
-  return '${app.appPath}/Contents/.*';
+  final bundle = '${app.appPath}/Contents/.*';
+  return app.bundleId == 'com.apple.Safari'
+      ? '$_webKitNetworking/Contents/.*|$bundle'
+      : bundle;
 }
+
+const _webKitNetworking =
+    r'/System/Library/Frameworks/WebKit\.framework/.*/com\.apple\.WebKit\.Networking\.xpc';
 
 /// Bucket used by the alphabet index for names that do not start with A-Z.
 const otherAppsIndexLetter = '#';

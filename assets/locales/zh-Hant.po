@@ -321,9 +321,6 @@ msgstr "自動模式"
 msgid "manual"
 msgstr "手動"
 
-msgid "enter_url_or_ip"
-msgstr "輸入網址或 IP 位址"
-
 msgid "installed_apps"
 msgstr "已安裝的應用程式"
 
@@ -335,9 +332,6 @@ msgstr "搜尋網站"
 
 msgid "mode"
 msgstr "模式"
-
-msgid "use_commas"
-msgstr "使用逗號分隔多個網址"
 
 msgid "deep_link_expired"
 msgstr "此連結已過期，請重新取得。"
@@ -1318,9 +1312,6 @@ msgstr "所有流量透過 VPN"
 msgid "smart_routing_description"
 msgstr "智慧路由使用特定地區的規則，自動將需要 VPN 的流量透過 Lantern 傳送。所有其他流量直連以提高速度和可靠性。"
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "新增應用程式和網站以繞過 VPN"
-
 msgid "lantern_pro_license_applied"
 msgstr "您的 Lantern Pro 授權將套用於您的現有帳戶"
 
@@ -2115,9 +2106,6 @@ msgstr "我可以在 Lantern 上當你的個人代理，讓你透過我的連線
 
 msgid "add_executable"
 msgstr "新增執行檔"
-
-msgid "windows_executable_bypass_hint"
-msgstr "選擇遊戲或應用程式本身的 .exe 以略過 VPN。選擇啟動器不會包含它所啟動的程式。"
 
 msgid "select_windows_executable"
 msgstr "選擇這台電腦上 Lantern 以外應用程式的 .exe 檔案。"

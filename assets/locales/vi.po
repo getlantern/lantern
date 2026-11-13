@@ -336,9 +336,6 @@ msgstr "Chế độ tự động"
 msgid "manual"
 msgstr "Thủ công"
 
-msgid "enter_url_or_ip"
-msgstr "Nhập URL hoặc địa chỉ IP"
-
 msgid "installed_apps"
 msgstr "Ứng dụng đã cài đặt"
 
@@ -350,9 +347,6 @@ msgstr "Tìm kiếm trang web"
 
 msgid "mode"
 msgstr "Chế độ"
-
-msgid "use_commas"
-msgstr "Sử dụng dấu phẩy để phân tách nhiều URL"
 
 msgid "deep_link_expired"
 msgstr "Liên kết này đã hết hạn. Vui lòng yêu cầu liên kết mới."
@@ -1419,9 +1413,6 @@ msgstr ""
 " lưu lượng cần VPN qua Lantern. Tất cả lưu lượng khác sẽ kết nối trực tiếp "
 "để có tốc độ và độ tin cậy cao hơn."
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Thêm ứng dụng và trang web để bỏ qua VPN"
-
 msgid "lantern_pro_license_applied"
 msgstr ""
 "Giấy phép Lantern Pro của bạn sẽ được áp dụng cho tài khoản hiện có của bạn"
@@ -2262,9 +2253,6 @@ msgstr "Mình có thể làm proxy cá nhân của bạn trên Lantern để b�
 
 msgid "add_executable"
 msgstr "Thêm tệp thực thi"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Chọn đúng tệp .exe của trò chơi hoặc ứng dụng để bỏ qua VPN. Chọn trình khởi chạy sẽ không bao gồm các chương trình mà nó mở."
 
 msgid "select_windows_executable"
 msgstr "Chọn tệp .exe của một ứng dụng trên máy tính này, ngoài Lantern."

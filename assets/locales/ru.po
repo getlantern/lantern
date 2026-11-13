@@ -342,9 +342,6 @@ msgstr "Автоматический режим"
 msgid "manual"
 msgstr "Вручную"
 
-msgid "enter_url_or_ip"
-msgstr "Введите URL или IP-адрес"
-
 msgid "installed_apps"
 msgstr "Установленные приложения"
 
@@ -356,9 +353,6 @@ msgstr "Поиск сайтов"
 
 msgid "mode"
 msgstr "Режим"
-
-msgid "use_commas"
-msgstr "Используйте запятые для разделения нескольких URL"
 
 msgid "deep_link_expired"
 msgstr "Срок действия этой ссылки истёк. Пожалуйста, запросите новую."
@@ -1433,9 +1427,6 @@ msgstr ""
 "автоматически направлять трафик, требующий VPN, через Lantern. Весь "
 "остальной трафик идёт напрямую для обеспечения скорости и надёжности."
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Добавить приложения и сайты для обхода VPN"
-
 msgid "lantern_pro_license_applied"
 msgstr ""
 "Ваша лицензия Lantern Pro будет применена к вашему существующему аккаунту"
@@ -2274,9 +2265,6 @@ msgstr "Я могу стать вашим личным прокси в Lantern, 
 
 msgid "add_executable"
 msgstr "Добавить исполняемый файл"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Выберите сам .exe игры или приложения, чтобы обойти VPN. Выбор лаунчера не распространяется на запускаемые им программы."
 
 msgid "select_windows_executable"
 msgstr "Выберите файл .exe приложения на этом компьютере, кроме Lantern."

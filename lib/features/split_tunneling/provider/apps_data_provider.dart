@@ -5,9 +5,5 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'apps_data_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-Stream<List<AppData>> appsData(Ref ref) async* {
-  final lanternService = ref.watch(lanternServiceProvider);
-  await for (final apps in lanternService.appsDataStream()) {
-    yield apps;
-  }
-}
+Stream<List<AppData>> appsData(Ref ref) =>
+    ref.watch(lanternServiceProvider).appsDataStream();

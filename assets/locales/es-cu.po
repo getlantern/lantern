@@ -340,9 +340,6 @@ msgstr "Modo automático"
 msgid "manual"
 msgstr "Manual"
 
-msgid "enter_url_or_ip"
-msgstr "Ingresar URL o Dirección IP"
-
 msgid "installed_apps"
 msgstr "Aplicaciones Instaladas"
 
@@ -354,9 +351,6 @@ msgstr "Buscar Sitios Web"
 
 msgid "mode"
 msgstr "Modo"
-
-msgid "use_commas"
-msgstr "Usa comas para separar múltiples URLs"
 
 msgid "deep_link_expired"
 msgstr "Este enlace ha expirado. Por favor, solicita uno nuevo."
@@ -1425,9 +1419,6 @@ msgstr ""
 "automáticamente el tráfico que necesita la VPN a través de Lantern. Todo el "
 "demás tráfico va directo para mayor velocidad y confiabilidad."
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Agrega apps y sitios web para omitir la VPN"
-
 msgid "lantern_pro_license_applied"
 msgstr "Tu licencia de Lantern Pro se aplicará a tu cuenta existente"
 
@@ -2272,9 +2263,6 @@ msgstr "Puedo ser tu proxy personal en Lantern para que navegues a través de mi
 
 msgid "add_executable"
 msgstr "Agregar ejecutable"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Escoge el .exe del juego o la aplicación en sí para que no pase por la VPN. Si seleccionas un lanzador, no se incluyen los programas que abre."
 
 msgid "select_windows_executable"
 msgstr "Selecciona el archivo .exe de una aplicación de esta computadora, que no sea Lantern."

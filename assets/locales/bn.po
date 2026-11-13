@@ -332,9 +332,6 @@ msgstr "স্বয়ংক্রিয় মোড"
 msgid "manual"
 msgstr "ম্যানুয়াল"
 
-msgid "enter_url_or_ip"
-msgstr "URL বা IP ঠিকানা লিখুন"
-
 msgid "installed_apps"
 msgstr "ইনস্টল করা অ্যাপস"
 
@@ -346,9 +343,6 @@ msgstr "ওয়েবসাইট খুঁজুন"
 
 msgid "mode"
 msgstr "মোড"
-
-msgid "use_commas"
-msgstr "একাধিক URL আলাদা করতে কমা ব্যবহার করুন"
 
 msgid "deep_link_expired"
 msgstr ""
@@ -1415,9 +1409,6 @@ msgstr ""
 "প্রয়োজন এমন ট্রাফিক Lantern-এর মাধ্যমে পাঠায়। অন্যান্য সমস্ত ট্রাফিক গতি "
 "এবং নির্ভরযোগ্যতার জন্য সরাসরি যায়।"
 
-msgid "add_apps_websites_bypass_vpn"
-msgstr "VPN বাইপাস করতে অ্যাপ এবং ওয়েবসাইট যোগ করুন"
-
 msgid "lantern_pro_license_applied"
 msgstr "আপনার Lantern Pro লাইসেন্স আপনার বর্তমান অ্যাকাউন্টে প্রয়োগ করা হবে"
 
@@ -2258,9 +2249,6 @@ msgstr "আমি Lantern-এ আপনার ব্যক্তিগত প্
 
 msgid "add_executable"
 msgstr "এক্সিকিউটেবল যোগ করুন"
-
-msgid "windows_executable_bypass_hint"
-msgstr "ভিপিএন বাইপাস করতে আসল গেম বা অ্যাপের .exe বেছে নিন। লঞ্চার নির্বাচন করলে সেটি যেসব প্রোগ্রাম চালু করে সেগুলো অন্তর্ভুক্ত হয় না।"
 
 msgid "select_windows_executable"
 msgstr "এই কম্পিউটারে Lantern ছাড়া অন্য কোনো অ্যাপের .exe ফাইল নির্বাচন করুন।"
