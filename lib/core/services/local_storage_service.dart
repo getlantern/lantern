@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/developer_mode.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A wrapper around [SharedPreferencesWithCache].
@@ -24,9 +27,32 @@ class LocalStorageService {
   static const _seenBypassAppDialogKey = 'seen_bypass_app_dialog';
   static const _seenBypassWebsiteDialogKey = 'seen_bypass_website_dialog';
 
+  LocalStorageService({Future<Directory> Function()? supportDir})
+      : _supportDir = supportDir ?? getApplicationSupportDirectory;
+
+  final Future<Directory> Function() _supportDir;
+
   Future<void> init() async {
-    _prefs = await SharedPreferencesWithCache.create(
-        cacheOptions: SharedPreferencesWithCacheOptions());
+    try {
+      _prefs = await _create();
+    } on FormatException catch (e, st) {
+      // Linux and Windows keep prefs in one JSON file and throw if it
+      // doesn't parse. Start over with defaults rather than fail to launch.
+      appLogger.error('Stored preferences are corrupted, resetting', e, st);
+      await _setAsideCorruptPrefs();
+      _prefs = await _create();
+    }
+  }
+
+  Future<SharedPreferencesWithCache> _create() =>
+      SharedPreferencesWithCache.create(
+          cacheOptions: SharedPreferencesWithCacheOptions());
+
+  Future<void> _setAsideCorruptPrefs() async {
+    final dir = await _supportDir();
+    final file = File(p.join(dir.path, 'shared_preferences.json'));
+    if (!file.existsSync()) return;
+    await file.rename('${file.path}.corrupt');
   }
 
   // ── AppSetting ────────────────────────────────────────────────────────────
