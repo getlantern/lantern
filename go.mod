@@ -38,7 +38,7 @@ require (
 	github.com/getlantern/common v1.2.1-0.20261110195018-962f63413c3f
 	github.com/getlantern/lantern-box v0.0.228
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261113161957-66f7bc992a6c
+	github.com/getlantern/radiance v0.0.0-20261113215920-8a67f589c71c
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
