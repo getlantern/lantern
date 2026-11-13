@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math' show min;
+import 'dart:math' show max, min;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -227,18 +227,45 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
           // The package positions the sphere relative to MediaQuery.size, so
           // override it with this slot's size to keep the sphere centred.
           final widgetSize = Size(constraints.maxWidth, constraints.maxHeight);
-          // ~66% of the slot's width, clamped by height so a short slot still
-          // leaves room for arcs above and the toast below.
+          // Room kept above the sphere for its glow, which the scroll view
+          // would otherwise cut at its top edge, and below it for the status
+          // pill, which sits at the slot's bottom.
+          const glowRoom = 40.0;
+          const pillRoom = 52.0;
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+          // ~66% of the slot's width, clamped by height so the sphere fits
+          // between the glow room and the pill. A short slot, which scrolls
+          // anyway, keeps a sphere worth seeing and lets the pill overlap it.
+          final free = height - glowRoom - pillRoom;
           final radius = min(
-            constraints.maxWidth * 0.33,
-            constraints.maxHeight * 0.42,
+            width * 0.33,
+            max(0.0, max(free / 2, (height - glowRoom) * 0.3)),
+          );
+          // The sphere's centre: a little above the slot's middle, kept clear
+          // of the glow room first and of the pill where there is room.
+          final highest = glowRoom + radius;
+          final lowest = height - pillRoom - radius;
+          final centre = lowest >= highest
+              ? (height * 0.45).clamp(highest, lowest)
+              : highest;
+          // The package offsets the sphere from the slot's centre by this
+          // share of the slot's half height.
+          final alignment = Alignment(
+            0,
+            height > 0
+                ? ((centre - height / 2) / (height / 2)).clamp(-1.0, 1.0)
+                : 0,
           );
           return Stack(
+            // The glow reaches past the slot's sides on a narrow window.
+            clipBehavior: Clip.none,
             children: [
               // Shadow sits outside the ClipRect below, which would crop its
               // blur.
-              Align(
-                alignment: const Alignment(0.0, -0.1),
+              Positioned(
+                top: centre - radius,
+                left: width / 2 - radius,
                 child: Container(
                   width: radius * 2,
                   height: radius * 2,
@@ -274,7 +301,7 @@ class _ActionModeGlobeState extends ConsumerState<ActionModeGlobe>
                     child: FlutterEarthGlobe(
                       controller: _globeController,
                       radius: radius,
-                      alignment: const Alignment(0.0, -0.1),
+                      alignment: alignment,
                     ),
                   ),
                 ),

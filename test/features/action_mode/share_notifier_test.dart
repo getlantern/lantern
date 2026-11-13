@@ -404,6 +404,48 @@ void main() {
       expect(service.calls, isEmpty);
     });
 
+    testWidgets('a start tied to Auto-enable, held back for the country, is '
+        'dropped once the box is unchecked', (tester) async {
+      CountryCode.update('');
+      _appSetting = const AppSetting(unboundedAutoEnable: true);
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref, requireAutoEnable: true);
+      expect(service.calls, isEmpty);
+      (ref.read(appSettingProvider.notifier) as _Settings).set(
+        const AppSetting(unboundedAutoEnable: false),
+      );
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty);
+      expect(notifier.state.probing, isFalse);
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('a start tied to Auto-enable, held back for the country, runs '
+        'once it is known while the box stays checked', (tester) async {
+      CountryCode.update('');
+      _appSetting = const AppSetting(unboundedAutoEnable: true);
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref, requireAutoEnable: true);
+      expect(service.calls, isEmpty);
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+    });
+
+    testWidgets('a start never tied to Auto-enable still runs on retry with '
+        'the box unchecked', (tester) async {
+      CountryCode.update('');
+      _appSetting = const AppSetting(unboundedAutoEnable: false);
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      // A later tied request does not tie the start already waiting.
+      await notifier.startForHelper(ref, requireAutoEnable: true);
+      CountryCode.update('DE');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+    });
+
     testWidgets('a country change alone never starts sharing', (tester) async {
       CountryCode.update('DE');
       final (notifier, ref, service) = await _start(tester);

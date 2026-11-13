@@ -561,7 +561,7 @@ msgid "smc_status_off"
 msgstr "已停用"
 
 msgid "smc_status_configuring"
-msgstr "正在設定網路"
+msgstr "設定中"
 
 msgid "smc_status_error_with_message"
 msgstr "無法分享：%s"
@@ -1856,7 +1856,7 @@ msgid "helper_error_no_pending_claim"
 msgstr "此邀請已處理。"
 
 msgid "helper_error_bad_name"
-msgstr "輸入你的朋友認得的名稱，最多 60 個字元。"
+msgstr "輸入你朋友認得出的名字。"
 
 msgid "helper_error_keystore"
 msgstr "此裝置無法安全儲存名稱，因此已關閉協助朋友功能。在 Linux 上，啟動 GNOME Keyring 等金鑰圈。"
@@ -1866,9 +1866,6 @@ msgstr "此裝置的安全儲存空間已重設，因此無法讀取你的協助
 
 msgid "helper_error_copy"
 msgstr "無法複製連結。可改用「分享連結」。"
-
-msgid "helpers_your_name_label"
-msgstr "你的名字（朋友對你的稱呼）"
 
 msgid "helpers_your_name_hint"
 msgstr "例如：小雅"
@@ -1936,14 +1933,8 @@ msgstr "複製連結"
 msgid "invite_link_copied"
 msgstr "已複製連結"
 
-msgid "invite_qr_hint"
-msgstr "如果對方在你身邊，可以在 Lantern 中掃描此 QR 碼，不必使用連結。"
-
 msgid "invite_waiting"
-msgstr "等待對方開啟連結"
-
-msgid "invite_trust_warning"
-msgstr "你邀請的人會知道你在使用 Lantern，並能看到你何時透過對方連線。你的流量會經過對方的網路連線，因此對方可能得知你造訪了哪些網站，但無法得知你在安全（https）網站上的操作。只邀請你信任的人。"
+msgstr "正在等待朋友開啟連結"
 
 msgid "invite_expires"
 msgstr "%s 小時後到期"
@@ -2029,9 +2020,6 @@ msgstr "%s 分鐘"
 msgid "invite_share_title"
 msgstr "將此連結分享給你信任的國外人士"
 
-msgid "invite_share_steps"
-msgstr "對方開啟連結，必要時安裝 Lantern，然後輸入名字。你核對 4 位數代碼後核准對方，即可透過對方連線。"
-
 msgid "invite_link_label"
 msgstr "你的邀請連結"
 
@@ -2059,9 +2047,6 @@ msgstr "目前無法連線至 %s。已切換至智慧位置。"
 msgid "become_means_title"
 msgstr "擔任個人代理的意義"
 
-msgid "become_means_traffic"
-msgstr "一位朋友向你求助。Action Mode 執行期間，對方可以透過你的連線連上開放網際網路。Lantern 不會向你顯示對方造訪了哪些網站。"
-
 msgid "become_means_seen"
 msgstr "對方可以看到你何時連線。只接受認識的人傳來的邀請。"
 
@@ -2070,9 +2055,6 @@ msgstr "你可以隨時移除此連線。"
 
 msgid "help_friend_form_title"
 msgstr "貼上你所協助的人傳來的連結"
-
-msgid "help_friend_name_label"
-msgstr "朋友所認識的你的名字"
 
 msgid "help_friend_become"
 msgstr "成為朋友的專屬代理"
@@ -2087,7 +2069,7 @@ msgid "help_friend_waiting_approval"
 msgstr "等待核准"
 
 msgid "help_friend_code_note"
-msgstr "透過通話或在收到邀請連結的應用程式以外的其他應用程式中告知代碼。看過連結的人不應同時看到代碼。"
+msgstr "透過通話，或在收到邀請連結的應用程式以外的其他應用程式中告知代碼。除了你的朋友，任何人都不應同時擁有兩者。"
 
 msgid "become_personal_proxy"
 msgstr "成為個人代理"
@@ -2124,12 +2106,6 @@ msgstr "未連線"
 
 msgid "helping_paste_another"
 msgstr "貼上另一個邀請連結"
-
-msgid "helping_data_relayed"
-msgstr "今日中繼資料"
-
-msgid "helping_active_today"
-msgstr "已活躍 %s"
 
 msgid "help_friend_paste_button"
 msgstr "貼上連結"
@@ -2203,9 +2179,6 @@ msgstr "隨時在 Action Mode 分頁中開啟或關閉 Action Mode。"
 msgid "approved_title"
 msgstr "%s 現在是你的個人代理"
 
-msgid "approved_body"
-msgstr "當 %s 上線時，你可以在「伺服器選擇」的「私人位置」中選擇。"
-
 msgid "approved_connect_now"
 msgstr "立即連線"
 
@@ -2217,12 +2190,6 @@ msgstr "你現在是 %s 的個人代理"
 
 msgid "help_friend_success_body"
 msgstr "%s 已核准你。開啟 Action Mode 後，對方可透過你的連線存取開放的網際網路。"
-
-msgid "help_friend_keep_on"
-msgstr "保持 Action Mode 開啟"
-
-msgid "help_friend_keep_on_body"
-msgstr "立即開啟，並在 Lantern 開啟時自動啟用，讓 %s 保持連線。"
 
 msgid "help_friend_no_link_yet"
 msgstr "還沒有連結？"
@@ -2271,3 +2238,60 @@ msgstr "在其他裝置上開啟"
 
 msgid "open_on_another_device_hint"
 msgstr "這台電視沒有網頁瀏覽器。請在手機或電腦上掃描 QR 碼或輸入網址。"
+
+msgid "helpers_name_label"
+msgstr "你的名字"
+
+msgid "helpers_your_name_helper"
+msgstr "朋友平常對你的稱呼"
+
+msgid "manage_empty_my_server_title"
+msgstr "尚無私人伺服器"
+
+msgid "manage_empty_my_server_body"
+msgstr "架設你自己的伺服器，完整掌控你的連線。"
+
+msgid "manage_empty_joined_title"
+msgstr "尚未加入任何伺服器"
+
+msgid "manage_empty_joined_body"
+msgstr "使用你信任的人提供的存取金鑰，加入對方架設的伺服器。"
+
+msgid "manage_empty_proxies_title"
+msgstr "尚無個人代理伺服器"
+
+msgid "manage_empty_proxies_body"
+msgstr "邀請你信任、身在國外的人，直接透過對方連線。"
+
+msgid "invite_share_steps_short"
+msgstr "對方開啟連結並輸入名字。你再用 4 位數代碼核准對方。"
+
+msgid "invite_qr_hint_camera"
+msgstr "如果朋友就在你身邊，可以掃描此 QR 碼，不必使用連結。"
+
+msgid "invite_trust_warning_short"
+msgstr "只邀請你信任的人。"
+
+msgid "invite_trust_learn_more"
+msgstr "瞭解詳情。"
+
+msgid "invite_trust_title"
+msgstr "信任你的個人代理伺服器"
+
+msgid "invite_trust_message_one"
+msgstr "你的網路流量將經過你所邀請之人的連線。對方可以看到你何時連線，也可能看到你造訪了哪些網站。由於大多數網站使用加密的 HTTPS，對方無法看到你開啟的具體頁面或你在頁面上的操作。"
+
+msgid "invite_trust_message_two"
+msgstr "Lantern 不管理或監控個人代理伺服器。只邀請你認識且信任的人。"
+
+msgid "invite_trust_message_three"
+msgstr "你可以隨時在管理私人位置中將其移除。"
+
+msgid "approved_body_locations"
+msgstr "當 %s 上線時，你可以在伺服器位置選單的私人位置中選擇。智慧位置可能會自動使用。"
+
+msgid "become_means_traffic_seen"
+msgstr "有位朋友向你求助。開啟 Action Mode 後，對方會透過你的連線存取開放的網際網路。你可以看到對方造訪了哪些網站，但看不到對方在網站上做了什麼。"
+
+msgid "help_friend_your_name_label"
+msgstr "你的名字"
