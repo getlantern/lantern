@@ -70,12 +70,16 @@ class _Share extends ShareNotifier {
   Future<void> autoStart(WidgetRef widgetRef) async => calls.add('autoStart');
 
   @override
-  Future<void> startForHelper(WidgetRef widgetRef) async =>
-      calls.add('startForHelper');
+  Future<void> startForHelper(
+    WidgetRef widgetRef, {
+    bool requireAutoEnable = false,
+  }) async => calls.add('startForHelper');
 
   @override
-  Future<void> setAutoEnable(BuildContext context, bool enabled) async =>
-      calls.add('setAutoEnable');
+  Future<bool> setAutoEnable(BuildContext context, bool enabled) async {
+    calls.add('setAutoEnable');
+    return enabled;
+  }
 }
 
 /// Records every invite created.

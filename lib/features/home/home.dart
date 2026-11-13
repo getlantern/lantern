@@ -302,8 +302,8 @@ class Home extends HookConsumerWidget {
     // a paired volunteer's widget is turned on server-side (Features[unbounded]).
     // startForHelper holds the start back while this device's country is
     // unknown or censored; a later country-code event retries it. Not while
-    // a HelpFriend screen waits on its claim: its success screen's "Keep
-    // Action Mode on" decides.
+    // a HelpFriend screen waits on its claim: its success dialog's
+    // Auto-enable row decides.
     ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
       prev,
       next,
@@ -332,22 +332,17 @@ class Home extends HookConsumerWidget {
         // bg/surface grey from AppTheme.appBarTheme.
         backgroundColor: context.bgElevated,
         elevation: 5,
+        // The same on both tabs: menu left, title centered, account right.
         leading: IconButton(
           key: const Key('home.menu_button'),
           tooltip: 'settings'.i18n,
           onPressed: () {
             appRouter.push(Setting());
           },
-          // The Action Mode tab's header shows the account icon there.
-          icon: AppImage(
-            path: showUnboundedTab && onUnboundedTab.value
-                ? AppImagePaths.accountCircle
-                : AppImagePaths.menu,
-          ),
+          icon: const AppImage(path: AppImagePaths.menu),
         ),
         actions: [
-          // Not twice on the Action Mode tab, whose menu button has it.
-          if (isUserPro && !(showUnboundedTab && onUnboundedTab.value))
+          if (isUserPro)
             AppIconButton(
               path: AppImagePaths.accountCircle,
               onPressed: () async {
@@ -360,9 +355,8 @@ class Home extends HookConsumerWidget {
                 );
               },
             )
-          // Not for Pro on the Action Mode tab either: a Pro user signs in
-          // through account setup, from the VPN tab's account icon.
-          else if (!userLoggedIn && !isUserPro)
+          // A Pro user signs in through account setup, from the account icon.
+          else if (!userLoggedIn)
             AppTextButton(
               label: 'sign_in'.i18n,
               onPressed: () => appRouter.push(const SignInEmail()),

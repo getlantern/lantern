@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/trust_dialog.dart' as trust;
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 
@@ -189,52 +190,17 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     );
   }
 
-  void showTrustDialog() {
-    final textTheme = Theme.of(context).textTheme;
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 16),
-          AppImage(
-            path: AppImagePaths.security,
-            height: 40,
-            color: context.textPrimary,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'trust_server_operator'.i18n,
-            style: textTheme.headlineMedium,
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'trust_server_operator_message_one'.i18n,
-            style: textTheme.bodyMedium,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'trust_server_operator_message_two'.i18n,
-            style: textTheme.bodyMedium,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'trust_server_operator_message_three'.i18n,
-            style: textTheme.bodyMedium,
-          ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: 'got_it'.i18n,
-          onPressed: () {
-            appRouter.pop();
-          },
-        ),
+  void showTrustDialog() => unawaited(
+    trust.showTrustDialog(
+      context,
+      title: 'trust_server_operator'.i18n,
+      paragraphs: [
+        'trust_server_operator_message_one'.i18n,
+        'trust_server_operator_message_two'.i18n,
+        'trust_server_operator_message_three'.i18n,
       ],
-    );
-  }
+    ),
+  );
 
   Future<void> onJoinServer(String urls, String serverName) async {
     // For invite links the nickname becomes the server tag, so it replaces the

@@ -13,6 +13,7 @@ import 'package:lantern/core/common/common.dart' as routes show HelpFriend;
 import 'package:lantern/core/common/common.dart' as routes_ show HelpFriend;
 import 'package:lantern/core/router/router.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
@@ -22,6 +23,7 @@ import 'package:lantern/features/helpers/helping_friends.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:share_plus/share_plus.dart';
 
 class _Helpers extends HelpersNotifier {
@@ -147,16 +149,44 @@ class _Share extends ShareNotifier {
   _Share({this.active = false});
   final bool active;
   int helperStarts = 0;
+  final startsRequiredAutoEnable = <bool>[];
   final autoEnable = <bool>[];
   @override
   ShareState build() => ShareState(active: active);
   @override
   Future<bool> ensureConsent(BuildContext context) async => true;
+  // As the real one: a start while sharing is up is skipped.
   @override
-  Future<void> startForHelper(WidgetRef widgetRef) async => helperStarts++;
+  Future<void> startForHelper(
+    WidgetRef widgetRef, {
+    bool requireAutoEnable = false,
+  }) async {
+    if (state.active) return;
+    helperStarts++;
+    startsRequiredAutoEnable.add(requireAutoEnable);
+    state = state.copyWith(active: true);
+  }
+
   @override
-  Future<void> setAutoEnable(BuildContext context, bool enabled) async =>
-      autoEnable.add(enabled);
+  Future<bool> setAutoEnable(BuildContext context, bool enabled) async {
+    autoEnable.add(enabled);
+    // As the real one: the setting the checkbox shows follows.
+    ref.read(appSettingProvider.notifier).setUnboundedAutoEnable(enabled);
+    return enabled;
+  }
+}
+
+/// Auto-enable Action Mode off, as for a new volunteer, unless asked.
+class _Settings extends AppSettingNotifier {
+  _Settings({this.autoEnable = false});
+  final bool autoEnable;
+  @override
+  AppSetting build() => AppSetting(unboundedAutoEnable: autoEnable);
+
+  @override
+  void setUnboundedAutoEnable(bool value) {
+    state = state.copyWith(unboundedAutoEnable: value);
+  }
 }
 
 /// Home's approval listener, as in home.dart.
@@ -183,6 +213,7 @@ Future<void> _pump(
   Widget child, {
   bool sharing = false,
   _Share? share,
+  bool autoEnable = false,
 }) async {
   // Tall enough that HelpFriend's whole form, below the "what helping
   // means" card, is built without scrolling.
@@ -190,11 +221,19 @@ Future<void> _pump(
   tester.view.physicalSize = const Size(800, 2000);
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
+  // An approval pops this screen through appRouter.
+  if (!sl.isRegistered<AppRouter>()) {
+    sl.registerSingleton<AppRouter>(_Router());
+    addTearDown(sl.reset);
+  }
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         helpersProvider.overrideWith(() => helpers),
         shareProvider.overrideWith(() => share ?? _Share(active: sharing)),
+        appSettingProvider.overrideWith(
+          () => _Settings(autoEnable: autoEnable),
+        ),
       ],
       child: ScreenUtilInit(
         designSize: const Size(393, 852),
@@ -312,27 +351,6 @@ void main() {
     expect(helpers.claims, [(_link, 'Ali')]);
   });
 
-  testWidgets('the Keep Action Mode on card has room below its text', (
-    tester,
-  ) async {
-    final helpers = _Helpers(const HelpersState());
-    helpers.holdLink(_link);
-    await _pump(tester, helpers, const HelpFriend(fromLink: true));
-    await _claim(tester);
-    helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
-    await tester.pump();
-    final card = find.ancestor(
-      of: find.byKey(const Key('help_friend.keep_on')),
-      matching: find.byType(AppCard),
-    );
-    final body = find.text('help_friend_keep_on_body'.i18n.fill(['Sara']));
-    expect(body, findsOneWidget);
-    expect(
-      tester.getRect(card).bottom - tester.getRect(body).bottom,
-      greaterThanOrEqualTo(12),
-    );
-  });
-
   testWidgets('claiming shows the code', (tester) async {
     final helpers = _Helpers(const HelpersState());
     helpers.holdLink(_link);
@@ -372,19 +390,26 @@ void main() {
     );
   });
 
-  testWidgets('an already claimed invite says so prominently', (tester) async {
+  testWidgets('an already claimed invite opens the error dialog; Close '
+      'returns to the form with the link cleared', (tester) async {
     final helpers = _Helpers(
       const HelpersState(),
       claimAnswer: '{"error":"already_claimed"}',
     );
     helpers.holdLink(_link);
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    expect(find.text(_link), findsOneWidget);
     await _claim(tester);
-    expect(
-      find.byKey(const Key('help_friend.already_claimed')),
-      findsOneWidget,
-    );
+    await tester.pumpAndSettle();
+    final dialog = find.byKey(const Key('help_friend.already_claimed'));
+    expect(dialog, findsOneWidget);
     expect(find.text('help_friend_already_claimed_title'.i18n), findsOneWidget);
+    expect(find.text('help_friend_already_claimed_body'.i18n), findsOneWidget);
+    await tester.tap(find.widgetWithText(PrimaryButton, 'close'.i18n));
+    await tester.pumpAndSettle();
+    expect(dialog, findsNothing);
+    expect(find.byKey(const Key('help_friend.form')), findsOneWidget);
+    expect(find.text(_link), findsNothing);
   });
 
   testWidgets('a link this device already helps for says so, without the '
@@ -453,7 +478,7 @@ void main() {
         claims: [HelperClaimView(id: 'c1', code: '1111', expiresUnix: _future)],
       ),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(
       find.text('help_friend_success_title'.i18n.fill(['Reza'])),
       findsOneWidget,
@@ -628,7 +653,7 @@ void main() {
     expect(card, findsOneWidget);
     for (final key in [
       'become_means_title',
-      'become_means_traffic',
+      'become_means_traffic_seen',
       'become_means_seen',
       'become_means_remove',
     ]) {
@@ -645,7 +670,7 @@ void main() {
       'help_friend_link_label'.i18n,
       'help_friend_no_link_yet'.i18n,
       'help_friend_ask_send_link'.i18n,
-      'help_friend_name_label'.i18n,
+      'help_friend_your_name_label'.i18n,
       'help_friend_name_hint_server_list'.i18n,
       'help_friend_become'.i18n,
     ]) {
@@ -822,7 +847,7 @@ void main() {
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     await _claim(tester);
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
     expect(find.byKey(const Key('help_friend.code')), findsNothing);
   });
@@ -863,14 +888,17 @@ void main() {
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     await _claim(tester);
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(
       find.text('help_friend_success_title'.i18n.fill(['Sara'])),
       findsOneWidget,
     );
   });
 
-  Future<(_Share, _Router)> approvedScreen(WidgetTester tester) async {
+  Future<(_Share, _Router, _Helpers)> approvedScreen(
+    WidgetTester tester, {
+    bool autoEnable = false,
+  }) async {
     await sl.reset();
     final router = _Router();
     sl.registerSingleton<AppRouter>(router);
@@ -883,19 +911,25 @@ void main() {
       helpers,
       const HelpFriend(fromLink: true),
       share: share,
+      autoEnable: autoEnable,
     );
     await _claim(tester);
     expect(helpers.approvalStartHeld, isTrue);
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
-    await tester.pump();
-    // The approval is the success screen's to act on, not Home's.
+    await tester.pumpAndSettle();
+    // The approval is the success dialog's to act on, not Home's.
     expect(helpers.approvalStartHeld, isTrue);
-    return (share, router);
+    return (share, router, helpers);
   }
 
-  testWidgets('the success screen names the friend and asks to keep Action '
-      'Mode on, checked by default, with no back arrow', (tester) async {
-    await approvedScreen(tester);
+  // Built per use: the strings load in setUpAll, after main() runs.
+  Finder done() => find.widgetWithText(PrimaryButton, 'help_friend_done'.i18n);
+  final autoEnableBox = find.byKey(const Key('action-mode.auto-enable'));
+
+  testWidgets('the success dialog names the friend and shows the Auto-enable '
+      'Action Mode row, unchecked, over the closed screen', (tester) async {
+    final (_, router, _) = await approvedScreen(tester);
+    expect(router.forcedPops, 1, reason: 'the screen closes under the dialog');
     expect(
       find.text('help_friend_success_title'.i18n.fill(['Sara'])),
       findsOneWidget,
@@ -904,57 +938,71 @@ void main() {
       find.text('help_friend_success_body'.i18n.fill(['Sara'])),
       findsOneWidget,
     );
-    expect(find.text('help_friend_keep_on'.i18n), findsOneWidget);
-    expect(
-      find.text('help_friend_keep_on_body'.i18n.fill(['Sara'])),
-      findsOneWidget,
-    );
-    expect(
-      tester
-          .widget<Checkbox>(
-            find.byKey(const Key('help_friend.keep_on.checkbox')),
-          )
-          .value,
-      isTrue,
-    );
+    expect(find.text('auto_enable_unbounded'.i18n), findsOneWidget);
+    expect(tester.widget<Checkbox>(autoEnableBox).value, isFalse);
+    expect(done(), findsOneWidget);
     expect(find.byTooltip('Back'), findsNothing);
   });
 
-  testWidgets('Done with the box checked turns Action Mode on and sets '
-      'auto-enable', (tester) async {
-    final (share, router) = await approvedScreen(tester);
-    await tester.tap(find.byKey(const Key('help_friend.done')));
-    await tester.pump();
-    expect(share.helperStarts, 1);
+  testWidgets('checking the box sets auto-enable and turns Action Mode on '
+      'now; Done closes the dialog and releases the hold', (tester) async {
+    final (share, _, helpers) = await approvedScreen(tester);
+    await tester.tap(autoEnableBox);
+    await tester.pumpAndSettle();
     expect(share.autoEnable, [true]);
-    expect(
-      router.forcedPops,
-      1,
-      reason: 'the screen\'s PopScope vetoes maybePop',
-    );
-    await tester.tap(find.byKey(const Key('help_friend.done')));
-    await tester.pump();
-    expect(share.helperStarts, 1, reason: 'Done acts once');
+    expect(share.helperStarts, 1);
+    expect(tester.widget<Checkbox>(autoEnableBox).value, isTrue);
+    expect(helpers.approvalStartHeld, isTrue);
+    await tester.tap(done());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
+    expect(helpers.approvalStartHeld, isFalse);
+    expect(share.helperStarts, 1, reason: 'Done starts nothing more');
   });
 
-  testWidgets('Back leaves the success screen without turning Action Mode '
-      'on, even with the box checked', (tester) async {
-    final (share, router) = await approvedScreen(tester);
-    tester
-        .widget<PopScope<Object?>>(
-          find.byWidgetPredicate((w) => w is PopScope<Object?>).last,
-        )
-        .onPopInvokedWithResult!(false, null);
-    await tester.pump();
+  testWidgets('Done with the box unchecked pairs without turning Action Mode '
+      'on or touching auto-enable', (tester) async {
+    final (share, _, helpers) = await approvedScreen(tester);
+    await tester.tap(done());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
     expect(share.helperStarts, 0);
     expect(share.autoEnable, isEmpty);
-    expect(router.forcedPops, 1);
+    expect(helpers.approvalStartHeld, isFalse);
+  });
+
+  testWidgets('with Auto-enable already on, the box opens checked and Done '
+      'turns Action Mode on for the friend', (tester) async {
+    final (share, _, helpers) = await approvedScreen(tester, autoEnable: true);
+    expect(tester.widget<Checkbox>(autoEnableBox).value, isTrue);
+    expect(share.helperStarts, 0, reason: 'the dialog asks first');
+    await tester.tap(done());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
+    expect(share.helperStarts, 1);
+    expect(share.startsRequiredAutoEnable, [true]);
+    expect(share.autoEnable, isEmpty, reason: 'the setting is left as is');
+    expect(helpers.approvalStartHeld, isFalse);
+  });
+
+  testWidgets('with Auto-enable already on, unchecking the box then Done '
+      'pairs without turning Action Mode on', (tester) async {
+    final (share, _, helpers) = await approvedScreen(tester, autoEnable: true);
+    await tester.tap(autoEnableBox);
+    await tester.pumpAndSettle();
+    expect(share.autoEnable, [false]);
+    expect(tester.widget<Checkbox>(autoEnableBox).value, isFalse);
+    await tester.tap(done());
+    await tester.pumpAndSettle();
+    expect(share.helperStarts, 0);
+    expect(helpers.approvalStartHeld, isFalse);
   });
 
   /// The success screen pushed through a real AppRouter over a blank home.
   Future<(_Share, _RealRouter)> approvedThroughRouter(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    bool autoEnable = false,
+  }) async {
     await sl.reset();
     final router = _RealRouter();
     sl.registerSingleton<AppRouter>(router);
@@ -971,6 +1019,9 @@ void main() {
         overrides: [
           helpersProvider.overrideWith(() => helpers),
           shareProvider.overrideWith(() => share),
+          appSettingProvider.overrideWith(
+            () => _Settings(autoEnable: autoEnable),
+          ),
         ],
         child: ScreenUtilInit(
           designSize: const Size(393, 852),
@@ -987,58 +1038,56 @@ void main() {
     await tester.pumpAndSettle();
     await _claim(tester);
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
+    expect(find.byType(HelpFriend), findsNothing);
     return (share, router);
   }
 
   testWidgets('system Back through the real router closes the success '
-      'screen without turning Action Mode on', (tester) async {
+      'dialog without turning Action Mode on', (tester) async {
     final (share, router) = await approvedThroughRouter(tester);
     await tester.binding.handlePopRoute();
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    expect(find.byType(HelpFriend), findsNothing);
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
     expect(find.text('blank'), findsOneWidget);
     expect(router.stack, hasLength(1));
     expect(share.helperStarts, 0);
     expect(share.autoEnable, isEmpty);
   });
 
-  testWidgets('Done through the real router closes the success screen and '
-      'turns Action Mode on', (tester) async {
-    final (share, router) = await approvedThroughRouter(tester);
-    await tester.tap(find.byKey(const Key('help_friend.done')));
+  testWidgets('with Auto-enable already on, system Back closes the success '
+      'dialog and still turns Action Mode on: only unchecking says no', (
+    tester,
+  ) async {
+    final (share, router) = await approvedThroughRouter(
+      tester,
+      autoEnable: true,
+    );
+    expect(tester.widget<Checkbox>(autoEnableBox).value, isTrue);
+    await tester.binding.handlePopRoute();
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    expect(find.byType(HelpFriend), findsNothing);
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
     expect(router.stack, hasLength(1));
     expect(share.helperStarts, 1);
-    expect(share.autoEnable, [true]);
+    expect(share.startsRequiredAutoEnable, [true]);
+    expect(share.autoEnable, isEmpty);
   });
 
-  testWidgets('Done with the box unchecked pairs without turning Action Mode '
-      'on or touching auto-enable', (tester) async {
-    final (share, router) = await approvedScreen(tester);
-    await tester.tap(find.byKey(const Key('help_friend.keep_on')));
-    await tester.pump();
-    expect(
-      tester
-          .widget<Checkbox>(
-            find.byKey(const Key('help_friend.keep_on.checkbox')),
-          )
-          .value,
-      isFalse,
-    );
-    await tester.tap(find.byKey(const Key('help_friend.done')));
-    await tester.pump();
-    expect(share.helperStarts, 0);
-    expect(share.autoEnable, isEmpty);
-    expect(
-      router.forcedPops,
-      1,
-      reason: 'the screen\'s PopScope vetoes maybePop',
-    );
+  testWidgets('through the real router, checking the box turns Action Mode '
+      'on and Done closes the dialog', (tester) async {
+    final (share, router) = await approvedThroughRouter(tester);
+    await tester.tap(autoEnableBox);
+    await tester.pumpAndSettle();
+    expect(share.helperStarts, 1);
+    expect(share.autoEnable, [true]);
+    await tester.tap(done());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('help_friend.approved')), findsNothing);
+    expect(find.text('blank'), findsOneWidget);
+    expect(router.stack, hasLength(1));
   });
 
   testWidgets('HelpFriend holds the approval start only while it waits on '
@@ -1123,9 +1172,9 @@ void main() {
           find.text('help_friend_success_title'.i18n.fill(['Sara'])),
           findsOneWidget,
         );
-        expect(share.helperStarts, 0, reason: 'the success screen asks');
-        await tester.tap(find.byKey(const Key('help_friend.done')));
-        await tester.pump();
+        expect(share.helperStarts, 0, reason: 'the success dialog asks');
+        await tester.tap(autoEnableBox);
+        await tester.pumpAndSettle();
         expect(share.helperStarts, 1);
       } else {
         expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
@@ -1134,7 +1183,7 @@ void main() {
         expect(
           share.helperStarts,
           0,
-          reason: 'no success screen asked: sharing waits for the user',
+          reason: 'no success dialog asked: sharing waits for the user',
         );
       }
     });
@@ -1168,9 +1217,8 @@ void main() {
     expect(share.helperStarts, 0);
   });
 
-  testWidgets('a success screen closed without Done starts nothing', (
-    tester,
-  ) async {
+  testWidgets('the success dialog outlives its screen and holds the start '
+      'until Done', (tester) async {
     final helpers = _Helpers(waitingOnC1());
     helpers.holdLink(_link);
     final (_, share, show) = await overHome(
@@ -1180,11 +1228,14 @@ void main() {
     );
     await _claim(tester);
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
     show.value = false;
-    await tester.pump();
-    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
+    expect(helpers.approvalStartHeld, isTrue);
+    await tester.tap(done());
+    await tester.pumpAndSettle();
     expect(share.helperStarts, 0);
     expect(helpers.approvalStartHeld, isFalse);
   });
@@ -1196,14 +1247,14 @@ void main() {
     expect(find.byKey(const Key('help_friend.code')), findsOneWidget);
     expect(helpers.approvalStartHeld, isTrue);
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara]));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(
       find.text('help_friend_success_title'.i18n.fill(['Sara'])),
       findsOneWidget,
     );
     expect(share.helperStarts, 0);
-    await tester.tap(find.byKey(const Key('help_friend.done')));
-    await tester.pump();
+    await tester.tap(autoEnableBox);
+    await tester.pumpAndSettle();
     expect(share.helperStarts, 1);
   });
 
@@ -1295,7 +1346,7 @@ void main() {
     await _claim(tester);
     // The engine dropped claim c1 when its key opened Reza's name.
     helpers.approve(const HelpersView(unlocked: true, helping: [_reza, _sara]));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('help_friend.approved')), findsOneWidget);
     expect(
       find.text('help_friend_success_title'.i18n.fill(['Reza'])),
@@ -1311,7 +1362,7 @@ void main() {
     await _pump(tester, helpers, const HelpFriend(fromLink: true));
     await _claim(tester);
     helpers.approve(const HelpersView(unlocked: true, helping: [_sara, _reza]));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(
       find.text(
         'help_friend_success_title'.i18n.fill(['helping_unnamed'.i18n]),
@@ -1526,8 +1577,8 @@ void main() {
     );
   });
 
-  testWidgets('the friends sheet: rows, paste another, who else is helped, '
-      'and data relayed, with no help-others switch', (tester) async {
+  testWidgets('the friends sheet: rows, paste another and who else is '
+      'helped, with no data relayed and no help-others switch', (tester) async {
     final helpers = _Helpers(_helping());
     await _pump(tester, helpers, const HelpingFriendsSheet(), sharing: true);
     expect(find.text('helping_your_friends'.i18n), findsOneWidget);
@@ -1538,20 +1589,8 @@ void main() {
     expect(find.byKey(const Key('helping.remove.p1')), findsOneWidget);
     expect(find.byKey(const Key('helping.paste_another')), findsOneWidget);
     expect(find.text('helping_paste_another'.i18n), findsOneWidget);
-    final data = find.byKey(const Key('helping.data_relayed'));
-    expect(
-      find.descendant(of: data, matching: find.text(1200000000.siBytes)),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: data,
-        matching: find.text(
-          'helping_active_today'.i18n.fill([helpingDuration(12000)]),
-        ),
-      ),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('helping.data_relayed')), findsNothing);
+    expect(find.text(1200000000.siBytes), findsNothing);
     expect(find.byKey(const Key('helping.sharing_off')), findsNothing);
     expect(find.byType(Switch), findsNothing);
     expect(find.text('help_others_too_note'.i18n), findsNothing);
@@ -1571,12 +1610,6 @@ void main() {
       tester.getTopLeft(line).dy,
       greaterThan(
         tester.getBottomLeft(find.byKey(const Key('helping.paste_another'))).dy,
-      ),
-    );
-    expect(
-      tester.getBottomLeft(line).dy,
-      lessThan(
-        tester.getTopLeft(find.byKey(const Key('helping.data_relayed'))).dy,
       ),
     );
 

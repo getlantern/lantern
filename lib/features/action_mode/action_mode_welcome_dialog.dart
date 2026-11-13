@@ -31,10 +31,6 @@ void showActionModeWelcomeDialog(BuildContext context, WidgetRef ref) {
       child: ActionModeAutoEnable(card: false),
     ),
     primaryLabel: 'got_it'.i18n,
-    secondaryLabel: 'learn_more'.i18n,
-    secondaryIcon: AppImagePaths.outsideBrowser,
-    dismissOnSecondary: false,
-    onSecondaryPressed: () => UrlUtils.openUrl(AppUrls.unbounded),
   ).whenComplete(() {
     appSetting.setUnboundedWelcomeSeen(true);
   });
