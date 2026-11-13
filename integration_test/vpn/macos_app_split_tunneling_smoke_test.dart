@@ -115,8 +115,11 @@ void main() {
       );
 
       final service = sl<LanternService>();
-      final smartRouting = _value(await service.isSmartRoutingEnabled());
-      final splitEnabled = _value(await service.isSplitTunnelingEnabled());
+      // The bool getters report false when the settings read fails.
+      final settings = _value(await service.getSettings());
+      expect(settings, isNotEmpty, reason: 'Could not read current settings');
+      final smartRouting = settings['smart_routing'] == true;
+      final splitEnabled = settings['split_tunnel'] == true;
       final hadRule = _value(
         await service.getSplitTunnelItems(_filter),
       ).contains(_curlRule);
