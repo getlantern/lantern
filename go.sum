@@ -289,8 +289,8 @@ github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 h1:rtDmW8YL
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535/go.mod h1:WKJEdjMOD4IuTRYwjQHjT4bmqDl5J82RShMLxPAvi0Q=
 github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b h1:gMYJzEhLrmIqQ+JnjiYNm+UyUDalK3WUmVyecFwmV5g=
 github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b/go.mod h1:NpfXdK4ldEKkjQ4P1R+DBF4ua5VFOlxmgHROTnYrApg=
-github.com/getlantern/radiance v0.0.0-20261114170436-d24985fa2317 h1:gWoYl1v/dFqUQfz/HCe4JNz20WWOhEYMP0bOZQdhIeg=
-github.com/getlantern/radiance v0.0.0-20261114170436-d24985fa2317/go.mod h1:GTu4TtdyInsOnYzqxvtJBifjbkwLRFUYzCFGVXzeME0=
+github.com/getlantern/radiance v0.0.0-20261114190549-aced057665da h1:g/hf1iloPrAxbk6GoN2rEJeUmap7t4w0+YI41S8o3LI=
+github.com/getlantern/radiance v0.0.0-20261114190549-aced057665da/go.mod h1:GTu4TtdyInsOnYzqxvtJBifjbkwLRFUYzCFGVXzeME0=
 github.com/getlantern/samizdat v0.0.3-0.20261113121353-9718d8050e9b h1:JjRlikfI2D//61xpCRJogiVOWsH/ThOSgGRE82Jv6HQ=
 github.com/getlantern/samizdat v0.0.3-0.20261113121353-9718d8050e9b/go.mod h1:uEeykQSW2/6rTjfPlj3MTTo59poSHXfAHTGgzYDkbr0=
 github.com/getlantern/semconv v0.0.0-20261103162524-c0c2ac0e0a3e h1:YuyL8jSRYD782QtcnRgkK1ZRXHQqgq+Ju1H1tSh6PWo=
