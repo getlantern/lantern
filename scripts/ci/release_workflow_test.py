@@ -53,6 +53,9 @@ with open(os.environ["COMMAND_LOG"], "a") as log:
 if name == os.environ.get("FAIL_COMMAND"):
     sys.exit(1)
 if name == "gh" and sys.argv[1:3] == ["release", "view"]:
+    if os.environ.get("RELEASE_VIEW_ERROR"):
+        print(os.environ["RELEASE_VIEW_ERROR"], file=sys.stderr)
+        sys.exit(1)
     print(os.environ.get("IS_DRAFT", "true"))
 if name == "python3" and sys.argv[1].endswith("generate_update_metadata.py"):
     sys.exit(subprocess.call([sys.executable, *sys.argv[1:]]))
@@ -242,6 +245,18 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(len(self.commands()), 1)
         self.assertEqual(self.commands()[0][1:3], ["release", "view"])
+
+    def test_cleanup_passes_when_draft_is_already_gone(self) -> None:
+        result = self.run_step("Clean up draft release", RELEASE_VIEW_ERROR="release not found")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("already gone", result.stdout)
+        self.assertEqual(len(self.commands()), 1)
+
+    def test_cleanup_fails_on_other_release_view_errors(self) -> None:
+        result = self.run_step("Clean up draft release", RELEASE_VIEW_ERROR="HTTP 502: Bad Gateway")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("HTTP 502", result.stdout)
+        self.assertEqual(len(self.commands()), 1)
 
     def test_alias_copy_failure_stops_verification(self) -> None:
         result = self.run_step("Promote and verify download aliases", FAIL_COMMAND="aws")

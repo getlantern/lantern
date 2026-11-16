@@ -2461,3 +2461,9 @@ msgstr "သူငယ်ချင်းတစ်ဦးက သင့်အကူ�
 
 msgid "help_friend_your_name_label"
 msgstr "သင့်အမည်"
+
+msgid "manage_empty_joined_title"
+msgstr "ဝင်ရောက်ထားသော ဆာဗာ မရှိသေးပါ"
+
+msgid "manage_empty_joined_body"
+msgstr "သင်ယုံကြည်ရသူ လည်ပတ်သော ဆာဗာသို့ ဝင်ရောက်ပါ။ ၎င်းတို့ပေးသော ဝင်ရောက်ခွင့်ကီးကို အသုံးပြုပါ။"

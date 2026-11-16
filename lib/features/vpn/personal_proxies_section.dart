@@ -12,31 +12,24 @@ import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dar
 /// a locked Pro location: greyed out, no radio, not tappable. A friend's row
 /// has a radio and selects that friend alone while
 /// [HelperPairingView.selectable] says so; until then it is for information.
-/// Nothing shows without a pairing. Where helper invites are offered,
-/// "Invite a Personal Proxy" is the group's last row.
+/// Nothing shows without a pairing. Inviting another friend is the Server
+/// Locations screen's own row, under Smart Location, not this group's.
 class PersonalProxiesSection extends ConsumerWidget {
   const PersonalProxiesSection({
     super.key,
     this.selectedFriend,
     this.onSelectFriend,
-    this.onInvite,
   });
 
   /// The outbound tag of the friend selected on their own, if any.
   final String? selectedFriend;
   final ValueChanged<HelperPairingView>? onSelectFriend;
 
-  /// "Invite a Personal Proxy", shown while helper invites are available.
-  final VoidCallback? onInvite;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final helpers = ref.watch(helpersProvider.select((s) => s.view.helpers));
     if (helpers.isEmpty) return const SizedBox.shrink();
     final status = ref.watch(personalProxyStatusProvider);
-    final invite = onInvite;
-    final showInvite =
-        invite != null && ref.watch(helperInvitesAvailableProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -60,18 +53,6 @@ class PersonalProxiesSection extends ConsumerWidget {
                       h.outboundTag.isNotEmpty &&
                       selectedFriend == h.outboundTag,
                   onSelect: onSelectFriend,
-                ),
-              ],
-              if (showInvite) ...[
-                const DividerSpace(),
-                AppTile(
-                  tileKey: const Key(
-                    'server_selection.personal_proxies.invite',
-                  ),
-                  icon: AppImagePaths.personAdd,
-                  label: 'invite_personal_proxy'.i18n,
-                  trailing: const AppImage(path: AppImagePaths.arrowForward),
-                  onPressed: invite,
                 ),
               ],
             ],
