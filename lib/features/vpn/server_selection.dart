@@ -443,6 +443,15 @@ class _ServerLocationListViewState
   Future<void> onServerSelected(Server server) async {
     if (!_macOSExtensionReady(ref)) return;
 
+    if (server.shouldWarnBeforeManualSelection) {
+      final location = server.location;
+      final confirmed = await AppDialog.unreachableServerDialog(
+        context: context,
+        location: '${location.country} - ${location.city}',
+      );
+      if (!confirmed || !mounted) return;
+    }
+
     final locationNotifier = ref.read(serverLocationProvider.notifier);
     await _connectAndReturnHome(
       context,
