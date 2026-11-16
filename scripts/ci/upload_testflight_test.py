@@ -16,7 +16,7 @@ INVALID = "ERROR: Invalid Provisioning Profile."
 
 
 class UploadTestflightTest(unittest.TestCase):
-    def run_upload(self, *outcomes: tuple[int, str]) -> tuple[subprocess.CompletedProcess[str], int, Path, list[str]]:
+    def run_upload(self, *outcomes: tuple[int, str], build_number: str = "1234") -> tuple[subprocess.CompletedProcess[str], int, Path, list[str]]:
         work = Path(self.enterContext(tempfile.TemporaryDirectory()))
         bin_dir = work / "bin"
         bin_dir.mkdir()
@@ -47,7 +47,7 @@ class UploadTestflightTest(unittest.TestCase):
             "APPSTORE_API_KEY_ID": "KEYID",
             "APPSTORE_ISSUER_ID": "issuer",
             "APPSTORE_API_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----",
-            "BUILD_NUMBER": "1234",
+            "BUILD_NUMBER": build_number,
             "UPLOAD_BACKOFF": "1",
         }
         result = subprocess.run(
@@ -84,6 +84,15 @@ class UploadTestflightTest(unittest.TestCase):
         result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, NEWER_BUILD))
         self.assertEqual(result.returncode, 1)
         self.assertEqual(calls, 2)
+
+    def test_dotted_build_number_matches_literally(self) -> None:
+        other = "Redundant Binary Upload. You've already uploaded a build with build number '102'."
+        result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, other), build_number="1.2")
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(calls, 2)
+        same = "Redundant Binary Upload. You've already uploaded a build with build number '1.2'."
+        result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, same), build_number="1.2")
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_redundant_upload_on_first_attempt_fails(self) -> None:
         result, calls, _, delays = self.run_upload((1, REDUNDANT))
