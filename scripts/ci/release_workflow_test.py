@@ -264,6 +264,7 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
         self.assertEqual(step["env"]["APPSTORE_ISSUER_ID"], "${{ secrets.APPSTORE_ISSUER_ID }}")
         self.assertEqual(step["env"]["APPSTORE_API_PRIVATE_KEY"], "${{ secrets.APPSTORE_API_PRIVATE_KEY }}")
         self.assertEqual(step["env"]["IPA"], "${{ steps.filename.outputs.ipa }}")
+        self.assertEqual(step["env"]["BUILD_NUMBER"], "${{ github.run_number }}")
         script = self.work / "src/scripts/ci/upload-testflight.sh"
         script.parent.mkdir(parents=True)
         shutil.copy(ROOT / "scripts/ci/upload-testflight.sh", script)
@@ -281,6 +282,7 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
         result = self.run_step(
             "Upload to TestFlight", job="upload-testflight", HOME=str(home), IPA="lantern-installer-nightly.ipa",
             APPSTORE_API_KEY_ID="KEYID", APPSTORE_ISSUER_ID="issuer", APPSTORE_API_PRIVATE_KEY="key",
+            BUILD_NUMBER="1234",
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = (self.work / "commands.jsonl.xcrun").read_text().splitlines()
