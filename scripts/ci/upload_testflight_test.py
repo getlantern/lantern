@@ -9,7 +9,9 @@ import unittest
 
 SCRIPT = Path(__file__).resolve().parent / "upload-testflight.sh"
 TIMEOUT = "ERROR: ... Error Domain=NSURLErrorDomain Code=-1001 \"The request timed out.\"\nReceived status -19235."
-REDUNDANT = "ERROR: Redundant Binary Upload. You've already uploaded a build with build number '1'."
+REDUNDANT = "ERROR ITMS-4238: Redundant Binary Upload. You've already uploaded a build with build number '1234'."
+DUPLICATE = "ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE The bundle version must be higher than the previously uploaded version: ‘1234’."
+NEWER_BUILD = "ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE The bundle version must be higher than the previously uploaded version: ‘1240’."
 INVALID = "ERROR: Invalid Provisioning Profile."
 
 
@@ -45,6 +47,7 @@ class UploadTestflightTest(unittest.TestCase):
             "APPSTORE_API_KEY_ID": "KEYID",
             "APPSTORE_ISSUER_ID": "issuer",
             "APPSTORE_API_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----",
+            "BUILD_NUMBER": "1234",
             "UPLOAD_BACKOFF": "1",
         }
         result = subprocess.run(
@@ -70,6 +73,16 @@ class UploadTestflightTest(unittest.TestCase):
     def test_redundant_upload_after_a_lost_response_succeeds(self) -> None:
         result, calls, _, delays = self.run_upload((1, TIMEOUT), (1, REDUNDANT))
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, 2)
+
+    def test_duplicate_of_this_build_after_a_lost_response_succeeds(self) -> None:
+        result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, DUPLICATE))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, 2)
+
+    def test_duplicate_of_a_newer_build_fails(self) -> None:
+        result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, NEWER_BUILD))
+        self.assertEqual(result.returncode, 1)
         self.assertEqual(calls, 2)
 
     def test_redundant_upload_on_first_attempt_fails(self) -> None:

@@ -4,22 +4,26 @@
 #
 # Usage: upload-testflight.sh IPA
 # Env:   APPSTORE_API_KEY_ID, APPSTORE_ISSUER_ID, APPSTORE_API_PRIVATE_KEY
+#        BUILD_NUMBER (the IPA's CFBundleVersion)
 #        UPLOAD_ATTEMPTS (default 4), UPLOAD_BACKOFF seconds (default 60)
 #
 # contentdelivery.itunes.apple.com regularly times out for several minutes at a
 # time (NSURLError -1001/-1005, altool status -19235), so the wait before
 # attempt N+1 is N*UPLOAD_BACKOFF. An attempt can deliver the build and still
-# lose the final response; the retry then reports a redundant upload, which
-# counts as success after the first attempt only.
+# lose the final response; the retry is then rejected as a duplicate of
+# BUILD_NUMBER, which counts as success after the first attempt only. A
+# duplicate naming any other build number means a different upload got there
+# first, and stays a failure.
 set -uo pipefail
 
 ipa=${1:?usage: $0 IPA}
-: "${APPSTORE_API_KEY_ID:?}" "${APPSTORE_ISSUER_ID:?}" "${APPSTORE_API_PRIVATE_KEY:?}"
+: "${APPSTORE_API_KEY_ID:?}" "${APPSTORE_ISSUER_ID:?}" "${APPSTORE_API_PRIVATE_KEY:?}" "${BUILD_NUMBER:?}"
 attempts=${UPLOAD_ATTEMPTS:-4}
 backoff=${UPLOAD_BACKOFF:-60}
 
 transient='NSURLErrorDomain Code=-10(01|05)|-19235|-19207|Try again later'
-delivered='Redundant Binary Upload|ENTITY_ERROR\.ATTRIBUTE\.INVALID\.DUPLICATE'
+quote="(['\"]|‘|’)"
+delivered="(Redundant Binary Upload|previously uploaded version).*${quote}${BUILD_NUMBER}${quote}"
 
 # altool resolves --apiKey to ~/private_keys/AuthKey_<id>.p8.
 key_file="$HOME/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8"
