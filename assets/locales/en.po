@@ -2490,3 +2490,6 @@ msgstr "Open on another device"
 
 msgid "open_on_another_device_hint"
 msgstr "This TV has no web browser. Scan the code or type the address on your phone or computer."
+
+msgid "clear"
+msgstr "Clear"
