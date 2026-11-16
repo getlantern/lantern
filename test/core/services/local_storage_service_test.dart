@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -56,5 +57,19 @@ void main() {
 
     await storage.setString('rating_prompt_sessions', '2');
     expect(storage.getString('rating_prompt_sessions'), '2');
+    expect(jsonDecode(prefsFile.readAsStringSync()),
+        {'rating_prompt_sessions': '2'});
+  });
+
+  test('init drops a corrupted prefs file it cannot set aside', () async {
+    prefsFile.writeAsStringSync('{"rating_prompt_sessions":"1"}ull}');
+    // A directory at the target makes the rename fail.
+    Directory('${prefsFile.path}.corrupt').createSync();
+
+    final storage = newStorage();
+    await storage.init();
+
+    expect(storage.getString('rating_prompt_sessions'), isNull);
+    expect(prefsFile.existsSync(), isFalse);
   });
 }

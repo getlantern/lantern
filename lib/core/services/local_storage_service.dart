@@ -52,7 +52,15 @@ class LocalStorageService {
     final dir = await _supportDir();
     final file = File(p.join(dir.path, 'shared_preferences.json'));
     if (!file.existsSync()) return;
-    await file.rename('${file.path}.corrupt');
+    try {
+      // Keep the bad file as .corrupt so it can be inspected or recovered.
+      await file.rename('${file.path}.corrupt');
+    } on FileSystemException catch (e, st) {
+      // The rename can fail, e.g. when antivirus holds the file on Windows.
+      // Delete it instead, otherwise the retry hits the same bad file.
+      appLogger.error('Could not set corrupted preferences aside', e, st);
+      await file.delete();
+    }
   }
 
   // ── AppSetting ────────────────────────────────────────────────────────────
