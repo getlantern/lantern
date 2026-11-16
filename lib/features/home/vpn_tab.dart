@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
+import 'package:lantern/features/helpers/personal_proxy_banner.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
@@ -36,7 +37,19 @@ class VpnTab extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  const ProBanner(),
+                  // A friend waiting on approval takes the slot: the wait is
+                  // short and the invite expires. Otherwise it is the Pro
+                  // upsell's. "Get a Personal Proxy" has no card here: its
+                  // entry points are the Private Locations list and VPN
+                  // Settings.
+                  if (ref.watch(personalProxyWaitingProvider))
+                    const PersonalProxyBanner()
+                  else if (proBannerShows(ref))
+                    const ProBanner()
+                  else
+                    // Keeps the slot, so the switch stays centred between it
+                    // and the cards rather than rising to the top.
+                    const SizedBox.shrink(),
                   const VPNSwitch(),
                   Column(
                     mainAxisSize: MainAxisSize.min,
@@ -44,13 +57,12 @@ class VpnTab extends ConsumerWidget {
                       if (!isUserPro) ...{
                         if (serverType == ServerLocationType.privateServer)
                           InfoRow(text: 'private_server_usage_message'.i18n)
-                        else if (!PlatformUtils.isIOS &&
-                            !isSmallScreen(context))
+                        else if (!isSmallScreen(context))
                           const DataUsage(),
                       },
                       const SizedBox(height: 8),
                       _SettingCard(),
-                      SizedBox(height: 10.h),
+                      const SizedBox(height: defaultSize),
                     ],
                   ),
                 ],
@@ -80,13 +92,12 @@ class _SettingCard extends ConsumerWidget {
 
     // Small screens only (engineering#3046); regular screens show the
     // standalone DataUsage card in VpnTab instead. Same visibility rules:
-    // free users, not iOS, not private servers.
+    // free users, not private servers.
     final smallScreen = isSmallScreen(context);
     final showDataUsage =
         smallScreen &&
         !isUserPro &&
-        serverType != ServerLocationType.privateServer &&
-        !PlatformUtils.isIOS;
+        serverType != ServerLocationType.privateServer;
     final showRoutingMode = !PlatformUtils.isIOS;
     final showSplitTunneling =
         PlatformUtils.isAndroid ||

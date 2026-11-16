@@ -5,6 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/split_tunneling_tile.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
+import 'package:lantern/features/helpers/personal_proxy_invite.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
 @RoutePage(name: 'VPNSetting')
@@ -23,6 +25,8 @@ class VPNSetting extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final isUserPro = ref.watch(isUserProProvider);
     final isPrivateServerFound = ref.watch(isPrivateServerFoundProvider);
+    final personalProxies = ref.watch(personalProxiesTabVisibleProvider);
+    final invites = ref.watch(helperInvitesAvailableProvider);
     final splitTunnelingEnabled = ref.watch(
       radianceSettingsProvider.select((s) => s.splitTunneling),
     );
@@ -72,8 +76,9 @@ class VPNSetting extends HookConsumerWidget {
                 SplitTunnelingTile(
                   label: 'split_tunneling'.i18n,
                   icon: AppImagePaths.callSpilt,
-                  actionText:
-                      splitTunnelingEnabled ? 'enabled'.i18n : 'disabled'.i18n,
+                  actionText: splitTunnelingEnabled
+                      ? 'enabled'.i18n
+                      : 'disabled'.i18n,
                   onPressed: () => appRouter.push(const SplitTunneling()),
                 ),
                 DividerSpace(),
@@ -127,6 +132,20 @@ class VPNSetting extends HookConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Where helper invites are offered (censored regions).
+              if (invites) ...[
+                AppTile(
+                  tileKey: const Key('vpn_setting.invite_personal_proxy'),
+                  label: 'invite_personal_proxy'.i18n,
+                  icon: AppImagePaths.personAdd,
+                  trailing: AppImage(
+                    path: AppImagePaths.arrowForward,
+                    height: 20,
+                  ),
+                  onPressed: () => startPersonalProxyInvite(context, ref),
+                ),
+                DividerSpace(),
+              ],
               AppTile(
                 label: 'setup_private_server'.i18n,
                 icon: AppImagePaths.server,
@@ -147,9 +166,10 @@ class VPNSetting extends HookConsumerWidget {
                 onPressed: () => appRouter.push(JoinPrivateServer()),
               ),
               DividerSpace(),
-              if (isPrivateServerFound)
+              if (isPrivateServerFound || personalProxies)
                 AppTile(
-                  label: 'manage_private_servers'.i18n,
+                  tileKey: const Key('vpn_setting.manage_private_locations'),
+                  label: 'manage_private_locations'.i18n,
                   icon: AppImagePaths.settingServer,
                   trailing: AppImage(
                     path: AppImagePaths.arrowForward,
@@ -182,9 +202,7 @@ class VPNSetting extends HookConsumerWidget {
               value: telemetryConsent,
               onChanged: (value) {
                 appLogger.info('Anonymous usage data consent changed: $value');
-                ref
-                    .read(radianceSettingsProvider.notifier)
-                    .setTelemetry(value);
+                ref.read(radianceSettingsProvider.notifier).setTelemetry(value);
               },
             ),
           ),

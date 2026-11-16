@@ -1,5 +1,4 @@
 import AppKit
-import CoreServices
 import FlutterMacOS
 import Foundation
 import Liblantern
@@ -20,24 +19,10 @@ final class AppStreamHandler: NSObject, FlutterStreamHandler {
   /// censored regions than an extra warning.
   private lazy var browserApps: (bundleIds: Set<String>, paths: Set<String>) = {
     guard let url = URL(string: "https://example.com") else { return ([], []) }
-    var appURLs: [URL]
-    if #available(macOS 12.0, *) {
-      appURLs = NSWorkspace.shared.urlsForApplications(toOpen: url)
-      let htmlHandlers = Set(NSWorkspace.shared.urlsForApplications(toOpen: UTType.html))
-      if !htmlHandlers.isEmpty {
-        appURLs = appURLs.filter { htmlHandlers.contains($0) }
-      }
-    } else {
-      appURLs =
-        (LSCopyApplicationURLsForURL(url as CFURL, .viewer)?.takeRetainedValue() as? [URL]) ?? []
-      let htmlBundleIds =
-        (LSCopyAllRoleHandlersForContentType(kUTTypeHTML, .viewer)?.takeRetainedValue()
-          as? [String]).map(Set.init) ?? []
-      if !htmlBundleIds.isEmpty {
-        appURLs = appURLs.filter { appURL in
-          Bundle(url: appURL)?.bundleIdentifier.map { htmlBundleIds.contains($0) } ?? false
-        }
-      }
+    var appURLs = NSWorkspace.shared.urlsForApplications(toOpen: url)
+    let htmlHandlers = Set(NSWorkspace.shared.urlsForApplications(toOpen: UTType.html))
+    if !htmlHandlers.isEmpty {
+      appURLs = appURLs.filter { htmlHandlers.contains($0) }
     }
     let bundleIds = Set(appURLs.compactMap { Bundle(url: $0)?.bundleIdentifier })
     let paths = Set(appURLs.map { $0.standardizedFileURL.path })

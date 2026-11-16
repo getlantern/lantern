@@ -37,10 +37,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final storeVersion = isStoreVersion();
+    // Store builds pay through the store on Plans; stealth builds cannot pay
+    // in-app, and Plans offers license activation instead.
+    final redirectToPlans = isStoreVersion() || !AppBuildInfo.enablePayments;
     final paymentRedirectInFlight = useState(false);
     useEffect(() {
-      if (!storeVersion) return null;
+      if (!redirectToPlans) return null;
 
       var cancelled = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -49,9 +51,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         }
       });
       return () => cancelled = true;
-    }, [storeVersion]);
+    }, [redirectToPlans]);
 
-    if (storeVersion) {
+    if (redirectToPlans) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -199,6 +201,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         break;
 
       case 'shepherd':
+      case 'shepherd-wechat':
         if (isDesktop || isAndroidSideload) {
           await paymentRedirectFlow(
             provider.providers.name,
@@ -443,7 +446,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               observer: checkoutObserver,
             );
             if (!context.mounted) return;
-            // Alipay may finish in its own app, without a webview redirect.
+            // Alipay/WeChat may finish in their own app, without a webview redirect.
             await onPurchaseResult(
               purchaseResult ?? true,
               context,

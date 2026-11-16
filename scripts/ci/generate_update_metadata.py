@@ -33,7 +33,8 @@ def artifact_info(filename: str) -> Optional[Tuple[str, str, str]]:
     if filename.endswith(".exe"):
         return "windows", "windows", "amd64"
     if filename.endswith(".apk"):
-        return "android", "android", "arm"
+        arch = "arm" if filename.endswith("-armv7.apk") else "arm64"
+        return "android", "android", arch
     if filename.endswith(".deb"):
         arch = "arm64" if filename.endswith("-arm64.deb") else "amd64"
         return "linux", "linux", arch

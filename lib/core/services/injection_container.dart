@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
@@ -11,6 +12,7 @@ import 'package:lantern/core/updater/updater.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
 import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/features/helpers/helper_key_store.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/lantern/lantern_ffi_service.dart';
 import 'package:lantern/lantern/lantern_platform_service.dart';
@@ -59,6 +61,7 @@ Future<void> injectServices() async {
   sl.registerLazySingleton<DeepLinkCallbackManager>(
     () => DeepLinkCallbackManager(),
   );
+  sl.registerLazySingleton<HelperKeyStore>(() => HelperKeyStore());
   sl.registerSingleton<LanternPlatformService>(LanternPlatformService());
 
   appLogger.debug('Registering AppPurchase...');
@@ -92,7 +95,7 @@ Future<void> injectServices() async {
     return service;
   });
 
-  if (PlatformUtils.isAndroid) {
+  if (PlatformUtils.isAndroid && AppBuildInfo.enablePayments) {
     // The publishable key arrives with the plans response (synced by the
     // listenSelf listener in PlansNotifier.build), so no upfront
     // initialization.

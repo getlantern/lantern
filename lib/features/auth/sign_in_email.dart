@@ -10,6 +10,7 @@ import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 import '../../core/common/common.dart';
+import '../../core/utils/deeplink_utils.dart';
 
 @RoutePage(name: 'SignInEmail')
 class SignInEmail extends HookConsumerWidget {
@@ -73,20 +74,32 @@ class SignInEmail extends HookConsumerWidget {
                 isTaller: true,
               ),
               SizedBox(height: defaultSize),
-              DividerSpace(),
-              SizedBox(height: defaultSize),
-              OAuthLogin(
-                methodType: SignUpMethodType.google,
-                onResult: (token) =>
-                    onOAuthResult(token, context, ref, SignUpMethodType.google),
-              ),
-              SizedBox(height: defaultSize),
-              OAuthLogin(
-                methodType: SignUpMethodType.apple,
-                onResult: (token) =>
-                    onOAuthResult(token, context, ref, SignUpMethodType.apple),
-              ),
-              SizedBox(height: defaultSize),
+              // OAuth finishes in a browser, which a TV does not have.
+              if (!PlatformUtils.isTv) ...[
+                DividerSpace(),
+                SizedBox(height: defaultSize),
+                OAuthLogin(
+                  methodType: SignUpMethodType.google,
+                  onResult: (token) => onOAuthResult(
+                    token,
+                    context,
+                    ref,
+                    SignUpMethodType.google,
+                  ),
+                ),
+                SizedBox(height: defaultSize),
+                OAuthLogin(
+                  methodType: SignUpMethodType.apple,
+                  foregroundColor: context.textPrimary,
+                  onResult: (token) => onOAuthResult(
+                    token,
+                    context,
+                    ref,
+                    SignUpMethodType.apple,
+                  ),
+                ),
+                SizedBox(height: defaultSize),
+              ],
               DividerSpace(),
               SizedBox(height: 32),
               AppRichText(
@@ -142,7 +155,7 @@ class SignInEmail extends HookConsumerWidget {
         },
       );
     } else {
-      context.showSnackBar('Failed to retrieve token');
+      context.showSnackBar(oAuthSignInFailedKey.i18n);
     }
   }
 }

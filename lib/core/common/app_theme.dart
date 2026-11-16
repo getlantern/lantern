@@ -110,6 +110,7 @@ class AppTheme {
         titleSpacing: 0,
         elevation: 0,
         backgroundColor: AppColors.gray1, // bg.surface
+        shape: Border(bottom: BorderSide(color: cs.outline)), // border.default
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: AppColors.white,
           statusBarBrightness: Brightness.light,
@@ -335,6 +336,7 @@ class AppTheme {
         titleSpacing: 0,
         elevation: 0,
         backgroundColor: AppColors.gray9, // bg.surface dark
+        shape: Border(bottom: BorderSide(color: cs.outline)), // border.default
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: AppColors.gray9,
           statusBarBrightness: Brightness.dark,

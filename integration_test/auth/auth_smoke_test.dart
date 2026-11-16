@@ -8,6 +8,7 @@ import 'package:lantern/main.dart' as app;
 
 import '../utils/app_robot.dart';
 import '../utils/auth_robot.dart';
+import 'auth_smoke_device.dart';
 import 'auth_smoke_env.dart';
 
 void main() {
@@ -44,6 +45,7 @@ void registerAuthSmokeTests() {
     testWidgets(
       'account refresh preserves login fields across sign-in and logout',
       (tester) async {
+        if (await skipUnlessAuthSmokeDevice()) return;
         await app.main();
         final appRobot = AppRobot(tester);
         final auth = AuthRobot(tester, appRobot);
@@ -126,6 +128,7 @@ void registerAuthSmokeTests() {
     testWidgets(
       'sign in with a wrong password shows the backend error',
       (tester) async {
+        if (await skipUnlessAuthSmokeDevice()) return;
         final wrongPassword = wrongAuthSmokePassword;
         await app.main();
         final appRobot = AppRobot(tester);
@@ -147,6 +150,7 @@ void registerAuthSmokeTests() {
     testWidgets(
       'sign up reaches the payment-method screen via OTP and backs out',
       (tester) async {
+        if (await skipUnlessAuthSmokeDevice()) return;
         await app.main();
         final appRobot = AppRobot(tester);
         final auth = AuthRobot(tester, appRobot);
@@ -179,6 +183,7 @@ void registerAuthSmokeTests() {
     testWidgets(
       'sign up with an existing account shows the exists error',
       (tester) async {
+        if (await skipUnlessAuthSmokeDevice()) return;
         await app.main();
         final appRobot = AppRobot(tester);
         final auth = AuthRobot(tester, appRobot);
@@ -198,6 +203,7 @@ void registerAuthSmokeTests() {
     testWidgets(
       'password recovery resets and restores the password',
       (tester) async {
+        if (await skipUnlessAuthSmokeDevice()) return;
         final fixedPassword = recoverySmokePassword;
         final tempPassword = tempAuthSmokePassword;
         await app.main();
@@ -238,6 +244,7 @@ void registerAuthSmokeTests() {
     testWidgets(
       'account deletion clears the session and stays reusable',
       (tester) async {
+        if (await skipUnlessAuthSmokeDevice()) return;
         final password = deleteSmokePassword;
         await app.main();
         final appRobot = AppRobot(tester);
@@ -272,6 +279,7 @@ void registerAuthSmokeTests() {
     testWidgets(
       'pro account signs in with Pro entitlements',
       (tester) async {
+        if (await skipUnlessAuthSmokeDevice()) return;
         final password = proSmokePassword;
         await app.main();
         final appRobot = AppRobot(tester);

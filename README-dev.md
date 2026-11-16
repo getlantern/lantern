@@ -546,19 +546,35 @@ CI publishes the verified draft, then copies its versioned objects to the channe
 
 Once the release is public, CI polls the update service, which ignores drafts. It checks the application version, exact artifact URLs, signed desktop appcast entries, and the requested Linux architectures. Desktop URLs may point to the versioned S3 object or the same object through the update server's `/releases/` route. Success is reported only after these checks pass. Pull-request checks run the release-tooling tests without accessing production services.
 
-GitHub, S3, and the update service cannot be updated atomically. A promotion or feed-check failure leaves the published release available for inspection and recovery; cleanup only deletes drafts. Retrying an older release can move channel aliases back to that version.
+GitHub, S3, and the update service cannot be updated atomically. A promotion or feed-check failure leaves the published release available for inspection and recovery; cleanup only deletes drafts.
 
 ### Tag format
 
 | Tag | Build type | Platforms |
 |---|---|---|
 | `v1.2.3` | Production | All |
-| `v1.2.3-beta` | Beta | All |
+| `v1.2.3-beta.1` | Beta | All |
+| `v1.2.3-beta.1-android` | Beta | Android only |
 | `v1.2.3-android` | Production | Android only |
 | `v1.2.3-macos` | Production | macOS only |
 | `v1.2.3-ios` | Production | iOS only |
 | `v1.2.3-windows` | Production | Windows only |
 | `v1.2.3-linux` | Production | Linux only |
+
+Beta releases use a dot-separated counter: `beta.1`, `beta.2`, …, `beta.10`.
+This lets SemVer compare the counter numerically. New tags using `beta`,
+`beta-10`, or `beta10` are rejected; historical tags in those formats still
+count when choosing the next version. Release tags allow only the formats above,
+with no leading zeros in numeric components. Platform suffixes select the build
+target and are removed from the application version.
+
+When switching from a historical beta format, use a higher base version. For
+example, follow `10.0.3-beta-10` with `10.0.4-beta.1`, provided that base is unused.
+This also lets Android installations incorrectly stamped as stable `10.0.3`
+recognize the update. A same-base `10.0.3-beta.11` would appear older to those
+clients. Validation rejects betas on a base that already has a stable or
+historical beta tag, as well as decreasing beta counters. Revalidating the current
+tag or releasing the same version for another platform is allowed.
 
 ### How to release
 
@@ -572,9 +588,21 @@ git push origin v1.2.3
 **All platforms — beta:**
 
 ```bash
-git tag v1.2.3-beta
-git push origin v1.2.3-beta
+git tag v1.2.3-beta.1
+git push origin v1.2.3-beta.1
 ```
+
+To choose the next beta from the available tags:
+
+```bash
+git fetch origin --tags
+./scripts/ci/version.sh generate beta
+```
+
+This continues the highest unreleased `beta.N` series, or increments the patch
+version and starts at `beta.1` after a stable or historical beta release. Check
+the result with `./scripts/ci/version.sh validate <version>` before tagging.
+The generator only prints a version; it does not create or push a tag.
 
 **Single platform:**
 

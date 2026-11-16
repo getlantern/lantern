@@ -1,0 +1,90 @@
+name: Android ABI Candidate
+
+# Debug-signed release builds for testing.
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      APP_ENV:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-abi-candidate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      BUILD_TYPE: abi-candidate
+      INSTALLER_NAME: lantern-installer
+      APP_ENV_AVAILABLE: ${{ secrets.APP_ENV != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Stamp candidate version
+        run: echo "APP_VERSION=$(./scripts/ci/version.sh generate nightly)" >> "$GITHUB_ENV"
+
+      - uses: ./.github/actions/setup-go
+        with:
+          cache-scope: android-abi-candidate
+          gomobile-cache: "true"
+
+      - uses: ./.github/actions/setup-android
+      - uses: ./.github/actions/setup-flutter
+
+      - name: Decode app configuration for device testing
+        if: env.APP_ENV_AVAILABLE == 'true'
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: app.env
+          fileDir: ${{ github.workspace }}
+          encodedString: ${{ secrets.APP_ENV }}
+
+      - name: Create placeholder app configuration
+        if: env.APP_ENV_AVAILABLE != 'true'
+        run: touch app.env
+
+      - name: Install gomobile
+        run: make install-android-deps
+
+      - name: Build per-ABI release-mode APKs and dual-ABI AAB
+        run: make android-release-ci
+
+      - name: Verify complete ARM32 and ARM64 artifacts
+        run: |
+          abis=$(sed -n 's/^android.abis=//p' android/abi-targets.properties)
+          check=(python3 scripts/ci/verify_android_abis.py --expected-abis "$abis" --release --aar bin/android/liblantern.aar)
+          "${check[@]}" --aab lantern-installer-abi-candidate.aab
+          "${check[@]}" --app-abis arm64-v8a --apk lantern-installer-abi-candidate.apk
+          "${check[@]}" --app-abis armeabi-v7a --apk lantern-installer-abi-candidate-armv7.apk
+          sha256sum lantern-installer-abi-candidate.apk lantern-installer-abi-candidate-armv7.apk \
+            lantern-installer-abi-candidate.aab > android-abi-candidate.sha256
+
+      - name: Upload candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-abi-candidate-${{ github.sha }}
+          path: |
+            lantern-installer-abi-candidate.apk
+            lantern-installer-abi-candidate-armv7.apk
+            lantern-installer-abi-candidate.aab
+            android-abi-candidate.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Summarize candidate
+        run: |
+          {
+            echo "Debug-signed ARM32/ARM64 candidate: $APP_VERSION. Cannot upgrade public installs."
+            if [[ "$APP_ENV_AVAILABLE" != true ]]; then
+              echo 'APP_ENV is absent; this build is for packaging checks only.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

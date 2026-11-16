@@ -5,9 +5,17 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
+// The route of the same name comes from the router.
+import 'package:lantern/features/macos_extension/macos_extension_dialog.dart'
+    hide MacOSExtensionDialog;
+import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 
+import '../helpers/provider/helpers_notifier.dart';
 import '../home/provider/app_setting_notifier.dart';
 import '../home/provider/radiance_settings_providers.dart';
+import 'action_mode_page.dart';
+import 'personal_proxies_intro.dart';
 
 @RoutePage(name: 'Onboarding')
 class Onboarding extends StatefulHookConsumerWidget {
@@ -25,27 +33,84 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     final pageIndex = useState(0);
     final selectedRouteMode = useState(RoutingMode.smart);
     final appSetting = ref.read(appSettingProvider);
+    // Once shown, the page stays for this run, so a flag that changes cannot
+    // pull it out from under the user.
+    final actionModeOffered = ref.watch(actionModeOfferedProvider);
+    final showActionMode = useRef(false);
+    if (actionModeOffered) showActionMode.value = true;
+    final personalProxies = ref.watch(helperInvitesAvailableProvider);
+    // The pages this run has put in front of the user, for the Personal
+    // Proxies introduction: the row counts only if it was there when What
+    // makes Lantern different (page 1) showed.
+    final furthestPage = useRef(0);
+    if (pageIndex.value > furthestPage.value) {
+      furthestPage.value = pageIndex.value;
+    }
+    final personalProxiesSeen = useRef(false);
+    if (personalProxies && pageIndex.value == 1) {
+      personalProxiesSeen.value = true;
+    }
+    final actionModePage = PlatformUtils.isIOS ? 2 : 3;
+    // On macOS the network extension is the flow's last step, with its own
+    // dot, the first time the app runs. Decided once: the flag is cleared as
+    // onboarding finishes.
+    final extensionPage = useMemoized(
+      () => PlatformUtils.isMacOS && appSetting.showSplashScreen,
+    );
+    final extensionState = extensionPage
+        ? ref.watch(macosExtensionProvider)
+        : null;
+    final lastPage =
+        (PlatformUtils.isIOS ? 1 : 2) +
+        (showActionMode.value ? 1 : 0) +
+        (extensionPage ? 1 : 0);
+    final onExtensionPage = extensionPage && pageIndex.value == lastPage;
+    final completing = useRef(false);
 
     Future<void> onboardingCompleted() async {
+      // Once: Close and the extension's ready callback can both arrive, and
+      // a second pop would take Home with it.
+      if (completing.value) return;
+      completing.value = true;
       await ref
           .read(radianceSettingsProvider.notifier)
           .setRoutingMode(selectedRouteMode.value);
       ref.read(appSettingProvider.notifier).setOnboardingCompleted(true);
+      // A user who saw them here needs no introduction later. One who
+      // skipped past them, or whose flags came too late, still gets it.
+      final actionModeSeen =
+          showActionMode.value && furthestPage.value >= actionModePage;
+      if (actionModeSeen || personalProxiesSeen.value) {
+        ref.read(appSettingProvider.notifier).setPersonalProxiesIntroSeen(true);
+      }
+      // Skipped before reaching the extension page: the dialog asks instead.
       final shouldShowExtensionDialog =
-          appSetting.showSplashScreen && PlatformUtils.isMacOS;
+          extensionPage && furthestPage.value < lastPage;
       appRouter.pop();
+      if (extensionPage) {
+        // User has seen it, do not show again
+        appLogger.info("Setting showSplashScreen to false");
+        ref.read(appSettingProvider.notifier).setSplashScreen(false);
+      }
       if (shouldShowExtensionDialog) {
         appLogger.info("Showing System Extension Dialog");
         // Defer the push to the next frame to avoid calling setState during build
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appRouter.push(const MacOSExtensionDialog());
         });
-        // User has seen dialog, do not show again
-        appLogger.info("Setting showSplashScreen to false");
-        ref.read(appSettingProvider.notifier).setSplashScreen(false);
-        return;
       }
     }
+
+    // Reached with the extension already ready: the watcher's callback was
+    // ignored while the page was not selected, so finish here.
+    useEffect(() {
+      if (onExtensionPage && (extensionState?.isReady ?? false)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) onboardingCompleted();
+        });
+      }
+      return null;
+    }, [onExtensionPage, extensionState?.isReady]);
 
     return Scaffold(
       key: const Key('onboarding.screen'),
@@ -53,10 +118,14 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         leading: const SizedBox.shrink(),
         backgroundColor: context.bgElevated,
         title: LanternLogo(color: context.textPrimary),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(0),
-          child: DividerSpace(padding: EdgeInsets.zero),
-        ),
+        actions: [
+          // The extension can be set up later, from the VPN switch.
+          if (onExtensionPage)
+            CloseButton(
+              key: const Key('onboarding.close'),
+              onPressed: onboardingCompleted,
+            ),
+        ],
       ),
       body: Container(
         color: context.bgElevated,
@@ -81,6 +150,8 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                         indicatorRadius: 5,
                         itemSpacing: 15,
                         indicatorBorderWidth: 0.0,
+                        // The design's dots: blue/300 on gray/300, the same
+                        // palette colors in both themes.
                         currentIndicatorColor: AppColors.blue3,
                         indicatorBackgroundColor: context.borderInput,
                         enableAnimation: true,
@@ -103,30 +174,54 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                         Text(
                           'welcome_to_lantern'.i18n,
                           style: textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: context.textSecondary),
+                            fontWeight: FontWeight.bold,
+                            color: context.textPrimary,
+                          ),
                         ),
                         SizedBox(height: 16),
-                        Text('lantern_pro_tagline'.i18n)
+                        Text(
+                          'lantern_pro_tagline'.i18n,
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: context.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
-                    slide2(context),
+                    OnboardingDifferentPage(
+                      personalProxies: personalProxies,
+                      actionMode: showActionMode.value,
+                    ),
                     if (!PlatformUtils.isIOS)
                       slide3(context, selectedRouteMode),
+                    if (showActionMode.value) const OnboardingActionModePage(),
+                    if (extensionPage)
+                      OnboardingExtensionPage(
+                        state: extensionState!,
+                        // A partial swipe mounts this page before it is
+                        // selected: a ready extension must not end
+                        // onboarding yet.
+                        onReady: () {
+                          if (onExtensionPage) onboardingCompleted();
+                        },
+                      ),
                   ],
                 ),
               ),
               PrimaryButton(
                 key: const Key('onboarding.primary'),
-                label:
-                    pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
+                label: pageIndex.value == 0
+                    ? 'get_started'.i18n
+                    : onExtensionPage
+                    ? macOSExtensionButtonLabel(extensionState!.status)
+                    : 'continue'.i18n,
                 isTaller: true,
                 onPressed: () {
-                  if (PlatformUtils.isIOS && pageIndex.value == 1) {
-                    onboardingCompleted();
+                  if (onExtensionPage) {
+                    // Finishes once the extension reports ready.
+                    installMacOSExtension(ref, context, extensionState!);
                     return;
                   }
-                  if (pageIndex.value == 2) {
+                  if (pageIndex.value >= lastPage) {
                     onboardingCompleted();
                     return;
                   }
@@ -142,7 +237,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                   onPressed: () {
                     onboardingCompleted();
                   },
-                )
+                ),
               },
               SizedBox(height: 28.0),
             ],
@@ -152,118 +247,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     );
   }
 
-  Widget slide2(BuildContext context) {
-    final textTheme = TextTheme.of(context);
-    return Column(
-      children: <Widget>[
-        SizedBox(height: 24.0),
-        Text(
-          'what_makes_lantern_different'.i18n,
-          style: textTheme.headlineSmall!.copyWith(
-            color: context.textSecondary,
-          ),
-        ),
-        SizedBox(height: 8.0),
-        Text(
-          'built_for_privacy_speed_freedom'.i18n,
-          style: textTheme.bodyLarge!.copyWith(
-            color: context.textSecondary,
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-              path: AppImagePaths.smartRouteMode,
-              useThemeColor: false,
-            ),
-          ),
-          label: '',
-          labelWidget: Text(
-            'smart_routing_mode'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'region_specific_routing_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-                path: AppImagePaths.advanceProtocol, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'advanced_protocols'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'advanced_protocols_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-                path: AppImagePaths.privateServerIntro, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'private_servers'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'private_servers_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child:
-                AppImage(path: AppImagePaths.nonProfit, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'nonprofit_mission'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'built_by_nonprofit'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget slide3(
-    BuildContext context,
-    ValueNotifier<RoutingMode> selectedMode,
-  ) {
+  Widget slide3(BuildContext context, ValueNotifier<RoutingMode> selectedMode) {
     final textTheme = TextTheme.of(context);
 
     return Column(
@@ -271,23 +255,21 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         SizedBox(height: 24.0),
         Text(
           'choose_your_routing_mode'.i18n,
-          style: textTheme.headlineSmall!.copyWith(
-            color: context.textSecondary,
-          ),
+          style: textTheme.headlineSmall!.copyWith(color: context.textPrimary),
         ),
         SizedBox(height: 24.0),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => selectedMode.value = RoutingMode.smart,
+        AppFocusable(
+          onActivate: () => selectedMode.value = RoutingMode.smart,
+          borderRadius: BorderRadius.circular(16.0),
           child: RouteModeContainer(
             mode: RoutingMode.smart,
             isSelected: selectedMode.value == RoutingMode.smart,
           ),
         ),
         SizedBox(height: 16.0),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => selectedMode.value = RoutingMode.full,
+        AppFocusable(
+          onActivate: () => selectedMode.value = RoutingMode.full,
+          borderRadius: BorderRadius.circular(16.0),
           child: RouteModeContainer(
             mode: RoutingMode.full,
             isSelected: selectedMode.value == RoutingMode.full,
@@ -300,6 +282,185 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         ),
         SizedBox(height: 40),
       ],
+    );
+  }
+}
+
+/// Room left under a page's content for the carousel's floating dots.
+const onboardingIndicatorSpace = 32.0;
+
+/// Onboarding's "What makes Lantern different" page. [personalProxies] adds
+/// the Personal Proxies row, where helper invites are offered (censored
+/// regions).
+class OnboardingDifferentPage extends StatelessWidget {
+  const OnboardingDifferentPage({
+    super.key,
+    required this.personalProxies,
+    this.actionMode = false,
+  });
+
+  final bool personalProxies;
+
+  /// Whether Action Mode is offered. Its row shows only where Personal
+  /// Proxies doesn't, which takes its place in censored regions.
+  final bool actionMode;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = TextTheme.of(context);
+    // Scrolls rather than overflows on a short window, now that censored
+    // regions get a fifth row.
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          SizedBox(height: 24.0),
+          Text(
+            'what_makes_lantern_different'.i18n,
+            style: textTheme.headlineSmall!.copyWith(
+              color: context.textPrimary,
+            ),
+          ),
+          SizedBox(height: 8.0),
+          Text(
+            'built_for_privacy_speed_freedom'.i18n,
+            style: textTheme.bodyLarge!.copyWith(color: context.textSecondary),
+          ),
+          SizedBox(height: 24.0),
+          OnboardingFeatureRow(
+            icon: AppImage(
+              path: AppImagePaths.smartRouteMode,
+              useThemeColor: false,
+            ),
+            title: 'smart_routing_mode'.i18n,
+            description: 'region_specific_routing_description'.i18n,
+          ),
+          SizedBox(height: 24.0),
+          OnboardingFeatureRow(
+            icon: AppImage(
+              path: AppImagePaths.advanceProtocol,
+              useThemeColor: false,
+            ),
+            title: 'advanced_protocols'.i18n,
+            description: 'advanced_protocols_description'.i18n,
+          ),
+          SizedBox(height: 24.0),
+          OnboardingFeatureRow(
+            icon: AppImage(
+              path: AppImagePaths.privateServerIntro,
+              useThemeColor: false,
+            ),
+            title: 'private_servers'.i18n,
+            description: 'private_servers_description'.i18n,
+          ),
+          if (personalProxies) ...[
+            SizedBox(height: 24.0),
+            OnboardingFeatureRow(
+              rowKey: const Key('onboarding.personal_proxies'),
+              icon: OnboardingIconTile(path: AppImagePaths.personAdd),
+              title: 'onboarding_personal_proxies'.i18n,
+              description: 'onboarding_personal_proxies_description'.i18n,
+              isNew: true,
+            ),
+          ] else if (actionMode) ...[
+            SizedBox(height: 24.0),
+            OnboardingFeatureRow(
+              rowKey: const Key('onboarding.action_mode_row'),
+              icon: OnboardingIconTile(path: AppImagePaths.unbounded),
+              title: 'unbounded'.i18n,
+              description: 'onboarding_action_mode_row_description'.i18n,
+            ),
+          ],
+          SizedBox(height: 24.0),
+          OnboardingFeatureRow(
+            icon: AppImage(path: AppImagePaths.nonProfit, useThemeColor: false),
+            title: 'nonprofit_mission'.i18n,
+            description: 'built_by_nonprofit'.i18n,
+          ),
+          SizedBox(height: onboardingIndicatorSpace),
+        ],
+      ),
+    );
+  }
+}
+
+/// Onboarding's Network Extension page (macOS): the extension explainer,
+/// whose button sits with the flow's other buttons. Onboarding finishes as
+/// soon as the extension is installed and active.
+class OnboardingExtensionPage extends StatelessWidget {
+  const OnboardingExtensionPage({
+    super.key,
+    required this.state,
+    required this.onReady,
+  });
+
+  final MacOSExtensionState state;
+  final VoidCallback onReady;
+
+  @override
+  Widget build(BuildContext context) {
+    return MacOSExtensionWatcher(
+      key: const Key('onboarding.network_extension'),
+      onReady: onReady,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(
+            top: 24.0,
+            bottom: onboardingIndicatorSpace,
+          ),
+          child: MacOSExtensionContent(state: state),
+        ),
+      ),
+    );
+  }
+}
+
+/// One of onboarding's feature rows: an icon level with the title, the
+/// title with a New badge where [isNew], and a description under it.
+class OnboardingFeatureRow extends StatelessWidget {
+  const OnboardingFeatureRow({
+    super.key,
+    this.rowKey,
+    required this.icon,
+    required this.title,
+    required this.description,
+    this.isNew = false,
+    this.contentPadding,
+  });
+
+  final Key? rowKey;
+  final Widget icon;
+  final String title;
+  final String description;
+  final bool isNew;
+  final EdgeInsetsGeometry? contentPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = TextTheme.of(context);
+    final label = Text(
+      title,
+      style: textTheme.titleMedium!.copyWith(color: context.textPrimary),
+    );
+    return AppTile(
+      tileKey: rowKey,
+      // The icon's top sits level with the title, as designed.
+      titleAlignment: ListTileTitleAlignment.top,
+      contentPadding: contentPadding,
+      icon: icon,
+      label: '',
+      labelWidget: isNew
+          ? Row(
+              children: [
+                Flexible(child: label),
+                const SizedBox(width: 8.0),
+                const NewBadge(),
+              ],
+            )
+          : label,
+      subtitle: Text(
+        description,
+        style: textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+      ),
     );
   }
 }
@@ -332,10 +493,7 @@ class RouteModeContainer extends StatelessWidget {
         children: <Widget>[
           Row(
             children: [
-              AppRadioButton<bool>(
-                groupValue: isSelected,
-                value: true,
-              ),
+              AppRadioButton<bool>(groupValue: isSelected, value: true),
               SizedBox(width: 16.0),
               Text(
                 title(),
@@ -345,27 +503,31 @@ class RouteModeContainer extends StatelessWidget {
               ),
               SizedBox(width: 8.0),
               Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: context.statusInfoBorder),
-                    color: context.statusInfoBg,
+                padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(color: context.statusInfoBorder),
+                  color: context.statusInfoBg,
+                ),
+                child: Text(
+                  tags(),
+                  style: textTheme.labelMedium!.copyWith(
+                    color: context.statusInfoText,
                   ),
-                  child: Text(
-                    tags(),
-                    style: textTheme.labelMedium!
-                        .copyWith(color: context.statusInfoText),
-                  ))
+                ),
+              ),
             ],
           ),
           SizedBox(height: 4.0),
           Padding(
             padding: const EdgeInsets.only(left: 38),
-            child: Text(description(),
-                style: textTheme.bodyMedium!
-                    .copyWith(color: context.textSecondary)),
-          )
+            child: Text(
+              description(),
+              style: textTheme.bodyMedium!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -393,5 +555,55 @@ class RouteModeContainer extends StatelessWidget {
     } else {
       return 'traditional_vpn_mode'.i18n;
     }
+  }
+}
+
+/// "New", beside a feature onboarding introduces.
+class NewBadge extends StatelessWidget {
+  const NewBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('onboarding.new_badge'),
+      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: context.statusSuccessBorder),
+        color: context.statusSuccessBg,
+      ),
+      child: Text(
+        'onboarding_new_badge'.i18n,
+        style: TextTheme.of(
+          context,
+        ).labelMedium!.copyWith(color: context.statusSuccessText),
+      ),
+    );
+  }
+}
+
+/// The tile the older rows' icons have drawn in, around one of the app's
+/// icons.
+class OnboardingIconTile extends StatelessWidget {
+  const OnboardingIconTile({super.key, required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: context.bgHover,
+        border: Border.all(color: context.statusInfoBorder),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: AppImage(
+        path: path,
+        width: 22,
+        height: 22,
+        color: context.statusInfoText,
+      ),
+    );
   }
 }

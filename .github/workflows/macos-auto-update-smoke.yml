@@ -24,8 +24,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  stateful-smoke-disabled:
+    name: macOS smoke unavailable
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report unavailable smoke runner
+        run: |
+          echo '::error title=macOS smoke unavailable::Stateful macOS smoke tests are disabled. Configure the replacement runner and set MACOS_STATEFUL_SMOKE_ENABLED=true; see docs/macos-ci.md.'
+          echo '### macOS auto-update smoke was not run' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The dedicated runner is disabled. Signed update installation and relaunch coverage is unavailable. See docs/macos-ci.md before enabling MACOS_STATEFUL_SMOKE_ENABLED.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
   check-runner:
     name: Verify native UI driver
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
     runs-on: [self-hosted, lantern-macos-smoke]
     timeout-minutes: 5
     steps:
@@ -39,6 +52,7 @@ jobs:
 
   resolve-target:
     name: Resolve signed update target
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       display_version: ${{ steps.target.outputs.display_version }}
@@ -145,6 +159,7 @@ jobs:
   build-fixture:
     name: Build signed lower fixture
     needs: [check-runner, resolve-target]
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
     permissions:
       contents: read
       id-token: write
@@ -154,7 +169,6 @@ jobs:
       version: ${{ needs.resolve-target.outputs.display_version }}
       build_type: beta
       installer_base_name: lantern-autoupdate-fixture
-      runner_label: lantern-macos-smoke
       flutter_target: integration_test/auto_update/desktop_auto_update_smoke_test.dart
       # flutter drive needs the VM service exposed by a profile fixture.
       flutter_build_mode: profile
@@ -166,6 +180,7 @@ jobs:
 
   exercise-update:
     name: Install and update through Sparkle
+    if: ${{ vars.MACOS_STATEFUL_SMOKE_ENABLED == 'true' }}
     needs:
       - resolve-target
       - build-fixture

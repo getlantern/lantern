@@ -8,12 +8,14 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/getlantern/lantern-box/portforward"
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/env"
@@ -22,12 +24,12 @@ import (
 	"github.com/getlantern/radiance/ipc"
 	"github.com/getlantern/radiance/issue"
 	"github.com/getlantern/radiance/peer"
-	"github.com/getlantern/radiance/portforward"
 	"github.com/getlantern/radiance/servers"
 	"github.com/getlantern/radiance/unbounded"
 	"github.com/getlantern/radiance/vpn"
 
 	"github.com/getlantern/lantern/lantern-core/apps"
+	"github.com/getlantern/lantern/lantern-core/helper"
 	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
 	"github.com/getlantern/lantern/lantern-core/utils"
 	"github.com/getlantern/lantern/lantern-core/utils/reportissue"
@@ -64,7 +66,10 @@ const (
 	// message from Radiance, which keeps copy out of event logs and makes a
 	// missed event harmless.
 	EventTypeUserMessageAvailable EventType = "user-message-available"
-	DefaultLogLevel                         = "trace"
+	// Release default. Trace in production kept always-on tunnels writing
+	// per-read log lines around the clock (battery + disk, FD #184449);
+	// debug builds and staging opt back into trace at the call sites.
+	DefaultLogLevel = "info"
 )
 
 // Backoff between startup user-data fetch retries; the first attempt is
@@ -79,12 +84,17 @@ var startupUserDataFetchDelays = []time.Duration{
 
 // LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
 type LanternCore struct {
-	client       *ipc.Client
-	userMessages userMessageClient
-	ctx          context.Context
-	cancel       context.CancelFunc
-	initOnce     sync.Once
-	eventEmitter utils.FlutterEventEmitter
+	client         *ipc.Client
+	userMessages   userMessageClient
+	serverImporter serverURLImporter
+	serverStore    serverStore
+	splitTunnel    splitTunnelPaths
+	ctx            context.Context
+	cancel         context.CancelFunc
+	initOnce       sync.Once
+	eventEmitter   utils.FlutterEventEmitter
+	helpers        *helper.Engine
+	pairingKeys    *pairingKeyPusher
 }
 
 var (
@@ -241,6 +251,16 @@ type VPN interface {
 	VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error
 }
 
+type Helper interface {
+	// HelperCall runs one helper-invite operation (see lantern-core/helper)
+	// and returns its JSON result, or {"error": code}. It never returns a raw
+	// error, so nothing about a failure but its code crosses into Dart.
+	// The ops "personal_proxy_status" (radiance's status of each friend this
+	// device invited) and "selected_server" (the selection radiance has
+	// persisted) run without the engine.
+	HelperCall(op, argsJSON string) string
+}
+
 type Core interface {
 	App
 	User
@@ -250,6 +270,7 @@ type Core interface {
 	Ads
 	SmartRouting
 	PeerShare
+	Helper
 	VPN
 	Client() *ipc.Client
 }
@@ -315,15 +336,27 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 
 	lc.client = client
 	lc.userMessages = client
+	lc.serverImporter = client
+	lc.serverStore = client
+	lc.splitTunnel.client = client
 	lc.ctx = ctx
 	lc.cancel = cancel
 	lc.eventEmitter = eventEmitter
+	lc.helpers = helper.NewEngine(filepath.Join(opts.DataDir, "helper"), lc.relayHelper, lc.helperActivity)
+	lc.pairingKeys = newPairingKeyPusher(ctx, lc.helpers.UnlockedPairingKeys, client.SetHelperPairingKeys)
+	// A key an op erases before a slow request reaches radiance at once.
+	lc.helpers.SetKeysChanged(lc.pairingKeys.changed)
 
 	go lc.listenAutoSelectedEvents()
 	go lc.listenConfigEvents()
 	go lc.listenDataCapEvents()
 	go lc.listenPeerConnectionEvents()
 	go lc.listenUnboundedSnapshots()
+	go lc.listenPeerSnapshots()
+	go lc.listenHelperLive()
+	go lc.listenVPNStatusForPairingKeys()
+	go lc.listenPersonalProxyFallbackEvents()
+	go lc.listenSelectionSavedEvents()
 	go lc.listenPeerStatusEvents()
 	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
@@ -418,7 +451,7 @@ func (lc *LanternCore) listenAutoSelectedEvents() {
 			slog.Error("Error marshalling server location", "error", err)
 			return
 		}
-		slog.Debug("Auto location server:", "server", string(jsonBytes))
+		slog.Debug("Auto location server:", "tag", tag)
 		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
 	})
 	if err != nil && lc.ctx.Err() == nil {
@@ -593,6 +626,9 @@ const (
 func (lc *LanternCore) ConnectVPN(tag string) error {
 	ctx, cancel := context.WithTimeout(lc.ctx, ipcConnectTimeout)
 	defer cancel()
+	if err := lc.prepareSplitTunnel(ctx); err != nil {
+		return fmt.Errorf("preparing split-tunnel paths: %w", err)
+	}
 	return vpn_tunnel.ConnectToServer(ctx, lc.client, tag)
 }
 
@@ -898,6 +934,11 @@ func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
 }
 
 func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) error {
+	if enabled && runtime.GOOS == "windows" {
+		if _, err := lc.splitTunnelFilters(lc.ctx); err != nil {
+			return err
+		}
+	}
 	return lc.client.EnableSplitTunneling(lc.ctx, enabled)
 }
 
@@ -908,30 +949,30 @@ func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
 
 func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
 	filter := filterFromTypeAndItems(filterType, []string{item})
-	return lc.client.AddSplitTunnelItems(lc.ctx, filter)
+	return lc.updateSplitTunnelItems(filter, false)
 }
 
 func (lc *LanternCore) AddSplitTunnelItems(items string) error {
 	split := splitCSVClean(items)
 	filter := platformFilter(split)
-	return lc.client.AddSplitTunnelItems(lc.ctx, filter)
+	return lc.updateSplitTunnelItems(filter, false)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
 	filter := filterFromTypeAndItems(filterType, []string{item})
-	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
+	return lc.updateSplitTunnelItems(filter, true)
 }
 
 func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
 	split := splitCSVClean(items)
 	filter := platformFilter(split)
-	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
+	return lc.updateSplitTunnelItems(filter, true)
 }
 
 func (lc *LanternCore) GetSplitTunnelItems() (string, error) {
-	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	filter, err := lc.splitTunnelFilters(lc.ctx)
 	if err != nil {
-		return "{}", nil
+		return "", err
 	}
 	b, err := json.Marshal(filter)
 	if err != nil {
@@ -941,7 +982,7 @@ func (lc *LanternCore) GetSplitTunnelItems() (string, error) {
 }
 
 func (lc *LanternCore) GetSplitTunnelItemsFor(filterType string) (string, error) {
-	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	filter, err := lc.splitTunnelFilters(lc.ctx)
 	if err != nil {
 		return "", err
 	}
@@ -954,7 +995,7 @@ func (lc *LanternCore) GetSplitTunnelItemsFor(filterType string) (string, error)
 }
 
 func (lc *LanternCore) GetEnabledApps() (string, error) {
-	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	filter, err := lc.splitTunnelFilters(lc.ctx)
 	if err != nil {
 		return "", err
 	}
@@ -1356,7 +1397,7 @@ func (lc *LanternCore) CancelDeployment() error {
 }
 
 func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
-	return privateserver.AddServerManually(ip, port, accessToken, tag, lc.client, events)
+	return privateserver.AddServerManually(ip, port, accessToken, tag, false, lc.client, events)
 }
 
 func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, inviteName string) (string, error) {
@@ -1386,9 +1427,14 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	if oldTag == newTag {
 		return nil
 	}
+	// radiance refuses these at AddServers, which here runs after the
+	// remove; refuse them before touching the server.
+	if slices.Contains(servers.ReservedTags(), newTag) {
+		return fmt.Errorf("server name %q: %w", newTag, servers.ErrReservedTag)
+	}
 
 	// Find source server
-	source, exists, err := lc.client.GetServerByTag(lc.ctx, oldTag)
+	source, exists, err := lc.serverStore.GetServerByTag(lc.ctx, oldTag)
 	if err != nil {
 		return fmt.Errorf("failed to get server %q: %w", oldTag, err)
 	}
@@ -1397,30 +1443,100 @@ func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
 	}
 
 	// Check new tag doesn't collide
-	_, collision, _ := lc.client.GetServerByTag(lc.ctx, newTag)
+	_, collision, _ := lc.serverStore.GetServerByTag(lc.ctx, newTag)
 	if collision {
 		return fmt.Errorf("server with tag %q already exists", newTag)
 	}
 
-	// Remove old, add renamed copy
-	if err := lc.client.RemoveServers(lc.ctx, []string{oldTag}); err != nil {
+	// Remove old, add renamed copy. radiance saves or deletes before it
+	// updates the tunnel, so an error does not say what is stored: a failed
+	// add is reconciled from what the store holds afterwards.
+	original := *source
+	if err := lc.serverStore.RemoveServers(lc.ctx, []string{oldTag}); err != nil {
 		return fmt.Errorf("failed to remove old server %q: %w", oldTag, err)
 	}
-	source.Tag = newTag
-	list := servers.ServerList{Servers: []*servers.Server{source}}
-	if err := lc.client.AddServers(lc.ctx, list); err != nil {
-		return fmt.Errorf("failed to add renamed server %q: %w", newTag, err)
+	renamed := *source
+	renamed.Tag = newTag
+	list := servers.ServerList{Servers: []*servers.Server{&renamed}}
+	if err := lc.serverStore.AddServers(lc.ctx, list); err != nil {
+		return lc.reconcileRename(oldTag, newTag, &original, err)
 	}
 	return nil
 }
 
-func (lc *LanternCore) AddServersByURL(urls string, skipCertVerification bool) ([]byte, error) {
-	urlList := strings.Split(urls, ",")
-	for i, u := range urlList {
-		urlList[i] = strings.TrimSpace(u)
+// reconcileRename settles a rename whose add failed, from the stored state
+// rather than the errors, with at most one corrective call. It always
+// returns an error wrapping addErr, describing the final state.
+func (lc *LanternCore) reconcileRename(oldTag, newTag string, original *servers.Server, addErr error) error {
+	hasOld, hasNew, err := lc.renameState(oldTag, newTag)
+	if err != nil {
+		return fmt.Errorf("failed to add renamed server %q: %w (stored state unknown: %v)", newTag, addErr, err)
+	}
+	switch {
+	case hasOld && hasNew:
+		// Best effort: the result is read back below.
+		_ = lc.serverStore.RemoveServers(lc.ctx, []string{newTag})
+	case !hasOld && !hasNew:
+		_ = lc.serverStore.AddServers(lc.ctx, servers.ServerList{Servers: []*servers.Server{original}})
+	}
+	if hasOld != hasNew {
+		return lc.renameResult(oldTag, newTag, hasOld, hasNew, addErr)
+	}
+	hasOld, hasNew, err = lc.renameState(oldTag, newTag)
+	if err != nil {
+		return fmt.Errorf("failed to add renamed server %q: %w (stored state unknown: %v)", newTag, addErr, err)
+	}
+	return lc.renameResult(oldTag, newTag, hasOld, hasNew, addErr)
+}
+
+func (lc *LanternCore) renameState(oldTag, newTag string) (hasOld, hasNew bool, err error) {
+	if _, hasOld, err = lc.serverStore.GetServerByTag(lc.ctx, oldTag); err != nil {
+		return false, false, err
+	}
+	_, hasNew, err = lc.serverStore.GetServerByTag(lc.ctx, newTag)
+	return hasOld, hasNew, err
+}
+
+func renameError(newTag string, addErr error, state string) error {
+	return fmt.Errorf("failed to add renamed server %q: %w (%s)", newTag, addErr, state)
+}
+
+func (lc *LanternCore) renameResult(oldTag, newTag string, hasOld, hasNew bool, addErr error) error {
+	switch {
+	case hasOld && !hasNew:
+		return renameError(newTag, addErr, fmt.Sprintf("kept as %q", oldTag))
+	case hasNew && !hasOld:
+		// The rename was saved; only the tunnel update after it failed.
+		return renameError(newTag, addErr, fmt.Sprintf("saved as %q", newTag))
+	case hasOld && hasNew:
+		return renameError(newTag, addErr, fmt.Sprintf("both %q and %q are stored", oldTag, newTag))
+	default:
+		return renameError(newTag, addErr, fmt.Sprintf("server %q is no longer stored", oldTag))
+	}
+}
+
+// serverStore is the part of the IPC client a rename uses.
+type serverStore interface {
+	GetServerByTag(context.Context, string) (*servers.Server, bool, error)
+	RemoveServers(context.Context, []string) error
+	AddServers(context.Context, servers.ServerList) error
+}
+
+type serverURLImporter interface {
+	AddServersByURL(context.Context, []string, bool) ([]string, error)
+}
+
+// AddServersByURL imports servers; the legacy certificate-bypass flag is ignored.
+func (lc *LanternCore) AddServersByURL(urls string, _ bool) ([]byte, error) {
+	urls = strings.TrimSpace(urls)
+	if inv, ok := privateserver.ParseInviteURL(urls); ok {
+		if err := privateserver.AddServerManually(inv.IP, inv.Port, inv.Token, inv.Name, true, lc.client, nil); err != nil {
+			return nil, err
+		}
+		return json.Marshal([]string{inv.Name})
 	}
 
-	tags, err := lc.client.AddServersByURL(lc.ctx, urlList, skipCertVerification)
+	tags, err := lc.serverImporter.AddServersByURL(lc.ctx, []string{urls}, false)
 	if err != nil {
 		return nil, err
 	}
@@ -1519,4 +1635,55 @@ func itemsForType(filter vpn.SplitTunnelFilter, filterType string) []string {
 	default:
 		return nil
 	}
+}
+
+// helperCallTimeout bounds one helper operation. A refresh makes one request
+// per pending invite, up to 20, plus one, each relayed through kindling.
+const helperCallTimeout = 90 * time.Second
+
+func (lc *LanternCore) HelperCall(op, argsJSON string) string {
+	if op == opPersonalProxyStatus {
+		if lc.client == nil {
+			return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+		}
+		return personalProxyStatusJSON(lc.ctx, lc.client.PersonalProxyStatus)
+	}
+	if op == opSelectedServer {
+		return lc.readSelectedServer()
+	}
+	if lc.helpers == nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+	}
+	ctx, cancel := context.WithTimeout(lc.ctx, helperCallTimeout)
+	defer cancel()
+	out, err := lc.helpers.Call(ctx, op, []byte(argsJSON))
+	// Any op may have changed the pairing keys: an unlock or a lock, a
+	// pairing made or ended, a refresh that heard of one.
+	lc.pairingKeys.changed()
+	if err != nil {
+		// Only the op, code and status: the arguments and the rest of the
+		// error can carry invite secrets or names.
+		code, status := helper.Describe(err)
+		slog.Warn("Helper operation failed", "op", op, "code", code, "status", status)
+		return helper.ErrorJSON(err)
+	}
+	return string(out)
+}
+
+// relayHelper sends one HelperService request through radiance.
+func (lc *LanternCore) relayHelper(ctx context.Context, op string, body []byte) (int, []byte, string, error) {
+	res, err := lc.client.HelperRelay(ctx, op, body)
+	if err != nil {
+		return 0, nil, "", err
+	}
+	return res.Status, res.Body, res.Error, nil
+}
+
+// helperActivity reads today's sharing totals from radiance.
+func (lc *LanternCore) helperActivity(ctx context.Context) (helper.Activity, error) {
+	a, err := lc.client.HelperActivity(ctx)
+	if err != nil {
+		return helper.Activity{}, err
+	}
+	return helper.Activity{Day: a.Day, ActiveSeconds: a.ActiveSeconds, RelayedBytes: a.RelayedBytes}, nil
 }

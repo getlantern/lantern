@@ -233,7 +233,8 @@ internal final class SystemExtensionSmokeCommandRunner {
 private extension ExtensionStatus {
   var isSystemExtensionSmokeActivationTerminal: Bool {
     switch self {
-    case .installed, .activated, .requiresApproval, .requiresReboot, .error, .timedOut:
+    case .installed, .activated, .requiresApproval, .requiresEnable, .requiresReboot, .error,
+      .timedOut:
       return true
     case .notInstalled, .uninstalling, .updatePending, .deactivated:
       return false
@@ -248,6 +249,8 @@ private extension ExtensionStatus {
       return action == .activate ? 20 : 0
     case .requiresReboot:
       return action == .activate ? 21 : 0
+    case .requiresEnable:
+      return action == .activate ? 22 : 0
     case .error:
       return 1
     case .timedOut:

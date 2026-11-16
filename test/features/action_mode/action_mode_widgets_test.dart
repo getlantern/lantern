@@ -12,15 +12,31 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
-import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
+import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/auto_enable_mode.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
+import 'package:lantern/features/helpers/helping_friends.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/home/provider/country_code_notifier.dart';
+
+class _Helpers extends HelpersNotifier {
+  _Helpers(this.initial);
+  final HelpersState initial;
+  @override
+  HelpersState build() => initial;
+  @override
+  Future<void> refreshIfUsed() async {}
+  @override
+  Future<void> loadHelpOthers() async {}
+}
 
 class _Share extends ShareNotifier {
   _Share(this.initialState);
@@ -34,7 +50,7 @@ class _Share extends ShareNotifier {
   @override
   Future<bool> ensureConsent(BuildContext context) async => consent;
   @override
-  Future<void> toggle(BuildContext context, WidgetRef widgetRef) async {
+  Future<void> toggle(BuildContext? context, [WidgetRef? widgetRef]) async {
     toggles++;
   }
 
@@ -44,8 +60,13 @@ class _Share extends ShareNotifier {
 
 class _Settings extends AppSettingNotifier {
   @override
-  AppSetting build() =>
-      const AppSetting(unboundedAutoEnable: false, unboundedWelcomeSeen: true);
+  AppSetting build() => AppSetting(
+    unboundedAutoEnable: false,
+    unboundedWelcomeSeen: true,
+    unboundedSessionCount: sessionCount,
+  );
+
+  static int sessionCount = 2;
   @override
   void setUnboundedAutoEnable(bool value) {
     state = state.copyWith(unboundedAutoEnable: value);
@@ -63,6 +84,7 @@ void main() {
   setUp(() {
     _Share.consent = true;
     _Share.toggles = 0;
+    _Settings.sessionCount = 2;
   });
 
   Future<void> mount(
@@ -72,6 +94,8 @@ void main() {
     double scale = 1,
     Brightness brightness = Brightness.light,
     bool animated = false,
+    String country = 'US',
+    HelpersState helpers = const HelpersState(),
     ShareState shareState = const ShareState(
       active: true,
       mode: ShareMode.unbounded,
@@ -91,6 +115,9 @@ void main() {
           overrides: [
             appSettingProvider.overrideWith(_Settings.new),
             shareProvider.overrideWith(() => _Share(shareState)),
+            helperInvitesAvailableProvider.overrideWithValue(false),
+            helpersProvider.overrideWith(() => _Helpers(helpers)),
+            countryCodeProvider.overrideWithValue(country),
           ],
           child: ScreenUtilInit(
             designSize: const Size(393, 852),
@@ -125,6 +152,198 @@ void main() {
     }
   }
 
+  group('helper invites on the tab', () {
+    final become = find.byKey(const Key('action_mode.become_personal_proxy'));
+    final connections = find.byKey(
+      const Key('action_mode.personal_proxy_connections'),
+    );
+
+    testWidgets('"Become a Personal Proxy" shows in an uncensored country', (
+      tester,
+    ) async {
+      await mount(tester, const ActionModeTab(), animated: true);
+      expect(become, findsOneWidget);
+      expect(find.text('become_personal_proxy'.i18n), findsOneWidget);
+      expect(find.text('become_personal_proxy_body'.i18n), findsOneWidget);
+      expect(connections, findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    for (final country in ['', 'IR', 'CN']) {
+      testWidgets('no invite row where sharing may not start ("$country")', (
+        tester,
+      ) async {
+        await mount(
+          tester,
+          const ActionModeTab(),
+          animated: true,
+          country: country,
+        );
+        expect(become, findsNothing);
+        expect(connections, findsNothing);
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+
+    testWidgets('a volunteer waiting on a claim sees the invite row before '
+        'the country is known', (tester) async {
+      final expires = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600;
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        country: '',
+        helpers: HelpersState(
+          view: HelpersView(
+            unlocked: true,
+            claims: [
+              HelperClaimView(id: 'c1', code: '2562', expiresUnix: expires),
+            ],
+          ),
+        ),
+      );
+      expect(become, findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('a volunteer sees the connections card instead, and no '
+        '"You\'re helping"', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        helpers: const HelpersState(
+          view: HelpersView(
+            unlocked: true,
+            helping: [HelperPairingView(pairingId: 'p1', name: 'Sara')],
+          ),
+        ),
+      );
+      expect(connections, findsOneWidget);
+      expect(become, findsNothing);
+      expect(find.text('helping_friends_one'.i18n), findsOneWidget);
+      expect(find.byKey(const Key('helping.today')), findsNothing);
+      expect(find.byKey(const Key('helping.remove.p1')), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('the keystore-reset notice shows to a volunteer helping '
+        'nobody', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        helpers: const HelpersState(keystoreReset: true),
+      );
+      expect(find.byKey(const Key('helping.keystore_reset')), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    for (final requested in [true, false]) {
+      testWidgets('"Helping right now" shows a choice still being saved '
+          '(requested $requested over saved ${!requested})', (tester) async {
+        await mount(
+          tester,
+          const ActionModeTab(),
+          animated: true,
+          helpers: HelpersState(
+            helpOthers: !requested,
+            requestedHelpOthers: requested,
+          ),
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('action-mode.helping-now')),
+            matching: find.text(
+              requested
+                  ? 'All countries'
+                  : 'Only my Personal Proxy connections',
+            ),
+          ),
+          findsOneWidget,
+        );
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+
+    for (final helpOthers in [true, false]) {
+      testWidgets('"Helping right now" says whom (helpOthers $helpOthers) and '
+          'opens Who you\'re helping', (tester) async {
+        await mount(
+          tester,
+          const ActionModeTab(),
+          animated: true,
+          helpers: HelpersState(helpOthers: helpOthers),
+        );
+        final row = find.byKey(const Key('action-mode.helping-now'));
+        expect(
+          find.descendant(
+            of: row,
+            matching: find.text(
+              helpOthers
+                  ? 'All countries'
+                  : 'Only my Personal Proxy connections',
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find
+              .descendant(of: row, matching: find.byType(AppImage))
+              .evaluate()
+              .length,
+          2,
+          reason: 'the row icon and its chevron',
+        );
+        await tester.tap(row);
+        // The globe keeps turning: pumpAndSettle would not return.
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(find.byType(WhoYoureHelpingSheet), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+
+    for (final helping in [false, true]) {
+      testWidgets(
+        'status, both counts and the ${helping ? 'connections card' : 'Become row'} '
+        'fit above the fold at the default size',
+        (tester) async {
+          await mount(
+            tester,
+            const ActionModeTab(),
+            size: desktopWindowSize,
+            animated: true,
+            helpers: HelpersState(
+              view: HelpersView(
+                unlocked: true,
+                helping: [
+                  if (helping) const HelperPairingView(pairingId: 'p1'),
+                ],
+              ),
+            ),
+          );
+          final card = helping ? connections : become;
+          expect(card, findsOneWidget);
+          expect(
+            tester.getRect(card).bottom,
+            lessThanOrEqualTo(desktopWindowSize.height),
+          );
+          expect(
+            tester
+                .getRect(find.byKey(const Key('action-mode.total-helped')))
+                .bottom,
+            lessThanOrEqualTo(tester.getRect(card).top),
+          );
+          expect(
+            tester.getSize(find.byType(ActionModeGlobe)).height,
+            greaterThan(0),
+          );
+          await tester.pumpWidget(const SizedBox());
+        },
+      );
+    }
+  });
+
   for (final mode in [ShareMode.smc, ShareMode.unbounded]) {
     testWidgets('failed $mode stop is visible and can be retried', (
       tester,
@@ -158,7 +377,7 @@ void main() {
   }
 
   for (final scale in [1.0, 2.0]) {
-    testWidgets('waiting pill stays below the intro at 320x568, scale $scale', (
+    testWidgets('waiting pill stays over the globe at 320x568, scale $scale', (
       tester,
     ) async {
       await mount(
@@ -171,9 +390,9 @@ void main() {
       );
       expect(tester.takeException(), isNull);
       final pill = tester.getRect(find.byType(PeerStatusPill));
-      final intro = tester.getRect(find.byType(InfoRow));
+      final globe = tester.getRect(find.byType(ActionModeGlobe));
       final status = tester.getRect(find.byType(ActionModeStatusCard));
-      expect(pill.top, greaterThanOrEqualTo(intro.bottom));
+      expect(pill.top, greaterThanOrEqualTo(globe.top));
       expect(pill.bottom, lessThanOrEqualTo(status.top));
       expect(
         tester.getSize(find.byType(ActionModeGlobe)).height,
@@ -202,7 +421,13 @@ void main() {
       expect(scroll.position.maxScrollExtent, greaterThan(0));
       final scrollBefore = scroll.position.pixels;
 
-      await tester.drag(find.byType(InfoRow), const Offset(0, -100));
+      // The card's centre is below the fold at this scale; drag from its
+      // visible top edge.
+      await tester.dragFrom(
+        tester.getTopLeft(find.byType(ActionModeStatusCard)) +
+            const Offset(24, 24),
+        const Offset(0, -100),
+      );
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(scroll.position.pixels, greaterThan(scrollBefore));
@@ -300,14 +525,43 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('long status wraps beside the info icon at large text', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      SingleChildScrollView(
+        child: ActionModeStatusCard(
+          status: 'Waiting to start · Direct connection',
+          enabled: true,
+          ready: false,
+          busy: false,
+          hasError: false,
+          activeCount: 0,
+          totalCount: 219,
+          onToggle: () {},
+          onInfo: () {},
+        ),
+      ),
+      size: const Size(320, 568),
+      scale: 2,
+    );
+    expect(find.byKey(const Key('action-mode.info')), findsOneWidget);
+    expect(find.byKey(const Key('action-mode.toggle')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('keeps lifetime impact visible while sharing is disabled', (
     tester,
   ) async {
     await mount(tester, status());
-    expect(find.text('219'), findsOneWidget);
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('Total people helped to date:'), findsOneWidget);
-    expect(find.text('People you are helping right now:'), findsOneWidget);
+    expect(find.text('219 people'), findsOneWidget);
+    expect(find.text('0 people'), findsOneWidget);
+    expect(find.text('Total people helped to date'), findsOneWidget);
+    expect(find.text('Helping right now'), findsOneWidget);
+    // No onTotalTap, so no tap affordance either.
+    expect(find.text('View advanced stats'), findsNothing);
+    expect(find.byKey(const Key('action-mode.info')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -321,13 +575,10 @@ void main() {
         scale: 2,
         animated: true,
       );
-      expect(find.text('9'), findsOneWidget);
-      expect(find.text('219'), findsOneWidget);
-      await tester.tap(
-        find.text(
-          'Help others bypass censorship by securely sharing your connection.',
-        ),
-      );
+      expect(find.text('9 people'), findsOneWidget);
+      expect(find.text('219 people'), findsOneWidget);
+      // The intro banner is gone; the info icon reopens the explainer.
+      await tester.tap(find.byKey(const Key('action-mode.info')));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Welcome to Action Mode'), findsOneWidget);
       await tester.ensureVisible(find.text('Got It'));
@@ -337,6 +588,43 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
+
+  testWidgets('the Welcome to Action Mode dialog offers Auto-enable Action '
+      'Mode, off until checked, and checking it saves the setting', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const ActionModeTab(),
+      size: const Size(360, 640),
+      scale: 2,
+      animated: true,
+    );
+    await tester.tap(find.byKey(const Key('action-mode.info')));
+    await tester.pump(const Duration(milliseconds: 300));
+    final dialog = find.byType(AlertDialog);
+    final box = find.descendant(
+      of: dialog,
+      matching: find.byKey(const Key('action-mode.auto-enable')),
+    );
+    expect(box, findsOneWidget);
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.text('auto_enable_unbounded'.i18n),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.widget<Checkbox>(box).value, isFalse);
+    await tester.ensureVisible(box);
+    await tester.tap(box);
+    await tester.pump();
+    expect(tester.widget<Checkbox>(box).value, isTrue);
+    await tester.ensureVisible(find.text('Got It'));
+    await tester.tap(find.text('Got It'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpWidget(const SizedBox());
+  });
 
   testWidgets('both auto-enable controls edit the same saved preference', (
     tester,
@@ -396,12 +684,15 @@ void main() {
           await tester.tapAt(tester.getCenter(toggle) - const Offset(20, 0));
           await tester.pump(const Duration(milliseconds: 300));
           expect(_Share.toggles, 1);
-          final checkbox = find.byKey(const Key('action-mode.auto-enable'));
-          await tester.ensureVisible(checkbox);
+          final link = find.byKey(const Key('action-mode.total-helped'));
+          await tester.ensureVisible(link);
           await tester.pump(const Duration(milliseconds: 300));
-          await tester.tap(checkbox);
-          await tester.pump(const Duration(milliseconds: 300));
-          expect(tester.widget<Checkbox>(checkbox).value, isTrue);
+          await tester.tap(link);
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 500));
+          expect(find.byType(AdvancedStatsView), findsOneWidget);
+          // Auto-enable lives in Action Mode settings, not on the tab.
+          expect(find.byType(ActionModeAutoEnable), findsNothing);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
         },
@@ -488,4 +779,259 @@ void main() {
       },
     );
   }
+
+  const relay = RelayStats(
+    available: true,
+    speedDown: 1260000,
+    speedUp: 48000,
+    sessionDown: 340000000,
+    sessionUp: 12000000,
+    lifetimeDown: 1200000000,
+    lifetimeUp: 30000000,
+    countries: {
+      'IR': RelayCountryStats(
+        code: 'IR',
+        name: 'Iran',
+        down: 900000000,
+        up: 20000000,
+        people: 4,
+      ),
+      'RU': RelayCountryStats(
+        code: 'RU',
+        name: 'Russia',
+        down: 200000000,
+        up: 5000000,
+        people: 1,
+      ),
+      '': RelayCountryStats(code: '', down: 1000),
+    },
+  );
+
+  for (final brightness in Brightness.values) {
+    testWidgets('total helped row opens the stats sheet ($brightness)', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        brightness: brightness,
+        shareState: const ShareState(
+          active: true,
+          mode: ShareMode.unbounded,
+          unboundedRunning: true,
+          activeCount: 5,
+          totalCount: 12,
+          relay: relay,
+        ),
+        animated: true,
+      );
+      final link = find.byKey(const Key('action-mode.total-helped'));
+      await tester.ensureVisible(link);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('View advanced stats'), findsOneWidget);
+      await tester.tap(link);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(AdvancedStatsView), findsOneWidget);
+      expect(find.text('People you have helped'), findsOneWidget);
+      expect(find.text('12 helped to date · 5 right now'), findsOneWidget);
+      expect(find.text('1.3 MB/s ↑ 48 kB/s ↓'), findsOneWidget);
+      expect(find.text('352 MB'), findsOneWidget);
+      expect(find.text('Sent 340 MB · Received 12 MB'), findsOneWidget);
+      expect(find.text('1.2 GB'), findsOneWidget);
+      expect(find.text('920 MB relayed'), findsOneWidget);
+      expect(find.text('4 people'), findsOneWidget);
+      expect(find.text('205 MB relayed'), findsOneWidget);
+      expect(find.text('1 person'), findsOneWidget);
+      expect(find.text('Unknown'), findsOneWidget);
+      expect(find.text('1.0 kB relayed'), findsOneWidget);
+      expect(find.textContaining('0 people'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  testWidgets('advanced stats orders countries by data', (tester) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.unbounded,
+        relay: relay,
+      ),
+    );
+    final iran = tester.getTopLeft(find.text('Iran')).dy;
+    final russia = tester.getTopLeft(find.text('Russia')).dy;
+    final unknown = tester.getTopLeft(find.text('Unknown')).dy;
+    expect(iran, lessThan(russia));
+    expect(russia, lessThan(unknown));
+    expect(find.byKey(const Key('advanced-stats.smc-note')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a country with people but no bytes shows people only', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.smc,
+        phase: SharePhase.serving,
+        relay: RelayStats(
+          countries: {
+            'IR': RelayCountryStats(code: 'IR', name: 'Iran', people: 1),
+          },
+        ),
+      ),
+    );
+    expect(find.text('1 person'), findsOneWidget);
+    expect(find.text('0 B relayed'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('advanced stats shows an empty state at large text', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      size: const Size(320, 568),
+      scale: 2,
+      shareState: const ShareState(
+        relay: RelayStats(available: true, speedDown: 1260000, speedUp: 48000),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text(
+        'No one helped yet. Countries will appear here once people connect '
+        'through you.',
+      ),
+      findsOneWidget,
+    );
+    // The data card sits below the fold in the lazily built list.
+    await tester.dragUntilVisible(
+      find.byKey(const Key('advanced-stats.session')),
+      find.byKey(const Key('advanced-stats.list')),
+      const Offset(0, -200),
+    );
+    expect(find.text('0 B'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('advanced stats in SmC shows the same figures as WebRTC', (
+    tester,
+  ) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.smc,
+        phase: SharePhase.serving,
+        relay: relay,
+      ),
+    );
+    expect(find.text('Direct connection'), findsOneWidget);
+    expect(find.text('1.3 MB/s ↑ 48 kB/s ↓'), findsOneWidget);
+    expect(find.text('352 MB'), findsOneWidget);
+    expect(find.text('1.2 GB'), findsOneWidget);
+    expect(find.text('920 MB relayed'), findsOneWidget);
+    expect(find.text('4 people'), findsOneWidget);
+    expect(
+      find.text('Data stats are available only when sharing via Unbounded.'),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  // The sharing mode is named in the stats sheet, not on the card.
+  for (final mode in [ShareMode.unbounded, ShareMode.smc]) {
+    testWidgets('status line reads Enabled in $mode mode', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        shareState: ShareState(
+          active: true,
+          mode: mode,
+          phase: mode == ShareMode.smc ? SharePhase.serving : SharePhase.idle,
+          unboundedRunning: mode == ShareMode.unbounded,
+        ),
+        animated: true,
+      );
+      final card = tester.widget<ActionModeStatusCard>(
+        find.byType(ActionModeStatusCard),
+      );
+      expect(card.status, 'Enabled');
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  // The fixture's lifetime total exceeds its session total, which counts as
+  // an earlier session on installs that predate the counter.
+  for (final (sessions, priorData, shown) in [
+    (0, false, false),
+    (1, false, false),
+    (2, false, true),
+    (1, true, true),
+  ]) {
+    testWidgets('session row after $sessions sessions, prior data $priorData: '
+        'shown=$shown', (tester) async {
+      _Settings.sessionCount = sessions;
+      await mount(
+        tester,
+        const AdvancedStatsView(),
+        shareState: ShareState(
+          active: true,
+          mode: ShareMode.unbounded,
+          unboundedRunning: true,
+          relay: priorData
+              ? relay
+              : relay.copyWith(
+                  lifetimeDown: relay.sessionDown,
+                  lifetimeUp: relay.sessionUp,
+                ),
+        ),
+      );
+      expect(
+        find.byKey(const Key('advanced-stats.session')),
+        shown ? findsOneWidget : findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('advanced stats explains a fallback to WebRTC', (tester) async {
+    await mount(
+      tester,
+      const AdvancedStatsView(),
+      shareState: const ShareState(
+        active: true,
+        mode: ShareMode.unbounded,
+        unboundedRunning: true,
+        fallbackReason: "Your router isn't forwarding traffic.",
+        relay: relay,
+      ),
+    );
+    final mode = find.byKey(const Key('advanced-stats.mode'));
+    expect(
+      find.descendant(of: mode, matching: find.text('WebRTC')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: mode,
+        matching: find.text(
+          "Direct connection unavailable: Your router isn't forwarding "
+          'traffic.',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

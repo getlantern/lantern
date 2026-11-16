@@ -23,13 +23,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import lantern.io.libbox.Libbox
 import lantern.io.libbox.Notification
-import lantern.io.libbox.StringIterator
 import lantern.io.libbox.TunOptions
 import lantern.io.mobile.Mobile
 import lantern.io.utils.Opts
 import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
+import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
@@ -49,12 +50,12 @@ import org.getlantern.lantern.utils.toIpPrefix
  * it should not include any logic that needs to be connected with any activity.
  * everything should be done in independent
  */
-class LanternVpnService :
+open class LanternVpnService :
     VpnService(),
     PlatformInterfaceWrapper {
     companion object {
         private const val TAG = "LanternVpnService"
-        private const val sessionName = "LanternVpn"
+        private val sessionName = BuildConfig.VPN_SESSION_NAME
         const val ACTION_START_RADIANCE = "com.getlantern.START_RADIANCE"
         const val ACTION_START_VPN = "org.getlantern.START_VPN"
         const val ACTION_CONNECT_TO_SERVER = "org.getlantern.CONNECT_TO_SERVER"
@@ -202,6 +203,12 @@ class LanternVpnService :
         }
     }
 
+    override fun onRevoke() {
+        AppLogger.w(TAG, "VPN revoked by the system, another VPN app took over the tunnel")
+        // stopSelf() leads to onDestroy, which tears down the tunnel and posts Disconnected.
+        super.onRevoke()
+    }
+
     override fun onDestroy() {
         try {
             AppLogger.d(TAG, "destroying LanternVpnService")
@@ -212,7 +219,9 @@ class LanternVpnService :
             // Native teardown can block. Keep it off the main thread and let it
             // outlive serviceScope; the gate waits for any native start to finish.
             teardownScope.launch {
-                vpnStartGate.stop {
+                // onStopping runs after the gate cancels any in-flight start, so
+                // nothing can publish Connected after this Disconnected.
+                vpnStartGate.stop(onStopping = { VpnStatusManager.postVPNStatus(VPNStatus.Disconnected) }) {
                     runCatching {
                         if (Mobile.isRadianceConnected()) {
                             Mobile.stopVPN()
@@ -283,17 +292,8 @@ class LanternVpnService :
         notificationHelper.sendNotification(notification)
     }
 
-    override fun systemCertificates(): StringIterator {
-        //return empty iterator as we are not using system certificates
-        return object : StringIterator {
-            override fun hasNext(): Boolean = false
-            override fun len(): Int {
-                return 0
-            }
-
-            override fun next(): String = ""
-        }
-
+    override fun cancelNotification(identifier: String?, typeID: Int) {
+        notificationHelper.cancelNotification(typeID)
     }
 
     private suspend fun startRadiance() {
@@ -611,11 +611,23 @@ class LanternVpnService :
             builder.addAddress(address.address(), address.prefix())
         }
 
-        // Disallow traffic from our own app to the VPN.
-        builder.addDisallowedApplication(BuildConfig.APPLICATION_ID)
+        // Keep domestic payment apps off-tunnel so checkout handoffs don't exit from a foreign IP.
+        for (pkg in AppFilters.TUNNEL_BYPASS) {
+            try {
+                builder.addDisallowedApplication(pkg)
+                AppLogger.i(TAG, "Excluded $pkg from the tunnel")
+            } catch (_: PackageManager.NameNotFoundException) {
+                AppLogger.d(TAG, "$pkg not installed; nothing to exclude")
+            }
+        }
 
         if (options.autoRoute) {
-            builder.addDnsServer(options.dnsServerAddress.value)
+            if (options.dnsMode.value != Libbox.DNSModeDisabled) {
+                val dnsServerAddress = options.dnsServerAddress
+                while (dnsServerAddress.hasNext()) {
+                    builder.addDnsServer(dnsServerAddress.next())
+                }
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 val inet4RouteAddress = options.inet4RouteAddress
@@ -671,7 +683,7 @@ class LanternVpnService :
             Opts().apply {
                 dataDir = initConfigDir()
                 logDir = logDir()
-                logLevel = "trace"
+                logLevel = if (BuildConfig.DEBUG) "trace" else "info"
                 deviceid = DeviceUtil.deviceId()
                 appVersion = BuildConfig.VERSION_NAME
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)

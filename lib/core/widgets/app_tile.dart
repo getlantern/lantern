@@ -21,7 +21,7 @@ class AppTile extends StatelessWidget {
   final bool selected;
   final bool showChevron;
 
-  final EdgeInsets? contentPadding;
+  final EdgeInsetsGeometry? contentPadding;
   final bool? dense;
   final double? minHeight;
   final TextStyle? tileTextStyle;

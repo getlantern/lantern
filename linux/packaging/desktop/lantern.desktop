@@ -5,6 +5,7 @@ GenericName=Lantern
 Comment=Lantern Internet Freedom Tool
 Icon=lantern
 Exec=lantern %U
+MimeType=x-scheme-handler/lantern;
 Categories=Network;
 Keywords=Lantern;VPN;Proxy;Privacy;
 StartupNotify=true

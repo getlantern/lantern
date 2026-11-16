@@ -38,13 +38,19 @@ class InstallerEnvironmentTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 installer.render(changed, "staging", True, "migration-e2e", True)
 
-    def test_workflow_passes_environment_to_initial_build_and_packaging(self):
+    def test_workflow_preserves_environment_without_rebuilding_for_packaging(self):
         text = (Path(__file__).resolve().parents[2] / ".github/workflows/build-windows.yml").read_text(encoding="utf-8")
         self.assertIn("RADIANCE_ENV: ${{ inputs.backend_environment == 'staging' && 'staging' || '' }}", text)
-        self.assertIn("--build-dart-define=RADIANCE_ENV=staging", text)
-        self.assertIn("--build-dart-define=AUTO_UPDATE_E2E=true", text)
+        self.assertIn("AUTO_UPDATE_E2E: ${{ inputs.auto_update_e2e }}", text)
         self.assertLess(text.index("Validate backend environment isolation"), text.index("Decode APP_ENV"))
-        self.assertLess(text.index("Render staging migration service commands"), text.index("      - name: Package installer"))
+        start = text.index("      - name: Package the signed payload without rebuilding")
+        self.assertLess(text.index("Render staging migration service commands"), start)
+        packaging = text[start:text.index("\n      - name:", start + 1)]
+        self.assertIn("'--source', 'build/windows/x64/runner/Release'", packaging)
+        self.assertIn("'--template', 'windows/packaging/exe/inno_setup.iss'", packaging)
+        self.assertIn("ISCC.exe", packaging)
+        self.assertNotIn("fastforge", packaging.lower())
+        self.assertNotIn("flutter build", packaging.lower())
 
 
 if __name__ == "__main__":

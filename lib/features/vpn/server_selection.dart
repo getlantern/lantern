@@ -2,25 +2,32 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fpdart/fpdart.dart' show Either;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/available_servers.dart';
-import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/latency_status.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
 import 'package:lantern/core/widgets/app_text.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
 import 'package:lantern/core/widgets/spinner.dart';
+import 'package:lantern/features/helpers/personal_proxy_invite.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
+import 'package:lantern/features/vpn/latency_indicator.dart';
+import 'package:lantern/features/vpn/personal_proxies_section.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
-import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
-import 'package:lantern/features/vpn/server_selection_callbacks.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 @RoutePage(name: 'ServerSelection')
-class ServerSelection extends StatefulHookConsumerWidget {
+class ServerSelection extends ConsumerStatefulWidget {
   const ServerSelection({super.key});
 
   @override
@@ -28,8 +35,6 @@ class ServerSelection extends StatefulHookConsumerWidget {
 }
 
 class _ServerSelectionState extends ConsumerState<ServerSelection> {
-  TextTheme? _textTheme;
-
   @override
   void initState() {
     super.initState();
@@ -41,6 +46,9 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             .read(availableServersProvider.notifier)
             .refreshAvailableServersAfterProbeSettle(),
       );
+      // refreshIfUsed, never refresh: opening the list must not touch the
+      // keystore.
+      unawaited(ref.read(helpersProvider.notifier).refreshIfUsed());
     });
   }
 
@@ -50,98 +58,92 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     final availableServers = ref.watch(availableServersProvider);
     final isUserPro = ref.watch(isUserProProvider);
 
-    _textTheme = TextTheme.of(context);
-
-    final appBar = CustomAppBar(
-      title: Text('server_selection'.i18n),
-      actions: [
-        IconButton(
-          key: const Key('server_selection.more_options'),
-          icon: const Icon(Icons.more_vert),
-          onPressed: onOpenMoreOptions,
-        ),
-      ],
-    );
-
-    if (availableServers.isLoading) {
-      return BaseScreen(
-        key: const Key('server_selection.screen'),
-        title: '',
-        appBar: appBar,
-        body: const Center(child: Spinner()),
-      );
-    }
-
-    final err = availableServers.asError;
-    if (err != null) {
-      return BaseScreen(
-        key: const Key('server_selection.screen'),
-        title: '',
-        appBar: appBar,
-        body: Center(
-          child: Text(err.error.toString(), textAlign: TextAlign.center),
-        ),
-      );
-    }
-
-    final selectedServer = selected;
-    final isPrivateServerFound = availableServers.requireValue.hasUserServers;
-
     return BaseScreen(
       key: const Key('server_selection.screen'),
       title: '',
-      appBar: appBar,
-      body: isPrivateServerFound
-          ? _buildBody(selectedServer, isUserPro)
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSmartLocation(selectedServer),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'smart_routing_mode_description'.i18n,
-                    style: _textTheme?.bodyMedium!.copyWith(
-                      color: context.textSecondary,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: size24),
-                Flexible(child: ServerLocationListView(userPro: isUserPro)),
-              ],
-            ),
+      appBar: CustomAppBar(
+        title: Text('server_selection'.i18n),
+        actions: [
+          IconButton(
+            key: const Key('server_selection.more_options'),
+            icon: const Icon(Icons.more_vert),
+            onPressed: onOpenMoreOptions,
+          ),
+        ],
+      ),
+      body: availableServers.when(
+        loading: () => const Center(child: Spinner()),
+        error: (error, _) =>
+            Center(child: Text(error.toString(), textAlign: TextAlign.center)),
+        data: (servers) => _buildBody(servers, selected, isUserPro),
+      ),
     );
   }
 
-  Widget _buildBody(ServerLocation selectedServer, bool isUserPro) {
+  Widget _buildBody(
+    AvailableServers servers,
+    ServerLocation selected,
+    bool isUserPro,
+  ) {
+    final hasPersonalProxies = ref.watch(
+      helpersProvider.select((s) => s.view.helpers.isNotEmpty),
+    );
+    // Where helper invites are offered, before and after the first personal
+    // proxy: the row stays here, under Smart Location, and the Personal
+    // Proxies group under Private Locations has none of its own.
+    final inviteRow = ref.watch(helperInvitesAvailableProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSmartLocation(servers, selected),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'smart_routing_mode_description'.i18n,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium!.copyWith(color: context.textSecondary),
+          ),
+        ),
+        if (inviteRow) ...[
+          const SizedBox(height: defaultSize),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: AppTile(
+              tileKey: const Key('server_selection.invite_row'),
+              icon: AppImagePaths.personAdd,
+              label: 'invite_personal_proxy'.i18n,
+              trailing: const AppImage(path: AppImagePaths.arrowForward),
+              onPressed: () => startPersonalProxyInvite(context, ref),
+            ),
+          ),
+        ],
+        const SizedBox(height: size24),
+        Expanded(
+          child: servers.hasUserServers || hasPersonalProxies
+              ? _buildTabs(servers, isUserPro)
+              : ServerLocationListView(servers: servers, userPro: isUserPro),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabs(AvailableServers servers, bool isUserPro) {
     return DefaultTabController(
       length: 2,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _buildSmartLocation(selectedServer),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'smart_routing_mode_description'.i18n,
-              style: _textTheme?.bodyMedium!.copyWith(
-                color: context.textSecondary,
-              ),
-            ),
-          ),
-          const SizedBox(height: size24),
+        children: [
           SizedBox(
             height: 35.h,
             child: TabBar(
               indicatorSize: TabBarIndicatorSize.tab,
-              indicatorPadding: EdgeInsets.symmetric(horizontal: size24),
               splashBorderRadius: BorderRadius.circular(40),
               labelColor: context.actionTabbarSelectedText,
               dividerHeight: 0,
               unselectedLabelColor: context.actionTabbarDisabledText,
-              labelStyle: _textTheme!.titleSmall,
+              labelStyle: Theme.of(context).textTheme.titleSmall,
               indicator: BoxDecoration(
                 color: context.actionTabbarBg,
                 borderRadius: BorderRadius.circular(40),
@@ -152,7 +154,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
                 Tab(child: Text('lantern_servers'.i18n)),
                 Tab(
                   key: const Key('server_selection.private_servers_tab'),
-                  child: Text('private_servers'.i18n),
+                  child: Text('private_locations'.i18n),
                 ),
               ],
             ),
@@ -163,7 +165,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           Expanded(
             child: TabBarView(
               children: [
-                ServerLocationListView(userPro: isUserPro),
+                ServerLocationListView(servers: servers, userPro: isUserPro),
                 const PrivateServerLocationListView(),
               ],
             ),
@@ -173,11 +175,22 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     );
   }
 
-  Widget _buildSmartLocation(ServerLocation serverLocation) {
-    final autoLocation = serverLocation.autoLocation;
-    final displayName = autoLocation?.displayName ?? 'fastest_server'.i18n;
+  Widget _buildSmartLocation(
+    AvailableServers servers,
+    ServerLocation serverLocation,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+    // The card is the Smart Location choice, which a tap switches to. With a
+    // friend selected it shows only the generic choice: the auto location
+    // kept with the selection must reveal nothing about the friend.
+    final autoLocation = serverLocation.personalProxyFriendTag == null
+        ? serverLocation.autoLocation
+        : null;
+    final displayName = (autoLocation?.displayName ?? 'fastest_server').i18n;
     final flag = autoLocation?.countryCode ?? '';
-    final protocol = autoLocation?.protocol ?? '';
+    final protocol = (autoLocation?.protocol ?? '').capitalize;
+    final autoTag = autoLocation?.tag;
+    final autoServer = autoTag == null ? null : servers.serverByTag(autoTag);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -185,9 +198,7 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'smart_location'.i18n,
-            style: _textTheme?.labelLarge!.copyWith(
-              color: context.textSecondary,
-            ),
+            style: textTheme.labelLarge!.copyWith(color: context.textSecondary),
           ),
         ),
         AppCard(
@@ -196,19 +207,28 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
             icon: flag.isEmpty
                 ? AppImagePaths.location
                 : Flag(countryCode: flag),
-            label: displayName.i18n,
+            tileKey: const Key('server_selection.smart_location'),
+            label: displayName,
             onPressed: onSmartLocation,
             subtitle: protocol.isEmpty
                 ? null
                 : Text(
-                    protocol.capitalize,
-                    style: _textTheme!.labelMedium!.copyWith(
+                    protocol,
+                    style: textTheme.labelMedium!.copyWith(
                       color: context.textTertiary,
                     ),
                   ),
-            trailing: AppImage(
-              path: AppImagePaths.blot,
-              color: context.statusWarningBgDot,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                if (autoServer != null)
+                  LatencyIndicator(status: LatencyStatus.of(autoServer)),
+                AppImage(
+                  path: AppImagePaths.blot,
+                  color: context.statusWarningBgDot,
+                ),
+              ],
             ),
           ),
         ),
@@ -217,17 +237,12 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
   }
 
   Future<void> onSmartLocation() async {
-    if (PlatformUtils.isMacOS) {
-      final macosExtensionStatus = ref.read(macosExtensionProvider);
-      if (!macosExtensionStatus.isReady) {
-        appRouter.push(const MacOSExtensionDialog());
-        return;
-      }
-    }
+    if (!_macOSExtensionReady(ref)) return;
 
-    final serverLocation = ref.read(serverLocationProvider);
-
-    final type = serverLocation.serverType.toServerLocationType;
+    final type = ref
+        .read(serverLocationProvider)
+        .serverType
+        .toServerLocationType;
     if (type == ServerLocationType.auto) {
       appLogger.debug(
         'Already in smart location, no need to switch, Just pop the screen',
@@ -236,84 +251,89 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
       return;
     }
 
-    /// User clicking here mean user want to switch to auto server regardless of VPN state
-    final result = await ref.read(vpnProvider.notifier).startVPN(force: true);
-
-    result.fold(
-      (failure) {
-        if (failure is VpnConflictFailure) {
-          if (!context.mounted) {
-            return;
-          }
-          AppDialog.vpnConflictDialog(
-            context: context,
-            onConnectAnyway: () async {
-              appRouter.maybePop();
-              final retryResult = await ref
-                  .read(vpnProvider.notifier)
-                  .startVPN(skipConflictCheck: true, force: true);
-              if (!context.mounted) return;
-              retryResult.fold((failure) {
-                context.showSnackBar(failure.localizedErrorMessage);
-                appLogger.error("Error changing VPN state: ${failure.error}");
-              }, (_) => appRouter.popUntilRoot());
-            },
-          );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-      },
-      (_) async {
-        await ref.read(serverLocationProvider.notifier).switchToAuto();
-        appRouter.popUntilRoot();
-      },
+    // Tapping here means switch to auto regardless of the VPN state.
+    final locationNotifier = ref.read(serverLocationProvider.notifier);
+    await _connectAndReturnHome(
+      context,
+      ref,
+      attempt: (skipConflictCheck) => ref
+          .read(vpnProvider.notifier)
+          .startVPN(force: true, skipConflictCheck: skipConflictCheck),
+      save: locationNotifier.switchToAuto,
     );
   }
 
   void onOpenMoreOptions() {
+    // As tall as its rows: a fixed share of the screen cut the last one off
+    // with the invite entry added.
     showAppBottomSheet(
       context: context,
       title: 'private_server_options'.i18n,
-      scrollControlDisabledMaxHeightRatio: .4,
-      builder: (context, scrollController) {
-        return ListView(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          children: [
-            AppTile(
-              tileKey: const Key('server_selection.setup_private_server'),
-              label: 'setup_private_server'.i18n,
-              onPressed: () {
-                context.pushRoute(PrivateServerSetup());
-              },
-            ),
-            const DividerSpace(padding: EdgeInsets.zero),
-            AppTile(
-              tileKey: const Key('server_selection.join_private_server'),
-              label: 'join_a_private_server'.i18n,
-              onPressed: () {
-                context.pushRoute(JoinPrivateServer());
-              },
-            ),
-            const DividerSpace(padding: EdgeInsets.zero),
-            AppTile(
-              tileKey: const Key('server_selection.manage_private_servers'),
-              label: 'manage_private_servers'.i18n,
-              onPressed: () {
-                context.pushRoute(ManagePrivateServer());
-              },
-            ),
-          ],
-        );
-      },
+      fitContent: true,
+      builder: (sheetContext, scrollController) => Flexible(
+        child: PrivateLocationsMenu(
+          onInvitePersonalProxy: () {
+            Navigator.of(sheetContext).pop();
+            startPersonalProxyInvite(context, ref);
+          },
+        ),
+      ),
     );
   }
 }
 
-class ServerLocationListView extends StatefulHookConsumerWidget {
+/// The server list's menu: set up, join, invite a personal proxy, manage.
+class PrivateLocationsMenu extends ConsumerWidget {
+  const PrivateLocationsMenu({super.key, required this.onInvitePersonalProxy});
+
+  final VoidCallback onInvitePersonalProxy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final invites = ref.watch(helperInvitesAvailableProvider);
+    return ListView(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      children: [
+        AppTile(
+          tileKey: const Key('server_selection.setup_private_server'),
+          label: 'setup_private_server'.i18n,
+          onPressed: () => context.pushRoute(PrivateServerSetup()),
+        ),
+        const DividerSpace(padding: EdgeInsets.zero),
+        AppTile(
+          tileKey: const Key('server_selection.join_private_server'),
+          label: 'join_a_private_server'.i18n,
+          onPressed: () => context.pushRoute(JoinPrivateServer()),
+        ),
+        if (invites) ...[
+          const DividerSpace(padding: EdgeInsets.zero),
+          AppTile(
+            tileKey: const Key('server_selection.invite_personal_proxy'),
+            label: 'invite_personal_proxy'.i18n,
+            onPressed: onInvitePersonalProxy,
+          ),
+        ],
+        const DividerSpace(padding: EdgeInsets.zero),
+        AppTile(
+          tileKey: const Key('server_selection.manage_private_servers'),
+          label: 'manage_private_locations'.i18n,
+          onPressed: () => context.pushRoute(ManagePrivateServer()),
+        ),
+      ],
+    );
+  }
+}
+
+class ServerLocationListView extends ConsumerStatefulWidget {
+  final AvailableServers servers;
   final bool userPro;
 
-  const ServerLocationListView({super.key, required this.userPro});
+  const ServerLocationListView({
+    super.key,
+    required this.servers,
+    required this.userPro,
+  });
 
   @override
   ConsumerState<ServerLocationListView> createState() =>
@@ -324,12 +344,8 @@ class _ServerLocationListViewState
     extends ConsumerState<ServerLocationListView> {
   @override
   Widget build(BuildContext context) {
-    final availableServers = ref.watch(availableServersProvider);
-    final selected = ref.watch(serverLocationProvider);
-
-    const verticalSpacing = 12.0;
-
-    final selectedTag = selected.serverName;
+    final selectedTag = ref.watch(serverLocationProvider).serverName;
+    final locations = widget.servers.lanternServerLocations;
 
     return SafeArea(
       child: Column(
@@ -337,211 +353,126 @@ class _ServerLocationListViewState
         children: [
           if (!widget.userPro) ...[
             ProBanner(topMargin: 0),
-            const SizedBox(height: verticalSpacing),
+            const SizedBox(height: 12),
           ],
           Flexible(
-            child: availableServers.when(
-              data: (data) {
-                final allLocations = data.lanternServerLocations;
-                if (allLocations.isEmpty) {
-                  return const Center(child: Text("No locations available"));
-                }
-
-                final sections = [
-                  _sectionHeader('pro_locations'.i18n),
-                  _sectionCard(_locationTiles(allLocations, selectedTag)),
-                ];
-
-                return Stack(
-                  children: [
-                    ScrollConfiguration(
-                      behavior: ScrollConfiguration.of(
-                        context,
-                      ).copyWith(scrollbars: false),
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: sections,
-                      ),
-                    ),
-                    if (!ref.watch(canSelectServerProvider))
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: context.bgElevated.withValues(alpha: 0.72),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          alignment: Alignment.center,
+            child: locations.isEmpty
+                ? const Center(child: Text("No locations available"))
+                : Stack(
+                    children: [
+                      ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(
+                          context,
+                        ).copyWith(scrollbars: false),
+                        child: ListView(
+                          padding: EdgeInsets.zero,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 4.0,
+                                left: defaultSize,
+                              ),
+                              child: HeaderText('pro_locations'.i18n),
+                            ),
+                            AppCard(
+                              padding: EdgeInsets.zero,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: _locationTiles(
+                                  locations,
+                                  selectedTag,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                  ],
-                );
-              },
-              loading: () => const Center(child: Spinner()),
-              error: (error, _) => Center(
-                child: Text(
-                  error.localizedDescription,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
+                      if (!ref.watch(canSelectServerProvider))
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: context.bgElevated.withValues(alpha: 0.72),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            alignment: Alignment.center,
+                          ),
+                        ),
+                    ],
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _sectionHeader(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4.0, left: defaultSize),
-      child: HeaderText(text),
-    );
-  }
-
-  Widget _sectionCard(List<Widget> tiles) {
-    return AppCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: _withDividers(tiles),
-      ),
-    );
-  }
-
+  /// One row per country, divider-separated, with multi-city countries folded
+  /// into an expandable group row.
   List<Widget> _locationTiles(List<Server> locations, String selectedTag) {
-    final grouped = _groupLocationsByCountry(locations);
-    final countryEntries = grouped.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
+    // lanternServerLocations is already sorted by country, so grouping keeps
+    // the countries in order.
+    final byCountry = <String, List<Server>>{};
+    for (final server in locations) {
+      byCountry.putIfAbsent(server.location.country, () => []).add(server);
+    }
 
-    return countryEntries.map((entry) {
-      final country = entry.key;
-      final countryLocations = entry.value;
-
+    final tiles = byCountry.values.map((countryLocations) {
       if (countryLocations.length == 1) {
-        final serverData = countryLocations.first;
+        final server = countryLocations.first;
         return SingleCityServerView(
-          key: ValueKey(serverData.tag),
+          key: ValueKey(server.tag),
           onServerSelected: onServerSelected,
-          server: serverData,
-          isSelected: selectedTag == serverData.tag,
+          server: server,
+          isSelected: selectedTag == server.tag,
         );
       }
-
       return _CountryCityListView(
-        country: country,
         locations: countryLocations,
         selectedServerTag: selectedTag,
         onServerSelected: onServerSelected,
       );
-    }).toList();
+    });
+
+    return [
+      for (final (i, tile) in tiles.indexed) ...[
+        if (i > 0) const DividerSpace(),
+        tile,
+      ],
+    ];
   }
 
-  List<Widget> _withDividers(List<Widget> tiles) {
-    final children = <Widget>[];
-    for (var i = 0; i < tiles.length; i++) {
-      children.add(tiles[i]);
-      if (i < tiles.length - 1) {
-        children.add(const DividerSpace());
-      }
-    }
-    return children;
-  }
+  Future<void> onServerSelected(Server server) async {
+    if (!_macOSExtensionReady(ref)) return;
 
-  Future<void> onServerSelected(Server selectedServer) async {
-    if (PlatformUtils.isMacOS) {
-      /// Check for if extension permission is granted before connecting to server, if not show the permission dialog first
-      final macosExtensionStatus = ref.read(macosExtensionProvider);
-      if (!macosExtensionStatus.isReady) {
-        appRouter.push(const MacOSExtensionDialog());
-        return;
-      }
-    }
-
-    await _connectToServer(selectedServer);
-  }
-
-  Future<void> _connectToServer(Server selectedServer) async {
-    final result = await ref
-        .read(vpnProvider.notifier)
-        .connectToServer(
-          ServerLocationType.lanternLocation,
-          selectedServer.tag,
-        );
-
-    result.fold(
-      (failure) {
-        if (failure is VpnConflictFailure) {
-          AppDialog.vpnConflictDialog(
-            context: context,
-            onConnectAnyway: () async {
-              appRouter.maybePop();
-              final retryResult = await ref
-                  .read(vpnProvider.notifier)
-                  .connectToServer(
-                    ServerLocationType.lanternLocation,
-                    selectedServer.tag,
-                    skipConflictCheck: true,
-                  );
-              retryResult.fold(
-                (failure) =>
-                    context.showSnackBar(failure.localizedErrorMessage),
-                (_) {
-                  ref
-                      .read(serverLocationProvider.notifier)
-                      .updateServerLocation(
-                        ServerLocation.fromServer(server: selectedServer),
-                      );
-                  appRouter.popUntilRoot();
-                },
-              );
-            },
-          );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-      },
-      (_) async {
-        final vpnStatus = ref.read(vpnProvider);
-
-        void syncAndPop() {
-          ref
-              .read(serverLocationProvider.notifier)
-              .updateServerLocation(
-                ServerLocation.fromServer(server: selectedServer),
-              );
-          appRouter.popUntilRoot();
-        }
-
-        if (vpnStatus == VPNStatus.connected) {
-          syncAndPop();
-          return;
-        }
-
-        ref.listenManual<AsyncValue<LanternStatus>>(vPNStatusProvider, (
-          previous,
-          next,
-        ) {
-          if (next is AsyncData<LanternStatus> &&
-              next.value.status == VPNStatus.connected) {
-            syncAndPop();
-          }
-        });
-      },
+    final locationNotifier = ref.read(serverLocationProvider.notifier);
+    await _connectAndReturnHome(
+      context,
+      ref,
+      attempt: (skipConflictCheck) => ref
+          .read(vpnProvider.notifier)
+          .connectToServer(
+            ServerLocationType.lanternLocation,
+            server.tag,
+            skipConflictCheck: skipConflictCheck,
+          ),
+      save: () => locationNotifier.updateServerLocation(
+        ServerLocation.fromServer(server: server),
+      ),
     );
   }
 }
 
 class _CountryCityListView extends StatefulWidget {
-  final String country;
   final List<Server> locations;
   final String selectedServerTag;
-  final OnServerSelected onServerSelected;
+  final ValueChanged<Server> onServerSelected;
 
   const _CountryCityListView({
-    required this.country,
     required this.locations,
     required this.selectedServerTag,
     required this.onServerSelected,
   });
+
+  String get country => locations.first.location.country;
 
   @override
   State<_CountryCityListView> createState() => _CountryCityListViewState();
@@ -553,7 +484,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
   @override
   Widget build(BuildContext context) {
     final countryCode = widget.locations.first.location.countryCode;
-    final country = widget.locations.first.location.country;
+    final best = LatencyStatus.best(widget.locations);
 
     if (PlatformUtils.isDesktop) {
       return Theme(
@@ -567,7 +498,7 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
           ),
           leading: Flag(countryCode: countryCode),
           title: Text(
-            country,
+            widget.country,
             style: Theme.of(
               context,
             ).textTheme.bodyLarge!.copyWith(color: context.textPrimary),
@@ -575,13 +506,22 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
           onExpansionChanged: (expanded) {
             setState(() => _isExpanded = expanded);
           },
-          trailing: ExpansionChevron(isExpanded: _isExpanded),
+          trailing: LatencyTrailing(
+            status: best,
+            chevron: ExpansionChevron(isExpanded: _isExpanded),
+          ),
           shape: const RoundedRectangleBorder(side: BorderSide.none),
           children: widget.locations.map((server) {
             return AppTile(
               dense: true,
               minHeight: 58,
-              contentPadding: const EdgeInsets.only(left: 53, right: 14),
+              // end matches the country tile's 16px tilePadding so the
+              // latency columns align exactly; directional so RTL keeps the
+              // city indent on the leading side.
+              contentPadding: const EdgeInsetsDirectional.only(
+                start: 53,
+                end: 16,
+              ),
               label: server.location.city,
               subtitle: server.type.isEmpty
                   ? null
@@ -596,7 +536,8 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
               tileTextStyle: Theme.of(
                 context,
               ).textTheme.bodyMedium!.copyWith(color: context.textPrimary),
-              onPressed: () => _onLocationSelected(context, server),
+              trailing: LatencyTrailing(status: LatencyStatus.of(server)),
+              onPressed: () => widget.onServerSelected(server),
             );
           }).toList(),
         ),
@@ -606,17 +547,16 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
     return AppTile(
       icon: Flag(countryCode: countryCode),
       label: widget.country,
-      trailing: AppImage(
-        path: AppImagePaths.arrowForward,
-        height: 20.0,
-        color: context.textPrimary,
+      trailing: LatencyTrailing(
+        status: best,
+        chevron: AppImage(
+          path: AppImagePaths.arrowForward,
+          height: 20.0,
+          color: context.textPrimary,
+        ),
       ),
       onPressed: () => _showCountryBottomSheet(context),
     );
-  }
-
-  void _onLocationSelected(BuildContext context, Server server) {
-    widget.onServerSelected(server);
   }
 
   void _showCountryBottomSheet(BuildContext context) {
@@ -626,25 +566,14 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
       scrollControlDisabledMaxHeightRatio: 0.45,
       builder: (bottomSheetContext, scrollController) {
         return Flexible(
-          child: ListView.separated(
-            controller: scrollController,
-            padding: EdgeInsets.zero,
-            itemCount: widget.locations.length,
-            separatorBuilder: (_, _) =>
-                const DividerSpace(padding: EdgeInsets.zero),
-            itemBuilder: (_, index) {
-              final server = widget.locations[index];
-              final isSelected = widget.selectedServerTag == server.tag;
-
-              return SingleCityServerView(
-                nested: true,
-                onServerSelected: (selected) {
-                  Navigator.of(bottomSheetContext).pop();
-                  widget.onServerSelected(selected);
-                },
-                server: server,
-                isSelected: isSelected,
-              );
+          child: CountryCitySheetList(
+            country: widget.country,
+            initialLocations: widget.locations,
+            selectedServerTag: widget.selectedServerTag,
+            scrollController: scrollController,
+            onServerSelected: (selected) {
+              Navigator.of(bottomSheetContext).pop();
+              widget.onServerSelected(selected);
             },
           ),
         );
@@ -652,6 +581,60 @@ class _CountryCityListViewState extends State<_CountryCityListView> {
     );
   }
 }
+
+/// The city rows inside a country's bottom sheet. The sheet is its own route,
+/// so it watches [availableServersProvider] itself; otherwise probe refreshes
+/// that land while it's open would leave its latency indicators stale.
+/// [initialLocations] is used only while there's no server data at all; a
+/// refresh that drops the country empties the list rather than resurrecting
+/// cities that are gone.
+class CountryCitySheetList extends ConsumerWidget {
+  final String country;
+  final List<Server> initialLocations;
+  final String selectedServerTag;
+  final ScrollController? scrollController;
+  final ValueChanged<Server> onServerSelected;
+
+  const CountryCitySheetList({
+    super.key,
+    required this.country,
+    required this.initialLocations,
+    required this.selectedServerTag,
+    required this.onServerSelected,
+    this.scrollController,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref
+        .watch(availableServersProvider)
+        .value
+        ?.lanternServerLocations
+        .where((s) => s.location.country == country)
+        .toList();
+    final locations = current ?? initialLocations;
+
+    return ListView.separated(
+      controller: scrollController,
+      padding: EdgeInsets.zero,
+      itemCount: locations.length,
+      separatorBuilder: (_, _) => const DividerSpace(padding: EdgeInsets.zero),
+      itemBuilder: (_, index) {
+        final server = locations[index];
+        return SingleCityServerView(
+          key: ValueKey(server.tag),
+          nested: true,
+          onServerSelected: onServerSelected,
+          server: server,
+          isSelected: selectedServerTag == server.tag,
+        );
+      },
+    );
+  }
+}
+
+/// How often the Private Locations tab refreshes helper presence.
+const personalProxiesRefreshInterval = Duration(seconds: 60);
 
 class PrivateServerLocationListView extends StatefulHookConsumerWidget {
   const PrivateServerLocationListView({super.key});
@@ -671,6 +654,30 @@ class _PrivateServerLocationListViewState
 
     final availableServers = ref.watch(availableServersProvider);
     final selected = ref.watch(serverLocationProvider);
+    final hasPersonalProxies = ref.watch(
+      helpersProvider.select((s) => s.view.helpers.isNotEmpty),
+    );
+
+    // Helpers stop polling once nothing is pending, so a friend coming
+    // online would leave the Personal proxies row disabled. TabBarView
+    // builds this only while the tab is shown. refreshIfUsed, never
+    // refresh: the list must not touch the keystore.
+    useEffect(() {
+      if (!hasPersonalProxies) return null;
+      final timer = Timer.periodic(personalProxiesRefreshInterval, (_) {
+        if (WidgetsBinding.instance.lifecycleState !=
+            AppLifecycleState.resumed) {
+          return;
+        }
+        unawaited(ref.read(helpersProvider.notifier).refreshIfUsed());
+      });
+      return timer.cancel;
+    }, [hasPersonalProxies]);
+
+    // Whether each friend can be selected on their own also needs radiance's
+    // status; the fallback when a selected friend goes away comes as an
+    // event, not from this poll.
+    usePersonalProxyStatusPoll(ref, enabled: hasPersonalProxies);
 
     if (availableServers.isLoading) {
       return const Center(child: Spinner());
@@ -684,10 +691,10 @@ class _PrivateServerLocationListViewState
     }
 
     final userLocations = availableServers.requireValue.userServers;
-
     final selectedTag = selected.serverName;
+    final selectedFriend = selected.personalProxyFriendTag;
 
-    if (userLocations.isEmpty) {
+    if (userLocations.isEmpty && !hasPersonalProxies) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -705,142 +712,241 @@ class _PrivateServerLocationListViewState
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      padding: EdgeInsets.zero,
       children: [
         const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: HeaderText('your_server'.i18n),
-        ),
-        const SizedBox(height: 8),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: ListView.separated(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            itemCount: userLocations.length,
-            separatorBuilder: (_, _) => const DividerSpace(),
-            itemBuilder: (context, index) {
-              final server = userLocations[index];
-              final isSelected = selectedTag == server.tag;
-              return AppTile(
-                tileKey: Key('server_selection.private_server.${server.tag}'),
-                onPressed: () {
-                  if (isSelected) {
-                    appLogger.debug('Already selected this server');
-                    context.showSnackBar('server_already_selected'.i18n);
-                    return;
-                  }
-                  onPrivateServerSelected(server);
-                },
-                icon: Flag(
-                  countryCode: server.location.countryCode,
-                  size: const Size(40, 28),
-                ),
-                label: server.tag,
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 3),
-                      child: Text(
-                        '${server.location.city} - ${server.type}',
-                        style: _textTheme!.labelMedium!.copyWith(
-                          color: context.textTertiary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                trailing: isSelected
-                    ? AppImage(path: AppImagePaths.blot)
-                    : null,
-              );
-            },
+        PersonalProxiesSection(
+          selectedFriend: selectedFriend,
+          onSelectFriend: (h) => _select(
+            ServerLocationType.personalProxy,
+            personalProxySelection(h.outboundTag),
+            ServerLocation.personalProxy(friendTag: h.outboundTag),
           ),
         ),
+        if (userLocations.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: HeaderText('your_server'.i18n),
+          ),
+          const SizedBox(height: 8),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final (i, server) in userLocations.indexed) ...[
+                  if (i > 0) const DividerSpace(),
+                  _privateServerTile(server, selectedTag == server.tag),
+                ],
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Future<void> onPrivateServerSelected(Server server) async {
-    context.showLoadingDialog();
+  Widget _privateServerTile(Server server, bool isSelected) => AppTile(
+    tileKey: Key('server_selection.private_server.${server.tag}'),
+    onPressed: () {
+      if (isSelected) {
+        appLogger.debug('Already selected this server');
+        context.showSnackBar('server_already_selected'.i18n);
+        return;
+      }
+      onPrivateServerSelected(server);
+    },
+    icon: Flag(
+      countryCode: server.location.countryCode,
+      size: const Size(40, 28),
+    ),
+    label: server.tag,
+    subtitle: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Text(
+        '${server.location.city} - ${server.type}',
+        style: _textTheme!.labelMedium!.copyWith(color: context.textTertiary),
+      ),
+    ),
+    trailing: isSelected ? AppImage(path: AppImagePaths.blot) : null,
+  );
 
-    final result = await ref
-        .read(vpnProvider.notifier)
-        .connectToServer(ServerLocationType.privateServer, server.tag);
+  Future<void> onPrivateServerSelected(Server server) => _select(
+    ServerLocationType.privateServer,
+    server.tag,
+    ServerLocation(
+      serverType: ServerLocationType.privateServer.name,
+      serverName: server.tag,
+      country: server.location.country,
+      city: server.location.city,
+      countryCode: server.location.countryCode,
+      protocol: server.type,
+    ),
+    connectedMessage: 'connected_to_private_server'.i18n,
+  );
 
-    result.fold(
-      (failure) {
-        context.hideLoadingDialog();
-        if (failure is VpnConflictFailure) {
-          AppDialog.vpnConflictDialog(
-            context: context,
-            onConnectAnyway: () async {
-              appRouter.maybePop();
-              final retryResult = await ref
-                  .read(vpnProvider.notifier)
-                  .connectToServer(
-                    ServerLocationType.privateServer,
-                    server.tag,
-                    skipConflictCheck: true,
-                  );
-              retryResult.fold(
-                (failure) {
-                  context.hideLoadingDialog();
-                  context.showSnackBar(failure.localizedErrorMessage);
-                },
-                (_) {
-                  context.hideLoadingDialog();
-                  context.showSnackBar('connected_to_private_server'.i18n);
-                  ref
-                      .read(serverLocationProvider.notifier)
-                      .updateServerLocation(
-                        ServerLocation(
-                          serverType: ServerLocationType.privateServer.name,
-                          serverName: server.tag,
-                          country: server.location.country,
-                          city: server.location.city,
-                          countryCode: server.location.countryCode,
-                          protocol: server.type,
-                        ),
-                      );
-                  appRouter.popUntilRoot();
-                },
-              );
-            },
-          );
-        } else {
-          context.showSnackBar(failure.localizedErrorMessage);
-        }
-      },
-      (_) {
-        context.hideLoadingDialog();
-        context.showSnackBar('connected_to_private_server'.i18n);
-
-        ref
-            .read(serverLocationProvider.notifier)
-            .updateServerLocation(
-              ServerLocation(
-                serverType: ServerLocationType.privateServer.name,
-                serverName: server.tag,
-                country: server.location.country,
-                city: server.location.city,
-                countryCode: server.location.countryCode,
-                protocol: server.type,
-              ),
-            );
-        appRouter.popUntilRoot();
-      },
-    );
-  }
+  /// Connects to [tag] and, once connected, makes [location] the selection,
+  /// then shows the selection radiance saved. That may be a fallback: a
+  /// group, friend or private server that went away during the connect is
+  /// replaced there, and its event can arrive before the connect answers.
+  /// [location] is saved first so a failed read still shows what the VPN
+  /// was asked to use, not the previous selection, unless a read of
+  /// radiance's selection landed during the connect: that answer stands.
+  Future<void> _select(
+    ServerLocationType type,
+    String tag,
+    ServerLocation location, {
+    String? connectedMessage,
+  }) => _selectLocation(
+    context,
+    ref,
+    type,
+    tag,
+    location,
+    connectedMessage: connectedMessage,
+  );
 }
 
-Map<String, List<Server>> _groupLocationsByCountry(List<Server> servers) {
-  final Map<String, List<Server>> result = {};
-  for (final server in servers) {
-    result.putIfAbsent(server.location.country, () => <Server>[]).add(server);
+/// Connects through the personal proxy whose outbound tag is [friendTag], or
+/// through every personal proxy at once without one, and makes it the
+/// selection, as picking it under Private Locations does. "Connect Now"
+/// after approving a friend.
+Future<void> connectPersonalProxy(
+  BuildContext context,
+  WidgetRef ref, {
+  String? friendTag,
+}) => _selectLocation(
+  context,
+  ref,
+  ServerLocationType.personalProxy,
+  friendTag == null ? personalProxiesTag : personalProxySelection(friendTag),
+  ServerLocation.personalProxy(friendTag: friendTag),
+);
+
+/// [_PrivateServerLocationListViewState._select] for any caller: connects to
+/// [tag] and, once connected, makes [location] the selection.
+Future<void> _selectLocation(
+  BuildContext context,
+  WidgetRef ref,
+  ServerLocationType type,
+  String tag,
+  ServerLocation location, {
+  String? connectedMessage,
+}) async {
+  if (!_macOSExtensionReady(ref)) return;
+
+  final locationNotifier = ref.read(serverLocationProvider.notifier);
+  final since = locationNotifier.readsStarted;
+  await _connectAndReturnHome(
+    context,
+    ref,
+    attempt: (skipConflictCheck) => ref
+        .read(vpnProvider.notifier)
+        .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
+    save: () {
+      if (!locationNotifier.confirmedSince(since)) {
+        locationNotifier.updateServerLocation(location);
+      }
+      return locationNotifier.syncSelection();
+    },
+    connectedMessage: connectedMessage,
+  );
+}
+
+/// On macOS the system extension must be approved before anything can
+/// connect; shows the approval dialog and returns false while it isn't.
+bool _macOSExtensionReady(WidgetRef ref) {
+  if (!PlatformUtils.isMacOS) return true;
+  if (ref.read(macosExtensionProvider).isReady) return true;
+  appRouter.push(const MacOSExtensionDialog());
+  return false;
+}
+
+/// How long a connect flow's future waits for the VPN to settle. The save
+/// and the return home still happen after it, while the caller is there.
+@visibleForTesting
+Duration returnHomeWait = const Duration(seconds: 60);
+
+/// The connect flow shared by every row on this screen. Runs [attempt] behind
+/// the loading overlay, offers the conflict dialog and a retry when another
+/// VPN is active, then hands [save] to the location notifier to run once the
+/// VPN reports connected, and returns to the home screen. It completes once
+/// that save has run or been dropped, or after [returnHomeWait], so a caller
+/// that keeps [context] until then is still there to return home from.
+Future<void> _connectAndReturnHome(
+  BuildContext context,
+  WidgetRef ref, {
+  required Future<Either<Failure, String>> Function(bool skipConflictCheck)
+  attempt,
+  required FutureOr<void> Function() save,
+  String? connectedMessage,
+  bool skipConflictCheck = false,
+}) async {
+  final locationNotifier = ref.read(serverLocationProvider.notifier);
+  // A stop the VPN reports before the attempt answers is still this
+  // attempt's outcome.
+  final stops = locationNotifier.vpnStops;
+  // The overlay is app-wide, so hide it through its controller rather than
+  // this context, which may be gone by the time the attempt returns.
+  final overlay = context.loaderOverlay;
+  overlay.show();
+  final Either<Failure, String> result;
+  try {
+    result = await attempt(skipConflictCheck);
+  } finally {
+    overlay.hide();
   }
-  return result;
+  await result.fold(
+    (failure) async {
+      if (!context.mounted) return;
+      if (failure is VpnConflictFailure && !skipConflictCheck) {
+        // Settles once the user chooses and, on Connect Anyway, once the
+        // retry has.
+        Future<void>? retry;
+        await AppDialog.vpnConflictDialog(
+          context: context,
+          onConnectAnyway: () {
+            appRouter.maybePop();
+            retry = _connectAndReturnHome(
+              context,
+              ref,
+              attempt: attempt,
+              save: save,
+              connectedMessage: connectedMessage,
+              skipConflictCheck: true,
+            );
+          },
+        );
+        await retry;
+        return;
+      }
+      context.showSnackBar(failure.localizedErrorMessage);
+    },
+    (_) => _returnHomeOnceSaved(
+      context,
+      locationNotifier,
+      save,
+      connectedMessage,
+      stops,
+    ).timeout(returnHomeWait, onTimeout: () {}),
+  );
+}
+
+/// Waits for the notifier to save the selection on connect, then returns home
+/// if this screen is still showing. A retired request leaves the screen alone.
+Future<void> _returnHomeOnceSaved(
+  BuildContext context,
+  ServerLocationNotifier locationNotifier,
+  FutureOr<void> Function() save,
+  String? connectedMessage,
+  int stopsSince,
+) async {
+  final saved = await locationNotifier.saveOnceConnected(
+    save,
+    stopsSince: stopsSince,
+  );
+  if (!saved || !context.mounted) return;
+  if (connectedMessage != null) context.showSnackBar(connectedMessage);
+  appRouter.popUntilRoot();
 }

@@ -26,15 +26,20 @@ class AppDialog {
     // When false the primary callback is responsible for dismissing the
     // dialog itself (e.g. vpnConflictDialog callers already pop).
     bool dismissOnPrimary = true,
+    // Overrides dialogTheme's bg.elevated.
+    Color? backgroundColor,
   }) {
     return showDialog<void>(
       context: context,
       barrierDismissible: barrierDismissible,
       builder: (context) {
+        focusFirstOnTv(context);
         final textTheme = Theme.of(context).textTheme;
         return AlertDialog(
           scrollable: scrollable,
-          // backgroundColor and shape come from dialogTheme in app_theme.dart
+          // backgroundColor (unless given) and shape come from dialogTheme
+          // in app_theme.dart
+          backgroundColor: backgroundColor,
           contentPadding: EdgeInsets.all(24),
           // Buttons live inside content (not `actions`) so they can stretch
           // full-width and stack vertically per the design.
@@ -225,6 +230,7 @@ class AppDialog {
       context: context,
       barrierDismissible: false,
       builder: (context) {
+        focusFirstOnTv(context);
         return AlertDialog(
           // backgroundColor and shape come from dialogTheme in app_theme.dart
           // Callers add their own top spacing inside content.
@@ -267,12 +273,13 @@ class AppDialog {
     );
   }
 
-  static void vpnConflictDialog({
+  /// Completes when the dialog closes.
+  static Future<void> vpnConflictDialog({
     required BuildContext context,
     required VoidCallback onConnectAnyway,
   }) {
     appLogger.info('Showing VPN conflict dialog');
-    show(
+    return show(
       context: context,
       title: 'vpn_conflict_title'.i18n,
       body: 'vpn_conflict_body'.i18n,
@@ -287,24 +294,6 @@ class AppDialog {
       onSecondaryPressed: () {
         appLogger.info('VPN conflict dialog: user dismissed');
       },
-    );
-  }
-
-  /// Show warning dialog when the user tries to add any browser.
-  static Future<void> browserBypassWarningDialog({
-    required BuildContext context,
-    required String browserName,
-    required VoidCallback onAddAnyway,
-  }) {
-    return show(
-      context: context,
-      header: Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
-      centeredTitle: true,
-      title: 'bypass_browser_warning_title'.i18n.fill([browserName]),
-      body: 'bypass_browser_warning_body'.i18n.fill([browserName]),
-      primaryLabel: 'cancel'.i18n,
-      secondaryLabel: 'add_anyway'.i18n,
-      onSecondaryPressed: onAddAnyway,
     );
   }
 

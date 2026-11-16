@@ -41,7 +41,7 @@ final class ReferralNotifierProvider
   }
 }
 
-String _$referralNotifierHash() => r'e5def696bebc6776e566c6f91c98475970497dcc';
+String _$referralNotifierHash() => r'b32746eaa450653b5d63c38835385d751e799365';
 
 abstract class _$ReferralNotifier extends $Notifier<ReferralAttachV2Response?> {
   ReferralAttachV2Response? build();

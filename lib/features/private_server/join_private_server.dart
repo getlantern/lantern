@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/trust_dialog.dart' as trust;
 import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 
@@ -141,7 +142,8 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
                       buttonValid.value =
                           (value.isNotEmpty && nameController.text.isNotEmpty);
                     },
-                    suffixIcon: PlatformUtils.isMobile
+                    suffixIcon:
+                        PlatformUtils.isMobile && AppBuildInfo.enableQrScanner
                         ? GestureDetector(
                             onTap: () {
                               appRouter.push(QrCodeScanner()).then((value) {
@@ -188,58 +190,35 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
     );
   }
 
-  void showTrustDialog() {
-    final textTheme = Theme.of(context).textTheme;
-    AppDialog.customDialog(
-      context: context,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox(height: 16),
-          AppImage(
-            path: AppImagePaths.security,
-            height: 40,
-            color: context.textPrimary,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'trust_server_operator'.i18n,
-            style: textTheme.headlineMedium,
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'trust_server_operator_message_one'.i18n,
-            style: textTheme.bodyMedium,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'trust_server_operator_message_two'.i18n,
-            style: textTheme.bodyMedium,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'trust_server_operator_message_three'.i18n,
-            style: textTheme.bodyMedium,
-          ),
-        ],
-      ),
-      action: [
-        AppTextButton(
-          label: 'got_it'.i18n,
-          onPressed: () {
-            appRouter.pop();
-          },
-        ),
+  void showTrustDialog() => unawaited(
+    trust.showTrustDialog(
+      context,
+      title: 'trust_server_operator'.i18n,
+      paragraphs: [
+        'trust_server_operator_message_one'.i18n,
+        'trust_server_operator_message_two'.i18n,
+        'trust_server_operator_message_three'.i18n,
       ],
-    );
-  }
+    ),
+  );
 
   Future<void> onJoinServer(String urls, String serverName) async {
+    // For invite links the nickname becomes the server tag, so it replaces the
+    // name in the link. Other access keys (ss://, vmess://, ...) must pass
+    // through untouched: Uri normalisation lowercases the host and corrupts them.
+    urls = urls.trim();
+    final uri = Uri.tryParse(urls);
+    if (uri != null && _isInviteLink(uri)) {
+      urls = uri
+          .replace(
+            queryParameters: {...uri.queryParameters, 'name': serverName},
+          )
+          .toString();
+    }
     context.showLoadingDialog();
     final result = await ref
         .read(privateServerProvider.notifier)
-        .addServerBasedOnURLs(urls, true);
+        .addServerBasedOnURLs(urls);
     result.fold(
       (error) {
         appLogger.error("Failed to join private server: $error");
@@ -257,9 +236,23 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
               .forceFetchAvailableServers(),
         );
         context.hideLoadingDialog();
-        appLogger.info("Successfully started joining private server.");
+        appLogger.info("Successfully joined private server.");
+        showSuccessDialog(serverName);
       },
     );
+  }
+
+  static bool _isInviteLink(Uri uri) {
+    final path = uri.path.replaceAll(RegExp(r'/+$'), '');
+    final isInvitePath =
+        uri.host == 'private-server' ||
+        path == 'private-server' ||
+        path.endsWith('/private-server');
+    final q = uri.queryParameters;
+    return isInvitePath &&
+        q.containsKey('ip') &&
+        q.containsKey('port') &&
+        q.containsKey('token');
   }
 
   void showSuccessDialog(String name) {

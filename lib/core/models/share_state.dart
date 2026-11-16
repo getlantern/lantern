@@ -1,3 +1,5 @@
+import 'package:lantern/core/models/relay_stats.dart';
+
 /// Which protocol the user is sharing through.
 ///
 /// off: not sharing, or probe in flight. unbounded: broflake/WebRTC relay.
@@ -41,6 +43,11 @@ class ShareState {
   /// SmC only; Unbounded reports readiness via [unboundedRunning].
   final SharePhase phase;
   final String? errorMessage;
+  /// Why SmC could not start, when this Unbounded session is its fallback.
+  /// Set only by the fallback itself; copyWith carries it while sharing and
+  /// drops it once the mode is off, so it never outlives its session.
+  final String? fallbackReason;
+  final RelayStats relay;
 
   const ShareState({
     this.active = false,
@@ -51,6 +58,8 @@ class ShareState {
     this.totalCount = 0,
     this.phase = SharePhase.idle,
     this.errorMessage,
+    this.fallbackReason,
+    this.relay = const RelayStats(),
   });
 
   ShareState copyWith({
@@ -63,6 +72,7 @@ class ShareState {
     SharePhase? phase,
     // Sentinel default so callers can clear the message by passing null.
     Object? errorMessage = _unsetErrorMessage,
+    RelayStats? relay,
   }) =>
       ShareState(
         active: active ?? this.active,
@@ -75,6 +85,10 @@ class ShareState {
         errorMessage: identical(errorMessage, _unsetErrorMessage)
             ? this.errorMessage
             : errorMessage as String?,
+        fallbackReason: (mode ?? this.mode) == ShareMode.off
+            ? null
+            : fallbackReason,
+        relay: relay ?? this.relay,
       );
 }
 

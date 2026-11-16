@@ -50,6 +50,15 @@ void main() {
       );
     });
 
+    test('parses requiresEnable as not ready', () {
+      final state = MacOSExtensionState.fromEvent(const {
+        'status': 'requiresEnable',
+      });
+
+      expect(state.status, SystemExtensionStatus.requiresEnable);
+      expect(state.isReady, isFalse);
+    });
+
     test('treats activated as ready', () {
       final state = MacOSExtensionState.fromEvent(const {
         'status': 'activated',

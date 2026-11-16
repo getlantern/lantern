@@ -89,15 +89,7 @@ class PrivateServerAddBilling extends HookConsumerWidget {
                     style: textTheme.bodyMedium!
                         .copyWith(color: context.textSecondary),
                     text: '${'1'.i18n}. ',
-                    children: [
-                      TextSpan(text: '${'tap'.i18n} '),
-                      TextSpan(
-                          text: '${'open_system_settings'.i18n} ',
-                          style: AppTextStyles.bodyMediumBold!.copyWith(
-                            color: context.textSecondary,
-                          )),
-                      TextSpan(text: 'below_to_go_to_do'.i18n),
-                    ],
+                    children: _openSettingsStep(context),
                   ),
                 ),
                 SizedBox(height: 8),
@@ -164,5 +156,22 @@ class PrivateServerAddBilling extends HookConsumerWidget {
     } catch (e) {
       appLogger.error("Error validating session: $e");
     }
+  }
+
+  // One translatable sentence; the button name is bolded only when the
+  // translation keeps exactly one %s, otherwise the filled sentence is shown.
+  List<InlineSpan> _openSettingsStep(BuildContext context) {
+    final template = 'tap_open_settings_to_go_to_do'.i18n;
+    final button = 'open_system_settings'.i18n;
+    final parts = template.split('%s');
+    if (parts.length != 2) return [TextSpan(text: template.fill([button]))];
+    return [
+      TextSpan(text: parts.first),
+      TextSpan(
+        text: button,
+        style: AppTextStyles.bodyMediumBold.copyWith(color: context.textSecondary),
+      ),
+      TextSpan(text: parts.last),
+    ];
   }
 }

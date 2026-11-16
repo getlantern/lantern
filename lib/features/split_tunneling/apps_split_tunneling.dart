@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -22,6 +21,7 @@ import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dar
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
+import 'package:lantern/features/split_tunneling/windows_executable_picker.dart';
 
 /// Extra width taken from the cards, on the right, for the index bar.
 const _indexBarGutter = 12.0;
@@ -41,7 +41,7 @@ class AppsSplitTunneling extends HookConsumerWidget {
     final installedHeaderKey = useMemoized(GlobalKey.new);
     final scrollViewKey = useMemoized(GlobalKey.new);
     final indexBarTop = useState(0.0);
-    final searchQuery = ref.watch(searchQueryProvider);
+    final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
     final notifier = ref.read(splitTunnelingAppsProvider.notifier);
 
     final enabledAppsAsync = ref.watch(splitTunnelingAppsProvider);
@@ -57,7 +57,8 @@ class AppsSplitTunneling extends HookConsumerWidget {
 
     bool matchesSearch(AppData a) =>
         searchQuery.isEmpty ||
-        a.name.toLowerCase().contains(searchQuery.toLowerCase());
+        a.name.toLowerCase().contains(searchQuery) ||
+        (Platform.isWindows && a.appPath.toLowerCase().contains(searchQuery));
 
     final enabledIds = enabledApps.map(normalizedAppId).toSet();
     final filteredEnabled = dedupeAndSortApps(enabledApps.where(matchesSearch));
@@ -173,6 +174,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
                             }
                             final app = filteredEnabled[i - 1];
                             return AppRow(
+                              key: ValueKey(
+                                'split-tunnel-app:${normalizedAppId(app)}',
+                              ),
                               app: app,
                               enabled: true,
                               onToggle: () => notifier.toggleApp(app),
@@ -182,6 +186,14 @@ class AppsSplitTunneling extends HookConsumerWidget {
                       ),
                     ),
                   SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  if (Platform.isWindows) ...[
+                    const SliverToBoxAdapter(
+                      child: WindowsExecutablePicker(
+                        confirmBypass: confirmAppBypass,
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  ],
                   SliverToBoxAdapter(
                     child: Row(
                       key: installedHeaderKey,
@@ -240,6 +252,9 @@ class AppsSplitTunneling extends HookConsumerWidget {
                             itemBuilder: (ctx, i) {
                               final app = entry.value[i];
                               return AppRow(
+                                key: ValueKey(
+                                  'split-tunnel-app:${normalizedAppId(app)}',
+                                ),
                                 app: app,
                                 enabled: false,
                                 onToggle: () => onTapAddApp(ctx, notifier, app),
@@ -290,40 +305,60 @@ class AppsSplitTunneling extends HookConsumerWidget {
     );
   }
 
-  /// Show info dialog for first time user
+  static Future<bool> confirmAppBypass(
+    BuildContext context,
+    AppData app,
+  ) async {
+    final storage = sl<LocalStorageService>();
+    if (!app.isBrowser && storage.hasSeenBypassAppDialog) return true;
+
+    var confirmed = false;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    void confirm() {
+      confirmed = context.mounted;
+      navigator.pop();
+    }
+
+    await AppDialog.show(
+      context: context,
+      header: Center(
+        child: AppImage(
+          path: app.isBrowser ? AppImagePaths.warning : AppImagePaths.info,
+          height: app.isBrowser ? 45 : 40,
+        ),
+      ),
+      centeredTitle: true,
+      title:
+          (app.isBrowser
+                  ? 'bypass_browser_warning_title'
+                  : 'bypass_app_first_time_title')
+              .i18n
+              .fill([app.name]),
+      body:
+          (app.isBrowser
+                  ? 'bypass_browser_warning_body'
+                  : 'bypass_app_first_time_body')
+              .i18n
+              .fill([app.name]),
+      primaryLabel: (app.isBrowser ? 'cancel' : 'add').i18n,
+      dismissOnPrimary: app.isBrowser,
+      onPrimaryPressed: app.isBrowser ? null : confirm,
+      secondaryLabel: (app.isBrowser ? 'add_anyway' : 'cancel').i18n,
+      dismissOnSecondary: !app.isBrowser,
+      onSecondaryPressed: app.isBrowser ? confirm : null,
+    );
+    if (!confirmed || !context.mounted) return false;
+    if (!app.isBrowser) await storage.markBypassAppDialogSeen();
+    return context.mounted;
+  }
+
   Future<void> onTapAddApp(
     BuildContext context,
     SplitTunnelingApps notifier,
     AppData app,
   ) async {
-    if (app.isBrowser) {
-      await AppDialog.browserBypassWarningDialog(
-        context: context,
-        browserName: app.name,
-        onAddAnyway: () => notifier.toggleApp(app),
-      );
-      return;
-    }
-    final storage = sl<LocalStorageService>();
-    if (!storage.hasSeenBypassAppDialog) {
-      await AppDialog.show(
-        context: context,
-        header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
-        centeredTitle: true,
-        title: 'bypass_app_first_time_title'.i18n,
-        body: 'bypass_app_first_time_body'.i18n.fill([app.name]),
-        primaryLabel: 'add'.i18n,
-        onPrimaryPressed: () {
-          // Mark seen only on confirm; cancelling should show the
-          // explainer again next time.
-          unawaited(storage.markBypassAppDialogSeen());
-          notifier.toggleApp(app);
-        },
-        secondaryLabel: 'cancel'.i18n,
-      );
-      return;
-    }
-    notifier.toggleApp(app);
+    if (!await confirmAppBypass(context, app) || !context.mounted) return;
+    await notifier.toggleApp(app);
   }
 
   /// Warn when Select All would put browsers on the bypass list
@@ -466,8 +501,8 @@ class AppRow extends ConsumerWidget {
       );
     }
 
-    return SizedBox(
-      height: 44.h,
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 44.h),
       child: Row(
         children: [
           Expanded(
@@ -476,13 +511,33 @@ class AppRow extends ConsumerWidget {
                 iconWidget(),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    app.name.replaceAll(".app", ""),
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: context.textPrimary,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          app.name.replaceAll(".app", ""),
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: context.textPrimary,
+                          ),
+                        ),
+                        if (Platform.isWindows)
+                          Tooltip(
+                            message: app.appPath,
+                            child: Text(
+                              app.appPath,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: context.textSecondary),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -491,6 +546,7 @@ class AppRow extends ConsumerWidget {
           ),
           if (onToggle != null)
             AppIconButton(
+              key: ValueKey('toggle-split-tunnel-app:${normalizedAppId(app)}'),
               path: enabled ? AppImagePaths.minus : AppImagePaths.plus,
               onPressed: () {
                 HapticFeedback.lightImpact();

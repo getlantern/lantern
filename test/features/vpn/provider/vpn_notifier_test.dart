@@ -6,11 +6,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/services/rating_prompt_service.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
@@ -64,8 +66,33 @@ class _FakeLanternService implements LanternService {
   @override
   Future<bool> checkVpnConflict() async => false;
 
+  bool tagAvailable = true;
+
+  /// When set, only these tags are available.
+  Set<String>? availableTags;
+  final connected = <String>[];
+
   @override
-  Future<bool> isTagAvailable(String tag) async => true;
+  Future<bool> isTagAvailable(String tag) async =>
+      availableTags?.contains(tag) ?? tagAvailable;
+
+  @override
+  Future<Either<Failure, String>> connectToServer(
+    String location,
+    String tag,
+  ) async {
+    connected.add(tag);
+    return right('ok');
+  }
+
+  @override
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+    required String serverName,
+  }) async {}
 
   Future<void> dispose() => statusController.close();
 
@@ -84,6 +111,23 @@ class _FakeStorage extends LocalStorageService {
 
   @override
   Future<void> remove(String key) async => values.remove(key);
+}
+
+class _FakeServerLocation extends ServerLocationNotifier {
+  _FakeServerLocation(this._initial);
+
+  final ServerLocation _initial;
+
+  @override
+  ServerLocation build() => _initial;
+
+  @override
+  Future<void> switchToAuto() async {
+    state = state.copyWith(serverType: ServerLocationType.auto.name);
+  }
+
+  @override
+  void updateServerLocation(ServerLocation entity) => state = entity;
 }
 
 class _FakeAppSettings extends AppSettingNotifier {
@@ -244,6 +288,157 @@ void main() {
         final recoveredStatus = container.read(vPNStatusProvider);
         expect(recoveredStatus.hasValue, isTrue);
         expect(recoveredStatus.value?.status, VPNStatus.disconnected);
+      },
+    );
+
+    test(
+      'a personal proxy whose group is gone falls back to Smart Location',
+      () async {
+        final service = _FakeLanternService()..tagAvailable = false;
+        final container = ProviderContainer(
+          overrides: [
+            lanternServiceProvider.overrideWithValue(service),
+            serverLocationProvider.overrideWith(
+              () => _FakeServerLocation(ServerLocation.personalProxy()),
+            ),
+            appSettingProvider.overrideWith(_FakeAppSettings.new),
+          ],
+        );
+        _disposeContainerAndService(container, service);
+
+        final result = await container
+            .read(vpnProvider.notifier)
+            .startVPN(skipConflictCheck: true);
+
+        expect(result.isRight(), isTrue);
+        expect(service.startVPNCalls, 1);
+        expect(
+          container.read(serverLocationProvider).serverType,
+          ServerLocationType.auto.name,
+        );
+      },
+    );
+  });
+
+  group('selected friend', () {
+    const friend = 'helper-0123456789ab';
+
+    ProviderContainer friendContainer(_FakeLanternService service) {
+      final container = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(service),
+          serverLocationProvider.overrideWith(
+            () => _FakeServerLocation(
+              ServerLocation.personalProxy(friendTag: friend),
+            ),
+          ),
+          appSettingProvider.overrideWith(_FakeAppSettings.new),
+        ],
+      );
+      _disposeContainerAndService(container, service);
+      return container;
+    }
+
+    test('connects through the friend by their selection tag', () async {
+      final service = _FakeLanternService();
+      final container = friendContainer(service);
+
+      await container.read(vpnProvider.notifier).startVPN();
+
+      expect(service.connected, [personalProxySelection(friend)]);
+      expect(service.startVPNCalls, 0);
+    });
+
+    test('a friend with no route falls back to the personal proxies group, '
+        'as radiance does', () async {
+      final service = _FakeLanternService()
+        ..availableTags = {personalProxiesTag};
+      final container = friendContainer(service);
+
+      await container
+          .read(vpnProvider.notifier)
+          .startVPN(skipConflictCheck: true);
+
+      expect(service.connected, [personalProxiesTag]);
+    });
+
+    test('with the group gone too, Smart Location', () async {
+      final service = _FakeLanternService()..availableTags = {};
+      final container = friendContainer(service);
+
+      await container
+          .read(vpnProvider.notifier)
+          .startVPN(skipConflictCheck: true);
+
+      expect(service.connected, isEmpty);
+      expect(service.startVPNCalls, 1);
+      expect(
+        container.read(serverLocationProvider).serverType,
+        ServerLocationType.auto.name,
+      );
+    });
+  });
+
+  // The real server location notifier listens to the VPN status, so in debug
+  // builds reading it back from the VPN notifier must not look like a cycle.
+  group('with the real server location notifier', () {
+    late _FakeStorage storage;
+
+    setUp(() async {
+      await sl.reset();
+      storage = _FakeStorage();
+      sl.registerSingleton<LocalStorageService>(storage);
+      addTearDown(sl.reset);
+    });
+
+    ProviderContainer realContainer(
+      _FakeLanternService service,
+      ServerLocation selected,
+    ) {
+      storage.values.clear();
+      unawaited(storage.saveServerLocation(selected));
+      final container = ProviderContainer(
+        overrides: [
+          lanternServiceProvider.overrideWithValue(service),
+          appSettingProvider.overrideWith(_FakeAppSettings.new),
+        ],
+      );
+      _disposeContainerAndService(container, service);
+      container.read(serverLocationProvider);
+      return container;
+    }
+
+    test('starts the VPN on Smart Location', () async {
+      final service = _FakeLanternService();
+      final container = realContainer(service, initialServerLocation());
+
+      final result = await container
+          .read(vpnProvider.notifier)
+          .startVPN(skipConflictCheck: true);
+
+      expect(result.isRight(), isTrue);
+      expect(service.startVPNCalls, 1);
+    });
+
+    test(
+      'falls back to Smart Location when personal proxies are gone',
+      () async {
+        final service = _FakeLanternService()..availableTags = {};
+        final container = realContainer(
+          service,
+          ServerLocation.personalProxy(),
+        );
+
+        final result = await container
+            .read(vpnProvider.notifier)
+            .startVPN(skipConflictCheck: true);
+
+        expect(result.isRight(), isTrue);
+        expect(service.startVPNCalls, 1);
+        expect(
+          container.read(serverLocationProvider).serverType,
+          ServerLocationType.auto.name,
+        );
       },
     );
   });

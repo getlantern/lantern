@@ -1,5 +1,6 @@
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
@@ -23,63 +24,100 @@ class VPNSwitch extends HookConsumerWidget {
     });
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
-    return CustomAnimatedToggleSwitch<bool>(
-      current: isVPNOn,
-      allowUnlistedValues: false,
-      values: [false, true],
-      spacing: 10.h,
-      onChanged: (value) {
-        appLogger.info('VPN Switch changed to: $value');
-        onVPNStateChange(ref, context);
+    final showFocus = useState(false);
+    final focusNode = useFocusNode(debugLabel: 'VPNSwitch');
+    // On TV the switch claims focus itself, and Home pushes routes (e.g.
+    // onboarding) over it; while covered it must not hold focus, or the remote
+    // would toggle it unseen. Elsewhere Flutter's route focus restore suffices.
+    final isCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+    useEffect(() {
+      if (PlatformUtils.isTv && isCurrent) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (focusNode.context != null) focusNode.requestFocus();
+        });
+      }
+      return null;
+    }, [isCurrent]);
+    // The knob is a bare GestureDetector, so make the whole switch focusable
+    // for D-pad and keyboard users (Android TV, desktop Tab).
+    return FocusableActionDetector(
+      focusNode: focusNode,
+      enabled: !PlatformUtils.isTv || isCurrent,
+      onShowFocusHighlight: (value) => showFocus.value = value,
+      actions: {
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) {
+            appLogger.info('VPN Switch activated');
+            onVPNStateChange(ref, context);
+            return null;
+          },
+        ),
       },
-      loading: false,
-      height: PlatformUtils.isDesktop ? 70.h : 65.h,
-      indicatorSize: Size(60.r, 60.r),
-      iconBuilder: (context, local, global) {
-        return SizedBox();
-      },
-      foregroundIndicatorBuilder: (context, global) {
-        if (vpnStatus == VPNStatus.connecting ||
-            vpnStatus == VPNStatus.disconnecting) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(30.r),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(
-                strokeWidth: 8.r,
+      child: CustomAnimatedToggleSwitch<bool>(
+        current: isVPNOn,
+        allowUnlistedValues: false,
+        values: [false, true],
+        spacing: 10.h,
+        onChanged: (value) {
+          appLogger.info('VPN Switch changed to: $value');
+          onVPNStateChange(ref, context);
+        },
+        loading: false,
+        height: PlatformUtils.isDesktop ? 70.h : 65.h,
+        indicatorSize: Size(60.r, 60.r),
+        iconBuilder: (context, local, global) {
+          return SizedBox();
+        },
+        foregroundIndicatorBuilder: (context, global) {
+          if (vpnStatus == VPNStatus.connecting ||
+              vpnStatus == VPNStatus.disconnecting) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(30.r),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(
+                  strokeWidth: 8.r,
+                  color: context.actionToggleKnobBg,
+                ),
+              ),
+            );
+          }
+          return GestureDetector(
+            key: const Key('vpn.toggle'),
+            onTap: () {
+              appLogger.info('VPN Switch tapped');
+              onVPNStateChange(ref, context);
+            },
+            child: Container(
+              decoration: BoxDecoration(
                 color: context.actionToggleKnobBg,
+                borderRadius: BorderRadius.circular(30.r),
               ),
             ),
           );
-        }
-        return GestureDetector(
-          key: const Key('vpn.toggle'),
-          onTap: () {
-            appLogger.info('VPN Switch tapped');
-            onVPNStateChange(ref, context);
-          },
-          child: Container(
+        },
+        wrapperBuilder: (context, global, child) {
+          return Container(
+            key: Key('vpn.switch.${vpnStatus.name}'),
+            padding: EdgeInsets.all(5.r),
             decoration: BoxDecoration(
-              color: context.actionToggleKnobBg,
-              borderRadius: BorderRadius.circular(30.r),
+              color: _wrapperColor(vpnStatus, context),
+              borderRadius: BorderRadius.circular(50.r),
+              border: showFocus.value
+                  ? Border.all(
+                      // onSurface: primary matches the connected track in dark mode.
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 3,
+                    )
+                  : null,
             ),
-          ),
-        );
-      },
-      wrapperBuilder: (context, global, child) {
-        return Container(
-          key: Key('vpn.switch.${vpnStatus.name}'),
-          padding: EdgeInsets.all(5.r),
-          decoration: BoxDecoration(
-            color: _wrapperColor(vpnStatus, context),
-            borderRadius: BorderRadius.circular(50.r),
-          ),
-          child: child,
-        );
-      },
+            child: child,
+          );
+        },
+      ),
     );
   }
 

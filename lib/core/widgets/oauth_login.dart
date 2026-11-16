@@ -105,7 +105,9 @@ class OAuthLogin extends HookConsumerWidget {
       (url) async {
         context.hideLoadingDialog();
         appLogger.debug('OAuth URL: $url');
-        if (PlatformUtils.isMobile) {
+        if (PlatformUtils.isIOS) {
+          await _signInInApp(type, ref, context, url);
+        } else if (PlatformUtils.isMobile) {
           // listen to handle the deep link
           sl<DeepLinkCallbackManager>().registerHandler((result) {
             appLogger.debug('DeepLink result received: ${result != null}');
@@ -138,23 +140,50 @@ class OAuthLogin extends HookConsumerWidget {
     );
   }
 
-  /// The OAuth callback either carries just a token (login succeeded) or a
-  /// device-limit response (result=false plus the account's device[...] list
-  /// and a token identifying the account). In the latter case load the
-  /// account identity into the core so the removal is authorized, run the
-  /// same device-removal flow as password sign-in, then restart the OAuth
-  /// flow once a device has been freed up.
+  Future<void> _signInInApp(
+    SignUpMethodType type,
+    WidgetRef ref,
+    BuildContext context,
+    String url,
+  ) async {
+    final result = await ref.read(authProvider.notifier).authenticateInApp(url);
+    final callback = result.getOrElse((_) {
+      if (context.mounted) {
+        context.showSnackBarError(oAuthSignInFailedKey.i18n);
+      }
+      return null;
+    });
+    if (callback == null || !isOAuthCallbackResult(callback)) return;
+    if (!context.mounted) return;
+    await _handleOAuthPayload(
+      type,
+      ref,
+      context,
+      Map<String, dynamic>.from(callback.queryParameters),
+    );
+  }
+
+  /// Success carries `token`; `result=false` carries `device[...]` (device
+  /// limit, handled via the removal flow) or `error` (shown to the user).
   Future<void> _handleOAuthPayload(
     SignUpMethodType type,
     WidgetRef ref,
     BuildContext context,
     Map<String, dynamic> payload,
   ) async {
-    final devices = payload['result'] == 'false'
-        ? _devicesFromPayload(payload)
-        : const <DeviceModel>[];
-    if (devices.isEmpty) {
+    if (payload['result'] != 'false') {
       onResult(payload);
+      return;
+    }
+    final devices = _devicesFromPayload(payload);
+    if (devices.isEmpty) {
+      final code = payload['error']?.toString() ?? '';
+      appLogger.error(
+        'OAuth login failed: ${code.isEmpty ? 'no error code' : code}',
+      );
+      if (context.mounted) {
+        context.showSnackBarError(oAuthErrorMessageKey(code).i18n);
+      }
       return;
     }
     appLogger.warning(

@@ -84,7 +84,7 @@ class MainActivity : FlutterFragmentActivity() {
         // disappear and the format diverges from the rest. common.Init is
         // idempotent — the later call from backend.NewLocalBackend is a no-op.
         try {
-            Mobile.initLogging(initConfigDir(), logDir(), "trace")
+            Mobile.initLogging(initConfigDir(), logDir(), if (BuildConfig.DEBUG) "trace" else "info")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init Go logging: ${e.message}")
         }

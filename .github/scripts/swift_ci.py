@@ -25,7 +25,7 @@ SHARED_FILES = {'go.mod', 'go.sum', 'Makefile', 'pubspec.yaml', 'pubspec.lock',
                 '.github/scripts/test_swift_framework_cache.py'}
 SHARED_DIRS = ('lantern-core/', 'hook/', 'scripts/', 'profile/',
                'protos/', 'resources/', '.github/actions/setup-go/',
-               '.github/actions/setup-flutter/')
+               '.github/actions/setup-flutter/', '.github/actions/cache/')
 PLATFORM_ASSET_DIRS = {'ios': (), 'macos': ('assets/images/flags/',)}
 
 

@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     cmake \
     pkg-config \
     libgtk-3-dev \
+    libsecret-1-dev \
     liblzma-dev \
     xz-utils \
     && rm -rf /var/lib/apt/lists/*

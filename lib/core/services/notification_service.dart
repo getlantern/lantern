@@ -139,6 +139,14 @@ class NotificationService {
     }
   }
 
+  Future<void> cancelNotification(int id) async {
+    try {
+      await _plugin.cancel(id: id);
+    } catch (e, st) {
+      appLogger.error("Error cancelling notification: $e", st);
+    }
+  }
+
   Future<void> cancelAllNotifications() async {
     await _plugin.cancelAll();
   }
@@ -257,7 +265,7 @@ class NotificationService {
         presentSound: true,
       ),
       linux: LinuxNotificationDetails(
-        urgency: LinuxNotificationUrgency.critical,
+        urgency: LinuxNotificationUrgency.normal,
         defaultActionName: 'View',
       ),
       windows: WindowsNotificationDetails(

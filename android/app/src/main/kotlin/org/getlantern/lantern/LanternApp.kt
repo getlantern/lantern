@@ -12,7 +12,7 @@ import androidx.core.content.getSystemService
 import lantern.io.mobile.Mobile
 
 
-class LanternApp : Application() {
+open class LanternApp : Application() {
 
     companion object {
         lateinit var application: LanternApp

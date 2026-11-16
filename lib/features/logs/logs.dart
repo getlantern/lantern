@@ -160,9 +160,9 @@ class _LogsState extends ConsumerState<Logs> {
     final logAsyncValue = ref.watch(diagnosticLogProvider);
 
     return BaseScreen(
-      title: 'Diagnostic Logs'.i18n,
+      title: 'diagnostic_logs'.i18n,
       appBar: CustomAppBar(
-        title: Text('Diagnostic Logs'.i18n),
+        title: Text('diagnostic_logs'.i18n),
         actionsPadding: EdgeInsets.only(right: 24.0),
         actions: [
           AppIconButton(onPressed: _shareLogFile, path: AppImagePaths.upArrow),

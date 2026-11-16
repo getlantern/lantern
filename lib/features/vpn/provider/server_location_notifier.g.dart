@@ -42,7 +42,7 @@ final class ServerLocationNotifierProvider
 }
 
 String _$serverLocationNotifierHash() =>
-    r'74be6ea86d9d5de708c76f200c58efc31690ead6';
+    r'43e95ddd615a72951bce80022b92573c9247b63e';
 
 abstract class _$ServerLocationNotifier extends $Notifier<ServerLocation> {
   ServerLocation build();

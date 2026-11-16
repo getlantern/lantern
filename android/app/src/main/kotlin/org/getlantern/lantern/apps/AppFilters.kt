@@ -1,6 +1,13 @@
 package org.getlantern.lantern.apps
 
 internal object AppFilters {
+    // Alipay and WeChat are domestic and never need circumvention; the VPN
+    // service keeps them off-tunnel, so the split-tunnel picker hides them.
+    val TUNNEL_BYPASS: Set<String> = setOf(
+        "com.eg.android.AlipayGphone",
+        "com.tencent.mm",
+    )
+
     val SYSTEM_EXCLUDE_EXACT: Set<String> = setOf(
         "com.android.systemui",
         "com.android.settings",
@@ -38,6 +45,7 @@ internal object AppFilters {
 
     fun shouldSkip(pkg: String, ownPkg: String): Boolean {
         if (pkg == ownPkg) return true
+        if (TUNNEL_BYPASS.contains(pkg)) return true
         if (ALWAYS_INCLUDE.contains(pkg)) return false
         if (SYSTEM_EXCLUDE_EXACT.contains(pkg)) return true
         if (SYSTEM_EXCLUDE_PREFIXES.any { pkg.startsWith(it) }) return !ALWAYS_INCLUDE.contains(pkg)

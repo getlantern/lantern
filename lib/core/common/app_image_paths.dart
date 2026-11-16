@@ -70,6 +70,10 @@ class AppImagePaths {
   static const lanternDarkDisconnected =
       'assets/images/tray_dark_disconnected.png';
   static const lanternDarkConnected = 'assets/images/tray_dark_connected.png';
+  // Shown while something blocks the tray from connecting.
+  static const lanternAlertIco = 'assets/images/lantern_alert.ico';
+  static const lanternAlert = 'assets/images/lantern_alert.png';
+  static const lanternDarkAlert = 'assets/images/tray_dark_alert.png';
   static const adBlock = 'assets/images/ad_block.svg';
   static const connectDevice = 'assets/images/connect_device.svg';
   static const eyeHide = 'assets/images/eye_hide.svg';
@@ -114,6 +118,10 @@ class AppImagePaths {
   static const nonProfit = 'assets/images/non_profit.svg';
   static const privateServerIntro = 'assets/images/private_server_intro.svg';
   static const smartRouteMode = 'assets/images/smart_route_mode.svg';
+  static const onboardingActionModeGlobe =
+      'assets/images/onboarding_action_mode_globe.webp';
+  static const verifiedUser = 'assets/images/verified_user.svg';
+  static const toggleOn = 'assets/images/toggle_on.svg';
   static const automatic = 'assets/images/automatic.svg';
   static const lightMode = 'assets/images/light_mode.svg';
   static const darkMode = 'assets/images/dark_mode.svg';

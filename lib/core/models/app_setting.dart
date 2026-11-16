@@ -1,3 +1,5 @@
+import 'package:lantern/core/models/relay_stats.dart';
+
 class AppSetting {
   final String locale;
   final String themeMode;
@@ -8,6 +10,10 @@ class AppSetting {
   final bool successfulConnection;
   final String dataCapThreshold;
   final bool onboardingCompleted;
+  // Whether this user has seen Personal Proxies introduced, in onboarding
+  // or in the introduction Home shows to users who finished onboarding
+  // before it had those pages.
+  final bool personalProxiesIntroSeen;
   // Unbounded preferences. autoEnable: turn the peer share on whenever
   // the VPN connects (defaults on per the Figma spec). hideTab: hide
   // the Unbounded tab + collapse the tab bar when the user doesn't
@@ -22,6 +28,24 @@ class AppSetting {
   // Figma. ShareNotifier seeds totalCount from this on build, and
   // writes back each time the count increments.
   final int unboundedTotalHelped;
+  // How many times sharing has been started on this device. The stats sheet
+  // shows "this session" only once there has been more than one.
+  final int unboundedSessionCount;
+  // Lifetime Unbounded bytes relayed (down: to the people helped, up: from
+  // them) and the per-country breakdown behind Advanced stats. Written by
+  // ShareNotifier on a throttle, not on every snapshot.
+  final int unboundedBytesDown;
+  final int unboundedBytesUp;
+  final Map<String, RelayCountryStats> unboundedCountryStats;
+  // The backend epoch and byte counters already folded into the totals
+  // above, so a restarted app resumes counting where it left off.
+  final String unboundedRelayEpoch;
+  final int unboundedRelayMarkDown;
+  final int unboundedRelayMarkUp;
+  // The same for direct sharing (SmC), whose snapshots carry their own epoch.
+  final String peerRelayEpoch;
+  final int peerRelayMarkDown;
+  final int peerRelayMarkUp;
 
   const AppSetting({
     this.themeMode = 'system',
@@ -33,10 +57,21 @@ class AppSetting {
     this.successfulConnection = false,
     this.dataCapThreshold = '',
     this.onboardingCompleted = false,
+    this.personalProxiesIntroSeen = false,
     this.unboundedAutoEnable = false,
     this.unboundedHidden = false,
     this.unboundedWelcomeSeen = false,
     this.unboundedTotalHelped = 0,
+    this.unboundedSessionCount = 0,
+    this.unboundedBytesDown = 0,
+    this.unboundedBytesUp = 0,
+    this.unboundedCountryStats = const {},
+    this.unboundedRelayEpoch = '',
+    this.unboundedRelayMarkDown = 0,
+    this.unboundedRelayMarkUp = 0,
+    this.peerRelayEpoch = '',
+    this.peerRelayMarkDown = 0,
+    this.peerRelayMarkUp = 0,
   });
 
   /// Whether the app points at the staging backend. The notifier writes
@@ -53,10 +88,21 @@ class AppSetting {
     bool? successfulConnection,
     String? dataCapThreshold,
     bool? onboardingCompleted,
+    bool? personalProxiesIntroSeen,
     bool? unboundedAutoEnable,
     bool? unboundedHidden,
     bool? unboundedWelcomeSeen,
     int? unboundedTotalHelped,
+    int? unboundedSessionCount,
+    int? unboundedBytesDown,
+    int? unboundedBytesUp,
+    Map<String, RelayCountryStats>? unboundedCountryStats,
+    String? unboundedRelayEpoch,
+    int? unboundedRelayMarkDown,
+    int? unboundedRelayMarkUp,
+    String? peerRelayEpoch,
+    int? peerRelayMarkDown,
+    int? peerRelayMarkUp,
   }) {
     return AppSetting(
       locale: newLocale ?? locale,
@@ -68,11 +114,26 @@ class AppSetting {
       successfulConnection: successfulConnection ?? this.successfulConnection,
       dataCapThreshold: dataCapThreshold ?? this.dataCapThreshold,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      personalProxiesIntroSeen:
+          personalProxiesIntroSeen ?? this.personalProxiesIntroSeen,
       unboundedAutoEnable: unboundedAutoEnable ?? this.unboundedAutoEnable,
       unboundedHidden: unboundedHidden ?? this.unboundedHidden,
       unboundedWelcomeSeen: unboundedWelcomeSeen ?? this.unboundedWelcomeSeen,
       unboundedTotalHelped:
           unboundedTotalHelped ?? this.unboundedTotalHelped,
+      unboundedSessionCount:
+          unboundedSessionCount ?? this.unboundedSessionCount,
+      unboundedBytesDown: unboundedBytesDown ?? this.unboundedBytesDown,
+      unboundedBytesUp: unboundedBytesUp ?? this.unboundedBytesUp,
+      unboundedCountryStats:
+          unboundedCountryStats ?? this.unboundedCountryStats,
+      unboundedRelayEpoch: unboundedRelayEpoch ?? this.unboundedRelayEpoch,
+      unboundedRelayMarkDown:
+          unboundedRelayMarkDown ?? this.unboundedRelayMarkDown,
+      unboundedRelayMarkUp: unboundedRelayMarkUp ?? this.unboundedRelayMarkUp,
+      peerRelayEpoch: peerRelayEpoch ?? this.peerRelayEpoch,
+      peerRelayMarkDown: peerRelayMarkDown ?? this.peerRelayMarkDown,
+      peerRelayMarkUp: peerRelayMarkUp ?? this.peerRelayMarkUp,
     );
   }
 
@@ -86,10 +147,22 @@ class AppSetting {
         'successfulConnection': successfulConnection,
         'dataCapThreshold': dataCapThreshold,
         'onboardingCompleted': onboardingCompleted,
+        'personalProxiesIntroSeen': personalProxiesIntroSeen,
         'unboundedAutoEnable': unboundedAutoEnable,
         'unboundedHidden': unboundedHidden,
         'unboundedWelcomeSeen': unboundedWelcomeSeen,
         'unboundedTotalHelped': unboundedTotalHelped,
+        'unboundedSessionCount': unboundedSessionCount,
+        'unboundedBytesDown': unboundedBytesDown,
+        'unboundedBytesUp': unboundedBytesUp,
+        'unboundedCountryStats':
+            RelayCountryStats.mapToJson(unboundedCountryStats),
+        'unboundedRelayEpoch': unboundedRelayEpoch,
+        'unboundedRelayMarkDown': unboundedRelayMarkDown,
+        'unboundedRelayMarkUp': unboundedRelayMarkUp,
+        'peerRelayEpoch': peerRelayEpoch,
+        'peerRelayMarkDown': peerRelayMarkDown,
+        'peerRelayMarkUp': peerRelayMarkUp,
       };
 
   factory AppSetting.fromJson(Map<String, dynamic> json) => AppSetting(
@@ -102,6 +175,7 @@ class AppSetting {
         successfulConnection: json['successfulConnection'] == true,
         dataCapThreshold: (json['dataCapThreshold'] ?? '').toString(),
         onboardingCompleted: json['onboardingCompleted'] == true,
+        personalProxiesIntroSeen: json['personalProxiesIntroSeen'] == true,
         // Opt-in: auto-enable only when the user explicitly turned it on.
         // Missing/unset means manual — Unbounded does not start on its own
         // until the user enables it (toggle) or opts into auto-enable.
@@ -110,5 +184,20 @@ class AppSetting {
         unboundedWelcomeSeen: json['unboundedWelcomeSeen'] == true,
         unboundedTotalHelped:
             (json['unboundedTotalHelped'] as num?)?.toInt() ?? 0,
+        unboundedSessionCount:
+            (json['unboundedSessionCount'] as num?)?.toInt() ?? 0,
+        unboundedBytesDown:
+            (json['unboundedBytesDown'] as num?)?.toInt() ?? 0,
+        unboundedBytesUp: (json['unboundedBytesUp'] as num?)?.toInt() ?? 0,
+        unboundedCountryStats:
+            RelayCountryStats.mapFromJson(json['unboundedCountryStats']),
+        unboundedRelayEpoch: (json['unboundedRelayEpoch'] ?? '').toString(),
+        unboundedRelayMarkDown:
+            (json['unboundedRelayMarkDown'] as num?)?.toInt() ?? 0,
+        unboundedRelayMarkUp:
+            (json['unboundedRelayMarkUp'] as num?)?.toInt() ?? 0,
+        peerRelayEpoch: (json['peerRelayEpoch'] ?? '').toString(),
+        peerRelayMarkDown: (json['peerRelayMarkDown'] as num?)?.toInt() ?? 0,
+        peerRelayMarkUp: (json['peerRelayMarkUp'] as num?)?.toInt() ?? 0,
       );
 }

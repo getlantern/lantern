@@ -139,7 +139,27 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     var error: NSError?
     MobileConnectToServer(serverName, &error)
     if let error {
-      appLogger.error("error while connecting to server \(error.localizedDescription)")
+      appLogger.error(
+        "error while connecting to server \(redactHelperTags(error.localizedDescription))")
+      // The last pairing ended while the app was away: radiance dropped the
+      // personal proxies group, and an on-demand start still asks for it.
+      // Connect through auto, as radiance itself falls back.
+      // A friend selected alone with no route left falls back to the group
+      // while it exists, as radiance does.
+      if isPersonalProxySelection(serverName) && !MobileIsTagAvailable(serverName)
+        && MobileIsTagAvailable(personalProxiesTag)
+      {
+        appLogger.log("(lantern-tunnel) selected friend is gone; starting the group")
+        connectToServer(serverName: personalProxiesTag, completion: completion)
+        return
+      }
+      if (serverName == personalProxiesTag || isPersonalProxySelection(serverName))
+        && !MobileIsTagAvailable(serverName)
+      {
+        appLogger.log("(lantern-tunnel) selected group is gone; starting auto")
+        startVPN(completion: completion)
+        return
+      }
       cancelTunnel(error)
       completion?(false, error.localizedDescription)
 
@@ -155,7 +175,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
     closeTunnel()
   }
 
-  private func cancelTunnel(_ error: Error) {
+  func cancelTunnel(_ error: Error) {
     // Cancellation may skip stopTunnel. Close IPC so reconnect cannot reuse this
     // provider, and run teardown off the Go callback thread to avoid blocking it.
     DispatchQueue.global().async {
@@ -165,6 +185,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
   }
 
   private func closeTunnel() {
+    platformInterface?.cancelNetworkResetsAndWait()
     var error: NSError?
     MobileStopVPN(&error)
     if error != nil {
@@ -182,6 +203,7 @@ public class ExtensionProvider: NEPacketTunnelProvider {
 
   private func stopService() throws {
     appLogger.info("ExtensionProvider stopService")
+    platformInterface?.cancelNetworkResetsAndWait()
     var error: NSError?
     MobileStopVPN(&error)
     if let error {
@@ -228,7 +250,11 @@ public class ExtensionProvider: NEPacketTunnelProvider {
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     opts.locale = Locale.current.identifier
     opts.timeZone = TimeZone.current.identifier
-    opts.logLevel = "trace"
+    #if DEBUG
+      opts.logLevel = "trace"
+    #else
+      opts.logLevel = "info"
+    #endif
     opts.logDir = FilePath.logsDirectory.relativePath
     appLogger.info("logging to \(opts.logDir)")
     return opts

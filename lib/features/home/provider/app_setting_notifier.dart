@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/app_setting.dart';
+import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/radiance_environment.dart';
@@ -106,6 +107,9 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     if (value) unawaited(_writeInitMarker());
   }
 
+  void setPersonalProxiesIntroSeen(bool value) =>
+      update(state.copyWith(personalProxiesIntroSeen: value));
+
   void setUnboundedAutoEnable(bool value) =>
       update(state.copyWith(unboundedAutoEnable: value));
 
@@ -117,6 +121,29 @@ class AppSettingNotifier extends _$AppSettingNotifier {
 
   void setUnboundedTotalHelped(int value) =>
       update(state.copyWith(unboundedTotalHelped: value));
+
+  void setUnboundedSessionCount(int value) =>
+      update(state.copyWith(unboundedSessionCount: value));
+
+  void setUnboundedRelayStats({
+    required int bytesDown,
+    required int bytesUp,
+    required Map<String, RelayCountryStats> countries,
+    ({String epoch, int down, int up})? mark,
+    ({String epoch, int down, int up})? peerMark,
+  }) => update(
+    state.copyWith(
+      unboundedBytesDown: bytesDown,
+      unboundedBytesUp: bytesUp,
+      unboundedCountryStats: countries,
+      unboundedRelayEpoch: mark?.epoch,
+      unboundedRelayMarkDown: mark?.down,
+      unboundedRelayMarkUp: mark?.up,
+      peerRelayEpoch: peerMark?.epoch,
+      peerRelayMarkDown: peerMark?.down,
+      peerRelayMarkUp: peerMark?.up,
+    ),
+  );
 
   Future<void> _writeInitMarker() async {
     try {
@@ -195,5 +222,6 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     'successfulConnection': setting.successfulConnection,
     'dataCapThreshold': setting.dataCapThreshold,
     'onboardingCompleted': setting.onboardingCompleted,
+    'personalProxiesIntroSeen': setting.personalProxiesIntroSeen,
   };
 }

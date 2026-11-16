@@ -31,6 +31,12 @@ void main() {
       );
       expect(
         UrlUtils.shouldOpenExternallyFromWebView(
+          Uri.parse('weixin://wap/pay?prepayid=123'),
+        ),
+        isTrue,
+      );
+      expect(
+        UrlUtils.shouldOpenExternallyFromWebView(
           Uri.parse(
             'intent://platformapi/startapp#Intent;scheme=alipays;package=com.eg.android.AlipayGphone;end',
           ),

@@ -1,12 +1,16 @@
 package mobile
 
 import (
+	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/ipc"
+	"github.com/sagernet/sing-box/experimental/libbox"
 )
 
 func TestGetClientDoesNotWaitForIPCLifecycleLock(t *testing.T) {
@@ -46,6 +50,13 @@ func TestResetNetworkWithoutClientIsNoop(t *testing.T) {
 
 	if err := ResetNetwork(); err != nil {
 		t.Fatalf("ResetNetwork() error = %v, want nil", err)
+	}
+}
+
+func TestResetNetworkForMonitorWithoutBackendIsNoop(t *testing.T) {
+	withCleanIPCLifecycle(t)
+	if err := ResetNetworkForMonitor(nil); err != nil {
+		t.Fatalf("ResetNetworkForMonitor(nil) error = %v, want nil", err)
 	}
 }
 
@@ -201,4 +212,103 @@ func TestIPCResourcesCloseWaitsForBootstrap(t *testing.T) {
 			t.Fatal("close blocked with no bootstrap to wait for")
 		}
 	})
+}
+
+func TestIsTagAvailableUsesExtensionClientWithoutCore(t *testing.T) {
+	prevCore := lanternCore.Load()
+	lanternCore = atomic.Value{}
+	want := &ipc.Client{}
+	prevClient := ipcClient.Swap(want)
+	prevLookup := serverByTag
+	t.Cleanup(func() {
+		if prevCore != nil {
+			lanternCore.Store(prevCore)
+		}
+		ipcClient.Store(prevClient)
+		serverByTag = prevLookup
+	})
+
+	var asked []string
+	serverByTag = func(_ context.Context, c *ipc.Client, tag string) (bool, error) {
+		if c != want {
+			t.Fatalf("lookup used client %p, want the extension's %p", c, want)
+		}
+		asked = append(asked, tag)
+		return tag == "present", nil
+	}
+
+	if IsTagAvailable("personal-proxies") {
+		t.Fatal("IsTagAvailable = true for a missing tag; want the real answer")
+	}
+	if !IsTagAvailable("present") {
+		t.Fatal("IsTagAvailable = false for a present tag")
+	}
+	if len(asked) != 2 {
+		t.Fatalf("lookups = %d, want 2", len(asked))
+	}
+}
+
+func TestIsTagAvailableFailsOpenWithoutAnyClient(t *testing.T) {
+	prevCore := lanternCore.Load()
+	lanternCore = atomic.Value{}
+	prevClient := ipcClient.Swap(nil)
+	t.Cleanup(func() {
+		if prevCore != nil {
+			lanternCore.Store(prevCore)
+		}
+		ipcClient.Store(prevClient)
+	})
+	if !IsTagAvailable("personal-proxies") {
+		t.Fatal("IsTagAvailable = false with no backend; want fail-open true")
+	}
+}
+
+func TestFindConnectionOwnerDelegatesAndSanitizesErrors(t *testing.T) {
+	prev := findConnectionOwner
+	t.Cleanup(func() {
+		findConnectionOwner = prev
+	})
+
+	want := &libbox.ConnectionOwner{
+		UserId:      501,
+		UserName:    "tester",
+		ProcessPath: "/Applications/DingTalk.app/Contents/MacOS/DingTalk",
+	}
+	findConnectionOwner = func(
+		ipProtocol int32,
+		sourceAddress string,
+		sourcePort int32,
+		destinationAddress string,
+		destinationPort int32,
+	) (*libbox.ConnectionOwner, error) {
+		if ipProtocol != 6 || sourceAddress != "10.10.1.1" || sourcePort != 54321 ||
+			destinationAddress != "1.1.1.1" || destinationPort != 443 {
+			t.Fatalf(
+				"unexpected args: proto=%d src=%s:%d dst=%s:%d",
+				ipProtocol, sourceAddress, sourcePort, destinationAddress, destinationPort,
+			)
+		}
+		return want, nil
+	}
+
+	got, err := FindConnectionOwner(6, "10.10.1.1", 54321, "1.1.1.1", 443)
+	if err != nil {
+		t.Fatalf("FindConnectionOwner() error = %v", err)
+	}
+	if got != want {
+		t.Fatalf("FindConnectionOwner() = %+v, want %+v", got, want)
+	}
+
+	rawErr := errors.New("bad utf8: \xff\xfe")
+	findConnectionOwner = func(int32, string, int32, string, int32) (*libbox.ConnectionOwner, error) {
+		return nil, rawErr
+	}
+
+	_, err = FindConnectionOwner(6, "10.10.1.1", 54321, "1.1.1.1", 443)
+	if !errors.Is(err, rawErr) {
+		t.Fatalf("FindConnectionOwner() error = %v, want errors.Is(_, rawErr)", err)
+	}
+	if !utf8.ValidString(err.Error()) {
+		t.Fatalf("FindConnectionOwner() error message is not valid UTF-8: %q", err.Error())
+	}
 }

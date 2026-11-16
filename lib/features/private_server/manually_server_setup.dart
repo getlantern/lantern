@@ -121,7 +121,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                     buttonValid.value =
                         (value.isNotEmpty && nameController.text.isNotEmpty);
                   },
-                  suffixIcon: PlatformUtils.isMobile
+                  suffixIcon: PlatformUtils.isMobile && AppBuildInfo.enableQrScanner
                       ? GestureDetector(
                           onTap: () => openQrCodeScanner(accessKeyController),
                           child: AppImage(path: AppImagePaths.qrCodeScanner),

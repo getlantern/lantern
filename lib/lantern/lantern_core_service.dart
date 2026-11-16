@@ -51,12 +51,15 @@ abstract class LanternCoreService {
   Future<Either<Failure, Unit>> updateTimeZone(String timeZone);
 
   /// Pushes the resolved server location to the native home-screen widget.
+  /// [serverName] is the selected server's tag ('' for auto); the widget's own
+  /// connect dials it, so every publish mirrors the app's current selection.
   /// No-op on platforms without a widget.
   Future<void> updateWidgetLocation({
     required String city,
     required String country,
     required String countryCode,
     required String displayName,
+    required String serverName,
   });
 
   Stream<AppEvent> watchAppEvents();
@@ -129,6 +132,14 @@ abstract class LanternCoreService {
   /// MUST treat that as "could not ask" and leave existing state alone
   /// rather than synthesizing an idle status.
   Future<Either<Failure, String>> getPeerStatusJSON();
+
+  /// Runs one helper-invite operation in the Go core (lantern-core/helper)
+  /// and returns its JSON result, which is `{"error": code}` on failure.
+  /// [args] carries invite links and names: never log it.
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  );
 
   /// Local opt-in for the broflake / Unbounded widget proxy ("Basic
   /// mode" in the Share My Connection UI). Actual run state also
@@ -251,6 +262,10 @@ abstract class LanternCoreService {
   ///OAuth methods
   Future<Either<Failure, String>> getOAuthLoginUrl(String provider);
 
+  /// Runs sign-in at [url] in an in-app browser sheet and returns its
+  /// `lantern://` callback, or null if the user closed the sheet. iOS only.
+  Future<Either<Failure, Uri?>> authenticateInApp(String url);
+
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(String token);
 
   /// Loads the account identity from a device-limit OAuth callback token so
@@ -361,7 +376,6 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   });
 
   Future<Either<Failure, Unit>> cancelDeployment();

@@ -80,7 +80,7 @@ jobs:
           cache-scope: linux
 
       - name: Cache APT archives
-        uses: actions/cache@v4
+        uses: ./.github/actions/cache
         timeout-minutes: 5
         continue-on-error: true
         with:
@@ -105,6 +105,7 @@ jobs:
             libayatana-appindicator3-dev
             libcurl4-openssl-dev
             libwebkit2gtk-4.1-dev
+            libsecret-1-dev
             patchelf
             xvfb
           )
@@ -258,14 +259,19 @@ jobs:
             exit "$SMOKE_EXIT"
           fi
 
-          if ! grep -Eq 'IPC request.*path=/vpn/connect' /tmp/lanternd-journal-ui-smoke.log; then
-            echo "Missing /vpn/connect IPC request in lanternd journal"
+          # The daemon's per-request "IPC request" line is trace-level, and
+          # release/beta lanternd runs at info and demotes any persisted trace
+          # on launch, so that line can never appear in these journals. The UI
+          # is the only IPC client in this harness, so the daemon's info-level
+          # lifecycle lines prove the same connect/disconnect round trip.
+          if ! grep -Fq 'VPN connected successfully' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "lanternd journal never logged 'VPN connected successfully'"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi
 
-          if ! grep -Eq 'IPC request.*path=/vpn/disconnect' /tmp/lanternd-journal-ui-smoke.log; then
-            echo "Missing /vpn/disconnect IPC request in lanternd journal"
+          if ! grep -Fq 'VPN disconnected successfully' /tmp/lanternd-journal-ui-smoke.log; then
+            echo "lanternd journal never logged 'VPN disconnected successfully'"
             tail -n 200 /tmp/lanternd-journal-ui-smoke.log || true
             exit 1
           fi
@@ -279,7 +285,6 @@ jobs:
           LC_ALL: en_US.UTF-8
           JOIN_SERVER_CONFIG_URLS: ${{ secrets.JOIN_SERVER_CONFIG_URLS }}
           JOIN_SERVER_CONFIG_SERVER_NAME: ${{ vars.JOIN_SERVER_CONFIG_SERVER_NAME }}
-          JOIN_SERVER_CONFIG_SKIP_CERT_VERIFICATION: "true"
         run: bash .github/scripts/linux_config_url_smoke.sh
 
       # Overwrites the committed fromEnvironment shim with real credentials.

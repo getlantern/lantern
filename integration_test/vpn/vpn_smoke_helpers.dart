@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/common.dart'
+    show PersonalProxiesIntro, appRouter;
 import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 
 import '../utils/widget_wait_utils.dart';
 
@@ -28,6 +32,9 @@ class VpnSmokeFinders {
   final Finder onboardingScreen = find.byKey(const Key('onboarding.screen'));
   final Finder onboardingSkip = find.byKey(const Key('onboarding.skip'));
   final Finder onboardingPrimary = find.byKey(const Key('onboarding.primary'));
+  final Finder personalProxiesIntro = find.byKey(
+    const Key('personal_proxies_intro.screen'),
+  );
   final Finder vpnToggle = find.byKey(const Key('vpn.toggle'));
 }
 
@@ -155,6 +162,12 @@ Future<void> waitForVpnToggleWithOnboardingHandling(
 }) async {
   final end = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(end)) {
+    // An intro that was already on its way in when it was marked seen.
+    if (_popPersonalProxiesIntro()) {
+      await tester.pump(const Duration(milliseconds: 400));
+      continue;
+    }
+
     if (onboardingScreen.evaluate().isNotEmpty) {
       // Gate on hitTestable: onboarding stays mounted while its route animates
       // out, and tapping the stale button centre falls through to the VPN tab
@@ -179,16 +192,61 @@ Future<void> waitForVpnToggleWithOnboardingHandling(
   fail('VPN toggle not visible');
 }
 
+/// Pops the Personal Proxies intro if it is on screen.
+bool _popPersonalProxiesIntro() {
+  final intro = find.byKey(const Key('personal_proxies_intro.screen'));
+  if (intro.evaluate().isEmpty) return false;
+  debugPrint('VPN smoke: closing the Personal Proxies introduction');
+  appRouter.popUntil(
+    (route) => route.settings.name != PersonalProxiesIntro.name,
+  );
+  return true;
+}
+
+/// The Personal Proxies intro opens over Home a couple of seconds into any
+/// launch after one that skipped onboarding. Mark it seen so it cannot open
+/// mid-test, and close it if it already has. Does not pump unless it closes
+/// one: on a first launch onboarding covers Home within a few hundred
+/// milliseconds, and the caller has to see Home before that.
+Future<void> clearPersonalProxiesIntroForSmoke(
+  WidgetTester tester, {
+  required VpnSmokeFinders finders,
+}) async {
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(MaterialApp).first),
+    listen: false,
+  );
+  if (!container.read(appSettingProvider).personalProxiesIntroSeen) {
+    container
+        .read(appSettingProvider.notifier)
+        .setPersonalProxiesIntroSeen(true);
+  }
+
+  if (!_popPersonalProxiesIntro()) return;
+  await WidgetWaitUtils.waitForFinderToDisappear(
+    tester,
+    finders.personalProxiesIntro,
+    timeout: const Duration(seconds: 10),
+    reason: 'Personal Proxies introduction did not close',
+  );
+}
+
 Future<void> waitForHomeReadyForVpnSmoke(
   WidgetTester tester, {
   required VpnSmokeFinders finders,
 }) async {
   await WidgetWaitUtils.waitForAnyFinder(
     tester,
-    [finders.homeScreen, finders.onboardingScreen],
+    [
+      finders.homeScreen,
+      finders.onboardingScreen,
+      finders.personalProxiesIntro,
+    ],
     timeout: const Duration(seconds: 90),
     reason: 'Home or onboarding did not appear after launch',
   );
+
+  await clearPersonalProxiesIntroForSmoke(tester, finders: finders);
 
   await WidgetWaitUtils.waitForFinder(
     tester,

@@ -1,0 +1,481 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/app_text.dart';
+import 'package:lantern/core/widgets/setting_tile.dart';
+import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
+import 'package:lantern/features/action_mode/provider/share_notifier.dart';
+import 'package:lantern/features/helpers/helper_errors.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+
+/// The Action Mode tab's "Your Personal Proxy connections" card, shown once
+/// this device helps a friend. It opens [showHelpingFriendsSheet]. Its third
+/// line, how many are connected right now, shows only once the engine
+/// reports it.
+class PersonalProxyConnectionsCard extends HookConsumerWidget {
+  const PersonalProxyConnectionsCard({super.key});
+
+  /// How often the card refreshes while it shows.
+  @visibleForTesting
+  static Duration refreshInterval = const Duration(seconds: 60);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final helping = ref.watch(helpersProvider.select((s) => s.view.helping));
+    final tabVisible = ref.watch(actionModeTabVisibleProvider);
+    final notifier = ref.read(helpersProvider.notifier);
+
+    // Today's totals move, and the inviter can end a pairing, without
+    // anything pending to poll for. Refresh while this shows and the app and
+    // this tab are in front; each refresh reaches lantern-cloud.
+    useEffect(() {
+      if (!tabVisible) return null;
+      final timer = Timer.periodic(refreshInterval, (_) {
+        if (WidgetsBinding.instance.lifecycleState !=
+            AppLifecycleState.resumed) {
+          return;
+        }
+        unawaited(notifier.refreshIfUsed());
+      });
+      return timer.cancel;
+    }, [tabVisible]);
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      shadow: true,
+      child: SettingTile(
+        tileKey: const Key('action_mode.personal_proxy_connections'),
+        label: 'helping_connections_title'.i18n,
+        value: helpingFriendsCount(helping.length),
+        subtitle: connectedRightNow(helping),
+        subtitleColor: context.textTertiary,
+        icon: AppImagePaths.personAdd,
+        actions: const [AppImage(path: AppImagePaths.arrowForward)],
+        onTap: () => showHelpingFriendsSheet(context),
+      ),
+    );
+  }
+}
+
+/// "1 friend", "3 friends".
+String helpingFriendsCount(int n) => n == 1
+    ? 'helping_friends_one'.i18n
+    : 'helping_friends_count'.i18n.fill([n]);
+
+/// "Sara connected right now" or "2 connected right now", or null while any
+/// friend's live status is unknown: no status rather than a wrong one.
+String? connectedRightNow(List<HelperPairingView> helping) {
+  if (helping.isEmpty || helping.any((p) => p.connected == null)) return null;
+  final connected = helping.where((p) => p.connected == true).toList();
+  if (connected.length == 1) {
+    return 'helping_connected_named'.i18n.fill([_name(connected.single)]);
+  }
+  return 'helping_connected_count'.i18n.fill([connected.length]);
+}
+
+/// The friends this device helps, in the app's bottom sheet: each with since
+/// when, Connected or Not connected once known, and remove; "Paste another
+/// invite link"; and who else this device helps, with Change.
+void showHelpingFriendsSheet(BuildContext context) {
+  // The theme's bg.elevated sheet; the friends card is bg.surface on it. As
+  // tall as its few rows, not a fixed share of the screen.
+  showAppBottomSheet(
+    context: context,
+    title: 'helping_sheet_title'.i18n,
+    fitContent: true,
+    subtitle: Consumer(
+      builder: (context, ref, _) {
+        final line = connectedRightNow(
+          ref.watch(helpersProvider.select((s) => s.view.helping)),
+        );
+        if (line == null) return const SizedBox.shrink();
+        return Text(
+          line,
+          key: const Key('helping.sheet.connected'),
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium!.copyWith(color: context.textTertiary),
+        );
+      },
+    ),
+    builder: (sheetContext, scrollController) => Flexible(
+      child: HelpingFriendsSheet(scrollController: scrollController),
+    ),
+  );
+}
+
+class HelpingFriendsSheet extends HookConsumerWidget {
+  const HelpingFriendsSheet({super.key, this.scrollController});
+
+  final ScrollController? scrollController;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final helpers = ref.watch(helpersProvider);
+    final sharing = ref.watch(
+      shareProvider.select((s) => s.active || s.probing),
+    );
+    final notifier = ref.read(helpersProvider.notifier);
+    final textTheme = Theme.of(context).textTheme;
+
+    useEffect(() {
+      unawaited(notifier.loadHelpOthers());
+      return null;
+    }, const []);
+
+    final helping = helpers.view.helping;
+
+    return ListView(
+      controller: scrollController,
+      // Only as tall as its rows; it scrolls once the sheet's maximum is hit.
+      shrinkWrap: true,
+      padding: const EdgeInsets.fromLTRB(
+        defaultSize,
+        defaultSize,
+        defaultSize,
+        32,
+      ),
+      children: [
+        if (!sharing) ...[
+          Text(
+            'helping_sharing_off_warning'.i18n,
+            key: const Key('helping.sharing_off'),
+            style: textTheme.bodyMedium!.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+          const SizedBox(height: defaultSize),
+        ],
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: HeaderText('helping_your_friends'.i18n),
+        ),
+        const SizedBox(height: 8),
+        AppCard(
+          padding: EdgeInsets.zero,
+          bgColor: context.bgSurface,
+          child: Column(
+            children: [
+              for (final p in helping) ...[
+                AppTile(
+                  tileKey: Key('helping.friend.${p.pairingId}'),
+                  icon: AppImagePaths.person,
+                  label: _name(p),
+                  subtitle: p.sinceUnix > 0
+                      ? Text(
+                          helperSinceLabel(p.sinceUnix),
+                          style: textTheme.labelMedium!.copyWith(
+                            color: context.textTertiary,
+                          ),
+                        )
+                      : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // At most a third of the width, so large text still
+                      // leaves room for the name and Remove.
+                      if (p.connected != null)
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.sizeOf(context).width / 3,
+                          ),
+                          child: Text(
+                            p.connected!
+                                ? 'helping_connected'.i18n
+                                : 'helping_not_connected'.i18n,
+                            key: Key('helping.status.${p.pairingId}'),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                            style: textTheme.titleMedium!.copyWith(
+                              color: context.textLink,
+                            ),
+                          ),
+                        ),
+                      IconButton(
+                        key: Key('helping.remove.${p.pairingId}'),
+                        tooltip: 'helping_remove'.i18n,
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => _confirmStop(context, notifier, p),
+                      ),
+                    ],
+                  ),
+                ),
+                const DividerSpace(),
+              ],
+              AppTile(
+                tileKey: const Key('helping.paste_another'),
+                icon: AppImagePaths.plus,
+                label: 'helping_paste_another'.i18n,
+                trailing: const AppImage(path: AppImagePaths.arrowForward),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  appRouter.push(HelpFriend(newInvite: true));
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        _ScopeLine(helpOthers: helpers.chosenHelpOthers),
+      ],
+    );
+  }
+
+  // AppDialog runs onPrimaryPressed 400 ms after the dialog closes, when
+  // this sheet may be gone and its ref unusable. The notifier is keepAlive,
+  // so it is held instead and the stop still happens.
+  Future<void> _confirmStop(
+    BuildContext context,
+    HelpersNotifier notifier,
+    HelperPairingView p,
+  ) {
+    final pairingId = p.pairingId;
+    return AppDialog.show(
+      context: context,
+      title: 'helping_remove'.i18n,
+      body: 'helping_remove_confirm'.i18n.fill([_name(p)]),
+      primaryLabel: 'helping_remove'.i18n,
+      onPrimaryPressed: () => notifier.endPairing(pairingId),
+      secondaryLabel: 'cancel'.i18n,
+    );
+  }
+}
+
+/// "Also helping people in all countries · Change", or "Only helping your
+/// friends · Change", under the friends card. Change opens
+/// [showWhoYoureHelpingSheet].
+class _ScopeLine extends StatelessWidget {
+  const _ScopeLine({required this.helpOthers});
+
+  final bool helpOthers;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(
+      context,
+    ).textTheme.labelLarge!.copyWith(color: context.textTertiary);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            '${helpOthers ? 'helping_scope_line_all'.i18n : 'helping_scope_line_friends'.i18n} · ',
+            key: const Key('helping.scope'),
+            style: style,
+          ),
+          Semantics(
+            button: true,
+            child: InkWell(
+              key: const Key('helping.scope.change'),
+              // Swaps this sheet for that one rather than stacking them.
+              onTap: () {
+                final navigator = Navigator.of(context);
+                navigator.pop();
+                showWhoYoureHelpingSheet(navigator.context);
+              },
+              child: Text(
+                'helping_scope_change'.i18n,
+                style: style.copyWith(
+                  color: context.textLink,
+                  decoration: TextDecoration.underline,
+                  decorationColor: context.textLink,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Whom Action Mode helps, in a word: "All countries" or "Only my Personal
+/// Proxy connections".
+String helpingScopeLabel(bool helpOthers) => helpOthers
+    ? 'helping_scope_all_countries'.i18n
+    : 'helping_scope_only_friends'.i18n;
+
+/// Settings' "Who you're helping" row: whom Action Mode helps, opening
+/// [showWhoYoureHelpingSheet].
+class WhoYoureHelpingTile extends HookConsumerWidget {
+  const WhoYoureHelpingTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final helpOthers = ref.watch(
+      helpersProvider.select((s) => s.chosenHelpOthers),
+    );
+    final notifier = ref.read(helpersProvider.notifier);
+    useEffect(() {
+      unawaited(notifier.loadHelpOthers());
+      return null;
+    }, const []);
+    return AppTile(
+      tileKey: const Key('helping.scope.row'),
+      icon: AppImagePaths.world,
+      label: 'helping_scope_title'.i18n,
+      subtitle: Text(
+        helpingScopeLabel(helpOthers),
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: context.textTertiary),
+      ),
+      trailing: const AppImage(path: AppImagePaths.arrowForward),
+      onPressed: () => showWhoYoureHelpingSheet(context),
+    );
+  }
+}
+
+/// "Who you're helping": only the friends this device is the Personal Proxy
+/// for, or people in all countries as well. It writes radiance's
+/// peer_serve_pool, the one scope setting; the Action Mode switch stays the
+/// only on/off.
+void showWhoYoureHelpingSheet(BuildContext context) {
+  showAppBottomSheet(
+    context: context,
+    title: 'helping_scope_title'.i18n,
+    backgroundColor: context.bgSurface,
+    subtitle: Text(
+      'helping_scope_subtitle'.i18n,
+      style: Theme.of(
+        context,
+      ).textTheme.labelMedium!.copyWith(color: context.textSecondary),
+    ),
+    scrollControlDisabledMaxHeightRatio: .5,
+    builder: (sheetContext, scrollController) => Flexible(
+      child: WhoYoureHelpingSheet(scrollController: scrollController),
+    ),
+  );
+}
+
+class WhoYoureHelpingSheet extends HookConsumerWidget {
+  const WhoYoureHelpingSheet({super.key, this.scrollController});
+
+  final ScrollController? scrollController;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final helpOthers = ref.watch(
+      helpersProvider.select((s) => s.chosenHelpOthers),
+    );
+    final notifier = ref.read(helpersProvider.notifier);
+    final textTheme = Theme.of(context).textTheme;
+
+    useEffect(() {
+      unawaited(notifier.loadHelpOthers());
+      return null;
+    }, const []);
+
+    void choose(bool all) => unawaited(notifier.chooseHelpOthers(all));
+
+    Widget option({
+      required Key key,
+      required Object icon,
+      required String label,
+      required bool all,
+    }) => AppTile(
+      tileKey: key,
+      icon: icon,
+      label: label,
+      trailing: AppRadioButton<bool>(
+        value: all,
+        groupValue: helpOthers,
+        onChanged: (_) => choose(all),
+      ),
+      onPressed: () => choose(all),
+    );
+
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.all(defaultSize),
+      children: [
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              option(
+                key: const Key('helping.scope.friends'),
+                icon: AppImagePaths.personAdd,
+                label: 'helping_scope_only_friends'.i18n,
+                all: false,
+              ),
+              const DividerSpace(),
+              option(
+                key: const Key('helping.scope.all'),
+                icon: AppImagePaths.world,
+                label: 'helping_scope_all_countries'.i18n,
+                all: true,
+              ),
+            ],
+          ),
+        ),
+        // Changing it rebuilds the sharing session, so the people helped
+        // reconnect after a few seconds.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Text(
+            'help_others_too_note'.i18n,
+            style: textTheme.labelSmall?.copyWith(color: context.textTertiary),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Says the keystore lost the old key, so the names of the people helped
+/// could not be read, until the user dismisses it.
+class HelperKeystoreResetNotice extends StatelessWidget {
+  const HelperKeystoreResetNotice({super.key, required this.notifier});
+
+  final HelpersNotifier notifier;
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+    key: const Key('helping.keystore_reset'),
+    padding: const EdgeInsets.only(left: defaultSize),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            helperErrorText('keystore_reset'),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        IconButton(
+          key: const Key('helping.keystore_reset.dismiss'),
+          tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+          icon: const Icon(Icons.close),
+          onPressed: notifier.acknowledgeKeystoreReset,
+        ),
+      ],
+    ),
+  );
+}
+
+String _name(HelperPairingView p) =>
+    p.name.isEmpty ? 'helping_unnamed'.i18n : p.name;
+
+/// Whole hours and the minutes left over.
+(int, int) helpingHoursMinutes(int seconds) =>
+    (seconds ~/ 3600, (seconds % 3600) ~/ 60);
+
+/// "3h 20m" or "45m", localized.
+String helpingDuration(int seconds) {
+  final (h, m) = helpingHoursMinutes(seconds);
+  return h > 0
+      ? 'helping_duration_hm'.i18n.fill([h, m])
+      : 'helping_duration_m'.i18n.fill([m]);
+}
+
+/// "Since Oct 20", localized, for a pairing made at [unix].
+String helperSinceLabel(int unix) => 'helping_since'.i18n.fill([
+  DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(unix * 1000)),
+]);

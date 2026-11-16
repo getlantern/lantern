@@ -92,6 +92,9 @@ on:
         required: false
         type: number
         default: 60
+    secrets:
+      UPDATE_SERVICE_REFRESH_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -110,6 +113,7 @@ jobs:
       - name: Test release tooling
         run: |
           python3 -m unittest \
+            scripts/ci/version_test.py \
             scripts/ci/generate_update_metadata_test.py \
             scripts/ci/verify_release_alignment_test.py \
             scripts/ci/verify_update_service_test.py \
@@ -118,6 +122,31 @@ jobs:
         uses: docker://rhysd/actionlint:1.7.12
         with:
           args: -color -shellcheck=
+
+      # The update service otherwise picks up a new release only on its next
+      # scheduled poll of GitHub. A failed request only makes the verifier wait.
+      - name: Ask update service to refresh
+        if: github.event_name != 'pull_request'
+        env:
+          UPDATE_URL: ${{ inputs.update_url }}
+          REFRESH_TOKEN: ${{ secrets.UPDATE_SERVICE_REFRESH_TOKEN }}
+        run: |
+          if [[ -z "$REFRESH_TOKEN" ]]; then
+            echo "::notice::UPDATE_SERVICE_REFRESH_TOKEN is not set; waiting for the update service's own refresh"
+            exit 0
+          fi
+          # update_url is a dispatch input, so the token is only ever sent to
+          # this fixed host.
+          refresh_url="https://update.getlantern.org/update/refresh"
+          if [[ "$UPDATE_URL" != https://update.getlantern.org/* ]]; then
+            echo "::notice::Not refreshing: $UPDATE_URL is not on update.getlantern.org"
+            exit 0
+          fi
+          # curl's retries honor Retry-After, which --max-time does not bound.
+          if ! timeout 90 curl -fsS -X POST --retry 3 --max-time 30 \
+              -H "Authorization: Bearer $REFRESH_TOKEN" "$refresh_url"; then
+            echo "::warning::Update service refresh request failed; waiting for its own refresh"
+          fi
 
       - name: Run update service verifier
         if: github.event_name != 'pull_request'

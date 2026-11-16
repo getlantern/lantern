@@ -1,4 +1,4 @@
-name: Staging Windows migration E2E checkpoint
+name: Windows migration E2E checkpoint
 
 on:
   workflow_dispatch:
@@ -12,19 +12,23 @@ on:
         type: choice
         options: [Run, AfterReboot]
         default: Run
+      production_canary:
+        description: 'Use the original release and a disposable production account to test a pinned beta installer'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
-# This serializes this repository only. Reserve the shared staging pins/cohort
+# This serializes this repository only. Reserve the shared updater pins/cohort
 # externally for the entire run, reboot, and cleanup window.
 concurrency:
-  group: staging-windows-migration-e2e
+  group: windows-migration-e2e
   cancel-in-progress: false
 
 jobs:
   checkpoint:
-    environment: staging-migration-e2e
+    environment: ${{ inputs.production_canary && 'windows-migration-canary' || 'staging-migration-e2e' }}
     runs-on: [self-hosted, Windows, X64, lantern-migration-e2e]
     timeout-minutes: 60
     steps:
@@ -36,20 +40,22 @@ jobs:
         env:
           MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
           MIGRATION_PHASE: ${{ inputs.phase }}
+          PRODUCTION_CANARY: ${{ inputs.production_canary }}
         run: |
           # Python 3.11+, Go and PowerShell 7.2+ are provisioned in the disposable VM.
           "MIGRATION_CHECKPOINT_STARTED=$([DateTime]::UtcNow.ToString('o'))" >> $env:GITHUB_ENV
           & ./scripts/migration-e2e/run.ps1 `
             -Bundle 'C:\MigrationE2E\bundle' `
             -Expected "$env:LOCALAPPDATA\LanternMigrationFixture\expected.json" `
-            -ManifestSHA256 $env:MANIFEST_SHA256 -Phase $env:MIGRATION_PHASE
+            -ManifestSHA256 $env:MANIFEST_SHA256 -Phase $env:MIGRATION_PHASE `
+            -ProductionCanary:($env:PRODUCTION_CANARY -eq 'true')
           $result = $LASTEXITCODE
           if ($result -eq 2) {
             'PENDING: migration checks passed; a real reboot and AfterReboot pass are still required. This is not completed E2E proof.' >> $env:GITHUB_STEP_SUMMARY
             exit 0
           }
           if ($result -ne 0) { exit $result }
-          'Checkpoint passed. See the allowlisted JSON result for scenario and scope; production activation remains disabled.' >> $env:GITHUB_STEP_SUMMARY
+          'Checkpoint passed. See the allowlisted JSON result for the tested lane, scenario and scope.' >> $env:GITHUB_STEP_SUMMARY
       - name: Upload only allowlisted diagnostics
         if: always()
         shell: pwsh

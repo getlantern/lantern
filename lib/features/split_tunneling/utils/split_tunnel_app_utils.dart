@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:lantern/core/common/app_secrets.dart';
 import 'package:lantern/core/models/app_data.dart';
+import 'package:path/path.dart' as p;
 
 String stableAppId(AppData app) {
   if (Platform.isWindows || Platform.isMacOS) {
@@ -13,9 +14,45 @@ String stableAppId(AppData app) {
 String normalizedAppId(AppData app) {
   final id = stableAppId(app).trim();
   if (Platform.isWindows) {
-    return id.toLowerCase();
+    return windowsAppPathId(id);
   }
   return id;
+}
+
+/// Windows executable paths are case-insensitive and may use either separator.
+String windowsAppPathId(String path) {
+  final value = path.trim();
+  return value.isEmpty ? '' : p.windows.normalize(value).toLowerCase();
+}
+
+/// Accepts drive-qualified .exe paths, excluding device and stream syntax.
+bool isWindowsExecutablePath(String path) =>
+    RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(path) &&
+    !RegExp(r'[\x00-\x1f:<>"|?*]').hasMatch(path.substring(2)) &&
+    p.windows.extension(path).toLowerCase() == '.exe';
+
+/// Keep saved executable rules visible even when app discovery misses them.
+List<AppData> windowsEnabledApps(
+  Iterable<AppData> installed,
+  Iterable<String> paths,
+) {
+  final byPath = <String, AppData>{};
+  for (final app in installed) {
+    if (app.appPath.trim().isEmpty) continue;
+    final id = windowsAppPathId(app.appPath);
+    byPath[id] = pickPreferredAppEntry(byPath[id], app);
+  }
+  final enabled = <String, AppData>{};
+  for (final path in paths) {
+    if (path.trim().isEmpty) continue;
+    final id = windowsAppPathId(path);
+    final app =
+        byPath[id] ??
+        AppData(name: p.windows.basename(path), bundleId: '', appPath: path);
+    // Use the stored path for removal, including any native normalization.
+    enabled[id] = app.copyWith(appPath: path, isEnabled: true);
+  }
+  return enabled.values.toList()..sort(_compareAppsByDisplayName);
 }
 
 bool isLanternApp(AppData app) {
@@ -76,26 +113,7 @@ List<AppData> dedupeAndSortApps(
     byId[id] = pickPreferredAppEntry(byId[id], app);
   }
 
-  final byDisplay = <String, AppData>{};
-  for (final app in byId.values) {
-    if (Platform.isWindows) {
-      final displayKey = _windowsDisplayDedupeKey(app);
-      if (displayKey.isNotEmpty) {
-        byDisplay[displayKey] = pickPreferredAppEntry(
-          byDisplay[displayKey],
-          app,
-        );
-        continue;
-      }
-    }
-    byDisplay[normalizedAppId(app)] = pickPreferredAppEntry(
-      byDisplay[normalizedAppId(app)],
-      app,
-    );
-  }
-
-  final out = byDisplay.values.toList()..sort(_compareAppsByDisplayName);
-  return out;
+  return byId.values.toList()..sort(_compareAppsByDisplayName);
 }
 
 int _compareAppsByDisplayName(AppData a, AppData b) {
@@ -116,14 +134,6 @@ int _compareAppsByDisplayName(AppData a, AppData b) {
     return byId;
   }
   return a.appPath.compareTo(b.appPath);
-}
-
-String _windowsDisplayDedupeKey(AppData app) {
-  final name = app.name.trim().toLowerCase();
-  if (name.isEmpty) {
-    return '';
-  }
-  return 'name:$name';
 }
 
 /// Regex the core matches against a connection's executable path on macOS.

@@ -43,18 +43,27 @@ overrides:
       - libblkid1
       - liblzma5
       - libwebkit2gtk-4.1-0
+      - libsecret-1-0
   rpm:
     depends:
       - gtk3
+      - libayatana-appindicator-gtk3
       - xz-libs
       - libblkid
       - webkit2gtk4.1
+      - libsecret
+    scripts:
+      postinstall: linux/packaging/rpm/scripts/postinst
+      preremove: linux/packaging/rpm/scripts/prerm
+      postremove: linux/packaging/rpm/scripts/postrm
   archlinux:
     depends:
       - gtk3
+      - libayatana-appindicator
       - xz
       - util-linux-libs
       - webkit2gtk-4.1
+      - libsecret
     scripts:
       postinstall: linux/packaging/arch/postinstall.sh
       preremove: linux/packaging/arch/preremove.sh
@@ -64,3 +73,5 @@ rpm:
   group: applications/Internet
 archlinux:
   packager: teamlantern <admin@getlantern.org>
+  scripts:
+    postupgrade: linux/packaging/arch/postinstall.sh

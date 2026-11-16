@@ -1,6 +1,10 @@
 package stub
 
-import "github.com/sagernet/sing-box/experimental/libbox"
+import (
+	"errors"
+
+	"github.com/sagernet/sing-box/experimental/libbox"
+)
 
 func NewPlatformInterfaceStub() libbox.PlatformInterface {
 	return &platformInterfaceStub{}
@@ -10,7 +14,6 @@ type platformInterfaceStub struct {
 }
 
 func (p *platformInterfaceStub) LocalDNSTransport() libbox.LocalDNSTransport { return nil }
-func (p *platformInterfaceStub) SystemCertificates() libbox.StringIterator   { return nil }
 
 // AutoDetectInterfaceControl implements libbox.PlatformInterface.
 func (p *platformInterfaceStub) AutoDetectInterfaceControl(fd int32) error {
@@ -74,4 +77,48 @@ func (p *platformInterfaceStub) UsePlatformAutoDetectInterfaceControl() bool {
 // UseProcFS implements libbox.PlatformInterface.
 func (p *platformInterfaceStub) UseProcFS() bool {
 	return false
+}
+
+func (p *platformInterfaceStub) CancelNotification(identifier string, typeID int32) error {
+	return nil
+}
+
+func (p *platformInterfaceStub) StartNeighborMonitor(listener libbox.NeighborUpdateListener) error {
+	return errors.ErrUnsupported
+}
+
+func (p *platformInterfaceStub) CloseNeighborMonitor(listener libbox.NeighborUpdateListener) error {
+	return nil
+}
+
+func (p *platformInterfaceStub) RegisterMyInterface(name string) {}
+
+func (p *platformInterfaceStub) UsePlatformShell() bool { return false }
+
+func (p *platformInterfaceStub) CheckPlatformShell() error {
+	return errors.ErrUnsupported
+}
+
+func (p *platformInterfaceStub) OpenShellSession(user *libbox.PlatformUser, command string, environ libbox.StringIterator, term string, rows int32, cols int32) (libbox.ShellSession, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (p *platformInterfaceStub) LookupUser(username string) (*libbox.PlatformUser, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (p *platformInterfaceStub) LookupSFTPServer() (string, error) {
+	return "", errors.ErrUnsupported
+}
+
+func (p *platformInterfaceStub) ReadSystemSSHHostKey() (string, error) {
+	return "", errors.ErrUnsupported
+}
+
+func (p *platformInterfaceStub) TailscaleHostname() string { return "" }
+
+func (p *platformInterfaceStub) UsePlatformBridge() bool { return false }
+
+func (p *platformInterfaceStub) CreateBridge(options *libbox.BridgeOptions) (libbox.BridgeSession, error) {
+	return nil, errors.ErrUnsupported
 }

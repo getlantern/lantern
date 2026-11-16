@@ -1,4 +1,5 @@
 import bz2
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -24,6 +25,15 @@ class CatalogTest(unittest.TestCase):
                              (self.root / 'installer.exe').read_bytes())
             with patch('bundle.verify_binary_builds'), self.assertRaises(FileExistsError):
                 catalog.assemble(self.root, catalog.bundle.sha256(self.root / 'manifest.json'), output)
+
+    def test_production_canary_cannot_assemble_staging_catalog(self):
+        bundle_test.BundleTest.production_canary(self)
+        path = self.root / 'manifest.json'
+        path.write_text(json.dumps(self.m), encoding='utf-8')
+        output = self.root / 'catalog'
+        with self.assertRaisesRegex(ValueError, 'released_binary_account_isolation_blocked'):
+            catalog.assemble(self.root, catalog.bundle.sha256(path), output)
+        self.assertFalse(output.exists())
 
 
 if __name__ == '__main__':

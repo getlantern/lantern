@@ -23,6 +23,7 @@ AppData _app({
 }
 
 void main() {
+  _windowsAppTests();
   _macOSRuleTests();
   _indexTests();
   test('pickPreferredAppEntry prefers app with icon metadata', () {
@@ -151,6 +152,63 @@ void main() {
 
     expect(deduped, hasLength(1));
     expect(deduped.single.name, 'Lantern');
+  });
+}
+
+void _windowsAppTests() {
+  test('Windows executable selections require local drive paths', () {
+    expect(isWindowsExecutablePath(r'C:\Games\game.exe'), isTrue);
+    expect(isWindowsExecutablePath('d:/Games/GAME.EXE'), isTrue);
+    for (final path in [
+      '',
+      'game.exe',
+      r'C:game.exe',
+      r'\Games\game.exe',
+      r'\\server\share\game.exe',
+      r'\\?\C:\Games\game.exe',
+      r'C:\Games\game.exe:stream.exe',
+      r'C:\Games\*.exe',
+      r'C:\Games\game.lnk',
+      'C:\\Games\\game\u0000.exe',
+    ]) {
+      expect(isWindowsExecutablePath(path), isFalse, reason: path);
+    }
+  });
+
+  test('Windows path identities ignore case and separators', () {
+    expect(windowsAppPathId(''), isEmpty);
+    expect(windowsAppPathId('  '), isEmpty);
+    expect(
+      windowsAppPathId(r'C:\Games\GAME.exe'),
+      windowsAppPathId('c:/games/game.exe'),
+    );
+  });
+
+  test('saved Windows paths survive missing discovery and keep identities', () {
+    final installed = [
+      _app(name: 'Game', bundleId: '', appPath: r'C:\Games\one.exe'),
+      _app(name: 'Game', bundleId: '', appPath: r'C:\Games\two.exe'),
+    ];
+    final enabled = windowsEnabledApps(installed, [
+      r'c:\games\ONE.exe',
+      r'C:\Games\two.exe',
+      r'C:\Unlisted\third.exe',
+      r'c:\unlisted\THIRD.exe',
+    ]);
+    expect(enabled, hasLength(3));
+    expect(enabled.where((app) => app.name == 'Game'), hasLength(2));
+    expect(enabled.every((app) => app.isEnabled), isTrue);
+    expect(enabled.map((app) => app.appPath), contains(r'c:\games\ONE.exe'));
+    expect(enabled.last.name, 'THIRD.exe');
+    expect(windowsEnabledApps([], [r'C:\Unlisted\third.exe']), hasLength(1));
+  });
+
+  test('same display name does not merge different executable paths', () {
+    final apps = dedupeAndSortApps([
+      _app(name: 'Game', bundleId: 'one', appPath: r'C:\Games\one.exe'),
+      _app(name: 'Game', bundleId: 'two', appPath: r'C:\Games\two.exe'),
+    ]);
+    expect(apps, hasLength(2));
   });
 }
 

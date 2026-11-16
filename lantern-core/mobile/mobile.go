@@ -15,6 +15,8 @@ import (
 	"github.com/getlantern/radiance/account"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/settings"
+	"github.com/getlantern/radiance/ipc"
+	"github.com/sagernet/sing-box/experimental/libbox"
 
 	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/logs"
@@ -242,6 +244,14 @@ func GetPeerStatus() string {
 	return v
 }
 
+// HelperCall runs one helper-invite operation and returns its JSON result or
+// {"error": code}. The error return is only "radiance not initialized".
+func HelperCall(op, argsJSON string) (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) {
+		return c.HelperCall(op, argsJSON), nil
+	})
+}
+
 // SetUnboundedEnabled is the local opt-in for the broflake / Unbounded
 // widget proxy ("Basic mode" in the SmC UI). Surfaced through the
 // MethodChannel so platforms running radiance inside a network
@@ -412,19 +422,69 @@ func ResetNetwork() error {
 	return err
 }
 
+// ResetNetworkForMonitor only resets the tunnel that owns listener. It is called
+// from the extension, whose backend is in this process.
+func ResetNetworkForMonitor(listener libbox.InterfaceUpdateListener) error {
+	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
+		ipcLifecycle.mu.Lock()
+		localBackend := ipcLifecycle.backend
+		ipcLifecycle.mu.Unlock()
+		if localBackend != nil && listener != nil {
+			localBackend.ResetNetworkForMonitor(listener)
+		}
+		return struct{}{}, nil
+	})
+	return err
+}
+
+// FindConnectionOwner resolves the local process that owns a TCP or UDP
+// socket on macOS. It runs off the CGo callback stack and sanitizes any error
+// before crossing the gomobile Objective-C bridge.
+func FindConnectionOwner(
+	ipProtocol int32,
+	sourceAddress string,
+	sourcePort int32,
+	destinationAddress string,
+	destinationPort int32,
+) (*libbox.ConnectionOwner, error) {
+	return utils.RunOffCgoStack(func() (*libbox.ConnectionOwner, error) {
+		return findConnectionOwner(
+			ipProtocol,
+			sourceAddress,
+			sourcePort,
+			destinationAddress,
+			destinationPort,
+		)
+	})
+}
+
 // IsTagAvailable checks if a server with the given tag exists in the server list.
 // Returns true if the tag is found. Returns true when the check cannot be performed
 // (fail-open: allows connection attempts to proceed normally).
+//
+// It goes through getClient, not the core, so the tunnel extension (which
+// runs only the IPC server, never SetupRadiance) gets the real answer.
 func IsTagAvailable(tag string) bool {
-	found, err := withCoreR(func(c lanterncore.Core) (bool, error) {
-		_, ok, err := c.GetServerByTagJSON(tag)
-		return ok, err
+	found, err := utils.RunOffCgoStack(func() (bool, error) {
+		client, err := getClient()
+		if err != nil {
+			return false, err
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		return serverByTag(ctx, client, tag)
 	})
 	if err != nil {
 		slog.Warn("Unable to check tag availability, assuming available", "tag", tag, "error", err)
 		return true
 	}
 	return found
+}
+
+// serverByTag reports whether the backend has a server with tag; a test seam.
+var serverByTag = func(ctx context.Context, client *ipc.Client, tag string) (bool, error) {
+	_, ok, err := client.GetServerByTagJSON(ctx, tag)
+	return ok, err
 }
 
 // ConnectToServer connects to a server using the provided location type and tag.
@@ -846,17 +906,13 @@ func RevokeServerManagerInvite(ip string, port string, accessToken string, invit
 }
 
 func AddServerBasedOnURLs(urls string, skipCertVerification bool) (string, error) {
-	slog.Debug("Adding server based on URLs", "urls", urls, "skipCertVerification", skipCertVerification)
 	return withCoreR(func(c lanterncore.Core) (string, error) {
+		// Already a JSON array of tags; marshalling again would base64 it.
 		tags, err := c.AddServersByURL(urls, skipCertVerification)
 		if err != nil {
 			return "", err
 		}
-		b, err := json.Marshal(tags)
-		if err != nil {
-			return "", fmt.Errorf("marshal tags: %w", err)
-		}
-		return string(b), nil
+		return string(tags), nil
 	})
 }
 

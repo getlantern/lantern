@@ -164,6 +164,10 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  /// Android only: copies [text] with ClipDescription's IS_SENSITIVE extra.
+  Future<void> copySensitiveText(String text) =>
+      _methodChannel.invokeMethod('copySensitiveText', {'text': text});
+
   /// Android only: opens the system share sheet for [paths] with read-only
   /// URI grants (share_plus grants read+write to every resolvable package).
   Future<void> shareFiles(
@@ -194,9 +198,11 @@ class LanternPlatformService implements LanternCoreService {
     required String country,
     required String countryCode,
     required String displayName,
+    required String serverName,
   }) async {
     try {
       await _methodChannel.invokeMethod('updateWidgetLocation', {
+        'serverName': serverName,
         'city': city,
         'country': country,
         'countryCode': countryCode,
@@ -454,6 +460,23 @@ class LanternPlatformService implements LanternCoreService {
       return right(res ?? '');
     } catch (e, st) {
       appLogger.error('getPeerStatusJSON failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>('helperCall', {
+        'op': op,
+        'args': jsonEncode(args),
+      });
+      return right(result ?? '');
+    } catch (e, st) {
+      appLogger.error('helperCall failed', e, st);
       return Left(e.toFailure());
     }
   }
@@ -1081,6 +1104,20 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Uri?>> authenticateInApp(String url) async {
+    try {
+      final callback = await _methodChannel.invokeMethod<String>(
+        'authenticateInApp',
+        url,
+      );
+      return Right(callback == null ? null : Uri.parse(callback));
+    } catch (e, stackTrace) {
+      appLogger.error('In-app OAuth sign-in failed', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
     String token,
   ) async {
@@ -1537,14 +1574,13 @@ class LanternPlatformService implements LanternCoreService {
   @override
   Future<Either<Failure, List<String>>> addServerBasedOnURLs({
     required String urls,
-    required bool skipCertVerification,
   }) async {
     try {
       final result = await _methodChannel.invokeMethod<String>(
         'addServerBasedOnURLs',
         {
           'urls': urls,
-          'skipValidation': skipCertVerification,
+          'skipValidation': false,
           'serverName': '',
         },
       );
@@ -1642,13 +1678,7 @@ class LanternPlatformService implements LanternCoreService {
         );
       }
       final server = Server.fromJson(serverJson);
-      return Right(
-        ServerLocation.fromServer(server: server).copyWith(
-          serverType: server.isLantern
-              ? ServerLocationType.lanternLocation.name
-              : ServerLocationType.privateServer.name,
-        ),
-      );
+      return Right(ServerLocation.selected(server));
     } catch (e, stackTrace) {
       appLogger.error('Error fetching selected server', e, stackTrace);
       return Left(e.toFailure());

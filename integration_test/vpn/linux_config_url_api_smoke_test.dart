@@ -14,7 +14,6 @@ void main() {
       tester,
       configUrl: requiredSingleConfigUrl(),
       configServerName: configServerName(),
-      skipCertVerification: skipCertVerification(),
     );
   });
 }

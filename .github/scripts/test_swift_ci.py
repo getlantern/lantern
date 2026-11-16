@@ -31,6 +31,7 @@ class InputTests(unittest.TestCase):
                      '.github/actions/setup-go/action.yml',
                      '.github/actions/setup-flutter/action.yml',
                      '.github/actions/setup-flutter/read-version.sh',
+                     '.github/actions/cache/action.yml',
                      'Makefile', 'pubspec.yaml', 'pubspec.lock', '.metadata',
                      '.github/flutter-version.yaml',
                      '.github/scripts/swift_framework_cache.py',
