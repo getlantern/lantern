@@ -67,6 +67,7 @@ class _SettingState extends ConsumerState<Setting>
     final user = ref.watch(homeProvider).value;
     final isUserPro = ref.watch(isUserProProvider);
     final email = ref.watch(userEmailProvider);
+    final needsEmail = user?.hasLegacyPlaceholderEmail ?? false;
 
     final appSetting = ref.watch(appSettingProvider);
     // Server-side gate. Censored regions get Features[unbounded]=false,
@@ -104,7 +105,7 @@ class _SettingState extends ConsumerState<Setting>
               ),
             ),
           const SizedBox(height: defaultSize),
-          if (userLoggedIn || isUserPro)
+          if (userLoggedIn || isUserPro || needsEmail)
             AppCard(
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
@@ -124,7 +125,7 @@ class _SettingState extends ConsumerState<Setting>
                   ],
                 ),
                 icon: AppImagePaths.accountSetting,
-                subtitle: email.isEmpty
+                subtitle: email.isEmpty || needsEmail
                     ? null
                     : Text(
                         email,

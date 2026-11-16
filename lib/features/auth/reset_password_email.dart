@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/keys/app_keys.dart';
+import 'package:lantern/core/models/user.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 
 import '../../core/common/common.dart';
@@ -15,11 +16,13 @@ class ResetPasswordEmail extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final emailController = useTextEditingController(text: email);
+    final emailController = useTextEditingController(
+      text: isLegacyPlaceholderEmail(email ?? '') ? '' : email,
+    );
     useListenable(emailController);
     return EnterKeyShortcut(
       onEnter: () {
-        if (emailController.text.isValidEmail()) {
+        if (_canRecover(emailController.text)) {
           onNext(context, emailController.text, ref);
         }
       },
@@ -52,7 +55,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
                   return null;
                 }
                 if (value.isNotEmpty) {
-                  if (!value.isValidEmail()) {
+                  if (!_canRecover(value)) {
                     return 'invalid_email'.i18n;
                   }
                 }
@@ -64,7 +67,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
               key: AuthKeys.resetPasswordEmailNextButton,
               label: 'next'.i18n,
               isTaller: true,
-              enabled: emailController.text.isValidEmail(),
+              enabled: _canRecover(emailController.text),
               onPressed: () => onNext(context, emailController.text, ref),
             ),
           ],
@@ -75,7 +78,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
 
   Future<void> onNext(BuildContext context, String email, WidgetRef ref) async {
     final trimmedEmail = email.trim();
-    if (!trimmedEmail.isValidEmail()) {
+    if (!_canRecover(trimmedEmail)) {
       context.showSnackBarError('invalid_email'.i18n);
       return;
     }
@@ -96,4 +99,7 @@ class ResetPasswordEmail extends HookConsumerWidget {
       },
     );
   }
+
+  bool _canRecover(String email) =>
+      email.trim().isValidEmail() && !isLegacyPlaceholderEmail(email);
 }
