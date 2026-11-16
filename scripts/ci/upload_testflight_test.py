@@ -14,7 +14,7 @@ INVALID = "ERROR: Invalid Provisioning Profile."
 
 
 class UploadTestflightTest(unittest.TestCase):
-    def run_upload(self, *outcomes: tuple[int, str]) -> tuple[subprocess.CompletedProcess[str], int, Path]:
+    def run_upload(self, *outcomes: tuple[int, str]) -> tuple[subprocess.CompletedProcess[str], int, Path, list[str]]:
         work = Path(self.enterContext(tempfile.TemporaryDirectory()))
         bin_dir = work / "bin"
         bin_dir.mkdir()
@@ -32,6 +32,10 @@ class UploadTestflightTest(unittest.TestCase):
             f"cat {responses}/$n/output; exit $(cat {responses}/$n/code)\n"
         )
         xcrun.chmod(0o755)
+        sleeps = work / "sleeps"
+        sleep = bin_dir / "sleep"
+        sleep.write_text(f"#!/usr/bin/env bash\necho \"$1\" >> {sleeps}\n")
+        sleep.chmod(0o755)
         home = work / "home"
         home.mkdir()
         env = {
@@ -47,38 +51,44 @@ class UploadTestflightTest(unittest.TestCase):
             ["bash", str(SCRIPT), "app.ipa"], env=env, capture_output=True, text=True, timeout=60,
         )
         count = int(calls.read_text()) if calls.exists() else 0
-        return result, count, home
+        delays = sleeps.read_text().split() if sleeps.exists() else []
+        return result, count, home, delays
 
     def test_success_needs_one_attempt_and_removes_the_key(self) -> None:
-        result, calls, home = self.run_upload((0, "No errors uploading"))
+        result, calls, home, delays = self.run_upload((0, "No errors uploading"))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, 1)
+        self.assertEqual(delays, [])
         self.assertFalse((home / "private_keys/AuthKey_KEYID.p8").exists())
 
     def test_transient_failure_is_retried(self) -> None:
-        result, calls, _ = self.run_upload((1, TIMEOUT), (0, "No errors uploading"))
+        result, calls, _, delays = self.run_upload((1, TIMEOUT), (0, "No errors uploading"))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, 2)
+        self.assertEqual(delays, ["1"])
 
     def test_redundant_upload_after_a_lost_response_succeeds(self) -> None:
-        result, calls, _ = self.run_upload((1, TIMEOUT), (1, REDUNDANT))
+        result, calls, _, delays = self.run_upload((1, TIMEOUT), (1, REDUNDANT))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, 2)
 
     def test_redundant_upload_on_first_attempt_fails(self) -> None:
-        result, calls, _ = self.run_upload((1, REDUNDANT))
+        result, calls, _, delays = self.run_upload((1, REDUNDANT))
         self.assertEqual(result.returncode, 1)
         self.assertEqual(calls, 1)
+        self.assertEqual(delays, [])
 
     def test_other_errors_fail_without_retry(self) -> None:
-        result, calls, _ = self.run_upload((1, INVALID))
+        result, calls, _, delays = self.run_upload((1, INVALID))
         self.assertEqual(result.returncode, 1)
         self.assertEqual(calls, 1)
+        self.assertEqual(delays, [])
 
     def test_gives_up_after_the_attempt_limit(self) -> None:
-        result, calls, home = self.run_upload(*[(1, TIMEOUT)] * 4)
+        result, calls, home, delays = self.run_upload(*[(1, TIMEOUT)] * 4)
         self.assertEqual(result.returncode, 1)
         self.assertEqual(calls, 4)
+        self.assertEqual(delays, ["1", "2", "3"])
         self.assertIn("giving up after 4 attempts", result.stderr)
         self.assertFalse((home / "private_keys/AuthKey_KEYID.p8").exists())
 
