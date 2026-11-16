@@ -23,7 +23,8 @@ backoff=${UPLOAD_BACKOFF:-60}
 
 transient='NSURLErrorDomain Code=-10(01|05)|-19235|-19207|Try again later'
 quote="(['\"]|‘|’)"
-delivered="(Redundant Binary Upload|previously uploaded version).*${quote}${BUILD_NUMBER}${quote}"
+build_re=$(printf '%s' "$BUILD_NUMBER" | sed 's/[][\.*^$+?(){}|]/\\&/g')
+delivered="(Redundant Binary Upload|previously uploaded version).*${quote}${build_re}${quote}"
 
 # altool resolves --apiKey to ~/private_keys/AuthKey_<id>.p8.
 key_file="$HOME/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8"
