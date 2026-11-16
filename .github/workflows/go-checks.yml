@@ -21,6 +21,11 @@ on:
   schedule:
     - cron: "0 14 * * 1"
 
+permissions:
+  contents: read
+  # golangci-lint's only-new-issues reads the PR diff.
+  pull-requests: read
+
 jobs:
   lint:
     # A scheduled run has no diff to scope only-new-issues to.
