@@ -421,7 +421,8 @@ jobs:
             scripts/ci/generate_update_metadata_test.py \
             scripts/ci/verify_release_alignment_test.py \
             scripts/ci/verify_update_service_test.py \
-            scripts/ci/release_workflow_test.py
+            scripts/ci/release_workflow_test.py \
+            scripts/ci/upload_testflight_test.py
 
       - name: Set up Go
         uses: ./.github/actions/setup-go
@@ -995,13 +996,21 @@ jobs:
           [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_NAME="${FULL_NAME}-${BUILD_TYPE}"
           echo "ipa=${FULL_NAME}.ipa" >> "$GITHUB_OUTPUT"
 
-      - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v3.0.1
+      - name: Checkout upload script
+        uses: actions/checkout@v4
         with:
-          app-path: ${{ steps.filename.outputs.ipa }}
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          ref: ${{ github.sha }}
+          path: src
+          sparse-checkout: scripts/ci/upload-testflight.sh
+          sparse-checkout-cone-mode: false
+
+      - name: Upload to TestFlight
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          IPA: ${{ steps.filename.outputs.ipa }}
+        run: bash src/scripts/ci/upload-testflight.sh "$IPA"
 
   publish-update-metadata:
     needs:
