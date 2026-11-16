@@ -258,6 +258,36 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
         self.assertIn("HTTP 502", result.stdout)
         self.assertEqual(len(self.commands()), 1)
 
+    def test_testflight_step_retries_through_the_upload_script(self) -> None:
+        step = next(s for s in self.jobs["upload-testflight"]["steps"] if s["name"] == "Upload to TestFlight")
+        self.assertEqual(step["env"]["APPSTORE_API_KEY_ID"], "${{ secrets.APPSTORE_API_KEY_ID }}")
+        self.assertEqual(step["env"]["APPSTORE_ISSUER_ID"], "${{ secrets.APPSTORE_ISSUER_ID }}")
+        self.assertEqual(step["env"]["APPSTORE_API_PRIVATE_KEY"], "${{ secrets.APPSTORE_API_PRIVATE_KEY }}")
+        self.assertEqual(step["env"]["IPA"], "${{ steps.filename.outputs.ipa }}")
+        script = self.work / "src/scripts/ci/upload-testflight.sh"
+        script.parent.mkdir(parents=True)
+        shutil.copy(ROOT / "scripts/ci/upload-testflight.sh", script)
+        (self.bin / "sleep").write_text("#!/usr/bin/env bash\n")
+        (self.bin / "xcrun").write_text(
+            "#!/usr/bin/env bash\n"
+            'echo "$*" >> "$COMMAND_LOG.xcrun"\n'
+            '[ -f "$COMMAND_LOG.timedout" ] && exit 0\n'
+            'touch "$COMMAND_LOG.timedout"; echo "NSURLErrorDomain Code=-1001"; exit 1\n'
+        )
+        for name in ("sleep", "xcrun"):
+            (self.bin / name).chmod(0o755)
+        home = self.work / "home"
+        home.mkdir()
+        result = self.run_step(
+            "Upload to TestFlight", job="upload-testflight", HOME=str(home), IPA="lantern-installer-nightly.ipa",
+            APPSTORE_API_KEY_ID="KEYID", APPSTORE_ISSUER_ID="issuer", APPSTORE_API_PRIVATE_KEY="key",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = (self.work / "commands.jsonl.xcrun").read_text().splitlines()
+        self.assertEqual(len(calls), 2)
+        self.assertIn("--file lantern-installer-nightly.ipa", calls[0])
+        self.assertIn("--apiKey KEYID --apiIssuer issuer", calls[0])
+
     def test_alias_copy_failure_stops_verification(self) -> None:
         result = self.run_step("Promote and verify download aliases", FAIL_COMMAND="aws")
         self.assertNotEqual(result.returncode, 0)
