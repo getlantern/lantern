@@ -237,7 +237,9 @@ class PersonalProxyStatus {
   /// The friend's group has a member to route through. A rooms route counts
   /// while its path is up or briefly down, and when radiance doesn't report
   /// the path; not once it is unavailable, nor while it is unknown, since it
-  /// may then be down (see [HelperPairingView.selectable] for that case).
+  /// may then be down (see [HelperPairingView.selectable] for that case). A
+  /// value this app doesn't know doesn't count either: radiance ships inside
+  /// lantern-core, so the two disagree only briefly.
   bool get live =>
       direct ||
       reverse ||

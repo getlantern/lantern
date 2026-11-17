@@ -19,7 +19,7 @@ class LocationSetting extends HookConsumerWidget {
     final connected = ref.watch(vpnProvider) == VPNStatus.connected;
     usePersonalProxyStatusPoll(
       ref,
-      enabled: connected && serverType == ServerLocationType.personalProxy,
+      enabled: connected && serverLocation.personalProxyFriendTag != null,
     );
 
     String title = '';
@@ -101,11 +101,14 @@ class LocationSetting extends HookConsumerWidget {
 
 /// The line under a friend selected on their own for their rooms path, while
 /// it is not up: nothing while it is connected, can't be measured, or
-/// radiance has not said.
+/// radiance has not said. Nothing either while the friend has a direct or
+/// reverse route, which carries their traffic whatever the rooms path does.
 (String?, Color?) _friendPath(
   BuildContext context,
   PersonalProxyStatus? status,
 ) => switch (status) {
+  PersonalProxyStatus(direct: true) ||
+  PersonalProxyStatus(reverse: true) => (null, null),
   PersonalProxyStatus(roomsConnecting: true) => (
     'personal_proxy_path_connecting'.i18n,
     null,
