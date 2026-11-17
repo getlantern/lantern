@@ -150,6 +150,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
             autoLocation: AutoLocation(
               countryCode: fastest.location.countryCode,
               country: country,
+              city: city,
               displayName: '$country - $city',
               tag: fastest.tag,
             ),
