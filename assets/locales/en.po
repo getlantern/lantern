@@ -2254,6 +2254,18 @@ msgstr "Can't reach %s right now. Switched to Your personal proxies."
 msgid "personal_proxy_fallback_auto"
 msgstr "Can't reach %s right now. Switched to Smart Location."
 
+# Shown on the home screen under the friend the user selected as their Personal Proxy, while Lantern is first connecting to them. Keep it short.
+msgid "personal_proxy_path_connecting"
+msgstr "Connecting…"
+
+# Shown on the home screen under the friend the user selected as their Personal Proxy, when the connection to them just dropped and Lantern is trying again. Keep it short.
+msgid "personal_proxy_path_reconnecting"
+msgstr "Reconnecting…"
+
+# Shown on the home screen under the friend the user selected as their Personal Proxy, when Lantern hasn't been able to connect to them for a while. The friend may still be online, so this must not say they are offline. Keep it short.
+msgid "personal_proxy_path_unavailable"
+msgstr "Unavailable"
+
 # Title of the card that tells a volunteer what being someone's Personal Proxy involves.
 msgid "become_means_title"
 msgstr "What being a Personal Proxy means"
