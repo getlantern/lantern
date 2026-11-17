@@ -145,6 +145,8 @@ void main() {
       WidgetTester tester,
       String? path, {
       VPNStatus vpn = VPNStatus.connected,
+      bool direct = false,
+      bool reverse = false,
     }) async {
       // A new scope each time: a scope keeps its first overrides.
       await tester.pumpWidget(const SizedBox());
@@ -153,7 +155,12 @@ void main() {
         sara,
         vpn: vpn,
         status: _Status({
-          _tag: PersonalProxyStatus(rooms: true, roomsPath: path),
+          _tag: PersonalProxyStatus(
+            direct: direct,
+            reverse: reverse,
+            rooms: true,
+            roomsPath: path,
+          ),
         }),
       );
       await tester.pump();
@@ -203,7 +210,27 @@ void main() {
       await expectNone();
     });
 
-    testWidgets('is polled only while connected', (tester) async {
+    testWidgets('is hidden while a direct or reverse route carries the '
+        'friend, whatever the rooms path', (tester) async {
+      for (final path in [
+        PersonalProxyStatus.pathUnavailable,
+        PersonalProxyStatus.pathConnecting,
+        PersonalProxyStatus.pathReconnecting,
+      ]) {
+        await pumpPath(tester, path, direct: true);
+        expect(find.text('Sara'), findsOneWidget);
+        expect(find.text(connecting), findsNothing);
+        expect(find.text(reconnecting), findsNothing);
+        expect(find.text(unavailable), findsNothing);
+        await pumpPath(tester, path, reverse: true);
+        expect(find.text(connecting), findsNothing);
+        expect(find.text(reconnecting), findsNothing);
+        expect(find.text(unavailable), findsNothing);
+      }
+    });
+
+    testWidgets('is polled only while connected with a friend selected on '
+        'their own', (tester) async {
       final on = _Status(null);
       await _pumpFriend(tester, sara, vpn: VPNStatus.connected, status: on);
       await tester.pump();
@@ -214,6 +241,29 @@ void main() {
       await _pumpFriend(tester, sara, status: off);
       await tester.pump();
       expect(off.polls, 0);
+
+      final group = _Status(null);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            vpnProvider.overrideWithValue(VPNStatus.connected),
+            personalProxyStatusProvider.overrideWith(() => group),
+            serverLocationProvider.overrideWithValue(
+              ServerLocation.personalProxy(),
+            ),
+          ],
+          child: ScreenUtilInit(
+            designSize: const Size(393, 852),
+            child: MaterialApp(
+              theme: AppTheme.appTheme(),
+              home: const Scaffold(body: LocationSetting()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(group.polls, 0, reason: 'the group shows no path');
     });
   });
 }

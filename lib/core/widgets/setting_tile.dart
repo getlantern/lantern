@@ -97,7 +97,7 @@ class SettingTile extends StatelessWidget {
             ),
             if (subtitle != null && subtitle!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(left: 32.0),
+                padding: const EdgeInsetsDirectional.only(start: 32.0),
                 child: Text(
                   subtitle!.capitalize,
                   style: textTheme.labelLarge!.copyWith(
@@ -107,7 +107,7 @@ class SettingTile extends StatelessWidget {
               ),
             if (note != null && note!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(left: 32.0),
+                padding: const EdgeInsetsDirectional.only(start: 32.0),
                 child: Text(
                   note!,
                   style: textTheme.labelLarge!.copyWith(
