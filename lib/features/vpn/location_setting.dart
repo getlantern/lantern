@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
+import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/vpn/personal_proxies_section.dart';
+import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 
 import '../../core/common/common.dart';
 
@@ -13,11 +16,18 @@ class LocationSetting extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
+    final connected = ref.watch(vpnProvider) == VPNStatus.connected;
+    usePersonalProxyStatusPoll(
+      ref,
+      enabled: connected && serverType == ServerLocationType.personalProxy,
+    );
 
     String title = '';
     String value = '';
     String flag = '';
     String protocol = '';
+    String? note;
+    Color? noteColor;
     // A friend's name is shown as typed, never looked up as a string key.
     var translate = true;
 
@@ -58,6 +68,10 @@ class LocationSetting extends HookConsumerWidget {
         } else {
           value = personalProxyFriendName(ref, friend);
           translate = false;
+          final status = ref.watch(personalProxyStatusProvider);
+          if (connected) {
+            (note, noteColor) = _friendPath(context, status?[friend]);
+          }
         }
         protocol = 'personal_proxy'.i18n;
         break;
@@ -68,6 +82,8 @@ class LocationSetting extends HookConsumerWidget {
       label: title,
       value: translate ? value.i18n : value,
       subtitle: protocol,
+      note: note,
+      noteColor: noteColor,
       icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
       // Small screens drop the > chevron; the row stays tappable via onTap.
       actions: [
@@ -82,3 +98,25 @@ class LocationSetting extends HookConsumerWidget {
     );
   }
 }
+
+/// The line under a friend selected on their own for their rooms path, while
+/// it is not up: nothing while it is connected, can't be measured, or
+/// radiance has not said.
+(String?, Color?) _friendPath(
+  BuildContext context,
+  PersonalProxyStatus? status,
+) => switch (status) {
+  PersonalProxyStatus(roomsConnecting: true) => (
+    'personal_proxy_path_connecting'.i18n,
+    null,
+  ),
+  PersonalProxyStatus(roomsReconnecting: true) => (
+    'personal_proxy_path_reconnecting'.i18n,
+    null,
+  ),
+  PersonalProxyStatus(roomsUnavailable: true) => (
+    'personal_proxy_path_unavailable'.i18n,
+    context.statusErrorText,
+  ),
+  _ => (null, null),
+};

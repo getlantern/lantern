@@ -206,22 +206,92 @@ void main() {
       expect(bo.selectable(null), isFalse);
     });
 
+    test('a rooms route is live unless its path is unavailable or unknown', () {
+      PersonalProxyStatus rooms(String? path) =>
+          PersonalProxyStatus(rooms: true, roomsPath: path);
+      expect(rooms(null).live, isTrue, reason: 'an older radiance');
+      expect(rooms(PersonalProxyStatus.pathConnected).live, isTrue);
+      expect(rooms(PersonalProxyStatus.pathConnecting).live, isTrue);
+      expect(rooms(PersonalProxyStatus.pathReconnecting).live, isTrue);
+      expect(rooms(PersonalProxyStatus.pathUnavailable).live, isFalse);
+      expect(rooms(PersonalProxyStatus.pathUnknown).live, isFalse);
+      expect(
+        const PersonalProxyStatus(
+          direct: true,
+          rooms: true,
+          roomsPath: PersonalProxyStatus.pathUnavailable,
+        ).live,
+        isTrue,
+      );
+      expect(rooms(PersonalProxyStatus.pathConnecting).roomsConnecting, isTrue);
+      expect(
+        rooms(PersonalProxyStatus.pathReconnecting).roomsReconnecting,
+        isTrue,
+      );
+      expect(
+        rooms(PersonalProxyStatus.pathUnavailable).roomsUnavailable,
+        isTrue,
+      );
+      expect(rooms(PersonalProxyStatus.pathUnknown).roomsUnknown, isTrue);
+      expect(rooms(null).roomsUnavailable, isFalse);
+    });
+
+    test('an online friend whose rooms path is unknown stays selectable, so '
+        'selecting them can measure it; an unavailable one does not', () {
+      const ali = HelperPairingView(
+        pairingId: 'p1',
+        online: true,
+        outboundTag: tag,
+      );
+      const unknown = {
+        tag: PersonalProxyStatus(
+          rooms: true,
+          roomsPath: PersonalProxyStatus.pathUnknown,
+        ),
+      };
+      const unavailable = {
+        tag: PersonalProxyStatus(
+          rooms: true,
+          roomsPath: PersonalProxyStatus.pathUnavailable,
+        ),
+      };
+      expect(ali.selectable(unknown), isTrue);
+      expect(ali.selectable(unavailable), isFalse);
+      const offline = HelperPairingView(pairingId: 'p1', outboundTag: tag);
+      expect(offline.selectable(unknown), isFalse);
+    });
+
     test("parses the status op's answer by tag", () {
       final all = PersonalProxyStatus.parseAll({
         'statuses': [
           {'tag': tag, 'direct': true, 'rooms': false},
           {'tag': 'helper-ba9876543210', 'rooms': true},
           {'tag': 'helper-112233445566', 'reverse': true},
+          {
+            'tag': 'helper-445566778899',
+            'rooms': true,
+            'rooms_path': 'reconnecting',
+            'rooms_path_since': 1700000000,
+          },
           {'direct': true},
           'junk',
         ],
       });
-      expect(all.keys, [tag, 'helper-ba9876543210', 'helper-112233445566']);
+      expect(all.keys, [
+        tag,
+        'helper-ba9876543210',
+        'helper-112233445566',
+        'helper-445566778899',
+      ]);
       expect(all[tag]!.direct, isTrue);
       expect(all[tag]!.reverse, isFalse);
       expect(all['helper-ba9876543210']!.live, isTrue);
       expect(all['helper-112233445566']!.reverse, isTrue);
       expect(all['helper-112233445566']!.live, isTrue);
+      expect(all['helper-ba9876543210']!.roomsPath, isNull);
+      expect(all['helper-ba9876543210']!.roomsPathSince, isNull);
+      expect(all['helper-445566778899']!.roomsReconnecting, isTrue);
+      expect(all['helper-445566778899']!.roomsPathSince, 1700000000);
       expect(PersonalProxyStatus.parseAll(const {}), isEmpty);
     });
   });
