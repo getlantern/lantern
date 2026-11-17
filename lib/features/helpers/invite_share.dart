@@ -263,20 +263,30 @@ class InviteShare extends HookConsumerWidget {
       );
     }
 
-    /// Whether [inv]'s link may go out: at once if its gate was accepted,
-    /// else once the user continues through it.
-    Future<bool> trusted(HelperInviteView inv) async {
-      if (ref.read(trustedInvitesProvider).contains(inv.id)) return true;
-      if (!await showInviteTrustDialog(context, gate: true)) return false;
-      if (!context.mounted) return false;
+    /// [inv], with its link, if it may go out: at once if its gate was
+    /// accepted, else once the user continues through it. Null when it may
+    /// not, or when the invite expired, was claimed or went while the
+    /// dialog was up: the screen behind it says so, and nothing is trusted.
+    Future<HelperInviteView?> trusted(HelperInviteView? inv) async {
+      if (inv == null || inv.link.isEmpty) return null;
+      if (ref.read(trustedInvitesProvider).contains(inv.id)) return inv;
+      if (!await showInviteTrustDialog(context, gate: true)) return null;
+      if (!context.mounted) return null;
+      final now = current();
+      if (now == null || now.id != inv.id || now.claimed || now.link.isEmpty) {
+        return null;
+      }
+      if (now.expired) {
+        expiryChecks.value++;
+        return null;
+      }
       ref.read(trustedInvitesProvider.notifier).add(inv.id);
-      return true;
+      return now;
     }
 
     Future<void> copy() async {
-      final inv = await ready();
-      if (inv == null || inv.link.isEmpty || !context.mounted) return;
-      if (!await trusted(inv) || !context.mounted) return;
+      final inv = await trusted(await ready());
+      if (inv == null || !context.mounted) return;
       try {
         await copySensitiveText(inv.link);
       } catch (_) {
@@ -292,9 +302,8 @@ class InviteShare extends HookConsumerWidget {
     }
 
     Future<void> share(BuildContext anchor) async {
-      final inv = await ready();
-      if (inv == null || inv.link.isEmpty || !anchor.mounted) return;
-      if (!await trusted(inv) || !anchor.mounted) return;
+      final inv = await trusted(await ready());
+      if (inv == null || !anchor.mounted) return;
       await shareInvite(
         anchor,
         inviteShareMessage(ref.read(helpersProvider).view, inv),
@@ -302,9 +311,8 @@ class InviteShare extends HookConsumerWidget {
     }
 
     Future<void> showQr() async {
-      final inv = await ready();
-      if (inv == null || inv.link.isEmpty || !context.mounted) return;
-      if (!await trusted(inv) || !context.mounted) return;
+      final inv = await trusted(await ready());
+      if (inv == null || !context.mounted) return;
       await showInviteQrDialog(context, inv.link);
     }
 
