@@ -2338,3 +2338,21 @@ msgstr "正在重新连接…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "无法使用"
+
+msgid "trust_understand_risks"
+msgstr "我了解相关风险"
+
+msgid "help_friend_trust_warning"
+msgstr "只帮助您信任的人。"
+
+msgid "help_friend_trust_title"
+msgstr "信任您帮助的人"
+
+msgid "help_friend_trust_message_one"
+msgstr "在对方访问的网站看来，其流量就像来自您的连接。如果对方从事违法活动，可能会被追溯到您。只帮助您信任的人。"
+
+msgid "help_friend_trust_message_two"
+msgstr "蓝灯不管理或监控个人代理。"
+
+msgid "help_friend_trust_message_three"
+msgstr "您可以随时在 Action Mode 标签页中移除此连接。"

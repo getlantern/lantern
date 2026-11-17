@@ -2453,3 +2453,21 @@ msgstr "جارٍ إعادة الاتصال…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "غير متاح"
+
+msgid "trust_understand_risks"
+msgstr "أدرك المخاطر"
+
+msgid "help_friend_trust_warning"
+msgstr "ساعد فقط من تثق بهم."
+
+msgid "help_friend_trust_title"
+msgstr "الثقة بالشخص الذي تساعده"
+
+msgid "help_friend_trust_message_one"
+msgstr "بالنسبة إلى المواقع التي يزورونها، ستبدو حركة مرورهم كأنها صادرة من اتصالك. إذا فعلوا شيئًا غير قانوني، فقد يُنسب إليك. ساعد فقط من تثق بهم."
+
+msgid "help_friend_trust_message_two"
+msgstr "لا يدير Lantern الوكلاء الشخصيين ولا يراقبهم."
+
+msgid "help_friend_trust_message_three"
+msgstr "يمكنك إزالة الاتصال في أي وقت من علامة تبويب Action Mode."

@@ -2483,3 +2483,21 @@ msgstr "পুনরায় সংযোগ করা হচ্ছে…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "অনুপলব্ধ"
+
+msgid "trust_understand_risks"
+msgstr "আমি ঝুঁকিগুলো বুঝেছি"
+
+msgid "help_friend_trust_warning"
+msgstr "শুধু বিশ্বস্ত মানুষদের সাহায্য করুন।"
+
+msgid "help_friend_trust_title"
+msgstr "যাকে সাহায্য করছেন তাকে বিশ্বাস করুন"
+
+msgid "help_friend_trust_message_one"
+msgstr "তারা যেসব ওয়েবসাইটে যান, সেগুলোর কাছে তাদের ট্রাফিক আপনার সংযোগ থেকে আসা মনে হবে। তারা অবৈধ কিছু করলে তা আপনার কাছে খুঁজে পাওয়া যেতে পারে। শুধু বিশ্বস্ত মানুষদের সাহায্য করুন।"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern ব্যক্তিগত প্রক্সি পরিচালনা বা পর্যবেক্ষণ করে না।"
+
+msgid "help_friend_trust_message_three"
+msgstr "আপনি যেকোনো সময় Action Mode ট্যাব থেকে সংযোগটি সরাতে পারেন।"

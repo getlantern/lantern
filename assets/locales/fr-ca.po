@@ -2309,3 +2309,18 @@ msgstr "Reconnexion…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "Non disponible"
+
+msgid "trust_understand_risks"
+msgstr "Je comprends les risques"
+
+msgid "help_friend_trust_warning"
+msgstr "N'aidez que des personnes de confiance."
+
+msgid "help_friend_trust_title"
+msgstr "Faites confiance à la personne que vous aidez"
+
+msgid "help_friend_trust_message_one"
+msgstr "Pour les sites qu'elles visitent, leur trafic semblera provenir de votre connexion. Si elles font quelque chose d'illégal, cela pourrait remonter jusqu'à vous. N'aidez que des personnes de confiance."
+
+msgid "help_friend_trust_message_three"
+msgstr "Vous pouvez supprimer la connexion en tout temps à partir de l'onglet Action Mode."

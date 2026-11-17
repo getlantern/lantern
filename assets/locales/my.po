@@ -2523,3 +2523,21 @@ msgstr "ပြန်လည်ချိတ်ဆက်နေသည်…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "အသုံးပြု၍မရပါ"
+
+msgid "trust_understand_risks"
+msgstr "အန္တရာယ်များကို နားလည်ပါသည်"
+
+msgid "help_friend_trust_warning"
+msgstr "သင်ယုံကြည်သူများကိုသာ ကူညီပါ။"
+
+msgid "help_friend_trust_title"
+msgstr "သင်ကူညီသူကို ယုံကြည်ပါ"
+
+msgid "help_friend_trust_message_one"
+msgstr "သူတို့ဝင်ကြည့်သော ဝက်ဘ်ဆိုက်များအတွက် သူတို့၏ ဒေတာစီးဆင်းမှုသည် သင့်ချိတ်ဆက်မှုမှ လာသကဲ့သို့ မြင်ရပါမည်။ သူတို့ တရားမဝင်သည့်အရာ လုပ်ပါက သင့်ထံ ခြေရာခံမိနိုင်ပါသည်။ သင်ယုံကြည်သူများကိုသာ ကူညီပါ။"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern သည် ကိုယ်ပိုင် Proxy များကို စီမံခြင်း သို့မဟုတ် စောင့်ကြည့်ခြင်း မပြုလုပ်ပါ။"
+
+msgid "help_friend_trust_message_three"
+msgstr "Action Mode တဘ်မှ ချိတ်ဆက်မှုကို အချိန်မရွေး ဖယ်ရှားနိုင်ပါသည်။"

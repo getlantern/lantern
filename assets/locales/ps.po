@@ -2508,3 +2508,21 @@ msgstr "بیا وصلیږي…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "د لاسرسي وړ نه دی"
+
+msgid "trust_understand_risks"
+msgstr "زه په خطرونو پوهېږم"
+
+msgid "help_friend_trust_warning"
+msgstr "یوازې له باوري خلکو سره مرسته وکړئ."
+
+msgid "help_friend_trust_title"
+msgstr "په هغه چا باور وکړئ چې مرسته ورسره کوئ"
+
+msgid "help_friend_trust_message_one"
+msgstr "هغو ویب پاڼو ته چې دوی یې ګوري، د دوی ټرافیک به داسې ښکاري لکه ستاسو له اتصال څخه چې راغلی وي. که دوی کوم غیرقانوني کار وکړي، تاسو ته به یې ردیابي کېدای شي. یوازې له هغو خلکو سره مرسته وکړئ چې باور پرې لرئ."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern شخصي پراکسي ګانې نه اداره کوي او نه یې څاري."
+
+msgid "help_friend_trust_message_three"
+msgstr "تاسو کولی شئ هر وخت د Action Mode ټب څخه اتصال لرې کړئ."

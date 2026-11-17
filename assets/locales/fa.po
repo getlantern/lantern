@@ -2484,3 +2484,21 @@ msgstr "در حال اتصال مجدد…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "در دسترس نیست"
+
+msgid "trust_understand_risks"
+msgstr "خطرها را درک می‌کنم"
+
+msgid "help_friend_trust_warning"
+msgstr "فقط به افرادی کمک کنید که به آن‌ها اعتماد دارید."
+
+msgid "help_friend_trust_title"
+msgstr "به فردی که کمک می‌کنید اعتماد داشته باشید"
+
+msgid "help_friend_trust_message_one"
+msgstr "از نگاه وب‌سایت‌هایی که بازدید می‌کنند، ترافیک آن‌ها از اتصال شما به نظر می‌رسد. اگر کار غیرقانونی انجام دهند، ممکن است به شما ردیابی شود. فقط به افرادی کمک کنید که به آن‌ها اعتماد دارید."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern پراکسی‌های شخصی را مدیریت نمی‌کند و بر آن‌ها نظارت ندارد."
+
+msgid "help_friend_trust_message_three"
+msgstr "هر زمان بخواهید می‌توانید این اتصال را از زبانه Action Mode حذف کنید."

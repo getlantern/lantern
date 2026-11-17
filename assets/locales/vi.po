@@ -2487,3 +2487,21 @@ msgstr "Đang kết nối lại…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "Không khả dụng"
+
+msgid "trust_understand_risks"
+msgstr "Tôi hiểu các rủi ro"
+
+msgid "help_friend_trust_warning"
+msgstr "Chỉ giúp những người bạn tin tưởng."
+
+msgid "help_friend_trust_title"
+msgstr "Tin tưởng người bạn giúp"
+
+msgid "help_friend_trust_message_one"
+msgstr "Với các trang web họ truy cập, lưu lượng của họ sẽ trông như đến từ kết nối của bạn. Nếu họ làm điều gì phạm pháp, việc đó có thể bị truy ngược về bạn. Chỉ giúp những người bạn tin tưởng."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern không quản lý hay giám sát proxy cá nhân."
+
+msgid "help_friend_trust_message_three"
+msgstr "Bạn có thể xóa kết nối bất cứ lúc nào từ thẻ Action Mode."

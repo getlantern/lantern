@@ -2456,3 +2456,21 @@ msgstr "กำลังเชื่อมต่อใหม่…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "ไม่พร้อมใช้งาน"
+
+msgid "trust_understand_risks"
+msgstr "ฉันเข้าใจความเสี่ยง"
+
+msgid "help_friend_trust_warning"
+msgstr "ช่วยเหลือเฉพาะคนที่คุณไว้ใจเท่านั้น"
+
+msgid "help_friend_trust_title"
+msgstr "ไว้ใจคนที่คุณช่วยเหลือ"
+
+msgid "help_friend_trust_message_one"
+msgstr "สำหรับเว็บไซต์ที่พวกเขาเข้าชม การรับส่งข้อมูลของพวกเขาจะดูเหมือนมาจากการเชื่อมต่อของคุณ หากพวกเขาทำสิ่งผิดกฎหมาย อาจถูกสืบย้อนมาถึงคุณ ช่วยเหลือเฉพาะคนที่คุณไว้ใจเท่านั้น"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern ไม่ได้จัดการหรือตรวจสอบพร็อกซีส่วนตัว"
+
+msgid "help_friend_trust_message_three"
+msgstr "คุณสามารถลบการเชื่อมต่อได้ทุกเมื่อจากแท็บ Action Mode"

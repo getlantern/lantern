@@ -2499,3 +2499,21 @@ msgstr "Переподключение…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "Недоступно"
+
+msgid "trust_understand_risks"
+msgstr "Я понимаю риски"
+
+msgid "help_friend_trust_warning"
+msgstr "Помогайте только тем, кому доверяете."
+
+msgid "help_friend_trust_title"
+msgstr "Доверяйте тем, кому помогаете"
+
+msgid "help_friend_trust_message_one"
+msgstr "Для посещаемых сайтов их трафик будет выглядеть так, будто он идёт с вашего подключения. Если они сделают что-то незаконное, это могут связать с вами. Помогайте только тем, кому доверяете."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern не управляет личными прокси и не отслеживает их."
+
+msgid "help_friend_trust_message_three"
+msgstr "Вы можете удалить подключение в любой момент на вкладке Action Mode."

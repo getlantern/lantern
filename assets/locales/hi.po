@@ -2487,3 +2487,21 @@ msgstr "फिर से कनेक्ट हो रहा है…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "उपलब्ध नहीं"
+
+msgid "trust_understand_risks"
+msgstr "मैंने जोखिम समझ लिए हैं"
+
+msgid "help_friend_trust_warning"
+msgstr "केवल भरोसेमंद लोगों की मदद करें।"
+
+msgid "help_friend_trust_title"
+msgstr "जिसकी मदद करें, उस पर भरोसा करें"
+
+msgid "help_friend_trust_message_one"
+msgstr "वे जिन वेबसाइटों पर जाते हैं, उन्हें उनका ट्रैफ़िक आपके कनेक्शन से आता दिखेगा। अगर वे कुछ गैरकानूनी करते हैं, तो इसका पता आप तक लगाया जा सकता है। केवल उन्हीं लोगों की मदद करें जिन पर आप भरोसा करते हैं।"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern पर्सनल प्रॉक्सी को मैनेज या मॉनिटर नहीं करता।"
+
+msgid "help_friend_trust_message_three"
+msgstr "आप Action Mode टैब से किसी भी समय कनेक्शन हटा सकते हैं।"

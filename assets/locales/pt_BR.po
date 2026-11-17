@@ -2499,3 +2499,21 @@ msgstr "Reconectando…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "Indisponível"
+
+msgid "trust_understand_risks"
+msgstr "Entendo os riscos"
+
+msgid "help_friend_trust_warning"
+msgstr "Ajude apenas pessoas em quem você confia."
+
+msgid "help_friend_trust_title"
+msgstr "Confie em quem você ajuda"
+
+msgid "help_friend_trust_message_one"
+msgstr "Para os sites que elas visitarem, o tráfego delas vai parecer vir da sua conexão. Se fizerem algo ilegal, isso pode ser rastreado até você. Ajude apenas pessoas em quem você confia."
+
+msgid "help_friend_trust_message_two"
+msgstr "O Lantern não gerencia nem monitora proxies pessoais."
+
+msgid "help_friend_trust_message_three"
+msgstr "Você pode remover a conexão a qualquer momento na aba Action Mode."

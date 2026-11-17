@@ -2319,3 +2319,21 @@ msgstr "دوبارہ منسلک ہو رہا ہے…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "دستیاب نہیں"
+
+msgid "trust_understand_risks"
+msgstr "مجھے خطرات کا علم ہے"
+
+msgid "help_friend_trust_warning"
+msgstr "صرف قابل بھروسہ لوگوں کی مدد کریں۔"
+
+msgid "help_friend_trust_title"
+msgstr "جس کی مدد کریں اس پر بھروسہ کریں"
+
+msgid "help_friend_trust_message_one"
+msgstr "جن ویب سائٹس پر وہ جائیں گے، انہیں ان کی ٹریفک آپ کے کنکشن سے آتی دکھائی دے گی۔ اگر وہ کچھ غیر قانونی کریں تو اس کا سراغ آپ تک لگایا جا سکتا ہے۔ صرف ان لوگوں کی مدد کریں جن پر آپ بھروسہ کرتے ہیں۔"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern ذاتی پراکسیز کا انتظام یا نگرانی نہیں کرتا۔"
+
+msgid "help_friend_trust_message_three"
+msgstr "آپ کسی بھی وقت Action Mode ٹیب سے کنکشن ہٹا سکتے ہیں۔"

@@ -2469,3 +2469,21 @@ msgstr "Täzeden birikdirilýär…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "Elýeterli däl"
+
+msgid "trust_understand_risks"
+msgstr "Töwekgelçilikleri düşünýärin"
+
+msgid "help_friend_trust_warning"
+msgstr "Diňe ynanýan adamlaryňyza kömek ediň."
+
+msgid "help_friend_trust_title"
+msgstr "Kömek edýän adamyňyza ynanyň"
+
+msgid "help_friend_trust_message_one"
+msgstr "Olaryň girýän saýtlary üçin olaryň trafigi siziň baglanyşygyňyzdan gelýän ýaly görüner. Eger olar bikanun bir zat etseler, ol size yzarlanyp bilner. Diňe ynanýan adamlaryňyza kömek ediň."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern şahsy proksileri dolandyrmaýar we gözegçilik etmeýär."
+
+msgid "help_friend_trust_message_three"
+msgstr "Baglanyşygy islendik wagt Action Mode bölüminden aýryp bilersiňiz."

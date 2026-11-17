@@ -2489,3 +2489,21 @@ msgstr "Yeniden bağlanıyor…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "Kullanılamıyor"
+
+msgid "trust_understand_risks"
+msgstr "Riskleri anlıyorum"
+
+msgid "help_friend_trust_warning"
+msgstr "Yalnızca güvendiğiniz kişilere yardım edin."
+
+msgid "help_friend_trust_title"
+msgstr "Yardım ettiğiniz kişiye güvenin"
+
+msgid "help_friend_trust_message_one"
+msgstr "Ziyaret ettikleri web siteleri için trafikleri sizin bağlantınızdan geliyormuş gibi görünecek. Yasa dışı bir şey yaparlarsa bu size kadar izlenebilir. Yalnızca güvendiğiniz kişilere yardım edin."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern, Kişisel Proxy'leri yönetmez veya izlemez."
+
+msgid "help_friend_trust_message_three"
+msgstr "Bağlantıyı istediğiniz zaman Action Mode sekmesinden kaldırabilirsiniz."

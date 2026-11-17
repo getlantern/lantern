@@ -2343,3 +2343,21 @@ msgstr "正在重新連線…"
 
 msgid "personal_proxy_path_unavailable"
 msgstr "無法使用"
+
+msgid "trust_understand_risks"
+msgstr "我了解相關風險"
+
+msgid "help_friend_trust_warning"
+msgstr "只幫助你信任的人。"
+
+msgid "help_friend_trust_title"
+msgstr "信任你幫助的人"
+
+msgid "help_friend_trust_message_one"
+msgstr "在對方造訪的網站看來，其流量就像來自你的連線。如果對方從事違法行為，可能會追溯到你。只幫助你信任的人。"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern 不會管理或監控個人代理。"
+
+msgid "help_friend_trust_message_three"
+msgstr "你可以隨時在 Action Mode 分頁中移除此連線。"
