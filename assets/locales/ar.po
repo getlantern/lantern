@@ -2124,15 +2124,6 @@ msgstr "رفض"
 msgid "personal_proxy_fallback_group"
 msgstr "تعذّر الوصول إلى %s حاليًا. تم التبديل إلى الوكلاء الشخصيون."
 
-msgid "become_means_title"
-msgstr "ماذا يعني أن تكون وكيلا شخصيا"
-
-msgid "become_means_seen"
-msgstr "يمكنه رؤية وقت اتصالك. لا تقبل الدعوات إلا من أشخاص تعرفهم."
-
-msgid "become_means_remove"
-msgstr "يمكنك إزالة الاتصال في أي وقت."
-
 msgid "help_friend_form_title"
 msgstr "الصق الرابط من الشخص الذي تساعده"
 
@@ -2369,9 +2360,6 @@ msgstr "يمكنك إزالته في أي وقت من إدارة المواقع 
 
 msgid "approved_body_locations"
 msgstr "عندما يكون %s متصلاً، يمكنك اختياره ضمن المواقع الخاصة في قائمة مواقع الخوادم. قد يستخدمه الموقع الذكي تلقائيًا."
-
-msgid "become_means_traffic_seen"
-msgstr "طلب منك صديق المساعدة. عند تشغيل Action Mode، يصل إلى الإنترنت المفتوح عبر اتصالك. يمكنك رؤية المواقع التي يزورها، لكن ليس ما يفعله فيها."
 
 msgid "help_friend_your_name_label"
 msgstr "اسمك"

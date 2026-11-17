@@ -2179,15 +2179,6 @@ msgstr "رد کړئ"
 msgid "personal_proxy_fallback_group"
 msgstr "اوس مهال %s ته رسېدل نه کېږي. ستاسو شخصي پراکسيو ته واوښتل."
 
-msgid "become_means_title"
-msgstr "شخصي پراکسي کېدل څه معنا لري"
-
-msgid "become_means_seen"
-msgstr "دوی لیدلی شي چې تاسو کله وصل یاست. یوازې د هغو کسانو بلنې ومنئ چې پېژنئ یې."
-
-msgid "become_means_remove"
-msgstr "اتصال هر وخت لرې کولی شئ."
-
 msgid "help_friend_form_title"
 msgstr "د هغه چا لینک دلته کېږدئ چې مرسته یې کوئ"
 
@@ -2424,9 +2415,6 @@ msgstr "تاسو کولی شئ هغه هر وخت د شخصي ځایونو له 
 
 msgid "approved_body_locations"
 msgstr "کله چې %s آنلاین وي، تاسو کولی شئ هغه د سرور ځایونو مینو کې د شخصي ځایونو لاندې وټاکئ. هوښیار ځای ښايي هغه په اتومات ډول وکاروي."
-
-msgid "become_means_traffic_seen"
-msgstr "یو ملګري ستاسو مرسته غوښتې ده. کله چې Action Mode روښانه وي، هغوی ستاسو د اتصال له لارې آزاد انټرنیټ ته لاسرسی پیدا کوي. تاسو لیدلی شئ چې هغوی کوم سایټونه ګوري، خو دا نه چې هلته څه کوي."
 
 msgid "help_friend_your_name_label"
 msgstr "ستاسو نوم"

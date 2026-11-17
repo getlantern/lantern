@@ -2161,15 +2161,6 @@ msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Proxy cá n
 msgid "personal_proxy_fallback_auto"
 msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Vị trí thông minh."
 
-msgid "become_means_title"
-msgstr "Làm proxy cá nhân nghĩa là gì"
-
-msgid "become_means_seen"
-msgstr "Họ có thể thấy khi nào bạn đang kết nối. Chỉ chấp nhận lời mời từ người bạn quen biết."
-
-msgid "become_means_remove"
-msgstr "Gỡ kết nối bất cứ lúc nào."
-
 msgid "help_friend_form_title"
 msgstr "Dán liên kết từ người mà bạn đang giúp"
 
@@ -2403,9 +2394,6 @@ msgstr "Bạn có thể xóa họ bất cứ lúc nào trong Quản lý vị tr�
 
 msgid "approved_body_locations"
 msgstr "Khi %s trực tuyến, bạn có thể chọn vị trí này trong Vị trí riêng tư ở menu Vị trí máy chủ. Vị trí thông minh có thể tự động sử dụng vị trí này."
-
-msgid "become_means_traffic_seen"
-msgstr "Một người bạn đã nhờ bạn giúp đỡ. Khi Action Mode bật, họ truy cập internet mở qua kết nối của bạn. Bạn có thể thấy họ vào những trang web nào, nhưng không thấy họ làm gì trên đó."
 
 msgid "help_friend_your_name_label"
 msgstr "Tên của bạn"

@@ -2177,15 +2177,6 @@ msgstr "No se puede contactar a %s ahora. Se cambió a Tus proxies personales."
 msgid "personal_proxy_fallback_auto"
 msgstr "No se puede contactar a %s ahora. Se cambió a Ubicación inteligente."
 
-msgid "become_means_title"
-msgstr "Qué significa ser un proxy personal"
-
-msgid "become_means_seen"
-msgstr "Pueden ver cuándo tienes conexión. Acepta invitaciones solo de personas que conoces."
-
-msgid "become_means_remove"
-msgstr "Elimina la conexión cuando quieras."
-
 msgid "help_friend_form_title"
 msgstr "Pega el enlace de la persona a quien ayudas"
 
@@ -2419,9 +2410,6 @@ msgstr "Puedes eliminarlo en cualquier momento desde Administrar ubicaciones pri
 
 msgid "approved_body_locations"
 msgstr "Cuando %s esté en línea, podrás seleccionarlo en Ubicaciones privadas, en el menú Ubicaciones de servidor. Ubicación inteligente puede usarlo automáticamente."
-
-msgid "become_means_traffic_seen"
-msgstr "Un amigo te pidió ayuda. Cuando Action Mode está activado, accede a internet abierto a través de tu conexión. Podrías ver qué sitios visita, pero no lo que hace en ellos."
 
 msgid "help_friend_your_name_label"
 msgstr "Tu nombre"

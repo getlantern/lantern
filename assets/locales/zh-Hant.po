@@ -2017,15 +2017,6 @@ msgstr "目前無法連線至 %s。已切換至你的個人代理。"
 msgid "personal_proxy_fallback_auto"
 msgstr "目前無法連線至 %s。已切換至智慧位置。"
 
-msgid "become_means_title"
-msgstr "擔任個人代理的意義"
-
-msgid "become_means_seen"
-msgstr "對方可以看到你何時連線。只接受認識的人傳來的邀請。"
-
-msgid "become_means_remove"
-msgstr "你可以隨時移除此連線。"
-
 msgid "help_friend_form_title"
 msgstr "貼上你所協助的人傳來的連結"
 
@@ -2259,9 +2250,6 @@ msgstr "你可以隨時在管理私人位置中將其移除。"
 
 msgid "approved_body_locations"
 msgstr "當 %s 上線時，你可以在伺服器位置選單的私人位置中選擇。智慧位置可能會自動使用。"
-
-msgid "become_means_traffic_seen"
-msgstr "有位朋友向你求助。開啟 Action Mode 後，對方會透過你的連線存取開放的網際網路。你可以看到對方造訪了哪些網站，但看不到對方在網站上做了什麼。"
 
 msgid "help_friend_your_name_label"
 msgstr "你的名字"

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -250,9 +251,24 @@ Future<void> _pump(
 Future<void> _claim(WidgetTester tester) async {
   await tester.enterText(find.byKey(const Key('help_friend.name')), 'Ali');
   await tester.tap(find.byKey(const Key('help_friend.accept')));
+  await _trust(tester);
   await tester.pump();
   await tester
       .pump(); // pumpAndSettle would never settle: the waiting view spins
+}
+
+/// Continues through the trust gate the last tap opened: checks the box,
+/// then Continue.
+Future<void> _trust(WidgetTester tester) async {
+  await tester.pumpAndSettle();
+  // The dialog scrolls on a short viewport: the check row may be below.
+  final understand = find.byKey(const Key('trust_dialog.understand'));
+  await tester.ensureVisible(understand);
+  await tester.pumpAndSettle();
+  await tester.tap(understand);
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('trust_dialog.continue')));
+  await tester.pump();
 }
 
 /// Serves [text] as the clipboard, counting reads.
@@ -346,6 +362,7 @@ void main() {
       TextCapitalization.words,
     );
     await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await _trust(tester);
     await tester.pump();
     await tester.pump();
     expect(helpers.claims, [(_link, 'Ali')]);
@@ -566,6 +583,7 @@ void main() {
     expect(find.byKey(const Key('help_friend.link_error')), findsNothing);
     expect(find.byKey(const Key('help_friend.ask_invite')), findsOneWidget);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await _trust(tester);
     await tester.pump();
     await tester.pump();
     expect(helpers.claims.last, (_link, 'Ali'));
@@ -644,27 +662,24 @@ void main() {
     expect(field.maxLength, 60);
   });
 
-  testWidgets('before claiming: what being a Personal Proxy means, then the '
-      'link and name card', (tester) async {
+  testWidgets('before claiming: the one-line trust note, whose Learn more '
+      'opens the dialog with Got It and no check, then the link and name '
+      'card', (tester) async {
     final helpers = _Helpers(const HelpersState());
     await _pump(tester, helpers, const HelpFriend());
     expect(find.text('become_personal_proxy'.i18n), findsOneWidget);
-    final card = find.byKey(const Key('help_friend.means'));
-    expect(card, findsOneWidget);
-    for (final key in [
-      'become_means_title',
-      'become_means_traffic_seen',
-      'become_means_seen',
-      'become_means_remove',
-    ]) {
-      expect(
-        find.descendant(of: card, matching: find.text(key.i18n)),
-        findsOneWidget,
-      );
-    }
-    // Decision 5: never "you cannot see it".
-    expect(find.textContaining('cannot see'), findsNothing);
+    expect(find.byKey(const Key('help_friend.means')), findsNothing);
+    final warning = find.byKey(const Key('help_friend.trust_warning'));
+    final note = tester.widget<AppRichText>(
+      find.descendant(of: warning, matching: find.byType(AppRichText)),
+    );
+    expect(note.texts, '${'help_friend_trust_warning'.i18n} ');
+    expect(note.boldTexts, 'invite_trust_learn_more'.i18n);
     final form = find.byKey(const Key('help_friend.form'));
+    expect(
+      tester.getBottomLeft(warning).dy,
+      lessThan(tester.getTopLeft(form).dy),
+    );
     for (final text in [
       'help_friend_form_title'.i18n,
       'help_friend_link_label'.i18n,
@@ -679,7 +694,90 @@ void main() {
         findsOneWidget,
       );
     }
-    expect(tester.getBottomLeft(card).dy, lessThan(tester.getTopLeft(form).dy));
+    // Decision 5: never "you cannot see it".
+    expect(find.textContaining('cannot see'), findsNothing);
+
+    note.boldOnPressed!();
+    await tester.pumpAndSettle();
+    final dialog = find.byKey(const Key('help_friend.trust_dialog'));
+    for (final text in [
+      'help_friend_trust_title'.i18n,
+      'help_friend_trust_message_one'.i18n,
+      'help_friend_trust_message_two'.i18n,
+      'help_friend_trust_message_three'.i18n,
+    ]) {
+      expect(
+        find.descendant(of: dialog, matching: find.text(text)),
+        findsOneWidget,
+        reason: text,
+      );
+    }
+    expect(find.byKey(const Key('trust_dialog.understand')), findsNothing);
+    expect(find.byKey(const Key('trust_dialog.continue')), findsNothing);
+    await tester.tap(find.text('got_it'.i18n));
+    await tester.pumpAndSettle();
+    expect(dialog, findsNothing);
+    expect(helpers.claims, isEmpty);
+  });
+
+  testWidgets('Become Their Personal Proxy opens the trust gate: Continue '
+      'waits for the check, then sends the request', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await tester.enterText(find.byKey(const Key('help_friend.name')), 'Ali');
+    await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await tester.pumpAndSettle();
+    final dialog = find.byKey(const Key('help_friend.trust_dialog'));
+    expect(dialog, findsOneWidget);
+    expect(find.text('trust_understand_risks'.i18n), findsOneWidget);
+    expect(find.text('got_it'.i18n), findsNothing);
+    PrimaryButton cont() => tester.widget<PrimaryButton>(
+      find.byKey(const Key('trust_dialog.continue')),
+    );
+    expect(cont().enabled, isFalse);
+    expect(helpers.claims, isEmpty);
+    await tester.ensureVisible(
+      find.byKey(const Key('trust_dialog.understand')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('trust_dialog.understand')));
+    await tester.pumpAndSettle();
+    expect(cont().enabled, isTrue);
+    expect(helpers.claims, isEmpty, reason: 'the check alone sends nothing');
+    await tester.tap(find.byKey(const Key('trust_dialog.continue')));
+    // Not pumpAndSettle: the waiting view that follows spins. A second
+    // lets the dialog's exit finish.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(dialog, findsNothing);
+    expect(helpers.claims, [(_link, 'Ali')]);
+  });
+
+  testWidgets('the trust gate is left by its close button or a tap outside, '
+      'and no request is sent', (tester) async {
+    final helpers = _Helpers(const HelpersState());
+    helpers.holdLink(_link);
+    await _pump(tester, helpers, const HelpFriend(fromLink: true));
+    await tester.enterText(find.byKey(const Key('help_friend.name')), 'Ali');
+    final dialog = find.byKey(const Key('help_friend.trust_dialog'));
+
+    await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await tester.pumpAndSettle();
+    expect(dialog, findsOneWidget);
+    await tester.tap(find.byKey(const Key('trust_dialog.close')));
+    await tester.pumpAndSettle();
+    expect(dialog, findsNothing);
+    expect(helpers.claims, isEmpty);
+
+    await tester.tap(find.byKey(const Key('help_friend.accept')));
+    await tester.pumpAndSettle();
+    expect(dialog, findsOneWidget);
+    await tester.tapAt(const Offset(4, 4));
+    await tester.pumpAndSettle();
+    expect(dialog, findsNothing);
+    expect(helpers.claims, isEmpty);
+    expect(find.byKey(const Key('help_friend.form')), findsOneWidget);
   });
 
   testWidgets('without a held link, the link field is shown', (tester) async {
@@ -1328,6 +1426,8 @@ void main() {
     expect(find.byKey(const Key('help_friend.error')), findsOneWidget);
     expect(_linkField(tester), _link);
     await tester.tap(find.byKey(const Key('help_friend.accept')));
+    // Every request: the gate asks again after an error too.
+    await _trust(tester);
     await tester.pump();
     await tester
         .pump(); // pumpAndSettle would never settle: the waiting view spins
