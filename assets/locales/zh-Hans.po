@@ -2341,3 +2341,12 @@ msgstr "%s 已添加。"
 
 msgid "clear"
 msgstr "清除"
+
+msgid "personal_proxy_path_connecting"
+msgstr "正在连接…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "正在重新连接…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "无法使用"

@@ -2486,3 +2486,12 @@ msgstr "%s ইতিমধ্যে যোগ করা হয়েছে।"
 
 msgid "clear"
 msgstr "মুছুন"
+
+msgid "personal_proxy_path_connecting"
+msgstr "সংযোগ করা হচ্ছে…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "পুনরায় সংযোগ করা হচ্ছে…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "অনুপলব্ধ"

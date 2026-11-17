@@ -2502,3 +2502,12 @@ msgstr "%s já foi adicionado."
 
 msgid "clear"
 msgstr "Limpar"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Conectando…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Reconectando…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Indisponível"

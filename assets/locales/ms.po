@@ -2499,3 +2499,12 @@ msgstr "%s telah pun ditambah."
 
 msgid "clear"
 msgstr "Kosongkan"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Menyambung…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Menyambung semula…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Tidak tersedia"

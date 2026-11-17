@@ -2502,3 +2502,12 @@ msgstr "Уже добавлено: %s."
 
 msgid "clear"
 msgstr "Очистить"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Подключение…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Переподключение…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Недоступно"

@@ -2490,3 +2490,12 @@ msgstr "%s पहले से जोड़ा गया है।"
 
 msgid "clear"
 msgstr "साफ़ करें"
+
+msgid "personal_proxy_path_connecting"
+msgstr "कनेक्ट हो रहा है…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "फिर से कनेक्ट हो रहा है…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "उपलब्ध नहीं"

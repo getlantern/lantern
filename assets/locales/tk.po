@@ -2472,3 +2472,12 @@ msgstr "Eýýäm goşuldy: %s."
 
 msgid "clear"
 msgstr "Arassala"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Birikdirilýär…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Täzeden birikdirilýär…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Elýeterli däl"

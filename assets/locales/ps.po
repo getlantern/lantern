@@ -2508,3 +2508,15 @@ msgstr "%s دمخه اضافه شوی."
 
 msgid "clear"
 msgstr "پاک کړئ"
+
+msgid "split_tunnel_bypass"
+msgstr "له VPN پرته"
+
+msgid "personal_proxy_path_connecting"
+msgstr "وصلیږي…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "بیا وصلیږي…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "د لاسرسي وړ نه دی"

@@ -2493,3 +2493,12 @@ msgstr "%s پہلے ہی شامل ہے۔"
 
 msgid "clear"
 msgstr "صاف کریں"
+
+msgid "personal_proxy_path_connecting"
+msgstr "منسلک ہو رہا ہے…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "دوبارہ منسلک ہو رہا ہے…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "دستیاب نہیں"

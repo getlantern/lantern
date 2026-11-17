@@ -2469,3 +2469,12 @@ msgstr "Déjà ajouté : %s"
 
 msgid "clear"
 msgstr "Effacer"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Connexion…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Reconnexion…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Indisponible"

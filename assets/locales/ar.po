@@ -2456,3 +2456,12 @@ msgstr "تمت إضافة %s بالفعل."
 
 msgid "clear"
 msgstr "مسح"
+
+msgid "personal_proxy_path_connecting"
+msgstr "جارٍ الاتصال…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "جارٍ إعادة الاتصال…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "غير متاح"

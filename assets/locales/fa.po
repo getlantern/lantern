@@ -2487,3 +2487,12 @@ msgstr "%s قبلاً اضافه شده است."
 
 msgid "clear"
 msgstr "پاک کردن"
+
+msgid "personal_proxy_path_connecting"
+msgstr "در حال اتصال…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "در حال اتصال مجدد…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "در دسترس نیست"

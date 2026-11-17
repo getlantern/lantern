@@ -2526,3 +2526,12 @@ msgstr "%s ကို ထည့်ပြီးသားဖြစ်သည်။"
 
 msgid "clear"
 msgstr "ရှင်းလင်းရန်"
+
+msgid "personal_proxy_path_connecting"
+msgstr "ချိတ်ဆက်နေသည်…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "ပြန်လည်ချိတ်ဆက်နေသည်…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "အသုံးပြု၍မရပါ"

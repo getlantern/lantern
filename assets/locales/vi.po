@@ -2490,3 +2490,12 @@ msgstr "%s đã được thêm."
 
 msgid "clear"
 msgstr "Xóa"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Đang kết nối…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Đang kết nối lại…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Không khả dụng"

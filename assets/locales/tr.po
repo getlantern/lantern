@@ -2492,3 +2492,12 @@ msgstr "Zaten eklendi: %s."
 
 msgid "clear"
 msgstr "Temizle"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Bağlanıyor…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Yeniden bağlanıyor…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Kullanılamıyor"

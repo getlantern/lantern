@@ -2459,3 +2459,12 @@ msgstr "เพิ่ม %s ไว้แล้ว"
 
 msgid "clear"
 msgstr "ล้าง"
+
+msgid "personal_proxy_path_connecting"
+msgstr "กำลังเชื่อมต่อ…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "กำลังเชื่อมต่อใหม่…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "ไม่พร้อมใช้งาน"
