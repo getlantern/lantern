@@ -55,31 +55,35 @@ Future<bool> showTrustDialog(
                 ],
                 if (gate) ...[
                   const SizedBox(height: 16),
+                  // One control to a screen reader: the box, its state and
+                  // the label together, not an unnamed checkbox beside text.
                   ValueListenableBuilder<bool>(
                     valueListenable: understood,
-                    builder: (context, on, _) => InkWell(
-                      key: const Key('trust_dialog.understand'),
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () => understood.value = !on,
-                      child: Row(
-                        children: [
-                          Checkbox(
-                            value: on,
-                            activeColor: context.textLink,
-                            checkColor: context.bgElevated,
-                            onChanged: (value) =>
-                                understood.value = value ?? false,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              'trust_understand_risks'.i18n,
-                              style: textTheme.bodyMedium!.copyWith(
-                                color: context.textPrimary,
+                    builder: (context, on, _) => MergeSemantics(
+                      child: InkWell(
+                        key: const Key('trust_dialog.understand'),
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => understood.value = !on,
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: on,
+                              activeColor: context.textLink,
+                              checkColor: context.bgElevated,
+                              onChanged: (value) =>
+                                  understood.value = value ?? false,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                'trust_understand_risks'.i18n,
+                                style: textTheme.bodyMedium!.copyWith(
+                                  color: context.textPrimary,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
