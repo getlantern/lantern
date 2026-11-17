@@ -42,7 +42,7 @@ internal fun installPublicIpProbeChannel() {
         MethodChannel(engine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method != "probe") return@setMethodCallHandler result.notImplemented()
             thread(name = "public-ip-probe-client") {
-                val reply = probe(context, probePackage)
+                val reply = probePublicIp(context, probePackage)
                 Handler(Looper.getMainLooper()).post { result.success(reply) }
             }
         }
@@ -50,7 +50,7 @@ internal fun installPublicIpProbeChannel() {
 }
 
 /** Asks the probe once. Every failure comes back as an `error` entry so the caller can retry. */
-private fun probe(context: Context, probePackage: String): Map<String, Any?> {
+internal fun probePublicIp(context: Context, probePackage: String): Map<String, Any?> {
     val received = ArrayBlockingQueue<Bundle>(1)
     // A framework Messenger, not a ResultReceiver subclass: the probe's
     // process can't load this APK's classes to unparcel one.

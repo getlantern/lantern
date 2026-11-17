@@ -44,6 +44,9 @@ class PlatformUtils {
     return Platform.isAndroid;
   }
 
+  static bool get supportsSplitTunneling =>
+      Platform.isAndroid || Platform.isMacOS || Platform.isWindows;
+
   static bool get isFFISupported {
     return Platform.isWindows || Platform.isLinux;
   }
