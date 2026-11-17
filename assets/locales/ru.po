@@ -2173,15 +2173,6 @@ msgstr "Сейчас нет связи с %s. Выполнен переход н
 msgid "personal_proxy_fallback_auto"
 msgstr "Сейчас нет связи с %s. Выполнен переход на «Умное расположение»."
 
-msgid "become_means_title"
-msgstr "Что значит быть личным прокси"
-
-msgid "become_means_seen"
-msgstr "Они видят, когда у вас активно подключение. Принимайте приглашения только от знакомых людей."
-
-msgid "become_means_remove"
-msgstr "Подключение можно удалить в любой момент."
-
 msgid "help_friend_form_title"
 msgstr "Вставьте ссылку от человека, которому вы помогаете"
 
@@ -2412,9 +2403,6 @@ msgstr "Lantern не управляет личными прокси и не от
 
 msgid "invite_trust_message_three"
 msgstr "Удалить его можно в любой момент в разделе «Управление частными расположениями»."
-
-msgid "become_means_traffic_seen"
-msgstr "Друг попросил вас о помощи. Когда Action Mode включён, он выходит в открытый интернет через ваше подключение. Вы сможете видеть, какие сайты он посещает, но не то, что он на них делает."
 
 msgid "help_friend_your_name_label"
 msgstr "Ваше имя"

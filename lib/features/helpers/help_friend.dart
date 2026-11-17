@@ -7,7 +7,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/trust_dialog.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/helpers/approve_helper_dialog.dart'
     show spokenCode;
@@ -149,6 +151,10 @@ class HelpFriend extends HookConsumerWidget {
 
     Future<void> submit() async {
       error.value = null;
+      // Every invite accepted: the trust dialog first, whose Continue sends
+      // the request.
+      if (!await showHelpFriendTrustDialog(context, gate: true)) return;
+      if (!context.mounted) return;
       busy.value = true;
       final consented = await share.ensureConsent(context);
       if (!context.mounted) return;
@@ -433,12 +439,30 @@ class HelpFriend extends HookConsumerWidget {
       body = ListView(
         padding: EdgeInsets.zero,
         children: [
+          // One line; the rest is behind Learn more, as on Invite a
+          // Personal Proxy.
+          InfoRow(
+            key: const Key('help_friend.trust_warning'),
+            backgroundColor: context.bgPromo,
+            imagePath: AppImagePaths.warning,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            minTileHeight: 40,
+            text: '',
+            child: AppRichText(
+              key: const Key('help_friend.learn_more'),
+              texts: '${'help_friend_trust_warning'.i18n} ',
+              boldTexts: 'invite_trust_learn_more'.i18n,
+              boldUnderline: true,
+              boldColor: context.textLink,
+              boldOnPressed: () =>
+                  unawaited(showHelpFriendTrustDialog(context)),
+            ),
+          ),
+          const SizedBox(height: defaultSize),
           if (helpers.keystoreReset) ...[
             HelperKeystoreResetNotice(notifier: notifier),
             const SizedBox(height: defaultSize),
           ],
-          const _HelpingMeansCard(),
-          const SizedBox(height: defaultSize),
           AppCard(
             key: const Key('help_friend.form'),
             padding: const EdgeInsets.all(defaultSize),
@@ -558,57 +582,23 @@ class HelpFriend extends HookConsumerWidget {
   }
 }
 
-/// What being a Personal Proxy involves, before the volunteer accepts: what
-/// the friend can see, and that it can stop.
-class _HelpingMeansCard extends StatelessWidget {
-  const _HelpingMeansCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    Widget row(Widget icon, String text) => Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ExcludeSemantics(child: icon),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: textTheme.bodyMedium!.copyWith(
-                color: context.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    return AppCard(
-      key: const Key('help_friend.means'),
-      padding: const EdgeInsets.all(defaultSize),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('become_means_title'.i18n, style: textTheme.titleMedium),
-          row(
-            const AppImage(path: AppImagePaths.lock, width: 24, height: 24),
-            'become_means_traffic_seen'.i18n,
-          ),
-          row(
-            const AppImage(path: AppImagePaths.eye, width: 24, height: 24),
-            'become_means_seen'.i18n,
-          ),
-          // The app's delete.svg is an alert mark; this is the trash can.
-          row(
-            const Icon(Icons.delete_outline, size: 24),
-            'become_means_remove'.i18n,
-          ),
-        ],
-      ),
-    );
-  }
-}
+/// "Trust the person you help": the shared trust dialog with this screen's
+/// text. As a [gate] (before the request is sent), with the "I understand
+/// the risks" check and Continue; from Learn more, with Got It.
+Future<bool> showHelpFriendTrustDialog(
+  BuildContext context, {
+  bool gate = false,
+}) => showTrustDialog(
+  context,
+  key: const Key('help_friend.trust_dialog'),
+  title: 'help_friend_trust_title'.i18n,
+  paragraphs: [
+    'help_friend_trust_message_one'.i18n,
+    'help_friend_trust_message_two'.i18n,
+    'help_friend_trust_message_three'.i18n,
+  ],
+  gate: gate,
+);
 
 /// The clipboard's text, or empty when it has none or cannot be read.
 Future<String> _readClipboard() async {

@@ -2173,15 +2173,6 @@ msgstr "Não foi possível acessar %s agora. Mudamos para Seus proxies pessoais.
 msgid "personal_proxy_fallback_auto"
 msgstr "Não foi possível acessar %s agora. Mudamos para Localização inteligente."
 
-msgid "become_means_title"
-msgstr "O que significa ser um proxy pessoal"
-
-msgid "become_means_seen"
-msgstr "Essas pessoas podem ver quando sua conexão está ativa. Aceite convites apenas de quem você conhece."
-
-msgid "become_means_remove"
-msgstr "Remova a conexão quando quiser."
-
 msgid "help_friend_form_title"
 msgstr "Cole o link da pessoa que você está ajudando"
 
@@ -2415,9 +2406,6 @@ msgstr "Você pode removê-la a qualquer momento em Gerenciar locais privados."
 
 msgid "approved_body_locations"
 msgstr "Quando %s estiver on-line, você poderá selecioná-lo em Locais privados, no menu Locais de servidor. A Localização inteligente pode usá-lo automaticamente."
-
-msgid "become_means_traffic_seen"
-msgstr "Um amigo pediu sua ajuda. Quando o Action Mode está ativado, ele acessa a internet aberta pela sua conexão. Você poderia ver quais sites ele visita, mas não o que ele faz neles."
 
 msgid "help_friend_your_name_label"
 msgstr "Seu nome"

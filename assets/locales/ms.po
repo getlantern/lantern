@@ -2170,15 +2170,6 @@ msgstr "Tidak dapat menghubungi %s sekarang. Ditukar ke Proksi peribadi anda."
 msgid "personal_proxy_fallback_auto"
 msgstr "Tidak dapat menghubungi %s sekarang. Ditukar ke Lokasi Pintar."
 
-msgid "become_means_title"
-msgstr "Maksud menjadi Proksi Peribadi"
-
-msgid "become_means_seen"
-msgstr "Mereka boleh melihat bila anda bersambung. Terima jemputan daripada orang yang anda kenali sahaja."
-
-msgid "become_means_remove"
-msgstr "Alih keluar sambungan pada bila-bila masa."
-
 msgid "help_friend_form_title"
 msgstr "Tampal pautan daripada orang yang anda bantu"
 
@@ -2412,9 +2403,6 @@ msgstr "Anda boleh membuang mereka pada bila-bila masa daripada Urus Lokasi Peri
 
 msgid "approved_body_locations"
 msgstr "Apabila %s dalam talian, anda boleh memilihnya di bawah Lokasi Peribadi dalam menu Lokasi Pelayan. Lokasi Pintar mungkin menggunakannya secara automatik."
-
-msgid "become_means_traffic_seen"
-msgstr "Seorang rakan meminta bantuan anda. Apabila Action Mode dihidupkan, mereka mengakses internet terbuka melalui sambungan anda. Anda boleh melihat laman yang mereka lawati, tetapi bukan apa yang mereka lakukan di laman tersebut."
 
 msgid "help_friend_your_name_label"
 msgstr "Nama anda"
