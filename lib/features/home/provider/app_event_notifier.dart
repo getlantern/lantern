@@ -45,7 +45,13 @@ class AppEventNotifier extends _$AppEventNotifier {
   /// each made them 75% of a 297 MB flutter.log, which is what pushed issue
   /// reports past their attachment budget so users could not send logs at all.
   /// Per-event diagnostics are available at the opt-in trace level.
-  static const _highVolumeEvents = {'peer-connection', 'data-cap-event'};
+  static const _highVolumeEvents = {
+    'peer-connection',
+    'data-cap-event',
+    'unbounded-snapshot',
+    'peer-snapshot',
+    'user-message-available',
+  };
 
   /// Shows a message to the user. Tests replace it.
   @visibleForTesting

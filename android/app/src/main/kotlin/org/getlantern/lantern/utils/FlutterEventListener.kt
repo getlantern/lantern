@@ -39,6 +39,7 @@ class FlutterEventListener : FlutterEventEmitter {
             "data-cap-event",
             "unbounded-snapshot",
             "peer-snapshot",
+            "user-message-available",
         )
 
         fun isHighVolume(type: String): Boolean = type in highVolumeEvents
