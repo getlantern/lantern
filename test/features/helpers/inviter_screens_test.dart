@@ -1061,6 +1061,71 @@ void main() {
     expect(shared, hasLength(1));
   });
 
+  testWidgets('an invite that expires or is claimed while the trust gate is '
+      'open is not copied on Continue, and is not trusted', (tester) async {
+    final copies = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copies.add((call.arguments as Map)['text'] as String);
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    HelpersState withExpiry(int expiresUnix) => HelpersState(
+      viewLoaded: true,
+      view: HelpersView(
+        unlocked: true,
+        invites: [
+          HelperInviteView(
+            id: 'i1',
+            state: 'pending',
+            link: 'https://lantern.io/help/#AAAA',
+            expiresUnix: expiresUnix,
+            inviterName: 'Sara',
+          ),
+        ],
+      ),
+    );
+    final fake = _Helpers(withExpiry(_now() + 3600));
+    await _pump(tester, fake, const InviteShare(inviteId: 'i1'));
+    final gate = find.byKey(const Key('invite.trust_dialog'));
+
+    // Expired behind the dialog.
+    await tester.tap(find.byKey(const Key('invite.copy')));
+    await tester.pumpAndSettle();
+    expect(gate, findsOneWidget);
+    fake.emit(withExpiry(_now() - 1));
+    await tester.pump();
+    await _trust(tester);
+    await tester.pumpAndSettle();
+    expect(gate, findsNothing);
+    expect(copies, isEmpty);
+    expect(find.byKey(const Key('invite.gone')), findsOneWidget);
+
+    // Valid again (the clock moved back): it asks again, since nothing was
+    // trusted; claimed behind the dialog this time.
+    fake.emit(withExpiry(_now() + 3600));
+    await tester.pump();
+    expect(find.byKey(const Key('invite.gone')), findsNothing);
+    await tester.tap(find.byKey(const Key('invite.copy')));
+    await tester.pumpAndSettle();
+    expect(gate, findsOneWidget, reason: 'not trusted by the first try');
+    fake.emit(_withInvites(const [_claimed]));
+    await tester.pump();
+    await _trust(tester);
+    await tester.pumpAndSettle();
+    expect(gate, findsNothing);
+    expect(copies, isEmpty);
+  });
+
   testWidgets('the trust gate is left by its close button or a tap outside, '
       'and the action is not done', (tester) async {
     final shared = <ShareParams>[];
