@@ -46,4 +46,4 @@ final class AppsDataProvider
   }
 }
 
-String _$appsDataHash() => r'e5b42cf4dd18e6c822489c85b358cbbccbad1f71';
+String _$appsDataHash() => r'945b245f7e37e31fa6e20f783d5cb8abdba5d564';

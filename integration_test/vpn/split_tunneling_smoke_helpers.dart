@@ -3,12 +3,109 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/app_buttons.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
+import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/features/split_tunneling/apps_split_tunneling.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:path/path.dart' as p;
 
 import '../utils/widget_wait_utils.dart';
+
+T requireSplitTunnelResult<T>(Either<Failure, T> result, String operation) =>
+    result.fold(
+      (failure) => fail('$operation: ${failure.error}'),
+      (value) => value,
+    );
+
+/// The active mode's state and the other mode's saved lists.
+typedef SplitTunnelBackup = ({SplitTunnelState active, SplitTunnelState other});
+
+SplitTunnelPolicy _otherPolicy(SplitTunnelPolicy policy) =>
+    policy == SplitTunnelPolicy.bypass
+    ? SplitTunnelPolicy.includeOnly
+    : SplitTunnelPolicy.bypass;
+
+Future<SplitTunnelState> _switchTo(
+  LanternService service,
+  SplitTunnelPolicy policy,
+) async => requireSplitTunnelResult(
+  await service.switchSplitTunnelPolicy(policy.wireValue),
+  'Switch split-tunnel mode',
+);
+
+/// The other mode's lists can only be read by switching to it.
+Future<SplitTunnelBackup> readSplitTunnelBackup(LanternService service) async {
+  final active = requireSplitTunnelResult(
+    await service.getSplitTunnelState(),
+    'Read split-tunnel state',
+  );
+  final other = await _switchTo(service, _otherPolicy(active.policy));
+  await _switchTo(service, active.policy);
+  return (active: active, other: other);
+}
+
+/// Empties both modes and leaves [policy] active.
+Future<void> resetSplitTunnel(
+  LanternService service, {
+  required bool enabled,
+  SplitTunnelPolicy policy = SplitTunnelPolicy.bypass,
+}) async {
+  for (final next in [_otherPolicy(policy), policy]) {
+    await _removeSelections(service);
+    await _switchTo(service, next);
+  }
+  await _removeSelections(service);
+  requireSplitTunnelResult(
+    await service.setSplitTunnelingEnabled(enabled),
+    'Set split-tunnel enabled state',
+  );
+}
+
+Future<void> restoreSplitTunnelBackup(
+  LanternService service,
+  SplitTunnelBackup backup,
+) async {
+  await resetSplitTunnel(
+    service,
+    enabled: backup.active.enabled,
+    policy: backup.other.policy,
+  );
+  await _addSelections(service, backup.other);
+  await _switchTo(service, backup.active.policy);
+  await _addSelections(service, backup.active);
+}
+
+Future<void> _addSelections(
+  LanternService service,
+  SplitTunnelState state,
+) async {
+  for (final entry in state.filters.entries) {
+    for (final selector in entry.value) {
+      requireSplitTunnelResult(
+        await service.addSplitTunnelItem(entry.key, selector),
+        'Restore split-tunnel selection',
+      );
+    }
+  }
+}
+
+Future<void> _removeSelections(LanternService service) async {
+  final state = requireSplitTunnelResult(
+    await service.getSplitTunnelState(),
+    'Read smoke selections',
+  );
+  for (final entry in state.filters.entries) {
+    for (final selector in entry.value) {
+      requireSplitTunnelResult(
+        await service.removeSplitTunnelItem(entry.key, selector),
+        'Reset smoke selections',
+      );
+    }
+  }
+}
 
 Future<void> expectInstalledApp(
   WidgetTester tester, {

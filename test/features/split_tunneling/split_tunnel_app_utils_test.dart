@@ -26,6 +26,24 @@ void main() {
   _windowsAppTests();
   _macOSRuleTests();
   _indexTests();
+  test('Windows executable metadata matches its full normalized path', () {
+    final browser = _app(
+      name: 'Browser',
+      bundleId: '',
+      appPath: r'C:\Browsers\App.exe',
+    ).copyWith(isBrowser: true);
+    final game = _app(name: 'Game', bundleId: '', appPath: r'C:\Games\App.exe');
+    final catalog = [browser, game];
+    expect(windowsExecutableApp(r'c:/GAMES/./app.EXE', catalog), same(game));
+    expect(
+      windowsExecutableApp(r'C:\Browsers\App.exe', catalog).isBrowser,
+      isTrue,
+    );
+    final missing = windowsExecutableApp(r'C:\Other\App.exe', catalog);
+    expect(missing.appPath, r'C:\Other\App.exe');
+    expect(missing.name, 'App.exe');
+    expect(missing.isBrowser, isFalse);
+  });
   test('pickPreferredAppEntry prefers app with icon metadata', () {
     final current = _app(
       name: 'Sample',
@@ -184,25 +202,6 @@ void _windowsAppTests() {
     );
   });
 
-  test('saved Windows paths survive missing discovery and keep identities', () {
-    final installed = [
-      _app(name: 'Game', bundleId: '', appPath: r'C:\Games\one.exe'),
-      _app(name: 'Game', bundleId: '', appPath: r'C:\Games\two.exe'),
-    ];
-    final enabled = windowsEnabledApps(installed, [
-      r'c:\games\ONE.exe',
-      r'C:\Games\two.exe',
-      r'C:\Unlisted\third.exe',
-      r'c:\unlisted\THIRD.exe',
-    ]);
-    expect(enabled, hasLength(3));
-    expect(enabled.where((app) => app.name == 'Game'), hasLength(2));
-    expect(enabled.every((app) => app.isEnabled), isTrue);
-    expect(enabled.map((app) => app.appPath), contains(r'c:\games\ONE.exe'));
-    expect(enabled.last.name, 'THIRD.exe');
-    expect(windowsEnabledApps([], [r'C:\Unlisted\third.exe']), hasLength(1));
-  });
-
   test('same display name does not merge different executable paths', () {
     final apps = dedupeAndSortApps([
       _app(name: 'Game', bundleId: 'one', appPath: r'C:\Games\one.exe'),
@@ -263,6 +262,40 @@ void _macOSRuleTests() {
       appPath: '/Applications/Firefox.app',
     );
     expect(macOSSplitTunnelRule(app), '/Applications/Firefox.app/Contents/.*');
+  });
+
+  test('macOSSplitTunnelRule covers the process that sends Safari traffic', () {
+    final rule = RegExp(
+      macOSSplitTunnelRule(
+        _app(
+          name: 'Safari',
+          bundleId: 'com.apple.Safari',
+          appPath:
+              '/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app',
+        ),
+      ),
+    );
+
+    // Paths observed on macOS 27.
+    const networking =
+        '/WebKit.framework/Versions/A/XPCServices/'
+        'com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking';
+    for (final path in [
+      '/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/Contents/MacOS/Safari',
+      '/System/Library/Frameworks$networking',
+      '/System/Volumes/Preboot/Cryptexes/Incoming/OS/System/Library/Frameworks$networking',
+    ]) {
+      expect(rule.hasMatch(path), isTrue, reason: path);
+    }
+    for (final path in [
+      // A browser that ships its own WebKit is matched by its own bundle.
+      '/Applications/Safari Technology Preview.app/Contents/Frameworks$networking',
+      '/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/'
+          'com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent',
+      '/System/Applications/Mail.app/Contents/MacOS/Mail',
+    ]) {
+      expect(rule.hasMatch(path), isFalse, reason: path);
+    }
   });
 
   test('macOSSplitTunnelRule matches iPhone/iPad apps on the inner bundle', () {

@@ -140,11 +140,25 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 				return nil
 			}
 
-			if appIsDir && !d.IsDir() {
+			// A linked bundle runs from its target, which is the path rules
+			// have to match. /Applications/Safari.app is one.
+			isDir := d.IsDir()
+			if appIsDir && d.Type()&fs.ModeSymlink != 0 {
+				// A broken link is skipped.
+				target, _ := filepath.EvalSymlinks(path)
+				info, _ := os.Stat(target)
+				if info == nil {
+					return nil
+				}
+				path, isDir = target, info.IsDir()
+			}
+			if isDir && !appIsDir || !isDir && appIsDir {
 				return nil
 			}
-			if !appIsDir && d.IsDir() {
-				return nil
+			// SkipDir on a link would skip the rest of its parent directory.
+			var skipBundle error
+			if d.IsDir() {
+				skipBundle = filepath.SkipDir
 			}
 
 			appID, err := getAppID(path)
@@ -163,10 +177,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 				return nil
 			}
 			if shouldExcludeAppBundle(path, rawName, appID) {
-				if appIsDir {
-					return filepath.SkipDir
-				}
-				return nil
+				return skipBundle
 			}
 
 			keyID := normalizeKey(appID)
@@ -177,10 +188,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 				// Don't descend into a bundle we already know about, or its
 				// embedded helper apps (Xcode's agents, inspectors, ...) get
 				// listed as if they were installed apps.
-				if appIsDir {
-					return filepath.SkipDir
-				}
-				return nil
+				return skipBundle
 			}
 
 			iconPath, _ := getIconPath(path)
@@ -216,10 +224,7 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 				seen[keyName] = true
 			}
 
-			if appIsDir {
-				return filepath.SkipDir
-			}
-			return nil
+			return skipBundle
 		})
 	}
 
