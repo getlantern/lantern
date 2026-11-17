@@ -144,17 +144,15 @@ func scanAppDirs(appDirs []string, seen map[string]bool, excludeDirs []string, c
 			// have to match. /Applications/Safari.app is one.
 			isDir := d.IsDir()
 			if appIsDir && d.Type()&fs.ModeSymlink != 0 {
-				target, err := filepath.EvalSymlinks(path)
-				if err != nil {
-					return nil
-				}
-				info, err := os.Stat(target)
-				if err != nil {
+				// A broken link is skipped.
+				target, _ := filepath.EvalSymlinks(path)
+				info, _ := os.Stat(target)
+				if info == nil {
 					return nil
 				}
 				path, isDir = target, info.IsDir()
 			}
-			if appIsDir != isDir {
+			if isDir && !appIsDir || !isDir && appIsDir {
 				return nil
 			}
 			// SkipDir on a link would skip the rest of its parent directory.

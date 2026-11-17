@@ -170,7 +170,7 @@ func (s *splitTunnelPaths) saveLists(lists splitTunnelLists) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(s.dir, 0o755); err != nil {
+	if err := os.MkdirAll(s.dir, 0o750); err != nil {
 		return err
 	}
 	path := filepath.Join(s.dir, splitTunnelListsFile)

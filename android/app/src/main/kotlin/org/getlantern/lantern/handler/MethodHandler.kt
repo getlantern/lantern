@@ -123,7 +123,6 @@ enum class Methods(val method: String) {
     SetSplitTunnelingEnabled("setSplitTunnelingEnabled"),
     AddSplitTunnelItem("addSplitTunnelItem"),
     RemoveSplitTunnelItem("removeSplitTunnelItem"),
-    AddSplitTunnelApps("addSplitTunnelApps"),
     GetSplitTunnelItems("getSplitTunnelItems"),
     GetSplitTunnelState("getSplitTunnelState"),
     SwitchSplitTunnelPolicy("switchSplitTunnelPolicy"),
@@ -1181,11 +1180,6 @@ class MethodHandler : FlutterPlugin,
 
             Methods.SwitchSplitTunnelPolicy.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
                 Mobile.switchSplitTunnelPolicy(requireNotNull(call.argument<String>("policy")))
-            }
-
-            Methods.AddSplitTunnelApps.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
-                Mobile.addSplitTunnelItems(requireNotNull(call.argument<String>("value")))
-                "ok"
             }
 
             Methods.ClearSplitTunnelApps.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {

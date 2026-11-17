@@ -66,9 +66,9 @@ class SplitTunneling extends HookConsumerWidget {
                 ),
               ),
             ),
-            SizedBox(height: defaultSize),
-            const SplitTunnelModePicker(),
             if (snapshot.enabled) ...[
+              SizedBox(height: defaultSize),
+              const SplitTunnelModePicker(),
               SizedBox(height: defaultSize),
               AppCard(
                 padding: EdgeInsets.zero,

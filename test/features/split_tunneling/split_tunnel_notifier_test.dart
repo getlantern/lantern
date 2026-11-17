@@ -90,23 +90,6 @@ class _Service implements LanternService {
   }
 
   @override
-  Future<Either<Failure, Unit>> addSplitTunnelApps(
-    SplitTunnelFilterType type,
-    List<String> values,
-  ) async {
-    calls.add('addApps:${values.join('|')}');
-    snapshot = SplitTunnelState(
-      enabled: snapshot.enabled,
-      policy: snapshot.policy,
-      filters: {
-        ...snapshot.filters,
-        type: [...snapshot.selectors(type), ...values],
-      },
-    );
-    return right(unit);
-  }
-
-  @override
   Future<Either<Failure, Unit>> removeSplitTunnelItem(
     SplitTunnelFilterType type,
     String value,
@@ -138,24 +121,6 @@ void main() {
     );
   });
   tearDown(() => container.dispose());
-
-  test('addApps saves only the new apps, in one call', () async {
-    service.snapshot = const SplitTunnelState(
-      enabled: true,
-      policy: SplitTunnelPolicy.includeOnly,
-      filters: {
-        SplitTunnelFilterType.packageName: ['a.app'],
-      },
-    );
-    await container.read(splitTunnelProvider.future);
-    final notifier = container.read(splitTunnelProvider.notifier);
-    const type = SplitTunnelFilterType.packageName;
-    expect(await notifier.addApps(type, ['a.app', 'b.app', 'c.app']), isNull);
-    expect(service.calls, ['read', 'addApps:b.app|c.app', 'read']);
-    expect(container.read(splitTunnelProvider).requireValue.appCount, 3);
-    expect(await notifier.addApps(type, ['a.app']), isNull);
-    expect(service.calls, hasLength(3));
-  });
 
   test('failed reads are errors and can be retried', () async {
     service.read = () async => left(_failure);
