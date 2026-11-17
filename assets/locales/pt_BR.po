@@ -2243,7 +2243,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Posso ser seu proxy pessoal no Lantern, para que você fique on-line pela minha conexão. No Lantern, abra \"Seleção de servidor\", toque no menu ⋮ no topo, escolha \"Convidar um proxy pessoal\" e me envie o link."
 
 msgid "add_executable"
-msgstr "Adicionar executável"
+msgstr "Adicionar .exe"
 
 msgid "select_windows_executable"
 msgstr "Selecione o arquivo .exe de um aplicativo neste computador, exceto o Lantern."
@@ -2421,3 +2421,84 @@ msgstr "Um amigo pediu sua ajuda. Quando o Action Mode está ativado, ele acessa
 
 msgid "help_friend_your_name_label"
 msgstr "Seu nome"
+
+msgid "split_tunnel_off"
+msgstr "Desativado"
+
+msgid "split_tunnel_bypass"
+msgstr "Ignorar"
+
+msgid "split_tunnel_include_only"
+msgstr "Incluir apenas"
+
+msgid "split_tunnel_description"
+msgstr "Escolha como apps e sites se conectam"
+
+msgid "split_tunnel_mode"
+msgstr "Modo de túnel dividido:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Apps e sites selecionados não passam pelo Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "Apenas apps e sites selecionados usam o Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "Mudar para Incluir apenas?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Mudar para Ignorar?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Apenas os apps e sites das suas listas “Incluir somente” vão usar o Lantern. Todo o resto, incluindo seu navegador, vai se conectar diretamente sem proteção. Enquanto essas listas estiverem vazias, tudo usa o Lantern. Suas listas “Ignorar” ficam salvas para quando você voltar."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Os apps e sites das suas listas “Ignorar” vão se conectar diretamente. Todo o resto vai usar o Lantern. Suas listas “Incluir somente” ficam salvas para quando você voltar."
+
+msgid "split_tunnel_switch"
+msgstr "Alternar"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 app"
+
+msgid "split_tunnel_app_count"
+msgstr "%d apps"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 site"
+
+msgid "split_tunnel_site_count"
+msgstr "%d sites"
+
+msgid "apps_using_vpn"
+msgstr "Apps usando a VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "Sites usando a VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Não foi possível carregar o túnel dividido. Tente novamente."
+
+msgid "split_tunnel_update_failed"
+msgstr "Não foi possível atualizar o túnel dividido. Tente novamente."
+
+msgid "split_tunnel_unavailable"
+msgstr "Indisponível"
+
+msgid "split_tunnel_enter_website"
+msgstr "Digite um site ou URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "Digite a URL ou *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Adicione *.ir para incluir todos os sites .ir de uma vez. Funciona com *.cn, *.ru etc. Separe vários sites com vírgulas."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Digite um site ou URL válido. Curingas devem começar com *. e endereços IP não são compatíveis."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s já foi adicionado."
+
+msgid "clear"
+msgstr "Limpar"

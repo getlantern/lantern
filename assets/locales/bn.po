@@ -2227,7 +2227,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "আমি Lantern-এ আপনার ব্যক্তিগত প্রক্সি হতে পারি, যাতে আপনি আমার সংযোগের মাধ্যমে অনলাইনে যেতে পারেন। Lantern-এ \"সার্ভার নির্বাচন\" খুলুন, উপরের ⋮ মেনুতে ট্যাপ করুন, \"একটি ব্যক্তিগত প্রক্সি আমন্ত্রণ জানান\" বেছে নিন এবং লিঙ্কটি আমাকে পাঠান।"
 
 msgid "add_executable"
-msgstr "এক্সিকিউটেবল যোগ করুন"
+msgstr ".exe যোগ করুন"
 
 msgid "select_windows_executable"
 msgstr "এই কম্পিউটারে Lantern ছাড়া অন্য কোনো অ্যাপের .exe ফাইল নির্বাচন করুন।"
@@ -2405,3 +2405,84 @@ msgstr "একজন বন্ধু আপনার সাহায্য চ�
 
 msgid "help_friend_your_name_label"
 msgstr "আপনার নাম"
+
+msgid "split_tunnel_off"
+msgstr "বন্ধ"
+
+msgid "split_tunnel_bypass"
+msgstr "বাইপাস"
+
+msgid "split_tunnel_include_only"
+msgstr "শুধু অন্তর্ভুক্ত"
+
+msgid "split_tunnel_description"
+msgstr "অ্যাপ ও ওয়েবসাইট কীভাবে সংযোগ করবে তা বেছে নিন"
+
+msgid "split_tunnel_mode"
+msgstr "স্প্লিট টানেল মোড:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "নির্বাচিত অ্যাপ ও সাইট Lantern এড়িয়ে যায়"
+
+msgid "split_tunnel_include_description"
+msgstr "শুধু নির্বাচিত অ্যাপ ও সাইট Lantern ব্যবহার করে"
+
+msgid "split_tunnel_switch_include"
+msgstr "শুধু অন্তর্ভুক্ত-এ পরিবর্তন করবেন?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "বাইপাস-এ পরিবর্তন করবেন?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "কেবল আপনার “শুধু অন্তর্ভুক্ত” তালিকার অ্যাপ ও সাইটগুলো Lantern ব্যবহার করবে। আপনার ব্রাউজারসহ বাকি সবকিছু সুরক্ষা ছাড়াই সরাসরি সংযোগ করবে। তালিকাগুলো খালি থাকা পর্যন্ত সবকিছু Lantern ব্যবহার করে। আপনি ফিরে গেলে ব্যবহারের জন্য আপনার বাইপাস তালিকাগুলো রাখা থাকবে।"
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "আপনার বাইপাস তালিকার অ্যাপ ও সাইটগুলো সরাসরি সংযোগ করবে। বাকি সবকিছু Lantern ব্যবহার করবে। আপনি ফিরে গেলে ব্যবহারের জন্য আপনার “শুধু অন্তর্ভুক্ত” তালিকাগুলো রাখা থাকবে।"
+
+msgid "split_tunnel_switch"
+msgstr "পরিবর্তন করুন"
+
+msgid "split_tunnel_app_count_one"
+msgstr "১টি অ্যাপ"
+
+msgid "split_tunnel_app_count"
+msgstr "অ্যাপ: %d"
+
+msgid "split_tunnel_site_count_one"
+msgstr "১টি সাইট"
+
+msgid "split_tunnel_site_count"
+msgstr "%d টি সাইট"
+
+msgid "apps_using_vpn"
+msgstr "ভিপিএন ব্যবহারকারী অ্যাপ (%d)"
+
+msgid "websites_using_vpn"
+msgstr "ভিপিএন ব্যবহারকারী ওয়েবসাইট (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "স্প্লিট টানেলিং লোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "split_tunnel_update_failed"
+msgstr "স্প্লিট টানেলিং আপডেট করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "split_tunnel_unavailable"
+msgstr "উপলব্ধ নয়"
+
+msgid "split_tunnel_enter_website"
+msgstr "একটি ওয়েবসাইট বা URL লিখুন"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL বা *.ir লিখুন"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "একসাথে সব .ir সাইট মেলাতে *.ir যোগ করুন। *.cn, *.ru ইত্যাদির জন্যও কাজ করে। একাধিক সাইট কমা দিয়ে আলাদা করুন।"
+
+msgid "split_tunnel_invalid_website"
+msgstr "একটি সঠিক ওয়েবসাইট বা URL লিখুন। ওয়াইল্ডকার্ড অবশ্যই *. দিয়ে শুরু হতে হবে এবং IP ঠিকানা সমর্থিত নয়।"
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s ইতিমধ্যে যোগ করা হয়েছে।"
+
+msgid "clear"
+msgstr "মুছুন"

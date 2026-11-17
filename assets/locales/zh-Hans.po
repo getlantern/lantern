@@ -2082,7 +2082,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "我可以在蓝灯上做您的个人代理，让您通过我的连接上网。在蓝灯中打开“服务器选择”，点击顶部的 ⋮ 菜单，选择“邀请个人代理”，然后把链接发给我。"
 
 msgid "add_executable"
-msgstr "添加可执行文件"
+msgstr "添加 .exe"
 
 msgid "select_windows_executable"
 msgstr "选择此电脑上除 Lantern 以外的应用的 .exe 文件。"
@@ -2260,3 +2260,84 @@ msgstr "一位朋友向您求助。开启 Action Mode 后，对方会通过您�
 
 msgid "help_friend_your_name_label"
 msgstr "您的名字"
+
+msgid "split_tunnel_off"
+msgstr "关闭"
+
+msgid "split_tunnel_bypass"
+msgstr "绕过"
+
+msgid "split_tunnel_include_only"
+msgstr "仅包含"
+
+msgid "split_tunnel_description"
+msgstr "选择应用和网站的连接方式"
+
+msgid "split_tunnel_mode"
+msgstr "分流模式："
+
+msgid "split_tunnel_bypass_description"
+msgstr "所选应用和网站不经过蓝灯"
+
+msgid "split_tunnel_include_description"
+msgstr "仅所选应用和网站使用蓝灯"
+
+msgid "split_tunnel_switch_include"
+msgstr "切换到仅包含模式？"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "切换到绕过模式？"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "只有您的“仅包含”列表中的应用和网站会使用蓝灯。其他所有内容，包括您的浏览器，都将直接连接，不受保护。在这些列表为空时，所有内容都使用蓝灯。您的“绕过”列表会保留，以便您切换回来时使用。"
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "您的“绕过”列表中的应用和网站将直接连接。其他所有内容将使用蓝灯。您的“仅包含”列表会保留，以便您切换回来时使用。"
+
+msgid "split_tunnel_switch"
+msgstr "切换"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 个应用"
+
+msgid "split_tunnel_app_count"
+msgstr "%d 个应用"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 个网站"
+
+msgid "split_tunnel_site_count"
+msgstr "%d 个网站"
+
+msgid "apps_using_vpn"
+msgstr "使用 VPN 的应用（%d）"
+
+msgid "websites_using_vpn"
+msgstr "使用 VPN 的网站（%d）"
+
+msgid "split_tunnel_load_failed"
+msgstr "无法加载分流设置。请重试。"
+
+msgid "split_tunnel_update_failed"
+msgstr "无法更新分流设置。请重试。"
+
+msgid "split_tunnel_unavailable"
+msgstr "不可用"
+
+msgid "split_tunnel_enter_website"
+msgstr "输入网站或 URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "输入 URL 或 *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "添加 *.ir 可一次匹配所有 .ir 网站。也适用于 *.cn、*.ru 等。多个网站请用逗号分隔。"
+
+msgid "split_tunnel_invalid_website"
+msgstr "输入有效的网站或 URL。通配符必须以 *. 开头，且不支持 IP 地址。"
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s 已添加。"
+
+msgid "clear"
+msgstr "清除"

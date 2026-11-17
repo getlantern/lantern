@@ -2231,7 +2231,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Mình có thể làm proxy cá nhân của bạn trên Lantern để bạn truy cập mạng qua kết nối của mình. Trong Lantern, mở \"Chọn máy chủ\", nhấn menu ⋮ ở trên cùng, chọn \"Mời proxy cá nhân\" và gửi liên kết cho mình."
 
 msgid "add_executable"
-msgstr "Thêm tệp thực thi"
+msgstr "Thêm .exe"
 
 msgid "select_windows_executable"
 msgstr "Chọn tệp .exe của một ứng dụng trên máy tính này, ngoài Lantern."
@@ -2409,3 +2409,84 @@ msgstr "Một người bạn đã nhờ bạn giúp đỡ. Khi Action Mode bật
 
 msgid "help_friend_your_name_label"
 msgstr "Tên của bạn"
+
+msgid "split_tunnel_off"
+msgstr "Tắt"
+
+msgid "split_tunnel_bypass"
+msgstr "Bỏ qua"
+
+msgid "split_tunnel_include_only"
+msgstr "Chỉ bao gồm"
+
+msgid "split_tunnel_description"
+msgstr "Chọn cách ứng dụng và trang web kết nối"
+
+msgid "split_tunnel_mode"
+msgstr "Chế độ chia đường hầm:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Ứng dụng và trang web đã chọn sẽ bỏ qua Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "Chỉ ứng dụng và trang web đã chọn dùng Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "Chuyển sang Chỉ bao gồm?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Chuyển sang Bỏ qua?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Chỉ các ứng dụng và trang web trong danh sách Chỉ bao gồm của bạn mới dùng Lantern. Mọi thứ khác, kể cả trình duyệt, sẽ kết nối trực tiếp mà không được bảo vệ. Khi các danh sách đó trống, mọi thứ đều dùng Lantern. Danh sách Bỏ qua của bạn được giữ lại để dùng khi bạn chuyển lại."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Các ứng dụng và trang web trong danh sách Bỏ qua của bạn sẽ kết nối trực tiếp. Mọi thứ khác sẽ dùng Lantern. Danh sách Chỉ bao gồm của bạn được giữ lại để dùng khi bạn chuyển lại."
+
+msgid "split_tunnel_switch"
+msgstr "Chuyển"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 ứng dụng"
+
+msgid "split_tunnel_app_count"
+msgstr "%d ứng dụng"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 trang web"
+
+msgid "split_tunnel_site_count"
+msgstr "%d trang web"
+
+msgid "apps_using_vpn"
+msgstr "Ứng dụng dùng VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "Trang web dùng VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Không thể tải tính năng chia tách đường hầm. Vui lòng thử lại."
+
+msgid "split_tunnel_update_failed"
+msgstr "Không thể cập nhật chia tách đường hầm. Vui lòng thử lại."
+
+msgid "split_tunnel_unavailable"
+msgstr "Không khả dụng"
+
+msgid "split_tunnel_enter_website"
+msgstr "Nhập trang web hoặc URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "Nhập URL hoặc *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Thêm *.ir để khớp mọi trang .ir cùng lúc. Áp dụng cho *.cn, *.ru, v.v. Phân tách nhiều trang bằng dấu phẩy."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Nhập trang web hoặc URL hợp lệ. Ký tự đại diện phải bắt đầu bằng *. và không hỗ trợ địa chỉ IP."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s đã được thêm."
+
+msgid "clear"
+msgstr "Xóa"

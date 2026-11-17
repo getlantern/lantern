@@ -2252,7 +2252,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "زه په Lantern کې ستاسو شخصي پراکسي کېدای شم، څو تاسو زما د اتصال له لارې آنلاین شئ. په Lantern کې \"د سرور انتخاب\" پرانیزئ، په سر کې ⋮ مینو کېکاږئ، \"شخصي پراکسي ته بلنه\" وټاکئ او لینک ماته راولېږئ."
 
 msgid "add_executable"
-msgstr "اجرايي فایل اضافه کړئ"
+msgstr ".exe اضافه کړئ"
 
 msgid "select_windows_executable"
 msgstr "پر دې کمپیوټر د Lantern پرته د یوې اپ .exe فایل وټاکئ."
@@ -2430,3 +2430,81 @@ msgstr "یو ملګري ستاسو مرسته غوښتې ده. کله چې Actio
 
 msgid "help_friend_your_name_label"
 msgstr "ستاسو نوم"
+
+msgid "split_tunnel_off"
+msgstr "بند"
+
+msgid "split_tunnel_include_only"
+msgstr "یوازې شامل"
+
+msgid "split_tunnel_description"
+msgstr "وټاکئ چې اپلیکیشنونه او ویب پاڼې څنګه وصل شي"
+
+msgid "split_tunnel_mode"
+msgstr "د ویشل شوي تونل حالت:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "ټاکل شوي اپونه او سایټونه Lantern نه کاروي"
+
+msgid "split_tunnel_include_description"
+msgstr "یوازې ټاکل شوي اپونه او سایټونه Lantern کاروي"
+
+msgid "split_tunnel_switch_include"
+msgstr "یوازې شاملولو ته بدلول؟"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "بای‌پاس ته بدلول؟"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "یوازې ستاسو د یوازې شاملولو په لېستونو کې اپلیکیشنونه او سایټونه به Lantern وکاروي. نور ټول، ستاسو د براوزر په ګډون، به پرته له خوندیتوب مستقیم وصل شي. تر هغه چې دا لېستونه تش وي، هر څه Lantern کاروي. ستاسو د تېرېدو لېستونه د بېرته بدلولو لپاره ساتل کېږي."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "ستاسو د تېرېدو په لېستونو کې اپلیکیشنونه او سایټونه به مستقیم وصل شي. نور ټول به Lantern وکاروي. ستاسو د یوازې شاملولو لېستونه د بېرته بدلولو لپاره ساتل کېږي."
+
+msgid "split_tunnel_switch"
+msgstr "بدل کړئ"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 اپلیکیشن"
+
+msgid "split_tunnel_app_count"
+msgstr "اپلیکیشنونه: %d"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 سایټ"
+
+msgid "split_tunnel_site_count"
+msgstr "%d سایټونه"
+
+msgid "apps_using_vpn"
+msgstr "هغه اپونه چې VPN کاروي (%d)"
+
+msgid "websites_using_vpn"
+msgstr "هغه وېبپاڼې چې VPN کاروي (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "سپلیټ ټونلنګ پورته نه شو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "split_tunnel_update_failed"
+msgstr "د تونل وېش تازه نه شو. مهرباني وکړئ بیا هڅه وکړئ."
+
+msgid "split_tunnel_unavailable"
+msgstr "شتون نلري"
+
+msgid "split_tunnel_enter_website"
+msgstr "ویب پاڼه یا URL دننه کړئ"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL یا *.ir دننه کړئ"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "د ټولو .ir سایټونو لپاره یوځل *.ir ورزیات کړئ. دا د *.cn، *.ru او نورو لپاره هم کار کوي. څو سایټونه په کامې سره جلا کړئ."
+
+msgid "split_tunnel_invalid_website"
+msgstr "یوه سمه ویب پاڼه یا URL ولیکئ. وایلډکارډونه باید په *. پیل شي. د IP پتې نه ملاتړ کېږي."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s دمخه اضافه شوی."
+
+msgid "clear"
+msgstr "پاک کړئ"

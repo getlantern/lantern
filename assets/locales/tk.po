@@ -2213,7 +2213,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Men Lantern-de siziň şahsy proksiňiz bolup bilerin, şonda siz meniň baglanyşygym arkaly internete girip bilersiňiz. Lantern-de \"Serwer saýlamak\" bölümini açyň, ýokardaky ⋮ menýusyna basyň, \"Şahsy proksini çagyr\" saýlaň we maňa baglanyşygy iberiň."
 
 msgid "add_executable"
-msgstr "Ýerine ýetiriji faýl goş"
+msgstr ".exe goş"
 
 msgid "select_windows_executable"
 msgstr "Bu kompýuterde Lantern-den başga bir programmanyň .exe faýlyny saýlaň."
@@ -2391,3 +2391,84 @@ msgstr "Bir dostuňyz sizden kömek sorady. Action Mode açyk wagty ol siziň ba
 
 msgid "help_friend_your_name_label"
 msgstr "Adyňyz"
+
+msgid "split_tunnel_off"
+msgstr "Öçük"
+
+msgid "split_tunnel_bypass"
+msgstr "Aýlanyp geç"
+
+msgid "split_tunnel_include_only"
+msgstr "Diňe goşulanlar"
+
+msgid "split_tunnel_description"
+msgstr "Programmalaryň we saýtlaryň nähili birikýändigini saýlaň"
+
+msgid "split_tunnel_mode"
+msgstr "Bölünen tunel tertibi:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Saýlanan programmalar we saýtlar Lantern-i ulanmaýar"
+
+msgid "split_tunnel_include_description"
+msgstr "Diňe saýlanan programmalar we saýtlar Lantern ulanýar"
+
+msgid "split_tunnel_switch_include"
+msgstr "Diňe goşmak tertibine geçmelimi?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Aýlanyp geçmek tertibine geçmelimi?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Diňe goşulanlar sanawlaryňyzdaky programmalar we saýtlar Lantern ulanýar. Galan hemme zat, şol sanda brauzeriňiz, goragsyz göni birikýär. Bu sanawlar boş wagty hemme zat Lantern ulanýar. Aýlanyp geçmek sanawlaryňyz yzyna çalşanyňyzda ulanmak üçin saklanýar."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Aýlanyp geçmek sanawlaryňyzdaky programmalar we saýtlar göni birikýär. Galan hemme zat Lantern ulanýar. Diňe goşulanlar sanawlaryňyz yzyna çalşanyňyzda ulanmak üçin saklanýar."
+
+msgid "split_tunnel_switch"
+msgstr "Çalyş"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 programma"
+
+msgid "split_tunnel_app_count"
+msgstr "%d programma"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 sahypa"
+
+msgid "split_tunnel_site_count"
+msgstr "%d sahypa"
+
+msgid "apps_using_vpn"
+msgstr "VPN ulanýan programmalar (%d)"
+
+msgid "websites_using_vpn"
+msgstr "VPN ulanýan web sahypalar (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Bölünen tuneli ýükläp bolmady. Gaýtadan synanyşyň."
+
+msgid "split_tunnel_update_failed"
+msgstr "Bölünen tuneli täzeläp bolmady. Gaýtadan synanyşyň."
+
+msgid "split_tunnel_unavailable"
+msgstr "Elýeterli däl"
+
+msgid "split_tunnel_enter_website"
+msgstr "Web sahypa ýa-da URL giriziň"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL ýa-da *.ir giriziň"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Ähli .ir saýtlaryny birden saýlamak üçin *.ir goşuň. *.cn, *.ru we ş.m. üçin hem işleýär. Birnäçe saýty otur bilen aýryň."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Dogry web sahypany ýa-da URL giriziň. Wildkartlar *. bilen başlamaly we IP salgylary goldanylmaýar."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "Eýýäm goşuldy: %s."
+
+msgid "clear"
+msgstr "Arassala"

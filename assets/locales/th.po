@@ -2200,7 +2200,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "ฉันเป็นพร็อกซีส่วนตัวของคุณใน Lantern ได้ เพื่อให้คุณออนไลน์ผ่านการเชื่อมต่อของฉัน ใน Lantern ให้เปิด \"การเลือกเซิร์ฟเวอร์\" แตะเมนู ⋮ ด้านบน เลือก \"เชิญพร็อกซีส่วนตัว\" แล้วส่งลิงก์มาให้ฉัน"
 
 msgid "add_executable"
-msgstr "เพิ่มไฟล์ปฏิบัติการ"
+msgstr "เพิ่ม .exe"
 
 msgid "select_windows_executable"
 msgstr "เลือกไฟล์ .exe ของแอปในคอมพิวเตอร์นี้ที่ไม่ใช่ Lantern"
@@ -2378,3 +2378,84 @@ msgstr "เพื่อนคนหนึ่งขอความช่วยเ
 
 msgid "help_friend_your_name_label"
 msgstr "ชื่อของคุณ"
+
+msgid "split_tunnel_off"
+msgstr "ปิด"
+
+msgid "split_tunnel_bypass"
+msgstr "บายพาส"
+
+msgid "split_tunnel_include_only"
+msgstr "รวมเฉพาะ"
+
+msgid "split_tunnel_description"
+msgstr "เลือกวิธีที่แอปและเว็บไซต์เชื่อมต่อ"
+
+msgid "split_tunnel_mode"
+msgstr "โหมดแยกอุโมงค์:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "แอปและเว็บไซต์ที่เลือกจะไม่ผ่าน Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "เฉพาะแอปและเว็บไซต์ที่เลือกเท่านั้นที่ใช้ Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "เปลี่ยนเป็นรวมเฉพาะ?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "เปลี่ยนเป็นข้าม?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "เฉพาะแอปและเว็บไซต์ในรายการรวมเฉพาะของคุณเท่านั้นที่จะใช้ Lantern ส่วนอื่นทั้งหมด รวมถึงเบราว์เซอร์ของคุณ จะเชื่อมต่อโดยตรงโดยไม่มีการป้องกัน ขณะที่รายการเหล่านั้นว่างอยู่ ทุกอย่างจะใช้ Lantern รายการข้ามของคุณจะถูกเก็บไว้สำหรับเมื่อคุณสลับกลับ"
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "แอปและเว็บไซต์ในรายการข้ามของคุณจะเชื่อมต่อโดยตรง ส่วนอื่นทั้งหมดจะใช้ Lantern รายการรวมเฉพาะของคุณจะถูกเก็บไว้สำหรับเมื่อคุณสลับกลับ"
+
+msgid "split_tunnel_switch"
+msgstr "สลับ"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 แอป"
+
+msgid "split_tunnel_app_count"
+msgstr "%d แอป"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 เว็บไซต์"
+
+msgid "split_tunnel_site_count"
+msgstr "%d เว็บไซต์"
+
+msgid "apps_using_vpn"
+msgstr "แอปที่ใช้ VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "เว็บไซต์ที่ใช้ VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "ไม่สามารถโหลด Split Tunneling ได้ โปรดลองอีกครั้ง"
+
+msgid "split_tunnel_update_failed"
+msgstr "ไม่สามารถอัปเดตการแยกอุโมงค์ได้ โปรดลองอีกครั้ง"
+
+msgid "split_tunnel_unavailable"
+msgstr "ไม่พร้อมใช้งาน"
+
+msgid "split_tunnel_enter_website"
+msgstr "ป้อนเว็บไซต์หรือ URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "ป้อน URL หรือ *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "เพิ่ม *.ir เพื่อจับคู่ทุกเว็บไซต์ .ir พร้อมกัน ใช้ได้กับ *.cn, *.ru ฯลฯ คั่นหลายเว็บไซต์ด้วยเครื่องหมายจุลภาค"
+
+msgid "split_tunnel_invalid_website"
+msgstr "ป้อนเว็บไซต์หรือ URL ที่ถูกต้อง ไวลด์การ์ดต้องขึ้นต้นด้วย *. และไม่รองรับที่อยู่ IP"
+
+msgid "split_tunnel_website_duplicate"
+msgstr "เพิ่ม %s ไว้แล้ว"
+
+msgid "clear"
+msgstr "ล้าง"

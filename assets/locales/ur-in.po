@@ -2234,7 +2234,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "میں Lantern پر آپ کی ذاتی پراکسی بن سکتا ہوں، تاکہ آپ میرے کنکشن کے ذریعے آن لائن ہو سکیں۔ Lantern میں \"سرور کا انتخاب\" کھولیں، اوپر ⋮ مینو پر ٹیپ کریں، \"ذاتی پراکسی کو مدعو کریں\" منتخب کریں اور مجھے لنک بھیجیں۔"
 
 msgid "add_executable"
-msgstr "ایگزیکیوٹیبل شامل کریں"
+msgstr ".exe شامل کریں"
 
 msgid "select_windows_executable"
 msgstr "اس کمپیوٹر پر Lantern کے علاوہ کسی ایپ کی .exe فائل منتخب کریں۔"
@@ -2412,3 +2412,84 @@ msgstr "ایک دوست نے آپ سے مدد مانگی ہے۔ جب Action Mode
 
 msgid "help_friend_your_name_label"
 msgstr "آپ کا نام"
+
+msgid "split_tunnel_off"
+msgstr "بند"
+
+msgid "split_tunnel_bypass"
+msgstr "بائی پاس"
+
+msgid "split_tunnel_include_only"
+msgstr "صرف شامل کریں"
+
+msgid "split_tunnel_description"
+msgstr "منتخب کریں کہ ایپس اور ویب سائٹس کیسے منسلک ہوں"
+
+msgid "split_tunnel_mode"
+msgstr "اسپلٹ ٹنل موڈ:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "منتخب ایپس اور سائٹس Lantern کو بائی پاس کرتی ہیں"
+
+msgid "split_tunnel_include_description"
+msgstr "صرف منتخب ایپس اور سائٹس Lantern استعمال کرتی ہیں"
+
+msgid "split_tunnel_switch_include"
+msgstr "صرف شامل پر سوئچ کریں؟"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "بائی پاس پر سوئچ کریں؟"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "صرف آپ کی “صرف شامل کریں” فہرستوں کی ایپس اور سائٹس Lantern استعمال کریں گی۔ آپ کے براؤزر سمیت باقی سب کچھ تحفظ کے بغیر سیدھے منسلک ہوگا۔ جب تک یہ فہرستیں خالی ہیں، سب کچھ Lantern استعمال کرتا ہے۔ آپ کی بائی پاس فہرستیں واپس تبدیل کرنے کے لیے محفوظ رہتی ہیں۔"
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "آپ کی بائی پاس فہرستوں کی ایپس اور سائٹس سیدھے منسلک ہوں گی۔ باقی سب کچھ Lantern استعمال کرے گا۔ آپ کی “صرف شامل کریں” فہرستیں واپس تبدیل کرنے کے لیے محفوظ رہتی ہیں۔"
+
+msgid "split_tunnel_switch"
+msgstr "تبدیل کریں"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 ایپ"
+
+msgid "split_tunnel_app_count"
+msgstr "ایپس: %d"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 سائٹ"
+
+msgid "split_tunnel_site_count"
+msgstr "%d سائٹس"
+
+msgid "apps_using_vpn"
+msgstr "VPN استعمال کرنے والی ایپس (%d)"
+
+msgid "websites_using_vpn"
+msgstr "VPN استعمال کرنے والی ویب سائٹس (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "اسپلٹ ٹنلنگ لوڈ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "split_tunnel_update_failed"
+msgstr "اسپلٹ ٹنلنگ اپ ڈیٹ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "split_tunnel_unavailable"
+msgstr "دستیاب نہیں"
+
+msgid "split_tunnel_enter_website"
+msgstr "ویب سائٹ یا URL درج کریں"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL یا *.ir درج کریں"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "تمام .ir سائٹس کو ایک ساتھ شامل کرنے کے لیے *.ir شامل کریں۔ یہ *.cn، *.ru وغیرہ کے لیے بھی کام کرتا ہے۔ کئی سائٹس کو کاما سے الگ کریں۔"
+
+msgid "split_tunnel_invalid_website"
+msgstr "درست ویب سائٹ یا URL درج کریں۔ وائلڈ کارڈ *. سے شروع ہونے چاہئیں اور IP ایڈریس معاون نہیں ہیں۔"
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s پہلے ہی شامل ہے۔"
+
+msgid "clear"
+msgstr "صاف کریں"

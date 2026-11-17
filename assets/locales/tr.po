@@ -2233,7 +2233,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Lantern'de kişisel proxy'niz olabilirim, böylece benim bağlantım üzerinden internete erişebilirsiniz. Lantern'de \"Sunucu Seçimi\" ekranını açın, üstteki ⋮ menüsüne dokunun, \"Kişisel Proxy Davet Et\" seçeneğini seçin ve bağlantıyı bana gönderin."
 
 msgid "add_executable"
-msgstr "Yürütülebilir Dosya Ekle"
+msgstr ".exe Ekle"
 
 msgid "select_windows_executable"
 msgstr "Bu bilgisayarda Lantern dışında bir uygulamanın .exe dosyasını seçin."
@@ -2411,3 +2411,84 @@ msgstr "Bir arkadaşınız yardımınızı istedi. Action Mode açıkken, sizin 
 
 msgid "help_friend_your_name_label"
 msgstr "Adınız"
+
+msgid "split_tunnel_off"
+msgstr "Kapalı"
+
+msgid "split_tunnel_bypass"
+msgstr "Atla"
+
+msgid "split_tunnel_include_only"
+msgstr "Yalnızca Dahil Et"
+
+msgid "split_tunnel_description"
+msgstr "Uygulama ve web sitelerinin nasıl bağlanacağını seçin"
+
+msgid "split_tunnel_mode"
+msgstr "Bölünmüş tünel modu:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Seçilen uygulamalar ve siteler Lantern'i atlar"
+
+msgid "split_tunnel_include_description"
+msgstr "Yalnızca seçilen uygulamalar ve siteler Lantern kullanır"
+
+msgid "split_tunnel_switch_include"
+msgstr "Yalnızca Dahil Et moduna geçilsin mi?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Atla moduna geçilsin mi?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Yalnızca Dahil Et listelerinizdeki uygulamalar ve siteler Lantern kullanır. Tarayıcınız dahil diğer her şey korumasız olarak doğrudan bağlanır. Bu listeler boşken her şey Lantern kullanır. Atla listeleriniz geri geçtiğinizde kullanmak için saklanır."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Atla listelerinizdeki uygulamalar ve siteler doğrudan bağlanır. Diğer her şey Lantern kullanır. Yalnızca Dahil Et listeleriniz geri geçtiğinizde kullanmak için saklanır."
+
+msgid "split_tunnel_switch"
+msgstr "Geçiş Yap"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 Uygulama"
+
+msgid "split_tunnel_app_count"
+msgstr "%d Uygulama"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 Site"
+
+msgid "split_tunnel_site_count"
+msgstr "%d Site"
+
+msgid "apps_using_vpn"
+msgstr "VPN kullanan uygulamalar (%d)"
+
+msgid "websites_using_vpn"
+msgstr "VPN kullanan web siteleri (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Bölünmüş tünel yüklenemedi. Lütfen tekrar deneyin."
+
+msgid "split_tunnel_update_failed"
+msgstr "Bölünmüş tünel güncellenemedi. Lütfen tekrar deneyin."
+
+msgid "split_tunnel_unavailable"
+msgstr "Kullanılamıyor"
+
+msgid "split_tunnel_enter_website"
+msgstr "Bir web sitesi veya URL girin"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL veya *.ir girin"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Tüm .ir sitelerini tek seferde eşleştirmek için *.ir ekleyin. *.cn, *.ru vb. için de çalışır. Birden fazla siteyi virgülle ayırın."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Geçerli bir web sitesi veya URL girin. Joker karakterler *. ile başlamalıdır ve IP adresleri desteklenmez."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "Zaten eklendi: %s."
+
+msgid "clear"
+msgstr "Temizle"

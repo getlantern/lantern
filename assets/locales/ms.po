@@ -2240,7 +2240,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Saya boleh menjadi proksi peribadi anda di Lantern, supaya anda boleh mengakses internet melalui sambungan saya. Dalam Lantern, buka \"Pemilihan Pelayan\", ketik menu ⋮ di bahagian atas, pilih \"Jemput Proksi Peribadi\" dan hantar pautan kepada saya."
 
 msgid "add_executable"
-msgstr "Tambah fail boleh laku"
+msgstr "Tambah .exe"
 
 msgid "select_windows_executable"
 msgstr "Pilih fail .exe aplikasi selain Lantern pada komputer ini."
@@ -2418,3 +2418,84 @@ msgstr "Seorang rakan meminta bantuan anda. Apabila Action Mode dihidupkan, mere
 
 msgid "help_friend_your_name_label"
 msgstr "Nama anda"
+
+msgid "split_tunnel_off"
+msgstr "Mati"
+
+msgid "split_tunnel_bypass"
+msgstr "Pintas"
+
+msgid "split_tunnel_include_only"
+msgstr "Sertakan sahaja"
+
+msgid "split_tunnel_description"
+msgstr "Pilih cara aplikasi dan laman web bersambung"
+
+msgid "split_tunnel_mode"
+msgstr "Mod terowong pisah:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Apl dan laman yang dipilih memintas Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "Hanya apl dan laman yang dipilih menggunakan Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "Tukar ke Sertakan sahaja?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Tukar ke Pintas?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Hanya apl dan laman dalam senarai Sertakan sahaja anda akan menggunakan Lantern. Semua yang lain, termasuk pelayar anda, akan bersambung secara terus tanpa perlindungan. Selagi senarai itu kosong, semuanya menggunakan Lantern. Senarai Pintas anda disimpan untuk apabila anda menukar semula."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Apl dan laman dalam senarai Pintas anda akan bersambung secara terus. Semua yang lain akan menggunakan Lantern. Senarai Sertakan sahaja anda disimpan untuk apabila anda menukar semula."
+
+msgid "split_tunnel_switch"
+msgstr "Tukar"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 Apl"
+
+msgid "split_tunnel_app_count"
+msgstr "%d Apl"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 Laman"
+
+msgid "split_tunnel_site_count"
+msgstr "%d Laman"
+
+msgid "apps_using_vpn"
+msgstr "Apl yang menggunakan VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "Laman web yang menggunakan VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Tidak dapat memuatkan terowong pisah. Sila cuba lagi."
+
+msgid "split_tunnel_update_failed"
+msgstr "Tidak dapat mengemas kini terowong pisah. Sila cuba lagi."
+
+msgid "split_tunnel_unavailable"
+msgstr "Tidak tersedia"
+
+msgid "split_tunnel_enter_website"
+msgstr "Masukkan laman web atau URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "Masukkan URL atau *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Tambah *.ir untuk memadankan semua laman .ir sekali gus. Berfungsi untuk *.cn, *.ru dan lain-lain. Pisahkan berbilang laman dengan koma."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Masukkan laman web atau URL yang sah. Kad bebas mesti bermula dengan *. dan alamat IP tidak disokong."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s telah pun ditambah."
+
+msgid "clear"
+msgstr "Kosongkan"

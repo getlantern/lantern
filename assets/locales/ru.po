@@ -2243,7 +2243,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Я могу стать вашим личным прокси в Lantern, чтобы вы выходили в интернет через моё подключение. В Lantern откройте «Выбор сервера», нажмите меню ⋮ вверху, выберите «Пригласить личный прокси» и отправьте мне ссылку."
 
 msgid "add_executable"
-msgstr "Добавить исполняемый файл"
+msgstr "Добавить .exe"
 
 msgid "select_windows_executable"
 msgstr "Выберите файл .exe приложения на этом компьютере, кроме Lantern."
@@ -2421,3 +2421,84 @@ msgstr "Ваше имя"
 
 msgid "approved_body_locations"
 msgstr "Когда пользователь %s в сети, его расположения можно выбрать в разделе «Частные расположения» меню «Расположения серверов». «Умный выбор расположения» может использовать их автоматически."
+
+msgid "split_tunnel_off"
+msgstr "Выкл."
+
+msgid "split_tunnel_bypass"
+msgstr "Обход"
+
+msgid "split_tunnel_include_only"
+msgstr "Только выбранные"
+
+msgid "split_tunnel_description"
+msgstr "Выберите, как подключаются приложения и сайты"
+
+msgid "split_tunnel_mode"
+msgstr "Режим раздельного туннелирования:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Выбранные приложения и сайты работают в обход Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "Только выбранные приложения и сайты используют Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "Переключиться на «Только выбранные»?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Переключиться на «Исключить»?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Lantern будут использовать только приложения и сайты из списков «Только включённые». Всё остальное, включая браузер, будет подключаться напрямую без защиты. Пока эти списки пусты, всё использует Lantern. Списки «Исключить» сохранятся на случай, если вы переключитесь обратно."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Приложения и сайты из списков «Исключить» будут подключаться напрямую. Всё остальное будет использовать Lantern. Списки «Только включённые» сохранятся на случай, если вы переключитесь обратно."
+
+msgid "split_tunnel_switch"
+msgstr "Переключить"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 приложение"
+
+msgid "split_tunnel_app_count"
+msgstr "Приложений: %d"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 сайт"
+
+msgid "split_tunnel_site_count"
+msgstr "Сайтов: %d"
+
+msgid "apps_using_vpn"
+msgstr "Приложения через VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "Сайты через VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Не удалось загрузить раздельное туннелирование. Попробуйте ещё раз."
+
+msgid "split_tunnel_update_failed"
+msgstr "Не удалось обновить раздельное туннелирование. Попробуйте ещё раз."
+
+msgid "split_tunnel_unavailable"
+msgstr "Недоступно"
+
+msgid "split_tunnel_enter_website"
+msgstr "Введите сайт или URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "Введите URL или *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Добавьте *.ir, чтобы охватить все сайты .ir сразу. Работает для *.cn, *.ru и т. д. Разделяйте несколько сайтов запятыми."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Введите корректный сайт или URL. Подстановочные знаки должны начинаться с *., а IP-адреса не поддерживаются."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "Уже добавлено: %s."
+
+msgid "clear"
+msgstr "Очистить"

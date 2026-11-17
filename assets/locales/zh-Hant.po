@@ -2087,7 +2087,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "我可以在 Lantern 上當你的個人代理，讓你透過我的連線上網。在 Lantern 中開啟「伺服器選擇」，點選頂端的 ⋮ 選單，選擇「邀請個人代理」，然後把連結傳給我。"
 
 msgid "add_executable"
-msgstr "新增執行檔"
+msgstr "新增 .exe"
 
 msgid "select_windows_executable"
 msgstr "選擇這台電腦上 Lantern 以外應用程式的 .exe 檔案。"
@@ -2265,3 +2265,84 @@ msgstr "有位朋友向你求助。開啟 Action Mode 後，對方會透過你�
 
 msgid "help_friend_your_name_label"
 msgstr "你的名字"
+
+msgid "split_tunnel_off"
+msgstr "關閉"
+
+msgid "split_tunnel_bypass"
+msgstr "繞過"
+
+msgid "split_tunnel_include_only"
+msgstr "僅包含"
+
+msgid "split_tunnel_description"
+msgstr "選擇應用程式和網站的連線方式"
+
+msgid "split_tunnel_mode"
+msgstr "分流模式："
+
+msgid "split_tunnel_bypass_description"
+msgstr "所選的應用程式和網站不經過 Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "僅所選的應用程式和網站使用 Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "切換至僅包含模式？"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "切換至略過模式？"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "只有你的「僅包含」清單中的應用程式和網站會使用 Lantern。其他所有內容，包括你的瀏覽器，都將直接連線，不受保護。這些清單為空時，所有內容都使用 Lantern。你的「略過」清單會保留，供你切換回來時使用。"
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "你的「略過」清單中的應用程式和網站將直接連線。其他所有內容將使用 Lantern。你的「僅包含」清單會保留，供你切換回來時使用。"
+
+msgid "split_tunnel_switch"
+msgstr "切換"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 個應用程式"
+
+msgid "split_tunnel_app_count"
+msgstr "%d 個應用程式"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 個網站"
+
+msgid "split_tunnel_site_count"
+msgstr "%d 個網站"
+
+msgid "apps_using_vpn"
+msgstr "使用 VPN 的應用程式（%d）"
+
+msgid "websites_using_vpn"
+msgstr "使用 VPN 的網站（%d）"
+
+msgid "split_tunnel_load_failed"
+msgstr "無法載入分流設定。請再試一次。"
+
+msgid "split_tunnel_update_failed"
+msgstr "無法更新分流設定。請再試一次。"
+
+msgid "split_tunnel_unavailable"
+msgstr "無法使用"
+
+msgid "split_tunnel_enter_website"
+msgstr "輸入網站或 URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "輸入 URL 或 *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "新增 *.ir 即可一次比對所有 .ir 網站。也適用於 *.cn、*.ru 等。多個網站請以逗號分隔。"
+
+msgid "split_tunnel_invalid_website"
+msgstr "輸入有效的網站或 URL。萬用字元必須以 *. 開頭，且不支援 IP 位址。"
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s 已新增。"
+
+msgid "clear"
+msgstr "清除"
