@@ -8,6 +8,8 @@ param(
   [string]$SplitTunnelAppsTestPath = "integration_test/vpn/windows_split_tunneling_apps_smoke_test.dart",
   [string]$ConfigUrlApiTestPath = "integration_test/vpn/windows_config_url_api_smoke_test.dart",
   [string]$ConfigUrlUiTestPath = "integration_test/vpn/windows_config_url_smoke_test.dart",
+  [string]$ServiceRepairTestPath = "integration_test/vpn/windows_service_repair_smoke_test.dart",
+  [string]$ServiceRepairArtifactDirectory = "build/windows-service-repair-smoke",
   [string]$DefaultConfigServerName = "ci-config-url-smoke",
   [int]$WaitSeconds = 30,
   [int]$InstallerTimeoutSeconds = 180,
@@ -22,6 +24,7 @@ param(
   [switch]$RunSplitTunnelAppsSmoke,
   [switch]$RunConfigUrlSmoke,
   [switch]$RunPaymentSmoke,
+  [switch]$RunServiceRepairSmoke,
   [string]$PaymentSmokeArtifactDirectory = "build/windows-payment-smoke",
   [switch]$UseInstaller
 )
@@ -404,6 +407,66 @@ function Uninstall-FromInstalledService {
     -Description "Running uninstaller"
 }
 
+# The app's service repair runs "lanternd install" through the runas verb,
+# and the test stops the service with sc.exe. Both need an elevated run, and
+# from one runas skips the consent prompt that no one is here to answer.
+function Assert-ElevatedRun {
+  $policy = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -ErrorAction SilentlyContinue
+  $enableLua = if ($policy) { $policy.EnableLUA } else { $null }
+  $consent = if ($policy) { $policy.ConsentPromptBehaviorAdmin } else { $null }
+  Write-Step "UAC policy: EnableLUA=$enableLua ConsentPromptBehaviorAdmin=$consent"
+  # True only for an elevated token: UAC filters the Administrators group out
+  # of an unelevated one.
+  $elevated = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+    [Security.Principal.WindowsBuiltInRole]::Administrator)
+  if (-not $elevated) {
+    throw "Service repair smoke needs an elevated run"
+  }
+}
+
+# The app looks for lanternd.exe beside itself, as the installer lays it out.
+# flutter test runs a Debug build with nothing beside it, so this copies in
+# the lanternd that set up the service.
+function Copy-LanterndBesideTestApp {
+  param([string]$Name)
+
+  $source = if ($UseInstaller) {
+    $svcExe = Get-ServiceExecutablePath -PathName (Get-ServicePathName -Name $Name)
+    if (-not $svcExe) {
+      throw "Could not find the installed $Name executable"
+    }
+    Join-Path (Split-Path -Path $svcExe -Parent) "lanternd.exe"
+  } else {
+    (Resolve-Path $ServiceExe).Path
+  }
+  if (-not (Test-Path -LiteralPath $source)) {
+    throw "lanternd.exe not found at $source"
+  }
+  $debugRunner = Join-Path $PSScriptRoot "../../build/windows/x64/runner/Debug"
+  New-Item -ItemType Directory -Force -Path $debugRunner | Out-Null
+  Copy-Item -LiteralPath $source -Destination (Join-Path $debugRunner "lanternd.exe") -Force
+  $logLevel = Join-Path (Split-Path -Path $source -Parent) "lanternd-log-level"
+  if (Test-Path -LiteralPath $logLevel) {
+    Copy-Item -LiteralPath $logLevel -Destination $debugRunner -Force
+  }
+  Write-Step "Copied $source beside the test app in $debugRunner"
+}
+
+function Assert-ServiceRepaired {
+  param(
+    [string]$Name,
+    [int]$TimeoutSeconds
+  )
+
+  Wait-ServiceRunning -Name $Name -TimeoutSeconds $TimeoutSeconds
+  $service = Get-CimInstance Win32_Service -Filter "Name='$Name'"
+  if ($service.StartMode -ne "Auto") {
+    throw "Repaired service $Name starts $($service.StartMode), not Auto"
+  }
+  Assert-ServiceNonCrashRecoveryEnabled -Name $Name
+  Write-Step "Repaired service $Name is running and starts automatically"
+}
+
 try {
   if ($UseInstaller) {
     Write-Step "Smoke setup mode: installer"
@@ -536,6 +599,20 @@ try {
         -Description "Windows config URL UI smoke test" `
         -ForceFullTunnel:$ForceFullTunnel
     }
+  }
+
+  # Last: it stops and disables the service before repairing it.
+  if ($RunServiceRepairSmoke) {
+    Assert-ElevatedRun
+    Copy-LanterndBesideTestApp -Name $ServiceName
+    $serviceRepairScreenshots = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../$ServiceRepairArtifactDirectory"))
+    Invoke-FlutterSmokeTest `
+      -Path $ServiceRepairTestPath `
+      -Description "Windows service repair smoke test" `
+      -DartDefines @("SERVICE_REPAIR_SCREENSHOT_DIR=$serviceRepairScreenshots")
+    Assert-ServiceRepaired -Name $ServiceName -TimeoutSeconds $WaitSeconds
+  } else {
+    Write-Step "Skipping Windows service repair smoke test."
   }
 }
 finally {

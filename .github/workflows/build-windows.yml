@@ -117,6 +117,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_service_repair_smoke:
+        description: "Stop and disable the service, then repair it from the app's connect dialog"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-windows:
@@ -496,11 +501,13 @@ jobs:
           $forceFullTunnelSmoke = "${{ inputs.force_full_tunnel_smoke }}" -eq "true"
           $enableIpCheck = "${{ inputs.enable_ip_check }}" -eq "true"
           $runConnectSmoke = "${{ inputs.run_connect_smoke }}" -eq "true"
-          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke splitTunnelApps=$runSplitTunnelAppsSmoke configUrl=$runConfigUrlSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
+          $runServiceRepairSmoke = "${{ inputs.run_service_repair_smoke }}" -eq "true"
+          Write-Host "Windows smoke options: connect=$runConnectSmoke splitTunnelWebsite=$runSplitTunnelWebsiteSmoke splitTunnelApps=$runSplitTunnelAppsSmoke configUrl=$runConfigUrlSmoke serviceRepair=$runServiceRepairSmoke forceFullTunnel=$forceFullTunnelSmoke ipCheck=$enableIpCheck"
           ./.github/scripts/windows_smoke_suite.ps1 `
             -UseInstaller `
             -InstallerPath $installerPath `
             -RunConnectSmoke:$runConnectSmoke `
+            -RunServiceRepairSmoke:$runServiceRepairSmoke `
             -RunSplitTunnelWebsiteSmoke:$runSplitTunnelWebsiteSmoke `
             -RunSplitTunnelAppsSmoke:$runSplitTunnelAppsSmoke `
             -RunConfigUrlSmoke:$runConfigUrlSmoke `
@@ -543,6 +550,15 @@ jobs:
         with:
           name: windows-split-tunnel-screenshots
           path: build/windows-split-tunnel-smoke/*.png
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload Windows service repair screenshots
+        if: ${{ always() && inputs.run_service_repair_smoke }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-service-repair-screenshots
+          path: build/windows-service-repair-smoke/*.png
           if-no-files-found: warn
           retention-days: 7
 

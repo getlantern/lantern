@@ -26,6 +26,7 @@ on:
           - split-tunnel # Windows: app/website routing; Android: native per-app VPN capture
           - app-split-tunneling # macOS: verify excluded-app traffic through the signed extension
           - split-tunnel-apps # Windows: exact executable rules for launcher-spawned programs
+          - service-repair # Windows: repair a stopped, disabled LanternSvc from the connect dialog
           - auth-smoke # auth flows only (sign-in/up, recovery, deletion) against the smoke roster
           - auto-update # desktop: install a lower signed fixture and update it from the isolated staging feed
           - payment-smoke # Stripe Checkout rendering and payment-to-Pro conversion
@@ -84,6 +85,11 @@ jobs:
         if: ${{ inputs.tests == 'split-tunnel-apps' && inputs.platforms != 'windows' }}
         run: |
           echo '::error title=Invalid smoke selection::split-tunnel-apps requires platforms=windows'
+          exit 2
+      - name: Validate service repair selection
+        if: ${{ inputs.tests == 'service-repair' && inputs.platforms != 'windows' }}
+        run: |
+          echo '::error title=Invalid smoke selection::service-repair requires platforms=windows'
           exit 2
       - name: Validate split-tunnel selection
         if: ${{ inputs.tests == 'split-tunnel' && !contains(fromJSON('["all", "windows", "android"]'), inputs.platforms) }}
@@ -224,8 +230,9 @@ jobs:
       skip_signing: true
       force_full_tunnel_smoke: true
       enable_ip_check: ${{ inputs.tests == 'split-tunnel' }}
-      run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke", "split-tunnel-apps", "split-tunnel"]'), inputs.tests || 'all') }}
+      run_connect_smoke: ${{ !contains(fromJSON('["payment-smoke", "auth-smoke", "split-tunnel-apps", "split-tunnel", "service-repair"]'), inputs.tests || 'all') }}
       run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
+      run_service_repair_smoke: ${{ inputs.tests == 'service-repair' }}
       run_split_tunnel_website_smoke: ${{ contains(fromJSON('["all", "split-tunnel"]'), inputs.tests || 'all') }}
       run_split_tunnel_apps_smoke: ${{ contains(fromJSON('["all", "split-tunnel-apps", "split-tunnel"]'), inputs.tests || 'all') }}
       run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
