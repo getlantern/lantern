@@ -455,6 +455,17 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setSnapshotPolling(bool on) async {
+    try {
+      await _methodChannel.invokeMethod('setSnapshotPolling', {'on': on});
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setSnapshotPolling failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> getPeerStatusJSON() async {
     try {
       final res = await _methodChannel.invokeMethod<String>('getPeerStatus');

@@ -485,6 +485,14 @@ class ShareNotifier extends _$ShareNotifier {
     return true;
   }
 
+  /// Called when snapshots stop. Peers that arrive before they resume replay
+  /// without an arrival, and the next speed is not averaged over the gap.
+  void snapshotsPaused() {
+    _hasUnboundedSnapshot = false;
+    _unboundedFeed.lastSampleAt = null;
+    _peerFeed.lastSampleAt = null;
+  }
+
   /// Re-emits a +1 for every geo-resolved active peer so a globe that mounts
   /// mid-session starts from the current world state.
   void replayCurrentPeers() {

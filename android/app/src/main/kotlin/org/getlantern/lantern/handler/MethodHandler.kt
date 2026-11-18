@@ -149,6 +149,7 @@ enum class Methods(val method: String) {
 
     // Share My Connection (samizdat) + Unbounded (broflake) peer-share
     SetPeerProxyEnabled("setPeerProxyEnabled"),
+    SetSnapshotPolling("setSnapshotPolling"),
     IsPeerProxyEnabled("isPeerProxyEnabled"),
     SetPeerManualPort("setPeerManualPort"),
     GetPeerManualPort("getPeerManualPort"),
@@ -937,6 +938,13 @@ class MethodHandler : FlutterPlugin,
                 scope.handleResult(result, "set_block_ads_enabled") {
                     val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
                     Mobile.setBlockAdsEnabled(enabled)
+                }
+            }
+
+            Methods.SetSnapshotPolling.method -> {
+                scope.handleResult(result, "set_snapshot_polling") {
+                    val on = call.argument<Boolean>("on") ?: error("Missing on")
+                    Mobile.setSnapshotPolling(on)
                 }
             }
 

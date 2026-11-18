@@ -1117,6 +1117,17 @@ class LanternBindings {
   late final _setSmartRoutingEnabled = _setSmartRoutingEnabledPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
 
+  ffi.Pointer<ffi.Char> setSnapshotPolling(int on) {
+    return _setSnapshotPolling(on);
+  }
+
+  late final _setSnapshotPollingPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+        'setSnapshotPolling',
+      );
+  late final _setSnapshotPolling = _setSnapshotPollingPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
   ffi.Pointer<ffi.Char> setSplitTunnelingEnabled(int enabled) {
     return _setSplitTunnelingEnabled(enabled);
   }

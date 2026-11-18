@@ -953,6 +953,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setSnapshotPolling(bool on) {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.setSnapshotPolling(on);
+    }
+    return _platformService.setSnapshotPolling(on);
+  }
+
+  @override
   Future<Either<Failure, String>> getPeerStatusJSON() {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.getPeerStatusJSON();

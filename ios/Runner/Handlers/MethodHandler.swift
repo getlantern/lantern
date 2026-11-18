@@ -303,6 +303,10 @@ class MethodHandler {
         let data = call.arguments as? [String: Any]
         let enabled = data?["enabled"] as? Bool ?? false
         self.setBlockAdsEnabled(result: result, enabled: enabled)
+      case "setSnapshotPolling":
+        let data = call.arguments as? [String: Any]
+        let on = data?["on"] as? Bool ?? false
+        self.setSnapshotPolling(result: result, on: on)
       case "updateTelemetryEvents":
         guard let consent: Bool = self.decodeValue(from: call.arguments, result: result) else {
           return
@@ -1432,6 +1436,20 @@ class MethodHandler {
             )
           )
         }
+      }
+    }
+  }
+
+  func setSnapshotPolling(result: @escaping FlutterResult, on: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetSnapshotPolling(on, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_SNAPSHOT_POLLING_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
       }
     }
   }
