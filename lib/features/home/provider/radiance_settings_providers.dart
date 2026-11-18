@@ -46,6 +46,9 @@ class RadianceSettings extends _$RadianceSettings {
     // the router, so mobile is included rather than desktop-only.
     final peerF = svc.isPeerProxyEnabled();
     final unboundedF = svc.isUnboundedEnabled();
+    // A Try Direct First write that starts while this read is in flight
+    // is newer than its answer, so it keeps its value (below).
+    final proxylessWrites = _proxylessWrites;
     final settingsF = svc.getSettings();
 
     final blockAds = await blockAdsF;
@@ -69,12 +72,22 @@ class RadianceSettings extends _$RadianceSettings {
         (_) => defaults.unboundedEnabled,
         (v) => v,
       ),
-      proxyless: settings.fold(
-        (_) => defaults.proxyless,
-        (s) => proxylessFromSettings(s),
-      ),
+      proxyless: proxylessWrites != _proxylessWrites
+          ? state.proxyless
+          : settings.fold(
+              (_) => defaults.proxyless,
+              (s) => proxylessFromSettings(s),
+            ),
     );
   }
+
+  /// Counts Try Direct First writes started, so a settings read that began
+  /// before one doesn't overwrite it.
+  int _proxylessWrites = 0;
+
+  /// Try Direct First writes run one at a time, in order, so the last one
+  /// to finish is the last one made, and sets what the switch shows.
+  Future<Either<Failure, Unit>> _proxylessChain = Future.value(right(unit));
 
   Future<void> setBlockAds(bool value) async {
     final svc = ref.read(lanternServiceProvider);
@@ -104,7 +117,17 @@ class RadianceSettings extends _$RadianceSettings {
 
   /// Turns trying sites directly before the VPN on or off. Radiance switches
   /// the running tunnel without a restart.
-  Future<Either<Failure, Unit>> setProxyless(bool value) async {
+  Future<Either<Failure, Unit>> setProxyless(bool value) {
+    _proxylessWrites++;
+    final next = _proxylessChain.then((_) => _writeProxyless(value));
+    _proxylessChain = next.catchError(
+      (Object e) =>
+          left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
+    );
+    return next;
+  }
+
+  Future<Either<Failure, Unit>> _writeProxyless(bool value) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.patchSettings({proxylessSettingKey: value});
     if (!ref.mounted) return result;
