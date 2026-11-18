@@ -13,3 +13,17 @@ class ActionModeTabVisible extends Notifier<bool> {
 
   void set(bool visible) => state = visible;
 }
+
+/// Whether Home's route is on top, so nothing such as Settings covers its
+/// tabs. Home sets it; sharing snapshots slow down while it is false.
+/// Defaults to true so polling works wherever nothing wires the signal.
+final homeRouteCurrentProvider = NotifierProvider<HomeRouteCurrent, bool>(
+  HomeRouteCurrent.new,
+);
+
+class HomeRouteCurrent extends Notifier<bool> {
+  @override
+  bool build() => true;
+
+  void set(bool current) => state = current;
+}

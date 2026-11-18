@@ -8,8 +8,9 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 /// Whether the backend sends sharing snapshots every second rather than every
 /// 30 seconds. Each one wakes Go, the platform layer and Dart, so the fast
-/// rate runs only while sharing or while the Unbounded tab is on screen in a
-/// foreground app. Sharing keeps it on for the live tray count and speed.
+/// rate runs only while sharing or while the Unbounded tab is on screen: the
+/// tab selected, Home not covered by another route, and the app in the
+/// foreground. Sharing keeps it on for the live tray count and speed.
 /// Home keeps this alive.
 final shareSnapshotPollingProvider =
     NotifierProvider<ShareSnapshotPolling, bool>(ShareSnapshotPolling.new);
@@ -40,6 +41,7 @@ class ShareSnapshotPolling extends Notifier<bool> {
       _retry?.cancel();
     });
     ref.listen(actionModeTabVisibleProvider, (_, _) => _update());
+    ref.listen(homeRouteCurrentProvider, (_, _) => _update());
     ref.listen(shareProvider.select((s) => s.active), (_, _) => _update());
     // The backend starts at the idle rate.
     Future.microtask(_update);
@@ -52,7 +54,9 @@ class ShareSnapshotPolling extends Notifier<bool> {
       null || AppLifecycleState.resumed || AppLifecycleState.inactive => true,
       _ => false,
     };
-    return foreground && ref.read(actionModeTabVisibleProvider);
+    return foreground &&
+        ref.read(actionModeTabVisibleProvider) &&
+        ref.read(homeRouteCurrentProvider);
   }
 
   void _update() {

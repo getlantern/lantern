@@ -183,4 +183,18 @@ void main() {
     expect(service.calls, [true, false, true]);
     expect(container.read(shareSnapshotPollingProvider), isTrue);
   });
+
+  test('slows down while another route covers Home', () async {
+    container.read(actionModeTabVisibleProvider.notifier).set(true);
+    await settle();
+    expect(service.calls, [true]);
+
+    container.read(homeRouteCurrentProvider.notifier).set(false);
+    await settle();
+    expect(service.calls, [true, false]);
+
+    container.read(homeRouteCurrentProvider.notifier).set(true);
+    await settle();
+    expect(service.calls, [true, false, true]);
+  });
 }
