@@ -40,7 +40,6 @@ class _JoinPrivateServerState extends ConsumerState<JoinPrivateServer> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appLogger.info(
             "Private server deployment completed successfully.",
-            serverState.data,
           );
 
           ref.read(availableServersProvider.notifier).fetchAvailableServers();

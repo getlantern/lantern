@@ -157,7 +157,6 @@ class EventHandler : FlutterPlugin {
                     AppLogger.d(TAG, "Private server status channel listening")
                     job = CoroutineScope(Dispatchers.Main).launch {
                         PrivateServerEventStream.events.collect {
-                            AppLogger.d(TAG, "Private server event received: $it")
                             events?.success(it)
                         }
                     }
