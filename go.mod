@@ -28,6 +28,14 @@ replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.
 
 replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-water.1
 
+// x/httpconnect in golang.getoutline.org/sdk/x v0.3.0 doesn't build against
+// the quic-go this module resolves (quic.EarlyConnection was removed in
+// quic-go v0.53). The fork carries the one-line fix from upstream
+// OutlineFoundation/outline-sdk#657; drop this once an upstream x release
+// includes it. radiance, lantern-box and kindling carry the same replace,
+// but a replace applies only in the main module.
+replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.1
+
 replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
 
 // replace github.com/quic-go/qpack => github.com/quic-go/qpack v0.5.1
@@ -36,9 +44,9 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/broflake v0.0.0-20261117033427-62a624d1b849
 	github.com/getlantern/common v1.2.1-0.20261110195018-962f63413c3f
-	github.com/getlantern/lantern-box v0.0.236
+	github.com/getlantern/lantern-box v0.0.237-0.20261118044146-3e6a8b990d62
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261117210816-fdd4002f8d37
+	github.com/getlantern/radiance v0.0.0-20261118054316-625d38ed494f
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
@@ -126,8 +134,6 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	filippo.io/hpke v0.4.0 // indirect
 	github.com/1Password/srp v0.2.0 // indirect
-	github.com/Jigsaw-Code/outline-sdk v0.0.19 // indirect
-	github.com/Jigsaw-Code/outline-sdk/x v0.0.2 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/RoaringBitmap/roaring/v2 v2.16.0 // indirect
 	github.com/RyuaNerin/go-krypto v1.3.0 // indirect
@@ -194,7 +200,7 @@ require (
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
 	github.com/getlantern/domainfront v0.0.0-20261026202828-9727b2f2a34a // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20261009194109-22f33eaeac6e // indirect
-	github.com/getlantern/kindling v0.0.0-20261111193957-924b15fffbf0 // indirect
+	github.com/getlantern/kindling v0.0.0-20261118035036-ffab9e8f70a3 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
@@ -360,8 +366,8 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
 	go4.org/mem v0.0.0-20240501181205-ae6ca9944745 // indirect
-	golang.getoutline.org/sdk v0.0.21 // indirect
-	golang.getoutline.org/sdk/x v0.1.0 // indirect
+	golang.getoutline.org/sdk v0.1.0 // indirect
+	golang.getoutline.org/sdk/x v0.3.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10 // indirect
