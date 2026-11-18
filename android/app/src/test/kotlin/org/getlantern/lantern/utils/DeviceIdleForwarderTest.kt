@@ -5,10 +5,12 @@ import org.junit.Test
 import java.util.concurrent.Executor
 
 class DeviceIdleForwarderTest {
+    private var idle = false
     private val calls = mutableListOf<String>()
     private val queued = mutableListOf<Runnable>()
     private val forwarder = DeviceIdleForwarder(
         Executor { queued.add(it) },
+        isIdle = { idle },
         pause = { calls.add("pause") },
         wake = { calls.add("wake") },
     )
@@ -19,26 +21,28 @@ class DeviceIdleForwarderTest {
     }
 
     @Test
-    fun idleChangesPauseAndWakeInOrder() {
-        forwarder.onIdleChanged(true)
-        forwarder.onIdleChanged(false)
-        forwarder.onIdleChanged(true)
+    fun appliesTheIdleStateOffTheCallingThread() {
+        idle = true
+        forwarder.reconcile()
         assertEquals(emptyList<String>(), calls)
-        runQueued()
-        assertEquals(listOf("pause", "wake", "pause"), calls)
-    }
-
-    @Test
-    fun aTunnelStartedDuringDozeIsPaused() {
-        forwarder.onTunnelStarted(true)
         runQueued()
         assertEquals(listOf("pause"), calls)
+
+        idle = false
+        forwarder.reconcile()
+        runQueued()
+        assertEquals(listOf("pause", "wake"), calls)
     }
 
+    // A tunnel start queued while the device was idle runs after Doze has
+    // ended. It must not pause the tunnel the wake just resumed.
     @Test
-    fun aTunnelStartedAwakeIsLeftAlone() {
-        forwarder.onTunnelStarted(false)
+    fun aLateTaskAppliesTheCurrentStateNotTheQueuedOne() {
+        idle = true
+        forwarder.reconcile()
+        idle = false
+        forwarder.reconcile()
         runQueued()
-        assertEquals(emptyList<String>(), calls)
+        assertEquals(listOf("wake", "wake"), calls)
     }
 }

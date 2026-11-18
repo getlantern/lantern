@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.PowerManager
 import lantern.io.mobile.Mobile
+import org.getlantern.lantern.LanternApp
 import org.getlantern.lantern.service.LanternVpnService
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -25,17 +26,20 @@ class VPNStatusReceiver() : BroadcastReceiver() {
             }
 
             PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
-                val idle = context?.getSystemService(PowerManager::class.java)
-                    ?.isDeviceIdleMode ?: return
-                AppLogger.i("VPNStatus", "Device idle mode changed: idle=$idle")
-                deviceIdle.onIdleChanged(idle)
+                AppLogger.i("VPNStatus", "Device idle mode changed: idle=${isDeviceIdle()}")
+                deviceIdle.reconcile()
             }
         }
     }
 
     companion object {
+        private fun isDeviceIdle(): Boolean =
+            LanternApp.application.getSystemService(PowerManager::class.java)
+                ?.isDeviceIdleMode == true
+
         val deviceIdle = DeviceIdleForwarder(
             Executors.newSingleThreadExecutor(),
+            isIdle = ::isDeviceIdle,
             pause = { Mobile.devicePause() },
             wake = { Mobile.deviceWake() },
         )
@@ -49,15 +53,16 @@ class VPNStatusReceiver() : BroadcastReceiver() {
  */
 class DeviceIdleForwarder(
     private val executor: Executor,
+    private val isIdle: () -> Boolean,
     private val pause: () -> Unit,
     private val wake: () -> Unit,
 ) {
-    fun onIdleChanged(idle: Boolean) {
-        executor.execute { if (idle) pause() else wake() }
-    }
-
-    /** A new tunnel starts awake, so it needs pausing only if the device is idle. */
-    fun onTunnelStarted(idle: Boolean) {
-        if (idle) executor.execute { pause() }
+    /**
+     * Applies the device's idle state as of when the task runs, not when it
+     * was queued, so a late task cannot undo a newer change. Pause and wake
+     * are idempotent, so a redundant one does nothing.
+     */
+    fun reconcile() {
+        executor.execute { if (isIdle()) pause() else wake() }
     }
 }

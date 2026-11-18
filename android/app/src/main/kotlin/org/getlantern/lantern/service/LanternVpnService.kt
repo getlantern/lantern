@@ -6,7 +6,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
-import android.os.PowerManager
 import android.os.ParcelFileDescriptor
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.CancellationException
@@ -400,9 +399,7 @@ open class LanternVpnService :
                 )
                 // Radiance restarts come through here too, and every new
                 // tunnel starts awake, even with the device already in Doze.
-                VPNStatusReceiver.deviceIdle.onTunnelStarted(
-                    getSystemService(PowerManager::class.java)?.isDeviceIdleMode == true
-                )
+                VPNStatusReceiver.deviceIdle.reconcile()
                 attempt.publish {
                     VpnStatusManager.postVPNStatus(VPNStatus.Connected)
                     notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
