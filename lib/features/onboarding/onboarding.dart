@@ -249,38 +249,41 @@ class _OnboardingState extends ConsumerState<Onboarding> {
   Widget slide3(BuildContext context, ValueNotifier<RoutingMode> selectedMode) {
     final textTheme = TextTheme.of(context);
 
-    return Column(
-      children: <Widget>[
-        SizedBox(height: 24.0),
-        Text(
-          'choose_your_routing_mode'.i18n,
-          style: textTheme.headlineSmall!.copyWith(color: context.textPrimary),
-        ),
-        SizedBox(height: 24.0),
-        AppFocusable(
-          onActivate: () => selectedMode.value = RoutingMode.smart,
-          borderRadius: BorderRadius.circular(16.0),
-          child: RouteModeContainer(
-            mode: RoutingMode.smart,
-            isSelected: selectedMode.value == RoutingMode.smart,
+    // Scrolls rather than clips at large text sizes.
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          SizedBox(height: 24.0),
+          Text(
+            'choose_your_routing_mode'.i18n,
+            style: textTheme.headlineSmall!.copyWith(color: context.textPrimary),
           ),
-        ),
-        SizedBox(height: 16.0),
-        AppFocusable(
-          onActivate: () => selectedMode.value = RoutingMode.full,
-          borderRadius: BorderRadius.circular(16.0),
-          child: RouteModeContainer(
-            mode: RoutingMode.full,
-            isSelected: selectedMode.value == RoutingMode.full,
+          SizedBox(height: 24.0),
+          AppFocusable(
+            onActivate: () => selectedMode.value = RoutingMode.smart,
+            borderRadius: BorderRadius.circular(16.0),
+            child: RouteModeContainer(
+              mode: RoutingMode.smart,
+              isSelected: selectedMode.value == RoutingMode.smart,
+            ),
           ),
-        ),
-        Spacer(),
-        InfoRow(
-          minTileHeight: 35,
-          text: 'change_anytime_in_routing_mode_settings'.i18n,
-        ),
-        SizedBox(height: 40),
-      ],
+          SizedBox(height: 16.0),
+          AppFocusable(
+            onActivate: () => selectedMode.value = RoutingMode.full,
+            borderRadius: BorderRadius.circular(16.0),
+            child: RouteModeContainer(
+              mode: RoutingMode.full,
+              isSelected: selectedMode.value == RoutingMode.full,
+            ),
+          ),
+          SizedBox(height: 24.0),
+          InfoRow(
+            minTileHeight: 35,
+            text: 'change_anytime_in_routing_mode_settings'.i18n,
+          ),
+          SizedBox(height: 40),
+        ],
+      ),
     );
   }
 }
