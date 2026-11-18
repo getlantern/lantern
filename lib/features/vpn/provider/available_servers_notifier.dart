@@ -37,7 +37,6 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
 
   /// Fetches the available servers from the Lantern.
   Future<Either<Failure, AvailableServers>> fetchAvailableServers() async {
-    appLogger.debug('Fetching available servers from Lantern...');
     return await ref.read(lanternServiceProvider).getLanternAvailableServers();
   }
 
@@ -150,6 +149,7 @@ class AvailableServersNotifier extends _$AvailableServersNotifier {
             autoLocation: AutoLocation(
               countryCode: fastest.location.countryCode,
               country: country,
+              city: city,
               displayName: '$country - $city',
               tag: fastest.tag,
             ),
