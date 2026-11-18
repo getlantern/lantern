@@ -1,0 +1,119 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+import subprocess
+import tempfile
+import unittest
+
+
+SCRIPT = Path(__file__).resolve().parent / "upload-testflight.sh"
+TIMEOUT = "ERROR: ... Error Domain=NSURLErrorDomain Code=-1001 \"The request timed out.\"\nReceived status -19235."
+REDUNDANT = "ERROR ITMS-4238: Redundant Binary Upload. You've already uploaded a build with build number '1234'."
+DUPLICATE = "ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE The bundle version must be higher than the previously uploaded version: ‘1234’."
+NEWER_BUILD = "ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE The bundle version must be higher than the previously uploaded version: ‘1240’."
+INVALID = "ERROR: Invalid Provisioning Profile."
+
+
+class UploadTestflightTest(unittest.TestCase):
+    def run_upload(self, *outcomes: tuple[int, str], build_number: str = "1234") -> tuple[subprocess.CompletedProcess[str], int, Path, list[str]]:
+        work = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        bin_dir = work / "bin"
+        bin_dir.mkdir()
+        responses = work / "responses"
+        for i, (code, output) in enumerate(outcomes, 1):
+            (responses / str(i)).mkdir(parents=True)
+            (responses / str(i) / "code").write_text(str(code))
+            (responses / str(i) / "output").write_text(output)
+        calls = work / "calls"
+        xcrun = bin_dir / "xcrun"
+        xcrun.write_text(
+            "#!/usr/bin/env bash\n"
+            f"n=$(( $(cat {calls} 2>/dev/null || echo 0) + 1 )); echo $n > {calls}\n"
+            f"[ -f \"$HOME/private_keys/AuthKey_KEYID.p8\" ] || {{ echo missing key; exit 99; }}\n"
+            f"cat {responses}/$n/output; exit $(cat {responses}/$n/code)\n"
+        )
+        xcrun.chmod(0o755)
+        sleeps = work / "sleeps"
+        sleep = bin_dir / "sleep"
+        sleep.write_text(f"#!/usr/bin/env bash\necho \"$1\" >> {sleeps}\n")
+        sleep.chmod(0o755)
+        home = work / "home"
+        home.mkdir()
+        env = {
+            **os.environ,
+            "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
+            "HOME": str(home),
+            "APPSTORE_API_KEY_ID": "KEYID",
+            "APPSTORE_ISSUER_ID": "issuer",
+            "APPSTORE_API_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----",
+            "BUILD_NUMBER": build_number,
+            "UPLOAD_BACKOFF": "1",
+        }
+        result = subprocess.run(
+            ["bash", str(SCRIPT), "app.ipa"], env=env, capture_output=True, text=True, timeout=60,
+        )
+        count = int(calls.read_text()) if calls.exists() else 0
+        delays = sleeps.read_text().split() if sleeps.exists() else []
+        return result, count, home, delays
+
+    def test_success_needs_one_attempt_and_removes_the_key(self) -> None:
+        result, calls, home, delays = self.run_upload((0, "No errors uploading"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, 1)
+        self.assertEqual(delays, [])
+        self.assertFalse((home / "private_keys/AuthKey_KEYID.p8").exists())
+
+    def test_transient_failure_is_retried(self) -> None:
+        result, calls, _, delays = self.run_upload((1, TIMEOUT), (0, "No errors uploading"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, 2)
+        self.assertEqual(delays, ["1"])
+
+    def test_redundant_upload_after_a_lost_response_succeeds(self) -> None:
+        result, calls, _, delays = self.run_upload((1, TIMEOUT), (1, REDUNDANT))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, 2)
+
+    def test_duplicate_of_this_build_after_a_lost_response_succeeds(self) -> None:
+        result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, DUPLICATE))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, 2)
+
+    def test_duplicate_of_a_newer_build_fails(self) -> None:
+        result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, NEWER_BUILD))
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(calls, 2)
+
+    def test_dotted_build_number_matches_literally(self) -> None:
+        other = "Redundant Binary Upload. You've already uploaded a build with build number '102'."
+        result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, other), build_number="1.2")
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(calls, 2)
+        same = "Redundant Binary Upload. You've already uploaded a build with build number '1.2'."
+        result, calls, _, _ = self.run_upload((1, TIMEOUT), (1, same), build_number="1.2")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_redundant_upload_on_first_attempt_fails(self) -> None:
+        result, calls, _, delays = self.run_upload((1, REDUNDANT))
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(calls, 1)
+        self.assertEqual(delays, [])
+
+    def test_other_errors_fail_without_retry(self) -> None:
+        result, calls, _, delays = self.run_upload((1, INVALID))
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(calls, 1)
+        self.assertEqual(delays, [])
+
+    def test_gives_up_after_the_attempt_limit(self) -> None:
+        result, calls, home, delays = self.run_upload(*[(1, TIMEOUT)] * 4)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(calls, 4)
+        self.assertEqual(delays, ["1", "2", "3"])
+        self.assertIn("giving up after 4 attempts", result.stderr)
+        self.assertFalse((home / "private_keys/AuthKey_KEYID.p8").exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

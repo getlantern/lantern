@@ -17,6 +17,10 @@ class SettingTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? subtitleColor;
 
+  /// A short status line under [subtitle], shown as given.
+  final String? note;
+  final Color? noteColor;
+
   const SettingTile({
     super.key,
     this.tileKey,
@@ -28,6 +32,8 @@ class SettingTile extends StatelessWidget {
     this.child,
     this.subtitle,
     this.subtitleColor,
+    this.note,
+    this.noteColor,
   });
 
   @override
@@ -91,11 +97,21 @@ class SettingTile extends StatelessWidget {
             ),
             if (subtitle != null && subtitle!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(left: 32.0),
+                padding: const EdgeInsetsDirectional.only(start: 32.0),
                 child: Text(
                   subtitle!.capitalize,
                   style: textTheme.labelLarge!.copyWith(
                     color: subtitleColor ?? context.textSecondary,
+                  ),
+                ),
+              ),
+            if (note != null && note!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 32.0),
+                child: Text(
+                  note!,
+                  style: textTheme.labelLarge!.copyWith(
+                    color: noteColor ?? context.textTertiary,
                   ),
                 ),
               ),

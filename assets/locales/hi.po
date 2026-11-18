@@ -334,9 +334,6 @@ msgstr "स्वचालित मोड"
 msgid "manual"
 msgstr "मैनुअल"
 
-msgid "enter_url_or_ip"
-msgstr "URL या IP पता दर्ज करें"
-
 msgid "installed_apps"
 msgstr "इंस्टॉल किए गए ऐप"
 
@@ -348,9 +345,6 @@ msgstr "वेबसाइट खोजें"
 
 msgid "mode"
 msgstr "मोड"
-
-msgid "use_commas"
-msgstr "कई URL को अलग करने के लिए कॉमा का उपयोग करें"
 
 msgid "deep_link_expired"
 msgstr "इस लिंक की समय सीमा समाप्त हो गई है। कृपया नया लिंक अनुरोध करें।"
@@ -1136,12 +1130,6 @@ msgstr "आपके फीडबैक के लिए धन्यवाद!"
 msgid "no_apps_selected"
 msgstr "कोई ऐप चयनित नहीं"
 
-msgid "deselect_all"
-msgstr "सभी को अचयनित करें"
-
-msgid "select_all"
-msgstr "सभी चुनें"
-
 msgid "no_websites_selected"
 msgstr "कोई वेबसाइट चयनित नहीं"
 
@@ -1419,9 +1407,6 @@ msgstr ""
 "स्मार्ट रूटिंग क्षेत्र-विशिष्ट नियमों का उपयोग करके स्वचालित रूप से VPN की "
 "आवश्यकता वाले ट्रैफ़िक को Lantern के माध्यम से भेजती है। अन्य सभी ट्रैफ़िक "
 "गति और विश्वसनीयता के लिए सीधे जाते हैं।"
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "VPN बायपास करने के लिए ऐप्स और वेबसाइट जोड़ें"
 
 msgid "lantern_pro_license_applied"
 msgstr "आपका Lantern Pro लाइसेंस आपके मौजूदा खाते पर लागू किया जाएगा"
@@ -1729,21 +1714,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "फिर भी जोड़ें"
-
-msgid "bypass_all_warning_title"
-msgstr "सभी ऐप्स को बाईपास सूची में जोड़ें?"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"इसमें %s जैसे ब्राउज़र शामिल हैं। बाईपास सूची के ऐप्स सीधे कनेक्ट होते हैं, "
-"Lantern की सुरक्षा के बिना। जिन देशों में कुछ वेबसाइटें अवरुद्ध हैं, वहाँ "
-"कुछ साइटें लोड होना बंद हो जाएँगी।"
-
-msgid "add_all_except_browsers"
-msgstr "ब्राउज़र छोड़कर सभी जोड़ें"
-
-msgid "add_all_anyway"
-msgstr "फिर भी सभी जोड़ें"
 
 msgid "bypass_app_first_time_title"
 msgstr "इस ऐप के लिए VPN बाईपास करें?"
@@ -2188,15 +2158,6 @@ msgstr "अस्वीकार करें"
 msgid "personal_proxy_fallback_group"
 msgstr "अभी %s तक नहीं पहुंच पा रहे। आपकी निजी प्रॉक्सी पर स्विच किया गया।"
 
-msgid "become_means_title"
-msgstr "पर्सनल प्रॉक्सी होने का क्या मतलब है"
-
-msgid "become_means_seen"
-msgstr "वे देख सकते हैं कि आप कब कनेक्ट हैं। केवल उन्हीं लोगों के आमंत्रण स्वीकार करें जिन्हें आप जानते हैं।"
-
-msgid "become_means_remove"
-msgstr "कनेक्शन को कभी भी हटाएं।"
-
 msgid "help_friend_form_title"
 msgstr "जिसकी आप मदद कर रहे हैं, उसका लिंक पेस्ट करें"
 
@@ -2261,10 +2222,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Lantern पर आप मुझे अपने निजी प्रॉक्सी के रूप में इस्तेमाल कर सकते हैं, ताकि आप मेरे कनेक्शन से ऑनलाइन हो सकें। Lantern में \"सर्वर चयन\" खोलें, ऊपर ⋮ मेनू पर टैप करें, \"निजी प्रॉक्सी आमंत्रित करें\" चुनें और मुझे लिंक भेजें।"
 
 msgid "add_executable"
-msgstr "एक्ज़ीक्यूटेबल जोड़ें"
-
-msgid "windows_executable_bypass_hint"
-msgstr "VPN को बायपास करने के लिए असली गेम या ऐप की .exe चुनें। लॉन्चर चुनने पर उससे शुरू होने वाले प्रोग्राम शामिल नहीं होते।"
+msgstr ".exe जोड़ें"
 
 msgid "select_windows_executable"
 msgstr "इस कंप्यूटर पर Lantern के अलावा किसी ऐप की .exe फ़ाइल चुनें।"
@@ -2437,8 +2395,113 @@ msgstr "आप उन्हें प्राइवेट लोकेशन �
 msgid "approved_body_locations"
 msgstr "जब %s ऑनलाइन हों, तो आप उन्हें सर्वर लोकेशन मेनू में प्राइवेट लोकेशन के तहत चुन सकते हैं। स्मार्ट लोकेशन उनका अपने आप उपयोग कर सकता है।"
 
-msgid "become_means_traffic_seen"
-msgstr "एक दोस्त ने आपसे मदद मांगी है। Action Mode चालू होने पर वे आपके कनेक्शन के ज़रिए खुले इंटरनेट तक पहुंचते हैं। आप देख सकते हैं कि वे कौन-सी साइटें खोलते हैं, लेकिन यह नहीं कि वे उन पर क्या करते हैं।"
-
 msgid "help_friend_your_name_label"
 msgstr "आपका नाम"
+
+msgid "split_tunnel_off"
+msgstr "बंद"
+
+msgid "split_tunnel_bypass"
+msgstr "बायपास"
+
+msgid "split_tunnel_include_only"
+msgstr "केवल शामिल करें"
+
+msgid "split_tunnel_description"
+msgstr "चुनें कि ऐप और वेबसाइट कैसे कनेक्ट हों"
+
+msgid "split_tunnel_mode"
+msgstr "स्प्लिट टनल मोड:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "चुने गए ऐप और साइट Lantern को बायपास करते हैं"
+
+msgid "split_tunnel_include_description"
+msgstr "केवल चुने गए ऐप और साइट Lantern का उपयोग करते हैं"
+
+msgid "split_tunnel_switch_include"
+msgstr "केवल शामिल पर स्विच करें?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "बायपास पर स्विच करें?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "सिर्फ़ आपकी “केवल शामिल करें” सूचियों के ऐप और साइटें Lantern का उपयोग करेंगी। आपके ब्राउज़र सहित बाकी सब कुछ बिना सुरक्षा के सीधे कनेक्ट होगा। जब तक ये सूचियां खाली हैं, सब कुछ Lantern का उपयोग करता है। वापस स्विच करने के लिए आपकी बायपास सूचियां सुरक्षित रखी जाती हैं।"
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "आपकी बायपास सूचियों के ऐप और साइटें सीधे कनेक्ट होंगी। बाकी सब कुछ Lantern का उपयोग करेगा। वापस स्विच करने के लिए आपकी “केवल शामिल करें” सूचियां सुरक्षित रखी जाती हैं।"
+
+msgid "split_tunnel_switch"
+msgstr "स्विच करें"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 ऐप"
+
+msgid "split_tunnel_app_count"
+msgstr "%d ऐप"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 साइट"
+
+msgid "split_tunnel_site_count"
+msgstr "%d साइटें"
+
+msgid "apps_using_vpn"
+msgstr "VPN इस्तेमाल करने वाले ऐप (%d)"
+
+msgid "websites_using_vpn"
+msgstr "VPN इस्तेमाल करने वाली वेबसाइटें (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "स्प्लिट टनलिंग लोड नहीं हो सकी। कृपया फिर से कोशिश करें।"
+
+msgid "split_tunnel_update_failed"
+msgstr "स्प्लिट टनलिंग अपडेट नहीं हो सकी। कृपया फिर से कोशिश करें।"
+
+msgid "split_tunnel_unavailable"
+msgstr "उपलब्ध नहीं"
+
+msgid "split_tunnel_enter_website"
+msgstr "कोई वेबसाइट या URL दर्ज करें"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL या *.ir दर्ज करें"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "सभी .ir साइटों को एक साथ शामिल करने के लिए *.ir जोड़ें। यह *.cn, *.ru आदि के लिए भी काम करता है। कई साइटों को कॉमा से अलग करें।"
+
+msgid "split_tunnel_invalid_website"
+msgstr "कोई मान्य वेबसाइट या URL दर्ज करें। वाइल्डकार्ड *. से शुरू होने चाहिए और IP पते समर्थित नहीं हैं।"
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s पहले से जोड़ा गया है।"
+
+msgid "clear"
+msgstr "साफ़ करें"
+
+msgid "personal_proxy_path_connecting"
+msgstr "कनेक्ट हो रहा है…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "फिर से कनेक्ट हो रहा है…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "उपलब्ध नहीं"
+
+msgid "trust_understand_risks"
+msgstr "मैंने जोखिम समझ लिए हैं"
+
+msgid "help_friend_trust_warning"
+msgstr "केवल भरोसेमंद लोगों की मदद करें।"
+
+msgid "help_friend_trust_title"
+msgstr "जिसकी मदद करें, उस पर भरोसा करें"
+
+msgid "help_friend_trust_message_one"
+msgstr "वे जिन वेबसाइटों पर जाते हैं, उन्हें उनका ट्रैफ़िक आपके कनेक्शन से आता दिखेगा। अगर वे कुछ गैरकानूनी करते हैं, तो इसका पता आप तक लगाया जा सकता है। केवल उन्हीं लोगों की मदद करें जिन पर आप भरोसा करते हैं।"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern पर्सनल प्रॉक्सी को मैनेज या मॉनिटर नहीं करता।"
+
+msgid "help_friend_trust_message_three"
+msgstr "आप Action Mode टैब से किसी भी समय कनेक्शन हटा सकते हैं।"

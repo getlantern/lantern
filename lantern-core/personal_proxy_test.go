@@ -30,6 +30,20 @@ func TestPersonalProxyStatusAnswersEachFriend(t *testing.T) {
 		personalProxyStatusJSON(context.Background(), read))
 }
 
+func TestPersonalProxyStatusPassesTheRoomsPathThrough(t *testing.T) {
+	read := func(context.Context) ([]vpn.PersonalProxyStatus, error) {
+		return []vpn.PersonalProxyStatus{
+			{Tag: "helper-0123456789ab", Rooms: true, RoomsPath: vpn.RoomsPathReconnecting, RoomsPathSince: 1700000000},
+			{Tag: "helper-ba9876543210", Rooms: true, RoomsPath: vpn.RoomsPathUnknown},
+		}, nil
+	}
+	assert.JSONEq(t, `{"statuses":[
+		{"tag":"helper-0123456789ab","direct":false,"reverse":false,"rooms":true,
+			"rooms_path":"reconnecting","rooms_path_since":1700000000},
+		{"tag":"helper-ba9876543210","direct":false,"reverse":false,"rooms":true,"rooms_path":"unknown"}]}`,
+		personalProxyStatusJSON(context.Background(), read))
+}
+
 func TestPersonalProxyStatusIsAnEmptyListWithNoFriends(t *testing.T) {
 	read := func(context.Context) ([]vpn.PersonalProxyStatus, error) { return nil, nil }
 	assert.JSONEq(t, `{"statuses":[]}`, personalProxyStatusJSON(context.Background(), read))

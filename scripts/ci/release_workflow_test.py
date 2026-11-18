@@ -53,6 +53,9 @@ with open(os.environ["COMMAND_LOG"], "a") as log:
 if name == os.environ.get("FAIL_COMMAND"):
     sys.exit(1)
 if name == "gh" and sys.argv[1:3] == ["release", "view"]:
+    if os.environ.get("RELEASE_VIEW_ERROR"):
+        print(os.environ["RELEASE_VIEW_ERROR"], file=sys.stderr)
+        sys.exit(1)
     print(os.environ.get("IS_DRAFT", "true"))
 if name == "python3" and sys.argv[1].endswith("generate_update_metadata.py"):
     sys.exit(subprocess.call([sys.executable, *sys.argv[1:]]))
@@ -242,6 +245,50 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(len(self.commands()), 1)
         self.assertEqual(self.commands()[0][1:3], ["release", "view"])
+
+    def test_cleanup_passes_when_draft_is_already_gone(self) -> None:
+        result = self.run_step("Clean up draft release", RELEASE_VIEW_ERROR="release not found")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("already gone", result.stdout)
+        self.assertEqual(len(self.commands()), 1)
+
+    def test_cleanup_fails_on_other_release_view_errors(self) -> None:
+        result = self.run_step("Clean up draft release", RELEASE_VIEW_ERROR="HTTP 502: Bad Gateway")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("HTTP 502", result.stdout)
+        self.assertEqual(len(self.commands()), 1)
+
+    def test_testflight_step_retries_through_the_upload_script(self) -> None:
+        step = next(s for s in self.jobs["upload-testflight"]["steps"] if s["name"] == "Upload to TestFlight")
+        self.assertEqual(step["env"]["APPSTORE_API_KEY_ID"], "${{ secrets.APPSTORE_API_KEY_ID }}")
+        self.assertEqual(step["env"]["APPSTORE_ISSUER_ID"], "${{ secrets.APPSTORE_ISSUER_ID }}")
+        self.assertEqual(step["env"]["APPSTORE_API_PRIVATE_KEY"], "${{ secrets.APPSTORE_API_PRIVATE_KEY }}")
+        self.assertEqual(step["env"]["IPA"], "${{ steps.filename.outputs.ipa }}")
+        self.assertEqual(step["env"]["BUILD_NUMBER"], "${{ github.run_number }}")
+        script = self.work / "src/scripts/ci/upload-testflight.sh"
+        script.parent.mkdir(parents=True)
+        shutil.copy(ROOT / "scripts/ci/upload-testflight.sh", script)
+        (self.bin / "sleep").write_text("#!/usr/bin/env bash\n")
+        (self.bin / "xcrun").write_text(
+            "#!/usr/bin/env bash\n"
+            'echo "$*" >> "$COMMAND_LOG.xcrun"\n'
+            '[ -f "$COMMAND_LOG.timedout" ] && exit 0\n'
+            'touch "$COMMAND_LOG.timedout"; echo "NSURLErrorDomain Code=-1001"; exit 1\n'
+        )
+        for name in ("sleep", "xcrun"):
+            (self.bin / name).chmod(0o755)
+        home = self.work / "home"
+        home.mkdir()
+        result = self.run_step(
+            "Upload to TestFlight", job="upload-testflight", HOME=str(home), IPA="lantern-installer-nightly.ipa",
+            APPSTORE_API_KEY_ID="KEYID", APPSTORE_ISSUER_ID="issuer", APPSTORE_API_PRIVATE_KEY="key",
+            BUILD_NUMBER="1234",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = (self.work / "commands.jsonl.xcrun").read_text().splitlines()
+        self.assertEqual(len(calls), 2)
+        self.assertIn("--file lantern-installer-nightly.ipa", calls[0])
+        self.assertIn("--apiKey KEYID --apiIssuer issuer", calls[0])
 
     def test_alias_copy_failure_stops_verification(self) -> None:
         result = self.run_step("Promote and verify download aliases", FAIL_COMMAND="aws")

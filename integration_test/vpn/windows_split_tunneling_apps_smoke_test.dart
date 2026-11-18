@@ -8,12 +8,14 @@ import 'package:file_selector_platform_interface/file_selector_platform_interfac
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/widgets/search_bar.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_data_provider.dart';
 import 'package:lantern/features/split_tunneling/provider/apps_notifier.dart';
+import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/features/split_tunneling/utils/split_tunnel_app_utils.dart';
 import 'package:lantern/features/split_tunneling/windows_executable_picker.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -44,11 +46,11 @@ class _ExecutablePicker extends FileSelectorPlatform {
   }
 }
 
-T _require<T>(Either<Failure, T> result, String operation) =>
-    result.fold((_) => fail('$operation failed'), (value) => value);
-
-Finder _appRow(String path) =>
-    find.byKey(ValueKey('split-tunnel-app:${windowsAppPathId(path)}'));
+Finder _appRow(String path, {bool selected = true}) => find.byKey(
+  ValueKey(
+    'split-tunnel-app:${selected ? 'processPath:' : ''}${windowsAppPathId(path)}',
+  ),
+);
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
   await WidgetWaitUtils.waitForFinder(
@@ -67,10 +69,11 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
 Future<String> _addExecutable(
   WidgetTester tester,
   _ExecutablePicker picker,
-  String path,
-) async {
+  String path, {
+  bool bypass = true,
+}) async {
   final service = sl<LanternService>();
-  Future<List<String>> readPaths() async => _require(
+  Future<List<String>> readPaths() async => requireSplitTunnelResult(
     await service.getSplitTunnelItems(SplitTunnelFilterType.processPath),
     'Read executable rules',
   );
@@ -93,6 +96,11 @@ Future<String> _addExecutable(
       matching: find.byType(AlertDialog),
     );
     if (confirmation.evaluate().isNotEmpty) {
+      expect(
+        bypass,
+        isTrue,
+        reason: 'Include only must not show a bypass warning',
+      );
       await _tap(
         tester,
         find.descendant(
@@ -134,7 +142,7 @@ Future<void> _expectRegisteredApps(
   final discovered = await container
       .read(appsDataProvider.future)
       .timeout(const Duration(seconds: 60));
-  final saved = _require(
+  final saved = requireSplitTunnelResult(
     await sl<LanternService>().getSplitTunnelItems(
       SplitTunnelFilterType.processPath,
     ),
@@ -160,7 +168,7 @@ Future<void> _expectRegisteredApps(
     await expectInstalledApp(
       tester,
       query: matches.first.name,
-      row: _appRow(path),
+      row: _appRow(path, selected: false),
     );
     debugPrint('Discovered ${entry.key} in Installed Apps: $path');
   }
@@ -309,7 +317,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'Windows launcher children require an explicit executable rule',
+    'Windows executable selections route both modes and clear during search',
     (tester) async {
       expect(Platform.isWindows, isTrue);
       const probePath = String.fromEnvironment('SPLIT_TUNNEL_PROBE');
@@ -409,29 +417,23 @@ void main() {
         tester.element(finders.homeScreen),
       );
       final service = sl<LanternService>();
-      final wasEnabled = _require(
-        await service.isSplitTunnelingEnabled(),
-        'Read split tunneling',
-      );
-      final wasSmart = _require(
+      final original = await readSplitTunnelBackup(service);
+      final wasSmart = requireSplitTunnelResult(
         await service.isSmartRoutingEnabled(),
         'Read routing mode',
       );
       addTearDown(() async {
-        _require(
+        requireSplitTunnelResult(
           await service.setRoutingMode(wasSmart),
           'Restore routing mode',
         );
       });
       addTearDown(() async {
-        _require(
-          await service.setSplitTunnelingEnabled(wasEnabled),
-          'Restore split tunneling',
-        );
+        await restoreSplitTunnelBackup(service, original);
       });
       for (final path in [launcher, childLong, legacyRule]) {
         addTearDown(() async {
-          _require(
+          requireSplitTunnelResult(
             await service.removeSplitTunnelItem(
               SplitTunnelFilterType.processPath,
               path,
@@ -441,10 +443,14 @@ void main() {
         });
       }
       try {
-        _require(await service.setRoutingMode(false), 'Enable full tunnel');
-        _require(
-          await service.setSplitTunnelingEnabled(true),
-          'Enable split tunneling',
+        requireSplitTunnelResult(
+          await service.setRoutingMode(false),
+          'Enable full tunnel',
+        );
+        await resetSplitTunnel(service, enabled: true);
+        expect(
+          await container.read(splitTunnelProvider.notifier).refresh(),
+          isNull,
         );
 
         final picker = _ExecutablePicker();
@@ -547,7 +553,9 @@ void main() {
         await _tap(
           tester,
           find.byKey(
-            ValueKey('toggle-split-tunnel-app:${windowsAppPathId(childRule)}'),
+            ValueKey(
+              'toggle-split-tunnel-app:processPath:${windowsAppPathId(childRule)}',
+            ),
           ),
         );
         await WidgetWaitUtils.waitForFinderToDisappear(
@@ -570,8 +578,105 @@ void main() {
           accepts: (ip) => ip != baseline,
           reason: 'Removing the child rule did not restore tunneled traffic',
         );
+
+        appRouter.popUntilRoot();
+        await tester.pump(const Duration(milliseconds: 400));
+        await _tap(
+          tester,
+          find.byKey(const Key('home.split_tunneling_setting')),
+        );
+        await _tap(
+          tester,
+          find.byKey(const Key('split_tunneling.mode.include')),
+        );
+        await _tap(
+          tester,
+          find.byKey(const Key('split_tunneling.mode.confirm')),
+        );
+        await WidgetWaitUtils.waitForFinderToDisappear(
+          tester,
+          find.byKey(const Key('split_tunneling.mode.confirm')),
+          timeout: const Duration(seconds: 30),
+        );
+        await _tap(tester, find.byKey(const Key('split_tunneling.apps_tile')));
+        expect(
+          await container.read(splitTunnelProvider.notifier).refresh(),
+          isNull,
+        );
+        final included = await container.read(splitTunnelProvider.future);
+        expect(included.policy, SplitTunnelPolicy.includeOnly);
+        expect(included.appCount, 0);
+        expect(included.websiteCount, 0);
+        await _waitForIP(
+          tester,
+          launcher,
+          child: child,
+          accepts: (ip) => ip != baseline,
+          reason: 'Empty Include only did not keep the child tunneled',
+        );
+        await _addExecutable(tester, picker, child, bypass: false);
+        await _waitForIP(
+          tester,
+          launcher,
+          child: child,
+          accepts: (ip) => ip != baseline,
+          reason: 'Include only did not tunnel the selected child',
+        );
+        for (final executable in [launcher, unrelated]) {
+          await _waitForIP(
+            tester,
+            executable,
+            accepts: (ip) => ip == baseline,
+            reason: 'Include only tunneled an unselected executable',
+          );
+        }
+
+        final search = find.byType(AppSearchBar);
+        await _tap(
+          tester,
+          find.descendant(of: search, matching: find.byType(IconButton)).last,
+        );
+        await tester.enterText(
+          find.descendant(of: search, matching: find.byType(TextField)),
+          'no matching applications',
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(_appRow(childRule), findsNothing);
+        await _tap(
+          tester,
+          find.byKey(const Key('split_tunneling.apps.deselect_all')),
+        );
+        final clearDeadline = DateTime.now().add(const Duration(seconds: 30));
+        while (true) {
+          await tester.pump(const Duration(milliseconds: 200));
+          final cleared = requireSplitTunnelResult(
+            await service.getSplitTunnelState(),
+            'Read cleared selectors',
+          );
+          if (cleared.appCount == 0) {
+            for (final type in SplitTunnelState.appTypes) {
+              expect(
+                cleared.selectors(type),
+                isEmpty,
+                reason: 'Clear left hidden selectors',
+              );
+            }
+            break;
+          }
+          if (DateTime.now().isAfter(clearDeadline)) {
+            fail('Clear during search did not reach the daemon');
+          }
+        }
+        await _waitForIP(
+          tester,
+          launcher,
+          child: child,
+          accepts: (ip) => ip != baseline,
+          reason:
+              'Clearing Include only selections did not restore tunneled traffic',
+        );
       } finally {
-        _require(
+        requireSplitTunnelResult(
           await service.stopVPN().timeout(const Duration(seconds: 45)),
           'Disconnect after app split tunneling smoke',
         );
@@ -585,6 +690,6 @@ void main() {
         );
       }
     },
-    timeout: const Timeout(Duration(minutes: 10)),
+    timeout: const Timeout(Duration(minutes: 15)),
   );
 }

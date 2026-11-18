@@ -7,6 +7,7 @@ import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/referral_attach_response.dart';
@@ -31,6 +32,9 @@ class LanternService implements LanternCoreService {
   final LanternPlatformService _platformService;
 
   String? _syncedTimeZone;
+
+  LanternCoreService get _core =>
+      PlatformUtils.isFFISupported ? _ffiService : _platformService;
 
   LanternService({
     required LanternFFIService ffiService,
@@ -338,19 +342,28 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, SplitTunnelState>> getSplitTunnelState() =>
+      _core.getSplitTunnelState();
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> switchSplitTunnelPolicy(
+    String policy,
+  ) => _core.switchSplitTunnelPolicy(policy);
+
+  @override
+  Future<Either<Failure, SplitTunnelState>> clearSplitTunnelApps() =>
+      _core.clearSplitTunnelApps();
+
+  @override
+  Future<Either<Failure, String>> normalizeSplitTunnelWebsite(String input) =>
+      _core.normalizeSplitTunnelWebsite(input);
+
+  @override
   Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.setSplitTunnelingEnabled(enabled);
     }
     return _platformService.setSplitTunnelingEnabled(enabled);
-  }
-
-  @override
-  Future<Either<Failure, bool>> isSplitTunnelingEnabled() {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.isSplitTunnelingEnabled();
-    }
-    return _platformService.isSplitTunnelingEnabled();
   }
 
   @override
@@ -889,28 +902,6 @@ class LanternService implements LanternCoreService {
       return _ffiService.isSystemExtensionInstalled();
     }
     return _platformService.isSystemExtensionInstalled();
-  }
-
-  @override
-  Future<Either<Failure, Unit>> addAllItems(
-    SplitTunnelFilterType type,
-    List<String> value,
-  ) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.addAllItems(type, value);
-    }
-    return _platformService.addAllItems(type, value);
-  }
-
-  @override
-  Future<Either<Failure, Unit>> removeAllItems(
-    SplitTunnelFilterType type,
-    List<String> value,
-  ) {
-    if (PlatformUtils.isFFISupported) {
-      return _ffiService.removeAllItems(type, value);
-    }
-    return _platformService.removeAllItems(type, value);
   }
 
   @override

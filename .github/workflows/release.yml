@@ -421,7 +421,8 @@ jobs:
             scripts/ci/generate_update_metadata_test.py \
             scripts/ci/verify_release_alignment_test.py \
             scripts/ci/verify_update_service_test.py \
-            scripts/ci/release_workflow_test.py
+            scripts/ci/release_workflow_test.py \
+            scripts/ci/upload_testflight_test.py
 
       - name: Set up Go
         uses: ./.github/actions/setup-go
@@ -995,13 +996,23 @@ jobs:
           [[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_NAME="${FULL_NAME}-${BUILD_TYPE}"
           echo "ipa=${FULL_NAME}.ipa" >> "$GITHUB_OUTPUT"
 
-      - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v3.0.1
+      - name: Checkout upload script
+        uses: actions/checkout@v4
         with:
-          app-path: ${{ steps.filename.outputs.ipa }}
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          ref: ${{ github.sha }}
+          path: src
+          sparse-checkout: scripts/ci/upload-testflight.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Upload to TestFlight
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          IPA: ${{ steps.filename.outputs.ipa }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: bash src/scripts/ci/upload-testflight.sh "$IPA"
 
   publish-update-metadata:
     needs:
@@ -1273,7 +1284,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # A failed API response may still have published the release.
-          is_draft="$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)"
+          if ! is_draft="$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft 2>view_error)"; then
+            cat view_error
+            # A re-run finds the draft deleted by the earlier attempt.
+            if grep -qi "release not found" view_error; then
+              echo "Draft release $RELEASE_TAG is already gone"
+              exit 0
+            fi
+            exit 1
+          fi
           if [[ "$is_draft" != "true" ]]; then
             echo "Release is public; preserving it for recovery."
             exit 0

@@ -31,8 +31,7 @@ class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
     useEffect(() {
       if (serverState.status == 'EventTypeProvisioningCompleted') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          appLogger.info("Private server deployment completed successfully.",
-              serverState.data);
+          appLogger.info("Private server deployment completed successfully.");
           ref
               .read(availableServersProvider.notifier)
               .forceFetchAvailableServers();

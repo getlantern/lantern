@@ -341,9 +341,6 @@ msgstr "الوضع التلقائي"
 msgid "manual"
 msgstr "يدوي"
 
-msgid "enter_url_or_ip"
-msgstr "أدخل الرابط أو عنوان IP"
-
 msgid "installed_apps"
 msgstr "التطبيقات المثبتة"
 
@@ -355,9 +352,6 @@ msgstr "البحث عن المواقع"
 
 msgid "mode"
 msgstr "الوضع"
-
-msgid "use_commas"
-msgstr "استخدم الفواصل لفصل روابط متعددة"
 
 msgid "deep_link_expired"
 msgstr "انتهت صلاحية هذا الرابط. يرجى طلب رابط جديد."
@@ -1121,12 +1115,6 @@ msgstr "شكرًا لملاحظاتك!"
 msgid "no_apps_selected"
 msgstr "لم يتم تحديد أي تطبيقات"
 
-msgid "deselect_all"
-msgstr "إلغاء تحديد الكل"
-
-msgid "select_all"
-msgstr "تحديد الكل"
-
 msgid "no_websites_selected"
 msgstr "لم يتم تحديد أي مواقع"
 
@@ -1398,9 +1386,6 @@ msgstr ""
 "يستخدم التوجيه الذكي قواعد خاصة بالمنطقة لإرسال حركة المرور التي تحتاج إلى "
 "VPN عبر Lantern تلقائياً. يتم توجيه جميع حركة المرور الأخرى مباشرة للحصول "
 "على السرعة والموثوقية."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "أضف التطبيقات والمواقع لتجاوز VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "سيتم تطبيق ترخيص Lantern Pro الخاص بك على حسابك الحالي"
@@ -1697,21 +1682,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "الإضافة على أي حال"
-
-msgid "bypass_all_warning_title"
-msgstr "هل تريد إضافة جميع التطبيقات إلى قائمة التجاوز؟"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"يشمل ذلك متصفحات مثل %s. تتصل التطبيقات الموجودة في قائمة التجاوز مباشرة، "
-"بدون حماية Lantern. في البلدان التي تحجب مواقع معينة، ستتوقف بعض المواقع عن "
-"التحميل."
-
-msgid "add_all_except_browsers"
-msgstr "إضافة الكل باستثناء المتصفحات"
-
-msgid "add_all_anyway"
-msgstr "إضافة الكل على أي حال"
 
 msgid "bypass_app_first_time_title"
 msgstr "هل تريد تجاوز VPN لهذا التطبيق؟"
@@ -2154,15 +2124,6 @@ msgstr "رفض"
 msgid "personal_proxy_fallback_group"
 msgstr "تعذّر الوصول إلى %s حاليًا. تم التبديل إلى الوكلاء الشخصيون."
 
-msgid "become_means_title"
-msgstr "ماذا يعني أن تكون وكيلا شخصيا"
-
-msgid "become_means_seen"
-msgstr "يمكنه رؤية وقت اتصالك. لا تقبل الدعوات إلا من أشخاص تعرفهم."
-
-msgid "become_means_remove"
-msgstr "يمكنك إزالة الاتصال في أي وقت."
-
 msgid "help_friend_form_title"
 msgstr "الصق الرابط من الشخص الذي تساعده"
 
@@ -2227,10 +2188,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "يمكنني أن أكون الوكيل الشخصي لك على Lantern، لتتصل بالإنترنت عبر اتصالي. في Lantern، افتح \"اختيار الخادم\"، واضغط على قائمة ⋮ في الأعلى، واختر \"دعوة وكيل شخصي\" وأرسل إليّ الرابط."
 
 msgid "add_executable"
-msgstr "إضافة ملف تنفيذي"
-
-msgid "windows_executable_bypass_hint"
-msgstr "اختر ملف .exe الفعلي للعبة أو التطبيق لتجاوز VPN. اختيار المشغّل لا يشمل البرامج التي يفتحها."
+msgstr "إضافة .exe"
 
 msgid "select_windows_executable"
 msgstr "اختر ملف .exe لتطبيق على هذا الكمبيوتر، غير Lantern."
@@ -2403,8 +2361,113 @@ msgstr "يمكنك إزالته في أي وقت من إدارة المواقع 
 msgid "approved_body_locations"
 msgstr "عندما يكون %s متصلاً، يمكنك اختياره ضمن المواقع الخاصة في قائمة مواقع الخوادم. قد يستخدمه الموقع الذكي تلقائيًا."
 
-msgid "become_means_traffic_seen"
-msgstr "طلب منك صديق المساعدة. عند تشغيل Action Mode، يصل إلى الإنترنت المفتوح عبر اتصالك. يمكنك رؤية المواقع التي يزورها، لكن ليس ما يفعله فيها."
-
 msgid "help_friend_your_name_label"
 msgstr "اسمك"
+
+msgid "split_tunnel_off"
+msgstr "إيقاف"
+
+msgid "split_tunnel_bypass"
+msgstr "تجاوز"
+
+msgid "split_tunnel_include_only"
+msgstr "تضمين فقط"
+
+msgid "split_tunnel_description"
+msgstr "اختيار طريقة اتصال التطبيقات والمواقع"
+
+msgid "split_tunnel_mode"
+msgstr "وضع تقسيم النفق:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "التطبيقات والمواقع المحددة تتجاوز Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "التطبيقات والمواقع المحددة فقط تستخدم Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "التبديل إلى التضمين فقط؟"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "التبديل إلى التجاوز؟"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "التطبيقات والمواقع الموجودة في قوائم «التضمين فقط» هي وحدها التي ستستخدم Lantern. وسيتصل كل ما عداها، بما في ذلك المتصفح، مباشرة دون حماية. ما دامت هذه القوائم فارغة، يستخدم كل شيء Lantern. ستُحفظ قوائم التجاوز لحين عودتك إليها."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "ستتصل التطبيقات والمواقع الموجودة في قوائم التجاوز مباشرة. وسيستخدم كل ما عداها Lantern. ستُحفظ قوائم التضمين فقط لحين عودتك إليها."
+
+msgid "split_tunnel_switch"
+msgstr "تبديل"
+
+msgid "split_tunnel_app_count_one"
+msgstr "تطبيق واحد"
+
+msgid "split_tunnel_app_count"
+msgstr "التطبيقات: %d"
+
+msgid "split_tunnel_site_count_one"
+msgstr "موقع واحد"
+
+msgid "split_tunnel_site_count"
+msgstr "المواقع: %d"
+
+msgid "apps_using_vpn"
+msgstr "التطبيقات التي تستخدم VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "المواقع التي تستخدم VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "تعذّر تحميل تقسيم النفق. يرجى المحاولة مرة أخرى."
+
+msgid "split_tunnel_update_failed"
+msgstr "تعذّر تحديث النفق المنقسم. يرجى المحاولة مرة أخرى."
+
+msgid "split_tunnel_unavailable"
+msgstr "غير متاح"
+
+msgid "split_tunnel_enter_website"
+msgstr "أدخل موقعًا إلكترونيًا أو URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "أدخل URL أو *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "أضف *.ir لمطابقة كل مواقع .ir دفعة واحدة. يعمل أيضًا مع *.cn و *.ru وغيرها. افصل بين المواقع المتعددة بفواصل."
+
+msgid "split_tunnel_invalid_website"
+msgstr "أدخل موقعًا أو عنوان URL صالحًا. يجب أن تبدأ أحرف البدل بـ *. وعناوين IP غير مدعومة."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "تمت إضافة %s بالفعل."
+
+msgid "clear"
+msgstr "مسح"
+
+msgid "personal_proxy_path_connecting"
+msgstr "جارٍ الاتصال…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "جارٍ إعادة الاتصال…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "غير متاح"
+
+msgid "trust_understand_risks"
+msgstr "أدرك المخاطر"
+
+msgid "help_friend_trust_warning"
+msgstr "ساعد فقط من تثق بهم."
+
+msgid "help_friend_trust_title"
+msgstr "الثقة بالشخص الذي تساعده"
+
+msgid "help_friend_trust_message_one"
+msgstr "بالنسبة إلى المواقع التي يزورونها، ستبدو حركة مرورهم كأنها صادرة من اتصالك. إذا فعلوا شيئًا غير قانوني، فقد يُنسب إليك. ساعد فقط من تثق بهم."
+
+msgid "help_friend_trust_message_two"
+msgstr "لا يدير Lantern الوكلاء الشخصيين ولا يراقبهم."
+
+msgid "help_friend_trust_message_three"
+msgstr "يمكنك إزالة الاتصال في أي وقت من علامة تبويب Action Mode."

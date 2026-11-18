@@ -5,6 +5,7 @@ import 'plans/plans_smoke_test.dart';
 import 'report_issue/report_issue_smoke_test.dart';
 import 'setting/setting_smoke_test.dart';
 import 'vpn/android_vpn_smoke_test.dart';
+import 'vpn/split_tunneling_website_smoke_test.dart';
 
 /// Aggregator entrypoint for all Android end-to-end tests. This is the single
 /// `-Ptarget` Firebase Test Lab builds so every suite runs in one instrumentation
@@ -20,6 +21,7 @@ import 'vpn/android_vpn_smoke_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   registerVpnSmokeTests();
+  registerSplitTunnelingWebsiteSmokeTests();
   registerReportIssueSmokeTests();
   registerSettingSmokeTests();
   registerPlansSmokeTests();

@@ -38,6 +38,37 @@ String inviteShareMessage(HelpersView view, HelperInviteView invite) =>
       invite.link,
     ]);
 
+/// The invites whose "Trust your Personal Proxy" gate the user accepted, by
+/// id. Once per link: the first Share, Copy or Show QR code on a link asks,
+/// the rest on that link are immediate, and a new link asks again. Memory
+/// only.
+final trustedInvitesProvider = NotifierProvider<TrustedInvites, Set<String>>(
+  TrustedInvites.new,
+);
+
+class TrustedInvites extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => const {};
+
+  void add(String id) => state = {...state, id};
+}
+
+/// "Trust your Personal Proxy": the shared trust dialog with this screen's
+/// text. As a [gate] (before a link first goes out), with the "I understand
+/// the risks" check and Continue; from Learn more, with Got It.
+Future<bool> showInviteTrustDialog(BuildContext context, {bool gate = false}) =>
+    showTrustDialog(
+      context,
+      key: const Key('invite.trust_dialog'),
+      title: 'invite_trust_title'.i18n,
+      paragraphs: [
+        'invite_trust_message_one'.i18n,
+        'invite_trust_message_two'.i18n,
+        'invite_trust_message_three'.i18n,
+      ],
+      gate: gate,
+    );
+
 /// Lets a test take the Android path of [copySensitiveText].
 @visibleForTesting
 bool? debugCopyAsAndroid;
@@ -232,9 +263,30 @@ class InviteShare extends HookConsumerWidget {
       );
     }
 
+    /// [inv], with its link, if it may go out: at once if its gate was
+    /// accepted, else once the user continues through it. Null when it may
+    /// not, or when the invite expired, was claimed or went while the
+    /// dialog was up: the screen behind it says so, and nothing is trusted.
+    Future<HelperInviteView?> trusted(HelperInviteView? inv) async {
+      if (inv == null || inv.link.isEmpty) return null;
+      if (ref.read(trustedInvitesProvider).contains(inv.id)) return inv;
+      if (!await showInviteTrustDialog(context, gate: true)) return null;
+      if (!context.mounted) return null;
+      final now = current();
+      if (now == null || now.id != inv.id || now.claimed || now.link.isEmpty) {
+        return null;
+      }
+      if (now.expired) {
+        expiryChecks.value++;
+        return null;
+      }
+      ref.read(trustedInvitesProvider.notifier).add(inv.id);
+      return now;
+    }
+
     Future<void> copy() async {
-      final inv = await ready();
-      if (inv == null || inv.link.isEmpty || !context.mounted) return;
+      final inv = await trusted(await ready());
+      if (inv == null || !context.mounted) return;
       try {
         await copySensitiveText(inv.link);
       } catch (_) {
@@ -250,8 +302,8 @@ class InviteShare extends HookConsumerWidget {
     }
 
     Future<void> share(BuildContext anchor) async {
-      final inv = await ready();
-      if (inv == null || inv.link.isEmpty || !anchor.mounted) return;
+      final inv = await trusted(await ready());
+      if (inv == null || !anchor.mounted) return;
       await shareInvite(
         anchor,
         inviteShareMessage(ref.read(helpersProvider).view, inv),
@@ -259,8 +311,8 @@ class InviteShare extends HookConsumerWidget {
     }
 
     Future<void> showQr() async {
-      final inv = await ready();
-      if (inv == null || inv.link.isEmpty || !context.mounted) return;
+      final inv = await trusted(await ready());
+      if (inv == null || !context.mounted) return;
       await showInviteQrDialog(context, inv.link);
     }
 
@@ -309,18 +361,7 @@ class InviteShare extends HookConsumerWidget {
               boldTexts: 'invite_trust_learn_more'.i18n,
               boldUnderline: true,
               boldColor: context.textLink,
-              boldOnPressed: () => unawaited(
-                showTrustDialog(
-                  context,
-                  key: const Key('invite.trust_dialog'),
-                  title: 'invite_trust_title'.i18n,
-                  paragraphs: [
-                    'invite_trust_message_one'.i18n,
-                    'invite_trust_message_two'.i18n,
-                    'invite_trust_message_three'.i18n,
-                  ],
-                ),
-              ),
+              boldOnPressed: () => unawaited(showInviteTrustDialog(context)),
             ),
           ),
           const SizedBox(height: defaultSize),

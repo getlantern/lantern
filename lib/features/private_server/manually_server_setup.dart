@@ -27,8 +27,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
     useEffect(() {
       if (serverState.status == 'EventTypeProvisioningCompleted') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          appLogger.info("Private server deployment completed successfully.",
-              serverState.data);
+          appLogger.info("Private server deployment completed successfully.");
           ref
               .read(availableServersProvider.notifier)
               .forceFetchAvailableServers();
@@ -116,6 +115,9 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
                   hintText: "access_key".i18n,
                   label: 'access_key'.i18n,
                   controller: accessKeyController,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  enableIMEPersonalizedLearning: false,
                   prefixIcon: AppImage(path: AppImagePaths.key),
                   onChanged: (value) {
                     buttonValid.value =
@@ -168,7 +170,7 @@ class _ManuallyServerSetupState extends ConsumerState<ManuallyServerSetup> {
       return;
     }
     final url = Uri.parse(scannerValue);
-    appLogger.info("Verifying server with URL: $url");
+    appLogger.info("Verifying server");
     final data = url.queryParameters;
     final ip = data['ip'] ?? '';
     final port = data['port'] ?? '';

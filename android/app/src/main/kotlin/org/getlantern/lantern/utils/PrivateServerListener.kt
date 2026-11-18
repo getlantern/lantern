@@ -16,13 +16,12 @@ object PrivateServerEventStream {
 
 class PrivateServerListener : PrivateServerEventListener {
     override fun openBrowser(p0: String?) {
-        AppLogger.d("PrivateServerListener", "Opening browser with URL: $p0")
+        AppLogger.d("PrivateServerListener", "Opening browser")
         val json = JSONObject(mapOf("status" to "openBrowser", "data" to p0)).toString()
         PrivateServerEventStream.emit(json)
     }
 
     override fun onPrivateServerEvent(p0: String?) {
-        AppLogger.d("PrivateServerListener", "Private server event: $p0")
         PrivateServerEventStream.emit(p0 ?: "")
     }
 

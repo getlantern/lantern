@@ -376,7 +376,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
           context.hideLoadingDialog();
           ref.read(homeProvider.notifier).updateUserData(response);
           appLogger.debug(
-            'OAuth login successful, for user email  ${response.legacyUserData.email}, userD ${response.legacyID}, updating app settings with token and provider: ${type.name}',
+            'OAuth login successful, updating app settings with token and provider: ${type.name}',
           );
 
           ref.read(appSettingProvider.notifier).setUserLoggedIn(true);

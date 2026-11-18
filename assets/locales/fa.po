@@ -342,9 +342,6 @@ msgstr "حالت خودکار"
 msgid "manual"
 msgstr "دستی"
 
-msgid "enter_url_or_ip"
-msgstr "آدرس وب یا IP را وارد کنید"
-
 msgid "installed_apps"
 msgstr "برنامه‌های نصب‌شده"
 
@@ -356,9 +353,6 @@ msgstr "جستجوی وب‌سایت"
 
 msgid "mode"
 msgstr "حالت"
-
-msgid "use_commas"
-msgstr "برای جدا کردن چند آدرس، از ویرگول یا کاما استفاده کنید"
 
 msgid "deep_link_expired"
 msgstr "این لینک منقضی شده است. لطفاً لینک جدیدی درخواست کنید."
@@ -1133,12 +1127,6 @@ msgstr "سپاس از بازخورد شما!"
 msgid "no_apps_selected"
 msgstr "هیچ برنامه‌ای انتخاب نشده"
 
-msgid "deselect_all"
-msgstr "لغو همه گزینه‌ها"
-
-msgid "select_all"
-msgstr "انتخاب همه"
-
 msgid "no_websites_selected"
 msgstr "هیچ وب‌سایتی انتخاب نشده"
 
@@ -1417,9 +1405,6 @@ msgstr ""
 "مسیریابی هوشمند از قوانین خاص منطقه استفاده می‌کند تا به‌طور خودکار ترافیکی "
 "که نیاز به VPN دارد را از طریق Lantern ارسال کند. سایر ترافیک برای سرعت و "
 "قابلیت اطمینان مستقیماً منتقل می‌شود."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "افزودن برنامه‌ها و وب‌سایت‌هایی که نمی‌خواهید از VPN عبور کنند"
 
 msgid "lantern_pro_license_applied"
 msgstr "مجوز Lantern Pro شما به حساب موجود شما اعمال خواهد شد"
@@ -1726,18 +1711,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "در هر صورت اضافه شود"
-
-msgid "bypass_all_warning_title"
-msgstr "آیا همه برنامه‌ها به فهرست رد نشدن از VPN افزوده شوند؟"
-
-msgid "bypass_all_warning_body"
-msgstr "این شامل مرورگرهایی مانند %s نیز می‌شود. برنامه‌های این فهرست بدون محافظت Lantern و به‌صورت مستقیم متصل می‌شوند. در کشورهایی که برخی وب‌سایت‌ها را مسدود می‌کنند، بعضی سایت‌ها دیگر باز نمی‌شوند."
-
-msgid "add_all_except_browsers"
-msgstr "افزودن همه به‌جز مرورگرها"
-
-msgid "add_all_anyway"
-msgstr "در هر صورت همه اضافه شوند"
 
 msgid "bypass_app_first_time_title"
 msgstr "آیا VPN از این برنامه رد نشود؟"
@@ -2185,15 +2158,6 @@ msgstr "در حال حاضر دسترسی به %s ممکن نیست. به پرو
 msgid "personal_proxy_fallback_auto"
 msgstr "در حال حاضر دسترسی به %s ممکن نیست. به مکان هوشمند تغییر کرد."
 
-msgid "become_means_title"
-msgstr "پروکسی شخصی بودن یعنی چه"
-
-msgid "become_means_seen"
-msgstr "آن‌ها می‌توانند ببینند چه زمانی متصل هستید. فقط دعوت افرادی را که می‌شناسید بپذیرید."
-
-msgid "become_means_remove"
-msgstr "هر زمان بخواهید می‌توانید اتصال را حذف کنید."
-
 msgid "help_friend_form_title"
 msgstr "لینک فردی را که به او کمک می‌کنید جای‌گذاری کنید"
 
@@ -2255,10 +2219,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "من می‌توانم پروکسی شخصی شما در Lantern باشم تا از طریق اتصال من آنلاین شوید. در Lantern، «انتخاب سرور» را باز کنید، روی منوی ⋮ در بالا بزنید، «دعوت از پروکسی شخصی» را انتخاب کنید و پیوند را برایم بفرستید."
 
 msgid "add_executable"
-msgstr "افزودن فایل اجرایی"
-
-msgid "windows_executable_bypass_hint"
-msgstr "برای عبور از VPN، فایل .exe اصلی بازی یا برنامه را انتخاب کنید. انتخاب لانچر شامل برنامه‌هایی که اجرا می‌کند نمی‌شود."
+msgstr "افزودن .exe"
 
 msgid "select_windows_executable"
 msgstr "فایل .exe یک برنامه، به‌جز Lantern، را در این رایانه انتخاب کنید."
@@ -2431,8 +2392,113 @@ msgstr "هر زمان بخواهید می‌توانید او را از مدیر
 msgid "approved_body_locations"
 msgstr "وقتی %s آنلاین باشد، می‌توانید آن را در «مکان‌های خصوصی» در منوی مکان‌های سرور انتخاب کنید. مکان هوشمند ممکن است به‌طور خودکار از آن استفاده کند."
 
-msgid "become_means_traffic_seen"
-msgstr "یکی از دوستانتان از شما کمک خواسته است. وقتی Action Mode روشن است، او از طریق اتصال شما به اینترنت آزاد دسترسی پیدا می‌کند. شما می‌توانید ببینید از چه سایت‌هایی بازدید می‌کند، اما نه اینکه در آن‌ها چه می‌کند."
-
 msgid "help_friend_your_name_label"
 msgstr "نام شما"
+
+msgid "split_tunnel_off"
+msgstr "خاموش"
+
+msgid "split_tunnel_bypass"
+msgstr "دور زدن"
+
+msgid "split_tunnel_include_only"
+msgstr "فقط موارد انتخابی"
+
+msgid "split_tunnel_description"
+msgstr "نحوه اتصال برنامه‌ها و وب‌سایت‌ها را انتخاب کنید"
+
+msgid "split_tunnel_mode"
+msgstr "حالت تونل تقسیم‌شده:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "برنامه‌ها و سایت‌های انتخاب‌شده از Lantern عبور نمی‌کنند"
+
+msgid "split_tunnel_include_description"
+msgstr "فقط برنامه‌ها و سایت‌های انتخاب‌شده از Lantern استفاده می‌کنند"
+
+msgid "split_tunnel_switch_include"
+msgstr "تغییر به حالت فقط موارد انتخابی؟"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "تغییر به حالت دور زدن؟"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "فقط برنامه‌ها و سایت‌های فهرست‌های «فقط شامل» شما از Lantern استفاده می‌کنند. بقیه موارد، از جمله مرورگر شما، بدون محافظت مستقیم متصل می‌شوند. تا زمانی که این فهرست‌ها خالی هستند، همه‌چیز از Lantern استفاده می‌کند. فهرست‌های عبور مستقیم شما برای زمان بازگشت حفظ می‌شوند."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "برنامه‌ها و سایت‌های فهرست‌های عبور مستقیم شما به‌طور مستقیم متصل می‌شوند. بقیه موارد از Lantern استفاده می‌کنند. فهرست‌های «فقط شامل» شما برای زمان بازگشت حفظ می‌شوند."
+
+msgid "split_tunnel_switch"
+msgstr "تغییر"
+
+msgid "split_tunnel_app_count_one"
+msgstr "۱ برنامه"
+
+msgid "split_tunnel_app_count"
+msgstr "%d برنامه"
+
+msgid "split_tunnel_site_count_one"
+msgstr "۱ سایت"
+
+msgid "split_tunnel_site_count"
+msgstr "%d سایت"
+
+msgid "apps_using_vpn"
+msgstr "برنامه‌های استفاده‌کننده از VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "وب‌سایت‌های استفاده‌کننده از VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "تونل‌سازی تقسیمی بارگیری نشد. لطفاً دوباره تلاش کنید."
+
+msgid "split_tunnel_update_failed"
+msgstr "به‌روزرسانی تونل‌زنی جداگانه انجام نشد. لطفاً دوباره تلاش کنید."
+
+msgid "split_tunnel_unavailable"
+msgstr "در دسترس نیست"
+
+msgid "split_tunnel_enter_website"
+msgstr "وب‌سایت یا URL را وارد کنید"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL یا *.ir را وارد کنید"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "برای تطبیق همه سایت‌های .ir به‌طور یکجا، *.ir را اضافه کنید. برای *.cn، *.ru و غیره هم کار می‌کند. چند سایت را با کاما جدا کنید."
+
+msgid "split_tunnel_invalid_website"
+msgstr "یک وب‌سایت یا URL معتبر وارد کنید. نویسه‌های عام باید با *. شروع شوند و نشانی‌های IP پشتیبانی نمی‌شوند."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s قبلاً اضافه شده است."
+
+msgid "clear"
+msgstr "پاک کردن"
+
+msgid "personal_proxy_path_connecting"
+msgstr "در حال اتصال…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "در حال اتصال مجدد…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "در دسترس نیست"
+
+msgid "trust_understand_risks"
+msgstr "خطرها را درک می‌کنم"
+
+msgid "help_friend_trust_warning"
+msgstr "فقط به افرادی کمک کنید که به آن‌ها اعتماد دارید."
+
+msgid "help_friend_trust_title"
+msgstr "به فردی که کمک می‌کنید اعتماد داشته باشید"
+
+msgid "help_friend_trust_message_one"
+msgstr "از نگاه وب‌سایت‌هایی که بازدید می‌کنند، ترافیک آن‌ها از اتصال شما به نظر می‌رسد. اگر کار غیرقانونی انجام دهند، ممکن است به شما ردیابی شود. فقط به افرادی کمک کنید که به آن‌ها اعتماد دارید."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern پراکسی‌های شخصی را مدیریت نمی‌کند و بر آن‌ها نظارت ندارد."
+
+msgid "help_friend_trust_message_three"
+msgstr "هر زمان بخواهید می‌توانید این اتصال را از زبانه Action Mode حذف کنید."

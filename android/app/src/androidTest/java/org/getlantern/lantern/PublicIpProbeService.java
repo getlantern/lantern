@@ -52,6 +52,8 @@ public final class PublicIpProbeService extends Service {
                     connection.setConnectTimeout(10_000);
                     connection.setReadTimeout(10_000);
                     connection.setUseCaches(false);
+                    // Routing applies per connection, so a pooled one would keep its old route.
+                    connection.setRequestProperty("Connection", "close");
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                         result.putString(IP, reader.readLine().trim());
                     }

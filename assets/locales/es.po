@@ -339,9 +339,6 @@ msgstr "Modo automático"
 msgid "manual"
 msgstr "Manual"
 
-msgid "enter_url_or_ip"
-msgstr "Ingresar URL o Dirección IP"
-
 msgid "installed_apps"
 msgstr "Aplicaciones Instaladas"
 
@@ -353,9 +350,6 @@ msgstr "Buscar Sitios Web"
 
 msgid "mode"
 msgstr "Modo"
-
-msgid "use_commas"
-msgstr "Usa comas para separar múltiples URLs"
 
 msgid "deep_link_expired"
 msgstr "Este enlace ha expirado. Por favor, solicita uno nuevo."
@@ -1144,12 +1138,6 @@ msgstr "¡Gracias por tus comentarios!"
 msgid "no_apps_selected"
 msgstr "No hay aplicaciones seleccionadas"
 
-msgid "deselect_all"
-msgstr "Deseleccionar Todas"
-
-msgid "select_all"
-msgstr "Seleccionar Todas"
-
 msgid "no_websites_selected"
 msgstr "No hay sitios web seleccionados"
 
@@ -1430,9 +1418,6 @@ msgstr ""
 "El Enrutamiento Inteligente usa reglas específicas por región para enviar "
 "automáticamente el tráfico que necesita la VPN a través de Lantern. Todo el "
 "demás tráfico va directo para mayor velocidad y confiabilidad."
-
-msgid "add_apps_websites_bypass_vpn"
-msgstr "Agrega apps y sitios web para omitir la VPN"
 
 msgid "lantern_pro_license_applied"
 msgstr "Tu licencia de Lantern Pro se aplicará a tu cuenta existente"
@@ -1745,21 +1730,6 @@ msgstr ""
 
 msgid "add_anyway"
 msgstr "Añadir de todos modos"
-
-msgid "bypass_all_warning_title"
-msgstr "¿Añadir todas las aplicaciones a la lista de exclusión?"
-
-msgid "bypass_all_warning_body"
-msgstr ""
-"Esto incluye navegadores como %s. Las aplicaciones en la lista de exclusión "
-"se conectan directamente, sin la protección de Lantern. En países que "
-"bloquean ciertos sitios web, algunos sitios dejarán de cargar."
-
-msgid "add_all_except_browsers"
-msgstr "Añadir todo excepto navegadores"
-
-msgid "add_all_anyway"
-msgstr "Añadir todo de todos modos"
 
 msgid "bypass_app_first_time_title"
 msgstr "¿Excluir esta aplicación de la VPN?"
@@ -2207,15 +2177,6 @@ msgstr "No se puede contactar a %s ahora. Se cambió a Tus proxies personales."
 msgid "personal_proxy_fallback_auto"
 msgstr "No se puede contactar a %s ahora. Se cambió a Ubicación inteligente."
 
-msgid "become_means_title"
-msgstr "Qué significa ser un proxy personal"
-
-msgid "become_means_seen"
-msgstr "Pueden ver cuándo tienes conexión. Acepta invitaciones solo de personas que conoces."
-
-msgid "become_means_remove"
-msgstr "Elimina la conexión cuando quieras."
-
 msgid "help_friend_form_title"
 msgstr "Pega el enlace de la persona a quien ayudas"
 
@@ -2277,10 +2238,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Puedo ser tu proxy personal en Lantern para que te conectes a internet a través de mi conexión. En Lantern, abre \"Selección de servidor\", toca el menú ⋮ de arriba, elige \"Invitar a un proxy personal\" y envíame el enlace."
 
 msgid "add_executable"
-msgstr "Agregar ejecutable"
-
-msgid "windows_executable_bypass_hint"
-msgstr "Elige el .exe del juego o la app en sí para que no pase por la VPN. Si seleccionas un lanzador, no se incluyen los programas que abre."
+msgstr "Agregar .exe"
 
 msgid "select_windows_executable"
 msgstr "Selecciona el archivo .exe de una app de esta computadora, que no sea Lantern."
@@ -2453,8 +2411,113 @@ msgstr "Puedes eliminarlo en cualquier momento desde Administrar ubicaciones pri
 msgid "approved_body_locations"
 msgstr "Cuando %s esté en línea, podrás seleccionarlo en Ubicaciones privadas, en el menú Ubicaciones de servidor. Ubicación inteligente puede usarlo automáticamente."
 
-msgid "become_means_traffic_seen"
-msgstr "Un amigo te pidió ayuda. Cuando Action Mode está activado, accede a internet abierto a través de tu conexión. Podrías ver qué sitios visita, pero no lo que hace en ellos."
-
 msgid "help_friend_your_name_label"
 msgstr "Tu nombre"
+
+msgid "split_tunnel_off"
+msgstr "Desactivado"
+
+msgid "split_tunnel_bypass"
+msgstr "Omitir"
+
+msgid "split_tunnel_include_only"
+msgstr "Incluir solo"
+
+msgid "split_tunnel_description"
+msgstr "Elige cómo se conectan las apps y los sitios web"
+
+msgid "split_tunnel_mode"
+msgstr "Modo de túnel dividido:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Las apps y sitios seleccionados omiten Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "Solo las apps y sitios seleccionados usan Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "¿Cambiar a Incluir solo?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "¿Cambiar a Omitir?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Solo las apps y sitios de tus listas “Incluir solo” usarán Lantern. Todo lo demás, incluido tu navegador, se conectará directamente sin protección. Mientras esas listas estén vacías, todo usa Lantern. Tus listas “Omitir” se guardan para cuando vuelvas a cambiar."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Las apps y sitios de tus listas “Omitir” se conectarán directamente. Todo lo demás usará Lantern. Tus listas “Incluir solo” se guardan para cuando vuelvas a cambiar."
+
+msgid "split_tunnel_switch"
+msgstr "Cambiar"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 app"
+
+msgid "split_tunnel_app_count"
+msgstr "%d apps"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 sitio"
+
+msgid "split_tunnel_site_count"
+msgstr "%d sitios"
+
+msgid "apps_using_vpn"
+msgstr "Apps que usan la VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "Sitios web que usan la VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "No se pudo cargar el túnel dividido. Inténtalo de nuevo, por favor."
+
+msgid "split_tunnel_update_failed"
+msgstr "No se pudo actualizar el túnel dividido. Inténtalo de nuevo."
+
+msgid "split_tunnel_unavailable"
+msgstr "No disponible"
+
+msgid "split_tunnel_enter_website"
+msgstr "Ingresa un sitio web o URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "Ingresa una URL o *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Agrega *.ir para incluir todos los sitios .ir a la vez. Funciona con *.cn, *.ru, etc. Separa varios sitios con comas."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Ingresa un sitio web o URL válido. Los comodines deben empezar con *. y no se admiten direcciones IP."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s ya está agregado."
+
+msgid "clear"
+msgstr "Borrar"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Conectando…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Reconectando…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "No disponible"
+
+msgid "trust_understand_risks"
+msgstr "Entiendo los riesgos"
+
+msgid "help_friend_trust_warning"
+msgstr "Ayuda solo a personas de confianza."
+
+msgid "help_friend_trust_title"
+msgstr "Confía en quien ayudas"
+
+msgid "help_friend_trust_message_one"
+msgstr "Para los sitios web que visiten, su tráfico parecerá venir de tu conexión. Si hacen algo ilegal, podría rastrearse hasta ti. Ayuda solo a personas de confianza."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern no administra ni supervisa los proxies personales."
+
+msgid "help_friend_trust_message_three"
+msgstr "Puedes eliminar la conexión en cualquier momento desde la pestaña Action Mode."

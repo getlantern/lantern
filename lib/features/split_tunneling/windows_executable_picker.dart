@@ -49,7 +49,7 @@ class WindowsExecutablePicker extends HookConsumerWidget {
         if (path == null || !context.mounted) return;
         final installed = await ref.read(appsDataProvider.future);
         if (!context.mounted) return;
-        final app = windowsEnabledApps(installed, [path]).single;
+        final app = windowsExecutableApp(path, installed);
         if (!await confirmBypass(context, app) || !context.mounted) return;
         final failure = await ref
             .read(splitTunnelingAppsProvider.notifier)
@@ -67,23 +67,12 @@ class WindowsExecutablePicker extends HookConsumerWidget {
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'windows_executable_bypass_hint'.i18n,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: context.textSecondary),
-        ),
-        const SizedBox(height: 12),
-        SecondaryButton(
-          key: const ValueKey('add-windows-executable'),
-          label: 'add_executable'.i18n,
-          enabled: !busy.value && !apps.isLoading && !apps.hasError,
-          onPressed: pickExecutable,
-        ),
-      ],
+    return AppTextButton(
+      key: const ValueKey('add-windows-executable'),
+      label: 'add_executable'.i18n,
+      onPressed: !busy.value && !apps.isLoading && !apps.hasError
+          ? pickExecutable
+          : null,
     );
   }
 }
