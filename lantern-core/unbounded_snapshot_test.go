@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -113,42 +114,59 @@ func TestSnapshotsDropPeerPairing(t *testing.T) {
 	}
 }
 
-// A closed gate runs no poll, opening it polls at once, and closing it cancels
-// the running poll.
-func TestPollGateRunsOnlyWhileOpen(t *testing.T) {
+// The gate runs poll at the closed rate until opened, then at the open rate,
+// canceling the previous call each time it changes.
+func TestPollGateSwitchesRate(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var g pollGate
-	polls := make(chan context.Context)
+	type call struct {
+		ctx   context.Context
+		ticks <-chan time.Time
+	}
+	calls := make(chan call)
 	done := make(chan struct{})
 	go func() {
-		g.run(ctx, time.Hour, func(pollCtx context.Context, _ <-chan time.Time) {
-			polls <- pollCtx
+		g.run(ctx, time.Millisecond, time.Hour, func(pollCtx context.Context, ticks <-chan time.Time) {
+			calls <- call{pollCtx, ticks}
 			<-pollCtx.Done()
 		})
 		close(done)
 	}()
 
-	select {
-	case <-polls:
-		t.Fatal("polled while closed")
-	case <-time.After(50 * time.Millisecond):
+	next := func() call {
+		t.Helper()
+		select {
+		case c := <-calls:
+			return c
+		case <-time.After(time.Second):
+			t.Fatal("no poll call")
+			return call{}
+		}
+	}
+	ticks := func(c call) bool {
+		select {
+		case <-c.ticks:
+			return true
+		case <-time.After(50 * time.Millisecond):
+			return false
+		}
 	}
 
-	for range 2 {
-		g.set(true)
-		var pollCtx context.Context
-		select {
-		case pollCtx = <-polls:
-		case <-time.After(time.Second):
-			t.Fatal("no poll after opening")
-		}
-		g.set(false)
-		select {
-		case <-pollCtx.Done():
-		case <-time.After(time.Second):
-			t.Fatal("poll not canceled after closing")
-		}
+	closed := next()
+	if ticks(closed) {
+		t.Fatal("closed gate ticked at the open rate")
+	}
+	g.set(true)
+	<-closed.ctx.Done()
+	open := next()
+	if !ticks(open) {
+		t.Fatal("open gate did not tick at the open rate")
+	}
+	g.set(false)
+	<-open.ctx.Done()
+	if ticks(next()) {
+		t.Fatal("closed again but still ticking at the open rate")
 	}
 
 	cancel()
@@ -156,6 +174,43 @@ func TestPollGateRunsOnlyWhileOpen(t *testing.T) {
 	case <-done:
 	case <-time.After(time.Second):
 		t.Fatal("run did not return after ctx was canceled")
+	}
+}
+
+// The listeners read once at each rate change and then on each tick: a closed
+// gate reads at the idle rate, an open one at the snapshot rate.
+func TestRunSnapshotsReadsAtEachRate(t *testing.T) {
+	defer func(fast, idle time.Duration) {
+		snapshotInterval, idleSnapshotInterval = fast, idle
+	}(snapshotInterval, idleSnapshotInterval)
+	snapshotInterval, idleSnapshotInterval = 5*time.Millisecond, time.Hour
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var g pollGate
+	var mu sync.Mutex
+	reads := 0
+	count := func() int { mu.Lock(); defer mu.Unlock(); return reads }
+	go runSnapshots(ctx, &g, func(pollCtx context.Context, ticks <-chan time.Time) {
+		pollUnboundedSnapshots(pollCtx, ticks, func(context.Context) (unbounded.Snapshot, error) {
+			mu.Lock()
+			reads++
+			mu.Unlock()
+			return unbounded.Snapshot{}, nil
+		}, func(string, string) {})
+	})
+
+	time.Sleep(100 * time.Millisecond)
+	if n := count(); n != 1 {
+		t.Fatalf("closed gate read %d times in 100ms, want 1", n)
+	}
+	g.set(true)
+	deadline := time.Now().Add(5 * time.Second)
+	for count() < 6 {
+		if time.Now().After(deadline) {
+			t.Fatalf("open gate read only %d times in 5s at a 5ms rate", count())
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
 }
 
@@ -167,7 +222,7 @@ func TestClosingGateDoesNotReportOutage(t *testing.T) {
 	g.set(true)
 	var events []string
 	reads := 0
-	g.run(ctx, time.Millisecond, func(pollCtx context.Context, ticks <-chan time.Time) {
+	g.run(ctx, time.Millisecond, time.Hour, func(pollCtx context.Context, ticks <-chan time.Time) {
 		pollUnboundedSnapshots(pollCtx, ticks, func(c context.Context) (unbounded.Snapshot, error) {
 			reads++
 			if reads == 2 {

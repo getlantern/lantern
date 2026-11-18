@@ -186,7 +186,8 @@ func SetPeerShareEnabled(enabled bool) error {
 	})
 }
 
-// SetSnapshotPolling starts or stops the per-second sharing snapshot events.
+// SetSnapshotPolling switches the sharing snapshot events between their fast
+// and idle rates.
 func SetSnapshotPolling(on bool) error {
 	return withCore(func(c lanterncore.Core) error {
 		c.SetSnapshotPolling(on)

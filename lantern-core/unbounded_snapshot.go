@@ -10,22 +10,37 @@ import (
 	"github.com/getlantern/radiance/unbounded"
 )
 
-const snapshotInterval = time.Second
+// Snapshots come every snapshotInterval while the app asks for them (while
+// sharing or showing the stats), and every idleSnapshotInterval otherwise.
+// Each one wakes Go, the platform layer and Dart, so the idle rate is low,
+// but not zero: the idle reads let the app notice a backend that started
+// sharing on its own and collect a stopped session's final counters, and
+// they must come sooner than radiance's one-minute retention of a departed
+// peer's bytes.
+var (
+	snapshotInterval     = time.Second
+	idleSnapshotInterval = 30 * time.Second
+)
 
-// SetSnapshotPolling starts or stops the snapshot pollers. The app runs them
-// only while sharing or showing their stats: each tick wakes Go, the platform
-// layer and Dart, which costs battery for nothing otherwise.
+// SetSnapshotPolling switches the snapshot pollers between their fast and
+// idle rates.
 func (lc *LanternCore) SetSnapshotPolling(on bool) {
 	lc.snapshotGate.set(on)
 }
 
 func (lc *LanternCore) listenUnboundedSnapshots() {
-	lc.snapshotGate.run(lc.ctx, snapshotInterval, func(ctx context.Context, ticks <-chan time.Time) {
+	runSnapshots(lc.ctx, &lc.snapshotGate, func(ctx context.Context, ticks <-chan time.Time) {
 		pollUnboundedSnapshots(ctx, ticks, lc.client.UnboundedSnapshot, lc.notifyFlutter)
 	})
 }
 
-// pollGate runs a poll loop only while it is open.
+// runSnapshots runs poll at the fast rate while g is open and at the idle
+// rate while it is closed.
+func runSnapshots(ctx context.Context, g *pollGate, poll func(context.Context, <-chan time.Time)) {
+	g.run(ctx, snapshotInterval, idleSnapshotInterval, poll)
+}
+
+// pollGate picks between two poll rates.
 type pollGate struct {
 	mu      sync.Mutex
 	open    bool
@@ -54,18 +69,15 @@ func (g *pollGate) load() (bool, <-chan struct{}) {
 	return g.open, g.changed
 }
 
-// run calls poll each time the gate opens, with a ticker and a context that
-// is canceled when the gate closes. No ticker runs while it is closed.
-func (g *pollGate) run(ctx context.Context, interval time.Duration, poll func(context.Context, <-chan time.Time)) {
-	for {
+// run calls poll with a ticker at the open or closed rate, and calls it again
+// with the other rate each time the gate changes. The previous call's context
+// is canceled first. run returns when ctx is done.
+func (g *pollGate) run(ctx context.Context, openInterval, closedInterval time.Duration, poll func(context.Context, <-chan time.Time)) {
+	for ctx.Err() == nil {
 		open, changed := g.load()
-		if !open {
-			select {
-			case <-ctx.Done():
-				return
-			case <-changed:
-				continue
-			}
+		interval := closedInterval
+		if open {
+			interval = openInterval
 		}
 		pollCtx, cancel := context.WithCancel(ctx)
 		go func() {
@@ -79,9 +91,6 @@ func (g *pollGate) run(ctx context.Context, interval time.Duration, poll func(co
 		poll(pollCtx, ticker.C)
 		ticker.Stop()
 		cancel()
-		if ctx.Err() != nil {
-			return
-		}
 	}
 }
 
@@ -117,7 +126,7 @@ func withoutPeerPairings(read func(context.Context) (peer.Snapshot, error)) func
 // app folds the same way as Unbounded's. Unbounded's poller already reports
 // when the backend is unreachable, so this one sends no unavailable event.
 func (lc *LanternCore) listenPeerSnapshots() {
-	lc.snapshotGate.run(lc.ctx, snapshotInterval, func(ctx context.Context, ticks <-chan time.Time) {
+	runSnapshots(lc.ctx, &lc.snapshotGate, func(ctx context.Context, ticks <-chan time.Time) {
 		pollPeerSnapshots(ctx, ticks, lc.client.PeerRelaySnapshot, lc.notifyFlutter)
 	})
 }

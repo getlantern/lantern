@@ -809,8 +809,9 @@ class ShareNotifier extends _$ShareNotifier {
 
   // ─── Backend events ────────────────────────────────────────────────────────
 
-  /// Unbounded and SmC snapshots arrive only while shareSnapshotPollingProvider
-  /// has them on: while sharing, or while the Unbounded tab is on screen.
+  /// Unbounded and SmC snapshots arrive every second while
+  /// shareSnapshotPollingProvider has them on (while sharing, or while the
+  /// Unbounded tab is on screen), and every 30 seconds otherwise.
   void _handleUnboundedEvent(AppEvent event) {
     if (event.eventType == 'peer-snapshot') {
       try {

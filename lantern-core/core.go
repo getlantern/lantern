@@ -246,8 +246,8 @@ type PeerShare interface {
 	// or a manual port forward) and Unbounded mode (WebRTC, works
 	// anywhere) when no manual port is configured.
 	ProbeUPnP() bool
-	// SetSnapshotPolling starts or stops the once-a-second unbounded-snapshot
-	// and peer-snapshot events. They are off until the app turns them on.
+	// SetSnapshotPolling switches the unbounded-snapshot and peer-snapshot
+	// events between once a second and every 30 seconds, where they start.
 	SetSnapshotPolling(on bool)
 }
 
