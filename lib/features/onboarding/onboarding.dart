@@ -50,7 +50,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     if (personalProxies && pageIndex.value == 1) {
       personalProxiesSeen.value = true;
     }
-    final actionModePage = PlatformUtils.isIOS ? 2 : 3;
+    const actionModePage = 3;
     // On macOS the network extension is the flow's last step, with its own
     // dot, the first time the app runs. Decided once: the flag is cleared as
     // onboarding finishes.
@@ -61,7 +61,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         ? ref.watch(macosExtensionProvider)
         : null;
     final lastPage =
-        (PlatformUtils.isIOS ? 1 : 2) +
+        2 +
         (showActionMode.value ? 1 : 0) +
         (extensionPage ? 1 : 0);
     final onExtensionPage = extensionPage && pageIndex.value == lastPage;
@@ -191,8 +191,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
                       personalProxies: personalProxies,
                       actionMode: showActionMode.value,
                     ),
-                    if (!PlatformUtils.isIOS)
-                      slide3(context, selectedRouteMode),
+                    slide3(context, selectedRouteMode),
                     if (showActionMode.value) const OnboardingActionModePage(),
                     if (extensionPage)
                       OnboardingExtensionPage(

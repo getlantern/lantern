@@ -96,7 +96,6 @@ class _SettingCard extends ConsumerWidget {
         smallScreen &&
         !isUserPro &&
         serverType != ServerLocationType.privateServer;
-    final showRoutingMode = !PlatformUtils.isIOS;
     final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
     final splitTunnel = showSplitTunneling
         ? ref.watch(splitTunnelProvider)
@@ -144,10 +143,10 @@ class _SettingCard extends ConsumerWidget {
             const VpnStatus(),
             const DividerSpace(),
             const LocationSetting(),
-            if (showRoutingMode || showSplitTunneling) const DividerSpace(),
+            const DividerSpace(),
             // Small screens: Routing Mode | Split Tunneling share one row;
             // otherwise stacked full-width rows.
-            if (showRoutingMode && showSplitTunneling && smallScreen)
+            if (showSplitTunneling && smallScreen)
               Row(
                 children: [
                   Expanded(child: routingTile),
@@ -162,8 +161,8 @@ class _SettingCard extends ConsumerWidget {
                 ],
               )
             else ...[
-              if (showRoutingMode) routingTile,
-              if (showRoutingMode && showSplitTunneling) const DividerSpace(),
+              routingTile,
+              if (showSplitTunneling) const DividerSpace(),
               if (showSplitTunneling) splitTunnelingTile,
             ],
           ],
