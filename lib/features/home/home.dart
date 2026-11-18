@@ -16,6 +16,7 @@ import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/pro_renewal_popup.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/home/startup_presentations.dart';
+import 'package:lantern/features/home/home_route_current.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
 import 'package:lantern/features/onboarding/personal_proxies_intro.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
@@ -108,16 +109,7 @@ class Home extends HookConsumerWidget {
       });
       return () => tabController.removeListener(sync);
     }, [tabController]);
-    // A route pushed over Home, such as Settings, covers the Unbounded tab,
-    // so its snapshots can slow down until Home is on top again.
-    final homeIsCurrent = ModalRoute.of(context)?.isCurrent ?? true;
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        ref.read(homeRouteCurrentProvider.notifier).set(homeIsCurrent);
-      });
-      return null;
-    }, [homeIsCurrent]);
+    useReportHomeRouteCurrent(context, ref);
     final isUserPro = ref.watch(isUserProProvider);
     final userLoggedIn = ref.watch(
       appSettingProvider.select((s) => s.userLoggedIn),
