@@ -321,6 +321,33 @@ class AppDialog {
     return confirmed;
   }
 
+  /// Warns before pinning a server whose probes keep failing. Resolves true
+  /// only when the user chooses to connect anyway.
+  static Future<bool> unreachableServerDialog({
+    required BuildContext context,
+    required String location,
+  }) async {
+    var confirmed = false;
+    // The caller's context can be disposed while the dialog is open.
+    final navigator = Navigator.of(context, rootNavigator: true);
+    await show(
+      context: context,
+      header: Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
+      centeredTitle: true,
+      scrollable: true,
+      title: 'unreachable_server_title'.i18n,
+      body: 'unreachable_server_body'.i18n.fill([location]),
+      primaryLabel: 'unreachable_server_connect_anyway'.i18n,
+      dismissOnPrimary: false,
+      onPrimaryPressed: () {
+        confirmed = true;
+        navigator.pop();
+      },
+      secondaryLabel: 'cancel'.i18n,
+    );
+    return confirmed;
+  }
+
   static void dialog({
     required BuildContext context,
     required String title,

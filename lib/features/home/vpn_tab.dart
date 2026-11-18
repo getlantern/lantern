@@ -7,6 +7,7 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
+import 'package:lantern/features/vpn/pinned_server_warning.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
@@ -61,6 +62,7 @@ class VpnTab extends ConsumerWidget {
                         else if (!isSmallScreen(context))
                           const DataUsage(),
                       },
+                      const PinnedServerWarning(),
                       const SizedBox(height: 8),
                       _SettingCard(),
                       const SizedBox(height: defaultSize),
