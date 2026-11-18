@@ -108,6 +108,16 @@ class Home extends HookConsumerWidget {
       });
       return () => tabController.removeListener(sync);
     }, [tabController]);
+    // A route pushed over Home, such as Settings, covers the Unbounded tab,
+    // so its snapshots can slow down until Home is on top again.
+    final homeIsCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        ref.read(homeRouteCurrentProvider.notifier).set(homeIsCurrent);
+      });
+      return null;
+    }, [homeIsCurrent]);
     final isUserPro = ref.watch(isUserProProvider);
     final userLoggedIn = ref.watch(
       appSettingProvider.select((s) => s.userLoggedIn),
