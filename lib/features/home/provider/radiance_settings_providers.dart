@@ -6,6 +6,16 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'radiance_settings_providers.g.dart';
 
+/// Radiance's settings key for trying sites directly before the VPN.
+const proxylessSettingKey = 'proxyless';
+
+/// Reads the proxyless setting from radiance's settings, which leave it unset
+/// until the user changes it; unset means on.
+bool proxylessFromSettings(Map<String, dynamic> settings) {
+  final v = settings[proxylessSettingKey];
+  return v is bool ? v : true;
+}
+
 /// Holds radiance-backed VPN preferences in memory.
 ///
 /// The notifier returns safe defaults synchronously from [build], then kicks
@@ -36,12 +46,14 @@ class RadianceSettings extends _$RadianceSettings {
     // the router, so mobile is included rather than desktop-only.
     final peerF = svc.isPeerProxyEnabled();
     final unboundedF = svc.isUnboundedEnabled();
+    final settingsF = svc.getSettings();
 
     final blockAds = await blockAdsF;
     final routing = await routingF;
     final telemetry = await telemetryF;
     final peer = await peerF;
     final unbounded = await unboundedF;
+    final settings = await settingsF;
     if (!ref.mounted) return;
 
     const defaults = RadianceSettingsState();
@@ -53,8 +65,14 @@ class RadianceSettings extends _$RadianceSettings {
       ),
       telemetry: telemetry.fold((_) => defaults.telemetry, (v) => v),
       peerProxy: peer.fold((_) => defaults.peerProxy, (v) => v),
-      unboundedEnabled:
-          unbounded.fold((_) => defaults.unboundedEnabled, (v) => v),
+      unboundedEnabled: unbounded.fold(
+        (_) => defaults.unboundedEnabled,
+        (v) => v,
+      ),
+      proxyless: settings.fold(
+        (_) => defaults.proxyless,
+        (s) => proxylessFromSettings(s),
+      ),
     );
   }
 
@@ -79,6 +97,24 @@ class RadianceSettings extends _$RadianceSettings {
       },
       (_) {
         state = state.copyWith(routingMode: mode);
+        return right(unit);
+      },
+    );
+  }
+
+  /// Turns trying sites directly before the VPN on or off. Radiance switches
+  /// the running tunnel without a restart.
+  Future<Either<Failure, Unit>> setProxyless(bool value) async {
+    final svc = ref.read(lanternServiceProvider);
+    final result = await svc.patchSettings({proxylessSettingKey: value});
+    if (!ref.mounted) return result;
+    return result.fold(
+      (err) {
+        appLogger.error('setProxyless failed: ${err.error}');
+        return left(err);
+      },
+      (_) {
+        state = state.copyWith(proxyless: value);
         return right(unit);
       },
     );
