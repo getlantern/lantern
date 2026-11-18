@@ -66,6 +66,7 @@ class ServerLocation {
       autoLocation: AutoLocation(
         countryCode: server.location.countryCode,
         country: country,
+        city: city,
         displayName: '$country - $city',
         tag: server.tag,
       ),
@@ -217,12 +218,14 @@ class ServerLocation {
 class AutoLocation {
   final String country;
   final String countryCode;
+  final String city;
   final String displayName;
   final String? tag;
 
   const AutoLocation({
     required this.country,
     required this.countryCode,
+    this.city = '',
     required this.displayName,
     this.tag,
   });
@@ -234,15 +237,25 @@ class AutoLocation {
   Map<String, dynamic> toJson() => {
     'country': country,
     'countryCode': countryCode,
+    'city': city,
     'displayName': displayName,
     'tag': tag,
   };
 
   factory AutoLocation.fromJson(Map<String, dynamic> json) {
+    final country = (json['country'] ?? '') as String;
+    final displayName = (json['displayName'] ?? '') as String;
+    var city = (json['city'] ?? '') as String;
+    // Stored before the city was kept: recover it from "Country - City".
+    final prefix = '$country - ';
+    if (city.isEmpty && country.isNotEmpty && displayName.startsWith(prefix)) {
+      city = displayName.substring(prefix.length);
+    }
     return AutoLocation(
-      country: (json['country'] ?? '') as String,
+      country: country,
       countryCode: (json['countryCode'] ?? '') as String,
-      displayName: (json['displayName'] ?? '') as String,
+      city: city,
+      displayName: displayName,
       tag: (json['tag'] as String?)?.isEmpty == true
           ? null
           : json['tag'] as String?,

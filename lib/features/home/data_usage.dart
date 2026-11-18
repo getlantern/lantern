@@ -36,11 +36,7 @@ class DataUsage extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         final int usedBytes = dataCap.bytesUsed.clamp(0, totalBytes);
-        final int remainingBytes = totalBytes - usedBytes;
         final isDataCapReached = usedBytes >= totalBytes;
-        appLogger.debug(
-          "Data Usage - Bytes: $totalBytes bytes, Used: $usedBytes bytes, Remaining: $remainingBytes bytes",
-        );
         final dataCapResetTime = dataCapNotifier.formatDailyResetTime(
           dataCap.allotmentEndTime,
         );
@@ -56,13 +52,9 @@ class DataUsage extends ConsumerWidget {
 
         /// Convert to MB only for display
         final int totalData = (totalBytes.toMB).round();
-        final int remainingData = (remainingBytes.toMB).round();
         final int usedData = usedBytes == 0
             ? 0
             : max(1, usedBytes.toMB.round());
-        appLogger.debug(
-          "Data Usage - Total: $totalData MB, Used: $usedData MB, Remaining: $remainingData MB",
-        );
 
         final usageString = '$usedData/$totalData';
 

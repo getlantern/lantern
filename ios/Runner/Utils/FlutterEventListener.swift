@@ -20,6 +20,7 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
     "data-cap-event",
     "unbounded-snapshot",
     "peer-snapshot",
+    "user-message-available",
   ]
 
   func send(_ event: UtilsFlutterEvent?) {
@@ -43,7 +44,6 @@ class FlutterEventListener: NSObject, UtilsFlutterEventEmitterProtocol {
     lock.lock()
     if let sink = eventSink {
       lock.unlock()
-      logEvent("FlutterEventListener sending event immediately: \(event.type)")
       DispatchQueue.main.async {
         sink(map)
       }

@@ -20,6 +20,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 class _Service implements LanternService {
   bool tagAvailable = false;
   final widgetServers = <String>[];
+  final widgetLocations = <String>[];
 
   @override
   Future<bool> isTagAvailable(String tag) async => tagAvailable;
@@ -55,7 +56,10 @@ class _Service implements LanternService {
     required String countryCode,
     required String displayName,
     required String serverName,
-  }) async => widgetServers.add(serverName);
+  }) async {
+    widgetServers.add(serverName);
+    widgetLocations.add('$city|$country|$countryCode');
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -467,6 +471,76 @@ void main() {
       ServerLocationType.auto.name,
     );
     expect(service.widgetServers.last, '');
+  });
+
+  test('switching back to auto gives the widget the Smart Location, not the '
+      'selected server\'s city', () async {
+    storage.location = ServerLocation.autoSelected(
+      Server(
+        tag: 'fastest',
+        type: 'lantern',
+        isLantern: true,
+        location: GeoLocation(
+          country: 'Canada',
+          countryCode: 'CA',
+          city: 'Toronto',
+          latitude: 0,
+          longitude: 0,
+        ),
+      ),
+    );
+    final c = container();
+    final notifier = c.read(serverLocationProvider.notifier);
+    notifier.updateServerLocation(
+      ServerLocation(
+        serverType: ServerLocationType.lanternLocation.name,
+        serverName: 'osaka',
+        country: 'Japan',
+        countryCode: 'JP',
+        city: 'Osaka',
+      ),
+    );
+    await pumpEventQueue();
+    expect(service.widgetLocations.last, 'Osaka|Japan|JP');
+
+    await notifier.switchToAuto();
+    await pumpEventQueue();
+    expect(service.widgetLocations.last, 'Toronto|Canada|CA');
+    expect(service.widgetServers.last, '');
+  });
+
+  test('a Smart Location stored without its city drops the selected '
+      'server\'s city on the switch to auto', () async {
+    storage.location = ServerLocation(
+      serverType: ServerLocationType.lanternLocation.name,
+      serverName: 'osaka',
+      country: 'Japan',
+      countryCode: 'JP',
+      city: 'Osaka',
+      autoLocation: const AutoLocation(
+        country: 'Canada',
+        countryCode: 'CA',
+        displayName: 'Canada - Toronto',
+      ),
+    );
+    final c = container();
+    await c.read(serverLocationProvider.notifier).switchToAuto();
+    await pumpEventQueue();
+    expect(service.widgetLocations.last, '|Canada|CA');
+  });
+
+  test('a Smart Location stored without its city gets it back from the '
+      'display name', () {
+    final auto = AutoLocation.fromJson({
+      'country': 'Canada',
+      'countryCode': 'CA',
+      'displayName': 'Canada - Toronto',
+    });
+    expect(auto.city, 'Toronto');
+    expect(
+      AutoLocation.fromJson({'displayName': 'Fastest server'}).city,
+      isEmpty,
+    );
   });
 
   test('the widget ends on the selection the app made last', () async {
