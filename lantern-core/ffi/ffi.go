@@ -1500,6 +1500,18 @@ func setSmartRoutingEnabled(enabled C.int) *C.char {
 	})
 }
 
+//export setSnapshotPolling
+func setSnapshotPolling(on C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		c.SetSnapshotPolling(on != 0)
+		return C.CString("ok")
+	})
+}
+
 //export isSmartRoutingEnabled
 func isSmartRoutingEnabled() C.int {
 	c, _ := requireCore()

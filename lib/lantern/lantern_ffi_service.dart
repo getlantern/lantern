@@ -1822,6 +1822,23 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> setSnapshotPolling(bool on) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setSnapshotPolling(on ? 1 : 0)
+            .cast<Utf8>()
+            .toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setSnapshotPolling error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> getPeerStatusJSON() async {
     try {
       final res = await runInBackground<String>(() async {

@@ -112,3 +112,74 @@ func TestSnapshotsDropPeerPairing(t *testing.T) {
 		})
 	}
 }
+
+// A closed gate runs no poll, opening it polls at once, and closing it cancels
+// the running poll.
+func TestPollGateRunsOnlyWhileOpen(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var g pollGate
+	polls := make(chan context.Context)
+	done := make(chan struct{})
+	go func() {
+		g.run(ctx, time.Hour, func(pollCtx context.Context, _ <-chan time.Time) {
+			polls <- pollCtx
+			<-pollCtx.Done()
+		})
+		close(done)
+	}()
+
+	select {
+	case <-polls:
+		t.Fatal("polled while closed")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	for range 2 {
+		g.set(true)
+		var pollCtx context.Context
+		select {
+		case pollCtx = <-polls:
+		case <-time.After(time.Second):
+			t.Fatal("no poll after opening")
+		}
+		g.set(false)
+		select {
+		case <-pollCtx.Done():
+		case <-time.After(time.Second):
+			t.Fatal("poll not canceled after closing")
+		}
+	}
+
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("run did not return after ctx was canceled")
+	}
+}
+
+// Closing the gate mid-poll must not report Unbounded as unavailable.
+func TestClosingGateDoesNotReportOutage(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var g pollGate
+	g.set(true)
+	var events []string
+	reads := 0
+	g.run(ctx, time.Millisecond, func(pollCtx context.Context, ticks <-chan time.Time) {
+		pollUnboundedSnapshots(pollCtx, ticks, func(c context.Context) (unbounded.Snapshot, error) {
+			reads++
+			if reads == 2 {
+				g.set(false)
+				<-c.Done()
+				cancel()
+				return unbounded.Snapshot{}, c.Err()
+			}
+			return unbounded.Snapshot{}, nil
+		}, func(name, _ string) { events = append(events, name) })
+	})
+	if !reflect.DeepEqual(events, []string{"unbounded-snapshot"}) {
+		t.Fatalf("events = %v", events)
+	}
+}

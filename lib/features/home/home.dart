@@ -21,6 +21,7 @@ import 'package:lantern/features/onboarding/personal_proxies_intro.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
+import 'package:lantern/features/action_mode/provider/share_snapshot_polling.dart';
 import 'package:lantern/features/action_mode/action_mode.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -181,6 +182,7 @@ class Home extends HookConsumerWidget {
     }, [featureFlag]);
 
     ref.read(appEventProvider);
+    ref.read(shareSnapshotPollingProvider);
 
     // Reconcile the share UI with the backend before anything reads its
     // state. radiance resumes sharing (Unbounded or SmC) from persisted

@@ -95,6 +95,7 @@ type LanternCore struct {
 	eventEmitter   utils.FlutterEventEmitter
 	helpers        *helper.Engine
 	pairingKeys    *pairingKeyPusher
+	snapshotGate   pollGate
 }
 
 var (
@@ -245,6 +246,9 @@ type PeerShare interface {
 	// or a manual port forward) and Unbounded mode (WebRTC, works
 	// anywhere) when no manual port is configured.
 	ProbeUPnP() bool
+	// SetSnapshotPolling starts or stops the once-a-second unbounded-snapshot
+	// and peer-snapshot events. They are off until the app turns them on.
+	SetSnapshotPolling(on bool)
 }
 
 type VPN interface {
