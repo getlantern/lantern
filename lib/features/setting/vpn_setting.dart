@@ -62,15 +62,13 @@ class VPNSetting extends HookConsumerWidget {
                   appRouter.push(const ServerSelection());
                 },
               ),
-              if (!PlatformUtils.isIOS) ...[
-                DividerSpace(),
-                SplitTunnelingTile(
-                  label: 'routing_mode'.i18n,
-                  icon: AppImagePaths.route,
-                  actionText: routingMode.label(),
-                  onPressed: () => appRouter.push(const SmartRouting()),
-                ),
-              ],
+              DividerSpace(),
+              SplitTunnelingTile(
+                label: 'routing_mode'.i18n,
+                icon: AppImagePaths.route,
+                actionText: routingMode.label(),
+                onPressed: () => appRouter.push(const SmartRouting()),
+              ),
               DividerSpace(),
               if (showSplitTunneling) ...[
                 SplitTunnelingTile(
