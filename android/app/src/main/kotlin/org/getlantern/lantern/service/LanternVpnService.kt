@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
+import android.os.PowerManager
 import android.os.ParcelFileDescriptor
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.CancellationException
@@ -37,6 +38,7 @@ import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VP
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
+import org.getlantern.lantern.utils.VPNStatusReceiver
 import org.getlantern.lantern.utils.VpnStatusManager
 import org.getlantern.lantern.utils.getRadianceEnv
 import org.getlantern.lantern.utils.initConfigDir
@@ -395,6 +397,11 @@ open class LanternVpnService :
                         reportVPNStartError(errorCode, TimeoutException("VPN operation timed out"))
                     },
                     connect = connect,
+                )
+                // Radiance restarts come through here too, and every new
+                // tunnel starts awake, even with the device already in Doze.
+                VPNStatusReceiver.deviceIdle.onTunnelStarted(
+                    getSystemService(PowerManager::class.java)?.isDeviceIdleMode == true
                 )
                 attempt.publish {
                     VpnStatusManager.postVPNStatus(VPNStatus.Connected)
