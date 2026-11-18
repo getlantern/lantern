@@ -23,7 +23,6 @@ class PrivateServerListener: NSObject, UtilsPrivateServerEventListenerProtocol {
   }
 
   func onPrivateServerEvent(_ event: String?) {
-    appLogger.log("Private server event received: \(event ?? "nil")")
     eventSink = event ?? ""
   }
 

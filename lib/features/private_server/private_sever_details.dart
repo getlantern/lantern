@@ -291,7 +291,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
 
   Future<void> onUserInput(PrivateServerInput input, String account) async {
     context.showLoadingDialog();
-    appLogger.info("Setting user input: $input with value: $account");
+    appLogger.info("Setting user input: ${input.name}");
     final result = await ref
         .read(privateServerProvider.notifier)
         .setUserInput(input, account);
@@ -302,7 +302,7 @@ class _PrivateSeverDetailsState extends ConsumerState<PrivateSeverDetails> {
       },
       (_) {
         context.hideLoadingDialog();
-        appLogger.info("${input.name} set successfully: $account");
+        appLogger.info("${input.name} set successfully");
       },
     );
   }
