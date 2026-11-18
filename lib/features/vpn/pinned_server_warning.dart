@@ -46,6 +46,10 @@ class PinnedServerWarning extends HookConsumerWidget {
     useEffect(() {
       if (pinnedTag == null) return null;
       final timer = Timer.periodic(pinnedServerRefreshInterval, (_) {
+        if (WidgetsBinding.instance.lifecycleState !=
+            AppLifecycleState.resumed) {
+          return;
+        }
         unawaited(
           ref
               .read(availableServersProvider.notifier)

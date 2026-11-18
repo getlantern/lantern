@@ -125,6 +125,7 @@ void main() {
 
   testWidgets('reloads probe results while pinned, and picks up a server '
       'that turns unreachable', (tester) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await _pump(tester, server: _server(delay: 90));
     expect(_warning, findsNothing);
 
@@ -138,5 +139,14 @@ void main() {
     await tester.pump(pinnedServerRefreshInterval);
     await tester.pump();
     expect(_warning, findsNothing);
+  });
+
+  testWidgets('skips reloads while the app is in the background', (
+    tester,
+  ) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await _pump(tester, server: _server(delay: 90));
+    await tester.pump(pinnedServerRefreshInterval);
+    expect(_servers.fetches, 0);
   });
 }
