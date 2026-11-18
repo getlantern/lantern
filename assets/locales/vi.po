@@ -2517,3 +2517,15 @@ msgstr "Vẫn kết nối"
 
 msgid "pinned_server_unreachable"
 msgstr "Có vẻ không thể truy cập %s từ mạng của bạn. Nhấn để chọn vị trí khác."
+
+msgid "proxyless"
+msgstr "Thử trực tiếp trước"
+
+msgid "proxyless_subtitle"
+msgstr "Nhanh hơn khi trang không bị chặn"
+
+msgid "proxyless_description"
+msgstr "Lantern trước tiên thử truy cập trực tiếp các trang lẽ ra dùng VPN, bằng kỹ thuật chống kiểm duyệt, và chỉ dùng VPN khi cách đó thất bại. Cách này nhanh hơn, nhưng mạng của bạn có thể thấy bạn truy cập trực tiếp những trang nào."
+
+msgid "failed_to_update_proxyless"
+msgstr "Không thể cập nhật Thử trực tiếp trước"

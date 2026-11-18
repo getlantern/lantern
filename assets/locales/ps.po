@@ -2538,3 +2538,15 @@ msgstr "بیا هم وصل کړئ"
 
 msgid "pinned_server_unreachable"
 msgstr "داسې ښکاري چې %s ستاسو له شبکې د لاسرسي وړ نه دی. د بل ځای ټاکلو لپاره ټک وکړئ."
+
+msgid "proxyless"
+msgstr "لومړی مستقیم هڅه"
+
+msgid "proxyless_subtitle"
+msgstr "کله چې سایټ بند نه وي ګړندی دی"
+
+msgid "proxyless_description"
+msgstr "Lantern لومړی هڅه کوي هغو سایټونو ته چې VPN به یې کاراوه، د سانسور ضد تخنیکونو سره مستقیم ورسېږي. یوازې کله چې دا ناکام شي VPN کاروي. دا ګړندی دی، خو ستاسو شبکه لیدلی شي چې تاسو کومو سایټونو ته مستقیم ځئ."
+
+msgid "failed_to_update_proxyless"
+msgstr "لومړی مستقیم هڅه تازه نه شوه"

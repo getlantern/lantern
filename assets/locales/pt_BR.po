@@ -2529,3 +2529,15 @@ msgstr "Conectar mesmo assim"
 
 msgid "pinned_server_unreachable"
 msgstr "%s parece inacessível pela sua rede. Toque para escolher outra localização."
+
+msgid "proxyless"
+msgstr "Tentar direto primeiro"
+
+msgid "proxyless_subtitle"
+msgstr "Mais rápido quando o site não está bloqueado"
+
+msgid "proxyless_description"
+msgstr "O Lantern primeiro tenta acessar diretamente os sites que usariam a VPN, com técnicas contra a censura, e só usa a VPN se isso falhar. É mais rápido, mas sua rede pode ver quais sites você acessa diretamente."
+
+msgid "failed_to_update_proxyless"
+msgstr "Não foi possível atualizar Tentar direto primeiro"

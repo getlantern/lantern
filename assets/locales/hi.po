@@ -2517,3 +2517,15 @@ msgstr "फिर भी कनेक्ट करें"
 
 msgid "pinned_server_unreachable"
 msgstr "आपके नेटवर्क से %s तक पहुंचना संभव नहीं लगता। कोई दूसरी लोकेशन चुनने के लिए टैप करें।"
+
+msgid "proxyless"
+msgstr "पहले सीधे कोशिश करें"
+
+msgid "proxyless_subtitle"
+msgstr "साइट ब्लॉक न होने पर तेज़"
+
+msgid "proxyless_description"
+msgstr "जो साइटें VPN का उपयोग करतीं, Lantern पहले सेंसरशिप-रोधी तकनीकों से उन तक सीधे पहुंचने की कोशिश करता है, और विफल होने पर ही VPN का उपयोग करता है। यह तेज़ है, लेकिन आपका नेटवर्क देख सकता है कि आप किन साइटों पर सीधे पहुंचते हैं।"
+
+msgid "failed_to_update_proxyless"
+msgstr "“पहले सीधे कोशिश करें” अपडेट नहीं हो सका"
