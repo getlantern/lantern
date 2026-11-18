@@ -2012,15 +2012,6 @@ msgstr "暂时无法连接 %s。已切换到您的个人代理。"
 msgid "personal_proxy_fallback_auto"
 msgstr "暂时无法连接 %s。已切换到智能位置。"
 
-msgid "become_means_title"
-msgstr "成为个人代理意味着什么"
-
-msgid "become_means_seen"
-msgstr "对方可以看到您何时在线连接。只接受认识的人发来的邀请。"
-
-msgid "become_means_remove"
-msgstr "您可以随时移除此连接。"
-
 msgid "help_friend_form_title"
 msgstr "粘贴您所帮助之人发来的链接"
 
@@ -2255,9 +2246,6 @@ msgstr "您可以随时在管理私人位置中将其移除。"
 msgid "approved_body_locations"
 msgstr "当 %s 在线时，您可以在服务器位置菜单的私人位置中选择。智能位置可能会自动使用。"
 
-msgid "become_means_traffic_seen"
-msgstr "一位朋友向您求助。开启 Action Mode 后，对方会通过您的连接访问开放的互联网。您可以看到对方访问了哪些网站，但看不到对方在网站上做了什么。"
-
 msgid "help_friend_your_name_label"
 msgstr "您的名字"
 
@@ -2341,3 +2329,30 @@ msgstr "%s 已添加。"
 
 msgid "clear"
 msgstr "清除"
+
+msgid "personal_proxy_path_connecting"
+msgstr "正在连接…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "正在重新连接…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "无法使用"
+
+msgid "trust_understand_risks"
+msgstr "我了解相关风险"
+
+msgid "help_friend_trust_warning"
+msgstr "只帮助您信任的人。"
+
+msgid "help_friend_trust_title"
+msgstr "信任您帮助的人"
+
+msgid "help_friend_trust_message_one"
+msgstr "在对方访问的网站看来，其流量就像来自您的连接。如果对方从事违法活动，可能会被追溯到您。只帮助您信任的人。"
+
+msgid "help_friend_trust_message_two"
+msgstr "蓝灯不管理或监控个人代理。"
+
+msgid "help_friend_trust_message_three"
+msgstr "您可以随时在 Action Mode 标签页中移除此连接。"

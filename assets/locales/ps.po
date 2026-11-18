@@ -2179,15 +2179,6 @@ msgstr "رد کړئ"
 msgid "personal_proxy_fallback_group"
 msgstr "اوس مهال %s ته رسېدل نه کېږي. ستاسو شخصي پراکسيو ته واوښتل."
 
-msgid "become_means_title"
-msgstr "شخصي پراکسي کېدل څه معنا لري"
-
-msgid "become_means_seen"
-msgstr "دوی لیدلی شي چې تاسو کله وصل یاست. یوازې د هغو کسانو بلنې ومنئ چې پېژنئ یې."
-
-msgid "become_means_remove"
-msgstr "اتصال هر وخت لرې کولی شئ."
-
 msgid "help_friend_form_title"
 msgstr "د هغه چا لینک دلته کېږدئ چې مرسته یې کوئ"
 
@@ -2425,9 +2416,6 @@ msgstr "تاسو کولی شئ هغه هر وخت د شخصي ځایونو له 
 msgid "approved_body_locations"
 msgstr "کله چې %s آنلاین وي، تاسو کولی شئ هغه د سرور ځایونو مینو کې د شخصي ځایونو لاندې وټاکئ. هوښیار ځای ښايي هغه په اتومات ډول وکاروي."
 
-msgid "become_means_traffic_seen"
-msgstr "یو ملګري ستاسو مرسته غوښتې ده. کله چې Action Mode روښانه وي، هغوی ستاسو د اتصال له لارې آزاد انټرنیټ ته لاسرسی پیدا کوي. تاسو لیدلی شئ چې هغوی کوم سایټونه ګوري، خو دا نه چې هلته څه کوي."
-
 msgid "help_friend_your_name_label"
 msgstr "ستاسو نوم"
 
@@ -2508,3 +2496,33 @@ msgstr "%s دمخه اضافه شوی."
 
 msgid "clear"
 msgstr "پاک کړئ"
+
+msgid "split_tunnel_bypass"
+msgstr "له VPN پرته"
+
+msgid "personal_proxy_path_connecting"
+msgstr "وصلیږي…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "بیا وصلیږي…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "د لاسرسي وړ نه دی"
+
+msgid "trust_understand_risks"
+msgstr "زه په خطرونو پوهېږم"
+
+msgid "help_friend_trust_warning"
+msgstr "یوازې له باوري خلکو سره مرسته وکړئ."
+
+msgid "help_friend_trust_title"
+msgstr "په هغه چا باور وکړئ چې مرسته ورسره کوئ"
+
+msgid "help_friend_trust_message_one"
+msgstr "هغو ویب پاڼو ته چې دوی یې ګوري، د دوی ټرافیک به داسې ښکاري لکه ستاسو له اتصال څخه چې راغلی وي. که دوی کوم غیرقانوني کار وکړي، تاسو ته به یې ردیابي کېدای شي. یوازې له هغو خلکو سره مرسته وکړئ چې باور پرې لرئ."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern شخصي پراکسي ګانې نه اداره کوي او نه یې څاري."
+
+msgid "help_friend_trust_message_three"
+msgstr "تاسو کولی شئ هر وخت د Action Mode ټب څخه اتصال لرې کړئ."

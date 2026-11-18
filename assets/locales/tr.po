@@ -2163,15 +2163,6 @@ msgstr "Şu anda ulaşılamıyor: %s. Kişisel proxy'leriniz seçeneğine geçil
 msgid "personal_proxy_fallback_auto"
 msgstr "Şu anda ulaşılamıyor: %s. Akıllı Konum'a geçildi."
 
-msgid "become_means_title"
-msgstr "Kişisel Proxy olmak ne demek"
-
-msgid "become_means_seen"
-msgstr "Ne zaman bağlı olduğunuzu görebilirler. Yalnızca tanıdığınız kişilerden gelen davetleri kabul edin."
-
-msgid "become_means_remove"
-msgstr "Bağlantıyı istediğiniz zaman kaldırın."
-
 msgid "help_friend_form_title"
 msgstr "Yardım ettiğiniz kişiden gelen bağlantıyı yapıştırın"
 
@@ -2406,9 +2397,6 @@ msgstr "Bu kişiyi istediğiniz zaman Özel Konumları Yönet bölümünden kald
 msgid "approved_body_locations"
 msgstr "%s çevrimiçi olduğunda, Sunucu Konumları menüsündeki Özel Konumlar altından seçebilirsiniz. Akıllı Konum bunları otomatik olarak kullanabilir."
 
-msgid "become_means_traffic_seen"
-msgstr "Bir arkadaşınız yardımınızı istedi. Action Mode açıkken, sizin bağlantınız üzerinden açık internete erişir. Hangi siteleri ziyaret ettiğini görebilirsiniz ama bu sitelerde ne yaptığını göremezsiniz."
-
 msgid "help_friend_your_name_label"
 msgstr "Adınız"
 
@@ -2492,3 +2480,30 @@ msgstr "Zaten eklendi: %s."
 
 msgid "clear"
 msgstr "Temizle"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Bağlanıyor…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Yeniden bağlanıyor…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Kullanılamıyor"
+
+msgid "trust_understand_risks"
+msgstr "Riskleri anlıyorum"
+
+msgid "help_friend_trust_warning"
+msgstr "Yalnızca güvendiğiniz kişilere yardım edin."
+
+msgid "help_friend_trust_title"
+msgstr "Yardım ettiğiniz kişiye güvenin"
+
+msgid "help_friend_trust_message_one"
+msgstr "Ziyaret ettikleri web siteleri için trafikleri sizin bağlantınızdan geliyormuş gibi görünecek. Yasa dışı bir şey yaparlarsa bu size kadar izlenebilir. Yalnızca güvendiğiniz kişilere yardım edin."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern, Kişisel Proxy'leri yönetmez veya izlemez."
+
+msgid "help_friend_trust_message_three"
+msgstr "Bağlantıyı istediğiniz zaman Action Mode sekmesinden kaldırabilirsiniz."

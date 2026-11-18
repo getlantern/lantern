@@ -2161,15 +2161,6 @@ msgstr "مسترد کریں"
 msgid "personal_proxy_fallback_group"
 msgstr "ابھی %s تک رسائی نہیں ہو رہی۔ آپ کی ذاتی پراکسیز پر منتقل کر دیا گیا۔"
 
-msgid "become_means_title"
-msgstr "پرسنل پراکسی ہونے کا کیا مطلب ہے"
-
-msgid "become_means_seen"
-msgstr "وہ دیکھ سکتے ہیں کہ آپ کب منسلک ہیں۔ صرف جاننے والے لوگوں کے دعوت نامے قبول کریں۔"
-
-msgid "become_means_remove"
-msgstr "کنکشن کسی بھی وقت ہٹا دیں۔"
-
 msgid "help_friend_form_title"
 msgstr "جس کی آپ مدد کر رہے ہیں اس کا لنک پیسٹ کریں"
 
@@ -2407,9 +2398,6 @@ msgstr "آپ انہیں کسی بھی وقت پرائیویٹ لوکیشن کا 
 msgid "approved_body_locations"
 msgstr "جب %s آن لائن ہوں تو آپ انہیں سرور لوکیشن مینو میں پرائیویٹ لوکیشن کے تحت چن سکتے ہیں۔ اسمارٹ لوکیشن انہیں خود بخود استعمال کر سکتا ہے۔"
 
-msgid "become_means_traffic_seen"
-msgstr "ایک دوست نے آپ سے مدد مانگی ہے۔ جب Action Mode آن ہو تو وہ آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچتے ہیں۔ آپ دیکھ سکتے ہیں کہ وہ کون سی سائٹس پر جاتے ہیں، لیکن یہ نہیں کہ وہ ان پر کیا کرتے ہیں۔"
-
 msgid "help_friend_your_name_label"
 msgstr "آپ کا نام"
 
@@ -2493,3 +2481,30 @@ msgstr "%s پہلے ہی شامل ہے۔"
 
 msgid "clear"
 msgstr "صاف کریں"
+
+msgid "personal_proxy_path_connecting"
+msgstr "منسلک ہو رہا ہے…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "دوبارہ منسلک ہو رہا ہے…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "دستیاب نہیں"
+
+msgid "trust_understand_risks"
+msgstr "مجھے خطرات کا علم ہے"
+
+msgid "help_friend_trust_warning"
+msgstr "صرف قابل بھروسہ لوگوں کی مدد کریں۔"
+
+msgid "help_friend_trust_title"
+msgstr "جس کی مدد کریں اس پر بھروسہ کریں"
+
+msgid "help_friend_trust_message_one"
+msgstr "جن ویب سائٹس پر وہ جائیں گے، انہیں ان کا ٹریفک آپ کے کنکشن سے آتا دکھائی دے گا۔ اگر وہ کچھ غیر قانونی کریں تو اس کا پتہ آپ تک لگایا جا سکتا ہے۔ صرف ان لوگوں کی مدد کریں جن پر آپ بھروسہ کرتے ہیں۔"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern ذاتی پراکسیز کو منیج یا مانیٹر نہیں کرتا۔"
+
+msgid "help_friend_trust_message_three"
+msgstr "آپ کسی بھی وقت Action Mode ٹیب سے کنکشن ہٹا سکتے ہیں۔"

@@ -41,12 +41,17 @@ type personalProxyStatus struct {
 	Direct  bool   `json:"direct"`
 	Reverse bool   `json:"reverse"`
 	Rooms   bool   `json:"rooms"`
+	// RoomsPath and RoomsPathSince are radiance's, passed through: the rooms
+	// consumer's WebRTC path to the friend and when it last changed. Both are
+	// omitted by a radiance that predates them.
+	RoomsPath      string `json:"rooms_path,omitempty"`
+	RoomsPathSince int64  `json:"rooms_path_since,omitempty"`
 }
 
 // personalProxyStatusJSON reads the status of each friend this device invited
-// and answers {"statuses": [{tag, direct, reverse, rooms}]}, or the helper engine's
-// unavailable error when radiance does not answer (the app then treats every
-// friend's status as unknown). Nothing is logged: the tags name the friends.
+// and answers {"statuses": [{tag, direct, reverse, rooms, rooms_path,
+// rooms_path_since}]}, or the helper engine's unavailable error when radiance
+// does not answer (the app then treats every friend's status as unknown). Nothing is logged: the tags name the friends.
 func personalProxyStatusJSON(ctx context.Context, read func(context.Context) ([]vpn.PersonalProxyStatus, error)) string {
 	ctx, cancel := context.WithTimeout(ctx, personalProxyStatusTimeout)
 	defer cancel()
@@ -58,7 +63,8 @@ func personalProxyStatusJSON(ctx context.Context, read func(context.Context) ([]
 		Statuses []personalProxyStatus `json:"statuses"`
 	}{Statuses: make([]personalProxyStatus, 0, len(statuses))}
 	for _, s := range statuses {
-		out.Statuses = append(out.Statuses, personalProxyStatus{Tag: s.Tag, Direct: s.Direct, Reverse: s.Reverse, Rooms: s.Rooms})
+		out.Statuses = append(out.Statuses, personalProxyStatus{Tag: s.Tag, Direct: s.Direct, Reverse: s.Reverse, Rooms: s.Rooms,
+			RoomsPath: s.RoomsPath, RoomsPathSince: s.RoomsPathSince})
 	}
 	b, err := json.Marshal(out)
 	if err != nil {

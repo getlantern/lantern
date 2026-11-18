@@ -2127,15 +2127,6 @@ msgstr "ปฏิเสธ"
 msgid "personal_proxy_fallback_group"
 msgstr "ไม่สามารถติดต่อ %s ได้ในขณะนี้ เปลี่ยนเป็นพร็อกซีส่วนตัวของคุณแล้ว"
 
-msgid "become_means_title"
-msgstr "การเป็นพร็อกซีส่วนตัวหมายถึงอะไร"
-
-msgid "become_means_seen"
-msgstr "พวกเขาเห็นได้ว่าคุณเชื่อมต่ออยู่เมื่อใด ยอมรับคำเชิญจากคนที่คุณรู้จักเท่านั้น"
-
-msgid "become_means_remove"
-msgstr "ลบการเชื่อมต่อได้ทุกเมื่อ"
-
 msgid "help_friend_form_title"
 msgstr "วางลิงก์จากคนที่คุณกำลังช่วย"
 
@@ -2373,9 +2364,6 @@ msgstr "คุณสามารถลบเขาออกได้ทุกเ
 msgid "approved_body_locations"
 msgstr "เมื่อ %s ออนไลน์ คุณสามารถเลือกได้ในตำแหน่งส่วนตัวในเมนูตำแหน่งเซิร์ฟเวอร์ ตำแหน่งอัจฉริยะอาจใช้โดยอัตโนมัติ"
 
-msgid "become_means_traffic_seen"
-msgstr "เพื่อนคนหนึ่งขอความช่วยเหลือจากคุณ เมื่อเปิด Action Mode เพื่อนจะเข้าถึงอินเทอร์เน็ตแบบเปิดผ่านการเชื่อมต่อของคุณ คุณอาจเห็นว่าเขาเข้าเว็บไซต์ใดบ้าง แต่จะไม่เห็นว่าเขาทำอะไรบนเว็บไซต์เหล่านั้น"
-
 msgid "help_friend_your_name_label"
 msgstr "ชื่อของคุณ"
 
@@ -2459,3 +2447,30 @@ msgstr "เพิ่ม %s ไว้แล้ว"
 
 msgid "clear"
 msgstr "ล้าง"
+
+msgid "personal_proxy_path_connecting"
+msgstr "กำลังเชื่อมต่อ…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "กำลังเชื่อมต่อใหม่…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "ไม่พร้อมใช้งาน"
+
+msgid "trust_understand_risks"
+msgstr "ฉันเข้าใจความเสี่ยง"
+
+msgid "help_friend_trust_warning"
+msgstr "ช่วยเหลือเฉพาะคนที่คุณไว้ใจเท่านั้น"
+
+msgid "help_friend_trust_title"
+msgstr "ไว้ใจคนที่คุณช่วยเหลือ"
+
+msgid "help_friend_trust_message_one"
+msgstr "สำหรับเว็บไซต์ที่พวกเขาเข้าชม การรับส่งข้อมูลของพวกเขาจะดูเหมือนมาจากการเชื่อมต่อของคุณ หากพวกเขาทำสิ่งผิดกฎหมาย อาจถูกสืบย้อนมาถึงคุณ ช่วยเหลือเฉพาะคนที่คุณไว้ใจเท่านั้น"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern ไม่ได้จัดการหรือตรวจสอบพร็อกซีส่วนตัว"
+
+msgid "help_friend_trust_message_three"
+msgstr "คุณสามารถลบการเชื่อมต่อได้ทุกเมื่อจากแท็บ Action Mode"

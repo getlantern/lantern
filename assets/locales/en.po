@@ -2187,6 +2187,29 @@ msgstr "Lantern does not manage or monitor Personal Proxies. Only invite someone
 msgid "invite_trust_message_three"
 msgstr "You can remove them any time from Manage Private Locations."
 
+# The checkbox in the trust dialogs when they gate an action; Continue
+# enables once it is checked.
+msgid "trust_understand_risks"
+msgstr "I understand the risks"
+
+# One line at the top of Become a Personal Proxy, before "Learn more.".
+msgid "help_friend_trust_warning"
+msgstr "Only help people you trust."
+
+# The trust dialog on Become a Personal Proxy: shown before the request is
+# sent, and from the note's Learn more.
+msgid "help_friend_trust_title"
+msgstr "Trust the person you help"
+
+msgid "help_friend_trust_message_one"
+msgstr "To the websites they visit, their traffic will look like it came from your connection. If they do something illegal, it could be traced to you. Only help people you trust."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern does not manage or monitor Personal Proxies."
+
+msgid "help_friend_trust_message_three"
+msgstr "You can remove the connection any time from the Action Mode tab."
+
 # %s is a number of hours.
 msgid "invite_expires"
 msgstr "Expires in %s hours"
@@ -2254,18 +2277,17 @@ msgstr "Can't reach %s right now. Switched to Your personal proxies."
 msgid "personal_proxy_fallback_auto"
 msgstr "Can't reach %s right now. Switched to Smart Location."
 
-# Title of the card that tells a volunteer what being someone's Personal Proxy involves.
-msgid "become_means_title"
-msgstr "What being a Personal Proxy means"
+# Shown on the home screen under the friend the user selected as their Personal Proxy, while Lantern is first connecting to them. Keep it short.
+msgid "personal_proxy_path_connecting"
+msgstr "Connecting…"
 
-msgid "become_means_traffic_seen"
-msgstr "A friend asked for your help. When Action Mode is on, they reach the open internet through your connection. You could see which sites they visit, but not what they do on them."
+# Shown on the home screen under the friend the user selected as their Personal Proxy, when the connection to them just dropped and Lantern is trying again. Keep it short.
+msgid "personal_proxy_path_reconnecting"
+msgstr "Reconnecting…"
 
-msgid "become_means_seen"
-msgstr "They can see when you're connected. Only accept invites from people you know."
-
-msgid "become_means_remove"
-msgstr "Remove the connection any time."
+# Shown on the home screen under the friend the user selected as their Personal Proxy, when Lantern hasn't been able to connect to them for a while. The friend may still be online, so this must not say they are offline. Keep it short.
+msgid "personal_proxy_path_unavailable"
+msgstr "Unavailable"
 
 # Title of the card with the invite link and name fields.
 msgid "help_friend_form_title"

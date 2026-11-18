@@ -1980,15 +1980,6 @@ msgstr "Impossible de joindre %s pour le moment. Passage à Vos mandataires pers
 msgid "personal_proxy_fallback_auto"
 msgstr "Impossible de joindre %s pour le moment. Passage à Emplacement intelligent."
 
-msgid "become_means_title"
-msgstr "Être un mandataire personnel : ce que cela implique"
-
-msgid "become_means_seen"
-msgstr "Ces personnes voient quand votre connexion est active. N'acceptez que les invitations de personnes que vous connaissez."
-
-msgid "become_means_remove"
-msgstr "Supprimez la connexion en tout temps."
-
 msgid "help_friend_form_title"
 msgstr "Collez le lien de la personne que vous aidez"
 
@@ -2226,9 +2217,6 @@ msgstr "Vous pouvez la retirer en tout temps depuis Gérer les emplacements priv
 msgid "approved_body_locations"
 msgstr "Quand %s est en ligne, vous pouvez le sélectionner sous Emplacements privés dans le menu Emplacements des serveurs. L’emplacement intelligent peut l’utiliser automatiquement."
 
-msgid "become_means_traffic_seen"
-msgstr "Un ami vous a demandé de l'aide. Lorsque Action Mode est activé, il accède à l'Internet libre par votre connexion. Vous pourriez voir quels sites il consulte, mais pas ce qu'il y fait."
-
 msgid "help_friend_your_name_label"
 msgstr "Votre nom"
 
@@ -2312,3 +2300,27 @@ msgstr "Déjà ajouté : %s"
 
 msgid "clear"
 msgstr "Effacer"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Connexion…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Reconnexion…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Non disponible"
+
+msgid "trust_understand_risks"
+msgstr "Je comprends les risques"
+
+msgid "help_friend_trust_warning"
+msgstr "N'aidez que des personnes de confiance."
+
+msgid "help_friend_trust_title"
+msgstr "Faites confiance à la personne que vous aidez"
+
+msgid "help_friend_trust_message_one"
+msgstr "Pour les sites qu'elles visitent, leur trafic semblera provenir de votre connexion. Si elles font quelque chose d'illégal, cela pourrait remonter jusqu'à vous. N'aidez que des personnes de confiance."
+
+msgid "help_friend_trust_message_three"
+msgstr "Vous pouvez supprimer la connexion en tout temps à partir de l'onglet Action Mode."

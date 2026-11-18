@@ -9,14 +9,15 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
-/// How often a screen showing the friends this device invited reads
-/// radiance's status of them, while it is shown.
+/// How often a screen showing the friends this device invited, or the home
+/// screen with a personal proxy selected, reads radiance's status of them.
 const personalProxyStatusInterval = Duration(seconds: 5);
 
 /// Reads [personalProxyStatusProvider] after the first frame and then every
 /// [personalProxyStatusInterval] while the app is resumed, for as long as the
 /// calling widget is built with [enabled]. It is local IPC, read only while a
-/// screen shows friends, so nothing polls it otherwise.
+/// screen shows friends or the home screen shows a selected personal proxy
+/// with the VPN connected, so nothing polls it otherwise.
 void usePersonalProxyStatusPoll(WidgetRef ref, {required bool enabled}) {
   useEffect(() {
     if (!enabled) return null;
@@ -42,7 +43,8 @@ void usePersonalProxyStatusPoll(WidgetRef ref, {required bool enabled}) {
 
 /// radiance's status of each friend this device invited, by outbound tag,
 /// which decides whether a friend can be selected on their own (see
-/// [HelperPairingView.selectable]). Null while unknown: before the first
+/// [HelperPairingView.selectable]) and what the home screen says of the
+/// selected friend's path. Null while unknown: before the first
 /// read, while the VPN is not connected, and after a failed read.
 final personalProxyStatusProvider =
     NotifierProvider<

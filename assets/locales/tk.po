@@ -2134,15 +2134,6 @@ msgstr "Ret et"
 msgid "personal_proxy_fallback_group"
 msgstr "Häzir %s bilen baglanyşyp bolmaýar. Şahsy proksileriňiz saýlandy."
 
-msgid "become_means_title"
-msgstr "Şahsy proksi bolmak näme diýmek"
-
-msgid "become_means_seen"
-msgstr "Olar siziň haçan birikendigiňizi görüp bilýär. Diňe tanaýan adamlaryňyzyň çakylyklaryny kabul ediň."
-
-msgid "become_means_remove"
-msgstr "Baglanyşygy islän wagtyňyz aýryň."
-
 msgid "help_friend_form_title"
 msgstr "Kömek edýän adamyňyzdan gelen salgyny goýuň"
 
@@ -2386,9 +2377,6 @@ msgstr "Ony islendik wagt Hususy ýerleri dolandyr bölüminden aýyryp bilersi�
 msgid "approved_body_locations"
 msgstr "%s onlaýn bolanda, ony Serwer ýerleri menýusyndaky Hususy ýerler bölüminden saýlap bilersiňiz. Akylly ýer ony awtomatik ulanyp biler."
 
-msgid "become_means_traffic_seen"
-msgstr "Bir dostuňyz sizden kömek sorady. Action Mode açyk wagty ol siziň baglanyşygyňyz arkaly açyk internete çykýar. Siz onuň haýsy saýtlara girýändigini görüp bilersiňiz, ýöne ol ýerde näme edýändigini görüp bilmersiňiz."
-
 msgid "help_friend_your_name_label"
 msgstr "Adyňyz"
 
@@ -2472,3 +2460,30 @@ msgstr "Eýýäm goşuldy: %s."
 
 msgid "clear"
 msgstr "Arassala"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Birikdirilýär…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Täzeden birikdirilýär…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Elýeterli däl"
+
+msgid "trust_understand_risks"
+msgstr "Töwekgelçilikleri düşünýärin"
+
+msgid "help_friend_trust_warning"
+msgstr "Diňe ynanýan adamlaryňyza kömek ediň."
+
+msgid "help_friend_trust_title"
+msgstr "Kömek edýän adamyňyza ynanyň"
+
+msgid "help_friend_trust_message_one"
+msgstr "Olaryň girýän saýtlary üçin olaryň trafigi siziň baglanyşygyňyzdan gelýän ýaly görüner. Eger olar bikanun bir zat etseler, ol size yzarlanyp bilner. Diňe ynanýan adamlaryňyza kömek ediň."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern şahsy proksileri dolandyrmaýar we gözegçilik etmeýär."
+
+msgid "help_friend_trust_message_three"
+msgstr "Baglanyşygy islendik wagt Action Mode bölüminden aýryp bilersiňiz."
