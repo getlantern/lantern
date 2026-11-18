@@ -24,6 +24,7 @@ class SmartRouting extends HookConsumerWidget {
       final result = await ref
           .read(radianceSettingsProvider.notifier)
           .setProxyless(value);
+      if (!context.mounted) return;
       result.fold(
         (_) => context.showSnackBar('failed_to_update_proxyless'.i18n),
         (_) {},
@@ -48,7 +49,10 @@ class SmartRouting extends HookConsumerWidget {
 
     return BaseScreen(
       title: 'routing_mode'.i18n,
-      body: Column(
+      // Scrolls, so the explanation stays reachable on short screens and
+      // with large text.
+      body: ListView(
+        padding: EdgeInsets.zero,
         children: [
           AppCard(
             padding: EdgeInsets.zero,
