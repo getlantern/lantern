@@ -102,13 +102,11 @@ class PrivateServerNotifier extends _$PrivateServerNotifier {
         });
         break;
       case 'EventTypeAccounts':
-        final accounts = status.data;
-        appLogger.info("Received accounts: $accounts");
+        appLogger.info("Received accounts");
         state = status;
         break;
       case 'EventTypeProjects':
-        final accounts = status.data;
-        appLogger.info("Received projects: $accounts");
+        appLogger.info("Received projects");
         state = status;
         break;
       case 'EventTypeLocations':

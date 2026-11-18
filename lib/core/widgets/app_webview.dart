@@ -368,7 +368,7 @@ class _InnerWebViewState extends ConsumerState<_InnerWebView> {
       return NavigationActionPolicy.ALLOW;
     }
 
-    appLogger.debug("shouldOverrideUrlLoading: $uri");
+    appLogger.debug("shouldOverrideUrlLoading: ${uri.host}");
 
     return NavigationActionPolicy.ALLOW;
   }
