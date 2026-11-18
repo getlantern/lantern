@@ -20,6 +20,8 @@ class ShareSnapshotPolling extends Notifier<bool> {
   Future<void> _pending = Future.value();
   // Only the latest request may undo state after a failure.
   int _generation = 0;
+  // The rate the backend last accepted. It starts at the idle rate.
+  bool _acked = false;
   Timer? _retry;
   @visibleForTesting
   Duration retryDelay = const Duration(seconds: 2);
@@ -63,9 +65,14 @@ class ShareSnapshotPolling extends Notifier<bool> {
     final service = ref.read(lanternServiceProvider);
     _pending = _pending.then((_) async {
       final result = await service.setSnapshotPolling(on);
-      // The core may not be up yet: try again until the backend agrees.
-      if (result.isLeft() && ref.mounted && generation == _generation) {
-        state = !on;
+      if (result.isRight()) {
+        _acked = on;
+        return;
+      }
+      // The core may not be up yet: fall back to what the backend has, so
+      // the next update or the retry asks again.
+      if (ref.mounted && generation == _generation) {
+        state = _acked;
         _retry = Timer(retryDelay, _update);
       }
     });

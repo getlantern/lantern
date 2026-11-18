@@ -162,4 +162,25 @@ void main() {
     expect(service.calls, [true, false, true, false]);
     expect(container.read(shareSnapshotPollingProvider), isFalse);
   });
+
+  // on then off both fail while the core is down. The backend never left the
+  // idle rate, so reopening the tab before the retry must still ask for fast.
+  test('after failures, state falls back to what the backend has', () async {
+    container.read(shareSnapshotPollingProvider.notifier).retryDelay =
+        const Duration(hours: 1);
+    service.fail = true;
+    final tab = container.read(actionModeTabVisibleProvider.notifier);
+    tab.set(true);
+    tab.set(false);
+    await settle();
+    await settle();
+    expect(service.calls, [true, false]);
+    expect(container.read(shareSnapshotPollingProvider), isFalse);
+
+    service.fail = false;
+    tab.set(true);
+    await settle();
+    expect(service.calls, [true, false, true]);
+    expect(container.read(shareSnapshotPollingProvider), isTrue);
+  });
 }
