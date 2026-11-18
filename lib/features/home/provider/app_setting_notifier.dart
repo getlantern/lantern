@@ -78,7 +78,13 @@ class AppSettingNotifier extends _$AppSettingNotifier {
   }
 
   Future<void> update(AppSetting updated) async {
-    appLogger.info('Updating app settings: ${_settingsLogFields(updated)}');
+    // Only what changed: the full map repeated on every write.
+    final before = _settingsLogFields(state);
+    final changed = _settingsLogFields(updated)
+      ..removeWhere((key, value) => before[key] == value);
+    if (changed.isNotEmpty) {
+      appLogger.info('Updating app settings: $changed');
+    }
     state = updated;
     await _storage.saveAppSettings(updated);
   }

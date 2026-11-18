@@ -281,6 +281,7 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     final updated = state.copyWith(
       serverType: ServerLocationType.auto.name,
       serverName: '',
+      city: '',
     );
     _selection++;
     state = updated;
@@ -356,11 +357,14 @@ class ServerLocationNotifier extends _$ServerLocationNotifier {
     final isAuto =
         location.serverType.toServerLocationType == ServerLocationType.auto;
     final auto = location.autoLocation;
+    // The auto city, so a city left by a selected server never pairs with
+    // the Smart Location's country and flag.
+    final autoCity = (auto?.city ?? '').isNotEmpty ? auto!.city : location.city;
     unawaited(
       ref
           .read(lanternServiceProvider)
           .updateWidgetLocation(
-            city: location.city,
+            city: isAuto ? autoCity : location.city,
             country: isAuto ? (auto?.country ?? '') : location.country,
             countryCode: isAuto
                 ? (auto?.countryCode ?? '')

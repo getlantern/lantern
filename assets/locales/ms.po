@@ -2514,3 +2514,15 @@ msgstr "Lantern tidak mengurus atau memantau Proksi Peribadi."
 
 msgid "help_friend_trust_message_three"
 msgstr "Anda boleh mengalih keluar sambungan pada bila-bila masa daripada tab Action Mode."
+
+msgid "unreachable_server_title"
+msgstr "Lokasi ini nampaknya tidak dapat dicapai"
+
+msgid "unreachable_server_body"
+msgstr "Ujian sambungan terkini Lantern ke %s gagal dari rangkaian anda. Jika anda sambung juga, Lantern mungkin menunjukkan Bersambung walaupun tiada apa-apa dimuatkan. Lokasi Pintar memilih pelayan yang berfungsi untuk anda."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "Sambung Juga"
+
+msgid "pinned_server_unreachable"
+msgstr "%s nampaknya tidak dapat dicapai dari rangkaian anda. Ketik untuk memilih lokasi lain."

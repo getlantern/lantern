@@ -939,6 +939,18 @@ msgstr "Testing…"
 msgid "latency_unreachable"
 msgstr "Unreachable"
 
+msgid "unreachable_server_title"
+msgstr "This location looks unreachable"
+
+msgid "unreachable_server_body"
+msgstr "Lantern's recent connection tests to %s failed from your network. If you connect anyway, Lantern may show Connected while nothing loads. Smart Location picks a working server for you."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "Connect Anyway"
+
+msgid "pinned_server_unreachable"
+msgstr "%s looks unreachable from your network. Tap to choose another location."
+
 msgid "join_my_private_server"
 msgstr "Join My Lantern Private Server"
 

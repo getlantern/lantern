@@ -2487,3 +2487,15 @@ msgstr "Lantern şahsy proksileri dolandyrmaýar we gözegçilik etmeýär."
 
 msgid "help_friend_trust_message_three"
 msgstr "Baglanyşygy islendik wagt Action Mode bölüminden aýryp bilersiňiz."
+
+msgid "unreachable_server_title"
+msgstr "Bu ýerleşiş elýeterli däl ýaly"
+
+msgid "unreachable_server_body"
+msgstr "Lantern-iň siziň toruňyzdan %s bilen soňky baglanyşyk synaglary şowsuz boldy. Muňa garamazdan birikseňiz, Lantern Birikdi diýip görkezip biler, emma hiç zat ýüklenmez. Akylly ýerleşiş siziň üçin işleýän serweri saýlaýar."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "Muňa garamazdan birikdir"
+
+msgid "pinned_server_unreachable"
+msgstr "Siziň toruňyzdan %s elýeterli däl ýaly görünýär. Başga ýerleşiş saýlamak üçin basyň."

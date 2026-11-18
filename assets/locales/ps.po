@@ -2526,3 +2526,15 @@ msgstr "Lantern شخصي پراکسي ګانې نه اداره کوي او نه 
 
 msgid "help_friend_trust_message_three"
 msgstr "تاسو کولی شئ هر وخت د Action Mode ټب څخه اتصال لرې کړئ."
+
+msgid "unreachable_server_title"
+msgstr "داسې ښکاري چې دا ځای د لاسرسي وړ نه دی"
+
+msgid "unreachable_server_body"
+msgstr "ستاسو له شبکې %s ته د Lantern وروستي د اتصال ازموینې ناکامې شوې. که بیا هم وصل شئ، Lantern ښایي وصل وښيي خو هېڅ شی به پورته نه شي. هوښیار ځای ستاسو لپاره یو فعال سرور ټاکي."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "بیا هم وصل کړئ"
+
+msgid "pinned_server_unreachable"
+msgstr "داسې ښکاري چې %s ستاسو له شبکې د لاسرسي وړ نه دی. د بل ځای ټاکلو لپاره ټک وکړئ."

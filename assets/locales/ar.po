@@ -2471,3 +2471,15 @@ msgstr "لا يدير Lantern الوكلاء الشخصيين ولا يراقب�
 
 msgid "help_friend_trust_message_three"
 msgstr "يمكنك إزالة الاتصال في أي وقت من علامة تبويب Action Mode."
+
+msgid "unreachable_server_title"
+msgstr "يبدو أن هذا الموقع غير متاح"
+
+msgid "unreachable_server_body"
+msgstr "فشلت اختبارات الاتصال الأخيرة التي أجراها Lantern إلى %s من شبكتك. إذا اتصلت على أي حال، فقد يعرض Lantern حالة متصل بينما لا يتم تحميل أي شيء. يختار الموقع الذكي خادمًا يعمل نيابةً عنك."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "الاتصال على أي حال"
+
+msgid "pinned_server_unreachable"
+msgstr "يبدو أن %s غير متاح من شبكتك. انقر لاختيار موقع آخر."

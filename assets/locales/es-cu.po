@@ -2515,3 +2515,15 @@ msgstr "Lantern no administra ni supervisa los proxies personales."
 
 msgid "help_friend_trust_message_three"
 msgstr "Puedes quitar la conexión cuando quieras desde la pestaña Action Mode."
+
+msgid "unreachable_server_title"
+msgstr "Esta ubicación parece inaccesible"
+
+msgid "unreachable_server_body"
+msgstr "Las pruebas de conexión recientes de Lantern a %s fallaron desde tu red. Si te conectas de todas formas, Lantern puede mostrar Conectado aunque nada cargue. Ubicación inteligente escoge un servidor que funcione por ti."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "Conectar de todas formas"
+
+msgid "pinned_server_unreachable"
+msgstr "%s parece inaccesible desde tu red. Toca para escoger otra ubicación."

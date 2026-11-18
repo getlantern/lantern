@@ -7,6 +7,7 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/split_tunneling/provider/split_tunnel_notifier.dart';
 import 'package:lantern/features/vpn/location_setting.dart';
+import 'package:lantern/features/vpn/pinned_server_warning.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/vpn/vpn_switch.dart';
@@ -61,6 +62,7 @@ class VpnTab extends ConsumerWidget {
                         else if (!isSmallScreen(context))
                           const DataUsage(),
                       },
+                      const PinnedServerWarning(),
                       const SizedBox(height: 8),
                       _SettingCard(),
                       const SizedBox(height: defaultSize),
@@ -96,7 +98,6 @@ class _SettingCard extends ConsumerWidget {
         smallScreen &&
         !isUserPro &&
         serverType != ServerLocationType.privateServer;
-    final showRoutingMode = !PlatformUtils.isIOS;
     final showSplitTunneling = PlatformUtils.supportsSplitTunneling;
     final splitTunnel = showSplitTunneling
         ? ref.watch(splitTunnelProvider)
@@ -144,10 +145,10 @@ class _SettingCard extends ConsumerWidget {
             const VpnStatus(),
             const DividerSpace(),
             const LocationSetting(),
-            if (showRoutingMode || showSplitTunneling) const DividerSpace(),
+            const DividerSpace(),
             // Small screens: Routing Mode | Split Tunneling share one row;
             // otherwise stacked full-width rows.
-            if (showRoutingMode && showSplitTunneling && smallScreen)
+            if (showSplitTunneling && smallScreen)
               Row(
                 children: [
                   Expanded(child: routingTile),
@@ -162,8 +163,8 @@ class _SettingCard extends ConsumerWidget {
                 ],
               )
             else ...[
-              if (showRoutingMode) routingTile,
-              if (showRoutingMode && showSplitTunneling) const DividerSpace(),
+              routingTile,
+              if (showSplitTunneling) const DividerSpace(),
               if (showSplitTunneling) splitTunnelingTile,
             ],
           ],

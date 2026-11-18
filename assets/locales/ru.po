@@ -2517,3 +2517,15 @@ msgstr "Lantern не управляет личными прокси и не от
 
 msgid "help_friend_trust_message_three"
 msgstr "Вы можете удалить подключение в любой момент на вкладке Action Mode."
+
+msgid "unreachable_server_title"
+msgstr "Это расположение, похоже, недоступно"
+
+msgid "unreachable_server_body"
+msgstr "Недавние проверки подключения Lantern к %s из вашей сети не удались. Если всё равно подключиться, Lantern может показывать «Подключено», но ничего не будет загружаться. Умный выбор расположения подберёт для вас рабочий сервер."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "Всё равно подключиться"
+
+msgid "pinned_server_unreachable"
+msgstr "Похоже, расположение %s недоступно из вашей сети. Нажмите, чтобы выбрать другое расположение."
