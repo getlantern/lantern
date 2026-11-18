@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/info_row.dart';
+import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 
 @RoutePage(name: 'SmartRouting')
@@ -15,6 +16,19 @@ class SmartRouting extends HookConsumerWidget {
     final selected = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );
+    final proxyless = ref.watch(
+      radianceSettingsProvider.select((s) => s.proxyless),
+    );
+
+    Future<void> setProxyless(bool value) async {
+      final result = await ref
+          .read(radianceSettingsProvider.notifier)
+          .setProxyless(value);
+      result.fold(
+        (_) => context.showSnackBar('failed_to_update_proxyless'.i18n),
+        (_) {},
+      );
+    }
 
     Future<void> select(RoutingMode mode) async {
       final result = await ref
@@ -80,6 +94,31 @@ class SmartRouting extends HookConsumerWidget {
           ),
           SizedBox(height: size24),
           InfoRow(text: 'smart_routing_description'.i18n),
+          // Full Tunnel sends everything through the VPN, so there is
+          // nothing to try directly.
+          if (selected == RoutingMode.smart) ...[
+            SizedBox(height: size24),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: AppTile(
+                label: 'proxyless'.i18n,
+                subtitle: Text(
+                  'proxyless_subtitle'.i18n,
+                  style: textTheme.labelMedium!.copyWith(
+                    color: context.textTertiary,
+                    letterSpacing: 0.0,
+                  ),
+                ),
+                trailing: SwitchButton(
+                  value: proxyless,
+                  onChanged: setProxyless,
+                ),
+                onPressed: () => setProxyless(!proxyless),
+              ),
+            ),
+            SizedBox(height: size24),
+            InfoRow(text: 'proxyless_description'.i18n),
+          ],
         ],
       ),
     );

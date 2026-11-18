@@ -1365,6 +1365,18 @@ msgstr "All traffic through VPN"
 msgid "smart_routing_description"
 msgstr "Smart Routing uses region-specific rules to automatically send traffic that needs the VPN through Lantern. All other traffic goes direct for speed and reliability."
 
+msgid "proxyless"
+msgstr "Try Direct First"
+
+msgid "proxyless_subtitle"
+msgstr "Faster when a site isn't blocked"
+
+msgid "proxyless_description"
+msgstr "Lantern first tries to reach sites that would use the VPN directly, using anti-censorship techniques, and uses the VPN only when that fails. This is faster, but your network can see which sites you reach directly."
+
+msgid "failed_to_update_proxyless"
+msgstr "Couldn't update Try Direct First"
+
 msgid "lantern_pro_license_applied"
 msgstr "Your Lantern Pro License will be applied to your existing account"
 
