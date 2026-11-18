@@ -2,15 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 /// Whether the backend's once-a-second sharing snapshots are on. Each one
-/// wakes Go, the platform layer and Dart, so they run only while something
-/// shows their stats: the Unbounded tab in a foreground app, or, on desktop,
-/// the tray's live peer count while sharing. Home keeps this alive.
+/// wakes Go, the platform layer and Dart, so they run only while sharing or
+/// while the Unbounded tab is on screen in a foreground app. Sharing keeps
+/// them on because the backend keeps a departed peer's bytes for only a
+/// minute, and the lifetime per-country stats are folded from snapshots.
+/// Home keeps this alive.
 final shareSnapshotPollingProvider =
     NotifierProvider<ShareSnapshotPolling, bool>(ShareSnapshotPolling.new);
 
@@ -18,6 +19,8 @@ class ShareSnapshotPolling extends Notifier<bool> {
   AppLifecycleState? _lifecycle;
   // Calls are chained so a quick off/on cannot reach the backend reordered.
   Future<void> _pending = Future.value();
+  // Only the latest request may undo state after a failure.
+  int _generation = 0;
   Timer? _retry;
   @visibleForTesting
   Duration retryDelay = const Duration(seconds: 2);
@@ -43,12 +46,12 @@ class ShareSnapshotPolling extends Notifier<bool> {
   }
 
   bool _wanted() {
+    if (ref.read(shareProvider).active) return true;
     final foreground = switch (_lifecycle) {
       null || AppLifecycleState.resumed || AppLifecycleState.inactive => true,
       _ => false,
     };
-    if (foreground && ref.read(actionModeTabVisibleProvider)) return true;
-    return PlatformUtils.isDesktop && ref.read(shareProvider).active;
+    return foreground && ref.read(actionModeTabVisibleProvider);
   }
 
   void _update() {
@@ -57,12 +60,12 @@ class ShareSnapshotPolling extends Notifier<bool> {
     if (on == state) return;
     state = on;
     _retry?.cancel();
-    if (!on) ref.read(shareProvider.notifier).snapshotsPaused();
+    final generation = ++_generation;
     final service = ref.read(lanternServiceProvider);
     _pending = _pending.then((_) async {
       final result = await service.setSnapshotPolling(on);
       // The core may not be up yet: try again until the backend agrees.
-      if (result.isLeft() && ref.mounted && state == on) {
+      if (result.isLeft() && ref.mounted && generation == _generation) {
         state = !on;
         _retry = Timer(retryDelay, _update);
       }
