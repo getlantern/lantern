@@ -2361,3 +2361,15 @@ msgstr "Lantern 不會管理或監控個人代理。"
 
 msgid "help_friend_trust_message_three"
 msgstr "你可以隨時在 Action Mode 分頁中移除此連線。"
+
+msgid "unreachable_server_title"
+msgstr "此位置似乎無法連上"
+
+msgid "unreachable_server_body"
+msgstr "Lantern 最近從你的網路到 %s 的連線測試失敗。如果仍要連線，Lantern 可能顯示「已連線」，但無法載入任何內容。智慧位置會為你選擇可用的伺服器。"
+
+msgid "unreachable_server_connect_anyway"
+msgstr "仍要連線"
+
+msgid "pinned_server_unreachable"
+msgstr "從你的網路似乎無法連上 %s。輕觸以選擇其他位置。"

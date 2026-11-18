@@ -2356,3 +2356,15 @@ msgstr "蓝灯不管理或监控个人代理。"
 
 msgid "help_friend_trust_message_three"
 msgstr "您可以随时在 Action Mode 标签页中移除此连接。"
+
+msgid "unreachable_server_title"
+msgstr "此位置似乎无法访问"
+
+msgid "unreachable_server_body"
+msgstr "蓝灯最近从您的网络到 %s 的连接测试失败。如果仍要连接，蓝灯可能显示“已连接”，但无法加载任何内容。智能位置会为您选择可用的服务器。"
+
+msgid "unreachable_server_connect_anyway"
+msgstr "仍然连接"
+
+msgid "pinned_server_unreachable"
+msgstr "从您的网络似乎无法访问 %s。点按以选择其他位置。"

@@ -2508,3 +2508,15 @@ msgstr "Lantern ذاتی پراکسیز کو منیج یا مانیٹر نہیں
 
 msgid "help_friend_trust_message_three"
 msgstr "آپ کسی بھی وقت Action Mode ٹیب سے کنکشن ہٹا سکتے ہیں۔"
+
+msgid "unreachable_server_title"
+msgstr "اس مقام تک رسائی ممکن نہیں لگتی"
+
+msgid "unreachable_server_body"
+msgstr "آپ کے نیٹ ورک سے %s کے لیے Lantern کے حالیہ کنکشن ٹیسٹ ناکام رہے۔ اگر آپ پھر بھی منسلک ہوں تو Lantern منسلک دکھا سکتا ہے جبکہ کچھ لوڈ نہیں ہوگا۔ اسمارٹ لوکیشن آپ کے لیے کام کرنے والا سرور منتخب کرتی ہے۔"
+
+msgid "unreachable_server_connect_anyway"
+msgstr "پھر بھی منسلک کریں"
+
+msgid "pinned_server_unreachable"
+msgstr "آپ کے نیٹ ورک سے %s تک رسائی ممکن نہیں لگتی۔ دوسرا مقام منتخب کرنے کے لیے ٹیپ کریں۔"

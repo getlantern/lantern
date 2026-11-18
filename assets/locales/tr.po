@@ -2507,3 +2507,15 @@ msgstr "Lantern, Kişisel Proxy'leri yönetmez veya izlemez."
 
 msgid "help_friend_trust_message_three"
 msgstr "Bağlantıyı istediğiniz zaman Action Mode sekmesinden kaldırabilirsiniz."
+
+msgid "unreachable_server_title"
+msgstr "Bu konum erişilemez görünüyor"
+
+msgid "unreachable_server_body"
+msgstr "Lantern'in ağınızdan %s için yaptığı son bağlantı testleri başarısız oldu. Yine de bağlanırsanız Lantern, hiçbir şey yüklenmezken Bağlandı gösterebilir. Akıllı Konum sizin için çalışan bir sunucu seçer."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "Yine de Bağlan"
+
+msgid "pinned_server_unreachable"
+msgstr "%s, ağınızdan erişilemez görünüyor. Başka bir konum seçmek için dokunun."

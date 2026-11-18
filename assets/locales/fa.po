@@ -2502,3 +2502,15 @@ msgstr "Lantern پراکسی‌های شخصی را مدیریت نمی‌کند
 
 msgid "help_friend_trust_message_three"
 msgstr "هر زمان بخواهید می‌توانید این اتصال را از زبانه Action Mode حذف کنید."
+
+msgid "unreachable_server_title"
+msgstr "به نظر می‌رسد این مکان در دسترس نیست"
+
+msgid "unreachable_server_body"
+msgstr "آزمایش‌های اخیر اتصال Lantern به %s از شبکه شما ناموفق بود. اگر با این حال متصل شوید، ممکن است Lantern وضعیت متصل را نشان دهد در حالی که چیزی بارگذاری نمی‌شود. مکان هوشمند یک سرور فعال را برای شما انتخاب می‌کند."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "اتصال در هر صورت"
+
+msgid "pinned_server_unreachable"
+msgstr "به نظر می‌رسد %s از شبکه شما در دسترس نیست. برای انتخاب مکان دیگر ضربه بزنید."
