@@ -44,9 +44,9 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/broflake v0.0.0-20261117033427-62a624d1b849
 	github.com/getlantern/common v1.2.1-0.20261110195018-962f63413c3f
-	github.com/getlantern/lantern-box v0.0.237-0.20261118044146-3e6a8b990d62
+	github.com/getlantern/lantern-box v0.0.238
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261118054316-625d38ed494f
+	github.com/getlantern/radiance v0.0.0-20261118185945-0d8b5e1f327f
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
@@ -200,7 +200,7 @@ require (
 	github.com/getlantern/amp v0.0.0-20260606002220-a8629924577c // indirect
 	github.com/getlantern/domainfront v0.0.0-20261026202828-9727b2f2a34a // indirect
 	github.com/getlantern/keepcurrent v0.0.0-20261009194109-22f33eaeac6e // indirect
-	github.com/getlantern/kindling v0.0.0-20261118035036-ffab9e8f70a3 // indirect
+	github.com/getlantern/kindling v0.0.0-20261118170249-97dd2fc5eff5 // indirect
 	github.com/getlantern/lantern-water v0.0.0-20260520145825-958775d51395 // indirect
 	github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 // indirect
 	github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 // indirect
