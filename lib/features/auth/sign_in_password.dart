@@ -158,7 +158,7 @@ class _SignInPasswordState extends ConsumerState<SignInPassword> {
           /// Login has failed reason being user has reached device limit
           /// start device flow
           appLogger.warning(
-            "Login failed for user: ${widget.email}, starting device flow",
+            "Login failed, starting device flow",
           );
           startDeviceFlow(user.devices.toList(), password, context);
           return;

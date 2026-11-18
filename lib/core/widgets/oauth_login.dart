@@ -104,7 +104,6 @@ class OAuthLogin extends HookConsumerWidget {
       },
       (url) async {
         context.hideLoadingDialog();
-        appLogger.debug('OAuth URL: $url');
         if (PlatformUtils.isIOS) {
           await _signInInApp(type, ref, context, url);
         } else if (PlatformUtils.isMobile) {
