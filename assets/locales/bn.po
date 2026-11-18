@@ -2511,5 +2511,17 @@ msgstr "আপনার নেটওয়ার্ক থেকে %s এর �
 msgid "unreachable_server_connect_anyway"
 msgstr "তবুও সংযোগ করুন"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Lantern-এর ব্যাকগ্রাউন্ড সার্ভিস চলছে না"
+
+msgid "lantern_service_unavailable_body"
+msgstr "সংযোগ করতে Lantern-এর ব্যাকগ্রাউন্ড সার্ভিস প্রয়োজন। এখনই মেরামত করবেন? Windows আপনার অনুমতি চাইবে।"
+
+msgid "repair"
+msgstr "মেরামত করুন"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern তার ব্যাকগ্রাউন্ড সার্ভিস মেরামত করতে পারেনি। অনুগ্রহ করে Lantern আবার ইনস্টল করুন।"
+
 msgid "pinned_server_unreachable"
 msgstr "আপনার নেটওয়ার্ক থেকে %s অপ্রাপ্য মনে হচ্ছে। অন্য লোকেশন বেছে নিতে ট্যাপ করুন।"

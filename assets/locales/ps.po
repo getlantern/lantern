@@ -2536,5 +2536,17 @@ msgstr "ستاسو له شبکې %s ته د Lantern وروستي د اتصال �
 msgid "unreachable_server_connect_anyway"
 msgstr "بیا هم وصل کړئ"
 
+msgid "lantern_service_unavailable_title"
+msgstr "د Lantern د شالید خدمت نه چلېږي"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern د وصل کېدو لپاره خپل د شالید خدمت ته اړتیا لري. اوس یې ترمیم کړئ؟ Windows به ستاسو اجازه وغواړي."
+
+msgid "repair"
+msgstr "ترمیم"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern ونه شو کولای خپل د شالید خدمت ترمیم کړي. مهرباني وکړئ Lantern بیا نصب کړئ."
+
 msgid "pinned_server_unreachable"
 msgstr "داسې ښکاري چې %s ستاسو له شبکې د لاسرسي وړ نه دی. د بل ځای ټاکلو لپاره ټک وکړئ."

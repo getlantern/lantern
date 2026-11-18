@@ -2524,5 +2524,17 @@ msgstr "Ujian sambungan terkini Lantern ke %s gagal dari rangkaian anda. Jika an
 msgid "unreachable_server_connect_anyway"
 msgstr "Sambung Juga"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Perkhidmatan latar belakang Lantern tidak berjalan"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern memerlukan perkhidmatan latar belakangnya untuk menyambung. Baiki sekarang? Windows akan meminta kebenaran anda."
+
+msgid "repair"
+msgstr "Baiki"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern tidak dapat membaiki perkhidmatan latar belakangnya. Sila pasang semula Lantern."
+
 msgid "pinned_server_unreachable"
 msgstr "%s nampaknya tidak dapat dicapai dari rangkaian anda. Ketik untuk memilih lokasi lain."

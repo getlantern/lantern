@@ -2497,5 +2497,17 @@ msgstr "Lantern-iň siziň toruňyzdan %s bilen soňky baglanyşyk synaglary şo
 msgid "unreachable_server_connect_anyway"
 msgstr "Muňa garamazdan birikdir"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Lantern-iň fon hyzmaty işlemeýär"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern birikmek üçin fon hyzmatyna mätäç. Ony häzir bejermelimi? Windows siziň rugsadyňyzy sorar."
+
+msgid "repair"
+msgstr "Bejer"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern fon hyzmatyny bejerip bilmedi. Lantern-i täzeden guruň."
+
 msgid "pinned_server_unreachable"
 msgstr "Siziň toruňyzdan %s elýeterli däl ýaly görünýär. Başga ýerleşiş saýlamak üçin basyň."

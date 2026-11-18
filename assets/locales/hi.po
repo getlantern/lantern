@@ -2515,5 +2515,17 @@ msgstr "आपके नेटवर्क से %s के लिए Lantern �
 msgid "unreachable_server_connect_anyway"
 msgstr "फिर भी कनेक्ट करें"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Lantern की बैकग्राउंड सेवा नहीं चल रही है"
+
+msgid "lantern_service_unavailable_body"
+msgstr "कनेक्ट करने के लिए Lantern को अपनी बैकग्राउंड सेवा की ज़रूरत है। क्या इसे अभी ठीक करें? Windows आपसे अनुमति मांगेगा।"
+
+msgid "repair"
+msgstr "ठीक करें"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern अपनी बैकग्राउंड सेवा को ठीक नहीं कर सका। कृपया Lantern को फिर से इंस्टॉल करें।"
+
 msgid "pinned_server_unreachable"
 msgstr "आपके नेटवर्क से %s तक पहुंचना संभव नहीं लगता। कोई दूसरी लोकेशन चुनने के लिए टैप करें।"

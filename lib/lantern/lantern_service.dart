@@ -745,6 +745,14 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<Either<Failure, Unit>> repairService() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.repairService();
+    }
+    return _platformService.repairService();
+  }
+
+  @override
   Future<Either<Failure, String>> inviteToServerManagerInstance({
     required String ip,
     required String port,

@@ -2371,5 +2371,17 @@ msgstr "Lantern 最近從你的網路到 %s 的連線測試失敗。如果仍要
 msgid "unreachable_server_connect_anyway"
 msgstr "仍要連線"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Lantern 的背景服務未在執行"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern 需要背景服務才能連線。要立即修復嗎？Windows 會請求你的許可。"
+
+msgid "repair"
+msgstr "修復"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern 無法修復背景服務。請重新安裝 Lantern。"
+
 msgid "pinned_server_unreachable"
 msgstr "從你的網路似乎無法連上 %s。輕觸以選擇其他位置。"

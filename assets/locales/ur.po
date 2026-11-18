@@ -2347,5 +2347,17 @@ msgstr "آپ کے نیٹ ورک سے %s کے لیے Lantern کے حالیہ کن
 msgid "unreachable_server_connect_anyway"
 msgstr "پھر بھی منسلک کریں"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Lantern کی پس منظر سروس نہیں چل رہی"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern کو کنیکٹ ہونے کے لیے اپنی پس منظر سروس درکار ہے۔ کیا اسے ابھی ٹھیک کریں؟ Windows آپ سے اجازت طلب کرے گا۔"
+
+msgid "repair"
+msgstr "ٹھیک کریں"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern اپنی پس منظر سروس ٹھیک نہیں کر سکا۔ براہ کرم Lantern دوبارہ انسٹال کریں۔"
+
 msgid "pinned_server_unreachable"
 msgstr "آپ کے نیٹ ورک سے %s تک رسائی ممکن نہیں لگتی۔ دوسرا مقام منتخب کرنے کے لیے تھپتھپائیں۔"

@@ -959,6 +959,17 @@ class LanternBindings {
         )
       >();
 
+  ffi.Pointer<ffi.Char> repairService() {
+    return _repairService();
+  }
+
+  late final _repairServicePtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'repairService',
+      );
+  late final _repairService = _repairServicePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> reportIssue(
     ffi.Pointer<ffi.Char> emailC,
     ffi.Pointer<ffi.Char> typeC,

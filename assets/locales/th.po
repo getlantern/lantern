@@ -2484,5 +2484,17 @@ msgstr "การทดสอบการเชื่อมต่อล่าส
 msgid "unreachable_server_connect_anyway"
 msgstr "เชื่อมต่อต่อไป"
 
+msgid "lantern_service_unavailable_title"
+msgstr "บริการเบื้องหลังของ Lantern ไม่ได้ทำงาน"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern ต้องใช้บริการเบื้องหลังเพื่อเชื่อมต่อ ซ่อมแซมตอนนี้หรือไม่ Windows จะขออนุญาตจากคุณ"
+
+msgid "repair"
+msgstr "ซ่อมแซม"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern ไม่สามารถซ่อมแซมบริการเบื้องหลังได้ โปรดติดตั้ง Lantern ใหม่"
+
 msgid "pinned_server_unreachable"
 msgstr "ดูเหมือนว่าจะเข้าถึง %s จากเครือข่ายของคุณไม่ได้ แตะเพื่อเลือกตำแหน่งอื่น"

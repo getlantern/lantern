@@ -2366,5 +2366,17 @@ msgstr "蓝灯最近从您的网络到 %s 的连接测试失败。如果仍要�
 msgid "unreachable_server_connect_anyway"
 msgstr "仍然连接"
 
+msgid "lantern_service_unavailable_title"
+msgstr "蓝灯的后台服务未运行"
+
+msgid "lantern_service_unavailable_body"
+msgstr "蓝灯需要后台服务才能连接。现在修复吗？Windows 会请求您的许可。"
+
+msgid "repair"
+msgstr "修复"
+
+msgid "lantern_service_repair_failed"
+msgstr "蓝灯无法修复后台服务。请重新安装蓝灯。"
+
 msgid "pinned_server_unreachable"
 msgstr "从您的网络似乎无法访问 %s。点按以选择其他位置。"

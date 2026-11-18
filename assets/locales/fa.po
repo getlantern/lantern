@@ -2512,5 +2512,17 @@ msgstr "آزمایش‌های اخیر اتصال Lantern به %s از شبکه 
 msgid "unreachable_server_connect_anyway"
 msgstr "اتصال در هر صورت"
 
+msgid "lantern_service_unavailable_title"
+msgstr "سرویس پس‌زمینه Lantern در حال اجرا نیست"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern برای اتصال به سرویس پس‌زمینه خود نیاز دارد. همین حالا آن را تعمیر می‌کنید؟ Windows از شما اجازه می‌خواهد."
+
+msgid "repair"
+msgstr "تعمیر"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern نتوانست سرویس پس‌زمینه خود را تعمیر کند. لطفاً Lantern را دوباره نصب کنید."
+
 msgid "pinned_server_unreachable"
 msgstr "به نظر می‌رسد %s از شبکه شما در دسترس نیست. برای انتخاب مکان دیگر ضربه بزنید."

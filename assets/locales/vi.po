@@ -2515,5 +2515,17 @@ msgstr "Các lần kiểm tra kết nối gần đây của Lantern tới %s t�
 msgid "unreachable_server_connect_anyway"
 msgstr "Vẫn kết nối"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Dịch vụ nền của Lantern không chạy"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern cần dịch vụ nền để kết nối. Sửa ngay bây giờ? Windows sẽ yêu cầu bạn cho phép."
+
+msgid "repair"
+msgstr "Sửa"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern không thể sửa dịch vụ nền. Vui lòng cài đặt lại Lantern."
+
 msgid "pinned_server_unreachable"
 msgstr "Có vẻ không thể truy cập %s từ mạng của bạn. Nhấn để chọn vị trí khác."

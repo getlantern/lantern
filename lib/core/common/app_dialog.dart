@@ -348,6 +348,32 @@ class AppDialog {
     return confirmed;
   }
 
+  /// Offers to repair Lantern's Windows service after a connect found it not
+  /// running. Resolves true only when the user chooses to repair.
+  static Future<bool> serviceUnavailableDialog({
+    required BuildContext context,
+  }) async {
+    var confirmed = false;
+    // The caller's context can be disposed while the dialog is open.
+    final navigator = Navigator.of(context, rootNavigator: true);
+    await show(
+      context: context,
+      header: Center(child: AppImage(path: AppImagePaths.warning, height: 45)),
+      centeredTitle: true,
+      scrollable: true,
+      title: 'lantern_service_unavailable_title'.i18n,
+      body: 'lantern_service_unavailable_body'.i18n,
+      primaryLabel: 'repair'.i18n,
+      dismissOnPrimary: false,
+      onPrimaryPressed: () {
+        confirmed = true;
+        navigator.pop();
+      },
+      secondaryLabel: 'cancel'.i18n,
+    );
+    return confirmed;
+  }
+
   static void dialog({
     required BuildContext context,
     required String title,

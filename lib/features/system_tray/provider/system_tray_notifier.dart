@@ -15,6 +15,7 @@ import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
+import 'package:lantern/features/vpn/service_repair.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -318,6 +319,18 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
     await ref.read(windowProvider.notifier).open(focus: true);
     final context = _appContext;
     if (context == null || !context.mounted) return;
+    if (failure is ServiceUnavailableFailure) {
+      // The alert row has no request to repeat: it starts the saved location.
+      final retry =
+          connectAnyway ?? () => ref.read(vpnProvider.notifier).startVPN();
+      if (await repairLanternService(
+        context,
+        ref.read(lanternServiceProvider),
+      )) {
+        await _handleConnectResult(await retry(), connectAnyway: connectAnyway);
+      }
+      return;
+    }
     if (failure is VpnConflictFailure) {
       // The alert row has no request to repeat: it starts the saved location.
       final retry =

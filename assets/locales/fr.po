@@ -2494,5 +2494,17 @@ msgstr "Les récents tests de connexion de Lantern vers %s ont échoué depuis v
 msgid "unreachable_server_connect_anyway"
 msgstr "Se connecter quand même"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Le service d'arrière-plan de Lantern ne fonctionne pas"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern a besoin de son service d'arrière-plan pour se connecter. Le réparer maintenant ? Windows vous demandera votre autorisation."
+
+msgid "repair"
+msgstr "Réparer"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern n'a pas pu réparer son service d'arrière-plan. Veuillez réinstaller Lantern."
+
 msgid "pinned_server_unreachable"
 msgstr "%s semble inaccessible depuis votre réseau. Appuyez pour choisir un autre emplacement."

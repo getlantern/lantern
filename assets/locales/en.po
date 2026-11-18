@@ -948,6 +948,18 @@ msgstr "Lantern's recent connection tests to %s failed from your network. If you
 msgid "unreachable_server_connect_anyway"
 msgstr "Connect Anyway"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Lantern's background service isn't running"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern needs its background service to connect. Repair it now? Windows will ask for your permission."
+
+msgid "repair"
+msgstr "Repair"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern couldn't repair its background service. Please reinstall Lantern."
+
 msgid "pinned_server_unreachable"
 msgstr "%s looks unreachable from your network. Tap to choose another location."
 

@@ -23,7 +23,9 @@ import 'package:lantern/features/vpn/provider/personal_proxy_status_notifier.dar
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
+import 'package:lantern/features/vpn/service_repair.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
 @RoutePage(name: 'ServerSelection')
@@ -909,6 +911,23 @@ Future<void> _connectAndReturnHome(
   await result.fold(
     (failure) async {
       if (!context.mounted) return;
+      if (failure is ServiceUnavailableFailure) {
+        final repaired = await repairLanternService(
+          context,
+          ref.read(lanternServiceProvider),
+        );
+        if (repaired && context.mounted) {
+          await _connectAndReturnHome(
+            context,
+            ref,
+            attempt: attempt,
+            save: save,
+            connectedMessage: connectedMessage,
+            skipConflictCheck: skipConflictCheck,
+          );
+        }
+        return;
+      }
       if (failure is VpnConflictFailure && !skipConflictCheck) {
         // Settles once the user chooses and, on Connect Anyway, once the
         // retry has.

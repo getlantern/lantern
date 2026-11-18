@@ -276,6 +276,11 @@ class LanternPlatformService implements LanternCoreService {
     }
   }
 
+  /// Only Windows runs Lantern as a service the app can repair.
+  @override
+  Future<Either<Failure, Unit>> repairService() async =>
+      left(ServiceRepairFailure('repairService: only on Windows'));
+
   @override
   Future<bool> isTagAvailable(String tag) async {
     try {

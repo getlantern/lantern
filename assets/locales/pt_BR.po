@@ -2527,5 +2527,17 @@ msgstr "Os testes de conexão recentes do Lantern com %s falharam na sua rede. S
 msgid "unreachable_server_connect_anyway"
 msgstr "Conectar mesmo assim"
 
+msgid "lantern_service_unavailable_title"
+msgstr "O serviço em segundo plano do Lantern não está em execução"
+
+msgid "lantern_service_unavailable_body"
+msgstr "O Lantern precisa do serviço em segundo plano para se conectar. Reparar agora? O Windows vai pedir sua permissão."
+
+msgid "repair"
+msgstr "Reparar"
+
+msgid "lantern_service_repair_failed"
+msgstr "O Lantern não conseguiu reparar o serviço em segundo plano. Reinstale o Lantern."
+
 msgid "pinned_server_unreachable"
 msgstr "%s parece inacessível pela sua rede. Toque para escolher outra localização."

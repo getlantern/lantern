@@ -91,6 +91,11 @@ abstract class LanternCoreService {
 
   Future<Either<Failure, String>> connectToServer(String location, String tag);
 
+  /// Reinstalls Lantern's Windows service after a [ServiceUnavailableFailure].
+  /// Windows asks the user for permission first. Fails with a
+  /// [ServiceRepairFailure] off Windows.
+  Future<Either<Failure, Unit>> repairService();
+
   Future<bool> isTagAvailable(String tag);
 
   Future<bool> checkVpnConflict();

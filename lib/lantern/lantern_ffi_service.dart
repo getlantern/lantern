@@ -746,10 +746,12 @@ class LanternFFIService implements LanternCoreService {
       if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
         appLogger.error('startVPN error: $result');
         return left(
-          Failure(
-            error: result,
-            localizedErrorMessage: localizeRawError(result),
-          ),
+          ServiceUnavailableFailure.matches(result)
+              ? ServiceUnavailableFailure(result)
+              : Failure(
+                  error: result,
+                  localizedErrorMessage: localizeRawError(result),
+                ),
         );
       }
       appLogger.debug('startVPN result: $result');
@@ -803,13 +805,60 @@ class LanternFFIService implements LanternCoreService {
   ) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService.connectToServer(tag.toCharPtr).toDartString();
+        final tagPtr = tag.toCharPtr;
+        try {
+          final resultPtr = _ffiService.connectToServer(tagPtr);
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(tagPtr);
+        }
       });
-      checkAPIError(result);
-      return Right('ok');
+      final error = ffiErrorMessage(result);
+      if (error != null) {
+        appLogger.error('connectToServer error: $error');
+        return left(
+          ServiceUnavailableFailure.matches(error)
+              ? ServiceUnavailableFailure(error)
+              : PlatformException(code: error, message: error).toFailure(),
+        );
+      }
+      return right('ok');
     } catch (e, stackTrace) {
       appLogger.error('Error connecting to server', e, stackTrace);
       return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> repairService() async {
+    if (!Platform.isWindows) {
+      return left(ServiceRepairFailure('repairService: only on Windows'));
+    }
+    try {
+      // Blocks while Windows shows its permission prompt and the service is
+      // reinstalled, so it runs off the main isolate.
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.repairService();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      final error = ffiErrorMessage(result);
+      if (error != null) {
+        appLogger.error('repairService error: $error');
+        return left(ServiceRepairFailure(error));
+      }
+      appLogger.info('Repaired the Lantern service');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error repairing the Lantern service', e, st);
+      return left(ServiceRepairFailure(e.toString()));
     }
   }
 
@@ -2216,6 +2265,22 @@ class LanternFFIService implements LanternCoreService {
       return Left(e.toFailure());
     }
   }
+}
+
+/// The error in an FFI call's result, which is "ok" or "true" on success and
+/// otherwise a raw message or JSON {"error": "..."}. Null on success.
+@visibleForTesting
+String? ffiErrorMessage(String result) {
+  if (result.isEmpty || _ffiOkResults.contains(result)) return null;
+  try {
+    final decoded = jsonDecode(result);
+    if (decoded is Map && decoded['error'] != null) {
+      return decoded['error'].toString();
+    }
+  } on FormatException {
+    // A raw message.
+  }
+  return result;
 }
 
 void checkAPIError(dynamic result) {

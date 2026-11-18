@@ -2517,5 +2517,17 @@ msgstr "Lantern'in ağınızdan %s için yaptığı son bağlantı testleri baş
 msgid "unreachable_server_connect_anyway"
 msgstr "Yine de Bağlan"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Lantern'ın arka plan hizmeti çalışmıyor"
+
+msgid "lantern_service_unavailable_body"
+msgstr "Lantern'ın bağlanmak için arka plan hizmetine ihtiyacı var. Şimdi onarılsın mı? Windows sizden izin isteyecek."
+
+msgid "repair"
+msgstr "Onar"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern arka plan hizmetini onaramadı. Lütfen Lantern'ı yeniden yükleyin."
+
 msgid "pinned_server_unreachable"
 msgstr "%s, ağınızdan erişilemez görünüyor. Başka bir konum seçmek için dokunun."

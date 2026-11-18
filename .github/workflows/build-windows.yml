@@ -197,6 +197,13 @@ jobs:
           go test ./cmd/split_tunnel_probe
           if ($LASTEXITCODE -ne 0) { throw 'Split-tunnel probe tests failed' }
 
+      - name: Windows service check tests
+        shell: pwsh
+        working-directory: lantern-core
+        run: |
+          go test -v -timeout 2m ./winservice
+          if ($LASTEXITCODE -ne 0) { throw 'Windows service check tests failed' }
+
       - name: Windows installed-browser discovery smoke
         if: ${{ inputs.run_split_tunnel_apps_smoke }}
         shell: pwsh

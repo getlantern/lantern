@@ -2551,5 +2551,17 @@ msgstr "သင့်ကွန်ရက်မှ %s သို့ Lantern ၏ မ�
 msgid "unreachable_server_connect_anyway"
 msgstr "မည်သို့ပင်ဖြစ်စေ ချိတ်ဆက်ပါ"
 
+msgid "lantern_service_unavailable_title"
+msgstr "Lantern ၏ နောက်ခံဝန်ဆောင်မှု အလုပ်မလုပ်ပါ"
+
+msgid "lantern_service_unavailable_body"
+msgstr "ချိတ်ဆက်ရန် Lantern ၏ နောက်ခံဝန်ဆောင်မှု လိုအပ်ပါသည်။ ယခု ပြင်ဆင်မလား။ Windows က သင့်ခွင့်ပြုချက်ကို တောင်းပါမည်။"
+
+msgid "repair"
+msgstr "ပြင်ဆင်ရန်"
+
+msgid "lantern_service_repair_failed"
+msgstr "Lantern သည် ၎င်း၏ နောက်ခံဝန်ဆောင်မှုကို ပြင်ဆင်၍ မရပါ။ Lantern ကို ပြန်လည်ထည့်သွင်းပါ။"
+
 msgid "pinned_server_unreachable"
 msgstr "သင့်ကွန်ရက်မှ %s ကို ချိတ်ဆက်၍မရနိုင်ပုံရသည်။ အခြားတည်နေရာ ရွေးရန် နှိပ်ပါ။"

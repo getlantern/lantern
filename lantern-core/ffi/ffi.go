@@ -13,6 +13,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -25,6 +26,7 @@ import (
 	"github.com/getlantern/lantern/lantern-core/dart_api_dl"
 	"github.com/getlantern/lantern/lantern-core/logs"
 	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/winservice"
 
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/vpn"
@@ -627,11 +629,64 @@ func startVPN() *C.char {
 		}
 
 		if err := c.ConnectVPN(""); err != nil {
-			return C.CString(fmt.Sprintf("start service failed: %v", err))
+			return C.CString(fmt.Sprintf("start service failed: %v", winservice.Explain(err)))
 		}
 
 		return C.CString("ok")
 	})
+}
+
+// serviceRepairTimeout bounds a repair: the elevation prompt waits on the
+// user, then reinstalling the service can take up to about 30s.
+const serviceRepairTimeout = 3 * time.Minute
+
+// repairService reinstalls the Windows service that runs lanternd, which
+// shows an elevation prompt, and returns "ok" once lanternd answers.
+//
+//export repairService
+func repairService() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), serviceRepairTimeout)
+		defer cancel()
+		if err := winservice.Repair(ctx); err != nil {
+			slog.Warn("Repairing the lanternd service failed", "error", err)
+			return SendError(err)
+		}
+		// Not CheckDaemonReachable: a freshly started lanternd often takes
+		// longer than its 300ms to answer.
+		reachable := func() error {
+			_, err := c.VPNStatus()
+			return err
+		}
+		if err := waitForDaemon(ctx, reachable, 500*time.Millisecond); err != nil {
+			slog.Warn("lanternd did not come up after repairing its service", "error", err)
+			return SendError(err)
+		}
+		slog.Info("Repaired the lanternd service")
+		return C.CString("ok")
+	})
+}
+
+// waitForDaemon calls reachable every interval until it succeeds or ctx
+// ends.
+func waitForDaemon(ctx context.Context, reachable func() error, interval time.Duration) error {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		err := reachable()
+		if err == nil {
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("wait for lanternd: %w", errors.Join(ctx.Err(), err))
+		case <-ticker.C:
+		}
+	}
 }
 
 //export stopVPN
@@ -667,7 +722,7 @@ func connectToServer(_tag *C.char) *C.char {
 		// LanternCore.ConnectVPN picks between /vpn/connect and /server/selected
 		// based on VPNStatus — no dispatch needed here.
 		if err := c.ConnectVPN(tag); err != nil {
-			return SendError(fmt.Errorf("start service failed: %w", err))
+			return SendError(fmt.Errorf("start service failed: %w", winservice.Explain(err)))
 		}
 		return C.CString("ok")
 	})

@@ -2481,5 +2481,17 @@ msgstr "فشلت اختبارات الاتصال الأخيرة التي أجر�
 msgid "unreachable_server_connect_anyway"
 msgstr "الاتصال على أي حال"
 
+msgid "lantern_service_unavailable_title"
+msgstr "خدمة Lantern في الخلفية لا تعمل"
+
+msgid "lantern_service_unavailable_body"
+msgstr "يحتاج Lantern إلى خدمته في الخلفية للاتصال. هل تريد إصلاحها الآن؟ سيطلب Windows إذنك."
+
+msgid "repair"
+msgstr "إصلاح"
+
+msgid "lantern_service_repair_failed"
+msgstr "تعذّر على Lantern إصلاح خدمته في الخلفية. يُرجى إعادة تثبيت Lantern."
+
 msgid "pinned_server_unreachable"
 msgstr "يبدو أن %s غير متاح من شبكتك. انقر لاختيار موقع آخر."
