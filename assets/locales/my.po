@@ -2194,15 +2194,6 @@ msgstr "ငြင်းပယ်ရန်"
 msgid "personal_proxy_fallback_group"
 msgstr "ယခု %s ထံ မချိတ်ဆက်နိုင်ပါ။ သင့်ကိုယ်ပိုင် proxy များသို့ ပြောင်းထားသည်။"
 
-msgid "become_means_title"
-msgstr "ကိုယ်ပိုင် Proxy ဖြစ်ခြင်း၏ အဓိပ္ပာယ်"
-
-msgid "become_means_seen"
-msgstr "သင် ချိတ်ဆက်ထားချိန်ကို သူတို့ မြင်နိုင်ပါသည်။ သင်သိသူများထံမှ ဖိတ်ကြားချက်ကိုသာ လက်ခံပါ။"
-
-msgid "become_means_remove"
-msgstr "ချိတ်ဆက်မှုကို အချိန်မရွေး ဖယ်ရှားနိုင်ပါသည်။"
-
 msgid "help_friend_form_title"
 msgstr "သင်ကူညီနေသူထံမှ လင့်ခ်ကို ကူးထည့်ပါ"
 
@@ -2267,7 +2258,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "ကျွန်ုပ်၏ ချိတ်ဆက်မှုမှတစ်ဆင့် သင် အွန်လိုင်းသုံးနိုင်ရန် Lantern တွင် သင့်ကိုယ်ပိုင် proxy ဖြစ်ပေးနိုင်ပါသည်။ Lantern တွင် \"ဆာဗာရွေးချယ်ရန်\" ကိုဖွင့်ပြီး အပေါ်ရှိ ⋮ မီနူးကို နှိပ်ပါ။ \"ကိုယ်ပိုင် Proxy ဖိတ်ရန်\" ကို ရွေးပြီး လင့်ခ်ကို ကျွန်ုပ်ထံ ပို့ပါ။"
 
 msgid "add_executable"
-msgstr "executable ဖိုင် ထည့်ရန်"
+msgstr ".exe ထည့်ရန်"
 
 msgid "select_windows_executable"
 msgstr "ဤကွန်ပျူတာရှိ Lantern မဟုတ်သော အက်ပ်တစ်ခု၏ .exe ဖိုင်ကို ရွေးပါ။"
@@ -2434,9 +2425,6 @@ msgstr "ကိုယ်ပိုင်တည်နေရာများ စီ�
 msgid "approved_body_locations"
 msgstr "%s အွန်လိုင်းဖြစ်နေချိန်တွင် ဆာဗာတည်နေရာများ မီနူးရှိ ကိုယ်ပိုင်တည်နေရာများ အောက်တွင် ရွေးချယ်နိုင်ပါသည်။ Smart Location က ၎င်းတို့ကို အလိုအလျောက် အသုံးပြုနိုင်ပါသည်။"
 
-msgid "become_means_traffic_seen"
-msgstr "သူငယ်ချင်းတစ်ဦးက သင့်အကူအညီကို တောင်းခံထားသည်။ Action Mode ဖွင့်ထားချိန်တွင် ၎င်းတို့သည် သင့်ချိတ်ဆက်မှုမှတစ်ဆင့် ပွင့်လင်းသော အင်တာနက်သို့ ရောက်ရှိသည်။ ၎င်းတို့ ဝင်ကြည့်သော ဆိုက်များကို သင်မြင်နိုင်သော်လည်း ထိုဆိုက်များတွင် ဘာလုပ်သည်ကို မမြင်နိုင်ပါ။"
-
 msgid "help_friend_your_name_label"
 msgstr "သင့်အမည်"
 
@@ -2445,3 +2433,111 @@ msgstr "ဝင်ရောက်ထားသော ဆာဗာ မရှိသ�
 
 msgid "manage_empty_joined_body"
 msgstr "သင်ယုံကြည်ရသူ လည်ပတ်သော ဆာဗာသို့ ဝင်ရောက်ပါ။ ၎င်းတို့ပေးသော ဝင်ရောက်ခွင့်ကီးကို အသုံးပြုပါ။"
+
+msgid "split_tunnel_off"
+msgstr "ပိတ်"
+
+msgid "split_tunnel_bypass"
+msgstr "ရှောင်ကွင်းရန်"
+
+msgid "split_tunnel_include_only"
+msgstr "ရွေးထားသည်များသာ"
+
+msgid "split_tunnel_description"
+msgstr "အက်ပ်များနှင့် ဝဘ်ဆိုက်များ ချိတ်ဆက်ပုံကို ရွေးပါ"
+
+msgid "split_tunnel_mode"
+msgstr "Split tunnel မုဒ်:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "ရွေးထားသော အက်ပ်နှင့် ဆိုက်များသည် Lantern ကို ကျော်သွားသည်"
+
+msgid "split_tunnel_include_description"
+msgstr "ရွေးထားသော အက်ပ်နှင့် ဆိုက်များသာ Lantern ကို အသုံးပြုသည်"
+
+msgid "split_tunnel_switch_include"
+msgstr "ပါဝင်ရန်သာ မုဒ်သို့ ပြောင်းမလား?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "ကျော်ရန် မုဒ်သို့ ပြောင်းမလား?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "သင်၏ ထည့်သွင်းရန်သာစာရင်းများရှိ အက်ပ်နှင့် ဆိုက်များသာ Lantern ကို အသုံးပြုပါမည်။ သင့်ဘရောက်ဇာ အပါအဝင် ကျန်အားလုံး ကာကွယ်မှုမရှိဘဲ တိုက်ရိုက် ချိတ်ဆက်ပါမည်။ ထိုစာရင်းများ ဗလာဖြစ်နေစဉ် အားလုံး Lantern ကို အသုံးပြုပါသည်။ သင် ပြန်ပြောင်းသည့်အခါအတွက် ကျော်ရန်စာရင်းများကို သိမ်းထားပါသည်။"
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "သင်၏ ကျော်ရန်စာရင်းများရှိ အက်ပ်နှင့် ဆိုက်များသည် တိုက်ရိုက် ချိတ်ဆက်ပါမည်။ ကျန်အားလုံး Lantern ကို အသုံးပြုပါမည်။ သင် ပြန်ပြောင်းသည့်အခါအတွက် ထည့်သွင်းရန်သာစာရင်းများကို သိမ်းထားပါသည်။"
+
+msgid "split_tunnel_switch"
+msgstr "ပြောင်းပါ"
+
+msgid "split_tunnel_app_count_one"
+msgstr "အက်ပ် 1 ခု"
+
+msgid "split_tunnel_app_count"
+msgstr "အက်ပ် %d ခု"
+
+msgid "split_tunnel_site_count_one"
+msgstr "ဆိုက် 1 ခု"
+
+msgid "split_tunnel_site_count"
+msgstr "ဆိုက် %d ခု"
+
+msgid "apps_using_vpn"
+msgstr "VPN သုံးနေသော အက်ပ်များ (%d)"
+
+msgid "websites_using_vpn"
+msgstr "VPN သုံးနေသော ဝဘ်ဆိုက်များ (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Split tunneling ကို ဖွင့်၍မရပါ။ ထပ်စမ်းကြည့်ပါ။"
+
+msgid "split_tunnel_update_failed"
+msgstr "Split tunneling ကို အပ်ဒိတ်လုပ်၍ မရပါ။ ထပ်စမ်းကြည့်ပါ။"
+
+msgid "split_tunnel_unavailable"
+msgstr "မရနိုင်ပါ"
+
+msgid "split_tunnel_enter_website"
+msgstr "ဝက်ဘ်ဆိုက် သို့မဟုတ် URL ထည့်ပါ"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL သို့မဟုတ် *.ir ထည့်ပါ"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr ".ir ဆိုက်အားလုံးကို တစ်ပြိုင်နက် ကိုက်ညီစေရန် *.ir ကို ထည့်ပါ။ *.cn၊ *.ru စသည်တို့အတွက်လည်း အသုံးပြုနိုင်သည်။ ဆိုက်များစွာကို ကော်မာဖြင့် ခွဲပါ။"
+
+msgid "split_tunnel_invalid_website"
+msgstr "မှန်ကန်သော ဝက်ဘ်ဆိုက် သို့မဟုတ် URL ကို ထည့်ပါ။ Wildcard များသည် *. ဖြင့် စရမည်ဖြစ်ပြီး IP လိပ်စာများကို မပံ့ပိုးပါ။"
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s ကို ထည့်ပြီးသားဖြစ်သည်။"
+
+msgid "clear"
+msgstr "ရှင်းလင်းရန်"
+
+msgid "personal_proxy_path_connecting"
+msgstr "ချိတ်ဆက်နေသည်…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "ပြန်လည်ချိတ်ဆက်နေသည်…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "အသုံးပြု၍မရပါ"
+
+msgid "trust_understand_risks"
+msgstr "အန္တရာယ်များကို နားလည်ပါသည်"
+
+msgid "help_friend_trust_warning"
+msgstr "သင်ယုံကြည်သူများကိုသာ ကူညီပါ။"
+
+msgid "help_friend_trust_title"
+msgstr "သင်ကူညီသူကို ယုံကြည်ပါ"
+
+msgid "help_friend_trust_message_one"
+msgstr "သူတို့ဝင်ကြည့်သော ဝက်ဘ်ဆိုက်များအတွက် သူတို့၏ ဒေတာစီးဆင်းမှုသည် သင့်ချိတ်ဆက်မှုမှ လာသကဲ့သို့ မြင်ရပါမည်။ သူတို့ တရားမဝင်သည့်အရာ လုပ်ပါက သင့်ထံ ခြေရာခံမိနိုင်ပါသည်။ သင်ယုံကြည်သူများကိုသာ ကူညီပါ။"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern သည် ကိုယ်ပိုင် Proxy များကို စီမံခြင်း သို့မဟုတ် စောင့်ကြည့်ခြင်း မပြုလုပ်ပါ။"
+
+msgid "help_friend_trust_message_three"
+msgstr "Action Mode တဘ်မှ ချိတ်ဆက်မှုကို အချိန်မရွေး ဖယ်ရှားနိုင်ပါသည်။"

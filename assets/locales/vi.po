@@ -2161,15 +2161,6 @@ msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Proxy cá n
 msgid "personal_proxy_fallback_auto"
 msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Vị trí thông minh."
 
-msgid "become_means_title"
-msgstr "Làm proxy cá nhân nghĩa là gì"
-
-msgid "become_means_seen"
-msgstr "Họ có thể thấy khi nào bạn đang kết nối. Chỉ chấp nhận lời mời từ người bạn quen biết."
-
-msgid "become_means_remove"
-msgstr "Gỡ kết nối bất cứ lúc nào."
-
 msgid "help_friend_form_title"
 msgstr "Dán liên kết từ người mà bạn đang giúp"
 
@@ -2231,7 +2222,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "Mình có thể làm proxy cá nhân của bạn trên Lantern để bạn truy cập mạng qua kết nối của mình. Trong Lantern, mở \"Chọn máy chủ\", nhấn menu ⋮ ở trên cùng, chọn \"Mời proxy cá nhân\" và gửi liên kết cho mình."
 
 msgid "add_executable"
-msgstr "Thêm tệp thực thi"
+msgstr "Thêm .exe"
 
 msgid "select_windows_executable"
 msgstr "Chọn tệp .exe của một ứng dụng trên máy tính này, ngoài Lantern."
@@ -2404,8 +2395,113 @@ msgstr "Bạn có thể xóa họ bất cứ lúc nào trong Quản lý vị tr�
 msgid "approved_body_locations"
 msgstr "Khi %s trực tuyến, bạn có thể chọn vị trí này trong Vị trí riêng tư ở menu Vị trí máy chủ. Vị trí thông minh có thể tự động sử dụng vị trí này."
 
-msgid "become_means_traffic_seen"
-msgstr "Một người bạn đã nhờ bạn giúp đỡ. Khi Action Mode bật, họ truy cập internet mở qua kết nối của bạn. Bạn có thể thấy họ vào những trang web nào, nhưng không thấy họ làm gì trên đó."
-
 msgid "help_friend_your_name_label"
 msgstr "Tên của bạn"
+
+msgid "split_tunnel_off"
+msgstr "Tắt"
+
+msgid "split_tunnel_bypass"
+msgstr "Bỏ qua"
+
+msgid "split_tunnel_include_only"
+msgstr "Chỉ bao gồm"
+
+msgid "split_tunnel_description"
+msgstr "Chọn cách ứng dụng và trang web kết nối"
+
+msgid "split_tunnel_mode"
+msgstr "Chế độ chia đường hầm:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "Ứng dụng và trang web đã chọn sẽ bỏ qua Lantern"
+
+msgid "split_tunnel_include_description"
+msgstr "Chỉ ứng dụng và trang web đã chọn dùng Lantern"
+
+msgid "split_tunnel_switch_include"
+msgstr "Chuyển sang Chỉ bao gồm?"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "Chuyển sang Bỏ qua?"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "Chỉ các ứng dụng và trang web trong danh sách Chỉ bao gồm của bạn mới dùng Lantern. Mọi thứ khác, kể cả trình duyệt, sẽ kết nối trực tiếp mà không được bảo vệ. Khi các danh sách đó trống, mọi thứ đều dùng Lantern. Danh sách Bỏ qua của bạn được giữ lại để dùng khi bạn chuyển lại."
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "Các ứng dụng và trang web trong danh sách Bỏ qua của bạn sẽ kết nối trực tiếp. Mọi thứ khác sẽ dùng Lantern. Danh sách Chỉ bao gồm của bạn được giữ lại để dùng khi bạn chuyển lại."
+
+msgid "split_tunnel_switch"
+msgstr "Chuyển"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 ứng dụng"
+
+msgid "split_tunnel_app_count"
+msgstr "%d ứng dụng"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 trang web"
+
+msgid "split_tunnel_site_count"
+msgstr "%d trang web"
+
+msgid "apps_using_vpn"
+msgstr "Ứng dụng dùng VPN (%d)"
+
+msgid "websites_using_vpn"
+msgstr "Trang web dùng VPN (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "Không thể tải tính năng chia tách đường hầm. Vui lòng thử lại."
+
+msgid "split_tunnel_update_failed"
+msgstr "Không thể cập nhật chia tách đường hầm. Vui lòng thử lại."
+
+msgid "split_tunnel_unavailable"
+msgstr "Không khả dụng"
+
+msgid "split_tunnel_enter_website"
+msgstr "Nhập trang web hoặc URL"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "Nhập URL hoặc *.ir"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "Thêm *.ir để khớp mọi trang .ir cùng lúc. Áp dụng cho *.cn, *.ru, v.v. Phân tách nhiều trang bằng dấu phẩy."
+
+msgid "split_tunnel_invalid_website"
+msgstr "Nhập trang web hoặc URL hợp lệ. Ký tự đại diện phải bắt đầu bằng *. và không hỗ trợ địa chỉ IP."
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s đã được thêm."
+
+msgid "clear"
+msgstr "Xóa"
+
+msgid "personal_proxy_path_connecting"
+msgstr "Đang kết nối…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "Đang kết nối lại…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "Không khả dụng"
+
+msgid "trust_understand_risks"
+msgstr "Tôi hiểu các rủi ro"
+
+msgid "help_friend_trust_warning"
+msgstr "Chỉ giúp những người bạn tin tưởng."
+
+msgid "help_friend_trust_title"
+msgstr "Tin tưởng người bạn giúp"
+
+msgid "help_friend_trust_message_one"
+msgstr "Với các trang web họ truy cập, lưu lượng của họ sẽ trông như đến từ kết nối của bạn. Nếu họ làm điều gì phạm pháp, việc đó có thể bị truy ngược về bạn. Chỉ giúp những người bạn tin tưởng."
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern không quản lý hay giám sát proxy cá nhân."
+
+msgid "help_friend_trust_message_three"
+msgstr "Bạn có thể xóa kết nối bất cứ lúc nào từ thẻ Action Mode."

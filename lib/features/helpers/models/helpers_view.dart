@@ -166,12 +166,15 @@ class HelperPairingView {
   /// route to them, or radiance has their reverse session whatever
   /// lantern-cloud says. [status] is radiance's status by outbound tag, null
   /// while unknown (the VPN is off, or radiance did not answer): online then
-  /// decides alone.
+  /// decides alone. A rooms route whose path radiance can't measure counts
+  /// too: radiance only measures the selected friend's path, so selecting
+  /// them is how it gets measured.
   bool selectable(Map<String, PersonalProxyStatus>? status) {
     if (_reverse(status)) return true;
     if (outboundTag.isEmpty || !online) return false;
     if (status == null) return true;
-    return status[outboundTag]?.live ?? false;
+    final s = status[outboundTag];
+    return s != null && (s.live || s.roomsUnknown);
   }
 
   factory HelperPairingView.fromJson(Map<String, dynamic> j) =>
@@ -193,7 +196,16 @@ class PersonalProxyStatus {
     this.direct = false,
     this.reverse = false,
     this.rooms = false,
+    this.roomsPath,
+    this.roomsPathSince,
   });
+
+  /// [roomsPath] values, as radiance names them.
+  static const pathConnected = 'connected';
+  static const pathConnecting = 'connecting';
+  static const pathReconnecting = 'reconnecting';
+  static const pathUnavailable = 'unavailable';
+  static const pathUnknown = 'unknown';
 
   /// The config carries the friend's direct outbound.
   final bool direct;
@@ -202,11 +214,40 @@ class PersonalProxyStatus {
   /// the session the friend dials in.
   final bool reverse;
 
-  /// This device can reach the friend through Unbounded's rooms.
+  /// This device has a rooms consumer and a ticket for the friend. Whether
+  /// it carries anything is [roomsPath].
   final bool rooms;
 
-  /// The friend's group has a member to route through.
-  bool get live => direct || reverse || rooms;
+  /// The rooms consumer's WebRTC path to the friend: connected; connecting
+  /// (none has opened yet, briefly after the consumer starts); reconnecting
+  /// (the last one closed moments ago, new dials already fail); unavailable
+  /// (down for a while, nothing is carried); or unknown (radiance can't
+  /// measure it: another friend is selected, or no tunnel runs). Null from a
+  /// radiance that predates it, and while [rooms] is false.
+  final String? roomsPath;
+
+  /// When [roomsPath] last changed, in Unix seconds. Null while unknown.
+  final int? roomsPathSince;
+
+  bool get roomsConnecting => rooms && roomsPath == pathConnecting;
+  bool get roomsReconnecting => rooms && roomsPath == pathReconnecting;
+  bool get roomsUnavailable => rooms && roomsPath == pathUnavailable;
+  bool get roomsUnknown => rooms && roomsPath == pathUnknown;
+
+  /// The friend's group has a member to route through. A rooms route counts
+  /// while its path is up or briefly down, and when radiance doesn't report
+  /// the path; not once it is unavailable, nor while it is unknown, since it
+  /// may then be down (see [HelperPairingView.selectable] for that case). A
+  /// value this app doesn't know doesn't count either: radiance ships inside
+  /// lantern-core, so the two disagree only briefly.
+  bool get live =>
+      direct ||
+      reverse ||
+      (rooms &&
+          (roomsPath == null ||
+              roomsPath == pathConnected ||
+              roomsPath == pathConnecting ||
+              roomsPath == pathReconnecting));
 
   /// The op's answer, by outbound tag. Entries without a tag are skipped.
   static Map<String, PersonalProxyStatus> parseAll(Map<String, dynamic> j) {
@@ -221,6 +262,10 @@ class PersonalProxyStatus {
         direct: e['direct'] == true,
         reverse: e['reverse'] == true,
         rooms: e['rooms'] == true,
+        roomsPath: e['rooms_path'] is String ? e['rooms_path'] as String : null,
+        roomsPathSince: e['rooms_path_since'] is num
+            ? (e['rooms_path_since'] as num).toInt()
+            : null,
       );
     }
     return out;

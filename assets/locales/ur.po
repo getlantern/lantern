@@ -1990,15 +1990,6 @@ msgstr "مسترد کریں"
 msgid "personal_proxy_fallback_group"
 msgstr "ابھی %s تک رسائی نہیں ہو رہی۔ آپ کی ذاتی پراکسیز پر منتقل کر دیا گیا۔"
 
-msgid "become_means_title"
-msgstr "پرسنل پراکسی ہونے کا کیا مطلب ہے"
-
-msgid "become_means_seen"
-msgstr "وہ دیکھ سکتے ہیں کہ آپ کب منسلک ہیں۔ صرف جاننے والے لوگوں کے دعوت نامے قبول کریں۔"
-
-msgid "become_means_remove"
-msgstr "کنکشن کسی بھی وقت ہٹا دیں۔"
-
 msgid "help_friend_form_title"
 msgstr "جس کی آپ مدد کر رہے ہیں اس کا لنک پیسٹ کریں"
 
@@ -2063,7 +2054,7 @@ msgid "help_friend_ask_invite_message"
 msgstr "میں Lantern پر آپ کی ذاتی پراکسی بن سکتا ہوں، تاکہ آپ میرے کنکشن کے ذریعے آن لائن ہو سکیں۔ Lantern میں \"سرور کا انتخاب\" کھولیں، اوپر ⋮ مینو پر ٹیپ کریں، \"ذاتی پراکسی کو مدعو کریں\" منتخب کریں اور مجھے لنک بھیجیں۔"
 
 msgid "add_executable"
-msgstr "ایگزیکیوٹیبل شامل کریں"
+msgstr ".exe شامل کریں"
 
 msgid "select_windows_executable"
 msgstr "اس کمپیوٹر پر Lantern کے علاوہ کسی ایپ کی .exe فائل منتخب کریں۔"
@@ -2236,8 +2227,113 @@ msgstr "آپ انہیں کسی بھی وقت نجی مقامات کا نظم ک�
 msgid "approved_body_locations"
 msgstr "جب %s آن لائن ہوں تو آپ انہیں سرور مقامات مینو میں نجی مقامات کے تحت منتخب کر سکتے ہیں۔ اسمارٹ مقام انہیں خودکار طور پر استعمال کر سکتا ہے۔"
 
-msgid "become_means_traffic_seen"
-msgstr "ایک دوست نے آپ سے مدد مانگی ہے۔ جب Action Mode آن ہو تو وہ آپ کے کنکشن کے ذریعے کھلے انٹرنیٹ تک پہنچتے ہیں۔ آپ دیکھ سکتے ہیں کہ وہ کون سی سائٹس پر جاتے ہیں، لیکن یہ نہیں کہ وہ ان پر کیا کرتے ہیں۔"
-
 msgid "help_friend_your_name_label"
 msgstr "آپ کا نام"
+
+msgid "split_tunnel_off"
+msgstr "بند"
+
+msgid "split_tunnel_bypass"
+msgstr "بائی پاس"
+
+msgid "split_tunnel_include_only"
+msgstr "صرف شامل کریں"
+
+msgid "split_tunnel_description"
+msgstr "منتخب کریں کہ ایپس اور ویب سائٹس کیسے منسلک ہوں"
+
+msgid "split_tunnel_mode"
+msgstr "اسپلٹ ٹنل موڈ:"
+
+msgid "split_tunnel_bypass_description"
+msgstr "منتخب ایپس اور سائٹس Lantern کو بائی پاس کرتی ہیں"
+
+msgid "split_tunnel_include_description"
+msgstr "صرف منتخب ایپس اور سائٹس Lantern استعمال کرتی ہیں"
+
+msgid "split_tunnel_switch_include"
+msgstr "صرف شامل پر سوئچ کریں؟"
+
+msgid "split_tunnel_switch_bypass"
+msgstr "بائی پاس پر سوئچ کریں؟"
+
+msgid "split_tunnel_switch_include_body"
+msgstr "صرف آپ کی “صرف شامل کریں” فہرستوں کی ایپس اور سائٹس Lantern استعمال کریں گی۔ آپ کے براؤزر سمیت باقی سب کچھ تحفظ کے بغیر براہ راست منسلک ہوگا۔ جب تک یہ فہرستیں خالی ہیں، سب کچھ Lantern استعمال کرتا ہے۔ آپ کی بائی پاس فہرستیں واپس تبدیل کرنے کے لیے محفوظ رہتی ہیں۔"
+
+msgid "split_tunnel_switch_bypass_body"
+msgstr "آپ کی بائی پاس فہرستوں کی ایپس اور سائٹس براہ راست منسلک ہوں گی۔ باقی سب کچھ Lantern استعمال کرے گا۔ آپ کی “صرف شامل کریں” فہرستیں واپس تبدیل کرنے کے لیے محفوظ رہتی ہیں۔"
+
+msgid "split_tunnel_switch"
+msgstr "تبدیل کریں"
+
+msgid "split_tunnel_app_count_one"
+msgstr "1 ایپ"
+
+msgid "split_tunnel_app_count"
+msgstr "ایپس: %d"
+
+msgid "split_tunnel_site_count_one"
+msgstr "1 سائٹ"
+
+msgid "split_tunnel_site_count"
+msgstr "%d سائٹس"
+
+msgid "apps_using_vpn"
+msgstr "VPN استعمال کرنے والی ایپس (%d)"
+
+msgid "websites_using_vpn"
+msgstr "VPN استعمال کرنے والی ویب سائٹس (%d)"
+
+msgid "split_tunnel_load_failed"
+msgstr "اسپلٹ ٹنلنگ لوڈ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "split_tunnel_update_failed"
+msgstr "اسپلٹ ٹنلنگ اپ ڈیٹ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔"
+
+msgid "split_tunnel_unavailable"
+msgstr "دستیاب نہیں"
+
+msgid "split_tunnel_enter_website"
+msgstr "ویب سائٹ یا URL درج کریں"
+
+msgid "split_tunnel_website_placeholder"
+msgstr "URL یا *.ir درج کریں"
+
+msgid "split_tunnel_wildcard_hint"
+msgstr "تمام .ir سائٹس کو ایک ساتھ شامل کرنے کے لیے *.ir شامل کریں۔ یہ *.cn، *.ru وغیرہ کے لیے بھی کام کرتا ہے۔ متعدد سائٹس کو کاما سے الگ کریں۔"
+
+msgid "split_tunnel_invalid_website"
+msgstr "درست ویب سائٹ یا URL درج کریں۔ وائلڈ کارڈ *. سے شروع ہونے چاہئیں اور IP ایڈریس معاون نہیں ہیں۔"
+
+msgid "split_tunnel_website_duplicate"
+msgstr "%s پہلے ہی شامل ہے۔"
+
+msgid "clear"
+msgstr "صاف کریں"
+
+msgid "personal_proxy_path_connecting"
+msgstr "منسلک ہو رہا ہے…"
+
+msgid "personal_proxy_path_reconnecting"
+msgstr "دوبارہ منسلک ہو رہا ہے…"
+
+msgid "personal_proxy_path_unavailable"
+msgstr "دستیاب نہیں"
+
+msgid "trust_understand_risks"
+msgstr "مجھے خطرات کا علم ہے"
+
+msgid "help_friend_trust_warning"
+msgstr "صرف قابل بھروسہ لوگوں کی مدد کریں۔"
+
+msgid "help_friend_trust_title"
+msgstr "جس کی مدد کریں اس پر بھروسہ کریں"
+
+msgid "help_friend_trust_message_one"
+msgstr "جن ویب سائٹس پر وہ جائیں گے، انہیں ان کی ٹریفک آپ کے کنکشن سے آتی دکھائی دے گی۔ اگر وہ کچھ غیر قانونی کریں تو اس کا سراغ آپ تک لگایا جا سکتا ہے۔ صرف ان لوگوں کی مدد کریں جن پر آپ بھروسہ کرتے ہیں۔"
+
+msgid "help_friend_trust_message_two"
+msgstr "Lantern ذاتی پراکسیز کا انتظام یا نگرانی نہیں کرتا۔"
+
+msgid "help_friend_trust_message_three"
+msgstr "آپ کسی بھی وقت Action Mode ٹیب سے کنکشن ہٹا سکتے ہیں۔"

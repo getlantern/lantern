@@ -225,10 +225,11 @@ class AppDialog {
     required Widget content,
     required List<Widget> action,
     EdgeInsetsGeometry? actionPadding,
+    bool barrierDismissible = false,
   }) {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: barrierDismissible,
       builder: (context) {
         focusFirstOnTv(context);
         return AlertDialog(
