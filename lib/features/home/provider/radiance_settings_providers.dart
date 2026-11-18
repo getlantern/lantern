@@ -109,8 +109,17 @@ class RadianceSettings extends _$RadianceSettings {
     final result = await svc.patchSettings({proxylessSettingKey: value});
     if (!ref.mounted) return result;
     return result.fold(
-      (err) {
+      (err) async {
         appLogger.error('setProxyless failed: ${err.error}');
+        // Radiance applies the live value before it saves, so a failed save
+        // can still have switched proxyless. Show what it actually is.
+        final current = await svc.getSettings();
+        if (ref.mounted) {
+          current.fold(
+            (_) {},
+            (s) => state = state.copyWith(proxyless: proxylessFromSettings(s)),
+          );
+        }
         return left(err);
       },
       (_) {
