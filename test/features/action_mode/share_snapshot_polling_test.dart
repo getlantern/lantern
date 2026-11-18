@@ -80,7 +80,7 @@ void main() {
 
   tearDown(() => container.dispose());
 
-  test('polls only while the tab is visible', () async {
+  test('polls fast only while the tab is visible', () async {
     await settle();
     expect(service.calls, isEmpty);
 
@@ -108,7 +108,7 @@ void main() {
 
   // The backend drops a departed peer's bytes after a minute, so a pause
   // while sharing would lose them from the per-country stats.
-  test('keeps polling while sharing, even in the background', () async {
+  test('keeps fast polling while sharing, even in the background', () async {
     await settle();
     share.setActive(true);
     await settle();

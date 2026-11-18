@@ -134,8 +134,8 @@ abstract class LanternCoreService {
   /// rather than synthesizing an idle status.
   Future<Either<Failure, String>> getPeerStatusJSON();
 
-  /// Starts or stops the backend's once-a-second unbounded-snapshot and
-  /// peer-snapshot events. They are off until turned on.
+  /// Switches the backend's unbounded-snapshot and peer-snapshot events
+  /// between once a second (on) and every 30 seconds (off, where they start).
   Future<Either<Failure, Unit>> setSnapshotPolling(bool on);
 
   /// Runs one helper-invite operation in the Go core (lantern-core/helper)
