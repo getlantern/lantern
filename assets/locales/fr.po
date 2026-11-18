@@ -2484,3 +2484,15 @@ msgstr "Lantern ne gère ni ne surveille les proxys personnels."
 
 msgid "help_friend_trust_message_three"
 msgstr "Vous pouvez supprimer la connexion à tout moment depuis l'onglet Action Mode."
+
+msgid "unreachable_server_title"
+msgstr "Cet emplacement semble inaccessible"
+
+msgid "unreachable_server_body"
+msgstr "Les récents tests de connexion de Lantern vers %s ont échoué depuis votre réseau. Si vous vous connectez quand même, Lantern peut afficher Connecté alors que rien ne se charge. L'emplacement intelligent choisit pour vous un serveur qui fonctionne."
+
+msgid "unreachable_server_connect_anyway"
+msgstr "Se connecter quand même"
+
+msgid "pinned_server_unreachable"
+msgstr "%s semble inaccessible depuis votre réseau. Appuyez pour choisir un autre emplacement."

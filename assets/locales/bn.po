@@ -2501,3 +2501,15 @@ msgstr "Lantern ব্যক্তিগত প্রক্সি পরিচ�
 
 msgid "help_friend_trust_message_three"
 msgstr "আপনি যেকোনো সময় Action Mode ট্যাব থেকে সংযোগটি সরাতে পারেন।"
+
+msgid "unreachable_server_title"
+msgstr "এই লোকেশনটি অপ্রাপ্য মনে হচ্ছে"
+
+msgid "unreachable_server_body"
+msgstr "আপনার নেটওয়ার্ক থেকে %s এর সাথে Lantern-এর সাম্প্রতিক সংযোগ পরীক্ষা ব্যর্থ হয়েছে। তবুও সংযোগ করলে Lantern সংযুক্ত দেখাতে পারে, অথচ কিছুই লোড হবে না। স্মার্ট লোকেশন আপনার জন্য একটি কার্যকর সার্ভার বেছে নেয়।"
+
+msgid "unreachable_server_connect_anyway"
+msgstr "তবুও সংযোগ করুন"
+
+msgid "pinned_server_unreachable"
+msgstr "আপনার নেটওয়ার্ক থেকে %s অপ্রাপ্য মনে হচ্ছে। অন্য লোকেশন বেছে নিতে ট্যাপ করুন।"

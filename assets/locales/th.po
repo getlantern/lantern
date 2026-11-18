@@ -2474,3 +2474,15 @@ msgstr "Lantern ไม่ได้จัดการหรือตรวจส�
 
 msgid "help_friend_trust_message_three"
 msgstr "คุณสามารถลบการเชื่อมต่อได้ทุกเมื่อจากแท็บ Action Mode"
+
+msgid "unreachable_server_title"
+msgstr "ดูเหมือนว่าจะเข้าถึงตำแหน่งนี้ไม่ได้"
+
+msgid "unreachable_server_body"
+msgstr "การทดสอบการเชื่อมต่อล่าสุดของ Lantern ไปยัง %s จากเครือข่ายของคุณล้มเหลว หากคุณเชื่อมต่อต่อไป Lantern อาจแสดงว่าเชื่อมต่อแล้วแต่ไม่มีอะไรโหลด ตำแหน่งอัจฉริยะจะเลือกเซิร์ฟเวอร์ที่ใช้งานได้ให้คุณ"
+
+msgid "unreachable_server_connect_anyway"
+msgstr "เชื่อมต่อต่อไป"
+
+msgid "pinned_server_unreachable"
+msgstr "ดูเหมือนว่าจะเข้าถึง %s จากเครือข่ายของคุณไม่ได้ แตะเพื่อเลือกตำแหน่งอื่น"

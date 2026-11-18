@@ -2541,3 +2541,15 @@ msgstr "Lantern သည် ကိုယ်ပိုင် Proxy များက�
 
 msgid "help_friend_trust_message_three"
 msgstr "Action Mode တဘ်မှ ချိတ်ဆက်မှုကို အချိန်မရွေး ဖယ်ရှားနိုင်ပါသည်။"
+
+msgid "unreachable_server_title"
+msgstr "ဤတည်နေရာကို ချိတ်ဆက်၍မရနိုင်ပုံရသည်"
+
+msgid "unreachable_server_body"
+msgstr "သင့်ကွန်ရက်မှ %s သို့ Lantern ၏ မကြာသေးမီ ချိတ်ဆက်မှုစမ်းသပ်ချက်များ မအောင်မြင်ပါ။ မည်သို့ပင်ဖြစ်စေ ချိတ်ဆက်ပါက Lantern က ချိတ်ဆက်ပြီးဟု ပြသသော်လည်း ဘာမှဖွင့်မရနိုင်ပါ။ Smart Location က အလုပ်လုပ်သော ဆာဗာကို သင့်အတွက် ရွေးပေးပါသည်။"
+
+msgid "unreachable_server_connect_anyway"
+msgstr "မည်သို့ပင်ဖြစ်စေ ချိတ်ဆက်ပါ"
+
+msgid "pinned_server_unreachable"
+msgstr "သင့်ကွန်ရက်မှ %s ကို ချိတ်ဆက်၍မရနိုင်ပုံရသည်။ အခြားတည်နေရာ ရွေးရန် နှိပ်ပါ။"

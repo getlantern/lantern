@@ -2505,3 +2505,15 @@ msgstr "Lantern पर्सनल प्रॉक्सी को मैने�
 
 msgid "help_friend_trust_message_three"
 msgstr "आप Action Mode टैब से किसी भी समय कनेक्शन हटा सकते हैं।"
+
+msgid "unreachable_server_title"
+msgstr "इस लोकेशन तक पहुंचना संभव नहीं लगता"
+
+msgid "unreachable_server_body"
+msgstr "आपके नेटवर्क से %s के लिए Lantern के हाल के कनेक्शन टेस्ट विफल रहे। अगर आप फिर भी कनेक्ट करते हैं, तो Lantern कनेक्टेड दिखा सकता है जबकि कुछ भी लोड नहीं होगा। स्मार्ट लोकेशन आपके लिए काम करने वाला सर्वर चुनती है।"
+
+msgid "unreachable_server_connect_anyway"
+msgstr "फिर भी कनेक्ट करें"
+
+msgid "pinned_server_unreachable"
+msgstr "आपके नेटवर्क से %s तक पहुंचना संभव नहीं लगता। कोई दूसरी लोकेशन चुनने के लिए टैप करें।"
