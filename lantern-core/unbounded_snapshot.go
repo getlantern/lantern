@@ -13,8 +13,8 @@ import (
 const snapshotInterval = time.Second
 
 // SetSnapshotPolling starts or stops the snapshot pollers. The app runs them
-// only while it shows their stats: each tick wakes Go, the platform layer and
-// Dart, which costs battery for nothing when no one is looking.
+// only while sharing or showing their stats: each tick wakes Go, the platform
+// layer and Dart, which costs battery for nothing otherwise.
 func (lc *LanternCore) SetSnapshotPolling(on bool) {
 	lc.snapshotGate.set(on)
 }

@@ -1825,10 +1825,12 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, Unit>> setSnapshotPolling(bool on) async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService
-            .setSnapshotPolling(on ? 1 : 0)
-            .cast<Utf8>()
-            .toDartString();
+        final resultPtr = _ffiService.setSnapshotPolling(on ? 1 : 0);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       checkAPIError(result);
       return right(unit);
