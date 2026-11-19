@@ -46,9 +46,11 @@ type logLevelSettings interface {
 // to debug once. Radiance only seeds log_level when it is absent, so an
 // install that persisted info before nightly defaulted to debug would stay at
 // info. The marker keeps a tester who later picks info deliberately at info.
-// It goes through the IPC client so it reaches the settings that the logging
-// process reads, which on desktop belong to the daemon.
-func migrateNightlyLogLevel(ctx context.Context, client logLevelSettings, dataDir string, delays []time.Duration) {
+// It goes through the IPC client so it reaches the backend's settings, which
+// on desktop belong to the daemon. migrateLocal, when set, migrates this
+// process's own settings too: the desktop UI runs its own common.Init, and
+// its logger reads its own settings file.
+func migrateNightlyLogLevel(ctx context.Context, client logLevelSettings, migrateLocal func() error, dataDir string, delays []time.Duration) {
 	if BuildType != "nightly" || dataDir == "" {
 		return
 	}
@@ -83,7 +85,17 @@ func migrateNightlyLogLevel(ctx context.Context, client logLevelSettings, dataDi
 		case <-time.After(delays[i]):
 		}
 	}
+	if migrateLocal != nil {
+		if err := migrateLocal(); err != nil {
+			slog.Warn("Nightly app log level migration failed; retrying next launch", "error", err)
+			return
+		}
+	}
 	if err := os.WriteFile(marker, nil, 0o600); err != nil {
 		slog.Warn("Unable to record nightly log level migration", "error", err)
 	}
+}
+
+func migrateLocalLogLevel() error {
+	return settings.ReplaceString(settings.LogLevelKey, "info", "debug")
 }

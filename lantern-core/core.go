@@ -366,7 +366,11 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenPeerStatusEvents()
 	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
-	go migrateNightlyLogLevel(ctx, client, opts.DataDir, nightlyLogLevelMigrationDelays)
+	var migrateLocal func() error
+	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+		migrateLocal = migrateLocalLogLevel
+	}
+	go migrateNightlyLogLevel(ctx, client, migrateLocal, opts.DataDir, nightlyLogLevelMigrationDelays)
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil

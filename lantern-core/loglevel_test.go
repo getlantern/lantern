@@ -66,13 +66,13 @@ func TestMigrateNightlyLogLevel(t *testing.T) {
 		dir := t.TempDir()
 		client := &fakeLogLevelSettings{level: "info"}
 
-		migrateNightlyLogLevel(ctx, client, dir, nil)
+		migrateNightlyLogLevel(ctx, client, nil, dir, nil)
 		assert.Equal(t, "debug", client.level)
 		assert.FileExists(t, filepath.Join(dir, nightlyLogLevelMarker))
 
 		// A tester who then picks info keeps it.
 		client.level = "info"
-		migrateNightlyLogLevel(ctx, client, dir, nil)
+		migrateNightlyLogLevel(ctx, client, nil, dir, nil)
 		assert.Equal(t, "info", client.level)
 		assert.Len(t, client.patches, 1)
 	})
@@ -82,7 +82,7 @@ func TestMigrateNightlyLogLevel(t *testing.T) {
 		dir := t.TempDir()
 		client := &fakeLogLevelSettings{level: "warn"}
 
-		migrateNightlyLogLevel(ctx, client, dir, nil)
+		migrateNightlyLogLevel(ctx, client, nil, dir, nil)
 		assert.Equal(t, "warn", client.level)
 		assert.Empty(t, client.patches)
 		assert.FileExists(t, filepath.Join(dir, nightlyLogLevelMarker))
@@ -94,7 +94,7 @@ func TestMigrateNightlyLogLevel(t *testing.T) {
 			dir := t.TempDir()
 			client := &fakeLogLevelSettings{level: "info"}
 
-			migrateNightlyLogLevel(ctx, client, dir, nil)
+			migrateNightlyLogLevel(ctx, client, nil, dir, nil)
 			assert.Equal(t, "info", client.level)
 			assert.Empty(t, client.patches)
 			assert.NoFileExists(t, filepath.Join(dir, nightlyLogLevelMarker))
@@ -107,7 +107,7 @@ func TestMigrateNightlyLogLevel(t *testing.T) {
 		down := errors.New("backend not running")
 		client := &fakeLogLevelSettings{level: "info", settingsErr: []error{down, down}}
 
-		migrateNightlyLogLevel(ctx, client, dir, make([]time.Duration, 2))
+		migrateNightlyLogLevel(ctx, client, nil, dir, make([]time.Duration, 2))
 		assert.Equal(t, "debug", client.level)
 		assert.FileExists(t, filepath.Join(dir, nightlyLogLevelMarker))
 	})
@@ -118,7 +118,7 @@ func TestMigrateNightlyLogLevel(t *testing.T) {
 		down := errors.New("backend not running")
 		client := &fakeLogLevelSettings{level: "info", settingsErr: []error{down, down}}
 
-		migrateNightlyLogLevel(ctx, client, dir, make([]time.Duration, 1))
+		migrateNightlyLogLevel(ctx, client, nil, dir, make([]time.Duration, 1))
 		assert.Equal(t, "info", client.level)
 		_, err := os.Stat(filepath.Join(dir, nightlyLogLevelMarker))
 		require.ErrorIs(t, err, os.ErrNotExist)
@@ -130,8 +130,45 @@ func TestMigrateNightlyLogLevel(t *testing.T) {
 		// The live value moves even though the save failed.
 		client := &fakeLogLevelSettings{level: "info", patchErr: errors.New("save failed")}
 
-		migrateNightlyLogLevel(ctx, client, dir, make([]time.Duration, 2))
+		migrateNightlyLogLevel(ctx, client, nil, dir, make([]time.Duration, 2))
 		assert.Len(t, client.patches, 1)
 		assert.NoFileExists(t, filepath.Join(dir, nightlyLogLevelMarker))
 	})
+
+	t.Run("migrates local settings before recording the marker", func(t *testing.T) {
+		withBuildType(t, "nightly")
+		dir := t.TempDir()
+		client := &fakeLogLevelSettings{level: "info"}
+		calls := 0
+		local := func() error { calls++; return nil }
+
+		migrateNightlyLogLevel(ctx, client, local, dir, nil)
+		assert.Equal(t, 1, calls)
+		assert.FileExists(t, filepath.Join(dir, nightlyLogLevelMarker))
+
+		migrateNightlyLogLevel(ctx, client, local, dir, nil)
+		assert.Equal(t, 1, calls, "the marker stops later launches")
+	})
+
+	t.Run("skips the marker when local settings fail", func(t *testing.T) {
+		withBuildType(t, "nightly")
+		dir := t.TempDir()
+		client := &fakeLogLevelSettings{level: "info"}
+
+		migrateNightlyLogLevel(ctx, client, func() error { return errors.New("save failed") }, dir, nil)
+		assert.NoFileExists(t, filepath.Join(dir, nightlyLogLevelMarker))
+	})
+}
+
+func TestMigrateLocalLogLevel(t *testing.T) {
+	require.NoError(t, settings.InitSettings(t.TempDir()))
+	t.Cleanup(settings.Reset)
+
+	require.NoError(t, settings.Set(settings.LogLevelKey, "info"))
+	require.NoError(t, migrateLocalLogLevel())
+	assert.Equal(t, "debug", settings.GetString(settings.LogLevelKey))
+
+	require.NoError(t, settings.Set(settings.LogLevelKey, "warn"))
+	require.NoError(t, migrateLocalLogLevel())
+	assert.Equal(t, "warn", settings.GetString(settings.LogLevelKey))
 }
