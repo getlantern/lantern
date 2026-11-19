@@ -45,4 +45,19 @@ class DeviceIdleForwarderTest {
         runQueued()
         assertEquals(listOf("wake", "wake"), calls)
     }
+
+    @Test
+    fun aThrowingCallIsReportedNotRethrown() {
+        val errors = mutableListOf<Throwable>()
+        val failure = IllegalStateException("boom")
+        val throwing = DeviceIdleForwarder(
+            Executor { it.run() },
+            isIdle = { true },
+            pause = { throw failure },
+            wake = {},
+            onError = { errors.add(it) },
+        )
+        throwing.reconcile()
+        assertEquals(listOf<Throwable>(failure), errors)
+    }
 }
