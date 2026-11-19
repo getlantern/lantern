@@ -16,6 +16,7 @@ import (
 type fakeLogLevelSettings struct {
 	level       any
 	settingsErr []error
+	patchErr    error
 	patches     []settings.Settings
 }
 
@@ -35,7 +36,7 @@ func (f *fakeLogLevelSettings) Settings(context.Context) (settings.Settings, err
 func (f *fakeLogLevelSettings) PatchSettings(_ context.Context, updates settings.Settings) (settings.Settings, error) {
 	f.patches = append(f.patches, updates)
 	f.level = updates[settings.LogLevelKey]
-	return updates, nil
+	return updates, f.patchErr
 }
 
 func withBuildType(t *testing.T, buildType string) {
@@ -121,5 +122,16 @@ func TestMigrateNightlyLogLevel(t *testing.T) {
 		assert.Equal(t, "info", client.level)
 		_, err := os.Stat(filepath.Join(dir, nightlyLogLevelMarker))
 		require.ErrorIs(t, err, os.ErrNotExist)
+	})
+
+	t.Run("skips the marker when the patch fails to save", func(t *testing.T) {
+		withBuildType(t, "nightly")
+		dir := t.TempDir()
+		// The live value moves even though the save failed.
+		client := &fakeLogLevelSettings{level: "info", patchErr: errors.New("save failed")}
+
+		migrateNightlyLogLevel(ctx, client, dir, make([]time.Duration, 2))
+		assert.Len(t, client.patches, 1)
+		assert.NoFileExists(t, filepath.Join(dir, nightlyLogLevelMarker))
 	})
 }

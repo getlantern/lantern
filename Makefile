@@ -532,7 +532,7 @@ desktop-lib-obfuscated: check-garble-seed
 	$(call MKDIR_P,$(dir $(LIB_NAME)))
 	@$(SETENV) $(GARBLE_ENV) $(GARBLE_BUILD) -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
-		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS) $(BUILD_TYPE_GO_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built obfuscated desktop library: $(LIB_NAME)"
 
@@ -1057,7 +1057,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		-javapkg=$(GOMOBILE_JAVAPKG) \
 		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS) $(BUILD_TYPE_GO_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)

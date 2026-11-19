@@ -57,8 +57,17 @@ func migrateNightlyLogLevel(ctx context.Context, client logLevelSettings, dataDi
 		return
 	}
 	for i := 0; ; i++ {
-		err := migrateLogLevelOnce(ctx, client)
+		s, err := client.Settings(ctx)
 		if err == nil {
+			if level, _ := s[settings.LogLevelKey].(string); level == "info" {
+				// Radiance can publish a patch it failed to save, so a failed
+				// patch leaves the marker unset for the next launch to retry.
+				if _, err := client.PatchSettings(ctx, settings.Settings{settings.LogLevelKey: "debug"}); err != nil {
+					slog.Warn("Nightly log level migration failed; retrying next launch", "error", err)
+					return
+				}
+				slog.Info("Raised nightly log level from info to debug")
+			}
 			break
 		}
 		if ctx.Err() != nil {
@@ -77,19 +86,4 @@ func migrateNightlyLogLevel(ctx context.Context, client logLevelSettings, dataDi
 	if err := os.WriteFile(marker, nil, 0o600); err != nil {
 		slog.Warn("Unable to record nightly log level migration", "error", err)
 	}
-}
-
-func migrateLogLevelOnce(ctx context.Context, client logLevelSettings) error {
-	s, err := client.Settings(ctx)
-	if err != nil {
-		return err
-	}
-	if level, _ := s[settings.LogLevelKey].(string); level != "info" {
-		return nil
-	}
-	if _, err := client.PatchSettings(ctx, settings.Settings{settings.LogLevelKey: "debug"}); err != nil {
-		return err
-	}
-	slog.Info("Raised nightly log level from info to debug")
-	return nil
 }
