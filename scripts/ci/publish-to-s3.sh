@@ -83,10 +83,15 @@ upload_file() {
 
   # Branch builds publish versioned downloads without replacing the main nightly.
   # Stable and beta aliases move only after the GitHub release is verified.
-  # Signed desktop installers move with their feed below.
-  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]] && ! has_signed_update "$filepath"; then
+  # Desktop installers move only with their signed feed below, so an unsigned
+  # manual nightly never replaces the public nightly download.
+  if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" != "true" ]] && ! is_desktop_installer "$filepath"; then
     promote_latest "$filepath" "$checksum"
   fi
+}
+
+is_desktop_installer() {
+  case "${1##*.}" in dmg|exe) return 0 ;; *) return 1 ;; esac
 }
 
 has_signed_update() {

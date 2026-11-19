@@ -21,7 +21,7 @@ on:
         type: string
         default: "linux"
       sign_windows:
-        description: "Sign Windows branch nightlies (main and releases are always signed)"
+        description: "Sign Windows for this manual nightly (uses SignPath quota; scheduled nightlies and releases are always signed)"
         required: false
         type: boolean
         default: false
@@ -512,7 +512,7 @@ jobs:
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       run_auth_smoke: false
-      skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.ref_name != github.event.repository.default_branch && github.event.inputs.sign_windows != 'true' }}
+      skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.event_name != 'schedule' && github.event.inputs.sign_windows != 'true' }}
 
   build-linux:
     needs: [set-metadata, preflight, release-approval]

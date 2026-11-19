@@ -388,8 +388,6 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
                 if promote:
                     # Installer alias waits for the feed check.
                     expected = [versioned, f"{versioned}.update.json", latest, f"{latest}.update.json"]
-                elif not signed and is_test_run == "false":
-                    expected = [versioned, latest]
                 else:
                     expected = [versioned]
                 published = [c[4] for c in self.commands() if c[:3] == ["aws", "s3", "cp"]
@@ -423,10 +421,8 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
                     uploads = [c for c in self.commands() if c[:3] == ["aws", "s3", "cp"]]
                     expected = []
                     if success:
+                        # Without a signed update, latest/ keeps the previous signed installer.
                         expected.append(f"s3://release-test/releases/nightly/9.2.0/{artifact.name}")
-                        # Branch builds skip the shared latest/ alias.
-                        if is_test_run == "false":
-                            expected.append(f"s3://release-test/releases/nightly/latest/{artifact.name}")
                     self.assertEqual([c[4] for c in uploads], expected)
 
     def test_nightly_download_messages_point_to_the_published_artifacts(self) -> None:
@@ -491,6 +487,29 @@ if name == "aws" and sys.argv[1:3] == ["s3", "cp"] and sys.argv[3].endswith(".up
             for failed_job in ("upload-s3", "upload-release-artifacts", "release-finalize"):
                 with self.subTest(is_test_run=is_test_run, failed_job=failed_job):
                     self.assertFalse(eligible("release-success-notify", is_test_run, failed_job=failed_job))
+
+    def test_only_scheduled_nightlies_and_releases_sign_windows_by_default(self) -> None:
+        expression = self.jobs["build-windows"]["with"]["skip_signing"]
+        self.assertTrue(expression.startswith("${{") and expression.endswith("}}"))
+
+        def skips(build_type: str, event: str, sign_windows: str = "") -> bool:
+            values = {
+                "needs.set-metadata.outputs.build_type": build_type,
+                "github.event_name": event,
+                "github.event.inputs.sign_windows": sign_windows,
+            }
+            condition = expression[3:-2]
+            for name, value in values.items():
+                condition = condition.replace(name, repr(value))
+            condition = condition.replace("&&", " and ").replace("||", " or ")
+            return eval(condition, {"__builtins__": {}}, {})
+
+        self.assertFalse(skips("nightly", "schedule"))
+        self.assertTrue(skips("nightly", "workflow_dispatch"))
+        self.assertTrue(skips("nightly", "workflow_dispatch", "false"))
+        self.assertFalse(skips("nightly", "workflow_dispatch", "true"))
+        for build_type in ("beta", "production"):
+            self.assertFalse(skips(build_type, "push"))
 
     def test_incomplete_candidate_set_blocks_all_uploads(self) -> None:
         directory = self.work / "lantern-installer-dmg"
