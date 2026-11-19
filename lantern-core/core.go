@@ -367,8 +367,13 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 	go lc.listenUserMessageAvailability()
 	go lc.fetchUserDataIfNeeded()
 	var migrateLocal func() error
-	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+	switch runtime.GOOS {
+	case "windows", "linux":
 		migrateLocal = migrateLocalLogLevel
+	case "darwin", "ios":
+		// The app shares the extension's settings file but keeps its own
+		// snapshot, so reload it to pick up the extension's write.
+		migrateLocal = settings.Reload
 	}
 	go migrateNightlyLogLevel(ctx, client, migrateLocal, opts.DataDir, nightlyLogLevelMigrationDelays)
 

@@ -47,9 +47,10 @@ type logLevelSettings interface {
 // install that persisted info before nightly defaulted to debug would stay at
 // info. The marker keeps a tester who later picks info deliberately at info.
 // It goes through the IPC client so it reaches the backend's settings, which
-// on desktop belong to the daemon. migrateLocal, when set, migrates this
-// process's own settings too: the desktop UI runs its own common.Init, and
-// its logger reads its own settings file.
+// on desktop belong to the daemon. migrateLocal, when set, brings this
+// process's own settings along, since its logger reads them: the desktop UI
+// keeps a separate settings file, and the Apple app keeps its own snapshot of
+// the file the tunnel extension writes.
 func migrateNightlyLogLevel(ctx context.Context, client logLevelSettings, migrateLocal func() error, dataDir string, delays []time.Duration) {
 	if BuildType != "nightly" || dataDir == "" {
 		return
