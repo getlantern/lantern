@@ -211,10 +211,9 @@ class ExtensionProvider: NEPacketTunnelProvider {
     opts.deviceid = ""
     opts.appVersion =
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+    // Release builds leave logLevel empty so Go picks the build-type default.
     #if DEBUG
       opts.logLevel = "trace"
-    #else
-      opts.logLevel = "info"
     #endif
     opts.locale = Locale.current.identifier
     opts.timeZone = TimeZone.current.identifier
