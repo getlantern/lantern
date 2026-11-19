@@ -10,6 +10,8 @@ go 1.26.11
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.14.2-lantern.3
 
+replace github.com/sagernet/sing-shadowsocks => github.com/getlantern/sing-shadowsocks v0.2.8-lantern.3
+
 // replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
 
 // Fork of upstream ddaa4ca (v0.9.6): relistens when Android destroys the
@@ -42,11 +44,11 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
-	github.com/getlantern/broflake v0.0.0-20261117033427-62a624d1b849
-	github.com/getlantern/common v1.2.1-0.20261118200432-1495a50e0d7e
-	github.com/getlantern/lantern-box v0.0.238
+	github.com/getlantern/broflake v0.0.0-20261119140636-142d0445694d
+	github.com/getlantern/common v1.2.1-0.20261119045254-055d272b7f4a
+	github.com/getlantern/lantern-box v0.0.239
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261118201340-8d78a926f80a
+	github.com/getlantern/radiance v0.0.0-20261119142920-227265393243
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
