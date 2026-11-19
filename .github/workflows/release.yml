@@ -94,6 +94,9 @@ jobs:
       smoke_enable_ip_check: ${{ steps.meta.outputs.smoke_enable_ip_check }}
       stealth_leakage_mode: ${{ steps.meta.outputs.stealth_leakage_mode }}
       sparkle_version: ${{ steps.meta.outputs.sparkle_version }}
+      # SignPath bills a yearly artifact-size quota, so manual nightlies sign
+      # Windows only on request.
+      sign_windows: ${{ steps.meta.outputs.build_type != 'nightly' || github.event_name == 'schedule' || github.event.inputs.sign_windows == 'true' }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -505,14 +508,16 @@ jobs:
       version: ${{ needs.set-metadata.outputs.version }}
       build_type: ${{ needs.set-metadata.outputs.build_type }}
       installer_base_name: ${{ needs.set-metadata.outputs.installer_base_name }}
-      run_installer_smoke: false
+      # Unsigned candidates skip the signed-candidate startup check, so they
+      # get the installer smoke suite instead.
+      run_installer_smoke: ${{ needs.set-metadata.outputs.sign_windows != 'true' }}
       enable_ip_check: ${{ needs.set-metadata.outputs.smoke_enable_ip_check == 'true' }}
       run_connect_smoke: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.windows_connect_smoke == 'true' }}
       run_split_tunnel_website_smoke: false
       run_config_url_smoke: false
       force_full_tunnel_smoke: ${{ needs.set-metadata.outputs.build_type == 'nightly' }}
       run_auth_smoke: false
-      skip_signing: ${{ needs.set-metadata.outputs.build_type == 'nightly' && github.event_name != 'schedule' && github.event.inputs.sign_windows != 'true' }}
+      skip_signing: ${{ needs.set-metadata.outputs.sign_windows != 'true' }}
 
   build-linux:
     needs: [set-metadata, preflight, release-approval]
@@ -764,6 +769,7 @@ jobs:
       BUCKET: ${{ vars.S3_RELEASES_BUCKET }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
       IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
+      WINDOWS_SIGNED: ${{ needs.set-metadata.outputs.sign_windows }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -1368,6 +1374,7 @@ jobs:
           BUILD_TYPE: ${{ needs.set-metadata.outputs.build_type }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
           IS_TEST_RUN: ${{ needs.set-metadata.outputs.is_test_run }}
+          WINDOWS_SIGNED: ${{ needs.set-metadata.outputs.sign_windows }}
           LINUX_ARCH: ${{ needs.set-metadata.outputs.linux_arch }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash
