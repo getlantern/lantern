@@ -74,7 +74,7 @@ func migrateNightlyLogLevel(ctx context.Context, client logLevelSettings, dataDi
 		case <-time.After(delays[i]):
 		}
 	}
-	if err := os.WriteFile(marker, nil, 0o644); err != nil {
+	if err := os.WriteFile(marker, nil, 0o600); err != nil {
 		slog.Warn("Unable to record nightly log level migration", "error", err)
 	}
 }
