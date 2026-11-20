@@ -69,9 +69,8 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
       if (disabled is bool) {
         next = next.copyWith(configFetchEnabled: !disabled);
       }
-      next = next.copyWith(
-        telemetryEnabled: settings[kSettingTelemetryEnabled] == true,
-      );
+      // Consent is read by _loadSendLogsToSigNoz, after any write still
+      // running, so this read, which may predate one, leaves it alone.
     });
     envResult.match((_) {}, (env) {
       next = next.copyWith(

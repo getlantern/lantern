@@ -47,8 +47,13 @@ class _Service implements LanternService {
     return right(snapshot);
   }
 
+  Completer<void>? holdEnv;
+
   @override
-  Future<Either<Failure, Map<String, String>>> getEnvVars() async => right({});
+  Future<Either<Failure, Map<String, String>>> getEnvVars() async {
+    await holdEnv?.future;
+    return right({});
+  }
 
   Completer<void>? holdTelemetryReads;
 
@@ -307,6 +312,38 @@ void main() {
       await refresh;
 
       expect(container.read(radianceSettingsProvider).telemetry, isFalse);
+    },
+  );
+
+  test(
+    'a reopened screen whose load answers late keeps the consent a pending '
+    'write turned on',
+    () async {
+      final service = _Service({});
+      final first = await _load(service);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final enable = first
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      first.dispose();
+
+      final env = service.holdEnv = Completer<void>();
+      final second = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(second.dispose);
+      second.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      hold.complete();
+      await enable;
+      await Future<void>.delayed(Duration.zero);
+      expect(second.read(developerDaemonProvider).telemetryEnabled, isTrue);
+      env.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(second.read(developerDaemonProvider).telemetryEnabled, isTrue);
     },
   );
 
