@@ -29,3 +29,17 @@ String webviewOutcome(bool? result) => switch (result) {
   false => 'cancelled',
   null => 'closed',
 };
+
+/// Properties for [CheckoutEvent.webviewClosed]. Pass [observable] false where
+/// the app can't see the window close: on Linux the checkout opens in a
+/// separate native window and returns at once.
+Map<String, Object?> webviewClosedProperties(
+  String provider,
+  bool? result,
+  Duration open, {
+  required bool observable,
+}) => {
+  'provider': provider,
+  'outcome': observable ? webviewOutcome(result) : 'not_observed',
+  'seconds_open': observable ? open.inSeconds : null,
+};

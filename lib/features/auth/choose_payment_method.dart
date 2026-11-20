@@ -558,11 +558,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   }
 
   void _trackWebviewClosed(String provider, bool? result, DateTime openedAt) {
-    trackCheckout(CheckoutEvent.webviewClosed, {
-      'provider': provider,
-      'outcome': webviewOutcome(result),
-      'seconds_open': DateTime.now().difference(openedAt).inSeconds,
-    });
+    trackCheckout(
+      CheckoutEvent.webviewClosed,
+      webviewClosedProperties(
+        provider,
+        result,
+        DateTime.now().difference(openedAt),
+        observable: !PlatformUtils.isLinux,
+      ),
+    );
   }
 
   /// [unconfirmedClose] marks a webview that was closed without a completion
@@ -593,7 +597,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     );
     trackCheckout(
       purchaseConfirmed ? CheckoutEvent.confirmed : CheckoutEvent.notConfirmed,
-      {'provider': provider, 'unconfirmed_close': unconfirmedClose},
+      {
+        'provider': provider,
+        'unconfirmed_close': unconfirmedClose,
+        // Linux can't see the window close, so this may fire mid-payment.
+        if (PlatformUtils.isLinux) 'window_observed': false,
+      },
     );
     if (!context.mounted) return;
     context.hideLoadingDialog();

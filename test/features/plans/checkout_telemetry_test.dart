@@ -12,4 +12,37 @@ void main() {
     final tags = CheckoutEvent.values.map((e) => e.tag).toList();
     expect(tags.toSet().length, tags.length);
   });
+
+  test(
+    'webview close is reported as not observed where the app cannot see it',
+    () {
+      const open = Duration(seconds: 95);
+      expect(
+        webviewClosedProperties(
+          'shepherd-wechat',
+          null,
+          open,
+          observable: true,
+        ),
+        {
+          'provider': 'shepherd-wechat',
+          'outcome': 'closed',
+          'seconds_open': 95,
+        },
+      );
+      expect(
+        webviewClosedProperties(
+          'shepherd-wechat',
+          null,
+          open,
+          observable: false,
+        ),
+        {
+          'provider': 'shepherd-wechat',
+          'outcome': 'not_observed',
+          'seconds_open': null,
+        },
+      );
+    },
+  );
 }
