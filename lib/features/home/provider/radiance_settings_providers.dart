@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/radiance_settings_state.dart';
@@ -30,10 +32,24 @@ int _consentChoices = 0;
 
 int get consentChoices => _consentChoices;
 
+/// The settings notifier that has read radiance, if any.
+RadianceSettings? _loaded;
+
+/// Has the settings screen's consent switch read consent again, if it has
+/// read radiance at all, after something outside it changed consent.
+void refreshLoadedTelemetry() {
+  final loaded = _loaded;
+  if (loaded != null) unawaited(loaded.refreshTelemetry());
+}
+
 @Riverpod(keepAlive: true)
 class RadianceSettings extends _$RadianceSettings {
   @override
   RadianceSettingsState build() {
+    _loaded = this;
+    ref.onDispose(() {
+      if (identical(_loaded, this)) _loaded = null;
+    });
     _refresh();
     return const RadianceSettingsState();
   }
@@ -44,6 +60,10 @@ class RadianceSettings extends _$RadianceSettings {
   /// (positional-by-name, not positional-by-index) so adding another
   /// optional fetch later can't silently desync the read indices.
   Future<void> _refresh() async {
+    // A consent refresh or choice made while this read runs is newer than
+    // its answer, so it keeps its value (below).
+    final telemetryRefresh = ++_telemetryRefreshes;
+    final consentChoices = _consentChoices;
     final svc = ref.read(lanternServiceProvider);
     final blockAdsF = svc.isBlockAdsEnabled();
     final routingF = svc.isSmartRoutingEnabled();
@@ -74,7 +94,10 @@ class RadianceSettings extends _$RadianceSettings {
         (_) => defaults.routingMode,
         (smart) => smart ? RoutingMode.smart : RoutingMode.full,
       ),
-      telemetry: telemetry.fold((_) => defaults.telemetry, (v) => v),
+      telemetry: telemetryRefresh != _telemetryRefreshes ||
+              consentChoices != _consentChoices
+          ? state.telemetry
+          : telemetry.fold((_) => defaults.telemetry, (v) => v),
       peerProxy: peer.fold((_) => defaults.peerProxy, (v) => v),
       unboundedEnabled: unbounded.fold(
         (_) => defaults.unboundedEnabled,
@@ -166,6 +189,7 @@ class RadianceSettings extends _$RadianceSettings {
   /// switch turns on. Only the latest read applies, and none started before a
   /// later consent choice.
   Future<void> refreshTelemetry() async {
+    if (!ref.mounted) return;
     final refresh = ++_telemetryRefreshes;
     final choices = _consentChoices;
     final result = await ref.read(lanternServiceProvider).isTelemetryEnabled();

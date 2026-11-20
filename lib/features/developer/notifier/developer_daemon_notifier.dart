@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:fpdart/fpdart.dart';
@@ -151,15 +150,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     // Read the service now: a queued write can run after the screen closes
     // and disposes this notifier, and it must still reach radiance.
     final svc = ref.read(lanternServiceProvider);
-    // The settings screen's consent switch, if it has read radiance yet. It
-    // outlives this notifier, so a write that runs after the screen closed
-    // can still correct it.
-    final settings = ref.exists(radianceSettingsProvider)
-        ? ref.read(radianceSettingsProvider.notifier)
-        : null;
     final choices = consentChoices;
     final next = _sigNozChain.then(
-      (_) => _writeSendLogsToSigNoz(svc, settings, choices, enabled),
+      (_) => _writeSendLogsToSigNoz(svc, choices, enabled),
     );
     _sigNozChain = next.catchError(
       (Object e) =>
@@ -173,7 +166,6 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   // leaves consent as it is.
   Future<Either<Failure, Unit>> _writeSendLogsToSigNoz(
     LanternService svc,
-    RadianceSettings? settings,
     int choices,
     bool enabled,
   ) async {
@@ -185,8 +177,10 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
       if (grantConsent) kSettingTelemetryEnabled: true,
     });
     // The settings screen's consent switch reads radiance once; have it read
-    // consent again, which this may have turned on, failed save or not.
-    if (grantConsent) unawaited(settings?.refreshTelemetry());
+    // consent again, which this may have turned on, failed save or not. It
+    // outlives this notifier, and may have been built since this write was
+    // queued, so it's looked up now.
+    if (grantConsent) refreshLoadedTelemetry();
     if (!ref.mounted) return result;
     return result.fold(
       (err) async {

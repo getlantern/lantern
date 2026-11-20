@@ -241,6 +241,56 @@ void main() {
     expect(container.read(radianceSettingsProvider).telemetry, isTrue);
   });
 
+  test(
+    'settings read while an enable is pending show consent on once it lands',
+    () async {
+      final service = _Service({});
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final enable = container
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      container.listen(radianceSettingsProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      expect(container.read(radianceSettingsProvider).telemetry, isFalse);
+      hold.complete();
+      expect((await enable).isRight(), isTrue);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(radianceSettingsProvider).telemetry, isTrue);
+    },
+  );
+
+  test(
+    'an enable that lands after everything was disposed raises nothing',
+    () async {
+      final service = _Service({});
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      container.listen(radianceSettingsProvider, (_, _) {});
+      container.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final enable = container
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      container.dispose();
+      hold.complete();
+      expect((await enable).isRight(), isTrue);
+      await Future<void>.delayed(Duration.zero);
+    },
+  );
+
   test('turning upload off leaves telemetry consent alone', () async {
     final service = _Service({
       kSettingSendLogsToSigNoz: true,
