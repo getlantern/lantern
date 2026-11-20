@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
@@ -41,14 +42,16 @@ class _PurchaseSession {
 
 /// A store-quoted price: display string, amount in major units, currency
 /// code, the base SKU's display price ([regular] == [formatted] when no
-/// discount applies), and the per-month amount ([monthly] is null when the
-/// charge doesn't cover whole months, e.g. a weekly intro offer).
+/// discount applies), the per-month amount ([monthly] is null when the
+/// charge doesn't cover whole months, e.g. a weekly intro offer), and how
+/// many months an introductory price lasts ([offerMonths], null without one).
 typedef StorePrice = ({
   String formatted,
   double amount,
   String currencyCode,
   String regular,
   double? monthly,
+  int? offerMonths,
 });
 
 class AppPurchase {
@@ -59,8 +62,10 @@ class AppPurchase {
     PurchaseAcknowledger? acknowledger,
     bool Function()? canUseBilling,
     Future<bool> Function(String productId)? introOfferEligibility,
+    bool? isAndroid,
   }) : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance,
        _canUseBilling = canUseBilling ?? canUseStoreBilling,
+       _isAndroid = isAndroid ?? Platform.isAndroid,
        _introOfferEligibility =
            introOfferEligibility ?? SK2Product.isIntroductoryOfferEligible {
     _pendingStore =
@@ -87,6 +92,13 @@ class AppPurchase {
   }
 
   final InAppPurchase _inAppPurchase;
+
+  /// Whether SKUs are Play offers, which are picked by tag.
+  final bool _isAndroid;
+
+  // Play Console offer tags. An offer without one of these is never bought.
+  static const String _affiliateTag = 'affiliate';
+  static const String _acquisitionTag = 'acquisition';
 
   /// Whether this Apple ID can still redeem [productId]'s introductory offer.
   /// StoreKit lists the offer on the product even when the user can't.
@@ -193,10 +205,10 @@ class AppPurchase {
 
   /// Loads the subscription SKUs to purchase from.
   ///
-  /// By default only base plans are kept ([includeOffers] false), so the first
-  /// fetch never charges a promotional offer. After a referral/affiliate code
-  /// is applied, call again with [includeOffers] true to load only the offer
-  /// SKUs — then the discounted offer is what gets charged. Either way
+  /// By default ([includeOffers] false) the base plans are kept, or the public
+  /// intro offer on them when the store grants one. After a referral/affiliate
+  /// code is applied, call again with [includeOffers] true to load only the
+  /// affiliate SKUs — then that discount is what gets charged. Either way
   /// [_normalizePlan] just matches by plan prefix, so the rest of the purchase
   /// logic is identical for plans and offers.
   Future<void> fetchSubscriptions({
@@ -263,7 +275,7 @@ class AppPurchase {
               ..addAll(products);
             await _resolveStorePrices(
               products,
-              _selectSkus(response.productDetails, includeOffers: false),
+              _basePlans(response.productDetails),
             );
             _productsLoaded.value = true;
             if (!completer.isCompleted) completer.complete();
@@ -303,9 +315,9 @@ class AppPurchase {
     throw error;
   }
 
-  /// Resolves each loaded SKU's charge price, keyed by plan family. Play can
-  /// return several SKUs per family (one per offer); the first is priced
-  /// because that is the one [_normalizePlan] purchases. The strikethrough
+  /// Resolves each loaded SKU's charge price, keyed by plan family. If a
+  /// family has several SKUs the first is priced, because that is the one
+  /// [_normalizePlan] purchases. The strikethrough
   /// comes from the matching base SKU in [baseProducts] so both prices share
   /// the storefront's currency.
   Future<void> _resolveStorePrices(
@@ -350,15 +362,34 @@ class AppPurchase {
   /// its periods, pay-as-you-go (and free trials) per period. Null for
   /// weekly/daily periods, which have no honest per-month figure.
   static int? _offerMonths(SK2SubscriptionOffer offer) {
+    final total = _offerTermMonths(offer);
+    if (total == null) return null;
+    return offer.paymentMode == SK2SubscriptionOfferPaymentMode.payUpFront
+        ? total
+        : total ~/ offer.periodCount;
+  }
+
+  /// Months an SK2 offer lasts across all its periods.
+  static int? _offerTermMonths(SK2SubscriptionOffer offer) {
     final perPeriod = switch (offer.period.unit) {
       SK2SubscriptionPeriodUnit.month => offer.period.value,
       SK2SubscriptionPeriodUnit.year => offer.period.value * 12,
       _ => null,
     };
-    if (perPeriod == null) return null;
-    return offer.paymentMode == SK2SubscriptionOfferPaymentMode.payUpFront
-        ? perPeriod * offer.periodCount
-        : perPeriod;
+    return perPeriod == null ? null : perPeriod * offer.periodCount;
+  }
+
+  /// Months a Play offer's discounted first phase lasts; null for a base plan.
+  int? _playOfferMonths(ProductDetails product) {
+    final phases = _offerDetailsFor(product)?.pricingPhases;
+    if (phases == null || phases.length < 2) return null;
+    final match = RegExp(
+      r'^P(\d+)([MY])$',
+    ).firstMatch(phases.first.billingPeriod);
+    if (match == null) return null;
+    final count = int.parse(match.group(1)!);
+    final months = match.group(2) == 'Y' ? count * 12 : count;
+    return months * phases.first.billingCycleCount;
   }
 
   static double? _perMonth(double amount, int? months) =>
@@ -378,6 +409,7 @@ class AppPurchase {
       currencyCode: product.currencyCode,
       regular: regular,
       monthly: _perMonth(product.rawPrice, _planMonths(product.id)),
+      offerMonths: _playOfferMonths(product),
     );
     if (product is! AppStoreProduct2Details) return undiscounted;
     final intro = product.sk2Product.subscription?.promotionalOffers
@@ -404,6 +436,7 @@ class AppPurchase {
       currencyCode: currencyCode,
       regular: regular,
       monthly: _perMonth(intro.price, _offerMonths(intro)),
+      offerMonths: _offerTermMonths(intro),
     );
   }
 
@@ -802,39 +835,55 @@ class AppPurchase {
     _session.onError?.call(error.toString());
   }
 
-  /// Keeps only the SKUs matching the requested mode.
+  /// Keeps only the SKUs to sell for the requested mode.
   ///
   /// On Android each Play Console offer comes back as its own
-  /// [GooglePlayProductDetails]: base plans have a null (or empty) offerId,
-  /// discount offers have a non-null offerId. When [includeOffers] is false we
-  /// keep base plans (a normal purchase), when true we keep only offers (an
-  /// applied affiliate/referral discount).
+  /// [GooglePlayProductDetails] and is picked by tag, never by position:
+  /// with [includeOffers] (an applied affiliate code) only offers tagged
+  /// [_affiliateTag]; otherwise the base plans, each swapped for its
+  /// [_acquisitionTag] offer when Play returns one (it only does for users
+  /// who qualify).
   ///
-  /// iOS has no per-offer concept, so the discount lives on a dedicated
-  /// affiliate product ([_iosAffiliateIds]). We apply the same split there:
-  /// keep only the affiliate SKUs when an offer was requested, otherwise only
-  /// the base SKUs. Either way `_subscriptionSku` ends up holding just one set,
-  /// so the downstream `_normalizePlan` prefix match resolves unambiguously.
+  /// iOS has no per-offer concept, so the affiliate discount lives on a
+  /// dedicated product ([_iosAffiliateIds]); a public intro offer sits on the
+  /// base SKU itself. Either way `_subscriptionSku` holds one SKU per plan
+  /// family, so `_normalizePlan` resolves unambiguously.
   List<ProductDetails> _selectSkus(
     List<ProductDetails> products, {
     required bool includeOffers,
   }) {
-    if (!Platform.isAndroid) {
-      return products.where((product) {
-        final isAffiliate = _iosAffiliateIds.contains(product.id);
-        return includeOffers ? isAffiliate : !isAffiliate;
-      }).toList();
+    if (!_isAndroid) {
+      return includeOffers
+          ? products.where((p) => _iosAffiliateIds.contains(p.id)).toList()
+          : _basePlans(products);
     }
-    return products.where((product) {
-      final offerId = _offerIdFor(product);
-      final isOffer = offerId != null && offerId.isNotEmpty;
-      return includeOffers ? isOffer : !isOffer;
+    if (includeOffers) {
+      return products.where((p) => _hasTag(p, _affiliateTag)).toList();
+    }
+    return _basePlans(products).map((plan) {
+      final offer = products
+          .where((p) => p.id == plan.id && _hasTag(p, _acquisitionTag))
+          .firstOrNull;
+      return offer ?? plan;
     }).toList();
   }
 
-  /// The Play Console offerId backing [product], or null when it's a base plan
-  /// (or not an Android subscription product).
-  String? _offerIdFor(ProductDetails product) {
+  /// The undiscounted SKUs: Play base plans, or the non-affiliate iOS SKUs.
+  List<ProductDetails> _basePlans(List<ProductDetails> products) {
+    if (!_isAndroid) {
+      return products.where((p) => !_iosAffiliateIds.contains(p.id)).toList();
+    }
+    return products
+        .where((p) => (_offerDetailsFor(p)?.offerId ?? '').isEmpty)
+        .toList();
+  }
+
+  bool _hasTag(ProductDetails product, String tag) =>
+      _offerDetailsFor(product)?.offerTags.contains(tag) ?? false;
+
+  /// The Play offer (or base plan) entry backing [product]; null when it's
+  /// not an Android subscription product.
+  SubscriptionOfferDetailsWrapper? _offerDetailsFor(ProductDetails product) {
     if (product is! GooglePlayProductDetails) {
       return null;
     }
@@ -843,7 +892,7 @@ class AppPurchase {
     if (index == null || offers == null || index >= offers.length) {
       return null;
     }
-    return offers[index].offerId;
+    return offers[index];
   }
 
   /// The plan-family prefix shared by a plan id and its store product id:
