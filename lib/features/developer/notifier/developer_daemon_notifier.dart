@@ -111,14 +111,29 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> setSendLogsToSigNoz(bool enabled) async {
-    final result = await ref
-        .read(lanternServiceProvider)
-        .patchSettings({kSettingSendLogsToSigNoz: enabled});
+    final svc = ref.read(lanternServiceProvider);
+    final result = await svc.patchSettings({kSettingSendLogsToSigNoz: enabled});
     if (!ref.mounted) return result;
-    return result.map((_) {
-      state = state.copyWith(sendLogsToSigNoz: enabled);
-      return unit;
-    });
+    return result.fold(
+      (err) async {
+        // Radiance applies the live value before it saves, so a failed save
+        // can still have switched upload. Show what it actually is.
+        final current = await svc.getSettings();
+        if (ref.mounted) {
+          current.fold(
+            (_) {},
+            (s) => state = state.copyWith(
+              sendLogsToSigNoz: s[kSettingSendLogsToSigNoz] == true,
+            ),
+          );
+        }
+        return left(err);
+      },
+      (_) {
+        state = state.copyWith(sendLogsToSigNoz: enabled);
+        return right(unit);
+      },
+    );
   }
 
   Future<Either<Failure, Unit>> sendConfigRequest() =>

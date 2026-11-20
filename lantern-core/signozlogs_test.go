@@ -8,6 +8,7 @@ import (
 
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type fakeSettingsClient struct {
@@ -124,5 +125,56 @@ func TestDisableSigNozLogUploadOffNightly(t *testing.T) {
 
 		disableSigNozLogUploadOffNightly(cctx, client, []time.Duration{time.Hour})
 		assert.Len(t, client.settingsErr, 1)
+	})
+}
+
+func TestDisableSigNozLogUploadBeforeStart(t *testing.T) {
+	require.NoError(t, settings.InitSettings(t.TempDir()))
+	t.Cleanup(settings.Reset)
+
+	var patches []settings.Settings
+	patch := func(s settings.Settings) error {
+		patches = append(patches, s)
+		return settings.Patch(s)
+	}
+
+	t.Run("turns it off before start outside nightly", func(t *testing.T) {
+		for _, buildType := range []string{"", "production", "beta"} {
+			withBuildType(t, buildType)
+			patches = nil
+			require.NoError(t, settings.Set(settings.SendLogsToSigNozKey, true))
+
+			require.NoError(t, DisableSigNozLogUploadBeforeStart(patch))
+			assert.False(t, settings.GetBool(settings.SendLogsToSigNozKey), "build type %q", buildType)
+			assert.Len(t, patches, 1, "build type %q", buildType)
+		}
+	})
+
+	t.Run("leaves nightly on", func(t *testing.T) {
+		withBuildType(t, "nightly")
+		patches = nil
+		require.NoError(t, settings.Set(settings.SendLogsToSigNozKey, true))
+
+		require.NoError(t, DisableSigNozLogUploadBeforeStart(patch))
+		assert.True(t, settings.GetBool(settings.SendLogsToSigNozKey))
+		assert.Empty(t, patches)
+	})
+
+	t.Run("does not patch when already off", func(t *testing.T) {
+		withBuildType(t, "production")
+		patches = nil
+		require.NoError(t, settings.Set(settings.SendLogsToSigNozKey, false))
+
+		require.NoError(t, DisableSigNozLogUploadBeforeStart(patch))
+		assert.Empty(t, patches)
+	})
+
+	t.Run("returns a failed patch", func(t *testing.T) {
+		withBuildType(t, "production")
+		require.NoError(t, settings.Set(settings.SendLogsToSigNozKey, true))
+		failed := errors.New("save failed")
+
+		err := DisableSigNozLogUploadBeforeStart(func(settings.Settings) error { return failed })
+		assert.ErrorIs(t, err, failed)
 	})
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -217,6 +218,12 @@ func newIPCResources(opts backend.Options) ipcStartResult {
 	localBackend, err := backend.NewLocalBackend(context.Background(), opts)
 	if err != nil {
 		return ipcStartResult{err: fmt.Errorf("error creating backend for IPC server: %w", err)}
+	}
+	// Telemetry starts in LocalBackend.Start, so this runs before any upload.
+	// A failed save still applies the live value, so this session can't
+	// upload either way.
+	if err := lanterncore.DisableSigNozLogUploadBeforeStart(localBackend.PatchSettings); err != nil {
+		slog.Warn("Unable to save SigNoz log upload as off", "error", err)
 	}
 
 	server := ipc.NewServer(localBackend, !common.IsMobile())

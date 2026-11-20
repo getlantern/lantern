@@ -8,16 +8,36 @@ import (
 	"github.com/getlantern/radiance/common/settings"
 )
 
-// disableSigNozLogUploadOffNightly turns send_logs_to_signoz off in every
-// build but nightly. Only Developer mode can turn it on, and the shipped app
-// shows that only in nightlies, but the setting outlives the install: a
-// release or stealth build installed over a nightly would otherwise keep
-// uploading logs. Stealth and local builds link no BuildType, so they are
-// turned off too. It goes through the IPC client so it reaches the backend's
-// settings, which on desktop belong to the daemon, and retries while the
-// backend comes up.
+// Every build but nightly turns send_logs_to_signoz off. Only Developer mode
+// can turn it on, and the shipped app shows that only in nightlies, but the
+// setting outlives the install: a release or stealth build installed over a
+// nightly would otherwise keep uploading logs. Stealth and local builds link
+// no BuildType, so they are turned off too.
+func sigNozLogUploadAllowed() bool {
+	return BuildType == "nightly"
+}
+
+// DisableSigNozLogUploadBeforeStart turns send_logs_to_signoz off through
+// patch outside nightly. The mobile and Apple extension backends call it
+// between building the backend and starting it, so telemetry never starts
+// with upload on. It reads this process's settings, which the backend has
+// just loaded.
+func DisableSigNozLogUploadBeforeStart(patch func(settings.Settings) error) error {
+	if sigNozLogUploadAllowed() || !settings.GetBool(settings.SendLogsToSigNozKey) {
+		return nil
+	}
+	if err := patch(settings.Settings{settings.SendLogsToSigNozKey: false}); err != nil {
+		return err
+	}
+	slog.Info("Turned off SigNoz log upload outside nightly")
+	return nil
+}
+
+// disableSigNozLogUploadOffNightly applies the same rule from the UI process
+// over the IPC client, so it reaches the backend's settings, which on desktop
+// belong to the daemon. It retries while the backend comes up.
 func disableSigNozLogUploadOffNightly(ctx context.Context, client logLevelSettings, delays []time.Duration) {
-	if BuildType == "nightly" {
+	if sigNozLogUploadAllowed() {
 		return
 	}
 	for i := 0; ; i++ {
