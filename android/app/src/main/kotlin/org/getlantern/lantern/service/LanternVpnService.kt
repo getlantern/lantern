@@ -683,7 +683,7 @@ open class LanternVpnService :
             Opts().apply {
                 dataDir = initConfigDir()
                 logDir = logDir()
-                logLevel = if (BuildConfig.DEBUG) "trace" else "info"
+                logLevel = if (BuildConfig.DEBUG) "trace" else ""
                 deviceid = DeviceUtil.deviceId()
                 appVersion = BuildConfig.VERSION_NAME
                 locale = DeviceUtil.getLanguageCode(this@LanternVpnService)

@@ -127,7 +127,7 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 			Locale:           locale,
 			Env:              env,
 			Deviceid:         "",
-			LogLevel:         lanterncore.DefaultLogLevel,
+			LogLevel:         lanterncore.DefaultLogLevel(),
 			TelemetryConsent: consent == 1,
 		}
 		// Desktop has no debug-build signal here, so staging stands in for it.

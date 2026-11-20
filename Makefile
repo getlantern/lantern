@@ -99,7 +99,10 @@ STEALTH_GO_LOG_LEVEL ?= warn
 # (which leave BUILD_TYPE=production), so gate stealth flags on all three signals.
 STEALTH_ACTIVE := $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_GO_LDFLAGS := $(if $(STEALTH_ACTIVE),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
-GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS))
+# lantern-core keys its default log level off the build type (debug on
+# nightly). Stealth builds leave it out so their binaries don't name it.
+BUILD_TYPE_GO_LDFLAGS := $(if $(STEALTH_ACTIVE),,$(if $(BUILD_TYPE),-X '$(STEALTH_GO_IMPORT_PATH).BuildType=$(BUILD_TYPE)'))
+GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS) $(BUILD_TYPE_GO_LDFLAGS))
 LANTERND_EXTRA_LDFLAGS := $(EXTRA_LDFLAGS)
 
 DARWIN_APP_NAME := $(CAPITALIZED_APP).app
@@ -529,7 +532,7 @@ desktop-lib-obfuscated: check-garble-seed
 	$(call MKDIR_P,$(dir $(LIB_NAME)))
 	@$(SETENV) $(GARBLE_ENV) $(GARBLE_BUILD) -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
-		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS) $(BUILD_TYPE_GO_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built obfuscated desktop library: $(LIB_NAME)"
 
@@ -1054,7 +1057,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		-javapkg=$(GOMOBILE_JAVAPKG) \
 		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS) $(BUILD_TYPE_GO_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)

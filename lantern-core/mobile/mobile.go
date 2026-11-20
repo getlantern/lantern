@@ -99,6 +99,9 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 // will see (in practice both derive from LanternVpnService.opts()), otherwise
 // the early values silently override.
 func InitLogging(dataDir, logDir, logLevel string) error {
+	if logLevel == "" {
+		logLevel = lanterncore.DefaultLogLevel()
+	}
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		return struct{}{}, common.Init(dataDir, logDir, logLevel)
 	})
