@@ -46,9 +46,10 @@ class RadianceSettings extends _$RadianceSettings {
     // the router, so mobile is included rather than desktop-only.
     final peerF = svc.isPeerProxyEnabled();
     final unboundedF = svc.isUnboundedEnabled();
-    // A Try Direct First write that starts while this read is in flight
-    // is newer than its answer, so it keeps its value (below).
+    // A Try Direct First or routing mode write that starts while this read
+    // is in flight is newer than its answer, so it keeps its value (below).
     final proxylessWrites = _proxylessWrites;
+    final routingRequests = _routingRequests;
     final settingsF = svc.getSettings();
 
     final blockAds = await blockAdsF;
@@ -62,10 +63,12 @@ class RadianceSettings extends _$RadianceSettings {
     const defaults = RadianceSettingsState();
     state = RadianceSettingsState(
       blockAds: blockAds.fold((_) => defaults.blockAds, (v) => v),
-      routingMode: routing.fold(
-        (_) => defaults.routingMode,
-        (smart) => smart ? RoutingMode.smart : RoutingMode.full,
-      ),
+      routingMode: routingRequests != _routingRequests
+          ? state.routingMode
+          : routing.fold(
+              (_) => defaults.routingMode,
+              (smart) => smart ? RoutingMode.smart : RoutingMode.full,
+            ),
       telemetry: telemetry.fold((_) => defaults.telemetry, (v) => v),
       peerProxy: peer.fold((_) => defaults.peerProxy, (v) => v),
       unboundedEnabled: unbounded.fold(

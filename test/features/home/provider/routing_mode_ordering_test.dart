@@ -13,6 +13,7 @@ import 'package:lantern/lantern/lantern_service_notifier.dart';
 class _Service implements LanternService {
   bool smart = false;
   bool fail = false;
+  Completer<void>? readGate;
   final writes = <bool>[];
   final gates = <Completer<void>>[];
 
@@ -28,7 +29,12 @@ class _Service implements LanternService {
   }
 
   @override
-  Future<Either<Failure, bool>> isSmartRoutingEnabled() async => right(smart);
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
+    final answer = smart; // as read when asked
+    if (readGate != null) await readGate!.future;
+    return right(answer);
+  }
+
   @override
   Future<Either<Failure, bool>> isBlockAdsEnabled() async => right(false);
   @override
@@ -141,6 +147,37 @@ void main() {
         RoutingMode.full,
       );
       expect(notifier.requestedRoutingMode, RoutingMode.full);
+    },
+  );
+
+  test(
+    'a settings read older than a routing write does not overwrite it',
+    () async {
+      final service = _Service()..readGate = Completer<void>();
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.read(radianceSettingsProvider); // the read starts: Full Tunnel
+      await _settle();
+      final notifier = container.read(radianceSettingsProvider.notifier);
+      final write = notifier.setRoutingMode(RoutingMode.smart);
+      await _settle();
+      service.gates[0].complete();
+      await write;
+      expect(
+        container.read(radianceSettingsProvider).routingMode,
+        RoutingMode.smart,
+      );
+      service.readGate!.complete(); // the older read lands
+      await _settle();
+      await _settle();
+      expect(
+        container.read(radianceSettingsProvider).routingMode,
+        RoutingMode.smart,
+        reason: 'the read began before the write, so its answer is older',
+      );
+      expect(notifier.requestedRoutingMode, RoutingMode.smart);
     },
   );
 }
