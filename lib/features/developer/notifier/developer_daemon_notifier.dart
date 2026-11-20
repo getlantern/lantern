@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/developer_daemon_state.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -68,9 +69,8 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
       if (disabled is bool) {
         next = next.copyWith(configFetchEnabled: !disabled);
       }
-      next = next.copyWith(
-        telemetryEnabled: settings[kSettingTelemetryEnabled] == true,
-      );
+      // Consent is read by _loadSendLogsToSigNoz, after any write still
+      // running, so this read, which may predate one, leaves it alone.
     });
     envResult.match((_) {}, (env) {
       next = next.copyWith(
@@ -132,6 +132,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
           (_) {},
           (s) => state = state.copyWith(
             sendLogsToSigNoz: s[kSettingSendLogsToSigNoz] == true,
+            telemetryEnabled: s[kSettingTelemetryEnabled] == true,
             sendLogsToSigNozLoaded: true,
           ),
         );
@@ -148,7 +149,10 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     // Read the service now: a queued write can run after the screen closes
     // and disposes this notifier, and it must still reach radiance.
     final svc = ref.read(lanternServiceProvider);
-    final next = _sigNozChain.then((_) => _writeSendLogsToSigNoz(svc, enabled));
+    final choices = consentChoices;
+    final next = _sigNozChain.then(
+      (_) => _writeSendLogsToSigNoz(svc, choices, enabled),
+    );
     _sigNozChain = next.catchError(
       (Object e) =>
           left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
@@ -156,29 +160,74 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     return next;
   }
 
+  // Radiance uploads logs only while telemetry consent is on too, so turning
+  // upload on also turns consent on, in the same patch. Turning upload off
+  // leaves consent as it is.
   Future<Either<Failure, Unit>> _writeSendLogsToSigNoz(
     LanternService svc,
+    int choices,
     bool enabled,
   ) async {
-    final result = await svc.patchSettings({kSettingSendLogsToSigNoz: enabled});
+    // A consent choice made after this write was queued, such as opting out
+    // in Settings, is newer and stands. Turning upload on runs among the
+    // consent writes, and checks for a newer choice just before it's sent, so
+    // a choice either comes first and stands, or is sent after it and lands
+    // last.
+    var grantConsent = false;
+    final result = enabled
+        ? await runConsentWrite(() {
+            grantConsent = consentChoices == choices;
+            return svc.patchSettings({
+              kSettingSendLogsToSigNoz: true,
+              if (grantConsent) kSettingTelemetryEnabled: true,
+            });
+          })
+        : await svc.patchSettings({kSettingSendLogsToSigNoz: false});
+    // The settings screen's consent switch reads radiance once; have it read
+    // consent again, which this may have turned on, failed save or not. It
+    // outlives this notifier, and may have been built since this write was
+    // queued, so it's looked up now. A saved write turned consent on, unless
+    // a choice made since then decides it.
+    if (grantConsent) {
+      refreshLoadedTelemetry(
+        consent: result.isRight() && consentChoices == choices ? true : null,
+      );
+    }
     if (!ref.mounted) return result;
     return result.fold(
       (err) async {
-        // Radiance applies the live value before it saves, so a failed save
-        // can still have switched upload. Show what it actually is.
+        // Radiance keeps the patched live values even when saving them fails,
+        // so a failed save can still have switched upload and consent. Show
+        // what they are.
         final current = await svc.getSettings();
         if (ref.mounted) {
           current.fold(
             (_) {},
             (s) => state = state.copyWith(
               sendLogsToSigNoz: s[kSettingSendLogsToSigNoz] == true,
+              telemetryEnabled: s[kSettingTelemetryEnabled] == true,
             ),
           );
         }
         return left(err);
       },
-      (_) {
-        state = state.copyWith(sendLogsToSigNoz: enabled);
+      (_) async {
+        state = state.copyWith(
+          sendLogsToSigNoz: enabled,
+          telemetryEnabled: grantConsent || state.telemetryEnabled,
+        );
+        if (enabled && !grantConsent) {
+          // A newer choice decided consent; show what it is.
+          final current = await svc.getSettings();
+          if (ref.mounted) {
+            current.fold(
+              (_) {},
+              (s) => state = state.copyWith(
+                telemetryEnabled: s[kSettingTelemetryEnabled] == true,
+              ),
+            );
+          }
+        }
         return right(unit);
       },
     );
