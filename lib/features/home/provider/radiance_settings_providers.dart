@@ -152,6 +152,14 @@ class RadianceSettings extends _$RadianceSettings {
     );
   }
 
+  /// Re-reads telemetry consent, which Developer mode's "Send logs to SigNoz"
+  /// switch turns on.
+  Future<void> refreshTelemetry() async {
+    final result = await ref.read(lanternServiceProvider).isTelemetryEnabled();
+    if (!ref.mounted) return;
+    result.fold((_) {}, (v) => state = state.copyWith(telemetry: v));
+  }
+
   Future<void> setTelemetry(bool consent) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.updateTelemetryEvents(consent);

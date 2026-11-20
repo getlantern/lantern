@@ -5,6 +5,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/features/developer/notifier/developer_daemon_notifier.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
@@ -43,6 +44,22 @@ class _Service implements LanternService {
 
   @override
   Future<Either<Failure, Map<String, String>>> getEnvVars() async => right({});
+
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() async =>
+      right(live[kSettingTelemetryEnabled] == true);
+
+  @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() async => right(false);
+
+  @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() async => right(false);
+
+  @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() async => right(false);
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async => right(false);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -99,6 +116,34 @@ void main() {
       final state = container.read(developerDaemonProvider);
       expect(state.sendLogsToSigNoz, isTrue);
       expect(state.telemetryEnabled, isTrue);
+    },
+  );
+
+  test(
+    'the settings screen shows consent on, even if the screen closed first',
+    () async {
+      final service = _Service({});
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.listen(radianceSettingsProvider, (_, _) {});
+      final screen = container.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      expect(container.read(radianceSettingsProvider).telemetry, isFalse);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final enable = container
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      screen.close();
+      await Future<void>.delayed(Duration.zero);
+      hold.complete();
+      expect((await enable).isRight(), isTrue);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(radianceSettingsProvider).telemetry, isTrue);
     },
   );
 

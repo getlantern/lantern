@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:fpdart/fpdart.dart';
@@ -149,7 +150,15 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     // Read the service now: a queued write can run after the screen closes
     // and disposes this notifier, and it must still reach radiance.
     final svc = ref.read(lanternServiceProvider);
-    final next = _sigNozChain.then((_) => _writeSendLogsToSigNoz(svc, enabled));
+    // The settings screen's consent switch, if it has read radiance yet. It
+    // outlives this notifier, so a write that runs after the screen closed
+    // can still correct it.
+    final settings = ref.exists(radianceSettingsProvider)
+        ? ref.read(radianceSettingsProvider.notifier)
+        : null;
+    final next = _sigNozChain.then(
+      (_) => _writeSendLogsToSigNoz(svc, settings, enabled),
+    );
     _sigNozChain = next.catchError(
       (Object e) =>
           left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
@@ -162,19 +171,17 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   // leaves consent as it is.
   Future<Either<Failure, Unit>> _writeSendLogsToSigNoz(
     LanternService svc,
+    RadianceSettings? settings,
     bool enabled,
   ) async {
-    // A queued write can run after the screen closed and disposed this
-    // notifier, whose state then can't be read.
-    final consentWasOn = ref.mounted && state.telemetryEnabled;
     final result = await svc.patchSettings({
       kSettingSendLogsToSigNoz: enabled,
       if (enabled) kSettingTelemetryEnabled: true,
     });
-    if (!ref.mounted) return result;
     // The settings screen's consent switch reads radiance once; have it read
-    // again when this may have turned consent on.
-    if (enabled && !consentWasOn) ref.invalidate(radianceSettingsProvider);
+    // consent again, which this may have turned on, failed save or not.
+    if (enabled) unawaited(settings?.refreshTelemetry());
+    if (!ref.mounted) return result;
     return result.fold(
       (err) async {
         // Radiance applies the live values before it saves, so a failed save
