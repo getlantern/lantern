@@ -269,7 +269,8 @@ class AppPurchase {
             'subscriptions, ${products.length} match '
             '(includeOffers=$includeOffers)',
           );
-          if (products.isNotEmpty) {
+          if (products.isNotEmpty &&
+              _coversEveryPlan(products, response.productDetails)) {
             _subscriptionSku
               ..clear()
               ..addAll(products);
@@ -282,8 +283,8 @@ class AppPurchase {
             return;
           }
 
-          // The store is reachable and returned SKUs, but none matched the
-          // requested set (e.g. offers requested but none are active).
+          // The store is reachable and returned SKUs, but they don't cover
+          // the requested set (e.g. offers requested but not on every plan).
           // Retrying the same query won't change that, so fail fast. Callers
           // fall back to the base-plan fetch.
           final error = StateError(
@@ -331,7 +332,11 @@ class AppPurchase {
     final prices = await Future.wait(
       selected.values.map((product) {
         final base = baseProducts
-            .where((p) => _planPrefix(p.id) == _planPrefix(product.id))
+            .where(
+              (p) =>
+                  _planPrefix(p.id) == _planPrefix(product.id) &&
+                  _basePlanIdFor(p) == _basePlanIdFor(product),
+            )
             .firstOrNull;
         return _chargePrice(product, regular: (base ?? product).price);
       }),
@@ -379,17 +384,20 @@ class AppPurchase {
     return perPeriod == null ? null : perPeriod * offer.periodCount;
   }
 
-  /// Months a Play offer's discounted first phase lasts; null for a base plan.
+  /// Months a Play offer's discounted phase lasts. Null for a base plan, and
+  /// for offers with several discounted phases, which one term can't describe.
   int? _playOfferMonths(ProductDetails product) {
     final phases = _offerDetailsFor(product)?.pricingPhases;
-    if (phases == null || phases.length < 2) return null;
+    if (phases == null || phases.length != 2) return null;
     final match = RegExp(
       r'^P(\d+)([MY])$',
     ).firstMatch(phases.first.billingPeriod);
     if (match == null) return null;
     final count = int.parse(match.group(1)!);
     final months = match.group(2) == 'Y' ? count * 12 : count;
-    return months * phases.first.billingCycleCount;
+    // A single-payment phase reports no cycle count.
+    final cycles = phases.first.billingCycleCount;
+    return months * (cycles > 0 ? cycles : 1);
   }
 
   static double? _perMonth(double amount, int? months) =>
@@ -862,7 +870,12 @@ class AppPurchase {
     }
     return _basePlans(products).map((plan) {
       final offer = products
-          .where((p) => p.id == plan.id && _hasTag(p, _acquisitionTag))
+          .where(
+            (p) =>
+                p.id == plan.id &&
+                _basePlanIdFor(p) == _basePlanIdFor(plan) &&
+                _hasTag(p, _acquisitionTag),
+          )
           .firstOrNull;
       return offer ?? plan;
     }).toList();
@@ -876,6 +889,19 @@ class AppPurchase {
     return products
         .where((p) => (_offerDetailsFor(p)?.offerId ?? '').isEmpty)
         .toList();
+  }
+
+  String? _basePlanIdFor(ProductDetails product) =>
+      _offerDetailsFor(product)?.basePlanId;
+
+  /// Whether [selected] has a SKU for every plan family the store sells, so
+  /// no card is published without something to buy.
+  bool _coversEveryPlan(
+    List<ProductDetails> selected,
+    List<ProductDetails> all,
+  ) {
+    final families = selected.map((p) => _planPrefix(p.id)).toSet();
+    return _basePlans(all).every((p) => families.contains(_planPrefix(p.id)));
   }
 
   bool _hasTag(ProductDetails product, String tag) =>

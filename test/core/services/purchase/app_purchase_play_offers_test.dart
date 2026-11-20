@@ -45,8 +45,9 @@ SubscriptionOfferDetailsWrapper _offer(
 SubscriptionOfferDetailsWrapper _basePlan(
   int micros, {
   String period = 'P1Y',
+  String basePlanId = 'plan',
 }) => SubscriptionOfferDetailsWrapper(
-  basePlanId: 'plan',
+  basePlanId: basePlanId,
   offerTags: const [],
   offerIdToken: 'token-base',
   pricingPhases: [_phase(micros, period: period)],
@@ -163,5 +164,90 @@ void main() {
     final month = purchases.storePriceFor('1m-usd-10')!;
     expect(month.monthly, 10.79);
     expect(month.offerMonths, 2);
+  });
+
+  test('a single-payment phase counts as one period', () async {
+    final singlePayment = SubscriptionOfferDetailsWrapper(
+      basePlanId: 'plan',
+      offerId: 'intro-15',
+      offerTags: const ['acquisition'],
+      offerIdToken: 'token-intro',
+      pricingPhases: [
+        _phase(40790000, mode: RecurrenceMode.nonRecurring),
+        _phase(47990000),
+      ],
+    );
+    final purchases = build(_play('1y_sub', [singlePayment, yearlyBase]));
+
+    await purchases.fetchSubscriptions();
+
+    expect(purchases.storePriceFor('1y-usd-10')!.offerMonths, 12);
+  });
+
+  test('an offer with two discounted phases reports no term', () async {
+    final trialThenIntro = SubscriptionOfferDetailsWrapper(
+      basePlanId: 'plan',
+      offerId: 'trial',
+      offerTags: const ['acquisition'],
+      offerIdToken: 'token-trial',
+      pricingPhases: [
+        _phase(
+          0,
+          period: 'P1M',
+          cycles: 1,
+          mode: RecurrenceMode.finiteRecurring,
+        ),
+        _phase(
+          20000000,
+          period: 'P1M',
+          cycles: 1,
+          mode: RecurrenceMode.finiteRecurring,
+        ),
+        _phase(47990000),
+      ],
+    );
+    final purchases = build(_play('1y_sub', [trialThenIntro, yearlyBase]));
+
+    await purchases.fetchSubscriptions();
+
+    expect(purchases.storePriceFor('1y-usd-10')!.offerMonths, isNull);
+  });
+
+  test('an acquisition offer stays with its own base plan', () async {
+    final otherPlanOffer = SubscriptionOfferDetailsWrapper(
+      basePlanId: 'other',
+      offerId: 'intro-other',
+      offerTags: const ['acquisition'],
+      offerIdToken: 'token-other',
+      pricingPhases: [
+        _phase(10000000, cycles: 1, mode: RecurrenceMode.finiteRecurring),
+        _phase(99990000),
+      ],
+    );
+    final purchases = build(
+      _play('1y_sub', [
+        otherPlanOffer,
+        yearlyBase,
+        _basePlan(99990000, basePlanId: 'other'),
+      ]),
+    );
+
+    await purchases.fetchSubscriptions();
+
+    final year = purchases.storePriceFor('1y-usd-10')!;
+    expect(year.amount, 47.99);
+    expect(year.regular, year.formatted);
+  });
+
+  test('an affiliate fetch fails when a plan has no affiliate offer', () async {
+    final purchases = build([
+      ..._play('1y_sub', [affiliate, yearlyBase]),
+      ..._play('1m_sub', [_basePlan(11990000, period: 'P1M')]),
+    ]);
+
+    await expectLater(
+      purchases.fetchSubscriptions(includeOffers: true),
+      throwsStateError,
+    );
   });
 }
