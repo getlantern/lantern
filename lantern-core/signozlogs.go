@@ -35,7 +35,11 @@ func DisableSigNozLogUploadBeforeStart(patch func(settings.Settings) error) erro
 
 // disableSigNozLogUploadOffNightly applies the same rule from the UI process
 // over the IPC client, so it reaches the backend's settings, which on desktop
-// belong to the daemon. It retries while the backend comes up.
+// belong to the daemon. It retries while the backend comes up. Radiance
+// applies a patch live even when saving it fails, so a failed save still
+// stops upload for this session. Nothing records that the check ran, so the
+// next launch, and the next mobile backend start, patch a value still on
+// disk again.
 func disableSigNozLogUploadOffNightly(ctx context.Context, client logLevelSettings, delays []time.Duration) {
 	if sigNozLogUploadAllowed() {
 		return

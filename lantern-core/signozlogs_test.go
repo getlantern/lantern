@@ -33,18 +33,18 @@ func (f *fakeSettingsClient) Settings(context.Context) (settings.Settings, error
 
 func (f *fakeSettingsClient) PatchSettings(_ context.Context, updates settings.Settings) (settings.Settings, error) {
 	f.patches = append(f.patches, updates)
-	if len(f.patchErr) > 0 {
-		err := f.patchErr[0]
-		f.patchErr = f.patchErr[1:]
-		if err != nil {
-			return nil, err
-		}
-	}
+	// Radiance applies a patch live before it saves it, so a failed save
+	// still changes what the next read returns.
 	if f.values == nil {
 		f.values = settings.Settings{}
 	}
 	for k, v := range updates {
 		f.values[k] = v
+	}
+	if len(f.patchErr) > 0 {
+		err := f.patchErr[0]
+		f.patchErr = f.patchErr[1:]
+		return nil, err
 	}
 	return updates, nil
 }
@@ -97,13 +97,19 @@ func TestDisableSigNozLogUploadOffNightly(t *testing.T) {
 		assert.Equal(t, false, client.values[settings.SendLogsToSigNozKey])
 	})
 
-	t.Run("retries a failed patch", func(t *testing.T) {
+	t.Run("a failed save still turns it off for this session", func(t *testing.T) {
 		withBuildType(t, "production")
 		client := &fakeSettingsClient{values: on(), patchErr: []error{errors.New("save failed")}}
 
 		disableSigNozLogUploadOffNightly(ctx, client, make([]time.Duration, 1))
-		assert.Len(t, client.patches, 2)
+		// The retry reads the live false and stops. The file may still say
+		// true, and the next launch patches it again: there is no marker.
+		assert.Len(t, client.patches, 1)
 		assert.Equal(t, false, client.values[settings.SendLogsToSigNozKey])
+
+		client.values[settings.SendLogsToSigNozKey] = true
+		disableSigNozLogUploadOffNightly(ctx, client, nil)
+		assert.Len(t, client.patches, 2, "every launch checks again")
 	})
 
 	t.Run("gives up after the last retry", func(t *testing.T) {
