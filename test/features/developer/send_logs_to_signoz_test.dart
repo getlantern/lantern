@@ -203,7 +203,11 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       first.dispose();
 
-      final second = await _load(service);
+      final second = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(second.dispose);
+      second.listen(developerDaemonProvider, (_, _) {});
       final c = second
           .read(developerDaemonProvider.notifier)
           .setSendLogsToSigNoz(false);
@@ -219,6 +223,39 @@ void main() {
       ]);
       expect(service.live['send_logs_to_signoz'], isFalse);
       expect(second.read(developerDaemonProvider).sendLogsToSigNoz, isFalse);
+    },
+  );
+
+  test(
+    'a reopened screen shows a write that was still running when it closed',
+    () async {
+      final service = _Service({});
+      final first = await _load(service);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final enable = first
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      first.dispose();
+
+      final second = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(second.dispose);
+      second.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        second.read(developerDaemonProvider).loading,
+        isTrue,
+        reason: 'loading waits for the running write',
+      );
+
+      hold.complete();
+      await enable;
+      await Future<void>.delayed(Duration.zero);
+      expect(second.read(developerDaemonProvider).loading, isFalse);
+      expect(second.read(developerDaemonProvider).sendLogsToSigNoz, isTrue);
     },
   );
 }

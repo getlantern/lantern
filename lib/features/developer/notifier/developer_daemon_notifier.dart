@@ -52,10 +52,19 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
 
   Future<void> _load() async {
     final svc = ref.read(lanternServiceProvider);
-    final (settingsResult, envResult) = await (
-      svc.getSettings(),
-      svc.getEnvVars(),
-    ).wait;
+    // The read joins the switch's write queue. A write queued before the
+    // screen last closed may still be running, and nothing would update this
+    // notifier when it lands, so read after it. A write made after the read
+    // lands after it too, so the read can't overwrite it.
+    final read = _sigNozChain.then(
+      (_) => (svc.getSettings(), svc.getEnvVars()).wait,
+    );
+    _sigNozChain = read.then(
+      (_) => right<Failure, Unit>(unit),
+      onError: (Object e) =>
+          left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
+    );
+    final (settingsResult, envResult) = await read;
     if (!ref.mounted) return;
     var next = state;
     settingsResult.match((_) {}, (settings) {
@@ -83,9 +92,8 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> patchEnv(String key, String value) async {
-    final result = await ref.read(lanternServiceProvider).patchEnvVars({
-      key: value,
-    });
+    final result =
+        await ref.read(lanternServiceProvider).patchEnvVars({key: value});
     if (!ref.mounted) return result.map((_) => unit);
     return result.map((_) {
       state = switch (key) {
@@ -99,9 +107,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> setLogLevel(String level) async {
-    final result = await ref.read(lanternServiceProvider).patchSettings({
-      'log_level': level,
-    });
+    final result = await ref
+        .read(lanternServiceProvider)
+        .patchSettings({'log_level': level});
     if (!ref.mounted) return result;
     return result.map((_) {
       state = state.copyWith(logLevel: level);
@@ -110,9 +118,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> setConfigFetchEnabled(bool enabled) async {
-    final result = await ref.read(lanternServiceProvider).patchSettings({
-      'config_fetch_disabled': !enabled,
-    });
+    final result = await ref
+        .read(lanternServiceProvider)
+        .patchSettings({'config_fetch_disabled': !enabled});
     if (!ref.mounted) return result;
     return result.map((_) {
       state = state.copyWith(configFetchEnabled: enabled);
@@ -170,7 +178,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   /// settings & env vars" dialog. Returns the first IPC error so callers
   /// can surface it via the standard failure snackbar.
   Future<Either<Failure, ({String settings, String env})>>
-  fetchStateJson() async {
+      fetchStateJson() async {
     final svc = ref.read(lanternServiceProvider);
     final (settingsResult, envResult) = await (
       svc.getSettings(),
