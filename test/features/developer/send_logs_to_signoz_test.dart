@@ -43,7 +43,7 @@ Future<ProviderContainer> _load(_Service service) async {
     overrides: [lanternServiceProvider.overrideWithValue(service)],
   );
   addTearDown(container.dispose);
-  container.listen(developerDaemonProvider, (_, __) {});
+  container.listen(developerDaemonProvider, (_, _) {});
   await Future<void>.delayed(Duration.zero);
   expect(container.read(developerDaemonProvider).loading, isFalse);
   return container;
