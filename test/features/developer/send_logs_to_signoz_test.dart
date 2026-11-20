@@ -16,12 +16,16 @@ class _Service implements LanternService {
   Map<String, dynamic> live;
   bool failSave = false;
   Completer<void>? holdReads;
+  Completer<void>? holdFirstPatch;
   final patches = <Map<String, dynamic>>[];
 
   @override
   Future<Either<Failure, Unit>> patchSettings(
     Map<String, dynamic> updates,
   ) async {
+    final hold = holdFirstPatch;
+    holdFirstPatch = null;
+    await hold?.future;
     patches.add(updates);
     live = {...live, ...updates};
     if (failSave) {
@@ -112,7 +116,7 @@ void main() {
   });
 
   test(
-    'a slow read-back from an earlier failed save does not override a later change',
+    'a later change waits for an earlier failed save to read back',
     () async {
       final service = _Service({})..failSave = true;
       final container = await _load(service);
@@ -121,10 +125,18 @@ void main() {
       service.holdReads = Completer<void>();
       final first = notifier.setSendLogsToSigNoz(false);
       await Future<void>.delayed(Duration.zero);
+      expect(service.patches, hasLength(1), reason: 'the first save failed');
       service.failSave = false;
-      expect((await notifier.setSendLogsToSigNoz(true)).isRight(), isTrue);
+      final second = notifier.setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        service.patches,
+        hasLength(1),
+        reason: 'the second write waits for the first read-back',
+      );
       service.holdReads!.complete();
       expect((await first).isLeft(), isTrue);
+      expect((await second).isRight(), isTrue);
 
       expect(
         container.read(developerDaemonProvider).sendLogsToSigNoz,
@@ -133,4 +145,25 @@ void main() {
       );
     },
   );
+
+  test('writes apply in the order they were made', () async {
+    final service = _Service({});
+    final container = await _load(service);
+    final notifier = container.read(developerDaemonProvider.notifier);
+
+    final hold = service.holdFirstPatch = Completer<void>();
+    final enable = notifier.setSendLogsToSigNoz(true);
+    final disable = notifier.setSendLogsToSigNoz(false);
+    await Future<void>.delayed(Duration.zero);
+    hold.complete();
+    await enable;
+    await disable;
+
+    expect(service.patches, [
+      {'send_logs_to_signoz': true},
+      {'send_logs_to_signoz': false},
+    ]);
+    expect(service.live['send_logs_to_signoz'], isFalse);
+    expect(container.read(developerDaemonProvider).sendLogsToSigNoz, isFalse);
+  });
 }

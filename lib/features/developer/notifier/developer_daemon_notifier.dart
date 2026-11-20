@@ -74,8 +74,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> patchEnv(String key, String value) async {
-    final result =
-        await ref.read(lanternServiceProvider).patchEnvVars({key: value});
+    final result = await ref.read(lanternServiceProvider).patchEnvVars({
+      key: value,
+    });
     if (!ref.mounted) return result.map((_) => unit);
     return result.map((_) {
       state = switch (key) {
@@ -89,9 +90,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> setLogLevel(String level) async {
-    final result = await ref
-        .read(lanternServiceProvider)
-        .patchSettings({'log_level': level});
+    final result = await ref.read(lanternServiceProvider).patchSettings({
+      'log_level': level,
+    });
     if (!ref.mounted) return result;
     return result.map((_) {
       state = state.copyWith(logLevel: level);
@@ -100,9 +101,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   }
 
   Future<Either<Failure, Unit>> setConfigFetchEnabled(bool enabled) async {
-    final result = await ref
-        .read(lanternServiceProvider)
-        .patchSettings({'config_fetch_disabled': !enabled});
+    final result = await ref.read(lanternServiceProvider).patchSettings({
+      'config_fetch_disabled': !enabled,
+    });
     if (!ref.mounted) return result;
     return result.map((_) {
       state = state.copyWith(configFetchEnabled: enabled);
@@ -110,13 +111,22 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     });
   }
 
-  // Counts setSendLogsToSigNoz calls, so only the latest one sets the
-  // switch: an earlier call's failed-save read-back can finish after a later
-  // call and would otherwise show a stale value.
-  int _sigNozWrites = 0;
+  // setSendLogsToSigNoz runs one write at a time, read-back included. On
+  // desktop each PATCH runs in its own isolate, so overlapping writes could
+  // land in a different order than the taps and leave upload in a state the
+  // switch doesn't show.
+  Future<Either<Failure, Unit>> _sigNozChain = Future.value(right(unit));
 
-  Future<Either<Failure, Unit>> setSendLogsToSigNoz(bool enabled) async {
-    final write = ++_sigNozWrites;
+  Future<Either<Failure, Unit>> setSendLogsToSigNoz(bool enabled) {
+    final next = _sigNozChain.then((_) => _writeSendLogsToSigNoz(enabled));
+    _sigNozChain = next.catchError(
+      (Object e) =>
+          left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
+    );
+    return next;
+  }
+
+  Future<Either<Failure, Unit>> _writeSendLogsToSigNoz(bool enabled) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.patchSettings({kSettingSendLogsToSigNoz: enabled});
     if (!ref.mounted) return result;
@@ -125,7 +135,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
         // Radiance applies the live value before it saves, so a failed save
         // can still have switched upload. Show what it actually is.
         final current = await svc.getSettings();
-        if (ref.mounted && write == _sigNozWrites) {
+        if (ref.mounted) {
           current.fold(
             (_) {},
             (s) => state = state.copyWith(
@@ -136,9 +146,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
         return left(err);
       },
       (_) {
-        if (write == _sigNozWrites) {
-          state = state.copyWith(sendLogsToSigNoz: enabled);
-        }
+        state = state.copyWith(sendLogsToSigNoz: enabled);
         return right(unit);
       },
     );
@@ -154,7 +162,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   /// settings & env vars" dialog. Returns the first IPC error so callers
   /// can surface it via the standard failure snackbar.
   Future<Either<Failure, ({String settings, String env})>>
-      fetchStateJson() async {
+  fetchStateJson() async {
     final svc = ref.read(lanternServiceProvider);
     final (settingsResult, envResult) = await (
       svc.getSettings(),
