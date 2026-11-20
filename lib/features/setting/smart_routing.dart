@@ -32,12 +32,12 @@ class SmartRouting extends HookConsumerWidget {
     }
 
     // The screen stays open: Smart Routing's options show or hide under
-    // the radios as the mode changes.
+    // the radios as the mode changes. A mode tapped while another's write
+    // runs is compared with that one, so tapping back reverses it.
     Future<void> select(RoutingMode mode) async {
-      if (mode == selected) return;
-      final result = await ref
-          .read(radianceSettingsProvider.notifier)
-          .setRoutingMode(mode);
+      final notifier = ref.read(radianceSettingsProvider.notifier);
+      if (mode == notifier.requestedRoutingMode) return;
+      final result = await notifier.setRoutingMode(mode);
       if (!context.mounted) return;
       result.fold(
         (_) => context.showSnackBar('failed_to_update_routing_mode'.i18n),

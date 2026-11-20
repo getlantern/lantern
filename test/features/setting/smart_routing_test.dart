@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,8 @@ import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/features/setting/smart_routing.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class _Radiance extends RadianceSettings {
   _Radiance(this.mode);
@@ -51,6 +55,42 @@ Future<_Radiance> _pump(WidgetTester tester, RoutingMode mode) async {
   );
   await tester.pump();
   return radiance;
+}
+
+/// The real settings notifier over a service whose routing writes wait on
+/// completers the test controls.
+class _Service implements LanternService {
+  _Service({required this.smart});
+  bool smart;
+  final writes = <bool>[];
+  final gates = <Completer<void>>[];
+
+  @override
+  Future<Either<Failure, Unit>> setRoutingMode(bool smart) async {
+    writes.add(smart);
+    final gate = Completer<void>();
+    gates.add(gate);
+    await gate.future;
+    this.smart = smart;
+    return right(unit);
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() async => right(smart);
+  @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() async => right(false);
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() async => right(false);
+  @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() async => right(false);
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async => right(false);
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async =>
+      right(const {});
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -134,6 +174,40 @@ void main() {
     await tester.tap(find.text('smart_routing'.i18n));
     await tester.pumpAndSettle();
     expect(radiance.modes, [RoutingMode.full, RoutingMode.smart]);
+  });
+
+  testWidgets('tapping back to Full Tunnel while the Smart Routing write '
+      'runs reverses it: the last tap wins', (tester) async {
+    final service = _Service(smart: false);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+        child: ScreenUtilInit(
+          designSize: const Size(393, 852),
+          child: MaterialApp(
+            theme: AppTheme.appTheme(),
+            home: const SmartRouting(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(card, findsNothing, reason: 'starts on Full Tunnel');
+
+    await tester.tap(find.text('smart_routing'.i18n));
+    await tester.pump();
+    await tester.tap(find.text('full_tunnel'.i18n));
+    await tester.pump();
+    expect(service.writes, [true], reason: 'the second waits for the first');
+
+    service.gates[0].complete();
+    await tester.pumpAndSettle();
+    expect(service.writes, [true, false]);
+    service.gates[1].complete();
+    await tester.pumpAndSettle();
+    expect(service.smart, isFalse);
+    expect(card, findsNothing, reason: 'Full Tunnel, as last tapped');
+    expect(find.byType(SmartRouting), findsOneWidget);
   });
 
   testWidgets('Full Tunnel: only the two radios', (tester) async {

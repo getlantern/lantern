@@ -99,17 +99,43 @@ class RadianceSettings extends _$RadianceSettings {
     );
   }
 
-  Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
+  /// The routing mode last asked for, which [state] shows once its write
+  /// lands. Null when nothing is pending.
+  RoutingMode? _routingTarget;
+
+  /// Routing mode writes run one at a time, in order, so the last one asked
+  /// for is the one that sticks, as with Try Direct First.
+  Future<Either<Failure, Unit>> _routingChain = Future.value(right(unit));
+
+  /// The routing mode the user last chose: one still being written, or else
+  /// the one in effect. Routing Mode stays open while a write runs, so its
+  /// "already chosen" check reads this rather than [state].
+  RoutingMode get requestedRoutingMode => _routingTarget ?? state.routingMode;
+
+  Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) {
+    _routingTarget = mode;
+    final next = _routingChain.then((_) => _writeRoutingMode(mode));
+    _routingChain = next.catchError(
+      (Object e) =>
+          left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
+    );
+    return next;
+  }
+
+  Future<Either<Failure, Unit>> _writeRoutingMode(RoutingMode mode) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setRoutingMode(mode == RoutingMode.smart);
     if (!ref.mounted) return right(unit);
     return result.fold(
       (err) {
         appLogger.error('setRoutingMode failed: ${err.error}');
+        // Nothing newer asked for: what is in effect is what was there.
+        if (_routingTarget == mode) _routingTarget = null;
         return left(err);
       },
       (_) {
         state = state.copyWith(routingMode: mode);
+        if (_routingTarget == mode) _routingTarget = null;
         return right(unit);
       },
     );
