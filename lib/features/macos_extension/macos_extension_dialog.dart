@@ -28,11 +28,16 @@ class MacOSExtensionDialog extends ConsumerWidget {
       ),
       body: MacOSExtensionWatcher(
         onReady: () => appRouter.pop(true),
+        // As onboarding lays its pages out: the content from the top, the
+        // button at the bottom.
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            MacOSExtensionContent(state: state),
-            const SizedBox(height: 48.0),
+            Expanded(
+              child: SingleChildScrollView(
+                child: MacOSExtensionContent(state: state),
+              ),
+            ),
+            const SizedBox(height: 16.0),
             PrimaryButton(
               buttonKey: const Key('macos_extension.install'),
               label: macOSExtensionButtonLabel(state.status),
@@ -58,6 +63,8 @@ class MacOSExtensionContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final requiresEnable = state.status == SystemExtensionStatus.requiresEnable;
+    // Laid out as onboarding's other pages: the title at the top, then the
+    // image, then the text under it.
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -65,40 +72,62 @@ class MacOSExtensionContent extends StatelessWidget {
           key: Key('macos_extension.status.${state.status.name}'),
           child: const SizedBox.shrink(),
         ),
-        AppImage(path: AppImagePaths.sysDialog, useThemeColor: false),
-        const SizedBox(height: 48.0),
+        const SizedBox(height: 24.0),
         Text(
           'enable_network_extension'.i18n,
           style: textTheme.headlineSmall!.copyWith(color: context.textPrimary),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 24.0),
+        // A drawing of the system dialog in its own colours, one per theme.
+        AppImage(
+          path: Theme.of(context).brightness == Brightness.dark
+              ? AppImagePaths.sysDialogDark
+              : AppImagePaths.sysDialog,
+          useThemeColor: false,
+        ),
+        const SizedBox(height: 24.0),
+        // The text under the image starts at the left edge, full width,
+        // under a centred title and image.
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            requiresEnable
-                ? 'network_extension_disabled_message'.i18n
-                : 'enable_network_extension_message'.i18n,
-            style: textTheme.bodyLarge!.copyWith(color: context.textSecondary),
+          child: SizedBox(
+            width: double.infinity,
+            child: Text(
+              requiresEnable
+                  ? 'network_extension_disabled_message'.i18n
+                  : 'enable_network_extension_message'.i18n,
+              style: textTheme.bodyLarge!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
           ),
         ),
         if (!requiresEnable) ...[
           const SizedBox(height: 16.0),
-          RichText(
-            text: TextSpan(
-              style: textTheme.bodyLarge!.copyWith(color: context.textTertiary),
-              children: [
-                TextSpan(text: 'click'.i18n),
-                WidgetSpan(child: SizedBox(width: 4.0)),
-                TextSpan(
-                  text: 'open_system_settings'.i18n,
-                  style: AppTextStyles.bodyLargeBold.copyWith(
-                    color: context.textSecondary,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: RichText(
+                text: TextSpan(
+                  style: textTheme.bodyLarge!.copyWith(
+                    color: context.textTertiary,
                   ),
+                  children: [
+                    TextSpan(text: 'click'.i18n),
+                    WidgetSpan(child: SizedBox(width: 4.0)),
+                    TextSpan(
+                      text: 'open_system_settings'.i18n,
+                      style: AppTextStyles.bodyLargeBold.copyWith(
+                        color: context.textSecondary,
+                      ),
+                    ),
+                    WidgetSpan(child: SizedBox(width: 4.0)),
+                    TextSpan(text: 'when_prompted'.i18n),
+                  ],
                 ),
-                WidgetSpan(child: SizedBox(width: 4.0)),
-                TextSpan(text: 'when_prompted'.i18n),
-              ],
+              ),
             ),
           ),
         ],
