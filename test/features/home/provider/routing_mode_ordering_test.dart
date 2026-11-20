@@ -85,6 +85,47 @@ void main() {
     },
   );
 
+  test('Smart, Full, Smart: the first Smart finishing does not settle the '
+      'last, so a Full tap after it still counts', () async {
+    final service = _Service();
+    final (notifier, container) = await _start(service);
+    final writes = [
+      notifier.setRoutingMode(RoutingMode.smart),
+      notifier.setRoutingMode(RoutingMode.full),
+      notifier.setRoutingMode(RoutingMode.smart),
+    ];
+    await _settle();
+    service.gates[0].complete();
+    await writes[0];
+    await _settle();
+    expect(
+      notifier.requestedRoutingMode,
+      RoutingMode.smart,
+      reason: 'the last request, still queued',
+    );
+    service.gates[1].complete();
+    await writes[1];
+    await _settle();
+    expect(
+      container.read(radianceSettingsProvider).routingMode,
+      RoutingMode.full,
+    );
+    expect(notifier.requestedRoutingMode, RoutingMode.smart);
+    // So the screen lets a Full tap through, and it reverses the last Smart.
+    final reverse = notifier.setRoutingMode(RoutingMode.full);
+    service.gates[2].complete();
+    await writes[2];
+    await _settle();
+    service.gates[3].complete();
+    await reverse;
+    expect(service.writes, [true, false, true, false]);
+    expect(
+      container.read(radianceSettingsProvider).routingMode,
+      RoutingMode.full,
+    );
+    expect(notifier.requestedRoutingMode, RoutingMode.full);
+  });
+
   test(
     'a failed write leaves the requested mode at what is in effect',
     () async {

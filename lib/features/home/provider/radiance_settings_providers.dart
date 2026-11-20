@@ -103,6 +103,11 @@ class RadianceSettings extends _$RadianceSettings {
   /// lands. Null when nothing is pending.
   RoutingMode? _routingTarget;
 
+  /// Counts routing mode requests, so only the latest one's completion
+  /// clears [_routingTarget]: an earlier request for the same mode finishing
+  /// first must not, while the latest is still queued.
+  int _routingRequests = 0;
+
   /// Routing mode writes run one at a time, in order, so the last one asked
   /// for is the one that sticks, as with Try Direct First.
   Future<Either<Failure, Unit>> _routingChain = Future.value(right(unit));
@@ -113,8 +118,9 @@ class RadianceSettings extends _$RadianceSettings {
   RoutingMode get requestedRoutingMode => _routingTarget ?? state.routingMode;
 
   Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) {
+    final request = ++_routingRequests;
     _routingTarget = mode;
-    final next = _routingChain.then((_) => _writeRoutingMode(mode));
+    final next = _routingChain.then((_) => _writeRoutingMode(mode, request));
     _routingChain = next.catchError(
       (Object e) =>
           left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
@@ -122,20 +128,23 @@ class RadianceSettings extends _$RadianceSettings {
     return next;
   }
 
-  Future<Either<Failure, Unit>> _writeRoutingMode(RoutingMode mode) async {
+  Future<Either<Failure, Unit>> _writeRoutingMode(
+    RoutingMode mode,
+    int request,
+  ) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setRoutingMode(mode == RoutingMode.smart);
     if (!ref.mounted) return right(unit);
+    // Only the latest request settles what was asked for; on its failure,
+    // what is in effect is what was there.
+    if (request == _routingRequests) _routingTarget = null;
     return result.fold(
       (err) {
         appLogger.error('setRoutingMode failed: ${err.error}');
-        // Nothing newer asked for: what is in effect is what was there.
-        if (_routingTarget == mode) _routingTarget = null;
         return left(err);
       },
       (_) {
         state = state.copyWith(routingMode: mode);
-        if (_routingTarget == mode) _routingTarget = null;
         return right(unit);
       },
     );
