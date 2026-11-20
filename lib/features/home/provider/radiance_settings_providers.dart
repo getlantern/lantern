@@ -22,6 +22,14 @@ bool proxylessFromSettings(Map<String, dynamic> settings) {
 /// off a single background refresh that fetches the real values from the
 /// native layer and updates state. Mutations update state in place on success,
 /// avoiding an extra native round-trip just to re-read what we just wrote.
+/// Consent choices made through [RadianceSettings.setTelemetry] in this app
+/// process: the settings switch and the consent dialog. Developer mode's
+/// "Send logs to SigNoz" switch reads it so a write it queued before a later
+/// choice doesn't undo that choice.
+int _consentChoices = 0;
+
+int get consentChoices => _consentChoices;
+
 @Riverpod(keepAlive: true)
 class RadianceSettings extends _$RadianceSettings {
   @override
@@ -152,21 +160,25 @@ class RadianceSettings extends _$RadianceSettings {
     );
   }
 
-  /// Consent writes started here; a consent read started before the latest
-  /// one is older than it and is dropped.
-  int _telemetryWrites = 0;
+  int _telemetryRefreshes = 0;
 
   /// Re-reads telemetry consent, which Developer mode's "Send logs to SigNoz"
-  /// switch turns on.
+  /// switch turns on. Only the latest read applies, and none started before a
+  /// later consent choice.
   Future<void> refreshTelemetry() async {
-    final writes = _telemetryWrites;
+    final refresh = ++_telemetryRefreshes;
+    final choices = _consentChoices;
     final result = await ref.read(lanternServiceProvider).isTelemetryEnabled();
-    if (!ref.mounted || writes != _telemetryWrites) return;
+    if (!ref.mounted ||
+        refresh != _telemetryRefreshes ||
+        choices != _consentChoices) {
+      return;
+    }
     result.fold((_) {}, (v) => state = state.copyWith(telemetry: v));
   }
 
   Future<void> setTelemetry(bool consent) async {
-    _telemetryWrites++;
+    _consentChoices++;
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.updateTelemetryEvents(consent);
     if (!ref.mounted) return;

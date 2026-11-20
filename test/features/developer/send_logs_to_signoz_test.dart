@@ -47,10 +47,16 @@ class _Service implements LanternService {
 
   Completer<void>? holdTelemetryReads;
 
+  /// Holds for successive consent reads, used in order.
+  final telemetryReadHolds = <Completer<void>>[];
+
   @override
   Future<Either<Failure, bool>> isTelemetryEnabled() async {
     final snapshot = live[kSettingTelemetryEnabled] == true;
-    await holdTelemetryReads?.future;
+    final hold = telemetryReadHolds.isEmpty
+        ? holdTelemetryReads
+        : telemetryReadHolds.removeAt(0);
+    await hold?.future;
     return right(snapshot);
   }
 
@@ -181,6 +187,59 @@ void main() {
       expect(container.read(radianceSettingsProvider).telemetry, isFalse);
     },
   );
+
+  test(
+    'a queued enable does not undo a later opt-out in Settings',
+    () async {
+      final service = _Service({});
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.listen(radianceSettingsProvider, (_, _) {});
+      container.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      final notifier = container.read(developerDaemonProvider.notifier);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final earlier = notifier.setSendLogsToSigNoz(false);
+      final enable = notifier.setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      await container.read(radianceSettingsProvider.notifier).setTelemetry(false);
+      hold.complete();
+      await earlier;
+      expect((await enable).isRight(), isTrue);
+
+      expect(service.patches, [
+        {'send_logs_to_signoz': false},
+        {'send_logs_to_signoz': true},
+      ]);
+      expect(service.live[kSettingTelemetryEnabled], isFalse);
+      expect(container.read(developerDaemonProvider).telemetryEnabled, isFalse);
+    },
+  );
+
+  test('only the latest consent refresh applies', () async {
+    final service = _Service({});
+    final container = ProviderContainer(
+      overrides: [lanternServiceProvider.overrideWithValue(service)],
+    );
+    addTearDown(container.dispose);
+    container.listen(radianceSettingsProvider, (_, _) {});
+    await Future<void>.delayed(Duration.zero);
+    final settings = container.read(radianceSettingsProvider.notifier);
+
+    final older = Completer<void>();
+    service.telemetryReadHolds.addAll([older, Completer<void>()..complete()]);
+    final first = settings.refreshTelemetry();
+    service.live = {...service.live, kSettingTelemetryEnabled: true};
+    await settings.refreshTelemetry();
+    expect(container.read(radianceSettingsProvider).telemetry, isTrue);
+    older.complete();
+    await first;
+
+    expect(container.read(radianceSettingsProvider).telemetry, isTrue);
+  });
 
   test('turning upload off leaves telemetry consent alone', () async {
     final service = _Service({
@@ -375,6 +434,11 @@ void main() {
       await enable;
       await Future<void>.delayed(Duration.zero);
       expect(second.read(developerDaemonProvider).sendLogsToSigNoz, isTrue);
+      expect(
+        second.read(developerDaemonProvider).telemetryEnabled,
+        isTrue,
+        reason: 'the reopened screen reads the consent the write turned on',
+      );
       expect(
         second.read(developerDaemonProvider).sendLogsToSigNozLoaded,
         isTrue,

@@ -134,6 +134,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
           (_) {},
           (s) => state = state.copyWith(
             sendLogsToSigNoz: s[kSettingSendLogsToSigNoz] == true,
+            telemetryEnabled: s[kSettingTelemetryEnabled] == true,
             sendLogsToSigNozLoaded: true,
           ),
         );
@@ -156,8 +157,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     final settings = ref.exists(radianceSettingsProvider)
         ? ref.read(radianceSettingsProvider.notifier)
         : null;
+    final choices = consentChoices;
     final next = _sigNozChain.then(
-      (_) => _writeSendLogsToSigNoz(svc, settings, enabled),
+      (_) => _writeSendLogsToSigNoz(svc, settings, choices, enabled),
     );
     _sigNozChain = next.catchError(
       (Object e) =>
@@ -172,15 +174,19 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   Future<Either<Failure, Unit>> _writeSendLogsToSigNoz(
     LanternService svc,
     RadianceSettings? settings,
+    int choices,
     bool enabled,
   ) async {
+    // A consent choice made after this write was queued, such as opting out
+    // in Settings, is newer and stands.
+    final grantConsent = enabled && consentChoices == choices;
     final result = await svc.patchSettings({
       kSettingSendLogsToSigNoz: enabled,
-      if (enabled) kSettingTelemetryEnabled: true,
+      if (grantConsent) kSettingTelemetryEnabled: true,
     });
     // The settings screen's consent switch reads radiance once; have it read
     // consent again, which this may have turned on, failed save or not.
-    if (enabled) unawaited(settings?.refreshTelemetry());
+    if (grantConsent) unawaited(settings?.refreshTelemetry());
     if (!ref.mounted) return result;
     return result.fold(
       (err) async {
@@ -202,7 +208,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
       (_) {
         state = state.copyWith(
           sendLogsToSigNoz: enabled,
-          telemetryEnabled: enabled || state.telemetryEnabled,
+          telemetryEnabled: grantConsent || state.telemetryEnabled,
         );
         return right(unit);
       },
