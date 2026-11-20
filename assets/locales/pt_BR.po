@@ -2533,11 +2533,14 @@ msgstr "%s parece inacessível pela sua rede. Toque para escolher outra localiza
 msgid "proxyless"
 msgstr "Tentar direto primeiro"
 
-msgid "proxyless_subtitle"
-msgstr "Mais rápido quando o site não está bloqueado"
-
-msgid "proxyless_description"
-msgstr "O Lantern primeiro tenta acessar diretamente os sites que usariam a VPN, com técnicas contra a censura, e só usa a VPN se isso falhar. É mais rápido, mas sua rede pode ver quais sites você acessa diretamente."
-
 msgid "failed_to_update_proxyless"
 msgstr "Não foi possível atualizar Tentar direto primeiro"
+
+msgid "smart_routing_options"
+msgstr "Opções de roteamento inteligente"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Acessa sites bloqueados diretamente quando possível"
+
+msgid "smart_routing_direct_description"
+msgstr "O roteamento inteligente usa regras específicas da região para que apenas o tráfego que precisa da VPN passe pelo Lantern. Com \"Tentar direto primeiro\" ativado, o acesso aos sites bloqueados é tentado primeiro de forma direta com técnicas anticensura e, se isso falhar, a VPN é usada."

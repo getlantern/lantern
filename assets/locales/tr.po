@@ -2523,11 +2523,14 @@ msgstr "%s, ağınızdan erişilemez görünüyor. Başka bir konum seçmek içi
 msgid "proxyless"
 msgstr "Önce Doğrudan Dene"
 
-msgid "proxyless_subtitle"
-msgstr "Site engelli değilse daha hızlı"
-
-msgid "proxyless_description"
-msgstr "Lantern, VPN kullanacak sitelere önce sansür karşıtı tekniklerle doğrudan ulaşmayı dener ve yalnızca bu başarısız olursa VPN kullanır. Bu daha hızlıdır, ancak ağınız doğrudan hangi sitelere ulaştığınızı görebilir."
-
 msgid "failed_to_update_proxyless"
 msgstr "Önce Doğrudan Dene güncellenemedi"
+
+msgid "smart_routing_options"
+msgstr "Akıllı Yönlendirme seçenekleri"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Mümkün olduğunda engellenen sitelere doğrudan erişir"
+
+msgid "smart_routing_direct_description"
+msgstr "Akıllı Yönlendirme, yalnızca VPN gerektiren trafiğin Lantern üzerinden gitmesi için bölgeye özel kurallar kullanır. Önce Doğrudan Dene açıkken, engellenen sitelere önce sansür karşıtı tekniklerle doğrudan erişilmeye çalışılır; bu başarısız olursa VPN kullanılır."

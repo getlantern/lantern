@@ -2343,11 +2343,14 @@ msgstr "Lantern ne gère ni ne surveille les mandataires personnels."
 msgid "proxyless"
 msgstr "Connexion directe d'abord"
 
-msgid "proxyless_subtitle"
-msgstr "Plus rapide quand un site n'est pas bloqué"
-
-msgid "proxyless_description"
-msgstr "Lantern essaie d'abord d'accéder directement aux sites qui passeraient par le VPN, à l'aide de techniques anticensure, et n'utilise le VPN qu'en cas d'échec. C'est plus rapide, mais votre réseau peut voir les sites auxquels vous accédez directement."
-
 msgid "failed_to_update_proxyless"
 msgstr "Impossible de mettre à jour « Connexion directe d'abord »"
+
+msgid "smart_routing_options"
+msgstr "Options du routage intelligent"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Accède directement aux sites bloqués si possible"
+
+msgid "smart_routing_direct_description"
+msgstr "Le routage intelligent utilise des règles propres à votre région pour que seul le trafic qui a besoin du VPN passe par Lantern. Lorsque « Essayer en direct d'abord » est activé, l'accès aux sites bloqués est d'abord tenté directement à l'aide de techniques anticensure, puis par le VPN en cas d'échec."

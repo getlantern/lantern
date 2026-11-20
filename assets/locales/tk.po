@@ -2503,11 +2503,14 @@ msgstr "Siziň toruňyzdan %s elýeterli däl ýaly görünýär. Başga ýerle�
 msgid "proxyless"
 msgstr "Ilki göni synanyş"
 
-msgid "proxyless_subtitle"
-msgstr "Saýt bloklanmadyk bolsa has çalt"
-
-msgid "proxyless_description"
-msgstr "Lantern ilki VPN ulanjak saýtlara senzura garşy usullar bilen göni girmäge synanyşýar we diňe başartmasa VPN ulanýar. Bu has çalt, emma toruňyz haýsy saýtlara göni girýändigiňizi görüp biler."
-
 msgid "failed_to_update_proxyless"
 msgstr "«Ilki göni synanyş» täzelenip bilinmedi"
+
+msgid "smart_routing_options"
+msgstr "Akylly ugrukdyryş sazlamalary"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Mümkin bolanda bloklanan saýtlara göni birikýär"
+
+msgid "smart_routing_direct_description"
+msgstr "Akylly ugrukdyryş sebite mahsus düzgünleri ulanýar, şonuň üçin diňe VPN gerek bolan trafik Lantern arkaly geçýär. «Ilki göni synanyş» açyk bolsa, bloklanan saýtlara ilki senzura garşy usullar bilen göni girmäge synanyşylýar. Bu başartmasa, VPN ulanylýar."
