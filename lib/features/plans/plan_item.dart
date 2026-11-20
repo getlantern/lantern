@@ -30,7 +30,11 @@ class PlanItem extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
     final finalSize = (width * 0.5) - (defaultSize * 3);
     final originalPrice = plan.formatOriginalPrice;
-    final showOriginalPrice = discountPct > 0 && originalPrice.isNotEmpty;
+    // Set for any store offer, a public intro or an affiliate one.
+    final offerCaption = plan.storeOfferCaption;
+    final hasStoreOffer = offerCaption.isNotEmpty;
+    final showOriginalPrice =
+        (discountPct > 0 || hasStoreOffer) && originalPrice.isNotEmpty;
     final monthlyPrice = plan.displayMonthlyPrice;
 
     return badges.Badge(
@@ -47,7 +51,10 @@ class PlanItem extends StatelessWidget {
         badgeColor: context.statusWarningBgDot,
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
-      badgeContent: Text('best_value'.i18n, style: textTheme.labelMedium!),
+      badgeContent: Text(
+        (hasStoreOffer ? 'introductory_offer' : 'best_value').i18n,
+        style: textTheme.labelMedium!,
+      ),
       child: Padding(
         padding: EdgeInsets.only(top: 14),
         child: AppFocusable(
@@ -75,41 +82,57 @@ class PlanItem extends StatelessWidget {
                       Text(referralMessage, style: textTheme.labelMedium),
                   ],
                 ),
-                Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          plan.displayPrice,
-                          style: textTheme.titleMedium!.copyWith(
-                            color: context.textLink,
-                          ),
-                        ),
-                        if (showOriginalPrice) ...[
-                          SizedBox(width: 6),
-                          Text(
-                            originalPrice,
-                            style: textTheme.labelMedium!.copyWith(
-                              color: context.textTertiary,
-                              decoration: TextDecoration.lineThrough,
-                              decorationColor: context.textTertiary,
-                              decorationThickness: 4,
+                SizedBox(width: 8),
+                // Takes the remaining width so a long offer caption wraps.
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      // Scales down rather than overflowing a narrow card.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              plan.displayPrice,
+                              style: textTheme.titleMedium!.copyWith(
+                                color: context.textLink,
+                              ),
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    if (monthlyPrice.isNotEmpty)
-                      Text(
-                        '$monthlyPrice/month',
-                        style: textTheme.labelMedium!.copyWith(
-                          color: context.textTertiary,
+                            if (showOriginalPrice) ...[
+                              SizedBox(width: 6),
+                              Text(
+                                originalPrice,
+                                style: textTheme.labelMedium!.copyWith(
+                                  color: context.textTertiary,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor: context.textTertiary,
+                                  decorationThickness: 4,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                  ],
+                      if (hasStoreOffer)
+                        Text(
+                          offerCaption,
+                          textAlign: TextAlign.end,
+                          style: textTheme.labelMedium!.copyWith(
+                            color: context.textTertiary,
+                          ),
+                        )
+                      else if (monthlyPrice.isNotEmpty)
+                        Text(
+                          '$monthlyPrice/month',
+                          style: textTheme.labelMedium!.copyWith(
+                            color: context.textTertiary,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 // The card is the focus stop; the radio stays tappable.
                 ExcludeFocus(
