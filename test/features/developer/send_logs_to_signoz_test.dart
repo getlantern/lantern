@@ -401,6 +401,34 @@ void main() {
     expect(container.read(radianceSettingsProvider).telemetry, isTrue);
   });
 
+  test(
+    'a SigNoz enable outdates a settings load that read the old consent, '
+    'even when the re-read fails',
+    () async {
+      final service = _Service({});
+      final load = Completer<void>();
+      service.telemetryReadHolds.add(load);
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.listen(radianceSettingsProvider, (_, _) {});
+      container.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+
+      service.failTelemetryReads = 1;
+      final enable = await container
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(true);
+      expect(enable.isRight(), isTrue);
+      await Future<void>.delayed(Duration.zero);
+      load.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(radianceSettingsProvider).telemetry, isTrue);
+    },
+  );
+
   test('only the latest consent refresh applies', () async {
     final service = _Service({});
     final container = ProviderContainer(

@@ -186,8 +186,13 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     // The settings screen's consent switch reads radiance once; have it read
     // consent again, which this may have turned on, failed save or not. It
     // outlives this notifier, and may have been built since this write was
-    // queued, so it's looked up now.
-    if (grantConsent) refreshLoadedTelemetry();
+    // queued, so it's looked up now. A saved write turned consent on, unless
+    // a choice made since then decides it.
+    if (grantConsent) {
+      refreshLoadedTelemetry(
+        consent: result.isRight() && consentChoices == choices ? true : null,
+      );
+    }
     if (!ref.mounted) return result;
     return result.fold(
       (err) async {

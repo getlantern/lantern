@@ -46,11 +46,12 @@ Future<T> runConsentWrite<T>(Future<T> Function() write) {
 /// The settings notifier that has read radiance, if any.
 RadianceSettings? _loaded;
 
-/// Has the settings screen's consent switch read consent again, if it has
-/// read radiance at all, after something outside it changed consent.
-void refreshLoadedTelemetry() {
+/// Tells the settings screen's consent switch, if it has read radiance at all,
+/// that something outside it changed consent: to [consent] when the change is
+/// known to have landed. It then reads consent again.
+void refreshLoadedTelemetry({bool? consent}) {
   final loaded = _loaded;
-  if (loaded != null) unawaited(loaded.refreshTelemetry());
+  if (loaded != null) unawaited(loaded.consentChangedElsewhere(consent));
 }
 
 @Riverpod(keepAlive: true)
@@ -274,6 +275,16 @@ class RadianceSettings extends _$RadianceSettings {
       _telemetryApplied = read;
       state = state.copyWith(telemetry: v);
     });
+  }
+
+  /// Consent changed outside this notifier, to [consent] when that's known.
+  /// A read started before the change may answer with the old value, so none
+  /// applies; a read started now confirms what radiance holds.
+  Future<void> consentChangedElsewhere([bool? consent]) async {
+    if (!ref.mounted) return;
+    _telemetryApplied = _telemetryReads;
+    if (consent != null) state = state.copyWith(telemetry: consent);
+    await refreshTelemetry();
   }
 
   Future<void> setTelemetry(bool consent) async {
