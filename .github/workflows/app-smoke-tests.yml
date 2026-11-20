@@ -228,7 +228,24 @@ jobs:
       run_auth_smoke: ${{ contains(fromJSON('["all", "auth-smoke"]'), inputs.tests || 'all') }}
       run_split_tunnel_website_smoke: ${{ contains(fromJSON('["all", "split-tunnel"]'), inputs.tests || 'all') }}
       run_split_tunnel_apps_smoke: ${{ contains(fromJSON('["all", "split-tunnel-apps", "split-tunnel"]'), inputs.tests || 'all') }}
-      run_payment_smoke: ${{ contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+      run_payment_smoke: false
+
+  # Payment smoke gets its own job so another suite failing in the windows job
+  # can't hide a broken checkout.
+  windows-payment:
+    needs: prepare
+    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) && contains(fromJSON('["all", "payment-smoke"]'), inputs.tests || 'all') }}
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      skip_signing: true
+      package_installer: false
+      run_installer_smoke: false
+      run_connect_smoke: false
+      run_payment_smoke: true
 
   windows-auto-update:
     needs: validate-inputs
