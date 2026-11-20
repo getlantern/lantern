@@ -9,6 +9,25 @@ import 'package:lantern/core/utils/currency_utils.dart';
 final _ddmmyyFormatter = DateFormat('dd/MM/yy');
 final _mmddyyFormatter = DateFormat('MM/dd/yy');
 
+/// Term of [price]'s offer on [planId], e.g. "First year, then $48.00/year".
+/// Empty when there is no offer or it doesn't last whole months.
+String storeOfferCaptionFor(StorePrice price, String planId) {
+  final months = price.offerMonths;
+  if (months == null || months <= 0) return '';
+  final term = switch (months) {
+    1 => 'offer_first_month'.i18n,
+    12 => 'offer_first_year'.i18n,
+    _ when months % 12 == 0 => 'offer_first_years'.i18n.fill([months ~/ 12]),
+    _ => 'offer_first_months'.i18n.fill([months]),
+  };
+  final then = switch (planId.split('-').first) {
+    '1m' => 'offer_then_month',
+    '1y' => 'offer_then_year',
+    _ => null,
+  };
+  return then == null ? term : then.i18n.fill([term, price.regular]);
+}
+
 extension PlanExtension on Plan {
   String get formattedYearlyPrice => _formatPriceMap(price);
 
@@ -27,6 +46,13 @@ extension PlanExtension on Plan {
     final monthly = price.monthly;
     if (monthly == null) return '';
     return CurrencyUtils.formatCurrency(monthly * 100, price.currencyCode);
+  }
+
+  /// Term of the store's discounted price, e.g. "First year, then
+  /// $48.00/year". Empty without an offer.
+  String get storeOfferCaption {
+    final price = _storePrice;
+    return price == null ? '' : storeOfferCaptionFor(price, id);
   }
 
   StorePrice? get _storePrice =>

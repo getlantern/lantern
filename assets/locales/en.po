@@ -522,6 +522,27 @@ msgstr "Unable to load the discounted plans from the store. Please try again."
 msgid "best_value"
 msgstr "Best Value!"
 
+msgid "introductory_offer"
+msgstr "Introductory Offer"
+
+msgid "offer_first_month"
+msgstr "First month"
+
+msgid "offer_first_months"
+msgstr "First %s months"
+
+msgid "offer_first_year"
+msgstr "First year"
+
+msgid "offer_first_years"
+msgstr "First %s years"
+
+msgid "offer_then_month"
+msgstr "%s, then %s/month"
+
+msgid "offer_then_year"
+msgstr "%s, then %s/year"
+
 msgid "choose_payment_method"
 msgstr "Choose Payment Method"
 
