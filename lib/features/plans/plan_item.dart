@@ -104,7 +104,7 @@ class PlanItem extends StatelessWidget {
                     ),
                     if (monthlyPrice.isNotEmpty)
                       Text(
-                        '$monthlyPrice/month',
+                        'price_per_month'.i18n.fill([monthlyPrice]),
                         style: textTheme.labelMedium!.copyWith(
                           color: context.textTertiary,
                         ),

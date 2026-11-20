@@ -673,6 +673,33 @@ msgstr "订阅"
 msgid "checkout"
 msgstr "结账"
 
+msgid "payment_method_credit_card"
+msgstr "银行卡"
+
+msgid "payment_method_alipay"
+msgstr "支付宝"
+
+msgid "payment_method_wechatpay"
+msgstr "微信支付"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "按月扣费，可随时取消。"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "按年扣费，可随时取消。"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "每两年扣费一次，可随时取消。"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "自动续订，可随时取消。"
+
+msgid "price_per_month"
+msgstr "%s/月"
+
+msgid "no_payment_methods_available"
+msgstr "暂时没有可用的支付方式，请稍后再试。"
+
 msgid "vpn_may_be_needed"
 msgstr "可能需要 VPN"
 

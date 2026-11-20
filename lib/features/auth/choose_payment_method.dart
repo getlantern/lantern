@@ -77,7 +77,25 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           Expanded(
             child: plansAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) => Center(child: Text(e.toString())),
+              error: (e, st) {
+                appLogger.error('Failed to load payment methods', e, st);
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'plans_fetch_error'.i18n,
+                        textAlign: TextAlign.center,
+                      ),
+                      AppTextButton(
+                        label: 'retry'.i18n,
+                        onPressed: () =>
+                            ref.read(plansProvider.notifier).fetchPlans(),
+                      ),
+                    ],
+                  ),
+                );
+              },
               data: (planData) {
                 final providers = PlatformUtils.isAndroid
                     ? planData.providers.android
@@ -598,6 +616,19 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
     final showOriginalPrice = referral.isAffiliate && originalPrice.isNotEmpty;
     final showDiscountDeduction =
         referral.isAffiliate && discountAmount.isNotEmpty;
+    if (providers.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(defaultSize),
+          child: Text(
+            'no_payment_methods_available'.i18n,
+            key: const Key('choose_payment.empty'),
+            textAlign: TextAlign.center,
+            style: theme.bodyMedium,
+          ),
+        ),
+      );
+    }
     return ListView.builder(
       key: const Key('choose_payment.list'),
       shrinkWrap: true,
@@ -630,10 +661,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
             ),
             title: Row(
               children: [
-                Text(
-                  method.method.replaceAll('-', " ").toTitleCase(),
-                  style: theme.titleMedium,
-                ),
+                Text(method.label, style: theme.titleMedium),
                 SizedBox(width: defaultSize),
                 LogsPath(logoPaths: method.providers.icons),
               ],
@@ -716,7 +744,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               SizedBox(height: 10),
               Text(
                 method.providers.supportSubscription
-                    ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
+                    ? userPlan.autoRenewNotice
                     : 'billed_once'.i18n.capitalize,
                 style: theme.bodySmall!.copyWith(color: context.textDisabled),
               ),

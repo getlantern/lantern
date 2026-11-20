@@ -203,6 +203,7 @@ flutter:
   assets:
     - assets/
     - assets/images/
+    - assets/images/payments/
     - path: assets/images/flags/
       platforms:
         - windows

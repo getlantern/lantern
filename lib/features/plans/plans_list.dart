@@ -27,13 +27,14 @@ class PlansListView extends HookConsumerWidget {
     // affiliate switch); rebuild the cards whenever they change.
     useValueListenable(sl<AppPurchase>().storePricesVersion);
     final size = MediaQuery.of(context).size;
-    final selectedId = useState<String>(
-      data.plans.firstWhere((Plan plan) => plan.bestValue == true).id,
+    final defaultPlan = data.plans.firstWhere(
+      (Plan plan) => plan.bestValue == true,
+      orElse: () => data.plans.first,
     );
+    final selectedId = useState<String>(defaultPlan.id);
     final selectedPlan = data.plans.firstWhere(
       (Plan plan) => plan.id == selectedId.value,
-      orElse: () =>
-          data.plans.firstWhere((Plan plan) => plan.bestValue == true),
+      orElse: () => defaultPlan,
     );
     useEffect(() {
       ref.read(plansProvider.notifier).setSelectedPlan(selectedPlan);

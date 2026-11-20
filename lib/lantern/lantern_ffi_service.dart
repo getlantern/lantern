@@ -955,7 +955,7 @@ class LanternFFIService implements LanternCoreService {
       });
       checkAPIError(result);
       final map = jsonDecode(result);
-      final plans = PlansData.fromJson(map)..sortPlansAndProviders();
+      final plans = PlansData.fromJson(map)..sortPlans();
       appLogger.info('Plans: $map');
       return Right(plans);
     } catch (e, stackTrace) {
