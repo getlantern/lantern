@@ -184,8 +184,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     if (!ref.mounted) return result;
     return result.fold(
       (err) async {
-        // Radiance applies the live values before it saves, so a failed save
-        // can still have switched upload and consent. Show what they are.
+        // Radiance keeps the patched live values even when saving them fails,
+        // so a failed save can still have switched upload and consent. Show
+        // what they are.
         final current = await svc.getSettings();
         if (ref.mounted) {
           current.fold(
