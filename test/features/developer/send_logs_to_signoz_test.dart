@@ -83,18 +83,52 @@ void main() {
     expect(state.telemetryEnabled, isFalse);
   });
 
-  test('the switch patches send_logs_to_signoz', () async {
-    final service = _Service({});
+  test(
+    'turning upload on turns telemetry consent on in the same patch',
+    () async {
+      final service = _Service({});
+      final container = await _load(service);
+
+      final result = await container
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(true);
+      expect(result.isRight(), isTrue);
+      expect(service.patches, [
+        {'send_logs_to_signoz': true, 'telemetry_enabled': true},
+      ]);
+      final state = container.read(developerDaemonProvider);
+      expect(state.sendLogsToSigNoz, isTrue);
+      expect(state.telemetryEnabled, isTrue);
+    },
+  );
+
+  test('turning upload off leaves telemetry consent alone', () async {
+    final service = _Service({
+      kSettingSendLogsToSigNoz: true,
+      kSettingTelemetryEnabled: true,
+    });
     final container = await _load(service);
 
     final result = await container
         .read(developerDaemonProvider.notifier)
-        .setSendLogsToSigNoz(true);
+        .setSendLogsToSigNoz(false);
     expect(result.isRight(), isTrue);
     expect(service.patches, [
-      {'send_logs_to_signoz': true},
+      {'send_logs_to_signoz': false},
     ]);
-    expect(container.read(developerDaemonProvider).sendLogsToSigNoz, isTrue);
+    final state = container.read(developerDaemonProvider);
+    expect(state.sendLogsToSigNoz, isFalse);
+    expect(state.telemetryEnabled, isTrue);
+  });
+
+  test('a failed save shows the consent radiance actually applied', () async {
+    final service = _Service({})..failSave = true;
+    final container = await _load(service);
+
+    await container
+        .read(developerDaemonProvider.notifier)
+        .setSendLogsToSigNoz(true);
+    expect(container.read(developerDaemonProvider).telemetryEnabled, isTrue);
   });
 
   test('a failed save shows the value radiance actually applied', () async {
@@ -161,7 +195,7 @@ void main() {
     await disable;
 
     expect(service.patches, [
-      {'send_logs_to_signoz': true},
+      {'send_logs_to_signoz': true, 'telemetry_enabled': true},
       {'send_logs_to_signoz': false},
     ]);
     expect(service.live['send_logs_to_signoz'], isFalse);
@@ -185,7 +219,7 @@ void main() {
       expect((await disable).isRight(), isTrue);
 
       expect(service.patches, [
-        {'send_logs_to_signoz': true},
+        {'send_logs_to_signoz': true, 'telemetry_enabled': true},
         {'send_logs_to_signoz': false},
       ]);
     },
@@ -219,7 +253,7 @@ void main() {
 
       expect(service.patches, [
         {'send_logs_to_signoz': false},
-        {'send_logs_to_signoz': true},
+        {'send_logs_to_signoz': true, 'telemetry_enabled': true},
         {'send_logs_to_signoz': false},
       ]);
       expect(service.live['send_logs_to_signoz'], isFalse);

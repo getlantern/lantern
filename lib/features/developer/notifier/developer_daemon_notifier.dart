@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/developer_daemon_state.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -156,29 +157,45 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     return next;
   }
 
+  // Radiance uploads logs only while telemetry consent is on too, so turning
+  // upload on also turns consent on, in the same patch. Turning upload off
+  // leaves consent as it is.
   Future<Either<Failure, Unit>> _writeSendLogsToSigNoz(
     LanternService svc,
     bool enabled,
   ) async {
-    final result = await svc.patchSettings({kSettingSendLogsToSigNoz: enabled});
+    // A queued write can run after the screen closed and disposed this
+    // notifier, whose state then can't be read.
+    final consentWasOn = ref.mounted && state.telemetryEnabled;
+    final result = await svc.patchSettings({
+      kSettingSendLogsToSigNoz: enabled,
+      if (enabled) kSettingTelemetryEnabled: true,
+    });
     if (!ref.mounted) return result;
+    // The settings screen's consent switch reads radiance once; have it read
+    // again when this may have turned consent on.
+    if (enabled && !consentWasOn) ref.invalidate(radianceSettingsProvider);
     return result.fold(
       (err) async {
-        // Radiance applies the live value before it saves, so a failed save
-        // can still have switched upload. Show what it actually is.
+        // Radiance applies the live values before it saves, so a failed save
+        // can still have switched upload and consent. Show what they are.
         final current = await svc.getSettings();
         if (ref.mounted) {
           current.fold(
             (_) {},
             (s) => state = state.copyWith(
               sendLogsToSigNoz: s[kSettingSendLogsToSigNoz] == true,
+              telemetryEnabled: s[kSettingTelemetryEnabled] == true,
             ),
           );
         }
         return left(err);
       },
       (_) {
-        state = state.copyWith(sendLogsToSigNoz: enabled);
+        state = state.copyWith(
+          sendLogsToSigNoz: enabled,
+          telemetryEnabled: enabled || state.telemetryEnabled,
+        );
         return right(unit);
       },
     );

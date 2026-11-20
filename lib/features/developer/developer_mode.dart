@@ -258,8 +258,8 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
             label: 'Send logs to SigNoz',
             subtitle: Text(
               daemon.telemetryEnabled
-                  ? 'Requires telemetry to be enabled (it is on)'
-                  : 'Requires telemetry to be enabled (it is off, so nothing is sent)',
+                  ? 'Requires telemetry, which is on'
+                  : 'Requires telemetry: turning this on turns telemetry on too',
               style: Theme.of(context).textTheme.labelMedium!.copyWith(
                     color: context.textTertiary,
                     letterSpacing: 0.0,
