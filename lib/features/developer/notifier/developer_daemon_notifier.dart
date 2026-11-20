@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/developer_daemon_state.dart';
+import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -118,7 +119,10 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
   Future<Either<Failure, Unit>> _sigNozChain = Future.value(right(unit));
 
   Future<Either<Failure, Unit>> setSendLogsToSigNoz(bool enabled) {
-    final next = _sigNozChain.then((_) => _writeSendLogsToSigNoz(enabled));
+    // Read the service now: a queued write can run after the screen closes
+    // and disposes this notifier, and it must still reach radiance.
+    final svc = ref.read(lanternServiceProvider);
+    final next = _sigNozChain.then((_) => _writeSendLogsToSigNoz(svc, enabled));
     _sigNozChain = next.catchError(
       (Object e) =>
           left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
@@ -126,8 +130,10 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     return next;
   }
 
-  Future<Either<Failure, Unit>> _writeSendLogsToSigNoz(bool enabled) async {
-    final svc = ref.read(lanternServiceProvider);
+  Future<Either<Failure, Unit>> _writeSendLogsToSigNoz(
+    LanternService svc,
+    bool enabled,
+  ) async {
     final result = await svc.patchSettings({kSettingSendLogsToSigNoz: enabled});
     if (!ref.mounted) return result;
     return result.fold(

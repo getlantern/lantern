@@ -166,4 +166,27 @@ void main() {
     expect(service.live['send_logs_to_signoz'], isFalse);
     expect(container.read(developerDaemonProvider).sendLogsToSigNoz, isFalse);
   });
+
+  test(
+    'a queued write still reaches radiance after the screen closes',
+    () async {
+      final service = _Service({});
+      final container = await _load(service);
+      final notifier = container.read(developerDaemonProvider.notifier);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final enable = notifier.setSendLogsToSigNoz(true);
+      final disable = notifier.setSendLogsToSigNoz(false);
+      await Future<void>.delayed(Duration.zero);
+      container.dispose();
+      hold.complete();
+      await enable;
+      expect((await disable).isRight(), isTrue);
+
+      expect(service.patches, [
+        {'send_logs_to_signoz': true},
+        {'send_logs_to_signoz': false},
+      ]);
+    },
+  );
 }
