@@ -202,7 +202,10 @@ class VpnNotifier extends _$VpnNotifier {
   }) async {
     final lantern = ref.read(lanternServiceProvider);
 
+    // "Connect anyway" on either pre-connect dialog skips both checks.
     if (!skipConflictCheck) {
+      final denied = await _checkLocalNetworkAccess();
+      if (denied != null) return denied;
       final conflict = await _checkVpnConflict();
       if (conflict != null) return conflict;
     }
@@ -254,6 +257,8 @@ class VpnNotifier extends _$VpnNotifier {
     // The native side guards against false positives by returning false when
     // Lantern's own VPN is already active (e.g. server switching while connected).
     if (!skipConflictCheck) {
+      final denied = await _checkLocalNetworkAccess();
+      if (denied != null) return denied;
       final conflict = await _checkVpnConflict();
       if (conflict != null) return conflict;
     }
@@ -263,6 +268,18 @@ class VpnNotifier extends _$VpnNotifier {
         .read(lanternServiceProvider)
         .connectToServer(location.name, tag);
     return result;
+  }
+
+  /// Blocks connecting without Android's local network permission: the
+  /// tunnel would report connected and carry no traffic.
+  Future<Left<Failure, String>?> _checkLocalNetworkAccess() async {
+    if (!Platform.isAndroid) return null;
+    final granted = await ref
+        .read(lanternServiceProvider)
+        .checkLocalNetworkAccess();
+    if (granted) return null;
+    appLogger.warning('Local network permission denied, blocking connect');
+    return Left(LocalNetworkDeniedFailure());
   }
 
   Future<Left<Failure, String>?> _checkVpnConflict() async {

@@ -274,6 +274,29 @@ class AppDialog {
     );
   }
 
+  /// Asks the user to re-allow "Nearby devices"; completes when it closes.
+  static Future<void> localNetworkDeniedDialog({
+    required BuildContext context,
+    required VoidCallback onOpenSettings,
+    required VoidCallback onConnectAnyway,
+  }) {
+    appLogger.info('Showing local network permission dialog');
+    return show(
+      context: context,
+      title: 'local_network_denied_title'.i18n,
+      body: 'local_network_denied_body'.i18n,
+      primaryLabel: 'open_settings'.i18n,
+      onPrimaryPressed: onOpenSettings,
+      secondaryLabel: 'vpn_conflict_connect_anyway'.i18n,
+      onSecondaryPressed: () {
+        appLogger.info('Local network dialog: user chose connect anyway');
+        onConnectAnyway();
+      },
+      // Callers pop the dialog inside onConnectAnyway themselves.
+      dismissOnSecondary: false,
+    );
+  }
+
   /// Completes when the dialog closes.
   static Future<void> vpnConflictDialog({
     required BuildContext context,
