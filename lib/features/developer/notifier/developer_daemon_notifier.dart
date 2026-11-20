@@ -31,6 +31,14 @@ const String kEnvFeatureOverrides = 'RADIANCE_FEATURE_OVERRIDES';
 const String kSettingSendLogsToSigNoz = 'send_logs_to_signoz';
 const String kSettingTelemetryEnabled = 'telemetry_enabled';
 
+/// setSendLogsToSigNoz runs one write at a time, read-back included. On
+/// desktop each PATCH runs in its own isolate, so overlapping writes could
+/// land in a different order than the taps and leave upload in a state the
+/// switch doesn't show. The queue lives outside the notifier, which is
+/// disposed whenever the screen closes, so writes from a reopened screen
+/// still line up behind ones queued before it closed.
+Future<Either<Failure, Unit>> _sigNozChain = Future.value(right(unit));
+
 /// Snapshot of dev-mode daemon state plus the IPC calls that mutate it.
 /// Auto-disposed so each visit to the developer screen re-fetches fresh
 /// state from the native layer.
@@ -111,12 +119,6 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
       return unit;
     });
   }
-
-  // setSendLogsToSigNoz runs one write at a time, read-back included. On
-  // desktop each PATCH runs in its own isolate, so overlapping writes could
-  // land in a different order than the taps and leave upload in a state the
-  // switch doesn't show.
-  Future<Either<Failure, Unit>> _sigNozChain = Future.value(right(unit));
 
   Future<Either<Failure, Unit>> setSendLogsToSigNoz(bool enabled) {
     // Read the service now: a queued write can run after the screen closes

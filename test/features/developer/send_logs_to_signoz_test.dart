@@ -189,4 +189,36 @@ void main() {
       ]);
     },
   );
+
+  test(
+    'writes from a reopened screen queue behind ones from before it closed',
+    () async {
+      final service = _Service({});
+      final first = await _load(service);
+      final oldScreen = first.read(developerDaemonProvider.notifier);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final a = oldScreen.setSendLogsToSigNoz(false);
+      final b = oldScreen.setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      first.dispose();
+
+      final second = await _load(service);
+      final c = second
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(false);
+      hold.complete();
+      await a;
+      await b;
+      await c;
+
+      expect(service.patches, [
+        {'send_logs_to_signoz': false},
+        {'send_logs_to_signoz': true},
+        {'send_logs_to_signoz': false},
+      ]);
+      expect(service.live['send_logs_to_signoz'], isFalse);
+      expect(second.read(developerDaemonProvider).sendLogsToSigNoz, isFalse);
+    },
+  );
 }
