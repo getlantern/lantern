@@ -91,7 +91,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
                       AppTextButton(
                         label: 'retry'.i18n,
                         onPressed: () =>
-                            ref.read(plansProvider.notifier).fetchPlans(),
+                            ref.read(plansProvider.notifier).retryFetchPlans(),
                       ),
                     ],
                   ),
@@ -392,13 +392,16 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           await Future.delayed(const Duration(milliseconds: 300));
           if (!context.mounted) return;
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+          var opened = false;
           try {
             final openedAt = DateTime.now();
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedStripeUrl,
               title: 'stripe_payment'.i18n,
               observer: checkoutObserver,
+              throwOnError: true,
             );
+            opened = true;
             _trackWebviewClosed('stripe', purchaseResult, openedAt);
             if (!context.mounted) return;
             // A closed webview can still have a completed payment behind it.
@@ -412,6 +415,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               unconfirmedClose: purchaseResult == null,
             );
           } catch (_) {
+            trackCheckout(CheckoutEvent.redirectFailed, {
+              'provider': 'stripe',
+              'reason': opened ? 'confirmation_error' : 'webview_error',
+            });
             if (!context.mounted) return;
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             rethrow;
@@ -483,12 +490,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           }
 
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+          var opened = false;
           try {
             final openedAt = DateTime.now();
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedUrl,
               observer: checkoutObserver,
+              throwOnError: true,
             );
+            opened = true;
             _trackWebviewClosed(provider, purchaseResult, openedAt);
             if (!context.mounted) return;
             // Alipay/WeChat may finish in their own app, without a webview redirect.
@@ -503,7 +513,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           } catch (e) {
             trackCheckout(CheckoutEvent.redirectFailed, {
               'provider': provider,
-              'reason': 'webview_error',
+              'reason': opened ? 'confirmation_error' : 'webview_error',
             });
             if (!context.mounted) return;
             ref.read(paymentSessionProvider.notifier).clearRedirect();

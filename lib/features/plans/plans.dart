@@ -127,7 +127,7 @@ class _PlansState extends ConsumerState<Plans>
                         AppTextButton(
                           label: 'retry'.i18n,
                           onPressed: () {
-                            ref.read(plansProvider.notifier).fetchPlans();
+                            ref.read(plansProvider.notifier).retryFetchPlans();
                           },
                         ),
                       ],
