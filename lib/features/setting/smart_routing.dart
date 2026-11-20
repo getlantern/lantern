@@ -31,19 +31,17 @@ class SmartRouting extends HookConsumerWidget {
       );
     }
 
+    // The screen stays open: Smart Routing's options show or hide under
+    // the radios as the mode changes. A mode tapped while another's write
+    // runs is compared with that one, so tapping back reverses it.
     Future<void> select(RoutingMode mode) async {
-      final result = await ref
-          .read(radianceSettingsProvider.notifier)
-          .setRoutingMode(mode);
+      final notifier = ref.read(radianceSettingsProvider.notifier);
+      if (mode == notifier.requestedRoutingMode) return;
+      final result = await notifier.setRoutingMode(mode);
+      if (!context.mounted) return;
       result.fold(
-        (failure) {
-          context.showSnackBar('failed_to_update_routing_mode'.i18n);
-        },
-        (_) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) appRouter.pop();
-          });
-        },
+        (_) => context.showSnackBar('failed_to_update_routing_mode'.i18n),
+        (_) {},
       );
     }
 
@@ -96,32 +94,51 @@ class SmartRouting extends HookConsumerWidget {
               ],
             ),
           ),
-          SizedBox(height: size24),
-          InfoRow(text: 'smart_routing_description'.i18n),
-          // Full Tunnel sends everything through the VPN, so there is
-          // nothing to try directly.
+          // Smart Routing's options, and the note explaining both. Full
+          // Tunnel sends everything through the VPN, so there is nothing to
+          // try directly and nothing to explain: only the two radios.
           if (selected == RoutingMode.smart) ...[
             SizedBox(height: size24),
+            Padding(
+              padding: const EdgeInsets.only(left: defaultSize),
+              child: Text(
+                'smart_routing_options'.i18n,
+                key: const Key('smart_routing.options'),
+                style: textTheme.labelLarge!.copyWith(
+                  color: context.textSecondary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4.0),
             AppCard(
+              key: const Key('smart_routing.proxyless_card'),
               padding: EdgeInsets.zero,
               child: AppTile(
                 label: 'proxyless'.i18n,
                 subtitle: Text(
-                  'proxyless_subtitle'.i18n,
+                  'proxyless_reaches_blocked'.i18n,
                   style: textTheme.labelMedium!.copyWith(
                     color: context.textTertiary,
                     letterSpacing: 0.0,
                   ),
                 ),
                 trailing: SwitchButton(
+                  key: const Key('smart_routing.proxyless'),
                   value: proxyless,
                   onChanged: setProxyless,
                 ),
                 onPressed: () => setProxyless(!proxyless),
               ),
             ),
-            SizedBox(height: size24),
-            InfoRow(text: 'proxyless_description'.i18n),
+            SizedBox(height: defaultSize),
+            // The screen's own background, with only its outline, so it
+            // reads as a note rather than another card.
+            InfoRow(
+              key: const Key('smart_routing.note'),
+              backgroundColor: context.bgSurface,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              text: 'smart_routing_direct_description'.i18n,
+            ),
           ],
         ],
       ),

@@ -2524,11 +2524,5 @@ msgstr "آپ کے نیٹ ورک سے %s تک رسائی ممکن نہیں لگت
 msgid "proxyless"
 msgstr "پہلے سیدھے کوشش"
 
-msgid "proxyless_subtitle"
-msgstr "سائٹ بلاک نہ ہو تو زیادہ تیز"
-
-msgid "proxyless_description"
-msgstr "Lantern پہلے سنسرشپ مخالف تکنیکوں سے ان سائٹس تک سیدھے پہنچنے کی کوشش کرتا ہے جو VPN استعمال کرتیں، اور ناکامی پر ہی VPN استعمال کرتا ہے۔ یہ زیادہ تیز ہے، لیکن آپ کا نیٹ ورک دیکھ سکتا ہے کہ آپ کن سائٹس تک سیدھے پہنچتے ہیں۔"
-
 msgid "failed_to_update_proxyless"
 msgstr "پہلے سیدھے کوشش اپ ڈیٹ نہیں ہو سکی"
