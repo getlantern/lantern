@@ -8,6 +8,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class VPNSwitch extends HookConsumerWidget {
   const VPNSwitch({super.key});
@@ -144,6 +145,25 @@ class VPNSwitch extends HookConsumerWidget {
 
     if (!context.mounted) return;
     result.fold((failure) {
+      if (failure is LocalNetworkDeniedFailure) {
+        AppDialog.localNetworkDeniedDialog(
+          context: context,
+          onOpenSettings: () =>
+              ref.read(lanternServiceProvider).openAppSettings(),
+          onConnectAnyway: () async {
+            appRouter.maybePop();
+            final retryResult = await ref
+                .read(vpnProvider.notifier)
+                .startVPN(skipConflictCheck: true);
+            if (!context.mounted) return;
+            retryResult.fold((failure) {
+              context.showSnackBar(failure.localizedErrorMessage);
+              appLogger.error("Error changing VPN state: ${failure.error}");
+            }, (_) => null);
+          },
+        );
+        return;
+      }
       if (failure is VpnConflictFailure) {
         AppDialog.vpnConflictDialog(
           context: context,

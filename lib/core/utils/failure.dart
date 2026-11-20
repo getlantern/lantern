@@ -11,6 +11,15 @@ class Failure {
       'Failure(error: $error, localizedErrorMessage: $localizedErrorMessage)';
 }
 
+/// Android's "Nearby devices" (local network) permission is denied.
+class LocalNetworkDeniedFailure extends Failure {
+  LocalNetworkDeniedFailure()
+      : super(
+          error: 'local_network_denied',
+          localizedErrorMessage: 'local_network_denied_body'.i18n,
+        );
+}
+
 class VpnConflictFailure extends Failure {
   VpnConflictFailure()
       : super(

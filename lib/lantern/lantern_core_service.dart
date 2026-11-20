@@ -95,6 +95,12 @@ abstract class LanternCoreService {
 
   Future<bool> checkVpnConflict();
 
+  /// False when Android 17's "Nearby devices" permission is denied, which
+  /// leaves the tunnel connected but unable to carry traffic.
+  Future<bool> checkLocalNetworkAccess();
+
+  Future<void> openAppSettings();
+
   Stream<LanternStatus> watchVPNStatus();
 
   Stream<List<String>> watchLogs(String path);
