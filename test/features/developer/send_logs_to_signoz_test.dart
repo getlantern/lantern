@@ -45,9 +45,20 @@ class _Service implements LanternService {
   @override
   Future<Either<Failure, Map<String, String>>> getEnvVars() async => right({});
 
+  Completer<void>? holdTelemetryReads;
+
   @override
-  Future<Either<Failure, bool>> isTelemetryEnabled() async =>
-      right(live[kSettingTelemetryEnabled] == true);
+  Future<Either<Failure, bool>> isTelemetryEnabled() async {
+    final snapshot = live[kSettingTelemetryEnabled] == true;
+    await holdTelemetryReads?.future;
+    return right(snapshot);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
+    live = {...live, kSettingTelemetryEnabled: consent};
+    return right(unit);
+  }
 
   @override
   Future<Either<Failure, bool>> isBlockAdsEnabled() async => right(false);
@@ -144,6 +155,30 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(container.read(radianceSettingsProvider).telemetry, isTrue);
+    },
+  );
+
+  test(
+    'a consent read older than a later consent change is dropped',
+    () async {
+      final service = _Service({});
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.listen(radianceSettingsProvider, (_, _) {});
+      container.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+
+      final hold = service.holdTelemetryReads = Completer<void>();
+      await container
+          .read(developerDaemonProvider.notifier)
+          .setSendLogsToSigNoz(true);
+      await container.read(radianceSettingsProvider.notifier).setTelemetry(false);
+      hold.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(radianceSettingsProvider).telemetry, isFalse);
     },
   );
 
