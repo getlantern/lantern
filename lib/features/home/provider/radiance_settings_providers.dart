@@ -32,6 +32,17 @@ int _consentChoices = 0;
 
 int get consentChoices => _consentChoices;
 
+Future<void> _consentWrites = Future<void>.value();
+
+/// Runs a write that may change telemetry consent once every consent write
+/// started before it has finished. Radiance's writes have no order of their
+/// own, so this is what lets a later choice land last.
+Future<T> runConsentWrite<T>(Future<T> Function() write) {
+  final next = _consentWrites.then((_) => write());
+  _consentWrites = next.then<void>((_) {}, onError: (Object _) {});
+  return next;
+}
+
 /// The settings notifier that has read radiance, if any.
 RadianceSettings? _loaded;
 
@@ -204,8 +215,13 @@ class RadianceSettings extends _$RadianceSettings {
   Future<void> setTelemetry(bool consent) async {
     _consentChoices++;
     final svc = ref.read(lanternServiceProvider);
-    final result = await svc.updateTelemetryEvents(consent);
+    final result = await runConsentWrite(
+      () => svc.updateTelemetryEvents(consent),
+    );
     if (!ref.mounted) return;
+    // A consent read started before this write finished may answer with the
+    // value it replaced.
+    _telemetryRefreshes++;
     result.fold(
       (err) => appLogger.error('updateTelemetryEvents failed: ${err.error}'),
       (_) => state = state.copyWith(telemetry: consent),

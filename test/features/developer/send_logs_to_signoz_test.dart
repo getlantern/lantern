@@ -20,6 +20,10 @@ class _Service implements LanternService {
   Completer<void>? holdFirstPatch;
   final patches = <Map<String, dynamic>>[];
 
+  /// Writes in the order they reached radiance.
+  final calls = <String>[];
+  Completer<void>? holdTelemetryWrite;
+
   @override
   Future<Either<Failure, Unit>> patchSettings(
     Map<String, dynamic> updates,
@@ -28,6 +32,7 @@ class _Service implements LanternService {
     holdFirstPatch = null;
     await hold?.future;
     patches.add(updates);
+    calls.add('patch');
     live = {...live, ...updates};
     if (failSave) {
       return left(Failure(error: 'save failed', localizedErrorMessage: ''));
@@ -62,6 +67,10 @@ class _Service implements LanternService {
 
   @override
   Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
+    calls.add('consent=$consent');
+    final hold = holdTelemetryWrite;
+    holdTelemetryWrite = null;
+    await hold?.future;
     live = {...live, kSettingTelemetryEnabled: consent};
     return right(unit);
   }
@@ -216,6 +225,88 @@ void main() {
       ]);
       expect(service.live[kSettingTelemetryEnabled], isFalse);
       expect(container.read(developerDaemonProvider).telemetryEnabled, isFalse);
+    },
+  );
+
+  test('an opt-out sent while an enable is in flight lands last', () async {
+    final service = _Service({});
+    final container = ProviderContainer(
+      overrides: [lanternServiceProvider.overrideWithValue(service)],
+    );
+    addTearDown(container.dispose);
+    container.listen(radianceSettingsProvider, (_, _) {});
+    container.listen(developerDaemonProvider, (_, _) {});
+    await Future<void>.delayed(Duration.zero);
+
+    final hold = service.holdFirstPatch = Completer<void>();
+    final enable = container
+        .read(developerDaemonProvider.notifier)
+        .setSendLogsToSigNoz(true);
+    await Future<void>.delayed(Duration.zero);
+    final optOut =
+        container.read(radianceSettingsProvider.notifier).setTelemetry(false);
+    await Future<void>.delayed(Duration.zero);
+    expect(service.calls, isEmpty, reason: 'the opt-out waits for the enable');
+    hold.complete();
+    await enable;
+    await optOut;
+
+    expect(service.calls, ['patch', 'consent=false']);
+    expect(service.live[kSettingTelemetryEnabled], isFalse);
+  });
+
+  test(
+    'a skipped grant shows consent as the newer choice left it',
+    () async {
+      final service = _Service({kSettingTelemetryEnabled: true});
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.listen(radianceSettingsProvider, (_, _) {});
+      container.listen(developerDaemonProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      final notifier = container.read(developerDaemonProvider.notifier);
+      expect(container.read(developerDaemonProvider).telemetryEnabled, isTrue);
+
+      final hold = service.holdFirstPatch = Completer<void>();
+      final earlier = notifier.setSendLogsToSigNoz(false);
+      final enable = notifier.setSendLogsToSigNoz(true);
+      await Future<void>.delayed(Duration.zero);
+      await container.read(radianceSettingsProvider.notifier).setTelemetry(false);
+      hold.complete();
+      await earlier;
+      await enable;
+
+      expect(container.read(developerDaemonProvider).telemetryEnabled, isFalse);
+    },
+  );
+
+  test(
+    'a consent read that answers after a consent write is dropped',
+    () async {
+      final service = _Service({kSettingTelemetryEnabled: true});
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.listen(radianceSettingsProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      final settings = container.read(radianceSettingsProvider.notifier);
+
+      final write = service.holdTelemetryWrite = Completer<void>();
+      final optOut = settings.setTelemetry(false);
+      await Future<void>.delayed(Duration.zero);
+      final read = Completer<void>();
+      service.telemetryReadHolds.add(read);
+      final refresh = settings.refreshTelemetry();
+      await Future<void>.delayed(Duration.zero);
+      write.complete();
+      await optOut;
+      read.complete();
+      await refresh;
+
+      expect(container.read(radianceSettingsProvider).telemetry, isFalse);
     },
   );
 

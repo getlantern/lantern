@@ -170,12 +170,20 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     bool enabled,
   ) async {
     // A consent choice made after this write was queued, such as opting out
-    // in Settings, is newer and stands.
-    final grantConsent = enabled && consentChoices == choices;
-    final result = await svc.patchSettings({
-      kSettingSendLogsToSigNoz: enabled,
-      if (grantConsent) kSettingTelemetryEnabled: true,
-    });
+    // in Settings, is newer and stands. Turning upload on runs among the
+    // consent writes, and checks for a newer choice just before it's sent, so
+    // a choice either comes first and stands, or is sent after it and lands
+    // last.
+    var grantConsent = false;
+    final result = enabled
+        ? await runConsentWrite(() {
+            grantConsent = consentChoices == choices;
+            return svc.patchSettings({
+              kSettingSendLogsToSigNoz: true,
+              if (grantConsent) kSettingTelemetryEnabled: true,
+            });
+          })
+        : await svc.patchSettings({kSettingSendLogsToSigNoz: false});
     // The settings screen's consent switch reads radiance once; have it read
     // consent again, which this may have turned on, failed save or not. It
     // outlives this notifier, and may have been built since this write was
@@ -199,11 +207,23 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
         }
         return left(err);
       },
-      (_) {
+      (_) async {
         state = state.copyWith(
           sendLogsToSigNoz: enabled,
           telemetryEnabled: grantConsent || state.telemetryEnabled,
         );
+        if (enabled && !grantConsent) {
+          // A newer choice decided consent; show what it is.
+          final current = await svc.getSettings();
+          if (ref.mounted) {
+            current.fold(
+              (_) {},
+              (s) => state = state.copyWith(
+                telemetryEnabled: s[kSettingTelemetryEnabled] == true,
+              ),
+            );
+          }
+        }
         return right(unit);
       },
     );
