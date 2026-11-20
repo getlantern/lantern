@@ -376,6 +376,7 @@ func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEv
 		migrateLocal = settings.Reload
 	}
 	go migrateNightlyLogLevel(ctx, client, migrateLocal, opts.DataDir, nightlyLogLevelMigrationDelays)
+	go disableSigNozLogUploadOffNightly(ctx, client, nightlyLogLevelMigrationDelays)
 
 	slog.Debug("LanternCore initialized successfully")
 	return nil

@@ -25,6 +25,11 @@ const String kEnvCountry = 'RADIANCE_COUNTRY';
 const String kEnvVersion = 'RADIANCE_VERSION';
 const String kEnvFeatureOverrides = 'RADIANCE_FEATURE_OVERRIDES';
 
+/// Radiance settings keys that dev-mode reads or writes. Mirrors the names in
+/// radiance/common/settings/settings.go.
+const String kSettingSendLogsToSigNoz = 'send_logs_to_signoz';
+const String kSettingTelemetryEnabled = 'telemetry_enabled';
+
 /// Snapshot of dev-mode daemon state plus the IPC calls that mutate it.
 /// Auto-disposed so each visit to the developer screen re-fetches fresh
 /// state from the native layer.
@@ -53,6 +58,10 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
       if (disabled is bool) {
         next = next.copyWith(configFetchEnabled: !disabled);
       }
+      next = next.copyWith(
+        sendLogsToSigNoz: settings[kSettingSendLogsToSigNoz] == true,
+        telemetryEnabled: settings[kSettingTelemetryEnabled] == true,
+      );
     });
     envResult.match((_) {}, (env) {
       next = next.copyWith(
@@ -97,6 +106,17 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     if (!ref.mounted) return result;
     return result.map((_) {
       state = state.copyWith(configFetchEnabled: enabled);
+      return unit;
+    });
+  }
+
+  Future<Either<Failure, Unit>> setSendLogsToSigNoz(bool enabled) async {
+    final result = await ref
+        .read(lanternServiceProvider)
+        .patchSettings({kSettingSendLogsToSigNoz: enabled});
+    if (!ref.mounted) return result;
+    return result.map((_) {
+      state = state.copyWith(sendLogsToSigNoz: enabled);
       return unit;
     });
   }

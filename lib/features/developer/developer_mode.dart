@@ -255,6 +255,31 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
           ),
           DividerSpace(),
           AppTile(
+            label: 'Send logs to SigNoz',
+            subtitle: Text(
+              daemon.telemetryEnabled
+                  ? 'Requires telemetry to be enabled (it is on)'
+                  : 'Requires telemetry to be enabled (it is off, so nothing is sent)',
+              style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                    color: context.textTertiary,
+                    letterSpacing: 0.0,
+                  ),
+            ),
+            trailing: SwitchButton(
+              value: daemon.sendLogsToSigNoz,
+              onChanged: (value) {
+                if (daemon.loading) return;
+                _runAndReport(
+                  () => ref
+                      .read(developerDaemonProvider.notifier)
+                      .setSendLogsToSigNoz(value),
+                  'Sending logs to SigNoz ${value ? 'enabled' : 'disabled'}',
+                );
+              },
+            ),
+          ),
+          DividerSpace(),
+          AppTile(
             label: 'Config fetch enabled',
             trailing: SwitchButton(
               value: daemon.configFetchEnabled,
