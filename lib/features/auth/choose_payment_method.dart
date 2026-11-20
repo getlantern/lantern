@@ -14,6 +14,7 @@ import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/plans/checkout_telemetry.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
@@ -77,7 +78,20 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           Expanded(
             child: plansAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) => Center(child: Text(e.toString())),
+              // PlansNotifier already logs the failure.
+              error: (_, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('plans_fetch_error'.i18n, textAlign: TextAlign.center),
+                    AppTextButton(
+                      label: 'retry'.i18n,
+                      onPressed: () =>
+                          ref.read(plansProvider.notifier).retryFetchPlans(),
+                    ),
+                  ],
+                ),
+              ),
               data: (planData) {
                 final providers = PlatformUtils.isAndroid
                     ? planData.providers.android
@@ -176,6 +190,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     final isAndroid = PlatformUtils.isAndroid;
     final isAndroidSideload = isAndroid && !isStoreVersion();
     appLogger.info('User initiated purchase with provider: ${provider.method}');
+    trackCheckout(CheckoutEvent.started, {
+      'provider': provider.providers.name,
+      'plan': ref.read(plansProvider.notifier).userSelectedPlan?.id,
+    });
     switch (provider.providers.name) {
       case 'stripe':
         if (isDesktop) {
@@ -292,6 +310,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           true,
           context,
           ref,
+          provider: 'stripe',
           expirationBefore: userBefore.expiration,
           subscriptionBefore: userBefore.subscriptionData.subscriptionID,
         );
@@ -338,6 +357,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       if (!context.mounted) return;
       await result.fold<Future<void>>(
         (error) async {
+          trackCheckout(CheckoutEvent.redirectFailed, {
+            'provider': 'stripe',
+            'reason': 'server_error',
+          });
           context.showSnackBar(error.localizedErrorMessage);
           appLogger.error('Error subscribing to plan: $error');
           context.hideLoadingDialog();
@@ -364,23 +387,33 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           await Future.delayed(const Duration(milliseconds: 300));
           if (!context.mounted) return;
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+          var opened = false;
           try {
+            final openedAt = DateTime.now();
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedStripeUrl,
               title: 'stripe_payment'.i18n,
               observer: checkoutObserver,
+              throwOnError: true,
             );
+            opened = true;
+            _trackWebviewClosed('stripe', purchaseResult, openedAt);
             if (!context.mounted) return;
             // A closed webview can still have a completed payment behind it.
             await onPurchaseResult(
               purchaseResult ?? true,
               context,
               ref,
+              provider: 'stripe',
               expirationBefore: userBefore.expiration,
               subscriptionBefore: userBefore.subscriptionData.subscriptionID,
               unconfirmedClose: purchaseResult == null,
             );
           } catch (_) {
+            trackCheckout(CheckoutEvent.redirectFailed, {
+              'provider': 'stripe',
+              'reason': opened ? 'confirmation_error' : 'webview_error',
+            });
             if (!context.mounted) return;
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             rethrow;
@@ -422,6 +455,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       await result.fold<Future<void>>(
         (failure) async {
           context.hideLoadingDialog();
+          trackCheckout(CheckoutEvent.redirectFailed, {
+            'provider': provider,
+            'reason': 'server_error',
+          });
           appLogger.error('Error redirecting to payment: ${failure.error}');
           context.showSnackBar(failure.localizedErrorMessage);
         },
@@ -429,32 +466,50 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           context.hideLoadingDialog();
           final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
           if (normalizedUrl.isEmpty) {
+            trackCheckout(CheckoutEvent.redirectFailed, {
+              'provider': provider,
+              'reason': 'empty_url',
+            });
             context.showSnackBar('empty_url'.i18n);
             appLogger.error('Empty payment redirect URL');
             return;
           }
           if (!UrlUtils.isSupportedWebviewUrl(normalizedUrl)) {
+            trackCheckout(CheckoutEvent.redirectFailed, {
+              'provider': provider,
+              'reason': 'unsupported_url',
+            });
             context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
             appLogger.error('Invalid payment redirect URL: $url');
             return;
           }
 
           ref.read(paymentSessionProvider.notifier).markRedirectInitiated();
+          var opened = false;
           try {
+            final openedAt = DateTime.now();
             final purchaseResult = await UrlUtils.openWebview<bool>(
               normalizedUrl,
               observer: checkoutObserver,
+              throwOnError: true,
             );
+            opened = true;
+            _trackWebviewClosed(provider, purchaseResult, openedAt);
             if (!context.mounted) return;
             // Alipay/WeChat may finish in their own app, without a webview redirect.
             await onPurchaseResult(
               purchaseResult ?? true,
               context,
               ref,
+              provider: provider,
               expirationBefore: userBefore.expiration,
               unconfirmedClose: purchaseResult == null,
             );
           } catch (e) {
+            trackCheckout(CheckoutEvent.redirectFailed, {
+              'provider': provider,
+              'reason': opened ? 'confirmation_error' : 'webview_error',
+            });
             if (!context.mounted) return;
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             appLogger.error('Error opening payment redirect URL: $e');
@@ -497,6 +552,18 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     }
   }
 
+  void _trackWebviewClosed(String provider, bool? result, DateTime openedAt) {
+    trackCheckout(
+      CheckoutEvent.webviewClosed,
+      webviewClosedProperties(
+        provider,
+        result,
+        DateTime.now().difference(openedAt),
+        observable: !PlatformUtils.isLinux,
+      ),
+    );
+  }
+
   /// [unconfirmedClose] marks a webview that was closed without a completion
   /// redirect: the backend is still checked (the payment may have settled),
   /// but a negative result is treated as a deliberate cancel, not an error.
@@ -504,11 +571,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     bool purchased,
     BuildContext context,
     WidgetRef ref, {
+    required String provider,
     required int expirationBefore,
     String? subscriptionBefore,
     bool unconfirmedClose = false,
   }) async {
     if (!purchased) {
+      trackCheckout(CheckoutEvent.cancelled, {'provider': provider});
       context.showSnackBar('purchase_not_completed'.i18n);
       ref.read(paymentSessionProvider.notifier).clearRedirect();
       return;
@@ -520,6 +589,15 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       expirationBefore: expirationBefore,
       subscriptionBefore: subscriptionBefore,
       delays: kPurchaseConfirmationDelays,
+    );
+    trackCheckout(
+      purchaseConfirmed ? CheckoutEvent.confirmed : CheckoutEvent.notConfirmed,
+      {
+        'provider': provider,
+        'unconfirmed_close': unconfirmedClose,
+        // Linux can't see the window close, so this may fire mid-payment.
+        if (PlatformUtils.isLinux) 'window_observed': false,
+      },
     );
     if (!context.mounted) return;
     context.hideLoadingDialog();
@@ -598,6 +676,24 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
     final showOriginalPrice = referral.isAffiliate && originalPrice.isNotEmpty;
     final showDiscountDeduction =
         referral.isAffiliate && discountAmount.isNotEmpty;
+    final methodNames = [for (final m in providers) m.providers.name];
+    useEffect(() {
+      trackCheckout(CheckoutEvent.methodsViewed, {'methods': methodNames});
+      return null;
+    }, [methodNames.join(',')]);
+    if (providers.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(defaultSize),
+          child: Text(
+            'no_payment_methods_available'.i18n,
+            key: const Key('choose_payment.empty'),
+            textAlign: TextAlign.center,
+            style: theme.bodyMedium,
+          ),
+        ),
+      );
+    }
     return ListView.builder(
       key: const Key('choose_payment.list'),
       shrinkWrap: true,
@@ -630,10 +726,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
             ),
             title: Row(
               children: [
-                Text(
-                  method.method.replaceAll('-', " ").toTitleCase(),
-                  style: theme.titleMedium,
-                ),
+                Text(method.label, style: theme.titleMedium),
                 SizedBox(width: defaultSize),
                 LogsPath(logoPaths: method.providers.icons),
               ],
@@ -716,7 +809,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
               SizedBox(height: 10),
               Text(
                 method.providers.supportSubscription
-                    ? "Billed every ${userPlan.getDurationText()}. Cancel anytime."
+                    ? userPlan.autoRenewNotice
                     : 'billed_once'.i18n.capitalize,
                 style: theme.bodySmall!.copyWith(color: context.textDisabled),
               ),

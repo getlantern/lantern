@@ -12,10 +12,10 @@ class PlansData {
   List<Android> get platformProviders =>
       PlatformUtils.isAndroid ? providers.android : providers.desktop;
 
-  /// Sorts plans (best-value first, then by descending price) and orders the
-  /// platform's payment providers so subscription-capable ones come first.
-  /// Applied after fetching/attaching plans (including referral V2).
-  void sortPlansAndProviders() {
+  /// Sorts plans best-value first, then by descending price. Applied after
+  /// fetching/attaching plans (including referral V2). Payment providers keep
+  /// the server's order, which puts WeChat Pay and Alipay first in China.
+  void sortPlans() {
     plans.sort((a, b) {
       if (a.bestValue != b.bestValue) {
         return a.bestValue ? -1 : 1;
@@ -23,12 +23,6 @@ class PlansData {
       // Then: sort by usdPrice descending
       return b.usdPrice.compareTo(a.usdPrice);
     });
-
-    platformProviders.sort(
-      (a, b) =>
-          (b.providers.supportSubscription ? 1 : 0) -
-          (a.providers.supportSubscription ? 1 : 0),
-    );
   }
 
   /// Publishable key advertised by the Stripe provider for this platform,
@@ -212,4 +206,14 @@ class ProviderData {
   );
 
   Map<String, dynamic> toJson() => raw;
+}
+
+extension PaymentMethodLabel on Android {
+  /// Localized name for a server payment method, e.g. 微信支付 for wechatpay.
+  String get label => switch (method) {
+    'credit-card' => 'payment_method_credit_card'.i18n,
+    'alipay' => 'payment_method_alipay'.i18n,
+    'wechatpay' => 'payment_method_wechatpay'.i18n,
+    _ => method.replaceAll('-', ' ').toTitleCase(),
+  };
 }

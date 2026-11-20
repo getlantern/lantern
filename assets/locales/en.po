@@ -684,6 +684,33 @@ msgstr "Subscribe"
 msgid "checkout"
 msgstr "Checkout"
 
+msgid "payment_method_credit_card"
+msgstr "Credit Card"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Billed every month. Cancel anytime."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Billed every year. Cancel anytime."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Billed every two years. Cancel anytime."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Renews automatically. Cancel anytime."
+
+msgid "price_per_month"
+msgstr "%s/month"
+
+msgid "no_payment_methods_available"
+msgstr "No payment methods are available right now. Please try again later."
+
 msgid "vpn_may_be_needed"
 msgstr "VPN may be needed"
 

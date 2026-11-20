@@ -61,6 +61,16 @@ class PlansNotifier extends _$PlansNotifier {
     return _fetchPlansWithRetry(fromBackground: fromBackground, attempt: 0);
   }
 
+  /// Refetches plans for a Retry button. A failure is already published as
+  /// the provider's error state, so it isn't rethrown.
+  Future<void> retryFetchPlans() async {
+    try {
+      await fetchPlans();
+    } on Exception {
+      // Shown through the error state.
+    }
+  }
+
   Future<PlansData> _fetchPlansWithRetry({
     required bool fromBackground,
     required int attempt,

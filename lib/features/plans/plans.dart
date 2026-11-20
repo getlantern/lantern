@@ -112,6 +112,12 @@ class _PlansState extends ConsumerState<Plans>
                 padding: EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
                 child: plansState.when(
                   data: (data) {
+                    if (data.plans.isEmpty) {
+                      return Text(
+                        'plans_fetch_error'.i18n,
+                        style: textTheme.labelLarge,
+                      );
+                    }
                     return PlansListView(data: data);
                   },
                   loading: () {
@@ -125,9 +131,9 @@ class _PlansState extends ConsumerState<Plans>
                           style: textTheme.labelLarge,
                         ),
                         AppTextButton(
-                          label: 'Try again',
+                          label: 'retry'.i18n,
                           onPressed: () {
-                            ref.read(plansProvider.notifier).fetchPlans();
+                            ref.read(plansProvider.notifier).retryFetchPlans();
                           },
                         ),
                       ],

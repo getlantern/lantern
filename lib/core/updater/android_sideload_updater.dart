@@ -14,6 +14,7 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/core/utils/telemetry.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -51,13 +52,7 @@ void _trackTelemetry(
   AndroidSideloadUpdateTelemetryEvent event,
   Map<String, Object?> properties,
 ) {
-  final sanitized = <String, Object?>{
-    for (final entry in properties.entries)
-      if (entry.value != null) entry.key: entry.value,
-  };
-  appLogger.info(
-    'telemetry event=${event.tag} properties=${jsonEncode(sanitized)}',
-  );
+  logTelemetry(event.tag, properties);
 }
 
 class AndroidSideloadUpdater {
