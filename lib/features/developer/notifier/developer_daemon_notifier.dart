@@ -52,19 +52,11 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
 
   Future<void> _load() async {
     final svc = ref.read(lanternServiceProvider);
-    // The read joins the switch's write queue. A write queued before the
-    // screen last closed may still be running, and nothing would update this
-    // notifier when it lands, so read after it. A write made after the read
-    // lands after it too, so the read can't overwrite it.
-    final read = _sigNozChain.then(
-      (_) => (svc.getSettings(), svc.getEnvVars()).wait,
-    );
-    _sigNozChain = read.then(
-      (_) => right<Failure, Unit>(unit),
-      onError: (Object e) =>
-          left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
-    );
-    final (settingsResult, envResult) = await read;
+    _loadSendLogsToSigNoz(svc);
+    final (settingsResult, envResult) = await (
+      svc.getSettings(),
+      svc.getEnvVars(),
+    ).wait;
     if (!ref.mounted) return;
     var next = state;
     settingsResult.match((_) {}, (settings) {
@@ -77,7 +69,6 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
         next = next.copyWith(configFetchEnabled: !disabled);
       }
       next = next.copyWith(
-        sendLogsToSigNoz: settings[kSettingSendLogsToSigNoz] == true,
         telemetryEnabled: settings[kSettingTelemetryEnabled] == true,
       );
     });
@@ -126,6 +117,30 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
       state = state.copyWith(configFetchEnabled: enabled);
       return unit;
     });
+  }
+
+  // The switch's own read joins its write queue. A write queued before the
+  // screen last closed may still be running, and nothing would update this
+  // notifier when it lands, so read after it. A write made after the read
+  // lands after it too, so the read can't overwrite it. The rest of the
+  // screen loads without waiting on the queue.
+  void _loadSendLogsToSigNoz(LanternService svc) {
+    final read = _sigNozChain.then((_) async {
+      final current = await svc.getSettings();
+      if (ref.mounted) {
+        current.fold(
+          (_) {},
+          (s) => state = state.copyWith(
+            sendLogsToSigNoz: s[kSettingSendLogsToSigNoz] == true,
+          ),
+        );
+      }
+      return right<Failure, Unit>(unit);
+    });
+    _sigNozChain = read.catchError(
+      (Object e) =>
+          left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
+    );
   }
 
   Future<Either<Failure, Unit>> setSendLogsToSigNoz(bool enabled) {

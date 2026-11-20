@@ -247,14 +247,18 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(
         second.read(developerDaemonProvider).loading,
-        isTrue,
-        reason: 'loading waits for the running write',
+        isFalse,
+        reason: 'the rest of the screen does not wait for the write',
+      );
+      expect(
+        second.read(developerDaemonProvider).sendLogsToSigNoz,
+        isFalse,
+        reason: 'the switch reads only after the running write',
       );
 
       hold.complete();
       await enable;
       await Future<void>.delayed(Duration.zero);
-      expect(second.read(developerDaemonProvider).loading, isFalse);
       expect(second.read(developerDaemonProvider).sendLogsToSigNoz, isTrue);
     },
   );
