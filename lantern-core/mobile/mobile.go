@@ -13,6 +13,7 @@ import (
 	_ "golang.org/x/mobile/bind"
 
 	"github.com/getlantern/radiance/account"
+	"github.com/getlantern/radiance/backend"
 	"github.com/getlantern/radiance/common"
 	"github.com/getlantern/radiance/common/settings"
 	"github.com/getlantern/radiance/ipc"
@@ -447,6 +448,30 @@ func ResetNetworkForMonitor(listener libbox.InterfaceUpdateListener) error {
 		return struct{}{}, nil
 	})
 	return err
+}
+
+// DevicePause pauses the tunnel's background work, such as server probes,
+// while Android is in Doze. The tunnel keeps carrying traffic. It is a no-op
+// when no tunnel is running.
+func DevicePause() {
+	withLocalBackend(func(b *backend.LocalBackend) { b.Pause() })
+}
+
+// DeviceWake undoes DevicePause when Android leaves Doze.
+func DeviceWake() {
+	withLocalBackend(func(b *backend.LocalBackend) { b.Wake() })
+}
+
+func withLocalBackend(fn func(*backend.LocalBackend)) {
+	_, _ = utils.RunOffCgoStack(func() (struct{}, error) {
+		ipcLifecycle.mu.Lock()
+		localBackend := ipcLifecycle.backend
+		ipcLifecycle.mu.Unlock()
+		if localBackend != nil {
+			fn(localBackend)
+		}
+		return struct{}{}, nil
+	})
 }
 
 // FindConnectionOwner resolves the local process that owns a TCP or UDP

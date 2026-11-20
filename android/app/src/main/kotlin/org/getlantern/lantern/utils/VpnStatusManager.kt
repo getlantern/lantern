@@ -1,7 +1,6 @@
 package org.getlantern.lantern.utils
 
 import android.content.IntentFilter
-import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import org.getlantern.lantern.LanternApp
@@ -37,13 +36,12 @@ object VpnStatusManager {
             IntentFilter().apply {
                 addAction(ACTION_START_VPN)
                 addAction(ACTION_STOP_VPN)
-                addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
             },
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
     }
 
-    fun unregisterVPNStatusReceiver(service: LanternVpnService) {
+    fun unregisterVPNStatusReceiver() {
         vpnReceiver?.let {
             try {
                 LanternApp.application.unregisterReceiver(it)
