@@ -110,7 +110,13 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
     });
   }
 
+  // Counts setSendLogsToSigNoz calls, so only the latest one sets the
+  // switch: an earlier call's failed-save read-back can finish after a later
+  // call and would otherwise show a stale value.
+  int _sigNozWrites = 0;
+
   Future<Either<Failure, Unit>> setSendLogsToSigNoz(bool enabled) async {
+    final write = ++_sigNozWrites;
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.patchSettings({kSettingSendLogsToSigNoz: enabled});
     if (!ref.mounted) return result;
@@ -119,7 +125,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
         // Radiance applies the live value before it saves, so a failed save
         // can still have switched upload. Show what it actually is.
         final current = await svc.getSettings();
-        if (ref.mounted) {
+        if (ref.mounted && write == _sigNozWrites) {
           current.fold(
             (_) {},
             (s) => state = state.copyWith(
@@ -130,7 +136,9 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
         return left(err);
       },
       (_) {
-        state = state.copyWith(sendLogsToSigNoz: enabled);
+        if (write == _sigNozWrites) {
+          state = state.copyWith(sendLogsToSigNoz: enabled);
+        }
         return right(unit);
       },
     );

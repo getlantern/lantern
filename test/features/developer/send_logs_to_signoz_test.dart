@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -13,6 +15,7 @@ class _Service implements LanternService {
 
   Map<String, dynamic> live;
   bool failSave = false;
+  Completer<void>? holdReads;
   final patches = <Map<String, dynamic>>[];
 
   @override
@@ -28,8 +31,11 @@ class _Service implements LanternService {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getSettings() async =>
-      right(live);
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async {
+    final snapshot = live;
+    await holdReads?.future;
+    return right(snapshot);
+  }
 
   @override
   Future<Either<Failure, Map<String, String>>> getEnvVars() async => right({});
@@ -50,16 +56,20 @@ Future<ProviderContainer> _load(_Service service) async {
 }
 
 void main() {
-  test('reads the upload switch and telemetry from radiance settings',
-      () async {
-    final container = await _load(_Service({
-      kSettingSendLogsToSigNoz: true,
-      kSettingTelemetryEnabled: true,
-    }));
-    final state = container.read(developerDaemonProvider);
-    expect(state.sendLogsToSigNoz, isTrue);
-    expect(state.telemetryEnabled, isTrue);
-  });
+  test(
+    'reads the upload switch and telemetry from radiance settings',
+    () async {
+      final container = await _load(
+        _Service({
+          kSettingSendLogsToSigNoz: true,
+          kSettingTelemetryEnabled: true,
+        }),
+      );
+      final state = container.read(developerDaemonProvider);
+      expect(state.sendLogsToSigNoz, isTrue);
+      expect(state.telemetryEnabled, isTrue);
+    },
+  );
 
   test('unset settings read as off', () async {
     final container = await _load(_Service({}));
@@ -89,11 +99,38 @@ void main() {
     final result = await container
         .read(developerDaemonProvider.notifier)
         .setSendLogsToSigNoz(true);
-    expect(result.isLeft(), isTrue, reason: 'the error still reaches the caller');
+    expect(
+      result.isLeft(),
+      isTrue,
+      reason: 'the error still reaches the caller',
+    );
     expect(
       container.read(developerDaemonProvider).sendLogsToSigNoz,
       isTrue,
       reason: 'the switch shows upload on, as radiance has it',
     );
   });
+
+  test(
+    'a slow read-back from an earlier failed save does not override a later change',
+    () async {
+      final service = _Service({})..failSave = true;
+      final container = await _load(service);
+      final notifier = container.read(developerDaemonProvider.notifier);
+
+      service.holdReads = Completer<void>();
+      final first = notifier.setSendLogsToSigNoz(false);
+      await Future<void>.delayed(Duration.zero);
+      service.failSave = false;
+      expect((await notifier.setSendLogsToSigNoz(true)).isRight(), isTrue);
+      service.holdReads!.complete();
+      expect((await first).isLeft(), isTrue);
+
+      expect(
+        container.read(developerDaemonProvider).sendLogsToSigNoz,
+        isTrue,
+        reason: 'the later change wins over the stale read-back',
+      );
+    },
+  );
 }
