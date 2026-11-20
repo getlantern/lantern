@@ -2539,3 +2539,12 @@ msgstr "Probar directo primero"
 
 msgid "failed_to_update_proxyless"
 msgstr "No se pudo actualizar Probar directo primero"
+
+msgid "smart_routing_options"
+msgstr "Opciones de enrutamiento inteligente"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Accede directamente a sitios bloqueados cuando es posible"
+
+msgid "smart_routing_direct_description"
+msgstr "El enrutamiento inteligente usa reglas específicas por región para que solo el tráfico que necesita la VPN pase por Lantern. Con «Probar conexión directa primero» activado, se intenta acceder primero a los sitios bloqueados de forma directa con técnicas anticensura y, si eso falla, se usa la VPN."

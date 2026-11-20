@@ -2525,3 +2525,12 @@ msgstr "Önce Doğrudan Dene"
 
 msgid "failed_to_update_proxyless"
 msgstr "Önce Doğrudan Dene güncellenemedi"
+
+msgid "smart_routing_options"
+msgstr "Akıllı Yönlendirme seçenekleri"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Mümkün olduğunda engellenen sitelere doğrudan erişir"
+
+msgid "smart_routing_direct_description"
+msgstr "Akıllı Yönlendirme, yalnızca VPN gerektiren trafiğin Lantern üzerinden gitmesi için bölgeye özel kurallar kullanır. Önce Doğrudan Dene açıkken, engellenen sitelere önce sansür karşıtı tekniklerle doğrudan erişilmeye çalışılır; bu başarısız olursa VPN kullanılır."

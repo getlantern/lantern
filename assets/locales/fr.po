@@ -2502,3 +2502,12 @@ msgstr "Connexion directe d'abord"
 
 msgid "failed_to_update_proxyless"
 msgstr "Impossible de mettre à jour « Connexion directe d'abord »"
+
+msgid "smart_routing_options"
+msgstr "Options du routage intelligent"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Accède directement aux sites bloqués si possible"
+
+msgid "smart_routing_direct_description"
+msgstr "Le routage intelligent utilise des règles spécifiques à la région pour que seul le trafic nécessitant le VPN passe par Lantern. Lorsque « Essayer en direct d'abord » est activé, l'accès aux sites bloqués est d'abord tenté en direct à l'aide de techniques anticensure, puis via le VPN en cas d'échec."

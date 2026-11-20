@@ -2532,3 +2532,12 @@ msgstr "Cuba Terus Dahulu"
 
 msgid "failed_to_update_proxyless"
 msgstr "Tidak dapat mengemas kini Cuba Terus Dahulu"
+
+msgid "smart_routing_options"
+msgstr "Pilihan Penghalaan Pintar"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Mencapai laman yang disekat secara terus jika boleh"
+
+msgid "smart_routing_direct_description"
+msgstr "Penghalaan Pintar menggunakan peraturan khusus wilayah supaya hanya trafik yang memerlukan VPN melalui Lantern. Apabila Cuba Terus Dahulu dihidupkan, laman yang disekat dicuba secara terus dahulu menggunakan teknik antipenapisan, dan beralih kepada VPN jika gagal."

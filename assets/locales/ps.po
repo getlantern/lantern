@@ -2544,3 +2544,12 @@ msgstr "لومړی مستقیم هڅه"
 
 msgid "failed_to_update_proxyless"
 msgstr "لومړی مستقیم هڅه تازه نه شوه"
+
+msgid "smart_routing_options"
+msgstr "د سمارټ روټینګ اختیارونه"
+
+msgid "proxyless_reaches_blocked"
+msgstr "کله چې ممکنه وي، بند سایټونو ته مستقیم رسېږي"
+
+msgid "smart_routing_direct_description"
+msgstr "سمارټ روټینګ د سیمې ځانګړي مقررات کاروي ترڅو یوازې هغه ترافیک چې VPN ته اړتیا لري د Lantern له لارې تېر شي. کله چې «لومړی مستقیم هڅه» فعاله وي، بند سایټونه لومړی د سانسور ضد تخنیکونو په کارولو سره مستقیم هڅه کېږي. که دا ناکامه شي، VPN کارول کېږي."

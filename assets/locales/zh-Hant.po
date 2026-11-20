@@ -2379,3 +2379,12 @@ msgstr "優先直連"
 
 msgid "failed_to_update_proxyless"
 msgstr "無法更新「優先直連」"
+
+msgid "smart_routing_options"
+msgstr "智慧路由選項"
+
+msgid "proxyless_reaches_blocked"
+msgstr "盡可能直接連上被封鎖的網站"
+
+msgid "smart_routing_direct_description"
+msgstr "智慧路由使用特定地區的規則，只讓需要 VPN 的流量經過 Lantern。開啟「優先直連」後，會先使用反審查技術直接連上被封鎖的網站，失敗時再改用 VPN。"

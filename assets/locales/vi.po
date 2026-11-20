@@ -2523,3 +2523,12 @@ msgstr "Thử trực tiếp trước"
 
 msgid "failed_to_update_proxyless"
 msgstr "Không thể cập nhật Thử trực tiếp trước"
+
+msgid "smart_routing_options"
+msgstr "Tùy chọn định tuyến thông minh"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Truy cập trực tiếp trang web bị chặn khi có thể"
+
+msgid "smart_routing_direct_description"
+msgstr "Định tuyến thông minh sử dụng các quy tắc theo khu vực để chỉ lưu lượng cần VPN mới đi qua Lantern. Khi bật Thử trực tiếp trước, các trang web bị chặn sẽ được thử truy cập trực tiếp trước bằng kỹ thuật chống kiểm duyệt, và chuyển sang VPN nếu không thành công."

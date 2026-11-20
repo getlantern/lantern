@@ -2374,3 +2374,12 @@ msgstr "优先直连"
 
 msgid "failed_to_update_proxyless"
 msgstr "无法更新“优先直连”"
+
+msgid "smart_routing_options"
+msgstr "智能路由选项"
+
+msgid "proxyless_reaches_blocked"
+msgstr "尽可能直接访问被封锁的网站"
+
+msgid "smart_routing_direct_description"
+msgstr "智能路由使用特定地区的规则，仅让需要 VPN 的流量通过蓝灯。开启“优先直连”后，将先使用反审查技术直接访问被封锁的网站，失败时再回退到 VPN。"

@@ -2526,3 +2526,12 @@ msgstr "پہلے سیدھے کوشش"
 
 msgid "failed_to_update_proxyless"
 msgstr "پہلے سیدھے کوشش اپ ڈیٹ نہیں ہو سکی"
+
+msgid "smart_routing_options"
+msgstr "سمارٹ روٹنگ کے اختیارات"
+
+msgid "proxyless_reaches_blocked"
+msgstr "ممکن ہونے پر بلاک شدہ سائٹس تک براہ راست رسائی"
+
+msgid "smart_routing_direct_description"
+msgstr "سمارٹ روٹنگ علاقائی اصول استعمال کرتی ہے تاکہ صرف وہ ٹریفک Lantern سے گزرے جسے VPN کی ضرورت ہو۔ \"پہلے براہ راست آزمائیں\" آن ہونے پر بلاک شدہ سائٹس کو پہلے سنسرشپ مخالف تکنیکوں سے براہ راست کھولنے کی کوشش کی جاتی ہے، اور ناکامی پر VPN استعمال ہوتا ہے۔"
