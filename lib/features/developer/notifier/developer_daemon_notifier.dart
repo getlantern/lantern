@@ -132,6 +132,7 @@ class DeveloperDaemonNotifier extends _$DeveloperDaemonNotifier {
           (_) {},
           (s) => state = state.copyWith(
             sendLogsToSigNoz: s[kSettingSendLogsToSigNoz] == true,
+            sendLogsToSigNozLoaded: true,
           ),
         );
       }

@@ -268,7 +268,7 @@ class _DeveloperModeState extends ConsumerState<DeveloperMode> {
             trailing: SwitchButton(
               value: daemon.sendLogsToSigNoz,
               onChanged: (value) {
-                if (daemon.loading) return;
+                if (!daemon.sendLogsToSigNozLoaded) return;
                 _runAndReport(
                   () => ref
                       .read(developerDaemonProvider.notifier)

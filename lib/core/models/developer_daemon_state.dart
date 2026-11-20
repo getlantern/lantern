@@ -7,6 +7,10 @@ class DeveloperDaemonState {
   final String logLevel;
   final bool configFetchEnabled;
   final bool sendLogsToSigNoz;
+
+  /// False until the switch's own read lands, which waits for any write
+  /// still queued from an earlier visit.
+  final bool sendLogsToSigNozLoaded;
   final bool telemetryEnabled;
   final String country;
   final String version;
@@ -17,6 +21,7 @@ class DeveloperDaemonState {
     this.logLevel = 'info',
     this.configFetchEnabled = true,
     this.sendLogsToSigNoz = false,
+    this.sendLogsToSigNozLoaded = false,
     this.telemetryEnabled = false,
     this.country = '',
     this.version = '',
@@ -28,6 +33,7 @@ class DeveloperDaemonState {
     String? logLevel,
     bool? configFetchEnabled,
     bool? sendLogsToSigNoz,
+    bool? sendLogsToSigNozLoaded,
     bool? telemetryEnabled,
     String? country,
     String? version,
@@ -38,6 +44,8 @@ class DeveloperDaemonState {
       logLevel: logLevel ?? this.logLevel,
       configFetchEnabled: configFetchEnabled ?? this.configFetchEnabled,
       sendLogsToSigNoz: sendLogsToSigNoz ?? this.sendLogsToSigNoz,
+      sendLogsToSigNozLoaded:
+          sendLogsToSigNozLoaded ?? this.sendLogsToSigNozLoaded,
       telemetryEnabled: telemetryEnabled ?? this.telemetryEnabled,
       country: country ?? this.country,
       version: version ?? this.version,
@@ -53,6 +61,7 @@ class DeveloperDaemonState {
           logLevel == other.logLevel &&
           configFetchEnabled == other.configFetchEnabled &&
           sendLogsToSigNoz == other.sendLogsToSigNoz &&
+          sendLogsToSigNozLoaded == other.sendLogsToSigNozLoaded &&
           telemetryEnabled == other.telemetryEnabled &&
           country == other.country &&
           version == other.version &&
@@ -64,6 +73,7 @@ class DeveloperDaemonState {
         logLevel,
         configFetchEnabled,
         sendLogsToSigNoz,
+        sendLogsToSigNozLoaded,
         telemetryEnabled,
         country,
         version,

@@ -72,6 +72,7 @@ void main() {
       final state = container.read(developerDaemonProvider);
       expect(state.sendLogsToSigNoz, isTrue);
       expect(state.telemetryEnabled, isTrue);
+    expect(state.sendLogsToSigNozLoaded, isTrue);
     },
   );
 
@@ -251,7 +252,7 @@ void main() {
         reason: 'the rest of the screen does not wait for the write',
       );
       expect(
-        second.read(developerDaemonProvider).sendLogsToSigNoz,
+        second.read(developerDaemonProvider).sendLogsToSigNozLoaded,
         isFalse,
         reason: 'the switch reads only after the running write',
       );
@@ -260,6 +261,10 @@ void main() {
       await enable;
       await Future<void>.delayed(Duration.zero);
       expect(second.read(developerDaemonProvider).sendLogsToSigNoz, isTrue);
+      expect(
+        second.read(developerDaemonProvider).sendLogsToSigNozLoaded,
+        isTrue,
+      );
     },
   );
 }
