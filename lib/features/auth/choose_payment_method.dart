@@ -14,9 +14,9 @@ import 'package:lantern/core/services/stripe_service.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/features/plans/checkout_telemetry.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
-import 'package:lantern/features/plans/checkout_telemetry.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
 const _paymentE2EEnabled = bool.fromEnvironment('PAYMENT_E2E_ENABLED');
@@ -78,25 +78,20 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           Expanded(
             child: plansAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) {
-                appLogger.error('Failed to load payment methods', e, st);
-                return Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'plans_fetch_error'.i18n,
-                        textAlign: TextAlign.center,
-                      ),
-                      AppTextButton(
-                        label: 'retry'.i18n,
-                        onPressed: () =>
-                            ref.read(plansProvider.notifier).retryFetchPlans(),
-                      ),
-                    ],
-                  ),
-                );
-              },
+              // PlansNotifier already logs the failure.
+              error: (_, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('plans_fetch_error'.i18n, textAlign: TextAlign.center),
+                    AppTextButton(
+                      label: 'retry'.i18n,
+                      onPressed: () =>
+                          ref.read(plansProvider.notifier).retryFetchPlans(),
+                    ),
+                  ],
+                ),
+              ),
               data: (planData) {
                 final providers = PlatformUtils.isAndroid
                     ? planData.providers.android
@@ -197,7 +192,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     appLogger.info('User initiated purchase with provider: ${provider.method}');
     trackCheckout(CheckoutEvent.started, {
       'provider': provider.providers.name,
-      'plan': ref.read(plansProvider.notifier).getSelectedPlan().id,
+      'plan': ref.read(plansProvider.notifier).userSelectedPlan?.id,
     });
     switch (provider.providers.name) {
       case 'stripe':

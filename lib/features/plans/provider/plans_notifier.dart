@@ -66,7 +66,9 @@ class PlansNotifier extends _$PlansNotifier {
   Future<void> retryFetchPlans() async {
     try {
       await fetchPlans();
-    } catch (_) {}
+    } on Exception {
+      // Shown through the error state.
+    }
   }
 
   Future<PlansData> _fetchPlansWithRetry({
