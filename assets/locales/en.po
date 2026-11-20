@@ -1615,15 +1615,6 @@ msgstr "Verify with %s"
 msgid "renew"
 msgstr "Renew"
 
-
-
-
-
-
-
-
-
-
 msgid "open_settings"
 msgstr "Open Settings"
 
