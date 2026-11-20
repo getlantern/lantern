@@ -214,7 +214,8 @@ jobs:
 
   windows:
     needs: prepare
-    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) && inputs.tests != 'auto-update' }}
+    # payment-smoke runs only in windows-payment below.
+    if: ${{ contains(fromJSON('["all", "windows", ""]'), inputs.platforms) && !contains(fromJSON('["auto-update", "payment-smoke"]'), inputs.tests || 'all') }}
     uses: ./.github/workflows/build-windows.yml
     secrets: inherit
     with:
