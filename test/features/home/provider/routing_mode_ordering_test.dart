@@ -180,4 +180,31 @@ void main() {
       expect(notifier.requestedRoutingMode, RoutingMode.smart);
     },
   );
+
+  test('a failed write shows the mode actually in effect, even after the '
+      'startup read was set aside for it', () async {
+    final service = _Service()
+      ..smart = true
+      ..fail = true
+      ..readGate = Completer<void>();
+    final container = ProviderContainer(
+      overrides: [lanternServiceProvider.overrideWithValue(service)],
+    );
+    addTearDown(container.dispose);
+    container.read(radianceSettingsProvider); // the read starts: Smart
+    await _settle();
+    final notifier = container.read(radianceSettingsProvider.notifier);
+    final write = notifier.setRoutingMode(RoutingMode.full);
+    service.readGate!.complete(); // the read lands, set aside for the write
+    await _settle();
+    await _settle();
+    service.gates[0].complete(); // the write fails
+    expect((await write).isLeft(), isTrue);
+    expect(
+      container.read(radianceSettingsProvider).routingMode,
+      RoutingMode.smart,
+      reason: 're-read after the failure',
+    );
+    expect(notifier.requestedRoutingMode, RoutingMode.smart);
+  });
 }

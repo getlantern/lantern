@@ -140,13 +140,27 @@ class RadianceSettings extends _$RadianceSettings {
     if (!ref.mounted) return right(unit);
     // Only the latest request settles what was asked for; on its failure,
     // what is in effect is what was there.
-    if (request == _routingRequests) _routingTarget = null;
+    final latest = request == _routingRequests;
+    if (latest) _routingTarget = null;
     return result.fold(
-      (err) {
+      (err) async {
         appLogger.error('setRoutingMode failed: ${err.error}');
+        // The screen may show a guess (the startup read can have been set
+        // aside for this write): show the mode actually in effect.
+        if (latest) {
+          final current = await svc.isSmartRoutingEnabled();
+          if (ref.mounted && request == _routingRequests) {
+            current.fold(
+              (_) {},
+              (smart) => state = state.copyWith(
+                routingMode: smart ? RoutingMode.smart : RoutingMode.full,
+              ),
+            );
+          }
+        }
         return left(err);
       },
-      (_) {
+      (_) async {
         state = state.copyWith(routingMode: mode);
         return right(unit);
       },
