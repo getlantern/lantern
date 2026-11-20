@@ -71,9 +71,9 @@ class RadianceSettings extends _$RadianceSettings {
   /// (positional-by-name, not positional-by-index) so adding another
   /// optional fetch later can't silently desync the read indices.
   Future<void> _refresh() async {
-    // A consent refresh or choice made while this read runs is newer than
+    // A consent read or choice that lands while this read runs is newer than
     // its answer, so it keeps its value (below).
-    final telemetryRefresh = ++_telemetryRefreshes;
+    final telemetryRead = ++_telemetryReads;
     final consentChoices = _consentChoices;
     final svc = ref.read(lanternServiceProvider);
     final blockAdsF = svc.isBlockAdsEnabled();
@@ -100,6 +100,10 @@ class RadianceSettings extends _$RadianceSettings {
     if (!ref.mounted) return;
 
     const defaults = RadianceSettingsState();
+    final applyTelemetry = _acceptsTelemetryRead(telemetryRead, consentChoices);
+    if (applyTelemetry && telemetry.isRight()) {
+      _telemetryApplied = telemetryRead;
+    }
     state = RadianceSettingsState(
       blockAds: blockAds.fold((_) => defaults.blockAds, (v) => v),
       routingMode: routingRequests != _routingRequests
@@ -108,10 +112,9 @@ class RadianceSettings extends _$RadianceSettings {
               (_) => defaults.routingMode,
               (smart) => smart ? RoutingMode.smart : RoutingMode.full,
             ),
-      telemetry: telemetryRefresh != _telemetryRefreshes ||
-              consentChoices != _consentChoices
-          ? state.telemetry
-          : telemetry.fold((_) => defaults.telemetry, (v) => v),
+      telemetry: applyTelemetry
+          ? telemetry.fold((_) => defaults.telemetry, (v) => v)
+          : state.telemetry,
       peerProxy: peer.fold((_) => defaults.peerProxy, (v) => v),
       unboundedEnabled: unbounded.fold(
         (_) => defaults.unboundedEnabled,
@@ -246,22 +249,31 @@ class RadianceSettings extends _$RadianceSettings {
     );
   }
 
-  int _telemetryRefreshes = 0;
+  /// Consent reads, numbered in the order they start, and the newest one whose
+  /// answer is shown. A read that fails applies nothing, so it doesn't stop an
+  /// older read from landing.
+  int _telemetryReads = 0;
+  int _telemetryApplied = 0;
+
+  /// Whether a consent read may apply: nothing newer has, and no consent
+  /// choice was made after it started.
+  bool _acceptsTelemetryRead(int read, int choices) =>
+      read > _telemetryApplied && choices == _consentChoices;
 
   /// Re-reads telemetry consent, which Developer mode's "Send logs to SigNoz"
   /// switch turns on. Only the latest read applies, and none started before a
   /// later consent choice.
   Future<void> refreshTelemetry() async {
     if (!ref.mounted) return;
-    final refresh = ++_telemetryRefreshes;
+    final read = ++_telemetryReads;
     final choices = _consentChoices;
     final result = await ref.read(lanternServiceProvider).isTelemetryEnabled();
-    if (!ref.mounted ||
-        refresh != _telemetryRefreshes ||
-        choices != _consentChoices) {
-      return;
-    }
-    result.fold((_) {}, (v) => state = state.copyWith(telemetry: v));
+    if (!ref.mounted) return;
+    result.fold((_) {}, (v) {
+      if (!_acceptsTelemetryRead(read, choices)) return;
+      _telemetryApplied = read;
+      state = state.copyWith(telemetry: v);
+    });
   }
 
   Future<void> setTelemetry(bool consent) async {
@@ -271,13 +283,19 @@ class RadianceSettings extends _$RadianceSettings {
       () => svc.updateTelemetryEvents(consent),
     );
     if (!ref.mounted) return;
+    if (result.isLeft()) {
+      result.mapLeft(
+        (err) => appLogger.error('updateTelemetryEvents failed: ${err.error}'),
+      );
+      // This choice dropped every read started before it, so ask radiance
+      // what it holds now.
+      await refreshTelemetry();
+      return;
+    }
     // A consent read started before this write finished may answer with the
     // value it replaced.
-    _telemetryRefreshes++;
-    result.fold(
-      (err) => appLogger.error('updateTelemetryEvents failed: ${err.error}'),
-      (_) => state = state.copyWith(telemetry: consent),
-    );
+    _telemetryApplied = ++_telemetryReads;
+    state = state.copyWith(telemetry: consent);
   }
 
   /// Enable/disable the peer-proxy (Share My Connection) radiance

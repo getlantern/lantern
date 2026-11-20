@@ -60,8 +60,16 @@ class _Service implements LanternService {
   /// Holds for successive consent reads, used in order.
   final telemetryReadHolds = <Completer<void>>[];
 
+  /// Consent reads still to fail, counted down as reads start.
+  int failTelemetryReads = 0;
+  bool failTelemetryWrite = false;
+
   @override
   Future<Either<Failure, bool>> isTelemetryEnabled() async {
+    if (failTelemetryReads > 0) {
+      failTelemetryReads--;
+      return left(Failure(error: 'read failed', localizedErrorMessage: ''));
+    }
     final snapshot = live[kSettingTelemetryEnabled] == true;
     final hold = telemetryReadHolds.isEmpty
         ? holdTelemetryReads
@@ -76,6 +84,9 @@ class _Service implements LanternService {
     final hold = holdTelemetryWrite;
     holdTelemetryWrite = null;
     await hold?.future;
+    if (failTelemetryWrite) {
+      return left(Failure(error: 'write failed', localizedErrorMessage: ''));
+    }
     live = {...live, kSettingTelemetryEnabled: consent};
     return right(unit);
   }
@@ -346,6 +357,49 @@ void main() {
       expect(second.read(developerDaemonProvider).telemetryEnabled, isTrue);
     },
   );
+
+  test(
+    'a consent re-read that fails leaves the settings load to show consent',
+    () async {
+      final service = _Service({kSettingTelemetryEnabled: true});
+      final load = Completer<void>();
+      service.telemetryReadHolds.add(load);
+      final container = ProviderContainer(
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      container.listen(radianceSettingsProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+
+      service.failTelemetryReads = 1;
+      await container
+          .read(radianceSettingsProvider.notifier)
+          .refreshTelemetry();
+      load.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(radianceSettingsProvider).telemetry, isTrue);
+    },
+  );
+
+  test('a consent write that fails shows the consent radiance kept', () async {
+    final service = _Service({kSettingTelemetryEnabled: true});
+    final load = Completer<void>();
+    service.telemetryReadHolds.add(load);
+    final container = ProviderContainer(
+      overrides: [lanternServiceProvider.overrideWithValue(service)],
+    );
+    addTearDown(container.dispose);
+    container.listen(radianceSettingsProvider, (_, _) {});
+    await Future<void>.delayed(Duration.zero);
+
+    service.failTelemetryWrite = true;
+    await container.read(radianceSettingsProvider.notifier).setTelemetry(false);
+    load.complete();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(container.read(radianceSettingsProvider).telemetry, isTrue);
+  });
 
   test('only the latest consent refresh applies', () async {
     final service = _Service({});
