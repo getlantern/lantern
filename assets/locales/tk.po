@@ -2503,11 +2503,5 @@ msgstr "Siziň toruňyzdan %s elýeterli däl ýaly görünýär. Başga ýerle�
 msgid "proxyless"
 msgstr "Ilki göni synanyş"
 
-msgid "proxyless_subtitle"
-msgstr "Saýt bloklanmadyk bolsa has çalt"
-
-msgid "proxyless_description"
-msgstr "Lantern ilki VPN ulanjak saýtlara senzura garşy usullar bilen göni girmäge synanyşýar we diňe başartmasa VPN ulanýar. Bu has çalt, emma toruňyz haýsy saýtlara göni girýändigiňizi görüp biler."
-
 msgid "failed_to_update_proxyless"
 msgstr "«Ilki göni synanyş» täzelenip bilinmedi"

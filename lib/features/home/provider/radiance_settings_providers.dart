@@ -85,9 +85,10 @@ class RadianceSettings extends _$RadianceSettings {
     // the router, so mobile is included rather than desktop-only.
     final peerF = svc.isPeerProxyEnabled();
     final unboundedF = svc.isUnboundedEnabled();
-    // A Try Direct First write that starts while this read is in flight
-    // is newer than its answer, so it keeps its value (below).
+    // A Try Direct First or routing mode write that starts while this read
+    // is in flight is newer than its answer, so it keeps its value (below).
     final proxylessWrites = _proxylessWrites;
+    final routingRequests = _routingRequests;
     final settingsF = svc.getSettings();
 
     final blockAds = await blockAdsF;
@@ -101,10 +102,12 @@ class RadianceSettings extends _$RadianceSettings {
     const defaults = RadianceSettingsState();
     state = RadianceSettingsState(
       blockAds: blockAds.fold((_) => defaults.blockAds, (v) => v),
-      routingMode: routing.fold(
-        (_) => defaults.routingMode,
-        (smart) => smart ? RoutingMode.smart : RoutingMode.full,
-      ),
+      routingMode: routingRequests != _routingRequests
+          ? state.routingMode
+          : routing.fold(
+              (_) => defaults.routingMode,
+              (smart) => smart ? RoutingMode.smart : RoutingMode.full,
+            ),
       telemetry: telemetryRefresh != _telemetryRefreshes ||
               consentChoices != _consentChoices
           ? state.telemetry
@@ -141,16 +144,65 @@ class RadianceSettings extends _$RadianceSettings {
     );
   }
 
-  Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) async {
+  /// The routing mode last asked for, which [state] shows once its write
+  /// lands. Null when nothing is pending.
+  RoutingMode? _routingTarget;
+
+  /// Counts routing mode requests, so only the latest one's completion
+  /// clears [_routingTarget]: an earlier request for the same mode finishing
+  /// first must not, while the latest is still queued.
+  int _routingRequests = 0;
+
+  /// Routing mode writes run one at a time, in order, so the last one asked
+  /// for is the one that sticks, as with Try Direct First.
+  Future<Either<Failure, Unit>> _routingChain = Future.value(right(unit));
+
+  /// The routing mode the user last chose: one still being written, or else
+  /// the one in effect. Routing Mode stays open while a write runs, so its
+  /// "already chosen" check reads this rather than [state].
+  RoutingMode get requestedRoutingMode => _routingTarget ?? state.routingMode;
+
+  Future<Either<Failure, Unit>> setRoutingMode(RoutingMode mode) {
+    final request = ++_routingRequests;
+    _routingTarget = mode;
+    final next = _routingChain.then((_) => _writeRoutingMode(mode, request));
+    _routingChain = next.catchError(
+      (Object e) =>
+          left<Failure, Unit>(Failure(error: '$e', localizedErrorMessage: '')),
+    );
+    return next;
+  }
+
+  Future<Either<Failure, Unit>> _writeRoutingMode(
+    RoutingMode mode,
+    int request,
+  ) async {
     final svc = ref.read(lanternServiceProvider);
     final result = await svc.setRoutingMode(mode == RoutingMode.smart);
     if (!ref.mounted) return right(unit);
+    // Only the latest request settles what was asked for; on its failure,
+    // what is in effect is what was there.
+    final latest = request == _routingRequests;
+    if (latest) _routingTarget = null;
     return result.fold(
-      (err) {
+      (err) async {
         appLogger.error('setRoutingMode failed: ${err.error}');
+        // The screen may show a guess (the startup read can have been set
+        // aside for this write): show the mode actually in effect.
+        if (latest) {
+          final current = await svc.isSmartRoutingEnabled();
+          if (ref.mounted && request == _routingRequests) {
+            current.fold(
+              (_) {},
+              (smart) => state = state.copyWith(
+                routingMode: smart ? RoutingMode.smart : RoutingMode.full,
+              ),
+            );
+          }
+        }
         return left(err);
       },
-      (_) {
+      (_) async {
         state = state.copyWith(routingMode: mode);
         return right(unit);
       },

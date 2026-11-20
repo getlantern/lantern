@@ -2372,11 +2372,5 @@ msgstr "从您的网络似乎无法访问 %s。点按以选择其他位置。"
 msgid "proxyless"
 msgstr "优先直连"
 
-msgid "proxyless_subtitle"
-msgstr "网站未被封锁时更快"
-
-msgid "proxyless_description"
-msgstr "对于原本使用 VPN 的网站，蓝灯会先借助反审查技术尝试直接访问，失败时才使用 VPN。这样速度更快，但您的网络可以看到您直接访问了哪些网站。"
-
 msgid "failed_to_update_proxyless"
 msgstr "无法更新“优先直连”"

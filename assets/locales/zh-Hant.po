@@ -2377,11 +2377,5 @@ msgstr "從你的網路似乎無法連上 %s。輕觸以選擇其他位置。"
 msgid "proxyless"
 msgstr "優先直連"
 
-msgid "proxyless_subtitle"
-msgstr "網站未被封鎖時更快"
-
-msgid "proxyless_description"
-msgstr "對於原本使用 VPN 的網站，Lantern 會先藉助反審查技術嘗試直接連線，失敗時才使用 VPN。這樣速度更快，但你的網路可以看到你直接連線了哪些網站。"
-
 msgid "failed_to_update_proxyless"
 msgstr "無法更新「優先直連」"
