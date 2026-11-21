@@ -45,9 +45,9 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/broflake v0.0.0-20261120001200-65a56bdcb295
 	github.com/getlantern/common v1.2.1-0.20261119180934-02036a2e32ad
-	github.com/getlantern/lantern-box v0.0.242
+	github.com/getlantern/lantern-box v0.0.243
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261121174352-b1a9d2ad1419
+	github.com/getlantern/radiance v0.0.0-20261121194459-ed71d26eb705
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
