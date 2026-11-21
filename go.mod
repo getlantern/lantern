@@ -30,13 +30,12 @@ replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.
 
 replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-water.1
 
-// x/httpconnect in golang.getoutline.org/sdk/x v0.3.0 doesn't build against
-// the quic-go this module resolves (quic.EarlyConnection was removed in
-// quic-go v0.53). The fork carries the one-line fix from upstream
-// OutlineFoundation/outline-sdk#657; drop this once an upstream x release
-// includes it. radiance, lantern-box and kindling carry the same replace,
-// but a replace applies only in the main module.
-replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.1
+// x/v0.3.0 plus two fixes: x/httpconnect builds against quic-go >= v0.53
+// (quic.EarlyConnection became *quic.Conn), and disorder finds the TCP socket
+// through NetConn, which lantern-box's outline stream wrapper provides. A
+// replace only applies in the main module, so lantern repeats radiance's.
+// Drop once an upstream x release has both.
+replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.2
 
 replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
 
@@ -46,9 +45,9 @@ require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/broflake v0.0.0-20261120001200-65a56bdcb295
 	github.com/getlantern/common v1.2.1-0.20261119180934-02036a2e32ad
-	github.com/getlantern/lantern-box v0.0.240
+	github.com/getlantern/lantern-box v0.0.242
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261121161923-0c920c73b969
+	github.com/getlantern/radiance v0.0.0-20261121174352-b1a9d2ad1419
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
