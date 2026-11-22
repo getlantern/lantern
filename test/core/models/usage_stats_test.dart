@@ -69,4 +69,16 @@ void main() {
     expect(stats.since, isNull);
     expect(stats.monthStart, isNull);
   });
+
+  test('a month that is not a string, or an unsupported year, is unknown', () {
+    expect(UsageStats.fromJson({'month': 202611}).month, '');
+    expect(UsageStats.fromJson({'month': 202611}).monthStart, isNull);
+    expect(UsageStats.fromJson({'month': '0000-11'}).monthStart, isNull);
+    expect(UsageStats.fromJson({'month': '12026-11'}).monthStart, isNull);
+    expect(UsageStats.fromJson({'month': '2026-13'}).monthStart, isNull);
+    expect(
+      UsageStats.fromJson({'since': '+12026-01-01T00:00:00Z'}).since,
+      isNull,
+    );
+  });
 }

@@ -13,8 +13,15 @@ import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/setting/provider/usage_stats_notifier.dart';
 
 /// How often the screen reloads the stats while it's on top and the app is
-/// in the foreground.
+/// visible.
 const usageStatsRefreshInterval = Duration(seconds: 10);
+
+/// Whether the app can be seen. A desktop window that is visible but not
+/// focused is inactive, and still counts.
+bool _appVisible(AppLifecycleState? state) =>
+    state == null ||
+    state == AppLifecycleState.resumed ||
+    state == AppLifecycleState.inactive;
 
 @RoutePage(name: 'UsageStatsScreen')
 class UsageStatsScreen extends HookConsumerWidget {
@@ -29,22 +36,43 @@ class UsageStatsScreen extends HookConsumerWidget {
       () => tabController.index == 1,
     );
 
+    // Reloads only while the screen can be seen: the timer stops while the
+    // app is hidden or another route covers this one, and coming back reloads
+    // at once. The first load is build's, so that reload returns early.
+    // Lifecycle changes act at once rather than on a rebuild, since a hidden
+    // app draws no frames.
+    final routeCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+    final timer = useRef<Timer?>(null);
+    void stop() {
+      timer.value?.cancel();
+      timer.value = null;
+    }
+
+    void sync(bool visible) {
+      if (!visible) return stop();
+      if (timer.value != null) return;
+      final notifier = ref.read(usageStatsProvider.notifier);
+      unawaited(notifier.refresh());
+      timer.value = Timer.periodic(
+        usageStatsRefreshInterval,
+        (_) => unawaited(notifier.refresh()),
+      );
+    }
+
+    useOnAppLifecycleStateChange(
+      (_, state) => sync(routeCurrent && _appVisible(state)),
+    );
     useEffect(() {
-      final timer = Timer.periodic(usageStatsRefreshInterval, (_) {
-        if (WidgetsBinding.instance.lifecycleState !=
-            AppLifecycleState.resumed) {
-          return;
-        }
-        if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
-        unawaited(ref.read(usageStatsProvider.notifier).refresh());
-      });
-      return timer.cancel;
-    }, const []);
+      sync(routeCurrent && _appVisible(WidgetsBinding.instance.lifecycleState));
+      return null;
+    }, [routeCurrent]);
+    useEffect(() => stop, const []);
 
     return BaseScreen(
       title: 'usage_stats'.i18n,
       body: statsAsync.when(
-        skipLoadingOnRefresh: true,
+        // Retry after a failed load shows the spinner.
+        skipLoadingOnRefresh: false,
         skipLoadingOnReload: true,
         data: (stats) => _UsageStatsBody(
           stats: stats,
@@ -76,7 +104,7 @@ class UsageStatsScreen extends HookConsumerWidget {
   }
 }
 
-class _UsageStatsBody extends ConsumerWidget {
+class _UsageStatsBody extends HookConsumerWidget {
   const _UsageStatsBody({
     required this.stats,
     required this.allTime,
@@ -91,6 +119,7 @@ class _UsageStatsBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final hasDataCap = ref.watch(dataCapInfoProvider).value?.enabled ?? false;
+    final resetting = useState(false);
     final totals = allTime ? stats.lifetime : stats.thisMonth;
     final caption = allTime ? _sinceLabel(stats.since) : _monthLabel(stats);
 
@@ -153,7 +182,6 @@ class _UsageStatsBody extends ConsumerWidget {
           child: _PathTile(
             path: UsagePath.proxyless,
             bytes: totals[UsagePath.proxyless],
-            note: hasDataCap ? 'usage_stats_proxyless_data_cap'.i18n : null,
           ),
         ),
         const SizedBox(height: defaultSize),
@@ -168,7 +196,14 @@ class _UsageStatsBody extends ConsumerWidget {
                 UsagePath.direct,
               ].indexed) ...[
                 if (i > 0) DividerSpace(),
-                _PathTile(path: path, bytes: totals[path]),
+                _PathTile(
+                  path: path,
+                  bytes: totals[path],
+                  // Only Lantern's servers count toward the cap.
+                  note: hasDataCap && path == UsagePath.lantern
+                      ? 'usage_stats_lantern_data_cap'.i18n
+                      : null,
+                ),
               ],
             ],
           ),
@@ -181,19 +216,36 @@ class _UsageStatsBody extends ConsumerWidget {
           text: 'usage_stats_privacy'.i18n,
         ),
         const SizedBox(height: defaultSize),
-        Center(
-          child: AppTextButton(
-            key: const Key('usage_stats.reset'),
-            label: 'usage_stats_reset'.i18n,
-            onPressed: () => _confirmReset(context, ref),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AppTextButton(
+              key: const Key('usage_stats.reset'),
+              label: 'usage_stats_reset'.i18n,
+              onPressed: resetting.value
+                  ? null
+                  : () => _confirmReset(context, ref, resetting),
+            ),
+            if (resetting.value) ...[
+              const SizedBox(width: 8),
+              const SizedBox.square(
+                key: Key('usage_stats.resetting'),
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: size24),
       ],
     );
   }
 
-  Future<void> _confirmReset(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmReset(
+    BuildContext context,
+    WidgetRef ref,
+    ValueNotifier<bool> resetting,
+  ) async {
     var confirmed = false;
     final navigator = Navigator.of(context, rootNavigator: true);
     await AppDialog.show(
@@ -209,8 +261,10 @@ class _UsageStatsBody extends ConsumerWidget {
       secondaryLabel: 'cancel'.i18n,
     );
     if (!confirmed || !context.mounted) return;
+    resetting.value = true;
     final result = await ref.read(usageStatsProvider.notifier).reset();
     if (!context.mounted) return;
+    resetting.value = false;
     result.match(
       (_) => context.showSnackBar('usage_stats_reset_failed'.i18n),
       (_) {},

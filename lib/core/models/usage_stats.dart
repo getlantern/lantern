@@ -25,7 +25,7 @@ class UsageStats {
   factory UsageStats.fromJson(Map<String, dynamic> json) {
     return UsageStats(
       since: _parseTime(json['since']),
-      month: json['month'] as String? ?? '',
+      month: json['month'] is String ? json['month'] as String : '',
       lifetime: UsageTotals.fromJson(_map(json['lifetime'])),
       thisMonth: UsageTotals.fromJson(_map(json['this_month'])),
       resetAt: _parseTime(json['reset_at']),
@@ -38,15 +38,16 @@ class UsageStats {
     if (parts.length != 2) return null;
     final year = int.tryParse(parts[0]);
     final m = int.tryParse(parts[1]);
-    if (year == null || m == null || m < 1 || m > 12) return null;
+    if (year == null || m == null || !_supportedYear(year)) return null;
+    if (m < 1 || m > 12) return null;
     return DateTime(year, m);
   }
 
   static DateTime? _parseTime(Object? value) {
     if (value is! String || value.isEmpty) return null;
     final t = DateTime.tryParse(value);
-    // Go's zero time, which an unset time marshals to.
-    if (t == null || t.year <= 1) return null;
+    // Go's zero time, which an unset time marshals to, reads as unknown.
+    if (t == null || !_supportedYear(t.year)) return null;
     return t.toLocal();
   }
 }
@@ -88,6 +89,9 @@ class UsageBytes {
 
   int get total => up + down;
 }
+
+/// Years after Go's zero time and within RFC 3339's four digits.
+bool _supportedYear(int year) => year > 1 && year <= 9999;
 
 Map<String, dynamic> _map(Object? value) =>
     value is Map ? value.cast<String, dynamic>() : const {};

@@ -2560,10 +2560,10 @@ msgstr "%s sent · %s received"
 msgid "usage_stats_proxyless_description"
 msgstr "Blocked sites reached directly using anti-censorship techniques, without a VPN server"
 
-# Usage stats screen: shown under the Try Direct First description when the
-# user has a daily data cap.
-msgid "usage_stats_proxyless_data_cap"
-msgstr "Doesn't count toward your daily data cap"
+# Usage stats screen: shown under "Lantern Servers" when the user has a daily
+# data cap. Only traffic through Lantern's servers counts toward it.
+msgid "usage_stats_lantern_data_cap"
+msgstr "Counts toward your daily data cap"
 
 # Usage stats screen: under "Lantern Servers".
 msgid "usage_stats_lantern_description"
@@ -2592,7 +2592,7 @@ msgstr "Sent around the VPN by Smart Routing or Split Tunneling"
 
 # Usage stats screen: privacy note at the bottom.
 msgid "usage_stats_privacy"
-msgstr "These stats are stored only on this device and are never sent to Lantern."
+msgstr "These stats are kept on this device and are never sent to Lantern."
 
 # Usage stats screen: button that clears the stats.
 msgid "usage_stats_reset"
