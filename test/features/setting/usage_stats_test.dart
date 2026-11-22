@@ -147,6 +147,7 @@ Finder _inTotal(String text) => find.descendant(
 /// What the mocked window plugin reports.
 var _windowVisible = true;
 var _windowMinimized = false;
+var _windowChecks = 0;
 
 void main() {
   setUpAll(Localization.loadTranslations);
@@ -154,13 +155,17 @@ void main() {
   setUp(() {
     _windowVisible = true;
     _windowMinimized = false;
+    _windowChecks = 0;
     PlatformUtils.debugIsDesktop = true;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(const MethodChannel('window_manager'), (
           call,
         ) async {
           return switch (call.method) {
-            'isVisible' => _windowVisible,
+            'isVisible' => (() {
+              _windowChecks++;
+              return _windowVisible;
+            })(),
             'isMinimized' => _windowMinimized,
             _ => null,
           };
@@ -461,6 +466,7 @@ void main() {
       tester.element(find.byType(UsageStatsScreen)),
     );
     expect(container.read(usageStatsProvider).hasValue, isTrue);
+    expect(_windowChecks, 1, reason: 'the window is checked on opening');
     await tester.pump(usageStatsRefreshInterval * 5);
     expect(service.reads, 1, reason: 'only the first load');
 
