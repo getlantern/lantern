@@ -149,6 +149,9 @@ var _windowVisible = true;
 var _windowMinimized = false;
 var _windowChecks = 0;
 
+/// When set, the mocked isVisible waits for it.
+Completer<void>? _windowGate;
+
 void main() {
   setUpAll(Localization.loadTranslations);
 
@@ -156,11 +159,13 @@ void main() {
     _windowVisible = true;
     _windowMinimized = false;
     _windowChecks = 0;
+    _windowGate = null;
     PlatformUtils.debugIsDesktop = true;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(const MethodChannel('window_manager'), (
           call,
         ) async {
+          if (call.method == 'isVisible') await _windowGate?.future;
           return switch (call.method) {
             'isVisible' => (() {
               _windowChecks++;
@@ -307,6 +312,30 @@ void main() {
     navigator.pop();
     await tester.pumpAndSettle();
     expect(service.reads, covered + 1);
+  });
+
+  testWidgets('a tick whose window check outlasts a covering route does not '
+      'reload', (tester) async {
+    final service = _Service([right(_stats)]);
+    await _pump(tester, service);
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    final reads = service.reads;
+
+    _windowGate = Completer<void>();
+    await tester.pump(
+      usageStatsRefreshInterval,
+    ); // the tick waits on the window
+    unawaited(
+      navigator.push(MaterialPageRoute<void>(builder: (_) => const Scaffold())),
+    );
+    await tester.pumpAndSettle();
+    _windowGate!.complete();
+    await tester.pump();
+    expect(
+      service.reads,
+      reads,
+      reason: 'the covered screen stopped its timer',
+    );
   });
 
   testWidgets('a tick while a reload runs does not start another', (

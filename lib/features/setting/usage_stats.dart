@@ -108,16 +108,20 @@ class UsageStatsScreen extends HookConsumerWidget {
       if (!visible) return stop();
       if (timer.value != null) return;
       if (reload) refresh();
-      timer.value = Timer.periodic(usageStatsRefreshInterval, (_) async {
+      timer.value = Timer.periodic(usageStatsRefreshInterval, (tick) async {
         // Closing the window to the tray can leave the app inactive, not
         // hidden, so each tick first checks the window is still shown.
         final shown = await _windowShown();
-        if (!context.mounted) return;
+        // The screen may have stopped or restarted its timer meanwhile.
+        if (!context.mounted || !identical(timer.value, tick)) return;
         if (!shown) {
           windowShown.value = false;
           return stop();
         }
-        refresh();
+        if (routeCurrentRef.value &&
+            _appVisible(WidgetsBinding.instance.lifecycleState)) {
+          refresh();
+        }
       });
     }
 
