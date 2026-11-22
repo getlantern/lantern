@@ -655,20 +655,8 @@ class MethodHandler : FlutterPlugin,
             }
 
             Methods.GetUsageStats.method -> {
-                scope.launch {
-                    runCatching { Mobile.getUsageStats() }
-                        .onSuccess { data ->
-                            withContext(Dispatchers.Main) { result.success(data) }
-                        }
-                        .onFailure { e ->
-                            withContext(Dispatchers.Main) {
-                                result.error(
-                                    "GetUsageStats",
-                                    e.localizedMessage ?: "Please try again",
-                                    null,
-                                )
-                            }
-                        }
+                scope.handleValue(result, "GetUsageStats") {
+                    Mobile.getUsageStats()
                 }
             }
 

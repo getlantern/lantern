@@ -1177,6 +1177,14 @@ func (lc *LanternCore) DataCapInfo() (string, error) {
 // daemon answers 503 to: it does while a save or reset holds the store.
 var usageBusyRetries = []time.Duration{300 * time.Millisecond, 300 * time.Millisecond}
 
+// Deadlines for a usage call, retries included. A reset can wait about 4 s
+// for the store on each attempt (radiance's usageResetWait plus its file
+// lock), so its budget covers every attempt.
+var (
+	usageReadTimeout  = ipcStatusTimeout
+	usageResetTimeout = 20 * time.Second
+)
+
 // retryUsageBusy runs fn, and again after each of usageBusyRetries while it
 // fails with 503.
 func retryUsageBusy(ctx context.Context, fn func() error) error {
@@ -1196,11 +1204,19 @@ func retryUsageBusy(ctx context.Context, fn func() error) error {
 	return err
 }
 
+// usageCall runs fn under a timeout deadline, retrying while the store is
+// busy.
+func usageCall(parent context.Context, timeout time.Duration, fn func(context.Context) error) error {
+	ctx, cancel := context.WithTimeout(parent, timeout)
+	defer cancel()
+	return retryUsageBusy(ctx, func() error { return fn(ctx) })
+}
+
 func (lc *LanternCore) UsageStats() (string, error) {
 	var usage vpn.Usage
-	err := retryUsageBusy(lc.ctx, func() error {
+	err := usageCall(lc.ctx, usageReadTimeout, func(ctx context.Context) error {
 		var err error
-		usage, err = lc.client.VPNUsage(lc.ctx)
+		usage, err = lc.client.VPNUsage(ctx)
 		return err
 	})
 	if err != nil {
@@ -1214,7 +1230,7 @@ func (lc *LanternCore) UsageStats() (string, error) {
 }
 
 func (lc *LanternCore) ResetUsageStats() error {
-	return retryUsageBusy(lc.ctx, func() error { return lc.client.ResetVPNUsage(lc.ctx) })
+	return usageCall(lc.ctx, usageResetTimeout, lc.client.ResetVPNUsage)
 }
 
 func (lc *LanternCore) UserData() ([]byte, error) {
