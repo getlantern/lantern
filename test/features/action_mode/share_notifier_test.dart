@@ -1445,11 +1445,16 @@ void main() {
   test('helperVolunteerAllowed follows helper_volunteer, never past a '
       'known censored country', () {
     expect(helperVolunteerAllowed({'helper_volunteer': true}, 'IR'), isFalse);
-    expect(helperVolunteerAllowed({'helper_volunteer': true}, ''), isTrue);
+    expect(helperVolunteerAllowed({'helper_volunteer': true}, ''), isFalse);
     expect(helperVolunteerAllowed({'helper_volunteer': true}, 'DE'), isTrue);
     expect(helperVolunteerAllowed({'helper_volunteer': false}, 'DE'), isFalse);
     expect(helperVolunteerAllowed({'unbounded': true}, 'DE'), isTrue);
     expect(helperVolunteerAllowed({'unbounded': true}, 'IR'), isFalse);
     expect(helperVolunteerAllowed(const {}, ''), isFalse);
+    expect(
+      helperVolunteerAllowed(const {}, 'DE'),
+      isFalse,
+      reason: 'flags not loaded yet',
+    );
   });
 }

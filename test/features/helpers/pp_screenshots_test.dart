@@ -24,6 +24,7 @@ import 'package:lantern/features/helpers/helping_friends.dart';
 import 'package:lantern/features/helpers/invite_share.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -173,6 +174,9 @@ Future<void> _pump(
           helpersProvider.overrideWith(() => _Helpers(helpers)),
           helperInvitesAvailableProvider.overrideWithValue(true),
           countryCodeProvider.overrideWithValue('US'),
+          featureFlagProvider.overrideWithValue(const {
+            'helper_volunteer': true,
+          }),
           availableServersProvider.overrideWith(_Servers.new),
           personalProxyStatusProvider.overrideWith(_Status.new),
           serverLocationProvider.overrideWithValue(

@@ -180,7 +180,7 @@ void main() {
         lanternServiceProvider.overrideWithValue(service),
         appSettingProvider.overrideWith(FakeSettings.new),
         radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
-        featureFlagProvider.overrideWithValue(const {}),
+        featureFlagProvider.overrideWithValue(const {'unbounded': true}),
       ],
     );
     container.read(shareProvider);
@@ -456,7 +456,7 @@ void main() {
           lanternServiceProvider.overrideWithValue(service),
           appSettingProvider.overrideWith(ResumingSettings.new),
           radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
-          featureFlagProvider.overrideWithValue(const {}),
+          featureFlagProvider.overrideWithValue(const {'unbounded': true}),
         ],
       );
       addTearDown(resumed.dispose);
@@ -581,7 +581,7 @@ void main() {
           appSettingProvider.overrideWith(FakeSettings.new),
           radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
           helpersProvider.overrideWith(HelpingOne.new),
-          featureFlagProvider.overrideWithValue(const {}),
+          featureFlagProvider.overrideWithValue(const {'unbounded': true}),
         ],
       );
     });

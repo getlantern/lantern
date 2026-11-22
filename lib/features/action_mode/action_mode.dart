@@ -5,7 +5,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/globe_column.dart';
-import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
@@ -50,18 +49,18 @@ class ActionModeTab extends HookConsumerWidget {
     // flagged, so that nobody in their country sees the inviter UI.
     final connectionsCard = AppBuildInfo.enableHelperInvites && helpsSomeone;
     // A volunteer is someone abroad: the row stays hidden wherever this
-    // device may not volunteer (helperVolunteerAllowed), even while a claim
-    // waits. Before anything is known (no country, no helper_volunteer), a
-    // volunteer waiting on a claim still gets back to its code from here.
-    final flags = ref.watch(featureFlagProvider);
+    // device may not volunteer (helperVolunteerAllowed). A volunteer waiting
+    // on a claim still gets back to its code from here, except in a country
+    // it knows is censored.
     final country = ref.watch(countryCodeProvider);
     final becomeRow =
         AppBuildInfo.enableHelperInvites &&
         !helpsSomeone &&
-        (helperVolunteerAllowed(flags, country) ||
+        (helperVolunteerAllowed(ref.watch(featureFlagProvider), country) ||
             (waiting &&
-                country.trim().isEmpty &&
-                !flags.containsKey(FeatureFlag.helperVolunteer.key)));
+                !CountryCode.helperCensoredCountries.contains(
+                  country.trim().toUpperCase(),
+                )));
     // "Helping right now" opens Who you're helping, and says whom.
     final scopeShown = HelpersNotifier.buildEnabled;
     final helpOthers = ref.watch(

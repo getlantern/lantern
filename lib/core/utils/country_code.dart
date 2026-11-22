@@ -34,16 +34,14 @@ bool helperAutoStartAllowed(String country) {
 
 /// Whether this device may volunteer as a Personal Proxy, given the config's
 /// [flags]. lantern-cloud decides it (Features["helper_volunteer"]), but can
-/// only narrow it: a country this device knows is censored always says no,
-/// since lantern-cloud's IP geolocation can be fooled (a VPN exit, a stale
-/// entry). Before a config arrives, or from a server that does not send the
-/// flag, it falls back to [helperAutoStartAllowed], which is false until the
-/// country is known.
+/// only narrow it: no until the flags have loaded and the country is known,
+/// and always no in a country this device knows is censored, since
+/// lantern-cloud's IP geolocation can be fooled (a VPN exit, a stale entry).
+/// A server that does not send the flag leaves it to the country.
 bool helperVolunteerAllowed(Map<String, dynamic> flags, String country) {
-  final c = country.trim().toUpperCase();
-  if (CountryCode.helperCensoredCountries.contains(c)) return false;
+  if (flags.isEmpty || !helperAutoStartAllowed(country)) return false;
   if (flags.containsKey(FeatureFlag.helperVolunteer.key)) {
     return flags.getBool(FeatureFlag.helperVolunteer);
   }
-  return helperAutoStartAllowed(c);
+  return true;
 }

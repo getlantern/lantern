@@ -96,7 +96,7 @@ void main() {
     Brightness brightness = Brightness.light,
     bool animated = false,
     String country = 'US',
-    Map<String, dynamic> flags = const {},
+    Map<String, dynamic> flags = const {'unbounded': true},
     HelpersState helpers = const HelpersState(),
     ShareState shareState = const ShareState(
       active: true,
