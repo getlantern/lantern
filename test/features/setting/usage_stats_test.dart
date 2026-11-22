@@ -205,6 +205,23 @@ void main() {
     expect(find.byKey(const Key('usage_stats.data_cap_note')), findsNothing);
   });
 
+  testWidgets('path tiles leave space above their label', (tester) async {
+    await _pump(tester, _Service([right(_stats)]));
+
+    for (final (path, label) in [
+      (UsagePath.proxyless, 'proxyless'.i18n),
+      (UsagePath.direct, 'usage_stats_direct'.i18n),
+    ]) {
+      final tile = find.byKey(Key('usage_stats.path.${path.name}'));
+      final text = find.descendant(of: tile, matching: find.text(label));
+      expect(
+        tester.getTopLeft(text).dy - tester.getTopLeft(tile).dy,
+        greaterThanOrEqualTo(12),
+        reason: path.name,
+      );
+    }
+  });
+
   testWidgets('All time shows lifetime totals since the start date', (
     tester,
   ) async {
