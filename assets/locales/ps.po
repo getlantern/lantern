@@ -2593,6 +2593,9 @@ msgstr "د هغو سرورونو له لارې چې تاسو پخپله جوړ �
 msgid "usage_stats_direct"
 msgstr "له VPN بهر"
 
+msgid "usage_stats_direct_description"
+msgstr "د سمارټ روټینګ یا وېشل شوی ټنل له لارې د VPN څخه بهر لیږل شوی"
+
 msgid "usage_stats_privacy"
 msgstr "دا احصایې په همدې وسیله ساتل کېږي او هېڅکله Lantern ته نه لیږل کېږي."
 
