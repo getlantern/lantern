@@ -3,8 +3,10 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -254,6 +256,10 @@ type VPN interface {
 	DisconnectVPN() error
 	VPNStatus() (vpn.VPNStatus, error)
 	VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error
+	// UsageStats returns the on-device byte totals per tunnel path as the
+	// JSON of vpn.Usage.
+	UsageStats() (string, error)
+	ResetUsageStats() error
 }
 
 type Helper interface {
@@ -1165,6 +1171,66 @@ func (lc *LanternCore) DataCapInfo() (string, error) {
 		return "", fmt.Errorf("error marshalling DataCapInfo: %w", err)
 	}
 	return string(jsonBytes), nil
+}
+
+// usageBusyRetries is how long to wait before each retry of a usage call the
+// daemon answers 503 to: it does while a save or reset holds the store.
+var usageBusyRetries = []time.Duration{300 * time.Millisecond, 300 * time.Millisecond}
+
+// Deadlines for a usage call, retries included. A reset can wait about 4 s
+// for the store on each attempt (radiance's usageResetWait plus its file
+// lock), so its budget covers every attempt.
+var (
+	usageReadTimeout  = ipcStatusTimeout
+	usageResetTimeout = 20 * time.Second
+)
+
+// retryUsageBusy runs fn, and again after each of usageBusyRetries while it
+// fails with 503.
+func retryUsageBusy(ctx context.Context, fn func() error) error {
+	err := fn()
+	for _, d := range usageBusyRetries {
+		var ipcErr *ipc.Error
+		if !errors.As(err, &ipcErr) || ipcErr.Status != http.StatusServiceUnavailable {
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			return err
+		case <-time.After(d):
+		}
+		err = fn()
+	}
+	return err
+}
+
+// usageCall runs fn under a timeout deadline, retrying while the store is
+// busy.
+func usageCall(parent context.Context, timeout time.Duration, fn func(context.Context) error) error {
+	ctx, cancel := context.WithTimeout(parent, timeout)
+	defer cancel()
+	return retryUsageBusy(ctx, func() error { return fn(ctx) })
+}
+
+func (lc *LanternCore) UsageStats() (string, error) {
+	var usage vpn.Usage
+	err := usageCall(lc.ctx, usageReadTimeout, func(ctx context.Context) error {
+		var err error
+		usage, err = lc.client.VPNUsage(ctx)
+		return err
+	})
+	if err != nil {
+		return "", err
+	}
+	jsonBytes, err := json.Marshal(usage)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling usage stats: %w", err)
+	}
+	return string(jsonBytes), nil
+}
+
+func (lc *LanternCore) ResetUsageStats() error {
+	return usageCall(lc.ctx, usageResetTimeout, lc.client.ResetVPNUsage)
 }
 
 func (lc *LanternCore) UserData() ([]byte, error) {

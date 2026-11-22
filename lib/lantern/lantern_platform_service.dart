@@ -11,6 +11,7 @@ import 'package:lantern/core/models/app_data_event.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/usage_stats.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/models/private_server_status.dart';
@@ -1220,6 +1221,28 @@ class LanternPlatformService implements LanternCoreService {
       return Right(dataCap);
     } catch (e, st) {
       appLogger.error('fetchDataCapInfo failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UsageStats>> getUsageStats() async {
+    try {
+      final json = await _methodChannel.invokeMethod<String>('getUsageStats');
+      return Right(UsageStats.fromJson(jsonDecode(json!)));
+    } catch (e, st) {
+      appLogger.error('getUsageStats failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> resetUsageStats() async {
+    try {
+      await _methodChannel.invokeMethod<void>('resetUsageStats');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('resetUsageStats failed', e, st);
       return Left(e.toFailure());
     }
   }

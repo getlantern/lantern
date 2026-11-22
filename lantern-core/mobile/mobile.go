@@ -817,6 +817,14 @@ func GetDataCapInfo() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.DataCapInfo() })
 }
 
+func GetUsageStats() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.UsageStats() })
+}
+
+func ResetUsageStats() error {
+	return withCore(func(c lanterncore.Core) error { return c.ResetUsageStats() })
+}
+
 // Email Recovery Methods
 // This will start the email recovery process by sending a recovery code to the user's email
 func StartRecoveryByEmail(email string) error {

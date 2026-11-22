@@ -400,6 +400,35 @@ func getDataCapInfo() *C.char {
 	})
 }
 
+//export getUsageStats
+func getUsageStats() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		usage, err := c.UsageStats()
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(usage)
+	})
+}
+
+//export resetUsageStats
+func resetUsageStats() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.ResetUsageStats(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
+	})
+}
+
 //export reportIssue
 func reportIssue(
 	emailC, typeC, descC, deviceC, modelC, logPathC, attachmentsJSONC *C.char,

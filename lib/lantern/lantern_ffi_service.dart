@@ -12,6 +12,7 @@ import 'package:lantern/core/common/common.dart' hide DeveloperMode;
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/usage_stats.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/private_server_status.dart';
 import 'package:lantern/core/services/app_purchase.dart';
@@ -633,6 +634,44 @@ class LanternFFIService implements LanternCoreService {
       return right(dataCap);
     } catch (e, st) {
       appLogger.error('Failed to get data cap info: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UsageStats>> getUsageStats() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.getUsageStats();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(UsageStats.fromJson(jsonDecode(result)));
+    } catch (e, st) {
+      appLogger.error('Failed to get usage stats', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> resetUsageStats() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.resetUsageStats();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Failed to reset usage stats', e, st);
       return Left(e.toFailure());
     }
   }
