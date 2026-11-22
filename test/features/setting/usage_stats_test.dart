@@ -100,6 +100,10 @@ Future<void> _pump(
   bool dataCap = false,
   bool settle = true,
 }) async {
+  // Tall enough that the lazy list builds every row.
+  tester.view.physicalSize = const Size(393, 1400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
       // Riverpod's automatic retry would make extra reads.
@@ -199,6 +203,23 @@ void main() {
     expect(find.text('usage_stats_direct'.i18n), findsOneWidget);
     expect(find.text('usage_stats_privacy'.i18n), findsOneWidget);
     expect(find.byKey(const Key('usage_stats.data_cap_note')), findsNothing);
+  });
+
+  testWidgets('path tiles leave space above their label', (tester) async {
+    await _pump(tester, _Service([right(_stats)]));
+
+    for (final (path, label) in [
+      (UsagePath.proxyless, 'proxyless'.i18n),
+      (UsagePath.direct, 'usage_stats_direct'.i18n),
+    ]) {
+      final tile = find.byKey(Key('usage_stats.path.${path.name}'));
+      final text = find.descendant(of: tile, matching: find.text(label));
+      expect(
+        tester.getTopLeft(text).dy - tester.getTopLeft(tile).dy,
+        greaterThanOrEqualTo(12),
+        reason: path.name,
+      );
+    }
   });
 
   testWidgets('All time shows lifetime totals since the start date', (
