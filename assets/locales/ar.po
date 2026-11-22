@@ -2498,3 +2498,66 @@ msgstr "الوصول إلى المواقع المحجوبة مباشرة عند 
 
 msgid "smart_routing_direct_description"
 msgstr "يستخدم التوجيه الذكي قواعد خاصة بالمنطقة بحيث لا تمر عبر Lantern إلا حركة المرور التي تحتاج إلى VPN. عند تفعيل «تجربة الاتصال المباشر أولاً»، تتم محاولة الوصول إلى المواقع المحجوبة مباشرة أولاً باستخدام تقنيات مقاومة الرقابة، ثم الرجوع إلى VPN إذا فشل ذلك."
+
+msgid "usage_stats"
+msgstr "إحصاءات الاستخدام"
+
+msgid "usage_stats_this_month"
+msgstr "هذا الشهر"
+
+msgid "usage_stats_all_time"
+msgstr "كل الأوقات"
+
+msgid "usage_stats_since"
+msgstr "منذ %s"
+
+msgid "usage_stats_total"
+msgstr "الإجمالي"
+
+msgid "usage_stats_up_down"
+msgstr "تم إرسال %s · تم استلام %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "مواقع محجوبة تم الوصول إليها مباشرة بتقنيات مكافحة الرقابة، دون خادم VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "تُحتسب ضمن حد البيانات اليومي"
+
+msgid "usage_stats_lantern_description"
+msgstr "عبر خوادم VPN الخاصة بـ Lantern"
+
+msgid "usage_stats_personal"
+msgstr "الوكلاء الشخصيون"
+
+msgid "usage_stats_personal_description"
+msgstr "عبر أصدقاء يشاركونك اتصالهم"
+
+msgid "usage_stats_private_description"
+msgstr "عبر خوادم أعددتها أو أضفتها بنفسك"
+
+msgid "usage_stats_direct"
+msgstr "خارج VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "أُرسلت خارج VPN عبر التوجيه الذكي أو تقسيم النفق"
+
+msgid "usage_stats_privacy"
+msgstr "تُحفظ هذه الإحصاءات على هذا الجهاز ولا تُرسل أبدًا إلى Lantern."
+
+msgid "usage_stats_reset"
+msgstr "إعادة ضبط الإحصائيات"
+
+msgid "usage_stats_reset_title"
+msgstr "إعادة ضبط إحصائيات الاستخدام؟"
+
+msgid "usage_stats_reset_body"
+msgstr "ستعود إجماليات هذا الشهر وكل الأوقات على هذا الجهاز إلى الصفر. لا يمكن التراجع عن ذلك."
+
+msgid "usage_stats_reset_confirm"
+msgstr "إعادة ضبط"
+
+msgid "usage_stats_reset_failed"
+msgstr "تعذّرت إعادة ضبط إحصائيات الاستخدام"
+
+msgid "usage_stats_load_failed"
+msgstr "تعذر تحميل إحصاءات الاستخدام"

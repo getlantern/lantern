@@ -2529,3 +2529,66 @@ msgstr "در صورت امکان، دسترسی مستقیم به سایت‌ه�
 
 msgid "smart_routing_direct_description"
 msgstr "مسیریابی هوشمند از قوانین خاص منطقه استفاده می‌کند تا فقط ترافیکی که به VPN نیاز دارد از طریق Lantern عبور کند. با روشن بودن «ابتدا اتصال مستقیم»، ابتدا با استفاده از روش‌های ضدسانسور تلاش می‌شود سایت‌های مسدودشده مستقیماً باز شوند و در صورت ناموفق بودن، از VPN استفاده می‌شود."
+
+msgid "usage_stats"
+msgstr "آمار مصرف"
+
+msgid "usage_stats_this_month"
+msgstr "این ماه"
+
+msgid "usage_stats_all_time"
+msgstr "کل دوره"
+
+msgid "usage_stats_since"
+msgstr "از %s"
+
+msgid "usage_stats_total"
+msgstr "مجموع"
+
+msgid "usage_stats_up_down"
+msgstr "ارسال‌شده: %s · دریافت‌شده: %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "سایت‌های مسدودشده‌ای که مستقیماً با روش‌های ضدسانسور و بدون سرور VPN باز شدند"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "از سقف داده روزانه شما کم می‌شود"
+
+msgid "usage_stats_lantern_description"
+msgstr "از طریق سرورهای VPN برنامه Lantern"
+
+msgid "usage_stats_personal"
+msgstr "پراکسی‌های شخصی"
+
+msgid "usage_stats_personal_description"
+msgstr "از طریق دوستانی که اتصالشان را با شما به اشتراک می‌گذارند"
+
+msgid "usage_stats_private_description"
+msgstr "از طریق سرورهایی که خودتان راه‌اندازی یا اضافه کرده‌اید"
+
+msgid "usage_stats_direct"
+msgstr "خارج از VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "ارسال‌شده خارج از VPN با مسیریابی هوشمند یا تونل‌زنی تقسیمی"
+
+msgid "usage_stats_privacy"
+msgstr "این آمار روی همین دستگاه نگه داشته می‌شود و هرگز به Lantern ارسال نمی‌شود."
+
+msgid "usage_stats_reset"
+msgstr "بازنشانی آمار"
+
+msgid "usage_stats_reset_title"
+msgstr "آمار مصرف بازنشانی شود؟"
+
+msgid "usage_stats_reset_body"
+msgstr "مجموع این ماه و کل زمان در این دستگاه صفر می‌شود. این کار قابل بازگشت نیست."
+
+msgid "usage_stats_reset_confirm"
+msgstr "بازنشانی"
+
+msgid "usage_stats_reset_failed"
+msgstr "بازنشانی آمار مصرف ممکن نشد"
+
+msgid "usage_stats_load_failed"
+msgstr "بارگیری آمار مصرف ممکن نشد"

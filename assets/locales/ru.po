@@ -2544,3 +2544,66 @@ msgstr "По возможности открывает заблокирован�
 
 msgid "smart_routing_direct_description"
 msgstr "Умная маршрутизация использует правила для конкретных регионов, чтобы через Lantern шёл только трафик, которому нужен VPN. Если включено «Сначала напрямую», заблокированные сайты сначала открываются напрямую с помощью методов обхода цензуры, а при неудаче — через VPN."
+
+msgid "usage_stats"
+msgstr "Статистика использования"
+
+msgid "usage_stats_this_month"
+msgstr "Этот месяц"
+
+msgid "usage_stats_all_time"
+msgstr "За всё время"
+
+msgid "usage_stats_since"
+msgstr "С %s"
+
+msgid "usage_stats_total"
+msgstr "Всего"
+
+msgid "usage_stats_up_down"
+msgstr "Отправлено: %s · Получено: %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "Заблокированные сайты, открытые напрямую с помощью методов обхода цензуры, без VPN-сервера"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Учитывается в дневном лимите трафика"
+
+msgid "usage_stats_lantern_description"
+msgstr "Через VPN-серверы Lantern"
+
+msgid "usage_stats_personal"
+msgstr "Личные прокси"
+
+msgid "usage_stats_personal_description"
+msgstr "Через друзей, которые делятся с вами своим подключением"
+
+msgid "usage_stats_private_description"
+msgstr "Через серверы, которые вы настроили или добавили сами"
+
+msgid "usage_stats_direct"
+msgstr "Вне VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "Направлено в обход VPN умной маршрутизацией или раздельным туннелированием"
+
+msgid "usage_stats_privacy"
+msgstr "Эта статистика хранится на этом устройстве и никогда не отправляется в Lantern."
+
+msgid "usage_stats_reset"
+msgstr "Сбросить статистику"
+
+msgid "usage_stats_reset_title"
+msgstr "Сбросить статистику использования?"
+
+msgid "usage_stats_reset_body"
+msgstr "Итоги за этот месяц и за всё время на этом устройстве будут обнулены. Это действие нельзя отменить."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Сбросить"
+
+msgid "usage_stats_reset_failed"
+msgstr "Не удалось сбросить статистику использования"
+
+msgid "usage_stats_load_failed"
+msgstr "Не удалось загрузить статистику использования"

@@ -2532,3 +2532,66 @@ msgstr "Truy cập trực tiếp trang web bị chặn khi có thể"
 
 msgid "smart_routing_direct_description"
 msgstr "Định tuyến thông minh sử dụng các quy tắc theo khu vực để chỉ lưu lượng cần VPN mới đi qua Lantern. Khi bật Thử trực tiếp trước, các trang web bị chặn sẽ được thử truy cập trực tiếp trước bằng kỹ thuật chống kiểm duyệt, và chuyển sang VPN nếu không thành công."
+
+msgid "usage_stats"
+msgstr "Thống kê sử dụng"
+
+msgid "usage_stats_this_month"
+msgstr "Tháng này"
+
+msgid "usage_stats_all_time"
+msgstr "Toàn bộ thời gian"
+
+msgid "usage_stats_since"
+msgstr "Từ %s"
+
+msgid "usage_stats_total"
+msgstr "Tổng"
+
+msgid "usage_stats_up_down"
+msgstr "Đã gửi %s · Đã nhận %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "Trang bị chặn được truy cập trực tiếp bằng kỹ thuật chống kiểm duyệt, không qua máy chủ VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Được tính vào giới hạn dữ liệu hằng ngày của bạn"
+
+msgid "usage_stats_lantern_description"
+msgstr "Qua máy chủ VPN của Lantern"
+
+msgid "usage_stats_personal"
+msgstr "Proxy cá nhân"
+
+msgid "usage_stats_personal_description"
+msgstr "Qua bạn bè đang chia sẻ kết nối với bạn"
+
+msgid "usage_stats_private_description"
+msgstr "Qua máy chủ do bạn tự thiết lập hoặc thêm vào"
+
+msgid "usage_stats_direct"
+msgstr "Ngoài VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "Gửi vòng qua VPN bằng định tuyến thông minh hoặc chia tách đường hầm"
+
+msgid "usage_stats_privacy"
+msgstr "Các số liệu này được lưu trên thiết bị này và không bao giờ được gửi đến Lantern."
+
+msgid "usage_stats_reset"
+msgstr "Đặt lại thống kê"
+
+msgid "usage_stats_reset_title"
+msgstr "Đặt lại thống kê sử dụng?"
+
+msgid "usage_stats_reset_body"
+msgstr "Tổng số tháng này và toàn bộ thời gian trên thiết bị này sẽ trở về 0. Không thể hoàn tác thao tác này."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Đặt lại"
+
+msgid "usage_stats_reset_failed"
+msgstr "Không thể đặt lại thống kê sử dụng"
+
+msgid "usage_stats_load_failed"
+msgstr "Không thể tải thống kê sử dụng"
