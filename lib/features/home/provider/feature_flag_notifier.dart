@@ -16,14 +16,17 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
     return {};
   }
 
-  /// Counts fetches, so a slower one never replaces a newer one's flags.
+  /// Numbers fetches, and records the newest whose flags were applied, so a
+  /// slower fetch never replaces a newer one's flags and a failed fetch
+  /// leaves the last good ones.
   int _fetches = 0;
+  int _applied = 0;
 
   Future<void> fetchFeatureFlags() async {
     appLogger.debug('Fetching feature flags...');
     final fetch = ++_fetches;
     final result = await ref.read(lanternServiceProvider).featureFlag();
-    if (!ref.mounted || fetch != _fetches) return;
+    if (!ref.mounted || fetch < _applied) return;
     result.fold(
       (failure) {
         appLogger.error('Error fetching feature flags: ${failure.error}');
@@ -31,6 +34,7 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
       (flags) {
         try {
           final next = json.decode(flags) as Map<String, dynamic>;
+          _applied = fetch;
           // Unchanged flags keep the same map, so watchers don't rebuild.
           if (mapEquals(next, state)) return;
           state = next;

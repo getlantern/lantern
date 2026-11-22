@@ -62,4 +62,24 @@ void main() {
 
     expect(identical(container.read(featureFlagProvider), first), isTrue);
   });
+
+  test('a failed newer fetch keeps an older fetch\'s flags', () async {
+    final service = _Service();
+    final container = ProviderContainer(
+      overrides: [lanternServiceProvider.overrideWithValue(service)],
+    );
+    addTearDown(container.dispose);
+    container.read(featureFlagProvider);
+    final second = container
+        .read(featureFlagProvider.notifier)
+        .fetchFeatureFlags();
+    service.answers[1].complete(
+      left(Failure(error: 'core not ready', localizedErrorMessage: '')),
+    );
+    await second;
+    service.answers[0].complete(right('{"helper_volunteer":true}'));
+    await pumpEventQueue();
+
+    expect(container.read(featureFlagProvider), {'helper_volunteer': true});
+  });
 }

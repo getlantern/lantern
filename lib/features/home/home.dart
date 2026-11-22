@@ -321,11 +321,13 @@ class Home extends HookConsumerWidget {
       if (prev == next) return;
       ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
     });
-    ref.listen<bool?>(
+    // Loading the flags counts as a change, even without helper_volunteer:
+    // a start held only because they had not loaded can run then.
+    ref.listen<String>(
       featureFlagProvider.select(
-        (f) => f.containsKey(FeatureFlag.helperVolunteer.key)
-            ? f.getBool(FeatureFlag.helperVolunteer)
-            : null,
+        (f) => f.isEmpty
+            ? 'unloaded'
+            : '${f[FeatureFlag.helperVolunteer.key] ?? 'absent'}',
       ),
       (prev, next) {
         if (prev == next) return;
