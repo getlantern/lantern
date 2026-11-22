@@ -1,0 +1,191 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/common.dart' hide UsageStatsScreen;
+import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/usage_stats.dart';
+import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
+import 'package:lantern/features/setting/usage_stats.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
+
+UsageTotals _totals({int proxyless = 0, int lantern = 0, int direct = 0}) =>
+    UsageTotals({
+      UsagePath.proxyless: UsageBytes(up: 0, down: proxyless),
+      UsagePath.lantern: UsageBytes(up: 0, down: lantern),
+      UsagePath.direct: UsageBytes(up: 0, down: direct),
+    });
+
+final _stats = UsageStats(
+  since: DateTime(2026, 3, 4),
+  month: '2026-11',
+  thisMonth: _totals(proxyless: 1200000, lantern: 3400000),
+  lifetime: _totals(proxyless: 56000000, lantern: 78000000, direct: 9000),
+);
+
+final _zero = UsageStats(
+  since: DateTime(2026, 11, 21),
+  month: '2026-11',
+  thisMonth: const UsageTotals({}),
+  lifetime: const UsageTotals({}),
+);
+
+class _Service implements LanternService {
+  _Service(this.stats);
+
+  /// What each getUsageStats call returns, in turn; the last repeats.
+  final List<Either<Failure, UsageStats>> stats;
+  int reads = 0;
+  int resets = 0;
+
+  @override
+  Future<void> waitForRadiance() async {}
+
+  @override
+  Future<Either<Failure, UsageStats>> getUsageStats() async {
+    final i = reads < stats.length ? reads : stats.length - 1;
+    reads++;
+    return stats[i];
+  }
+
+  @override
+  Future<Either<Failure, Unit>> resetUsageStats() async {
+    resets++;
+    return right(unit);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _DataCap extends DataCapInfoNotifier {
+  _DataCap(this.enabled);
+  final bool enabled;
+
+  @override
+  Future<DataCapUsageResponse> build() async =>
+      DataCapUsageResponse(enabled: enabled);
+}
+
+Future<void> _pump(
+  WidgetTester tester,
+  _Service service, {
+  bool dataCap = false,
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        lanternServiceProvider.overrideWithValue(service),
+        dataCapInfoProvider.overrideWith(() => _DataCap(dataCap)),
+      ],
+      child: ScreenUtilInit(
+        designSize: const Size(393, 852),
+        child: MaterialApp(
+          theme: AppTheme.appTheme(),
+          home: const UsageStatsScreen(),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Finder _inPath(UsagePath path, String text) => find.descendant(
+  of: find.byKey(Key('usage_stats.path.${path.name}')),
+  matching: find.text(text),
+);
+
+Finder _inTotal(String text) => find.descendant(
+  of: find.byKey(const Key('usage_stats.total')),
+  matching: find.text(text),
+);
+
+void main() {
+  setUpAll(Localization.loadTranslations);
+
+  testWidgets('opens on this month: month caption, total, every path, and '
+      'the privacy note', (tester) async {
+    await _pump(tester, _Service([right(_stats)]));
+
+    expect(find.text('November 2026'), findsOneWidget);
+    expect(_inTotal('4.6 MB'), findsOneWidget);
+    expect(_inPath(UsagePath.proxyless, '1.2 MB'), findsOneWidget);
+    expect(_inPath(UsagePath.lantern, '3.4 MB'), findsOneWidget);
+    for (final path in UsagePath.values) {
+      expect(find.byKey(Key('usage_stats.path.${path.name}')), findsOneWidget);
+    }
+    expect(_inPath(UsagePath.personal, '0 B'), findsOneWidget);
+    expect(find.text('proxyless'.i18n), findsOneWidget);
+    expect(find.text('usage_stats_direct'.i18n), findsOneWidget);
+    expect(find.text('usage_stats_privacy'.i18n), findsOneWidget);
+    expect(find.byKey(const Key('usage_stats.data_cap_note')), findsNothing);
+  });
+
+  testWidgets('All time shows lifetime totals since the start date', (
+    tester,
+  ) async {
+    await _pump(tester, _Service([right(_stats)]));
+    await tester.tap(find.byKey(const Key('usage_stats.all_time_tab')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('usage_stats_since'.i18n.fill(['Mar 4, 2026'])),
+      findsOneWidget,
+    );
+    expect(_inTotal('134 MB'), findsOneWidget);
+    expect(_inPath(UsagePath.proxyless, '56 MB'), findsOneWidget);
+    expect(_inPath(UsagePath.lantern, '78 MB'), findsOneWidget);
+    expect(_inPath(UsagePath.direct, '9.0 kB'), findsOneWidget);
+  });
+
+  testWidgets('with a data cap, Try Direct First says it does not count', (
+    tester,
+  ) async {
+    await _pump(tester, _Service([right(_stats)]), dataCap: true);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('usage_stats.path.proxyless')),
+        matching: find.text('usage_stats_proxyless_data_cap'.i18n),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Reset stats asks first, then resets and reloads', (
+    tester,
+  ) async {
+    final service = _Service([right(_stats), right(_zero)]);
+    await _pump(tester, service);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('usage_stats.reset')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const Key('usage_stats.reset')));
+    await tester.pumpAndSettle();
+    expect(find.text('usage_stats_reset_title'.i18n), findsOneWidget);
+    await tester.tap(find.text('cancel'.i18n));
+    await tester.pumpAndSettle();
+    expect(service.resets, 0);
+    expect(_inTotal('4.6 MB'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('usage_stats.reset')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('usage_stats_reset_confirm'.i18n));
+    await tester.pumpAndSettle();
+    expect(service.resets, 1);
+    expect(find.text('usage_stats_reset_title'.i18n), findsNothing);
+    expect(_inTotal('0 B'), findsOneWidget);
+  });
+
+  testWidgets('a failed load says so', (tester) async {
+    await _pump(
+      tester,
+      _Service([left(Failure(error: 'boom', localizedErrorMessage: 'boom'))]),
+    );
+    expect(find.byKey(const Key('usage_stats.error')), findsOneWidget);
+  });
+}

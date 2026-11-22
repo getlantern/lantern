@@ -114,6 +114,12 @@ class MethodHandler {
       case "getDataCapInfo":
         self.getDataCapInfo(result: result)
 
+      case "getUsageStats":
+        self.getUsageStats(result: result)
+
+      case "resetUsageStats":
+        self.resetUsageStats(result: result)
+
       case "acknowledgeInAppPurchase":
         guard
           let map = call.arguments as? [String: Any],
@@ -823,6 +829,32 @@ class MethodHandler {
       await MainActor.run {
         result(data)
       }
+    }
+  }
+
+  private func getUsageStats(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let data = MobileGetUsageStats(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "FETCH_USAGE_STATS_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(data)
+      }
+    }
+  }
+
+  private func resetUsageStats(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileResetUsageStats(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "RESET_USAGE_STATS_FAILED")
+        return
+      }
+      await self.replyOK(result)
     }
   }
 

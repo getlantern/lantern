@@ -197,6 +197,10 @@ class AppRouter extends RootStackRouter {
       page: SmartRouting.page,
     ),
     AutoRoute(
+      path: '/usage-stats',
+      page: UsageStatsScreen.page,
+    ),
+    AutoRoute(
       path: '/intro',
       page: Onboarding.page,
     ),
