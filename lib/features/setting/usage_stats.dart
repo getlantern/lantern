@@ -389,6 +389,7 @@ class _PathTile extends StatelessWidget {
     };
     return AppTile(
       key: Key('usage_stats.path.${path.name}'),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       label: label,
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -100,6 +100,10 @@ Future<void> _pump(
   bool dataCap = false,
   bool settle = true,
 }) async {
+  // Tall enough that the lazy list builds every row.
+  tester.view.physicalSize = const Size(393, 1400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
       // Riverpod's automatic retry would make extra reads.
