@@ -2574,3 +2574,6 @@ msgstr "Impossible de réinitialiser les statistiques d'utilisation"
 
 msgid "usage_stats_load_failed"
 msgstr "Impossible de charger les statistiques d'utilisation"
+
+msgid "split_tunnel_update_failed"
+msgstr "Impossible de mettre à jour le split tunneling. Veuillez réessayer."

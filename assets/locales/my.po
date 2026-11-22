@@ -2628,3 +2628,6 @@ msgstr "အသုံးပြုမှု စာရင်းအင်းကိ�
 
 msgid "usage_stats_load_failed"
 msgstr "အသုံးပြုမှု စာရင်းအင်းများကို ဖွင့်၍မရပါ"
+
+msgid "usage_stats_reset"
+msgstr "စာရင်းအင်း ပြန်စရန်"
