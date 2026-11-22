@@ -44,7 +44,7 @@ func TestRetryUsageBusy(t *testing.T) {
 			if calls != tc.wantCalls {
 				t.Fatalf("calls = %d, want %d", calls, tc.wantCalls)
 			}
-			if tc.wantErr != nil && err != tc.wantErr {
+			if tc.wantErr != nil && !errors.Is(err, tc.wantErr) {
 				t.Fatalf("err = %v, want %v", err, tc.wantErr)
 			}
 			if tc.results[tc.wantCalls-1] == nil && err != nil {
