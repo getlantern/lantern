@@ -304,8 +304,9 @@ class Home extends HookConsumerWidget {
     // A newly approved pairing this device helps: start sharing, picking the
     // mode as the toggle does. Not gated on the Unbounded tab being visible:
     // a paired volunteer's widget is turned on server-side (Features[unbounded]).
-    // startForHelper holds the start back while this device's country is
-    // unknown or censored; a later country-code event retries it. Not while
+    // startForHelper holds the start back while this device may not
+    // volunteer (helperVolunteerAllowed); a later country-code event or
+    // helper_volunteer flag retries it. Not while
     // a HelpFriend screen waits on its claim: its success dialog's
     // Auto-enable row decides.
     ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
@@ -320,6 +321,17 @@ class Home extends HookConsumerWidget {
       if (prev == next) return;
       ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
     });
+    ref.listen<bool?>(
+      featureFlagProvider.select(
+        (f) => f.containsKey(FeatureFlag.helperVolunteer.key)
+            ? f.getBool(FeatureFlag.helperVolunteer)
+            : null,
+      ),
+      (prev, next) {
+        if (prev == next) return;
+        ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
+      },
+    );
 
     return Scaffold(
       key: const Key('home.screen'),

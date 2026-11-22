@@ -1417,4 +1417,12 @@ void main() {
       expect(helperAutoStartAllowed(c), isTrue, reason: c);
     }
   });
+
+  test('helperVolunteerAllowed follows helper_volunteer when it is sent', () {
+    expect(helperVolunteerAllowed({'helper_volunteer': true}, 'IR'), isTrue);
+    expect(helperVolunteerAllowed({'helper_volunteer': false}, 'DE'), isFalse);
+    expect(helperVolunteerAllowed({'unbounded': true}, 'DE'), isTrue);
+    expect(helperVolunteerAllowed({'unbounded': true}, 'IR'), isFalse);
+    expect(helperVolunteerAllowed(const {}, ''), isFalse);
+  });
 }

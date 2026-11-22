@@ -567,10 +567,11 @@ class ShareNotifier extends _$ShareNotifier {
   /// The consent was collected when the user accepted the invite; without it
   /// this does nothing. A user who later turns sharing off stays off.
   ///
-  /// Never starts while this device's own country is unknown or censored:
-  /// lantern-cloud's guard relies on IP geolocation and can fail open. The
-  /// approval is then kept, and [retryPendingHelperStart] starts it once the
-  /// country is known and allowed. The user can still turn sharing on.
+  /// Never starts while this device may not volunteer
+  /// ([helperVolunteerAllowed]: lantern-cloud's helper_volunteer, or a
+  /// censored or unknown country without it). The approval is then kept,
+  /// and [retryPendingHelperStart] starts it once that allows it. The user
+  /// can still turn sharing on.
   ///
   /// [requireAutoEnable] ties the start to the Auto-enable preference: asked
   /// again before the backend starts, so a box unchecked while the port and
@@ -607,7 +608,10 @@ class ShareNotifier extends _$ShareNotifier {
       _helperStartPending = false;
       return false;
     }
-    if (!helperAutoStartAllowed(CountryCode.current)) {
+    if (!helperVolunteerAllowed(
+      ref.read(featureFlagProvider),
+      CountryCode.current,
+    )) {
       _helperStartPending = true;
       return false;
     }
@@ -615,7 +619,7 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   /// Retries a helper start held back by [startForHelper]. Called when the
-  /// country changes. Dropped if this device no longer helps anyone.
+  /// country or the helper_volunteer flag changes. Dropped if this device no longer helps anyone.
   Future<void> retryPendingHelperStart(WidgetRef widgetRef) async {
     if (!_helperStartPending) return;
     await startForHelper(

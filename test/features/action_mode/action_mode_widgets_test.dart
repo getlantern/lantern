@@ -16,6 +16,7 @@ import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/features/action_mode/action_mode_globe.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
@@ -95,6 +96,7 @@ void main() {
     Brightness brightness = Brightness.light,
     bool animated = false,
     String country = 'US',
+    Map<String, dynamic> flags = const {},
     HelpersState helpers = const HelpersState(),
     ShareState shareState = const ShareState(
       active: true,
@@ -118,6 +120,7 @@ void main() {
             helperInvitesAvailableProvider.overrideWithValue(false),
             helpersProvider.overrideWith(() => _Helpers(helpers)),
             countryCodeProvider.overrideWithValue(country),
+            featureFlagProvider.overrideWithValue(flags),
           ],
           child: ScreenUtilInit(
             designSize: const Size(393, 852),
@@ -185,14 +188,15 @@ void main() {
       });
     }
 
-    testWidgets('a volunteer waiting on a claim sees the invite row before '
-        'the country is known', (tester) async {
+    testWidgets('no invite row in a censored country while a claim waits', (
+      tester,
+    ) async {
       final expires = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600;
       await mount(
         tester,
         const ActionModeTab(),
         animated: true,
-        country: '',
+        country: 'IR',
         helpers: HelpersState(
           view: HelpersView(
             unlocked: true,
@@ -201,6 +205,28 @@ void main() {
             ],
           ),
         ),
+      );
+      expect(become, findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('helper_volunteer from the server decides over the country', (
+      tester,
+    ) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        country: 'US',
+        flags: const {'helper_volunteer': false},
+      );
+      expect(become, findsNothing);
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        country: 'TR',
+        flags: const {'helper_volunteer': true},
       );
       expect(become, findsOneWidget);
       await tester.pumpWidget(const SizedBox());

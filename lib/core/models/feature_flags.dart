@@ -21,7 +21,12 @@ enum FeatureFlag {
   // onboarding before it had these pages (Home pushes it once). New
   // installs see the same pages in onboarding whatever this says. Remove
   // the check to make the introduction fully live.
-  personalProxiesIntro('personal_proxies_intro');
+  personalProxiesIntro('personal_proxies_intro'),
+  // Whether this device may volunteer as a Personal Proxy: offer "Become a
+  // Personal Proxy" and start sharing for a friend. lantern-cloud decides
+  // it from the device's country and never sets it in a censored or unknown
+  // one. See helperVolunteerAllowed.
+  helperVolunteer('helper_volunteer');
 
   final String key;
 
