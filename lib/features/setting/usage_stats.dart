@@ -11,6 +11,7 @@ import 'package:lantern/core/models/usage_stats.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/setting/provider/usage_stats_notifier.dart';
+import 'package:window_manager/window_manager.dart';
 
 /// How often the screen reloads the stats while it's on top and the app is
 /// visible.
@@ -22,6 +23,41 @@ bool _appVisible(AppLifecycleState? state) =>
     state == null ||
     state == AppLifecycleState.resumed ||
     state == AppLifecycleState.inactive;
+
+/// Whether the desktop window is on screen: not hidden (closed to the tray)
+/// or minimized. Assumes it is if the window plugin can't say.
+Future<bool> _windowShown() async {
+  if (!PlatformUtils.isDesktop) return true;
+  try {
+    return await windowManager.isVisible() &&
+        !await windowManager.isMinimized();
+  } catch (_) {
+    return true;
+  }
+}
+
+/// Calls [onChange] on window events that can mean it was shown or hidden.
+/// macOS reports no show or hide, so focus stands in for show, and the
+/// screen checks the window on each tick.
+class _WindowEvents with WindowListener {
+  _WindowEvents(this.onChange);
+
+  final VoidCallback onChange;
+
+  @override
+  void onWindowFocus() => onChange();
+
+  @override
+  void onWindowMinimize() => onChange();
+
+  @override
+  void onWindowRestore() => onChange();
+
+  @override
+  void onWindowEvent(String eventName) {
+    if (eventName == 'show' || eventName == 'hide') onChange();
+  }
+}
 
 @RoutePage(name: 'UsageStatsScreen')
 class UsageStatsScreen extends HookConsumerWidget {
@@ -37,33 +73,61 @@ class UsageStatsScreen extends HookConsumerWidget {
     );
 
     // Reloads only while the screen can be seen: the timer stops while the
-    // app is hidden or another route covers this one, and coming back reloads
-    // at once. The first load is build's, so that reload returns early.
-    // Lifecycle changes act at once rather than on a rebuild, since a hidden
-    // app draws no frames.
+    // app is hidden, the desktop window is hidden or minimized, or another
+    // route covers this one, and coming back reloads at once. The first load
+    // is build's, so that reload returns early. Lifecycle and window changes
+    // act at once rather than on a rebuild, since a hidden app draws no
+    // frames.
     final routeCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+    final routeCurrentRef = useRef(routeCurrent)..value = routeCurrent;
+    final windowShown = useRef(true);
     final timer = useRef<Timer?>(null);
     void stop() {
       timer.value?.cancel();
       timer.value = null;
     }
 
-    void sync(bool visible) {
+    void refresh() =>
+        unawaited(ref.read(usageStatsProvider.notifier).refresh());
+
+    void sync() {
+      final visible =
+          routeCurrentRef.value &&
+          windowShown.value &&
+          _appVisible(WidgetsBinding.instance.lifecycleState);
       if (!visible) return stop();
       if (timer.value != null) return;
-      final notifier = ref.read(usageStatsProvider.notifier);
-      unawaited(notifier.refresh());
-      timer.value = Timer.periodic(
-        usageStatsRefreshInterval,
-        (_) => unawaited(notifier.refresh()),
-      );
+      refresh();
+      timer.value = Timer.periodic(usageStatsRefreshInterval, (_) async {
+        // Closing the window to the tray can leave the app inactive, not
+        // hidden, so each tick first checks the window is still shown.
+        final shown = await _windowShown();
+        if (!context.mounted) return;
+        if (!shown) {
+          windowShown.value = false;
+          return stop();
+        }
+        refresh();
+      });
     }
 
-    useOnAppLifecycleStateChange(
-      (_, state) => sync(routeCurrent && _appVisible(state)),
-    );
+    Future<void> recheckWindow() async {
+      windowShown.value = await _windowShown();
+      if (context.mounted) sync();
+    }
+
+    useOnAppLifecycleStateChange((_, _) {
+      sync();
+      unawaited(recheckWindow());
+    });
     useEffect(() {
-      sync(routeCurrent && _appVisible(WidgetsBinding.instance.lifecycleState));
+      if (!PlatformUtils.isDesktop) return null;
+      final listener = _WindowEvents(() => unawaited(recheckWindow()));
+      windowManager.addListener(listener);
+      return () => windowManager.removeListener(listener);
+    }, const []);
+    useEffect(() {
+      sync();
       return null;
     }, [routeCurrent]);
     useEffect(() => stop, const []);

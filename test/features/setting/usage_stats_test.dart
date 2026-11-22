@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -14,6 +15,7 @@ import 'package:lantern/features/setting/provider/usage_stats_notifier.dart';
 import 'package:lantern/features/setting/usage_stats.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:window_manager/window_manager.dart';
 
 UsageTotals _totals({int proxyless = 0, int lantern = 0, int direct = 0}) =>
     UsageTotals({
@@ -34,6 +36,7 @@ final _zero = UsageStats(
   month: '2026-11',
   thisMonth: const UsageTotals({}),
   lifetime: const UsageTotals({}),
+  resetAt: DateTime(2026, 11, 21),
 );
 
 class _Service implements LanternService {
@@ -45,6 +48,7 @@ class _Service implements LanternService {
   /// Reads, by index, that wait for their completer.
   final gates = <int, Completer<void>>{};
   Completer<void>? resetGate;
+  Either<Failure, Unit> resetResult = right(unit);
 
   /// What reads return once a reset has run, if set.
   Either<Failure, UsageStats>? afterReset;
@@ -74,7 +78,7 @@ class _Service implements LanternService {
   Future<Either<Failure, Unit>> resetUsageStats() async {
     resets++;
     await resetGate?.future;
-    return right(unit);
+    return resetResult;
   }
 
   @override
@@ -140,8 +144,34 @@ Finder _inTotal(String text) => find.descendant(
   matching: find.text(text),
 );
 
+/// What the mocked window plugin reports.
+var _windowVisible = true;
+var _windowMinimized = false;
+
 void main() {
   setUpAll(Localization.loadTranslations);
+
+  setUp(() {
+    _windowVisible = true;
+    _windowMinimized = false;
+    PlatformUtils.debugIsDesktop = true;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('window_manager'), (
+          call,
+        ) async {
+          return switch (call.method) {
+            'isVisible' => _windowVisible,
+            'isMinimized' => _windowMinimized,
+            _ => null,
+          };
+        });
+  });
+
+  tearDown(() {
+    PlatformUtils.debugIsDesktop = null;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('window_manager'), null);
+  });
 
   testWidgets('opens on this month: month caption, total, every path, and '
       'the privacy note', (tester) async {
@@ -355,4 +385,111 @@ void main() {
     await tester.pumpAndSettle();
     expect(_inTotal('4.6 MB'), findsOneWidget);
   });
+
+  testWidgets('stops while the window is closed to the tray, though the app '
+      'stays inactive, and reloads when it comes back', (tester) async {
+    final service = _Service([right(_stats)]);
+    await _pump(tester, service);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+    expect(service.reads, 1);
+
+    _windowVisible = false;
+    await tester.pump(usageStatsRefreshInterval);
+    await tester.pump(usageStatsRefreshInterval * 5);
+    expect(service.reads, 1);
+
+    _windowVisible = true;
+    for (final listener in windowManager.listeners) {
+      listener.onWindowFocus();
+    }
+    await tester.pump();
+    expect(service.reads, 2, reason: 'coming back reloads at once');
+    await tester.pump(usageStatsRefreshInterval);
+    expect(service.reads, 3);
+  });
+
+  testWidgets('a reset that failed but happened in the daemon counts', (
+    tester,
+  ) async {
+    final service = _Service([right(_stats)])
+      ..resetResult = _resetTimeout
+      ..afterReset = right(_zero);
+    await _pump(tester, service);
+    await _tapReset(tester);
+    await tester.tap(find.text('usage_stats_reset_confirm'.i18n));
+    await tester.pumpAndSettle();
+    expect(_inTotal('0 B'), findsOneWidget);
+    expect(find.text('usage_stats_reset_failed'.i18n), findsNothing);
+  });
+
+  testWidgets('a reset that failed and did not happen says so', (tester) async {
+    final service = _Service([right(_stats)])..resetResult = _resetTimeout;
+    await _pump(tester, service);
+    await _tapReset(tester);
+    await tester.tap(find.text('usage_stats_reset_confirm'.i18n));
+    await tester.pumpAndSettle();
+    expect(service.reads, greaterThan(1), reason: 'reloads anyway');
+    expect(_inTotal('4.6 MB'), findsOneWidget);
+    expect(find.text('usage_stats_reset_failed'.i18n), findsOneWidget);
+  });
+
+  group('notifier', () {
+    ProviderContainer container(_Service service) {
+      final c = ProviderContainer(
+        retry: (_, _) => null,
+        overrides: [lanternServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(c.dispose);
+      c.listen(usageStatsProvider, (_, _) {});
+      return c;
+    }
+
+    test('a reload started before a retry does not land over it', () async {
+      final service = _Service([right(_stats), right(_zero), right(_stats)])
+        ..gates[1] = Completer<void>()
+        ..gates[2] = Completer<void>();
+      final c = container(service);
+      await c.read(usageStatsProvider.future);
+
+      final stale = c.read(usageStatsProvider.notifier).refresh();
+      await pumpEventQueue();
+      expect(service.reads, 2);
+      c.invalidate(usageStatsProvider);
+      c.read(usageStatsProvider);
+      await pumpEventQueue();
+      expect(service.reads, 3);
+
+      service.gates[1]!.complete();
+      await stale;
+      await pumpEventQueue();
+      expect(c.read(usageStatsProvider).isLoading, isTrue);
+
+      service.gates[2]!.complete();
+      await pumpEventQueue();
+      expect(c.read(usageStatsProvider).value?.resetAt, isNull);
+    });
+
+    test('no reload while a retry after a failed reset reload runs', () async {
+      final service = _Service([right(_stats)])..afterReset = _failure;
+      final c = container(service);
+      await c.read(usageStatsProvider.future);
+      await c.read(usageStatsProvider.notifier).reset();
+      expect(c.read(usageStatsProvider).hasError, isTrue);
+
+      service
+        ..afterReset = null
+        ..gates[service.reads] = Completer<void>();
+      c.invalidate(usageStatsProvider);
+      c.read(usageStatsProvider);
+      await pumpEventQueue();
+      final reads = service.reads;
+      await c.read(usageStatsProvider.notifier).refresh();
+      expect(service.reads, reads);
+    });
+  });
 }
+
+final _resetTimeout = left<Failure, Unit>(
+  Failure(error: 'deadline exceeded', localizedErrorMessage: 'timeout'),
+);

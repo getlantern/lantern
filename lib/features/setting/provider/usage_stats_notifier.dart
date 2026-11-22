@@ -14,8 +14,13 @@ class UsageStatsNotifier extends _$UsageStatsNotifier {
   /// and on desktop its own isolate.
   Future<void>? _reloading;
 
+  /// Bumped by each build, so a reload started before a retry can't write
+  /// over it.
+  int _generation = 0;
+
   @override
   Future<UsageStats> build() async {
+    _generation++;
     final service = ref.read(lanternServiceProvider);
     await service.waitForRadiance();
     final result = await service.getUsageStats();
@@ -25,19 +30,33 @@ class UsageStatsNotifier extends _$UsageStatsNotifier {
     );
   }
 
-  /// Reloads the stats, unless the first load or another reload is still
-  /// running. A failure keeps the stats already shown.
+  /// Reloads the stats, unless a load (the first, or a retry) or another
+  /// reload is still running. A failure keeps the stats already shown.
   Future<void> refresh() async {
-    if (state.isLoading && !state.hasValue) return;
+    // Only build sets loading, and a failed retry keeps the previous value,
+    // so this checks loading alone.
+    if (state.isLoading) return;
     if (_reloading != null) return;
     await _reload(keepOnError: true);
   }
 
   /// Resets the stats, then reloads them. If that reload fails the screen
   /// shows the failure, since the stats it had are gone.
+  ///
+  /// A reset that fails, say on the call's deadline, may still have happened
+  /// in the daemon, so the stats reload anyway, and a reset they show counts
+  /// as success.
   Future<Either<Failure, Unit>> reset() async {
+    final resetBefore = state.value?.resetAt;
     final result = await ref.read(lanternServiceProvider).resetUsageStats();
-    if (result.isRight() && ref.mounted) await _reload(keepOnError: false);
+    if (!ref.mounted) return result;
+    if (result.isRight()) {
+      await _reload(keepOnError: false);
+      return result;
+    }
+    await _reload(keepOnError: true);
+    final resetAfter = state.value?.resetAt;
+    if (resetAfter != null && resetAfter != resetBefore) return right(unit);
     return result;
   }
 
@@ -58,8 +77,9 @@ class UsageStatsNotifier extends _$UsageStatsNotifier {
   }
 
   Future<void> _fetch({required bool keepOnError}) async {
+    final generation = _generation;
     final result = await ref.read(lanternServiceProvider).getUsageStats();
-    if (!ref.mounted) return;
+    if (!ref.mounted || generation != _generation) return;
     result.match((failure) {
       if (!keepOnError || !state.hasValue) {
         state = AsyncError(failure, StackTrace.current);
