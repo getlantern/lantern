@@ -555,8 +555,8 @@ class ShareNotifier extends _$ShareNotifier {
   /// SmC failure falls back to Unbounded. Null for a start the user made.
   bool Function()? _startGuard;
 
-  /// A helper approval whose start was held back because this device's
-  /// country was unknown or censored. Memory only.
+  /// A helper approval whose start was held back because this device may not
+  /// volunteer ([helperVolunteerAllowed]). Memory only.
   bool _helperStartPending = false;
 
   /// Whether the held-back start is tied to Auto-enable, as the success
@@ -619,7 +619,8 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   /// Retries a helper start held back by [startForHelper]. Called when the
-  /// country or the helper_volunteer flag changes. Dropped if this device no longer helps anyone.
+  /// country or the helper_volunteer flag changes. Dropped if this device no
+  /// longer helps anyone.
   Future<void> retryPendingHelperStart(WidgetRef widgetRef) async {
     if (!_helperStartPending) return;
     await startForHelper(

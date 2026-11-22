@@ -210,6 +210,40 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     });
 
+    testWidgets('a volunteer waiting on a claim sees the invite row before '
+        'the country or helper_volunteer is known', (tester) async {
+      final expires = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 3600;
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        country: '',
+        helpers: HelpersState(
+          view: HelpersView(
+            unlocked: true,
+            claims: [
+              HelperClaimView(id: 'c1', code: '2562', expiresUnix: expires),
+            ],
+          ),
+        ),
+      );
+      expect(become, findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('helper_volunteer does not show the row in a known censored '
+        'country', (tester) async {
+      await mount(
+        tester,
+        const ActionModeTab(),
+        animated: true,
+        country: 'IR',
+        flags: const {'helper_volunteer': true},
+      );
+      expect(become, findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
     testWidgets('helper_volunteer from the server decides over the country', (
       tester,
     ) async {
