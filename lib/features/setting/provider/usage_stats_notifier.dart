@@ -55,6 +55,7 @@ class UsageStatsNotifier extends _$UsageStatsNotifier {
       return result;
     }
     await _reload(keepOnError: true);
+    if (!ref.mounted) return result;
     final resetAfter = state.value?.resetAt;
     if (resetAfter != null && resetAfter != resetBefore) return right(unit);
     return result;

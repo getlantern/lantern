@@ -531,6 +531,30 @@ void main() {
       await c.read(usageStatsProvider.notifier).refresh();
       expect(service.reads, reads);
     });
+
+    test(
+      'leaving during the reload after a failed reset returns the failure',
+      () async {
+        final service = _Service([right(_stats)])
+          ..resetResult = _resetTimeout
+          ..gates[1] = Completer<void>();
+        final c = ProviderContainer(
+          retry: (_, _) => null,
+          overrides: [lanternServiceProvider.overrideWithValue(service)],
+        );
+        addTearDown(c.dispose);
+        final sub = c.listen(usageStatsProvider, (_, _) {});
+        await c.read(usageStatsProvider.future);
+
+        final reset = c.read(usageStatsProvider.notifier).reset();
+        await pumpEventQueue();
+        expect(service.reads, 2, reason: 'the reload checking the reset runs');
+        sub.close(); // the screen closes, so the notifier is disposed
+        await pumpEventQueue();
+        service.gates[1]!.complete();
+        expect(await reset, _resetTimeout);
+      },
+    );
   });
 }
 
