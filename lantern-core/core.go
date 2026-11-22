@@ -3,8 +3,10 @@ package lanterncore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -254,6 +256,10 @@ type VPN interface {
 	DisconnectVPN() error
 	VPNStatus() (vpn.VPNStatus, error)
 	VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error
+	// UsageStats returns the on-device byte totals per tunnel path as the
+	// JSON of vpn.Usage.
+	UsageStats() (string, error)
+	ResetUsageStats() error
 }
 
 type Helper interface {
@@ -1165,6 +1171,50 @@ func (lc *LanternCore) DataCapInfo() (string, error) {
 		return "", fmt.Errorf("error marshalling DataCapInfo: %w", err)
 	}
 	return string(jsonBytes), nil
+}
+
+// usageBusyRetries is how long to wait before each retry of a usage call the
+// daemon answers 503 to: it does while a save or reset holds the store.
+var usageBusyRetries = []time.Duration{300 * time.Millisecond, 300 * time.Millisecond}
+
+// retryUsageBusy runs fn, and again after each of usageBusyRetries while it
+// fails with 503.
+func retryUsageBusy(ctx context.Context, fn func() error) error {
+	err := fn()
+	for _, d := range usageBusyRetries {
+		var ipcErr *ipc.Error
+		if !errors.As(err, &ipcErr) || ipcErr.Status != http.StatusServiceUnavailable {
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			return err
+		case <-time.After(d):
+		}
+		err = fn()
+	}
+	return err
+}
+
+func (lc *LanternCore) UsageStats() (string, error) {
+	var usage vpn.Usage
+	err := retryUsageBusy(lc.ctx, func() error {
+		var err error
+		usage, err = lc.client.VPNUsage(lc.ctx)
+		return err
+	})
+	if err != nil {
+		return "", err
+	}
+	jsonBytes, err := json.Marshal(usage)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling usage stats: %w", err)
+	}
+	return string(jsonBytes), nil
+}
+
+func (lc *LanternCore) ResetUsageStats() error {
+	return retryUsageBusy(lc.ctx, func() error { return lc.client.ResetVPNUsage(lc.ctx) })
 }
 
 func (lc *LanternCore) UserData() ([]byte, error) {
