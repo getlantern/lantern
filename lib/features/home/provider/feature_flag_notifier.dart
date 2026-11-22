@@ -26,7 +26,10 @@ class FeatureFlagNotifier extends _$FeatureFlagNotifier {
     appLogger.debug('Fetching feature flags...');
     final fetch = ++_fetches;
     final result = await ref.read(lanternServiceProvider).featureFlag();
+    // An older fetch may only fill flags that have not loaded yet: once any
+    // fetch has applied, only a newer one may replace them.
     if (!ref.mounted || fetch < _applied) return;
+    if (fetch < _fetches && _applied > 0) return;
     result.fold(
       (failure) {
         appLogger.error('Error fetching feature flags: ${failure.error}');
