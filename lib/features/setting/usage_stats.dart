@@ -53,6 +53,13 @@ class _WindowEvents with WindowListener {
   @override
   void onWindowRestore() => onChange();
 
+  // Windows restores a maximized window from minimized as a maximize.
+  @override
+  void onWindowMaximize() => onChange();
+
+  @override
+  void onWindowUnmaximize() => onChange();
+
   @override
   void onWindowEvent(String eventName) {
     if (eventName == 'show' || eventName == 'hide') onChange();
@@ -74,14 +81,15 @@ class UsageStatsScreen extends HookConsumerWidget {
 
     // Reloads only while the screen can be seen: the timer stops while the
     // app is hidden, the desktop window is hidden or minimized, or another
-    // route covers this one, and coming back reloads at once. The first load
-    // is build's, so that reload returns early. Lifecycle and window changes
-    // act at once rather than on a rebuild, since a hidden app draws no
-    // frames.
+    // route covers this one, and coming back reloads at once. Lifecycle and
+    // window changes act at once rather than on a rebuild, since a hidden app
+    // draws no frames.
     final routeCurrent = ModalRoute.of(context)?.isCurrent ?? true;
     final routeCurrentRef = useRef(routeCurrent)..value = routeCurrent;
-    final windowShown = useRef(true);
+    // On desktop the window is checked on mount before the timer starts.
+    final windowShown = useRef(!PlatformUtils.isDesktop);
     final timer = useRef<Timer?>(null);
+    final mounted = useRef(false);
     void stop() {
       timer.value?.cancel();
       timer.value = null;
@@ -90,14 +98,16 @@ class UsageStatsScreen extends HookConsumerWidget {
     void refresh() =>
         unawaited(ref.read(usageStatsProvider.notifier).refresh());
 
-    void sync() {
+    // A start reloads at once unless it comes with opening the screen, when
+    // build loads the stats.
+    void sync({bool reload = true}) {
       final visible =
           routeCurrentRef.value &&
           windowShown.value &&
           _appVisible(WidgetsBinding.instance.lifecycleState);
       if (!visible) return stop();
       if (timer.value != null) return;
-      refresh();
+      if (reload) refresh();
       timer.value = Timer.periodic(usageStatsRefreshInterval, (_) async {
         // Closing the window to the tray can leave the app inactive, not
         // hidden, so each tick first checks the window is still shown.
@@ -111,9 +121,9 @@ class UsageStatsScreen extends HookConsumerWidget {
       });
     }
 
-    Future<void> recheckWindow() async {
+    Future<void> recheckWindow({bool reload = true}) async {
       windowShown.value = await _windowShown();
-      if (context.mounted) sync();
+      if (context.mounted) sync(reload: reload);
     }
 
     useOnAppLifecycleStateChange((_, _) {
@@ -124,10 +134,12 @@ class UsageStatsScreen extends HookConsumerWidget {
       if (!PlatformUtils.isDesktop) return null;
       final listener = _WindowEvents(() => unawaited(recheckWindow()));
       windowManager.addListener(listener);
+      unawaited(recheckWindow(reload: false));
       return () => windowManager.removeListener(listener);
     }, const []);
     useEffect(() {
-      sync();
+      sync(reload: mounted.value);
+      mounted.value = true;
       return null;
     }, [routeCurrent]);
     useEffect(() => stop, const []);

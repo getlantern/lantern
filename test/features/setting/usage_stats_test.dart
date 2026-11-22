@@ -434,6 +434,44 @@ void main() {
     expect(find.text('usage_stats_reset_failed'.i18n), findsOneWidget);
   });
 
+  testWidgets('a window restored as a maximize reloads again', (tester) async {
+    final service = _Service([right(_stats)]);
+    await _pump(tester, service);
+    _windowMinimized = true;
+    await tester.pump(usageStatsRefreshInterval);
+    await tester.pump(usageStatsRefreshInterval * 3);
+    expect(service.reads, 1);
+
+    _windowMinimized = false;
+    for (final listener in windowManager.listeners) {
+      listener.onWindowMaximize();
+    }
+    await tester.pump();
+    expect(service.reads, 2);
+    await tester.pump(usageStatsRefreshInterval);
+    expect(service.reads, 3);
+  });
+
+  testWidgets('opened while the window is hidden, it does not reload until '
+      'the window comes back', (tester) async {
+    _windowVisible = false;
+    final service = _Service([right(_stats)]);
+    await _pump(tester, service);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(UsageStatsScreen)),
+    );
+    expect(container.read(usageStatsProvider).hasValue, isTrue);
+    await tester.pump(usageStatsRefreshInterval * 5);
+    expect(service.reads, 1, reason: 'only the first load');
+
+    _windowVisible = true;
+    for (final listener in windowManager.listeners) {
+      listener.onWindowFocus();
+    }
+    await tester.pump();
+    expect(service.reads, 2);
+  });
+
   group('notifier', () {
     ProviderContainer container(_Service service) {
       final c = ProviderContainer(
