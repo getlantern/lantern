@@ -2514,3 +2514,66 @@ msgstr "Mümkin bolanda bloklanan saýtlara göni birikýär"
 
 msgid "smart_routing_direct_description"
 msgstr "Akylly ugrukdyryş sebite mahsus düzgünleri ulanýar, şonuň üçin diňe VPN gerek bolan trafik Lantern arkaly geçýär. «Ilki göni synanyş» açyk bolsa, bloklanan saýtlara ilki senzura garşy usullar bilen göni girmäge synanyşylýar. Bu başartmasa, VPN ulanylýar."
+
+msgid "usage_stats"
+msgstr "Ulanyş statistikasy"
+
+msgid "usage_stats_this_month"
+msgstr "Şu aý"
+
+msgid "usage_stats_all_time"
+msgstr "Ähli wagt"
+
+msgid "usage_stats_since"
+msgstr "Başlanan senesi: %s"
+
+msgid "usage_stats_total"
+msgstr "Jemi"
+
+msgid "usage_stats_up_down"
+msgstr "Iberildi: %s · Alyndy: %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "VPN serwersiz, senzura garşy usullar bilen göni açylan bloklanan saýtlar"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Gündelik maglumat çägiňize hasaplanýar"
+
+msgid "usage_stats_lantern_description"
+msgstr "Lantern VPN serwerleri arkaly"
+
+msgid "usage_stats_personal"
+msgstr "Şahsy proksiler"
+
+msgid "usage_stats_personal_description"
+msgstr "Baglanyşygyny siziň bilen paýlaşýan dostlar arkaly"
+
+msgid "usage_stats_private_description"
+msgstr "Özüňiz sazlan ýa-da goşan serwerleriňiz arkaly"
+
+msgid "usage_stats_direct"
+msgstr "VPN-den daşarda"
+
+msgid "usage_stats_direct_description"
+msgstr "Akylly ugrukdyrma ýa-da bölünen tunel arkaly VPN-i aýlanyp iberildi"
+
+msgid "usage_stats_privacy"
+msgstr "Bu statistika şu enjamda saklanýar we hiç haçan Lantern-e iberilmeýär."
+
+msgid "usage_stats_reset"
+msgstr "Statistikany nola getir"
+
+msgid "usage_stats_reset_title"
+msgstr "Ulanyş statistikasy nola getirilsinmi?"
+
+msgid "usage_stats_reset_body"
+msgstr "Bu enjamdaky şu aýyň we ähli wagtyň jemleri nola gaýdar. Muny yzyna gaýtaryp bolmaýar."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Nola getir"
+
+msgid "usage_stats_reset_failed"
+msgstr "Ulanyş statistikasyny nola getirip bolmady"
+
+msgid "usage_stats_load_failed"
+msgstr "Ulanyş statistikasyny ýükläp bolmady"

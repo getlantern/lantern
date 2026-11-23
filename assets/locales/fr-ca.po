@@ -2354,3 +2354,66 @@ msgstr "Accède directement aux sites bloqués si possible"
 
 msgid "smart_routing_direct_description"
 msgstr "Le routage intelligent utilise des règles propres à votre région pour que seul le trafic qui a besoin du VPN passe par Lantern. Lorsque « Essayer en direct d'abord » est activé, l'accès aux sites bloqués est d'abord tenté directement à l'aide de techniques anticensure, puis par le VPN en cas d'échec."
+
+msgid "usage_stats"
+msgstr "Statistiques d'utilisation"
+
+msgid "usage_stats_this_month"
+msgstr "Ce mois-ci"
+
+msgid "usage_stats_all_time"
+msgstr "Depuis le début"
+
+msgid "usage_stats_since"
+msgstr "Depuis le %s"
+
+msgid "usage_stats_total"
+msgstr "Total"
+
+msgid "usage_stats_up_down"
+msgstr "Envoyé : %s · Reçu : %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "Sites bloqués atteints directement grâce à des techniques anticensure, sans serveur VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Compté dans votre limite de données quotidienne"
+
+msgid "usage_stats_lantern_description"
+msgstr "Par les serveurs VPN de Lantern"
+
+msgid "usage_stats_personal"
+msgstr "Mandataires personnels"
+
+msgid "usage_stats_personal_description"
+msgstr "Par des amis qui partagent leur connexion avec vous"
+
+msgid "usage_stats_private_description"
+msgstr "Par des serveurs que vous avez configurés ou ajoutés"
+
+msgid "usage_stats_direct"
+msgstr "Hors du VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "Contourne le VPN par le routage intelligent ou la tunnellisation fractionnée"
+
+msgid "usage_stats_privacy"
+msgstr "Ces statistiques restent sur cet appareil et ne sont jamais envoyées à Lantern."
+
+msgid "usage_stats_reset"
+msgstr "Réinitialiser les statistiques"
+
+msgid "usage_stats_reset_title"
+msgstr "Réinitialiser les statistiques d'utilisation?"
+
+msgid "usage_stats_reset_body"
+msgstr "Les totaux de ce mois et depuis le début sur cet appareil seront remis à zéro. Cette action est irréversible."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Réinitialiser"
+
+msgid "usage_stats_reset_failed"
+msgstr "Impossible de réinitialiser les statistiques d'utilisation"
+
+msgid "usage_stats_load_failed"
+msgstr "Impossible de charger les statistiques d'utilisation"

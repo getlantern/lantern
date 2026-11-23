@@ -2555,3 +2555,90 @@ msgstr "This TV has no web browser. Scan the code or type the address on your ph
 
 msgid "clear"
 msgstr "Clear"
+
+# Settings row and title of the screen showing how much data went each way
+# through the VPN.
+msgid "usage_stats"
+msgstr "Usage stats"
+
+# Usage stats screen: tab showing this calendar month's totals.
+msgid "usage_stats_this_month"
+msgstr "This month"
+
+# Usage stats screen: tab showing totals since counting started.
+msgid "usage_stats_all_time"
+msgstr "All time"
+
+# Usage stats screen, All time tab. %s is a date, e.g. "Nov 3, 2026".
+msgid "usage_stats_since"
+msgstr "Since %s"
+
+# Usage stats screen: label above the total of all the paths below it.
+msgid "usage_stats_total"
+msgstr "Total"
+
+# Usage stats screen. %s %s are amounts of data, e.g. "1.2 MB", sent then
+# received.
+msgid "usage_stats_up_down"
+msgstr "%s sent · %s received"
+
+# Usage stats screen: under "Try Direct First", the blocked sites Lantern
+# reached directly instead of through a VPN server.
+msgid "usage_stats_proxyless_description"
+msgstr "Blocked sites reached directly using anti-censorship techniques, without a VPN server"
+
+# Usage stats screen: shown under "Lantern Servers" when the user has a daily
+# data cap. Only traffic through Lantern's servers counts toward it.
+msgid "usage_stats_lantern_data_cap"
+msgstr "Counts toward your daily data cap"
+
+# Usage stats screen: under "Lantern Servers".
+msgid "usage_stats_lantern_description"
+msgstr "Through Lantern's VPN servers"
+
+# Usage stats screen: label for traffic through Personal Proxies, friends who
+# share their connection with this user.
+msgid "usage_stats_personal"
+msgstr "Personal Proxies"
+
+# Usage stats screen: under "Personal Proxies".
+msgid "usage_stats_personal_description"
+msgstr "Through friends sharing their connection with you"
+
+# Usage stats screen: under "Private Servers".
+msgid "usage_stats_private_description"
+msgstr "Through servers you set up or added yourself"
+
+# Usage stats screen: label for traffic that did not go through the VPN.
+msgid "usage_stats_direct"
+msgstr "Outside the VPN"
+
+# Usage stats screen: under "Outside the VPN".
+msgid "usage_stats_direct_description"
+msgstr "Sent around the VPN by Smart Routing or Split Tunneling"
+
+# Usage stats screen: privacy note at the bottom.
+msgid "usage_stats_privacy"
+msgstr "These stats are kept on this device and are never sent to Lantern."
+
+# Usage stats screen: button that clears the stats.
+msgid "usage_stats_reset"
+msgstr "Reset stats"
+
+# Title of the dialog confirming Reset stats.
+msgid "usage_stats_reset_title"
+msgstr "Reset usage stats?"
+
+# Body of the dialog confirming Reset stats.
+msgid "usage_stats_reset_body"
+msgstr "This month's and all-time totals on this device go back to zero. This can't be undone."
+
+# Confirm button in the Reset stats dialog.
+msgid "usage_stats_reset_confirm"
+msgstr "Reset"
+
+msgid "usage_stats_reset_failed"
+msgstr "Couldn't reset usage stats"
+
+msgid "usage_stats_load_failed"
+msgstr "Couldn't load usage stats"

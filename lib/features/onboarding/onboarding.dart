@@ -61,9 +61,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
         ? ref.watch(macosExtensionProvider)
         : null;
     final lastPage =
-        2 +
-        (showActionMode.value ? 1 : 0) +
-        (extensionPage ? 1 : 0);
+        2 + (showActionMode.value ? 1 : 0) + (extensionPage ? 1 : 0);
     final onExtensionPage = extensionPage && pageIndex.value == lastPage;
     final completing = useRef(false);
 
@@ -256,7 +254,9 @@ class _OnboardingState extends ConsumerState<Onboarding> {
           SizedBox(height: 24.0),
           Text(
             'choose_your_routing_mode'.i18n,
-            style: textTheme.headlineSmall!.copyWith(color: context.textPrimary),
+            style: textTheme.headlineSmall!.copyWith(
+              color: context.textPrimary,
+            ),
           ),
           SizedBox(height: 24.0),
           AppFocusable(
@@ -329,28 +329,19 @@ class OnboardingDifferentPage extends StatelessWidget {
           ),
           SizedBox(height: 24.0),
           OnboardingFeatureRow(
-            icon: AppImage(
-              path: AppImagePaths.smartRouteMode,
-              useThemeColor: false,
-            ),
+            icon: OnboardingIconTile(path: AppImagePaths.route),
             title: 'smart_routing_mode'.i18n,
             description: 'region_specific_routing_description'.i18n,
           ),
           SizedBox(height: 24.0),
           OnboardingFeatureRow(
-            icon: AppImage(
-              path: AppImagePaths.advanceProtocol,
-              useThemeColor: false,
-            ),
+            icon: OnboardingIconTile(path: AppImagePaths.advanceProtocolIcon),
             title: 'advanced_protocols'.i18n,
             description: 'advanced_protocols_description'.i18n,
           ),
           SizedBox(height: 24.0),
           OnboardingFeatureRow(
-            icon: AppImage(
-              path: AppImagePaths.privateServerIntro,
-              useThemeColor: false,
-            ),
+            icon: OnboardingIconTile(path: AppImagePaths.server),
             title: 'private_servers'.i18n,
             description: 'private_servers_description'.i18n,
           ),
@@ -374,7 +365,7 @@ class OnboardingDifferentPage extends StatelessWidget {
           ],
           SizedBox(height: 24.0),
           OnboardingFeatureRow(
-            icon: AppImage(path: AppImagePaths.nonProfit, useThemeColor: false),
+            icon: OnboardingIconTile(path: AppImagePaths.nonProfitIcon),
             title: 'nonprofit_mission'.i18n,
             description: 'built_by_nonprofit'.i18n,
           ),
@@ -403,14 +394,10 @@ class OnboardingExtensionPage extends StatelessWidget {
     return MacOSExtensionWatcher(
       key: const Key('onboarding.network_extension'),
       onReady: onReady,
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(
-            top: 24.0,
-            bottom: onboardingIndicatorSpace,
-          ),
-          child: MacOSExtensionContent(state: state),
-        ),
+      // From the top, as the other pages; the content has its own top gap.
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: onboardingIndicatorSpace),
+        child: MacOSExtensionContent(state: state),
       ),
     );
   }

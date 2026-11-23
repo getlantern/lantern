@@ -107,6 +107,8 @@ class AppImagePaths {
   static const account = 'assets/images/account.svg';
   static const accountSetting = 'assets/images/account_setting.svg';
   static const sysDialog = 'assets/images/sys_dialog.svg';
+  // The same mock System Settings dialog, drawn for the dark theme.
+  static const sysDialogDark = 'assets/images/sys_dialog_dark.svg';
   static const web = 'assets/images/web.svg';
   static const greenCheck = 'assets/images/green_check.svg';
   static const shareV2 = 'assets/images/share_v2.svg';
@@ -114,12 +116,16 @@ class AppImagePaths {
   static const assessment = 'assets/images/assessment.svg';
   static const route = 'assets/images/route.svg';
   static const world = 'assets/images/world.svg';
-  static const advanceProtocol = 'assets/images/advance_protocol.svg';
-  static const nonProfit = 'assets/images/non_profit.svg';
-  static const privateServerIntro = 'assets/images/private_server_intro.svg';
-  static const smartRouteMode = 'assets/images/smart_route_mode.svg';
+  // Onboarding's feature rows: plain glyphs, tinted in OnboardingIconTile
+  // like every other row's. Smart Routing uses [route] and Private Servers
+  // [server].
+  static const advanceProtocolIcon = 'assets/images/advance_protocol_icon.svg';
+  static const nonProfitIcon = 'assets/images/non_profit_icon.svg';
   static const onboardingActionModeGlobe =
       'assets/images/onboarding_action_mode_globe.webp';
+  // The same globe on the dark theme's surface.
+  static const onboardingActionModeGlobeDark =
+      'assets/images/onboarding_action_mode_globe_dark.png';
   static const verifiedUser = 'assets/images/verified_user.svg';
   static const toggleOn = 'assets/images/toggle_on.svg';
   static const automatic = 'assets/images/automatic.svg';

@@ -2415,3 +2415,66 @@ msgstr "盡可能直接連上被封鎖的網站"
 
 msgid "smart_routing_direct_description"
 msgstr "智慧路由使用特定地區的規則，只讓需要 VPN 的流量經過 Lantern。開啟「優先直連」後，會先使用反審查技術直接連上被封鎖的網站，失敗時再改用 VPN。"
+
+msgid "usage_stats"
+msgstr "使用統計"
+
+msgid "usage_stats_this_month"
+msgstr "本月"
+
+msgid "usage_stats_all_time"
+msgstr "全部時間"
+
+msgid "usage_stats_since"
+msgstr "自 %s 起"
+
+msgid "usage_stats_total"
+msgstr "總計"
+
+msgid "usage_stats_up_down"
+msgstr "已傳送 %s · 已接收 %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "不經 VPN 伺服器，透過反審查技術直接連上的封鎖網站"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "計入你的每日流量上限"
+
+msgid "usage_stats_lantern_description"
+msgstr "透過 Lantern 的 VPN 伺服器"
+
+msgid "usage_stats_personal"
+msgstr "個人代理"
+
+msgid "usage_stats_personal_description"
+msgstr "透過與你分享連線的朋友"
+
+msgid "usage_stats_private_description"
+msgstr "透過你自行設定或新增的伺服器"
+
+msgid "usage_stats_direct"
+msgstr "VPN 之外"
+
+msgid "usage_stats_direct_description"
+msgstr "經智慧路由或分割通道繞過 VPN 傳送"
+
+msgid "usage_stats_privacy"
+msgstr "這些統計資料保存在此裝置上，絕不會傳送給 Lantern。"
+
+msgid "usage_stats_reset"
+msgstr "重設統計資料"
+
+msgid "usage_stats_reset_title"
+msgstr "要重設使用統計資料嗎？"
+
+msgid "usage_stats_reset_body"
+msgstr "此裝置上本月及累計總量將歸零。此操作無法復原。"
+
+msgid "usage_stats_reset_confirm"
+msgstr "重設"
+
+msgid "usage_stats_reset_failed"
+msgstr "無法重設使用統計資料"
+
+msgid "usage_stats_load_failed"
+msgstr "無法載入使用統計"

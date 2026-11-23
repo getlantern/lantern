@@ -2511,3 +2511,69 @@ msgstr "Accède directement aux sites bloqués si possible"
 
 msgid "smart_routing_direct_description"
 msgstr "Le routage intelligent utilise des règles spécifiques à la région pour que seul le trafic nécessitant le VPN passe par Lantern. Lorsque « Essayer en direct d'abord » est activé, l'accès aux sites bloqués est d'abord tenté en direct à l'aide de techniques anticensure, puis via le VPN en cas d'échec."
+
+msgid "usage_stats"
+msgstr "Statistiques d'utilisation"
+
+msgid "usage_stats_this_month"
+msgstr "Ce mois-ci"
+
+msgid "usage_stats_all_time"
+msgstr "Depuis le début"
+
+msgid "usage_stats_since"
+msgstr "Depuis le %s"
+
+msgid "usage_stats_total"
+msgstr "Total"
+
+msgid "usage_stats_up_down"
+msgstr "Envoyé : %s · Reçu : %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "Sites bloqués atteints directement grâce à des techniques anticensure, sans serveur VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Compté dans votre limite de données quotidienne"
+
+msgid "usage_stats_lantern_description"
+msgstr "Via les serveurs VPN de Lantern"
+
+msgid "usage_stats_personal"
+msgstr "Proxys personnels"
+
+msgid "usage_stats_personal_description"
+msgstr "Via des amis qui partagent leur connexion avec vous"
+
+msgid "usage_stats_private_description"
+msgstr "Via des serveurs que vous avez configurés ou ajoutés"
+
+msgid "usage_stats_direct"
+msgstr "Hors du VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "Contourne le VPN via le routage intelligent ou le split tunneling"
+
+msgid "usage_stats_privacy"
+msgstr "Ces statistiques restent sur cet appareil et ne sont jamais envoyées à Lantern."
+
+msgid "usage_stats_reset"
+msgstr "Réinitialiser les statistiques"
+
+msgid "usage_stats_reset_title"
+msgstr "Réinitialiser les statistiques d'utilisation ?"
+
+msgid "usage_stats_reset_body"
+msgstr "Les totaux de ce mois et depuis le début sur cet appareil seront remis à zéro. Cette action est irréversible."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Réinitialiser"
+
+msgid "usage_stats_reset_failed"
+msgstr "Impossible de réinitialiser les statistiques d'utilisation"
+
+msgid "usage_stats_load_failed"
+msgstr "Impossible de charger les statistiques d'utilisation"
+
+msgid "split_tunnel_update_failed"
+msgstr "Impossible de mettre à jour le split tunneling. Veuillez réessayer."
