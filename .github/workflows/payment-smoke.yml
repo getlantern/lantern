@@ -1,0 +1,78 @@
+name: Payment Smoke
+
+# Runs the Windows payment smoke (Stripe Checkout render, then e2e, WeChat Pay
+# and Alipay conversions against staging) on PRs that touch checkout code.
+on:
+  pull_request:
+    paths:
+      - 'lib/features/auth/choose_payment_method.dart'
+      - 'lib/features/plans/**'
+      - 'lib/core/telemetry/**'
+      - 'lib/core/models/plan_data.dart'
+      - 'lib/core/widgets/app_webview.dart'
+      - 'lib/core/widgets/logs_path.dart'
+      - 'lib/core/utils/url_utils.dart'
+      - 'lib/core/common/common.dart'
+      - 'integration_test/payment/**'
+      - 'integration_test/utils/payment_robot.dart'
+      - '.github/workflows/payment-smoke.yml'
+      - '.github/scripts/windows_smoke_suite.ps1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: payment-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    # Fork PRs get no secrets, so the build can't run for them.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      installer_base_name: ${{ steps.meta.outputs.installer_base_name }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(./scripts/ci/version.sh generate nightly)"
+          BASE_VERSION="$(./scripts/ci/version.sh extract "$VERSION")"
+          FULL_VERSION="${BASE_VERSION}+${GITHUB_RUN_NUMBER}"
+
+          sed -i.bak -E "s/^version:.*/version: ${FULL_VERSION}/" pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "installer_base_name=lantern-payment-smoke" >> "$GITHUB_OUTPUT"
+
+      - name: Upload pubspec.yaml
+        uses: actions/upload-artifact@v4
+        with:
+          name: pubspec
+          path: pubspec.yaml
+
+  windows-payment:
+    needs: prepare
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      build_type: nightly
+      installer_base_name: ${{ needs.prepare.outputs.installer_base_name }}
+      skip_signing: true
+      package_installer: false
+      run_installer_smoke: false
+      run_connect_smoke: false
+      run_payment_smoke: true

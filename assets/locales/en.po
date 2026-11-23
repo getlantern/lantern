@@ -684,6 +684,33 @@ msgstr "Subscribe"
 msgid "checkout"
 msgstr "Checkout"
 
+msgid "payment_method_credit_card"
+msgstr "Credit Card"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Billed every month. Cancel anytime."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Billed every year. Cancel anytime."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Billed every two years. Cancel anytime."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Renews automatically. Cancel anytime."
+
+msgid "price_per_month"
+msgstr "%s/month"
+
+msgid "no_payment_methods_available"
+msgstr "No payment methods are available right now. Please try again later."
+
 msgid "vpn_may_be_needed"
 msgstr "VPN may be needed"
 
@@ -1368,11 +1395,18 @@ msgstr "Smart Routing uses region-specific rules to automatically send traffic t
 msgid "proxyless"
 msgstr "Try Direct First"
 
-msgid "proxyless_subtitle"
-msgstr "Faster when a site isn't blocked"
+# The label over the Try Direct First card on Routing Mode.
+msgid "smart_routing_options"
+msgstr "Smart Routing options"
 
-msgid "proxyless_description"
-msgstr "Lantern first tries to reach sites that would use the VPN directly, using anti-censorship techniques, and uses the VPN only when that fails. This is faster, but your network can see which sites you reach directly."
+# Under "Try Direct First" on Routing Mode.
+msgid "proxyless_reaches_blocked"
+msgstr "Reaches blocked sites directly when possible"
+
+# The one note on Routing Mode, under the Try Direct First card. Onboarding's
+# routing page keeps smart_routing_description, which does not mention it.
+msgid "smart_routing_direct_description"
+msgstr "Smart Routing uses region-specific rules so only traffic that needs the VPN goes through Lantern. With Try Direct First on, blocked sites are tried directly first using anti-censorship techniques, and fall back to the VPN if that fails."
 
 msgid "failed_to_update_proxyless"
 msgstr "Couldn't update Try Direct First"
@@ -2521,3 +2555,90 @@ msgstr "This TV has no web browser. Scan the code or type the address on your ph
 
 msgid "clear"
 msgstr "Clear"
+
+# Settings row and title of the screen showing how much data went each way
+# through the VPN.
+msgid "usage_stats"
+msgstr "Usage stats"
+
+# Usage stats screen: tab showing this calendar month's totals.
+msgid "usage_stats_this_month"
+msgstr "This month"
+
+# Usage stats screen: tab showing totals since counting started.
+msgid "usage_stats_all_time"
+msgstr "All time"
+
+# Usage stats screen, All time tab. %s is a date, e.g. "Nov 3, 2026".
+msgid "usage_stats_since"
+msgstr "Since %s"
+
+# Usage stats screen: label above the total of all the paths below it.
+msgid "usage_stats_total"
+msgstr "Total"
+
+# Usage stats screen. %s %s are amounts of data, e.g. "1.2 MB", sent then
+# received.
+msgid "usage_stats_up_down"
+msgstr "%s sent · %s received"
+
+# Usage stats screen: under "Try Direct First", the blocked sites Lantern
+# reached directly instead of through a VPN server.
+msgid "usage_stats_proxyless_description"
+msgstr "Blocked sites reached directly using anti-censorship techniques, without a VPN server"
+
+# Usage stats screen: shown under "Lantern Servers" when the user has a daily
+# data cap. Only traffic through Lantern's servers counts toward it.
+msgid "usage_stats_lantern_data_cap"
+msgstr "Counts toward your daily data cap"
+
+# Usage stats screen: under "Lantern Servers".
+msgid "usage_stats_lantern_description"
+msgstr "Through Lantern's VPN servers"
+
+# Usage stats screen: label for traffic through Personal Proxies, friends who
+# share their connection with this user.
+msgid "usage_stats_personal"
+msgstr "Personal Proxies"
+
+# Usage stats screen: under "Personal Proxies".
+msgid "usage_stats_personal_description"
+msgstr "Through friends sharing their connection with you"
+
+# Usage stats screen: under "Private Servers".
+msgid "usage_stats_private_description"
+msgstr "Through servers you set up or added yourself"
+
+# Usage stats screen: label for traffic that did not go through the VPN.
+msgid "usage_stats_direct"
+msgstr "Outside the VPN"
+
+# Usage stats screen: under "Outside the VPN".
+msgid "usage_stats_direct_description"
+msgstr "Sent around the VPN by Smart Routing or Split Tunneling"
+
+# Usage stats screen: privacy note at the bottom.
+msgid "usage_stats_privacy"
+msgstr "These stats are kept on this device and are never sent to Lantern."
+
+# Usage stats screen: button that clears the stats.
+msgid "usage_stats_reset"
+msgstr "Reset stats"
+
+# Title of the dialog confirming Reset stats.
+msgid "usage_stats_reset_title"
+msgstr "Reset usage stats?"
+
+# Body of the dialog confirming Reset stats.
+msgid "usage_stats_reset_body"
+msgstr "This month's and all-time totals on this device go back to zero. This can't be undone."
+
+# Confirm button in the Reset stats dialog.
+msgid "usage_stats_reset_confirm"
+msgstr "Reset"
+
+msgid "usage_stats_reset_failed"
+msgstr "Couldn't reset usage stats"
+
+msgid "usage_stats_load_failed"
+msgstr "Couldn't load usage stats"

@@ -136,6 +136,8 @@ enum class Methods(val method: String) {
     //App Methods
     FeatureFlag("featureFlag"),
     GetDataCapInfo("getDataCapInfo"),
+    GetUsageStats("getUsageStats"),
+    ResetUsageStats("resetUsageStats"),
     UpdateLocale("updateLocale"),
     UpdateTimeZone("updateTimeZone"),
     CurrentUserMessage("currentUserMessage"),
@@ -655,6 +657,18 @@ class MethodHandler : FlutterPlugin,
                     }.onFailure { e ->
                         result.error("GetDataCapInfo", e.localizedMessage ?: "Please try again", e)
                     }
+                }
+            }
+
+            Methods.GetUsageStats.method -> {
+                scope.handleValue(result, "GetUsageStats") {
+                    Mobile.getUsageStats()
+                }
+            }
+
+            Methods.ResetUsageStats.method -> {
+                scope.handleResult(result, "ResetUsageStats") {
+                    Mobile.resetUsageStats()
                 }
             }
 

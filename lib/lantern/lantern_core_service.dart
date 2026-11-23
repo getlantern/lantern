@@ -8,6 +8,7 @@ import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/usage_stats.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/models/plan_data.dart';
@@ -303,6 +304,11 @@ abstract class LanternCoreService {
   Future<Either<Failure, UserResponseModel>> fetchUserData();
 
   Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo();
+
+  /// The on-device byte totals per VPN path; never sent anywhere.
+  Future<Either<Failure, UsageStats>> getUsageStats();
+
+  Future<Either<Failure, Unit>> resetUsageStats();
 
   Future<Either<Failure, UserResponseModel>> logout(String email);
 

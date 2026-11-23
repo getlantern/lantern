@@ -2542,11 +2542,77 @@ msgstr "داسې ښکاري چې %s ستاسو له شبکې د لاسرسي و�
 msgid "proxyless"
 msgstr "لومړی مستقیم هڅه"
 
-msgid "proxyless_subtitle"
-msgstr "کله چې سایټ بند نه وي ګړندی دی"
-
-msgid "proxyless_description"
-msgstr "Lantern لومړی هڅه کوي هغو سایټونو ته چې VPN به یې کاراوه، د سانسور ضد تخنیکونو سره مستقیم ورسېږي. یوازې کله چې دا ناکام شي VPN کاروي. دا ګړندی دی، خو ستاسو شبکه لیدلی شي چې تاسو کومو سایټونو ته مستقیم ځئ."
-
 msgid "failed_to_update_proxyless"
 msgstr "لومړی مستقیم هڅه تازه نه شوه"
+
+msgid "smart_routing_options"
+msgstr "د سمارټ روټینګ اختیارونه"
+
+msgid "proxyless_reaches_blocked"
+msgstr "کله چې ممکنه وي، بند سایټونو ته مستقیم رسېږي"
+
+msgid "smart_routing_direct_description"
+msgstr "سمارټ روټینګ د سیمې ځانګړي مقررات کاروي ترڅو یوازې هغه ترافیک چې VPN ته اړتیا لري د Lantern له لارې تېر شي. کله چې «لومړی مستقیم هڅه» فعاله وي، بند سایټونه لومړی د سانسور ضد تخنیکونو په کارولو سره مستقیم هڅه کېږي. که دا ناکامه شي، VPN کارول کېږي."
+
+msgid "usage_stats"
+msgstr "د کارونې احصایې"
+
+msgid "usage_stats_this_month"
+msgstr "دا میاشت"
+
+msgid "usage_stats_all_time"
+msgstr "ټول وخت"
+
+msgid "usage_stats_since"
+msgstr "له %s راهیسې"
+
+msgid "usage_stats_total"
+msgstr "ټول"
+
+msgid "usage_stats_up_down"
+msgstr "لېږل شوي: %s · ترلاسه شوي: %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "بندې شوې پاڼې چې پرته له VPN سرور د سانسور ضد تخنیکونو په مرسته مستقیم پرانیستل شوې"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "ستاسو د ورځني ډېټا حد کې شمېرل کېږي"
+
+msgid "usage_stats_lantern_description"
+msgstr "د Lantern د VPN سرورونو له لارې"
+
+msgid "usage_stats_personal"
+msgstr "شخصي پراکسي"
+
+msgid "usage_stats_personal_description"
+msgstr "د هغو ملګرو له لارې چې خپل اتصال له تاسو سره شریکوي"
+
+msgid "usage_stats_private_description"
+msgstr "د هغو سرورونو له لارې چې تاسو پخپله جوړ یا اضافه کړي"
+
+msgid "usage_stats_direct"
+msgstr "له VPN بهر"
+
+msgid "usage_stats_direct_description"
+msgstr "د سمارټ روټینګ یا وېشل شوی ټنل له لارې د VPN څخه بهر لیږل شوی"
+
+msgid "usage_stats_privacy"
+msgstr "دا احصایې په همدې وسیله ساتل کېږي او هېڅکله Lantern ته نه لیږل کېږي."
+
+msgid "usage_stats_reset"
+msgstr "احصایې بیا تنظیم کړئ"
+
+msgid "usage_stats_reset_title"
+msgstr "د کارونې احصایې بیا تنظیم کړئ؟"
+
+msgid "usage_stats_reset_body"
+msgstr "په دې وسیله کې د دې میاشتې او ټول وخت مجموعې صفر ته راګرځي. دا بیرته نشي اړول کېدای."
+
+msgid "usage_stats_reset_confirm"
+msgstr "بیا تنظیم کړئ"
+
+msgid "usage_stats_reset_failed"
+msgstr "د کارونې احصایې بیا تنظیم نشوې"
+
+msgid "usage_stats_load_failed"
+msgstr "د کارونې احصایې پورته نشوې"

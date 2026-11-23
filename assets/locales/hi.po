@@ -2521,11 +2521,77 @@ msgstr "आपके नेटवर्क से %s तक पहुंचन�
 msgid "proxyless"
 msgstr "पहले सीधे कोशिश करें"
 
-msgid "proxyless_subtitle"
-msgstr "साइट ब्लॉक न होने पर तेज़"
-
-msgid "proxyless_description"
-msgstr "जो साइटें VPN का उपयोग करतीं, Lantern पहले सेंसरशिप-रोधी तकनीकों से उन तक सीधे पहुंचने की कोशिश करता है, और विफल होने पर ही VPN का उपयोग करता है। यह तेज़ है, लेकिन आपका नेटवर्क देख सकता है कि आप किन साइटों पर सीधे पहुंचते हैं।"
-
 msgid "failed_to_update_proxyless"
 msgstr "“पहले सीधे कोशिश करें” अपडेट नहीं हो सका"
+
+msgid "smart_routing_options"
+msgstr "स्मार्ट रूटिंग विकल्प"
+
+msgid "proxyless_reaches_blocked"
+msgstr "संभव होने पर ब्लॉक की गई साइटों तक सीधे पहुंचता है"
+
+msgid "smart_routing_direct_description"
+msgstr "स्मार्ट रूटिंग क्षेत्र-विशिष्ट नियमों का उपयोग करती है ताकि केवल VPN की ज़रूरत वाला ट्रैफ़िक Lantern से होकर जाए। \"पहले सीधे आज़माएं\" चालू होने पर, ब्लॉक की गई साइटों को पहले सेंसरशिप-रोधी तकनीकों से सीधे खोलने की कोशिश की जाती है, और विफल होने पर VPN का उपयोग किया जाता है।"
+
+msgid "usage_stats"
+msgstr "उपयोग के आंकड़े"
+
+msgid "usage_stats_this_month"
+msgstr "इस महीने"
+
+msgid "usage_stats_all_time"
+msgstr "अब तक"
+
+msgid "usage_stats_since"
+msgstr "%s से"
+
+msgid "usage_stats_total"
+msgstr "कुल"
+
+msgid "usage_stats_up_down"
+msgstr "%s भेजा · %s प्राप्त"
+
+msgid "usage_stats_proxyless_description"
+msgstr "VPN सर्वर के बिना, सेंसरशिप-रोधी तकनीकों से सीधे खोली गई ब्लॉक साइटें"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "आपकी दैनिक डेटा सीमा में गिना जाता है"
+
+msgid "usage_stats_lantern_description"
+msgstr "Lantern के VPN सर्वर के ज़रिए"
+
+msgid "usage_stats_personal"
+msgstr "पर्सनल प्रॉक्सी"
+
+msgid "usage_stats_personal_description"
+msgstr "उन दोस्तों के ज़रिए जो आपके साथ अपना कनेक्शन साझा कर रहे हैं"
+
+msgid "usage_stats_private_description"
+msgstr "आपके द्वारा सेट अप या जोड़े गए सर्वर के ज़रिए"
+
+msgid "usage_stats_direct"
+msgstr "VPN के बाहर"
+
+msgid "usage_stats_direct_description"
+msgstr "स्मार्ट रूटिंग या स्प्लिट टनलिंग द्वारा VPN के बाहर से भेजा गया"
+
+msgid "usage_stats_privacy"
+msgstr "ये आंकड़े इसी डिवाइस पर रखे जाते हैं और कभी Lantern को नहीं भेजे जाते।"
+
+msgid "usage_stats_reset"
+msgstr "आंकड़े रीसेट करें"
+
+msgid "usage_stats_reset_title"
+msgstr "उपयोग के आंकड़े रीसेट करें?"
+
+msgid "usage_stats_reset_body"
+msgstr "इस डिवाइस पर इस महीने और अब तक के कुल आंकड़े शून्य हो जाएंगे। इसे पहले जैसा नहीं किया जा सकता।"
+
+msgid "usage_stats_reset_confirm"
+msgstr "रीसेट करें"
+
+msgid "usage_stats_reset_failed"
+msgstr "उपयोग के आंकड़े रीसेट नहीं हो सके"
+
+msgid "usage_stats_load_failed"
+msgstr "उपयोग के आंकड़े लोड नहीं हो सके"

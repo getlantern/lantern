@@ -2533,11 +2533,77 @@ msgstr "%s parece inacessível pela sua rede. Toque para escolher outra localiza
 msgid "proxyless"
 msgstr "Tentar direto primeiro"
 
-msgid "proxyless_subtitle"
-msgstr "Mais rápido quando o site não está bloqueado"
-
-msgid "proxyless_description"
-msgstr "O Lantern primeiro tenta acessar diretamente os sites que usariam a VPN, com técnicas contra a censura, e só usa a VPN se isso falhar. É mais rápido, mas sua rede pode ver quais sites você acessa diretamente."
-
 msgid "failed_to_update_proxyless"
 msgstr "Não foi possível atualizar Tentar direto primeiro"
+
+msgid "smart_routing_options"
+msgstr "Opções de roteamento inteligente"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Acessa sites bloqueados diretamente quando possível"
+
+msgid "smart_routing_direct_description"
+msgstr "O roteamento inteligente usa regras específicas da região para que apenas o tráfego que precisa da VPN passe pelo Lantern. Com \"Tentar direto primeiro\" ativado, o acesso aos sites bloqueados é tentado primeiro de forma direta com técnicas anticensura e, se isso falhar, a VPN é usada."
+
+msgid "usage_stats"
+msgstr "Estatísticas de uso"
+
+msgid "usage_stats_this_month"
+msgstr "Este mês"
+
+msgid "usage_stats_all_time"
+msgstr "Todo o período"
+
+msgid "usage_stats_since"
+msgstr "Desde %s"
+
+msgid "usage_stats_total"
+msgstr "Total"
+
+msgid "usage_stats_up_down"
+msgstr "%s enviados · %s recebidos"
+
+msgid "usage_stats_proxyless_description"
+msgstr "Sites bloqueados acessados diretamente com técnicas anticensura, sem servidor VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Conta para seu limite diário de dados"
+
+msgid "usage_stats_lantern_description"
+msgstr "Pelos servidores VPN do Lantern"
+
+msgid "usage_stats_personal"
+msgstr "Proxies pessoais"
+
+msgid "usage_stats_personal_description"
+msgstr "Por meio de amigos que compartilham a conexão com você"
+
+msgid "usage_stats_private_description"
+msgstr "Por meio de servidores que você configurou ou adicionou"
+
+msgid "usage_stats_direct"
+msgstr "Fora da VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "Enviado por fora da VPN pelo roteamento inteligente ou túnel dividido"
+
+msgid "usage_stats_privacy"
+msgstr "Essas estatísticas ficam neste dispositivo e nunca são enviadas ao Lantern."
+
+msgid "usage_stats_reset"
+msgstr "Redefinir estatísticas"
+
+msgid "usage_stats_reset_title"
+msgstr "Redefinir estatísticas de uso?"
+
+msgid "usage_stats_reset_body"
+msgstr "Os totais deste mês e de todo o período neste dispositivo voltarão a zero. Isso não pode ser desfeito."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Redefinir"
+
+msgid "usage_stats_reset_failed"
+msgstr "Não foi possível redefinir as estatísticas de uso"
+
+msgid "usage_stats_load_failed"
+msgstr "Não foi possível carregar as estatísticas de uso"

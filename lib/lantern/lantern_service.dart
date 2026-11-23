@@ -5,6 +5,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/models/app_data.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/usage_stats.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/models/split_tunnel_state.dart';
@@ -275,6 +276,22 @@ class LanternService implements LanternCoreService {
       return _ffiService.getDataCapInfo();
     }
     return _platformService.getDataCapInfo();
+  }
+
+  @override
+  Future<Either<Failure, UsageStats>> getUsageStats() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.getUsageStats();
+    }
+    return _platformService.getUsageStats();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> resetUsageStats() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.resetUsageStats();
+    }
+    return _platformService.resetUsageStats();
   }
 
   @override

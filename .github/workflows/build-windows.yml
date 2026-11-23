@@ -320,7 +320,7 @@ jobs:
       - name: Windows payment smoke
         if: ${{ inputs.run_payment_smoke }}
         shell: pwsh
-        timeout-minutes: 15
+        timeout-minutes: 25
         run: |
           ./.github/scripts/windows_smoke_suite.ps1 `
             -ServiceExe "build/windows/x64/runner/Release/lanternd.exe" `

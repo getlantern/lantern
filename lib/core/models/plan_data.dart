@@ -12,9 +12,9 @@ class PlansData {
   List<Android> get platformProviders =>
       PlatformUtils.isAndroid ? providers.android : providers.desktop;
 
-  /// Sorts plans (best-value first, then by descending price) and orders the
-  /// platform's payment providers so subscription-capable ones come first.
-  /// Applied after fetching/attaching plans (including referral V2).
+  /// Sorts plans (best-value first, then by descending price) and moves
+  /// subscription-capable payment methods to the top. Applied after
+  /// fetching/attaching plans (including referral V2).
   void sortPlansAndProviders() {
     plans.sort((a, b) {
       if (a.bestValue != b.bestValue) {
@@ -24,12 +24,19 @@ class PlansData {
       return b.usdPrice.compareTo(a.usdPrice);
     });
 
-    platformProviders.sort(
-      (a, b) =>
-          (b.providers.supportSubscription ? 1 : 0) -
-          (a.providers.supportSubscription ? 1 : 0),
-    );
+    final methods = platformProviders;
+    // The server lists a wallet first only for buyers in China; keep its order.
+    if (methods.isEmpty || _chinaWallets.contains(methods.first.method)) {
+      return;
+    }
+    // Stable, so methods with equal subscription support keep server order.
+    methods.setAll(0, [
+      ...methods.where((m) => m.providers.supportSubscription),
+      ...methods.where((m) => !m.providers.supportSubscription),
+    ]);
   }
+
+  static const _chinaWallets = {'wechatpay', 'alipay'};
 
   /// Publishable key advertised by the Stripe provider for this platform,
   /// or null when Stripe isn't offered or no key was sent.
@@ -212,4 +219,14 @@ class ProviderData {
   );
 
   Map<String, dynamic> toJson() => raw;
+}
+
+extension PaymentMethodLabel on Android {
+  /// Localized name for a server payment method, e.g. 微信支付 for wechatpay.
+  String get label => switch (method) {
+    'credit-card' => 'payment_method_credit_card'.i18n,
+    'alipay' => 'payment_method_alipay'.i18n,
+    'wechatpay' => 'payment_method_wechatpay'.i18n,
+    _ => method.replaceAll('-', ' ').toTitleCase(),
+  };
 }

@@ -2517,11 +2517,77 @@ msgstr "আপনার নেটওয়ার্ক থেকে %s অপ্
 msgid "proxyless"
 msgstr "আগে সরাসরি চেষ্টা"
 
-msgid "proxyless_subtitle"
-msgstr "সাইট ব্লক না থাকলে দ্রুততর"
-
-msgid "proxyless_description"
-msgstr "যেসব সাইট ভিপিএন ব্যবহার করত, Lantern প্রথমে সেন্সরশিপ-বিরোধী কৌশল ব্যবহার করে সেগুলোতে সরাসরি পৌঁছানোর চেষ্টা করে, এবং ব্যর্থ হলে তবেই ভিপিএন ব্যবহার করে। এটি দ্রুততর, তবে আপনি সরাসরি কোন সাইটে যাচ্ছেন তা আপনার নেটওয়ার্ক দেখতে পারে।"
-
 msgid "failed_to_update_proxyless"
 msgstr "আগে সরাসরি চেষ্টা আপডেট করা যায়নি"
+
+msgid "smart_routing_options"
+msgstr "স্মার্ট রাউটিং অপশন"
+
+msgid "proxyless_reaches_blocked"
+msgstr "সম্ভব হলে ব্লক করা সাইটে সরাসরি পৌঁছায়"
+
+msgid "smart_routing_direct_description"
+msgstr "স্মার্ট রাউটিং অঞ্চল-নির্দিষ্ট নিয়ম ব্যবহার করে, যাতে শুধু ভিপিএন প্রয়োজন এমন ট্রাফিক Lantern-এর মাধ্যমে যায়। \"আগে সরাসরি চেষ্টা করুন\" চালু থাকলে, ব্লক করা সাইটে প্রথমে সেন্সরশিপ-বিরোধী কৌশল ব্যবহার করে সরাসরি পৌঁছানোর চেষ্টা করা হয়, আর তা ব্যর্থ হলে ভিপিএন ব্যবহার করা হয়।"
+
+msgid "usage_stats"
+msgstr "ব্যবহারের পরিসংখ্যান"
+
+msgid "usage_stats_this_month"
+msgstr "এই মাস"
+
+msgid "usage_stats_all_time"
+msgstr "শুরু থেকে"
+
+msgid "usage_stats_since"
+msgstr "%s থেকে"
+
+msgid "usage_stats_total"
+msgstr "মোট"
+
+msgid "usage_stats_up_down"
+msgstr "%s পাঠানো · %s প্রাপ্ত"
+
+msgid "usage_stats_proxyless_description"
+msgstr "ভিপিএন সার্ভার ছাড়াই সেন্সরশিপ-বিরোধী কৌশলে সরাসরি পৌঁছানো ব্লক করা সাইট"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "আপনার দৈনিক ডেটা সীমার মধ্যে গণনা হয়"
+
+msgid "usage_stats_lantern_description"
+msgstr "Lantern এর ভিপিএন সার্ভারের মাধ্যমে"
+
+msgid "usage_stats_personal"
+msgstr "ব্যক্তিগত প্রক্সি"
+
+msgid "usage_stats_personal_description"
+msgstr "বন্ধুদের মাধ্যমে, যারা আপনার সাথে তাদের সংযোগ শেয়ার করছেন"
+
+msgid "usage_stats_private_description"
+msgstr "আপনার নিজের সেট আপ করা বা যোগ করা সার্ভারের মাধ্যমে"
+
+msgid "usage_stats_direct"
+msgstr "ভিপিএন এর বাইরে"
+
+msgid "usage_stats_direct_description"
+msgstr "স্মার্ট রাউটিং বা স্প্লিট টানেলিং দ্বারা ভিপিএন এর বাইরে দিয়ে পাঠানো"
+
+msgid "usage_stats_privacy"
+msgstr "এই পরিসংখ্যান এই ডিভাইসেই রাখা হয় এবং কখনো Lantern-এ পাঠানো হয় না।"
+
+msgid "usage_stats_reset"
+msgstr "পরিসংখ্যান রিসেট করুন"
+
+msgid "usage_stats_reset_title"
+msgstr "ব্যবহারের পরিসংখ্যান রিসেট করবেন?"
+
+msgid "usage_stats_reset_body"
+msgstr "এই ডিভাইসে এই মাসের ও সর্বকালের মোট শূন্যে ফিরে যাবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।"
+
+msgid "usage_stats_reset_confirm"
+msgstr "রিসেট করুন"
+
+msgid "usage_stats_reset_failed"
+msgstr "ব্যবহারের পরিসংখ্যান রিসেট করা যায়নি"
+
+msgid "usage_stats_load_failed"
+msgstr "ব্যবহারের পরিসংখ্যান লোড করা যায়নি"

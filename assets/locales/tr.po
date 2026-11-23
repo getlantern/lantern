@@ -2523,11 +2523,77 @@ msgstr "%s, ağınızdan erişilemez görünüyor. Başka bir konum seçmek içi
 msgid "proxyless"
 msgstr "Önce Doğrudan Dene"
 
-msgid "proxyless_subtitle"
-msgstr "Site engelli değilse daha hızlı"
-
-msgid "proxyless_description"
-msgstr "Lantern, VPN kullanacak sitelere önce sansür karşıtı tekniklerle doğrudan ulaşmayı dener ve yalnızca bu başarısız olursa VPN kullanır. Bu daha hızlıdır, ancak ağınız doğrudan hangi sitelere ulaştığınızı görebilir."
-
 msgid "failed_to_update_proxyless"
 msgstr "Önce Doğrudan Dene güncellenemedi"
+
+msgid "smart_routing_options"
+msgstr "Akıllı Yönlendirme seçenekleri"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Mümkün olduğunda engellenen sitelere doğrudan erişir"
+
+msgid "smart_routing_direct_description"
+msgstr "Akıllı Yönlendirme, yalnızca VPN gerektiren trafiğin Lantern üzerinden gitmesi için bölgeye özel kurallar kullanır. Önce Doğrudan Dene açıkken, engellenen sitelere önce sansür karşıtı tekniklerle doğrudan erişilmeye çalışılır; bu başarısız olursa VPN kullanılır."
+
+msgid "usage_stats"
+msgstr "Kullanım istatistikleri"
+
+msgid "usage_stats_this_month"
+msgstr "Bu ay"
+
+msgid "usage_stats_all_time"
+msgstr "Tüm zamanlar"
+
+msgid "usage_stats_since"
+msgstr "Başlangıç: %s"
+
+msgid "usage_stats_total"
+msgstr "Toplam"
+
+msgid "usage_stats_up_down"
+msgstr "Gönderilen: %s · Alınan: %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "VPN sunucusu olmadan, sansür karşıtı tekniklerle doğrudan erişilen engellenmiş siteler"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Günlük veri sınırınızdan düşülür"
+
+msgid "usage_stats_lantern_description"
+msgstr "Lantern VPN sunucuları üzerinden"
+
+msgid "usage_stats_personal"
+msgstr "Kişisel Proxy'ler"
+
+msgid "usage_stats_personal_description"
+msgstr "Bağlantısını sizinle paylaşan arkadaşlar üzerinden"
+
+msgid "usage_stats_private_description"
+msgstr "Kendiniz kurduğunuz veya eklediğiniz sunucular üzerinden"
+
+msgid "usage_stats_direct"
+msgstr "VPN dışında"
+
+msgid "usage_stats_direct_description"
+msgstr "Akıllı Yönlendirme veya Bölünmüş Tünel ile VPN dışından gönderildi"
+
+msgid "usage_stats_privacy"
+msgstr "Bu istatistikler bu cihazda tutulur ve asla Lantern'e gönderilmez."
+
+msgid "usage_stats_reset"
+msgstr "İstatistikleri Sıfırla"
+
+msgid "usage_stats_reset_title"
+msgstr "Kullanım istatistikleri sıfırlansın mı?"
+
+msgid "usage_stats_reset_body"
+msgstr "Bu cihazdaki bu ayın ve tüm zamanların toplamları sıfırlanacak. Bu işlem geri alınamaz."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Sıfırla"
+
+msgid "usage_stats_reset_failed"
+msgstr "Kullanım istatistikleri sıfırlanamadı"
+
+msgid "usage_stats_load_failed"
+msgstr "Kullanım istatistikleri yüklenemedi"
