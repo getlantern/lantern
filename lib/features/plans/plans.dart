@@ -8,6 +8,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/telemetry/telemetry.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
@@ -538,11 +539,20 @@ class _PlansState extends ConsumerState<Plans>
     // to the affiliate at acknowledgment. Empty when no code is applied.
     final couponCode = ref.read(referralProvider).code;
     final payments = ref.read(paymentProvider.notifier);
+    final store = Platform.isIOS ? 'app_store' : 'play_store';
+    trackEvent(CheckoutEvent.started, {'provider': store, 'plan': plan.id});
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
       couponCode: couponCode,
-      onSuccess: (purchase) => processPurchase(purchase, plan),
+      onSuccess: (purchase) {
+        trackEvent(CheckoutEvent.storePurchased, {'provider': store});
+        processPurchase(purchase, plan);
+      },
       onError: (error) {
+        trackEvent(CheckoutEvent.failed, {
+          'provider': store,
+          'reason': 'store_error',
+        });
         ref.read(paymentSessionProvider.notifier).clearRedirect();
         if (!mounted) return;
         context.hideLoadingDialog();
@@ -550,6 +560,12 @@ class _PlansState extends ConsumerState<Plans>
         appLogger.error('Error subscribing to plan: $error');
       },
     );
+    if (result.isLeft()) {
+      trackEvent(CheckoutEvent.failed, {
+        'provider': store,
+        'reason': 'start_error',
+      });
+    }
     if (!mounted) return;
     result.fold((error) {
       ref.read(paymentSessionProvider.notifier).clearRedirect();

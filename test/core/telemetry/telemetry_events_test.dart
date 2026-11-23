@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lantern/features/plans/checkout_telemetry.dart';
+import 'package:lantern/core/telemetry/telemetry.dart';
 
 void main() {
   test('webview results map to funnel outcomes', () {
