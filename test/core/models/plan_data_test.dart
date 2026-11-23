@@ -41,24 +41,39 @@ void main() {
     });
   });
 
-  test('sortPlans keeps the server order of payment methods', () {
+  List<String> sortedNames(List<Android> desktop) {
     final data = PlansData(
-      providers: Providers(
-        android: [],
-        desktop: [
-          _method('wechatpay', 'shepherd-wechat'),
-          _method('alipay', 'shepherd'),
-          _method('credit-card', 'stripe', subscription: true),
-        ],
-      ),
+      providers: Providers(android: [], desktop: desktop),
       plans: [],
-    )..sortPlans();
+    )..sortPlansAndProviders();
+    return data.providers.desktop.map((m) => m.providers.name).toList();
+  }
 
-    expect(data.providers.desktop.map((m) => m.providers.name), [
-      'shepherd-wechat',
-      'shepherd',
-      'stripe',
-    ]);
+  test('keeps the server order when it puts a wallet first', () {
+    expect(
+      sortedNames([
+        _method('wechatpay', 'shepherd-wechat'),
+        _method('alipay', 'shepherd'),
+        _method('credit-card', 'stripe', subscription: true),
+      ]),
+      ['shepherd-wechat', 'shepherd', 'stripe'],
+    );
+  });
+
+  test('moves subscription methods first and keeps the rest in order', () {
+    expect(
+      sortedNames([
+        _method('bank-transfer', 'other-a'),
+        _method('credit-card', 'stripe', subscription: true),
+        _method('crypto', 'other-b'),
+        _method('alipay', 'shepherd'),
+      ]),
+      ['stripe', 'other-a', 'other-b', 'shepherd'],
+    );
+  });
+
+  test('handles an empty provider list', () {
+    expect(sortedNames([]), isEmpty);
   });
 
   test('payment methods use translated names', () {

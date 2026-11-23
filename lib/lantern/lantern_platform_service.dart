@@ -986,7 +986,7 @@ class LanternPlatformService implements LanternCoreService {
         channel,
       );
       final map = jsonDecode(subData!);
-      final plans = PlansData.fromJson(map)..sortPlans();
+      final plans = PlansData.fromJson(map)..sortPlansAndProviders();
       return Right(plans);
     } catch (e, stackTrace) {
       appLogger.error('Error fetching plans', e, stackTrace);

@@ -12,10 +12,10 @@ class PlansData {
   List<Android> get platformProviders =>
       PlatformUtils.isAndroid ? providers.android : providers.desktop;
 
-  /// Sorts plans best-value first, then by descending price. Applied after
-  /// fetching/attaching plans (including referral V2). Payment providers keep
-  /// the server's order, which puts WeChat Pay and Alipay first in China.
-  void sortPlans() {
+  /// Sorts plans (best-value first, then by descending price) and moves
+  /// subscription-capable payment methods to the top. Applied after
+  /// fetching/attaching plans (including referral V2).
+  void sortPlansAndProviders() {
     plans.sort((a, b) {
       if (a.bestValue != b.bestValue) {
         return a.bestValue ? -1 : 1;
@@ -23,7 +23,20 @@ class PlansData {
       // Then: sort by usdPrice descending
       return b.usdPrice.compareTo(a.usdPrice);
     });
+
+    final methods = platformProviders;
+    // The server lists a wallet first only for buyers in China; keep its order.
+    if (methods.isEmpty || _chinaWallets.contains(methods.first.method)) {
+      return;
+    }
+    // Stable, so methods with equal subscription support keep server order.
+    methods.setAll(0, [
+      ...methods.where((m) => m.providers.supportSubscription),
+      ...methods.where((m) => !m.providers.supportSubscription),
+    ]);
   }
+
+  static const _chinaWallets = {'wechatpay', 'alipay'};
 
   /// Publishable key advertised by the Stripe provider for this platform,
   /// or null when Stripe isn't offered or no key was sent.

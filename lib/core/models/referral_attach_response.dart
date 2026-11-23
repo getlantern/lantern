@@ -35,7 +35,7 @@ class ReferralAttachV2Response {
         // `plans` is only present for the affiliate flow; when it's absent this
         // is a referral-type response, so leave plansData null.
         plansData: json['plans'] != null
-            ? (PlansData.fromJson(json)..sortPlans())
+            ? (PlansData.fromJson(json)..sortPlansAndProviders())
             : null,
         code: json["code"] ?? '',
         type: ReferralType.fromString(json["referralType"]),
