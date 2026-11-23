@@ -150,6 +150,9 @@ class _PlansState extends ConsumerState<Plans>
                   buttonKey: const Key('plans.cta'),
                   label: 'get_lantern_pro'.i18n,
                   isTaller: true,
+                  enabled:
+                      !plansState.hasError &&
+                      (plansState.value?.plans.isNotEmpty ?? false),
                   onPressed: onGetLanternProTap,
                 ),
               ),
@@ -450,7 +453,15 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   void onGetLanternProTap() {
-    final userSelectedPlan = ref.read(plansProvider.notifier).getSelectedPlan();
+    final userSelectedPlan = ref
+        .read(plansProvider.notifier)
+        .currentSelectedPlan;
+    if (userSelectedPlan == null) {
+      appLogger.warning(
+        'Get Lantern Pro tapped with no plan from the current list',
+      );
+      return;
+    }
     appLogger.info(
       'Get Lantern Pro button tapped with plan: ${userSelectedPlan.id}',
     );

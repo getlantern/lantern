@@ -210,4 +210,11 @@ class PlansNotifier extends _$PlansNotifier {
     appLogger.info('[PlansNotifier] getSelectedPlan: ${userSelectedPlan?.id}');
     return userSelectedPlan!;
   }
+
+  /// The selected plan, or null if it isn't in the current plan list.
+  Plan? get currentSelectedPlan {
+    final id = userSelectedPlan?.id;
+    if (id == null) return null;
+    return state.value?.plans.where((p) => p.id == id).firstOrNull;
+  }
 }

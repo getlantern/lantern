@@ -11,9 +11,17 @@ import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 
-PlansData _plans() => PlansData(
+PlansData _plans([List<Plan> plans = const []]) => PlansData(
   providers: Providers(android: [], desktop: []),
-  plans: [],
+  plans: [...plans],
+);
+
+Plan _plan(String id) => Plan(
+  id: id,
+  description: id,
+  usdPrice: 4800,
+  price: const {'usd': 4800},
+  expectedMonthlyPrice: const {'usd': 400},
 );
 
 class _FakeStorage extends LocalStorageService {
@@ -105,5 +113,21 @@ void main() {
     service.fetches.single.complete(failure());
     await tester.pump();
     expect(service.fetches, hasLength(1));
+  });
+
+  test('only a plan from the current list counts as selected', () async {
+    await start(_plans([_plan('1y'), _plan('2y')]));
+    final watch = container.listen(plansProvider, (_, _) {});
+    addTearDown(watch.close);
+    await container.read(plansProvider.future);
+    final notifier = container.read(plansProvider.notifier);
+
+    expect(notifier.currentSelectedPlan, isNull);
+
+    notifier.setSelectedPlan(_plan('2y'));
+    expect(notifier.currentSelectedPlan?.id, '2y');
+
+    notifier.setSelectedPlan(_plan('3y'));
+    expect(notifier.currentSelectedPlan, isNull);
   });
 }
