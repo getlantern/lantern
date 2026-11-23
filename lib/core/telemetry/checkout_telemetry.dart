@@ -1,26 +1,29 @@
-import 'package:lantern/core/utils/telemetry.dart';
+import 'package:lantern/core/telemetry/telemetry.dart';
 
 /// Steps of the in-app checkout funnel, from the plans screen to the account
 /// showing the purchase.
-enum CheckoutEvent {
+enum CheckoutEvent implements TelemetryEvent {
   plansViewed('checkout_plans_viewed'),
   methodsViewed('checkout_methods_viewed'),
   started('checkout_started'),
   redirectFailed('checkout_redirect_failed'),
   webviewClosed('checkout_webview_closed'),
   cancelled('checkout_cancelled'),
+  failed('checkout_failed'),
+  storePurchased('checkout_store_purchased'),
   confirmed('checkout_confirmed'),
   notConfirmed('checkout_not_confirmed');
 
   const CheckoutEvent(this.tag);
 
+  @override
   final String tag;
 }
 
 void trackCheckout(
   CheckoutEvent event, [
   Map<String, Object?> properties = const {},
-]) => logTelemetry(event.tag, properties);
+]) => trackEvent(event, properties);
 
 /// How a checkout webview ended: true when it reached the completion URL,
 /// false on the cancel URL, null when the user closed it.

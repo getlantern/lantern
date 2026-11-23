@@ -7,6 +7,7 @@ on:
     paths:
       - 'lib/features/auth/choose_payment_method.dart'
       - 'lib/features/plans/**'
+      - 'lib/core/telemetry/**'
       - 'lib/core/models/plan_data.dart'
       - 'lib/core/widgets/app_webview.dart'
       - 'lib/core/widgets/logs_path.dart'

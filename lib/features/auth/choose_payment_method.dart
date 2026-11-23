@@ -11,10 +11,10 @@ import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
+import 'package:lantern/core/telemetry/checkout_telemetry.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
-import 'package:lantern/features/plans/checkout_telemetry.dart';
 import 'package:lantern/features/plans/provider/payment_notifier.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
@@ -190,10 +190,6 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     final isAndroid = PlatformUtils.isAndroid;
     final isAndroidSideload = isAndroid && !isStoreVersion();
     appLogger.info('User initiated purchase with provider: ${provider.method}');
-    trackCheckout(CheckoutEvent.started, {
-      'provider': provider.providers.name,
-      'plan': ref.read(plansProvider.notifier).userSelectedPlan?.id,
-    });
     switch (provider.providers.name) {
       case 'stripe':
         if (isDesktop) {
@@ -256,7 +252,8 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
-    final userBefore = await _userDataBeforeCheckout(ref, context);
+    _trackStarted('stripe', ref);
+    final userBefore = await _userDataBeforeCheckout(ref, context, 'stripe');
     if (!context.mounted) return;
     if (userBefore == null) {
       finishPaymentRedirect(paymentRedirectInFlight);
@@ -296,10 +293,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           email,
           couponCode: _affiliateCoupon(ref),
         );
-        return result.fold(
-          (error) => throw Exception(error.localizedErrorMessage),
-          (stripeData) => StripeOptions.fromJson(stripeData),
-        );
+        return result.fold((error) {
+          _trackFailed('stripe', 'server_error');
+          throw Exception(error.localizedErrorMessage);
+        }, (stripeData) => StripeOptions.fromJson(stripeData));
       },
       onSuccess: () {
         // These callbacks fire after async SDK work; the screen may have
@@ -316,6 +313,12 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         );
       },
       onError: (error) {
+        final stripeCode = error is StripeException ? error.error.code : null;
+        if (stripeCode == FailureCode.Canceled) {
+          trackCheckout(CheckoutEvent.cancelled, {'provider': 'stripe'});
+        } else {
+          _trackFailed('stripe', stripeCode?.name ?? 'sdk_error');
+        }
         if (!context.mounted) return;
         finishPaymentRedirect(paymentRedirectInFlight);
         if (error is StripeException) {
@@ -340,8 +343,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
+    _trackStarted('stripe', ref);
     try {
-      final userBefore = await _userDataBeforeCheckout(ref, context);
+      final userBefore = await _userDataBeforeCheckout(ref, context, 'stripe');
       if (!context.mounted || userBefore == null) return;
       final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
       context.showLoadingDialog();
@@ -357,10 +361,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       if (!context.mounted) return;
       await result.fold<Future<void>>(
         (error) async {
-          trackCheckout(CheckoutEvent.redirectFailed, {
-            'provider': 'stripe',
-            'reason': 'server_error',
-          });
+          _trackRedirectFailed('stripe', 'server_error');
           context.showSnackBar(error.localizedErrorMessage);
           appLogger.error('Error subscribing to plan: $error');
           context.hideLoadingDialog();
@@ -368,12 +369,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
         (stripeUrl) async {
           final normalizedStripeUrl = UrlUtils.normalizeWebviewUrl(stripeUrl);
           if (normalizedStripeUrl.isEmpty) {
+            _trackRedirectFailed('stripe', 'empty_url');
             context.showSnackBar('empty_url'.i18n);
             appLogger.error('Error subscribing to plan: empty redirect URL');
             context.hideLoadingDialog();
             return;
           }
           if (!UrlUtils.isSupportedWebviewUrl(normalizedStripeUrl)) {
+            _trackRedirectFailed('stripe', 'unsupported_url');
             context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
             appLogger.error(
               'Error subscribing to plan: invalid redirect URL: $stripeUrl',
@@ -410,10 +413,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               unconfirmedClose: purchaseResult == null,
             );
           } catch (_) {
-            trackCheckout(CheckoutEvent.redirectFailed, {
-              'provider': 'stripe',
-              'reason': opened ? 'confirmation_error' : 'webview_error',
-            });
+            _trackRedirectFailed(
+              'stripe',
+              opened ? 'confirmation_error' : 'webview_error',
+            );
             if (!context.mounted) return;
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             rethrow;
@@ -437,8 +440,9 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     ValueNotifier<bool> paymentRedirectInFlight,
   ) async {
     if (!beginPaymentRedirect(paymentRedirectInFlight)) return;
+    _trackStarted(provider, ref);
     try {
-      final userBefore = await _userDataBeforeCheckout(ref, context);
+      final userBefore = await _userDataBeforeCheckout(ref, context, provider);
       if (!context.mounted || userBefore == null) return;
       context.showLoadingDialog();
       final userPlan = ref.read(plansProvider.notifier).getSelectedPlan();
@@ -455,10 +459,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       await result.fold<Future<void>>(
         (failure) async {
           context.hideLoadingDialog();
-          trackCheckout(CheckoutEvent.redirectFailed, {
-            'provider': provider,
-            'reason': 'server_error',
-          });
+          _trackRedirectFailed(provider, 'server_error');
           appLogger.error('Error redirecting to payment: ${failure.error}');
           context.showSnackBar(failure.localizedErrorMessage);
         },
@@ -466,19 +467,13 @@ class ChoosePaymentMethod extends HookConsumerWidget {
           context.hideLoadingDialog();
           final normalizedUrl = UrlUtils.normalizeWebviewUrl(url);
           if (normalizedUrl.isEmpty) {
-            trackCheckout(CheckoutEvent.redirectFailed, {
-              'provider': provider,
-              'reason': 'empty_url',
-            });
+            _trackRedirectFailed(provider, 'empty_url');
             context.showSnackBar('empty_url'.i18n);
             appLogger.error('Empty payment redirect URL');
             return;
           }
           if (!UrlUtils.isSupportedWebviewUrl(normalizedUrl)) {
-            trackCheckout(CheckoutEvent.redirectFailed, {
-              'provider': provider,
-              'reason': 'unsupported_url',
-            });
+            _trackRedirectFailed(provider, 'unsupported_url');
             context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
             appLogger.error('Invalid payment redirect URL: $url');
             return;
@@ -506,10 +501,10 @@ class ChoosePaymentMethod extends HookConsumerWidget {
               unconfirmedClose: purchaseResult == null,
             );
           } catch (e) {
-            trackCheckout(CheckoutEvent.redirectFailed, {
-              'provider': provider,
-              'reason': opened ? 'confirmation_error' : 'webview_error',
-            });
+            _trackRedirectFailed(
+              provider,
+              opened ? 'confirmation_error' : 'webview_error',
+            );
             if (!context.mounted) return;
             ref.read(paymentSessionProvider.notifier).clearRedirect();
             appLogger.error('Error opening payment redirect URL: $e');
@@ -540,17 +535,35 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   Future<UserDataModel?> _userDataBeforeCheckout(
     WidgetRef ref,
     BuildContext context,
+    String provider,
   ) async {
     try {
       return (await ref.read(homeProvider.future)).legacyUserData;
     } catch (_) {
       appLogger.error('Could not load account before checkout');
+      _trackFailed(provider, 'account_unavailable');
       if (context.mounted) {
         context.showSnackBar('it_looks_like_something_went_wrong'.i18n);
       }
       return null;
     }
   }
+
+  void _trackStarted(String provider, WidgetRef ref) =>
+      trackCheckout(CheckoutEvent.started, {
+        'provider': provider,
+        'plan': ref.read(plansProvider.notifier).userSelectedPlan?.id,
+      });
+
+  void _trackRedirectFailed(String provider, String reason) => trackCheckout(
+    CheckoutEvent.redirectFailed,
+    {'provider': provider, 'reason': reason},
+  );
+
+  void _trackFailed(String provider, String reason) => trackCheckout(
+    CheckoutEvent.failed,
+    {'provider': provider, 'reason': reason},
+  );
 
   void _trackWebviewClosed(String provider, bool? result, DateTime openedAt) {
     trackCheckout(

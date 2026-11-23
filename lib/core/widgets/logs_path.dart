@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+const _iconSpace = SizedBox(width: 44, height: 30);
+
 /// Payment icons shipped with the app. The server sends icon URLs on a CDN
 /// that is often unreachable from China, so known ones render from assets.
 const _bundledPaymentIcons = {
@@ -41,8 +43,8 @@ class LogsPath extends StatelessWidget {
                 : SvgPicture.network(
                     p,
                     height: 30,
-                    placeholderBuilder: (_) =>
-                        const SizedBox(width: 44, height: 30),
+                    placeholderBuilder: (_) => _iconSpace,
+                    errorBuilder: (_, _, _) => _iconSpace,
                   ),
           );
         }),

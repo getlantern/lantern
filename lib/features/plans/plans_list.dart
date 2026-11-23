@@ -7,7 +7,7 @@ import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/core/utils/screen_utils.dart';
-import 'package:lantern/features/plans/checkout_telemetry.dart';
+import 'package:lantern/core/telemetry/checkout_telemetry.dart';
 import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 import 'package:lantern/features/plans/provider/referral_notifier.dart';
@@ -48,7 +48,7 @@ class PlansListView extends HookConsumerWidget {
         'currency': currencies.isEmpty ? null : currencies.first,
       });
       return null;
-    }, const []);
+    }, [data.plans.map((p) => '${p.id}:${p.price.keys.join('+')}').join(',')]);
     return SizedBox(
       height: context.isSmallDevice ? size.height * 0.21 : null,
       child: ListView.builder(
