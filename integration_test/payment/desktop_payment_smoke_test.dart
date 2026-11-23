@@ -245,6 +245,10 @@ Future<void> _convertWith(
     timeout: const Duration(seconds: 10),
     failure: () => 'The Lantern Pro success dialog did not close',
   );
+  // Continue runs popUntilRoot after a delay. Let it fire before the next
+  // checkout opens, or it can pop the new webview.
+  await tester.pump(AppDialog.actionDelay + const Duration(milliseconds: 200));
+  await tester.pump();
 }
 
 Future<Uint8List> _waitForRenderedScreenshot(

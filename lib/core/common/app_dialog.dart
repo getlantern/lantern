@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
 
 class AppDialog {
+  /// How long a button's callback waits after the dialog closes.
+  static const actionDelay = Duration(milliseconds: 400);
+
   static Future<void> show({
     required BuildContext context,
     Widget? header,
@@ -87,10 +90,7 @@ class AppDialog {
                     // when shown outside appRouter (e.g. widget tests).
                     Navigator.of(context).pop();
                     if (onPrimaryPressed != null) {
-                      Future.delayed(
-                        const Duration(milliseconds: 400),
-                        onPrimaryPressed,
-                      );
+                      Future.delayed(actionDelay, onPrimaryPressed);
                     }
                   },
                 ),
@@ -107,10 +107,7 @@ class AppDialog {
                       }
                       Navigator.of(context).pop();
                       if (onSecondaryPressed != null) {
-                        Future.delayed(
-                          const Duration(milliseconds: 400),
-                          onSecondaryPressed,
-                        );
+                        Future.delayed(actionDelay, onSecondaryPressed);
                       }
                     },
                   ),
