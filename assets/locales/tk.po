@@ -2577,3 +2577,30 @@ msgstr "Ulanyş statistikasyny nola getirip bolmady"
 
 msgid "usage_stats_load_failed"
 msgstr "Ulanyş statistikasyny ýükläp bolmady"
+
+msgid "payment_method_credit_card"
+msgstr "Kredit karty"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Her aý töleg alynýar. Islän wagtyňyz ýatyryň."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Her ýyl töleg alynýar. Islän wagtyňyz ýatyryň."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Her iki ýylda töleg alynýar. Islän wagtyňyz ýatyryň."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Awtomatik uzaldylýar. Islän wagtyňyz ýatyryp bilersiňiz."
+
+msgid "price_per_month"
+msgstr "%s/aý"
+
+msgid "no_payment_methods_available"
+msgstr "Häzirki wagtda töleg usuly elýeterli däl. Haýyş, soňrak gaýtadan synanyşyň."

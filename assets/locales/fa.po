@@ -2592,3 +2592,30 @@ msgstr "بازنشانی آمار مصرف ممکن نشد"
 
 msgid "usage_stats_load_failed"
 msgstr "بارگیری آمار مصرف ممکن نشد"
+
+msgid "payment_method_credit_card"
+msgstr "کارت اعتباری"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "هر ماه پرداخت می‌شود. هر زمان که بخواهید لغو کنید."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "هر سال پرداخت می‌شود. هر زمان که بخواهید لغو کنید."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "هر دو سال یک‌بار پرداخت می‌شود. هر زمان که بخواهید لغو کنید."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "به‌طور خودکار تمدید می‌شود. هر زمان می‌توانید لغو کنید."
+
+msgid "price_per_month"
+msgstr "%s/ماه"
+
+msgid "no_payment_methods_available"
+msgstr "در حال حاضر هیچ روش پرداختی در دسترس نیست. لطفاً بعداً دوباره امتحان کنید."

@@ -2631,3 +2631,30 @@ msgstr "အသုံးပြုမှု စာရင်းအင်းမျ�
 
 msgid "usage_stats_reset"
 msgstr "စာရင်းအင်း ပြန်စရန်"
+
+msgid "payment_method_credit_card"
+msgstr "ခရက်ဒစ်ကတ်"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "လစဉ် ငွေတောင်းခံပါသည်။ အချိန်မရွေး ပယ်ဖျက်နိုင်ပါသည်။"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "နှစ်စဉ် ငွေတောင်းခံပါသည်။ အချိန်မရွေး ပယ်ဖျက်နိုင်ပါသည်။"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "နှစ်နှစ်တစ်ကြိမ် ငွေတောင်းခံပါသည်။ အချိန်မရွေး ပယ်ဖျက်နိုင်ပါသည်။"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "အလိုအလျောက် သက်တမ်းတိုးပါသည်။ အချိန်မရွေး ပယ်ဖျက်နိုင်ပါသည်။"
+
+msgid "price_per_month"
+msgstr "%s/လ"
+
+msgid "no_payment_methods_available"
+msgstr "ယခု ငွေပေးချေမှုနည်းလမ်း မရှိသေးပါ။ နောက်မှ ထပ်ကြိုးစားပါ။"

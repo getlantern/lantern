@@ -2607,3 +2607,30 @@ msgstr "Не удалось сбросить статистику использ
 
 msgid "usage_stats_load_failed"
 msgstr "Не удалось загрузить статистику использования"
+
+msgid "payment_method_credit_card"
+msgstr "Банковская карта"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Оплата каждый месяц. Отменить можно в любое время."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Оплата раз в год. Отменить можно в любое время."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Оплата раз в два года. Отменить можно в любое время."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Продлевается автоматически. Отменить можно в любое время."
+
+msgid "price_per_month"
+msgstr "%s/мес."
+
+msgid "no_payment_methods_available"
+msgstr "Сейчас нет доступных способов оплаты. Пожалуйста, повторите попытку позже."

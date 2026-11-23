@@ -2595,3 +2595,30 @@ msgstr "उपयोग के आंकड़े रीसेट नहीं �
 
 msgid "usage_stats_load_failed"
 msgstr "उपयोग के आंकड़े लोड नहीं हो सके"
+
+msgid "payment_method_credit_card"
+msgstr "क्रेडिट कार्ड"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "हर महीने बिल किया जाता है। कभी भी रद्द करें।"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "हर साल बिल किया जाता है। कभी भी रद्द करें।"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "हर दो साल में बिल किया जाता है। कभी भी रद्द करें।"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "अपने आप रिन्यू होता है। कभी भी रद्द करें।"
+
+msgid "price_per_month"
+msgstr "%s/माह"
+
+msgid "no_payment_methods_available"
+msgstr "अभी कोई भुगतान तरीका उपलब्ध नहीं है। कृपया बाद में फिर से कोशिश करें।"

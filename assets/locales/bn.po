@@ -2591,3 +2591,30 @@ msgstr "ব্যবহারের পরিসংখ্যান রিসে�
 
 msgid "usage_stats_load_failed"
 msgstr "ব্যবহারের পরিসংখ্যান লোড করা যায়নি"
+
+msgid "payment_method_credit_card"
+msgstr "ক্রেডিট কার্ড"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "প্রতি মাসে বিল করা হয়। যেকোনো সময় বাতিল করুন।"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "প্রতি বছর বিল করা হয়। যেকোনো সময় বাতিল করুন।"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "প্রতি দুই বছরে বিল করা হয়। যেকোনো সময় বাতিল করুন।"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "স্বয়ংক্রিয়ভাবে নবায়ন হয়। যেকোনো সময় বাতিল করুন।"
+
+msgid "price_per_month"
+msgstr "%s/মাস"
+
+msgid "no_payment_methods_available"
+msgstr "এই মুহূর্তে কোনো পেমেন্ট পদ্ধতি উপলব্ধ নেই। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"

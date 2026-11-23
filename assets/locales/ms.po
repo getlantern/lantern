@@ -2604,3 +2604,30 @@ msgstr "Tidak dapat menetapkan semula statistik penggunaan"
 
 msgid "usage_stats_load_failed"
 msgstr "Tidak dapat memuatkan statistik penggunaan"
+
+msgid "payment_method_credit_card"
+msgstr "Kad Kredit"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Dibilkan setiap bulan. Batalkan bila-bila masa."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Dibilkan setiap tahun. Batalkan bila-bila masa."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Dibilkan setiap dua tahun. Batalkan bila-bila masa."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Diperbaharui secara automatik. Batal pada bila-bila masa."
+
+msgid "price_per_month"
+msgstr "%s/bulan"
+
+msgid "no_payment_methods_available"
+msgstr "Tiada kaedah pembayaran tersedia buat masa ini. Sila cuba lagi kemudian."

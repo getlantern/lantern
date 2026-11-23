@@ -2598,3 +2598,30 @@ msgstr "استعمال کے اعداد و شمار ری سیٹ نہیں ہو س�
 
 msgid "usage_stats_load_failed"
 msgstr "استعمال کے اعداد و شمار لوڈ نہیں ہو سکے"
+
+msgid "payment_method_credit_card"
+msgstr "کریڈٹ کارڈ"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "ہر مہینے بل کیا جاتا ہے۔ کبھی بھی منسوخ کریں۔"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "ہر سال بل کیا جاتا ہے۔ کبھی بھی منسوخ کریں۔"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "ہر دو سال بعد بل کیا جاتا ہے۔ کبھی بھی منسوخ کریں۔"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "خود بخود رینیو ہوتا ہے۔ کبھی بھی منسوخ کریں۔"
+
+msgid "price_per_month"
+msgstr "%s/ماہ"
+
+msgid "no_payment_methods_available"
+msgstr "ابھی ادائیگی کا کوئی طریقہ دستیاب نہیں ہے۔ براہ کرم بعد میں دوبارہ کوشش کریں۔"

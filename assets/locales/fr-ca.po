@@ -2417,3 +2417,30 @@ msgstr "Impossible de réinitialiser les statistiques d'utilisation"
 
 msgid "usage_stats_load_failed"
 msgstr "Impossible de charger les statistiques d'utilisation"
+
+msgid "payment_method_credit_card"
+msgstr "Carte de crédit"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Facturé chaque mois. Annulable en tout temps."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Facturé chaque année. Annulable en tout temps."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Facturé tous les deux ans. Annulable en tout temps."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Renouvellement automatique. Annulable en tout temps."
+
+msgid "price_per_month"
+msgstr "%s/mois"
+
+msgid "no_payment_methods_available"
+msgstr "Aucun mode de paiement n'est disponible pour le moment. Veuillez réessayer plus tard."

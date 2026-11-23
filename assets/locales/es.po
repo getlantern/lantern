@@ -2611,3 +2611,30 @@ msgstr "No se pudieron restablecer las estadísticas de uso"
 
 msgid "usage_stats_load_failed"
 msgstr "No se pudieron cargar las estadísticas de uso"
+
+msgid "payment_method_credit_card"
+msgstr "Tarjeta de crédito"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Se factura cada mes. Cancela cuando quieras."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Se factura cada año. Cancela cuando quieras."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Se factura cada dos años. Cancela cuando quieras."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Se renueva automáticamente. Cancela cuando quieras."
+
+msgid "price_per_month"
+msgstr "%s/mes"
+
+msgid "no_payment_methods_available"
+msgstr "No hay métodos de pago disponibles en este momento. Inténtalo de nuevo más tarde."

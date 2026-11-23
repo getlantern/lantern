@@ -2561,3 +2561,30 @@ msgstr "تعذّرت إعادة ضبط إحصائيات الاستخدام"
 
 msgid "usage_stats_load_failed"
 msgstr "تعذر تحميل إحصاءات الاستخدام"
+
+msgid "payment_method_credit_card"
+msgstr "بطاقة ائتمان"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "يُدفع كل شهر. الإلغاء في أي وقت."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "يُدفع كل سنة. الإلغاء في أي وقت."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "يُدفع كل سنتين. الإلغاء في أي وقت."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "يتجدد تلقائيًا. يمكن الإلغاء في أي وقت."
+
+msgid "price_per_month"
+msgstr "%s/شهر"
+
+msgid "no_payment_methods_available"
+msgstr "لا تتوفر طرق دفع حاليًا. يرجى المحاولة مرة أخرى لاحقًا."

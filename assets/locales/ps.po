@@ -2616,3 +2616,30 @@ msgstr "د کارونې احصایې بیا تنظیم نشوې"
 
 msgid "usage_stats_load_failed"
 msgstr "د کارونې احصایې پورته نشوې"
+
+msgid "payment_method_credit_card"
+msgstr "کریډیټ کارت"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "هره میاشت بیل کېږي. هر وخت یې لغوه کولی شئ."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "هر کال بیل کېږي. هر وخت یې لغوه کولی شئ."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "هر دوه کاله کې یو ځل بیل کېږي. هر وخت یې لغوه کولی شئ."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "په اتوماتيک ډول نوي کېږي. هر وخت يې لغوه کولای شئ."
+
+msgid "price_per_month"
+msgstr "%s/میاشت"
+
+msgid "no_payment_methods_available"
+msgstr "اوس مهال د تادیې کومه طریقه شتون نلري. مهرباني وکړئ وروسته بیا هڅه وکړئ."

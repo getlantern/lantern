@@ -2564,3 +2564,30 @@ msgstr "ไม่สามารถรีเซ็ตสถิติการใ
 
 msgid "usage_stats_load_failed"
 msgstr "ไม่สามารถโหลดสถิติการใช้งานได้"
+
+msgid "payment_method_credit_card"
+msgstr "บัตรเครดิต"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "เรียกเก็บเงินทุกเดือน ยกเลิกได้ทุกเมื่อ"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "เรียกเก็บเงินทุกปี ยกเลิกได้ทุกเมื่อ"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "เรียกเก็บเงินทุกสองปี ยกเลิกได้ทุกเมื่อ"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "ต่ออายุอัตโนมัติ ยกเลิกได้ทุกเมื่อ"
+
+msgid "price_per_month"
+msgstr "%s/เดือน"
+
+msgid "no_payment_methods_available"
+msgstr "ขณะนี้ไม่มีวิธีชำระเงินที่ใช้ได้ โปรดลองอีกครั้งในภายหลัง"

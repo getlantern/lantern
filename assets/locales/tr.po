@@ -2597,3 +2597,30 @@ msgstr "Kullanım istatistikleri sıfırlanamadı"
 
 msgid "usage_stats_load_failed"
 msgstr "Kullanım istatistikleri yüklenemedi"
+
+msgid "payment_method_credit_card"
+msgstr "Kredi Kartı"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Her ay faturalandırılır. İstediğiniz zaman iptal edin."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Her yıl faturalandırılır. İstediğiniz zaman iptal edin."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "İki yılda bir faturalandırılır. İstediğiniz zaman iptal edin."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Otomatik olarak yenilenir. İstediğiniz zaman iptal edin."
+
+msgid "price_per_month"
+msgstr "%s/ay"
+
+msgid "no_payment_methods_available"
+msgstr "Şu anda kullanılabilir ödeme yöntemi yok. Lütfen daha sonra tekrar deneyin."

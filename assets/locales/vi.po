@@ -2595,3 +2595,30 @@ msgstr "Không thể đặt lại thống kê sử dụng"
 
 msgid "usage_stats_load_failed"
 msgstr "Không thể tải thống kê sử dụng"
+
+msgid "payment_method_credit_card"
+msgstr "Thẻ tín dụng"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Thanh toán hằng tháng. Hủy bất cứ lúc nào."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Thanh toán hằng năm. Hủy bất cứ lúc nào."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Thanh toán hai năm một lần. Hủy bất cứ lúc nào."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Tự động gia hạn. Hủy bất cứ lúc nào."
+
+msgid "price_per_month"
+msgstr "%s/tháng"
+
+msgid "no_payment_methods_available"
+msgstr "Hiện không có phương thức thanh toán nào. Vui lòng thử lại sau."
