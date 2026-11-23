@@ -13,10 +13,7 @@ import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
-import android.app.AppOpsManager
-import android.os.Build
 import android.os.PersistableBundle
-import android.os.Process
 import android.provider.Settings
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
@@ -39,6 +36,7 @@ import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
+import org.getlantern.lantern.utils.hasLocalNetworkAccess
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -198,10 +196,6 @@ class MethodHandler : FlutterPlugin,
         const val TAG = "A/MethodHandler"
         const val channelName = "org.getlantern.lantern/method"
         private const val MAX_EXTERNAL_URL_FALLBACK_DEPTH = 3
-
-        // Added in Android 17 (API 37); not in the SDK we compile against.
-        private const val ACCESS_LOCAL_NETWORK = "android.permission.ACCESS_LOCAL_NETWORK"
-        private const val LOCAL_NETWORK_PERMISSION_SDK = 37
         private const val SHARE_SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000L
     }
 
@@ -1688,23 +1682,6 @@ class MethodHandler : FlutterPlugin,
             AppLogger.e(TAG, "Unable to launch external URL: ${e.message}")
             false
         }
-    }
-
-    /**
-     * Whether the tunnel may use local addresses. Android 17 gates them behind
-     * ACCESS_LOCAL_NETWORK ("Nearby devices"); without it the TUN's own
-     * private address is unreachable and no app traffic gets through.
-     */
-    private fun hasLocalNetworkAccess(context: Context): Boolean {
-        if (Build.VERSION.SDK_INT < LOCAL_NETWORK_PERMISSION_SDK) return true
-        if (context.checkSelfPermission(ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED) {
-            return false
-        }
-        // Apps targeting below 37 keep the permission; denying flips the app op.
-        val op = AppOpsManager.permissionToOp(ACCESS_LOCAL_NETWORK) ?: return true
-        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.unsafeCheckOpNoThrow(op, Process.myUid(), context.packageName)
-        return mode == AppOpsManager.MODE_ALLOWED
     }
 
     private fun isAnotherVpnActive(context: Context): Boolean {

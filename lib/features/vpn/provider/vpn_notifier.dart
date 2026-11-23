@@ -199,13 +199,15 @@ class VpnNotifier extends _$VpnNotifier {
   Future<Either<Failure, String>> startVPN({
     bool force = false,
     bool skipConflictCheck = false,
+    bool skipLocalNetworkCheck = false,
   }) async {
     final lantern = ref.read(lanternServiceProvider);
 
-    // "Connect anyway" on either pre-connect dialog skips both checks.
-    if (!skipConflictCheck) {
+    if (!skipLocalNetworkCheck) {
       final denied = await _checkLocalNetworkAccess();
       if (denied != null) return denied;
+    }
+    if (!skipConflictCheck) {
       final conflict = await _checkVpnConflict();
       if (conflict != null) return conflict;
     }
@@ -235,6 +237,7 @@ class VpnNotifier extends _$VpnNotifier {
             type,
             personalProxiesTag,
             skipConflictCheck: true,
+            skipLocalNetworkCheck: true,
           );
         }
         // The group is gone with the last pairing: show Smart Location, which
@@ -243,7 +246,12 @@ class VpnNotifier extends _$VpnNotifier {
       }
       return lantern.startVPN();
     }
-    return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
+    return connectToServer(
+      type,
+      tag,
+      skipConflictCheck: skipConflictCheck,
+      skipLocalNetworkCheck: skipLocalNetworkCheck,
+    );
   }
 
   /// Connects to a specific server location.
@@ -252,13 +260,16 @@ class VpnNotifier extends _$VpnNotifier {
     ServerLocationType location,
     String tag, {
     bool skipConflictCheck = false,
+    bool skipLocalNetworkCheck = false,
   }) async {
     // Check for a conflicting VPN before initiating a new connection.
     // The native side guards against false positives by returning false when
     // Lantern's own VPN is already active (e.g. server switching while connected).
-    if (!skipConflictCheck) {
+    if (!skipLocalNetworkCheck) {
       final denied = await _checkLocalNetworkAccess();
       if (denied != null) return denied;
+    }
+    if (!skipConflictCheck) {
       final conflict = await _checkVpnConflict();
       if (conflict != null) return conflict;
     }

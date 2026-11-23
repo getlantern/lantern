@@ -83,6 +83,7 @@ class _FakeVpn extends VpnNotifier {
     ServerLocationType location,
     String tag, {
     bool skipConflictCheck = false,
+    bool skipLocalNetworkCheck = false,
   }) {
     if (announce) state = VPNStatus.connecting;
     return connection.future;

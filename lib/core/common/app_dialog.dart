@@ -285,6 +285,7 @@ class AppDialog {
       context: context,
       title: 'local_network_denied_title'.i18n,
       body: 'local_network_denied_body'.i18n,
+      scrollable: true,
       primaryLabel: 'open_settings'.i18n,
       onPrimaryPressed: onOpenSettings,
       secondaryLabel: 'vpn_conflict_connect_anyway'.i18n,
