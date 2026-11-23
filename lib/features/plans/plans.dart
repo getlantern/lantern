@@ -8,7 +8,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
-import 'package:lantern/core/telemetry/checkout_telemetry.dart';
+import 'package:lantern/core/telemetry/telemetry.dart';
 import 'package:lantern/core/utils/screen_utils.dart';
 import 'package:lantern/core/widgets/app_rich_text.dart';
 import 'package:lantern/core/widgets/loading_indicator.dart';
@@ -529,16 +529,16 @@ class _PlansState extends ConsumerState<Plans>
     final couponCode = ref.read(referralProvider).code;
     final payments = ref.read(paymentProvider.notifier);
     final store = Platform.isIOS ? 'app_store' : 'play_store';
-    trackCheckout(CheckoutEvent.started, {'provider': store, 'plan': plan.id});
+    trackEvent(CheckoutEvent.started, {'provider': store, 'plan': plan.id});
     final result = await payments.startInAppPurchaseFlow(
       planId: plan.id,
       couponCode: couponCode,
       onSuccess: (purchase) {
-        trackCheckout(CheckoutEvent.storePurchased, {'provider': store});
+        trackEvent(CheckoutEvent.storePurchased, {'provider': store});
         processPurchase(purchase, plan);
       },
       onError: (error) {
-        trackCheckout(CheckoutEvent.failed, {
+        trackEvent(CheckoutEvent.failed, {
           'provider': store,
           'reason': 'store_error',
         });
@@ -550,7 +550,7 @@ class _PlansState extends ConsumerState<Plans>
       },
     );
     if (result.isLeft()) {
-      trackCheckout(CheckoutEvent.failed, {
+      trackEvent(CheckoutEvent.failed, {
         'provider': store,
         'reason': 'start_error',
       });

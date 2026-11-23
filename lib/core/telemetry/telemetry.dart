@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:lantern/core/services/logger_service.dart';
 
-/// A named telemetry event. Feature event enums implement this.
+export 'package:lantern/core/telemetry/telemetry_events.dart';
+
+/// A named telemetry event. The event enums live in telemetry_events.dart.
 abstract interface class TelemetryEvent {
   String get tag;
 }

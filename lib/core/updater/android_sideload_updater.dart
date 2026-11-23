@@ -32,23 +32,6 @@ enum AndroidSideloadInstallStatus {
   final String tag;
 }
 
-enum AndroidSideloadUpdateTelemetryEvent implements TelemetryEvent {
-  checkResult('android_sideload_update_check_result'),
-  updateAvailable('android_sideload_update_available'),
-  downloadFailed('android_sideload_update_download_failed'),
-  checksumFailed('android_sideload_update_checksum_failed'),
-  installerLaunched('android_sideload_update_installer_launched'),
-  installerPermissionRequired(
-    'android_sideload_update_installer_permission_required',
-  ),
-  installFailed('android_sideload_update_install_failed');
-
-  const AndroidSideloadUpdateTelemetryEvent(this.tag);
-
-  @override
-  final String tag;
-}
-
 void _trackTelemetry(
   AndroidSideloadUpdateTelemetryEvent event,
   Map<String, Object?> properties,

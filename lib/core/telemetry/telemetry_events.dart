@@ -1,3 +1,6 @@
+/// Every telemetry event the app logs. Add new event enums here.
+library;
+
 import 'package:lantern/core/telemetry/telemetry.dart';
 
 /// Steps of the in-app checkout funnel, from the plans screen to the account
@@ -20,10 +23,23 @@ enum CheckoutEvent implements TelemetryEvent {
   final String tag;
 }
 
-void trackCheckout(
-  CheckoutEvent event, [
-  Map<String, Object?> properties = const {},
-]) => trackEvent(event, properties);
+/// Steps of an Android sideload update, from the check to the installer.
+enum AndroidSideloadUpdateTelemetryEvent implements TelemetryEvent {
+  checkResult('android_sideload_update_check_result'),
+  updateAvailable('android_sideload_update_available'),
+  downloadFailed('android_sideload_update_download_failed'),
+  checksumFailed('android_sideload_update_checksum_failed'),
+  installerLaunched('android_sideload_update_installer_launched'),
+  installerPermissionRequired(
+    'android_sideload_update_installer_permission_required',
+  ),
+  installFailed('android_sideload_update_install_failed');
+
+  const AndroidSideloadUpdateTelemetryEvent(this.tag);
+
+  @override
+  final String tag;
+}
 
 /// How a checkout webview ended: true when it reached the completion URL,
 /// false on the cancel URL, null when the user closed it.

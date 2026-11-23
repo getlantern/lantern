@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lantern/core/telemetry/telemetry.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
 
 void main() {

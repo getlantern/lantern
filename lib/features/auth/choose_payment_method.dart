@@ -11,7 +11,7 @@ import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/stripe_service.dart';
-import 'package:lantern/core/telemetry/checkout_telemetry.dart';
+import 'package:lantern/core/telemetry/telemetry.dart';
 import 'package:lantern/core/widgets/app_webview.dart';
 import 'package:lantern/core/widgets/logs_path.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
@@ -315,7 +315,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       onError: (error) {
         final stripeCode = error is StripeException ? error.error.code : null;
         if (stripeCode == FailureCode.Canceled) {
-          trackCheckout(CheckoutEvent.cancelled, {'provider': 'stripe'});
+          trackEvent(CheckoutEvent.cancelled, {'provider': 'stripe'});
         } else {
           _trackFailed('stripe', stripeCode?.name ?? 'sdk_error');
         }
@@ -550,23 +550,23 @@ class ChoosePaymentMethod extends HookConsumerWidget {
   }
 
   void _trackStarted(String provider, WidgetRef ref) =>
-      trackCheckout(CheckoutEvent.started, {
+      trackEvent(CheckoutEvent.started, {
         'provider': provider,
         'plan': ref.read(plansProvider.notifier).userSelectedPlan?.id,
       });
 
-  void _trackRedirectFailed(String provider, String reason) => trackCheckout(
+  void _trackRedirectFailed(String provider, String reason) => trackEvent(
     CheckoutEvent.redirectFailed,
     {'provider': provider, 'reason': reason},
   );
 
-  void _trackFailed(String provider, String reason) => trackCheckout(
+  void _trackFailed(String provider, String reason) => trackEvent(
     CheckoutEvent.failed,
     {'provider': provider, 'reason': reason},
   );
 
   void _trackWebviewClosed(String provider, bool? result, DateTime openedAt) {
-    trackCheckout(
+    trackEvent(
       CheckoutEvent.webviewClosed,
       webviewClosedProperties(
         provider,
@@ -590,7 +590,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     bool unconfirmedClose = false,
   }) async {
     if (!purchased) {
-      trackCheckout(CheckoutEvent.cancelled, {'provider': provider});
+      trackEvent(CheckoutEvent.cancelled, {'provider': provider});
       context.showSnackBar('purchase_not_completed'.i18n);
       ref.read(paymentSessionProvider.notifier).clearRedirect();
       return;
@@ -603,7 +603,7 @@ class ChoosePaymentMethod extends HookConsumerWidget {
       subscriptionBefore: subscriptionBefore,
       delays: kPurchaseConfirmationDelays,
     );
-    trackCheckout(
+    trackEvent(
       purchaseConfirmed ? CheckoutEvent.confirmed : CheckoutEvent.notConfirmed,
       {
         'provider': provider,
@@ -691,7 +691,7 @@ class PaymentCheckoutMethods extends HookConsumerWidget {
         referral.isAffiliate && discountAmount.isNotEmpty;
     final methodNames = [for (final m in providers) m.providers.name];
     useEffect(() {
-      trackCheckout(CheckoutEvent.methodsViewed, {'methods': methodNames});
+      trackEvent(CheckoutEvent.methodsViewed, {'methods': methodNames});
       return null;
     }, [methodNames.join(',')]);
     if (providers.isEmpty) {
