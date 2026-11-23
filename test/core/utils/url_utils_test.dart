@@ -66,4 +66,17 @@ void main() {
       );
     });
   });
+
+  group('openWebview', () {
+    test('returns null for a bad URL by default', () async {
+      expect(await UrlUtils.openWebview<bool>('not a url'), isNull);
+    });
+
+    test('throws for a bad URL when asked to', () async {
+      await expectLater(
+        UrlUtils.openWebview<bool>('not a url', throwOnError: true),
+        throwsArgumentError,
+      );
+    });
+  });
 }

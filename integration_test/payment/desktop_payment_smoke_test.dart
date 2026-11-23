@@ -44,7 +44,7 @@ void main() {
         await _runPaymentConversionSmoke(tester, runningApp);
       }
     },
-    timeout: const Timeout(Duration(minutes: 8)),
+    timeout: const Timeout(Duration(minutes: 14)),
   );
 }
 
@@ -101,68 +101,101 @@ Future<void> _runStripeRenderSmoke(
   );
 }
 
+/// Providers converted in order on one e2e account. The Shepherd ones run
+/// through staging's fake gateway, so each one exercises the signed callback.
+const _conversionProviders = <(String name, String method)>[
+  ('e2e', 'E2E Checkout'),
+  ('shepherd-wechat', 'wechatpay'),
+  ('shepherd', 'alipay'),
+];
+
 Future<void> _runPaymentConversionSmoke(
   WidgetTester tester,
   _RunningApp runningApp,
 ) async {
   final runID = newE2ERunID();
-  final e2eProvider = plan_models.Android(
-    method: 'E2E Checkout',
-    providers: plan_models.Provider(
-      name: 'e2e',
-      icons: const [],
-      supportSubscription: false,
-    ),
-  );
-  plan_models.PlansData withE2EProvider(plan_models.PlansData plans) {
-    if (plans.providers.desktop.any(
-      (provider) => provider.providers.name == 'e2e',
-    )) {
-      return plans;
-    }
+
+  // Staging may not offer every provider (the WeChat flag is off there), so
+  // missing ones are added client-side, and re-added if plans are refetched.
+  plan_models.PlansData withConversionProviders(plan_models.PlansData plans) {
+    final missing = _conversionProviders
+        .where(
+          (p) => !plans.providers.desktop.any((d) => d.providers.name == p.$1),
+        )
+        .map(
+          (p) => plan_models.Android(
+            method: p.$2,
+            providers: plan_models.Provider(
+              name: p.$1,
+              icons: const [],
+              supportSubscription: false,
+            ),
+          ),
+        )
+        .toList();
+    if (missing.isEmpty) return plans;
     return plans.copyWith(
       providers: plan_models.Providers(
         android: plans.providers.android,
-        desktop: [e2eProvider, ...plans.providers.desktop],
+        desktop: [...missing, ...plans.providers.desktop],
       ),
     );
   }
 
-  void ensureE2EProvider() {
+  void ensureConversionProviders() {
     final currentPlans = runningApp.container.read(plansProvider).value;
     if (currentPlans == null) return;
-    final plansWithE2E = withE2EProvider(currentPlans);
-    if (identical(plansWithE2E, currentPlans)) return;
-    runningApp.container.read(plansProvider.notifier).updatePlans(plansWithE2E);
+    final updated = withConversionProviders(currentPlans);
+    if (identical(updated, currentPlans)) return;
+    runningApp.container.read(plansProvider.notifier).updatePlans(updated);
   }
 
-  final e2eProviderSubscription = runningApp.container.listen(plansProvider, (
+  final providerSubscription = runningApp.container.listen(plansProvider, (
     _,
     next,
   ) {
     final plans = next.value;
-    if (plans == null ||
-        plans.providers.desktop.any(
-          (provider) => provider.providers.name == 'e2e',
-        )) {
+    if (plans == null || identical(withConversionProviders(plans), plans)) {
       return;
     }
-    scheduleMicrotask(ensureE2EProvider);
+    scheduleMicrotask(ensureConversionProviders);
   });
-  addTearDown(e2eProviderSubscription.close);
+  addTearDown(providerSubscription.close);
 
-  final currentPlans = runningApp.container.read(plansProvider).value;
-  final plansWithE2E = withE2EProvider(currentPlans ?? runningApp.plans);
-  runningApp.container.read(plansProvider.notifier).updatePlans(plansWithE2E);
-  runningApp.payment.selectBestValuePlan(plansWithE2E);
+  for (final (provider, _) in _conversionProviders) {
+    await _convertWith(tester, runningApp, runID, provider, () {
+      final currentPlans = runningApp.container.read(plansProvider).value;
+      final plans = withConversionProviders(currentPlans ?? runningApp.plans);
+      runningApp.container.read(plansProvider.notifier).updatePlans(plans);
+      return plans;
+    });
+  }
+}
 
-  final checkout = _PaymentConversionTracker();
+Future<void> _convertWith(
+  WidgetTester tester,
+  _RunningApp runningApp,
+  String runID,
+  String provider,
+  plan_models.PlansData Function() preparePlans,
+) async {
+  int expiration() =>
+      runningApp.container
+          .read(homeProvider)
+          .value
+          ?.legacyUserData
+          .expiration ??
+      0;
+  final expirationBefore = expiration();
+  runningApp.payment.selectBestValuePlan(preparePlans());
+
+  final checkout = _PaymentConversionTracker(provider);
   await runningApp.payment.openPaymentMethods(
     email: e2eEmail(runID),
     authFlow: AuthFlow.renewSubscription,
     checkoutObserver: checkout,
   );
-  await runningApp.payment.startCheckout(provider: 'e2e');
+  await runningApp.payment.startCheckout(provider: provider);
 
   await _waitFor(
     tester,
@@ -171,36 +204,51 @@ Future<void> _runPaymentConversionSmoke(
     failure: () => checkout.failureMessage,
   );
   if (checkout.failure != null) {
-    fail('E2E checkout failed: ${checkout.failure}');
+    fail('$provider checkout failed: ${checkout.failure}');
   }
 
+  // Each conversion has to extend Pro: after the first one the account is
+  // already Pro, so isPro alone proves nothing.
   await _waitFor(
     tester,
     () =>
         (runningApp.container.read(homeProvider).value?.legacyUserData.isPro ==
-            true) ||
+                true &&
+            expiration() > expirationBefore) ||
         checkout.failure != null,
     timeout: const Duration(minutes: 2),
     failure: () => checkout.proConversionFailureMessage,
   );
   if (checkout.failure != null) {
-    fail('E2E checkout failed after completion: ${checkout.failure}');
+    fail('$provider checkout failed after completion: ${checkout.failure}');
   }
+  final welcome = find.text('welcome_to_lantern_pro'.i18n);
   await _waitFor(
     tester,
-    () => find.text('welcome_to_lantern_pro'.i18n).evaluate().isNotEmpty,
+    () => welcome.evaluate().isNotEmpty,
     timeout: const Duration(seconds: 30),
-    failure: () => 'The Lantern Pro success dialog was not shown',
+    failure: () => 'The Lantern Pro success dialog was not shown for $provider',
   );
 
   expect(checkout.uri?.host, _e2eHost);
   expect(checkout.documentLength, greaterThan(0));
   expect(checkout.screenshot, isNotNull);
-  expect(
-    runningApp.container.read(homeProvider).value?.legacyUserData.isPro,
-    isTrue,
+  e2eLog(
+    'Staging $provider checkout extended run $runID from '
+    '$expirationBefore to ${expiration()}',
   );
-  e2eLog('Staging E2E checkout converted run $runID to Pro');
+
+  await tester.tap(find.text('continue'.i18n).last);
+  await _waitFor(
+    tester,
+    () => welcome.evaluate().isEmpty,
+    timeout: const Duration(seconds: 10),
+    failure: () => 'The Lantern Pro success dialog did not close',
+  );
+  // Continue runs popUntilRoot after a delay. Let it fire before the next
+  // checkout opens, or it can pop the new webview.
+  await tester.pump(AppDialog.actionDelay + const Duration(milliseconds: 200));
+  await tester.pump();
 }
 
 Future<Uint8List> _waitForRenderedScreenshot(
@@ -345,6 +393,10 @@ class _StripeCheckoutTracker implements AppWebViewObserver {
 
 /// Tracks the staging checkout state and completes it through the WebView.
 class _PaymentConversionTracker implements AppWebViewObserver {
+  _PaymentConversionTracker(this.provider);
+
+  final String provider;
+
   static const _findCompleteScript = r'''
     (() => {
       const candidates = Array.from(
@@ -382,10 +434,17 @@ class _PaymentConversionTracker implements AppWebViewObserver {
   bool completionRequested = false;
   bool _completionInProgress = false;
   String? _handoffDiagnostic;
+  String? _otherHost;
   String? failure;
 
-  String get failureMessage =>
-      failure ?? 'The staging E2E completion control was not available';
+  String get failureMessage {
+    if (failure != null) return failure!;
+    final other = _otherHost;
+    return other == null
+        ? 'The staging E2E completion control was not available'
+        : '$provider checkout opened $other instead of the staging test '
+              'checkout; is the fake Shepherd gateway deployed to staging?';
+  }
 
   String get proConversionFailureMessage {
     final diagnostic = _handoffDiagnostic;
@@ -401,16 +460,18 @@ class _PaymentConversionTracker implements AppWebViewObserver {
     required Future<Uint8List?> Function() captureScreenshot,
     required Future<Object?> Function(String source) evaluateJavaScript,
   }) async {
-    if (uri.host != _e2eHost || completionRequested || _completionInProgress) {
+    if (uri.host != _e2eHost) {
+      _otherHost ??= uri.host;
       return;
     }
+    if (completionRequested || _completionInProgress) return;
     _completionInProgress = true;
     this.uri = uri;
     this.documentLength = documentLength;
 
     try {
       screenshot = await _waitForRenderedScreenshot(captureScreenshot);
-      await _saveScreenshot(screenshot!, 'payment-conversion.png');
+      await _saveScreenshot(screenshot!, 'payment-conversion-$provider.png');
 
       final deadline = DateTime.now().add(const Duration(seconds: 30));
       while (DateTime.now().isBefore(deadline)) {
