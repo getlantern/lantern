@@ -59,7 +59,7 @@ final class ShareNotifierProvider
   }
 }
 
-String _$shareNotifierHash() => r'989245db6495e17a3e8dd60c70e85c6d70ebf17b';
+String _$shareNotifierHash() => r'37939c2197413de09cdd47bb8c7c991252ae7be8';
 
 /// Drives connection sharing in both modes: Unbounded (broflake/WebRTC) and
 /// the samizdat-over-UPnP "Share My Connection" (SmC) mode.

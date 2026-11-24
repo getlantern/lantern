@@ -9,16 +9,22 @@ part of 'helpers_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Whether this build and the server let this device use helper invites.
+/// The build side is the engine's own gate, so a screen that offers invites
+/// (onboarding, VPN Settings) agrees with the engine that would serve them.
 
 @ProviderFor(helperInvitesAvailable)
 final helperInvitesAvailableProvider = HelperInvitesAvailableProvider._();
 
 /// Whether this build and the server let this device use helper invites.
+/// The build side is the engine's own gate, so a screen that offers invites
+/// (onboarding, VPN Settings) agrees with the engine that would serve them.
 
 final class HelperInvitesAvailableProvider
     extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
   /// Whether this build and the server let this device use helper invites.
+  /// The build side is the engine's own gate, so a screen that offers invites
+  /// (onboarding, VPN Settings) agrees with the engine that would serve them.
   HelperInvitesAvailableProvider._()
     : super(
         from: null,
@@ -53,7 +59,7 @@ final class HelperInvitesAvailableProvider
 }
 
 String _$helperInvitesAvailableHash() =>
-    r'28b6defb614c556b2fadebc03865e801586b6872';
+    r'557d4d9c0dc8ddcd72360df041495883300ec2e2';
 
 /// Whether Manage Private Locations shows its "Personal Proxies" tab: while
 /// helper invites are available, and after the flag goes off while this
@@ -272,7 +278,7 @@ final class HelpersNotifierProvider
   }
 }
 
-String _$helpersNotifierHash() => r'c3174b0d6dbdf8aa0c4a3a3816b37c079f821da9';
+String _$helpersNotifierHash() => r'fc86e2ae796e659e9067d8bbe39160b8da1e89fd';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
