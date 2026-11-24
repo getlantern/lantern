@@ -270,7 +270,7 @@ class _UsageStatsBody extends HookConsumerWidget {
           child: Column(
             children: [
               for (final (i, path) in const [
-                UsagePath.lantern,
+                UsagePath.servers,
                 UsagePath.personal,
                 UsagePath.private,
                 UsagePath.direct,
@@ -280,7 +280,7 @@ class _UsageStatsBody extends HookConsumerWidget {
                   path: path,
                   bytes: totals[path],
                   // Only Lantern's servers count toward the cap.
-                  note: hasDataCap && path == UsagePath.lantern
+                  note: hasDataCap && path == UsagePath.servers
                       ? 'usage_stats_lantern_data_cap'.i18n
                       : null,
                 ),
@@ -370,7 +370,7 @@ class _PathTile extends StatelessWidget {
         'proxyless'.i18n,
         'usage_stats_proxyless_description'.i18n,
       ),
-      UsagePath.lantern => (
+      UsagePath.servers => (
         'lantern_servers'.i18n,
         'usage_stats_lantern_description'.i18n,
       ),
