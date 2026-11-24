@@ -354,6 +354,7 @@ android {
 
     buildFeatures {
         buildConfig true
+        resValues true
     }
 
     // Use legacy packaging to help reduce apk size

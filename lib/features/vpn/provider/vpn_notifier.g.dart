@@ -41,13 +41,13 @@ final class VpnNotifierProvider
   }
 }
 
-String _$vpnNotifierHash() => r'c4c58f347511cd4b076957f76199985041f704c2';
+String _$vpnNotifierHash() => r'dc30edefa412411310352af596339283d9da0271';
 
 abstract class _$VpnNotifier extends $Notifier<VPNStatus> {
   VPNStatus build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<VPNStatus, VPNStatus>;
     final element =
         ref.element
@@ -57,6 +57,6 @@ abstract class _$VpnNotifier extends $Notifier<VPNStatus> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

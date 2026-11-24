@@ -166,7 +166,7 @@ class PersonalProxiesIntroScreen extends HookWidget {
         backgroundColor: context.bgElevated,
         title: LanternLogo(color: context.textPrimary),
       ),
-      body: Container(
+      body: Ink(
         color: context.bgElevated,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: SafeArea(

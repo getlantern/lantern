@@ -56,7 +56,7 @@ The following tools must be installed and available on your `PATH` before buildi
 
 | Tool | Required Version | Notes |
 |---|---|---|
-| Flutter | 3.47.9 (stable) | [flutter.dev](https://flutter.dev) or [fvm](https://fvm.app) |
+| Flutter | 3.50.1 (stable) | [flutter.dev](https://flutter.dev) or [fvm](https://fvm.app) |
 | Go | 1.25.4 | [go.dev/dl](https://go.dev/dl) or [mise](https://mise.jdx.dev) |
 | Git | any recent | system package manager |
 | IDE | — | [Android Studio](https://developer.android.com/studio) or [VS Code](https://code.visualstudio.com) with the [Flutter extension](https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter) |

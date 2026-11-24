@@ -13,6 +13,13 @@ analyzer:
   exclude:
     - lib/lantern/protos/
     - lib/lantern/lantern_generated_bindings.dart
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   # The lint rules applied to this project can be customized in the

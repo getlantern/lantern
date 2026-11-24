@@ -48,7 +48,7 @@ abstract class _$MacosExtensionNotifier extends $Notifier<MacOSExtensionState> {
   MacOSExtensionState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<MacOSExtensionState, MacOSExtensionState>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$MacosExtensionNotifier extends $Notifier<MacOSExtensionState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

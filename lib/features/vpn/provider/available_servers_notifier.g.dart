@@ -34,14 +34,14 @@ final class AvailableServersNotifierProvider
 }
 
 String _$availableServersNotifierHash() =>
-    r'e0882458efba7899bfbfe9cadb11c527101f6b5e';
+    r'65d0c88c1e4a4ff612231d7c3d041f7d3cee9282';
 
 abstract class _$AvailableServersNotifier
     extends $AsyncNotifier<AvailableServers> {
   FutureOr<AvailableServers> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<AvailableServers>, AvailableServers>;
     final element =
@@ -52,6 +52,6 @@ abstract class _$AvailableServersNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

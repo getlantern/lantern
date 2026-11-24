@@ -125,7 +125,7 @@ class _OnboardingState extends ConsumerState<Onboarding> {
             ),
         ],
       ),
-      body: Container(
+      body: Ink(
         color: context.bgElevated,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: SafeArea(
