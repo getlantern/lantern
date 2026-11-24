@@ -384,6 +384,9 @@ class ShareNotifier extends _$ShareNotifier {
   /// shown, and Unbounded available. Flags that have not loaded yet do not
   /// count against it.
   bool _launchWanted() {
+    // The TV shell has no Action Mode controls, so nothing it could not
+    // stop may keep running.
+    if (PlatformUtils.tvShellEnabled) return false;
     final settings = ref.read(appSettingProvider);
     if (settings.unboundedHidden || !settings.unboundedAutoEnable) {
       return false;

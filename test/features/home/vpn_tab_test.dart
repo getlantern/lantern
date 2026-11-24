@@ -15,7 +15,9 @@ import 'package:lantern/features/helpers/models/helpers_view.dart';
 import 'package:lantern/features/helpers/personal_proxy_banner.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+import 'package:lantern/features/home/data_usage.dart';
 import 'package:lantern/features/home/vpn_tab.dart';
+import 'package:lantern/features/vpn/vpn_status.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
@@ -40,6 +42,11 @@ class _FakeLanternService implements LanternService {
       ),
     );
   }
+
+  // The data-cap provider waits for radiance before asking; answer at once
+  // so the free layout is measured with its usage loaded, not the fallback.
+  @override
+  Future<void> waitForRadiance() async {}
 
   @override
   Stream<LanternStatus> watchVPNStatus() => const Stream.empty();
@@ -397,8 +404,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final card = tester.getRect(find.byType(Card));
+      // The status card is the one holding the VPN status row; a free user
+      // also gets the loaded data usage in it, above the pill.
+      final card = tester.getRect(
+        find.ancestor(of: find.byType(VpnStatus), matching: find.byType(Card)),
+      );
       expect(card.bottom, panel.height - tvSafeMarginV);
+      expect(find.byType(DataUsage), isPro ? findsNothing : findsOneWidget);
       expect(find.byType(ProBanner), isPro ? findsNothing : findsOneWidget);
     });
   }

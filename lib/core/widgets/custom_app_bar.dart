@@ -44,12 +44,17 @@ class BackButton extends StatelessWidget {
   final Color? color;
   final double size;
 
-  const BackButton({super.key, this.color, this.size = 24});
+  /// What the arrow does; pops the route when null.
+  final VoidCallback? onPressed;
+
+  const BackButton({super.key, this.color, this.size = 24, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    // Like Material's implied button, nothing to go back to means no arrow.
+    // Like Material's implied button, nothing to go back to means no arrow,
+    // unless the caller gave it something else to do.
     if (PlatformUtils.tvShellEnabled &&
+        onPressed == null &&
         !(ModalRoute.of(context)?.canPop ?? false)) {
       return const SizedBox.shrink();
     }
@@ -63,7 +68,7 @@ class BackButton extends StatelessWidget {
           height: size,
           color: color ?? Theme.of(context).iconTheme.color,
         ),
-        onPressed: () => Navigator.of(context).maybePop(),
+        onPressed: onPressed ?? () => Navigator.of(context).maybePop(),
         splashRadius: 24,
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       ),

@@ -7,7 +7,9 @@ import 'package:lantern/core/widgets/tv_shell.dart';
 import '../common/common.dart' show appRouter;
 
 /// Screens that take the whole TV screen, without the logo-and-switch panel:
-/// onboarding, purchase, sign-in, and anything typed into.
+/// onboarding, purchase, sign-in and account flows, the private-server setup
+/// forms, the QR scanner and developer mode. Forms laid out for the panel
+/// (Report an Issue, Website split tunneling) stay in it.
 const Set<String> tvFullScreenRoutes = {
   Onboarding.name,
   Plans.name,
@@ -86,7 +88,15 @@ class _RedirectHomeState extends State<_RedirectHome> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) appRouter.replaceAll([const Home()]);
+      if (!mounted) return;
+      // A stale push over a real screen drops only itself; launched straight
+      // into it, there is nothing underneath, so Home.
+      final navigator = Navigator.of(context);
+      if (navigator.canPop()) {
+        navigator.pop();
+      } else {
+        appRouter.replaceAll([const Home()]);
+      }
     });
   }
 

@@ -21,7 +21,9 @@ class AppSearchBar extends AppBar {
           automaticallyImplyLeading: false,
           // On TV the arrow sits where every other screen's does: the same
           // widget, in the leading slot, on the 44dp bar.
-          leading: PlatformUtils.tvShellEnabled ? const BackButton() : null,
+          leading: PlatformUtils.tvShellEnabled
+              ? BackButton(onPressed: onBack)
+              : null,
           toolbarHeight: PlatformUtils.tvShellEnabled
               ? tvToolbarHeight
               : kToolbarHeight,

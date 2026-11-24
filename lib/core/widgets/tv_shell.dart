@@ -104,6 +104,7 @@ class _TvShellState extends ConsumerState<TvShell> {
     final rightHeight = size.height - tvSafeMarginV;
     final animation =
         ModalRoute.of(context)?.animation ?? kAlwaysCompleteAnimation;
+    final textDirection = Directionality.of(context);
 
     final left = Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -217,17 +218,23 @@ class _TvShellState extends ConsumerState<TvShell> {
       ),
     );
 
+    // The panels keep their places in right-to-left locales: the D-pad
+    // hand-off (Left to the switch, Right back to the screen) and the sheet
+    // anchor are physical, so the layout is too. Text keeps its direction.
     return ColoredBox(
       color: theme.scaffoldBackgroundColor,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          left,
-          const SizedBox(width: tvPanelGap),
-          divider,
-          const SizedBox(width: tvPanelGap),
-          right,
-        ],
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Directionality(textDirection: textDirection, child: left),
+            const SizedBox(width: tvPanelGap),
+            divider,
+            const SizedBox(width: tvPanelGap),
+            Directionality(textDirection: textDirection, child: right),
+          ],
+        ),
       ),
     );
   }
@@ -261,6 +268,22 @@ void tvRequestFocus(
       curve: curve,
     );
     return;
+  }
+  // Enclosing scrollables (a list inside a page that scrolls): reveal the
+  // node in each the way Flutter's own callback does; only the nearest one
+  // gets the safe-area inset below.
+  for (
+    var outer = Scrollable.maybeOf(scrollable.context);
+    outer != null;
+    outer = Scrollable.maybeOf(outer.context)
+  ) {
+    outer.position.ensureVisible(
+      renderObject,
+      alignment: alignment ?? 1.0,
+      alignmentPolicy: alignmentPolicy ?? ScrollPositionAlignmentPolicy.explicit,
+      duration: duration ?? Duration.zero,
+      curve: curve ?? Curves.ease,
+    );
   }
   final position = scrollable.position;
   final revealTop = viewport.getOffsetToReveal(renderObject, 0).offset;

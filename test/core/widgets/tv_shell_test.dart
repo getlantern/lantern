@@ -12,6 +12,7 @@ import 'package:lantern/core/widgets/tv_shell.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
+import 'package:lantern/features/vpn/vpn_switch.dart';
 
 class _FakeVpnNotifier extends VpnNotifier {
   int toggles = 0;
@@ -62,6 +63,7 @@ void main() {
     required String routeName,
     Widget? child,
     Size? panelSize,
+    TextDirection? textDirection,
   }) async {
     tester.view.physicalSize = const Size(1920, 1080);
     tester.view.devicePixelRatio = 2;
@@ -84,17 +86,24 @@ void main() {
             theme: AppTheme.darkTheme(),
             onGenerateRoute: (settings) => PageRouteBuilder<void>(
               settings: settings,
-              pageBuilder: (_, _, _) => TvShell(
-                routeName: routeName,
-                child:
-                    child ??
-                    Builder(
-                      builder: (context) {
-                        panelSize = MediaQuery.sizeOf(context);
-                        return rows(3);
-                      },
-                    ),
-              ),
+              pageBuilder: (_, _, _) {
+                final shell = TvShell(
+                  routeName: routeName,
+                  child:
+                      child ??
+                      Builder(
+                        builder: (context) {
+                          panelSize = MediaQuery.sizeOf(context);
+                          return rows(3);
+                        },
+                      ),
+                );
+                if (textDirection == null) return shell;
+                return Directionality(
+                  textDirection: textDirection,
+                  child: shell,
+                );
+              },
             ),
           ),
         ),
@@ -133,6 +142,27 @@ void main() {
     );
     final panel = tester.getTopLeft(find.byType(Scaffold));
     expect(panel, const Offset(tvRightPanelX, tvSafeMarginV));
+  });
+
+  testWidgets('a right-to-left locale keeps the switch on the left', (
+    tester,
+  ) async {
+    await pumpShell(
+      tester,
+      routeName: Setting.name,
+      textDirection: TextDirection.rtl,
+    );
+    expect(tester.getCenter(find.byType(VPNSwitch)).dx, lessThan(tvRightPanelX));
+    final row = find.byKey(const Key('row0'));
+    expect(tester.getTopLeft(row).dx, greaterThanOrEqualTo(tvRightPanelX));
+    expect(
+      Directionality.of(tester.element(row)),
+      TextDirection.rtl,
+      reason: 'the screen keeps its text direction',
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pumpAndSettle();
+    expect(focusedLabel(), 'VPNSwitch', reason: 'Left is still the switch');
   });
 
   testWidgets('Home starts on the switch; Right goes to the first row', (

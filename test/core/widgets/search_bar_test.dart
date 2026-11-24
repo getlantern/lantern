@@ -12,7 +12,7 @@ void main() {
     PlatformUtils.debugTvShell = null;
   });
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(WidgetTester tester, {VoidCallback? onBack}) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
@@ -24,6 +24,7 @@ void main() {
                     ref: ref,
                     title: 'Apps',
                     hintText: 'Search',
+                    onBack: onBack,
                   ),
                   body: const SizedBox(),
                 ),
@@ -45,6 +46,22 @@ void main() {
     expect(bar.leading, isA<BackButton>(),
         reason: 'the shared arrow sits in the leading slot');
     expect(find.byIcon(Icons.arrow_back_ios), findsNothing);
+  });
+
+  testWidgets('in the TV shell the arrow runs the caller\'s onBack', (
+    tester,
+  ) async {
+    PlatformUtils.isTv = true;
+    PlatformUtils.debugTvShell = true;
+    var called = 0;
+    await pump(tester, onBack: () => called++);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(BackButton),
+        matching: find.byType(IconButton),
+      ),
+    );
+    expect(called, 1);
   });
 
   testWidgets('elsewhere the bar keeps its own arrow', (tester) async {

@@ -141,6 +141,11 @@ class _LanternAppState extends ConsumerState<LanternApp>
 
     if (isHelperInviteUri(uri)) {
       // The invite secret is the fragment: never log it.
+      if (PlatformUtils.tvShellEnabled) {
+        // No invite flow on TV: nothing holds the link.
+        appLogger.debug('DeepLink helper invite ignored on TV');
+        return;
+      }
       appLogger.debug('DeepLink helper invite');
       // Held by the notifier, not put in route arguments.
       ref.read(helpersProvider.notifier).holdLink(helperInviteLink(uri));

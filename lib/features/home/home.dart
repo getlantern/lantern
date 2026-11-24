@@ -122,10 +122,13 @@ class Home extends HookConsumerWidget {
     // regions get the flag off, so the tab, strip, and any auto-enable
     // hook disappear. The user's own "Hide Unbounded tab" toggle still
     // wins on top of this for non-censored users who want it hidden.
-    final unboundedAvailable = featureFlag.getBool(FeatureFlag.unbounded);
-    // The TV shell has no Action Mode entry points (the code stays).
+    // The TV shell has no Action Mode entry points (the code stays), so the
+    // feature counts as unavailable there: nothing may start or resume a
+    // session the user could not stop.
     final tvShell = PlatformUtils.tvShellEnabled;
-    final showUnboundedTab = unboundedAvailable && !unboundedHidden && !tvShell;
+    final unboundedAvailable =
+        featureFlag.getBool(FeatureFlag.unbounded) && !tvShell;
+    final showUnboundedTab = unboundedAvailable && !unboundedHidden;
     useEffect(() {
       if (!showUnboundedTab) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -243,7 +246,8 @@ class Home extends HookConsumerWidget {
         if (!context.mounted || !mayAutoStart) return;
         // Read again: the flag captured before the awaits may have turned
         // off while the reconciliation ran, and stopped the session for it.
-        if (!ref.read(featureFlagProvider).getBool(FeatureFlag.unbounded)) {
+        if (tvShell ||
+            !ref.read(featureFlagProvider).getBool(FeatureFlag.unbounded)) {
           return;
         }
         final appSetting = ref.read(appSettingProvider);

@@ -18,21 +18,27 @@ class VPNSwitch extends HookConsumerWidget {
   /// False in the TV shell, which decides itself when the switch takes focus.
   final bool autofocusOnTv;
 
+  /// The last error the TV shell's switches reported (see [build]).
+  static AsyncValue<LanternStatus>? _tvReported;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<LanternStatus>>(vPNStatusProvider, (previous, next) {
-      // The TV shell mounts one switch per screen in the stack, and the
-      // messenger is app-wide: only the visible one reports.
-      if (PlatformUtils.tvShellEnabled &&
-          !(ModalRoute.of(context)?.isCurrent ?? true)) {
+      if (next is! AsyncData<LanternStatus> ||
+          next.value.status != VPNStatus.error) {
         return;
       }
-      if (next is AsyncData<LanternStatus> &&
-          next.value.status == VPNStatus.error) {
-        context.showSnackBar(
-          next.value.error ?? 'error_while_vpn_connection'.i18n,
-        );
+      // The TV shell mounts one switch per screen in the stack and the
+      // messenger is app-wide, so each error is reported once, by whichever
+      // switch hears it first: every listener gets the same state object,
+      // and a full-screen route (Plans, sign-in) has no switch of its own.
+      if (PlatformUtils.tvShellEnabled) {
+        if (identical(next, _tvReported)) return;
+        _tvReported = next;
       }
+      context.showSnackBar(
+        next.value.error ?? 'error_while_vpn_connection'.i18n,
+      );
     });
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
