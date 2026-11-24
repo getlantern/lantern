@@ -194,11 +194,11 @@ class _CompactProBanner extends StatelessWidget {
             button: true,
             child: TvFocusRing(
               borderRadius: BorderRadius.circular(9999),
-              builder: (context, onFocusChange) => InkWell(
+              builder: (context, focusNode) => InkWell(
+                focusNode: focusNode,
                 // The pill's ripple, shared by the phone and the TV ring.
                 borderRadius: BorderRadius.circular(9999),
                 onTap: () => appRouter.push(Plans()),
-                onFocusChange: onFocusChange,
                 child: Container(
                 height: 40,
                 padding: const EdgeInsets.symmetric(horizontal: 16),

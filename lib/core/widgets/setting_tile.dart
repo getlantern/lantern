@@ -42,11 +42,11 @@ class SettingTile extends StatelessWidget {
     final smallScreen = isSmallScreen(context);
     return TvFocusRing(
       borderRadius: BorderRadius.circular(16),
-      builder: (context, onFocusChange) => InkWell(
+      builder: (context, focusNode) => InkWell(
         key: tileKey,
+        focusNode: focusNode,
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        onFocusChange: onFocusChange,
         splashColor: context.bgCallout,
         child: _body(context, smallScreen),
       ),

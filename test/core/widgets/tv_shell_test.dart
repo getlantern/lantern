@@ -1,3 +1,4 @@
+import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,8 @@ import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
 import 'package:lantern/core/widgets/custom_app_bar.dart' as app_bar;
+import 'package:lantern/core/widgets/app_tile.dart';
+import 'package:lantern/core/widgets/switch_button.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/tv_shell.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
@@ -218,6 +221,8 @@ void main() {
     await pumpShell(tester, routeName: Home.name);
     final loaded = ValueNotifier(false);
     addTearDown(loaded.dispose);
+    // Two marked controls, as on Apps split tunneling: the arrow and a
+    // search icon.
     tester.state<NavigatorState>(find.byType(Navigator)).push(
       PageRouteBuilder<void>(
         pageBuilder: (_, _, _) => TvShell(
@@ -226,6 +231,18 @@ void main() {
             valueListenable: loaded,
             builder: (_, ready, _) => BaseScreen(
               title: 'Settings',
+              appBar: CustomAppBar(
+                title: const Text('Settings'),
+                actions: [
+                  TvNotInitialFocus(
+                    child: IconButton(
+                      key: const Key('search'),
+                      icon: const Icon(Icons.search),
+                      onPressed: () {},
+                    ),
+                  ),
+                ],
+              ),
               body: ready ? rows(2) : const SizedBox(),
             ),
           ),
@@ -237,11 +254,74 @@ void main() {
     expect(
       TvNotInitialFocus.skips(placeholder),
       isTrue,
-      reason: 'the arrow holds focus while there is no row',
+      reason: 'a marked control holds focus while there is no row',
     );
+    for (var i = 0; i < 4; i++) {
+      await tester.pump();
+      expect(
+        FocusManager.instance.primaryFocus,
+        same(placeholder),
+        reason: 'focus does not cycle between the marked controls',
+      );
+    }
     loaded.value = true;
     await tester.pumpAndSettle();
     expect(rowFocused(0), isTrue, reason: 'the first row once it exists');
+  });
+
+  testWidgets('a row with a toggle shows one ring: the control that has '
+      'focus', (tester) async {
+    await pumpShell(
+      tester,
+      routeName: Setting.name,
+      child: Scaffold(
+        body: ListView(
+          children: [
+            AppTile(
+              tileKey: const Key('row0'),
+              label: 'Block ads',
+              onPressed: () {},
+              trailing: SwitchButton(
+                key: const Key('toggle'),
+                value: false,
+                onChanged: (_) {},
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    Border? rowRing() => (tester
+            .widget<Container>(
+              find
+                  .ancestor(
+                    of: find.byType(ListTile),
+                    matching: find.byType(Container),
+                  )
+                  .first,
+            )
+            .foregroundDecoration as BoxDecoration?)
+        ?.border as Border?;
+    expect(rowRing(), isNotNull, reason: 'the row has focus');
+
+    // The D-pad stops on the row in this step; give the toggle focus the
+    // way a tap or a later per-screen step would.
+    Focus.of(
+      tester.element(
+        find.descendant(
+          of: find.byKey(const Key('toggle')),
+          matching: find.byType(CustomAnimatedToggleSwitch<bool>),
+        ),
+      ),
+    ).requestFocus();
+    await tester.pumpAndSettle();
+    final focused = FocusManager.instance.primaryFocus!;
+    expect(
+      focused.context!.findAncestorWidgetOfExactType<SwitchButton>(),
+      isNotNull,
+      reason: 'the toggle has focus',
+    );
+    expect(rowRing(), isNull, reason: 'the row ring goes out');
   });
 
   testWidgets('the back arrow points the other way in a right-to-left locale', (

@@ -99,26 +99,31 @@ class _TvShellState extends ConsumerState<TvShell> {
   /// the user moves, another route covers this one, or [initialFocusWait]
   /// runs out; focus is never moved while there is nowhere better to go.
   void _settleOnEligible({DateTime? until}) {
-    for (var i = 0; i < 3; i++) {
-      // Focus moves apply in a microtask; settle them before looking.
-      FocusManager.instance.applyFocusChangesIfNeeded();
-      final focused = FocusManager.instance.primaryFocus;
-      if (focused == null || !TvNotInitialFocus.skips(focused)) return;
-      focused.nextFocus();
-    }
+    // Focus moves apply in a microtask; settle them before looking.
     FocusManager.instance.applyFocusChangesIfNeeded();
     final placeholder = FocusManager.instance.primaryFocus;
     if (placeholder == null || !TvNotInitialFocus.skips(placeholder)) return;
+    final rowExists = _rightScope.traversalDescendants.any(
+      (n) => !TvNotInitialFocus.skips(n),
+    );
+    if (rowExists) {
+      // Past the marked controls (an arrow, a search icon) to the row.
+      for (var i = 0; i < 3; i++) {
+        final focused = FocusManager.instance.primaryFocus;
+        if (focused == null || !TvNotInitialFocus.skips(focused)) return;
+        focused.nextFocus();
+        FocusManager.instance.applyFocusChangesIfNeeded();
+      }
+      return;
+    }
+    // Nothing eligible yet: focus stays where it is (moving it would only
+    // cycle the marked controls' rings) and the next frame looks again.
     final deadline = until ?? DateTime.now().add(initialFocusWait);
     if (DateTime.now().isAfter(deadline)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (!identical(FocusManager.instance.primaryFocus, placeholder)) return;
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
-      final rowExists = _rightScope.traversalDescendants.any(
-        (n) => !TvNotInitialFocus.skips(n),
-      );
-      if (rowExists) placeholder.nextFocus();
       _settleOnEligible(until: deadline);
     });
   }

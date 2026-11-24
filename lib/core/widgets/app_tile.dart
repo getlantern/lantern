@@ -136,9 +136,9 @@ class AppTile extends StatelessWidget {
 
     final tile = TvFocusRing(
       borderRadius: borderRadius ?? BorderRadius.circular(16),
-      builder: (context, onFocusChange) => ListTile(
+      builder: (context, focusNode) => ListTile(
         key: tileKey,
-        onFocusChange: onFocusChange,
+        focusNode: focusNode,
         enabled: enabled && !loading,
         minVerticalPadding: 0,
         selected: selected,

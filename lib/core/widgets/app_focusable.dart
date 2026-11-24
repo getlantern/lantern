@@ -110,14 +110,15 @@ class TvNotInitialFocus extends StatelessWidget {
   Widget build(BuildContext context) => child;
 }
 
-/// Draws [tvFocusRingBorder] over [builder]'s widget while that widget
-/// reports focus through the callback it is given (an InkWell or ListTile's
-/// onFocusChange), only in the TV shell; elsewhere the widget is unchanged.
+/// Draws [tvFocusRingBorder] over [builder]'s widget while the focus node
+/// it hands the builder (to give an InkWell or ListTile as its focusNode)
+/// has primary focus, only in the TV shell; elsewhere the widget is
+/// unchanged. Primary focus, not subtree focus: a row whose trailing toggle
+/// has focus shows the toggle's ring alone.
 class TvFocusRing extends StatefulWidget {
   const TvFocusRing({super.key, required this.builder, this.borderRadius});
 
-  final Widget Function(BuildContext context, ValueChanged<bool> onFocusChange)
-  builder;
+  final Widget Function(BuildContext context, FocusNode node) builder;
   final BorderRadius? borderRadius;
 
   @override
@@ -125,16 +126,31 @@ class TvFocusRing extends StatefulWidget {
 }
 
 class _TvFocusRingState extends State<TvFocusRing> {
+  final _node = FocusNode(debugLabel: 'TvFocusRing');
   bool _focused = false;
 
-  void _onFocusChange(bool focused) {
+  @override
+  void initState() {
+    super.initState();
+    _node.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _node.removeListener(_onFocusChange);
+    _node.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    final focused = _node.hasPrimaryFocus;
     if (focused != _focused) setState(() => _focused = focused);
   }
 
   @override
   Widget build(BuildContext context) {
     if (!PlatformUtils.tvShellEnabled) {
-      return widget.builder(context, (_) {});
+      return widget.builder(context, _node);
     }
     return Container(
       foregroundDecoration: BoxDecoration(
@@ -143,7 +159,7 @@ class _TvFocusRingState extends State<TvFocusRing> {
             : null,
         borderRadius: widget.borderRadius,
       ),
-      child: widget.builder(context, _onFocusChange),
+      child: widget.builder(context, _node),
     );
   }
 }
