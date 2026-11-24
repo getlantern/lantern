@@ -346,7 +346,13 @@ class Scanner:
         def record(error: OSError) -> None:
             self.errors.append(f"{error.filename}: unable to read directory: {error.strerror}")
 
-        for dirpath, _, filenames in os.walk(root, onerror=record):
+        for dirpath, dirnames, filenames in os.walk(root, onerror=record):
+            # os.walk does not follow directory links and reports nothing about
+            # them, so a linked tree would go unscanned.
+            for dirname in dirnames:
+                linked = Path(dirpath) / dirname
+                if linked.is_symlink():
+                    self.errors.append(f"{linked}: linked directory is not scanned")
             for filename in filenames:
                 path = Path(dirpath) / filename
                 relative = str(path.relative_to(root))
@@ -365,7 +371,9 @@ class Scanner:
             text = logical if path_text is None else path_text
             self.scan_bytes(f"{logical}[path]", text.encode("utf-8", "surrogateescape"))
         try:
-            if is_archive_name(path.name) and zipfile.is_zipfile(path):
+            # Archive names are always parsed: a damaged archive must report an
+            # error, not fall back to a raw scan that misses compressed text.
+            if is_archive_name(path.name):
                 self.scan_archive_bytes(path.read_bytes(), logical, depth=0)
             else:
                 self.scan_bytes(logical, path.read_bytes())
@@ -507,7 +515,7 @@ class Scanner:
             except (RuntimeError, OSError, zipfile.BadZipFile, NotImplementedError) as exc:
                 self.errors.append(f"{entry_location}: unable to read archive entry: {exc}")
                 continue
-            if is_archive_name(info.filename) and zipfile.is_zipfile(io.BytesIO(data)):
+            if is_archive_name(info.filename):
                 self.scan_archive_bytes(data, entry_location, depth + 1)
             else:
                 self.scan_bytes(entry_location, data)

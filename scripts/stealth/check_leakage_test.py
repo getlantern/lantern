@@ -124,6 +124,43 @@ class LeakageScannerTest(unittest.TestCase):
             finally:
                 hidden.chmod(0o700)
 
+    @unittest.skipIf(os.name == "nt", "needs POSIX symlinks")
+    def test_linked_directory_fails_the_scan(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            outside = root / "outside"
+            outside.mkdir()
+            (outside / "leak.txt").write_bytes(b"Lantern")
+            target = root / "out"
+            target.mkdir()
+            (target / "assets").symlink_to(outside, target_is_directory=True)
+
+            self.assertEqual(self.scan(config, "stealth", target), 2)
+
+    def test_damaged_archive_fails_the_scan(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr("assets/leak.txt", b"Lantern " * 64)
+            data = archive.read_bytes()
+            # Drop the end record so it no longer reads as a ZIP.
+            archive.write_bytes(data[: data.rfind(b"PK\x05\x06")])
+
+            self.assertEqual(self.scan(config, "stealth", archive), 2)
+
+    def test_damaged_nested_archive_fails_the_scan(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("libs/inner.jar", b"not a zip at all")
+
+            self.assertEqual(self.scan(config, "stealth", archive), 2)
+
     def test_scans_bytes_after_zip_end_record(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
