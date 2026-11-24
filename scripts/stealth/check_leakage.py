@@ -341,7 +341,12 @@ class Scanner:
         self.scan_file(target, str(target), scan_path=False)
 
     def scan_directory(self, root: Path) -> None:
-        for dirpath, _, filenames in os.walk(root):
+        # os.walk skips a directory it cannot list unless told otherwise; an
+        # unread subtree must fail the scan rather than pass it.
+        def record(error: OSError) -> None:
+            self.errors.append(f"{error.filename}: unable to read directory: {error.strerror}")
+
+        for dirpath, _, filenames in os.walk(root, onerror=record):
             for filename in filenames:
                 path = Path(dirpath) / filename
                 relative = str(path.relative_to(root))

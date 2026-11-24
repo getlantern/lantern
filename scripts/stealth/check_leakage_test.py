@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 from pathlib import Path
 import sys
 import struct
@@ -107,6 +108,21 @@ class LeakageScannerTest(unittest.TestCase):
             (target / "assets" / "clean.txt").write_bytes(b"no content leak here")
 
             self.assertEqual(self.scan(config, "stealth", target), 0)
+
+    @unittest.skipIf(os.name == "nt" or os.geteuid() == 0, "needs POSIX permissions as a non-root user")
+    def test_unreadable_directory_fails_the_scan(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            target = root / "out"
+            hidden = target / "hidden"
+            hidden.mkdir(parents=True)
+            (hidden / "leak.txt").write_bytes(b"Lantern")
+            hidden.chmod(0)
+            try:
+                self.assertEqual(self.scan(config, "stealth", target), 2)
+            finally:
+                hidden.chmod(0o700)
 
     def test_scans_bytes_after_zip_end_record(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
