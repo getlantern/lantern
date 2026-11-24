@@ -116,7 +116,7 @@ jobs:
         uses: ./.github/actions/setup-android
         with:
           # This job invokes Gradle directly; keep in sync with the wrapper.
-          gradle-version: "8.13"
+          gradle-version: "8.14.8"
 
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
