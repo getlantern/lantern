@@ -407,7 +407,11 @@ void tvRequestFocus(
         duration: duration ?? const Duration(milliseconds: 150),
         curve: curve ?? Curves.easeInOut,
       )
-      .then((_) => revealInOuter());
+      .then((_) {
+        // A completion that arrives after focus moved on reveals nothing:
+        // the newer call owns the viewports now.
+        if (node.hasFocus) revealInOuter();
+      });
 }
 
 bool _hasFocusableBelow(FocusNode node, ScrollableState scrollable) {

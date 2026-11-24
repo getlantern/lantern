@@ -349,7 +349,10 @@ void main() {
 
   testWidgets('a row in a list inside a scrolling page stays in view after '
       'the inner list moves', (tester) async {
-    // A tall header, then a 300dp list of rows that scrolls on its own.
+    // A tall header, then a 600dp list of rows that scrolls on its own.
+    // Pins the invariant (the focused row stays inside the page both
+    // ways); it did not reproduce the pre-fix clipping, which needs an
+    // inner move that pushes the row past the page bottom.
     await pumpShell(
       tester,
       routeName: Setting.name,
@@ -382,6 +385,37 @@ void main() {
       expect(row(i - 1).top, greaterThanOrEqualTo(0));
       expect(row(i - 1).bottom, lessThanOrEqualTo(outerBottom));
     }
+  });
+
+  testWidgets('a reveal that completes after focus moved on leaves the page '
+      'alone', (tester) async {
+    await pumpShell(
+      tester,
+      routeName: Setting.name,
+      child: Scaffold(
+        body: ListView(
+          children: [
+            const SizedBox(height: 600, child: Text('header')),
+            SizedBox(height: 300, child: rows(12)),
+          ],
+        ),
+      ),
+    );
+    for (var i = 0; i < 8; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+    }
+    expect(rowFocused(8), isTrue);
+    // Two Ups inside one inner animation: the first row's completion must
+    // not scroll the page back to it.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pump(const Duration(milliseconds: 20));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+    expect(rowFocused(6), isTrue);
+    final focused = tester.getRect(find.byKey(const Key('row6')));
+    expect(focused.top, greaterThanOrEqualTo(0));
+    expect(focused.bottom, lessThanOrEqualTo(540));
   });
 
   testWidgets('a row with a toggle shows one ring: the control that has '
