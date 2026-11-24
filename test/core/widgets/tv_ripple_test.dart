@@ -5,7 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 
-/// The focus-ring-shaped ripple is the TV shell's; the phone keeps its own.
+/// The rows' ripples are rounded the same everywhere: the TV focus ring
+/// wraps them without changing the shape the phone had.
 void main() {
   tearDown(() {
     PlatformUtils.isTv = false;
@@ -42,12 +43,18 @@ void main() {
       )
       .borderRadius;
 
-  for (final tv in [false, true]) {
-    testWidgets('SettingTile ripple radius ${tv ? 'set on TV' : 'null off TV'}', (
+  const modes = {
+    'phone': (tv: false, shell: false),
+    'TV without the shell': (tv: true, shell: false),
+    'TV shell': (tv: true, shell: true),
+  };
+
+  for (final MapEntry(key: name, value: mode) in modes.entries) {
+    testWidgets('SettingTile keeps its 16dp ripple radius on $name', (
       tester,
     ) async {
-      PlatformUtils.isTv = tv;
-      PlatformUtils.debugTvShell = tv;
+      PlatformUtils.isTv = mode.tv;
+      PlatformUtils.debugTvShell = mode.shell;
       await pump(
         tester,
         SettingTile(
@@ -58,22 +65,16 @@ void main() {
           onTap: () {},
         ),
       );
-      expect(
-        radiusIn(tester, SettingTile),
-        tv ? BorderRadius.circular(16) : isNull,
-      );
+      expect(radiusIn(tester, SettingTile), BorderRadius.circular(16));
     });
 
-    testWidgets('compact ProBanner ripple radius ${tv ? 'set on TV' : 'null off TV'}', (
+    testWidgets('the compact ProBanner keeps its pill ripple radius on $name', (
       tester,
     ) async {
-      PlatformUtils.isTv = tv;
-      PlatformUtils.debugTvShell = tv;
+      PlatformUtils.isTv = mode.tv;
+      PlatformUtils.debugTvShell = mode.shell;
       await pump(tester, const ProBanner());
-      expect(
-        radiusIn(tester, ProBanner),
-        tv ? BorderRadius.circular(9999) : isNull,
-      );
+      expect(radiusIn(tester, ProBanner), BorderRadius.circular(9999));
     });
   }
 }
