@@ -353,6 +353,8 @@ class _ServerLocationListViewState
     final locations = widget.servers.lanternServerLocations;
 
     return SafeArea(
+      // The TV shell's lists run off the bottom edge.
+      bottom: !PlatformUtils.tvShellEnabled,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

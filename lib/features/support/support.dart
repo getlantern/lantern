@@ -20,7 +20,9 @@ class Support extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return BaseScreen(
       title: toBeginningOfSentenceCase('support'.i18n),
+      // The TV shell's lists run off the bottom edge.
       body: SafeArea(
+        bottom: !PlatformUtils.tvShellEnabled,
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
