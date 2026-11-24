@@ -113,21 +113,32 @@ class VPNSwitch extends HookConsumerWidget {
           );
         },
         wrapperBuilder: (context, global, child) {
-          return Container(
+          // onSurface: primary matches the connected track in dark mode.
+          final ring = Border.all(
+            color: Theme.of(context).colorScheme.onSurface,
+            width: 3,
+          );
+          final tvShell = PlatformUtils.tvShellEnabled;
+          final track = Container(
             key: Key('vpn.switch.${vpnStatus.name}'),
             padding: EdgeInsets.all(5.r),
             decoration: BoxDecoration(
               color: _wrapperColor(vpnStatus, context),
               borderRadius: BorderRadius.circular(50.r),
-              border: showFocus.value
-                  ? Border.all(
-                      // onSurface: primary matches the connected track in dark mode.
-                      color: Theme.of(context).colorScheme.onSurface,
-                      width: 3,
-                    )
-                  : null,
+              border: showFocus.value && !tvShell ? ring : null,
             ),
             child: child,
+          );
+          if (!tvShell) return track;
+          // The TV shell draws the ring outside the track, clear of the
+          // knob's padding.
+          return Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(58.r),
+              border: showFocus.value ? ring : null,
+            ),
+            child: track,
           );
         },
       ),

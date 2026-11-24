@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_image_paths.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
+import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/features/split_tunneling/provider/search_query.dart';
 
 class AppSearchBar extends AppBar {
@@ -49,9 +50,12 @@ class _SearchBarContent extends HookConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          onPressed: onBack ?? () => Navigator.pop(context),
+        // Never a TV screen's first focus; still reachable with the D-pad.
+        TvNotInitialFocus(
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, size: 20),
+            onPressed: onBack ?? () => Navigator.pop(context),
+          ),
         ),
         // Search input or title
         Expanded(

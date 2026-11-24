@@ -11,6 +11,7 @@ class AppFocusable extends StatefulWidget {
     required this.child,
     this.borderRadius,
     this.handlesTap = true,
+    this.ringPadding = EdgeInsets.zero,
   });
 
   final VoidCallback? onActivate;
@@ -19,6 +20,10 @@ class AppFocusable extends StatefulWidget {
 
   /// False when [child] already handles taps itself (e.g. a toggle switch).
   final bool handlesTap;
+
+  /// Room around [child] for the ring, so it sits outside the child instead
+  /// of over its edge (a toggle's track, say). The ring is 3px of it.
+  final EdgeInsets ringPadding;
 
   @override
   State<AppFocusable> createState() => _AppFocusableState();
@@ -30,6 +35,7 @@ class _AppFocusableState extends State<AppFocusable> {
   @override
   Widget build(BuildContext context) {
     final child = Container(
+      padding: widget.ringPadding,
       // Drawn over the child so focus never shifts the layout. Always set,
       // since adding or removing it would remount the child and drop its state.
       foregroundDecoration: BoxDecoration(

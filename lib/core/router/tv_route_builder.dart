@@ -27,7 +27,6 @@ const Set<String> tvFullScreenRoutes = {
   ManuallyServerSetup.name,
   PrivateServerAddBilling.name,
   PrivateServerDetails.name,
-  WebsiteSplitTunneling.name,
   QrCodeScanner.name,
   DeveloperMode.name,
 };
