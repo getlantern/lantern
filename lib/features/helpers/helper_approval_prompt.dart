@@ -26,14 +26,17 @@ void useHelperApprovalPrompt(
   bool enabled = true,
 }) {
   final showing = useRef(false);
-  final scheduled = useRef(false);
 
   useEffect(() {
     if (!enabled || !HelpersNotifier.buildEnabled) return null;
     Timer? retry;
     late void Function() schedule;
-    // A prompt queued for the next frame is dropped once this effect ends.
+    // Both are this effect's own: a prompt queued for the next frame is
+    // dropped once the effect ends, and a replacement effect (new routes
+    // observer, re-enabled) schedules its own without waiting for the
+    // dropped one to clear a shared flag.
     var live = true;
+    var scheduled = false;
 
     Future<void> prompt() async {
       if (!live || !context.mounted || showing.value) return;
@@ -70,11 +73,11 @@ void useHelperApprovalPrompt(
     // After the frame, so a caller that opens the approval itself
     // (startPersonalProxyInvite) has marked its invite first.
     schedule = () {
-      if (scheduled.value) return;
-      scheduled.value = true;
+      if (!live || scheduled) return;
+      scheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        scheduled.value = false;
-        unawaited(prompt());
+        scheduled = false;
+        if (live) unawaited(prompt());
       });
       WidgetsBinding.instance.ensureVisualUpdate();
     };

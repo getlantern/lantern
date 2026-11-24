@@ -179,7 +179,7 @@ class _Helpers extends HelpersNotifier {
 
 class _PromptHost extends HookConsumerWidget {
   const _PromptHost(this.routes, this.overlay, this.enabled);
-  final UserMessageRouteObserver routes;
+  final ValueListenable<UserMessageRouteObserver> routes;
   final ValueListenable<bool> overlay;
   final ValueListenable<bool> enabled;
 
@@ -188,7 +188,7 @@ class _PromptHost extends HookConsumerWidget {
     useHelperApprovalPrompt(
       context,
       ref,
-      routes,
+      useValueListenable(routes),
       overlayVisible: (_) => overlay.value,
       enabled: useValueListenable(enabled),
     );
@@ -201,8 +201,9 @@ Future<UserMessageRouteObserver> _pumpPromptHost(
   _Helpers fake, {
   ValueListenable<bool> overlay = const _Off(),
   ValueListenable<bool> enabled = const _On(),
+  ValueNotifier<UserMessageRouteObserver>? routesSwap,
 }) async {
-  final routes = UserMessageRouteObserver();
+  final routes = routesSwap?.value ?? UserMessageRouteObserver();
   await tester.pumpWidget(
     ProviderScope(
       overrides: [helpersProvider.overrideWith(() => fake)],
@@ -211,7 +212,9 @@ Future<UserMessageRouteObserver> _pumpPromptHost(
         child: MaterialApp(
           theme: AppTheme.appTheme(),
           navigatorObservers: [routes],
-          home: Scaffold(body: _PromptHost(routes, overlay, enabled)),
+          home: Scaffold(
+            body: _PromptHost(routesSwap ?? _Fixed(routes), overlay, enabled),
+          ),
         ),
       ),
     ),
@@ -224,6 +227,16 @@ class _Off implements ValueListenable<bool> {
   const _Off();
   @override
   bool get value => false;
+  @override
+  void addListener(VoidCallback listener) {}
+  @override
+  void removeListener(VoidCallback listener) {}
+}
+
+class _Fixed<T> implements ValueListenable<T> {
+  const _Fixed(this.value);
+  @override
+  final T value;
   @override
   void addListener(VoidCallback listener) {}
   @override
@@ -1930,6 +1943,24 @@ void main() {
       enabled.value = true;
       await tester.pumpAndSettle();
       expect(approveCode, findsOneWidget, reason: 'the claim is still due');
+    });
+
+    testWidgets('a routes observer swapped while a prompt is queued still '
+        'prompts', (tester) async {
+      // The replacement effect must schedule its own prompt: the dropped
+      // one's flag was shared before, and both ended up prompting nothing.
+      final fake = _Helpers(_withInvites(const []));
+      final routes = ValueNotifier(UserMessageRouteObserver());
+      addTearDown(routes.dispose);
+      await _pumpPromptHost(tester, fake, routesSwap: routes);
+      fake.emit(_withInvites(const [_claimed]));
+      // A new observer that has seen the current route, swapped in before
+      // the queued frame runs.
+      final next = UserMessageRouteObserver();
+      next.didPush(ModalRoute.of(tester.element(find.text('home')))!, null);
+      routes.value = next;
+      await tester.pumpAndSettle();
+      expect(approveCode, findsOneWidget);
     });
 
     testWidgets('opens the dialog once per claim', (tester) async {
