@@ -35,20 +35,20 @@ var (
 	// reached through is ever GC'd, a later callback from a Go goroutine aborts
 	// the process with "Unknown reference: <n>" (go_seq_from_refnum SIGABRT).
 	// Holding them here keeps a proxy referenced forever so the Java object is
-	// never released out from under sing-box / the event bus.
-	pinMu              sync.Mutex
-	pinnedPlatform     utils.PlatformInterface
-	pinnedEventEmitter utils.FlutterEventEmitter
+	// never released out from under sing-box / the event bus. Nothing reads
+	// the entries; holding them is the point.
+	pinMu      sync.Mutex
+	pinnedRefs = map[string]any{}
 )
 
 func pinForeignRefs(platform utils.PlatformInterface, emitter utils.FlutterEventEmitter) {
 	pinMu.Lock()
 	defer pinMu.Unlock()
 	if platform != nil {
-		pinnedPlatform = platform
+		pinnedRefs["platform"] = platform
 	}
 	if emitter != nil {
-		pinnedEventEmitter = emitter
+		pinnedRefs["eventEmitter"] = emitter
 	}
 }
 
