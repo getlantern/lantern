@@ -301,14 +301,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.2"
+  cnativeapi:
+    dependency: transitive
+    description:
+      name: cnativeapi
+      sha256: c43703998995e132b0656d2b8a95ed2bedc6b22ccee2c827bcdc075e0330e319
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.10"
   code_assets:
     dependency: transitive
     description:
       name: code_assets
-      sha256: bf394f466ba9205f1812a0433b392d6af280f155f56651eda7c18cc32ed493b8
+      sha256: "1ef22a0be3af9370bd9481ac76db114db92bfe75d5ca2b2d7bc911764478a4d9"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.1"
+    version: "2.2.0"
   code_builder:
     dependency: transitive
     description:
@@ -457,10 +465,10 @@ packages:
     dependency: "direct dev"
     description:
       name: ffigen
-      sha256: "56fc0be88937409839a59c133dfdee4165e80da324c9e39f59013060249ffb44"
+      sha256: "6f55d99ac1857fc063b58c3b31753df2bba417028ba98d30c6d625a385855064"
       url: "https://pub.dev"
     source: hosted
-    version: "21.0.0"
+    version: "23.0.0"
   file:
     dependency: transitive
     description:
@@ -895,10 +903,10 @@ packages:
     dependency: transitive
     description:
       name: hooks
-      sha256: "9a62a50b50b769a737bc0a8ff381f333529df3ab746b2f6b02e83760231455ba"
+      sha256: eaac480a35ec0814146c2c48d96aaa829e0e44a7662c88ae84c9edf4bc35651f
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.2"
+    version: "2.2.0"
   hooks_riverpod:
     dependency: "direct main"
     description:
@@ -1224,14 +1232,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.0"
-  menu_base:
-    dependency: transitive
-    description:
-      name: menu_base
-      sha256: "820368014a171bd1241030278e6c2617354f492f5c703d7b7d4570a6b8b84405"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.1"
   meta:
     dependency: transitive
     description:
@@ -1268,10 +1268,26 @@ packages:
     dependency: transitive
     description:
       name: native_toolchain_c
-      sha256: f9c168717100ae6d9fee9ffb0be379bf1f8b26b0f6bcbd4fdddcd931993a6a72
+      sha256: "120b6fc66acd8a5ddeaeb1e59b78836bb3ec9919bd9d9dfb1e2401985710c2c0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.2"
+    version: "0.19.6"
+  nativeapi:
+    dependency: transitive
+    description:
+      name: nativeapi
+      sha256: "118045bb549cb6fabad472a3a22a537e7310bbf20097350f5027808b4a5853ce"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.10"
+  nativeapi_flutter:
+    dependency: transitive
+    description:
+      name: nativeapi_flutter
+      sha256: "357a405c69212f5157da1bd3be183a53c2b841d0de0eb51f4a3947913712aec4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.10"
   node_preamble:
     dependency: transitive
     description:
@@ -1284,10 +1300,10 @@ packages:
     dependency: transitive
     description:
       name: objective_c
-      sha256: b7fb95a6d9a4f009edd63dc5ac69f07420b23a16161c6dd8660290b59c602e8e
+      sha256: c965d264fd4b0b4dd402dce9d049b70656bf98d3ca108b9bc55d2544ceadbe5e
       url: "https://pub.dev"
     source: hosted
-    version: "9.5.0"
+    version: "9.6.4"
   package_config:
     dependency: transitive
     description:
@@ -1484,10 +1500,10 @@ packages:
     dependency: transitive
     description:
       name: record_use
-      sha256: "2551bd8eecfe95d14ae75f6021ad0248be5c27f138c2ec12fcb52b500b3ba1ed"
+      sha256: "1cb8564af8d43b464294411db9217f5ec04891c6f22ee2c32d73ae05e88a6bd2"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0"
+    version: "1.1.1"
   riverpod:
     dependency: transitive
     description:
@@ -1680,14 +1696,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
-  shortid:
-    dependency: transitive
-    description:
-      name: shortid
-      sha256: d0b40e3dbb50497dad107e19c54ca7de0d1a274eb9b4404991e443dadb9ebedb
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.2"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -1856,12 +1864,11 @@ packages:
   tray_manager:
     dependency: "direct main"
     description:
-      path: "packages/tray_manager"
-      ref: e4f69663ca467c1108c1ccad9f55cf5a2154adc2
-      resolved-ref: e4f69663ca467c1108c1ccad9f55cf5a2154adc2
-      url: "https://github.com/getlantern/tray_manager.git"
-    source: git
-    version: "0.5.1"
+      name: tray_manager
+      sha256: "30c67f4f27a9b2ad56606b369b75256fd9ef25851b66788597d4df3fbbfa536a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.3"
   typed_data:
     dependency: transitive
     description:

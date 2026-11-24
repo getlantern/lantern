@@ -36,6 +36,14 @@ jobs:
       - name: Install Flutter
         uses: ./.github/actions/setup-flutter
 
+      # tray_manager's native library is built for the host by a build hook,
+      # which flutter test runs too.
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            clang pkg-config libgtk-3-dev libx11-dev libxi-dev
+
       # Regenerate committed sources so tests cannot pass against stale code.
       - name: Flutter pub get + codegen
         run: |

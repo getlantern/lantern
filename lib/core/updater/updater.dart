@@ -14,7 +14,7 @@ import 'package:lantern/core/updater/desktop_update_relay.dart';
 import 'package:lantern/core/updater/winsparkle_build_version.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:tray_manager/tray_manager.dart';
+import 'package:tray_manager/tray_manager.dart' show TrayManager;
 import 'package:window_manager/window_manager.dart';
 
 class Updater with UpdaterLifecycleListener {
@@ -307,7 +307,12 @@ class Updater with UpdaterLifecycleListener {
       appLogger.warning('Failed to release the Lantern window', e, st);
     }
     try {
-      await trayManager.destroy();
+      // Hidden rather than freed, since the tray notifier still owns it.
+      for (final icon in TrayManager.instance.getAll()) {
+        icon
+          ..setVisible(false)
+          ..dispose();
+      }
     } catch (e, st) {
       appLogger.warning('Failed to close the Lantern tray icon', e, st);
     }
