@@ -89,8 +89,10 @@ class _TvShellState extends ConsumerState<TvShell> {
     });
   }
 
-  /// The row the user left, or the panel's first row (never a back or
-  /// close button, see [TvNotInitialFocus]).
+  /// The row the user left, or the panel's first row. A back, close or
+  /// search button ([TvNotInitialFocus]) is skipped, except while a list is
+  /// still loading, when one holds focus as a placeholder, and after the
+  /// wait for that list runs out, when it stays the remembered focus.
   void _focusRight() {
     _rightScope.requestFocus();
     final remembered = _rightScope.focusedChild;
