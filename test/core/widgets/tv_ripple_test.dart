@@ -43,6 +43,58 @@ void main() {
       )
       .borderRadius;
 
+  Border? ringAround(WidgetTester tester, Type widget) =>
+      (tester
+                  .widget<Container>(
+                    find
+                        .ancestor(
+                          of: find.descendant(
+                            of: find.byType(widget),
+                            matching: find.byType(InkWell),
+                          ),
+                          matching: find.byType(Container),
+                        )
+                        .first,
+                  )
+                  .foregroundDecoration
+              as BoxDecoration?)
+          ?.border
+          as Border?;
+
+  for (final (name, widget, text) in [
+    ('SettingTile', SettingTile, 'Routing'),
+    ('the compact ProBanner', ProBanner, null),
+  ]) {
+    testWidgets('$name draws the TV ring on its own focus and clears it on '
+        'blur', (tester) async {
+      PlatformUtils.isTv = true;
+      PlatformUtils.debugTvShell = true;
+      await pump(
+        tester,
+        widget == SettingTile
+            ? SettingTile(
+                label: 'Routing',
+                value: 'Smart',
+                icon: const Icon(Icons.route),
+                actions: const [],
+                onTap: () {},
+              )
+            : const ProBanner(),
+      );
+      expect(ringAround(tester, widget), isNull);
+      final inside = text != null
+          ? find.text(text)
+          : find.descendant(of: find.byType(widget), matching: find.byType(Text)).first;
+      final node = Focus.of(tester.element(inside));
+      node.requestFocus();
+      await tester.pumpAndSettle();
+      expect(ringAround(tester, widget), isNotNull, reason: 'ring on focus');
+      node.unfocus();
+      await tester.pumpAndSettle();
+      expect(ringAround(tester, widget), isNull, reason: 'cleared on blur');
+    });
+  }
+
   const modes = {
     'phone': (tv: false, shell: false),
     'TV without the shell': (tv: true, shell: false),

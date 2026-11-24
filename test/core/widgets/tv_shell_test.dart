@@ -269,6 +269,69 @@ void main() {
     expect(rowFocused(0), isTrue, reason: 'the first row once it exists');
   });
 
+  testWidgets('Left during loading, then Right once rows exist, lands on '
+      'the first row', (tester) async {
+    await pumpShell(tester, routeName: Home.name);
+    final loaded = ValueNotifier(false);
+    addTearDown(loaded.dispose);
+    tester.state<NavigatorState>(find.byType(Navigator)).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, _, _) => TvShell(
+          routeName: Setting.name,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: loaded,
+            builder: (_, ready, _) => BaseScreen(
+              title: 'Settings',
+              body: ready ? rows(2) : const SizedBox(),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pumpAndSettle();
+    expect(focusedLabel(), 'VPNSwitch');
+    loaded.value = true;
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+    expect(rowFocused(0), isTrue, reason: 'not the loading placeholder');
+  });
+
+  testWidgets('a row that appears after the deadline is left alone', (
+    tester,
+  ) async {
+    TvShell.initialFocusWait = Duration.zero;
+    addTearDown(() => TvShell.initialFocusWait = const Duration(seconds: 10));
+    await pumpShell(tester, routeName: Home.name);
+    final loaded = ValueNotifier(false);
+    addTearDown(loaded.dispose);
+    tester.state<NavigatorState>(find.byType(Navigator)).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, _, _) => TvShell(
+          routeName: Setting.name,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: loaded,
+            builder: (_, ready, _) => BaseScreen(
+              title: 'Settings',
+              body: ready ? rows(2) : const SizedBox(),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final placeholder = FocusManager.instance.primaryFocus!;
+    loaded.value = true;
+    await tester.pumpAndSettle();
+    expect(
+      FocusManager.instance.primaryFocus,
+      same(placeholder),
+      reason: 'the deadline passed before the rows came',
+    );
+  });
+
   testWidgets('a row with a toggle shows one ring: the control that has '
       'focus', (tester) async {
     await pumpShell(

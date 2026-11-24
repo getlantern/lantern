@@ -18,6 +18,11 @@ import 'package:lantern/features/vpn/vpn_switch.dart';
 /// returns to the row the user left, and a closed sheet or dialog hands focus
 /// back to its opener. Left from the panel's edge goes to the switch.
 class TvShell extends ConsumerStatefulWidget {
+  /// How long a screen that opens with only back, close or search controls
+  /// (its list still loading) keeps looking for a row to land on.
+  @visibleForTesting
+  static Duration initialFocusWait = const Duration(seconds: 10);
+
   const TvShell({super.key, required this.routeName, required this.child});
 
   final String routeName;
@@ -84,14 +89,21 @@ class _TvShellState extends ConsumerState<TvShell> {
   /// close button, see [TvNotInitialFocus]).
   void _focusRight() {
     _rightScope.requestFocus();
-    if (_rightScope.focusedChild != null) return;
+    final remembered = _rightScope.focusedChild;
+    if (remembered != null) {
+      // The row the user left; unless it is the loading placeholder, which
+      // may have a row to move to by now.
+      if (identical(remembered, _placeholder)) _settleOnEligible();
+      return;
+    }
     _rightScope.nextFocus();
     _settleOnEligible();
   }
 
-  /// How long a screen that opens with only back, close or search controls
-  /// (its list still loading) keeps looking for a row to land on.
-  static const initialFocusWait = Duration(seconds: 10);
+  /// The marked control holding focus while nothing eligible exists yet
+  /// (see [_settleOnEligible]); null once a row took focus or the user
+  /// moved.
+  FocusNode? _placeholder;
 
   /// Moves past the controls marked [TvNotInitialFocus] to the first row.
   /// When only such controls exist yet, the arrow keeps focus as a
@@ -102,27 +114,43 @@ class _TvShellState extends ConsumerState<TvShell> {
     // Focus moves apply in a microtask; settle them before looking.
     FocusManager.instance.applyFocusChangesIfNeeded();
     final placeholder = FocusManager.instance.primaryFocus;
-    if (placeholder == null || !TvNotInitialFocus.skips(placeholder)) return;
+    if (placeholder == null || !TvNotInitialFocus.skips(placeholder)) {
+      _placeholder = null;
+      return;
+    }
+    final deadline = until ?? DateTime.now().add(TvShell.initialFocusWait);
     final rowExists = _rightScope.traversalDescendants.any(
       (n) => !TvNotInitialFocus.skips(n),
     );
-    if (rowExists) {
+    if (rowExists && !DateTime.now().isAfter(deadline)) {
       // Past the marked controls (an arrow, a search icon) to the row.
       for (var i = 0; i < 3; i++) {
         final focused = FocusManager.instance.primaryFocus;
-        if (focused == null || !TvNotInitialFocus.skips(focused)) return;
+        if (focused == null || !TvNotInitialFocus.skips(focused)) break;
         focused.nextFocus();
         FocusManager.instance.applyFocusChangesIfNeeded();
       }
+      _placeholder = null;
       return;
     }
     // Nothing eligible yet: focus stays where it is (moving it would only
-    // cycle the marked controls' rings) and the next frame looks again.
-    final deadline = until ?? DateTime.now().add(initialFocusWait);
-    if (DateTime.now().isAfter(deadline)) return;
+    // cycle the marked controls' rings) and the next frame looks again,
+    // until the deadline; after it the placeholder is the user's.
+    if (DateTime.now().isAfter(deadline)) {
+      _placeholder = null;
+      return;
+    }
+    _placeholder = placeholder;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (!identical(FocusManager.instance.primaryFocus, placeholder)) return;
+      if (!identical(FocusManager.instance.primaryFocus, placeholder)) {
+        // The user moved (or the switch took focus; Right brings it back
+        // through _focusRight, which looks again).
+        if (!identical(FocusManager.instance.primaryFocus, _switchNode)) {
+          _placeholder = null;
+        }
+        return;
+      }
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
       _settleOnEligible(until: deadline);
     });
