@@ -139,7 +139,7 @@ class UrlUtils {
     switch (Platform.operatingSystem) {
       case 'linux':
         final webview = await WebviewWindow.create();
-        webview.launch(url);
+        await webview.launch(url);
         break;
       default:
         await InAppBrowser.openWithSystemBrowser(url: WebUri(url));
@@ -202,7 +202,7 @@ class UrlUtils {
 
         case 'linux':
           final webview = await WebviewWindow.create();
-          webview.launch(normalizedUrl);
+          await webview.launch(normalizedUrl);
           return null;
 
         default:
