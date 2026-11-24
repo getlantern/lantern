@@ -1106,6 +1106,17 @@ class LanternBindings {
   late final _setBlockAdsEnabled = _setBlockAdsEnabledPtr
       .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
 
+  ffi.Pointer<ffi.Char> setLogStreamActive(int active) {
+    return _setLogStreamActive(active);
+  }
+
+  late final _setLogStreamActivePtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function(ffi.Int)>>(
+        'setLogStreamActive',
+      );
+  late final _setLogStreamActive = _setLogStreamActivePtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(int)>();
+
   ffi.Pointer<ffi.Char> setPeerManualPort(int port) {
     return _setPeerManualPort(port);
   }

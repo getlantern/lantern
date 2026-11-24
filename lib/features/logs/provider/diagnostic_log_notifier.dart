@@ -33,10 +33,17 @@ Stream<T> _mergeStreams<T>(List<Stream<T>> streams) {
   final subs = <StreamSubscription<T>>[];
   controller.onListen = () {
     for (final s in streams) {
-      subs.add(s.listen(
-        controller.add,
-        onError: controller.addError,
-      ));
+      subs.add(
+        s.listen(
+          // Riverpod pauses the merged stream while another screen covers
+          // the Logs screen, and a paused controller keeps every event until
+          // it resumes.
+          (event) {
+            if (!controller.isPaused) controller.add(event);
+          },
+          onError: controller.addError,
+        ),
+      );
     }
   };
   controller.onCancel = () async {

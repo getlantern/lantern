@@ -25,6 +25,7 @@ import 'package:lantern/features/report_issue/models/report_issue_attachment.dar
 import 'package:lantern/lantern/lantern_core_service.dart';
 import 'package:lantern/lantern/lantern_generated_bindings.dart';
 import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/lantern/log_batch_stream.dart';
 import 'package:lantern/core/models/user.dart';
 import 'package:lantern/core/models/user_message.dart';
 import 'package:path/path.dart' as p;
@@ -55,9 +56,7 @@ class LanternFFIService implements LanternCoreService {
   Stream<PrivateServerStatus> _privateServerStatus =
       const Stream<PrivateServerStatus>.empty();
   Stream<AppEvent> _appEvents = const Stream<AppEvent>.empty();
-  Stream<List<String>> _logBatches = const Stream<List<String>>.empty();
-
-  static final RegExp _newlineRegex = RegExp(r'\r?\n');
+  LogBatchStream? _logBatches;
 
   static Stream<LanternStatus> _defaultStatusStream() {
     // Keep a predictable default (matches the Windows status mapping behavior).
@@ -125,7 +124,6 @@ class LanternFFIService implements LanternCoreService {
     _status = _defaultStatusStream();
     _privateServerStatus = const Stream<PrivateServerStatus>.empty();
     _appEvents = const Stream<AppEvent>.empty();
-    _logBatches = const Stream<List<String>>.empty();
 
     try {
       final setupResult = await _setupRadiance();
@@ -153,15 +151,10 @@ class LanternFFIService implements LanternCoreService {
         return AppEvent.fromJson(result);
       }).asBroadcastStream();
 
-      _logBatches = loggingReceivePort
-          .cast<String>()
-          .map(
-            (s) => s
-                .split(_newlineRegex)
-                .where((l) => l.isNotEmpty)
-                .toList(growable: false),
-          )
-          .where((batch) => batch.isNotEmpty);
+      _logBatches ??= LogBatchStream(
+        loggingReceivePort.cast<String>(),
+        _setLogStreamActive,
+      );
     } catch (e, st) {
       appLogger.error('Error while setting up radiance', e, st);
     }
@@ -906,7 +899,20 @@ class LanternFFIService implements LanternCoreService {
   }
 
   @override
-  Stream<List<String>> watchLogs(String path) => _logBatches;
+  Stream<List<String>> watchLogs(String path) =>
+      _logBatches?.stream ?? const Stream<List<String>>.empty();
+
+  static Future<void> _setLogStreamActive(bool active) async {
+    final result = await runInBackground<String>(() async {
+      final resultPtr = _ffiService.setLogStreamActive(active ? 1 : 0);
+      try {
+        return resultPtr.toDartString();
+      } finally {
+        _ffiService.freeCString(resultPtr);
+      }
+    });
+    checkAPIError(result);
+  }
 
   @override
   Stream<LanternStatus> watchVPNStatus() => _status;

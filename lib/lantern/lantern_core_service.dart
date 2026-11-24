@@ -28,18 +28,20 @@ const double _logTrimFraction = 0.25;
 /// full buffer on every update. When the buffer exceeds [_maxBufferedLogLines]
 /// the oldest [_logTrimFraction] of lines are dropped in one go to reduce how
 /// often the list is shifted.
-Stream<List<String>> accumulateLogBatches(Stream<List<String>> batches) async* {
+///
+/// Pausing or cancelling the result reaches [batches] at once, which an
+/// async* generator only does at its next event.
+Stream<List<String>> accumulateLogBatches(Stream<List<String>> batches) {
   final buffer = <String>[];
-  await for (final batch in batches) {
-    if (batch.isEmpty) continue;
+  return batches.where((batch) => batch.isNotEmpty).map((batch) {
     buffer.addAll(batch);
     if (buffer.length > _maxBufferedLogLines) {
       final targetLen = (_maxBufferedLogLines * (1.0 - _logTrimFraction))
           .round();
       buffer.removeRange(0, buffer.length - targetLen);
     }
-    yield List<String>.unmodifiable(buffer);
-  }
+    return List<String>.unmodifiable(buffer);
+  });
 }
 
 /// LanternCoreService has all method that interact with lantern-core services

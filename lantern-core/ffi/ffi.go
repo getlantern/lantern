@@ -115,6 +115,9 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 		// Wire the Dart ports before New: it starts goroutines (e.g. the
 		// startup user-data fetch) that emit events immediately.
 		dart_api_dl.Init(api)
+		// A Flutter hot restart runs setup again in the same process, with
+		// nothing listening for logs yet.
+		stopLogStream()
 		logsPort.Store(int64(logP))
 		appsPort.Store(int64(appsP))
 		statusPort.Store(int64(statusP))
@@ -145,7 +148,6 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 		// current VPN state even if the VPN was already connected (e.g. macOS
 		// system extension started before the Flutter app).
 		startStatusListener(core)
-		startLogsListener(core)
 
 		slog.Debug("Radiance setup successfully")
 		return C.CString("ok")
@@ -593,29 +595,47 @@ func startStatusListener(c lanterncore.Core) {
 	})
 }
 
-var logsListenerOnce sync.Once
+// logStream is the forwarding of service log entries to the Dart logs port.
+// cancel is nil while it's stopped.
+var logStream struct {
+	sync.Mutex
+	cancel context.CancelFunc
+}
 
-// startLogsListener subscribes to radiance's log SSE stream and forwards each
-// entry to Flutter via the Dart logs port.
-func startLogsListener(c lanterncore.Core) {
-	logsListenerOnce.Do(func() {
-		go func() {
-			for {
-				port := logsPort.Load()
-				if port == 0 {
-					time.Sleep(100 * time.Millisecond)
-					continue
-				}
-				err := logs.Subscribe(context.Background(), c.Client(), func(entry string) {
-					dart_api_dl.SendToPort(logsPort.Load(), entry)
-				})
-				if err != nil {
-					slog.Debug("log stream disconnected", "error", err)
-				}
-				time.Sleep(500 * time.Millisecond)
-			}
-		}()
+// setLogStreamActive starts or stops sending the service's log entries to the
+// Dart logs port, so nothing is tailed or sent while the app isn't showing logs.
+//
+//export setLogStreamActive
+func setLogStreamActive(active C.int) *C.char {
+	return runOnGoStack(func() *C.char {
+		if active == 0 {
+			stopLogStream()
+			return C.CString("ok")
+		}
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		logStream.Lock()
+		defer logStream.Unlock()
+		if logStream.cancel == nil {
+			ctx, cancel := context.WithCancel(context.Background())
+			logStream.cancel = cancel
+			go logs.Follow(ctx, c.Client(), func(entry string) {
+				dart_api_dl.SendToPort(logsPort.Load(), entry)
+			})
+		}
+		return C.CString("ok")
 	})
+}
+
+func stopLogStream() {
+	logStream.Lock()
+	defer logStream.Unlock()
+	if logStream.cancel != nil {
+		logStream.cancel()
+		logStream.cancel = nil
+	}
 }
 
 // mapStatusEvent normalizes a radiance VPN status event for forwarding to
