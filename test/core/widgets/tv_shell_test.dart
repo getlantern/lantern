@@ -299,38 +299,53 @@ void main() {
     expect(rowFocused(0), isTrue, reason: 'not the loading placeholder');
   });
 
-  testWidgets('a row that appears after the deadline is left alone', (
-    tester,
-  ) async {
-    TvShell.initialFocusWait = Duration.zero;
-    addTearDown(() => TvShell.initialFocusWait = const Duration(seconds: 10));
-    await pumpShell(tester, routeName: Home.name);
-    final loaded = ValueNotifier(false);
-    addTearDown(loaded.dispose);
-    tester.state<NavigatorState>(find.byType(Navigator)).push(
-      PageRouteBuilder<void>(
-        pageBuilder: (_, _, _) => TvShell(
-          routeName: Setting.name,
-          child: ValueListenableBuilder<bool>(
-            valueListenable: loaded,
-            builder: (_, ready, _) => BaseScreen(
-              title: 'Settings',
-              body: ready ? rows(2) : const SizedBox(),
+  for (final viaSwitch in [false, true]) {
+    testWidgets('a row that appears after the deadline is left alone'
+        '${viaSwitch ? ', also on Right from the switch' : ''}', (tester) async {
+      var clock = DateTime(2026, 11, 24, 12);
+      TvShell.now = () => clock;
+      addTearDown(() => TvShell.now = DateTime.now);
+      await pumpShell(tester, routeName: Home.name);
+      final loaded = ValueNotifier(false);
+      addTearDown(loaded.dispose);
+      tester.state<NavigatorState>(find.byType(Navigator)).push(
+        PageRouteBuilder<void>(
+          pageBuilder: (_, _, _) => TvShell(
+            routeName: Setting.name,
+            child: ValueListenableBuilder<bool>(
+              valueListenable: loaded,
+              builder: (_, ready, _) => BaseScreen(
+                title: 'Settings',
+                body: ready ? rows(2) : const SizedBox(),
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final placeholder = FocusManager.instance.primaryFocus!;
-    loaded.value = true;
-    await tester.pumpAndSettle();
-    expect(
-      FocusManager.instance.primaryFocus,
-      same(placeholder),
-      reason: 'the deadline passed before the rows came',
-    );
-  });
+      );
+      await tester.pumpAndSettle();
+      final placeholder = FocusManager.instance.primaryFocus!;
+      expect(TvNotInitialFocus.skips(placeholder), isTrue);
+      // A retry is pending; the wait runs out before the rows come.
+      await tester.pump();
+      if (viaSwitch) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+        await tester.pumpAndSettle();
+        expect(focusedLabel(), 'VPNSwitch');
+      }
+      clock = clock.add(TvShell.initialFocusWait + const Duration(seconds: 1));
+      loaded.value = true;
+      await tester.pumpAndSettle();
+      if (viaSwitch) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await tester.pumpAndSettle();
+      }
+      expect(
+        FocusManager.instance.primaryFocus,
+        same(placeholder),
+        reason: 'after the deadline the placeholder is the user\'s',
+      );
+    });
+  }
 
   testWidgets('a row with a toggle shows one ring: the control that has '
       'focus', (tester) async {

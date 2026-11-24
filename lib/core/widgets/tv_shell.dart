@@ -23,6 +23,10 @@ class TvShell extends ConsumerStatefulWidget {
   @visibleForTesting
   static Duration initialFocusWait = const Duration(seconds: 10);
 
+  /// The clock the wait is measured on; tests advance it.
+  @visibleForTesting
+  static DateTime Function() now = DateTime.now;
+
   const TvShell({super.key, required this.routeName, required this.child});
 
   final String routeName;
@@ -92,8 +96,10 @@ class _TvShellState extends ConsumerState<TvShell> {
     final remembered = _rightScope.focusedChild;
     if (remembered != null) {
       // The row the user left; unless it is the loading placeholder, which
-      // may have a row to move to by now.
-      if (identical(remembered, _placeholder)) _settleOnEligible();
+      // may have a row to move to by now (on its original deadline).
+      if (identical(remembered, _placeholder)) {
+        _settleOnEligible(until: _placeholderDeadline);
+      }
       return;
     }
     _rightScope.nextFocus();
@@ -104,6 +110,7 @@ class _TvShellState extends ConsumerState<TvShell> {
   /// (see [_settleOnEligible]); null once a row took focus or the user
   /// moved.
   FocusNode? _placeholder;
+  DateTime? _placeholderDeadline;
 
   /// Moves past the controls marked [TvNotInitialFocus] to the first row.
   /// When only such controls exist yet, the arrow keeps focus as a
@@ -118,11 +125,11 @@ class _TvShellState extends ConsumerState<TvShell> {
       _placeholder = null;
       return;
     }
-    final deadline = until ?? DateTime.now().add(TvShell.initialFocusWait);
+    final deadline = until ?? TvShell.now().add(TvShell.initialFocusWait);
     final rowExists = _rightScope.traversalDescendants.any(
       (n) => !TvNotInitialFocus.skips(n),
     );
-    if (rowExists && !DateTime.now().isAfter(deadline)) {
+    if (rowExists && !TvShell.now().isAfter(deadline)) {
       // Past the marked controls (an arrow, a search icon) to the row.
       for (var i = 0; i < 3; i++) {
         final focused = FocusManager.instance.primaryFocus;
@@ -136,11 +143,12 @@ class _TvShellState extends ConsumerState<TvShell> {
     // Nothing eligible yet: focus stays where it is (moving it would only
     // cycle the marked controls' rings) and the next frame looks again,
     // until the deadline; after it the placeholder is the user's.
-    if (DateTime.now().isAfter(deadline)) {
+    if (TvShell.now().isAfter(deadline)) {
       _placeholder = null;
       return;
     }
     _placeholder = placeholder;
+    _placeholderDeadline = deadline;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (!identical(FocusManager.instance.primaryFocus, placeholder)) {
