@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -173,10 +174,15 @@ class HelpersNotifier extends _$HelpersNotifier {
   @visibleForTesting
   static bool? debugBuildEnabled;
 
+  // The TV shell has no Personal Proxies controls, so the engine stays
+  // locked there like a stealth build's: no refresh, no view, and no
+  // pairing keys handed to the core, from whichever screen or resume asks.
   static bool get _buildEnabled =>
-      debugBuildEnabled ?? AppBuildInfo.enableHelperInvites;
+      (debugBuildEnabled ?? AppBuildInfo.enableHelperInvites) &&
+      !PlatformUtils.tvShellEnabled;
 
-  /// Whether this build has helper invites; a stealth build does not.
+  /// Whether this build has helper invites; a stealth build does not, and
+  /// neither does the TV shell.
   static bool get buildEnabled => _buildEnabled;
 
   Timer? _poll;

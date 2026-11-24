@@ -91,7 +91,9 @@ class _FakeService implements LanternService {
     onWaitForRadiance?.call();
   }
 
-  /// The raw peer status syncFromBackend reads; empty means not sharing.
+  /// The raw peer status syncFromBackend reads. Empty is the core's answer
+  /// while it cannot say (how the Go API reports no status); an idle
+  /// payload is a confirmed not-sharing.
   String peerStatus = '';
 
   @override
@@ -704,6 +706,21 @@ void main() {
       expect(notifier.state.mode, ShareMode.off);
     });
 
+    testWidgets('the TV shell turns both modes off at the core once it is '
+        'ready', (tester) async {
+      // radiance resumes a persisted session on its own after reporting
+      // ready, possibly after every read: the core is told directly.
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOn;
+      final (_, _, service) = await _start(tester);
+      await tester.pump();
+      expect(
+        service.calls,
+        containsAllInOrder(['waitForRadiance', 'peer:false', 'unbounded:false']),
+      );
+    });
+
     testWidgets('the TV shell waits for the core before adopting a resumed '
         'SmC session, then stops it', (tester) async {
       // Android's core answers with nothing until it is ready; the policy
@@ -712,13 +729,17 @@ void main() {
       addTearDown(() => PlatformUtils.debugTvShell = null);
       _appSetting = autoOn;
       final (notifier, ref, service) = await _start(tester);
+      await tester.pump();
+      service.calls.clear();
       service.peerStatus = '';
       service.onWaitForRadiance = () =>
           service.peerStatus = '{"phase":"serving"}';
-      await launch(notifier, ref);
+      await notifier.syncFromBackend(ref);
       await tester.pump();
-      expect(service.calls, contains('waitForRadiance'));
-      expect(service.calls, contains('peer:false'));
+      expect(
+        service.calls,
+        containsAllInOrder(['waitForRadiance', 'peer:false']),
+      );
       expect(notifier.state.active, isFalse);
     });
 

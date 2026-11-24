@@ -113,10 +113,14 @@ class ShareNotifier extends _$ShareNotifier {
     });
     // The TV shell has no Action Mode or Personal Proxies controls, so
     // sharing never runs there. Every start path refuses (_autoStartWith,
-    // _runFallback, startForHelper), and this is the one place that catches
-    // what those cannot: a session the core reports active later, such as
-    // one radiance resumed before the core could answer at launch.
-    if (PlatformUtils.tvShellEnabled) listenSelf(_enforceTvPolicy);
+    // _runFallback, startForHelper); a session the core reports active
+    // later is stopped where it is seen; and the core itself is told once
+    // it is ready, since radiance resumes a persisted session on its own
+    // after reporting ready and that resume may land after every read.
+    if (PlatformUtils.tvShellEnabled) {
+      listenSelf(_enforceTvPolicy);
+      Future.microtask(_turnSharingOffAtCore);
+    }
     // A held-back helper start is for the people this device helps: once it
     // helps nobody, there is nothing left to start for.
     ref.listen<bool>(helpersProvider.select((s) => s.view.helping.isEmpty), (
@@ -192,7 +196,8 @@ class ShareNotifier extends _$ShareNotifier {
     var phase = adoptablePhase(res.fold((_) => '', (v) => v));
     // On TV the policy (see build) depends on seeing a resumed session, and
     // a core still starting answers with nothing: wait for it once, then
-    // ask again. Elsewhere a missed adoption only delays the UI.
+    // ask again. Elsewhere the first answer stands, as before: the UI opens
+    // at off and the launch auto-start reads that.
     if (phase == null && PlatformUtils.tvShellEnabled) {
       try {
         await svc.waitForRadiance().timeout(radianceWait);
@@ -755,6 +760,32 @@ class ShareNotifier extends _$ShareNotifier {
   }
 
   bool _tvStopPending = false;
+
+  /// Turns both sharing modes off at the core once it is ready (see
+  /// [build]); each call also clears the persisted preference, so nothing
+  /// resumes at the next launch either. Idempotent at the backend.
+  Future<void> _turnSharingOffAtCore() async {
+    final svc = ref.read(lanternServiceProvider);
+    try {
+      await svc.waitForRadiance().timeout(radianceWait);
+    } catch (_) {
+      appLogger.warning('Action Mode on TV: the core is not ready');
+    }
+    if (!ref.mounted) return;
+    final smc = await ref
+        .read(radianceSettingsProvider.notifier)
+        .setPeerProxy(false);
+    if (!ref.mounted) return;
+    final unbounded = await svc.setUnboundedEnabled(false);
+    for (final (name, result) in [('SmC', smc), ('Unbounded', unbounded)]) {
+      result.fold(
+        (err) => appLogger.error(
+          'Action Mode on TV: turning $name off failed: ${err.error}',
+        ),
+        (_) {},
+      );
+    }
+  }
 
   /// Set while [_stop] runs; a fallback is then dropped.
   bool _stopping = false;
