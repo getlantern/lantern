@@ -66,6 +66,7 @@ String _$helperInvitesAvailableHash() =>
 /// device still has personal proxies or invites to manage, or may have them:
 /// it used helper invites and no view has loaded yet. Reads only the
 /// notifier's state and the used mark in local storage, never the keystore.
+/// Never in the TV shell or a stealth build: the engine's gate comes first.
 
 @ProviderFor(personalProxiesTabVisible)
 final personalProxiesTabVisibleProvider = PersonalProxiesTabVisibleProvider._();
@@ -75,6 +76,7 @@ final personalProxiesTabVisibleProvider = PersonalProxiesTabVisibleProvider._();
 /// device still has personal proxies or invites to manage, or may have them:
 /// it used helper invites and no view has loaded yet. Reads only the
 /// notifier's state and the used mark in local storage, never the keystore.
+/// Never in the TV shell or a stealth build: the engine's gate comes first.
 
 final class PersonalProxiesTabVisibleProvider
     extends $FunctionalProvider<bool, bool, bool>
@@ -84,6 +86,7 @@ final class PersonalProxiesTabVisibleProvider
   /// device still has personal proxies or invites to manage, or may have them:
   /// it used helper invites and no view has loaded yet. Reads only the
   /// notifier's state and the used mark in local storage, never the keystore.
+  /// Never in the TV shell or a stealth build: the engine's gate comes first.
   PersonalProxiesTabVisibleProvider._()
     : super(
         from: null,

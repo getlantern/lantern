@@ -30,6 +30,7 @@ bool helperInvitesAvailable(Ref ref) =>
 /// device still has personal proxies or invites to manage, or may have them:
 /// it used helper invites and no view has loaded yet. Reads only the
 /// notifier's state and the used mark in local storage, never the keystore.
+/// Never in the TV shell or a stealth build: the engine's gate comes first.
 @riverpod
 bool personalProxiesTabVisible(Ref ref) {
   if (!HelpersNotifier._buildEnabled) return false;
