@@ -398,6 +398,10 @@ void tvRequestFocus(
   if (target > revealTop) target = revealTop;
   target = target.clamp(position.minScrollExtent, position.maxScrollExtent);
   if (target == position.pixels) {
+    // Already in place; a scroll still running from the previous move
+    // would carry on past it, so stop it (a jump to the same offset only
+    // cancels the activity).
+    position.jumpTo(target);
     revealInOuter();
     return;
   }

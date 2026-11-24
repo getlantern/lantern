@@ -420,6 +420,28 @@ void main() {
     expect(focused.bottom, lessThanOrEqualTo(540));
   });
 
+  testWidgets('focus reversed before the scroll advances stops that scroll', (
+    tester,
+  ) async {
+    await pumpShell(tester, routeName: Setting.name, child: rows(10));
+    for (var i = 0; i < 7; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+    }
+    expect(rowFocused(7), isTrue);
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    final before = position.pixels;
+    // Down starts a scroll for row 8; Up to row 7, which already fits,
+    // arrives before that scroll's first tick.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+    expect(rowFocused(7), isTrue);
+    expect(position.pixels, before, reason: 'the row 8 scroll was stopped');
+  });
+
   testWidgets('a row with a toggle shows one ring: the control that has '
       'focus', (tester) async {
     await pumpShell(
