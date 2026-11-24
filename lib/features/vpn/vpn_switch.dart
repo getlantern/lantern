@@ -86,9 +86,10 @@ class VPNSwitch extends HookConsumerWidget {
             onVPNStateChange(ref, context);
           },
           loading: false,
-          // On TV the track's own padding is the knob's inset.
+          // On TV the track is the knob plus the inset the wrapper's padding
+          // gives it at the sides, above and below too.
           height: tvShell
-              ? 60.r
+              ? 80.r
               : PlatformUtils.isDesktop
               ? 70.h
               : 65.h,
