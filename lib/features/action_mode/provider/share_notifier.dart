@@ -186,10 +186,25 @@ class ShareNotifier extends _$ShareNotifier {
   /// so without this the UI opens at off while SmC is already serving.
   Future<void> syncFromBackend(WidgetRef widgetRef) async {
     if (state.active || state.probing) return;
-    final res = await ref.read(lanternServiceProvider).getPeerStatusJSON();
+    final svc = ref.read(lanternServiceProvider);
+    var res = await svc.getPeerStatusJSON();
     if (!ref.mounted) return;
+    var phase = adoptablePhase(res.fold((_) => '', (v) => v));
+    // On TV the policy (see build) depends on seeing a resumed session, and
+    // a core still starting answers with nothing: wait for it once, then
+    // ask again. Elsewhere a missed adoption only delays the UI.
+    if (phase == null && PlatformUtils.tvShellEnabled) {
+      try {
+        await svc.waitForRadiance().timeout(radianceWait);
+      } catch (_) {
+        appLogger.warning('Action Mode on TV: the core is not ready');
+      }
+      if (!ref.mounted) return;
+      res = await svc.getPeerStatusJSON();
+      if (!ref.mounted) return;
+      phase = adoptablePhase(res.fold((_) => '', (v) => v));
+    }
     if (state.active || state.probing) return;
-    final phase = adoptablePhase(res.fold((_) => '', (v) => v));
     if (phase == null) return;
     state = state.copyWith(active: true, mode: ShareMode.smc, phase: phase);
     _startEventSubscription();

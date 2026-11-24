@@ -83,7 +83,13 @@ class _FakeService implements LanternService {
   }
 
   @override
-  Future<void> waitForRadiance() async => calls.add('waitForRadiance');
+  void Function()? onWaitForRadiance;
+
+  @override
+  Future<void> waitForRadiance() async {
+    calls.add('waitForRadiance');
+    onWaitForRadiance?.call();
+  }
 
   /// The raw peer status syncFromBackend reads; empty means not sharing.
   String peerStatus = '';
@@ -696,6 +702,24 @@ void main() {
       expect(service.calls, contains('peer:false'));
       expect(notifier.state.active, isFalse);
       expect(notifier.state.mode, ShareMode.off);
+    });
+
+    testWidgets('the TV shell waits for the core before adopting a resumed '
+        'SmC session, then stops it', (tester) async {
+      // Android's core answers with nothing until it is ready; the policy
+      // must not mistake that for no session.
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '';
+      service.onWaitForRadiance = () =>
+          service.peerStatus = '{"phase":"serving"}';
+      await launch(notifier, ref);
+      await tester.pump();
+      expect(service.calls, contains('waitForRadiance'));
+      expect(service.calls, contains('peer:false'));
+      expect(notifier.state.active, isFalse);
     });
 
     testWidgets('the TV shell never falls back to Unbounded', (tester) async {

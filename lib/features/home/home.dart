@@ -286,11 +286,12 @@ class Home extends HookConsumerWidget {
     });
 
     // A device that has used helper invites refreshes them at launch, so a
-    // volunteer approved while the app was closed starts helping now (not
-    // on TV, whose approval listener below is off). Not behind the
-    // helper_invites flag: volunteers abroad are not flagged.
+    // volunteer approved while the app was closed starts helping now. Not
+    // behind the helper_invites flag: volunteers abroad are not flagged.
+    // Not on TV: the refresh unlocks the helper engine and hands the core
+    // its pairing keys, from which it could serve a pairing on its own.
     useEffect(() {
-      if (!AppBuildInfo.enableHelperInvites) return null;
+      if (!AppBuildInfo.enableHelperInvites || tvShell) return null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) ref.read(helpersProvider.notifier).refreshIfUsed();
       });
