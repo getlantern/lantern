@@ -45,7 +45,9 @@ dependency_overrides:
       ref: 53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da
   # 12.6.x bumps the native Stripe SDKs (iOS ~>25.9), keep in step with flutter_stripe 12.4.0
   stripe_android: 12.4.0
-  stripe_ios: 12.4.0
+  # Stripe checkout is Android-only; the stub keeps the Stripe SDK out of the IPA.
+  stripe_ios:
+    path: packages/stripe_ios_stub
   in_app_purchase_storekit: 0.4.8+1
   # 0.5.0 = Play Billing Library 8.0.0; later 0.5.x need Flutter >=3.44.
   in_app_purchase_android: 0.5.0

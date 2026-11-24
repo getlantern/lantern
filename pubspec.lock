@@ -1752,10 +1752,9 @@ packages:
   stripe_ios:
     dependency: "direct overridden"
     description:
-      name: stripe_ios
-      sha256: d186356a101bc2e5b2a15c1bd93e39fd86aca071dc7f8af5f4bdab8b0c43c225
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/stripe_ios_stub"
+      relative: true
+    source: path
     version: "12.4.0"
   stripe_platform_interface:
     dependency: transitive
