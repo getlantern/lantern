@@ -42,6 +42,10 @@ const Set<String> tvRedirectRoutes = {
   PersonalProxiesIntro.name,
 };
 
+/// Full-screen routes with their own TV layout across the whole screen,
+/// instead of the centred phone-width column.
+const Set<String> tvOwnLayoutRoutes = {Plans.name};
+
 const Duration tvRouteDuration = Duration(milliseconds: 200);
 
 /// The TV shell's route: every screen is wrapped in [TvShell] unless it is
@@ -63,9 +67,11 @@ Route<T> tvRouteBuilder<T>(
     opaque: page.opaque,
     transitionDuration: tvRouteDuration,
     reverseTransitionDuration: tvRouteDuration,
-    // Full-screen routes keep today's centred phone-width column.
+    // Full-screen routes keep today's centred phone-width column unless
+    // they lay themselves out for the TV.
     pageBuilder: (context, _, _) => fullScreen
         ? TvFrame(
+            enabled: !tvOwnLayoutRoutes.contains(name),
             background: Theme.of(context).scaffoldBackgroundColor,
             child: body,
           )

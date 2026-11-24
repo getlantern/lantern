@@ -22,6 +22,10 @@ class PrimaryButton extends StatelessWidget {
   final bool? isTaller;
   final bool? useThemeColor;
 
+  /// For a screen that gives this button its first focus (the TV Plans
+  /// screen); the button keeps its own node when null.
+  final FocusNode? focusNode;
+
   // Default constructor for button without an icon
   const PrimaryButton({
     required this.label,
@@ -36,6 +40,7 @@ class PrimaryButton extends StatelessWidget {
     this.showBorder = false,
     this.useThemeColor,
     this.icon,
+    this.focusNode,
     super.key,
   });
 
@@ -49,12 +54,14 @@ class PrimaryButton extends StatelessWidget {
     return icon == null
         ? ElevatedButton(
             key: buttonKey,
+            focusNode: focusNode,
             onPressed: enabled ? onPressed : null,
             style: _buildButtonStyle(context, button!, iconSz),
             child: Text(label, textAlign: TextAlign.center),
           )
         : ElevatedButton.icon(
             key: buttonKey,
+            focusNode: focusNode,
             onPressed: enabled ? onPressed : null,
             icon: AppImage(
               path: icon!,

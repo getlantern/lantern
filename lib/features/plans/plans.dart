@@ -25,6 +25,11 @@ import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import '../../core/models/plan_data.dart';
 import '../../core/models/referral_attach_response.dart';
 
+/// TV layout (Figma "Android TV / Plans (full screen)"): the "why upgrade"
+/// column and the gap before the plans column, inside the 48dp margins.
+const double _tvWhyUpgradeWidth = 380;
+const double _tvColumnGap = 64;
+
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
   const Plans({super.key, this.referralCode});
@@ -40,6 +45,17 @@ class Plans extends StatefulHookConsumerWidget {
 class _PlansState extends ConsumerState<Plans>
     with RestorePurchaseMixin<Plans> {
   late TextTheme textTheme;
+
+  /// TV: "Get Lantern Pro" takes the first focus once the plans have loaded,
+  /// so buying the preselected plan is one press.
+  final _tvCtaFocus = FocusNode(debugLabel: 'plans.cta');
+  bool _tvCtaFocused = false;
+
+  @override
+  void dispose() {
+    _tvCtaFocus.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -57,6 +73,9 @@ class _PlansState extends ConsumerState<Plans>
     // Billing availability changes when the country-code event arrives.
     ref.watch(countryCodeProvider);
     textTheme = Theme.of(context).textTheme;
+    if (PlatformUtils.tvShellEnabled && AppBuildInfo.enablePayments) {
+      return _buildTvScreen();
+    }
     return BaseScreen(
       backgroundColor: context.bgElevated,
       padded: false,
@@ -111,36 +130,7 @@ class _PlansState extends ConsumerState<Plans>
               _buildAffiliateBanner(),
               Padding(
                 padding: EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
-                child: plansState.when(
-                  data: (data) {
-                    if (data.plans.isEmpty) {
-                      return Text(
-                        'plans_fetch_error'.i18n,
-                        style: textTheme.labelLarge,
-                      );
-                    }
-                    return PlansListView(data: data);
-                  },
-                  loading: () {
-                    return Center(child: LoadingIndicator());
-                  },
-                  error: (error, stackTrace) {
-                    return Column(
-                      children: [
-                        Text(
-                          'plans_fetch_error'.i18n,
-                          style: textTheme.labelLarge,
-                        ),
-                        AppTextButton(
-                          label: 'retry'.i18n,
-                          onPressed: () {
-                            ref.read(plansProvider.notifier).retryFetchPlans();
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                child: _plansListOrStatus(plansState),
               ),
               SizedBox(height: defaultSize),
               Padding(
@@ -220,6 +210,175 @@ class _PlansState extends ConsumerState<Plans>
           ),
         ),
       ],
+    );
+  }
+
+  /// The plan cards, or the loading or error state in their place.
+  Widget _plansListOrStatus(AsyncValue<PlansData> plansState) {
+    return plansState.when(
+      data: (data) {
+        if (data.plans.isEmpty) {
+          return Text('plans_fetch_error'.i18n, style: textTheme.labelLarge);
+        }
+        return PlansListView(data: data);
+      },
+      loading: () {
+        return Center(child: LoadingIndicator());
+      },
+      error: (error, stackTrace) {
+        return Column(
+          children: [
+            Text('plans_fetch_error'.i18n, style: textTheme.labelLarge),
+            AppTextButton(
+              label: 'retry'.i18n,
+              onPressed: () {
+                ref.read(plansProvider.notifier).retryFetchPlans();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// The TV screen (Figma "Android TV / Plans (full screen)"): the whole
+  /// 960x540 without scrolling, inside the safe margins. Left, not
+  /// focusable: the Lantern Pro logo and the benefits. Right: the plan
+  /// cards, "Get Lantern Pro", then the menu's items as links. The close
+  /// button sits top left and is never the first focus. Layout and focus
+  /// only: the button does what it does on a phone.
+  Widget _buildTvScreen() {
+    final plansState = ref.watch(plansProvider);
+    final plansReady =
+        !plansState.hasError && (plansState.value?.plans.isNotEmpty ?? false);
+    // Disabled until the plans load, so it cannot autofocus; focus it then.
+    if (plansReady && !_tvCtaFocused) {
+      _tvCtaFocused = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _tvCtaFocus.requestFocus();
+      });
+    }
+    final isReferralApplied = ref.watch(referralProvider).isApplied;
+    final mediaQuery = MediaQuery.of(context);
+    return Scaffold(
+      backgroundColor: context.bgElevated,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: tvSafeMarginH,
+          vertical: tvSafeMarginV,
+        ),
+        child: Stack(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: _tvWhyUpgradeWidth,
+                  child: ExcludeFocus(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 80),
+                        Padding(
+                          // Lines the logo up with the benefit icons.
+                          padding: const EdgeInsets.only(left: defaultSize),
+                          child: AppImage(
+                            path: AppImagePaths.lanternPro,
+                            color: context.textPrimary,
+                            width: 246,
+                            height: 32,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        const FeatureList(),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: _tvColumnGap),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildAffiliateBanner(),
+                      // PlanItem places its Best Value badge from the
+                      // screen width; a card-sized MediaQuery puts it
+                      // where the phone's card has it.
+                      LayoutBuilder(
+                        builder: (context, constraints) => MediaQuery(
+                          data: mediaQuery.copyWith(
+                            size: Size(
+                              constraints.maxWidth + 2 * defaultSize,
+                              mediaQuery.size.height,
+                            ),
+                          ),
+                          child: _plansListOrStatus(plansState),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      PrimaryButton(
+                        buttonKey: const Key('plans.cta'),
+                        focusNode: _tvCtaFocus,
+                        label: 'get_lantern_pro'.i18n,
+                        enabled: plansReady,
+                        onPressed: onGetLanternProTap,
+                      ),
+                      const SizedBox(height: 20),
+                      // The three-dot menu's items, as links a remote can reach.
+                      ValueListenableBuilder<bool>(
+                        valueListenable: sl<AppPurchase>().productsLoaded,
+                        builder: (context, _, _) => Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          spacing: defaultSize,
+                          runSpacing: 8,
+                          children: [
+                            if (sl<AppPurchase>().isStoreBillingAvailable)
+                              AppTextButton(
+                                key: const Key('plans.restore'),
+                                label: 'restore_purchase'.i18n,
+                                onPressed: _restorePurchaseFlow,
+                              ),
+                            if (!isReferralApplied)
+                              AppTextButton(
+                                key: const Key('plans.promo_code'),
+                                label: isStoreVersion()
+                                    ? 'promo_code'.i18n
+                                    : 'promo_referral_code'.i18n,
+                                onPressed: showReferralCodeDialog,
+                              ),
+                            AppTextButton(
+                              key: const Key('plans.license'),
+                              label: 'lantern_pro_license'.i18n,
+                              onPressed: _openProLicense,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // Close, with its glyph on the safe margin's corner.
+            Positioned(
+              left: -12,
+              top: -12,
+              child: TvNotInitialFocus(
+                child: IconButton(
+                  key: const Key('plans.close'),
+                  icon: const Icon(Icons.close),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  onPressed: () {
+                    appRouter.maybePop();
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
