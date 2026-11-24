@@ -378,6 +378,10 @@ STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALT
 STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(if $(wildcard $(STEALTH_GO_TAGS_FILE)),$(strip $(file <$(STEALTH_GO_TAGS_FILE))),$(error missing $(STEALTH_GO_TAGS_FILE); run make stealth-profile before building)),)
 STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),ORG_GRADLE_PROJECT_stealthProfile="$(abspath $(STEALTH_PROFILE_OUT))",)
 MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),$(STEALTH_PROFILE_STAMP),)
+# Gradle compiles the generated Kotlin, resources and R8 rules whenever stealth
+# is on, so every Android build target generates them, not just the
+# android-stealth-* wrappers.
+MAYBE_STEALTH_ANDROID_SOURCES := $(if $(STEALTH_ENABLED),stealth-android-sources,)
 STEALTH_IS_NOVPN = $(if $(findstring novpn,$(STEALTH_GO_TAGS)),1,)
 GOMOBILE_REPOS_EFFECTIVE = $(if $(STEALTH_IS_NOVPN),$(GOMOBILE_REPOS_STEALTH_NOVPN),$(GOMOBILE_REPOS))
 GOMOBILE_JAVAPKG = $(if $(STEALTH_ENABLED),foundation.engine,lantern.io)
@@ -1113,7 +1117,7 @@ android-debug-ci: ANDROID_DEBUG_FLUTTER_FLAGS :=
 android-debug-ci: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
-	$(MAKE) android-identity-profile
+	$(MAKE) android-identity-profile $(MAYBE_STEALTH_ANDROID_SOURCES)
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --build-name=$(ANDROID_VERSION_NAME) --debug $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_DEBUG_BUILD)
 
@@ -1175,7 +1179,7 @@ endef
 # -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
 # direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
-android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
+android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE) $(MAYBE_STEALTH_ANDROID_SOURCES)
 	# Package the selected native build as-is; an implicit rebuild could replace a garbled AAR.
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
 	$(call android_apk_for_abi,arm64-v8a,android-arm64,$(ANDROID_RELEASE_APK))
@@ -1183,7 +1187,7 @@ android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 
 # The AAB carries every ABI in android/abi-targets.properties.
 .PHONY: android-aab-release
-android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
+android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE) $(MAYBE_STEALTH_ANDROID_SOURCES)
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(ANDROID_VERSION_NAME) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE) $(PLAY_STORE_GRADLE_FLAGS)
 	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_AAB_RELEASE_BUILD),true)
