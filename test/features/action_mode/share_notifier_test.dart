@@ -596,6 +596,10 @@ void main() {
   });
 
   group('reconcileLaunch', () {
+    // The TV launch's core-off write is asked once here; the retry test
+    // sets its own count.
+    setUp(() => ShareNotifier.tvOffAttempts = 1);
+    tearDown(() => ShareNotifier.tvOffAttempts = 5);
     const autoOn = AppSetting(
       onboardingCompleted: true,
       unboundedAutoEnable: true,
@@ -702,6 +706,8 @@ void main() {
       // a running SmC session: stopped where it is seen, not only at launch.
       PlatformUtils.debugTvShell = true;
       addTearDown(() => PlatformUtils.debugTvShell = null);
+      ShareNotifier.tvOffAttempts = 1;
+      addTearDown(() => ShareNotifier.tvOffAttempts = 5);
       _appSetting = autoOn;
       final (notifier, ref, service) = await _start(tester);
       await launch(notifier, ref);
@@ -740,12 +746,58 @@ void main() {
       );
     });
 
+    testWidgets('the TV shell keeps asking the core until it accepts the '
+        'disables', (tester) async {
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOn;
+      ShareNotifier.tvOffAttempts = 5;
+      // unboundedOk starts false: the fake refuses the Unbounded write.
+      final (_, _, service) = await _start(tester);
+      await tester.pump();
+      int count(String call) => service.calls.where((c) => c == call).length;
+      expect(count('peer:false'), 1);
+      expect(count('unbounded:false'), 1);
+      await tester.pump(const Duration(seconds: 2));
+      expect(count('unbounded:false'), 2, reason: 'asked again after 2s');
+      expect(count('peer:false'), 1, reason: 'SmC was accepted the first time');
+      service.unboundedOk = true;
+      await tester.pump(const Duration(seconds: 4));
+      expect(count('unbounded:false'), 3, reason: 'accepted on the third ask');
+      await tester.pump(const Duration(seconds: 30));
+      expect(count('unbounded:false'), 3, reason: 'no asks after acceptance');
+    });
+
+    testWidgets('the fallback guard alone keeps a TV off Unbounded', (
+      tester,
+    ) async {
+      // Built before the shell flag, so the policy listener is not installed
+      // and the SmC error reaches _runFallback: only its own guard stands.
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      service.peerStatus = '{"phase":"serving"}';
+      service.unboundedOk = true;
+      await notifier.syncFromBackend(ref);
+      expect(notifier.state.mode, ShareMode.smc);
+      service.events.add(
+        AppEvent(eventType: 'peer-status', message: '{"phase":"error"}'),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(service.calls, isNot(contains('unbounded:true')));
+      expect(notifier.state.active, isFalse);
+    });
+
     testWidgets('the TV shell waits for the core before adopting a resumed '
         'SmC session, then stops it', (tester) async {
       // Android's core answers with nothing until it is ready; the policy
       // must not mistake that for no session.
       PlatformUtils.debugTvShell = true;
       addTearDown(() => PlatformUtils.debugTvShell = null);
+      ShareNotifier.tvOffAttempts = 1;
+      addTearDown(() => ShareNotifier.tvOffAttempts = 5);
       _appSetting = autoOn;
       final (notifier, ref, service) = await _start(tester);
       await tester.pump();

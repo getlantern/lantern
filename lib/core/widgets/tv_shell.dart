@@ -86,13 +86,41 @@ class _TvShellState extends ConsumerState<TvShell> {
     _rightScope.requestFocus();
     if (_rightScope.focusedChild != null) return;
     _rightScope.nextFocus();
+    _settleOnEligible();
+  }
+
+  /// How long a screen that opens with only back, close or search controls
+  /// (its list still loading) keeps looking for a row to land on.
+  static const initialFocusWait = Duration(seconds: 10);
+
+  /// Moves past the controls marked [TvNotInitialFocus] to the first row.
+  /// When only such controls exist yet, the arrow keeps focus as a
+  /// placeholder and each frame looks again for a row, until one appears,
+  /// the user moves, another route covers this one, or [initialFocusWait]
+  /// runs out; focus is never moved while there is nowhere better to go.
+  void _settleOnEligible({DateTime? until}) {
     for (var i = 0; i < 3; i++) {
       // Focus moves apply in a microtask; settle them before looking.
       FocusManager.instance.applyFocusChangesIfNeeded();
       final focused = FocusManager.instance.primaryFocus;
-      if (focused == null || !TvNotInitialFocus.skips(focused)) break;
+      if (focused == null || !TvNotInitialFocus.skips(focused)) return;
       focused.nextFocus();
     }
+    FocusManager.instance.applyFocusChangesIfNeeded();
+    final placeholder = FocusManager.instance.primaryFocus;
+    if (placeholder == null || !TvNotInitialFocus.skips(placeholder)) return;
+    final deadline = until ?? DateTime.now().add(initialFocusWait);
+    if (DateTime.now().isAfter(deadline)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!identical(FocusManager.instance.primaryFocus, placeholder)) return;
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      final rowExists = _rightScope.traversalDescendants.any(
+        (n) => !TvNotInitialFocus.skips(n),
+      );
+      if (rowExists) placeholder.nextFocus();
+      _settleOnEligible(until: deadline);
+    });
   }
 
   @override
@@ -276,15 +304,20 @@ void tvRequestFocus(
     return;
   }
   // Enclosing scrollables (a list inside a page that scrolls): reveal the
-  // node in each the way Flutter's own callback does; only the nearest one
-  // gets the safe-area inset below.
+  // node in each the way Flutter's own callback does, revealing the inner
+  // scrollable's box in each outer viewport with the node as the target;
+  // only the nearest one gets the safe-area inset below.
+  var inner = scrollable;
   for (
-    var outer = Scrollable.maybeOf(scrollable.context);
+    var outer = Scrollable.maybeOf(inner.context);
     outer != null;
-    outer = Scrollable.maybeOf(outer.context)
+    inner = outer, outer = Scrollable.maybeOf(outer.context)
   ) {
+    final innerBox = inner.context.findRenderObject();
+    if (innerBox == null) break;
     outer.position.ensureVisible(
-      renderObject,
+      innerBox,
+      targetRenderObject: renderObject,
       alignment: alignment ?? 1.0,
       alignmentPolicy: alignmentPolicy ?? ScrollPositionAlignmentPolicy.explicit,
       duration: duration ?? Duration.zero,
@@ -303,13 +336,16 @@ void tvRequestFocus(
   }
   // Lists scroll by focus, so text after the last row (a version number, a
   // note) would never show: when nothing focusable follows [node] in this
-  // list and the rest fits below it, scroll to the end.
-  if (!_hasFocusableBelow(node, scrollable)) {
-    final tail = position.maxScrollExtent - revealBottom;
-    final room =
-        position.viewportDimension - renderObject.semanticBounds.height;
-    if (tail > 0 && tail <= room) target = position.maxScrollExtent;
+  // list and the end of the list leaves the row's top in view, scroll to
+  // the end.
+  if (!_hasFocusableBelow(node, scrollable) &&
+      position.maxScrollExtent > revealBottom &&
+      position.maxScrollExtent <= revealTop) {
+    target = position.maxScrollExtent;
   }
+  // A control taller than the viewport less the inset: its top edge stays
+  // in view rather than its bottom inset.
+  if (target > revealTop) target = revealTop;
   target = target.clamp(position.minScrollExtent, position.maxScrollExtent);
   if (target == position.pixels) return;
   position.animateTo(

@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
+import 'package:lantern/core/widgets/custom_app_bar.dart' as app_bar;
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/core/widgets/tv_shell.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
@@ -116,6 +117,23 @@ void main() {
     return vpn;
   }
 
+  Widget rowsWithFooter(int count, double footer) => Scaffold(
+    body: ListView(
+      children: [
+        for (var i = 0; i < count; i++)
+          SettingTile(
+            tileKey: Key('row$i'),
+            label: 'row $i',
+            value: '',
+            icon: const Icon(Icons.info),
+            actions: const [],
+            onTap: () {},
+          ),
+        SizedBox(height: footer, child: const Text('footer')),
+      ],
+    ),
+  );
+
   String? focusedLabel() => FocusManager.instance.primaryFocus?.debugLabel;
 
   // InkWell keeps its focus node private, so look up from the focused node.
@@ -183,12 +201,97 @@ void main() {
       isTrue,
       reason: 'the sheet takes focus',
     );
-    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    // A tap beside the box, inside the sheet's height, dismisses.
+    await tester.tapAt(Offset(100, box.top + 10));
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('bottomsheet.tv_box')), findsNothing);
     expect(
       Focus.of(tester.element(find.text('open'))).hasPrimaryFocus,
       isTrue,
       reason: 'focus returns to the opener',
+    );
+  });
+
+  testWidgets('a screen whose rows load later lands on its first row', (
+    tester,
+  ) async {
+    await pumpShell(tester, routeName: Home.name);
+    final loaded = ValueNotifier(false);
+    addTearDown(loaded.dispose);
+    tester.state<NavigatorState>(find.byType(Navigator)).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, _, _) => TvShell(
+          routeName: Setting.name,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: loaded,
+            builder: (_, ready, _) => BaseScreen(
+              title: 'Settings',
+              body: ready ? rows(2) : const SizedBox(),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final placeholder = FocusManager.instance.primaryFocus!;
+    expect(
+      TvNotInitialFocus.skips(placeholder),
+      isTrue,
+      reason: 'the arrow holds focus while there is no row',
+    );
+    loaded.value = true;
+    await tester.pumpAndSettle();
+    expect(rowFocused(0), isTrue, reason: 'the first row once it exists');
+  });
+
+  testWidgets('the back arrow points the other way in a right-to-left locale', (
+    tester,
+  ) async {
+    await pumpShell(
+      tester,
+      routeName: Home.name,
+      textDirection: TextDirection.rtl,
+    );
+    tester.state<NavigatorState>(find.byType(Navigator)).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, _, _) => Directionality(
+          textDirection: TextDirection.rtl,
+          child: TvShell(
+            routeName: Setting.name,
+            child: BaseScreen(title: 'Settings', body: rows(2)),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final flip = tester.widget<Transform>(
+      find.descendant(
+        of: find.byType(app_bar.BackButton),
+        matching: find.byType(Transform),
+      ),
+    );
+    expect(flip.transform.storage[0], -1.0, reason: 'mirrored on x');
+  });
+
+  testWidgets('a footer that does not fit never scrolls the row out of view', (
+    tester,
+  ) async {
+    await pumpShell(
+      tester,
+      routeName: Setting.name,
+      child: rowsWithFooter(3, 500),
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(rowFocused(2), isTrue);
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    expect(position.pixels, 0, reason: 'no jump to the end');
+    expect(
+      tester.getRect(find.byKey(const Key('row2'))).top,
+      greaterThanOrEqualTo(tvSafeMarginV),
     );
   });
 

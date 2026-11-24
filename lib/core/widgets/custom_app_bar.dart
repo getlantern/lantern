@@ -62,11 +62,15 @@ class BackButton extends StatelessWidget {
     // Back does the same); the arrow is still reachable with Up.
     return TvNotInitialFocus(
       child: IconButton(
-        icon: AppImage(
-          path: AppImagePaths.arrowBack,
-          width: size,
-          height: size,
-          color: color ?? Theme.of(context).iconTheme.color,
+        // The glyph points back, which in a right-to-left locale is right.
+        icon: Transform.flip(
+          flipX: Directionality.of(context) == TextDirection.rtl,
+          child: AppImage(
+            path: AppImagePaths.arrowBack,
+            width: size,
+            height: size,
+            color: color ?? Theme.of(context).iconTheme.color,
+          ),
         ),
         onPressed: onPressed ?? () => Navigator.of(context).maybePop(),
         splashRadius: 24,

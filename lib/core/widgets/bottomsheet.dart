@@ -83,21 +83,34 @@ Widget _tvPanelSheet(
   required bool inPanel,
 }) {
   final sheetTheme = Theme.of(context).bottomSheetTheme;
-  return Align(
-    alignment: inPanel ? Alignment.bottomRight : Alignment.bottomCenter,
-    child: Padding(
-      padding: EdgeInsets.only(right: inPanel ? tvSafeMarginH : 0),
-      child: SizedBox(
-        width: inPanel ? tvRightPanelWidth(context) : tvContentMaxWidth,
-        child: Material(
-          key: const Key('bottomsheet.tv_box'),
-          color:
-              backgroundColor ??
-              sheetTheme.modalBackgroundColor ??
-              sheetTheme.backgroundColor,
-          shape: sheetTheme.shape,
-          clipBehavior: Clip.antiAlias,
-          child: Padding(padding: const EdgeInsets.only(top: 16), child: child),
+  // The modal's own sheet spans the whole width and swallows taps even
+  // where it is transparent, so a tap beside the box dismisses here; the
+  // box keeps its taps to itself.
+  return GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: () => Navigator.of(context).pop(),
+    child: Align(
+      alignment: inPanel ? Alignment.bottomRight : Alignment.bottomCenter,
+      child: Padding(
+        padding: EdgeInsets.only(right: inPanel ? tvSafeMarginH : 0),
+        child: SizedBox(
+          width: inPanel ? tvRightPanelWidth(context) : tvContentMaxWidth,
+          child: GestureDetector(
+            onTap: () {},
+            child: Material(
+              key: const Key('bottomsheet.tv_box'),
+              color:
+                  backgroundColor ??
+                  sheetTheme.modalBackgroundColor ??
+                  sheetTheme.backgroundColor,
+              shape: sheetTheme.shape,
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: child,
+              ),
+            ),
+          ),
         ),
       ),
     ),

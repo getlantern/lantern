@@ -155,9 +155,11 @@ class VPNSwitch extends HookConsumerWidget {
   /// On TV, room for the focus ring around [child]; elsewhere [child] as is.
   Widget _tvRing(Border? ring, bool tvShell, Widget child) {
     if (!tvShell) return child;
+    // Drawn in the foreground, so the ring takes no layout room and the
+    // switch keeps its bounds whether or not it has focus.
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
+      foregroundDecoration: BoxDecoration(
         borderRadius: BorderRadius.circular(100),
         border: ring,
       ),

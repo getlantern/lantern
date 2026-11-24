@@ -761,9 +761,16 @@ class ShareNotifier extends _$ShareNotifier {
 
   bool _tvStopPending = false;
 
+  /// How often the TV launch asks the core to turn sharing off before
+  /// giving up; the waits between grow (2s, 4s, ...).
+  @visibleForTesting
+  static int tvOffAttempts = 5;
+
   /// Turns both sharing modes off at the core once it is ready (see
   /// [build]); each call also clears the persisted preference, so nothing
-  /// resumes at the next launch either. Idempotent at the backend.
+  /// resumes at the next launch either. Idempotent at the backend, so a
+  /// refused write is asked again, a bounded number of times: nothing on
+  /// TV could stop a session the core kept.
   Future<void> _turnSharingOffAtCore() async {
     final svc = ref.read(lanternServiceProvider);
     try {
@@ -771,20 +778,32 @@ class ShareNotifier extends _$ShareNotifier {
     } catch (_) {
       appLogger.warning('Action Mode on TV: the core is not ready');
     }
-    if (!ref.mounted) return;
-    final smc = await ref
-        .read(radianceSettingsProvider.notifier)
-        .setPeerProxy(false);
-    if (!ref.mounted) return;
-    final unbounded = await svc.setUnboundedEnabled(false);
-    for (final (name, result) in [('SmC', smc), ('Unbounded', unbounded)]) {
-      result.fold(
-        (err) => appLogger.error(
-          'Action Mode on TV: turning $name off failed: ${err.error}',
-        ),
-        (_) {},
+    var smcOff = false;
+    var unboundedOff = false;
+    for (var attempt = 1; attempt <= tvOffAttempts; attempt++) {
+      if (!ref.mounted) return;
+      if (!smcOff) {
+        final res = await ref
+            .read(radianceSettingsProvider.notifier)
+            .setPeerProxy(false);
+        smcOff = res.isRight();
+      }
+      if (!ref.mounted) return;
+      if (!unboundedOff) {
+        unboundedOff = (await svc.setUnboundedEnabled(false)).isRight();
+      }
+      if (smcOff && unboundedOff) return;
+      if (attempt == tvOffAttempts) break;
+      appLogger.warning(
+        'Action Mode on TV: turning sharing off refused (attempt $attempt '
+        'of $tvOffAttempts), asking again',
       );
+      await Future<void>.delayed(Duration(seconds: 2 * attempt));
     }
+    appLogger.error(
+      'Action Mode on TV: could not turn sharing off '
+      '(SmC off: $smcOff, Unbounded off: $unboundedOff)',
+    );
   }
 
   /// Set while [_stop] runs; a fallback is then dropped.
