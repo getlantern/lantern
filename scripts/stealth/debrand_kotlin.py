@@ -169,10 +169,69 @@ def declares_class(kotlin_root: Path, name: str) -> bool:
     text = source.read_text(encoding="utf-8")
     if not re.search(rf"^\s*package\s+{re.escape(package)}\s*$", text, re.MULTILINE):
         return False
-    return all(
-        re.search(rf"\b(?:class|object|interface)\s+{re.escape(simple)}\b", text)
-        for simple in classes
-    )
+    start, end = 0, len(text)
+    for simple in classes:
+        declaration = _find_declaration(text, simple, start, end)
+        if declaration is None:
+            return False
+        # The next name must be declared inside this one's body.
+        start, end = _body_span(text, declaration, end)
+    return True
+
+
+def _find_declaration(text: str, simple: str, start: int, end: int) -> int | None:
+    """End offset of the first declaration of ``simple`` in ``text[start:end]``
+    that sits directly in that scope, not in a nested body."""
+    pattern = re.compile(rf"\b(?:class|object|interface)\s+{re.escape(simple)}\b")
+    depth = 0
+    position = start
+    for match in pattern.finditer(text, start, end):
+        depth += text.count("{", position, match.start()) - text.count("}", position, match.start())
+        position = match.start()
+        if depth == 0:
+            return match.end()
+    return None
+
+
+_HEADER_END = re.compile(r"\b(?:class|object|interface|fun|val|var)\b")
+
+
+def _body_span(text: str, declaration_end: int, end: int) -> tuple[int, int]:
+    """The span inside the braces that open a declaration's body.
+
+    Scans the header outside parentheses (constructor parameters, supertype
+    calls). Reaching another declaration first means the class has no body,
+    and the span is empty.
+    """
+    parens = 0
+    index = declaration_end
+    opening = -1
+    while index < end:
+        char = text[index]
+        if char == "(":
+            parens += 1
+        elif char == ")":
+            parens -= 1
+        elif parens == 0:
+            if char == "{":
+                opening = index
+                break
+            if char == "}" or _HEADER_END.match(text, index) and (
+                index == 0 or not (text[index - 1].isalnum() or text[index - 1] == "_")
+            ):
+                return declaration_end, declaration_end
+        index += 1
+    if opening < 0:
+        return declaration_end, declaration_end
+    depth = 0
+    for index in range(opening, end):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return opening + 1, index
+    return opening + 1, end
 
 
 def generate_proguard_rules(rules_source: Path, rules_output: Path, kotlin_root: Path) -> int:

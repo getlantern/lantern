@@ -96,6 +96,45 @@ class ProguardRulesTest(unittest.TestCase):
         self.rules.write_text(rule.format("Missing"), encoding="utf-8")
         self.assertEqual(debrand.generate_proguard_rules(self.rules, self.output, self.kotlin_root), 2)
 
+    def test_finds_nested_class_after_constructor_parameters(self) -> None:
+        self.write_source(
+            "foundation/bridge/service/BackendVpnService.kt",
+            "package foundation.bridge.service\n\n"
+            "class BackendVpnService(val id: Int) : Base(id) {\n    object Companion\n}\n",
+        )
+        self.rules.write_text(
+            "-checkdiscard class org.getlantern.lantern.service.LanternVpnService$Companion\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(debrand.generate_proguard_rules(self.rules, self.output, self.kotlin_root), 0)
+
+    def test_rejects_nested_class_under_another_owner(self) -> None:
+        self.write_source(
+            "foundation/bridge/service/BackendVpnService.kt",
+            "package foundation.bridge.service\n\n"
+            "class BackendVpnService {\n    fun start() {}\n}\n\n"
+            "class Other {\n    class Inner\n}\n",
+        )
+        self.rules.write_text(
+            "-checkdiscard class org.getlantern.lantern.service.LanternVpnService$Inner\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(debrand.generate_proguard_rules(self.rules, self.output, self.kotlin_root), 2)
+
+    def test_rejects_class_declared_only_inside_another(self) -> None:
+        self.write_source(
+            "foundation/bridge/service/BackendVpnService.kt",
+            "package foundation.bridge.service\n\nclass Holder {\n    class BackendVpnService\n}\n",
+        )
+        self.rules.write_text(
+            "-checkdiscard class org.getlantern.lantern.service.LanternVpnService\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(debrand.generate_proguard_rules(self.rules, self.output, self.kotlin_root), 2)
+
     def test_repo_rules_match_debranded_kotlin(self) -> None:
         source_root = Path(__file__).resolve().parents[2] / "android/app/src/main/kotlin/org/getlantern/lantern"
         self.assertEqual(debrand.generate(source_root, self.kotlin_root / debrand.TARGET_PACKAGE_DIR), 0)
