@@ -23,6 +23,7 @@ The committed sources are never modified; only the generated copy is.
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -72,12 +73,16 @@ OAUTH_STUB_REPLACEMENTS: tuple[tuple[str, str], ...] = (
 )
 
 
-def debrand_text(text: str) -> str:
-    for old, new in OAUTH_STUB_REPLACEMENTS:
-        text = text.replace(old, new)
+def debrand_names(text: str) -> str:
     for old, new in TEXT_REPLACEMENTS:
         text = text.replace(old, new)
     return text
+
+
+def debrand_text(text: str) -> str:
+    for old, new in OAUTH_STUB_REPLACEMENTS:
+        text = text.replace(old, new)
+    return debrand_names(text)
 
 
 def debrand_path(relative: str) -> str:
@@ -148,6 +153,119 @@ def generate_res(res_source: Path, res_overlay: Path | None, res_output: Path) -
     return 0
 
 
+CHECKDISCARD_CLASS = re.compile(r"^\s*-checkdiscard\s+class\s+([\w.$]+)", re.MULTILINE)
+
+
+def declares_class(kotlin_root: Path, name: str) -> bool:
+    """Whether the generated Kotlin declares ``name`` (``pkg.Outer$Inner``).
+
+    The file must exist, be in the class's package, and declare the class and
+    each nested class. A file that kept its name after its class was renamed
+    would otherwise satisfy the check.
+    """
+    package, _, nested = name.rpartition(".")
+    classes = nested.split("$")
+    if not package or not all(classes):
+        return False
+    source = kotlin_root / package.replace(".", "/") / f"{classes[0]}.kt"
+    if not source.is_file():
+        return False
+    text = source.read_text(encoding="utf-8")
+    if not re.search(rf"^\s*package\s+{re.escape(package)}\s*$", text, re.MULTILINE):
+        return False
+    start, end = 0, len(text)
+    for simple in classes:
+        declaration = _find_declaration(text, simple, start, end)
+        if declaration is None:
+            return False
+        # The next name must be declared inside this one's body.
+        start, end = _body_span(text, declaration, end)
+    return True
+
+
+def _find_declaration(text: str, simple: str, start: int, end: int) -> int | None:
+    """End offset of the first declaration of ``simple`` in ``text[start:end]``
+    that sits directly in that scope, not in a nested body."""
+    pattern = re.compile(rf"\b(?:class|object|interface)\s+{re.escape(simple)}\b")
+    depth = 0
+    position = start
+    for match in pattern.finditer(text, start, end):
+        depth += text.count("{", position, match.start()) - text.count("}", position, match.start())
+        position = match.start()
+        if depth == 0:
+            return match.end()
+    return None
+
+
+_HEADER_END = re.compile(r"\b(?:class|object|interface|fun|val|var)\b")
+
+
+def _body_span(text: str, declaration_end: int, end: int) -> tuple[int, int]:
+    """The span inside the braces that open a declaration's body.
+
+    Scans the header outside parentheses (constructor parameters, supertype
+    calls). Reaching another declaration first means the class has no body,
+    and the span is empty.
+    """
+    parens = 0
+    index = declaration_end
+    opening = -1
+    while index < end:
+        char = text[index]
+        if char == "(":
+            parens += 1
+        elif char == ")":
+            parens -= 1
+        elif parens == 0:
+            if char == "{":
+                opening = index
+                break
+            if char == "}" or _HEADER_END.match(text, index) and (
+                index == 0 or not (text[index - 1].isalnum() or text[index - 1] == "_")
+            ):
+                return declaration_end, declaration_end
+        index += 1
+    if opening < 0:
+        return declaration_end, declaration_end
+    depth = 0
+    for index in range(opening, end):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return opening + 1, index
+    return opening + 1, end
+
+
+def generate_proguard_rules(rules_source: Path, rules_output: Path, kotlin_root: Path) -> int:
+    """De-brand an R8 rules file so its class names match the generated Kotlin.
+
+    R8 skips a ``-checkdiscard`` rule whose class does not exist, so a stale name
+    would turn the check into a silent pass. Every such class must therefore
+    resolve to a generated Kotlin source file under ``kotlin_root``.
+    """
+    if not rules_source.is_file():
+        print(f"error: proguard rules not found: {rules_source}", file=sys.stderr)
+        return 2
+    # Rules name classes only; the OAuth call stubs apply to Kotlin source.
+    text = debrand_names(rules_source.read_text(encoding="utf-8"))
+    missing = [
+        name for name in CHECKDISCARD_CLASS.findall(text) if not declares_class(kotlin_root, name)
+    ]
+    if missing:
+        print(
+            "error: -checkdiscard classes are not declared in the generated Kotlin: "
+            + ", ".join(missing),
+            file=sys.stderr,
+        )
+        return 2
+    rules_output.parent.mkdir(parents=True, exist_ok=True)
+    rules_output.write_text(text, encoding="utf-8")
+    print(f"de-branded proguard rules -> {rules_output}")
+    return 0
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -165,6 +283,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--res-source", type=Path, help="Real res tree to de-brand (e.g. android/app/src/main/res).")
     parser.add_argument("--res-overlay", type=Path, help="Stealth res overlay copied on top (e.g. android/app/src/stealth/res).")
     parser.add_argument("--res-output", type=Path, help="Output dir for the merged de-branded res tree.")
+    parser.add_argument("--proguard-rules", type=Path, help="R8 rules file to de-brand (e.g. android/app/proguard-stealth-novpn.pro).")
+    parser.add_argument("--proguard-rules-output", type=Path, help="Output path for the de-branded R8 rules file.")
     return parser.parse_args(argv)
 
 
@@ -178,6 +298,12 @@ def main(argv: list[str]) -> int:
             file=sys.stderr,
         )
         return 2
+    if bool(args.proguard_rules) != bool(args.proguard_rules_output):
+        print(
+            "error: --proguard-rules and --proguard-rules-output must be provided together",
+            file=sys.stderr,
+        )
+        return 2
     if args.res_overlay and not args.res_overlay.is_dir():
         print(f"error: res overlay not found: {args.res_overlay}", file=sys.stderr)
         return 2
@@ -187,6 +313,10 @@ def main(argv: list[str]) -> int:
         return rc
     if args.res_source and args.res_output:
         rc = generate_res(args.res_source, args.res_overlay, args.res_output)
+        if rc != 0:
+            return rc
+    if args.proguard_rules and args.proguard_rules_output:
+        rc = generate_proguard_rules(args.proguard_rules, args.proguard_rules_output, args.output)
     return rc
 
 

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/common/stealth_no_vpn_proxy.dart';
 import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/core/models/notification_event.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -23,12 +24,28 @@ class VpnNotifier extends _$VpnNotifier {
   bool _hasStatusStreamEmission = false;
   Future<Either<Failure, String>>? _stopRequest;
   bool _userDisconnectRequested = false;
+  final _statusWaiters = <(bool Function(VPNStatus), Completer<VPNStatus>)>[];
+  bool _statusWaitersAttached = false;
+  Future<void> _proxyPortChange = Future.value();
+
+  static const _proxyStopTimeout = Duration(seconds: 30);
 
   RatingPromptService? get _ratingPrompt =>
       sl.isRegistered<RatingPromptService>() ? sl<RatingPromptService>() : null;
 
   @override
   VPNStatus build() {
+    if (!_statusWaitersAttached) {
+      _statusWaitersAttached = true;
+      listenSelf((_, next) {
+        _statusWaiters.removeWhere((waiter) {
+          final (test, completer) = waiter;
+          if (!test(next)) return false;
+          completer.complete(next);
+          return true;
+        });
+      });
+    }
     unawaited(_hydrateInitialStatus());
     ref.listen(vPNStatusProvider, (previous, next) {
       if (next.hasError) {
@@ -63,9 +80,10 @@ class VpnNotifier extends _$VpnNotifier {
         'ts_ms=${DateTime.now().millisecondsSinceEpoch}',
       );
       final suppressConnectionNotifications =
+          AppBuildInfo.stealthNoVpn ||
           nextOrigin == VPNStatusOrigin.settingsMutation &&
-          (nextStatus == VPNStatus.connected ||
-              nextStatus == VPNStatus.disconnected);
+              (nextStatus == VPNStatus.connected ||
+                  nextStatus == VPNStatus.disconnected);
 
       final isFirstEvent = previous == null || previous.value == null;
       final statusChanged = !isFirstEvent && previousStatus != nextStatus;
@@ -202,7 +220,7 @@ class VpnNotifier extends _$VpnNotifier {
   }) async {
     final lantern = ref.read(lanternServiceProvider);
 
-    if (!skipConflictCheck) {
+    if (!skipConflictCheck && !AppBuildInfo.stealthNoVpn) {
       final conflict = await _checkVpnConflict();
       if (conflict != null) return conflict;
     }
@@ -253,7 +271,7 @@ class VpnNotifier extends _$VpnNotifier {
     // Check for a conflicting VPN before initiating a new connection.
     // The native side guards against false positives by returning false when
     // Lantern's own VPN is already active (e.g. server switching while connected).
-    if (!skipConflictCheck) {
+    if (!skipConflictCheck && !AppBuildInfo.stealthNoVpn) {
       final conflict = await _checkVpnConflict();
       if (conflict != null) return conflict;
     }
@@ -275,6 +293,74 @@ class VpnNotifier extends _$VpnNotifier {
       'Another VPN is active, blocking connect until user confirms',
     );
     return Left(VpnConflictFailure());
+  }
+
+  /// Hands the saved no-VPN proxy listen port to the native side. The
+  /// listener binds its port when it starts, so a proxy that is running, or
+  /// is starting or stopping, is restarted once it settles on connected.
+  /// Port changes run one at a time here rather than in the settings screen,
+  /// so leaving the screen does not cancel a restart halfway.
+  Future<void> applyProxyPort() {
+    return _proxyPortChange = _proxyPortChange.then((_) async {
+      final result = await ref
+          .read(lanternServiceProvider)
+          .setProxyListenPort(StealthNoVpnProxy.port);
+      await result.fold(
+        (failure) async => appLogger.error(
+          'Failed to apply proxy listen port: ${failure.error}',
+        ),
+        (_) => _restartForProxyPort(),
+      );
+    });
+  }
+
+  Future<void> _restartForProxyPort() async {
+    // No deadline here: a start that read the old port can take the native
+    // start window and more, and it always ends connected, disconnected or
+    // in error. Giving up early would leave it on the old port.
+    final settled = await _waitForStatus(
+      (status) =>
+          status != VPNStatus.connecting && status != VPNStatus.disconnecting,
+    );
+    if (settled != VPNStatus.connected) return;
+    final stopped = await stopVPN();
+    if (stopped.isLeft()) return;
+    try {
+      // The native stop finishes after the request returns; a start sent
+      // before then is rejected.
+      await _waitForStatus(
+        (status) => status == VPNStatus.disconnected,
+        timeout: _proxyStopTimeout,
+      );
+    } on TimeoutException {
+      appLogger.error('Proxy did not stop after a port change');
+      return;
+    }
+    final started = await startVPN(skipConflictCheck: true);
+    started.fold(
+      (failure) => appLogger.error(
+        'Failed to restart proxy after a port change: ${failure.error}',
+      ),
+      (_) {},
+    );
+  }
+
+  Future<VPNStatus> _waitForStatus(
+    bool Function(VPNStatus) test, {
+    Duration? timeout,
+  }) {
+    if (test(state)) return Future.value(state);
+    final completer = Completer<VPNStatus>();
+    final waiter = (test, completer);
+    _statusWaiters.add(waiter);
+    if (timeout == null) return completer.future;
+    return completer.future.timeout(
+      timeout,
+      onTimeout: () {
+        _statusWaiters.remove(waiter);
+        throw TimeoutException('VPN status wait timed out');
+      },
+    );
   }
 
   Future<Either<Failure, String>> stopVPN({bool userInitiated = false}) {

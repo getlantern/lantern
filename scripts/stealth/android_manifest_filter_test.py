@@ -186,8 +186,8 @@ class VpnModeTest(unittest.TestCase):
     def test_camera_permission_removed(self) -> None:
         self.assertNotIn("android.permission.CAMERA", _permissions(self.root))
 
-    def test_query_all_packages_removed(self) -> None:
-        self.assertNotIn("android.permission.QUERY_ALL_PACKAGES", _permissions(self.root))
+    def test_query_all_packages_kept_for_direct_connection_apps(self) -> None:
+        self.assertIn("android.permission.QUERY_ALL_PACKAGES", _permissions(self.root))
 
     def test_receive_boot_removed(self) -> None:
         self.assertNotIn("android.permission.RECEIVE_BOOT_COMPLETED", _permissions(self.root))
@@ -390,6 +390,9 @@ class NoVpnModeTest(unittest.TestCase):
         self.assertNotIn("android.permission.ACCESS_WIFI_STATE", permissions)
         self.assertNotIn("android.permission.CHANGE_NETWORK_STATE", permissions)
         self.assertNotIn("android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED", permissions)
+
+    def test_query_all_packages_removed(self) -> None:
+        self.assertNotIn("android.permission.QUERY_ALL_PACKAGES", _permissions(self.root))
 
     def test_vpn_service_removed(self) -> None:
         service_names = _names(self.app.findall("service"))

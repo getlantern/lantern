@@ -37,12 +37,12 @@ void main() {
     expect(stats.lifetime[UsagePath.proxyless].down, 20);
     expect(stats.lifetime[UsagePath.personal].total, 3);
     expect(stats.lifetime[UsagePath.private].total, 7);
-    expect(stats.lifetime[UsagePath.lantern].total, 300);
+    expect(stats.lifetime[UsagePath.servers].total, 300);
     expect(stats.lifetime[UsagePath.direct].total, 11);
     expect(stats.lifetime.total, 30 + 3 + 7 + 300 + 11);
 
     expect(stats.thisMonth[UsagePath.proxyless].total, 15);
-    expect(stats.thisMonth[UsagePath.lantern].total, 19);
+    expect(stats.thisMonth[UsagePath.servers].total, 19);
     expect(stats.thisMonth.total, 15 + 19 + 1);
   });
 
@@ -55,8 +55,8 @@ void main() {
       },
     });
     expect(stats.resetAt, isNull);
-    expect(stats.lifetime[UsagePath.lantern].up, 5);
-    expect(stats.lifetime[UsagePath.lantern].down, 0);
+    expect(stats.lifetime[UsagePath.servers].up, 5);
+    expect(stats.lifetime[UsagePath.servers].down, 0);
     expect(stats.lifetime[UsagePath.proxyless].total, 0);
     expect(stats.thisMonth.total, 0);
   });

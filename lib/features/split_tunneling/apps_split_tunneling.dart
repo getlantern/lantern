@@ -109,11 +109,17 @@ class AppsSplitTunneling extends HookConsumerWidget {
       );
     }
 
+    final title =
+        (directConnectionAppsMode
+                ? 'direct_connection_apps'
+                : 'apps_split_tunneling')
+            .i18n;
+
     return BaseScreen(
-      title: 'apps_split_tunneling'.i18n,
+      title: title,
       appBar: AppSearchBar(
         ref: ref,
-        title: 'apps_split_tunneling'.i18n,
+        title: title,
         hintText: 'search_apps'.i18n,
       ),
       // The screen pads itself so the index bar can live in the right-hand
@@ -139,7 +145,11 @@ class AppsSplitTunneling extends HookConsumerWidget {
                     child: Row(
                       children: [
                         SectionLabel(
-                          (bypass ? 'apps_bypassing_vpn' : 'apps_using_vpn')
+                          (directConnectionAppsMode
+                                  ? 'apps_using_direct_connection'
+                                  : bypass
+                                  ? 'apps_bypassing_vpn'
+                                  : 'apps_using_vpn')
                               .i18n
                               .fill([snapshot?.appCount ?? enabledApps.length]),
                         ),
@@ -327,8 +337,18 @@ class AppsSplitTunneling extends HookConsumerWidget {
     if (bypass && !await confirmAppBypass(context, app)) return;
     if (!context.mounted) return;
     final failure = await notifier.toggleApp(app);
-    if (context.mounted && failure != null) {
+    if (context.mounted) showChangeResult(context, notifier, failure);
+  }
+
+  static void showChangeResult(
+    BuildContext context,
+    SplitTunnelingApps notifier,
+    Failure? failure,
+  ) {
+    if (failure != null) {
       context.showSnackBarError(failure.localizedErrorMessage);
+    } else if (notifier.changeWaitsForReconnect) {
+      context.showSnackBar('changes_applied_after_restart'.i18n);
     }
   }
 }
@@ -345,8 +365,8 @@ class _SelectedApps extends ConsumerWidget {
 
     Future<void> run(Future<Failure?> Function() action) async {
       final failure = await action();
-      if (context.mounted && failure != null) {
-        context.showSnackBarError(failure.localizedErrorMessage);
+      if (context.mounted) {
+        AppsSplitTunneling.showChangeResult(context, notifier, failure);
       }
     }
 

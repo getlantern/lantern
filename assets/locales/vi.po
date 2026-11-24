@@ -2622,3 +2622,18 @@ msgstr "%s/tháng"
 
 msgid "no_payment_methods_available"
 msgstr "Hiện không có phương thức thanh toán nào. Vui lòng thử lại sau."
+
+msgid "feature_disabled_for_build"
+msgstr "Tính năng này không khả dụng trong bản dựng này"
+
+msgid "direct_connection_apps"
+msgstr "Ứng dụng kết nối trực tiếp"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Các ứng dụng đã chọn kết nối trực tiếp, bên ngoài định tuyến được bảo vệ"
+
+msgid "apps_using_direct_connection"
+msgstr "Ứng dụng dùng kết nối trực tiếp (%d)"
+
+msgid "items_added_count"
+msgstr "Đã thêm %d"

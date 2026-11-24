@@ -1,12 +1,20 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_eum.dart';
 import 'package:lantern/core/localization/i18n.dart';
 import 'package:lantern/core/models/split_tunnel_state.dart';
 import 'package:lantern/core/utils/failure.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'split_tunnel_notifier.g.dart';
+
+/// Stealth Android builds replace split tunneling with a native list of apps
+/// that connect outside the tunnel. The list always applies, always bypasses,
+/// and covers apps only.
+bool get directConnectionAppsMode =>
+    AppBuildInfo.stealthDirectConnectionApps && PlatformUtils.isAndroid;
 
 /// The Off / Bypass / Include only value shown on settings rows. Blank while
 /// the state loads.

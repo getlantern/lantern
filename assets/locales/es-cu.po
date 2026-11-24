@@ -2632,3 +2632,18 @@ msgstr "%s/mes"
 
 msgid "no_payment_methods_available"
 msgstr "No hay métodos de pago disponibles ahora mismo. Inténtalo de nuevo más tarde."
+
+msgid "items_added_count"
+msgstr "%d agregados"
+
+msgid "feature_disabled_for_build"
+msgstr "Esta función no está disponible en esta versión"
+
+msgid "direct_connection_apps"
+msgstr "Aplicaciones con conexión directa"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Las aplicaciones seleccionadas se conectan directamente, fuera del enrutamiento protegido"
+
+msgid "apps_using_direct_connection"
+msgstr "Aplicaciones que usan conexión directa (%d)"

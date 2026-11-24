@@ -85,18 +85,18 @@ func sendApps(port int64) func(apps ...*apps.AppData) error {
 // / Flutter event emitter implementation for FFI
 type ffiFlutterEventEmitter struct{}
 
-func (e *ffiFlutterEventEmitter) SendEvent(event *utils.FlutterEvent) {
-	if utils.IsHighVolumeEvent(event.Type) {
-		slog.Debug("Sending event to Flutter:", "type", event.Type)
+func (e *ffiFlutterEventEmitter) SendEvent(eventType string, message string) {
+	if utils.IsHighVolumeEvent(eventType) {
+		slog.Debug("Sending event to Flutter:", "type", eventType)
 	} else {
-		slog.Debug("Sending event to Flutter:", "event", event)
+		slog.Debug("Sending event to Flutter:", "type", eventType, "message", message)
 	}
 	port := appEventPort.Load()
 	if port == 0 {
 		slog.Error("Apps port is not set, cannot send event")
 		return
 	}
-	eventData, err := json.Marshal(event)
+	eventData, err := json.Marshal(utils.FlutterEvent{Type: eventType, Message: message})
 	if err != nil {
 		slog.Error("Error marshalling event:", "error", err)
 		return
@@ -127,7 +127,7 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 			Locale:           locale,
 			Env:              env,
 			Deviceid:         "",
-			LogLevel:         lanterncore.DefaultLogLevel(),
+			LogLevel:         lanterncore.EffectiveLogLevel(""),
 			TelemetryConsent: consent == 1,
 		}
 		// Desktop has no debug-build signal here, so staging stands in for it.

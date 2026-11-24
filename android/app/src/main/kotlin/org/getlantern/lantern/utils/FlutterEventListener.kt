@@ -1,28 +1,32 @@
 package org.getlantern.lantern.utils
 
 import android.util.Log
-import lantern.io.utils.FlutterEvent
 import lantern.io.utils.FlutterEventEmitter
 
+
+// Plain Kotlin event carried through the stream. The emitter receives the event
+// fields by value as strings (see FlutterEventEmitter.SendEvent), so no gomobile
+// Go object ever crosses into the queue.
+data class AppEvent(val type: String, val message: String)
 
 /**
  * The core's events on their way to Flutter. Every event is delivered: a
  * coalescing LiveData let a snapshot replace a selection-changed or
  * helper-live event before Flutter saw it.
  */
-val FlutterEventStream = EventQueue<FlutterEvent>()
+val FlutterEventStream = EventQueue<AppEvent>()
 
 
 class FlutterEventListener : FlutterEventEmitter {
-    override fun sendEvent(p0: FlutterEvent?) {
-        if (p0 != null) {
-            if (isHighVolume(p0.type)) {
-                Log.v(TAG, "Sending Flutter event: ${p0.type}")
-            } else {
-                AppLogger.d(TAG, "Sending Flutter event: ${HelperTags.loggableEvent(p0.type, p0.message)}")
-            }
-            FlutterEventStream.emit(p0)
+    override fun sendEvent(p0: String?, p1: String?) {
+        val type = p0.orEmpty()
+        val message = p1.orEmpty()
+        if (isHighVolume(type)) {
+            Log.v(TAG, "Sending Flutter event: $type")
+        } else {
+            AppLogger.d(TAG, "Sending Flutter event: ${HelperTags.loggableEvent(type, message)}")
         }
+        FlutterEventStream.emit(AppEvent(type, message))
     }
 
     companion object {

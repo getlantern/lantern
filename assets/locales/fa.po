@@ -2619,3 +2619,18 @@ msgstr "%s/ماه"
 
 msgid "no_payment_methods_available"
 msgstr "در حال حاضر هیچ روش پرداختی در دسترس نیست. لطفاً بعداً دوباره امتحان کنید."
+
+msgid "items_added_count"
+msgstr "%d مورد اضافه شد"
+
+msgid "feature_disabled_for_build"
+msgstr "این ویژگی در این نسخه در دسترس نیست"
+
+msgid "direct_connection_apps"
+msgstr "برنامه‌های اتصال مستقیم"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "برنامه‌های انتخاب‌شده خارج از مسیریابی محافظت‌شده، مستقیماً متصل می‌شوند"
+
+msgid "apps_using_direct_connection"
+msgstr "برنامه‌هایی که از اتصال مستقیم استفاده می‌کنند (%d)"

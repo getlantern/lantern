@@ -2643,3 +2643,18 @@ msgstr "%s/میاشت"
 
 msgid "no_payment_methods_available"
 msgstr "اوس مهال د تادیې کومه طریقه شتون نلري. مهرباني وکړئ وروسته بیا هڅه وکړئ."
+
+msgid "feature_disabled_for_build"
+msgstr "دا ځانګړتیا په دې نسخه کې شتون نلري"
+
+msgid "direct_connection_apps"
+msgstr "د مستقیم اتصال اپلیکیشنونه"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "ټاکل شوي اپلیکیشنونه د خوندي لارښوونې څخه بهر مستقیم وصلېږي"
+
+msgid "apps_using_direct_connection"
+msgstr "اپلیکیشنونه چې مستقیم اتصال کاروي (%d)"
+
+msgid "items_added_count"
+msgstr "%d اضافه شول"

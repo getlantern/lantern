@@ -158,7 +158,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
                   DividerSpace(),
                   SizedBox(height: defaultSize),
                   // OAuth finishes in a browser, which a TV does not have.
-                  if (!PlatformUtils.isTv) ...[
+                  if (!PlatformUtils.isTv && AppBuildInfo.enableOAuth) ...[
                     OAuthLogin(
                       methodType: SignUpMethodType.google,
                       onResult: (token) =>
@@ -361,6 +361,9 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     Map<String, dynamic> result,
     SignUpMethodType type,
   ) async {
+    if (!AppBuildInfo.enableOAuth) {
+      return;
+    }
     final token = result['token'];
     if (token != null) {
       context.showLoadingDialog();

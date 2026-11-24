@@ -2591,3 +2591,18 @@ msgstr "%s/เดือน"
 
 msgid "no_payment_methods_available"
 msgstr "ขณะนี้ไม่มีวิธีชำระเงินที่ใช้ได้ โปรดลองอีกครั้งในภายหลัง"
+
+msgid "feature_disabled_for_build"
+msgstr "ฟีเจอร์นี้ไม่พร้อมใช้งานในบิลด์นี้"
+
+msgid "direct_connection_apps"
+msgstr "แอปที่เชื่อมต่อโดยตรง"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "แอปที่เลือกจะเชื่อมต่อโดยตรงนอกเส้นทางที่ได้รับการป้องกัน"
+
+msgid "apps_using_direct_connection"
+msgstr "แอปที่ใช้การเชื่อมต่อโดยตรง (%d)"
+
+msgid "items_added_count"
+msgstr "เพิ่มแล้ว %d รายการ"

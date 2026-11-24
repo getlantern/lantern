@@ -20,7 +20,7 @@ import 'package:window_manager/window_manager.dart';
 UsageTotals _totals({int proxyless = 0, int lantern = 0, int direct = 0}) =>
     UsageTotals({
       UsagePath.proxyless: UsageBytes(up: 0, down: proxyless),
-      UsagePath.lantern: UsageBytes(up: 0, down: lantern),
+      UsagePath.servers: UsageBytes(up: 0, down: lantern),
       UsagePath.direct: UsageBytes(up: 0, down: direct),
     });
 
@@ -194,7 +194,7 @@ void main() {
     expect(find.text('November 2026'), findsOneWidget);
     expect(_inTotal('4.6 MB'), findsOneWidget);
     expect(_inPath(UsagePath.proxyless, '1.2 MB'), findsOneWidget);
-    expect(_inPath(UsagePath.lantern, '3.4 MB'), findsOneWidget);
+    expect(_inPath(UsagePath.servers, '3.4 MB'), findsOneWidget);
     for (final path in UsagePath.values) {
       expect(find.byKey(Key('usage_stats.path.${path.name}')), findsOneWidget);
     }
@@ -235,7 +235,7 @@ void main() {
     );
     expect(_inTotal('134 MB'), findsOneWidget);
     expect(_inPath(UsagePath.proxyless, '56 MB'), findsOneWidget);
-    expect(_inPath(UsagePath.lantern, '78 MB'), findsOneWidget);
+    expect(_inPath(UsagePath.servers, '78 MB'), findsOneWidget);
     expect(_inPath(UsagePath.direct, '9.0 kB'), findsOneWidget);
   });
 
@@ -244,7 +244,7 @@ void main() {
   ) async {
     await _pump(tester, _Service([right(_stats)]), dataCap: true);
     expect(
-      _inPath(UsagePath.lantern, 'usage_stats_lantern_data_cap'.i18n),
+      _inPath(UsagePath.servers, 'usage_stats_lantern_data_cap'.i18n),
       findsOneWidget,
     );
     expect(find.byKey(const Key('usage_stats.data_cap_note')), findsOneWidget);

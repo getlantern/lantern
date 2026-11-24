@@ -2588,3 +2588,18 @@ msgstr "%s/شهر"
 
 msgid "no_payment_methods_available"
 msgstr "لا تتوفر طرق دفع حاليًا. يرجى المحاولة مرة أخرى لاحقًا."
+
+msgid "items_added_count"
+msgstr "تمت إضافة %d"
+
+msgid "feature_disabled_for_build"
+msgstr "هذه الميزة غير متاحة في هذا الإصدار"
+
+msgid "direct_connection_apps"
+msgstr "تطبيقات الاتصال المباشر"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "تتصل التطبيقات المحددة مباشرةً خارج التوجيه المحمي"
+
+msgid "apps_using_direct_connection"
+msgstr "التطبيقات التي تستخدم الاتصال المباشر (%d)"

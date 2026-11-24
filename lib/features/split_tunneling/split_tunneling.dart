@@ -30,8 +30,12 @@ class SplitTunneling extends HookConsumerWidget {
       }
     }
 
+    final directApps = directConnectionAppsMode;
+    final title = (directApps ? 'direct_connection_apps' : 'split_tunneling')
+        .i18n;
+
     return BaseScreen(
-      title: 'split_tunneling'.i18n,
+      title: title,
       body: ListView(
         key: const Key('split_tunneling.screen'),
         children: [
@@ -45,30 +49,40 @@ class SplitTunneling extends HookConsumerWidget {
             AppCard(
               padding: EdgeInsets.zero,
               child: AppTile(
-                label: 'split_tunneling'.i18n,
+                label: title,
                 subtitle: Text(
-                  'split_tunnel_description'.i18n,
+                  (directApps
+                          ? 'direct_connection_apps_subtitle'
+                          : 'split_tunnel_description')
+                      .i18n,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: context.textTertiary,
                   ),
                 ),
-                onPressed: () =>
-                    apply(() => notifier.setEnabled(!snapshot.enabled)),
-                trailing: IgnorePointer(
-                  ignoring: busy.value,
-                  child: SwitchButton(
-                    key: const Key('split_tunneling.enable_toggle'),
-                    value: snapshot.enabled,
-                    onChanged: (enabled) =>
-                        apply(() => notifier.setEnabled(enabled)),
-                    activeColor: AppColors.green5,
-                  ),
-                ),
+                // The direct-connection list always applies; there is
+                // nothing to switch off.
+                onPressed: directApps
+                    ? null
+                    : () => apply(() => notifier.setEnabled(!snapshot.enabled)),
+                trailing: directApps
+                    ? null
+                    : IgnorePointer(
+                        ignoring: busy.value,
+                        child: SwitchButton(
+                          key: const Key('split_tunneling.enable_toggle'),
+                          value: snapshot.enabled,
+                          onChanged: (enabled) =>
+                              apply(() => notifier.setEnabled(enabled)),
+                          activeColor: AppColors.green5,
+                        ),
+                      ),
               ),
             ),
             if (snapshot.enabled) ...[
-              SizedBox(height: defaultSize),
-              const SplitTunnelModePicker(),
+              if (!directApps) ...[
+                SizedBox(height: defaultSize),
+                const SplitTunnelModePicker(),
+              ],
               SizedBox(height: defaultSize),
               AppCard(
                 padding: EdgeInsets.zero,
@@ -77,7 +91,8 @@ class SplitTunneling extends HookConsumerWidget {
                     SplitTunnelingTile(
                       tileKey: const Key('split_tunneling.apps_tile'),
                       icon: AppImagePaths.keypad,
-                      label: 'apps'.i18n,
+                      label: (directApps ? 'direct_connection_apps' : 'apps')
+                          .i18n,
                       actionText: _count(
                         snapshot.appCount,
                         'split_tunnel_app_count_one',
@@ -86,19 +101,21 @@ class SplitTunneling extends HookConsumerWidget {
                       onPressed: () =>
                           appRouter.push(const AppsSplitTunneling()),
                     ),
-                    DividerSpace(),
-                    SplitTunnelingTile(
-                      tileKey: const Key('split_tunneling.websites_tile'),
-                      icon: AppImagePaths.world,
-                      label: 'websites'.i18n,
-                      actionText: _count(
-                        snapshot.websiteCount,
-                        'split_tunnel_site_count_one',
-                        'split_tunnel_site_count',
+                    if (!directApps) ...[
+                      DividerSpace(),
+                      SplitTunnelingTile(
+                        tileKey: const Key('split_tunneling.websites_tile'),
+                        icon: AppImagePaths.world,
+                        label: 'websites'.i18n,
+                        actionText: _count(
+                          snapshot.websiteCount,
+                          'split_tunnel_site_count_one',
+                          'split_tunnel_site_count',
+                        ),
+                        onPressed: () =>
+                            appRouter.push(const WebsiteSplitTunneling()),
                       ),
-                      onPressed: () =>
-                          appRouter.push(const WebsiteSplitTunneling()),
-                    ),
+                    ],
                   ],
                 ),
               ),

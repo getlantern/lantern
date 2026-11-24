@@ -167,7 +167,11 @@ class _SettingState extends ConsumerState<Setting>
               children: [
                 AppTile(
                   tileKey: const Key('setting.vpn_setting_tile'),
-                  label: 'vpn_settings'.i18n,
+                  label:
+                      (AppBuildInfo.stealthNoVpn
+                              ? 'proxy_setup'
+                              : 'vpn_settings')
+                          .i18n,
                   icon: AppImagePaths.glob,
                   onPressed: () => settingMenuTap(_SettingType.vpnSetting),
                 ),
@@ -240,9 +244,10 @@ class _SettingState extends ConsumerState<Setting>
                   future: _canCheckForUpdates,
                   builder: (context, snapshot) {
                     final show =
-                        PlatformUtils.isDesktop ||
-                        (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.data == true);
+                        AppBuildInfo.enableAutoUpdate &&
+                        (PlatformUtils.isDesktop ||
+                            (snapshot.connectionState == ConnectionState.done &&
+                                snapshot.data == true));
                     if (!show) return const SizedBox.shrink();
                     return Column(
                       mainAxisSize: MainAxisSize.min,
@@ -261,7 +266,7 @@ class _SettingState extends ConsumerState<Setting>
                     );
                   },
                 ),
-                if (!isStoreVersion()) ...[
+                if (!isStoreVersion() && AppBuildInfo.enableSocialLinks) ...[
                   DividerSpace(),
                   AppTile(
                     label: 'get_30_days_of_pro_free'.i18n,

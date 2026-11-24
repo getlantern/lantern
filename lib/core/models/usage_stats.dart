@@ -53,7 +53,20 @@ class UsageStats {
 }
 
 /// The path traffic took. Declared in the order the screen lists them.
-enum UsagePath { proxyless, lantern, personal, private, direct }
+enum UsagePath {
+  proxyless('proxyless'),
+  servers('lantern'),
+  personal('personal'),
+  private('private'),
+  direct('direct');
+
+  const UsagePath(this.wireKey);
+
+  /// The key radiance reports this path under. It is a string literal, not
+  /// the enum name, so stealth builds de-brand it together with the native
+  /// library's JSON tag.
+  final String wireKey;
+}
 
 /// The bytes along each [UsagePath].
 class UsageTotals {
@@ -64,7 +77,7 @@ class UsageTotals {
   factory UsageTotals.fromJson(Map<String, dynamic> json) {
     return UsageTotals({
       for (final path in UsagePath.values)
-        path: UsageBytes.fromJson(_map(json[path.name])),
+        path: UsageBytes.fromJson(_map(json[path.wireKey])),
     });
   }
 

@@ -204,6 +204,7 @@ flutter:
     - assets/
     - assets/images/
     - assets/images/payments/
+    - assets/stealth/
     - path: assets/images/flags/
       platforms:
         - windows

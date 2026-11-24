@@ -29,9 +29,11 @@ import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
-import org.getlantern.lantern.service.LanternVpnService
+import org.getlantern.lantern.service.NoVpnProxyPort
+import org.getlantern.lantern.service.RadianceSetup
 import org.getlantern.lantern.updater.AndroidSideloadInstaller
 import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
+import org.getlantern.lantern.stealth.DirectConnectionAppExclusionStore
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -98,6 +100,9 @@ enum class Methods(val method: String) {
     // Ad blocking
     IsBlockAdsEnabled("isBlockAdsEnabled"),
     SetBlockAdsEnabled("setBlockAdsEnabled"),
+
+    // Stealth-novpn local proxy listen port
+    SetProxyListenPort("setProxyListenPort"),
 
     //private server methods
     DigitalOcean("digitalOcean"),
@@ -294,6 +299,10 @@ class MethodHandler : FlutterPlugin,
             Methods.SetSplitTunnelingEnabled.method -> {
                 scope.launch {
                     result.runCatching {
+                        if (BuildConfig.STEALTH_NO_VPN) {
+                            withContext(Dispatchers.Main) { success("disabled") }
+                            return@runCatching
+                        }
                         val enabled = call.argument<Boolean>("enabled") ?: error("Missing enabled")
                         Mobile.setSplitTunnelingEnabled(enabled)
                         withContext(Dispatchers.Main) { success("ok") }
@@ -313,7 +322,12 @@ class MethodHandler : FlutterPlugin,
                         val filterType =
                             call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-                        Mobile.addSplitTunnelItem(filterType, value)
+                        if (useDirectConnectionApps(filterType)) {
+                            DirectConnectionAppExclusionStore(appContext).addPackage(value)
+                            noteDirectConnectionAppsReconnect()
+                        } else {
+                            Mobile.addSplitTunnelItem(filterType, value)
+                        }
                         success("Item added")
                     }.onFailure { e ->
                         result.error(
@@ -331,7 +345,12 @@ class MethodHandler : FlutterPlugin,
                         val filterType =
                             call.argument<String>("filterType") ?: error("Missing filterType")
                         val value = call.argument<String>("value") ?: error("Missing value")
-                        Mobile.removeSplitTunnelItem(filterType, value)
+                        if (useDirectConnectionApps(filterType)) {
+                            DirectConnectionAppExclusionStore(appContext).removePackage(value)
+                            noteDirectConnectionAppsReconnect()
+                        } else {
+                            Mobile.removeSplitTunnelItem(filterType, value)
+                        }
                         success("Item removed")
                     }.onFailure { e ->
                         result.error(
@@ -620,7 +639,7 @@ class MethodHandler : FlutterPlugin,
 
             Methods.WaitForRadiance.method -> {
                 scope.handleValue<Any?>(result, "wait_for_radiance") {
-                    LanternVpnService.awaitRadianceReady()
+                    RadianceSetup.awaitReady()
                     null
                 }
             }
@@ -962,6 +981,13 @@ class MethodHandler : FlutterPlugin,
                 }
             }
 
+            Methods.SetProxyListenPort.method -> {
+                scope.handleResult(result, "set_proxy_listen_port") {
+                    val port = call.argument<Int>("port") ?: error("Missing port")
+                    NoVpnProxyPort.save(appContext, port)
+                }
+            }
+
             Methods.IsBlockAdsEnabled.method -> {
                 scope.handleValue(result, "is_block_ads_enabled") {
                     Mobile.isBlockAdsEnabled()
@@ -1184,7 +1210,11 @@ class MethodHandler : FlutterPlugin,
                     result.runCatching {
                         val filterType =
                             call.argument<String>("filterType") ?: error("Missing filterType")
-                        val json = Mobile.getSplitTunnelItems(filterType)
+                        val json = if (useDirectConnectionApps(filterType)) {
+                            DirectConnectionAppExclusionStore(appContext).effectivePackageNamesJson()
+                        } else {
+                            Mobile.getSplitTunnelItems(filterType)
+                        }
                         withContext(Dispatchers.Main) { success(json) }
                     }.onFailure { e ->
                         result.error(
@@ -1197,15 +1227,29 @@ class MethodHandler : FlutterPlugin,
             }
 
             Methods.GetSplitTunnelState.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
-                Mobile.getSplitTunnelStateJSON()
+                if (BuildConfig.STEALTH_DIRECT_CONNECTION_APPS) {
+                    directConnectionSplitTunnelState()
+                } else {
+                    Mobile.getSplitTunnelStateJSON()
+                }
             }
 
             Methods.SwitchSplitTunnelPolicy.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
+                check(!BuildConfig.STEALTH_DIRECT_CONNECTION_APPS) {
+                    "Direct-connection apps always bypass the tunnel"
+                }
                 Mobile.switchSplitTunnelPolicy(requireNotNull(call.argument<String>("policy")))
             }
 
             Methods.ClearSplitTunnelApps.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
-                Mobile.clearSplitTunnelApps()
+                if (BuildConfig.STEALTH_DIRECT_CONNECTION_APPS) {
+                    val store = DirectConnectionAppExclusionStore(appContext)
+                    store.removePackages(store.effectivePackageNames())
+                    noteDirectConnectionAppsReconnect()
+                    directConnectionSplitTunnelState()
+                } else {
+                    Mobile.clearSplitTunnelApps()
+                }
             }
 
             Methods.NormalizeSplitTunnelWebsite.method -> scope.handleValue(result, "SPLIT_TUNNEL_ERROR") {
@@ -1500,6 +1544,10 @@ class MethodHandler : FlutterPlugin,
             Methods.CheckVpnConflict.method -> {
                 scope.launch {
                     runCatching {
+                        if (BuildConfig.STEALTH_NO_VPN) {
+                            withContext(Dispatchers.Main) { result.success(false) }
+                            return@runCatching
+                        }
                         val hasConflict = isAnotherVpnActive(appContext)
                         withContext(Dispatchers.Main) {
                             result.success(hasConflict)
@@ -1694,6 +1742,30 @@ class MethodHandler : FlutterPlugin,
         }
         AppLogger.d(TAG, "No conflicting VPN network found")
         return false
+    }
+
+    private fun useDirectConnectionApps(filterType: String): Boolean {
+        return BuildConfig.STEALTH_DIRECT_CONNECTION_APPS && filterType == "packageName"
+    }
+
+    /**
+     * The split-tunnel state the Flutter screens read, built from the native
+     * direct-connection list. Those apps always bypass the tunnel, and websites
+     * are not offered in this mode.
+     */
+    private fun directConnectionSplitTunnelState(): String {
+        val packages = DirectConnectionAppExclusionStore(appContext).effectivePackageNames()
+        return JSONObject()
+            .put("enabled", true)
+            .put("policy", "exclude")
+            .put("filters", JSONObject().put("packageName", JSONArray(packages)))
+            .toString()
+    }
+
+    private fun noteDirectConnectionAppsReconnect() {
+        if (runCatching { Mobile.isVPNConnected() }.getOrDefault(false)) {
+            AppLogger.i(TAG, "Direct-connection app changes apply on next reconnect")
+        }
     }
 }
 

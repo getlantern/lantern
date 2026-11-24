@@ -95,9 +95,12 @@ SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR
 EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
 STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
 STEALTH_GO_LOG_LEVEL ?= warn
-# Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
-# (which leave BUILD_TYPE=production), so gate stealth flags on all three signals.
-STEALTH_ACTIVE := $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE))
+# A stealth-vpn/stealth-novpn BUILD_TYPE implies the matching STEALTH_MODE, so the
+# profile, de-branding, garble scope, identity, and Go flags all switch on from
+# the same STEALTH_MODE/STEALTH_PROFILE inputs (which may also leave
+# BUILD_TYPE=production).
+STEALTH_MODE ?= $(filter stealth-vpn stealth-novpn,$(BUILD_TYPE))
+STEALTH_ACTIVE := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
 STEALTH_GO_LDFLAGS := $(if $(STEALTH_ACTIVE),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
 # lantern-core keys its default log level off the build type (debug on
 # nightly). Stealth builds leave it out so their binaries don't name it.
@@ -230,7 +233,7 @@ ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-s
 ANDROID_CGO_CFLAGS ?= -O2 -g -fstack-protector-strong
 ANDROID_CGO_ENV = CGO_CFLAGS="$(ANDROID_CGO_CFLAGS)" CGO_CXXFLAGS="$(ANDROID_CGO_CFLAGS)" \
 	CGO_LDFLAGS="-O2 -g -static-libstdc++ -Wl,--exclude-libs,libc++_static.a:libc++abi.a"
-ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE)),1,0)
+ANDROID_STEALTH_IDENTITY ?= $(if $(STEALTH_ACTIVE),1,0)
 ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
 ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
 ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
@@ -354,6 +357,7 @@ STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS := $(if $(filter 1 true yes,$(STEALTH_ALL
 STEALTH_DEBRAND_KOTLIN_SCRIPT := scripts/stealth/debrand_kotlin.py
 STEALTH_ANDROID_GEN_DIR := $(BUILD_DIR)/stealth/android
 STEALTH_ANDROID_KOTLIN_OUT := $(STEALTH_ANDROID_GEN_DIR)/kotlin
+STEALTH_ANDROID_PROGUARD_NOVPN_OUT := $(STEALTH_ANDROID_GEN_DIR)/proguard-stealth-novpn.pro
 STEALTH_ANDROID_RES_OUT := $(STEALTH_ANDROID_GEN_DIR)/res
 STEALTH_PROFILE ?=
 STEALTH_MODE ?=
@@ -374,14 +378,17 @@ STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALT
 STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(if $(wildcard $(STEALTH_GO_TAGS_FILE)),$(strip $(file <$(STEALTH_GO_TAGS_FILE))),$(error missing $(STEALTH_GO_TAGS_FILE); run make stealth-profile before building)),)
 STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),ORG_GRADLE_PROJECT_stealthProfile="$(abspath $(STEALTH_PROFILE_OUT))",)
 MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),$(STEALTH_PROFILE_STAMP),)
+# Gradle compiles the generated Kotlin, resources and R8 rules whenever stealth
+# is on, so every Android build target generates them, not just the
+# android-stealth-* wrappers.
+MAYBE_STEALTH_ANDROID_SOURCES := $(if $(STEALTH_ENABLED),stealth-android-sources,)
 STEALTH_IS_NOVPN = $(if $(findstring novpn,$(STEALTH_GO_TAGS)),1,)
 GOMOBILE_REPOS_EFFECTIVE = $(if $(STEALTH_IS_NOVPN),$(GOMOBILE_REPOS_STEALTH_NOVPN),$(GOMOBILE_REPOS))
 GOMOBILE_JAVAPKG = $(if $(STEALTH_ENABLED),foundation.engine,lantern.io)
 STEALTH_FLUTTER_PREFIX = $(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_FLUTTER_BUILD_SCRIPT) --profile "$(STEALTH_PROFILE_OUT)" --,)
 # Stealth builds compile the REAL app entrypoint (lib/main.dart, Flutter's
 # default target). De-branding is a pre-compile transform (run_flutter_build.py)
-# plus the AppBuildInfo dart-define guards; the legacy lib/main_stealth.dart stub
-# is no longer used.
+# plus the AppBuildInfo dart-define guards.
 STEALTH_FLUTTER_TARGET =
 # Dart symbol obfuscation removes brand *identifiers* (e.g. LanternService) from
 # the AOT-compiled libapp.so. Applied to stealth release builds only; requires
@@ -404,7 +411,9 @@ stealth-android-sources:
 	  --output $(STEALTH_ANDROID_KOTLIN_OUT) \
 	  --res-source android/app/src/main/res \
 	  --res-overlay android/app/src/stealth/res \
-	  --res-output $(STEALTH_ANDROID_RES_OUT)
+	  --res-output $(STEALTH_ANDROID_RES_OUT) \
+	  --proguard-rules android/app/proguard-stealth-novpn.pro \
+	  --proguard-rules-output $(STEALTH_ANDROID_PROGUARD_NOVPN_OUT)
 
 .PHONY: stealth-profile FORCE
 stealth-profile:
@@ -532,7 +541,7 @@ desktop-lib-obfuscated: check-garble-seed
 	$(call MKDIR_P,$(dir $(LIB_NAME)))
 	@$(SETENV) $(GARBLE_ENV) $(GARBLE_BUILD) -v -trimpath -buildmode=c-shared \
 		-tags="$(TAGS)" \
-		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS) $(BUILD_TYPE_GO_LDFLAGS)" \
+		-ldflags="$(GARBLE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		-o $(LIB_NAME) ./$(FFI_DIR)
 	@echo "Built obfuscated desktop library: $(LIB_NAME)"
 
@@ -1057,7 +1066,7 @@ build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed che
 		-javapkg=$(GOMOBILE_JAVAPKG) \
 		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
 		-o=$(ANDROID_LIB_BUILD) \
-		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS) $(BUILD_TYPE_GO_LDFLAGS)" \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
 		$(GOMOBILE_REPOS_EFFECTIVE)
 
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
@@ -1108,7 +1117,7 @@ android-debug-ci: ANDROID_DEBUG_FLUTTER_FLAGS :=
 android-debug-ci: $(ANDROID_DEBUG_BUILD)
 
 $(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
-	$(MAKE) android-identity-profile
+	$(MAKE) android-identity-profile $(MAYBE_STEALTH_ANDROID_SOURCES)
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --build-name=$(ANDROID_VERSION_NAME) --debug $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_DEBUG_BUILD)
 
@@ -1170,7 +1179,7 @@ endef
 # -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
 # direct-download APK artifact; Play AAB builds intentionally omit it.
 .PHONY: android-apk-release
-android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
+android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE) $(MAYBE_STEALTH_ANDROID_SOURCES)
 	# Package the selected native build as-is; an implicit rebuild could replace a garbled AAR.
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
 	$(call android_apk_for_abi,arm64-v8a,android-arm64,$(ANDROID_RELEASE_APK))
@@ -1178,7 +1187,7 @@ android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
 
 # The AAB carries every ABI in android/abi-targets.properties.
 .PHONY: android-aab-release
-android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
+android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE) $(MAYBE_STEALTH_ANDROID_SOURCES)
 	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
 	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(ANDROID_VERSION_NAME) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE) $(PLAY_STORE_GRADLE_FLAGS)
 	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_AAB_RELEASE_BUILD),true)

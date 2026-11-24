@@ -2634,3 +2634,18 @@ msgstr "%s/мес."
 
 msgid "no_payment_methods_available"
 msgstr "Сейчас нет доступных способов оплаты. Пожалуйста, повторите попытку позже."
+
+msgid "feature_disabled_for_build"
+msgstr "Эта функция недоступна в этой сборке"
+
+msgid "direct_connection_apps"
+msgstr "Приложения с прямым подключением"
+
+msgid "direct_connection_apps_subtitle"
+msgstr "Выбранные приложения подключаются напрямую, вне защищённой маршрутизации"
+
+msgid "apps_using_direct_connection"
+msgstr "Приложения с прямым подключением (%d)"
+
+msgid "items_added_count"
+msgstr "Добавлено: %d"

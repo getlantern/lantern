@@ -1,4 +1,5 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:lantern/core/models/user.dart';
@@ -14,6 +15,9 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   Future<Either<Failure, String>> oAuthLogin(String provider) async {
+    if (!AppBuildInfo.enableOAuth) {
+      return left(Failure.featureDisabled('OAuth login'));
+    }
     return ref.read(lanternServiceProvider).getOAuthLoginUrl(provider);
   }
 
@@ -24,6 +28,9 @@ class AuthNotifier extends _$AuthNotifier {
   Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
     String authToken,
   ) async {
+    if (!AppBuildInfo.enableOAuth) {
+      return left(Failure.featureDisabled('OAuth login'));
+    }
     return ref.read(lanternServiceProvider).oAuthLoginCallback(authToken);
   }
 

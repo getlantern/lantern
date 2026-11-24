@@ -11,10 +11,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import lantern.io.mobile.LogSubscription
 import lantern.io.mobile.Mobile
-import lantern.io.utils.FlutterEvent
 import lantern.io.utils.LogListener
 import org.getlantern.lantern.apps.AppDataHandler
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.utils.AppEvent
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.Event
 import org.getlantern.lantern.utils.FlutterEventStream
@@ -41,7 +41,7 @@ class EventHandler : FlutterPlugin {
     private var appDataHandler: AppDataHandler? = null
 
     private var statusObserver: Observer<Event<VPNStatus>>? = null
-    private var flutterEventObserver: ((FlutterEvent) -> Unit)? = null
+    private var flutterEventObserver: ((AppEvent) -> Unit)? = null
     var job: Job? = null
     private var logsSubscription: LogSubscription? = null
     private var logsListener: LogListener? = null
@@ -177,7 +177,7 @@ class EventHandler : FlutterPlugin {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     AppLogger.d(TAG, "App event status channel listening")
                     flutterEventObserver?.let { FlutterEventStream.removeListener(it) }
-                    val listener: (FlutterEvent) -> Unit = { event ->
+                    val listener: (AppEvent) -> Unit = { event ->
                         val map = mutableMapOf<String, Any?>()
                         map["type"] = event.type
                         map["message"] = event.message

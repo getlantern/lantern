@@ -128,10 +128,7 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		env.SetStagingEnv()
 	}
 
-	logLevel := opts.LogLevel
-	if logLevel == "" {
-		logLevel = lanterncore.DefaultLogLevel()
-	}
+	pinForeignRefs(platform, nil)
 
 	startupCtx, cancelStartup := context.WithTimeout(context.Background(), ipcStartTimeout)
 	defer cancelStartup()
@@ -141,9 +138,9 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		LogDir:                  opts.LogDir,
 		Locale:                  opts.Locale,
 		TimeZone:                opts.TimeZone,
-		LogLevel:                logLevel,
+		LogLevel:                lanterncore.EffectiveLogLevel(opts.LogLevel),
 		DeviceID:                opts.Deviceid,
-		TelemetryConsent:        opts.TelemetryConsent,
+		TelemetryConsent:        lanterncore.EffectiveTelemetryConsent(opts.TelemetryConsent),
 		PlatformInterface:       platform,
 		EnvOverrides:            opts.RadianceEnvOverrides(),
 		UserMessageCapabilities: utils.UserMessageCapabilities(),
@@ -151,6 +148,8 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 	if err != nil {
 		return err
 	}
+	// The backend ran common.Init; on Apple this is the extension's only init path.
+	lanterncore.EnforceStealthLogLevel()
 	return publishIPCResources(generation, resources)
 }
 
