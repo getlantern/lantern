@@ -83,7 +83,11 @@ class SplitTunnelingApps extends _$SplitTunnelingApps {
       ref.read(splitTunnelProvider.notifier).clearApps();
 
   /// Android applies direct-connection apps when it builds the tunnel, so a
-  /// change made while connected takes effect on the next connection.
-  bool get changeWaitsForReconnect =>
-      directConnectionAppsMode && ref.read(vpnProvider) == VPNStatus.connected;
+  /// change made while connected, or while a tunnel that may already have
+  /// read the list is being built, takes effect on the next connection.
+  bool get changeWaitsForReconnect {
+    if (!directConnectionAppsMode) return false;
+    final status = ref.read(vpnProvider);
+    return status == VPNStatus.connected || status == VPNStatus.connecting;
+  }
 }
