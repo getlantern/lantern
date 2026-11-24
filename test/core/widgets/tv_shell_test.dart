@@ -407,7 +407,9 @@ void main() {
     }
     expect(rowFocused(8), isTrue);
     // Two Ups inside one inner animation: the first row's completion must
-    // not scroll the page back to it.
+    // not scroll the page back to it. Pins the outcome; with per-row steps
+    // the stale completion did not reproduce, so this did not fail before
+    // the guard.
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
     await tester.pump(const Duration(milliseconds: 20));
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
