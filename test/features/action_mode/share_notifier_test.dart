@@ -668,9 +668,52 @@ void main() {
       service.unboundedOk = true;
       await launch(notifier, ref);
       expect(service.calls, contains('unbounded:false'));
-      expect(notifier.state.active, isFalse, reason: '${service.calls}');
+      expect(notifier.state.active, isFalse);
+      // An eligible country, so only the TV policy can hold the start back.
+      CountryCode.update('DE');
+      service.calls.clear();
       await notifier.startForHelper(ref);
-      expect(service.calls, isNot(contains('upnp')), reason: 'no helper start');
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty, reason: 'no probe, no enable');
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('the TV shell stops a session the core reports after launch', (
+      tester,
+    ) async {
+      // The core could not answer at launch (nothing resumed), then reports
+      // a running SmC session: stopped where it is seen, not only at launch.
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      await launch(notifier, ref);
+      expect(notifier.state.active, isFalse);
+      service.calls.clear();
+      service.peerStatus = '{"phase":"serving"}';
+      await notifier.syncFromBackend(ref);
+      await tester.pump();
+      expect(service.calls, contains('peer:false'));
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.mode, ShareMode.off);
+    });
+
+    testWidgets('the TV shell never falls back to Unbounded', (tester) async {
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      service.unboundedOk = true;
+      await notifier.syncFromBackend(ref);
+      // SmC fails before the stop lands: no fallback starts on TV.
+      service.events.add(
+        AppEvent(eventType: 'peer-status', message: '{"phase":"error"}'),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(service.calls, isNot(contains('unbounded:true')));
+      expect(notifier.state.active, isFalse);
     });
 
     testWidgets('keeps a resumed session when the helper view cannot be read', (

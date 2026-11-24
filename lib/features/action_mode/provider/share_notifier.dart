@@ -111,6 +111,12 @@ class ShareNotifier extends _$ShareNotifier {
       _eventController.close();
       _relayPersistTimer?.cancel();
     });
+    // The TV shell has no Action Mode or Personal Proxies controls, so
+    // sharing never runs there. Every start path refuses (_autoStartWith,
+    // _runFallback, startForHelper), and this is the one place that catches
+    // what those cannot: a session the core reports active later, such as
+    // one radiance resumed before the core could answer at launch.
+    if (PlatformUtils.tvShellEnabled) listenSelf(_enforceTvPolicy);
     // A held-back helper start is for the people this device helps: once it
     // helps nobody, there is nothing left to start for.
     ref.listen<bool>(helpersProvider.select((s) => s.view.helping.isEmpty), (
@@ -238,7 +244,8 @@ class ShareNotifier extends _$ShareNotifier {
   /// A resumed session the user does not want (auto-enable off, or the tab
   /// hidden) is stopped, unless this device helps a friend through a
   /// helper-invite pairing: stopping it would cut off the friend's personal
-  /// proxy. A kept Unbounded session switches to SmC when a manual port is
+  /// proxy. On TV (the shell) it is stopped regardless: no screen there
+  /// could. A kept Unbounded session switches to SmC when a manual port is
   /// set, as the toggle would pick, unless it is a fallback from an SmC start
   /// that just failed; a failed SmC start falls back to Unbounded as usual.
   ///
@@ -714,6 +721,26 @@ class ShareNotifier extends _$ShareNotifier {
   @visibleForTesting
   Future<void> debugStop() => _stop();
 
+  /// Stops a session seen active on TV (see [build]). The launch
+  /// reconciliation stops its own under its gate, so it is left to it.
+  void _enforceTvPolicy(ShareState? previous, ShareState next) {
+    if (!next.active || _stopping || _launchInProgress || _tvStopPending) {
+      return;
+    }
+    _tvStopPending = true;
+    Future.microtask(() async {
+      try {
+        if (!ref.mounted || !state.active || _stopping) return;
+        appLogger.info('Action Mode on TV: nothing here could stop it, so stop');
+        await _stop(mode: state.mode);
+      } finally {
+        _tvStopPending = false;
+      }
+    });
+  }
+
+  bool _tvStopPending = false;
+
   /// Set while [_stop] runs; a fallback is then dropped.
   bool _stopping = false;
 
@@ -770,9 +797,10 @@ class ShareNotifier extends _$ShareNotifier {
 
   Future<void> _runFallback(String? reason) async {
     if (state.mode == ShareMode.unbounded) return;
-    // A helper start may have lost its eligibility while SmC registered.
+    // A helper start may have lost its eligibility while SmC registered;
+    // on TV nothing may start at all (see build).
     final guard = _startGuard;
-    if (guard != null && !guard()) {
+    if (PlatformUtils.tvShellEnabled || (guard != null && !guard())) {
       _stopEventSubscription();
       state = ShareState(totalCount: state.totalCount, relay: _idleRelay());
       _persistRelay(force: true);

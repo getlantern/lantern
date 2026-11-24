@@ -202,7 +202,9 @@ class Home extends HookConsumerWidget {
     // settings. With "Auto-enable Unbounded" off, or the tab hidden (hiding
     // is the opt-out), a resumed session is stopped, unless this device
     // helps a friend through a helper-invite pairing: stopping it would cut
-    // off the friend's personal proxy. A kept Unbounded session switches to
+    // off the friend's personal proxy. On TV it is stopped regardless, and
+    // nothing starts: the shell has no sharing controls (ShareNotifier
+    // enforces this itself). A kept Unbounded session switches to
     // SmC when a manual port is set (not on iOS), since a manual port is an
     // explicit request for SmC. Once the user has toggled sharing this run,
     // the launch auto-start below leaves that choice alone.
@@ -284,8 +286,9 @@ class Home extends HookConsumerWidget {
     });
 
     // A device that has used helper invites refreshes them at launch, so a
-    // volunteer approved while the app was closed starts helping now. Not
-    // behind the helper_invites flag: volunteers abroad are not flagged.
+    // volunteer approved while the app was closed starts helping now (not
+    // on TV, whose approval listener below is off). Not behind the
+    // helper_invites flag: volunteers abroad are not flagged.
     useEffect(() {
       if (!AppBuildInfo.enableHelperInvites) return null;
       WidgetsBinding.instance.addPostFrameCallback((_) {

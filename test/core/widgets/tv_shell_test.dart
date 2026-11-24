@@ -252,6 +252,13 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('tunnel failed'), findsOneWidget);
+    // The messenger queues snackbars one at a time: a second report would
+    // follow the first, so clear it and look again.
+    tester
+        .state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger))
+        .removeCurrentSnackBar();
+    await tester.pumpAndSettle();
+    expect(find.text('tunnel failed'), findsNothing, reason: 'reported once');
   });
 
   testWidgets('a right-to-left locale keeps the switch on the left', (

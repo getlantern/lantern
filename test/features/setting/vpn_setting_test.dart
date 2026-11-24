@@ -54,6 +54,18 @@ void main() {
     expect(find.byKey(manage), findsOneWidget);
   });
 
+  testWidgets('in the TV shell personal proxies alone do not earn the row', (
+    tester,
+  ) async {
+    // Manage Private Locations hides its Personal Proxies tab on TV.
+    PlatformUtils.debugTvShell = true;
+    addTearDown(() => PlatformUtils.debugTvShell = null);
+    await _pump(tester, servers: false, proxies: true);
+    expect(find.byKey(manage), findsNothing);
+    await _pump(tester, servers: true, proxies: true);
+    expect(find.byKey(manage), findsOneWidget);
+  });
+
   testWidgets('Invite a Personal Proxy heads the Private Locations group '
       'where helper invites are offered', (tester) async {
     const invite = Key('vpn_setting.invite_personal_proxy');

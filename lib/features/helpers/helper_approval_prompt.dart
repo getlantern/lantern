@@ -32,9 +32,11 @@ void useHelperApprovalPrompt(
     if (!enabled || !HelpersNotifier.buildEnabled) return null;
     Timer? retry;
     late void Function() schedule;
+    // A prompt queued for the next frame is dropped once this effect ends.
+    var live = true;
 
     Future<void> prompt() async {
-      if (!context.mounted || showing.value) return;
+      if (!live || !context.mounted || showing.value) return;
       final lifecycle = WidgetsBinding.instance.lifecycleState;
       if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
       if (!routes.isReadyForMessages) return;
@@ -95,11 +97,12 @@ void useHelperApprovalPrompt(
     routes.changes.addListener(schedule);
     final lifecycle = AppLifecycleListener(onResume: schedule);
     return () {
+      live = false;
       retry?.cancel();
       sub.close();
       payment.close();
       routes.changes.removeListener(schedule);
       lifecycle.dispose();
     };
-  }, [routes]);
+  }, [routes, enabled]);
 }
