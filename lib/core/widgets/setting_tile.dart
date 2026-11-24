@@ -5,6 +5,7 @@ import '../common/app_asset.dart';
 import '../common/app_dimens.dart';
 import '../common/app_semantic_colors.dart';
 import '../extensions/string.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'app_focusable.dart';
 
 class SettingTile extends StatelessWidget {
@@ -44,7 +45,9 @@ class SettingTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       builder: (context, onFocusChange) => InkWell(
         key: tileKey,
-        borderRadius: BorderRadius.circular(16),
+        // Rounds the ripple to the TV focus ring; the phone keeps its own.
+        borderRadius:
+            PlatformUtils.tvShellEnabled ? BorderRadius.circular(16) : null,
         onTap: onTap,
         onFocusChange: onFocusChange,
         splashColor: context.bgCallout,

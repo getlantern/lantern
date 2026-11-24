@@ -195,7 +195,11 @@ class _CompactProBanner extends StatelessWidget {
             child: TvFocusRing(
               borderRadius: BorderRadius.circular(9999),
               builder: (context, onFocusChange) => InkWell(
-                borderRadius: BorderRadius.circular(9999),
+                // Rounds the ripple to the TV focus ring; the phone keeps
+                // its own.
+                borderRadius: PlatformUtils.tvShellEnabled
+                    ? BorderRadius.circular(9999)
+                    : null,
                 onTap: () => appRouter.push(Plans()),
                 onFocusChange: onFocusChange,
                 child: Container(
