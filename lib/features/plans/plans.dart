@@ -188,32 +188,36 @@ class _PlansState extends ConsumerState<Plans>
                     ),
                   ),
                 ),
-                IntrinsicHeight(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: <Widget>[
-                      AppTextButton(
-                        label: 'privacy_policy'.i18n,
-                        fontSize: 12,
-                        textColor: context.textTertiary,
-                        onPressed: () {
-                          UrlUtils.openWithSystemBrowser(AppUrls.privacyPolicy);
-                        },
-                      ),
-                      VerticalDivider(indent: 10, endIndent: 10),
-                      AppTextButton(
-                        label: 'terms_of_service'.i18n,
-                        fontSize: 12,
-                        textColor: context.textTertiary,
-                        onPressed: () {
-                          UrlUtils.openWithSystemBrowser(
-                            AppUrls.termsOfService,
-                          );
-                        },
-                      ),
-                    ],
+                // Builds without the brand's links have no documents to open.
+                if (AppBuildInfo.enableSocialLinks)
+                  IntrinsicHeight(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        AppTextButton(
+                          label: 'privacy_policy'.i18n,
+                          fontSize: 12,
+                          textColor: context.textTertiary,
+                          onPressed: () {
+                            UrlUtils.openWithSystemBrowser(
+                              AppUrls.privacyPolicy,
+                            );
+                          },
+                        ),
+                        VerticalDivider(indent: 10, endIndent: 10),
+                        AppTextButton(
+                          label: 'terms_of_service'.i18n,
+                          fontSize: 12,
+                          textColor: context.textTertiary,
+                          onPressed: () {
+                            UrlUtils.openWithSystemBrowser(
+                              AppUrls.termsOfService,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
               },
               SizedBox(height: size24),
             ],
