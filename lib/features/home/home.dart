@@ -295,8 +295,14 @@ class Home extends HookConsumerWidget {
     }, const []);
 
     // A friend who claimed an invite waits on approval: open the code sheet
-    // over whatever shows, once per claim.
-    useHelperApprovalPrompt(context, ref, userMessageRouteObserver);
+    // over whatever shows, once per claim. Not on TV, which has no Personal
+    // Proxies controls to manage what it would approve.
+    useHelperApprovalPrompt(
+      context,
+      ref,
+      userMessageRouteObserver,
+      enabled: !tvShell,
+    );
 
     // Introduces Personal Proxies to a user who finished onboarding before
     // it did, once its flag and the user's flags allow.
@@ -314,18 +320,20 @@ class Home extends HookConsumerWidget {
     // unknown or censored; a later country-code event retries it. Not while
     // a HelpFriend screen waits on its claim: its success dialog's
     // Auto-enable row decides.
-    ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
-      prev,
-      next,
-    ) {
-      if (next <= (prev ?? 0)) return;
-      if (ref.read(helpersProvider.notifier).approvalStartHeld) return;
-      ref.read(shareProvider.notifier).startForHelper(ref);
-    });
-    ref.listen<String>(countryCodeProvider, (prev, next) {
-      if (prev == next) return;
-      ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
-    });
+    if (!tvShell) {
+      ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
+        prev,
+        next,
+      ) {
+        if (next <= (prev ?? 0)) return;
+        if (ref.read(helpersProvider.notifier).approvalStartHeld) return;
+        ref.read(shareProvider.notifier).startForHelper(ref);
+      });
+      ref.listen<String>(countryCodeProvider, (prev, next) {
+        if (prev == next) return;
+        ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
+      });
+    }
 
     return Scaffold(
       key: const Key('home.screen'),

@@ -4,6 +4,7 @@ import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/core/widgets/divider_space.dart';
+import 'package:lantern/core/widgets/tv_shell.dart';
 
 typedef BottomSheetBuilder = Function(
     BuildContext context, ScrollController scrollController);
@@ -29,7 +30,11 @@ void showAppBottomSheet({
   // "Server Locations / Bottom sheet open"): the modal's own surface and drag
   // handle span the whole screen, so they are dropped and drawn inside the
   // panel-wide box instead, while the modal barrier still dims everything.
+  // Opened from a full-screen route (no panel), the box sits under that
+  // route's centred column instead.
   final tvShell = PlatformUtils.tvShellEnabled;
+  final inPanel =
+      tvShell && context.findAncestorWidgetOfExactType<TvShell>() != null;
   showModalBottomSheet(
     context: context,
     backgroundColor: tvShell ? Colors.transparent : backgroundColor,
@@ -66,7 +71,7 @@ void showAppBottomSheet({
         );
       }
       if (!tvShell) return content;
-      return _tvPanelSheet(context, backgroundColor, content);
+      return _tvPanelSheet(context, backgroundColor, content, inPanel: inPanel);
     },
   );
 }
@@ -74,16 +79,18 @@ void showAppBottomSheet({
 Widget _tvPanelSheet(
   BuildContext context,
   Color? backgroundColor,
-  Widget child,
-) {
+  Widget child, {
+  required bool inPanel,
+}) {
   final sheetTheme = Theme.of(context).bottomSheetTheme;
   return Align(
-    alignment: Alignment.bottomRight,
+    alignment: inPanel ? Alignment.bottomRight : Alignment.bottomCenter,
     child: Padding(
-      padding: const EdgeInsets.only(right: tvSafeMarginH),
+      padding: EdgeInsets.only(right: inPanel ? tvSafeMarginH : 0),
       child: SizedBox(
-        width: tvRightPanelWidth(context),
+        width: inPanel ? tvRightPanelWidth(context) : tvContentMaxWidth,
         child: Material(
+          key: const Key('bottomsheet.tv_box'),
           color:
               backgroundColor ??
               sheetTheme.modalBackgroundColor ??

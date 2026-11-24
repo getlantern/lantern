@@ -23,12 +23,13 @@ void useHelperApprovalPrompt(
   UserMessageRouteObserver routes, {
   bool Function(BuildContext context)? overlayVisible,
   Duration retryInterval = const Duration(milliseconds: 250),
+  bool enabled = true,
 }) {
   final showing = useRef(false);
   final scheduled = useRef(false);
 
   useEffect(() {
-    if (!HelpersNotifier.buildEnabled) return null;
+    if (!enabled || !HelpersNotifier.buildEnabled) return null;
     Timer? retry;
     late void Function() schedule;
 

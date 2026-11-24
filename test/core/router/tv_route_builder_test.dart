@@ -55,7 +55,8 @@ void main() {
     },
   );
 
-  test('Action Mode and invite screens are sent back to Home', () {
+  test('Action Mode and invite screens are blocked (a push returns, a launch '
+      'lands on Home)', () {
     for (final name in [
       ActionModeSetting.name,
       HelpFriend.name,

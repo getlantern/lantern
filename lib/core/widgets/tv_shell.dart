@@ -164,8 +164,9 @@ class _TvShellState extends ConsumerState<TvShell> {
       ),
     );
 
-    // The panel runs to the bottom edge; the bottom safe margin is given as
-    // padding so lists end inside it while still scrolling off the edge.
+    // The panel runs to the bottom edge, so lists scroll off it. The bottom
+    // safe margin is given as MediaQuery padding for a screen that wants its
+    // list to end inside it; a list with its own padding reaches the edge.
     final right = Padding(
       padding: const EdgeInsets.only(top: tvSafeMarginV),
       child: SizedBox(
@@ -240,8 +241,10 @@ class _TvShellState extends ConsumerState<TvShell> {
   }
 }
 
-/// Focuses [node] and scrolls it fully into the safe area: Flutter's default
-/// only brings it to the viewport's edge, which on TV is the screen's edge.
+/// Focuses [node] and scrolls it into the safe area where the list has the
+/// room (Flutter's default only brings it to the viewport's edge, which on
+/// TV is the screen's edge); a list that ends right after its last row keeps
+/// that row at the edge, so a screen adds trailing padding when it wants it.
 void tvRequestFocus(
   FocusNode node, {
   ScrollPositionAlignmentPolicy? alignmentPolicy,
@@ -256,10 +259,13 @@ void tvRequestFocus(
       ? null
       : RenderAbstractViewport.maybeOf(renderObject);
   final scrollable = context == null ? null : Scrollable.maybeOf(context);
+  // The inset below is vertical: a horizontal scrollable (a carousel) gets
+  // Flutter's own reveal.
   if (context == null ||
       renderObject == null ||
       viewport == null ||
-      scrollable == null) {
+      scrollable == null ||
+      scrollable.position.axis != Axis.vertical) {
     FocusTraversalPolicy.defaultTraversalRequestFocusCallback(
       node,
       alignmentPolicy: alignmentPolicy,

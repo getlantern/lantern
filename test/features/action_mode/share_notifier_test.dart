@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/utils/country_code.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -651,6 +652,25 @@ void main() {
       expect(helpers(ref).helpsAsked, 1);
       expect(notifier.state.active, isTrue);
       expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('the TV shell stops a resumed session even for a friend', (
+      tester,
+    ) async {
+      // A TV that opted in before the shell, or helps a friend: nothing on
+      // its screens could stop sharing, so launch stops it.
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOn;
+      _helps = true;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      await launch(notifier, ref);
+      expect(service.calls, contains('unbounded:false'));
+      expect(notifier.state.active, isFalse, reason: '${service.calls}');
+      await notifier.startForHelper(ref);
+      expect(service.calls, isNot(contains('upnp')), reason: 'no helper start');
     });
 
     testWidgets('keeps a resumed session when the helper view cannot be read', (

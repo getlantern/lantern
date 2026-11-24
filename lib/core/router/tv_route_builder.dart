@@ -32,8 +32,9 @@ const Set<String> tvFullScreenRoutes = {
   DeveloperMode.name,
 };
 
-/// Action Mode and proxy-invite screens have no entry points on TV; a deep
-/// link or a stale push lands on Home instead of rendering them.
+/// Action Mode and proxy-invite screens have no entry points on TV and are
+/// never rendered: a stale push of one returns to the screen under it, and a
+/// launch straight into one (a deep link) lands on Home.
 const Set<String> tvRedirectRoutes = {
   ActionModeSetting.name,
   HelpFriend.name,

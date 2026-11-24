@@ -411,8 +411,9 @@ class ShareNotifier extends _$ShareNotifier {
     if (!state.active || state.mode == ShareMode.off) return;
     if (!_launchWanted()) {
       // A view that never loaded keeps the session: a local read failure
-      // must never cut off a friend.
-      if (ref.read(helpersProvider.notifier).helpsSomeoneNow == false) {
+      // must never cut off a friend. Not on TV, where nothing could stop it.
+      if (PlatformUtils.tvShellEnabled ||
+          ref.read(helpersProvider.notifier).helpsSomeoneNow == false) {
         appLogger.info('Action Mode resumed at launch: not wanted, stopping');
         await _stop(mode: state.mode);
         return;
@@ -582,6 +583,9 @@ class ShareNotifier extends _$ShareNotifier {
     WidgetRef widgetRef, {
     bool requireAutoEnable = false,
   }) async {
+    // The TV shell has no Personal Proxies controls, so it never shares for
+    // a friend (retryPendingHelperStart comes through here too).
+    if (PlatformUtils.tvShellEnabled) return;
     // Kept with a start held back below, so its retry asks the same. A
     // start already waiting without the tie is not tied after the fact.
     final needsAutoEnable =
@@ -631,6 +635,8 @@ class ShareNotifier extends _$ShareNotifier {
   /// change is in flight or sharing is already up, and never start without
   /// the consent ack.
   Future<void> _autoStartWith(Future<void> Function() start) async {
+    // The TV shell has no Action Mode controls: nothing starts on its own.
+    if (PlatformUtils.tvShellEnabled) return;
     if (_changing || state.active || state.probing) return;
     if (!_consentAcked) return;
     _changes++;

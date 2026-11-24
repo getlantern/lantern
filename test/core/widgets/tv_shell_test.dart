@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -28,8 +29,10 @@ class _FakeVpnNotifier extends VpnNotifier {
 }
 
 class _FakeVpnStatus extends VPNStatusNotifier {
+  static StreamController<LanternStatus>? events;
+
   @override
-  Stream<LanternStatus> build() => const Stream.empty();
+  Stream<LanternStatus> build() => events?.stream ?? const Stream.empty();
 }
 
 void main() {
@@ -142,6 +145,113 @@ void main() {
     );
     final panel = tester.getTopLeft(find.byType(Scaffold));
     expect(panel, const Offset(tvRightPanelX, tvSafeMarginV));
+  });
+
+  testWidgets('a sheet opened from a shell route fills the panel', (
+    tester,
+  ) async {
+    await pumpShell(
+      tester,
+      routeName: Setting.name,
+      child: Scaffold(
+        body: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showAppBottomSheet(
+              context: context,
+              title: 'sheet',
+              fitContent: true,
+              builder: (_, _) =>
+                  TextButton(onPressed: () {}, child: const Text('option')),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    expect(
+      Focus.of(tester.element(find.text('open'))).hasPrimaryFocus,
+      isTrue,
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pumpAndSettle();
+    final box = tester.getRect(find.byKey(const Key('bottomsheet.tv_box')));
+    expect(box.left, tvRightPanelX);
+    expect(box.right, 960 - tvSafeMarginH);
+    expect(box.bottom, 540, reason: 'anchored to the screen bottom');
+    expect(
+      Focus.of(tester.element(find.text('option'))).hasPrimaryFocus,
+      isTrue,
+      reason: 'the sheet takes focus',
+    );
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+    expect(
+      Focus.of(tester.element(find.text('open'))).hasPrimaryFocus,
+      isTrue,
+      reason: 'focus returns to the opener',
+    );
+  });
+
+  testWidgets('a sheet opened from a full-screen route sits under its column', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1920, 1080);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: const Size(960, 540),
+        child: MaterialApp(
+          theme: AppTheme.darkTheme(),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showAppBottomSheet(
+                  context: context,
+                  title: 'sheet',
+                  fitContent: true,
+                  builder: (_, _) => const Text('option'),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    final box = tester.getRect(find.byKey(const Key('bottomsheet.tv_box')));
+    expect(box.left, (960 - tvContentMaxWidth) / 2);
+    expect(box.width, tvContentMaxWidth);
+  });
+
+  testWidgets('a VPN error is reported once with two shells mounted', (
+    tester,
+  ) async {
+    final events = StreamController<LanternStatus>.broadcast();
+    _FakeVpnStatus.events = events;
+    addTearDown(() {
+      _FakeVpnStatus.events = null;
+      events.close();
+    });
+    await pumpShell(tester, routeName: Home.name);
+    tester.state<NavigatorState>(find.byType(Navigator)).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, _, _) =>
+            TvShell(routeName: Setting.name, child: rows(2)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The first shell stays mounted under the opaque route, offstage.
+    expect(find.byType(VPNSwitch, skipOffstage: false), findsNWidgets(2));
+    events.add(
+      LanternStatus(status: VPNStatus.error, error: 'tunnel failed'),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('tunnel failed'), findsOneWidget);
   });
 
   testWidgets('a right-to-left locale keeps the switch on the left', (
