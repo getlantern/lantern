@@ -339,4 +339,67 @@ void main() {
       }
     });
   }
+
+  // The TV shell: the cards sit on the panel's bottom whether the upsell
+  // pill is there (free) or not (Pro), so the status card never moves.
+  for (final isPro in [false, true]) {
+    testWidgets('TV shell keeps the ${isPro ? 'Pro' : 'free'} status card on '
+        'the panel bottom', (tester) async {
+      PlatformUtils.isTv = true;
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() {
+        PlatformUtils.isTv = false;
+        PlatformUtils.debugTvShell = null;
+      });
+      tester.view.devicePixelRatio = 2;
+      tester.view.physicalSize = const Size(1920, 1080);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      const panel = Size(459, 513);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            lanternServiceProvider.overrideWithValue(_FakeLanternService()),
+            isUserProProvider.overrideWithValue(isPro),
+            isUserExpiredProvider.overrideWithValue(false),
+            proRenewalProvider.overrideWithValue(ProRenewalInfo.none),
+            serverLocationProvider.overrideWithValue(
+              initialServerLocation().copyWith(
+                autoLocation: const AutoLocation(
+                  country: '',
+                  countryCode: '',
+                  displayName: 'fastest_server',
+                ),
+              ),
+            ),
+            radianceSettingsProvider.overrideWithValue(
+              const RadianceSettingsState(),
+            ),
+            vpnProvider.overrideWithValue(VPNStatus.disconnected),
+            macosExtensionProvider.overrideWithValue(
+              const MacOSExtensionState(SystemExtensionStatus.activated),
+            ),
+          ],
+          child: ScreenUtilInit(
+            designSize: const Size(960, 540),
+            child: MaterialApp(
+              theme: AppTheme.darkTheme(),
+              home: Scaffold(
+                body: Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox.fromSize(size: panel, child: const VpnTab()),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final card = tester.getRect(find.byType(Card));
+      expect(card.bottom, panel.height - tvSafeMarginV);
+      expect(find.byType(ProBanner), isPro ? findsNothing : findsOneWidget);
+    });
+  }
 }

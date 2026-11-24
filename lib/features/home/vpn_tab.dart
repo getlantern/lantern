@@ -27,7 +27,8 @@ class VpnTab extends ConsumerWidget {
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
     // The TV shell holds the switch in its left panel and has no proxy
-    // invites: the upsell pill sits on top with the cards right under it.
+    // invites: the cards sit on the panel's bottom, with the upsell pill
+    // above them, so a Pro user's status card stays where a free user's is.
     final tvShell = PlatformUtils.tvShellEnabled;
     return SafeArea(
       top: !tvShell,
@@ -43,10 +44,16 @@ class VpnTab extends ConsumerWidget {
                 ? const EdgeInsets.only(bottom: tvSafeMarginV)
                 : null,
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              constraints: BoxConstraints(
+                // The TV shell's bottom inset is the scroll view's padding,
+                // so it is not part of the column's minimum.
+                minHeight: tvShell
+                    ? constraints.maxHeight - tvSafeMarginV
+                    : constraints.maxHeight,
+              ),
               child: Column(
                 mainAxisAlignment: tvShell
-                    ? MainAxisAlignment.start
+                    ? MainAxisAlignment.end
                     : MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   // A friend waiting on approval takes the slot: the wait is
@@ -78,7 +85,9 @@ class VpnTab extends ConsumerWidget {
                       const PinnedServerWarning(),
                       const SizedBox(height: 8),
                       _SettingCard(),
-                      const SizedBox(height: defaultSize),
+                      // The TV shell's inset already keeps the card off the
+                      // edge.
+                      if (!tvShell) const SizedBox(height: defaultSize),
                     ],
                   ),
                 ],

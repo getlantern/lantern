@@ -37,7 +37,13 @@ class BaseScreen extends StatelessWidget {
             title: Text(title),
           ),
       body: Padding(
-        padding: padded ? defaultPadding : EdgeInsets.zero,
+        // The TV shell's lists run off the bottom edge; the panel's own
+        // inset keeps the last row inside the safe area.
+        padding: padded
+            ? (PlatformUtils.tvShellEnabled
+                ? defaultPadding.copyWith(bottom: 0)
+                : defaultPadding)
+            : EdgeInsets.zero,
         child: body,
       ),
       bottomSheet: bottomSheet,
