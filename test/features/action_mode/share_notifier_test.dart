@@ -85,10 +85,16 @@ class _FakeService implements LanternService {
   @override
   void Function()? onWaitForRadiance;
 
+  /// When set, waitForRadiance waits for it, as behind a core still
+  /// starting. Taken from [_readiness] at construction, since the notifier's
+  /// build asks before a test gets the service.
+  Completer<void>? readiness = _readiness;
+
   @override
   Future<void> waitForRadiance() async {
     calls.add('waitForRadiance');
     onWaitForRadiance?.call();
+    await readiness?.future;
   }
 
   /// The raw peer status syncFromBackend reads. Empty is the core's answer
@@ -147,6 +153,9 @@ ShareNotifier _notifier() => _setUp().$1;
 /// The view [_Helpers.helpsSomeone] loads: true helps a friend, false helps
 /// nobody, null fails to load.
 bool? _helps = false;
+
+/// Holds the fake core "not ready" from construction; see _FakeService.
+Completer<void>? _readiness;
 
 /// When set, helpsSomeone waits for it, as behind a launch refresh.
 Completer<void>? _helpsGate;
@@ -713,7 +722,17 @@ void main() {
       PlatformUtils.debugTvShell = true;
       addTearDown(() => PlatformUtils.debugTvShell = null);
       _appSetting = autoOn;
+      // Hold the core "not ready": nothing is written until it is.
+      _readiness = Completer<void>();
+      addTearDown(() => _readiness = null);
       final (_, _, service) = await _start(tester);
+      service.unboundedOk = true;
+      await tester.pump();
+      expect(service.calls, contains('waitForRadiance'));
+      expect(service.calls, isNot(contains('peer:false')));
+      expect(service.calls, isNot(contains('unbounded:false')));
+      service.readiness!.complete();
+      await tester.pump();
       await tester.pump();
       expect(
         service.calls,

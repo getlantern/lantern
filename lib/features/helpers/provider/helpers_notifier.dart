@@ -18,9 +18,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'helpers_notifier.g.dart';
 
 /// Whether this build and the server let this device use helper invites.
+/// The build side is the engine's own gate, so a screen that offers invites
+/// (onboarding, VPN Settings) agrees with the engine that would serve them.
 @riverpod
 bool helperInvitesAvailable(Ref ref) =>
-    AppBuildInfo.enableHelperInvites &&
+    HelpersNotifier.buildEnabled &&
     ref.watch(featureFlagProvider).getBool(FeatureFlag.helperInvites);
 
 /// Whether Manage Private Locations shows its "Personal Proxies" tab: while
