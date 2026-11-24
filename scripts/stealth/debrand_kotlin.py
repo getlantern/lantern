@@ -73,12 +73,16 @@ OAUTH_STUB_REPLACEMENTS: tuple[tuple[str, str], ...] = (
 )
 
 
-def debrand_text(text: str) -> str:
-    for old, new in OAUTH_STUB_REPLACEMENTS:
-        text = text.replace(old, new)
+def debrand_names(text: str) -> str:
     for old, new in TEXT_REPLACEMENTS:
         text = text.replace(old, new)
     return text
+
+
+def debrand_text(text: str) -> str:
+    for old, new in OAUTH_STUB_REPLACEMENTS:
+        text = text.replace(old, new)
+    return debrand_names(text)
 
 
 def debrand_path(relative: str) -> str:
@@ -244,7 +248,8 @@ def generate_proguard_rules(rules_source: Path, rules_output: Path, kotlin_root:
     if not rules_source.is_file():
         print(f"error: proguard rules not found: {rules_source}", file=sys.stderr)
         return 2
-    text = debrand_text(rules_source.read_text(encoding="utf-8"))
+    # Rules name classes only; the OAuth call stubs apply to Kotlin source.
+    text = debrand_names(rules_source.read_text(encoding="utf-8"))
     missing = [
         name for name in CHECKDISCARD_CLASS.findall(text) if not declares_class(kotlin_root, name)
     ]
