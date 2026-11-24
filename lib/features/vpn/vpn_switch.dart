@@ -51,6 +51,12 @@ class VPNSwitch extends HookConsumerWidget {
       }
       return null;
     }, [isCurrent]);
+    // onSurface: primary matches the connected track in dark mode.
+    final ring = Border.all(
+      color: Theme.of(context).colorScheme.onSurface,
+      width: 3,
+    );
+    final tvShell = PlatformUtils.tvShellEnabled;
     // The knob is a bare GestureDetector, so make the whole switch focusable
     // for D-pad and keyboard users (Android TV, desktop Tab).
     return FocusableActionDetector(
@@ -66,82 +72,89 @@ class VPNSwitch extends HookConsumerWidget {
           },
         ),
       },
-      child: CustomAnimatedToggleSwitch<bool>(
-        current: isVPNOn,
-        allowUnlistedValues: false,
-        values: [false, true],
-        spacing: 10.h,
-        onChanged: (value) {
-          appLogger.info('VPN Switch changed to: $value');
-          onVPNStateChange(ref, context);
-        },
-        loading: false,
-        height: PlatformUtils.isDesktop ? 70.h : 65.h,
-        indicatorSize: Size(60.r, 60.r),
-        iconBuilder: (context, local, global) {
-          return SizedBox();
-        },
-        foregroundIndicatorBuilder: (context, global) {
-          if (vpnStatus == VPNStatus.connecting ||
-              vpnStatus == VPNStatus.disconnecting) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(30.r),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(
-                  strokeWidth: 8.r,
+      // The TV shell draws the ring outside the switch, clear of the track.
+      child: _tvRing(
+        tvShell && showFocus.value ? ring : null,
+        tvShell,
+        CustomAnimatedToggleSwitch<bool>(
+          current: isVPNOn,
+          allowUnlistedValues: false,
+          values: [false, true],
+          spacing: 10.h,
+          onChanged: (value) {
+            appLogger.info('VPN Switch changed to: $value');
+            onVPNStateChange(ref, context);
+          },
+          loading: false,
+          // On TV the track's own padding is the knob's inset.
+          height: tvShell
+              ? 60.r
+              : PlatformUtils.isDesktop
+              ? 70.h
+              : 65.h,
+          indicatorSize: Size(60.r, 60.r),
+          iconBuilder: (context, local, global) {
+            return SizedBox();
+          },
+          foregroundIndicatorBuilder: (context, global) {
+            if (vpnStatus == VPNStatus.connecting ||
+                vpnStatus == VPNStatus.disconnecting) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(30.r),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 8.r,
+                    color: context.actionToggleKnobBg,
+                  ),
+                ),
+              );
+            }
+            return GestureDetector(
+              key: const Key('vpn.toggle'),
+              onTap: () {
+                appLogger.info('VPN Switch tapped');
+                onVPNStateChange(ref, context);
+              },
+              child: Container(
+                decoration: BoxDecoration(
                   color: context.actionToggleKnobBg,
+                  borderRadius: BorderRadius.circular(30.r),
                 ),
               ),
             );
-          }
-          return GestureDetector(
-            key: const Key('vpn.toggle'),
-            onTap: () {
-              appLogger.info('VPN Switch tapped');
-              onVPNStateChange(ref, context);
-            },
-            child: Container(
+          },
+          wrapperBuilder: (context, global, child) {
+            return Container(
+              key: Key('vpn.switch.${vpnStatus.name}'),
+              // The TV shell gives the knob the same inset all round.
+              padding: EdgeInsets.all(tvShell ? 10.r : 5.r),
               decoration: BoxDecoration(
-                color: context.actionToggleKnobBg,
-                borderRadius: BorderRadius.circular(30.r),
+                color: _wrapperColor(vpnStatus, context),
+                borderRadius: BorderRadius.circular(50.r),
+                border: showFocus.value && !tvShell ? ring : null,
               ),
-            ),
-          );
-        },
-        wrapperBuilder: (context, global, child) {
-          // onSurface: primary matches the connected track in dark mode.
-          final ring = Border.all(
-            color: Theme.of(context).colorScheme.onSurface,
-            width: 3,
-          );
-          final tvShell = PlatformUtils.tvShellEnabled;
-          final track = Container(
-            key: Key('vpn.switch.${vpnStatus.name}'),
-            padding: EdgeInsets.all(5.r),
-            decoration: BoxDecoration(
-              color: _wrapperColor(vpnStatus, context),
-              borderRadius: BorderRadius.circular(50.r),
-              border: showFocus.value && !tvShell ? ring : null,
-            ),
-            child: child,
-          );
-          if (!tvShell) return track;
-          // The TV shell draws the ring outside the track, clear of the
-          // knob's padding.
-          return Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(58.r),
-              border: showFocus.value ? ring : null,
-            ),
-            child: track,
-          );
-        },
+              child: child,
+            );
+          },
+        ),
       ),
+    );
+  }
+
+  /// On TV, room for the focus ring around [child]; elsewhere [child] as is.
+  Widget _tvRing(Border? ring, bool tvShell, Widget child) {
+    if (!tvShell) return child;
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(100),
+        border: ring,
+      ),
+      child: child,
     );
   }
 

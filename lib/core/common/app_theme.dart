@@ -111,7 +111,12 @@ class AppTheme {
         titleSpacing: 0,
         elevation: 0,
         backgroundColor: AppColors.gray1, // bg.surface
-        shape: Border(bottom: BorderSide(color: cs.outline)), // border.default
+        // The TV shell's headers have no line (Figma "Android TV / Settings")
+        // and no tint when a list scrolls under them.
+        shape: PlatformUtils.tvShellEnabled
+            ? null
+            : Border(bottom: BorderSide(color: cs.outline)), // border.default
+        scrolledUnderElevation: PlatformUtils.tvShellEnabled ? 0 : null,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: AppColors.white,
           statusBarBrightness: Brightness.light,
@@ -338,7 +343,12 @@ class AppTheme {
         titleSpacing: 0,
         elevation: 0,
         backgroundColor: AppColors.gray9, // bg.surface dark
-        shape: Border(bottom: BorderSide(color: cs.outline)), // border.default
+        // The TV shell's headers have no line (Figma "Android TV / Settings")
+        // and no tint when a list scrolls under them.
+        shape: PlatformUtils.tvShellEnabled
+            ? null
+            : Border(bottom: BorderSide(color: cs.outline)), // border.default
+        scrolledUnderElevation: PlatformUtils.tvShellEnabled ? 0 : null,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: AppColors.gray9,
           statusBarBrightness: Brightness.dark,

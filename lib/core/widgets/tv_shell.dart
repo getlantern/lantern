@@ -272,6 +272,15 @@ void tvRequestFocus(
   } else if (position.pixels < revealBottom) {
     target = revealBottom;
   }
+  // Lists scroll by focus, so text after the last row (a version number, a
+  // note) would never show: when nothing focusable follows [node] in this
+  // list and the rest fits below it, scroll to the end.
+  if (!_hasFocusableBelow(node, scrollable)) {
+    final tail = position.maxScrollExtent - revealBottom;
+    final room =
+        position.viewportDimension - renderObject.semanticBounds.height;
+    if (tail > 0 && tail <= room) target = position.maxScrollExtent;
+  }
   target = target.clamp(position.minScrollExtent, position.maxScrollExtent);
   if (target == position.pixels) return;
   position.animateTo(
@@ -279,4 +288,17 @@ void tvRequestFocus(
     duration: duration ?? const Duration(milliseconds: 150),
     curve: curve ?? Curves.easeInOut,
   );
+}
+
+bool _hasFocusableBelow(FocusNode node, ScrollableState scrollable) {
+  final scope = node.nearestScope;
+  if (scope == null) return false;
+  final bottom = node.rect.bottom;
+  for (final other in scope.traversalDescendants) {
+    if (identical(other, node)) continue;
+    final context = other.context;
+    if (context == null || Scrollable.maybeOf(context) != scrollable) continue;
+    if (other.rect.top >= bottom) return true;
+  }
+  return false;
 }

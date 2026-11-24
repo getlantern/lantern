@@ -201,6 +201,39 @@ void main() {
     expect(rowFocused(2), isTrue, reason: 'not the top of the list');
   });
 
+  testWidgets('the last row scrolls the text after it into view', (
+    tester,
+  ) async {
+    await pumpShell(
+      tester,
+      routeName: Setting.name,
+      child: Scaffold(
+        body: ListView(
+          children: [
+            for (var i = 0; i < 6; i++)
+              SettingTile(
+                tileKey: Key('row$i'),
+                label: 'row $i',
+                value: '',
+                icon: const Icon(Icons.info),
+                actions: const [],
+                onTap: () {},
+              ),
+            const SizedBox(height: 120),
+            const Text('Version 11.0.1', key: Key('version')),
+          ],
+        ),
+      ),
+    );
+    for (var i = 0; i < 5; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+    }
+    expect(rowFocused(5), isTrue);
+    final version = tester.getRect(find.byKey(const Key('version')));
+    expect(version.bottom, lessThanOrEqualTo(540 - tvSafeMarginV));
+  });
+
   testWidgets('a closed dialog hands focus back to the row that opened it', (
     tester,
   ) async {
