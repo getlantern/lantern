@@ -1656,7 +1656,7 @@ msgid "local_network_denied_title"
 msgstr "Allow Nearby devices"
 
 msgid "local_network_denied_body"
-msgstr "Lantern can't carry traffic while the Nearby devices permission is off. Android uses it for local network access, which the VPN connection needs."
+msgstr "Android needs “Nearby devices” turned on for Lantern to route your traffic. Lantern does not scan for or connect to devices around you."
 
 msgid "vpn_conflict_title"
 msgstr "Another VPN is already on"

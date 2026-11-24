@@ -285,7 +285,7 @@ class AppDialog {
       scrollable: true,
       primaryLabel: 'open_settings'.i18n,
       onPrimaryPressed: onOpenSettings,
-      secondaryLabel: 'vpn_conflict_connect_anyway'.i18n,
+      secondaryLabel: 'not_now'.i18n,
       onSecondaryPressed: () {
         appLogger.info('Local network dialog: user chose connect anyway');
         onConnectAnyway();
