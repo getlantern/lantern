@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_dimens.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/core/widgets/divider_space.dart';
 
@@ -22,31 +24,76 @@ void showAppBottomSheet({
 }) {
   // backgroundColor (unless given) and shape come from bottomSheetTheme in
   // app_theme.dart
+  //
+  // In the TV shell the sheet is confined to the screen's panel (Figma
+  // "Server Locations / Bottom sheet open"): the modal's own surface and drag
+  // handle span the whole screen, so they are dropped and drawn inside the
+  // panel-wide box instead, while the modal barrier still dims everything.
+  final tvShell = PlatformUtils.tvShellEnabled;
   showModalBottomSheet(
     context: context,
-    backgroundColor: backgroundColor,
+    backgroundColor: tvShell ? Colors.transparent : backgroundColor,
+    // Material 3 caps a sheet at 640dp and centres it; the panel-wide box
+    // below needs the whole width to sit over the screen's panel.
+    constraints: tvShell
+        ? const BoxConstraints(maxWidth: double.infinity)
+        : null,
     isDismissible: true,
-    enableDrag: true,
-    showDragHandle: true,
+    enableDrag: !tvShell,
+    showDragHandle: !tvShell,
     scrollControlDisabledMaxHeightRatio: scrollControlDisabledMaxHeightRatio,
     builder: (context) {
       focusFirstOnTv(context);
+      final Widget content;
       if (fitContent) {
-        return _ContentSheet(title: title, subtitle: subtitle, builder: builder);
+        content = _ContentSheet(
+          title: title,
+          subtitle: subtitle,
+          builder: builder,
+        );
+      } else {
+        content = DraggableScrollableSheet(
+          expand: true,
+          initialChildSize: 1,
+          minChildSize: 0.85,
+          builder: (BuildContext context, ScrollController scrollController) =>
+              _sheetColumn(
+                context,
+                title: title,
+                subtitle: subtitle,
+                child: builder(context, scrollController),
+              ),
+        );
       }
-      return DraggableScrollableSheet(
-        expand: true,
-        initialChildSize: 1,
-        minChildSize: 0.85,
-        builder: (BuildContext context, ScrollController scrollController) =>
-            _sheetColumn(
-              context,
-              title: title,
-              subtitle: subtitle,
-              child: builder(context, scrollController),
-            ),
-      );
+      if (!tvShell) return content;
+      return _tvPanelSheet(context, backgroundColor, content);
     },
+  );
+}
+
+Widget _tvPanelSheet(
+  BuildContext context,
+  Color? backgroundColor,
+  Widget child,
+) {
+  final sheetTheme = Theme.of(context).bottomSheetTheme;
+  return Align(
+    alignment: Alignment.bottomRight,
+    child: Padding(
+      padding: const EdgeInsets.only(right: tvSafeMarginH),
+      child: SizedBox(
+        width: tvRightPanelWidth(context),
+        child: Material(
+          color:
+              backgroundColor ??
+              sheetTheme.modalBackgroundColor ??
+              sheetTheme.backgroundColor,
+          shape: sheetTheme.shape,
+          clipBehavior: Clip.antiAlias,
+          child: Padding(padding: const EdgeInsets.only(top: 16), child: child),
+        ),
+      ),
+    ),
   );
 }
 

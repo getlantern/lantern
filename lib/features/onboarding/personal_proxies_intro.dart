@@ -70,6 +70,8 @@ void usePersonalProxiesIntro(
 
     PersonalProxiesIntroPages? due() {
       if (!context.mounted || pushed.value) return null;
+      // The TV shell has no Action Mode or invite entry points.
+      if (PlatformUtils.tvShellEnabled) return null;
       final setting = ref.read(appSettingProvider);
       if (!setting.onboardingCompleted || setting.personalProxiesIntroSeen) {
         return null;

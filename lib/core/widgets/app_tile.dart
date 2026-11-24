@@ -134,21 +134,24 @@ class AppTile extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 2))
         : trailing ?? (showChevron ? const Icon(Icons.chevron_right) : null);
 
-    final tile = ListTile(
-      key: tileKey,
-      enabled: enabled && !loading,
-      minVerticalPadding: 0,
-      selected: selected,
-      titleAlignment: titleAlignment ?? ListTileTitleAlignment.center,
-      enableFeedback: true,
-      // hoverColor: hoverColor ?? AppColors.blue1,
-      hoverColor: hoverColor ?? theme.hoverColor,
-      // selectedTileColor: selectedTileColor ?? AppColors.blue1,
-      selectedTileColor: selectedTileColor ?? theme.hoverColor,
-      tileColor: tileColor,
-      minTileHeight: minHeight ?? effectiveMinHeight,
-      shape: RoundedRectangleBorder(
-        borderRadius: borderRadius ?? BorderRadius.circular(16),
+    final tile = TvFocusRing(
+      borderRadius: borderRadius ?? BorderRadius.circular(16),
+      builder: (context, onFocusChange) => ListTile(
+        key: tileKey,
+        onFocusChange: onFocusChange,
+        enabled: enabled && !loading,
+        minVerticalPadding: 0,
+        selected: selected,
+        titleAlignment: titleAlignment ?? ListTileTitleAlignment.center,
+        enableFeedback: true,
+        // hoverColor: hoverColor ?? AppColors.blue1,
+        hoverColor: hoverColor ?? theme.hoverColor,
+        // selectedTileColor: selectedTileColor ?? AppColors.blue1,
+        selectedTileColor: selectedTileColor ?? theme.hoverColor,
+        tileColor: tileColor,
+        minTileHeight: minHeight ?? effectiveMinHeight,
+        shape: RoundedRectangleBorder(
+          borderRadius: borderRadius ?? BorderRadius.circular(16),
       ),
       contentPadding:
           contentPadding ?? const EdgeInsets.symmetric(horizontal: 16),
@@ -168,6 +171,7 @@ class AppTile extends StatelessWidget {
       onLongPress: enabled && !loading ? onLongPress : null,
       horizontalTitleGap: 12,
       visualDensity: visualDensity ?? VisualDensity.standard,
+      ),
     );
 
     final wrapped =

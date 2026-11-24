@@ -79,6 +79,10 @@ class PrimaryButton extends StatelessWidget {
     // Heights
     final height = isTaller == true ? hCap(context, 56) : hCap(context, 48);
 
+    final tvRing = PlatformUtils.tvShellEnabled
+        ? tvFocusRingBorder(context)
+        : null;
+
     return style.copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color>((
         Set<WidgetState> states,
@@ -101,6 +105,10 @@ class PrimaryButton extends StatelessWidget {
       side: WidgetStateProperty.resolveWith<BorderSide>((
         Set<WidgetState> states,
       ) {
+        // The TV shell's ring: a D-pad user cannot see the hover colour.
+        if (tvRing != null && states.contains(WidgetState.focused)) {
+          return tvRing;
+        }
         if (states.contains(WidgetState.disabled)) {
           // primary-disabled-border: Gray.400 light / Gray.500 dark
           return BorderSide(
@@ -293,21 +301,20 @@ class AppTextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final cappedFontSize = fontSize == null ? null : spCap(context, fontSize!);
 
+    final style = TextButton.styleFrom(
+      padding: padding ?? EdgeInsets.symmetric(horizontal: defaultSize),
+      visualDensity: VisualDensity.compact,
+      textStyle: AppTextStyles.titleMedium.copyWith(
+        overflow: TextOverflow.ellipsis,
+        decoration: underLine ? TextDecoration.underline : TextDecoration.none,
+        fontSize: cappedFontSize,
+      ),
+      // text.link from semantic token
+      foregroundColor: textColor ?? context.textLink,
+    );
     return TextButton(
       onPressed: onPressed,
-      style: TextButton.styleFrom(
-        padding: padding ?? EdgeInsets.symmetric(horizontal: defaultSize),
-        visualDensity: VisualDensity.compact,
-        textStyle: AppTextStyles.titleMedium.copyWith(
-          overflow: TextOverflow.ellipsis,
-          decoration: underLine
-              ? TextDecoration.underline
-              : TextDecoration.none,
-          fontSize: cappedFontSize,
-        ),
-        // text.link from semantic token
-        foregroundColor: textColor ?? context.textLink,
-      ),
+      style: style.merge(tvFocusRingButtonStyle(context)),
       child: Text(label),
     );
   }

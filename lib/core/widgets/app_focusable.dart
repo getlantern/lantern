@@ -70,6 +70,78 @@ class _AppFocusableState extends State<AppFocusable> {
   }
 }
 
+/// The TV shell's focus ring, for widgets that are not an [AppFocusable]:
+/// the same 3px onSurface line.
+BorderSide tvFocusRingBorder(BuildContext context) =>
+    BorderSide(color: Theme.of(context).colorScheme.onSurface, width: 3);
+
+/// A Material button style that draws [tvFocusRingBorder] while focused,
+/// only in the TV shell; elsewhere null, so the button keeps its own style.
+ButtonStyle? tvFocusRingButtonStyle(BuildContext context) {
+  if (!PlatformUtils.tvShellEnabled) return null;
+  final ring = tvFocusRingBorder(context);
+  return ButtonStyle(
+    side: WidgetStateProperty.resolveWith(
+      (states) => states.contains(WidgetState.focused) ? ring : null,
+    ),
+  );
+}
+
+/// Marks a control the TV shell skips when it gives a screen its first
+/// focus (a back or close button): still reachable with the D-pad, but a
+/// screen opens on its first row or primary action.
+class TvNotInitialFocus extends StatelessWidget {
+  const TvNotInitialFocus({super.key, required this.child});
+
+  final Widget child;
+
+  /// Whether [node] sits under a [TvNotInitialFocus].
+  static bool skips(FocusNode node) =>
+      node.context?.findAncestorWidgetOfExactType<TvNotInitialFocus>() !=
+      null;
+
+  @override
+  Widget build(BuildContext context) => child;
+}
+
+/// Draws [tvFocusRingBorder] over [builder]'s widget while that widget
+/// reports focus through the callback it is given (an InkWell or ListTile's
+/// onFocusChange), only in the TV shell; elsewhere the widget is unchanged.
+class TvFocusRing extends StatefulWidget {
+  const TvFocusRing({super.key, required this.builder, this.borderRadius});
+
+  final Widget Function(BuildContext context, ValueChanged<bool> onFocusChange)
+  builder;
+  final BorderRadius? borderRadius;
+
+  @override
+  State<TvFocusRing> createState() => _TvFocusRingState();
+}
+
+class _TvFocusRingState extends State<TvFocusRing> {
+  bool _focused = false;
+
+  void _onFocusChange(bool focused) {
+    if (focused != _focused) setState(() => _focused = focused);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!PlatformUtils.tvShellEnabled) {
+      return widget.builder(context, (_) {});
+    }
+    return Container(
+      foregroundDecoration: BoxDecoration(
+        border: _focused
+            ? Border.fromBorderSide(tvFocusRingBorder(context))
+            : null,
+        borderRadius: widget.borderRadius,
+      ),
+      child: widget.builder(context, _onFocusChange),
+    );
+  }
+}
+
 /// Focuses the first control of a sheet or dialog that just opened, so a TV
 /// remote can act on it without a first arrow press.
 void focusFirstOnTv(BuildContext context) {

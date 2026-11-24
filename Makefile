@@ -336,6 +336,11 @@ APPDMG    := $(call get-command,appdmg)
 
 AUTO_UPDATE_E2E_DART_DEFINE := $(if $(filter true 1 yes,$(AUTO_UPDATE_E2E)),--dart-define=AUTO_UPDATE_E2E=true,)
 DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),) $(if $(RADIANCE_ENV),--dart-define=RADIANCE_ENV=$(RADIANCE_ENV),) $(AUTO_UPDATE_E2E_DART_DEFINE)
+# Android TV two-panel shell (lib/core/widgets/tv_shell.dart). On for debug,
+# nightly and beta builds; production keeps today's TV layout until every
+# screen is converted. Override with TV_SHELL=true or TV_SHELL=false.
+TV_SHELL ?= $(if $(filter nightly beta,$(BUILD_TYPE)),true,)
+TV_SHELL_DART_DEFINE = $(if $(filter true 1 yes,$(TV_SHELL)),--dart-define=TV_SHELL=true,)
 FLUTTER_TARGET_ARG := $(if $(FLUTTER_TARGET),--target=$(FLUTTER_TARGET),)
 MACOS_CONNECT_SMOKE_DEFINES := $(if $(filter true,$(RUN_CONNECT_SMOKE)),--dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=$(ENABLE_IP_CHECK) --dart-define=SMOKE_FORCE_FULL_TUNNEL=$(FORCE_FULL_TUNNEL) --dart-define=VPN_LIFECYCLE_SMOKE=$(VPN_LIFECYCLE_SMOKE),)
 STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
@@ -387,7 +392,7 @@ STEALTH_FLUTTER_TARGET =
 # the AOT-compiled libapp.so. Applied to stealth release builds only; requires
 # --split-debug-info. The symbol map stays local and is NOT shipped in the APK.
 STEALTH_FLUTTER_OBFUSCATE = $(if $(STEALTH_ENABLED),--obfuscate --split-debug-info=$(BUILD_DIR)/stealth/debug-symbols,)
-FLUTTER_DART_DEFINES = $(if $(STEALTH_ENABLED),$(if $(VERSION),--dart-define=VERSION=$(VERSION),),$(DART_DEFINES))
+FLUTTER_DART_DEFINES = $(if $(STEALTH_ENABLED),$(if $(VERSION),--dart-define=VERSION=$(VERSION),),$(DART_DEFINES) $(TV_SHELL_DART_DEFINE))
 
 INSTALLER_RESOURCES := installer-resources
 
@@ -1102,6 +1107,7 @@ verify-stealth-jni:
 	echo "PASS: JNI namespace gate ($(ANDROID_ABIS))"
 
 .PHONY: android-debug android-debug-ci
+android-debug android-debug-ci: TV_SHELL := true
 android-debug: $(ANDROID_DEBUG_BUILD)
 
 android-debug-ci: ANDROID_DEBUG_FLUTTER_FLAGS :=

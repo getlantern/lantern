@@ -1,13 +1,18 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:lantern/core/router/router.gr.dart';
+import 'package:lantern/core/router/tv_route_builder.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/utils/route_utils.dart';
 
 @AutoRouterConfig(
   replaceInRouteName: 'Page,Route,Screen',
 )
 class AppRouter extends RootStackRouter {
+  // The TV shell wraps every screen (lib/core/router/tv_route_builder.dart).
   @override
-  RouteType get defaultRouteType => const RouteType.adaptive();
+  RouteType get defaultRouteType => PlatformUtils.tvShellEnabled
+      ? RouteType.custom(customRouteBuilder: tvRouteBuilder)
+      : const RouteType.adaptive();
 
   @override
   final List<AutoRoute> routes = [
@@ -15,12 +20,20 @@ class AppRouter extends RootStackRouter {
       path: '/',
       page: Home.page,
     ),
-    CustomRoute(
-      path: '/setting',
-      page: Setting.page,
-      transitionsBuilder: slideLeftToRight,
-      duration: Duration(milliseconds: 320),
-    ),
+    // A per-route type wins over defaultRouteType, so the TV shell gets a
+    // plain route here instead of the phone's slide.
+    if (PlatformUtils.tvShellEnabled)
+      AutoRoute(
+        path: '/setting',
+        page: Setting.page,
+      )
+    else
+      CustomRoute(
+        path: '/setting',
+        page: Setting.page,
+        transitionsBuilder: slideLeftToRight,
+        duration: Duration(milliseconds: 320),
+      ),
     AutoRoute(
       path: '/language',
       page: Language.page,

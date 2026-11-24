@@ -26,7 +26,12 @@ class VpnTab extends ConsumerWidget {
     final isUserPro = ref.watch(isUserProProvider);
     final serverLocation = ref.watch(serverLocationProvider);
     final serverType = serverLocation.serverType.toServerLocationType;
+    // The TV shell holds the switch in its left panel and has no proxy
+    // invites: the upsell pill sits on top with the cards right under it.
+    final tvShell = PlatformUtils.tvShellEnabled;
     return SafeArea(
+      top: !tvShell,
+      bottom: !tvShell,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: defaultSize),
         // Preserve the spaced layout when it fits while allowing the body to
@@ -34,17 +39,22 @@ class VpnTab extends ConsumerWidget {
         child: LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
             primary: false,
+            padding: tvShell
+                ? const EdgeInsets.only(bottom: tvSafeMarginV)
+                : null,
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: tvShell
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   // A friend waiting on approval takes the slot: the wait is
                   // short and the invite expires. Otherwise it is the Pro
                   // upsell's. "Get a Personal Proxy" has no card here: its
                   // entry points are the Private Locations list and VPN
                   // Settings.
-                  if (ref.watch(personalProxyWaitingProvider))
+                  if (!tvShell && ref.watch(personalProxyWaitingProvider))
                     const PersonalProxyBanner()
                   else if (proBannerShows(ref))
                     const ProBanner()
@@ -52,7 +62,10 @@ class VpnTab extends ConsumerWidget {
                     // Keeps the slot, so the switch stays centred between it
                     // and the cards rather than rising to the top.
                     const SizedBox.shrink(),
-                  const VPNSwitch(),
+                  if (tvShell)
+                    const SizedBox(height: defaultSize)
+                  else
+                    const VPNSwitch(),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[

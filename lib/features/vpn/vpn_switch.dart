@@ -10,11 +10,23 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 
 class VPNSwitch extends HookConsumerWidget {
-  const VPNSwitch({super.key});
+  const VPNSwitch({super.key, this.focusNode, this.autofocusOnTv = true});
+
+  /// The TV shell's node, so the shell can send focus here from the screen.
+  final FocusNode? focusNode;
+
+  /// False in the TV shell, which decides itself when the switch takes focus.
+  final bool autofocusOnTv;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<LanternStatus>>(vPNStatusProvider, (previous, next) {
+      // The TV shell mounts one switch per screen in the stack, and the
+      // messenger is app-wide: only the visible one reports.
+      if (PlatformUtils.tvShellEnabled &&
+          !(ModalRoute.of(context)?.isCurrent ?? true)) {
+        return;
+      }
       if (next is AsyncData<LanternStatus> &&
           next.value.status == VPNStatus.error) {
         context.showSnackBar(
@@ -25,13 +37,14 @@ class VPNSwitch extends HookConsumerWidget {
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     final showFocus = useState(false);
-    final focusNode = useFocusNode(debugLabel: 'VPNSwitch');
+    final ownFocusNode = useFocusNode(debugLabel: 'VPNSwitch');
+    final focusNode = this.focusNode ?? ownFocusNode;
     // On TV the switch claims focus itself, and Home pushes routes (e.g.
     // onboarding) over it; while covered it must not hold focus, or the remote
     // would toggle it unseen. Elsewhere Flutter's route focus restore suffices.
     final isCurrent = ModalRoute.of(context)?.isCurrent ?? true;
     useEffect(() {
-      if (PlatformUtils.isTv && isCurrent) {
+      if (PlatformUtils.isTv && autofocusOnTv && isCurrent) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (focusNode.context != null) focusNode.requestFocus();
         });

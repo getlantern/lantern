@@ -318,12 +318,16 @@ class _LanternAppState extends ConsumerState<LanternApp>
     final isStaging = appSetting.isStaging;
     final paymentSessionActive = ref.watch(paymentSessionProvider);
     Localization.defaultLocale = locale;
+    // The TV shell (lib/core/widgets/tv_shell.dart) is laid out per route
+    // instead of the centered column; off the shell TVs keep the column.
+    final tvShell = PlatformUtils.tvShellEnabled;
     return GlobalLoaderOverlay(
       overlayColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5),
       overlayWidgetBuilder: (_) => Center(child: LoadingIndicator()),
       child: WindowWrapper(
         child: SystemTrayWrapper(
           child: TvFrame(
+            enabled: !tvShell,
             background: _tvBackground(context, appSetting.themeMode),
             child: Builder(
               builder: (context) => ScreenUtilInit(
@@ -353,9 +357,12 @@ class _LanternAppState extends ConsumerState<LanternApp>
                       return UserMessageHost(
                         routeObserver: userMessageRouteObserver,
                         actionDispatcher: _userMessageActionDispatcher,
+                        // Not in the TV shell until its action button can
+                        // take D-pad focus.
                         enabled:
                             appSetting.onboardingCompleted &&
-                            !paymentSessionActive,
+                            !paymentSessionActive &&
+                            !tvShell,
                         child: shell,
                       );
                     },

@@ -528,7 +528,9 @@ class HelpFriend extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                if (AppBuildInfo.enableQrScanner && PlatformUtils.isMobile)
+                if (AppBuildInfo.enableQrScanner &&
+                    PlatformUtils.isMobile &&
+                    !PlatformUtils.tvShellEnabled)
                   Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: AppTextButton(

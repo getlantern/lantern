@@ -37,7 +37,8 @@ class ProBanner extends HookConsumerWidget {
     final isExpired = ref.watch(isUserExpiredProvider);
 
     final textTheme = Theme.of(context).textTheme;
-    if (isSmallScreen(context)) {
+    // The TV shell's Home shows the pill above full-size rows.
+    if (isSmallScreen(context) || PlatformUtils.tvShellEnabled) {
       return _CompactProBanner(
         isExpired: isExpired,
         topMargin: topMargin,
@@ -107,7 +108,7 @@ class ProBanner extends HookConsumerWidget {
     };
 
     final isError = info.state != ProRenewalState.withinWeek;
-    if (isSmallScreen(context)) {
+    if (isSmallScreen(context) || PlatformUtils.tvShellEnabled) {
       return Tooltip(
         message: '$bannerTitle\n$subtitle',
         child: _CompactProBanner(
@@ -191,10 +192,13 @@ class _CompactProBanner extends StatelessWidget {
         child: MergeSemantics(
           child: Semantics(
             button: true,
-            child: InkWell(
+            child: TvFocusRing(
               borderRadius: BorderRadius.circular(9999),
-              onTap: () => appRouter.push(Plans()),
-              child: Container(
+              builder: (context, onFocusChange) => InkWell(
+                borderRadius: BorderRadius.circular(9999),
+                onTap: () => appRouter.push(Plans()),
+                onFocusChange: onFocusChange,
+                child: Container(
                 height: 40,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -231,6 +235,7 @@ class _CompactProBanner extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
               ),
             ),
           ),

@@ -178,7 +178,7 @@ class _SettingState extends ConsumerState<Setting>
                   icon: AppImagePaths.dataUsage,
                   onPressed: () => settingMenuTap(_SettingType.usageStats),
                 ),
-                if (unboundedAvailable) ...[
+                if (unboundedAvailable && !PlatformUtils.tvShellEnabled) ...[
                   DividerSpace(),
                   AppTile(
                     label: 'unbounded_settings_title'.i18n,

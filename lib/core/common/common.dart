@@ -295,6 +295,7 @@ ThemeMode resolveThemeMode(String raw) {
     case 'dark':
       return ThemeMode.dark;
     default:
-      return ThemeMode.system;
+      // The TV shell is dark unless the user picks light in Appearance.
+      return PlatformUtils.tvShellEnabled ? ThemeMode.dark : ThemeMode.system;
   }
 }

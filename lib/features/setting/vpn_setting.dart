@@ -31,7 +31,10 @@ class VPNSetting extends HookConsumerWidget {
         ? ref.watch(splitTunnelProvider)
         : null;
     final personalProxies = ref.watch(personalProxiesTabVisibleProvider);
-    final invites = ref.watch(helperInvitesAvailableProvider);
+    // Not in the TV shell, where the invite flow has no entry points.
+    final invites =
+        ref.watch(helperInvitesAvailableProvider) &&
+        !PlatformUtils.tvShellEnabled;
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );

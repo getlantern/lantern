@@ -123,7 +123,9 @@ class Home extends HookConsumerWidget {
     // hook disappear. The user's own "Hide Unbounded tab" toggle still
     // wins on top of this for non-censored users who want it hidden.
     final unboundedAvailable = featureFlag.getBool(FeatureFlag.unbounded);
-    final showUnboundedTab = unboundedAvailable && !unboundedHidden;
+    // The TV shell has no Action Mode entry points (the code stays).
+    final tvShell = PlatformUtils.tvShellEnabled;
+    final showUnboundedTab = unboundedAvailable && !unboundedHidden && !tvShell;
     useEffect(() {
       if (!showUnboundedTab) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -324,18 +326,25 @@ class Home extends HookConsumerWidget {
     return Scaffold(
       key: const Key('home.screen'),
       appBar: AppBar(
-        title: showUnboundedTab && onUnboundedTab.value
+        // The TV shell shows the logo in its left panel: the header keeps
+        // only the menu and the account action, on the plain background.
+        title: tvShell
+            ? null
+            : showUnboundedTab && onUnboundedTab.value
             ? Text(
                 'unbounded'.i18n,
                 style: Theme.of(context).textTheme.titleLarge,
               )
             : LanternLogo(isPro: isUserPro, color: context.textPrimary),
+        toolbarHeight: tvShell ? tvToolbarHeight : null,
         // bg/elevated (white in light mode) per the Figma spec — the Home
         // shell's app bar + tab strip render on a white surface, distinct
         // from every other screen's app bar which uses the app-wide
         // bg/surface grey from AppTheme.appBarTheme.
-        backgroundColor: context.bgElevated,
-        elevation: 5,
+        backgroundColor: tvShell ? Colors.transparent : context.bgElevated,
+        elevation: tvShell ? 0 : 5,
+        scrolledUnderElevation: tvShell ? 0 : null,
+        shape: tvShell ? const Border() : null,
         // The same on both tabs: menu left, title centered, account right.
         leading: IconButton(
           key: const Key('home.menu_button'),

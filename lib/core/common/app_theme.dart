@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 
 import 'app_colors.dart';
 
@@ -211,6 +212,7 @@ class AppTheme {
       ),
 
       // ── TextButton (used by AppTextButton) ───────────────────────────────────
+      iconButtonTheme: _tvIconButtonTheme(cs),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.blue7, // text.link light
@@ -440,6 +442,7 @@ class AppTheme {
       ),
 
       // ── TextButton (used by AppTextButton) ───────────────────────────────────
+      iconButtonTheme: _tvIconButtonTheme(cs),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.blue2, // text.link dark
@@ -475,4 +478,19 @@ class AppTheme {
       ),
     );
   }
+}
+
+/// In the TV shell every icon button (back, close, menu, more) shows the
+/// 3px onSurface focus ring, since a D-pad user cannot see hover; null
+/// elsewhere, so the button keeps Material's own highlight.
+IconButtonThemeData? _tvIconButtonTheme(ColorScheme cs) {
+  if (!PlatformUtils.tvShellEnabled) return null;
+  final ring = BorderSide(color: cs.onSurface, width: 3);
+  return IconButtonThemeData(
+    style: ButtonStyle(
+      side: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.focused) ? ring : null,
+      ),
+    ),
+  );
 }
