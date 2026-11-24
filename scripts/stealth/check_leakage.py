@@ -301,6 +301,29 @@ def count_matches(haystack: bytes, needle: bytes) -> tuple[int, int]:
         start = index + max(1, len(needle))
 
 
+EOCD_SIGNATURE = b"PK\x05\x06"
+EOCD_SIZE = 22
+
+
+def end_of_central_directory(data: bytes) -> int | None:
+    """Offset just past the ZIP end-of-central-directory record and its comment.
+
+    The record is the last one whose declared comment fits in the data, the
+    same search zipfile uses.
+    """
+    search_from = len(data)
+    while True:
+        offset = data.rfind(EOCD_SIGNATURE, 0, search_from)
+        if offset < 0:
+            return None
+        if offset + EOCD_SIZE <= len(data):
+            comment_length = int.from_bytes(data[offset + 20 : offset + 22], "little")
+            end = offset + EOCD_SIZE + comment_length
+            if end <= len(data):
+                return end
+        search_from = offset
+
+
 class Scanner:
     def __init__(self, rules: list[Rule], allowlist: list[dict[str, Any]], max_depth: int) -> None:
         self.rules = rules
@@ -321,15 +344,21 @@ class Scanner:
         for dirpath, _, filenames in os.walk(root):
             for filename in filenames:
                 path = Path(dirpath) / filename
-                try:
-                    logical = str(path.relative_to(root.parent))
-                except ValueError:
-                    logical = str(path)
-                self.scan_file(path, logical)
+                relative = str(path.relative_to(root))
+                # Report under the directory's name, but scan only the path
+                # inside it: where an artifact was unpacked is not part of it.
+                self.scan_file(path, f"{root.name}/{relative}", path_text=relative)
 
-    def scan_file(self, path: Path, logical: str, scan_path: bool = True) -> None:
+    def scan_file(
+        self,
+        path: Path,
+        logical: str,
+        scan_path: bool = True,
+        path_text: str | None = None,
+    ) -> None:
         if scan_path:
-            self.scan_bytes(f"{logical}[path]", logical.encode("utf-8", "surrogateescape"))
+            text = logical if path_text is None else path_text
+            self.scan_bytes(f"{logical}[path]", text.encode("utf-8", "surrogateescape"))
         try:
             if is_archive_name(path.name) and zipfile.is_zipfile(path):
                 self.scan_archive_bytes(path.read_bytes(), logical, depth=0)
@@ -383,8 +412,11 @@ class Scanner:
                 covered.append((layout.start, layout.data_end))
 
         start_dir = getattr(archive, "start_dir", None)
-        if isinstance(start_dir, int):
-            covered.append((start_dir, len(data)))
+        directory_end = end_of_central_directory(data)
+        if isinstance(start_dir, int) and directory_end is not None:
+            # Bytes appended after the end record are not part of the archive
+            # and stay uncovered, so they are scanned below.
+            covered.append((start_dir, directory_end))
 
         cursor = 0
         for start, end in sorted(covered):

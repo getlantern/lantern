@@ -98,6 +98,40 @@ class LeakageScannerTest(unittest.TestCase):
 
             self.assertEqual(self.scan(config, "stealth", target), 1)
 
+    def test_directory_name_itself_is_not_scanned(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            target = root / "Lantern-unpacked"
+            (target / "assets").mkdir(parents=True)
+            (target / "assets" / "clean.txt").write_bytes(b"no content leak here")
+
+            self.assertEqual(self.scan(config, "stealth", target), 0)
+
+    def test_scans_bytes_after_zip_end_record(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("assets/clean.txt", b"clean")
+            with archive.open("ab") as f:
+                f.write(b"Lantern release metadata")
+
+            self.assertTrue(zipfile.is_zipfile(archive))
+            self.assertEqual(self.scan(config, "stealth", archive), 1)
+
+    def test_clean_zip_with_comment_passes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("assets/clean.txt", b"clean")
+                zf.comment = b"neutral comment"
+
+            self.assertEqual(self.scan(config, "stealth", archive), 0)
+
     def test_scans_zip_archive_comment(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
