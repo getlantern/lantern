@@ -14,6 +14,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -57,10 +58,24 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         private val teardownScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
         /**
+         * The teardown a destroyed instance queued. onDestroy sets it on the
+         * main thread, before Android can deliver a start to a new instance,
+         * and every start and stop waits for it first, so an old instance's
+         * teardown cannot cancel or stop a newer connection.
+         */
+        @Volatile
+        private var pendingTeardown: Job? = null
+
+        private suspend fun awaitPendingTeardown() {
+            pendingTeardown?.join()
+        }
+
+        /**
          * Stops a listener when no service instance is running. Goes through
          * the same gate so it cannot overlap native startup.
          */
         suspend fun stopWithoutService() {
+            awaitPendingTeardown()
             proxyStartGate.stop(onStopping = { VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting) }) {
                 try {
                     stopProxyListener()
@@ -118,6 +133,11 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         )
     private val flutterEventListener = FlutterEventListener()
 
+    // Set once this instance's stop has torn the listener down, so destroying
+    // the instance afterwards has nothing left to stop.
+    @Volatile
+    private var listenerStopped = false
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -153,13 +173,17 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
 
     override fun onDestroy() {
         try {
-            teardownScope.launch {
-                proxyStartGate.stop {
-                    try {
-                        stopProxyListener()
-                        VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
-                    } catch (e: Exception) {
-                        reportStopError(e)
+            if (!listenerStopped) {
+                val previous = pendingTeardown
+                pendingTeardown = teardownScope.launch {
+                    previous?.join()
+                    proxyStartGate.stop {
+                        try {
+                            stopProxyListener()
+                            VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
+                        } catch (e: Exception) {
+                            reportStopError(e)
+                        }
                     }
                 }
             }
@@ -189,6 +213,8 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         restart: Boolean = false,
         connect: () -> Unit,
     ): LaunchResult = withContext(Dispatchers.IO) {
+        awaitPendingTeardown()
+        listenerStopped = false
         var result: LaunchResult = LaunchResult.Rejected
         proxyStartGate.run(
             waitForIdle = restart,
@@ -245,6 +271,7 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
     }
 
     private suspend fun stopProxy() {
+        awaitPendingTeardown()
         proxyStartGate.stop(onStopping = { VpnStatusManager.postVPNStatus(VPNStatus.Disconnecting) }) {
             try {
                 stopProxyListener()
@@ -254,6 +281,7 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
                 reportStopError(e)
                 return@stop
             }
+            listenerStopped = true
             VpnStatusManager.postVPNStatus(VPNStatus.Disconnected)
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
