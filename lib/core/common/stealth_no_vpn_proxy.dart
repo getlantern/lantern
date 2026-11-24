@@ -2,8 +2,9 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 
 /// Local SOCKS/HTTP proxy endpoint for stealth-novpn builds. The listen port is
-/// user-editable (persisted) and applied to radiance via
-/// LanternService.setProxyListenPort before connecting.
+/// user-editable (persisted) and handed to the native proxy service via
+/// LanternService.setProxyListenPort, which keeps its own copy for restarts
+/// that happen without Flutter.
 class StealthNoVpnProxy {
   static const host = '127.0.0.1';
 

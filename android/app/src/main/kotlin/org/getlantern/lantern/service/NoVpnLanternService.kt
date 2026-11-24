@@ -7,7 +7,6 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
-import android.system.Os
 import androidx.core.app.NotificationCompat
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.CancellationException
@@ -312,16 +311,8 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         Mobile.setLocalProxy(true, proxyAddress())
     }
 
-    private fun proxyAddress(): String {
-        // The user-editable listen port arrives via RADIANCE_PROXY_LISTEN_PORT
-        // (Mobile.setProxyListenPort, driven by the Dart proxy-port setting);
-        // fall back to the build-time default when unset/invalid.
-        val port = Os.getenv("RADIANCE_PROXY_LISTEN_PORT")
-            ?.toIntOrNull()
-            ?.takeIf { it in 1..65535 }
-            ?: BuildConfig.STEALTH_NO_VPN_PROXY_PORT
-        return "${BuildConfig.STEALTH_NO_VPN_PROXY_HOST}:$port"
-    }
+    private fun proxyAddress(): String =
+        "${BuildConfig.STEALTH_NO_VPN_PROXY_HOST}:${NoVpnProxyPort.get(this)}"
 
     override fun openTun(tunOptions: TunOptions): Int {
         error("TUN is disabled in stealth no-VPN builds")

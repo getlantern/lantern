@@ -29,6 +29,7 @@ import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.MainActivity
 import org.getlantern.lantern.apps.AppFilters
 import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.service.NoVpnProxyPort
 import org.getlantern.lantern.service.RadianceSetup
 import org.getlantern.lantern.updater.AndroidSideloadInstaller
 import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
@@ -983,7 +984,7 @@ class MethodHandler : FlutterPlugin,
             Methods.SetProxyListenPort.method -> {
                 scope.handleResult(result, "set_proxy_listen_port") {
                     val port = call.argument<Int>("port") ?: error("Missing port")
-                    Mobile.setProxyListenPort(port.toLong())
+                    NoVpnProxyPort.save(appContext, port)
                 }
             }
 

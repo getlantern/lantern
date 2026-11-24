@@ -105,24 +105,6 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 	return nil
 }
 
-// SetProxyListenPort overrides the local SOCKS/HTTP listen port used by the
-// stealth-novpn SOCKS proxy. Must be called before the proxy connects (the
-// inbound reads RADIANCE_PROXY_LISTEN_PORT when it is built). A port <= 0 clears
-// the override so radiance falls back to its default.
-func SetProxyListenPort(port int) error {
-	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
-		if port <= 0 || port > 65535 {
-			return struct{}{}, os.Unsetenv("RADIANCE_PROXY_LISTEN_PORT")
-		}
-		if err := os.Setenv("RADIANCE_PROXY_LISTEN_PORT", fmt.Sprintf("%d", port)); err != nil {
-			return struct{}{}, fmt.Errorf("set RADIANCE_PROXY_LISTEN_PORT: %w", err)
-		}
-		slog.Info("proxy listen port override set", "port", port)
-		return struct{}{}, nil
-	})
-	return err
-}
-
 // SetLocalProxy enables the local SOCKS/HTTP proxy data path and sets the
 // address its inbound listener binds to.
 //
