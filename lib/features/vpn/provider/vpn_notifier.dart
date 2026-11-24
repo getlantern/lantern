@@ -28,7 +28,7 @@ class VpnNotifier extends _$VpnNotifier {
   bool _statusWaitersAttached = false;
   Future<void> _proxyPortChange = Future.value();
 
-  static const _proxyRestartTimeout = Duration(seconds: 30);
+  static const _proxyStopTimeout = Duration(seconds: 30);
 
   RatingPromptService? get _ratingPrompt =>
       sl.isRegistered<RatingPromptService>() ? sl<RatingPromptService>() : null;
@@ -315,19 +315,25 @@ class VpnNotifier extends _$VpnNotifier {
   }
 
   Future<void> _restartForProxyPort() async {
+    // No deadline here: a start that read the old port can take the native
+    // start window and more, and it always ends connected, disconnected or
+    // in error. Giving up early would leave it on the old port.
+    final settled = await _waitForStatus(
+      (status) =>
+          status != VPNStatus.connecting && status != VPNStatus.disconnecting,
+    );
+    if (settled != VPNStatus.connected) return;
+    final stopped = await stopVPN();
+    if (stopped.isLeft()) return;
     try {
-      final settled = await _waitForStatus(
-        (status) =>
-            status != VPNStatus.connecting && status != VPNStatus.disconnecting,
-      );
-      if (settled != VPNStatus.connected) return;
-      final stopped = await stopVPN();
-      if (stopped.isLeft()) return;
       // The native stop finishes after the request returns; a start sent
       // before then is rejected.
-      await _waitForStatus((status) => status == VPNStatus.disconnected);
+      await _waitForStatus(
+        (status) => status == VPNStatus.disconnected,
+        timeout: _proxyStopTimeout,
+      );
     } on TimeoutException {
-      appLogger.error('Proxy did not settle after a port change');
+      appLogger.error('Proxy did not stop after a port change');
       return;
     }
     final started = await startVPN(skipConflictCheck: true);
@@ -339,13 +345,17 @@ class VpnNotifier extends _$VpnNotifier {
     );
   }
 
-  Future<VPNStatus> _waitForStatus(bool Function(VPNStatus) test) {
+  Future<VPNStatus> _waitForStatus(
+    bool Function(VPNStatus) test, {
+    Duration? timeout,
+  }) {
     if (test(state)) return Future.value(state);
     final completer = Completer<VPNStatus>();
     final waiter = (test, completer);
     _statusWaiters.add(waiter);
+    if (timeout == null) return completer.future;
     return completer.future.timeout(
-      _proxyRestartTimeout,
+      timeout,
       onTimeout: () {
         _statusWaiters.remove(waiter);
         throw TimeoutException('VPN status wait timed out');

@@ -109,6 +109,17 @@ void main() {
     sl.registerSingleton<NotificationService>(_Notifications());
     service = _Service();
     status = StreamController<LanternStatus>.broadcast(sync: true);
+  });
+
+  tearDown(() async {
+    c.dispose();
+    await status.close();
+    await sl.reset();
+  });
+
+  // Built inside each test so its futures run in that test's zone, which for
+  // testWidgets is fake time.
+  void listen() {
     c = ProviderContainer(
       overrides: [
         lanternServiceProvider.overrideWithValue(service),
@@ -118,18 +129,17 @@ void main() {
       ],
     );
     c.listen(vpnProvider, (_, _) {});
-    await _settle();
-  });
+  }
 
-  tearDown(() async {
-    c.dispose();
-    await status.close();
-    await sl.reset();
-  });
+  Future<void> start() async {
+    listen();
+    await _settle();
+  }
 
   void emit(VPNStatus s) => status.add(LanternStatus(status: s));
 
   test('a running proxy restarts on the saved port', () async {
+    await start();
     emit(VPNStatus.connected);
     await StealthNoVpnProxy.setPort(20000);
 
@@ -145,6 +155,7 @@ void main() {
   });
 
   test('a proxy that is still starting restarts once it connects', () async {
+    await start();
     emit(VPNStatus.connecting);
     await StealthNoVpnProxy.setPort(20001);
 
@@ -161,7 +172,31 @@ void main() {
     expect(service.calls, ['port', 'stop', 'start']);
   });
 
+  // testWidgets runs on fake time, so the start can outlast any deadline.
+  testWidgets('a slow start still restarts on the new port', (tester) async {
+    listen();
+    await tester.pump();
+    emit(VPNStatus.connecting);
+    await StealthNoVpnProxy.setPort(20004);
+    var done = false;
+    unawaited(
+      c.read(vpnProvider.notifier).applyProxyPort().then((_) => done = true),
+    );
+    // Longer than the native start window.
+    await tester.pump(const Duration(seconds: 90));
+    expect(service.calls, ['port']);
+
+    emit(VPNStatus.connected);
+    await tester.pump();
+    expect(service.calls, ['port', 'stop']);
+    emit(VPNStatus.disconnected);
+    await tester.pump();
+    expect(service.calls, ['port', 'stop', 'start']);
+    expect(done, isTrue);
+  });
+
   test('a stopped proxy only takes the port for its next start', () async {
+    await start();
     emit(VPNStatus.disconnected);
     await StealthNoVpnProxy.setPort(20002);
 
