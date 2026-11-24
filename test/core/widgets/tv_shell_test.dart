@@ -347,6 +347,42 @@ void main() {
     });
   }
 
+  testWidgets('a row in a list inside a scrolling page stays in view after '
+      'the inner list moves', (tester) async {
+    // A tall header, then a 300dp list of rows that scrolls on its own.
+    await pumpShell(
+      tester,
+      routeName: Setting.name,
+      child: Scaffold(
+        body: ListView(
+          children: [
+            const SizedBox(height: 600, child: Text('header')),
+            SizedBox(height: 300, child: rows(10)),
+          ],
+        ),
+      ),
+    );
+    Rect row(int i) => tester.getRect(find.byKey(Key('row$i')));
+    const outerBottom = 540.0;
+    expect(rowFocused(0), isTrue);
+    expect(row(0).bottom, lessThanOrEqualTo(outerBottom));
+    for (var i = 0; i < 6; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+    }
+    expect(rowFocused(6), isTrue);
+    expect(row(6).bottom, lessThanOrEqualTo(outerBottom));
+    // Back up: the inner list scrolls its rows down in page coordinates,
+    // and the page must follow.
+    for (var i = 0; i < 6; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pumpAndSettle();
+    }
+    expect(rowFocused(0), isTrue);
+    expect(row(0).top, greaterThanOrEqualTo(0));
+    expect(row(0).bottom, lessThanOrEqualTo(outerBottom));
+  });
+
   testWidgets('a row with a toggle shows one ring: the control that has '
       'focus', (tester) async {
     await pumpShell(

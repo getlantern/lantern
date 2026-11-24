@@ -349,24 +349,31 @@ void tvRequestFocus(
   // Enclosing scrollables (a list inside a page that scrolls): reveal the
   // node in each the way Flutter's own callback does, revealing the inner
   // scrollable's box in each outer viewport with the node as the target;
-  // only the nearest one gets the safe-area inset below.
-  var inner = scrollable;
-  for (
-    var outer = Scrollable.maybeOf(inner.context);
-    outer != null;
-    inner = outer, outer = Scrollable.maybeOf(outer.context)
-  ) {
-    final innerBox = inner.context.findRenderObject();
-    if (innerBox == null) break;
-    outer.position.ensureVisible(
-      innerBox,
-      targetRenderObject: renderObject,
-      alignment: alignment ?? 1.0,
-      alignmentPolicy: alignmentPolicy ?? ScrollPositionAlignmentPolicy.explicit,
-      duration: duration ?? Duration.zero,
-      curve: curve ?? Curves.ease,
-    );
+  // only the nearest one gets the safe-area inset below. Run once the
+  // nearest list has moved, since that move changes where the row sits in
+  // the outer viewports.
+  void revealInOuter() {
+    if (!renderObject.attached) return;
+    var inner = scrollable;
+    for (
+      var outer = Scrollable.maybeOf(inner.context);
+      outer != null;
+      inner = outer, outer = Scrollable.maybeOf(outer.context)
+    ) {
+      final innerBox = inner.context.findRenderObject();
+      if (innerBox == null) break;
+      outer.position.ensureVisible(
+        innerBox,
+        targetRenderObject: renderObject,
+        alignment: alignment ?? 1.0,
+        alignmentPolicy:
+            alignmentPolicy ?? ScrollPositionAlignmentPolicy.explicit,
+        duration: duration ?? Duration.zero,
+        curve: curve ?? Curves.ease,
+      );
+    }
   }
+
   final position = scrollable.position;
   final revealTop = viewport.getOffsetToReveal(renderObject, 0).offset;
   final revealBottom =
@@ -390,12 +397,17 @@ void tvRequestFocus(
   // in view rather than its bottom inset.
   if (target > revealTop) target = revealTop;
   target = target.clamp(position.minScrollExtent, position.maxScrollExtent);
-  if (target == position.pixels) return;
-  position.animateTo(
-    target,
-    duration: duration ?? const Duration(milliseconds: 150),
-    curve: curve ?? Curves.easeInOut,
-  );
+  if (target == position.pixels) {
+    revealInOuter();
+    return;
+  }
+  position
+      .animateTo(
+        target,
+        duration: duration ?? const Duration(milliseconds: 150),
+        curve: curve ?? Curves.easeInOut,
+      )
+      .then((_) => revealInOuter());
 }
 
 bool _hasFocusableBelow(FocusNode node, ScrollableState scrollable) {
