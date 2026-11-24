@@ -161,6 +161,25 @@ class LeakageScannerTest(unittest.TestCase):
 
             self.assertEqual(self.scan(config, "stealth", archive), 2)
 
+    def test_scans_empty_directory_names(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            target = root / "out"
+            (target / "assets" / "Lantern").mkdir(parents=True)
+
+            self.assertEqual(self.scan(config, "stealth", target), 1)
+
+    def test_scans_directory_entry_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = self.write_config(root)
+            archive = root / "app.apk"
+            with zipfile.ZipFile(archive, "w") as zf:
+                zf.writestr("assets/", b"Lantern")
+
+            self.assertEqual(self.scan(config, "stealth", archive), 1)
+
     def test_scans_bytes_after_zip_end_record(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

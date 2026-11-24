@@ -353,6 +353,13 @@ class Scanner:
                 linked = Path(dirpath) / dirname
                 if linked.is_symlink():
                     self.errors.append(f"{linked}: linked directory is not scanned")
+                    continue
+                # A directory name ships in the artifact even with no files in it.
+                relative = str(linked.relative_to(root))
+                self.scan_bytes(
+                    f"{root.name}/{relative}[path]",
+                    relative.encode("utf-8", "surrogateescape"),
+                )
             for filename in filenames:
                 path = Path(dirpath) / filename
                 relative = str(path.relative_to(root))
@@ -508,7 +515,8 @@ class Scanner:
                 self.scan_bytes(f"{entry_location}[entry-extra]", info.extra)
             if info.comment:
                 self.scan_bytes(f"{entry_location}[entry-comment]", info.comment)
-            if info.is_dir():
+            # A directory entry normally has no data, but one can carry bytes.
+            if info.is_dir() and info.file_size == 0:
                 continue
             try:
                 data = archive.read(info)
