@@ -18,11 +18,11 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tray_manager/legacy.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../core/common/common.dart';
 import '../../macos_extension/provider/macos_extension_notifier.dart';
+import '../app_tray.dart';
 import '../../vpn/provider/server_location_notifier.dart';
 
 part 'system_tray_notifier.g.dart';
@@ -35,7 +35,7 @@ typedef _ConnectAttempt =
     Future<Either<Failure, String>> Function({bool skipConflictCheck});
 
 @Riverpod(keepAlive: true)
-class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
+class SystemTrayNotifier extends _$SystemTrayNotifier {
   VPNStatus _currentStatus = VPNStatus.disconnected;
   bool _isUserPro = false;
   bool _canSelectServer = false;
@@ -86,8 +86,13 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
   }
 
   void _setupTrayManager() {
-    trayManager.addListener(this);
-    ref.onDispose(() => trayManager.removeListener(this));
+    final tray = AppTray.instance;
+    tray.onClick = _onTrayIconClicked;
+    tray.onRightClick = _onTrayIconRightClicked;
+    ref.onDispose(() {
+      tray.onClick = null;
+      tray.onRightClick = null;
+    });
   }
 
   void _initializeState() {
@@ -418,151 +423,131 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         _currentStatus == VPNStatus.connecting ||
         _currentStatus == VPNStatus.disconnecting;
 
-    final menu = Menu(
-      items: [
-        MenuItem.separator(),
-        // Status: Connected / Disconnected (greyed out, non-clickable)
-        MenuItem(
-          key: 'status_label',
-          disabled: true,
-          label: _currentStatus == VPNStatus.connected
-              ? 'status_on'.i18n
-              : 'status_off'.i18n,
+    final menu = [
+      const TrayEntry.separator(),
+      // Status: Connected / Disconnected (greyed out, non-clickable)
+      TrayEntry(
+        enabled: false,
+        label: _currentStatus == VPNStatus.connected
+            ? 'status_on'.i18n
+            : 'status_off'.i18n,
+      ),
+
+      if (isConnected && locationDisplay.isNotEmpty)
+        TrayEntry(enabled: false, label: locationDisplay),
+      if (_blocker != null)
+        TrayEntry(
+          label: '⚠ ${'unable_to_connect'.i18n}',
+          onClick: () => _onBlockerSelected(),
         ),
+      const TrayEntry.separator(),
 
-        if (isConnected && locationDisplay.isNotEmpty)
-          MenuItem(
-            key: 'current_location',
-            disabled: true,
-            label: locationDisplay,
-          ),
-        if (_blocker != null)
-          MenuItem(
-            key: 'unable_to_connect',
-            label: '⚠ ${'unable_to_connect'.i18n}',
-            onClick: (_) => _onBlockerSelected(),
-          ),
-        MenuItem.separator(),
+      TrayEntry(
+        label: _currentStatus == VPNStatus.connected
+            ? 'disconnect'.i18n
+            : 'connect'.i18n,
+        enabled: !busy,
+        onClick: () => toggleVPN(),
+      ),
 
-        MenuItem(
-          key: 'toggle',
-          label: _currentStatus == VPNStatus.connected
-              ? 'disconnect'.i18n
-              : 'connect'.i18n,
-          disabled: busy,
-          onClick: (_) => toggleVPN(),
-        ),
-
-        if (_canSelectServer && _locations.isNotEmpty)
-          MenuItem.submenu(
-            key: 'select_location',
-            label: 'select_location'.i18n,
-            disabled: busy,
-            submenu: Menu(
-              items: [
-                // Smart Location as first option with checkmark
-                MenuItem.checkbox(
-                  key: 'smart_location',
-                  label: 'smart_location'.i18n,
-                  checked: _isAutoLocation,
-                  onClick: (_) => _onSmartLocationSelected(),
-                ),
-                MenuItem.separator(),
-                // Server list
-                ..._locations.map((server) {
-                  final displayName = server.location.city.isNotEmpty
-                      ? '${server.location.country} - ${server.location.city}'
-                      : server.location.country;
-                  return MenuItem(
-                    key: 'location_${server.tag}',
-                    label: displayName,
-                    icon: AppImagePaths.safeFlagPath(
-                      server.location.countryCode,
-                    ),
-                    onClick: (_) => _onLocationSelected(server),
-                  );
-                }),
-              ],
+      if (_canSelectServer && _locations.isNotEmpty)
+        TrayEntry(
+          label: 'select_location'.i18n,
+          enabled: !busy,
+          children: [
+            // Smart Location as first option with checkmark
+            TrayEntry(
+              label: 'smart_location'.i18n,
+              checked: _isAutoLocation,
+              onClick: () => _onSmartLocationSelected(),
             ),
-          ),
-        MenuItem.submenu(
-          key: 'routing_mode',
-          label: 'routing_mode'.i18n,
-          submenu: Menu(
-            items: [
-              MenuItem.checkbox(
-                key: 'smart_routing',
-                label: 'smart_routing'.i18n,
-                checked: _currentRoutingMode == RoutingMode.smart,
-                onClick: (_) => _onRoutingModeSelected(RoutingMode.smart),
-              ),
-              MenuItem.checkbox(
-                key: 'full_tunnel',
-                label: 'full_tunnel'.i18n,
-                checked: _currentRoutingMode == RoutingMode.full,
-                onClick: (_) => _onRoutingModeSelected(RoutingMode.full),
-              ),
-            ],
-          ),
+            const TrayEntry.separator(),
+            // Server list
+            ..._locations.map((server) {
+              final displayName = server.location.city.isNotEmpty
+                  ? '${server.location.country} - ${server.location.city}'
+                  : server.location.country;
+              final countryCode = server.location.countryCode;
+              // macOS draws menu icons as templates, which blanks a flag.
+              final flag = Platform.isMacOS
+                  ? _countryCodeToFlagEmoji(countryCode)
+                  : '';
+              return TrayEntry(
+                label: flag.isEmpty ? displayName : '$flag $displayName',
+                icon: Platform.isMacOS
+                    ? null
+                    : AppImagePaths.safeFlagPath(countryCode),
+                onClick: () => _onLocationSelected(server),
+              );
+            }),
+          ],
         ),
-        if (!_isUserPro)
-          MenuItem(
-            key: 'upgrade_to_pro',
-            label: 'upgrade_to_pro'.i18n,
-            onClick: (_) {
-              ref.read(windowProvider.notifier).open(focus: true);
-              appRouter.push(Plans());
-            },
+      TrayEntry(
+        label: 'routing_mode'.i18n,
+        children: [
+          TrayEntry(
+            label: 'smart_routing'.i18n,
+            checked: _currentRoutingMode == RoutingMode.smart,
+            onClick: () => _onRoutingModeSelected(RoutingMode.smart),
           ),
-        MenuItem.separator(),
-        if (_showActionMode) ...[
-          MenuItem(
-            key: 'action_mode_toggle',
-            label: _share.active
-                ? 'disable_action_mode'.i18n
-                : 'enable_action_mode'.i18n,
-            disabled: _share.probing,
-            onClick: (_) => _toggleActionMode(),
+          TrayEntry(
+            label: 'full_tunnel'.i18n,
+            checked: _currentRoutingMode == RoutingMode.full,
+            onClick: () => _onRoutingModeSelected(RoutingMode.full),
           ),
-          if (_share.active)
-            MenuItem(
-              key: 'helping_count',
-              disabled: true,
-              label: _helpingLabel,
-            ),
-          MenuItem.separator(),
         ],
-        MenuItem(
-          key: 'join_server',
-          label: 'join_server'.i18n,
-          onClick: (_) {
+      ),
+      if (!_isUserPro)
+        TrayEntry(
+          label: 'upgrade_to_pro'.i18n,
+          onClick: () {
             ref.read(windowProvider.notifier).open(focus: true);
-            appRouter.push(JoinPrivateServer());
+            appRouter.push(Plans());
           },
         ),
-        MenuItem(
-          key: 'show_window',
-          label: 'show'.i18n,
-          onClick: (_) {
-            ref.read(windowProvider.notifier).open(focus: true);
-          },
+      const TrayEntry.separator(),
+      if (_showActionMode) ...[
+        TrayEntry(
+          label: _share.active
+              ? 'disable_action_mode'.i18n
+              : 'enable_action_mode'.i18n,
+          enabled: !_share.probing,
+          onClick: () => _toggleActionMode(),
         ),
-        MenuItem.separator(),
-        MenuItem(
-          key: 'quit',
-          label: 'quit'.i18n,
-          onClick: (_) async {
-            await ref.read(vpnProvider.notifier).stopVPN();
-            await trayManager.destroy();
-            await ref.read(windowProvider.notifier).close();
-          },
-        ),
+        if (_share.active) TrayEntry(enabled: false, label: _helpingLabel),
+        const TrayEntry.separator(),
       ],
-    );
+      TrayEntry(
+        label: 'join_server'.i18n,
+        onClick: () {
+          ref.read(windowProvider.notifier).open(focus: true);
+          appRouter.push(JoinPrivateServer());
+        },
+      ),
+      TrayEntry(
+        label: 'show'.i18n,
+        onClick: () {
+          ref.read(windowProvider.notifier).open(focus: true);
+        },
+      ),
+      const TrayEntry.separator(),
+      TrayEntry(
+        label: 'quit'.i18n,
+        onClick: () async {
+          await ref.read(vpnProvider.notifier).stopVPN();
+          AppTray.instance.destroy();
+          await ref.read(windowProvider.notifier).close();
+        },
+      ),
+    ];
 
-    await trayManager.setContextMenu(menu);
-    trayManager.setIcon(_trayIconPath(), isTemplate: Platform.isMacOS);
-    trayManager.setToolTip('app_name'.i18n);
+    final tray = AppTray.instance;
+    tray.setMenu(menu);
+    final iconPath = _trayIconPath();
+    if (!tray.setIcon(iconPath, isTemplate: Platform.isMacOS)) {
+      appLogger.error('Failed to load tray icon $iconPath');
+    }
+    tray.setTooltip('app_name'.i18n);
   }
 
   String _trayIconPath() {
@@ -584,21 +569,18 @@ class SystemTrayNotifier extends _$SystemTrayNotifier with TrayListener {
         : AppImagePaths.lanternDisconnected;
   }
 
-  /// Tray Event Handlers
-  @override
-  Future<void> onTrayIconMouseDown() async {
+  Future<void> _onTrayIconClicked() async {
     if (Platform.isMacOS) {
       await _refreshVpnConflict();
-      await trayManager.popUpContextMenu();
+      AppTray.instance.openMenu();
     } else {
       ref.read(windowProvider.notifier).open();
     }
   }
 
-  @override
-  Future<void> onTrayIconRightMouseDown() async {
+  Future<void> _onTrayIconRightClicked() async {
     await _refreshVpnConflict();
-    await trayManager.popUpContextMenu();
+    AppTray.instance.openMenu();
   }
 }
 

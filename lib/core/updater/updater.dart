@@ -12,9 +12,9 @@ import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/core/updater/android_sideload_updater.dart';
 import 'package:lantern/core/updater/desktop_update_relay.dart';
 import 'package:lantern/core/updater/winsparkle_build_version.dart';
+import 'package:lantern/features/system_tray/app_tray.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:tray_manager/legacy.dart';
 import 'package:window_manager/window_manager.dart';
 
 class Updater with UpdaterLifecycleListener {
@@ -307,7 +307,7 @@ class Updater with UpdaterLifecycleListener {
       appLogger.warning('Failed to release the Lantern window', e, st);
     }
     try {
-      await trayManager.destroy();
+      AppTray.instance.destroy();
     } catch (e, st) {
       appLogger.warning('Failed to close the Lantern tray icon', e, st);
     }

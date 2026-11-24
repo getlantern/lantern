@@ -44,8 +44,6 @@ PODS:
   - Sparkle (2.8.1)
   - store_checker (0.0.1):
     - FlutterMacOS
-  - tray_manager (0.0.1):
-    - FlutterMacOS
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
   - window_manager (0.5.0):
@@ -72,7 +70,6 @@ DEPENDENCIES:
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - Sparkle
   - store_checker (from `Flutter/ephemeral/.symlinks/plugins/store_checker/macos`)
-  - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
 
@@ -120,8 +117,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
   store_checker:
     :path: Flutter/ephemeral/.symlinks/plugins/store_checker/macos
-  tray_manager:
-    :path: Flutter/ephemeral/.symlinks/plugins/tray_manager/macos
   url_launcher_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
   window_manager:
@@ -131,14 +126,14 @@ SPEC CHECKSUMS:
   app_links: c3185399a5cabc2e610ee5ad52fb7269b84ff869
   auto_updater_macos: 3e3462c418fe4e731917eacd8d28eef7af84086d
   desktop_drop: 1eeeb9484299585770b6461e4f3d60950e99efa2
-  desktop_webview_window: 96a659f19029a9a60377e41be01ee09457d73d35
+  desktop_webview_window: 612cdc85992ee2d1e782f1b4dfac29946f78c4ed
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
-  file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
+  file_selector_macos: e92931941479e44b02ac766d1961ca5c6f61b55b
   flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
   flutter_local_notifications: 14e285ca39907db50704f7f46c9ab7a526bd7ead
   flutter_secure_storage_darwin: 79a377dfb00a246ccab2c64fe79d4d78c89e0fbc
   flutter_timezone: b3bc0c587d8780d395651284a1ff46eb1e5753ac
-  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
   in_app_review: 866c9b17c87a7b46a395bda43f5d3ca02deb585a
   mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
@@ -146,10 +141,9 @@ SPEC CHECKSUMS:
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   screen_retriever_macos: 038d3f7b34a779b06f536842003e41e8ec1fb4b7
   share_plus: 1fa619de8392a4398bfaf176d441853922614e89
-  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
+  shared_preferences_foundation: 9a36184bb1299692bf7b972bd6c60ab373084504
   Sparkle: a346a4341537c625955751ed3ae4b340b68551fa
   store_checker: 387169de0dffe57b6370d54cc027e9f95051b57f
-  tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
   url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
   window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
 

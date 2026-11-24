@@ -63,12 +63,13 @@ dependencies:
     sdk: flutter
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   # paths
   path: ^1.9.1
   path_provider: ^2.1.5
   #Routing
-  auto_route: ^11.1.0
+  # 11.2.0 moves to material_ui, which the app's theme does not reach yet
+  auto_route: ">=11.1.0 <11.2.0"
   #UI Utils
   flutter_earth_globe: ^2.2.0
   lottie: ^3.3.1
@@ -86,7 +87,7 @@ dependencies:
   loader_overlay: ^5.0.0
 
   #Localization
-  i18n_extension: ^15.1.1
+  i18n_extension: ^16.0.3
   i18n_extension_importer: ^0.0.6
   intl: ^0.20.2
 
@@ -127,7 +128,7 @@ dependencies:
   device_info_plus: ^13.2.0
 
   flutter_inappwebview: ^6.1.5
-  desktop_webview_window: ^0.3.0
+  desktop_webview_window: ^0.4.3
   store_checker: ^1.8.0
   in_app_review: ^2.0.12
   # payment
@@ -141,7 +142,7 @@ dependencies:
   # auto updates
   auto_updater: ^1.0.0
   # notifications
-  flutter_local_notifications: ^22.2.0
+  flutter_local_notifications: ^23.0.4
   timezone: ^0.11.1
   flutter_timezone: ^5.1.0
   fixnum: ^1.1.1
@@ -149,7 +150,7 @@ dependencies:
   shared_preferences: ^2.5.5
   flutter_carousel_widget: ^3.1.1
   file_selector: ^1.1.0
-  desktop_drop: ^0.7.1
+  desktop_drop: ^0.8.4
   cross_file: ^0.3.5+2
   image_picker: ^1.2.2
   http: ^1.2.0
