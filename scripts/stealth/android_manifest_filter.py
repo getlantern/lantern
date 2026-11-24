@@ -33,9 +33,12 @@ ANDROID_TARGET_ACTIVITY = f"{{{ANDROID_URI}}}targetActivity"
 
 STEALTH_MODES = {"vpn", "novpn"}
 
+# QUERY_ALL_PACKAGES stays in VPN builds: the direct-connection app list
+# excludes apps with VpnService.Builder.addDisallowedApplication and lists
+# installed apps to pick from, and on Android 11+ both only see packages the
+# app is allowed to query. No-VPN builds have no tunnel to exclude apps from.
 STEALTH_REMOVE_PERMISSIONS = {
     "android.permission.CAMERA",
-    "android.permission.QUERY_ALL_PACKAGES",
     "android.permission.RECEIVE_BOOT_COMPLETED",
     "android.permission.WRITE_SETTINGS",
     "com.android.vending.BILLING",
@@ -46,6 +49,7 @@ STEALTH_REMOVE_FEATURES = {
 }
 
 NOVPN_REMOVE_PERMISSIONS = STEALTH_REMOVE_PERMISSIONS | {
+    "android.permission.QUERY_ALL_PACKAGES",
     "android.permission.ACCESS_WIFI_STATE",
     "android.permission.CHANGE_NETWORK_STATE",
     "android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED",

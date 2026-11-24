@@ -14,6 +14,10 @@ Normal builds keep the existing lantern-core split-tunnel storage and behavior.
 - User additions and removals are editable through the existing app selection
   screen. Changes apply on the next reconnect because Android does not update
   `VpnService.Builder` disallowed-app rules in place.
+- Stealth VPN builds keep `QUERY_ALL_PACKAGES` in the filtered manifest. On
+  Android 11+, `addDisallowedApplication` and the installed-app list only see
+  packages the app may query, so without it the defaults would be skipped and
+  no apps could be picked. No-VPN builds still drop it.
 - Website/domain split tunneling is hidden in this stealth UI mode because this
   ticket only protects Android apps that can inspect local VPN state.
 
