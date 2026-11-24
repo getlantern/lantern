@@ -399,9 +399,11 @@ open class NoVpnLanternService : Service(), PlatformInterfaceWrapper {
         return Opts().apply {
             dataDir = initConfigDir()
             logDir = logDir()
-            logLevel = "trace"
+            logLevel = if (BuildConfig.DEBUG) "trace" else ""
             deviceid = DeviceUtil.deviceId()
+            appVersion = BuildConfig.VERSION_NAME
             locale = DeviceUtil.getLanguageCode(this@NoVpnLanternService)
+            timeZone = java.util.TimeZone.getDefault().id
             telemetryConsent = isTelemetryEnabled()
             env = getRadianceEnv()
             platform = this@NoVpnLanternService
