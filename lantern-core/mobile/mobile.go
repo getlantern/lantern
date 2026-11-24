@@ -169,9 +169,8 @@ func SetLocalProxy(enabled bool, address string) error {
 // will see (in practice both derive from LanternVpnService.opts()), otherwise
 // the early values silently override.
 func InitLogging(dataDir, logDir, logLevel string) error {
-	if logLevel == "" {
-		logLevel = lanterncore.DefaultLogLevel()
-	}
+	// EffectiveLogLevel picks the build's default for an empty level; filling
+	// it in here first would hide the empty value from the stealth default.
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		if err := common.Init(dataDir, logDir, lanterncore.EffectiveLogLevel(logLevel)); err != nil {
 			return struct{}{}, err
