@@ -24,13 +24,16 @@ class ProguardRulesTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.tmp.cleanup()
 
-    def write_source(self, relative: str) -> None:
+    def write_source(self, relative: str, text: str) -> None:
         path = self.kotlin_root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("class Placeholder\n", encoding="utf-8")
+        path.write_text(text, encoding="utf-8")
 
     def test_rewrites_class_names_to_debranded_sources(self) -> None:
-        self.write_source("foundation/bridge/service/BackendVpnService.kt")
+        self.write_source(
+            "foundation/bridge/service/BackendVpnService.kt",
+            "package foundation.bridge.service\n\nopen class BackendVpnService : VpnService()\n",
+        )
         self.rules.write_text(
             "-checkdiscard class org.getlantern.lantern.service.LanternVpnService\n",
             encoding="utf-8",
@@ -54,6 +57,44 @@ class ProguardRulesTest(unittest.TestCase):
 
         self.assertEqual(rc, 2)
         self.assertFalse(self.output.exists())
+
+    def test_fails_when_file_does_not_declare_checked_class(self) -> None:
+        self.write_source(
+            "foundation/bridge/service/BackendVpnService.kt",
+            "package foundation.bridge.service\n\nclass Placeholder\n",
+        )
+        self.rules.write_text(
+            "-checkdiscard class org.getlantern.lantern.service.LanternVpnService\n",
+            encoding="utf-8",
+        )
+
+        rc = debrand.generate_proguard_rules(self.rules, self.output, self.kotlin_root)
+
+        self.assertEqual(rc, 2)
+        self.assertFalse(self.output.exists())
+
+    def test_fails_when_class_is_in_another_package(self) -> None:
+        self.write_source(
+            "foundation/bridge/service/BackendVpnService.kt",
+            "package foundation.bridge.other\n\nclass BackendVpnService\n",
+        )
+        self.rules.write_text(
+            "-checkdiscard class org.getlantern.lantern.service.LanternVpnService\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(debrand.generate_proguard_rules(self.rules, self.output, self.kotlin_root), 2)
+
+    def test_checks_nested_classes(self) -> None:
+        self.write_source(
+            "foundation/bridge/service/BackendVpnService.kt",
+            "package foundation.bridge.service\n\nclass BackendVpnService {\n    object Companion\n}\n",
+        )
+        rule = "-checkdiscard class org.getlantern.lantern.service.LanternVpnService${}\n"
+        self.rules.write_text(rule.format("Companion"), encoding="utf-8")
+        self.assertEqual(debrand.generate_proguard_rules(self.rules, self.output, self.kotlin_root), 0)
+        self.rules.write_text(rule.format("Missing"), encoding="utf-8")
+        self.assertEqual(debrand.generate_proguard_rules(self.rules, self.output, self.kotlin_root), 2)
 
     def test_repo_rules_match_debranded_kotlin(self) -> None:
         source_root = Path(__file__).resolve().parents[2] / "android/app/src/main/kotlin/org/getlantern/lantern"

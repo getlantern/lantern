@@ -152,6 +152,29 @@ def generate_res(res_source: Path, res_overlay: Path | None, res_output: Path) -
 CHECKDISCARD_CLASS = re.compile(r"^\s*-checkdiscard\s+class\s+([\w.$]+)", re.MULTILINE)
 
 
+def declares_class(kotlin_root: Path, name: str) -> bool:
+    """Whether the generated Kotlin declares ``name`` (``pkg.Outer$Inner``).
+
+    The file must exist, be in the class's package, and declare the class and
+    each nested class. A file that kept its name after its class was renamed
+    would otherwise satisfy the check.
+    """
+    package, _, nested = name.rpartition(".")
+    classes = nested.split("$")
+    if not package or not all(classes):
+        return False
+    source = kotlin_root / package.replace(".", "/") / f"{classes[0]}.kt"
+    if not source.is_file():
+        return False
+    text = source.read_text(encoding="utf-8")
+    if not re.search(rf"^\s*package\s+{re.escape(package)}\s*$", text, re.MULTILINE):
+        return False
+    return all(
+        re.search(rf"\b(?:class|object|interface)\s+{re.escape(simple)}\b", text)
+        for simple in classes
+    )
+
+
 def generate_proguard_rules(rules_source: Path, rules_output: Path, kotlin_root: Path) -> int:
     """De-brand an R8 rules file so its class names match the generated Kotlin.
 
@@ -164,13 +187,12 @@ def generate_proguard_rules(rules_source: Path, rules_output: Path, kotlin_root:
         return 2
     text = debrand_text(rules_source.read_text(encoding="utf-8"))
     missing = [
-        name
-        for name in CHECKDISCARD_CLASS.findall(text)
-        if not (kotlin_root / (name.split("$", 1)[0].replace(".", "/") + ".kt")).is_file()
+        name for name in CHECKDISCARD_CLASS.findall(text) if not declares_class(kotlin_root, name)
     ]
     if missing:
         print(
-            "error: -checkdiscard classes have no generated source: " + ", ".join(missing),
+            "error: -checkdiscard classes are not declared in the generated Kotlin: "
+            + ", ".join(missing),
             file=sys.stderr,
         )
         return 2
