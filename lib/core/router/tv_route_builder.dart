@@ -22,7 +22,6 @@ const Set<String> tvFullScreenRoutes = {
   ResetPassword.name,
   LanternProLicense.name,
   DeleteAccount.name,
-  ReportIssue.name,
   JoinPrivateServer.name,
   ManuallyServerSetup.name,
   PrivateServerAddBilling.name,
