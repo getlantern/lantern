@@ -2547,7 +2547,7 @@ msgid "proxyless_reaches_blocked"
 msgstr "Accede directamente a sitios bloqueados cuando es posible"
 
 msgid "smart_routing_direct_description"
-msgstr "El enrutamiento inteligente usa reglas específicas por región para que solo el tráfico que necesita la VPN pase por Lantern. Con «Probar conexión directa primero» activado, se intenta acceder primero a los sitios bloqueados de forma directa con técnicas anticensura y, si eso falla, se usa la VPN."
+msgstr "El enrutamiento inteligente usa reglas específicas de cada región para que solo el tráfico que necesita la VPN pase por Lantern. Con Probar conexión directa primero activado, Lantern intenta primero una conexión directa y usa la VPN si falla."
 
 msgid "usage_stats"
 msgstr "Estadísticas de uso"
