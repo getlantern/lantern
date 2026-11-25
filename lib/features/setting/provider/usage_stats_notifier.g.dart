@@ -40,7 +40,7 @@ final class UsageStatsNotifierProvider
 }
 
 String _$usageStatsNotifierHash() =>
-    r'49fba3d31d21bca422299c8f4ce48c57ec7b0e6a';
+    r'63c42debb7dd08dad7c478b32a147383cc9d031a';
 
 /// The on-device usage stats the Usage stats screen shows. Auto-disposed, so
 /// nothing reads them once the screen closes.

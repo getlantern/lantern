@@ -33,7 +33,7 @@ final class SplitTunnelProvider
   SplitTunnel create() => SplitTunnel();
 }
 
-String _$splitTunnelHash() => r'71eeceb50ad7386561abf7735eafb0a812240925';
+String _$splitTunnelHash() => r'1e2c9bbe3c90ed4094dbe37352af99d51e769b3e';
 
 abstract class _$SplitTunnel extends $AsyncNotifier<SplitTunnelState> {
   FutureOr<SplitTunnelState> build();
