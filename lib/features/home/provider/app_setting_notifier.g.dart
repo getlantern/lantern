@@ -42,13 +42,13 @@ final class AppSettingNotifierProvider
 }
 
 String _$appSettingNotifierHash() =>
-    r'9c9d978ececba622eaa62aa5bbb269267eb1faff';
+    r'04214fe562b0d883e5de5bffe5f9654027da52d9';
 
 abstract class _$AppSettingNotifier extends $Notifier<AppSetting> {
   AppSetting build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AppSetting, AppSetting>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$AppSettingNotifier extends $Notifier<AppSetting> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

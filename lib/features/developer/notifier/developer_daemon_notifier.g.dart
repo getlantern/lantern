@@ -51,7 +51,7 @@ final class DeveloperDaemonNotifierProvider
 }
 
 String _$developerDaemonNotifierHash() =>
-    r'f636033cdbb65e7e1d0054fed1242c6eabacf01d';
+    r'08d4b7893baa713478c868478e68c5cee7668b9c';
 
 /// Snapshot of dev-mode daemon state plus the IPC calls that mutate it.
 /// Auto-disposed so each visit to the developer screen re-fetches fresh
@@ -62,7 +62,7 @@ abstract class _$DeveloperDaemonNotifier
   DeveloperDaemonState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<DeveloperDaemonState, DeveloperDaemonState>;
     final element =
         ref.element
@@ -72,6 +72,6 @@ abstract class _$DeveloperDaemonNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

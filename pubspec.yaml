@@ -19,8 +19,8 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 9.0.29+96
 
 environment:
-  sdk: ^3.11.0
-  flutter: ">=3.41.0 <4.0.0"
+  sdk: ^3.14.0
+  flutter: ">=3.50.0 <4.0.0"
 
 dependency_overrides:
   auto_updater:
@@ -118,11 +118,7 @@ dependencies:
   # Desktop
   window_manager: ^0.5.2
   screen_retriever: ^0.2.2
-  tray_manager:
-    git:
-      url: https://github.com/getlantern/tray_manager.git
-      path: packages/tray_manager
-      ref: e4f69663ca467c1108c1ccad9f55cf5a2154adc2
+  tray_manager: ^0.9.1
   win32_registry: ^3.0.3
   # Utils
   fpdart: ^1.2.0
@@ -172,7 +168,7 @@ dev_dependencies:
   riverpod_generator: ^4.0.3
 
   riverpod_lint: ^3.1.3
-  ffigen: ^21.0.0
+  ffigen: ^23.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

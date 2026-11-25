@@ -34,14 +34,14 @@ final class DataCapInfoNotifierProvider
 }
 
 String _$dataCapInfoNotifierHash() =>
-    r'599249e94d62979887e4ca30746f91c8675bd9d1';
+    r'1c09be55800e6adc2796855a41526916562ce8d3';
 
 abstract class _$DataCapInfoNotifier
     extends $AsyncNotifier<DataCapUsageResponse> {
   FutureOr<DataCapUsageResponse> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<DataCapUsageResponse>, DataCapUsageResponse>;
@@ -56,6 +56,6 @@ abstract class _$DataCapInfoNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
