@@ -346,7 +346,14 @@ void main() {
     final ctx = tester.element(find.byKey(const Key('plans.cta')));
     ctx.loaderOverlay.show();
     await tester.pump();
-    // Back, Close, the promo link: nothing moves while it is up.
+    // The button, Back, Close, the promo link: nothing moves while it is up.
+    // Without its guard, Select on the button starts the purchase flow,
+    // which reads account providers this test does not host (an exception
+    // the tester would report).
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(plans_screen.Plans), findsOneWidget);
     await tester.binding.handlePopRoute();
     await tester.pump();
     expect(find.byType(plans_screen.Plans), findsOneWidget);
@@ -371,7 +378,8 @@ void main() {
       'the state\'s target', (tester) async {
     // The promo link holds the loading-time focus and is the only control
     // that ever had it, so Flutter has no earlier control to fall back to
-    // when a referral code applied under the dialog removes it.
+    // when an applied referral code removes it. The code is applied from
+    // the test the way the dialog's submit does once it has closed.
     final later = _PlansLater(data);
     await pumpPlans(tester, later: later);
     expect(focusedLink(), const Key('plans.promo_code'));

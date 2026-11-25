@@ -288,9 +288,10 @@ class _PlansState extends ConsumerState<Plans>
   /// TvShell) and follows the one state the cards render: the first link
   /// while they load, Retry on a load error, "Get Lantern Pro" once they
   /// show; it is never taken from a viewer who moved it, nor while a
-  /// dialog covers the screen. The button does what it does on a phone;
-  /// the one item the phone's menu has and TV does not is Restore
-  /// Purchase, which Settings keeps on TV.
+  /// dialog covers the screen. The button does what it does on a phone.
+  /// The one control the phone's body has and TV does not is Restore
+  /// Purchase (under the button when store billing is available); Settings
+  /// keeps it on TV.
   Widget _buildTvScreen() {
     final plansState = ref.watch(plansProvider);
     // Ready means the cards are showing: a value kept while a refetch
@@ -523,9 +524,11 @@ class _PlansState extends ConsumerState<Plans>
   /// second press would start another checkout, the promo dialog's flow
   /// hides the same overlay, the license screen pops Plans around PopScope,
   /// and leaving would strand the overlay. The flow shows it from its first
-  /// line and hides it when the store answers (error, cancel, deferred, or
-  /// a purchase, which then refreshes the account with the overlay down
-  /// before moving on, as on a phone: that window is the shared flow's).
+  /// line and hides it once the checkout settles: a start error, the store's
+  /// error, cancel or deferral, or a purchase once the backend has
+  /// acknowledged its receipt (the account refresh then runs with the
+  /// overlay down before moving on, as on a phone: that window is the
+  /// shared flow's).
   bool get _tvStoreBusy => context.loaderOverlay.visible;
 
   void _tvShowReferralCodeDialog() {
