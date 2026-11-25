@@ -357,7 +357,11 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pump();
     expect(find.byType(plans_screen.Plans), findsOneWidget);
-    await tester.tap(find.byKey(const Key('plans.close')));
+    // Close through its handler: a tap would stop at the overlay's barrier,
+    // which keys do not.
+    tester
+        .widget<IconButton>(find.byKey(const Key('plans.close')))
+        .onPressed!();
     await tester.pump();
     expect(find.byType(plans_screen.Plans), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
