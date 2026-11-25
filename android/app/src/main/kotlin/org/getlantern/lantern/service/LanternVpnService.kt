@@ -35,6 +35,7 @@ import org.getlantern.lantern.constant.VPNStatus
 import org.getlantern.lantern.notification.NotificationHelper
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.AppLogger
+import org.getlantern.lantern.utils.DeviceIdleMonitor
 import org.getlantern.lantern.utils.DeviceUtil
 import org.getlantern.lantern.utils.FlutterEventListener
 import org.getlantern.lantern.utils.VpnStatusManager
@@ -396,6 +397,9 @@ open class LanternVpnService :
                     },
                     connect = connect,
                 )
+                // Radiance restarts come through here too, and every new
+                // tunnel starts awake, even with the device already in Doze.
+                DeviceIdleMonitor.start()
                 attempt.publish {
                     VpnStatusManager.postVPNStatus(VPNStatus.Connected)
                     notificationHelper.showVPNConnectedNotification(this@LanternVpnService)
@@ -419,6 +423,9 @@ open class LanternVpnService :
                 if (!mayBeConnected) {
                     cleanUpFailedVPNStart()
                     if (foregroundFailure != null) stopSelf()
+                } else {
+                    // The surviving tunnel may be a new one that started awake.
+                    DeviceIdleMonitor.start()
                 }
                 if (e is CancellationException) throw e
             }
@@ -589,8 +596,9 @@ open class LanternVpnService :
 
     private fun serviceCleanUp() {
         AppLogger.d(TAG, "Cleaning up service")
-        VpnStatusManager.unregisterVPNStatusReceiver(this)
+        VpnStatusManager.unregisterVPNStatusReceiver()
         MainActivity.receiverRegistered = false
+        DeviceIdleMonitor.stop()
     }
 
     private fun createVPNBuilder(options: TunOptions): Builder {

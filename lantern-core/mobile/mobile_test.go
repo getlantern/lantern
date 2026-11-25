@@ -60,6 +60,13 @@ func TestResetNetworkForMonitorWithoutBackendIsNoop(t *testing.T) {
 	}
 }
 
+// Doze can begin before the backend exists or after it is torn down.
+func TestDevicePauseAndWakeWithoutBackendAreNoops(t *testing.T) {
+	withCleanIPCLifecycle(t)
+	DevicePause()
+	DeviceWake()
+}
+
 func TestStartIPCServerReportsLifecycleBusy(t *testing.T) {
 	ipcLifecycle.mu.Lock()
 	previousServer := ipcLifecycle.server
