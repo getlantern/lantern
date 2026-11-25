@@ -2531,7 +2531,7 @@ msgid "proxyless_reaches_blocked"
 msgstr "Truy cập trực tiếp trang web bị chặn khi có thể"
 
 msgid "smart_routing_direct_description"
-msgstr "Định tuyến thông minh sử dụng các quy tắc theo khu vực để chỉ lưu lượng cần VPN mới đi qua Lantern. Khi bật Thử trực tiếp trước, các trang web bị chặn sẽ được thử truy cập trực tiếp trước bằng kỹ thuật chống kiểm duyệt, và chuyển sang VPN nếu không thành công."
+msgstr "Định tuyến thông minh dùng quy tắc riêng cho từng khu vực để chỉ lưu lượng cần VPN mới đi qua Lantern. Khi bật Thử kết nối trực tiếp trước, Lantern sẽ thử kết nối trực tiếp trước và dùng VPN nếu không thành công."
 
 msgid "usage_stats"
 msgstr "Thống kê sử dụng"
