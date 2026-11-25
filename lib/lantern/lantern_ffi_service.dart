@@ -1570,7 +1570,12 @@ class LanternFFIService implements LanternCoreService {
   Future<Either<Failure, String>> featureFlag() async {
     try {
       final result = await runInBackground<String>(() async {
-        return _ffiService.availableFeatures().toDartString();
+        final resultPtr = _ffiService.availableFeatures();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
       });
       checkAPIError(result);
       return Right(result);

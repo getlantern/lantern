@@ -1,3 +1,5 @@
+import 'package:lantern/core/models/feature_flags.dart';
+
 class CountryCode {
   static const censoredRegions = ['CN', 'RU', 'IR'];
 
@@ -23,9 +25,23 @@ class CountryCode {
 }
 
 /// Whether sharing may start on its own for a helper approval in [country]:
-/// only when it is known and not censored. A client-side backstop to
-/// lantern-cloud's IP-geolocation guard, which can fail open.
+/// only when it is known and not censored. [helperVolunteerAllowed]'s
+/// fallback for a server that does not send helper_volunteer.
 bool helperAutoStartAllowed(String country) {
   final c = country.trim().toUpperCase();
   return c.isNotEmpty && !CountryCode.helperCensoredCountries.contains(c);
+}
+
+/// Whether this device may volunteer as a Personal Proxy, given the config's
+/// [flags]. lantern-cloud decides it (Features["helper_volunteer"]), but can
+/// only narrow it: no until the flags have loaded and the country is known,
+/// and always no in a country this device knows is censored, since
+/// lantern-cloud's IP geolocation can be fooled (a VPN exit, a stale entry).
+/// A server that does not send the flag leaves it to the country.
+bool helperVolunteerAllowed(Map<String, dynamic> flags, String country) {
+  if (flags.isEmpty || !helperAutoStartAllowed(country)) return false;
+  if (flags.containsKey(FeatureFlag.helperVolunteer.key)) {
+    return flags.getBool(FeatureFlag.helperVolunteer);
+  }
+  return true;
 }

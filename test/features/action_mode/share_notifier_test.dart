@@ -389,6 +389,30 @@ void main() {
       expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
     });
 
+    testWidgets('helper_volunteer=false holds a start in an uncensored '
+        'country until it turns true', (tester) async {
+      CountryCode.update('DE');
+      _flags = const {'unbounded': true, 'helper_volunteer': false};
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+      (ref.read(featureFlagProvider.notifier) as _Flags).set(const {
+        'unbounded': true,
+        'helper_volunteer': true,
+      });
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, ['manual_port', 'upnp', 'unbounded:true']);
+    });
+
+    testWidgets('helper_volunteer=true never starts in a known censored '
+        'country', (tester) async {
+      CountryCode.update('IR');
+      _flags = const {'unbounded': true, 'helper_volunteer': true};
+      final (notifier, ref, service) = await _start(tester);
+      await notifier.startForHelper(ref);
+      expect(service.calls, isEmpty);
+    });
+
     testWidgets('a start held back for an unknown country runs once it is '
         'known', (tester) async {
       CountryCode.update('');
@@ -1416,5 +1440,21 @@ void main() {
     for (final c in ['DE', 'US', 'GB', 'TR']) {
       expect(helperAutoStartAllowed(c), isTrue, reason: c);
     }
+  });
+
+  test('helperVolunteerAllowed follows helper_volunteer, never past a '
+      'known censored country', () {
+    expect(helperVolunteerAllowed({'helper_volunteer': true}, 'IR'), isFalse);
+    expect(helperVolunteerAllowed({'helper_volunteer': true}, ''), isFalse);
+    expect(helperVolunteerAllowed({'helper_volunteer': true}, 'DE'), isTrue);
+    expect(helperVolunteerAllowed({'helper_volunteer': false}, 'DE'), isFalse);
+    expect(helperVolunteerAllowed({'unbounded': true}, 'DE'), isTrue);
+    expect(helperVolunteerAllowed({'unbounded': true}, 'IR'), isFalse);
+    expect(helperVolunteerAllowed(const {}, ''), isFalse);
+    expect(
+      helperVolunteerAllowed(const {}, 'DE'),
+      isFalse,
+      reason: 'flags not loaded yet',
+    );
   });
 }

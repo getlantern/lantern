@@ -18,6 +18,7 @@ import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -179,6 +180,7 @@ void main() {
         lanternServiceProvider.overrideWithValue(service),
         appSettingProvider.overrideWith(FakeSettings.new),
         radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
+        featureFlagProvider.overrideWithValue(const {'unbounded': true}),
       ],
     );
     container.read(shareProvider);
@@ -454,6 +456,7 @@ void main() {
           lanternServiceProvider.overrideWithValue(service),
           appSettingProvider.overrideWith(ResumingSettings.new),
           radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
+          featureFlagProvider.overrideWithValue(const {'unbounded': true}),
         ],
       );
       addTearDown(resumed.dispose);
@@ -578,6 +581,7 @@ void main() {
           appSettingProvider.overrideWith(FakeSettings.new),
           radianceSettingsProvider.overrideWith(FakeRadianceSettings.new),
           helpersProvider.overrideWith(HelpingOne.new),
+          featureFlagProvider.overrideWithValue(const {'unbounded': true}),
         ],
       );
     });

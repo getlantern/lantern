@@ -10,6 +10,7 @@ import 'package:lantern/core/models/server_location.dart';
 import 'package:lantern/core/services/logger_service.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/vpn/personal_proxies_section.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
@@ -106,6 +107,9 @@ class AppEventNotifier extends _$AppEventNotifier {
           ref
               .read(availableServersProvider.notifier)
               .forceFetchAvailableServers();
+          // Features come with each config: helper_volunteer, read when a
+          // held-back helper start is retried, must follow the new one.
+          unawaited(ref.read(featureFlagProvider.notifier).fetchFeatureFlags());
 
           break;
         case 'server-location':

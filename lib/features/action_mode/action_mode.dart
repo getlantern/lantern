@@ -9,6 +9,7 @@ import 'package:lantern/core/models/share_state.dart';
 import 'package:lantern/core/utils/country_code.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
+import 'package:lantern/features/home/provider/feature_flag_notifier.dart';
 import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/action_mode/advanced_stats_sheet.dart';
 import 'package:lantern/features/action_mode/peer_status_pill.dart';
@@ -30,10 +31,6 @@ class ActionModeTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(shareProvider);
     final visible = ref.watch(actionModeTabVisibleProvider);
-    // A volunteer is someone abroad: the row stays hidden where sharing may
-    // not start on its own (unknown or censored country), and in stealth. A
-    // volunteer waiting on a claim gets back to its code from here wherever
-    // it is, even before the country is known.
     final waiting = ref.watch(
       helpersProvider.select(
         (s) => s.view
@@ -51,10 +48,19 @@ class ActionModeTab extends HookConsumerWidget {
     // pairing, then "Your Personal Proxy connections". A volunteer is never
     // flagged, so that nobody in their country sees the inviter UI.
     final connectionsCard = AppBuildInfo.enableHelperInvites && helpsSomeone;
+    // A volunteer is someone abroad: the row stays hidden wherever this
+    // device may not volunteer (helperVolunteerAllowed). A volunteer waiting
+    // on a claim still gets back to its code from here, except in a country
+    // it knows is censored.
+    final country = ref.watch(countryCodeProvider);
     final becomeRow =
         AppBuildInfo.enableHelperInvites &&
         !helpsSomeone &&
-        (waiting || helperAutoStartAllowed(ref.watch(countryCodeProvider)));
+        (helperVolunteerAllowed(ref.watch(featureFlagProvider), country) ||
+            (waiting &&
+                !CountryCode.helperCensoredCountries.contains(
+                  country.trim().toUpperCase(),
+                )));
     // "Helping right now" opens Who you're helping, and says whom.
     final scopeShown = HelpersNotifier.buildEnabled;
     final helpOthers = ref.watch(
