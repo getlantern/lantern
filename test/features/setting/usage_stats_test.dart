@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart' hide UsageStatsScreen;
+import 'package:lantern/core/desktop/app_window.dart';
 import 'package:lantern/core/models/datacap_info.dart';
 import 'package:lantern/core/models/usage_stats.dart';
 import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
@@ -15,7 +15,9 @@ import 'package:lantern/features/setting/provider/usage_stats_notifier.dart';
 import 'package:lantern/features/setting/usage_stats.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:nativeapi/nativeapi.dart' as nativeapi;
+
+import '../../fakes/fake_native_window.dart';
 
 UsageTotals _totals({int proxyless = 0, int lantern = 0, int direct = 0}) =>
     UsageTotals({
@@ -148,12 +150,15 @@ Finder _inTotal(String text) => find.descendant(
   matching: find.text(text),
 );
 
-/// What the mocked window plugin reports.
+/// Delivers the window events the screen listens for.
+final _window = FakeNativeWindow();
+
+/// What the stubbed window check reports.
 var _windowVisible = true;
 var _windowMinimized = false;
 var _windowChecks = 0;
 
-/// When set, the mocked isVisible waits for it.
+/// When set, the stubbed window check waits for it.
 Completer<void>? _windowGate;
 
 void main() {
@@ -165,26 +170,18 @@ void main() {
     _windowChecks = 0;
     _windowGate = null;
     PlatformUtils.debugIsDesktop = true;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(const MethodChannel('window_manager'), (
-          call,
-        ) async {
-          if (call.method == 'isVisible') await _windowGate?.future;
-          return switch (call.method) {
-            'isVisible' => (() {
-              _windowChecks++;
-              return _windowVisible;
-            })(),
-            'isMinimized' => _windowMinimized,
-            _ => null,
-          };
-        });
+    AppWindow.instance.debugWindow = () => _window;
+    debugWindowShown = () async {
+      await _windowGate?.future;
+      _windowChecks++;
+      return _windowVisible && !_windowMinimized;
+    };
   });
 
   tearDown(() {
     PlatformUtils.debugIsDesktop = null;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(const MethodChannel('window_manager'), null);
+    debugWindowShown = null;
+    AppWindow.instance.debugWindow = null;
   });
 
   testWidgets('opens on this month: month caption, total, every path, and '
@@ -455,9 +452,7 @@ void main() {
     expect(service.reads, 1);
 
     _windowVisible = true;
-    for (final listener in windowManager.listeners) {
-      listener.onWindowFocus();
-    }
+    _window.fire(const nativeapi.WindowFocusedEvent(windowId: 0));
     await tester.pump();
     expect(service.reads, 2, reason: 'coming back reloads at once');
     await tester.pump(usageStatsRefreshInterval);
@@ -498,9 +493,7 @@ void main() {
     expect(service.reads, 1);
 
     _windowMinimized = false;
-    for (final listener in windowManager.listeners) {
-      listener.onWindowMaximize();
-    }
+    _window.fire(const nativeapi.WindowMaximizedEvent(windowId: 0));
     await tester.pump();
     expect(service.reads, 2);
     await tester.pump(usageStatsRefreshInterval);
@@ -521,9 +514,7 @@ void main() {
     expect(service.reads, 1, reason: 'only the first load');
 
     _windowVisible = true;
-    for (final listener in windowManager.listeners) {
-      listener.onWindowFocus();
-    }
+    _window.fire(const nativeapi.WindowFocusedEvent(windowId: 0));
     await tester.pump();
     expect(service.reads, 2);
   });

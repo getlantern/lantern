@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/desktop/app_window.dart';
 import 'package:lantern/core/models/available_servers.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/models/macos_extension_state.dart';
@@ -18,7 +19,6 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:window_manager/window_manager.dart';
 
 import '../../../core/common/common.dart';
 import '../../macos_extension/provider/macos_extension_notifier.dart';
@@ -367,7 +367,7 @@ class SystemTrayNotifier extends _$SystemTrayNotifier {
     if (PlatformUtils.isMacOS) {
       final systemExtensionStatus = ref.read(macosExtensionProvider);
       if (!systemExtensionStatus.isReady) {
-        windowManager.show();
+        AppWindow.instance.show();
         appRouter.push(const MacOSExtensionDialog());
         return false;
       }

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:lantern/core/desktop/app_window.dart';
 
 part 'window_notifier.g.dart';
 
@@ -11,19 +11,18 @@ class WindowNotifier extends _$WindowNotifier {
   Future<void> build() async {}
 
   Future<void> open({bool focus = true}) async {
-    await windowManager.show();
-    if (focus) await windowManager.focus();
+    AppWindow.instance.show(focus: focus);
     if (Platform.isMacOS) {
-      await windowManager.setSkipTaskbar(false);
+      AppWindow.instance.visibleInTaskbar = true;
     }
   }
 
   Future<void> close() async {
-    await windowManager.hide();
+    AppWindow.instance.hide();
     if (Platform.isMacOS) {
-      await windowManager.setSkipTaskbar(true);
+      AppWindow.instance.visibleInTaskbar = false;
     }
-    await windowManager.destroy();
+    AppWindow.instance.destroy();
     await Future.microtask(() => exit(0));
   }
 }

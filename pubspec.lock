@@ -1031,10 +1031,10 @@ packages:
     dependency: "direct overridden"
     description:
       name: in_app_purchase_android
-      sha256: b8af1b6f0e57076b5da5ede71e3af2d727017c0416ad2a41017c6ed2b102381d
+      sha256: eac857f7408769a68194be99ceb233ad4e3599e55ccd6422afaf0c7fd5066738
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.4"
   in_app_purchase_platform_interface:
     dependency: transitive
     description:
@@ -1047,10 +1047,10 @@ packages:
     dependency: "direct main"
     description:
       name: in_app_purchase_storekit
-      sha256: "1d512809edd9f12ff88fce4596a13a18134e2499013f4d6a8894b04699363c93"
+      sha256: e9278eb778170ce65a9e2d17672924f41b0f2f3ad958cd9f6ea7ffc0826efa29
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.8+1"
+    version: "0.4.17"
   in_app_review:
     dependency: "direct main"
     description:
@@ -1265,7 +1265,7 @@ packages:
     source: hosted
     version: "0.19.6"
   nativeapi:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: nativeapi
       sha256: "339b7a91a27ce5c33659cab92cf8e76736142985433652f91a63cc5348135bfb"
@@ -1528,46 +1528,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.0"
-  screen_retriever:
-    dependency: "direct main"
-    description:
-      name: screen_retriever
-      sha256: ace919117a7520c13a50a6259e60c4a0d4cbe98809468792a91b5c5adada2aa6
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.2"
-  screen_retriever_linux:
-    dependency: transitive
-    description:
-      name: screen_retriever_linux
-      sha256: "7b52006a5ceae1f3d5af7f77188c3290d6e7d8ded16d99809bea84967c65c257"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.2"
-  screen_retriever_macos:
-    dependency: transitive
-    description:
-      name: screen_retriever_macos
-      sha256: a1489b99cce597c45a54b9aae1cd94c8d4705353b7e0bb2457a6e4de44e0ad8a
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.2"
-  screen_retriever_platform_interface:
-    dependency: transitive
-    description:
-      name: screen_retriever_platform_interface
-      sha256: "94a5535277510a63184ca178ce12a1449bc0b38618879aa1c18bf57369c5064a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.2"
-  screen_retriever_windows:
-    dependency: transitive
-    description:
-      name: screen_retriever_windows
-      sha256: dafc6922b0bfbf1d48cf3ccbf519b4fff47bdcb820da1728ea6db675fecc9324
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.2"
   share_plus:
     dependency: "direct main"
     description:
@@ -1653,14 +1613,6 @@ packages:
     description:
       name: shelf_web_socket
       sha256: "3632775c8e90d6c9712f883e633716432a27758216dfb61bd86a8321c0580925"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
-  shimmer:
-    dependency: "direct main"
-    description:
-      name: shimmer
-      sha256: "5f88c883a22e9f9f299e5ba0e4f7e6054857224976a5d9f839d4ebdc94a14ac9"
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
@@ -1992,10 +1944,10 @@ packages:
     dependency: "direct main"
     description:
       name: window_manager
-      sha256: "05c231fd7b23d2380f14c5cc10b7b93d60d4fa4a2fb4e0f032de27e44b5560e9"
+      sha256: "9504ae37e618d31524e337ad3cf9600d252acf11fffa3ddb9b0b5ced634542d9"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.2"
+    version: "0.7.1"
   xdg_directories:
     dependency: transitive
     description:

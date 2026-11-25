@@ -2,29 +2,20 @@ import 'dart:math' as math;
 import 'dart:ui' show Size;
 
 import 'package:lantern/core/common/common.dart';
-import 'package:screen_retriever/screen_retriever.dart';
+import 'package:lantern/core/desktop/app_window.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> configureDesktopWindow() async {
   if (!PlatformUtils.isDesktop) return;
 
-  await windowManager.ensureInitialized();
-  final size = await _boundedInitialSize();
+  final window = AppWindow.instance.window;
+  if (window == null) return;
+
+  final size = _boundedInitialSize();
   final minSize = Size(
     math.min(desktopWindowMinSize.width, size.width),
     math.min(desktopWindowMinSize.height, size.height),
   );
-
-  final opts = WindowOptions(
-    size: size,
-    minimumSize: minSize,
-    maximumSize: size,
-    center: true,
-    titleBarStyle: TitleBarStyle.normal,
-    title: PlatformUtils.isWindows ? 'Lantern' : "",
-  );
-
-  await windowManager.setResizable(true);
 
   // Applies the sizing options but deliberately does not show the window, and
   // does not arm preventClose. Both are deferred to WindowWrapper, which runs
@@ -38,13 +29,19 @@ Future<void> configureDesktopWindow() async {
   //    the window impossible to close at all.
   //
   // See getlantern/engineering#3833.
-  await windowManager.waitUntilReadyToShow(opts);
+  window.isResizable = true;
+  window.titleBarStyle = TitleBarStyle.normal;
+  window.setSize(size.toNative(), false);
+  window.center();
+  window.minimumSize = minSize.toNative();
+  window.maximumSize = size.toNative();
+  window.title = PlatformUtils.isWindows ? 'Lantern' : "";
 }
 
-Future<Size> _boundedInitialSize() async {
+Size _boundedInitialSize() {
   try {
-    final display = await screenRetriever.getPrimaryDisplay();
-    final visibleSize = display.visibleSize ?? display.size;
+    final visibleSize = AppWindow.instance.primaryWorkArea();
+    if (visibleSize == null) return desktopWindowSize;
     return Size(
       math.min(desktopWindowSize.width, visibleSize.width),
       math.min(desktopWindowSize.height, visibleSize.height),

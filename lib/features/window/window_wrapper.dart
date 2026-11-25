@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/desktop/app_window.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/features/window/windows_protocol_registry.dart';
-import 'package:window_manager/window_manager.dart';
 
 class WindowWrapper extends StatefulHookConsumerWidget {
   final Widget child;
@@ -17,8 +17,7 @@ class WindowWrapper extends StatefulHookConsumerWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _WindowWrapperState();
 }
 
-class _WindowWrapperState extends ConsumerState<WindowWrapper>
-    with WindowListener {
+class _WindowWrapperState extends ConsumerState<WindowWrapper> {
   @override
   Widget build(BuildContext context) {
     ref.watch(windowProvider);
@@ -28,12 +27,8 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
   @override
   void initState() {
     super.initState();
-    // Registered here rather than in a post-frame callback: initState runs
-    // during the build phase, so the close handler exists even when the app
-    // goes on to never render a frame. preventClose is armed only after a
-    // frame has been built, so the two are never live without each other.
     if (PlatformUtils.isDesktop) {
-      windowManager.addListener(this);
+      AppWindow.instance.focused.addListener(_onWindowFocus);
     }
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => unawaited(_revealWindow()),
@@ -62,27 +57,22 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     // skipped the reveal entirely and left the app running with nothing on
     // screen — worse than the blank window this is all about.
     try {
-      await windowManager.show();
-      await windowManager.focus();
+      if (!AppWindow.instance.show()) {
+        appLogger.warning('No window to reveal after first frame');
+      }
     } catch (e, st) {
       appLogger.error('Failed to reveal window after first frame', e, st);
       return;
     }
 
-    // A failure here costs hide-to-tray, so the close button really closes.
-    // That is a worse product but a working app, and not worth hiding a window
-    // over.
-    try {
-      await windowManager.setPreventClose(true);
-    } catch (e, st) {
-      appLogger.error('Failed to enable close interception', e, st);
-    }
+    // From here the close button hides to the tray; AppWindow handles it.
+    AppWindow.instance.preventClose = true;
   }
 
   @override
   void dispose() {
     if (PlatformUtils.isDesktop) {
-      windowManager.removeListener(this);
+      AppWindow.instance.focused.removeListener(_onWindowFocus);
     }
     super.dispose();
   }
@@ -94,20 +84,7 @@ class _WindowWrapperState extends ConsumerState<WindowWrapper>
     }
   }
 
-  @override
-  void onWindowClose() async {
-    if (!context.mounted || !PlatformUtils.isDesktop) {
-      return;
-    }
-    bool isPreventClose = await windowManager.isPreventClose();
-    if (isPreventClose) {
-      // minimize-to-tray/dock
-      windowManager.hide();
-    } else {
-      windowManager.destroy();
-    }
+  void _onWindowFocus() {
+    if (mounted) setState(() {});
   }
-
-  @override
-  void onWindowFocus() => setState(() {});
 }

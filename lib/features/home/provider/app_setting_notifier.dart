@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/desktop/app_window.dart';
 import 'package:lantern/core/models/app_setting.dart';
 import 'package:lantern/core/models/relay_stats.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
@@ -11,7 +12,6 @@ import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/radiance_environment.dart';
 import 'package:lantern/core/utils/storage_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:window_manager/window_manager.dart';
 
 part 'app_setting_notifier.g.dart';
 
@@ -189,7 +189,7 @@ class AppSettingNotifier extends _$AppSettingNotifier {
     };
 
     try {
-      await windowManager.setBrightness(brightness);
+      AppWindow.instance.setBrightness(brightness);
     } catch (e, st) {
       appLogger.error('Failed to set desktop toolbar brightness: $e', st);
     }

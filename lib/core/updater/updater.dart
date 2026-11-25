@@ -6,6 +6,7 @@ import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/common/app_urls.dart';
+import 'package:lantern/core/desktop/app_window.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/logger_service.dart';
@@ -15,7 +16,6 @@ import 'package:lantern/core/updater/winsparkle_build_version.dart';
 import 'package:lantern/features/system_tray/app_tray.dart';
 import 'package:lantern/lantern/lantern_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:window_manager/window_manager.dart';
 
 class Updater with UpdaterLifecycleListener {
   Updater({
@@ -301,18 +301,14 @@ class Updater with UpdaterLifecycleListener {
   Future<void> _quitDesktopForUpdate() async {
     // WinSparkle has already launched the installer when it sends this event.
     // Tear down Lantern's desktop UI so the installer can replace the binary.
-    try {
-      await windowManager.setPreventClose(false);
-    } catch (e, st) {
-      appLogger.warning('Failed to release the Lantern window', e, st);
-    }
+    AppWindow.instance.preventClose = false;
     try {
       AppTray.instance.destroy();
     } catch (e, st) {
       appLogger.warning('Failed to close the Lantern tray icon', e, st);
     }
     try {
-      await windowManager.destroy();
+      AppWindow.instance.destroy();
     } catch (e, st) {
       appLogger.warning('Failed to close the Lantern window', e, st);
     }
