@@ -205,21 +205,15 @@ class ConfirmEmail extends HookConsumerWidget {
 
         /// If user is from store version no need to check anything
         /// send them to create password directly
-        if (PlatformUtils.isMobile && isStoreVersion()) {
+        /// Check if user is pro or not
+        final isPro = ref.read(isUserProProvider);
+        if ((PlatformUtils.isMobile && isStoreVersion()) || isPro) {
           appRouter.push(
             CreatePassword(email: email, authFlow: authFlow, code: code),
           );
           return;
         }
 
-        /// Check if user is pro or not
-        final isPro = ref.read(isUserProProvider);
-        if (isPro) {
-          appRouter.push(
-            CreatePassword(email: email, authFlow: authFlow, code: code),
-          );
-          return;
-        }
         appRouter.push(
           ChoosePaymentMethod(email: email, authFlow: authFlow, code: code),
         );

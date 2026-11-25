@@ -190,6 +190,14 @@ class ChoosePaymentMethod extends HookConsumerWidget {
     final isAndroid = PlatformUtils.isAndroid;
     final isAndroidSideload = isAndroid && !isStoreVersion();
     appLogger.info('User initiated purchase with provider: ${provider.method}');
+
+    /// This should not happen at all, Since user add email before this but if fails
+    /// DO not fail payment ask user for email again
+    if (email.trim().isEmpty) {
+      appLogger.warning('Checkout opened without an email');
+      appRouter.replace(AddEmail(authFlow: AuthFlow.signUp));
+      return;
+    }
     switch (provider.providers.name) {
       case 'stripe':
         if (isDesktop) {
