@@ -24,6 +24,11 @@ class _Plans extends PlansNotifier {
   Future<PlansData> build() async => data;
 }
 
+class _PlansDown extends PlansNotifier {
+  @override
+  Future<PlansData> build() async => throw StateError('plans down');
+}
+
 class _Country extends CountryCodeNotifier {
   @override
   String build() => 'US';
@@ -57,16 +62,29 @@ void main() {
     plans: [_plan('1m'), _plan('1y'), _plan('2y', bestValue: true)],
   );
 
-  Future<_Plans> pumpPlans(WidgetTester tester) async {
+  Future<_Plans> pumpPlans(
+    WidgetTester tester, {
+    bool billing = false,
+    bool down = false,
+  }) async {
     tester.view.physicalSize = const Size(1920, 1080);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    if (billing) {
+      sl.unregister<AppPurchase>();
+      sl.registerSingleton<AppPurchase>(
+        AppPurchase(inAppPurchase: _Store(), canUseBilling: () => true),
+      );
+    }
     final plans = _Plans(data);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          plansProvider.overrideWith(() => plans),
+          if (down)
+            plansProvider.overrideWith(_PlansDown.new)
+          else
+            plansProvider.overrideWith(() => plans),
           countryCodeProvider.overrideWith(_Country.new),
         ],
         child: ScreenUtilInit(
@@ -153,6 +171,77 @@ void main() {
       reason: 'still on the screen',
     );
     expect(find.byType(Dialog), findsNothing);
+  });
+
+  testWidgets('the Best Value badge sits within its card', (tester) async {
+    await pumpPlans(tester);
+    final card = tester.getRect(find.byKey(const Key('plans.item.2y')));
+    // Every card builds its badge text; only the best-value card shows it.
+    final badge = tester.getRect(
+      find
+          .descendant(
+            of: find.byKey(const Key('plans.item.2y')),
+            matching: find.text('best_value'.i18n),
+          )
+          .first,
+    );
+    expect(badge.left, greaterThanOrEqualTo(card.left));
+    expect(badge.right, lessThanOrEqualTo(card.right));
+  });
+
+  testWidgets('OK on the promo link opens the code dialog', (tester) async {
+    await pumpPlans(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(focusedLink(), const Key('plans.promo_code'));
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsOneWidget, reason: 'the code entry');
+  });
+
+  testWidgets('Restore Purchase shows first among the links when store '
+      'billing is available', (tester) async {
+    await pumpPlans(tester, billing: true);
+    expect(find.byKey(const Key('plans.restore')), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(focusedLink(), const Key('plans.restore'));
+  });
+
+  testWidgets('an on-screen keyboard does not reflow the screen', (
+    tester,
+  ) async {
+    tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+    addTearDown(tester.view.resetViewInsets);
+    await pumpPlans(tester);
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('plans.cta')), findsOneWidget);
+  });
+
+  testWidgets('when the plans fail to load, Retry has focus', (tester) async {
+    await pumpPlans(tester, down: true);
+    expect(find.byKey(const Key('plans.retry')), findsOneWidget);
+    expect(
+      FocusManager.instance.primaryFocus?.context
+          ?.findAncestorWidgetOfExactType<PrimaryButton>()
+          ?.buttonKey,
+      const Key('plans.retry'),
+    );
+  });
+
+  testWidgets('the close button is not clipped by the safe margin', (
+    tester,
+  ) async {
+    await pumpPlans(tester);
+    final stack = tester.widget<Stack>(
+      find
+          .ancestor(
+            of: find.byKey(const Key('plans.close')),
+            matching: find.byType(Stack),
+          )
+          .first,
+    );
+    expect(stack.clipBehavior, Clip.none);
   });
 
   testWidgets('Down from the button reaches the links', (tester) async {

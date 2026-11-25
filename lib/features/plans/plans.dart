@@ -49,11 +49,14 @@ class _PlansState extends ConsumerState<Plans>
   /// TV: "Get Lantern Pro" takes the first focus once the plans have loaded,
   /// so buying the preselected plan is one press.
   final _tvCtaFocus = FocusNode(debugLabel: 'plans.cta');
+  final _tvRetryFocus = FocusNode(debugLabel: 'plans.retry');
+  bool _tvRetryFocused = false;
   bool _tvCtaFocused = false;
 
   @override
   void dispose() {
     _tvCtaFocus.dispose();
+    _tvRetryFocus.dispose();
     super.dispose();
   }
 
@@ -213,14 +216,19 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
-  /// The plan cards, or the loading or error state in their place.
-  Widget _plansListOrStatus(AsyncValue<PlansData> plansState) {
+  /// The plan cards, or the loading or error state in their place. On TV
+  /// the cards take [cardWidth] for their badge, and Retry is a button the
+  /// screen can give focus to.
+  Widget _plansListOrStatus(
+    AsyncValue<PlansData> plansState, {
+    double? cardWidth,
+  }) {
     return plansState.when(
       data: (data) {
         if (data.plans.isEmpty) {
           return Text('plans_fetch_error'.i18n, style: textTheme.labelLarge);
         }
-        return PlansListView(data: data);
+        return PlansListView(data: data, cardWidth: cardWidth);
       },
       loading: () {
         return Center(child: LoadingIndicator());
@@ -229,12 +237,22 @@ class _PlansState extends ConsumerState<Plans>
         return Column(
           children: [
             Text('plans_fetch_error'.i18n, style: textTheme.labelLarge),
-            AppTextButton(
-              label: 'retry'.i18n,
-              onPressed: () {
-                ref.read(plansProvider.notifier).retryFetchPlans();
-              },
-            ),
+            if (PlatformUtils.tvShellEnabled)
+              PrimaryButton(
+                buttonKey: const Key('plans.retry'),
+                focusNode: _tvRetryFocus,
+                label: 'retry'.i18n,
+                onPressed: () {
+                  ref.read(plansProvider.notifier).retryFetchPlans();
+                },
+              )
+            else
+              AppTextButton(
+                label: 'retry'.i18n,
+                onPressed: () {
+                  ref.read(plansProvider.notifier).retryFetchPlans();
+                },
+              ),
           ],
         );
       },
@@ -245,8 +263,11 @@ class _PlansState extends ConsumerState<Plans>
   /// 960x540 without scrolling, inside the safe margins. Left, not
   /// focusable: the Lantern Pro logo and the benefits. Right: the plan
   /// cards, "Get Lantern Pro", then the menu's items as links. The close
-  /// button sits top left and is never the first focus. Layout and focus
-  /// only: the button does what it does on a phone.
+  /// button sits top left. Initial focus is this screen's own (it takes
+  /// the whole screen, outside TvShell): "Get Lantern Pro" once the plans
+  /// load, Retry on an error, nothing while loading, and never when the
+  /// viewer has already moved or a dialog covers the screen. Layout and
+  /// focus only: the button does what it does on a phone.
   Widget _buildTvScreen() {
     final plansState = ref.watch(plansProvider);
     final plansReady =
@@ -254,20 +275,25 @@ class _PlansState extends ConsumerState<Plans>
     // Disabled until the plans load, so it cannot autofocus; focus it then.
     if (plansReady && !_tvCtaFocused) {
       _tvCtaFocused = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _tvCtaFocus.requestFocus();
-      });
+      _tvInitialFocus(_tvCtaFocus);
+    } else if (plansState.hasError && !_tvRetryFocused) {
+      _tvRetryFocused = true;
+      _tvInitialFocus(_tvRetryFocus);
     }
     final isReferralApplied = ref.watch(referralProvider).isApplied;
-    final mediaQuery = MediaQuery.of(context);
     return Scaffold(
       backgroundColor: context.bgElevated,
+      // The columns are sized to the screen and cannot give way to the
+      // on-screen keyboard; a dialog that opens it handles its own inset.
+      resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: tvSafeMarginH,
           vertical: tvSafeMarginV,
         ),
         child: Stack(
+          // The close button's ring reaches past the safe margin's corner.
+          clipBehavior: Clip.none,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -303,18 +329,13 @@ class _PlansState extends ConsumerState<Plans>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildAffiliateBanner(),
-                      // PlanItem places its Best Value badge from the
-                      // screen width; a card-sized MediaQuery puts it
-                      // where the phone's card has it.
+                      // The cards place their Best Value badge from the
+                      // card's own width here (the phone's from the
+                      // viewport), so the list's layout rule is untouched.
                       LayoutBuilder(
-                        builder: (context, constraints) => MediaQuery(
-                          data: mediaQuery.copyWith(
-                            size: Size(
-                              constraints.maxWidth + 2 * defaultSize,
-                              mediaQuery.size.height,
-                            ),
-                          ),
-                          child: _plansListOrStatus(plansState),
+                        builder: (context, constraints) => _plansListOrStatus(
+                          plansState,
+                          cardWidth: constraints.maxWidth + 2 * defaultSize,
                         ),
                       ),
                       const SizedBox(height: 28),
@@ -323,7 +344,7 @@ class _PlansState extends ConsumerState<Plans>
                         focusNode: _tvCtaFocus,
                         label: 'get_lantern_pro'.i18n,
                         enabled: plansReady,
-                        onPressed: onGetLanternProTap,
+                        onPressed: _tvGetLanternPro,
                       ),
                       const SizedBox(height: 20),
                       // The three-dot menu's items, as links a remote can reach.
@@ -338,7 +359,7 @@ class _PlansState extends ConsumerState<Plans>
                               AppTextButton(
                                 key: const Key('plans.restore'),
                                 label: 'restore_purchase'.i18n,
-                                onPressed: _restorePurchaseFlow,
+                                onPressed: _tvRestorePurchase,
                               ),
                             if (!isReferralApplied)
                               AppTextButton(
@@ -380,6 +401,41 @@ class _PlansState extends ConsumerState<Plans>
         ),
       ),
     );
+  }
+
+  /// Focuses [node] after the frame, unless the viewer has already moved
+  /// focus on this screen or another route covers it.
+  void _tvInitialFocus(FocusNode node) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      final focused = FocusManager.instance.primaryFocus;
+      final scope = FocusScope.of(context);
+      if (focused != null && focused != scope && focused.ancestors.contains(scope)) {
+        return;
+      }
+      node.requestFocus();
+    });
+  }
+
+  /// Restore and checkout are store operations a remote could start on top
+  /// of each other, since nothing on this screen blocks input while one
+  /// runs: one at a time.
+  bool _tvStoreBusy = false;
+
+  Future<void> _tvRestorePurchase() async {
+    if (_tvStoreBusy) return;
+    _tvStoreBusy = true;
+    try {
+      await _restorePurchaseFlow();
+    } finally {
+      _tvStoreBusy = false;
+    }
+  }
+
+  void _tvGetLanternPro() {
+    if (_tvStoreBusy) return;
+    onGetLanternProTap();
   }
 
   /// Builds without in-app payments activate Pro with a license only.
