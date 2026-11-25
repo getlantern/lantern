@@ -11,17 +11,20 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
+import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/plans.dart' as plans_screen;
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 
-/// A store whose restore never finishes, to hold an operation in flight.
+/// A store whose restore stays in flight until the test ends it through
+/// the purchase stream, as the real store does.
 class _Store extends Fake implements InAppPurchase {
   int restores = 0;
+  final events = StreamController<List<PurchaseDetails>>.broadcast();
 
   @override
-  Stream<List<PurchaseDetails>> get purchaseStream => const Stream.empty();
+  Stream<List<PurchaseDetails>> get purchaseStream => events.stream;
 
   @override
   Future<bool> isAvailable() async => true;
@@ -31,10 +34,26 @@ class _Store extends Fake implements InAppPurchase {
     restores++;
     return Completer<void>().future;
   }
+
+  /// Ends the restore the way the store reports a failure.
+  void failRestore() => events.add([
+    PurchaseDetails(
+      productID: 'pro',
+      verificationData: PurchaseVerificationData(
+        localVerificationData: '',
+        serverVerificationData: '',
+        source: 'test',
+      ),
+      transactionDate: null,
+      status: PurchaseStatus.error,
+    )..error = IAPError(source: 'test', code: 'test', message: 'no store'),
+  ]);
 }
 
-/// The store the billing-enabled tests register.
+/// The store the billing-enabled tests register, and whether billing is
+/// available (a test can turn it on after the screen is up).
 _Store? _store;
+bool _billing = false;
 
 class _Plans extends PlansNotifier {
   _Plans(this.data);
@@ -50,8 +69,9 @@ class _PlansDown extends PlansNotifier {
   Future<PlansData> build() async => throw StateError('plans down');
 }
 
-/// Plans that load at once and can be sent back through loading, keeping
-/// the previous value as Riverpod does on a refetch.
+/// Plans that load at once; a retry publishes the states the real fetch
+/// does (a plain loading state, then data or an error), ending the way the
+/// test says.
 class _PlansRefetch extends PlansNotifier {
   _PlansRefetch(this.data);
 
@@ -62,20 +82,13 @@ class _PlansRefetch extends PlansNotifier {
 
   @override
   Future<void> retryFetchPlans() async {
-    // A reload, as fetchPlans publishes: the previous value is kept on the
-    // loading state (Riverpod) while the cards show their spinner.
-    state = const AsyncLoading<PlansData>().copyWithPrevious(
-      state,
-      isRefresh: false,
-    );
+    state = const AsyncLoading();
   }
 
   void arrive() => state = AsyncData(data);
 
-  void fail() => state = AsyncError<PlansData>(
-    StateError('plans down'),
-    StackTrace.empty,
-  ).copyWithPrevious(state);
+  void fail() =>
+      state = AsyncError(StateError('plans down'), StackTrace.current);
 }
 
 /// Plans that arrive when the test says so.
@@ -134,6 +147,7 @@ void main() {
     PlansData? plansData,
     bool rtl = false,
     bool oneToOne = false,
+    bool pushed = false,
     Size physicalSize = const Size(1920, 1080),
     double devicePixelRatio = 2,
   }) async {
@@ -144,8 +158,9 @@ void main() {
     if (billing) {
       sl.unregister<AppPurchase>();
       _store = _Store();
+      _billing = true;
       sl.registerSingleton<AppPurchase>(
-        AppPurchase(inAppPurchase: _store, canUseBilling: () => true),
+        AppPurchase(inAppPurchase: _store, canUseBilling: () => _billing),
       );
     }
     final plans = _Plans(plansData ?? data);
@@ -179,11 +194,20 @@ void main() {
                     )
                   : child!,
             ),
-            home: const plans_screen.Plans(),
+            home: pushed
+                ? const Scaffold(body: SizedBox())
+                : const plans_screen.Plans(),
           ),
         ),
       ),
     );
+    if (pushed) {
+      tester
+          .state<NavigatorState>(find.byType(Navigator))
+          .push(
+            MaterialPageRoute<void>(builder: (_) => const plans_screen.Plans()),
+          );
+    }
     // While the plans are still to come the spinner never settles.
     if (later != null) {
       await tester.pump();
@@ -338,9 +362,10 @@ void main() {
     expect(stack.clipBehavior, Clip.none);
   });
 
-  testWidgets('a store operation in flight blocks a second one from the '
-      'remote until it ends', (tester) async {
-    await pumpPlans(tester, billing: true);
+  testWidgets('a store operation in flight blocks a second one, and Back, '
+      'until the store ends it', (tester) async {
+    await pumpPlans(tester, billing: true, pushed: true);
+    await tester.pumpAndSettle();
     final store = _store!;
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pumpAndSettle();
@@ -349,6 +374,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(store.restores, 1, reason: 'the restore is in flight');
+    expect(sl<AppPurchase>().hasActiveSession, isTrue);
     // A second Restore, and checkout from the button, while it runs.
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pump();
@@ -358,22 +384,63 @@ void main() {
     await tester.pump();
     expect(store.restores, 1, reason: 'no second store operation');
     expect(tester.takeException(), isNull, reason: 'checkout did not start');
-    // The operation ends (every end hides the overlay): the guard lifts.
-    tester.element(find.byKey(const Key('plans.cta'))).loaderOverlay.hide();
+    // Back and Close wait too: leaving would strand the loading overlay.
+    await tester.binding.handlePopRoute();
     await tester.pump();
+    expect(find.byType(plans_screen.Plans), findsOneWidget);
+    // The store ends the restore: the session clears, the overlay hides,
+    // and the guard lifts for the next operation and for Back.
+    store.failRestore();
+    await tester.pump();
+    await tester.pump();
+    expect(sl<AppPurchase>().hasActiveSession, isFalse);
+    expect(
+      tester.element(find.byKey(const Key('plans.cta'))).loaderOverlay.visible,
+      isFalse,
+    );
+    // The error dialog the flow shows; dismiss it.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pump();
     await tester.pump();
-    expect(store.restores, 2);
+    expect(store.restores, 2, reason: 'the next restore starts');
   });
 
-  testWidgets('a narrower TV keeps the focused control in view', (
+  testWidgets('billing arriving later does not move a focused link', (
     tester,
   ) async {
-    // 1280x720 at 1.5x: 853x480dp, laid out 1:1 as a TV is; four plans so
-    // the right column does not fit.
+    final refetch = _PlansRefetch(data);
+    await pumpPlans(tester, billing: true, refetch: refetch);
+    // Billing was off when the screen opened: no Restore link.
+    _billing = false;
+    await refetch.retryFetchPlans();
+    await tester.pump();
+    await tester.pump();
+    refetch.arrive();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('plans.restore')), findsNothing);
+    // The viewer moves to the promo link; then the store's products arrive.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(focusedLink(), const Key('plans.promo_code'));
+    _billing = true;
+    await refetch.retryFetchPlans();
+    await tester.pump();
+    await tester.pump();
+    refetch.arrive();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('plans.restore')), findsOneWidget);
+    expect(focusedLink(), const Key('plans.promo_code'), reason: 'unmoved');
+  });
+
+  testWidgets('a narrower, shorter TV keeps the focused control in view', (
+    tester,
+  ) async {
+    // 1280x600 at 1.5x: 853x400dp, laid out 1:1 as a TV is; four plans so
+    // neither column fits.
     final four = PlansData(
       providers: Providers(android: [], desktop: []),
       plans: [
@@ -386,15 +453,39 @@ void main() {
     await pumpPlans(
       tester,
       plansData: four,
-      physicalSize: const Size(1280, 720),
+      physicalSize: const Size(1280, 600),
       devicePixelRatio: 1.5,
       oneToOne: true,
     );
     expect(tester.takeException(), isNull);
-    const viewport = Rect.fromLTWH(0, 0, 853.3, 480);
-    bool visible(Finder f) =>
-        viewport.contains(tester.getRect(f).topLeft) &&
-        viewport.contains(tester.getRect(f).bottomRight);
+    // The right column's own scroll viewport, not the screen.
+    final viewport = tester.getRect(
+      find
+          .ancestor(
+            of: find.byKey(const Key('plans.cta')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    bool visible(Finder f) {
+      // The visible part: a button's outer rect carries its tap-target
+      // padding, and a card's its badge room, neither of which draws the
+      // control.
+      final ink = find.descendant(of: f, matching: find.byType(InkWell));
+      final card = find.descendant(of: f, matching: find.byType(AppFocusable));
+      final r = tester.getRect(
+        ink.evaluate().isNotEmpty
+            ? ink.first
+            : card.evaluate().isNotEmpty
+            ? card.first
+            : f,
+      );
+      return r.left >= viewport.left - 0.5 &&
+          r.top >= viewport.top - 0.5 &&
+          r.right <= viewport.right + 0.5 &&
+          r.bottom <= viewport.bottom + 0.5;
+    }
+
     expect(
       visible(find.byKey(const Key('plans.cta'))),
       isTrue,
