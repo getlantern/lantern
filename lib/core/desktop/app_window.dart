@@ -47,6 +47,7 @@ class AppWindow {
     final window = override != null ? override() : (_window ??= _current());
     if (window != null && !identical(window, _listening)) {
       _listening = window;
+      _closing = false;
       window.addListener(_onEvent);
     }
     return window;
