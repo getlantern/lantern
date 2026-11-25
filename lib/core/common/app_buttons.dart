@@ -302,7 +302,11 @@ class AppTextButton extends StatelessWidget {
     this.padding,
     this.underLine = true,
     this.fontSize,
+    this.focusNode,
   });
+
+  /// The button's focus node, for a screen that gives it focus itself.
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -320,6 +324,7 @@ class AppTextButton extends StatelessWidget {
       foregroundColor: textColor ?? context.textLink,
     );
     return TextButton(
+      focusNode: focusNode,
       onPressed: onPressed,
       style: style.merge(tvFocusRingButtonStyle(context)),
       child: Text(label),

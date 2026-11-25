@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,6 +10,8 @@ import 'package:lantern/core/models/plan_data.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
+import 'package:loader_overlay/loader_overlay.dart';
+import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/plans.dart' as plans_screen;
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
@@ -27,6 +30,20 @@ class _Plans extends PlansNotifier {
 class _PlansDown extends PlansNotifier {
   @override
   Future<PlansData> build() async => throw StateError('plans down');
+}
+
+/// Plans that arrive when the test says so.
+class _PlansLater extends PlansNotifier {
+  _PlansLater(this.data);
+
+  final PlansData data;
+  final arrived = Completer<void>();
+
+  @override
+  Future<PlansData> build() async {
+    await arrived.future;
+    return data;
+  }
 }
 
 class _Country extends CountryCodeNotifier {
@@ -66,9 +83,13 @@ void main() {
     WidgetTester tester, {
     bool billing = false,
     bool down = false,
+    _PlansLater? later,
+    bool rtl = false,
+    Size physicalSize = const Size(1920, 1080),
+    double devicePixelRatio = 2,
   }) async {
-    tester.view.physicalSize = const Size(1920, 1080);
-    tester.view.devicePixelRatio = 2;
+    tester.view.physicalSize = physicalSize;
+    tester.view.devicePixelRatio = devicePixelRatio;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     if (billing) {
@@ -83,6 +104,8 @@ void main() {
         overrides: [
           if (down)
             plansProvider.overrideWith(_PlansDown.new)
+          else if (later != null)
+            plansProvider.overrideWith(() => later)
           else
             plansProvider.overrideWith(() => plans),
           countryCodeProvider.overrideWith(_Country.new),
@@ -91,12 +114,27 @@ void main() {
           designSize: const Size(960, 540),
           child: MaterialApp(
             theme: AppTheme.darkTheme(),
+            // The app hosts the loading overlay above its routes.
+            builder: (context, child) => LoaderOverlay(
+              child: rtl
+                  ? Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: child!,
+                    )
+                  : child!,
+            ),
             home: const plans_screen.Plans(),
           ),
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    // While the plans are still to come the spinner never settles.
+    if (later != null) {
+      await tester.pump();
+      await tester.pump();
+    } else {
+      await tester.pumpAndSettle();
+    }
     return plans;
   }
 
@@ -242,6 +280,108 @@ void main() {
           .first,
     );
     expect(stack.clipBehavior, Clip.none);
+  });
+
+  testWidgets('a store operation in progress blocks a second one from the '
+      'remote', (tester) async {
+    await pumpPlans(tester, billing: true);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(focusedLink(), const Key('plans.restore'));
+    // Restore and checkout show the loading overlay while they run.
+    tester.element(find.byKey(const Key('plans.restore'))).loaderOverlay.show();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    expect(tester.takeException(), isNull, reason: 'no second restore');
+    expect(find.byType(Dialog), findsNothing);
+    tester.element(find.byKey(const Key('plans.restore'))).loaderOverlay.hide();
+    await tester.pump();
+  });
+
+  testWidgets('a narrower TV fits without overflow', (tester) async {
+    // 1280x720 at 1.5x: 853x480dp.
+    await pumpPlans(
+      tester,
+      physicalSize: const Size(1280, 720),
+      devicePixelRatio: 1.5,
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('plans.cta')), findsOneWidget);
+    expect(find.byKey(const Key('plans.license')), findsOneWidget);
+  });
+
+  testWidgets('the button waits for the cards and takes focus when they '
+      'arrive', (tester) async {
+    final later = _PlansLater(data);
+    await pumpPlans(tester, later: later);
+    expect(
+      tester.widget<ElevatedButton>(find.byKey(const Key('plans.cta'))).enabled,
+      isFalse,
+      reason: 'nothing to buy yet',
+    );
+    expect(
+      focusedLink(),
+      const Key('plans.promo_code'),
+      reason: 'the first link has focus while the cards load',
+    );
+    later.arrived.complete();
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<ElevatedButton>(find.byKey(const Key('plans.cta'))).enabled,
+      isTrue,
+    );
+    expect(
+      FocusManager.instance.primaryFocus?.context
+          ?.findAncestorWidgetOfExactType<PrimaryButton>()
+          ?.buttonKey,
+      const Key('plans.cta'),
+    );
+  });
+
+  testWidgets('cards arriving after the viewer moved leave focus alone', (
+    tester,
+  ) async {
+    final later = _PlansLater(data);
+    await pumpPlans(tester, later: later);
+    // Right, then Down: the test font is wide enough to wrap the links.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(focusedLink(), const Key('plans.license'), reason: 'moved');
+    later.arrived.complete();
+    await tester.pumpAndSettle();
+    expect(focusedLink(), const Key('plans.license'));
+  });
+
+  testWidgets('cards arriving under the code dialog leave its focus alone', (
+    tester,
+  ) async {
+    final later = _PlansLater(data);
+    await pumpPlans(tester, later: later);
+    expect(focusedLink(), const Key('plans.promo_code'));
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(TextField), findsOneWidget);
+    later.arrived.complete();
+    await tester.pumpAndSettle();
+    expect(
+      FocusManager.instance.primaryFocus?.context
+          ?.findAncestorWidgetOfExactType<TextField>(),
+      isNotNull,
+      reason: 'the dialog keeps focus',
+    );
+  });
+
+  testWidgets('a right-to-left locale keeps the benefits left and close '
+      'top-left', (tester) async {
+    await pumpPlans(tester, rtl: true);
+    final close = tester.getTopLeft(find.byKey(const Key('plans.close')));
+    final benefits = tester.getTopLeft(find.byType(FeatureList));
+    final cta = tester.getTopLeft(find.byKey(const Key('plans.cta')));
+    expect(close.dx, lessThan(benefits.dx + 1));
+    expect(benefits.dx, lessThan(cta.dx));
   });
 
   testWidgets('Down from the button reaches the links', (tester) async {
