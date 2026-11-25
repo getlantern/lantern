@@ -53,14 +53,8 @@ class _PlansState extends ConsumerState<Plans>
   /// so buying the preselected plan is one press.
   final _tvCtaFocus = FocusNode(debugLabel: 'plans.cta');
   final _tvRetryFocus = FocusNode(debugLabel: 'plans.retry');
-  final _tvRestoreFocus = FocusNode(debugLabel: 'plans.restore');
   final _tvPromoFocus = FocusNode(debugLabel: 'plans.promo_code');
   final _tvLicenseFocus = FocusNode(debugLabel: 'plans.license');
-
-  /// Which control the plans state last asked focus for; a change of
-  /// kind places focus, so a link's node is chosen once per placement and
-  /// billing arriving later does not move it.
-  _TvFocusKind? _tvAutoKind;
 
   /// The control this screen last gave focus to on its own; focus still
   /// there counts as not moved by the viewer. Cleared when it loses focus,
@@ -73,13 +67,6 @@ class _PlansState extends ConsumerState<Plans>
     if (!placed.hasFocus) {
       placed.removeListener(_tvPlacedFocusChanged);
       _tvPlacedFocus = null;
-      // A link this screen placed focus on and that is gone (Restore, when
-      // the store's products fail to load): the first link left takes it.
-      if (_tvAutoKind == _TvFocusKind.link && placed.context == null) {
-        _tvInitialFocus(
-          _tvFirstLinkFocus(ref.read(referralProvider).isApplied),
-        );
-      }
     }
   }
 
@@ -88,7 +75,6 @@ class _PlansState extends ConsumerState<Plans>
     _tvCtaFocus.dispose();
     _tvPlacedFocus?.removeListener(_tvPlacedFocusChanged);
     _tvRetryFocus.dispose();
-    _tvRestoreFocus.dispose();
     _tvPromoFocus.dispose();
     _tvLicenseFocus.dispose();
     super.dispose();
@@ -310,18 +296,13 @@ class _PlansState extends ConsumerState<Plans>
     // runs is not, since the list shows its loading state then.
     final plansReady = _tvPlansReady(plansState);
     final isReferralApplied = ref.watch(referralProvider).isApplied;
-    final kind = _tvFocusKindFor(plansState);
-    if (kind != _tvAutoKind) {
-      _tvAutoKind = kind;
-      _tvInitialFocus(switch (kind) {
-        _TvFocusKind.cta => _tvCtaFocus,
-        _TvFocusKind.retry => _tvRetryFocus,
-        _TvFocusKind.link => _tvFirstLinkFocus(isReferralApplied),
-      });
-    }
+    // Every build: a no-op while the viewer holds a control of this screen
+    // (see _tvInitialFocus), and the way back whenever nothing does, such
+    // as after a control that had focus left the screen.
+    _tvInitialFocus(_tvFocusTargetFor(plansState, isReferralApplied));
     final textDirection = Directionality.of(context);
-    // Leaving while a restore or checkout runs would strand the app-wide
-    // loading overlay those flows own, so Back and Close wait for it.
+    // Leaving while a checkout runs would strand the app-wide loading
+    // overlay it owns, so Back and Close wait for it.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -433,51 +414,32 @@ class _PlansState extends ConsumerState<Plans>
                                       onPressed: _tvGetLanternPro,
                                     ),
                                     const SizedBox(height: 20),
-                                    // The three-dot menu's items, as links a remote can reach.
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable:
-                                          sl<AppPurchase>().productsLoaded,
-                                      builder: (context, _, _) {
-                                        // Read here: it can change when the
-                                        // store's products arrive.
-                                        final billing = sl<AppPurchase>()
-                                            .isStoreBillingAvailable;
-                                        return Wrap(
-                                          alignment: WrapAlignment.spaceBetween,
-                                          spacing: defaultSize,
-                                          runSpacing: 8,
-                                          children: [
-                                            // The first link shown carries the
-                                            // loading-time focus node.
-                                            if (billing)
-                                              AppTextButton(
-                                                key: const Key('plans.restore'),
-                                                focusNode: _tvRestoreFocus,
-                                                label: 'restore_purchase'.i18n,
-                                                onPressed: _tvRestorePurchase,
-                                              ),
-                                            if (!isReferralApplied)
-                                              AppTextButton(
-                                                key: const Key(
-                                                  'plans.promo_code',
-                                                ),
-                                                focusNode: _tvPromoFocus,
-                                                label: isStoreVersion()
-                                                    ? 'promo_code'.i18n
-                                                    : 'promo_referral_code'
-                                                          .i18n,
-                                                onPressed:
-                                                    _tvShowReferralCodeDialog,
-                                              ),
-                                            AppTextButton(
-                                              key: const Key('plans.license'),
-                                              focusNode: _tvLicenseFocus,
-                                              label: 'lantern_pro_license'.i18n,
-                                              onPressed: _tvOpenProLicense,
-                                            ),
-                                          ],
-                                        );
-                                      },
+                                    // The three-dot menu's items, as links a
+                                    // remote can reach. No Restore Purchase: a
+                                    // second store operation the remote could
+                                    // stack on a checkout. Settings keeps it.
+                                    Wrap(
+                                      alignment: WrapAlignment.spaceBetween,
+                                      spacing: defaultSize,
+                                      runSpacing: 8,
+                                      children: [
+                                        if (!isReferralApplied)
+                                          AppTextButton(
+                                            key: const Key('plans.promo_code'),
+                                            focusNode: _tvPromoFocus,
+                                            label: isStoreVersion()
+                                                ? 'promo_code'.i18n
+                                                : 'promo_referral_code'.i18n,
+                                            onPressed:
+                                                _tvShowReferralCodeDialog,
+                                          ),
+                                        AppTextButton(
+                                          key: const Key('plans.license'),
+                                          focusNode: _tvLicenseFocus,
+                                          label: 'lantern_pro_license'.i18n,
+                                          onPressed: _tvOpenProLicense,
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -501,9 +463,9 @@ class _PlansState extends ConsumerState<Plans>
                         context,
                       ).closeButtonTooltip,
                       onPressed: () {
-                    if (_tvStoreBusy) return;
-                    Navigator.of(context).maybePop();
-                  },
+                        if (_tvStoreBusy) return;
+                        Navigator.of(context).maybePop();
+                      },
                     ),
                   ),
                 ),
@@ -544,38 +506,25 @@ class _PlansState extends ConsumerState<Plans>
 
   /// The control that has focus on its own for [state]: the one branch the
   /// cards render (a reload shows the spinner even with an error or plans
-  /// kept from before).
-  _TvFocusKind _tvFocusKindFor(AsyncValue<PlansData> state) {
-    if (state.isLoading) return _TvFocusKind.link;
-    if (state.hasError) return _TvFocusKind.retry;
-    if (_tvPlansReady(state)) return _TvFocusKind.cta;
-    return _TvFocusKind.link;
+  /// kept from before): the first link while they load, Retry on an error,
+  /// the button once they show.
+  FocusNode _tvFocusTargetFor(
+    AsyncValue<PlansData> state,
+    bool isReferralApplied,
+  ) {
+    if (!state.isLoading && state.hasError) return _tvRetryFocus;
+    if (!state.isLoading && _tvPlansReady(state)) return _tvCtaFocus;
+    return isReferralApplied ? _tvLicenseFocus : _tvPromoFocus;
   }
 
-  /// The first link shown, as the links are ordered.
-  FocusNode _tvFirstLinkFocus(bool isReferralApplied) {
-    if (sl<AppPurchase>().isStoreBillingAvailable) return _tvRestoreFocus;
-    if (!isReferralApplied) return _tvPromoFocus;
-    return _tvLicenseFocus;
-  }
-
-  /// Restore and checkout are store operations a remote could start on top
-  /// of each other: the loading overlay they show is not a route, so keys
-  /// still reach this screen's controls while one runs. Both flows show it
-  /// from their first line and hide it on every end (success, error,
-  /// cancel, a deferred payment), so its visibility is the one signal that
-  /// a foreground operation owns this screen. (The purchase session's
-  /// callbacks are not: a cancelled or deferred checkout keeps them for a
-  /// later receipt.)
+  /// A checkout shows the app-wide loading overlay, which is not a route:
+  /// keys still reach this screen's controls while it is up. They wait: a
+  /// second press would start another checkout, the promo dialog's flow
+  /// hides the same overlay, the license screen pops Plans around PopScope,
+  /// and leaving would strand the overlay. The flow shows it from its first
+  /// line and hides it on every end (success, error, cancel, deferred).
   bool get _tvStoreBusy => context.loaderOverlay.visible;
 
-  Future<void> _tvRestorePurchase() async {
-    if (_tvStoreBusy) return;
-    await _restorePurchaseFlow();
-  }
-
-  /// The other links wait too: the promo dialog's own flow hides the same
-  /// overlay, and the license screen pops Plans around PopScope.
   void _tvShowReferralCodeDialog() {
     if (_tvStoreBusy) return;
     showReferralCodeDialog();
@@ -1017,6 +966,3 @@ class _PlansState extends ConsumerState<Plans>
 
   Future<void> _restorePurchaseFlow() => restorePurchaseFlow();
 }
-
-/// What the TV Plans screen gives focus to on its own.
-enum _TvFocusKind { link, retry, cta }

@@ -14,45 +14,15 @@ import 'package:loader_overlay/loader_overlay.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/plans.dart' as plans_screen;
+import 'package:lantern/core/models/referral_attach_response.dart';
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
+import 'package:lantern/features/plans/provider/referral_notifier.dart';
 
-/// A store whose restore stays in flight until the test ends it through
-/// the purchase stream, as the real store does.
+/// A store with nothing to sell; the screen never asks it for a restore.
 class _Store extends Fake implements InAppPurchase {
-  int restores = 0;
-  final events = StreamController<List<PurchaseDetails>>.broadcast();
-
-  @override
-  Stream<List<PurchaseDetails>> get purchaseStream => events.stream;
-
   @override
   Future<bool> isAvailable() async => true;
-
-  @override
-  Future<void> restorePurchases({String? applicationUserName}) {
-    restores++;
-    return Completer<void>().future;
-  }
-
-  /// Ends the restore the way the store reports a failure.
-  void failRestore() => events.add([
-    PurchaseDetails(
-      productID: 'pro',
-      verificationData: PurchaseVerificationData(
-        localVerificationData: '',
-        serverVerificationData: '',
-        source: 'test',
-      ),
-      transactionDate: null,
-      status: PurchaseStatus.error,
-    )..error = IAPError(source: 'test', code: 'test', message: 'no store'),
-  ]);
 }
-
-/// The store the billing-enabled tests register, and whether billing is
-/// available (a test can turn it on after the screen is up).
-_Store? _store;
-bool _billing = false;
 
 class _Plans extends PlansNotifier {
   _Plans(this.data);
@@ -71,6 +41,16 @@ class _PlansDown extends PlansNotifier {
 /// Plans that load at once; a retry publishes the states the real fetch
 /// does (a plain loading state, then data or an error), ending the way the
 /// test says.
+/// A referral code applied from the test, as the dialog's flow would.
+class _Referral extends ReferralNotifier {
+  void apply() => state = ReferralAttachV2Response(
+    plansData: null,
+    code: 'TEST',
+    discountPct: 10,
+    type: ReferralType.values.first,
+  );
+}
+
 class _PlansRefetch extends PlansNotifier {
   _PlansRefetch(this.data);
 
@@ -139,7 +119,6 @@ void main() {
 
   Future<_Plans> pumpPlans(
     WidgetTester tester, {
-    bool billing = false,
     bool down = false,
     _PlansLater? later,
     _PlansRefetch? refetch,
@@ -154,14 +133,6 @@ void main() {
     tester.view.devicePixelRatio = devicePixelRatio;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    if (billing) {
-      sl.unregister<AppPurchase>();
-      _store = _Store();
-      _billing = true;
-      sl.registerSingleton<AppPurchase>(
-        AppPurchase(inAppPurchase: _store, canUseBilling: () => _billing),
-      );
-    }
     final plans = _Plans(plansData ?? data);
     await tester.pumpWidget(
       ProviderScope(
@@ -175,6 +146,7 @@ void main() {
           else
             plansProvider.overrideWith(() => plans),
           countryCodeProvider.overrideWith(_Country.new),
+          referralProvider.overrideWith(_Referral.new),
         ],
         child: ScreenUtilInit(
           // A TV lays out 1:1 (designSizeFor); the reference size scales
@@ -244,11 +216,6 @@ void main() {
     expect(find.byKey(const Key('plans.promo_code')), findsOneWidget);
     expect(find.byKey(const Key('plans.license')), findsOneWidget);
     expect(find.byIcon(Icons.more_vert), findsNothing, reason: 'no ⋮ on TV');
-    expect(
-      find.byKey(const Key('plans.restore')),
-      findsNothing,
-      reason: 'no store billing here',
-    );
     // The close glyph sits on the safe margin's corner.
     final close = tester.getCenter(find.byIcon(Icons.close));
     expect(close, const Offset(tvSafeMarginH + 12, tvSafeMarginV + 12));
@@ -316,15 +283,6 @@ void main() {
     expect(find.byType(TextField), findsOneWidget, reason: 'the code entry');
   });
 
-  testWidgets('Restore Purchase shows first among the links when store '
-      'billing is available', (tester) async {
-    await pumpPlans(tester, billing: true);
-    expect(find.byKey(const Key('plans.restore')), findsOneWidget);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pumpAndSettle();
-    expect(focusedLink(), const Key('plans.restore'));
-  });
-
   testWidgets('an on-screen keyboard does not reflow the screen', (
     tester,
   ) async {
@@ -361,74 +319,53 @@ void main() {
     expect(stack.clipBehavior, Clip.none);
   });
 
-  testWidgets('a store operation in flight blocks a second one, and Back, '
-      'until the store ends it', (tester) async {
-    await pumpPlans(tester, billing: true, pushed: true);
+  testWidgets('while a checkout shows the loading overlay the controls and '
+      'Back wait, then work again', (tester) async {
+    await pumpPlans(tester, pushed: true);
     await tester.pumpAndSettle();
-    final store = _store!;
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pumpAndSettle();
-    expect(focusedLink(), const Key('plans.restore'));
-    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    final ctx = tester.element(find.byKey(const Key('plans.cta')));
+    ctx.loaderOverlay.show();
     await tester.pump();
-    await tester.pump();
-    expect(store.restores, 1, reason: 'the restore is in flight');
-    // A second Restore, and checkout from the button, while it runs.
-    await tester.sendKeyEvent(LogicalKeyboardKey.select);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.select);
-    await tester.pump();
-    expect(store.restores, 1, reason: 'no second store operation');
-    expect(tester.takeException(), isNull, reason: 'checkout did not start');
-    // Back, Close and the other links wait too: leaving, or a flow that
-    // hides the same overlay, would strand it.
+    // Back, Close, the promo link: nothing moves while it is up.
     await tester.binding.handlePopRoute();
     await tester.pump();
     expect(find.byType(plans_screen.Plans), findsOneWidget);
     await tester.tap(find.byKey(const Key('plans.close')));
     await tester.pump();
     expect(find.byType(plans_screen.Plans), findsOneWidget);
-    // Down from the button lands on Restore, then Down again on the promo
-    // link (the test font wraps the links); OK there opens nothing.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pump();
     expect(focusedLink(), const Key('plans.promo_code'));
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pump();
     expect(find.byType(TextField), findsNothing, reason: 'no promo dialog');
-    // The store ends the restore: the overlay hides and the guard lifts
-    // for the next operation and for Back.
-    store.failRestore();
+    // The checkout ends (every end hides the overlay): Back leaves.
+    ctx.loaderOverlay.hide();
     await tester.pump();
-    await tester.pump();
-    expect(
-      tester.element(find.byKey(const Key('plans.cta'))).loaderOverlay.visible,
-      isFalse,
-    );
-    // The error dialog the flow shows; dismiss it. Focus returns to the
-    // promo link; Up is Restore.
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.pump();
-    expect(focusedLink(), const Key('plans.restore'));
-    await tester.sendKeyEvent(LogicalKeyboardKey.select);
-    await tester.pump();
-    await tester.pump();
-    expect(store.restores, 2, reason: 'the next restore starts');
-    store.failRestore();
-    await tester.pump();
-    await tester.pump();
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    // Idle again: Back leaves Plans for the route below.
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.byType(plans_screen.Plans), findsNothing);
+  });
+
+  testWidgets('a control that leaves the screen with focus hands it back to '
+      'the state\'s target', (tester) async {
+    // Applying a referral code removes the promo link.
+    final refetch = _PlansRefetch(data);
+    await pumpPlans(tester, refetch: refetch);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(focusedLink(), const Key('plans.promo_code'));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const Key('plans.cta'))),
+    );
+    (container.read(referralProvider.notifier) as _Referral).apply();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('plans.promo_code')), findsNothing);
+    expect(
+      FocusManager.instance.primaryFocus?.debugLabel,
+      'plans.cta',
+      reason: 'nothing had focus, so the button takes it',
+    );
   });
 
   testWidgets('idle, Close leaves Plans for the route below', (tester) async {
@@ -437,33 +374,6 @@ void main() {
     await tester.tap(find.byKey(const Key('plans.close')));
     await tester.pumpAndSettle();
     expect(find.byType(plans_screen.Plans), findsNothing);
-  });
-
-  testWidgets('billing arriving later does not move a focused link', (
-    tester,
-  ) async {
-    final refetch = _PlansRefetch(data);
-    await pumpPlans(tester, billing: true, refetch: refetch);
-    // Billing was off when the screen opened: no Restore link.
-    _billing = false;
-    await refetch.retryFetchPlans();
-    await tester.pump();
-    await tester.pump();
-    refetch.arrive();
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('plans.restore')), findsNothing);
-    // The viewer moves to the promo link; then the store's products arrive.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pumpAndSettle();
-    expect(focusedLink(), const Key('plans.promo_code'));
-    _billing = true;
-    await refetch.retryFetchPlans();
-    await tester.pump();
-    await tester.pump();
-    refetch.arrive();
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('plans.restore')), findsOneWidget);
-    expect(focusedLink(), const Key('plans.promo_code'), reason: 'unmoved');
   });
 
   testWidgets('a narrower, shorter TV keeps the focused control in view', (
