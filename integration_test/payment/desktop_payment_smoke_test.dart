@@ -103,6 +103,7 @@ Future<void> _runStripeRenderSmoke(
 
 /// Providers converted in order on one e2e account. The Shepherd ones run
 /// through staging's fake gateway, so each one exercises the signed callback.
+/// Where staging has no fake gateway, they're skipped.
 const _conversionProviders = <(String name, String method)>[
   ('e2e', 'E2E Checkout'),
   ('shepherd-wechat', 'wechatpay'),
@@ -197,14 +198,27 @@ Future<void> _convertWith(
   );
   await runningApp.payment.startCheckout(provider: provider);
 
+  final viaShepherd = provider.startsWith('shepherd');
   await _waitFor(
     tester,
-    () => checkout.completionRequested || checkout.failure != null,
+    () =>
+        checkout.completionRequested ||
+        checkout.failure != null ||
+        (viaShepherd && checkout.otherHost != null),
     timeout: const Duration(minutes: 2),
     failure: () => checkout.failureMessage,
   );
   if (checkout.failure != null) {
     fail('$provider checkout failed: ${checkout.failure}');
+  }
+  if (!checkout.completionRequested) {
+    // Without the fake gateway, staging sends Shepherd checkouts to the real
+    // one, which a test can't pay.
+    e2eLog(
+      'Skipping $provider: staging opened ${checkout.otherHost}, not the '
+      'fake Shepherd gateway',
+    );
+    return;
   }
 
   // Each conversion has to extend Pro: after the first one the account is
@@ -436,6 +450,9 @@ class _PaymentConversionTracker implements AppWebViewObserver {
   String? _handoffDiagnostic;
   String? _otherHost;
   String? failure;
+
+  /// The first checkout page that wasn't on the staging host.
+  String? get otherHost => _otherHost;
 
   String get failureMessage {
     if (failure != null) return failure!;
