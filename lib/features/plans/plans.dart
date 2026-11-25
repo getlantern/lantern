@@ -525,10 +525,10 @@ class _PlansState extends ConsumerState<Plans>
   /// hides the same overlay, the license screen pops Plans around PopScope,
   /// and leaving would strand the overlay. The flow shows it from its first
   /// line and hides it once the checkout settles: a start error, the store's
-  /// error, cancel or deferral, or a purchase once the backend has
-  /// acknowledged its receipt (the account refresh then runs with the
-  /// overlay down before moving on, as on a phone: that window is the
-  /// shared flow's).
+  /// error, cancel or deferral, or a purchase once the backend has answered
+  /// its receipt (acknowledged, or failed, which the acknowledger retries
+  /// in the background; the account refresh then runs with the overlay down
+  /// before moving on, as on a phone: that window is the shared flow's).
   bool get _tvStoreBusy => context.loaderOverlay.visible;
 
   void _tvShowReferralCodeDialog() {

@@ -366,6 +366,15 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pump();
     expect(find.byType(TextField), findsNothing, reason: 'no promo dialog');
+    // The license link (below the promo link in the test font), whose screen
+    // would replace Plans through the app router this test does not host.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(focusedLink(), const Key('plans.license'));
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(plans_screen.Plans), findsOneWidget);
     // The checkout ends (every end hides the overlay): Back leaves.
     ctx.loaderOverlay.hide();
     await tester.pump();
