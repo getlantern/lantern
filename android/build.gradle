@@ -28,13 +28,12 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Release builds run lint vital on every Flutter plugin module too. Third-party
-// plugins aren't ours to fix, and their lint can fail where their build doesn't:
-// stripe_android's lint classpath needs a Google Pay library that isn't on a
-// public repository. :app keeps its lint vital check.
+// Release builds run lint vital on Flutter plugin modules too. stripe_android's
+// lint classpath needs com.google.android.gms:play-services-tapandpay, which no
+// public repository has, so its lint vital fails though its build doesn't.
 subprojects {
-    if (project.name != "app") {
-        tasks.matching { it.name.startsWith("lintVital") }.configureEach {
+    if (project.name == "stripe_android") {
+        tasks.named { it.startsWith("lintVital") }.configureEach {
             enabled = false
         }
     }

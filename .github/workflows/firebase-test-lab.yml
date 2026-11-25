@@ -268,6 +268,7 @@ jobs:
                   "go": run("go", "env", "GOVERSION"),
                   "flutter": json.loads(run("flutter", "--version", "--machine"))["frameworkVersion"],
                   "ndk": re.search(r"(?m)^Pkg\.Revision\s*=\s*(\S+)", ndk_properties.read_text()).group(1),
+                  "java": re.search(r'(?m)^JAVA_VERSION="([^"]+)"', pathlib.Path(os.environ["JAVA_HOME"], "release").read_text()).group(1),
               },
               "app_apk": identity("build/app/outputs/apk/debug/app-debug.apk"),
               "android_test_apk": identity("build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk"),
