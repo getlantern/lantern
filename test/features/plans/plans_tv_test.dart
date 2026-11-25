@@ -38,9 +38,6 @@ class _PlansDown extends PlansNotifier {
   Future<PlansData> build() async => throw StateError('plans down');
 }
 
-/// Plans that load at once; a retry publishes the states the real fetch
-/// does (a plain loading state, then data or an error), ending the way the
-/// test says.
 /// A referral code applied from the test, as the dialog's flow would.
 class _Referral extends ReferralNotifier {
   void apply() => state = ReferralAttachV2Response(
@@ -51,6 +48,9 @@ class _Referral extends ReferralNotifier {
   );
 }
 
+/// Plans that load at once; a retry publishes the states the real fetch
+/// does (a plain loading state, then data or an error), ending the way the
+/// test says.
 class _PlansRefetch extends PlansNotifier {
   _PlansRefetch(this.data);
 
@@ -119,6 +119,7 @@ void main() {
 
   Future<_Plans> pumpPlans(
     WidgetTester tester, {
+    bool billing = false,
     bool down = false,
     _PlansLater? later,
     _PlansRefetch? refetch,
@@ -133,6 +134,14 @@ void main() {
     tester.view.devicePixelRatio = devicePixelRatio;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    if (billing) {
+      // Store billing available, the condition under which the phone's menu
+      // offers Restore Purchase.
+      sl.unregister<AppPurchase>();
+      sl.registerSingleton<AppPurchase>(
+        AppPurchase(inAppPurchase: _Store(), canUseBilling: () => true),
+      );
+    }
     final plans = _Plans(plansData ?? data);
     await tester.pumpWidget(
       ProviderScope(
@@ -220,6 +229,17 @@ void main() {
     final close = tester.getCenter(find.byIcon(Icons.close));
     expect(close, const Offset(tvSafeMarginH + 12, tvSafeMarginV + 12));
     expect(tester.takeException(), isNull, reason: 'nothing overflows');
+  });
+
+  testWidgets('no Restore Purchase link on TV, with store billing or without', (
+    tester,
+  ) async {
+    await pumpPlans(tester, billing: true);
+    expect(sl<AppPurchase>().isStoreBillingAvailable, isTrue);
+    expect(find.byKey(const Key('plans.restore')), findsNothing);
+    expect(find.text('restore_purchase'.i18n), findsNothing);
+    expect(find.byKey(const Key('plans.promo_code')), findsOneWidget);
+    expect(find.byKey(const Key('plans.license')), findsOneWidget);
   });
 
   testWidgets('the best-value plan is preselected and the button has focus', (
@@ -349,23 +369,27 @@ void main() {
 
   testWidgets('a control that leaves the screen with focus hands it back to '
       'the state\'s target', (tester) async {
-    // Applying a referral code removes the promo link.
-    final refetch = _PlansRefetch(data);
-    await pumpPlans(tester, refetch: refetch);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pumpAndSettle();
+    // The promo link holds the loading-time focus and is the only control
+    // that ever had it, so Flutter has no earlier control to fall back to
+    // when a referral code applied under the dialog removes it.
+    final later = _PlansLater(data);
+    await pumpPlans(tester, later: later);
     expect(focusedLink(), const Key('plans.promo_code'));
     final container = ProviderScope.containerOf(
-      tester.element(find.byKey(const Key('plans.cta'))),
+      tester.element(find.byKey(const Key('plans.promo_code'))),
     );
     (container.read(referralProvider.notifier) as _Referral).apply();
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump();
     expect(find.byKey(const Key('plans.promo_code')), findsNothing);
     expect(
-      FocusManager.instance.primaryFocus?.debugLabel,
-      'plans.cta',
-      reason: 'nothing had focus, so the button takes it',
+      focusedLink(),
+      const Key('plans.license'),
+      reason: 'the first link left, while the cards still load',
     );
+    later.arrived.complete();
+    await tester.pumpAndSettle();
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'plans.cta');
   });
 
   testWidgets('idle, Close leaves Plans for the route below', (tester) async {
