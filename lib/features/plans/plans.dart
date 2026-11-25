@@ -73,6 +73,13 @@ class _PlansState extends ConsumerState<Plans>
     if (!placed.hasFocus) {
       placed.removeListener(_tvPlacedFocusChanged);
       _tvPlacedFocus = null;
+      // A link this screen placed focus on and that is gone (Restore, when
+      // the store's products fail to load): the first link left takes it.
+      if (_tvAutoKind == _TvFocusKind.link && placed.context == null) {
+        _tvInitialFocus(
+          _tvFirstLinkFocus(ref.read(referralProvider).isApplied),
+        );
+      }
     }
   }
 
@@ -460,13 +467,13 @@ class _PlansState extends ConsumerState<Plans>
                                                     : 'promo_referral_code'
                                                           .i18n,
                                                 onPressed:
-                                                    showReferralCodeDialog,
+                                                    _tvShowReferralCodeDialog,
                                               ),
                                             AppTextButton(
                                               key: const Key('plans.license'),
                                               focusNode: _tvLicenseFocus,
                                               label: 'lantern_pro_license'.i18n,
-                                              onPressed: _openProLicense,
+                                              onPressed: _tvOpenProLicense,
                                             ),
                                           ],
                                         );
@@ -494,9 +501,9 @@ class _PlansState extends ConsumerState<Plans>
                         context,
                       ).closeButtonTooltip,
                       onPressed: () {
-                        if (_tvStoreBusy) return;
-                        appRouter.maybePop();
-                      },
+                    if (_tvStoreBusy) return;
+                    Navigator.of(context).maybePop();
+                  },
                     ),
                   ),
                 ),
@@ -554,16 +561,29 @@ class _PlansState extends ConsumerState<Plans>
 
   /// Restore and checkout are store operations a remote could start on top
   /// of each other: the loading overlay they show is not a route, so keys
-  /// still reach this screen's controls while one runs. Both flows show
-  /// it from their start and hide it on every end, and the purchase session
-  /// they register is cleared on every end too; either still set means an
-  /// operation is in flight.
-  bool get _tvStoreBusy =>
-      context.loaderOverlay.visible || sl<AppPurchase>().hasActiveSession;
+  /// still reach this screen's controls while one runs. Both flows show it
+  /// from their first line and hide it on every end (success, error,
+  /// cancel, a deferred payment), so its visibility is the one signal that
+  /// a foreground operation owns this screen. (The purchase session's
+  /// callbacks are not: a cancelled or deferred checkout keeps them for a
+  /// later receipt.)
+  bool get _tvStoreBusy => context.loaderOverlay.visible;
 
   Future<void> _tvRestorePurchase() async {
     if (_tvStoreBusy) return;
     await _restorePurchaseFlow();
+  }
+
+  /// The other links wait too: the promo dialog's own flow hides the same
+  /// overlay, and the license screen pops Plans around PopScope.
+  void _tvShowReferralCodeDialog() {
+    if (_tvStoreBusy) return;
+    showReferralCodeDialog();
+  }
+
+  void _tvOpenProLicense() {
+    if (_tvStoreBusy) return;
+    _openProLicense();
   }
 
   void _tvGetLanternPro() {

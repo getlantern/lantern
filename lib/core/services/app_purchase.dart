@@ -950,12 +950,6 @@ class AppPurchase {
     return await _pendingStore.couponFor(purchase) ?? '';
   }
 
-  /// Whether a purchase or restore owns the session: set at its start and
-  /// cleared by [clearCallbacks] on every end, so a caller that must not
-  /// start a second operation can wait on this.
-  bool get hasActiveSession =>
-      _session.onSuccess != null || _session.onError != null;
-
   void clearCallbacks() {
     _session.onSuccess = null;
     _session.onError = null;

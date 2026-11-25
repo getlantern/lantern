@@ -11,7 +11,6 @@ import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart' show sl;
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
-import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/features/plans/feature_list.dart';
 import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/plans.dart' as plans_screen;
@@ -374,7 +373,6 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(store.restores, 1, reason: 'the restore is in flight');
-    expect(sl<AppPurchase>().hasActiveSession, isTrue);
     // A second Restore, and checkout from the button, while it runs.
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pump();
@@ -384,29 +382,61 @@ void main() {
     await tester.pump();
     expect(store.restores, 1, reason: 'no second store operation');
     expect(tester.takeException(), isNull, reason: 'checkout did not start');
-    // Back and Close wait too: leaving would strand the loading overlay.
+    // Back, Close and the other links wait too: leaving, or a flow that
+    // hides the same overlay, would strand it.
     await tester.binding.handlePopRoute();
     await tester.pump();
     expect(find.byType(plans_screen.Plans), findsOneWidget);
-    // The store ends the restore: the session clears, the overlay hides,
-    // and the guard lifts for the next operation and for Back.
+    await tester.tap(find.byKey(const Key('plans.close')));
+    await tester.pump();
+    expect(find.byType(plans_screen.Plans), findsOneWidget);
+    // Down from the button lands on Restore, then Down again on the promo
+    // link (the test font wraps the links); OK there opens nothing.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    expect(focusedLink(), const Key('plans.promo_code'));
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    expect(find.byType(TextField), findsNothing, reason: 'no promo dialog');
+    // The store ends the restore: the overlay hides and the guard lifts
+    // for the next operation and for Back.
     store.failRestore();
     await tester.pump();
     await tester.pump();
-    expect(sl<AppPurchase>().hasActiveSession, isFalse);
     expect(
       tester.element(find.byKey(const Key('plans.cta'))).loaderOverlay.visible,
       isFalse,
     );
-    // The error dialog the flow shows; dismiss it.
+    // The error dialog the flow shows; dismiss it. Focus returns to the
+    // promo link; Up is Restore.
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
     await tester.pump();
+    expect(focusedLink(), const Key('plans.restore'));
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pump();
     await tester.pump();
     expect(store.restores, 2, reason: 'the next restore starts');
+    store.failRestore();
+    await tester.pump();
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    // Idle again: Back leaves Plans for the route below.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byType(plans_screen.Plans), findsNothing);
+  });
+
+  testWidgets('idle, Close leaves Plans for the route below', (tester) async {
+    await pumpPlans(tester, pushed: true);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('plans.close')));
+    await tester.pumpAndSettle();
+    expect(find.byType(plans_screen.Plans), findsNothing);
   });
 
   testWidgets('billing arriving later does not move a focused link', (
