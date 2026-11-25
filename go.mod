@@ -30,12 +30,19 @@ replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.
 
 replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-water.1
 
-// x/v0.3.0 plus two fixes: x/httpconnect builds against quic-go >= v0.53
-// (quic.EarlyConnection became *quic.Conn), and disorder finds the TCP socket
-// through NetConn, which lantern-box's outline stream wrapper provides. A
-// replace only applies in the main module, so lantern repeats radiance's.
-// Drop once an upstream x release has both.
-replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.2
+// A replace only applies in the main module, so lantern repeats radiance's two
+// outline-sdk replaces. Drop each once an upstream release has its fixes.
+//
+// x/v0.3.0 plus Lantern's fixes: x builds against quic-go >= v0.53
+// (quic.EarlyConnection became *quic.Conn), disorder finds the TCP socket
+// through NetConn, which lantern-box's outline stream wrapper provides, and a
+// strategy probe's connection closes when its test times out.
+replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.3
+
+// v0.1.0 plus DNS fixes: queries end when their context is cancelled, a failed
+// DNS-over-TLS handshake closes its socket, and idle DNS-over-HTTPS
+// connections close.
+replace golang.getoutline.org/sdk => github.com/getlantern/outline-sdk v0.1.0-lantern.1
 
 replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
 

@@ -276,8 +276,10 @@ github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534 h1:3BwvWj0JZzFEvNNi
 github.com/getlantern/ops v0.0.0-20231025133620-f368ab734534/go.mod h1:ZsLfOY6gKQOTyEcPYNA9ws5/XHZQFroxqCOhHjGcs9Y=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175 h1:JWH5BB2o0eAeGs0tZnFPpQGx+nMIo/WmxKnj2hnGjgE=
 github.com/getlantern/osversion v0.0.0-20240418205916-2e84a4a4e175/go.mod h1:h3S9LBmmzN/xM+lwYZHE4abzTtCTtidKtG+nxZcCZX0=
-github.com/getlantern/outline-sdk/x v0.3.0-lantern.2 h1:iS+oBLoH5P+SRFVIZXUFr5L8R8jawCOVa9ayNp9fIco=
-github.com/getlantern/outline-sdk/x v0.3.0-lantern.2/go.mod h1:d7z0ethd2XO170I2yrVWQIB79UK4RIyJSVG56BbpI5s=
+github.com/getlantern/outline-sdk v0.1.0-lantern.1 h1:qI1IPiw/5snxkSUvB0lgn/5FEtYJf15GHilLN+oxonk=
+github.com/getlantern/outline-sdk v0.1.0-lantern.1/go.mod h1:nKZlO//e/sRFk+rp8gm8EJ5RasDSyY+fGDNSd3I2iaA=
+github.com/getlantern/outline-sdk/x v0.3.0-lantern.3 h1:eecYZ3dpduNphJEqWCFK9yFg7IzdetukTI3wkmW9gRc=
+github.com/getlantern/outline-sdk/x v0.3.0-lantern.3/go.mod h1:Iv6LLO6GMmnVQI3ktJz9kGREOU4dVrwEqKdJAhRKo5s=
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535 h1:rtDmW8YLAuT8r51ApR5z0d8/qjhHu3TW+divQ2C98Ac=
 github.com/getlantern/pluriconfig v0.0.0-20251126214241-8cc8bc561535/go.mod h1:WKJEdjMOD4IuTRYwjQHjT4bmqDl5J82RShMLxPAvi0Q=
 github.com/getlantern/publicip v0.0.0-20260328175246-2c460fe80c6b h1:gMYJzEhLrmIqQ+JnjiYNm+UyUDalK3WUmVyecFwmV5g=
@@ -938,8 +940,6 @@ go4.org/mem v0.0.0-20240501181205-ae6ca9944745 h1:Tl++JLUCe4sxGu8cTpDzRLd3tN7US4
 go4.org/mem v0.0.0-20240501181205-ae6ca9944745/go.mod h1:reUoABIJ9ikfM5sgtSF3Wushcza7+WeD01VB9Lirh3g=
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBseWJUpBw5I82+2U4M=
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
-golang.getoutline.org/sdk v0.1.0 h1:10KHZt9J1xcO8QAyl/JzdUs/HsnC8McsMiXQBBFPn4Y=
-golang.getoutline.org/sdk v0.1.0/go.mod h1:nKZlO//e/sRFk+rp8gm8EJ5RasDSyY+fGDNSd3I2iaA=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
