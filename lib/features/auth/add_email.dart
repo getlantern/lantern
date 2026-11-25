@@ -42,8 +42,11 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     final emailController = useTextEditingController();
     useListenable(emailController);
     final user = ref.watch(homeProvider).value;
-    final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
     final currentEmail = user?.legacyUserData.email ?? '';
+    // Without an email there is nothing to pre-fill, so let the user enter one.
+    final isUserRegistered =
+        (user?.legacyUserData.unpassRegistered ?? false) &&
+        currentEmail.isNotEmpty;
     final isChangeEmailFlow = widget.authFlow == AuthFlow.changeEmail;
 
     useEffect(() {

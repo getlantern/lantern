@@ -525,7 +525,7 @@ class _PlansState extends ConsumerState<Plans>
     // Sometime pro user can have empty email, (ex v7 or v8 users)
     // if email is empty then ask user for email-
     if (email.isEmpty) {
-      appRouter.push(AddEmail(authFlow: AuthFlow.signUp));
+      appRouter.push(AddEmail(authFlow: AuthFlow.renewSubscription));
       return;
     }
     appRouter.push(

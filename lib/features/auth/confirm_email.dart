@@ -139,7 +139,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         completeChangeEmail(context, ref, code);
       case AuthFlow.renewSubscription:
-        throw UnimplementedError();
+        validateCode(context, ref, code);
     }
   }
 
@@ -230,8 +230,10 @@ class ConfirmEmail extends HookConsumerWidget {
         // TODO: Handle this case.
         throw UnimplementedError();
       case AuthFlow.renewSubscription:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        // Set the password first, then CreatePassword reopens checkout.
+        appRouter.push(
+          CreatePassword(email: email, authFlow: authFlow, code: code),
+        );
     }
   }
 
@@ -240,6 +242,7 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.resetPassword:
       case AuthFlow.lanternProLicense:
       case AuthFlow.signUp:
+      case AuthFlow.renewSubscription:
         appLogger.info('Resend code requested for ${authFlow.name}');
         onResendCode(context, ref);
         break;
@@ -248,9 +251,6 @@ class ConfirmEmail extends HookConsumerWidget {
       case AuthFlow.changeEmail:
         resendChangeEmail(context, ref);
         break;
-      case AuthFlow.renewSubscription:
-        // TODO: Handle this case.
-        throw UnimplementedError();
     }
   }
 
