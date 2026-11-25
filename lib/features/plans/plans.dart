@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/tv_shell.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
@@ -53,17 +54,29 @@ class _PlansState extends ConsumerState<Plans>
   final _tvCtaFocus = FocusNode(debugLabel: 'plans.cta');
   final _tvRetryFocus = FocusNode(debugLabel: 'plans.retry');
   final _tvLinkFocus = FocusNode(debugLabel: 'plans.first_link');
-  bool _tvLoadingFocused = false;
+
+  /// The control the current plans state wants focus on (see
+  /// [_tvFocusTargetFor]); a change of target is what moves focus.
+  FocusNode? _tvAutoTarget;
 
   /// The control this screen last gave focus to on its own; focus still
-  /// there counts as not moved by the viewer.
+  /// there counts as not moved by the viewer. Cleared when it loses focus,
+  /// so a viewer who left and came back owns it.
   FocusNode? _tvPlacedFocus;
-  bool _tvRetryFocused = false;
-  bool _tvCtaFocused = false;
+
+  void _tvPlacedFocusChanged() {
+    final placed = _tvPlacedFocus;
+    if (placed == null) return;
+    if (!placed.hasFocus) {
+      placed.removeListener(_tvPlacedFocusChanged);
+      _tvPlacedFocus = null;
+    }
+  }
 
   @override
   void dispose() {
     _tvCtaFocus.dispose();
+    _tvPlacedFocus?.removeListener(_tvPlacedFocusChanged);
     _tvRetryFocus.dispose();
     _tvLinkFocus.dispose();
     super.dispose();
@@ -269,44 +282,26 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   /// The TV screen (Figma "Android TV / Plans (full screen)"): the whole
-  /// 960x540 without scrolling, inside the safe margins. Left, not
-  /// focusable: the Lantern Pro logo and the benefits. Right: the plan
-  /// cards, "Get Lantern Pro", then the menu's items as links. The close
-  /// button sits top left. Initial focus is this screen's own (it takes
-  /// the whole screen, outside TvShell): "Get Lantern Pro" once the plans
-  /// load, Retry on an error, nothing while loading, and never when the
-  /// viewer has already moved or a dialog covers the screen. Layout and
-  /// focus only: the button does what it does on a phone.
+  /// 960x540 inside the safe margins. Left, not focusable: the Lantern Pro
+  /// logo and the benefits, giving way on a narrower or shorter TV. Right:
+  /// the plan cards, "Get Lantern Pro", then the menu's items as links,
+  /// scrolling by focus when they do not fit. The close button sits top
+  /// left. Focus is this screen's own (it takes the whole screen, outside
+  /// TvShell) and follows the one state the cards render: the first link
+  /// while they load, Retry on a load error, "Get Lantern Pro" once they
+  /// show; it is never taken from a viewer who moved it, nor while a
+  /// dialog covers the screen. Layout and focus only: the button does what
+  /// it does on a phone.
   Widget _buildTvScreen() {
     final plansState = ref.watch(plansProvider);
     // Ready means the cards are showing: a value kept while a refetch
     // runs is not, since the list shows its loading state then.
     final plansReady = _tvPlansReady(plansState);
-    // Disabled until the plans load, so it cannot autofocus; focus it when
-    // it becomes available (again after a reload), unless the viewer has a
-    // control of this screen focused already (see _tvInitialFocus).
-    if (plansReady && !_tvCtaFocused) {
-      _tvCtaFocused = true;
-      _tvInitialFocus(_tvCtaFocus);
-    } else if (!plansReady) {
-      _tvCtaFocused = false;
+    final target = _tvFocusTargetFor(plansState);
+    if (!identical(target, _tvAutoTarget)) {
+      _tvAutoTarget = target;
+      _tvInitialFocus(target);
     }
-    if (plansState.hasError && !_tvRetryFocused) {
-      _tvRetryFocused = true;
-      _tvInitialFocus(_tvRetryFocus);
-    } else if (!plansState.hasError) {
-      _tvRetryFocused = false;
-    }
-    // While the cards load the first link has focus, so the remote can
-    // already reach the links and Close.
-    final loading = !plansReady && !plansState.hasError;
-    if (loading && !_tvLoadingFocused) {
-      _tvLoadingFocused = true;
-      _tvInitialFocus(_tvLinkFocus);
-    } else if (!loading) {
-      _tvLoadingFocused = false;
-    }
-    final billing = sl<AppPurchase>().isStoreBillingAvailable;
     final isReferralApplied = ref.watch(referralProvider).isApplied;
     final textDirection = Directionality.of(context);
     return Scaffold(
@@ -342,26 +337,31 @@ class _PlansState extends ConsumerState<Plans>
                       child: ExcludeFocus(
                         child: Directionality(
                           textDirection: textDirection,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 80),
-                              Padding(
-                                // Lines the logo up with the benefit icons.
-                                padding: const EdgeInsets.only(
-                                  left: defaultSize,
+                          // Clips rather than overflows on a short TV;
+                          // it holds nothing a remote can reach.
+                          child: SingleChildScrollView(
+                            physics: const NeverScrollableScrollPhysics(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 80),
+                                Padding(
+                                  // Lines the logo up with the benefit icons.
+                                  padding: const EdgeInsets.only(
+                                    left: defaultSize,
+                                  ),
+                                  child: AppImage(
+                                    path: AppImagePaths.lanternPro,
+                                    color: context.textPrimary,
+                                    width: 246,
+                                    height: 32,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
-                                child: AppImage(
-                                  path: AppImagePaths.lanternPro,
-                                  color: context.textPrimary,
-                                  width: 246,
-                                  height: 32,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              const SizedBox(height: 40),
-                              const FeatureList(),
-                            ],
+                                const SizedBox(height: 40),
+                                const FeatureList(),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -406,42 +406,48 @@ class _PlansState extends ConsumerState<Plans>
                                 ValueListenableBuilder<bool>(
                                   valueListenable:
                                       sl<AppPurchase>().productsLoaded,
-                                  builder: (context, _, _) => Wrap(
-                                    alignment: WrapAlignment.spaceBetween,
-                                    spacing: defaultSize,
-                                    runSpacing: 8,
-                                    children: [
-                                      // The first link shown carries the
-                                      // loading-time focus node.
-                                      if (billing)
+                                  builder: (context, _, _) {
+                                    // Read here: it can change when the
+                                    // store's products arrive.
+                                    final billing = sl<AppPurchase>()
+                                        .isStoreBillingAvailable;
+                                    return Wrap(
+                                      alignment: WrapAlignment.spaceBetween,
+                                      spacing: defaultSize,
+                                      runSpacing: 8,
+                                      children: [
+                                        // The first link shown carries the
+                                        // loading-time focus node.
+                                        if (billing)
+                                          AppTextButton(
+                                            key: const Key('plans.restore'),
+                                            focusNode: _tvLinkFocus,
+                                            label: 'restore_purchase'.i18n,
+                                            onPressed: _tvRestorePurchase,
+                                          ),
+                                        if (!isReferralApplied)
+                                          AppTextButton(
+                                            key: const Key('plans.promo_code'),
+                                            focusNode: billing
+                                                ? null
+                                                : _tvLinkFocus,
+                                            label: isStoreVersion()
+                                                ? 'promo_code'.i18n
+                                                : 'promo_referral_code'.i18n,
+                                            onPressed: showReferralCodeDialog,
+                                          ),
                                         AppTextButton(
-                                          key: const Key('plans.restore'),
-                                          focusNode: _tvLinkFocus,
-                                          label: 'restore_purchase'.i18n,
-                                          onPressed: _tvRestorePurchase,
+                                          key: const Key('plans.license'),
+                                          focusNode:
+                                              !billing && isReferralApplied
+                                              ? _tvLinkFocus
+                                              : null,
+                                          label: 'lantern_pro_license'.i18n,
+                                          onPressed: _openProLicense,
                                         ),
-                                      if (!isReferralApplied)
-                                        AppTextButton(
-                                          key: const Key('plans.promo_code'),
-                                          focusNode: billing
-                                              ? null
-                                              : _tvLinkFocus,
-                                          label: isStoreVersion()
-                                              ? 'promo_code'.i18n
-                                              : 'promo_referral_code'.i18n,
-                                          onPressed: showReferralCodeDialog,
-                                        ),
-                                      AppTextButton(
-                                        key: const Key('plans.license'),
-                                        focusNode:
-                                            !billing && isReferralApplied
-                                            ? _tvLinkFocus
-                                            : null,
-                                        label: 'lantern_pro_license'.i18n,
-                                        onPressed: _openProLicense,
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -474,9 +480,10 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
-  /// Focuses [node] after the frame, unless the viewer has already moved
-  /// focus on this screen (focus on a control this screen placed it on
-  /// itself does not count) or another route covers it.
+  /// Focuses [node] after the frame and scrolls it into view, unless the
+  /// viewer has already moved focus on this screen (focus still on the
+  /// control this screen placed it on does not count) or another route
+  /// covers it.
   void _tvInitialFocus(FocusNode node) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -489,14 +496,26 @@ class _PlansState extends ConsumerState<Plans>
           focused.ancestors.contains(scope) &&
           !identical(focused, _tvPlacedFocus);
       if (viewerMoved) return;
+      _tvPlacedFocus?.removeListener(_tvPlacedFocusChanged);
       _tvPlacedFocus = node;
-      node.requestFocus();
+      node.addListener(_tvPlacedFocusChanged);
+      tvRequestFocus(node);
     });
   }
 
   /// Whether the cards are showing with at least one plan to pick.
   static bool _tvPlansReady(AsyncValue<PlansData> state) =>
       state is AsyncData<PlansData> && state.value.plans.isNotEmpty;
+
+  /// The control that has focus on its own for [state]: the one branch the
+  /// cards render (a reload shows the spinner even with an error or plans
+  /// kept from before).
+  FocusNode _tvFocusTargetFor(AsyncValue<PlansData> state) {
+    if (state.isLoading) return _tvLinkFocus;
+    if (state.hasError) return _tvRetryFocus;
+    if (_tvPlansReady(state)) return _tvCtaFocus;
+    return _tvLinkFocus;
+  }
 
   /// Restore and checkout are store operations a remote could start on top
   /// of each other: the loading overlay they show is not a route, so keys

@@ -16,7 +16,25 @@ import 'package:lantern/features/plans/plan_item.dart';
 import 'package:lantern/features/plans/plans.dart' as plans_screen;
 import 'package:lantern/features/plans/provider/plans_notifier.dart';
 
-class _Store extends Fake implements InAppPurchase {}
+/// A store whose restore never finishes, to hold an operation in flight.
+class _Store extends Fake implements InAppPurchase {
+  int restores = 0;
+
+  @override
+  Stream<List<PurchaseDetails>> get purchaseStream => const Stream.empty();
+
+  @override
+  Future<bool> isAvailable() async => true;
+
+  @override
+  Future<void> restorePurchases({String? applicationUserName}) {
+    restores++;
+    return Completer<void>().future;
+  }
+}
+
+/// The store the billing-enabled tests register.
+_Store? _store;
 
 class _Plans extends PlansNotifier {
   _Plans(this.data);
@@ -30,6 +48,34 @@ class _Plans extends PlansNotifier {
 class _PlansDown extends PlansNotifier {
   @override
   Future<PlansData> build() async => throw StateError('plans down');
+}
+
+/// Plans that load at once and can be sent back through loading, keeping
+/// the previous value as Riverpod does on a refetch.
+class _PlansRefetch extends PlansNotifier {
+  _PlansRefetch(this.data);
+
+  final PlansData data;
+
+  @override
+  Future<PlansData> build() async => data;
+
+  @override
+  Future<void> retryFetchPlans() async {
+    // A reload, as fetchPlans publishes: the previous value is kept on the
+    // loading state (Riverpod) while the cards show their spinner.
+    state = const AsyncLoading<PlansData>().copyWithPrevious(
+      state,
+      isRefresh: false,
+    );
+  }
+
+  void arrive() => state = AsyncData(data);
+
+  void fail() => state = AsyncError<PlansData>(
+    StateError('plans down'),
+    StackTrace.empty,
+  ).copyWithPrevious(state);
 }
 
 /// Plans that arrive when the test says so.
@@ -84,7 +130,10 @@ void main() {
     bool billing = false,
     bool down = false,
     _PlansLater? later,
+    _PlansRefetch? refetch,
+    PlansData? plansData,
     bool rtl = false,
+    bool oneToOne = false,
     Size physicalSize = const Size(1920, 1080),
     double devicePixelRatio = 2,
   }) async {
@@ -94,11 +143,12 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     if (billing) {
       sl.unregister<AppPurchase>();
+      _store = _Store();
       sl.registerSingleton<AppPurchase>(
-        AppPurchase(inAppPurchase: _Store(), canUseBilling: () => true),
+        AppPurchase(inAppPurchase: _store, canUseBilling: () => true),
       );
     }
-    final plans = _Plans(data);
+    final plans = _Plans(plansData ?? data);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -106,12 +156,18 @@ void main() {
             plansProvider.overrideWith(_PlansDown.new)
           else if (later != null)
             plansProvider.overrideWith(() => later)
+          else if (refetch != null)
+            plansProvider.overrideWith(() => refetch)
           else
             plansProvider.overrideWith(() => plans),
           countryCodeProvider.overrideWith(_Country.new),
         ],
         child: ScreenUtilInit(
-          designSize: const Size(960, 540),
+          // A TV lays out 1:1 (designSizeFor); the reference size scales
+          // the other tests the way they were written.
+          designSize: oneToOne
+              ? physicalSize / devicePixelRatio
+              : const Size(960, 540),
           child: MaterialApp(
             theme: AppTheme.darkTheme(),
             // The app hosts the loading overlay above its routes.
@@ -282,33 +338,154 @@ void main() {
     expect(stack.clipBehavior, Clip.none);
   });
 
-  testWidgets('a store operation in progress blocks a second one from the '
-      'remote', (tester) async {
+  testWidgets('a store operation in flight blocks a second one from the '
+      'remote until it ends', (tester) async {
     await pumpPlans(tester, billing: true);
+    final store = _store!;
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pumpAndSettle();
     expect(focusedLink(), const Key('plans.restore'));
-    // Restore and checkout show the loading overlay while they run.
-    tester.element(find.byKey(const Key('plans.restore'))).loaderOverlay.show();
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    await tester.pump();
+    expect(store.restores, 1, reason: 'the restore is in flight');
+    // A second Restore, and checkout from the button, while it runs.
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
     await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pump();
-    expect(tester.takeException(), isNull, reason: 'no second restore');
-    expect(find.byType(Dialog), findsNothing);
-    tester.element(find.byKey(const Key('plans.restore'))).loaderOverlay.hide();
+    expect(store.restores, 1, reason: 'no second store operation');
+    expect(tester.takeException(), isNull, reason: 'checkout did not start');
+    // The operation ends (every end hides the overlay): the guard lifts.
+    tester.element(find.byKey(const Key('plans.cta'))).loaderOverlay.hide();
     await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    await tester.pump();
+    expect(store.restores, 2);
   });
 
-  testWidgets('a narrower TV fits without overflow', (tester) async {
-    // 1280x720 at 1.5x: 853x480dp.
+  testWidgets('a narrower TV keeps the focused control in view', (
+    tester,
+  ) async {
+    // 1280x720 at 1.5x: 853x480dp, laid out 1:1 as a TV is; four plans so
+    // the right column does not fit.
+    final four = PlansData(
+      providers: Providers(android: [], desktop: []),
+      plans: [
+        _plan('1m'),
+        _plan('6m'),
+        _plan('1y'),
+        _plan('2y', bestValue: true),
+      ],
+    );
     await pumpPlans(
       tester,
+      plansData: four,
       physicalSize: const Size(1280, 720),
       devicePixelRatio: 1.5,
+      oneToOne: true,
     );
     expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('plans.cta')), findsOneWidget);
-    expect(find.byKey(const Key('plans.license')), findsOneWidget);
+    const viewport = Rect.fromLTWH(0, 0, 853.3, 480);
+    bool visible(Finder f) =>
+        viewport.contains(tester.getRect(f).topLeft) &&
+        viewport.contains(tester.getRect(f).bottomRight);
+    expect(
+      visible(find.byKey(const Key('plans.cta'))),
+      isTrue,
+      reason: 'the button is revealed on initial focus',
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(
+      visible(find.byKey(const Key('plans.promo_code'))),
+      isTrue,
+      reason: 'the link is revealed on Down',
+    );
+    for (var i = 0; i < 5; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pumpAndSettle();
+    }
+    expect(
+      visible(find.byKey(const Key('plans.item.1m'))),
+      isTrue,
+      reason: 'the first card is revealed on Up',
+    );
+  });
+
+  testWidgets('a refetch that keeps the old plans disables the button and '
+      'hands focus back when the cards return', (tester) async {
+    final refetch = _PlansRefetch(data);
+    await pumpPlans(tester, refetch: refetch);
+    Key? focusedButton() => FocusManager.instance.primaryFocus?.context
+        ?.findAncestorWidgetOfExactType<PrimaryButton>()
+        ?.buttonKey;
+    expect(focusedButton(), const Key('plans.cta'));
+    await refetch.retryFetchPlans();
+    await tester.pump();
+    await tester.pump();
+    expect(
+      tester.widget<ElevatedButton>(find.byKey(const Key('plans.cta'))).enabled,
+      isFalse,
+      reason: 'the cards are reloading',
+    );
+    expect(focusedLink(), const Key('plans.promo_code'));
+    refetch.arrive();
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<ElevatedButton>(find.byKey(const Key('plans.cta'))).enabled,
+      isTrue,
+    );
+    expect(focusedButton(), const Key('plans.cta'));
+  });
+
+  testWidgets('a retry that fails again puts focus back on Retry', (
+    tester,
+  ) async {
+    final refetch = _PlansRefetch(data);
+    await pumpPlans(tester, refetch: refetch);
+    refetch.fail();
+    await tester.pumpAndSettle();
+    Key? focusedButton() => FocusManager.instance.primaryFocus?.context
+        ?.findAncestorWidgetOfExactType<PrimaryButton>()
+        ?.buttonKey;
+    expect(focusedButton(), const Key('plans.retry'));
+    await refetch.retryFetchPlans();
+    await tester.pump();
+    await tester.pump();
+    expect(focusedLink(), const Key('plans.promo_code'), reason: 'reloading');
+    refetch.fail();
+    await tester.pumpAndSettle();
+    expect(focusedButton(), const Key('plans.retry'));
+  });
+
+  testWidgets('a viewer who left the placed control and came back keeps it', (
+    tester,
+  ) async {
+    final later = _PlansLater(data);
+    await pumpPlans(tester, later: later);
+    expect(focusedLink(), const Key('plans.promo_code'), reason: 'placed');
+    // Away to the license link and back to the promo link.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(focusedLink(), const Key('plans.license'));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(focusedLink(), const Key('plans.promo_code'));
+    later.arrived.complete();
+    await tester.pumpAndSettle();
+    expect(
+      focusedLink(),
+      const Key('plans.promo_code'),
+      reason: 'the viewer chose it, the button does not take it',
+    );
   });
 
   testWidgets('the button waits for the cards and takes focus when they '
