@@ -133,10 +133,10 @@ packages:
     dependency: "direct main"
     description:
       name: auto_route
-      sha256: e9acfeb3df33d188fce4ad0239ef4238f333b7aa4d95ec52af3c2b9360dcd969
+      sha256: "538d8eb2ffc48de30abb30d4545a90405b5f8a29248b82d5e4b2977a79bfd229"
       url: "https://pub.dev"
     source: hosted
-    version: "11.1.0"
+    version: "11.2.0"
   auto_route_generator:
     dependency: "direct dev"
     description:
@@ -201,10 +201,10 @@ packages:
     dependency: "direct main"
     description:
       name: badges
-      sha256: cf1c88fb3777df69ccd630b80de5267f54efa4a39381b0404a7c03d56cb7c041
+      sha256: "4d53519c5883c74974b8efd2ea3cef85bab17b79406b83b91a022285c46e5560"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.0"
+    version: "4.0.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -784,10 +784,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_stripe
-      sha256: "410f025b27fe5dd03507444a947c44fe8e27eb89483620a70ed6a257b4aff1ba"
+      sha256: "71a428ea5031995478a6ca6a5168dd09fafbf1a359b7de1e6c9ae281404ce73f"
       url: "https://pub.dev"
     source: hosted
-    version: "12.4.0"
+    version: "15.0.0"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -871,10 +871,10 @@ packages:
     dependency: "direct main"
     description:
       name: google_fonts
-      sha256: e3cb3ee6b47fd2472c23de6da5744796a4da195137759ddb3fbcc9467b7b3c7d
+      sha256: fdbbfbbb1a62f376ab29fa9627561d389751fb984da0b630ce3326e272911c8a
       url: "https://pub.dev"
     source: hosted
-    version: "8.2.1"
+    version: "9.0.0"
   graphs:
     dependency: transitive
     description:
@@ -1224,8 +1224,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.0"
+  material_hooks:
+    dependency: "direct main"
+    description:
+      name: material_hooks
+      sha256: c10e0e33f80cab3081850dcdb257f82072baf8ecdf252f2c2f80e8d7c12c14c2
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   material_ui:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: material_ui
       sha256: a6b19012df437a356cbc01f8ea22a105e07194c47c9a6009da0032a0ce35c4ab
@@ -1388,10 +1396,10 @@ packages:
     dependency: "direct main"
     description:
       name: pinput
-      sha256: "4c3f1b84768b47a56a1abdaca551bd7cef4ac673b882209039ecdf803a5d6e68"
+      sha256: d446a2a0a4b9f4d2f9c4a7e0aa1e5995d4ee09dad1d27c161953ef70b7a54fa4
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.2"
+    version: "7.0.0"
   platform:
     dependency: transitive
     description:
@@ -1694,28 +1702,28 @@ packages:
     source: hosted
     version: "1.4.1"
   stripe_android:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: stripe_android
-      sha256: "270c9e400f2a0cdff58775c62a088903c743dd970da8d3bc54cd9bd9a1bb2d2c"
+      sha256: "45baa857b454cd72665ef380ef657eb586e561afc4799e0d07fd538c601ce663"
       url: "https://pub.dev"
     source: hosted
-    version: "12.4.0"
+    version: "15.0.0"
   stripe_ios:
     dependency: "direct overridden"
     description:
       path: "packages/stripe_ios_stub"
       relative: true
     source: path
-    version: "12.4.0"
+    version: "15.0.0"
   stripe_platform_interface:
     dependency: transitive
     description:
       name: stripe_platform_interface
-      sha256: fddc7f83f38674358faa67064695397641957923b9c730eda8bdc8acc477f9f6
+      sha256: b04315c68a9947e8de66e52ffa430951f062b7f5eae02e1cf09510a7702d3df9
       url: "https://pub.dev"
     source: hosted
-    version: "12.6.0"
+    version: "15.0.0"
   sync_http:
     dependency: transitive
     description:

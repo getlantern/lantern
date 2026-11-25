@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart' hide Card;
+import 'package:material_ui/material_ui.dart' hide Card;
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lantern/core/common/app_theme.dart';
@@ -393,6 +393,5 @@ const _paymentMethod = PaymentMethod(
   auBecsDebit: AuBecsDebit(),
   ideal: Ideal(),
   fpx: Fpx(),
-  upi: Upi(),
   usBankAccount: UsBankAccount(),
 );

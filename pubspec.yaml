@@ -43,8 +43,6 @@ dependency_overrides:
       url: https://github.com/getlantern/auto_updater.git
       path: packages/auto_updater_windows
       ref: 53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da
-  # 12.6.x bumps the native Stripe SDKs (iOS ~>25.9), keep in step with flutter_stripe 12.4.0
-  stripe_android: 12.4.0
   # Stripe checkout is Android-only; the stub keeps the Stripe SDK out of the IPA.
   stripe_ios:
     path: packages/stripe_ios_stub
@@ -70,8 +68,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   #Routing
-  # 11.2.0 moves to material_ui, which the app's theme does not reach yet
-  auto_route: ">=11.1.0 <11.2.0"
+  auto_route: ^11.2.0
   #UI Utils
   flutter_earth_globe: ^2.2.0
   lottie: ^3.3.1
@@ -80,8 +77,8 @@ dependencies:
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
 
-  badges: ^3.2.0
-  pinput: ^6.0.2
+  badges: ^4.0.1
+  pinput: ^7.0.0
   email_validator: ^3.0.0
   #Loading
   animated_loading_border: ^0.0.2
@@ -103,11 +100,12 @@ dependencies:
   flutter_riverpod: ^3.3.1
   hooks_riverpod: ^3.3.1
   flutter_hooks: ^0.21.3+1
+  material_hooks: ^0.1.0
   riverpod_annotation: ^4.0.2
   # dependency injection
   get_it: ^9.2.1
   #fonts
-  google_fonts: ^8.0.2
+  google_fonts: ^9.0.0
   #env
   flutter_dotenv: ^6.0.0
   url_launcher: ^6.3.2
@@ -138,7 +136,7 @@ dependencies:
   # Imported directly for the StoreKit 2 product type and intro-offer
   # eligibility check (affiliate pricing).
   in_app_purchase_storekit: 0.4.17
-  flutter_stripe: 12.4.0
+  flutter_stripe: ^15.0.0
   # protobuf
   protobuf: ^6.0.0
   # auto updates
@@ -159,6 +157,7 @@ dependencies:
   pub_semver: ^2.1.4
   flutter_secure_storage: ^11.2.0
 
+  material_ui: ^1.11.1
 dev_dependencies:
   file_selector_platform_interface: ^2.7.0
   flutter_test:

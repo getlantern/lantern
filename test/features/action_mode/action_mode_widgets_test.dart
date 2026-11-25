@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:ui' show SemanticsAction;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 // The public globe controller has no rotation readout. This deliberate internal
 // import reads RotatingGlobeState; revisit when upgrading flutter_earth_globe.
 import 'package:flutter_earth_globe/rotating_globe.dart';

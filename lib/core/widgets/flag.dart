@@ -1,6 +1,6 @@
 import 'dart:io' show Platform;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart' show FontLoader, rootBundle;
 
 /// Country flag from an ISO 3166-1 alpha-2 code. On Windows we route the

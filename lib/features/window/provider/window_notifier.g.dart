@@ -33,7 +33,7 @@ final class WindowNotifierProvider
   WindowNotifier create() => WindowNotifier();
 }
 
-String _$windowNotifierHash() => r'786fcb399f0f98df79f531ec9caacb46284ca5ac';
+String _$windowNotifierHash() => r'b4bfce3f215ed716c5f27da010e289325a01b618';
 
 abstract class _$WindowNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build();

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/core/widgets/divider_space.dart';

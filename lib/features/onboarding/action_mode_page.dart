@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/common/common.dart';
 import 'package:lantern/core/widgets/globe_column.dart';
 import 'package:lantern/features/helpers/provider/helpers_notifier.dart';

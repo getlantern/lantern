@@ -1,5 +1,5 @@
 // Custom Intent for paste action
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class PasteIntent extends Intent {
   const PasteIntent();

@@ -1,6 +1,6 @@
 name: stripe_ios
 description: Empty stand-in for stripe_ios. Stripe checkout is Android-only, so iOS ships without the Stripe SDK.
-version: 12.4.0
+version: 15.0.0
 publish_to: none
 
 environment:

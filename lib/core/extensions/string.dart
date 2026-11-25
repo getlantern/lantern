@@ -4,7 +4,7 @@ import 'dart:ffi';
 
 import 'package:email_validator/email_validator.dart';
 import 'package:ffi/ffi.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 final regex = RegExp(r'.+? - (.+?) \[[A-Z]{2}\]');
 

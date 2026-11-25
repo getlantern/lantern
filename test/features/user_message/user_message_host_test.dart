@@ -1,8 +1,7 @@
 import 'dart:ui' show SemanticsAction;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/user_message.dart';
@@ -45,11 +44,7 @@ Widget _harness({
       scaffoldMessengerKey: scaffoldMessengerKey,
       locale: locale,
       supportedLocales: const [Locale('en'), Locale('ar')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       navigatorObservers: [observer],
       builder: (context, child) {
         final appChild = child ?? const SizedBox.shrink();

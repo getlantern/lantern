@@ -1,5 +1,5 @@
 // Extension for showing error SnackBars.
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 

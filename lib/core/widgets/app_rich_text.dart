@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/common/app_buttons.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
 

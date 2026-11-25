@@ -1,5 +1,5 @@
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lantern/core/common/app_colors.dart';
 import 'package:lantern/core/widgets/app_focusable.dart';
