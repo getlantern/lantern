@@ -46,9 +46,6 @@ dependency_overrides:
   # Stripe checkout is Android-only; the stub keeps the Stripe SDK out of the IPA.
   stripe_ios:
     path: packages/stripe_ios_stub
-  in_app_purchase_storekit: 0.4.17
-  # 0.5.4 = Play Billing Library 8.0.0; 0.5.5 moves to Billing 9.1.
-  in_app_purchase_android: 0.5.4
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -132,10 +129,10 @@ dependencies:
   store_checker: ^1.8.0
   in_app_review: ^2.0.12
   # payment
-  in_app_purchase: ^3.3.0
+  in_app_purchase: ^3.3.1
   # Imported directly for the StoreKit 2 product type and intro-offer
   # eligibility check (affiliate pricing).
-  in_app_purchase_storekit: 0.4.17
+  in_app_purchase_storekit: ^0.4.17
   flutter_stripe: ^15.0.0
   # protobuf
   protobuf: ^6.0.0
@@ -148,7 +145,7 @@ dependencies:
   fixnum: ^1.1.1
   package_info_plus: ^10.2.1
   shared_preferences: ^2.5.5
-  flutter_carousel_widget: ^3.1.1
+  flutter_carousel_widget: ^4.0.2
   file_selector: ^1.1.0
   desktop_drop: ^0.8.4
   cross_file: ^0.3.5+2

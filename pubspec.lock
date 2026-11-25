@@ -550,10 +550,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_carousel_widget
-      sha256: a03467e5f53673b559f23240fa38fa5aca166d1d9aed610a906f31285c03b7e3
+      sha256: "7d2e7af1576f9f6f3cda221e18e10c756d2ad069dabde604b46a77d7bfafd482"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
+    version: "4.0.2"
   flutter_dotenv:
     dependency: "direct main"
     description:
@@ -1028,13 +1028,13 @@ packages:
     source: hosted
     version: "3.3.1"
   in_app_purchase_android:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: in_app_purchase_android
-      sha256: eac857f7408769a68194be99ceb233ad4e3599e55ccd6422afaf0c7fd5066738
+      sha256: b76ab601573f8a848e72d015496257235066ba3479bef6300482239f417e0d72
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.4"
+    version: "0.5.5"
   in_app_purchase_platform_interface:
     dependency: transitive
     description:
