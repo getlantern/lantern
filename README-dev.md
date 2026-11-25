@@ -226,10 +226,10 @@ flutter run -d <deviceID>
 
 #### Prerequisites
 
-- **Java 17 or newer** — Required by Gradle. Install a JDK distribution such as [Eclipse Temurin](https://adoptium.net) and ensure `JAVA_HOME` points to it.
+- **Java 21 or newer** — Required by Gradle: the Android Gradle Plugin's release lint needs Java 21. The app itself still targets Java 17. Install a JDK distribution such as [Eclipse Temurin](https://adoptium.net) and ensure `JAVA_HOME` points to it.
 
   ```bash
-  java -version   # should print 17.x or higher
+  java -version   # should print 21.x or higher
   ```
 
 - **Android Studio** (or the standalone [Android command-line tools](https://developer.android.com/studio#command-line-tools-only)) — provides the `sdkmanager` utility used in the next step.
