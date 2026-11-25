@@ -2510,7 +2510,7 @@ msgid "proxyless_reaches_blocked"
 msgstr "Accède directement aux sites bloqués si possible"
 
 msgid "smart_routing_direct_description"
-msgstr "Le routage intelligent utilise des règles spécifiques à la région pour que seul le trafic nécessitant le VPN passe par Lantern. Lorsque « Essayer en direct d'abord » est activé, l'accès aux sites bloqués est d'abord tenté en direct à l'aide de techniques anticensure, puis via le VPN en cas d'échec."
+msgstr "Le routage intelligent applique des règles propres à chaque région afin que seul le trafic qui nécessite le VPN passe par Lantern. Avec « Essayer d'abord en direct » activé, Lantern tente d'abord une connexion directe et utilise le VPN en cas d'échec."
 
 msgid "usage_stats"
 msgstr "Statistiques d'utilisation"

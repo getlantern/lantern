@@ -2409,7 +2409,7 @@ msgid "proxyless_reaches_blocked"
 msgstr "尽可能直接访问被封锁的网站"
 
 msgid "smart_routing_direct_description"
-msgstr "智能路由使用特定地区的规则，仅让需要 VPN 的流量通过蓝灯。开启“优先直连”后，将先使用反审查技术直接访问被封锁的网站，失败时再回退到 VPN。"
+msgstr "智能路由使用针对地区的规则，只让需要 VPN 的流量通过蓝灯。开启“优先尝试直连”后，蓝灯会先尝试直接连接，失败时再使用 VPN。"
 
 msgid "usage_stats"
 msgstr "使用统计"
