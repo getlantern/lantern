@@ -28,8 +28,7 @@ import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import '../../core/models/plan_data.dart';
 import '../../core/models/referral_attach_response.dart';
 
-/// TV layout (Figma "Android TV / Plans (full screen)"): the "why upgrade"
-/// column and the gap before the plans column, inside the 48dp margins.
+/// TV layout: the benefits column's width and the gap before the plans.
 const double _tvWhyUpgradeWidth = 380;
 const double _tvColumnGap = 64;
 
@@ -49,16 +48,13 @@ class _PlansState extends ConsumerState<Plans>
     with RestorePurchaseMixin<Plans> {
   late TextTheme textTheme;
 
-  /// TV: "Get Lantern Pro" takes the first focus once the plans have loaded,
-  /// so buying the preselected plan is one press.
+  /// TV: focus nodes for the controls this screen gives focus to itself.
   final _tvCtaFocus = FocusNode(debugLabel: 'plans.cta');
   final _tvRetryFocus = FocusNode(debugLabel: 'plans.retry');
   final _tvPromoFocus = FocusNode(debugLabel: 'plans.promo_code');
   final _tvLicenseFocus = FocusNode(debugLabel: 'plans.license');
 
-  /// The control this screen last gave focus to on its own; focus still
-  /// there counts as not moved by the viewer. Cleared when it loses focus,
-  /// so a viewer who left and came back owns it.
+  /// The control this screen last focused; cleared when it loses focus.
   FocusNode? _tvPlacedFocus;
 
   void _tvPlacedFocusChanged() {
@@ -236,9 +232,7 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
-  /// The plan cards, or the loading or error state in their place. On TV
-  /// the cards take [cardWidth] for their badge, and Retry is a button the
-  /// screen can give focus to.
+  /// The plan cards, or their loading or error state.
   Widget _plansListOrStatus(
     AsyncValue<PlansData> plansState, {
     double? cardWidth,
@@ -271,33 +265,18 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
-  /// The TV screen (Figma "Android TV / Plans (full screen)"): the whole
-  /// 960x540 inside the safe margins. Left, not focusable: the Lantern Pro
-  /// logo and the benefits, giving way on a narrower or shorter TV. Right:
-  /// the plan cards, "Get Lantern Pro", then the menu's items as links,
-  /// scrolling by focus when they do not fit. The close button sits top
-  /// left. Focus is this screen's own (it takes the whole screen, outside
-  /// TvShell) and follows the one state the cards render: the first link
-  /// while they load, Retry on a load error, "Get Lantern Pro" once they
-  /// show; it is never taken from a viewer who moved it, nor while a
-  /// dialog covers the screen. The button does what it does on a phone.
-  /// The one control the phone's body has and TV does not is Restore
-  /// Purchase (under the button when store billing is available); on TV
-  /// it stays in Settings, which offers it, as on a phone, to accounts that
-  /// are not Pro.
+  /// The full-screen TV layout: logo and benefits on the left (not
+  /// focusable); plan cards, "Get Lantern Pro" and links on the right.
+  /// No Restore Purchase here; Settings keeps it.
   Widget _buildTvScreen() {
     final plansState = ref.watch(plansProvider);
-    // Ready means the cards are showing: a value kept while a refetch
-    // runs is not, since the list shows its loading state then.
+    // A value kept during a refetch is not ready: the list shows loading.
     final plansReady = _tvPlansReady(plansState);
     final isReferralApplied = ref.watch(referralProvider).isApplied;
-    // Every build: a no-op while the viewer holds a control of this screen
-    // (see _tvInitialFocus), and the way back whenever nothing does, such
-    // as after a control that had focus left the screen.
+    // A no-op while the viewer holds focus on this screen.
     _tvInitialFocus(_tvFocusTargetFor(plansState, isReferralApplied));
     final textDirection = Directionality.of(context);
-    // Back and Close wait for a running checkout, which owns the app-wide
-    // loading overlay; a second press leaves one that never settles.
+    // Back and Close wait for a checkout; a second press leaves anyway.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -314,11 +293,9 @@ class _PlansState extends ConsumerState<Plans>
       },
       child: Scaffold(
         backgroundColor: context.bgElevated,
-        // The columns are sized to the screen and cannot give way to the
-        // on-screen keyboard; a dialog that opens it handles its own inset.
+        // The columns are sized to the screen, not the keyboard.
         resizeToAvoidBottomInset: false,
-        // Reading order with the shell's reveal, so a D-pad move scrolls
-        // the focused control into the safe area as on shell screens.
+        // Reading order, scrolling the focused control into the safe area.
         body: FocusTraversalGroup(
           policy: ReadingOrderTraversalPolicy(
             requestFocusCallback: tvRequestFocus,
@@ -332,11 +309,7 @@ class _PlansState extends ConsumerState<Plans>
               // The close button's ring reaches past the safe margin's corner.
               clipBehavior: Clip.none,
               children: [
-                // The columns keep their physical places in right-to-left
-                // locales, as TvShell's panels do (the close button is on the
-                // physical left); text keeps its direction. The benefits take
-                // at most their design width and give way on a narrower TV,
-                // and the right column scrolls by focus when it does not fit.
+                // The columns keep their physical places in right-to-left locales.
                 LayoutBuilder(
                   builder: (context, constraints) => Directionality(
                     textDirection: TextDirection.ltr,
@@ -351,8 +324,7 @@ class _PlansState extends ConsumerState<Plans>
                           child: ExcludeFocus(
                             child: Directionality(
                               textDirection: textDirection,
-                              // Clips rather than overflows on a short TV;
-                              // it holds nothing a remote can reach.
+                              // Clips rather than overflows on a short TV.
                               child: SingleChildScrollView(
                                 physics: const NeverScrollableScrollPhysics(),
                                 child: Column(
@@ -396,9 +368,7 @@ class _PlansState extends ConsumerState<Plans>
                                       CrossAxisAlignment.stretch,
                                   children: [
                                     _buildAffiliateBanner(),
-                                    // The cards place their Best Value badge from the
-                                    // card's own width here (the phone's from the
-                                    // viewport), so the list's layout rule is untouched.
+                                    // The badge is placed from the card's width, not the viewport's.
                                     LayoutBuilder(
                                       builder: (context, constraints) =>
                                           _plansListOrStatus(
@@ -417,10 +387,7 @@ class _PlansState extends ConsumerState<Plans>
                                       onPressed: _tvGetLanternPro,
                                     ),
                                     const SizedBox(height: 20),
-                                    // The three-dot menu's items, as links a
-                                    // remote can reach. No Restore Purchase: a
-                                    // second store operation the remote could
-                                    // stack on a checkout. Settings keeps it.
+                                    // The three-dot menu's items as links; no Restore Purchase.
                                     Wrap(
                                       alignment: WrapAlignment.spaceBetween,
                                       spacing: defaultSize,
@@ -477,16 +444,13 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
-  /// Focuses [node] after the frame and scrolls it into view, unless the
-  /// viewer has already moved focus on this screen (focus still on the
-  /// control this screen placed it on does not count) or another route
-  /// covers it.
+  /// Focuses [node] after the frame, unless the viewer moved focus or
+  /// another route covers this one.
   void _tvInitialFocus(FocusNode node) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
-      // A backgrounded app parks focus on the root scope, which would read
-      // as "not moved" below.
+      // A backgrounded app parks focus on the root scope.
       final lifecycle = WidgetsBinding.instance.lifecycleState;
       if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
       final focused = FocusManager.instance.primaryFocus;
@@ -508,10 +472,8 @@ class _PlansState extends ConsumerState<Plans>
   static bool _tvPlansReady(AsyncValue<PlansData> state) =>
       state is AsyncData<PlansData> && state.value.plans.isNotEmpty;
 
-  /// The control that has focus on its own for [state]: the one branch the
-  /// cards render (a reload shows the spinner even with an error or plans
-  /// kept from before): the first link while they load, Retry on an error,
-  /// the button once they show.
+  /// The control that takes focus for [state]: the first link while
+  /// loading, the button once the cards show, otherwise Retry.
   FocusNode _tvFocusTargetFor(
     AsyncValue<PlansData> state,
     bool isReferralApplied,
@@ -522,17 +484,8 @@ class _PlansState extends ConsumerState<Plans>
     return _tvPlansReady(state) ? _tvCtaFocus : _tvRetryFocus;
   }
 
-  /// A checkout shows the app-wide loading overlay, which is not a route:
-  /// keys still reach this screen's controls while it is up. They wait: a
-  /// second press would start another checkout, the promo dialog's flow
-  /// hides the same overlay, the license screen pops Plans around PopScope,
-  /// and leaving would strand the overlay. The flow shows it from its first
-  /// line and hides it once the checkout settles: a start error, the store's
-  /// error, cancel or deferral, or a purchase once its receipt is handled
-  /// (acknowledged, or failed, locally or at the backend, which the
-  /// acknowledger retries in the background; the account refresh then runs
-  /// with the overlay down before moving on, as on a phone: that window is
-  /// the shared flow's).
+  /// True while the app-wide loading overlay is up. It is not a route, so
+  /// keys still reach this screen; its controls wait until it hides.
   bool get _tvStoreBusy => context.loaderOverlay.visible;
 
   /// Back or Close was pressed once during the current store operation.
@@ -554,8 +507,7 @@ class _PlansState extends ConsumerState<Plans>
 
   void _tvGetLanternPro() {
     if (_tvStoreBusy || _tvFinishingPurchase) return;
-    // Checked again here: the button may have been pressed while a reload
-    // replaced the cards.
+    // A reload may have replaced the cards since the press.
     if (!_tvPlansReady(ref.read(plansProvider))) return;
     _tvLeaveWhileBusy = false;
     onGetLanternProTap();
