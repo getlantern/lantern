@@ -1399,14 +1399,11 @@ msgstr "Try Direct First"
 msgid "smart_routing_options"
 msgstr "Smart Routing options"
 
-# Under "Try Direct First" on Routing Mode.
 msgid "proxyless_reaches_blocked"
 msgstr "Reaches blocked sites directly when possible"
 
-# The one note on Routing Mode, under the Try Direct First card. Onboarding's
-# routing page keeps smart_routing_description, which does not mention it.
 msgid "smart_routing_direct_description"
-msgstr "Smart Routing uses region-specific rules so only traffic that needs the VPN goes through Lantern. With Try Direct First on, blocked sites are tried directly first using anti-censorship techniques, and fall back to the VPN if that fails."
+msgstr "Smart Routing uses region-specific rules so only traffic that needs the VPN goes through Lantern. With Try Direct First on, Lantern first tries a direct connection, and uses the VPN if that fails."
 
 msgid "failed_to_update_proxyless"
 msgstr "Couldn't update Try Direct First"

@@ -2533,7 +2533,7 @@ msgid "proxyless_reaches_blocked"
 msgstr "Mümkün olduğunda engellenen sitelere doğrudan erişir"
 
 msgid "smart_routing_direct_description"
-msgstr "Akıllı Yönlendirme, yalnızca VPN gerektiren trafiğin Lantern üzerinden gitmesi için bölgeye özel kurallar kullanır. Önce Doğrudan Dene açıkken, engellenen sitelere önce sansür karşıtı tekniklerle doğrudan erişilmeye çalışılır; bu başarısız olursa VPN kullanılır."
+msgstr "Akıllı Yönlendirme, yalnızca VPN gerektiren trafiğin Lantern üzerinden geçmesi için bölgeye özel kurallar kullanır. Önce Doğrudan Dene açıkken Lantern önce doğrudan bağlantı dener ve bu başarısız olursa VPN kullanır."
 
 msgid "usage_stats"
 msgstr "Kullanım istatistikleri"

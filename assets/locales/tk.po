@@ -2513,7 +2513,7 @@ msgid "proxyless_reaches_blocked"
 msgstr "Mümkin bolanda bloklanan saýtlara göni birikýär"
 
 msgid "smart_routing_direct_description"
-msgstr "Akylly ugrukdyryş sebite mahsus düzgünleri ulanýar, şonuň üçin diňe VPN gerek bolan trafik Lantern arkaly geçýär. «Ilki göni synanyş» açyk bolsa, bloklanan saýtlara ilki senzura garşy usullar bilen göni girmäge synanyşylýar. Bu başartmasa, VPN ulanylýar."
+msgstr "Akylly marşrutlaşdyrma sebite degişli düzgünleri ulanýar, şonuň üçin diňe VPN gerek bolan trafik Lantern arkaly geçýär. \"Ilki göni synanyş\" açyk bolsa, Lantern ilki göni baglanyşygy synanyşýar we şowsuz bolsa VPN ulanýar."
 
 msgid "usage_stats"
 msgstr "Ulanyş statistikasy"

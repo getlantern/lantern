@@ -28,6 +28,17 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Release builds run lint vital on Flutter plugin modules too. stripe_android's
+// lint classpath needs com.google.android.gms:play-services-tapandpay, which no
+// public repository has, so its lint vital fails though its build doesn't.
+subprojects {
+    if (project.name == "stripe_android") {
+        tasks.named { it.startsWith("lintVital") }.configureEach {
+            enabled = false
+        }
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

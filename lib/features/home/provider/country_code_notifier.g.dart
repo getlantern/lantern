@@ -42,13 +42,13 @@ final class CountryCodeNotifierProvider
 }
 
 String _$countryCodeNotifierHash() =>
-    r'6d4e2e5976694966396a758ca782c20d16b3a474';
+    r'b17a8cf601f5f7edc8c3ffe71b693b996b66dc5b';
 
 abstract class _$CountryCodeNotifier extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$CountryCodeNotifier extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

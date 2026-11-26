@@ -33,13 +33,13 @@ final class AuthNotifierProvider
   AuthNotifier create() => AuthNotifier();
 }
 
-String _$authNotifierHash() => r'd7801fc4cbb7a7ca0467051e78cd549156980f8f';
+String _$authNotifierHash() => r'9da59351a7108672cb44cbb38bedc56f29e75f64';
 
 abstract class _$AuthNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
     final element =
         ref.element
@@ -49,6 +49,6 @@ abstract class _$AuthNotifier extends $AsyncNotifier<void> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

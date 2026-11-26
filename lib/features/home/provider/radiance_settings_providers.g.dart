@@ -8,30 +8,12 @@ part of 'radiance_settings_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Holds radiance-backed VPN preferences in memory.
-///
-/// The notifier returns safe defaults synchronously from [build], then kicks
-/// off a single background refresh that fetches the real values from the
-/// native layer and updates state. Mutations update state in place on success,
-/// avoiding an extra native round-trip just to re-read what we just wrote.
 
 @ProviderFor(RadianceSettings)
 final radianceSettingsProvider = RadianceSettingsProvider._();
 
-/// Holds radiance-backed VPN preferences in memory.
-///
-/// The notifier returns safe defaults synchronously from [build], then kicks
-/// off a single background refresh that fetches the real values from the
-/// native layer and updates state. Mutations update state in place on success,
-/// avoiding an extra native round-trip just to re-read what we just wrote.
 final class RadianceSettingsProvider
     extends $NotifierProvider<RadianceSettings, RadianceSettingsState> {
-  /// Holds radiance-backed VPN preferences in memory.
-  ///
-  /// The notifier returns safe defaults synchronously from [build], then kicks
-  /// off a single background refresh that fetches the real values from the
-  /// native layer and updates state. Mutations update state in place on success,
-  /// avoiding an extra native round-trip just to re-read what we just wrote.
   RadianceSettingsProvider._()
     : super(
         from: null,
@@ -59,20 +41,13 @@ final class RadianceSettingsProvider
   }
 }
 
-String _$radianceSettingsHash() => r'a8695d16430eb3eaa8f6c6b56aec6b50645193d3';
-
-/// Holds radiance-backed VPN preferences in memory.
-///
-/// The notifier returns safe defaults synchronously from [build], then kicks
-/// off a single background refresh that fetches the real values from the
-/// native layer and updates state. Mutations update state in place on success,
-/// avoiding an extra native round-trip just to re-read what we just wrote.
+String _$radianceSettingsHash() => r'f32bb2cd46cfb71ed96064d508e96ad672b066b1';
 
 abstract class _$RadianceSettings extends $Notifier<RadianceSettingsState> {
   RadianceSettingsState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<RadianceSettingsState, RadianceSettingsState>;
     final element =
         ref.element
@@ -82,7 +57,7 @@ abstract class _$RadianceSettings extends $Notifier<RadianceSettingsState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
