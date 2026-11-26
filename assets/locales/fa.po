@@ -2518,11 +2518,104 @@ msgstr "به نظر می‌رسد %s از شبکه شما در دسترس نیس
 msgid "proxyless"
 msgstr "ابتدا اتصال مستقیم"
 
-msgid "proxyless_subtitle"
-msgstr "سریع‌تر وقتی سایت مسدود نیست"
-
-msgid "proxyless_description"
-msgstr "Lantern ابتدا تلاش می‌کند با روش‌های ضدسانسور مستقیماً به سایت‌هایی که از VPN استفاده می‌کردند دسترسی پیدا کند و فقط در صورت ناموفق بودن از VPN استفاده می‌کند. این روش سریع‌تر است، اما شبکه شما می‌تواند ببیند مستقیماً به کدام سایت‌ها دسترسی پیدا می‌کنید."
-
 msgid "failed_to_update_proxyless"
 msgstr "به‌روزرسانی «ابتدا اتصال مستقیم» ممکن نشد"
+
+msgid "smart_routing_options"
+msgstr "گزینه‌های مسیریابی هوشمند"
+
+msgid "proxyless_reaches_blocked"
+msgstr "در صورت امکان، دسترسی مستقیم به سایت‌های مسدودشده"
+
+msgid "smart_routing_direct_description"
+msgstr "مسیریابی هوشمند از قوانین مخصوص هر منطقه استفاده می‌کند تا فقط ترافیکی که به VPN نیاز دارد از Lantern عبور کند. با روشن بودن «ابتدا اتصال مستقیم»، Lantern ابتدا اتصال مستقیم را امتحان می‌کند و اگر ناموفق بود از VPN استفاده می‌کند."
+
+msgid "usage_stats"
+msgstr "آمار مصرف"
+
+msgid "usage_stats_this_month"
+msgstr "این ماه"
+
+msgid "usage_stats_all_time"
+msgstr "کل دوره"
+
+msgid "usage_stats_since"
+msgstr "از %s"
+
+msgid "usage_stats_total"
+msgstr "مجموع"
+
+msgid "usage_stats_up_down"
+msgstr "ارسال‌شده: %s · دریافت‌شده: %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "سایت‌های مسدودشده‌ای که مستقیماً با روش‌های ضدسانسور و بدون سرور VPN باز شدند"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "از سقف داده روزانه شما کم می‌شود"
+
+msgid "usage_stats_lantern_description"
+msgstr "از طریق سرورهای VPN برنامه Lantern"
+
+msgid "usage_stats_personal"
+msgstr "پراکسی‌های شخصی"
+
+msgid "usage_stats_personal_description"
+msgstr "از طریق دوستانی که اتصالشان را با شما به اشتراک می‌گذارند"
+
+msgid "usage_stats_private_description"
+msgstr "از طریق سرورهایی که خودتان راه‌اندازی یا اضافه کرده‌اید"
+
+msgid "usage_stats_direct"
+msgstr "خارج از VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "ارسال‌شده خارج از VPN با مسیریابی هوشمند یا تونل‌زنی تقسیمی"
+
+msgid "usage_stats_privacy"
+msgstr "این آمار روی همین دستگاه نگه داشته می‌شود و هرگز به Lantern ارسال نمی‌شود."
+
+msgid "usage_stats_reset"
+msgstr "بازنشانی آمار"
+
+msgid "usage_stats_reset_title"
+msgstr "آمار مصرف بازنشانی شود؟"
+
+msgid "usage_stats_reset_body"
+msgstr "مجموع این ماه و کل زمان در این دستگاه صفر می‌شود. این کار قابل بازگشت نیست."
+
+msgid "usage_stats_reset_confirm"
+msgstr "بازنشانی"
+
+msgid "usage_stats_reset_failed"
+msgstr "بازنشانی آمار مصرف ممکن نشد"
+
+msgid "usage_stats_load_failed"
+msgstr "بارگیری آمار مصرف ممکن نشد"
+
+msgid "payment_method_credit_card"
+msgstr "کارت اعتباری"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "هر ماه پرداخت می‌شود. هر زمان که بخواهید لغو کنید."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "هر سال پرداخت می‌شود. هر زمان که بخواهید لغو کنید."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "هر دو سال یک‌بار پرداخت می‌شود. هر زمان که بخواهید لغو کنید."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "به‌طور خودکار تمدید می‌شود. هر زمان می‌توانید لغو کنید."
+
+msgid "price_per_month"
+msgstr "%s/ماه"
+
+msgid "no_payment_methods_available"
+msgstr "در حال حاضر هیچ روش پرداختی در دسترس نیست. لطفاً بعداً دوباره امتحان کنید."

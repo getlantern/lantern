@@ -14,6 +14,7 @@ import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/services/notification_service.dart';
 import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/core/telemetry/telemetry.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -31,33 +32,11 @@ enum AndroidSideloadInstallStatus {
   final String tag;
 }
 
-enum AndroidSideloadUpdateTelemetryEvent {
-  checkResult('android_sideload_update_check_result'),
-  updateAvailable('android_sideload_update_available'),
-  downloadFailed('android_sideload_update_download_failed'),
-  checksumFailed('android_sideload_update_checksum_failed'),
-  installerLaunched('android_sideload_update_installer_launched'),
-  installerPermissionRequired(
-    'android_sideload_update_installer_permission_required',
-  ),
-  installFailed('android_sideload_update_install_failed');
-
-  const AndroidSideloadUpdateTelemetryEvent(this.tag);
-
-  final String tag;
-}
-
 void _trackTelemetry(
   AndroidSideloadUpdateTelemetryEvent event,
   Map<String, Object?> properties,
 ) {
-  final sanitized = <String, Object?>{
-    for (final entry in properties.entries)
-      if (entry.value != null) entry.key: entry.value,
-  };
-  appLogger.info(
-    'telemetry event=${event.tag} properties=${jsonEncode(sanitized)}',
-  );
+  trackEvent(event, properties);
 }
 
 class AndroidSideloadUpdater {

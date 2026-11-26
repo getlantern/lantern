@@ -10,6 +10,8 @@ go 1.26.11
 
 replace github.com/sagernet/sing-box => github.com/getlantern/sing-box-minimal v1.14.2-lantern.3
 
+replace github.com/sagernet/sing-shadowsocks => github.com/getlantern/sing-shadowsocks v0.2.8-lantern.3
+
 // replace github.com/sagernet/wireguard-go => github.com/getlantern/wireguard-go v0.0.1-beta.7.0.20251208214020-d78e69f1eff4
 
 // Fork of upstream ddaa4ca (v0.9.6): relistens when Android destroys the
@@ -28,13 +30,19 @@ replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.
 
 replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-water.1
 
-// x/httpconnect in golang.getoutline.org/sdk/x v0.3.0 doesn't build against
-// the quic-go this module resolves (quic.EarlyConnection was removed in
-// quic-go v0.53). The fork carries the one-line fix from upstream
-// OutlineFoundation/outline-sdk#657; drop this once an upstream x release
-// includes it. radiance, lantern-box and kindling carry the same replace,
-// but a replace applies only in the main module.
-replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.1
+// A replace only applies in the main module, so lantern repeats radiance's two
+// outline-sdk replaces. Drop each once an upstream release has its fixes.
+//
+// x/v0.3.0 plus Lantern's fixes: x builds against quic-go >= v0.53
+// (quic.EarlyConnection became *quic.Conn), disorder finds the TCP socket
+// through NetConn, which lantern-box's outline stream wrapper provides, and a
+// strategy probe's connection closes when its test times out.
+replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.3
+
+// v0.1.0 plus DNS fixes: queries end when their context is cancelled, a failed
+// DNS-over-TLS handshake closes its socket, and idle DNS-over-HTTPS
+// connections close.
+replace golang.getoutline.org/sdk => github.com/getlantern/outline-sdk v0.1.0-lantern.1
 
 replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
 
@@ -42,11 +50,11 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
-	github.com/getlantern/broflake v0.0.0-20261117033427-62a624d1b849
-	github.com/getlantern/common v1.2.1-0.20261118200432-1495a50e0d7e
-	github.com/getlantern/lantern-box v0.0.238
+	github.com/getlantern/broflake v0.0.0-20261120001200-65a56bdcb295
+	github.com/getlantern/common v1.2.1-0.20261125180934-59abaebf5feb
+	github.com/getlantern/lantern-box v0.0.248
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261118201340-8d78a926f80a
+	github.com/getlantern/radiance v0.0.0-20261125190703-051b4de90773
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
@@ -224,7 +232,7 @@ require (
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/google/nftables v0.2.1-0.20240414091927-5e242ec57806 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/gorilla/websocket v1.5.4-0.20240701034025-d67f41855da4 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
@@ -354,12 +362,15 @@ require (
 	github.com/zeebo/assert v1.3.0 // indirect
 	gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/v2 v2.11.0 // indirect
 	go.etcd.io/bbolt v1.4.0 // indirect
+	go.opentelemetry.io/contrib/bridges/otelslog v0.20.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.22.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.46.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.46.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.46.0 // indirect
 	go.opentelemetry.io/otel/log v1.47.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
+	go.opentelemetry.io/otel/sdk/log v1.47.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	go.uber.org/mock v0.5.2 // indirect

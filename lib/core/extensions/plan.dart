@@ -91,12 +91,13 @@ extension PlanExtension on Plan {
   double _amountOf(Map<String, dynamic> prices) =>
       double.parse(prices.values.first.toString());
 
-  String getDurationText() {
-    final durationMap = {'1y': 'year', '2y': 'two year', '1m': 'month'};
-
-    final key = id.split('-').first;
-    return durationMap[key] ?? '';
-  }
+  /// "Billed every year. Cancel anytime." for a subscription, localized.
+  String get autoRenewNotice => switch (id.split('-').first) {
+    '1m' => 'billed_monthly_cancel_anytime'.i18n,
+    '1y' => 'billed_yearly_cancel_anytime'.i18n,
+    '2y' => 'billed_every_two_years_cancel_anytime'.i18n,
+    _ => 'renews_automatically_cancel_anytime'.i18n,
+  };
 }
 
 extension IsoDateFormatter on UserDataModel {

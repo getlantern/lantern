@@ -493,6 +493,17 @@ class LanternBindings {
   late final _getSplitTunnelState = _getSplitTunnelStatePtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  ffi.Pointer<ffi.Char> getUsageStats() {
+    return _getUsageStats();
+  }
+
+  late final _getUsageStatsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'getUsageStats',
+      );
+  late final _getUsageStats = _getUsageStatsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   ffi.Pointer<ffi.Char> getUserData() {
     return _getUserData();
   }
@@ -1005,6 +1016,17 @@ class LanternBindings {
           ffi.Pointer<ffi.Char>,
         )
       >();
+
+  ffi.Pointer<ffi.Char> resetUsageStats() {
+    return _resetUsageStats();
+  }
+
+  late final _resetUsageStatsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+        'resetUsageStats',
+      );
+  late final _resetUsageStats = _resetUsageStatsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> revokeServerManagerInvite(
     ffi.Pointer<ffi.Char> _ip,

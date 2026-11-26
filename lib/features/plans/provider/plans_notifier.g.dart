@@ -33,13 +33,13 @@ final class PlansNotifierProvider
   PlansNotifier create() => PlansNotifier();
 }
 
-String _$plansNotifierHash() => r'39759f8843d7f087c86ce71becdccdd2e48f3c0b';
+String _$plansNotifierHash() => r'2289904d9a9b32171dc7e127e1090e989893d001';
 
 abstract class _$PlansNotifier extends $AsyncNotifier<PlansData> {
   FutureOr<PlansData> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<PlansData>, PlansData>;
     final element =
         ref.element
@@ -49,6 +49,6 @@ abstract class _$PlansNotifier extends $AsyncNotifier<PlansData> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

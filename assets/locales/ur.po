@@ -2353,11 +2353,104 @@ msgstr "آپ کے نیٹ ورک سے %s تک رسائی ممکن نہیں لگت
 msgid "proxyless"
 msgstr "پہلے براہ راست کوشش"
 
-msgid "proxyless_subtitle"
-msgstr "سائٹ بلاک نہ ہو تو زیادہ تیز"
-
-msgid "proxyless_description"
-msgstr "Lantern پہلے سنسرشپ مخالف تکنیکوں سے ان سائٹس تک براہ راست پہنچنے کی کوشش کرتا ہے جو VPN استعمال کرتیں، اور ناکامی پر ہی VPN استعمال کرتا ہے۔ یہ زیادہ تیز ہے، لیکن آپ کا نیٹ ورک دیکھ سکتا ہے کہ آپ کن سائٹس تک براہ راست پہنچتے ہیں۔"
-
 msgid "failed_to_update_proxyless"
 msgstr "پہلے براہ راست کوشش اپ ڈیٹ نہیں ہو سکی"
+
+msgid "smart_routing_options"
+msgstr "اسمارٹ روٹنگ کے اختیارات"
+
+msgid "proxyless_reaches_blocked"
+msgstr "ممکن ہونے پر بلاک شدہ سائٹس تک براہ راست رسائی"
+
+msgid "smart_routing_direct_description"
+msgstr "سمارٹ روٹنگ علاقے کے مخصوص اصول استعمال کرتی ہے تاکہ صرف وہی ٹریفک Lantern سے گزرے جسے VPN کی ضرورت ہو۔ \"پہلے براہ راست آزمائیں\" آن ہونے پر Lantern پہلے براہ راست کنکشن آزماتا ہے، اور ناکام ہونے پر VPN استعمال کرتا ہے۔"
+
+msgid "usage_stats"
+msgstr "استعمال کے اعداد و شمار"
+
+msgid "usage_stats_this_month"
+msgstr "اس مہینے"
+
+msgid "usage_stats_all_time"
+msgstr "اب تک"
+
+msgid "usage_stats_since"
+msgstr "%s سے"
+
+msgid "usage_stats_total"
+msgstr "کل"
+
+msgid "usage_stats_up_down"
+msgstr "بھیجا گیا: %s · موصول: %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "VPN سرور کے بغیر، سنسرشپ مخالف تکنیکوں سے براہ راست کھولی گئی بلاک شدہ سائٹس"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "آپ کی یومیہ ڈیٹا حد میں شمار ہوتا ہے"
+
+msgid "usage_stats_lantern_description"
+msgstr "Lantern کے VPN سرورز کے ذریعے"
+
+msgid "usage_stats_personal"
+msgstr "ذاتی پراکسیز"
+
+msgid "usage_stats_personal_description"
+msgstr "ان دوستوں کے ذریعے جو آپ کے ساتھ اپنا کنکشن شیئر کر رہے ہیں"
+
+msgid "usage_stats_private_description"
+msgstr "آپ کے خود سیٹ اپ کردہ یا شامل کردہ سرورز کے ذریعے"
+
+msgid "usage_stats_direct"
+msgstr "VPN سے باہر"
+
+msgid "usage_stats_direct_description"
+msgstr "اسمارٹ روٹنگ یا اسپلٹ ٹنلنگ کے ذریعے VPN سے باہر بھیجا گیا"
+
+msgid "usage_stats_privacy"
+msgstr "یہ اعداد و شمار اسی ڈیوائس پر رکھے جاتے ہیں اور کبھی Lantern کو نہیں بھیجے جاتے۔"
+
+msgid "usage_stats_reset"
+msgstr "اعداد و شمار ری سیٹ کریں"
+
+msgid "usage_stats_reset_title"
+msgstr "استعمال کے اعداد و شمار ری سیٹ کریں؟"
+
+msgid "usage_stats_reset_body"
+msgstr "اس ڈیوائس پر اس مہینے اور اب تک کے مجموعی اعداد صفر ہو جائیں گے۔ اسے واپس نہیں کیا جا سکتا۔"
+
+msgid "usage_stats_reset_confirm"
+msgstr "ری سیٹ کریں"
+
+msgid "usage_stats_reset_failed"
+msgstr "استعمال کے اعداد و شمار ری سیٹ نہیں ہو سکے"
+
+msgid "usage_stats_load_failed"
+msgstr "استعمال کے اعداد و شمار لوڈ نہیں ہو سکے"
+
+msgid "payment_method_credit_card"
+msgstr "کریڈٹ کارڈ"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "ہر ماہ بل کیا جاتا ہے۔ کسی بھی وقت منسوخ کریں۔"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "ہر سال بل کیا جاتا ہے۔ کسی بھی وقت منسوخ کریں۔"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "ہر دو سال بعد بل کیا جاتا ہے۔ کسی بھی وقت منسوخ کریں۔"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "خودکار طور پر تجدید ہوتی ہے۔ کسی بھی وقت منسوخ کریں۔"
+
+msgid "price_per_month"
+msgstr "%s/ماہ"
+
+msgid "no_payment_methods_available"
+msgstr "اس وقت ادائیگی کا کوئی طریقہ دستیاب نہیں ہے۔ براہ کرم بعد میں دوبارہ کوشش کریں۔"

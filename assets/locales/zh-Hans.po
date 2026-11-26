@@ -673,6 +673,33 @@ msgstr "订阅"
 msgid "checkout"
 msgstr "结账"
 
+msgid "payment_method_credit_card"
+msgstr "银行卡"
+
+msgid "payment_method_alipay"
+msgstr "支付宝"
+
+msgid "payment_method_wechatpay"
+msgstr "微信支付"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "按月扣费，可随时取消。"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "按年扣费，可随时取消。"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "每两年扣费一次，可随时取消。"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "自动续订，可随时取消。"
+
+msgid "price_per_month"
+msgstr "%s/月"
+
+msgid "no_payment_methods_available"
+msgstr "暂时没有可用的支付方式，请稍后再试。"
+
 msgid "vpn_may_be_needed"
 msgstr "可能需要 VPN"
 
@@ -2372,11 +2399,77 @@ msgstr "从您的网络似乎无法访问 %s。点按以选择其他位置。"
 msgid "proxyless"
 msgstr "优先直连"
 
-msgid "proxyless_subtitle"
-msgstr "网站未被封锁时更快"
-
-msgid "proxyless_description"
-msgstr "对于原本使用 VPN 的网站，蓝灯会先借助反审查技术尝试直接访问，失败时才使用 VPN。这样速度更快，但您的网络可以看到您直接访问了哪些网站。"
-
 msgid "failed_to_update_proxyless"
 msgstr "无法更新“优先直连”"
+
+msgid "smart_routing_options"
+msgstr "智能路由选项"
+
+msgid "proxyless_reaches_blocked"
+msgstr "尽可能直接访问被封锁的网站"
+
+msgid "smart_routing_direct_description"
+msgstr "智能路由使用针对地区的规则，只让需要 VPN 的流量通过蓝灯。开启“优先尝试直连”后，蓝灯会先尝试直接连接，失败时再使用 VPN。"
+
+msgid "usage_stats"
+msgstr "使用统计"
+
+msgid "usage_stats_this_month"
+msgstr "本月"
+
+msgid "usage_stats_all_time"
+msgstr "全部时间"
+
+msgid "usage_stats_since"
+msgstr "自 %s 起"
+
+msgid "usage_stats_total"
+msgstr "总计"
+
+msgid "usage_stats_up_down"
+msgstr "已发送 %s · 已接收 %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "不经 VPN 服务器，借助反审查技术直接访问的被封锁网站"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "计入您的每日流量上限"
+
+msgid "usage_stats_lantern_description"
+msgstr "通过蓝灯的 VPN 服务器"
+
+msgid "usage_stats_personal"
+msgstr "个人代理"
+
+msgid "usage_stats_personal_description"
+msgstr "通过与您共享连接的朋友"
+
+msgid "usage_stats_private_description"
+msgstr "通过您自行设置或添加的服务器"
+
+msgid "usage_stats_direct"
+msgstr "VPN 之外"
+
+msgid "usage_stats_direct_description"
+msgstr "经智能路由或分流绕过 VPN 发送"
+
+msgid "usage_stats_privacy"
+msgstr "这些统计数据保存在本设备上，绝不会发送给蓝灯。"
+
+msgid "usage_stats_reset"
+msgstr "重置统计"
+
+msgid "usage_stats_reset_title"
+msgstr "重置使用统计？"
+
+msgid "usage_stats_reset_body"
+msgstr "此设备上本月和累计总量将归零。此操作无法撤销。"
+
+msgid "usage_stats_reset_confirm"
+msgstr "重置"
+
+msgid "usage_stats_reset_failed"
+msgstr "无法重置使用统计"
+
+msgid "usage_stats_load_failed"
+msgstr "无法加载使用统计"

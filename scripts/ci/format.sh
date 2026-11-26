@@ -15,6 +15,7 @@ set -euo pipefail
 #   WORKFLOW_URL:         workflow run URL (required for slack, used for nightly builds)
 #   LINUX_ARCH:           amd64, arm64, or all (optional, defaults to amd64)
 #   IS_TEST_RUN:          true for branch builds; uses versioned downloads (default: false)
+#   WINDOWS_SIGNED:       false when Windows signing was skipped; links the versioned .exe (default: true)
 
 FORMAT="${1:?Format required: release-notes, job-summary, or slack}"
 RELEASE_TAG="${RELEASE_TAG:?RELEASE_TAG required}"
@@ -25,6 +26,7 @@ BUILD_TYPE="${BUILD_TYPE:?BUILD_TYPE required}"
 GITHUB_REF_NAME="${GITHUB_REF_NAME:?GITHUB_REF_NAME required}"
 LINUX_ARCH="${LINUX_ARCH:-amd64}"
 IS_TEST_RUN="${IS_TEST_RUN:-false}"
+WINDOWS_SIGNED="${WINDOWS_SIGNED:-true}"
 
 case "$LINUX_ARCH" in
 amd64 | arm64 | all) ;;
@@ -46,6 +48,11 @@ LATEST_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/latest"
 # Branch builds never update the shared nightly aliases.
 if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" == "true" ]]; then
   LATEST_URL="$VERSION_URL"
+fi
+# An unsigned Windows installer never replaces the shared latest/ alias.
+WINDOWS_LATEST_URL="$LATEST_URL"
+if [[ "$WINDOWS_SIGNED" == "false" ]]; then
+  WINDOWS_LATEST_URL="$VERSION_URL"
 fi
 
 # Check if a platform should be included
@@ -88,7 +95,7 @@ release-notes)
   fi
 
   if should_include "windows"; then
-    echo "- [Windows (.exe)](${LATEST_URL}/${FULL_INSTALLER_NAME}.exe) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.exe))"
+    echo "- [Windows (.exe)](${WINDOWS_LATEST_URL}/${FULL_INSTALLER_NAME}.exe) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.exe))"
   fi
 
   if should_include "android"; then
@@ -135,7 +142,7 @@ slack)
   fi
 
   if should_include "windows"; then
-    text="${text}\n• Windows <${LATEST_URL}/${FULL_INSTALLER_NAME}.exe|${FULL_INSTALLER_NAME}.exe> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.exe|permalink>)"
+    text="${text}\n• Windows <${WINDOWS_LATEST_URL}/${FULL_INSTALLER_NAME}.exe|${FULL_INSTALLER_NAME}.exe> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.exe|permalink>)"
   fi
 
   if should_include "android"; then

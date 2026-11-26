@@ -99,6 +99,9 @@ func SetQAEnvOverrides(outboundSocks, tz string) error {
 // will see (in practice both derive from LanternVpnService.opts()), otherwise
 // the early values silently override.
 func InitLogging(dataDir, logDir, logLevel string) error {
+	if logLevel == "" {
+		logLevel = lanterncore.DefaultLogLevel()
+	}
 	_, err := utils.RunOffCgoStack(func() (struct{}, error) {
 		return struct{}{}, common.Init(dataDir, logDir, logLevel)
 	})
@@ -812,6 +815,14 @@ func Logout(email string) (string, error) {
 
 func GetDataCapInfo() (string, error) {
 	return withCoreR(func(c lanterncore.Core) (string, error) { return c.DataCapInfo() })
+}
+
+func GetUsageStats() (string, error) {
+	return withCoreR(func(c lanterncore.Core) (string, error) { return c.UsageStats() })
+}
+
+func ResetUsageStats() error {
+	return withCore(func(c lanterncore.Core) error { return c.ResetUsageStats() })
 }
 
 // Email Recovery Methods

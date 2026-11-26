@@ -2537,11 +2537,104 @@ msgstr "%s parece inaccesible desde tu red. Toca para elegir otra ubicación."
 msgid "proxyless"
 msgstr "Probar directo primero"
 
-msgid "proxyless_subtitle"
-msgstr "Más rápido si un sitio no está bloqueado"
-
-msgid "proxyless_description"
-msgstr "Lantern primero intenta acceder directamente a los sitios que usarían la VPN, con técnicas contra la censura, y usa la VPN solo si eso falla. Es más rápido, pero tu red puede ver a qué sitios accedes directamente."
-
 msgid "failed_to_update_proxyless"
 msgstr "No se pudo actualizar Probar directo primero"
+
+msgid "smart_routing_options"
+msgstr "Opciones de enrutamiento inteligente"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Accede directamente a sitios bloqueados cuando es posible"
+
+msgid "smart_routing_direct_description"
+msgstr "El enrutamiento inteligente usa reglas específicas de cada región para que solo el tráfico que necesita la VPN pase por Lantern. Con Probar conexión directa primero activado, Lantern intenta primero una conexión directa y usa la VPN si falla."
+
+msgid "usage_stats"
+msgstr "Estadísticas de uso"
+
+msgid "usage_stats_this_month"
+msgstr "Este mes"
+
+msgid "usage_stats_all_time"
+msgstr "Desde el inicio"
+
+msgid "usage_stats_since"
+msgstr "Desde el %s"
+
+msgid "usage_stats_total"
+msgstr "Total"
+
+msgid "usage_stats_up_down"
+msgstr "%s enviados · %s recibidos"
+
+msgid "usage_stats_proxyless_description"
+msgstr "Sitios bloqueados a los que se accedió directamente con técnicas anticensura, sin servidor VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Cuenta para tu límite diario de datos"
+
+msgid "usage_stats_lantern_description"
+msgstr "A través de los servidores VPN de Lantern"
+
+msgid "usage_stats_personal"
+msgstr "Proxies personales"
+
+msgid "usage_stats_personal_description"
+msgstr "A través de amigos que comparten su conexión contigo"
+
+msgid "usage_stats_private_description"
+msgstr "A través de servidores que configuraste o agregaste tú"
+
+msgid "usage_stats_direct"
+msgstr "Fuera de la VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "Enviado por fuera de la VPN mediante enrutamiento inteligente o túnel dividido"
+
+msgid "usage_stats_privacy"
+msgstr "Estas estadísticas se guardan en este dispositivo y nunca se envían a Lantern."
+
+msgid "usage_stats_reset"
+msgstr "Restablecer estadísticas"
+
+msgid "usage_stats_reset_title"
+msgstr "¿Restablecer estadísticas de uso?"
+
+msgid "usage_stats_reset_body"
+msgstr "Los totales de este mes y de todo el tiempo en este dispositivo volverán a cero. Esto no se puede deshacer."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Restablecer"
+
+msgid "usage_stats_reset_failed"
+msgstr "No se pudieron restablecer las estadísticas de uso"
+
+msgid "usage_stats_load_failed"
+msgstr "No se pudieron cargar las estadísticas de uso"
+
+msgid "payment_method_credit_card"
+msgstr "Tarjeta de crédito"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Se factura cada mes. Cancela cuando quieras."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Se factura cada año. Cancela cuando quieras."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Se factura cada dos años. Cancela cuando quieras."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Se renueva automáticamente. Cancela cuando quieras."
+
+msgid "price_per_month"
+msgstr "%s/mes"
+
+msgid "no_payment_methods_available"
+msgstr "No hay métodos de pago disponibles en este momento. Inténtalo de nuevo más tarde."

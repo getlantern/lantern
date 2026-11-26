@@ -61,6 +61,16 @@ class PlansNotifier extends _$PlansNotifier {
     return _fetchPlansWithRetry(fromBackground: fromBackground, attempt: 0);
   }
 
+  /// Refetches plans for a Retry button. A failure is already published as
+  /// the provider's error state, so it isn't rethrown.
+  Future<void> retryFetchPlans() async {
+    try {
+      await fetchPlans();
+    } on Exception {
+      // Shown through the error state.
+    }
+  }
+
   Future<PlansData> _fetchPlansWithRetry({
     required bool fromBackground,
     required int attempt,
@@ -199,5 +209,12 @@ class PlansNotifier extends _$PlansNotifier {
   Plan getSelectedPlan() {
     appLogger.info('[PlansNotifier] getSelectedPlan: ${userSelectedPlan?.id}');
     return userSelectedPlan!;
+  }
+
+  /// The selected plan, or null if it isn't in the current plan list.
+  Plan? get currentSelectedPlan {
+    final id = userSelectedPlan?.id;
+    if (id == null) return null;
+    return state.value?.plans.where((p) => p.id == id).firstOrNull;
   }
 }

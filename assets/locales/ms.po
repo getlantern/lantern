@@ -2530,11 +2530,104 @@ msgstr "%s nampaknya tidak dapat dicapai dari rangkaian anda. Ketik untuk memili
 msgid "proxyless"
 msgstr "Cuba Terus Dahulu"
 
-msgid "proxyless_subtitle"
-msgstr "Lebih pantas apabila laman tidak disekat"
-
-msgid "proxyless_description"
-msgstr "Lantern cuba dahulu mencapai secara terus laman yang akan menggunakan VPN, menggunakan teknik anti-penapisan, dan hanya menggunakan VPN jika gagal. Ini lebih pantas, tetapi rangkaian anda boleh melihat laman yang anda capai secara terus."
-
 msgid "failed_to_update_proxyless"
 msgstr "Tidak dapat mengemas kini Cuba Terus Dahulu"
+
+msgid "smart_routing_options"
+msgstr "Pilihan Penghalaan Pintar"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Mencapai laman yang disekat secara terus jika boleh"
+
+msgid "smart_routing_direct_description"
+msgstr "Penghalaan Pintar menggunakan peraturan khusus wilayah supaya hanya trafik yang memerlukan VPN melalui Lantern. Apabila Cuba Terus Dahulu dihidupkan, Lantern mencuba sambungan terus dahulu dan menggunakan VPN jika gagal."
+
+msgid "usage_stats"
+msgstr "Statistik penggunaan"
+
+msgid "usage_stats_this_month"
+msgstr "Bulan ini"
+
+msgid "usage_stats_all_time"
+msgstr "Sepanjang masa"
+
+msgid "usage_stats_since"
+msgstr "Sejak %s"
+
+msgid "usage_stats_total"
+msgstr "Jumlah"
+
+msgid "usage_stats_up_down"
+msgstr "%s dihantar · %s diterima"
+
+msgid "usage_stats_proxyless_description"
+msgstr "Laman disekat yang dicapai terus menggunakan teknik antipenapisan, tanpa pelayan VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Dikira dalam had data harian anda"
+
+msgid "usage_stats_lantern_description"
+msgstr "Melalui pelayan VPN Lantern"
+
+msgid "usage_stats_personal"
+msgstr "Proksi Peribadi"
+
+msgid "usage_stats_personal_description"
+msgstr "Melalui rakan yang berkongsi sambungan mereka dengan anda"
+
+msgid "usage_stats_private_description"
+msgstr "Melalui pelayan yang anda sediakan atau tambah sendiri"
+
+msgid "usage_stats_direct"
+msgstr "Di luar VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "Dihantar di luar VPN oleh Penghalaan Pintar atau Terowong Pisah"
+
+msgid "usage_stats_privacy"
+msgstr "Statistik ini disimpan pada peranti ini dan tidak pernah dihantar kepada Lantern."
+
+msgid "usage_stats_reset"
+msgstr "Tetapkan Semula Statistik"
+
+msgid "usage_stats_reset_title"
+msgstr "Tetapkan semula statistik penggunaan?"
+
+msgid "usage_stats_reset_body"
+msgstr "Jumlah bulan ini dan sepanjang masa pada peranti ini akan kembali kepada sifar. Tindakan ini tidak boleh dibatalkan."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Tetapkan Semula"
+
+msgid "usage_stats_reset_failed"
+msgstr "Tidak dapat menetapkan semula statistik penggunaan"
+
+msgid "usage_stats_load_failed"
+msgstr "Tidak dapat memuatkan statistik penggunaan"
+
+msgid "payment_method_credit_card"
+msgstr "Kad Kredit"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Dibilkan setiap bulan. Batalkan bila-bila masa."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Dibilkan setiap tahun. Batalkan bila-bila masa."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Dibilkan setiap dua tahun. Batalkan bila-bila masa."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Diperbaharui secara automatik. Batal pada bila-bila masa."
+
+msgid "price_per_month"
+msgstr "%s/bulan"
+
+msgid "no_payment_methods_available"
+msgstr "Tiada kaedah pembayaran tersedia buat masa ini. Sila cuba lagi kemudian."

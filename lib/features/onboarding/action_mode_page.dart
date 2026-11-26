@@ -116,6 +116,10 @@ class _Globe extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A raster each way: the light one is white on a teal glow, the dark
+    // one charcoal with a pale glow, as the Action Mode tab's globe swaps
+    // its texture.
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return LayoutBuilder(
       builder: (context, constraints) {
         final max = constraints.maxHeight.isFinite
@@ -131,7 +135,7 @@ class _Globe extends StatelessWidget {
           child: SizedBox(
             width: _width * height / _height,
             height: height,
-            child: const FittedBox(
+            child: FittedBox(
               child: SizedBox(
                 width: _width,
                 height: _height,
@@ -144,7 +148,9 @@ class _Globe extends StatelessWidget {
                       width: 268.2,
                       height: 275.6,
                       child: AppImage(
-                        path: AppImagePaths.onboardingActionModeGlobe,
+                        path: dark
+                            ? AppImagePaths.onboardingActionModeGlobeDark
+                            : AppImagePaths.onboardingActionModeGlobe,
                         type: AssetType.png,
                         fit: BoxFit.fill,
                       ),

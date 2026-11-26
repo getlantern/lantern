@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/getlantern/radiance/common/env"
 	"github.com/getlantern/radiance/ipc"
 
+	lanterncore "github.com/getlantern/lantern/lantern-core"
 	"github.com/getlantern/lantern/lantern-core/utils"
 )
 
@@ -126,6 +128,11 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		env.SetStagingEnv()
 	}
 
+	logLevel := opts.LogLevel
+	if logLevel == "" {
+		logLevel = lanterncore.DefaultLogLevel()
+	}
+
 	startupCtx, cancelStartup := context.WithTimeout(context.Background(), ipcStartTimeout)
 	defer cancelStartup()
 
@@ -134,7 +141,7 @@ func startIPCServer(platform utils.PlatformInterface, opts *utils.Opts) error {
 		LogDir:                  opts.LogDir,
 		Locale:                  opts.Locale,
 		TimeZone:                opts.TimeZone,
-		LogLevel:                opts.LogLevel,
+		LogLevel:                logLevel,
 		DeviceID:                opts.Deviceid,
 		TelemetryConsent:        opts.TelemetryConsent,
 		PlatformInterface:       platform,
@@ -211,6 +218,12 @@ func newIPCResources(opts backend.Options) ipcStartResult {
 	localBackend, err := backend.NewLocalBackend(context.Background(), opts)
 	if err != nil {
 		return ipcStartResult{err: fmt.Errorf("error creating backend for IPC server: %w", err)}
+	}
+	// Telemetry starts in LocalBackend.Start, so this runs before any upload.
+	// A failed save still applies the live value, so this session can't
+	// upload either way.
+	if err := lanterncore.DisableSigNozLogUploadBeforeStart(localBackend.PatchSettings); err != nil {
+		slog.Warn("Unable to save SigNoz log upload as off", "error", err)
 	}
 
 	server := ipc.NewServer(localBackend, !common.IsMobile())

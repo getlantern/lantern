@@ -2521,11 +2521,104 @@ msgstr "Có vẻ không thể truy cập %s từ mạng của bạn. Nhấn đ�
 msgid "proxyless"
 msgstr "Thử trực tiếp trước"
 
-msgid "proxyless_subtitle"
-msgstr "Nhanh hơn khi trang không bị chặn"
-
-msgid "proxyless_description"
-msgstr "Lantern trước tiên thử truy cập trực tiếp các trang lẽ ra dùng VPN, bằng kỹ thuật chống kiểm duyệt, và chỉ dùng VPN khi cách đó thất bại. Cách này nhanh hơn, nhưng mạng của bạn có thể thấy bạn truy cập trực tiếp những trang nào."
-
 msgid "failed_to_update_proxyless"
 msgstr "Không thể cập nhật Thử trực tiếp trước"
+
+msgid "smart_routing_options"
+msgstr "Tùy chọn định tuyến thông minh"
+
+msgid "proxyless_reaches_blocked"
+msgstr "Truy cập trực tiếp trang web bị chặn khi có thể"
+
+msgid "smart_routing_direct_description"
+msgstr "Định tuyến thông minh dùng quy tắc riêng cho từng khu vực để chỉ lưu lượng cần VPN mới đi qua Lantern. Khi bật Thử kết nối trực tiếp trước, Lantern sẽ thử kết nối trực tiếp trước và dùng VPN nếu không thành công."
+
+msgid "usage_stats"
+msgstr "Thống kê sử dụng"
+
+msgid "usage_stats_this_month"
+msgstr "Tháng này"
+
+msgid "usage_stats_all_time"
+msgstr "Toàn bộ thời gian"
+
+msgid "usage_stats_since"
+msgstr "Từ %s"
+
+msgid "usage_stats_total"
+msgstr "Tổng"
+
+msgid "usage_stats_up_down"
+msgstr "Đã gửi %s · Đã nhận %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "Trang bị chặn được truy cập trực tiếp bằng kỹ thuật chống kiểm duyệt, không qua máy chủ VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "Được tính vào giới hạn dữ liệu hằng ngày của bạn"
+
+msgid "usage_stats_lantern_description"
+msgstr "Qua máy chủ VPN của Lantern"
+
+msgid "usage_stats_personal"
+msgstr "Proxy cá nhân"
+
+msgid "usage_stats_personal_description"
+msgstr "Qua bạn bè đang chia sẻ kết nối với bạn"
+
+msgid "usage_stats_private_description"
+msgstr "Qua máy chủ do bạn tự thiết lập hoặc thêm vào"
+
+msgid "usage_stats_direct"
+msgstr "Ngoài VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "Gửi vòng qua VPN bằng định tuyến thông minh hoặc chia tách đường hầm"
+
+msgid "usage_stats_privacy"
+msgstr "Các số liệu này được lưu trên thiết bị này và không bao giờ được gửi đến Lantern."
+
+msgid "usage_stats_reset"
+msgstr "Đặt lại thống kê"
+
+msgid "usage_stats_reset_title"
+msgstr "Đặt lại thống kê sử dụng?"
+
+msgid "usage_stats_reset_body"
+msgstr "Tổng số tháng này và toàn bộ thời gian trên thiết bị này sẽ trở về 0. Không thể hoàn tác thao tác này."
+
+msgid "usage_stats_reset_confirm"
+msgstr "Đặt lại"
+
+msgid "usage_stats_reset_failed"
+msgstr "Không thể đặt lại thống kê sử dụng"
+
+msgid "usage_stats_load_failed"
+msgstr "Không thể tải thống kê sử dụng"
+
+msgid "payment_method_credit_card"
+msgstr "Thẻ tín dụng"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "Thanh toán hằng tháng. Hủy bất cứ lúc nào."
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "Thanh toán hằng năm. Hủy bất cứ lúc nào."
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "Thanh toán hai năm một lần. Hủy bất cứ lúc nào."
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "Tự động gia hạn. Hủy bất cứ lúc nào."
+
+msgid "price_per_month"
+msgstr "%s/tháng"
+
+msgid "no_payment_methods_available"
+msgstr "Hiện không có phương thức thanh toán nào. Vui lòng thử lại sau."

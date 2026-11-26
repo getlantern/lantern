@@ -2557,11 +2557,104 @@ msgstr "သင့်ကွန်ရက်မှ %s ကို ချိတ်ဆ�
 msgid "proxyless"
 msgstr "တိုက်ရိုက် အရင်စမ်းရန်"
 
-msgid "proxyless_subtitle"
-msgstr "ဆိုက် ပိတ်မထားလျှင် ပိုမြန်သည်"
-
-msgid "proxyless_description"
-msgstr "VPN သုံးမည့် ဆိုက်များကို Lantern သည် ဆင်ဆာဆန့်ကျင်ရေး နည်းလမ်းများဖြင့် တိုက်ရိုက် အရင်ချိတ်ဆက်ကြည့်ပြီး မအောင်မြင်မှသာ VPN ကို သုံးပါသည်။ ၎င်းက ပိုမြန်သော်လည်း သင် တိုက်ရိုက်ဝင်သည့် ဆိုက်များကို သင့်ကွန်ရက်က မြင်နိုင်ပါသည်။"
-
 msgid "failed_to_update_proxyless"
 msgstr "တိုက်ရိုက် အရင်စမ်းရန် ကို အပ်ဒိတ်လုပ်၍ မရပါ"
+
+msgid "proxyless_reaches_blocked"
+msgstr "ဖြစ်နိုင်ပါက ပိတ်ဆို့ထားသော ဆိုက်များသို့ တိုက်ရိုက် ရောက်ရှိစေသည်"
+
+msgid "smart_routing_direct_description"
+msgstr "Smart Routing သည် ဒေသအလိုက် စည်းမျဉ်းများကို အသုံးပြုသဖြင့် VPN လိုအပ်သော traffic သာ Lantern မှတစ်ဆင့် သွားပါသည်။ ဦးစွာ တိုက်ရိုက်စမ်းရန် ဖွင့်ထားပါက Lantern သည် တိုက်ရိုက်ချိတ်ဆက်မှုကို ဦးစွာ စမ်းပြီး မအောင်မြင်ပါက VPN ကို အသုံးပြုပါသည်။"
+
+msgid "smart_routing_options"
+msgstr "စမတ် လမ်းကြောင်းရွေးချယ်မှု ရွေးစရာများ"
+
+msgid "usage_stats"
+msgstr "အသုံးပြုမှု စာရင်း"
+
+msgid "usage_stats_this_month"
+msgstr "ယခုလ"
+
+msgid "usage_stats_all_time"
+msgstr "စတင်ချိန်မှစ၍"
+
+msgid "usage_stats_since"
+msgstr "%s မှစ၍"
+
+msgid "usage_stats_total"
+msgstr "စုစုပေါင်း"
+
+msgid "usage_stats_up_down"
+msgstr "ပို့ပြီး %s · လက်ခံပြီး %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "VPN ဆာဗာမသုံးဘဲ ဆင်ဆာဆန့်ကျင်ရေးနည်းလမ်းများဖြင့် တိုက်ရိုက်ရောက်ခဲ့သော ပိတ်ဆို့ထားသည့် ဆိုက်များ"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "သင့်နေ့စဉ် ဒေတာကန့်သတ်ချက်ထဲ ထည့်တွက်သည်"
+
+msgid "usage_stats_lantern_description"
+msgstr "Lantern ၏ VPN ဆာဗာများမှတစ်ဆင့်"
+
+msgid "usage_stats_personal"
+msgstr "ကိုယ်ပိုင် Proxy များ"
+
+msgid "usage_stats_personal_description"
+msgstr "သင်နှင့် ချိတ်ဆက်မှု မျှဝေသော သူငယ်ချင်းများမှတစ်ဆင့်"
+
+msgid "usage_stats_private_description"
+msgstr "သင်ကိုယ်တိုင် စီစဉ်ထားသော သို့မဟုတ် ထည့်ထားသော ဆာဗာများမှတစ်ဆင့်"
+
+msgid "usage_stats_direct"
+msgstr "VPN ပြင်ပ"
+
+msgid "usage_stats_direct_description"
+msgstr "Smart Routing သို့မဟုတ် Split Tunneling ဖြင့် VPN ကို ကျော်၍ ပို့ထားသည်"
+
+msgid "usage_stats_privacy"
+msgstr "ဤစာရင်းများကို ဤစက်ပေါ်တွင်သာ သိမ်းထားပြီး Lantern သို့ ဘယ်တော့မှ မပို့ပါ။"
+
+msgid "usage_stats_reset_title"
+msgstr "အသုံးပြုမှု စာရင်းအင်းကို ပြန်စမလား?"
+
+msgid "usage_stats_reset_body"
+msgstr "ဤစက်ပေါ်ရှိ ယခုလနှင့် စုစုပေါင်း အသုံးပြုမှုများ သုညသို့ ပြန်ရောက်ပါမည်။ ဤလုပ်ဆောင်ချက်ကို ပြန်ပြင်၍ မရပါ။"
+
+msgid "usage_stats_reset_confirm"
+msgstr "ပြန်စရန်"
+
+msgid "usage_stats_reset_failed"
+msgstr "အသုံးပြုမှု စာရင်းအင်းကို ပြန်စ၍ မရပါ"
+
+msgid "usage_stats_load_failed"
+msgstr "အသုံးပြုမှု စာရင်းအင်းများကို ဖွင့်၍မရပါ"
+
+msgid "usage_stats_reset"
+msgstr "စာရင်းအင်း ပြန်စရန်"
+
+msgid "payment_method_credit_card"
+msgstr "ခရက်ဒစ်ကတ်"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "လစဉ် ငွေတောင်းခံပါသည်။ အချိန်မရွေး ပယ်ဖျက်နိုင်ပါသည်။"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "နှစ်စဉ် ငွေတောင်းခံပါသည်။ အချိန်မရွေး ပယ်ဖျက်နိုင်ပါသည်။"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "နှစ်နှစ်တစ်ကြိမ် ငွေတောင်းခံပါသည်။ အချိန်မရွေး ပယ်ဖျက်နိုင်ပါသည်။"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "အလိုအလျောက် သက်တမ်းတိုးပါသည်။ အချိန်မရွေး ပယ်ဖျက်နိုင်ပါသည်။"
+
+msgid "price_per_month"
+msgstr "%s/လ"
+
+msgid "no_payment_methods_available"
+msgstr "ယခု ငွေပေးချေမှုနည်းလမ်း မရှိသေးပါ။ နောက်မှ ထပ်ကြိုးစားပါ။"

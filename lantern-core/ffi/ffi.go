@@ -127,7 +127,7 @@ func setup(_logDir, _dataDir, _locale, _env *C.char, logP, appsP, statusP, priva
 			Locale:           locale,
 			Env:              env,
 			Deviceid:         "",
-			LogLevel:         lanterncore.DefaultLogLevel,
+			LogLevel:         lanterncore.DefaultLogLevel(),
 			TelemetryConsent: consent == 1,
 		}
 		// Desktop has no debug-build signal here, so staging stands in for it.
@@ -397,6 +397,35 @@ func getDataCapInfo() *C.char {
 			return SendError(err)
 		}
 		return C.CString(info)
+	})
+}
+
+//export getUsageStats
+func getUsageStats() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		usage, err := c.UsageStats()
+		if err != nil {
+			return SendError(err)
+		}
+		return C.CString(usage)
+	})
+}
+
+//export resetUsageStats
+func resetUsageStats() *C.char {
+	return runOnGoStack(func() *C.char {
+		c, errStr := requireCore()
+		if errStr != nil {
+			return errStr
+		}
+		if err := c.ResetUsageStats(); err != nil {
+			return SendError(err)
+		}
+		return C.CString("ok")
 	})
 }
 

@@ -6,6 +6,12 @@ import 'package:flutter/foundation.dart';
 class DeveloperDaemonState {
   final String logLevel;
   final bool configFetchEnabled;
+  final bool sendLogsToSigNoz;
+
+  /// False until the switch's own read lands, which waits for any write
+  /// still queued from an earlier visit.
+  final bool sendLogsToSigNozLoaded;
+  final bool telemetryEnabled;
   final String country;
   final String version;
   final String featureOverrides;
@@ -14,6 +20,9 @@ class DeveloperDaemonState {
   const DeveloperDaemonState({
     this.logLevel = 'info',
     this.configFetchEnabled = true,
+    this.sendLogsToSigNoz = false,
+    this.sendLogsToSigNozLoaded = false,
+    this.telemetryEnabled = false,
     this.country = '',
     this.version = '',
     this.featureOverrides = '',
@@ -23,6 +32,9 @@ class DeveloperDaemonState {
   DeveloperDaemonState copyWith({
     String? logLevel,
     bool? configFetchEnabled,
+    bool? sendLogsToSigNoz,
+    bool? sendLogsToSigNozLoaded,
+    bool? telemetryEnabled,
     String? country,
     String? version,
     String? featureOverrides,
@@ -31,6 +43,10 @@ class DeveloperDaemonState {
     return DeveloperDaemonState(
       logLevel: logLevel ?? this.logLevel,
       configFetchEnabled: configFetchEnabled ?? this.configFetchEnabled,
+      sendLogsToSigNoz: sendLogsToSigNoz ?? this.sendLogsToSigNoz,
+      sendLogsToSigNozLoaded:
+          sendLogsToSigNozLoaded ?? this.sendLogsToSigNozLoaded,
+      telemetryEnabled: telemetryEnabled ?? this.telemetryEnabled,
       country: country ?? this.country,
       version: version ?? this.version,
       featureOverrides: featureOverrides ?? this.featureOverrides,
@@ -44,6 +60,9 @@ class DeveloperDaemonState {
       other is DeveloperDaemonState &&
           logLevel == other.logLevel &&
           configFetchEnabled == other.configFetchEnabled &&
+          sendLogsToSigNoz == other.sendLogsToSigNoz &&
+          sendLogsToSigNozLoaded == other.sendLogsToSigNozLoaded &&
+          telemetryEnabled == other.telemetryEnabled &&
           country == other.country &&
           version == other.version &&
           featureOverrides == other.featureOverrides &&
@@ -53,6 +72,9 @@ class DeveloperDaemonState {
   int get hashCode => Object.hash(
         logLevel,
         configFetchEnabled,
+        sendLogsToSigNoz,
+        sendLogsToSigNozLoaded,
+        telemetryEnabled,
         country,
         version,
         featureOverrides,

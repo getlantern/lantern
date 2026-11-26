@@ -165,16 +165,21 @@ class UrlUtils {
     }
   }
 
+  /// Opens [url] in the in-app webview and returns its result, or null when
+  /// the user closes it. A webview that fails to open also returns null,
+  /// unless [throwOnError] is set, in which case the error is rethrown.
   static Future<T?> openWebview<T>(
     String url, {
     String? title,
     Function(T)? onWebviewResult,
     AppWebViewObserver? observer,
+    bool throwOnError = false,
   }) async {
     try {
       final normalizedUrl = normalizeWebviewUrl(url);
       if (!isSupportedWebviewUrl(normalizedUrl)) {
         appLogger.error("Invalid webview URL: $url");
+        if (throwOnError) throw ArgumentError.value(url, 'url');
         return null;
       }
 
@@ -207,6 +212,7 @@ class UrlUtils {
       }
     } catch (e, st) {
       appLogger.error("Failed to open webview", e, st);
+      if (throwOnError) rethrow;
       return null;
     }
   }

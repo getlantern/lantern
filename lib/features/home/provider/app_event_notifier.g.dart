@@ -42,7 +42,7 @@ final class AppEventNotifierProvider
   AppEventNotifier create() => AppEventNotifier();
 }
 
-String _$appEventNotifierHash() => r'af442a51fff2262a3ef0898669ca169c77162bd4';
+String _$appEventNotifierHash() => r'917a34dbebbcc7b8bd9b23872177d30591848b05';
 
 /// Listens for application-wide events and triggers corresponding actions.
 /// This can be used for all listening to events that go sends and handling them
@@ -52,7 +52,7 @@ abstract class _$AppEventNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
     final element =
         ref.element
@@ -62,6 +62,6 @@ abstract class _$AppEventNotifier extends $AsyncNotifier<void> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

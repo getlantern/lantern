@@ -2490,11 +2490,104 @@ msgstr "ดูเหมือนว่าจะเข้าถึง %s จา�
 msgid "proxyless"
 msgstr "ลองเชื่อมต่อตรงก่อน"
 
-msgid "proxyless_subtitle"
-msgstr "เร็วกว่าเมื่อเว็บไซต์ไม่ถูกบล็อก"
-
-msgid "proxyless_description"
-msgstr "Lantern จะลองเข้าถึงเว็บไซต์ที่ต้องใช้ VPN โดยตรงก่อนด้วยเทคนิคต่อต้านการเซ็นเซอร์ และใช้ VPN เมื่อวิธีนั้นล้มเหลวเท่านั้น วิธีนี้เร็วกว่า แต่เครือข่ายของคุณจะเห็นว่าคุณเข้าถึงเว็บไซต์ใดโดยตรง"
-
 msgid "failed_to_update_proxyless"
 msgstr "ไม่สามารถอัปเดต “ลองเชื่อมต่อตรงก่อน” ได้"
+
+msgid "smart_routing_options"
+msgstr "ตัวเลือกการกำหนดเส้นทางอัจฉริยะ"
+
+msgid "proxyless_reaches_blocked"
+msgstr "เข้าถึงเว็บไซต์ที่ถูกบล็อกโดยตรงเมื่อทำได้"
+
+msgid "smart_routing_direct_description"
+msgstr "การกำหนดเส้นทางอัจฉริยะใช้กฎเฉพาะภูมิภาค เพื่อให้เฉพาะทราฟฟิกที่ต้องใช้ VPN เท่านั้นที่ผ่าน Lantern เมื่อเปิด \"ลองเชื่อมต่อโดยตรงก่อน\" Lantern จะลองเชื่อมต่อโดยตรงก่อน และใช้ VPN หากไม่สำเร็จ"
+
+msgid "usage_stats"
+msgstr "สถิติการใช้งาน"
+
+msgid "usage_stats_this_month"
+msgstr "เดือนนี้"
+
+msgid "usage_stats_all_time"
+msgstr "ทั้งหมด"
+
+msgid "usage_stats_since"
+msgstr "ตั้งแต่ %s"
+
+msgid "usage_stats_total"
+msgstr "รวม"
+
+msgid "usage_stats_up_down"
+msgstr "ส่ง %s · รับ %s"
+
+msgid "usage_stats_proxyless_description"
+msgstr "เว็บไซต์ที่ถูกบล็อกซึ่งเข้าถึงโดยตรงด้วยเทคนิคต่อต้านการเซ็นเซอร์ โดยไม่ใช้เซิร์ฟเวอร์ VPN"
+
+msgid "usage_stats_lantern_data_cap"
+msgstr "นับรวมในขีดจำกัดข้อมูลรายวันของคุณ"
+
+msgid "usage_stats_lantern_description"
+msgstr "ผ่านเซิร์ฟเวอร์ VPN ของ Lantern"
+
+msgid "usage_stats_personal"
+msgstr "พร็อกซีส่วนตัว"
+
+msgid "usage_stats_personal_description"
+msgstr "ผ่านเพื่อนที่แชร์การเชื่อมต่อกับคุณ"
+
+msgid "usage_stats_private_description"
+msgstr "ผ่านเซิร์ฟเวอร์ที่คุณตั้งค่าหรือเพิ่มเอง"
+
+msgid "usage_stats_direct"
+msgstr "นอก VPN"
+
+msgid "usage_stats_direct_description"
+msgstr "ส่งข้าม VPN โดยการกำหนดเส้นทางอัจฉริยะหรือการแยกอุโมงค์"
+
+msgid "usage_stats_privacy"
+msgstr "สถิติเหล่านี้เก็บไว้ในอุปกรณ์นี้และจะไม่ถูกส่งไปยัง Lantern เลย"
+
+msgid "usage_stats_reset"
+msgstr "รีเซ็ตสถิติ"
+
+msgid "usage_stats_reset_title"
+msgstr "รีเซ็ตสถิติการใช้งาน?"
+
+msgid "usage_stats_reset_body"
+msgstr "ยอดรวมของเดือนนี้และทั้งหมดในอุปกรณ์นี้จะกลับเป็นศูนย์ การดำเนินการนี้ไม่สามารถย้อนกลับได้"
+
+msgid "usage_stats_reset_confirm"
+msgstr "รีเซ็ต"
+
+msgid "usage_stats_reset_failed"
+msgstr "ไม่สามารถรีเซ็ตสถิติการใช้งาน"
+
+msgid "usage_stats_load_failed"
+msgstr "ไม่สามารถโหลดสถิติการใช้งานได้"
+
+msgid "payment_method_credit_card"
+msgstr "บัตรเครดิต"
+
+msgid "payment_method_alipay"
+msgstr "Alipay"
+
+msgid "payment_method_wechatpay"
+msgstr "WeChat Pay"
+
+msgid "billed_monthly_cancel_anytime"
+msgstr "เรียกเก็บเงินทุกเดือน ยกเลิกได้ทุกเมื่อ"
+
+msgid "billed_yearly_cancel_anytime"
+msgstr "เรียกเก็บเงินทุกปี ยกเลิกได้ทุกเมื่อ"
+
+msgid "billed_every_two_years_cancel_anytime"
+msgstr "เรียกเก็บเงินทุกสองปี ยกเลิกได้ทุกเมื่อ"
+
+msgid "renews_automatically_cancel_anytime"
+msgstr "ต่ออายุอัตโนมัติ ยกเลิกได้ทุกเมื่อ"
+
+msgid "price_per_month"
+msgstr "%s/เดือน"
+
+msgid "no_payment_methods_available"
+msgstr "ขณะนี้ไม่มีวิธีชำระเงินที่ใช้ได้ โปรดลองอีกครั้งในภายหลัง"

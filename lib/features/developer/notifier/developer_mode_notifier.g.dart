@@ -48,7 +48,7 @@ abstract class _$DeveloperModeNotifier extends $Notifier<DeveloperMode> {
   DeveloperMode build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<DeveloperMode, DeveloperMode>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$DeveloperModeNotifier extends $Notifier<DeveloperMode> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
