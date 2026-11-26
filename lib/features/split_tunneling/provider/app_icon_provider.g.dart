@@ -47,7 +47,7 @@ abstract class _$AppIconCache extends $Notifier<Map<String, Uint8List>> {
   Map<String, Uint8List> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<Map<String, Uint8List>, Map<String, Uint8List>>;
     final element =
@@ -58,7 +58,7 @@ abstract class _$AppIconCache extends $Notifier<Map<String, Uint8List>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

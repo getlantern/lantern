@@ -39,7 +39,7 @@ abstract class _$PathNotifier extends $AsyncNotifier<PathManager> {
   FutureOr<PathManager> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<PathManager>, PathManager>;
     final element =
         ref.element
@@ -49,6 +49,6 @@ abstract class _$PathNotifier extends $AsyncNotifier<PathManager> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

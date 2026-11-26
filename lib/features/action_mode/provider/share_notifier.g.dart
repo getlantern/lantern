@@ -72,7 +72,7 @@ abstract class _$ShareNotifier extends $Notifier<ShareState> {
   ShareState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ShareState, ShareState>;
     final element =
         ref.element
@@ -82,6 +82,6 @@ abstract class _$ShareNotifier extends $Notifier<ShareState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

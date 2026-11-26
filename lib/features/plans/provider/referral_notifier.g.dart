@@ -41,13 +41,13 @@ final class ReferralNotifierProvider
   }
 }
 
-String _$referralNotifierHash() => r'b32746eaa450653b5d63c38835385d751e799365';
+String _$referralNotifierHash() => r'48f26a08bede8e7b059862da89280fddea55e543';
 
 abstract class _$ReferralNotifier extends $Notifier<ReferralAttachV2Response?> {
   ReferralAttachV2Response? build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<ReferralAttachV2Response?, ReferralAttachV2Response?>;
     final element =
@@ -58,6 +58,6 @@ abstract class _$ReferralNotifier extends $Notifier<ReferralAttachV2Response?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

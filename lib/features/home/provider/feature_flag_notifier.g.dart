@@ -48,7 +48,7 @@ abstract class _$FeatureFlagNotifier extends $Notifier<Map<String, dynamic>> {
   Map<String, dynamic> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Map<String, dynamic>, Map<String, dynamic>>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$FeatureFlagNotifier extends $Notifier<Map<String, dynamic>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

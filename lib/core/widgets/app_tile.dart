@@ -174,8 +174,12 @@ class AppTile extends StatelessWidget {
       ),
     );
 
-    final wrapped =
-        tooltip != null ? Tooltip(message: tooltip!, child: tile) : tile;
+    // ListTile paints its hover, selection and splash on the nearest
+    // Material, which a coloured box between the two would cover.
+    final onMaterial = Material(type: MaterialType.transparency, child: tile);
+    final wrapped = tooltip != null
+        ? Tooltip(message: tooltip!, child: onMaterial)
+        : onMaterial;
 
     return Semantics(
       label: semanticsLabel ?? 'Tile: $label',

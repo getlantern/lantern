@@ -56,14 +56,14 @@ The following tools must be installed and available on your `PATH` before buildi
 
 | Tool | Required Version | Notes |
 |---|---|---|
-| Flutter | 3.41.0 (stable) | [flutter.dev](https://flutter.dev) or [fvm](https://fvm.app) |
+| Flutter | 3.50.1 (stable) | [flutter.dev](https://flutter.dev) or [fvm](https://fvm.app) |
 | Go | 1.25.4 | [go.dev/dl](https://go.dev/dl) or [mise](https://mise.jdx.dev) |
 | Git | any recent | system package manager |
 | IDE | — | [Android Studio](https://developer.android.com/studio) or [VS Code](https://code.visualstudio.com) with the [Flutter extension](https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter) |
 | Xcode | 26.x | Required only for iOS and macOS targets. Install from the Mac App Store. |
 | gomobile | pinned by `GOMOBILE_VERSION` | Required for all platforms. Install via `make install-gomobile`. |
 
-> The Flutter version is pinned in `pubspec.yaml`, the Go version is declared in `go.mod`, and the gomobile/gobind version is pinned by `GOMOBILE_VERSION` in the `Makefile`. Using mismatched versions will cause build errors.
+> The Flutter version is pinned in `.github/flutter-version.yaml`, the Go version is declared in `go.mod`, and the gomobile/gobind version is pinned by `GOMOBILE_VERSION` in the `Makefile`. Using mismatched versions will cause build errors.
 
 Verify your setup:
 
@@ -226,10 +226,10 @@ flutter run -d <deviceID>
 
 #### Prerequisites
 
-- **Java 17 or newer** — Required by Gradle. Install a JDK distribution such as [Eclipse Temurin](https://adoptium.net) and ensure `JAVA_HOME` points to it.
+- **Java 21 or newer** — Required by Gradle: the Android Gradle Plugin's release lint needs Java 21. The app itself still targets Java 17. Install a JDK distribution such as [Eclipse Temurin](https://adoptium.net) and ensure `JAVA_HOME` points to it.
 
   ```bash
-  java -version   # should print 17.x or higher
+  java -version   # should print 21.x or higher
   ```
 
 - **Android Studio** (or the standalone [Android command-line tools](https://developer.android.com/studio#command-line-tools-only)) — provides the `sdkmanager` utility used in the next step.

@@ -18,7 +18,7 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/window/provider/window_notifier.dart';
 import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tray_manager/tray_manager.dart';
+import 'package:tray_manager/legacy.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../core/common/common.dart';

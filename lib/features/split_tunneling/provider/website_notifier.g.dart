@@ -34,13 +34,13 @@ final class SplitTunnelingWebsitesProvider
 }
 
 String _$splitTunnelingWebsitesHash() =>
-    r'3ecd0403ffdfc894fb57c0b972c164165d295e68';
+    r'559356d453abeec9c7e85e036cb71cdb5aad166d';
 
 abstract class _$SplitTunnelingWebsites extends $AsyncNotifier<Set<Website>> {
   FutureOr<Set<Website>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<Set<Website>>, Set<Website>>;
     final element =
         ref.element
@@ -50,6 +50,6 @@ abstract class _$SplitTunnelingWebsites extends $AsyncNotifier<Set<Website>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

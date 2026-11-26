@@ -348,12 +348,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         buildConfig true
+        resValues true
     }
 
     // Use legacy packaging to help reduce apk size
@@ -573,6 +570,12 @@ tasks.register("generateStealthAndroidIcons", Exec) {
 
 preBuild.dependsOn("generateStealthAndroidIcons")
 
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
 flutter {
     source = "../.."
 }
@@ -596,6 +599,12 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.2.0'
 }
 
+// Gradle 9 removed Project.exec, so tasks get ExecOperations injected.
+interface InjectedExecOps {
+    @javax.inject.Inject
+    org.gradle.process.ExecOperations getExecOps()
+}
+
 // Local-dev convenience: pre-grant the VpnService consent appop on every
 // connected device/emulator so `flutter run` / `flutter test -d <device>`
 // never hit the system VPN dialog (which Flutter tests cannot dismiss).
@@ -606,6 +615,7 @@ def grantVpnConsentTask = tasks.register("grantVpnConsentOnConnectedDevices") {
     group = "verification"
     description = "Pre-grants ACTIVATE_VPN appop on all connected adb devices (debug convenience)."
     def appId = androidIdentity.applicationId.toString()
+    def execOps = project.objects.newInstance(InjectedExecOps).execOps
     doLast {
         def adbExe = android.adbExecutable
         if (adbExe == null || !adbExe.exists()) {
@@ -614,7 +624,7 @@ def grantVpnConsentTask = tasks.register("grantVpnConsentOnConnectedDevices") {
         }
         def devicesOut = new ByteArrayOutputStream()
         try {
-            exec {
+            execOps.exec {
                 commandLine adbExe.absolutePath, 'devices'
                 standardOutput = devicesOut
                 ignoreExitValue = true
@@ -631,7 +641,7 @@ def grantVpnConsentTask = tasks.register("grantVpnConsentOnConnectedDevices") {
                 .collect { it[0].trim() }
                 .each { serial ->
                     try {
-                        def result = exec {
+                        def result = execOps.exec {
                             commandLine adbExe.absolutePath, '-s', serial, 'shell',
                                     'appops', 'set', appId, 'ACTIVATE_VPN', 'allow'
                             ignoreExitValue = true

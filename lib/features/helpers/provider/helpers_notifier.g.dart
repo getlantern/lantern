@@ -281,7 +281,7 @@ final class HelpersNotifierProvider
   }
 }
 
-String _$helpersNotifierHash() => r'fc86e2ae796e659e9067d8bbe39160b8da1e89fd';
+String _$helpersNotifierHash() => r'8945181a7c47cfaf5695a342e22e47c0722230b9';
 
 /// The app's side of helper invites. Every operation goes to lantern-core's
 /// engine through [LanternService.helperCall]. Links, names and codes are
@@ -291,7 +291,7 @@ abstract class _$HelpersNotifier extends $Notifier<HelpersState> {
   HelpersState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<HelpersState, HelpersState>;
     final element =
         ref.element
@@ -301,6 +301,6 @@ abstract class _$HelpersNotifier extends $Notifier<HelpersState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

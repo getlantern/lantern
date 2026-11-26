@@ -2543,7 +2543,7 @@ msgid "proxyless_reaches_blocked"
 msgstr "Acessa sites bloqueados diretamente quando possível"
 
 msgid "smart_routing_direct_description"
-msgstr "O roteamento inteligente usa regras específicas da região para que apenas o tráfego que precisa da VPN passe pelo Lantern. Com \"Tentar direto primeiro\" ativado, o acesso aos sites bloqueados é tentado primeiro de forma direta com técnicas anticensura e, se isso falhar, a VPN é usada."
+msgstr "O roteamento inteligente usa regras específicas de cada região para que apenas o tráfego que precisa da VPN passe pelo Lantern. Com Tentar direto primeiro ativado, o Lantern tenta primeiro uma conexão direta e usa a VPN se ela falhar."
 
 msgid "usage_stats"
 msgstr "Estatísticas de uso"
