@@ -30,12 +30,19 @@ replace google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 => google.
 
 replace github.com/tetratelabs/wazero => github.com/getlantern/wazero v1.11.0-water.1
 
-// x/v0.3.0 plus two fixes: x/httpconnect builds against quic-go >= v0.53
-// (quic.EarlyConnection became *quic.Conn), and disorder finds the TCP socket
-// through NetConn, which lantern-box's outline stream wrapper provides. A
-// replace only applies in the main module, so lantern repeats radiance's.
-// Drop once an upstream x release has both.
-replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.2
+// A replace only applies in the main module, so lantern repeats radiance's two
+// outline-sdk replaces. Drop each once an upstream release has its fixes.
+//
+// x/v0.3.0 plus Lantern's fixes: x builds against quic-go >= v0.53
+// (quic.EarlyConnection became *quic.Conn), disorder finds the TCP socket
+// through NetConn, which lantern-box's outline stream wrapper provides, and a
+// strategy probe's connection closes when its test times out.
+replace golang.getoutline.org/sdk/x => github.com/getlantern/outline-sdk/x v0.3.0-lantern.3
+
+// v0.1.0 plus DNS fixes: queries end when their context is cancelled, a failed
+// DNS-over-TLS handshake closes its socket, and idle DNS-over-HTTPS
+// connections close.
+replace golang.getoutline.org/sdk => github.com/getlantern/outline-sdk v0.1.0-lantern.1
 
 replace github.com/refraction-networking/water => github.com/getlantern/water v0.7.1-alpha.0.20260309190745-bd547c14b4aa
 
@@ -44,10 +51,10 @@ replace github.com/refraction-networking/water => github.com/getlantern/water v0
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
 	github.com/getlantern/broflake v0.0.0-20261120001200-65a56bdcb295
-	github.com/getlantern/common v1.2.1-0.20261119180934-02036a2e32ad
-	github.com/getlantern/lantern-box v0.0.244
+	github.com/getlantern/common v1.2.1-0.20261125180934-59abaebf5feb
+	github.com/getlantern/lantern-box v0.0.248
 	github.com/getlantern/lantern-server-provisioner v0.0.0-20251031121934-8ea031fccfa9
-	github.com/getlantern/radiance v0.0.0-20261122232207-4338384f03d3
+	github.com/getlantern/radiance v0.0.0-20261125190703-051b4de90773
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb
 	github.com/sagernet/sing-box v1.14.2
 	github.com/sagernet/sing-tun v0.9.6-0.20260924001923-ddaa4ca25e3b
@@ -225,7 +232,7 @@ require (
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/google/nftables v0.2.1-0.20240414091927-5e242ec57806 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/gorilla/websocket v1.5.4-0.20240701034025-d67f41855da4 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
