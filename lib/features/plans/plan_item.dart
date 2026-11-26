@@ -22,12 +22,19 @@ class PlanItem extends StatelessWidget {
     required this.onPressed,
     this.referralMessage = '',
     this.discountPct = 0,
+    this.cardWidth,
   });
+
+  /// The width the Best Value badge is placed from; the viewport's when
+  /// null (the phone). The formula below expects a viewport width and
+  /// subtracts the phone's page margins, so a caller that has only the
+  /// card's width passes that plus `2 * defaultSize` (TV does).
+  final double? cardWidth;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final width = MediaQuery.of(context).size.width;
+    final width = cardWidth ?? MediaQuery.of(context).size.width;
     final finalSize = (width * 0.5) - (defaultSize * 3);
     final originalPrice = plan.formatOriginalPrice;
     final showOriginalPrice = discountPct > 0 && originalPrice.isNotEmpty;

@@ -55,6 +55,11 @@ void main() {
     },
   );
 
+  test('Plans takes the whole screen with its own layout, not the column', () {
+    expect(tvFullScreenRoutes, contains(Plans.name));
+    expect(tvOwnLayoutRoutes, contains(Plans.name));
+  });
+
   test('Action Mode and invite screens are blocked (a push returns, a launch '
       'lands on Home)', () {
     for (final name in [
