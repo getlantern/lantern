@@ -244,38 +244,30 @@ class _PlansState extends ConsumerState<Plans>
     double? cardWidth,
   }) {
     return plansState.when(
-      data: (data) {
-        if (data.plans.isEmpty) {
-          return Text('plans_fetch_error'.i18n, style: textTheme.labelLarge);
-        }
-        return PlansListView(data: data, cardWidth: cardWidth);
-      },
-      loading: () {
-        return Center(child: LoadingIndicator());
-      },
-      error: (error, stackTrace) {
-        return Column(
-          children: [
-            Text('plans_fetch_error'.i18n, style: textTheme.labelLarge),
-            if (PlatformUtils.tvShellEnabled)
-              PrimaryButton(
-                buttonKey: const Key('plans.retry'),
-                focusNode: _tvRetryFocus,
-                label: 'retry'.i18n,
-                onPressed: () {
-                  ref.read(plansProvider.notifier).retryFetchPlans();
-                },
-              )
-            else
-              AppTextButton(
-                label: 'retry'.i18n,
-                onPressed: () {
-                  ref.read(plansProvider.notifier).retryFetchPlans();
-                },
-              ),
-          ],
-        );
-      },
+      // An empty list is a failed fetch too, with the same Retry.
+      data: (data) => data.plans.isEmpty
+          ? _plansFetchError()
+          : PlansListView(data: data, cardWidth: cardWidth),
+      loading: () => Center(child: LoadingIndicator()),
+      error: (_, _) => _plansFetchError(),
+    );
+  }
+
+  Widget _plansFetchError() {
+    void retry() => ref.read(plansProvider.notifier).retryFetchPlans();
+    return Column(
+      children: [
+        Text('plans_fetch_error'.i18n, style: textTheme.labelLarge),
+        if (PlatformUtils.tvShellEnabled)
+          PrimaryButton(
+            buttonKey: const Key('plans.retry'),
+            focusNode: _tvRetryFocus,
+            label: 'retry'.i18n,
+            onPressed: retry,
+          )
+        else
+          AppTextButton(label: 'retry'.i18n, onPressed: retry),
+      ],
     );
   }
 
@@ -304,13 +296,21 @@ class _PlansState extends ConsumerState<Plans>
     // as after a control that had focus left the screen.
     _tvInitialFocus(_tvFocusTargetFor(plansState, isReferralApplied));
     final textDirection = Directionality.of(context);
-    // Leaving while a checkout runs would strand the app-wide loading
-    // overlay it owns, so Back and Close wait for it.
+    // Back and Close wait for a running checkout, which owns the app-wide
+    // loading overlay; a second press leaves one that never settles.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop || _tvStoreBusy) return;
-        Navigator.of(context).pop();
+        if (didPop) return;
+        if (_tvStoreBusy) {
+          if (!_tvLeaveWhileBusy) {
+            _tvLeaveWhileBusy = true;
+            return;
+          }
+          context.hideLoadingDialog();
+        }
+        final navigator = Navigator.of(context);
+        if (navigator.canPop()) navigator.pop();
       },
       child: Scaffold(
         backgroundColor: context.bgElevated,
@@ -361,8 +361,8 @@ class _PlansState extends ConsumerState<Plans>
                                     const SizedBox(height: 80),
                                     Padding(
                                       // Lines the logo up with the benefit icons.
-                                      padding: const EdgeInsets.only(
-                                        left: defaultSize,
+                                      padding: const EdgeInsetsDirectional.only(
+                                        start: defaultSize,
                                       ),
                                       child: AppImage(
                                         path: AppImagePaths.lanternPro,
@@ -465,10 +465,7 @@ class _PlansState extends ConsumerState<Plans>
                       tooltip: MaterialLocalizations.of(
                         context,
                       ).closeButtonTooltip,
-                      onPressed: () {
-                        if (_tvStoreBusy) return;
-                        Navigator.of(context).maybePop();
-                      },
+                      onPressed: () => Navigator.of(context).maybePop(),
                     ),
                   ),
                 ),
@@ -488,6 +485,10 @@ class _PlansState extends ConsumerState<Plans>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      // A backgrounded app parks focus on the root scope, which would read
+      // as "not moved" below.
+      final lifecycle = WidgetsBinding.instance.lifecycleState;
+      if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
       final focused = FocusManager.instance.primaryFocus;
       final scope = FocusScope.of(context);
       final viewerMoved =
@@ -515,9 +516,10 @@ class _PlansState extends ConsumerState<Plans>
     AsyncValue<PlansData> state,
     bool isReferralApplied,
   ) {
-    if (!state.isLoading && state.hasError) return _tvRetryFocus;
-    if (!state.isLoading && _tvPlansReady(state)) return _tvCtaFocus;
-    return isReferralApplied ? _tvLicenseFocus : _tvPromoFocus;
+    if (state.isLoading) {
+      return isReferralApplied ? _tvLicenseFocus : _tvPromoFocus;
+    }
+    return _tvPlansReady(state) ? _tvCtaFocus : _tvRetryFocus;
   }
 
   /// A checkout shows the app-wide loading overlay, which is not a route:
@@ -533,8 +535,15 @@ class _PlansState extends ConsumerState<Plans>
   /// the shared flow's).
   bool get _tvStoreBusy => context.loaderOverlay.visible;
 
+  /// Back or Close was pressed once during the current store operation.
+  bool _tvLeaveWhileBusy = false;
+
+  /// A purchase is done and its account refresh runs with the overlay down.
+  bool _tvFinishingPurchase = false;
+
   void _tvShowReferralCodeDialog() {
     if (_tvStoreBusy) return;
+    _tvLeaveWhileBusy = false;
     showReferralCodeDialog();
   }
 
@@ -544,10 +553,11 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   void _tvGetLanternPro() {
-    if (_tvStoreBusy) return;
+    if (_tvStoreBusy || _tvFinishingPurchase) return;
     // Checked again here: the button may have been pressed while a reload
     // replaced the cards.
     if (!_tvPlansReady(ref.read(plansProvider))) return;
+    _tvLeaveWhileBusy = false;
     onGetLanternProTap();
   }
 
@@ -630,6 +640,8 @@ class _PlansState extends ConsumerState<Plans>
   /// Clears the affiliate code and refetches the base plans; the notifier
   /// reloads the base SKUs so a later purchase is charged full price.
   void _onRemoveAffiliateCode() {
+    // Not under a running checkout (a TV remote still reaches the chip).
+    if (context.loaderOverlay.visible) return;
     appLogger.info('Removing applied affiliate code');
     ref.read(referralProvider.notifier).resetReferral();
     ref.read(plansProvider.notifier).fetchPlans();
@@ -908,7 +920,12 @@ class _PlansState extends ConsumerState<Plans>
     appLogger.info('Subscription successful for plan: ${plan.id}');
 
     /// Refresh user data from core to update UI immediately after purchase acknowledgment.
-    await ref.read(homeProvider.notifier).refreshUser();
+    _tvFinishingPurchase = true;
+    try {
+      await ref.read(homeProvider.notifier).refreshUser();
+    } finally {
+      _tvFinishingPurchase = false;
+    }
 
     /// IOS Send old purchases to stream
     sl<AppPurchase>().clearCallbacks();

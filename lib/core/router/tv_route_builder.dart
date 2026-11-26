@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 import 'package:lantern/core/router/router.gr.dart';
 import 'package:lantern/core/widgets/tv_frame.dart';
 import 'package:lantern/core/widgets/tv_shell.dart';
@@ -43,8 +44,11 @@ const Set<String> tvRedirectRoutes = {
 };
 
 /// Full-screen routes with their own TV layout across the whole screen,
-/// instead of the centred phone-width column.
-const Set<String> tvOwnLayoutRoutes = {Plans.name};
+/// instead of the centred phone-width column. Plans has one only with
+/// payments; its license-only body keeps the column.
+const Set<String> tvOwnLayoutRoutes = {
+  if (AppBuildInfo.enablePayments) Plans.name,
+};
 
 const Duration tvRouteDuration = Duration(milliseconds: 200);
 

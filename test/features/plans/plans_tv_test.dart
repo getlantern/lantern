@@ -357,13 +357,6 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pump();
     expect(find.byType(plans_screen.Plans), findsOneWidget);
-    // Close through its handler: a tap would stop at the overlay's barrier,
-    // which keys do not.
-    tester
-        .widget<IconButton>(find.byKey(const Key('plans.close')))
-        .onPressed!();
-    await tester.pump();
-    expect(find.byType(plans_screen.Plans), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pump();
     expect(focusedLink(), const Key('plans.promo_code'));
@@ -385,6 +378,27 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.byType(plans_screen.Plans), findsNothing);
+  });
+
+  testWidgets('a second Back or Close leaves a checkout that never settles, '
+      'taking the overlay down', (tester) async {
+    await pumpPlans(tester, pushed: true);
+    await tester.pumpAndSettle();
+    final ctx = tester.element(find.byKey(const Key('plans.cta')));
+    final overlay = ctx.loaderOverlay;
+    overlay.show();
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    expect(find.byType(plans_screen.Plans), findsOneWidget);
+    // Close through its handler: a tap would stop at the overlay's barrier,
+    // which keys do not.
+    tester
+        .widget<IconButton>(find.byKey(const Key('plans.close')))
+        .onPressed!();
+    await tester.pumpAndSettle();
+    expect(find.byType(plans_screen.Plans), findsNothing);
+    expect(overlay.visible, isFalse);
   });
 
   testWidgets('a control that leaves the screen with focus hands it back to '
