@@ -2,5 +2,6 @@
 <resources>
 
     <string name="disconnect">Disconnect</string>
+    <string name="local_network_denied_tile">Nearby devices permission is off. Turn it on in app settings to connect.</string>
 
 </resources>

@@ -365,6 +365,32 @@ class LanternPlatformService implements LanternCoreService {
   }
 
   @override
+  Future<bool> checkLocalNetworkAccess() async {
+    if (!Platform.isAndroid) return true;
+    try {
+      final result = await _methodChannel
+          .invokeMethod<bool>('checkLocalNetworkAccess')
+          .timeout(const Duration(seconds: 5));
+      appLogger.info('checkLocalNetworkAccess returned $result');
+      return result ?? true;
+    } catch (e, stackTrace) {
+      // A failed check must not block connecting.
+      appLogger.error('checkLocalNetworkAccess failed', e, stackTrace);
+      return true;
+    }
+  }
+
+  @override
+  Future<void> openAppSettings() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _methodChannel.invokeMethod<bool>('openAppSettings');
+    } catch (e, stackTrace) {
+      appLogger.error('openAppSettings failed', e, stackTrace);
+    }
+  }
+
+  @override
   Future<bool> checkVpnConflict() async {
     if (!Platform.isAndroid && !Platform.isMacOS) return false;
     try {

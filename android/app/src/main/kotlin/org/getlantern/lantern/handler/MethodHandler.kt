@@ -14,6 +14,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.PersistableBundle
+import android.provider.Settings
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -35,6 +36,7 @@ import org.getlantern.lantern.updater.AndroidSideloadUpdateRequest
 import org.getlantern.lantern.utils.AppLogger
 import org.getlantern.lantern.utils.PrivateServerListener
 import org.getlantern.lantern.utils.VpnStatusManager
+import org.getlantern.lantern.utils.hasLocalNetworkAccess
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -171,6 +173,10 @@ enum class Methods(val method: String) {
 
     // VPN conflict detection
     CheckVpnConflict("checkVpnConflict"),
+
+    // Android 17 local network ("Nearby devices") permission
+    CheckLocalNetworkAccess("checkLocalNetworkAccess"),
+    OpenAppSettings("openAppSettings"),
 
     // Developer mode
     PatchSettings("patchSettings"),
@@ -1510,6 +1516,19 @@ class MethodHandler : FlutterPlugin,
                         }
                     }
                 }
+            }
+
+            Methods.CheckLocalNetworkAccess.method -> {
+                // A failed check must not block connecting.
+                result.success(runCatching { hasLocalNetworkAccess(appContext) }.getOrDefault(true))
+            }
+
+            Methods.OpenAppSettings.method -> {
+                val intent = Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", appContext.packageName, null),
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                result.success(runCatching { appContext.startActivity(intent) }.isSuccess)
             }
 
             Methods.PatchSettings.method -> {

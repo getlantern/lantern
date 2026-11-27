@@ -8,6 +8,7 @@ import 'package:lantern/core/models/lantern_status.dart';
 import 'package:lantern/features/macos_extension/provider/macos_extension_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 
 class VPNSwitch extends HookConsumerWidget {
   const VPNSwitch({super.key});
@@ -143,27 +144,57 @@ class VPNSwitch extends HookConsumerWidget {
     final result = await ref.read(vpnProvider.notifier).onVPNStateChange();
 
     if (!context.mounted) return;
-    result.fold((failure) {
-      if (failure is VpnConflictFailure) {
-        AppDialog.vpnConflictDialog(
-          context: context,
-          onConnectAnyway: () async {
-            appRouter.maybePop();
-            final retryResult = await ref
-                .read(vpnProvider.notifier)
-                .startVPN(skipConflictCheck: true);
-            if (!context.mounted) return;
-            retryResult.fold((failure) {
-              context.showSnackBar(failure.localizedErrorMessage);
-              appLogger.error("Error changing VPN state: ${failure.error}");
-            }, (_) => null);
-          },
-        );
-      } else {
-        context.showSnackBar(failure.localizedErrorMessage);
-        appLogger.error("Error changing VPN state: ${failure.error}");
-      }
-    }, (_) => null);
+    result.fold(
+      (failure) => _onStartFailure(ref, context, failure),
+      (_) => null,
+    );
+  }
+
+  // Each "Connect anyway" skips only its own check.
+  void _onStartFailure(
+    WidgetRef ref,
+    BuildContext context,
+    Failure failure, {
+    bool skipLocalNetworkCheck = false,
+  }) {
+    Future<void> retry({required bool skipConflictCheck}) async {
+      appRouter.maybePop();
+      final retryResult = await ref
+          .read(vpnProvider.notifier)
+          .startVPN(
+            skipConflictCheck: skipConflictCheck,
+            skipLocalNetworkCheck: skipLocalNetworkCheck,
+          );
+      if (!context.mounted) return;
+      retryResult.fold(
+        (failure) => _onStartFailure(
+          ref,
+          context,
+          failure,
+          skipLocalNetworkCheck: skipLocalNetworkCheck,
+        ),
+        (_) => null,
+      );
+    }
+
+    if (failure is LocalNetworkDeniedFailure && !skipLocalNetworkCheck) {
+      // Read now: the dialog runs this after the widget may be gone.
+      final lantern = ref.read(lanternServiceProvider);
+      skipLocalNetworkCheck = true;
+      AppDialog.localNetworkDeniedDialog(
+        context: context,
+        onOpenSettings: lantern.openAppSettings,
+        onConnectAnyway: () => retry(skipConflictCheck: false),
+      );
+    } else if (failure is VpnConflictFailure) {
+      AppDialog.vpnConflictDialog(
+        context: context,
+        onConnectAnyway: () => retry(skipConflictCheck: true),
+      );
+    } else {
+      context.showSnackBar(failure.localizedErrorMessage);
+      appLogger.error("Error changing VPN state: ${failure.error}");
+    }
   }
 
   Color _wrapperColor(VPNStatus vpnStatus, BuildContext context) {

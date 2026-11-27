@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.net.VpnService
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
@@ -19,8 +20,10 @@ import kotlinx.coroutines.launch
 import lantern.io.mobile.Mobile
 import org.getlantern.lantern.BuildConfig
 import org.getlantern.lantern.LanternApp
+import org.getlantern.lantern.R
 import org.getlantern.lantern.service.LanternVpnService.Companion.ACTION_STOP_VPN
 import org.getlantern.lantern.utils.AppLogger
+import org.getlantern.lantern.utils.hasLocalNetworkAccess
 import org.getlantern.lantern.utils.isServiceRunning
 
 @RequiresApi(24)
@@ -113,6 +116,12 @@ open class QuickTileService : TileService() {
     }
 
     private fun connectVPN() {
+        // A failed check must not block connecting.
+        if (!runCatching { hasLocalNetworkAccess(this) }.getOrDefault(true)) {
+            AppLogger.w(TAG, "Local network permission denied, not starting from tile")
+            Toast.makeText(this, R.string.local_network_denied_tile, Toast.LENGTH_LONG).show()
+            return
+        }
         isPermissionIntent()?.let { handleVpnPermissionRequest(it) }
             ?: ContextCompat.startForegroundService(
                 this, Intent(this, vpnServiceClass).apply {

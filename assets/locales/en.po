@@ -1646,14 +1646,14 @@ msgstr "Verify with %s"
 msgid "renew"
 msgstr "Renew"
 
+msgid "open_settings"
+msgstr "Open Settings"
 
+msgid "local_network_denied_title"
+msgstr "Allow Nearby devices"
 
-
-
-
-
-
-
+msgid "local_network_denied_body"
+msgstr "Android needs “Nearby devices” turned on for Lantern to route your traffic. Lantern does not scan for or connect to devices around you."
 
 msgid "vpn_conflict_title"
 msgstr "Another VPN is already on"

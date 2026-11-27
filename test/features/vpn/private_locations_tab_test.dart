@@ -59,6 +59,7 @@ class _Vpn extends VpnNotifier {
     ServerLocationType location,
     String tag, {
     bool skipConflictCheck = false,
+    bool skipLocalNetworkCheck = false,
   }) async {
     connects.add((location, tag));
     if (conflict && !skipConflictCheck) return Left(VpnConflictFailure());

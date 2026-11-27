@@ -1116,6 +1116,22 @@ class LanternService implements LanternCoreService {
   }
 
   @override
+  Future<bool> checkLocalNetworkAccess() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.checkLocalNetworkAccess();
+    }
+    return _platformService.checkLocalNetworkAccess();
+  }
+
+  @override
+  Future<void> openAppSettings() {
+    if (PlatformUtils.isFFISupported) {
+      return _ffiService.openAppSettings();
+    }
+    return _platformService.openAppSettings();
+  }
+
+  @override
   Future<Either<Failure, Unit>> patchSettings(Map<String, dynamic> updates) {
     if (PlatformUtils.isFFISupported) {
       return _ffiService.patchSettings(updates);

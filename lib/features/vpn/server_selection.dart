@@ -24,6 +24,7 @@ import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/single_city_server_view.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 
 @RoutePage(name: 'ServerSelection')
@@ -256,9 +257,13 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     await _connectAndReturnHome(
       context,
       ref,
-      attempt: (skipConflictCheck) => ref
+      attempt: (skipConflictCheck, skipLocalNetworkCheck) => ref
           .read(vpnProvider.notifier)
-          .startVPN(force: true, skipConflictCheck: skipConflictCheck),
+          .startVPN(
+            force: true,
+            skipConflictCheck: skipConflictCheck,
+            skipLocalNetworkCheck: skipLocalNetworkCheck,
+          ),
       save: locationNotifier.switchToAuto,
     );
   }
@@ -456,12 +461,13 @@ class _ServerLocationListViewState
     await _connectAndReturnHome(
       context,
       ref,
-      attempt: (skipConflictCheck) => ref
+      attempt: (skipConflictCheck, skipLocalNetworkCheck) => ref
           .read(vpnProvider.notifier)
           .connectToServer(
             ServerLocationType.lanternLocation,
             server.tag,
             skipConflictCheck: skipConflictCheck,
+            skipLocalNetworkCheck: skipLocalNetworkCheck,
           ),
       save: () => locationNotifier.updateServerLocation(
         ServerLocation.fromServer(server: server),
@@ -850,9 +856,14 @@ Future<void> _selectLocation(
   await _connectAndReturnHome(
     context,
     ref,
-    attempt: (skipConflictCheck) => ref
+    attempt: (skipConflictCheck, skipLocalNetworkCheck) => ref
         .read(vpnProvider.notifier)
-        .connectToServer(type, tag, skipConflictCheck: skipConflictCheck),
+        .connectToServer(
+          type,
+          tag,
+          skipConflictCheck: skipConflictCheck,
+          skipLocalNetworkCheck: skipLocalNetworkCheck,
+        ),
     save: () {
       if (!locationNotifier.confirmedSince(since)) {
         locationNotifier.updateServerLocation(location);
@@ -886,11 +897,15 @@ Duration returnHomeWait = const Duration(seconds: 60);
 Future<void> _connectAndReturnHome(
   BuildContext context,
   WidgetRef ref, {
-  required Future<Either<Failure, String>> Function(bool skipConflictCheck)
+  required Future<Either<Failure, String>> Function(
+    bool skipConflictCheck,
+    bool skipLocalNetworkCheck,
+  )
   attempt,
   required FutureOr<void> Function() save,
   String? connectedMessage,
   bool skipConflictCheck = false,
+  bool skipLocalNetworkCheck = false,
 }) async {
   final locationNotifier = ref.read(serverLocationProvider.notifier);
   // A stop the VPN reports before the attempt answers is still this
@@ -902,13 +917,36 @@ Future<void> _connectAndReturnHome(
   overlay.show();
   final Either<Failure, String> result;
   try {
-    result = await attempt(skipConflictCheck);
+    result = await attempt(skipConflictCheck, skipLocalNetworkCheck);
   } finally {
     overlay.hide();
   }
   await result.fold(
     (failure) async {
       if (!context.mounted) return;
+      if (failure is LocalNetworkDeniedFailure && !skipLocalNetworkCheck) {
+        Future<void>? retry;
+        // Read now: the dialog runs this after the screen may be gone.
+        final lantern = ref.read(lanternServiceProvider);
+        await AppDialog.localNetworkDeniedDialog(
+          context: context,
+          onOpenSettings: lantern.openAppSettings,
+          onConnectAnyway: () {
+            appRouter.maybePop();
+            retry = _connectAndReturnHome(
+              context,
+              ref,
+              attempt: attempt,
+              save: save,
+              connectedMessage: connectedMessage,
+              skipConflictCheck: skipConflictCheck,
+              skipLocalNetworkCheck: true,
+            );
+          },
+        );
+        await retry;
+        return;
+      }
       if (failure is VpnConflictFailure && !skipConflictCheck) {
         // Settles once the user chooses and, on Connect Anyway, once the
         // retry has.
@@ -924,6 +962,7 @@ Future<void> _connectAndReturnHome(
               save: save,
               connectedMessage: connectedMessage,
               skipConflictCheck: true,
+              skipLocalNetworkCheck: skipLocalNetworkCheck,
             );
           },
         );
