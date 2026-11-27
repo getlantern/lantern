@@ -209,7 +209,7 @@ STEALTH_LEAKAGE_MISSING_OK ?= 1
 ANDROID_NDK_VERSION          ?= 28.2.13676358
 ANDROID_CMAKE_VERSION        ?= 3.31.5
 ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
-ANDROID_PLATFORM             ?= android-36
+ANDROID_PLATFORM             ?= android-37.0
 ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
 # setup-android installs cmdline-tools under a revision directory and falls back
 # to cmdline-tools/latest only when the preinstalled revision already matches, so

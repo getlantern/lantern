@@ -1,5 +1,5 @@
 import 'package:auto_route/annotations.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -176,28 +176,26 @@ class PersonalProxiesIntroScreen extends HookWidget {
                 child: pages.length < 2
                     ? pages.firstOrNull ?? const SizedBox.shrink()
                     : FlutterCarousel(
-                        options: FlutterCarouselOptions(
-                          onPageChanged: (index, reason) {
-                            pageIndex.value = index;
-                          },
-                          controller: controller.value,
-                          height: double.infinity,
-                          viewportFraction: 1.0,
-                          showIndicator: true,
-                          pageSnapping: true,
-                          floatingIndicator: true,
-                          slideIndicator: CircularSlideIndicator(
-                            slideIndicatorOptions: SlideIndicatorOptions(
-                              indicatorRadius: 5,
-                              itemSpacing: 15,
-                              indicatorBorderWidth: 0.0,
-                              currentIndicatorColor: AppColors.blue3,
-                              indicatorBackgroundColor: context.borderInput,
-                              enableAnimation: true,
-                              padding: EdgeInsets.only(bottom: 10.0),
-                              alignment: Alignment.bottomCenter,
+                        onPageChanged: (index, reason) {
+                          pageIndex.value = index;
+                        },
+                        controller: controller.value,
+                        height: double.infinity,
+                        viewportFraction: 1.0,
+                        indicator: CarouselIndicator(
+                          painter: CircularSlideIndicator(
+                            style: SlideIndicatorStyle(
+                              radius: 5,
+                              // Centre to centre; matches the old 15px slot per dot.
+                              spacing: 17,
+                              borderWidth: 0.0,
+                              activeColor: AppColors.blue3,
+                              inactiveColor: context.borderInput,
+                              animated: true,
                             ),
                           ),
+                          alignment: Alignment.bottomCenter,
+                          margin: EdgeInsets.only(bottom: 10.0),
                         ),
                         items: pages,
                       ),

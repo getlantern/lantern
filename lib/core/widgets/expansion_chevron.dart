@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/common/app_asset.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
 

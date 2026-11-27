@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/common/common.dart';
 
 /// An empty tab or list: an icon, a heading (Heading/Small), one line of

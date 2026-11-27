@@ -1,5 +1,5 @@
 import 'package:badges/badges.dart' as badges;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/extensions/plan.dart';
 import 'package:lantern/core/models/plan_data.dart';
 

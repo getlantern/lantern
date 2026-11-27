@@ -3,8 +3,7 @@ import 'dart:ui';
 
 import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:i18n_extension/i18n_extension.dart';
@@ -332,16 +331,15 @@ class _LanternAppState extends ConsumerState<LanternApp>
                 minTextAdapt: true,
                 child: I18n(
                   initialLocale: locale.toLocale,
-                  localizationsDelegates: [
-                    GlobalMaterialLocalizations.delegate,
-                    GlobalWidgetsLocalizations.delegate,
-                    GlobalCupertinoLocalizations.delegate,
-                  ],
+                  localizationsDelegates: GlobalMaterialLocalizations.delegates,
                   child: MaterialApp.router(
                     locale: locale.toLocale,
                     debugShowCheckedModeBanner: false,
                     builder: (context, child) {
-                      final router = child ?? const SizedBox.shrink();
+                      // Hands the theme to packages still on flutter/material.
+                      final router = MaterialUiCompatibilityBridge(
+                        child: child ?? const SizedBox.shrink(),
+                      );
                       final shell = isStaging
                           ? Banner(
                               message: 'STAGING',
@@ -381,11 +379,8 @@ class _LanternAppState extends ConsumerState<LanternApp>
                         userMessageRouteObserver,
                       ],
                     ),
-                    localizationsDelegates: const [
-                      GlobalMaterialLocalizations.delegate,
-                      GlobalWidgetsLocalizations.delegate,
-                      GlobalCupertinoLocalizations.delegate,
-                    ],
+                    localizationsDelegates:
+                        GlobalMaterialLocalizations.delegates,
                   ),
                 ),
               ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/common/app_text_styles.dart';
 import 'package:lantern/core/common/cap_scaling.dart';
 import 'package:lantern/core/common/common.dart';

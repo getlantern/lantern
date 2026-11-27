@@ -9,9 +9,9 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
 import 'package:auto_route/auto_route.dart' as _i49;
 import 'package:collection/collection.dart' as _i53;
-import 'package:flutter/material.dart' as _i50;
 import 'package:lantern/core/common/common.dart' as _i51;
 import 'package:lantern/core/models/user.dart' as _i52;
 import 'package:lantern/core/widgets/app_webview.dart' as _i4;
@@ -75,6 +75,7 @@ import 'package:lantern/features/split_tunneling/website_split_tunneling.dart'
     as _i48;
 import 'package:lantern/features/support/support.dart' as _i45;
 import 'package:lantern/features/vpn/server_selection.dart' as _i38;
+import 'package:material_ui/material_ui.dart' as _i50;
 
 /// generated route for
 /// [_i1.Account]

@@ -1,17 +1,18 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:material_hooks/material_hooks.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_hooks/flutter_hooks.dart' hide useTabController;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/desktop/app_window.dart';
 import 'package:lantern/core/models/usage_stats.dart';
 import 'package:lantern/core/widgets/info_row.dart';
 import 'package:lantern/features/home/provider/data_cap_info_provider.dart';
 import 'package:lantern/features/setting/provider/usage_stats_notifier.dart';
-import 'package:window_manager/window_manager.dart';
 
 /// How often the screen reloads the stats while it's on top and the app is
 /// visible.
@@ -24,45 +25,20 @@ bool _appVisible(AppLifecycleState? state) =>
     state == AppLifecycleState.resumed ||
     state == AppLifecycleState.inactive;
 
+/// Replaces the desktop window check in tests.
+@visibleForTesting
+Future<bool> Function()? debugWindowShown;
+
 /// Whether the desktop window is on screen: not hidden (closed to the tray)
 /// or minimized. Assumes it is if the window plugin can't say.
 Future<bool> _windowShown() async {
   if (!PlatformUtils.isDesktop) return true;
+  final override = debugWindowShown;
+  if (override != null) return override();
   try {
-    return await windowManager.isVisible() &&
-        !await windowManager.isMinimized();
+    return AppWindow.instance.isShown;
   } catch (_) {
     return true;
-  }
-}
-
-/// Calls [onChange] on window events that can mean it was shown or hidden.
-/// macOS reports no show or hide, so focus stands in for show, and the
-/// screen checks the window on each tick.
-class _WindowEvents with WindowListener {
-  _WindowEvents(this.onChange);
-
-  final VoidCallback onChange;
-
-  @override
-  void onWindowFocus() => onChange();
-
-  @override
-  void onWindowMinimize() => onChange();
-
-  @override
-  void onWindowRestore() => onChange();
-
-  // Windows restores a maximized window from minimized as a maximize.
-  @override
-  void onWindowMaximize() => onChange();
-
-  @override
-  void onWindowUnmaximize() => onChange();
-
-  @override
-  void onWindowEvent(String eventName) {
-    if (eventName == 'show' || eventName == 'hide') onChange();
   }
 }
 
@@ -136,10 +112,10 @@ class UsageStatsScreen extends HookConsumerWidget {
     });
     useEffect(() {
       if (!PlatformUtils.isDesktop) return null;
-      final listener = _WindowEvents(() => unawaited(recheckWindow()));
-      windowManager.addListener(listener);
+      void listener() => unawaited(recheckWindow());
+      AppWindow.instance.changed.addListener(listener);
       unawaited(recheckWindow(reload: false));
-      return () => windowManager.removeListener(listener);
+      return () => AppWindow.instance.changed.removeListener(listener);
     }, const []);
     useEffect(() {
       sync(reload: mounted.value);

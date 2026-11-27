@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/widgets/setting_tile.dart';
 import 'package:lantern/features/helpers/models/helpers_view.dart';

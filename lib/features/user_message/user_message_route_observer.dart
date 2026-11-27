@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Tracks routes where a global message would get in the user's way: startup,
 /// dialogs, full-screen modals, and blocked flows such as checkout.

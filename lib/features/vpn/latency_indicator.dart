@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lantern/core/models/latency_status.dart';
 import 'package:lantern/core/widgets/expansion_chevron.dart';
 

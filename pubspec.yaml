@@ -43,12 +43,9 @@ dependency_overrides:
       url: https://github.com/getlantern/auto_updater.git
       path: packages/auto_updater_windows
       ref: 53aeeb5f3f5a115297ed9aebd48bfb53aa7b70da
-  # 12.6.x bumps the native Stripe SDKs (iOS ~>25.9), keep in step with flutter_stripe 12.4.0
-  stripe_android: 12.4.0
-  stripe_ios: 12.4.0
-  in_app_purchase_storekit: 0.4.8+1
-  # 0.5.0 = Play Billing Library 8.0.0; later 0.5.x need Flutter >=3.44.
-  in_app_purchase_android: 0.5.0
+  # Stripe checkout is Android-only; the stub keeps the Stripe SDK out of the IPA.
+  stripe_ios:
+    path: packages/stripe_ios_stub
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -63,12 +60,12 @@ dependencies:
     sdk: flutter
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   # paths
   path: ^1.9.1
   path_provider: ^2.1.5
   #Routing
-  auto_route: ^11.1.0
+  auto_route: ^11.2.0
   #UI Utils
   flutter_earth_globe: ^2.2.0
   lottie: ^3.3.1
@@ -77,16 +74,15 @@ dependencies:
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
 
-  badges: ^3.2.0
-  pinput: ^6.0.2
+  badges: ^4.0.1
+  pinput: ^7.0.0
   email_validator: ^3.0.0
-  shimmer: ^3.0.0
   #Loading
   animated_loading_border: ^0.0.2
   loader_overlay: ^5.0.0
 
   #Localization
-  i18n_extension: ^15.1.1
+  i18n_extension: ^16.0.3
   i18n_extension_importer: ^0.0.6
   intl: ^0.20.2
 
@@ -101,11 +97,12 @@ dependencies:
   flutter_riverpod: ^3.3.1
   hooks_riverpod: ^3.3.1
   flutter_hooks: ^0.21.3+1
+  material_hooks: ^0.1.0
   riverpod_annotation: ^4.0.2
   # dependency injection
   get_it: ^9.2.1
   #fonts
-  google_fonts: ^8.0.2
+  google_fonts: ^9.0.0
   #env
   flutter_dotenv: ^6.0.0
   url_launcher: ^6.3.2
@@ -116,8 +113,9 @@ dependencies:
   # Deeplink handling
   app_links: ^7.0.0
   # Desktop
-  window_manager: ^0.5.2
-  screen_retriever: ^0.2.2
+  window_manager: ^0.7.1
+  # display and app-level calls window_manager does not re-export
+  nativeapi: ^0.6.2
   tray_manager: ^0.9.1
   win32_registry: ^3.0.3
   # Utils
@@ -127,35 +125,36 @@ dependencies:
   device_info_plus: ^13.2.0
 
   flutter_inappwebview: ^6.1.5
-  desktop_webview_window: ^0.3.0
+  desktop_webview_window: ^0.4.3
   store_checker: ^1.8.0
   in_app_review: ^2.0.12
   # payment
-  in_app_purchase: ^3.3.0
+  in_app_purchase: ^3.3.1
   # Imported directly for the StoreKit 2 product type and intro-offer
   # eligibility check (affiliate pricing).
-  in_app_purchase_storekit: 0.4.8+1
-  flutter_stripe: 12.4.0
+  in_app_purchase_storekit: ^0.4.17
+  flutter_stripe: ^15.0.0
   # protobuf
   protobuf: ^6.0.0
   # auto updates
   auto_updater: ^1.0.0
   # notifications
-  flutter_local_notifications: ^22.2.0
+  flutter_local_notifications: ^23.0.4
   timezone: ^0.11.1
   flutter_timezone: ^5.1.0
   fixnum: ^1.1.1
   package_info_plus: ^10.2.1
   shared_preferences: ^2.5.5
-  flutter_carousel_widget: ^3.1.1
+  flutter_carousel_widget: ^4.0.2
   file_selector: ^1.1.0
-  desktop_drop: ^0.7.1
+  desktop_drop: ^0.8.4
   cross_file: ^0.3.5+2
   image_picker: ^1.2.2
   http: ^1.2.0
   pub_semver: ^2.1.4
   flutter_secure_storage: ^11.2.0
 
+  material_ui: ^1.11.1
 dev_dependencies:
   file_selector_platform_interface: ^2.7.0
   flutter_test:
