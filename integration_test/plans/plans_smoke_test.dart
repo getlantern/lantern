@@ -56,13 +56,17 @@ void registerPlansSmokeTests() {
         );
 
         final bestValue = items.singleWhere((item) => item.plan.bestValue);
+        // A store intro offer relabels the badge.
+        final badge = bestValue.plan.storeOfferCaption.isNotEmpty
+            ? 'introductory_offer'
+            : 'best_value';
         expect(
           find.descendant(
             of: find.byKey(Key('plans.item.${bestValue.plan.id}')),
-            matching: find.text('best_value'.i18n),
+            matching: find.text(badge.i18n),
           ),
           findsOneWidget,
-          reason: 'Best Value badge not shown on plan ${bestValue.plan.id}',
+          reason: '$badge badge not shown on plan ${bestValue.plan.id}',
         );
 
         expect(_plansCta, findsOneWidget);

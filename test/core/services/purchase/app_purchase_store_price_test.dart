@@ -103,6 +103,40 @@ void main() {
     expect(price.currencyCode, 'INR');
     expect(price.formatted, contains('3,999'));
     expect(price.regular, '₹4,999.00');
+    expect(price.offerMonths, 12);
+  });
+
+  test('quotes an intro offer on a base SKU with its full term', () async {
+    final yearly = _sk2Product(
+      '1y_sub',
+      offers: [_offer(SK2SubscriptionOfferType.introductory, 3999)],
+    );
+    final monthly = _sk2Product(
+      '1m_sub',
+      offers: [
+        _offer(
+          SK2SubscriptionOfferType.introductory,
+          299,
+          period: const SK2SubscriptionPeriod(
+            value: 1,
+            unit: SK2SubscriptionPeriodUnit.month,
+          ),
+          periodCount: 2,
+          paymentMode: SK2SubscriptionOfferPaymentMode.payAsYouGo,
+        ),
+      ],
+    );
+    final purchases = build([yearly, monthly]);
+
+    await purchases.fetchSubscriptions();
+
+    final year = purchases.storePriceFor('1y-inr-9')!;
+    expect(year.amount, 3999.0);
+    expect(year.regular, '₹4,999.00');
+    expect(year.offerMonths, 12);
+    final month = purchases.storePriceFor('1m-inr-1')!;
+    expect(month.monthly, 299.0);
+    expect(month.offerMonths, 2);
   });
 
   test('quotes the regular price when the user is ineligible', () async {
@@ -152,6 +186,7 @@ void main() {
     expect(price.formatted, '₹4,999.00');
     expect(price.regular, price.formatted);
     expect(price.monthly, closeTo(4999 / 12, 0.001));
+    expect(price.offerMonths, isNull);
     expect(purchases.storePriceFor('1m-inr-1'), isNull);
   });
 
