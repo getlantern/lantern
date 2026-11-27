@@ -137,6 +137,12 @@ class CreatePassword extends HookConsumerWidget {
       context.hideLoadingDialog();
     }
     if (!context.mounted) return;
+    // Renewal paused to collect an email: go back to Plans and reopen checkout.
+    if (authFlow == AuthFlow.renewSubscription) {
+      appRouter.popUntil((route) => route.settings.name == Plans.name);
+      appRouter.push(ChoosePaymentMethod(email: email, authFlow: authFlow));
+      return;
+    }
     AppDialog.showLanternProDialog(
       context: context,
       onPressed: () {

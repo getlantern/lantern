@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/core/utils/deeplink_utils.dart';
 import 'package:lantern/core/widgets/oauth_login.dart';
-import 'package:lantern/core/keys/app_keys.dart';
 import 'package:lantern/features/auth/provider/auth_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
-
 import 'package:lantern/features/home/provider/home_notifier.dart';
 
 @RoutePage(name: 'AddEmail')
@@ -43,8 +42,11 @@ class _AddEmailState extends ConsumerState<AddEmail> {
     final emailController = useTextEditingController();
     useListenable(emailController);
     final user = ref.watch(homeProvider).value;
-    final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
     final currentEmail = user?.legacyUserData.email ?? '';
+    // Without an email there is nothing to pre-fill, so let the user enter one.
+    final isUserRegistered =
+        (user?.legacyUserData.unpassRegistered ?? false) &&
+        currentEmail.isNotEmpty;
     final isChangeEmailFlow = widget.authFlow == AuthFlow.changeEmail;
 
     useEffect(() {
@@ -254,7 +256,7 @@ class _AddEmailState extends ConsumerState<AddEmail> {
         startChangeEmailFlow(email);
       } else {
         if (isUserRegistered) {
-          ///This mean user is already registered
+          /// This mean user is already registered
           /// plan is expired or user are creating new account with same email
           /// by pass signup flow and start forgot password flow
           startForgotPasswordFlow(email);

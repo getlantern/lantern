@@ -521,8 +521,13 @@ class _PlansState extends ConsumerState<Plans>
   }
 
   void _pushRenewalPaymentScreen() {
-    final user = ref.read(homeProvider).value;
-    final email = user!.legacyUserData.email;
+    final email = ref.read(userEmailProvider);
+    // Sometime pro user can have empty email, (ex v7 or v8 users)
+    // if email is empty then ask user for email-
+    if (email.isEmpty) {
+      appRouter.push(AddEmail(authFlow: AuthFlow.renewSubscription));
+      return;
+    }
     appRouter.push(
       ChoosePaymentMethod(email: email, authFlow: AuthFlow.renewSubscription),
     );
@@ -598,10 +603,8 @@ class _PlansState extends ConsumerState<Plans>
 
   void signUpFlow() {
     final appSetting = ref.read(appSettingProvider);
-    if (appSetting.userLoggedIn) {
-      final user = ref.read(homeProvider).value;
-      final email = user!.legacyUserData.email;
-
+    final email = ref.read(userEmailProvider);
+    if (appSetting.userLoggedIn && email.isNotEmpty) {
       /// User is logged in but not pro — account created but purchase not completed or plan expired
       appRouter.push(
         ChoosePaymentMethod(email: email, authFlow: AuthFlow.renewSubscription),
