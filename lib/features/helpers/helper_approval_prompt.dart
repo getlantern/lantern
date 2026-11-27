@@ -23,17 +23,23 @@ void useHelperApprovalPrompt(
   UserMessageRouteObserver routes, {
   bool Function(BuildContext context)? overlayVisible,
   Duration retryInterval = const Duration(milliseconds: 250),
+  bool enabled = true,
 }) {
   final showing = useRef(false);
-  final scheduled = useRef(false);
 
   useEffect(() {
-    if (!HelpersNotifier.buildEnabled) return null;
+    if (!enabled || !HelpersNotifier.buildEnabled) return null;
     Timer? retry;
     late void Function() schedule;
+    // Both are this effect's own: a prompt queued for the next frame is
+    // dropped once the effect ends, and a replacement effect (new routes
+    // observer, re-enabled) schedules its own without waiting for the
+    // dropped one to clear a shared flag.
+    var live = true;
+    var scheduled = false;
 
     Future<void> prompt() async {
-      if (!context.mounted || showing.value) return;
+      if (!live || !context.mounted || showing.value) return;
       final lifecycle = WidgetsBinding.instance.lifecycleState;
       if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
       if (!routes.isReadyForMessages) return;
@@ -67,11 +73,11 @@ void useHelperApprovalPrompt(
     // After the frame, so a caller that opens the approval itself
     // (startPersonalProxyInvite) has marked its invite first.
     schedule = () {
-      if (scheduled.value) return;
-      scheduled.value = true;
+      if (!live || scheduled) return;
+      scheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        scheduled.value = false;
-        unawaited(prompt());
+        scheduled = false;
+        if (live) unawaited(prompt());
       });
       WidgetsBinding.instance.ensureVisualUpdate();
     };
@@ -94,11 +100,12 @@ void useHelperApprovalPrompt(
     routes.changes.addListener(schedule);
     final lifecycle = AppLifecycleListener(onResume: schedule);
     return () {
+      live = false;
       retry?.cancel();
       sub.close();
       payment.close();
       routes.changes.removeListener(schedule);
       lifecycle.dispose();
     };
-  }, [routes]);
+  }, [routes, enabled]);
 }

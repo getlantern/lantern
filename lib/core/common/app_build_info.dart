@@ -27,6 +27,14 @@ class AppBuildInfo {
     defaultValue: false,
   );
 
+  /// Android TV two-panel shell (lib/core/widgets/tv_shell.dart). Off in
+  /// production until every screen is converted; the Makefile turns it on
+  /// for debug, nightly and beta builds (TV_SHELL).
+  static const bool tvShell = bool.fromEnvironment(
+    'TV_SHELL',
+    defaultValue: false,
+  );
+
   static const String stealthMode = String.fromEnvironment(
     'STEALTH_MODE',
     defaultValue: 'normal',

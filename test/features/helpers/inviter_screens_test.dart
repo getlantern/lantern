@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 // common.dart re-exports the generated route classes, which share the
@@ -177,17 +178,19 @@ class _Helpers extends HelpersNotifier {
 }
 
 class _PromptHost extends HookConsumerWidget {
-  const _PromptHost(this.routes, this.overlay);
-  final UserMessageRouteObserver routes;
+  const _PromptHost(this.routes, this.overlay, this.enabled);
+  final ValueListenable<UserMessageRouteObserver> routes;
   final ValueListenable<bool> overlay;
+  final ValueListenable<bool> enabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useHelperApprovalPrompt(
       context,
       ref,
-      routes,
+      useValueListenable(routes),
       overlayVisible: (_) => overlay.value,
+      enabled: useValueListenable(enabled),
     );
     return const Text('home');
   }
@@ -197,8 +200,10 @@ Future<UserMessageRouteObserver> _pumpPromptHost(
   WidgetTester tester,
   _Helpers fake, {
   ValueListenable<bool> overlay = const _Off(),
+  ValueListenable<bool> enabled = const _On(),
+  ValueNotifier<UserMessageRouteObserver>? routesSwap,
 }) async {
-  final routes = UserMessageRouteObserver();
+  final routes = routesSwap?.value ?? UserMessageRouteObserver();
   await tester.pumpWidget(
     ProviderScope(
       overrides: [helpersProvider.overrideWith(() => fake)],
@@ -207,7 +212,9 @@ Future<UserMessageRouteObserver> _pumpPromptHost(
         child: MaterialApp(
           theme: AppTheme.appTheme(),
           navigatorObservers: [routes],
-          home: Scaffold(body: _PromptHost(routes, overlay)),
+          home: Scaffold(
+            body: _PromptHost(routesSwap ?? _Fixed(routes), overlay, enabled),
+          ),
         ),
       ),
     ),
@@ -220,6 +227,26 @@ class _Off implements ValueListenable<bool> {
   const _Off();
   @override
   bool get value => false;
+  @override
+  void addListener(VoidCallback listener) {}
+  @override
+  void removeListener(VoidCallback listener) {}
+}
+
+class _Fixed<T> implements ValueListenable<T> {
+  const _Fixed(this.value);
+  @override
+  final T value;
+  @override
+  void addListener(VoidCallback listener) {}
+  @override
+  void removeListener(VoidCallback listener) {}
+}
+
+class _On implements ValueListenable<bool> {
+  const _On();
+  @override
+  bool get value => true;
   @override
   void addListener(VoidCallback listener) {}
   @override
@@ -1900,6 +1927,41 @@ void main() {
       Navigator.of(tester.element(approveCode)).pop();
       await tester.pumpAndSettle();
     }
+
+    testWidgets('turned off before a queued prompt runs: nothing opens and '
+        'the claim stays unprompted', (tester) async {
+      final fake = _Helpers(_withInvites(const []));
+      final enabled = ValueNotifier(true);
+      addTearDown(enabled.dispose);
+      await _pumpPromptHost(tester, fake, enabled: enabled);
+      fake.emit(_withInvites(const [_claimed]));
+      // The prompt waits for the next frame; the hook is off before it runs.
+      enabled.value = false;
+      await tester.pumpAndSettle();
+      expect(approveCode, findsNothing);
+      expect(fake.approvalPrompted(_claimed.id), isFalse);
+      enabled.value = true;
+      await tester.pumpAndSettle();
+      expect(approveCode, findsOneWidget, reason: 'the claim is still due');
+    });
+
+    testWidgets('a routes observer swapped while a prompt is queued still '
+        'prompts', (tester) async {
+      // The replacement effect must schedule its own prompt: the dropped
+      // one's flag was shared before, and both ended up prompting nothing.
+      final fake = _Helpers(_withInvites(const []));
+      final routes = ValueNotifier(UserMessageRouteObserver());
+      addTearDown(routes.dispose);
+      await _pumpPromptHost(tester, fake, routesSwap: routes);
+      fake.emit(_withInvites(const [_claimed]));
+      // A new observer that has seen the current route, swapped in before
+      // the queued frame runs.
+      final next = UserMessageRouteObserver();
+      next.didPush(ModalRoute.of(tester.element(find.text('home')))!, null);
+      routes.value = next;
+      await tester.pumpAndSettle();
+      expect(approveCode, findsOneWidget);
+    });
 
     testWidgets('opens the dialog once per claim', (tester) async {
       final fake = _Helpers(_withInvites(const []));

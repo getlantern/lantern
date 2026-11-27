@@ -20,12 +20,16 @@ class SwitchButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const trackWidth = 70.0;
+    // The TV shell: the track is as tall as the knob plus the 5dp it has at
+    // the sides, and the focus ring sits outside the track.
+    final tvShell = PlatformUtils.tvShellEnabled;
 
     // The switch handles its own taps; this adds D-pad and keyboard focus.
     return AppFocusable(
       onActivate: () => onChanged(!value),
       handlesTap: false,
       borderRadius: BorderRadius.circular(100),
+      ringPadding: tvShell ? const EdgeInsets.all(8) : EdgeInsets.zero,
       child: CustomAnimatedToggleSwitch<bool>(
         current: value,
         values: const [false, true],
@@ -34,7 +38,11 @@ class SwitchButton extends StatelessWidget {
         iconBuilder: (context, local, global) => const SizedBox(),
         indicatorSize: const Size(30, 30),
         spacing: 10.h,
-        height: PlatformUtils.isDesktop ? 40.h : 30.h,
+        height: tvShell
+            ? 40
+            : PlatformUtils.isDesktop
+            ? 40.h
+            : 30.h,
         wrapperBuilder: (context, global, child) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
           return Container(
@@ -45,7 +53,7 @@ class SwitchButton extends StatelessWidget {
               // toggle-disabled-bg (off state): Gray.700 both
               color: value
                   ? (activeColor ??
-                      (isDark ? AppColors.green7 : AppColors.green5))
+                        (isDark ? AppColors.green7 : AppColors.green5))
                   : AppColors.gray7,
               borderRadius: BorderRadius.circular(100),
             ),

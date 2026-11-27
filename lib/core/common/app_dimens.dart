@@ -21,10 +21,34 @@ const mobileSize = Size(360, 690);
 /// Width of the centered phone-style column on TVs (landscape, ~960x540dp).
 const double tvContentMaxWidth = 480;
 
+/// The TV two-panel shell (lib/core/widgets/tv_shell.dart) on its 960x540dp
+/// canvas: 48/27dp safe margins, the logo-and-switch panel on the left, a
+/// 1dp divider, then the screen's panel from [tvRightPanelX] to the right
+/// safe margin (459dp wide at 960).
+const double tvSafeMarginH = 48;
+const double tvSafeMarginV = 27;
+const double tvLeftPanelWidth = 340;
+const double tvPanelGap = 32;
+const double tvRightPanelX =
+    tvSafeMarginH + tvLeftPanelWidth + tvPanelGap + 1 + tvPanelGap;
+
+/// Header height in the TV shell: no status bar above it.
+const double tvToolbarHeight = 44;
+
+/// Width of the screen's panel in the TV shell, measured from the view so it
+/// is right even where the shell has narrowed MediaQuery to the panel.
+double tvRightPanelWidth(BuildContext context) {
+  final view = View.of(context);
+  final width = view.physicalSize.width / view.devicePixelRatio;
+  return width - tvRightPanelX - tvSafeMarginH;
+}
+
 /// Short screens get the compact layout from engineering#3046 (tighter
-/// padding, pill upsell, combined rows). Desktop min height is 750.
+/// padding, pill upsell, combined rows). Desktop min height is 750. The TV
+/// shell's panel is 513dp tall but shows the regular rows (the Figma TV
+/// frames), with the pill upsell chosen on its own.
 bool isSmallScreen(BuildContext context) =>
-    MediaQuery.sizeOf(context).height < 600;
+    !PlatformUtils.tvShellEnabled && MediaQuery.sizeOf(context).height < 600;
 
 /// Narrow-width phones (e.g. iPhone 12 mini at 375dp); width-based, unlike
 /// [isSmallScreen].

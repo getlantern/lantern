@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:lantern/core/utils/country_code.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/utils/failure.dart';
 import 'package:lantern/core/models/app_event.dart';
 import 'package:lantern/lantern/lantern_service.dart';
@@ -82,9 +83,23 @@ class _FakeService implements LanternService {
   }
 
   @override
-  Future<void> waitForRadiance() async => calls.add('waitForRadiance');
+  void Function()? onWaitForRadiance;
 
-  /// The raw peer status syncFromBackend reads; empty means not sharing.
+  /// When set, waitForRadiance waits for it, as behind a core still
+  /// starting. Taken from [_readiness] at construction, since the notifier's
+  /// build asks before a test gets the service.
+  Completer<void>? readiness = _readiness;
+
+  @override
+  Future<void> waitForRadiance() async {
+    calls.add('waitForRadiance');
+    onWaitForRadiance?.call();
+    await readiness?.future;
+  }
+
+  /// The raw peer status syncFromBackend reads. Empty is the core's answer
+  /// while it cannot say (how the Go API reports no status); an idle
+  /// payload is a confirmed not-sharing.
   String peerStatus = '';
 
   @override
@@ -138,6 +153,9 @@ ShareNotifier _notifier() => _setUp().$1;
 /// The view [_Helpers.helpsSomeone] loads: true helps a friend, false helps
 /// nobody, null fails to load.
 bool? _helps = false;
+
+/// Holds the fake core "not ready" from construction; see _FakeService.
+Completer<void>? _readiness;
 
 /// When set, helpsSomeone waits for it, as behind a launch refresh.
 Completer<void>? _helpsGate;
@@ -578,6 +596,10 @@ void main() {
   });
 
   group('reconcileLaunch', () {
+    // The TV launch's core-off write is asked once here; the retry test
+    // sets its own count.
+    setUp(() => ShareNotifier.tvOffAttempts = 1);
+    tearDown(() => ShareNotifier.tvOffAttempts = 5);
     const autoOn = AppSetting(
       onboardingCompleted: true,
       unboundedAutoEnable: true,
@@ -651,6 +673,163 @@ void main() {
       expect(helpers(ref).helpsAsked, 1);
       expect(notifier.state.active, isTrue);
       expect(notifier.state.mode, ShareMode.unbounded);
+    });
+
+    testWidgets('the TV shell stops a resumed session even for a friend', (
+      tester,
+    ) async {
+      // A TV that opted in before the shell, or helps a friend: nothing on
+      // its screens could stop sharing, so launch stops it.
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOn;
+      _helps = true;
+      final (notifier, ref, service) = await _start(tester);
+      service.unboundedEnabled = true;
+      service.unboundedOk = true;
+      await launch(notifier, ref);
+      expect(service.calls, contains('unbounded:false'));
+      expect(notifier.state.active, isFalse);
+      // An eligible country, so only the TV policy can hold the start back.
+      CountryCode.update('DE');
+      service.calls.clear();
+      await notifier.startForHelper(ref);
+      await notifier.retryPendingHelperStart(ref);
+      expect(service.calls, isEmpty, reason: 'no probe, no enable');
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('the TV shell stops a session the core reports after launch', (
+      tester,
+    ) async {
+      // The core could not answer at launch (nothing resumed), then reports
+      // a running SmC session: stopped where it is seen, not only at launch.
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      ShareNotifier.tvOffAttempts = 1;
+      addTearDown(() => ShareNotifier.tvOffAttempts = 5);
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      await launch(notifier, ref);
+      expect(notifier.state.active, isFalse);
+      service.calls.clear();
+      service.peerStatus = '{"phase":"serving"}';
+      await notifier.syncFromBackend(ref);
+      await tester.pump();
+      expect(service.calls, contains('peer:false'));
+      expect(notifier.state.active, isFalse);
+      expect(notifier.state.mode, ShareMode.off);
+    });
+
+    testWidgets('the TV shell turns both modes off at the core once it is '
+        'ready', (tester) async {
+      // radiance resumes a persisted session on its own after reporting
+      // ready, possibly after every read: the core is told directly.
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOn;
+      // Hold the core "not ready": nothing is written until it is.
+      _readiness = Completer<void>();
+      addTearDown(() => _readiness = null);
+      final (_, _, service) = await _start(tester);
+      service.unboundedOk = true;
+      await tester.pump();
+      expect(service.calls, contains('waitForRadiance'));
+      expect(service.calls, isNot(contains('peer:false')));
+      expect(service.calls, isNot(contains('unbounded:false')));
+      service.readiness!.complete();
+      await tester.pump();
+      await tester.pump();
+      expect(
+        service.calls,
+        containsAllInOrder(['waitForRadiance', 'peer:false', 'unbounded:false']),
+      );
+    });
+
+    testWidgets('the TV shell keeps asking the core until it accepts the '
+        'disables', (tester) async {
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOn;
+      ShareNotifier.tvOffAttempts = 5;
+      // unboundedOk starts false: the fake refuses the Unbounded write.
+      final (_, _, service) = await _start(tester);
+      await tester.pump();
+      int count(String call) => service.calls.where((c) => c == call).length;
+      expect(count('peer:false'), 1);
+      expect(count('unbounded:false'), 1);
+      await tester.pump(const Duration(seconds: 2));
+      expect(count('unbounded:false'), 2, reason: 'asked again after 2s');
+      expect(count('peer:false'), 1, reason: 'SmC was accepted the first time');
+      service.unboundedOk = true;
+      await tester.pump(const Duration(seconds: 4));
+      expect(count('unbounded:false'), 3, reason: 'accepted on the third ask');
+      await tester.pump(const Duration(seconds: 30));
+      expect(count('unbounded:false'), 3, reason: 'no asks after acceptance');
+    });
+
+    testWidgets('the fallback guard alone keeps a TV off Unbounded', (
+      tester,
+    ) async {
+      // Built before the shell flag, so the policy listener is not installed
+      // and the SmC error reaches _runFallback: only its own guard stands.
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      service.peerStatus = '{"phase":"serving"}';
+      service.unboundedOk = true;
+      await notifier.syncFromBackend(ref);
+      expect(notifier.state.mode, ShareMode.smc);
+      service.events.add(
+        AppEvent(eventType: 'peer-status', message: '{"phase":"error"}'),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(service.calls, isNot(contains('unbounded:true')));
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('the TV shell waits for the core before adopting a resumed '
+        'SmC session, then stops it', (tester) async {
+      // Android's core answers with nothing until it is ready; the policy
+      // must not mistake that for no session.
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      ShareNotifier.tvOffAttempts = 1;
+      addTearDown(() => ShareNotifier.tvOffAttempts = 5);
+      _appSetting = autoOn;
+      final (notifier, ref, service) = await _start(tester);
+      await tester.pump();
+      service.calls.clear();
+      service.peerStatus = '';
+      service.onWaitForRadiance = () =>
+          service.peerStatus = '{"phase":"serving"}';
+      await notifier.syncFromBackend(ref);
+      await tester.pump();
+      expect(
+        service.calls,
+        containsAllInOrder(['waitForRadiance', 'peer:false']),
+      );
+      expect(notifier.state.active, isFalse);
+    });
+
+    testWidgets('the TV shell never falls back to Unbounded', (tester) async {
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      _appSetting = autoOff;
+      final (notifier, ref, service) = await _start(tester);
+      service.peerStatus = '{"phase":"serving"}';
+      service.unboundedOk = true;
+      await notifier.syncFromBackend(ref);
+      // SmC fails before the stop lands: no fallback starts on TV.
+      service.events.add(
+        AppEvent(eventType: 'peer-status', message: '{"phase":"error"}'),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(service.calls, isNot(contains('unbounded:true')));
+      expect(notifier.state.active, isFalse);
     });
 
     testWidgets('keeps a resumed session when the helper view cannot be read', (

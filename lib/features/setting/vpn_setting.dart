@@ -30,8 +30,15 @@ class VPNSetting extends HookConsumerWidget {
     final splitTunnel = showSplitTunneling
         ? ref.watch(splitTunnelProvider)
         : null;
-    final personalProxies = ref.watch(personalProxiesTabVisibleProvider);
-    final invites = ref.watch(helperInvitesAvailableProvider);
+    // Manage Private Locations hides its Personal Proxies tab on TV, so the
+    // tab alone does not earn the row there.
+    final personalProxies =
+        ref.watch(personalProxiesTabVisibleProvider) &&
+        !PlatformUtils.tvShellEnabled;
+    // Not in the TV shell, where the invite flow has no entry points.
+    final invites =
+        ref.watch(helperInvitesAvailableProvider) &&
+        !PlatformUtils.tvShellEnabled;
     final routingMode = ref.watch(
       radianceSettingsProvider.select((s) => s.routingMode),
     );

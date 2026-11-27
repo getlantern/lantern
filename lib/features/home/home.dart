@@ -122,7 +122,12 @@ class Home extends HookConsumerWidget {
     // regions get the flag off, so the tab, strip, and any auto-enable
     // hook disappear. The user's own "Hide Unbounded tab" toggle still
     // wins on top of this for non-censored users who want it hidden.
-    final unboundedAvailable = featureFlag.getBool(FeatureFlag.unbounded);
+    // The TV shell has no Action Mode entry points (the code stays), so the
+    // feature counts as unavailable there: nothing may start or resume a
+    // session the user could not stop.
+    final tvShell = PlatformUtils.tvShellEnabled;
+    final unboundedAvailable =
+        featureFlag.getBool(FeatureFlag.unbounded) && !tvShell;
     final showUnboundedTab = unboundedAvailable && !unboundedHidden;
     useEffect(() {
       if (!showUnboundedTab) {
@@ -197,7 +202,9 @@ class Home extends HookConsumerWidget {
     // settings. With "Auto-enable Unbounded" off, or the tab hidden (hiding
     // is the opt-out), a resumed session is stopped, unless this device
     // helps a friend through a helper-invite pairing: stopping it would cut
-    // off the friend's personal proxy. A kept Unbounded session switches to
+    // off the friend's personal proxy. On TV it is stopped regardless, and
+    // nothing starts: the shell has no sharing controls (ShareNotifier
+    // enforces this itself). A kept Unbounded session switches to
     // SmC when a manual port is set (not on iOS), since a manual port is an
     // explicit request for SmC. Once the user has toggled sharing this run,
     // the launch auto-start below leaves that choice alone.
@@ -241,7 +248,8 @@ class Home extends HookConsumerWidget {
         if (!context.mounted || !mayAutoStart) return;
         // Read again: the flag captured before the awaits may have turned
         // off while the reconciliation ran, and stopped the session for it.
-        if (!ref.read(featureFlagProvider).getBool(FeatureFlag.unbounded)) {
+        if (tvShell ||
+            !ref.read(featureFlagProvider).getBool(FeatureFlag.unbounded)) {
           return;
         }
         final appSetting = ref.read(appSettingProvider);
@@ -280,8 +288,10 @@ class Home extends HookConsumerWidget {
     // A device that has used helper invites refreshes them at launch, so a
     // volunteer approved while the app was closed starts helping now. Not
     // behind the helper_invites flag: volunteers abroad are not flagged.
+    // Not on TV: the refresh unlocks the helper engine and hands the core
+    // its pairing keys, from which it could serve a pairing on its own.
     useEffect(() {
-      if (!AppBuildInfo.enableHelperInvites) return null;
+      if (!AppBuildInfo.enableHelperInvites || tvShell) return null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) ref.read(helpersProvider.notifier).refreshIfUsed();
       });
@@ -289,8 +299,14 @@ class Home extends HookConsumerWidget {
     }, const []);
 
     // A friend who claimed an invite waits on approval: open the code sheet
-    // over whatever shows, once per claim.
-    useHelperApprovalPrompt(context, ref, userMessageRouteObserver);
+    // over whatever shows, once per claim. Not on TV, which has no Personal
+    // Proxies controls to manage what it would approve.
+    useHelperApprovalPrompt(
+      context,
+      ref,
+      userMessageRouteObserver,
+      enabled: !tvShell,
+    );
 
     // Introduces Personal Proxies to a user who finished onboarding before
     // it did, once its flag and the user's flags allow.
@@ -308,34 +324,43 @@ class Home extends HookConsumerWidget {
     // unknown or censored; a later country-code event retries it. Not while
     // a HelpFriend screen waits on its claim: its success dialog's
     // Auto-enable row decides.
-    ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
-      prev,
-      next,
-    ) {
-      if (next <= (prev ?? 0)) return;
-      if (ref.read(helpersProvider.notifier).approvalStartHeld) return;
-      ref.read(shareProvider.notifier).startForHelper(ref);
-    });
-    ref.listen<String>(countryCodeProvider, (prev, next) {
-      if (prev == next) return;
-      ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
-    });
+    if (!tvShell) {
+      ref.listen<int>(helpersProvider.select((s) => s.helpingApprovals), (
+        prev,
+        next,
+      ) {
+        if (next <= (prev ?? 0)) return;
+        if (ref.read(helpersProvider.notifier).approvalStartHeld) return;
+        ref.read(shareProvider.notifier).startForHelper(ref);
+      });
+      ref.listen<String>(countryCodeProvider, (prev, next) {
+        if (prev == next) return;
+        ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
+      });
+    }
 
     return Scaffold(
       key: const Key('home.screen'),
       appBar: AppBar(
-        title: showUnboundedTab && onUnboundedTab.value
+        // The TV shell shows the logo in its left panel: the header keeps
+        // only the menu and the account action, on the plain background.
+        title: tvShell
+            ? null
+            : showUnboundedTab && onUnboundedTab.value
             ? Text(
                 'unbounded'.i18n,
                 style: Theme.of(context).textTheme.titleLarge,
               )
             : LanternLogo(isPro: isUserPro, color: context.textPrimary),
+        toolbarHeight: tvShell ? tvToolbarHeight : null,
         // bg/elevated (white in light mode) per the Figma spec — the Home
         // shell's app bar + tab strip render on a white surface, distinct
         // from every other screen's app bar which uses the app-wide
         // bg/surface grey from AppTheme.appBarTheme.
-        backgroundColor: context.bgElevated,
-        elevation: 5,
+        backgroundColor: tvShell ? Colors.transparent : context.bgElevated,
+        elevation: tvShell ? 0 : 5,
+        scrolledUnderElevation: tvShell ? 0 : null,
+        shape: tvShell ? const Border() : null,
         // The same on both tabs: menu left, title centered, account right.
         leading: IconButton(
           key: const Key('home.menu_button'),

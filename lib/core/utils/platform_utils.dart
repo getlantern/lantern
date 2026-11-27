@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:lantern/core/common/app_build_info.dart';
 
 class PlatformUtils {
   /// Android TV / Google TV (leanback). Set once at startup by [initDeviceType].
@@ -16,6 +17,15 @@ class PlatformUtils {
       isTv = false;
     }
   }
+
+  /// The two-panel TV shell: a TV, in a build made with TV_SHELL=true. Every
+  /// TV layout change hangs off this, so other builds keep today's TV UI.
+  static bool get tvShellEnabled =>
+      debugTvShell ?? (isTv && AppBuildInfo.tvShell);
+
+  /// Lets a test turn the TV shell on or off, whatever the build define.
+  @visibleForTesting
+  static bool? debugTvShell;
 
   /// Lets a test act as a desktop or not, whatever its host.
   @visibleForTesting

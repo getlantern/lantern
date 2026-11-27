@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/models/feature_flags.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
@@ -17,9 +18,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'helpers_notifier.g.dart';
 
 /// Whether this build and the server let this device use helper invites.
+/// The build side is the engine's own gate, so a screen that offers invites
+/// (onboarding, VPN Settings) agrees with the engine that would serve them.
 @riverpod
 bool helperInvitesAvailable(Ref ref) =>
-    AppBuildInfo.enableHelperInvites &&
+    HelpersNotifier.buildEnabled &&
     ref.watch(featureFlagProvider).getBool(FeatureFlag.helperInvites);
 
 /// Whether Manage Private Locations shows its "Personal Proxies" tab: while
@@ -27,6 +30,7 @@ bool helperInvitesAvailable(Ref ref) =>
 /// device still has personal proxies or invites to manage, or may have them:
 /// it used helper invites and no view has loaded yet. Reads only the
 /// notifier's state and the used mark in local storage, never the keystore.
+/// Never in the TV shell or a stealth build: the engine's gate comes first.
 @riverpod
 bool personalProxiesTabVisible(Ref ref) {
   if (!HelpersNotifier._buildEnabled) return false;
@@ -173,10 +177,15 @@ class HelpersNotifier extends _$HelpersNotifier {
   @visibleForTesting
   static bool? debugBuildEnabled;
 
+  // The TV shell has no Personal Proxies controls, so the engine stays
+  // locked there like a stealth build's: no refresh, no view, and no
+  // pairing keys handed to the core, from whichever screen or resume asks.
   static bool get _buildEnabled =>
-      debugBuildEnabled ?? AppBuildInfo.enableHelperInvites;
+      (debugBuildEnabled ?? AppBuildInfo.enableHelperInvites) &&
+      !PlatformUtils.tvShellEnabled;
 
-  /// Whether this build has helper invites; a stealth build does not.
+  /// Whether this build has helper invites; a stealth build does not, and
+  /// neither does the TV shell.
   static bool get buildEnabled => _buildEnabled;
 
   Timer? _poll;

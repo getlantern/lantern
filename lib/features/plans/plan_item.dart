@@ -22,12 +22,17 @@ class PlanItem extends StatelessWidget {
     required this.onPressed,
     this.referralMessage = '',
     this.discountPct = 0,
+    this.cardWidth,
   });
+
+  /// Viewport-equivalent width for placing the Best Value badge; a caller
+  /// with only the card's width adds `2 * defaultSize` (TV does).
+  final double? cardWidth;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final width = MediaQuery.of(context).size.width;
+    final width = cardWidth ?? MediaQuery.of(context).size.width;
     final finalSize = (width * 0.5) - (defaultSize * 3);
     final originalPrice = plan.formatOriginalPrice;
     final showOriginalPrice = discountPct > 0 && originalPrice.isNotEmpty;

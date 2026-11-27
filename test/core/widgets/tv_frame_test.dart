@@ -65,4 +65,26 @@ void main() {
     expect(width, 100);
     expect(font, 16);
   });
+
+  testWidgets('a disabled frame leaves the layout alone on TV', (tester) async {
+    PlatformUtils.isTv = true;
+    tester.view.physicalSize = const Size(1920, 1080);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    late Size size;
+    await tester.pumpWidget(
+      TvFrame(
+        enabled: false,
+        background: Colors.black,
+        child: Builder(
+          builder: (context) {
+            size = MediaQuery.sizeOf(context);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    expect(size, const Size(960, 540));
+  });
 }

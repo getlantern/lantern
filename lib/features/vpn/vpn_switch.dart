@@ -10,34 +10,59 @@ import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
 
 class VPNSwitch extends HookConsumerWidget {
-  const VPNSwitch({super.key});
+  const VPNSwitch({super.key, this.focusNode, this.autofocusOnTv = true});
+
+  /// The TV shell's node, so the shell can send focus here from the screen.
+  final FocusNode? focusNode;
+
+  /// False in the TV shell, which decides itself when the switch takes focus.
+  final bool autofocusOnTv;
+
+  /// The last error the TV shell's switches reported (see [build]).
+  static AsyncValue<LanternStatus>? _tvReported;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<LanternStatus>>(vPNStatusProvider, (previous, next) {
-      if (next is AsyncData<LanternStatus> &&
-          next.value.status == VPNStatus.error) {
-        context.showSnackBar(
-          next.value.error ?? 'error_while_vpn_connection'.i18n,
-        );
+      if (next is! AsyncData<LanternStatus> ||
+          next.value.status != VPNStatus.error) {
+        return;
       }
+      // The TV shell mounts one switch per screen in the stack and the
+      // messenger is app-wide, so each error is reported once, by whichever
+      // switch hears it first: every listener gets the same state object,
+      // and a full-screen route (Plans, sign-in) has no switch of its own.
+      if (PlatformUtils.tvShellEnabled) {
+        if (identical(next, _tvReported)) return;
+        _tvReported = next;
+      }
+      context.showSnackBar(
+        next.value.error ?? 'error_while_vpn_connection'.i18n,
+      );
     });
     final vpnStatus = ref.watch(vpnProvider);
     final isVPNOn = (vpnStatus == VPNStatus.connected);
     final showFocus = useState(false);
-    final focusNode = useFocusNode(debugLabel: 'VPNSwitch');
+    final ownFocusNode = useFocusNode(debugLabel: 'VPNSwitch');
+    final focusNode = this.focusNode ?? ownFocusNode;
     // On TV the switch claims focus itself, and Home pushes routes (e.g.
     // onboarding) over it; while covered it must not hold focus, or the remote
     // would toggle it unseen. Elsewhere Flutter's route focus restore suffices.
     final isCurrent = ModalRoute.of(context)?.isCurrent ?? true;
     useEffect(() {
-      if (PlatformUtils.isTv && isCurrent) {
+      if (PlatformUtils.isTv && autofocusOnTv && isCurrent) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (focusNode.context != null) focusNode.requestFocus();
         });
       }
       return null;
     }, [isCurrent]);
+    // onSurface: primary matches the connected track in dark mode.
+    final ring = Border.all(
+      color: Theme.of(context).colorScheme.onSurface,
+      width: 3,
+    );
+    final tvShell = PlatformUtils.tvShellEnabled;
     // The knob is a bare GestureDetector, so make the whole switch focusable
     // for D-pad and keyboard users (Android TV, desktop Tab).
     return FocusableActionDetector(
@@ -53,71 +78,92 @@ class VPNSwitch extends HookConsumerWidget {
           },
         ),
       },
-      child: CustomAnimatedToggleSwitch<bool>(
-        current: isVPNOn,
-        allowUnlistedValues: false,
-        values: [false, true],
-        spacing: 10.h,
-        onChanged: (value) {
-          appLogger.info('VPN Switch changed to: $value');
-          onVPNStateChange(ref, context);
-        },
-        loading: false,
-        height: PlatformUtils.isDesktop ? 70.h : 65.h,
-        indicatorSize: Size(60.r, 60.r),
-        iconBuilder: (context, local, global) {
-          return SizedBox();
-        },
-        foregroundIndicatorBuilder: (context, global) {
-          if (vpnStatus == VPNStatus.connecting ||
-              vpnStatus == VPNStatus.disconnecting) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(30.r),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(
-                  strokeWidth: 8.r,
+      // The TV shell draws the ring outside the switch, clear of the track.
+      child: _tvRing(
+        tvShell && showFocus.value ? ring : null,
+        tvShell,
+        CustomAnimatedToggleSwitch<bool>(
+          current: isVPNOn,
+          allowUnlistedValues: false,
+          values: [false, true],
+          spacing: 10.h,
+          onChanged: (value) {
+            appLogger.info('VPN Switch changed to: $value');
+            onVPNStateChange(ref, context);
+          },
+          loading: false,
+          // On TV the track is the knob plus the inset the wrapper's padding
+          // gives it at the sides, above and below too.
+          height: tvShell
+              ? 80.r
+              : PlatformUtils.isDesktop
+              ? 70.h
+              : 65.h,
+          indicatorSize: Size(60.r, 60.r),
+          iconBuilder: (context, local, global) {
+            return SizedBox();
+          },
+          foregroundIndicatorBuilder: (context, global) {
+            if (vpnStatus == VPNStatus.connecting ||
+                vpnStatus == VPNStatus.disconnecting) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(30.r),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 8.r,
+                    color: context.actionToggleKnobBg,
+                  ),
+                ),
+              );
+            }
+            return GestureDetector(
+              key: const Key('vpn.toggle'),
+              onTap: () {
+                appLogger.info('VPN Switch tapped');
+                onVPNStateChange(ref, context);
+              },
+              child: Container(
+                decoration: BoxDecoration(
                   color: context.actionToggleKnobBg,
+                  borderRadius: BorderRadius.circular(30.r),
                 ),
               ),
             );
-          }
-          return GestureDetector(
-            key: const Key('vpn.toggle'),
-            onTap: () {
-              appLogger.info('VPN Switch tapped');
-              onVPNStateChange(ref, context);
-            },
-            child: Container(
+          },
+          wrapperBuilder: (context, global, child) {
+            return Container(
+              key: Key('vpn.switch.${vpnStatus.name}'),
+              // The TV shell gives the knob the same inset all round.
+              padding: EdgeInsets.all(tvShell ? 10.r : 5.r),
               decoration: BoxDecoration(
-                color: context.actionToggleKnobBg,
-                borderRadius: BorderRadius.circular(30.r),
+                color: _wrapperColor(vpnStatus, context),
+                borderRadius: BorderRadius.circular(50.r),
+                border: showFocus.value && !tvShell ? ring : null,
               ),
-            ),
-          );
-        },
-        wrapperBuilder: (context, global, child) {
-          return Container(
-            key: Key('vpn.switch.${vpnStatus.name}'),
-            padding: EdgeInsets.all(5.r),
-            decoration: BoxDecoration(
-              color: _wrapperColor(vpnStatus, context),
-              borderRadius: BorderRadius.circular(50.r),
-              border: showFocus.value
-                  ? Border.all(
-                      // onSurface: primary matches the connected track in dark mode.
-                      color: Theme.of(context).colorScheme.onSurface,
-                      width: 3,
-                    )
-                  : null,
-            ),
-            child: child,
-          );
-        },
+              child: child,
+            );
+          },
+        ),
       ),
+    );
+  }
+
+  /// On TV, room for the focus ring around [child]; elsewhere [child] as is.
+  Widget _tvRing(Border? ring, bool tvShell, Widget child) {
+    if (!tvShell) return child;
+    // Drawn in the foreground, so the ring takes no layout room and the
+    // switch keeps its bounds whether or not it has focus.
+    return Container(
+      padding: const EdgeInsets.all(8),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(100),
+        border: ring,
+      ),
+      child: child,
     );
   }
 

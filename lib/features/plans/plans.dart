@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/tv_shell.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:lantern/core/services/app_purchase.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/telemetry/telemetry.dart';
@@ -25,6 +28,10 @@ import 'package:lantern/features/plans/restore_purchase_mixin.dart';
 import '../../core/models/plan_data.dart';
 import '../../core/models/referral_attach_response.dart';
 
+/// TV layout: the benefits column's width and the gap before the plans.
+const double _tvWhyUpgradeWidth = 380;
+const double _tvColumnGap = 64;
+
 @RoutePage(name: 'Plans')
 class Plans extends StatefulHookConsumerWidget {
   const Plans({super.key, this.referralCode});
@@ -40,6 +47,34 @@ class Plans extends StatefulHookConsumerWidget {
 class _PlansState extends ConsumerState<Plans>
     with RestorePurchaseMixin<Plans> {
   late TextTheme textTheme;
+
+  /// TV: focus nodes for the controls this screen gives focus to itself.
+  final _tvCtaFocus = FocusNode(debugLabel: 'plans.cta');
+  final _tvRetryFocus = FocusNode(debugLabel: 'plans.retry');
+  final _tvPromoFocus = FocusNode(debugLabel: 'plans.promo_code');
+  final _tvLicenseFocus = FocusNode(debugLabel: 'plans.license');
+
+  /// The control this screen last focused; cleared when it loses focus.
+  FocusNode? _tvPlacedFocus;
+
+  void _tvPlacedFocusChanged() {
+    final placed = _tvPlacedFocus;
+    if (placed == null) return;
+    if (!placed.hasFocus) {
+      placed.removeListener(_tvPlacedFocusChanged);
+      _tvPlacedFocus = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _tvCtaFocus.dispose();
+    _tvPlacedFocus?.removeListener(_tvPlacedFocusChanged);
+    _tvRetryFocus.dispose();
+    _tvPromoFocus.dispose();
+    _tvLicenseFocus.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -57,6 +92,9 @@ class _PlansState extends ConsumerState<Plans>
     // Billing availability changes when the country-code event arrives.
     ref.watch(countryCodeProvider);
     textTheme = Theme.of(context).textTheme;
+    if (PlatformUtils.tvShellEnabled && AppBuildInfo.enablePayments) {
+      return _buildTvScreen();
+    }
     return BaseScreen(
       backgroundColor: context.bgElevated,
       padded: false,
@@ -111,36 +149,7 @@ class _PlansState extends ConsumerState<Plans>
               _buildAffiliateBanner(),
               Padding(
                 padding: EdgeInsets.only(left: context.isSmallDevice ? 16 : 0),
-                child: plansState.when(
-                  data: (data) {
-                    if (data.plans.isEmpty) {
-                      return Text(
-                        'plans_fetch_error'.i18n,
-                        style: textTheme.labelLarge,
-                      );
-                    }
-                    return PlansListView(data: data);
-                  },
-                  loading: () {
-                    return Center(child: LoadingIndicator());
-                  },
-                  error: (error, stackTrace) {
-                    return Column(
-                      children: [
-                        Text(
-                          'plans_fetch_error'.i18n,
-                          style: textTheme.labelLarge,
-                        ),
-                        AppTextButton(
-                          label: 'retry'.i18n,
-                          onPressed: () {
-                            ref.read(plansProvider.notifier).retryFetchPlans();
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                child: _plansListOrStatus(plansState),
               ),
               SizedBox(height: defaultSize),
               Padding(
@@ -223,6 +232,287 @@ class _PlansState extends ConsumerState<Plans>
     );
   }
 
+  /// The plan cards, or their loading or error state.
+  Widget _plansListOrStatus(
+    AsyncValue<PlansData> plansState, {
+    double? cardWidth,
+  }) {
+    return plansState.when(
+      // An empty list is a failed fetch too, with the same Retry.
+      data: (data) => data.plans.isEmpty
+          ? _plansFetchError()
+          : PlansListView(data: data, cardWidth: cardWidth),
+      loading: () => Center(child: LoadingIndicator()),
+      error: (_, _) => _plansFetchError(),
+    );
+  }
+
+  Widget _plansFetchError() {
+    void retry() => ref.read(plansProvider.notifier).retryFetchPlans();
+    return Column(
+      children: [
+        Text('plans_fetch_error'.i18n, style: textTheme.labelLarge),
+        if (PlatformUtils.tvShellEnabled)
+          PrimaryButton(
+            buttonKey: const Key('plans.retry'),
+            focusNode: _tvRetryFocus,
+            label: 'retry'.i18n,
+            onPressed: retry,
+          )
+        else
+          AppTextButton(label: 'retry'.i18n, onPressed: retry),
+      ],
+    );
+  }
+
+  /// The full-screen TV layout: logo and benefits on the left (not
+  /// focusable); plan cards, "Get Lantern Pro" and links on the right.
+  /// No Restore Purchase here; Settings keeps it.
+  Widget _buildTvScreen() {
+    final plansState = ref.watch(plansProvider);
+    // A value kept during a refetch is not ready: the list shows loading.
+    final plansReady = _tvPlansReady(plansState);
+    final isReferralApplied = ref.watch(referralProvider).isApplied;
+    // A no-op while the viewer holds focus on this screen.
+    _tvInitialFocus(_tvFocusTargetFor(plansState, isReferralApplied));
+    final textDirection = Directionality.of(context);
+    // Back and Close wait for a checkout; a second press leaves anyway.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_tvStoreBusy) {
+          if (!_tvLeaveWhileBusy) {
+            _tvLeaveWhileBusy = true;
+            return;
+          }
+          context.hideLoadingDialog();
+        }
+        final navigator = Navigator.of(context);
+        if (navigator.canPop()) navigator.pop();
+      },
+      child: Scaffold(
+        backgroundColor: context.bgElevated,
+        // The columns are sized to the screen, not the keyboard.
+        resizeToAvoidBottomInset: false,
+        // Reading order, scrolling the focused control into the safe area.
+        body: FocusTraversalGroup(
+          policy: ReadingOrderTraversalPolicy(
+            requestFocusCallback: tvRequestFocus,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: tvSafeMarginH,
+              vertical: tvSafeMarginV,
+            ),
+            child: Stack(
+              // The close button's ring reaches past the safe margin's corner.
+              clipBehavior: Clip.none,
+              children: [
+                // The columns keep their physical places in right-to-left locales.
+                LayoutBuilder(
+                  builder: (context, constraints) => Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(
+                          width: math.min(
+                            _tvWhyUpgradeWidth,
+                            constraints.maxWidth * 0.42,
+                          ),
+                          child: ExcludeFocus(
+                            child: Directionality(
+                              textDirection: textDirection,
+                              // Clips rather than overflows on a short TV.
+                              child: SingleChildScrollView(
+                                physics: const NeverScrollableScrollPhysics(),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 80),
+                                    Padding(
+                                      // Lines the logo up with the benefit icons.
+                                      padding: const EdgeInsetsDirectional.only(
+                                        start: defaultSize,
+                                      ),
+                                      child: AppImage(
+                                        path: AppImagePaths.lanternPro,
+                                        color: context.textPrimary,
+                                        width: 246,
+                                        height: 32,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 40),
+                                    const FeatureList(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: _tvColumnGap),
+                        Expanded(
+                          child: Directionality(
+                            textDirection: textDirection,
+                            child: SingleChildScrollView(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: constraints.maxHeight,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    _buildAffiliateBanner(),
+                                    // The badge is placed from the card's width, not the viewport's.
+                                    LayoutBuilder(
+                                      builder: (context, constraints) =>
+                                          _plansListOrStatus(
+                                            plansState,
+                                            cardWidth:
+                                                constraints.maxWidth +
+                                                2 * defaultSize,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 28),
+                                    PrimaryButton(
+                                      buttonKey: const Key('plans.cta'),
+                                      focusNode: _tvCtaFocus,
+                                      label: 'get_lantern_pro'.i18n,
+                                      enabled: plansReady,
+                                      onPressed: _tvGetLanternPro,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    // The three-dot menu's items as links; no Restore Purchase.
+                                    Wrap(
+                                      alignment: WrapAlignment.spaceBetween,
+                                      spacing: defaultSize,
+                                      runSpacing: 8,
+                                      children: [
+                                        if (!isReferralApplied)
+                                          AppTextButton(
+                                            key: const Key('plans.promo_code'),
+                                            focusNode: _tvPromoFocus,
+                                            label: isStoreVersion()
+                                                ? 'promo_code'.i18n
+                                                : 'promo_referral_code'.i18n,
+                                            onPressed:
+                                                _tvShowReferralCodeDialog,
+                                          ),
+                                        AppTextButton(
+                                          key: const Key('plans.license'),
+                                          focusNode: _tvLicenseFocus,
+                                          label: 'lantern_pro_license'.i18n,
+                                          onPressed: _tvOpenProLicense,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Close, with its glyph on the safe margin's corner.
+                Positioned(
+                  left: -12,
+                  top: -12,
+                  child: TvNotInitialFocus(
+                    child: IconButton(
+                      key: const Key('plans.close'),
+                      icon: const Icon(Icons.close),
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonTooltip,
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Focuses [node] after the frame, unless the viewer moved focus or
+  /// another route covers this one.
+  void _tvInitialFocus(FocusNode node) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      // A backgrounded app parks focus on the root scope.
+      final lifecycle = WidgetsBinding.instance.lifecycleState;
+      if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
+      final focused = FocusManager.instance.primaryFocus;
+      final scope = FocusScope.of(context);
+      final viewerMoved =
+          focused != null &&
+          focused != scope &&
+          focused.ancestors.contains(scope) &&
+          !identical(focused, _tvPlacedFocus);
+      if (viewerMoved) return;
+      _tvPlacedFocus?.removeListener(_tvPlacedFocusChanged);
+      _tvPlacedFocus = node;
+      node.addListener(_tvPlacedFocusChanged);
+      tvRequestFocus(node);
+    });
+  }
+
+  /// Whether the cards are showing with at least one plan to pick.
+  static bool _tvPlansReady(AsyncValue<PlansData> state) =>
+      state is AsyncData<PlansData> && state.value.plans.isNotEmpty;
+
+  /// The control that takes focus for [state]: the first link while
+  /// loading, the button once the cards show, otherwise Retry.
+  FocusNode _tvFocusTargetFor(
+    AsyncValue<PlansData> state,
+    bool isReferralApplied,
+  ) {
+    if (state.isLoading) {
+      return isReferralApplied ? _tvLicenseFocus : _tvPromoFocus;
+    }
+    return _tvPlansReady(state) ? _tvCtaFocus : _tvRetryFocus;
+  }
+
+  /// True while the app-wide loading overlay is up. It is not a route, so
+  /// keys still reach this screen; its controls wait until it hides.
+  bool get _tvStoreBusy => context.loaderOverlay.visible;
+
+  /// Back or Close was pressed once during the current store operation.
+  bool _tvLeaveWhileBusy = false;
+
+  /// A purchase is done and its account refresh runs with the overlay down.
+  bool _tvFinishingPurchase = false;
+
+  void _tvShowReferralCodeDialog() {
+    if (_tvStoreBusy) return;
+    _tvLeaveWhileBusy = false;
+    showReferralCodeDialog();
+  }
+
+  void _tvOpenProLicense() {
+    if (_tvStoreBusy) return;
+    _openProLicense();
+  }
+
+  void _tvGetLanternPro() {
+    if (_tvStoreBusy || _tvFinishingPurchase) return;
+    // A reload may have replaced the cards since the press.
+    if (!_tvPlansReady(ref.read(plansProvider))) return;
+    _tvLeaveWhileBusy = false;
+    onGetLanternProTap();
+  }
+
   /// Builds without in-app payments activate Pro with a license only.
   Widget _buildLicenseOnlyBody() {
     return Column(
@@ -302,6 +592,8 @@ class _PlansState extends ConsumerState<Plans>
   /// Clears the affiliate code and refetches the base plans; the notifier
   /// reloads the base SKUs so a later purchase is charged full price.
   void _onRemoveAffiliateCode() {
+    // Not under a running checkout (a TV remote still reaches the chip).
+    if (context.loaderOverlay.visible) return;
     appLogger.info('Removing applied affiliate code');
     ref.read(referralProvider.notifier).resetReferral();
     ref.read(plansProvider.notifier).fetchPlans();
@@ -585,7 +877,12 @@ class _PlansState extends ConsumerState<Plans>
     appLogger.info('Subscription successful for plan: ${plan.id}');
 
     /// Refresh user data from core to update UI immediately after purchase acknowledgment.
-    await ref.read(homeProvider.notifier).refreshUser();
+    _tvFinishingPurchase = true;
+    try {
+      await ref.read(homeProvider.notifier).refreshUser();
+    } finally {
+      _tvFinishingPurchase = false;
+    }
 
     /// IOS Send old purchases to stream
     sl<AppPurchase>().clearCallbacks();

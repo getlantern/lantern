@@ -22,6 +22,10 @@ class PrimaryButton extends StatelessWidget {
   final bool? isTaller;
   final bool? useThemeColor;
 
+  /// For a screen that gives this button its first focus (the TV Plans
+  /// screen); the button keeps its own node when null.
+  final FocusNode? focusNode;
+
   // Default constructor for button without an icon
   const PrimaryButton({
     required this.label,
@@ -36,6 +40,7 @@ class PrimaryButton extends StatelessWidget {
     this.showBorder = false,
     this.useThemeColor,
     this.icon,
+    this.focusNode,
     super.key,
   });
 
@@ -49,12 +54,14 @@ class PrimaryButton extends StatelessWidget {
     return icon == null
         ? ElevatedButton(
             key: buttonKey,
+            focusNode: focusNode,
             onPressed: enabled ? onPressed : null,
             style: _buildButtonStyle(context, button!, iconSz),
             child: Text(label, textAlign: TextAlign.center),
           )
         : ElevatedButton.icon(
             key: buttonKey,
+            focusNode: focusNode,
             onPressed: enabled ? onPressed : null,
             icon: AppImage(
               path: icon!,
@@ -79,6 +86,10 @@ class PrimaryButton extends StatelessWidget {
     // Heights
     final height = isTaller == true ? hCap(context, 56) : hCap(context, 48);
 
+    final tvRing = PlatformUtils.tvShellEnabled
+        ? tvFocusRingBorder(context)
+        : null;
+
     return style.copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color>((
         Set<WidgetState> states,
@@ -101,6 +112,10 @@ class PrimaryButton extends StatelessWidget {
       side: WidgetStateProperty.resolveWith<BorderSide>((
         Set<WidgetState> states,
       ) {
+        // The TV shell's ring: a D-pad user cannot see the hover colour.
+        if (tvRing != null && states.contains(WidgetState.focused)) {
+          return tvRing;
+        }
         if (states.contains(WidgetState.disabled)) {
           // primary-disabled-border: Gray.400 light / Gray.500 dark
           return BorderSide(
@@ -287,27 +302,31 @@ class AppTextButton extends StatelessWidget {
     this.padding,
     this.underLine = true,
     this.fontSize,
+    this.focusNode,
   });
+
+  /// The button's focus node, for a screen that gives it focus itself.
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final cappedFontSize = fontSize == null ? null : spCap(context, fontSize!);
 
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        padding: padding ?? EdgeInsets.symmetric(horizontal: defaultSize),
-        visualDensity: VisualDensity.compact,
-        textStyle: AppTextStyles.titleMedium.copyWith(
-          overflow: TextOverflow.ellipsis,
-          decoration: underLine
-              ? TextDecoration.underline
-              : TextDecoration.none,
-          fontSize: cappedFontSize,
-        ),
-        // text.link from semantic token
-        foregroundColor: textColor ?? context.textLink,
+    final style = TextButton.styleFrom(
+      padding: padding ?? EdgeInsets.symmetric(horizontal: defaultSize),
+      visualDensity: VisualDensity.compact,
+      textStyle: AppTextStyles.titleMedium.copyWith(
+        overflow: TextOverflow.ellipsis,
+        decoration: underLine ? TextDecoration.underline : TextDecoration.none,
+        fontSize: cappedFontSize,
       ),
+      // text.link from semantic token
+      foregroundColor: textColor ?? context.textLink,
+    );
+    return TextButton(
+      focusNode: focusNode,
+      onPressed: onPressed,
+      style: style.merge(tvFocusRingButtonStyle(context)),
       child: Text(label),
     );
   }

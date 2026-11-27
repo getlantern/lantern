@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/services/injection_container.dart';
 import 'package:lantern/core/services/local_storage_service.dart';
 import 'package:lantern/core/utils/failure.dart';
@@ -897,8 +898,9 @@ void main() {
   });
 
   group('helperInvitesAvailableProvider', () {
-    // The provider reads the build const, which is on in tests; the stealth
-    // side is covered by the notifier's guard test above.
+    // The provider's build side is the engine's gate: the build const (on
+    // in tests, off in a stealth build) and not the TV shell. The flag
+    // cases exercise the provider; the two below pin the gate through it.
     for (final flag in [true, false]) {
       test('follows the helper_invites flag ($flag)', () async {
         svc.flags = '{"helper_invites":$flag}';
@@ -907,6 +909,23 @@ void main() {
         expect(c.read(helperInvitesAvailableProvider), flag);
       });
     }
+
+    test('is off in the TV shell even with the flag on', () async {
+      PlatformUtils.debugTvShell = true;
+      addTearDown(() => PlatformUtils.debugTvShell = null);
+      svc.flags = '{"helper_invites":true}';
+      final c = container();
+      await c.read(featureFlagProvider.notifier).fetchFeatureFlags();
+      expect(c.read(helperInvitesAvailableProvider), isFalse);
+    });
+
+    test('is off in a stealth build even with the flag on', () async {
+      HelpersNotifier.debugBuildEnabled = false;
+      svc.flags = '{"helper_invites":true}';
+      final c = container();
+      await c.read(featureFlagProvider.notifier).fetchFeatureFlags();
+      expect(c.read(helperInvitesAvailableProvider), isFalse);
+    });
   });
 
   group('personalProxiesTabVisibleProvider with the flag off', () {

@@ -5,6 +5,7 @@ import '../common/app_asset.dart';
 import '../common/app_dimens.dart';
 import '../common/app_semantic_colors.dart';
 import '../extensions/string.dart';
+import 'app_focusable.dart';
 
 class SettingTile extends StatelessWidget {
   final Key? tileKey;
@@ -38,85 +39,93 @@ class SettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final smallScreen = isSmallScreen(context);
-    return InkWell(
-      key: tileKey,
+    return TvFocusRing(
       borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      splashColor: context.bgCallout,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: smallScreen ? 8 : 10,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 24,
-                  child: icon is String ? AppImage(path: icon) : icon as Widget,
+      builder: (context, focusNode) => InkWell(
+        key: tileKey,
+        focusNode: focusNode,
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        splashColor: context.bgCallout,
+        child: _body(context, smallScreen),
+      ),
+    );
+  }
+
+  Widget _body(BuildContext context, bool smallScreen) {
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: smallScreen ? 8 : 10,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              SizedBox(
+                width: 24,
+                child: icon is String ? AppImage(path: icon) : icon as Widget,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: smallScreen ? null : 1,
+                  overflow: smallScreen
+                      ? TextOverflow.visible
+                      : TextOverflow.ellipsis,
+                  style: textTheme.labelLarge!.copyWith(
+                    color: context.textSecondary,
+                  ),
                 ),
-                SizedBox(width: 8),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              SizedBox(width: 32.0),
+              if (child != null)
+                Expanded(child: child!)
+              else
                 Expanded(
-                  child: Text(
-                    label,
+                  child: AutoSizeText(
+                    value,
                     maxLines: smallScreen ? null : 1,
-                    overflow: smallScreen
-                        ? TextOverflow.visible
-                        : TextOverflow.ellipsis,
-                    style: textTheme.labelLarge!.copyWith(
-                      color: context.textSecondary,
+                    maxFontSize: 16,
+                    minFontSize: 14,
+                    style: textTheme.titleMedium!.copyWith(
+                      color: context.textPrimary,
                     ),
                   ),
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                SizedBox(width: 32.0),
-                if (child != null)
-                  Expanded(child: child!)
-                else
-                  Expanded(
-                    child: AutoSizeText(
-                      value,
-                      maxLines: smallScreen ? null : 1,
-                      maxFontSize: 16,
-                      minFontSize: 14,
-                      style: textTheme.titleMedium!.copyWith(
-                        color: context.textPrimary,
-                      ),
-                    ),
-                  ),
-                ...actions,
-              ],
-            ),
-            if (subtitle != null && subtitle!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 32.0),
-                child: Text(
-                  subtitle!.capitalize,
-                  style: textTheme.labelLarge!.copyWith(
-                    color: subtitleColor ?? context.textSecondary,
-                  ),
+              ...actions,
+            ],
+          ),
+          if (subtitle != null && subtitle!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 32.0),
+              child: Text(
+                subtitle!.capitalize,
+                style: textTheme.labelLarge!.copyWith(
+                  color: subtitleColor ?? context.textSecondary,
                 ),
               ),
-            if (note != null && note!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 32.0),
-                child: Text(
-                  note!,
-                  style: textTheme.labelLarge!.copyWith(
-                    color: noteColor ?? context.textTertiary,
-                  ),
+            ),
+          if (note != null && note!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 32.0),
+              child: Text(
+                note!,
+                style: textTheme.labelLarge!.copyWith(
+                  color: noteColor ?? context.textTertiary,
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

@@ -49,7 +49,9 @@ class Account extends HookConsumerWidget {
     final isUserFree = !isExpired && !isPro;
     final theme = TextTheme.of(buildContext);
     final isOAuthLogin = ref.watch(isOAuthLoginProvider).value ?? false;
+    // The TV shell's lists run off the bottom edge.
     return SafeArea(
+      bottom: !PlatformUtils.tvShellEnabled,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

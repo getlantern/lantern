@@ -37,7 +37,10 @@ class _OnboardingState extends ConsumerState<Onboarding> {
     // pull it out from under the user.
     final actionModeOffered = ref.watch(actionModeOfferedProvider);
     final showActionMode = useRef(false);
-    if (actionModeOffered) showActionMode.value = true;
+    // The TV shell has no Action Mode entry points.
+    if (actionModeOffered && !PlatformUtils.tvShellEnabled) {
+      showActionMode.value = true;
+    }
     final personalProxies = ref.watch(helperInvitesAvailableProvider);
     // The pages this run has put in front of the user, for the Personal
     // Proxies introduction: the row counts only if it was there when What

@@ -91,7 +91,10 @@ class _ServerSelectionState extends ConsumerState<ServerSelection> {
     // Where helper invites are offered, before and after the first personal
     // proxy: the row stays here, under Smart Location, and the Personal
     // Proxies group under Private Locations has none of its own.
-    final inviteRow = ref.watch(helperInvitesAvailableProvider);
+    // Not in the TV shell, where the invite flow has no entry points.
+    final inviteRow =
+        ref.watch(helperInvitesAvailableProvider) &&
+        !PlatformUtils.tvShellEnabled;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -290,7 +293,9 @@ class PrivateLocationsMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final invites = ref.watch(helperInvitesAvailableProvider);
+    final invites =
+        ref.watch(helperInvitesAvailableProvider) &&
+        !PlatformUtils.tvShellEnabled;
     return ListView(
       padding: EdgeInsets.zero,
       shrinkWrap: true,
@@ -348,6 +353,8 @@ class _ServerLocationListViewState
     final locations = widget.servers.lanternServerLocations;
 
     return SafeArea(
+      // The TV shell's lists run off the bottom edge.
+      bottom: !PlatformUtils.tvShellEnabled,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -15,7 +15,11 @@ import 'package:lantern/features/plans/provider/referral_notifier.dart';
 class PlansListView extends HookConsumerWidget {
   final PlansData data;
 
-  const PlansListView({super.key, required this.data});
+  const PlansListView({super.key, required this.data, this.cardWidth});
+
+  /// Passed to each [PlanItem] for its badge; null places it from the
+  /// viewport as on the phone.
+  final double? cardWidth;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -67,6 +71,7 @@ class PlansListView extends HookConsumerWidget {
           return PlanItem(
             key: Key('plans.item.${item.id}'),
             plan: item,
+            cardWidth: cardWidth,
             planSelected: selectedPlan.id == item.id,
             referralMessage: showReferralBonus ? getReferralMessage() : '',
             discountPct: discountPct,

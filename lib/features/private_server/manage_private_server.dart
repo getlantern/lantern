@@ -36,7 +36,10 @@ class _ManagePrivateServerState extends ConsumerState<ManagePrivateServer> {
     final serversAsync = ref.watch(availableServersProvider);
     // The tab stays while helper invites are available, empty or not, and
     // while there is something left to manage after they stop being.
-    final showProxies = ref.watch(personalProxiesTabVisibleProvider);
+    // Not in the TV shell, where the invite flow has no entry points.
+    final showProxies =
+        ref.watch(personalProxiesTabVisibleProvider) &&
+        !PlatformUtils.tvShellEnabled;
 
     // Personal proxies come from the helpers engine, not the server list,
     // so their tab stays usable while the list loads or fails.

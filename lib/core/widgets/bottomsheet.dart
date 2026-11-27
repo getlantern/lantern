@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lantern/core/common/app_dimens.dart';
 import 'package:lantern/core/common/app_semantic_colors.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
 import 'package:lantern/core/widgets/app_focusable.dart';
 import 'package:lantern/core/widgets/divider_space.dart';
+import 'package:lantern/core/widgets/tv_shell.dart';
 
 typedef BottomSheetBuilder = Function(
     BuildContext context, ScrollController scrollController);
@@ -22,31 +25,95 @@ void showAppBottomSheet({
 }) {
   // backgroundColor (unless given) and shape come from bottomSheetTheme in
   // app_theme.dart
+  //
+  // In the TV shell the sheet is confined to the screen's panel (Figma
+  // "Server Locations / Bottom sheet open"): the modal's own surface and drag
+  // handle span the whole screen, so they are dropped and drawn inside the
+  // panel-wide box instead, while the modal barrier still dims everything.
+  // Opened from a full-screen route (no panel), the box sits under that
+  // route's centred column instead.
+  final tvShell = PlatformUtils.tvShellEnabled;
+  final inPanel =
+      tvShell && context.findAncestorWidgetOfExactType<TvShell>() != null;
   showModalBottomSheet(
     context: context,
-    backgroundColor: backgroundColor,
+    backgroundColor: tvShell ? Colors.transparent : backgroundColor,
+    // Material 3 caps a sheet at 640dp and centres it; the panel-wide box
+    // below needs the whole width to sit over the screen's panel.
+    constraints: tvShell
+        ? const BoxConstraints(maxWidth: double.infinity)
+        : null,
     isDismissible: true,
-    enableDrag: true,
-    showDragHandle: true,
+    enableDrag: !tvShell,
+    showDragHandle: !tvShell,
     scrollControlDisabledMaxHeightRatio: scrollControlDisabledMaxHeightRatio,
     builder: (context) {
       focusFirstOnTv(context);
+      final Widget content;
       if (fitContent) {
-        return _ContentSheet(title: title, subtitle: subtitle, builder: builder);
+        content = _ContentSheet(
+          title: title,
+          subtitle: subtitle,
+          builder: builder,
+        );
+      } else {
+        content = DraggableScrollableSheet(
+          expand: true,
+          initialChildSize: 1,
+          minChildSize: 0.85,
+          builder: (BuildContext context, ScrollController scrollController) =>
+              _sheetColumn(
+                context,
+                title: title,
+                subtitle: subtitle,
+                child: builder(context, scrollController),
+              ),
+        );
       }
-      return DraggableScrollableSheet(
-        expand: true,
-        initialChildSize: 1,
-        minChildSize: 0.85,
-        builder: (BuildContext context, ScrollController scrollController) =>
-            _sheetColumn(
-              context,
-              title: title,
-              subtitle: subtitle,
-              child: builder(context, scrollController),
-            ),
-      );
+      if (!tvShell) return content;
+      return _tvPanelSheet(context, backgroundColor, content, inPanel: inPanel);
     },
+  );
+}
+
+Widget _tvPanelSheet(
+  BuildContext context,
+  Color? backgroundColor,
+  Widget child, {
+  required bool inPanel,
+}) {
+  final sheetTheme = Theme.of(context).bottomSheetTheme;
+  // The modal's own sheet spans the whole width and swallows taps even
+  // where it is transparent, so a tap beside the box dismisses here; the
+  // box keeps its taps to itself.
+  return GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: () => Navigator.of(context).pop(),
+    child: Align(
+      alignment: inPanel ? Alignment.bottomRight : Alignment.bottomCenter,
+      child: Padding(
+        padding: EdgeInsets.only(right: inPanel ? tvSafeMarginH : 0),
+        child: SizedBox(
+          width: inPanel ? tvRightPanelWidth(context) : tvContentMaxWidth,
+          child: GestureDetector(
+            onTap: () {},
+            child: Material(
+              key: const Key('bottomsheet.tv_box'),
+              color:
+                  backgroundColor ??
+                  sheetTheme.modalBackgroundColor ??
+                  sheetTheme.backgroundColor,
+              shape: sheetTheme.shape,
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: child,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
   );
 }
 
